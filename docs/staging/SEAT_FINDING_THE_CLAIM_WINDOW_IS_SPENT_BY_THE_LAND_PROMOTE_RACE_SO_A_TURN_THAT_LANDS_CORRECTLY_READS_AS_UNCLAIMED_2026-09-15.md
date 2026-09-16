@@ -100,3 +100,43 @@ not bind.
 **This is silent.** `--landed` exits `rc=0`. The promote prints success. Nothing anywhere is red, and
 the only reason it is written down is that the seat read the binding line the executor told it to
 read.
+
+---
+
+## SECOND INSTANCE, 2026-09-16 — measured, and the race is with the GATE, not the work
+
+Recorded on the same document rather than as a new finding: same mechanism, and the numbers say
+something the first instance could not.
+
+Lane 0 item `a-gas-only-account-must-be-able-to-leave-before-the-158-can-be-priced`. The work landed
+(`9fd8ca3c3`) and reached origin/main (`7939ca0e8`). `promote --work-id` then printed exactly the
+reading above: **`bound NOTHING ... it is NOT CLAIMED`**.
+
+**What spent the window was the landing procedure itself.** Timed:
+
+| step | outcome |
+|---|---|
+| `surgical_land` #1 | REFUSED by `landed_manifest_check` — a full gate cycle spent on a correctable claim |
+| `surgical_land` #2 | landed `9fd8ca3c3` |
+| `promote --work-id` #1 | REFUSED: origin/main moved (3 commits) |
+| `surgical_land --merge origin/main` #1 | landed `2645bc2ed` — a full gate cycle |
+| `promote --work-id` #2 | REFUSED: origin/main moved again (2 commits) |
+| `surgical_land --merge origin/main` #2 | landed `7939ca0e8` — another full gate cycle |
+| `promote --work-id` #3 | promoted, `bound NOTHING` |
+
+**Four full gate cycles to land one increment, because origin/main moves at about the same period
+as a gate takes to run.** None of that is idleness and none of it is the holder's to shorten: the
+gate is the sanctioned door, the merge is the sanctioned response to a moved origin, and the
+refusals were all correct. On a busy tree **the sweep window is shorter than one land-promote
+cycle**, so a holder can be swept while doing nothing but obeying the procedure.
+
+This sharpens remedy 2 above rather than adding a third. *"A holder with a commit inside the window
+is not abandoned"* is right, and this instance shows the deadline needs restarting from a **gated
+landing of any kind — including a `--merge` commit that carries no new work of the lane's own** —
+because those merges are the largest consumers of the window and the least visible as progress. A
+sweep that reads only the lane's own paths would have counted two of these four cycles as silence.
+
+**Recurrence matters more than the instance.** Two turns in two days, both landing correctly, both
+reading as unclaimed. The item was `--release`d here (it printed `retired the continuation ... it
+will not be offered again`), so this one does not go back to the pool — but that worked only because
+the seat noticed. Nothing in the machinery did.

@@ -113,6 +113,7 @@ from simulation.competitor_reference import CompanyPositionLedger
 from simulation.customer_events import (
     DEPARTURE_OCCASION_SVT_SEGMENT,
     HOME_MOVE_ACTIVATE_SUCCESSOR,
+    departure_decision_leg,
     departure_event,
     home_move_disposition,
     roll_lifecycle_event,
@@ -1447,6 +1448,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             all_terms.append((term["acquisition_date"], cid, "gas", term))
     all_terms.sort(key=lambda x: (x[0], x[1]))
 
+    # WHICH BILLING ACCOUNTS HOLD AN ELECTRICITY SUPPLY POINT IN THIS RUN, which is the only
+    # input `departure_decision_leg` needs to say which leg carries an account's departure roll.
+    #
+    # BUILT FROM THE SCHEDULES AND NOT FROM `ELEC_CUSTOMERS`, and the difference is the one that
+    # matters: this set must mean "has an electricity leg that actually runs terms here". A leg
+    # on the roster with an empty schedule would claim the decision and then never roll, which
+    # would leave its household with no route out — reintroducing exactly the defect below on a
+    # smaller population, and silently, because nothing downstream distinguishes "rolled and
+    # stayed" from "never rolled".
+    _accounts_with_an_electricity_leg = {
+        household_of(cid) for cid, schedule in elec_schedules.items() if schedule
+    }
+
     # ---- Simulation state ----
     treasury = STARTING_TREASURY_GBP
     monitor = RiskCommitteeMonitor(treasury)
@@ -1570,9 +1584,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
     # Phase NI: term-level rate shock counter. Replaces count_rate_shocks(all_records)
     # which incorrectly counted TOU peak/offpeak transitions as bill shocks for HH customers.
-    _elec_rate_shock_counts: dict[str, int] = {}
+    _rate_shock_counts: dict[str, int] = {}
     # Phase QV: per-year shock dates (SIM_TAB_OVERHAUL.md event frequency panel) --
-    # _elec_rate_shock_counts above is an all-time rolling scalar; this retains
+    # _rate_shock_counts above is an all-time rolling scalar; this retains
     # the actual term_start_str of each shock so the site can bucket per year.
     _bill_shock_dates: dict[str, list] = {}
     committee_wake_ups: list[dict] = []
@@ -1657,6 +1671,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # vocabulary and stays only because ~60 downstream uses and two run-record
         # output keys carry it; the VALUE no longer comes from a company module.
         billing_account = household_of(cid)
+        # THE LEG THIS ACCOUNT'S DEPARTURE IS ROLLED ON, resolved once per term and used at both
+        # booking sites below so the two cannot drift apart. `"electricity"` for every account
+        # that holds an electricity leg, which is what both sites spelled as a literal until
+        # 2026-09-16; `"gas"` only where the alternative was no roll at all.
+        _decision_leg = departure_decision_leg(
+            billing_account,
+            accounts_with_an_electricity_leg=_accounts_with_an_electricity_leg,
+        )
         if billing_account in churned_billing_accounts:
             term_indices[cid] += 1
             continue
@@ -1734,7 +1756,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         # Phase 11b + 14b: capture previous rates before updating.
         # Phase 40c: skip for deemed terms (no fixed unit_rate to record or compare).
-        old_elec_rate = prev_elec_unit_rates.get(cid) if commodity == "electricity" else None
+        # THE PRIOR RATE THE DEPARTURE DECISION IS TAKEN AGAINST, on whichever leg carries it.
+        # Named for the ROLE and not for the fuel (it was `old_elec_rate` until 2026-09-16), which
+        # is the whole reason the gas-only defect was invisible from inside this branch: a name
+        # saying "elec" reads as correct beside a guard saying "electricity" however wrong the
+        # guard is. On an account with an electricity leg this is the same lookup it always was.
+        old_decision_leg_rate = (
+            prev_elec_unit_rates.get(cid) if commodity == "electricity"
+            else prev_gas_unit_rates.get(cid)
+        ) if commodity == _decision_leg else None
+        # THE SECONDARY FUEL'S OWN PRIOR RATE, and it stays fuel-spelled on purpose: its one
+        # consumer below is the dual-fuel gas pressure log, which is about the leg that does NOT
+        # decide. See the guard there.
         old_gas_rate = prev_gas_unit_rates.get(cid) if commodity == "gas" else None
         # `svt` joins the indexed tariffs (2026-08-30, brief WORK item 4). It belongs here for
         # the same reason `deemed` and `flex` do and for one more: those two have no RENEWAL
@@ -1746,12 +1779,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _indexed_tariff = term_tariff_type in ("deemed", "flex", SVT_TARIFF_TYPE)
         if commodity == "electricity" and not _indexed_tariff:
             prev_elec_unit_rates[cid] = unit_rate
-            if old_elec_rate is not None and old_elec_rate > 0:
-                if (unit_rate - old_elec_rate) / old_elec_rate > _NG_BILL_SHOCK_THRESHOLD:
-                    _elec_rate_shock_counts[cid] = _elec_rate_shock_counts.get(cid, 0) + 1
-                    _bill_shock_dates.setdefault(cid, []).append(term_start_str)
         elif commodity == "gas" and not _indexed_tariff:
             prev_gas_unit_rates[cid] = unit_rate
+        # THE SHOCK HISTORY FOLLOWS THE DECISION LEG, because its only two readers are inside the
+        # renewal branch that leg gates. Counting it on the electricity leg alone left a gas-only
+        # account's history permanently empty, and an empty history reads downstream as "this
+        # household has never had a bill rise" rather than as "nobody looked" — which understates
+        # its departure risk, the direction that flatters the company. On every account holding an
+        # electricity leg this fires on exactly the terms it always did.
+        if commodity == _decision_leg and not _indexed_tariff:
+            if old_decision_leg_rate is not None and old_decision_leg_rate > 0:
+                if (unit_rate - old_decision_leg_rate) / old_decision_leg_rate > _NG_BILL_SHOCK_THRESHOLD:
+                    _rate_shock_counts[cid] = _rate_shock_counts.get(cid, 0) + 1
+                    _bill_shock_dates.setdefault(cid, []).append(term_start_str)
 
         # ═══════════════════════════════════════════════════════════════════════════════════════
         # C1b — AN ACCOUNT ON THE STANDARD VARIABLE PRODUCT CAN NOW LEAVE (2026-08-30)
@@ -1780,7 +1820,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # whatever those three would have added. What is NOT true is that SVT accounts leave less
         # than fixed ones -- the inertia band alone (10-20%/yr) sits above this book's anchored
         # whole-population level in most years of the window, and the run measures the net.
-        if commodity == "electricity" and term_tariff_type == SVT_TARIFF_TYPE:
+        if commodity == _decision_leg and term_tariff_type == SVT_TARIFF_TYPE:
             if _last_tariff_type.get(cid) != SVT_TARIFF_TYPE:
                 _svt_stint_start[cid] = term_start_str
             _stint_start = _svt_stint_start[cid]
@@ -1979,7 +2019,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "data_regime": "historical",
         })
 
-        if term_index >= 1 and commodity == "electricity" and not _indexed_tariff:
+        if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
             company_est_pre = None
             retention_modifier_val = None
             _no_offer_reason = "below_threshold"
@@ -1994,7 +2034,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # because the DEPARTURE booking further down is outside that branch -- a name left over
             # from the previous iteration would book one customer's channel against another's loss.
             _company_payment_method = None
-            if old_elec_rate is not None:
+            if old_decision_leg_rate is not None:
                 # Phase 2 Layer 1 (CORE_FIDELITY_PHASES.md): each household's
                 # engagement archetype is a persistent trait (keyed on the
                 # stable billing_account, not per-term_index), not a fresh
@@ -2051,7 +2091,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if segment_for_churn == "resi":
                     from simulation.household_segments import payment_channel_for_customer
                     _company_payment_method = payment_channel_for_customer(
-                        billing_account, "electricity").value
+                        billing_account, commodity).value
                 # Phase 33: passive renewers use SVT-inertia constants; active use full model.
                 # I&C customers are always active (brokers shop every renewal — no passive roll).
                 _renewal_year = int(term_start_str[:4])
@@ -2062,14 +2102,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # customer's satisfaction/shock tracking was frozen and never fed into
                 # their estimate -- the root cause of the churn classifier's structural
                 # recall=0%/precision=0% (docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md).
-                _nd_shock_count = _elec_rate_shock_counts.get(cid, 0)
+                _nd_shock_count = _rate_shock_counts.get(cid, 0)
                 # Phase NH: payment behaviour score from observable payment history
                 _nh_behaviour_score = _cx_desk.payment_behaviour_score(cid)
                 if _churn_journey_register.get_journey(billing_account) is None:
                     _churn_journey_register.register_customer(
                         billing_account, tenure_years=tenure_for_est, churn_threshold=50.0,
                     )
-                if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
+                if old_decision_leg_rate > 0 and unit_rate / old_decision_leg_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
                     _bill_shock_this_term = True
                     _churn_journey_register.record_friction(
                         billing_account, FrictionEventType.BILL_SHOCK, date.fromisoformat(term_start_str),
@@ -2090,7 +2130,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # passive roller versus an active/I&C renewal is the company's
                 # own segmentation judgement, behind this door.
                 company_est_pre = estimate_renewal_churn(RenewalObservation(
-                    old_rate_gbp_per_mwh=old_elec_rate,
+                    old_rate_gbp_per_mwh=old_decision_leg_rate,
                     new_rate_gbp_per_mwh=unit_rate,
                     tenure_years=tenure_for_est,
                     annual_consumption_kwh=company_eac,
@@ -2165,10 +2205,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     billing_account, term_start_str
                 )
             # Phase NF: SIM-side satisfaction -> actual churn probability
-            _nf_shock_count = _elec_rate_shock_counts.get(cid, 0)
+            _nf_shock_count = _rate_shock_counts.get(cid, 0)
             _nf_tenure = (
                 (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
-                if old_elec_rate is not None else term_index * 0.5
+                if old_decision_leg_rate is not None else term_index * 0.5
             )
             # Real payment-method satisfaction gap + per-customer heterogeneity
             # (2026-07-10, ASSUMPTIONS.md "Customer Satisfaction Population
@@ -2177,7 +2217,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _nf_payment_channel = None
             if segment_for_churn == "resi":
                 from simulation.household_segments import payment_channel_for_customer
-                _nf_payment_channel = payment_channel_for_customer(billing_account, "electricity")
+                # THE FUEL THIS DECISION IS BEING TAKEN ON, not the literal `"electricity"` it
+                # said until 2026-09-16. `payment_channel_for_customer` is keyed on (customer,
+                # fuel) BY DESIGN — the DD anchor is 72% electricity against 75% gas — so asking
+                # it about electricity for a household that holds no electricity leg returned a
+                # channel drawn off a supply point that does not exist. Inside this branch
+                # `commodity` IS the decision leg, so on every account that has one this is the
+                # same lookup it always was.
+                _nf_payment_channel = payment_channel_for_customer(billing_account, commodity)
             _nf_satisfaction = _sim_satisfaction_score(
                 _nf_shock_count, _nf_tenure, _churn_income_stress,
                 payment_channel=_nf_payment_channel, customer_id=cid,
@@ -2267,8 +2314,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "days_to_resolve": _complaint_outcome.days_to_resolve,
                 })
             _perceived_bill_saving_gbp = (
-                max(0.0, unit_rate - old_elec_rate) * (company_eac / 1000.0)
-                if old_elec_rate else 0.0
+                max(0.0, unit_rate - old_decision_leg_rate) * (company_eac / 1000.0)
+                if old_decision_leg_rate else 0.0
             )
             _journey_state = _churn_journey_register.advance(
                 billing_account, date.fromisoformat(term_start_str),
@@ -2286,7 +2333,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             })
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
-                old_rate_gbp_per_mwh=old_elec_rate,
+                old_rate_gbp_per_mwh=old_decision_leg_rate,
                 new_rate_gbp_per_mwh=unit_rate,
                 retention_modifier=retention_modifier_val,
                 precomputed_company_estimate=company_est_pre,
@@ -2524,10 +2571,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 })
 
         # Phase 14b: compute gas company churn estimate for dual-fuel monitoring.
-        # Gas legs don't drive churn decisions (those live at electricity billing-account
-        # level), but the company tracks gas renewal rate changes separately to spot
-        # early-warning pressure on dual-fuel portfolios.
-        if term_index >= 1 and commodity == "gas" and old_gas_rate is not None:
+        # The SECONDARY fuel's renewal pressure — a gas leg that does NOT carry its account's
+        # departure decision, so the company watches it as an early warning on dual-fuel
+        # portfolios rather than as a decision it takes.
+        #
+        # `!= _decision_leg` IS WHAT MAKES "SECONDARY" TRUE (2026-09-16). The guard was
+        # `commodity == "gas"` when gas could never be the deciding leg, and the two read the
+        # same. Now that a gas-only account decides on its gas leg, `estimate_secondary_fuel_churn`
+        # would be applied to a household's PRIMARY fuel — a second, differently-shaped belief
+        # about the very renewal the branch above already rolled, logged under a name asserting it
+        # is about something else. On every dual-fuel account this guard is the identity on the
+        # old one.
+        if (term_index >= 1 and commodity == "gas" and commodity != _decision_leg
+                and old_gas_rate is not None):
             gas_customer_data = next(
                 (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
                 None,

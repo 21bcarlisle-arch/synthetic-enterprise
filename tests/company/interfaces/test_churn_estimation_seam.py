@@ -386,7 +386,7 @@ def test_mutation_a_dropped_keyword_moves_the_answer(active_renewal, dropped):
 
 _REQUIRED_CALLSITE_KEYWORDS = {
     # keyword on RenewalObservation -> the world variable that must reach it
-    "old_rate_gbp_per_mwh": "old_elec_rate",
+    "old_rate_gbp_per_mwh": "old_decision_leg_rate",
     "new_rate_gbp_per_mwh": "unit_rate",
     "tenure_years": "tenure_for_est",
     "annual_consumption_kwh": "company_eac",
@@ -455,15 +455,15 @@ def test_mutation_the_swapped_rates_are_caught():
     with open(RUN_MODULE_PATH) as fh:
         mutated = (
             fh.read()
-            .replace("old_rate_gbp_per_mwh=old_elec_rate,", "old_rate_gbp_per_mwh=__SWAP__,", 1)
-            .replace("new_rate_gbp_per_mwh=unit_rate,", "new_rate_gbp_per_mwh=old_elec_rate,", 1)
+            .replace("old_rate_gbp_per_mwh=old_decision_leg_rate,", "old_rate_gbp_per_mwh=__SWAP__,", 1)
+            .replace("new_rate_gbp_per_mwh=unit_rate,", "new_rate_gbp_per_mwh=old_decision_leg_rate,", 1)
             .replace("old_rate_gbp_per_mwh=__SWAP__,", "old_rate_gbp_per_mwh=unit_rate,", 1)
         )
     calls = _observation_callsites(mutated)
     assert len(calls) == 1
     names = _callsite_keyword_names(calls[0])
     assert names["old_rate_gbp_per_mwh"] == "unit_rate"
-    assert names["new_rate_gbp_per_mwh"] == "old_elec_rate"
+    assert names["new_rate_gbp_per_mwh"] == "old_decision_leg_rate"
     # and the swap genuinely changes the company's answer, so it is worth catching
     assert door.estimate_renewal_churn(
         _observation(old_rate_gbp_per_mwh=_NEW_RATE, new_rate_gbp_per_mwh=_OLD_RATE)

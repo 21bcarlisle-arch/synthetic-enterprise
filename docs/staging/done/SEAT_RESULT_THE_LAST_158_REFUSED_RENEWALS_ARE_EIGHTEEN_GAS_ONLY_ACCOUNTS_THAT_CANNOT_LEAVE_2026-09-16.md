@@ -144,22 +144,28 @@ The direction offered this as a dial the seat may turn: 252 renewals classed
 This decision is reversible the day an acquisition-pricing desk exists and can be scored on its own
 terms. It should not be reversed by widening the renewal arm's population.
 
-## What landed with this document
+## What landed with this document — and what became of it
 
-`tests/simulation/test_a_departure_is_booked_only_on_an_electricity_leg.py` — three legs, each
-mutation-proven:
+A three-leg control named `test_a_departure_is_booked_only_on_an_electricity_leg`, written to be
+**red on the repair and green on the defect**: the AST walk and the source text had to agree on
+which lines book a departure; every booking had to sit under an electricity guard; and the book had
+to still hold gas-only accounts, so the finding had a subject. What it bought was that nobody could
+admit the 158 without first meeting the 18.
 
-- the AST walk and the source text agree on WHICH lines book a departure (proven by respelling one
-  site so they disagree — without it the guard leg goes green over one site and reads as two);
-- every booking sits under an electricity guard (proven by dedenting line 1895 out of its block);
-- the book still holds gas-only accounts, so the finding has a subject (a control that outlives its
-  population is furniture).
+**DISCHARGED 2026-09-16, and the control was DELETED in the discharging commit exactly as its own
+docstring contracted.** It asserted that a departure IS booked only under an electricity guard, and
+that is now false by construction:
+`simulation.customer_events.departure_decision_leg` gives a gas-only household a route out. The
+property underneath it did not go away and is carried forward by
+`tests/simulation/test_a_departure_rolls_on_exactly_one_named_leg.py`, which holds the same two
+booking sites to a resolved per-account leg — refusing both a re-hardcoded fuel literal and the
+mirror defect of no leg guard at all — and adds the reachability leg the original could not have
+(both answers of the partition attained on the live roster).
 
-**It is meant to go red.** Leg two is green on the defect and red on the repair, which is the same
-contract `tests/simulation/test_the_tariff_type_read_has_one_home.py` writes for the sibling defect
-on the same 18 accounts. When the gas-only departure route lands, that file and this document are
-deleted together. What it buys until then is that **nobody admits the 158 without first meeting the
-18.**
+Result, with the three-arm measurement and the two refuted predictions:
+`SEAT_RESULT_A_GAS_ONLY_ACCOUNT_CAN_NOW_LEAVE_AND_THE_BOOKS_RENEWAL_DECISION_POPULATION_NEARLY_DOUBLES_2026-09-16.md`.
+The sibling defect on the same 18 accounts — the gas `tariff_type` read — is repair 2 and is NOT
+done: `tests/simulation/test_the_tariff_type_read_has_one_home.py` stays red until it is.
 
 ## Where this leaves the drawn item
 

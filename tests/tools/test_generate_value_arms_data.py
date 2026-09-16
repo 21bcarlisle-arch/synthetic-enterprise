@@ -6070,9 +6070,11 @@ def test_both_branches_that_name_the_defect_class_give_it_one_account():
     supplier would have made a renewal offer to". Neither was checked against the other, and the
     first was wrong on the merits: reachability is a claim about what repairing the LABEL delivers,
     and it turns on whether the account can LEAVE -- which this surface cannot see. The live
-    roster's unlabelled gas legs are exactly its gas-only households, and `run_phase2b` books a
-    departure only inside `if commodity == "electricity"`
-    (`tests/simulation/test_a_departure_is_booked_only_on_an_electricity_leg.py`).
+    roster's unlabelled gas legs are exactly its gas-only households, and `run_phase2b` booked a
+    departure only inside `if commodity == "electricity"`. The departure half of that was repaired
+    on 2026-09-16 (`simulation.customer_events.departure_decision_leg`,
+    `tests/simulation/test_a_departure_rolls_on_exactly_one_named_leg.py`) and the LABEL half was
+    deliberately not, so the separation this test holds is still owed.
 
     KEYED TO THE PROPERTY. It does not pin the wording. It asserts the two branches SHARE one, so
     rewording either alone goes red and rewording the constant moves both together. Mutation-proven
