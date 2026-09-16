@@ -865,3 +865,167 @@ def test_the_row_level_ceiling_is_READ_from_the_call_sites_own_arguments():
 
     assert '"lawful_ceiling_gbp_per_mwh": common.get("max_offered_rate_gbp_per_mwh")' in source
     assert '"lawful_ceiling_gbp_per_mwh": None' not in source
+
+
+# ---------------------------------------------------------------------------------------------
+# PROVENANCE. The defect these guard is not an arithmetic one: the artefact could not name the
+# book, the world or the code that produced it, so two readings of it days apart were taken for
+# rival calibrations of one book when they were two books in two worlds from two producer
+# vintages. Each test below names the way that failure comes back.
+# ---------------------------------------------------------------------------------------------
+
+RUN_WITH_META = dict(RUN, _cache_meta={"git_commit": "abc123f",
+                                       "generated_at_utc": "20260618T054253Z"})
+BOOK_STAMPED = {"generated": "2026-09-10T01:13:49Z", "customer_count": 2,
+                "customers": BOOK["customers"]}
+
+
+def _snapshot(tmp_path):
+    """A real `book_at_read` over two real files, because the block reads their size and mtime."""
+    run_path = tmp_path / "run_output_deadbeef_20260618T054253Z.json"
+    book_path = tmp_path / "customers.json"
+    run_path.write_text(json.dumps(RUN_WITH_META), encoding="utf-8")
+    book_path.write_text(json.dumps(BOOK_STAMPED), encoding="utf-8")
+    return cvp.book_at_read(run_path, book_path, RUN_WITH_META, BOOK_STAMPED)
+
+
+def test_an_unrecorded_book_is_a_NAMED_absence_and_never_todays_resolver():
+    """THE DEFECT: `book_identity` resolving the curriculum itself would report the book at
+    ASSEMBLY time — a different measurement, and one that stands in silently for a book this
+    comparison may never have been priced on. An absence a reader can see is the whole point."""
+    out = cvp.book_identity(cvp.compare(RUN, BOOK), None)
+
+    assert out["served_segments"] is None
+    assert out["read_from"] is None
+    assert "recorded no book" in out["served_segments_unavailable_because"]
+    # And it must not be paperable-over by an empty container, which every group-by drops.
+    assert out["served_segments_resolved_from"] is None
+
+
+def test_the_snapshot_names_BOTH_input_files_and_how_the_run_output_was_chosen(tmp_path):
+    """THE DEFECT: `latest_run_output()` takes the lexical max of a glob over UNTRACKED files, so
+    one commit checked out twice selects two different runs. Recording only the numbers leaves a
+    reader with no route back to which pair produced them."""
+    snap = _snapshot(tmp_path)
+
+    assert snap["run_output"]["path"].endswith("run_output_deadbeef_20260618T054253Z.json")
+    assert snap["run_output"]["tracked_in_git"] is False
+    assert "lexical max" in snap["run_output"]["selected_by"]
+    # The run's OWN stamp, not a re-parse of the filename.
+    assert snap["run_output"]["producing_commit"] == "abc123f"
+    assert snap["run_output"]["accounts_in_per_customer_lifetime"] == len(
+        RUN["per_customer_lifetime"])
+    assert snap["book"]["generated"] == "2026-09-10T01:13:49Z"
+    assert snap["book"]["bytes"] > 0
+
+
+def test_a_run_output_carrying_no_stamp_says_so_rather_than_inventing_one(tmp_path):
+    """THE DEFECT: filling `producing_commit` in from the filename would make an unstamped run
+    indistinguishable from a stamped one, which is the fail-open this field replaces."""
+    run_path = tmp_path / "run_output_x_20260618T054253Z.json"
+    book_path = tmp_path / "customers.json"
+    run_path.write_text(json.dumps(RUN), encoding="utf-8")
+    book_path.write_text(json.dumps(BOOK), encoding="utf-8")
+
+    snap = cvp.book_at_read(run_path, book_path, RUN, BOOK)
+
+    assert snap["run_output"]["producing_commit"] is None
+    assert snap["run_output"]["generated_at"] is None
+
+
+def test_the_input_join_control_CAN_FAIL_and_does_on_a_mismatched_pair(tmp_path):
+    """THE DEFECT THIS WOULD BE WITHOUT THE FIRST ASSERTION: a population control that refuses
+    everything passes every test of its refusal. The pair below joins, so `same_book` must be
+    True; the pair after it does not, so it must be False. Both branches, one test, because a
+    guard proven only on the case it rejects is not proven at all."""
+    agrees = cvp.inputs_agree_on_the_book(_snapshot(tmp_path), cvp.compare(RUN, BOOK))
+
+    assert agrees["same_book"] is True, "a matched pair must reach the PASS branch"
+    assert agrees["share_joined"] == 1.0
+
+    # The same book against a run holding accounts the book has never heard of. `compare` still
+    # produces a complete-looking artefact; that is exactly why this control exists.
+    wide_run = {"per_customer_lifetime": dict(
+        RUN["per_customer_lifetime"],
+        **{"GHOST-%d" % i: {"segment": "resi", "cost_to_serve_gbp": 10.0} for i in range(40)})}
+    run_path = tmp_path / "run_output_wide_20260618T054253Z.json"
+    run_path.write_text(json.dumps(wide_run), encoding="utf-8")
+    snap = cvp.book_at_read(run_path, tmp_path / "customers.json", wide_run, BOOK_STAMPED)
+
+    disagrees = cvp.inputs_agree_on_the_book(snap, cvp.compare(wide_run, BOOK))
+
+    assert disagrees["same_book"] is False, "a mismatched pair must reach the FAIL branch"
+    assert disagrees["share_joined"] < 0.5
+    # AND THE DENOMINATOR MUST NOT TRACK THE NUMERATOR. The first draft of this control read
+    # `accounts_priced + accounts_skipped`, which counts an account the book has never heard of
+    # in the same bucket as one it holds without consumption — so the ratio was 1.0 whatever the
+    # book was. This pins the join to the BOOK's own ids.
+    assert disagrees["accounts_in_both"] == len(RUN["per_customer_lifetime"])
+    assert disagrees["run_accounts"] == len(wide_run["per_customer_lifetime"])
+
+
+def test_the_join_control_is_TRI_STATE_and_cannot_tell_is_not_agreement():
+    """THE DEFECT: defaulting an unobserved join to True publishes agreement nobody measured."""
+    out = cvp.inputs_agree_on_the_book(None, cvp.compare(RUN, BOOK))
+
+    assert out["same_book"] is None
+    assert out["unavailable_because"]
+
+
+def test_the_artefact_names_its_code_and_its_world_ABOVE_the_figures(tmp_path):
+    """THE DEFECT: `generated_at` is the one timestamp on this file guaranteed not to be when the
+    numbers were decided, and a commit hash does not say which WORLD the belief figures were
+    measured over — a re-fit of the departure anchor moves every one of them without touching a
+    line of this module."""
+    out = cvp.generate(out_path=tmp_path / "arms.json")
+    keys = list(out)
+
+    for field in ("generated_at", "producing_commit", "world_identity", "book_identity"):
+        assert keys.index(field) < keys.index("accounts"), (
+            "%s must precede the figures it qualifies" % field)
+    assert out["producing_commit"]["resolved_at"] == cvp.PRODUCING_COMMIT_RESOLVED_AT
+    assert "NOT at artefact assembly" in out["producing_commit"]["resolved_when"]
+    assert "world_identity.digest" in out["run_identity_fields"]
+
+
+def test_a_commit_that_cannot_be_resolved_is_NONE_with_a_reason_never_a_placeholder(monkeypatch):
+    """THE DEFECT: publishing the assembly tree's sha when the producing one is unknown defeats
+    the entire use of the field, which is to let a reader tell those two trees apart."""
+    monkeypatch.setattr(cvp, "PRODUCING_COMMIT", None)
+
+    block = cvp.producing_commit()
+
+    assert block["commit"] is None
+    assert "cannot name the code" in block["unavailable_because"]
+
+
+def test_the_world_stamp_fails_closed_when_the_anchor_cannot_be_read(monkeypatch):
+    """THE DEFECT: an omitted key reads as 'no world to name'; a consumer cannot tell that from
+    'the world could not be read', and the two are opposite facts."""
+    monkeypatch.setattr(cvp, "WORLD_IDENTITY",
+                        {"digest": None, "unavailable_because": "the anchor did not answer"})
+
+    assert cvp.world_identity()["digest"] is None
+    assert cvp.world_identity()["unavailable_because"]
+
+
+def test_dual_fuel_legs_are_COLLAPSED_so_the_book_counts_households_not_meters():
+    """THE DEFECT: `accounts_priced` counts LEGS, and reporting it as the book conflates one
+    dual-fuel household with two customers — the count that moves cost-to-serve, churn and
+    lifetime value together."""
+    run = {"per_customer_lifetime": {
+        "H1": {"segment": "resi", "cost_to_serve_gbp": 100.0},
+        "H1g": {"segment": "resi", "cost_to_serve_gbp": 100.0}}}
+    book = {"customers": [{"legs": {
+        "e": {"cid": "H1", "total_kwh": 12000, "avg_effective_rate_gbp_per_mwh": 150.0,
+              "bill_count": 24},
+        "g": {"cid": "H1g", "total_kwh": 12000, "avg_effective_rate_gbp_per_mwh": 150.0,
+              "bill_count": 24}}}]}
+
+    data = cvp.compare(run, book)
+    out = cvp.book_identity(data, None)
+
+    assert data["accounts_priced"] == 2, "two LEGS were priced"
+    assert out["billing_accounts_priced"] == 1, "and they are one household"
+    assert out["dual_fuel"] == 1
+    assert out["dual_fuel_share_of_accounts"] == 1.0
