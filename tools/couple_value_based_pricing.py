@@ -164,6 +164,11 @@ _RUN_IDENTITY_FIELDS = [
     "producing_commit.commit",
     "producing_commit.resolved_at",
     "world_identity.digest",
+    # WHICH RUN OUTPUT, AND WHETHER ANYONE COULD READ IT AGAIN. A census grading "which run sits
+    # at this path" cannot answer it from a commit and a digest: two checkouts of one commit
+    # priced two different runs, so the input's own identity is part of this artefact's.
+    "book_identity.read_from.run_output.path",
+    "book_identity.read_from.run_output.reproducible_across_checkouts",
 ]
 
 
@@ -576,14 +581,106 @@ def shared_calibration_holds() -> dict:
     }
 
 
-def latest_run_output() -> Path:
-    """The newest dated run output. Raises rather than returning None: an arms comparison with
-    no book is not an empty comparison, it is one that did not run."""
-    dated = [p for p in glob.glob(str(PROJECT / "docs" / "reports" / "run_output_*.json"))
+#: THE RUN OUTPUT A SECOND CHECKOUT CAN RESOLVE, and the one the book is already built from.
+#: `tools/generate_customers_json.generate` reads exactly this path to produce
+#: `site/data/customers.json`, and unlike every dated sibling it is TRACKED IN GIT -- so which
+#: bytes it holds is decided by the commit, not by which working copy happens to be on this disk.
+#: That is the property the glob below does not have and cannot be given.
+TRACKED_RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
+
+
+def latest_run_output(reports_dir: Path | None = None) -> Path:
+    """The newest dated run output BY NAME. Raises rather than returning None: an arms comparison
+    with no book is not an empty comparison, it is one that did not run.
+
+    NO LONGER THE DEFAULT, and that is the repair rather than a preference -- `resolve_run_output`
+    is. Kept reachable because a run that has just finished and has not yet been reduced into
+    `run_output_latest.json` is a legitimate thing to price. It is now opted into BY NAME, and the
+    artefact records that a reading taken this way is not reproducible.
+    """
+    reports = Path(reports_dir) if reports_dir else (PROJECT / "docs" / "reports")
+    dated = [p for p in glob.glob(str(reports / "run_output_*.json"))
              if "2026" in Path(p).name]
     if not dated:
         raise MarginDecisionUnavailable("no dated run output to read a book from")
     return Path(max(dated, key=lambda p: p.rsplit("_", 1)[-1]))
+
+
+def _how(resolved_by: str, reproducible: bool, selected_by: str) -> dict:
+    """One selection, in the shape the artefact publishes it. `reproducible_across_checkouts` is
+    a SEPARATE field from `resolved_by` on purpose: a reader grading a re-run needs the answer,
+    not a tier name they have to know this file to interpret."""
+    return {"resolved_by": resolved_by,
+            "reproducible_across_checkouts": reproducible,
+            "selected_by": selected_by}
+
+
+def resolve_run_output(explicit: str | Path | None = None, *, prefer_newest: bool = False,
+                       reports_dir: Path | None = None) -> tuple[Path, dict]:
+    """WHICH run output this comparison prices, and WHETHER a second checkout would agree.
+
+    Returns `(path, how)`. Both halves go on the artefact, because "which run" and "could anyone
+    re-derive this" are two questions and until now only the first was answerable.
+
+    THE DEFECT THIS ENDS. The only answer used to be `latest_run_output()` -- the lexical max of a
+    glob over `docs/reports/run_output_*.json`, every one of which is UNTRACKED. Measured
+    2026-09-16 at one commit from two checkouts of it:
+
+        shared tree      6,219 candidates -> run_output_edded3973_20260916T085959Z.json  27.5 MB
+        linked worktree      4 candidates -> run_output_f5808bd_20260618T054253Z.json   205.9 KB
+
+    Same code, same commit, same command; a run from that morning against one from June holding 14
+    accounts. `79f7484f3` made the choice VISIBLE in every artefact this producer writes. It did
+    not make a re-run REPRODUCIBLE -- and a repair that cannot be re-run against the published
+    reading cannot be graded, which is the cost this selection has actually charged twice.
+
+    THE FIX IS NOT A NEW POINTER FILE, and that is the whole of why it is small.
+    `docs/reports/run_output_latest.json` is ALREADY tracked in git and is ALREADY the file
+    `tools/generate_customers_json` builds `site/data/customers.json` from. Defaulting to it makes
+    the run and the book one run by construction -- which is the same defect's other half, the one
+    that left the published 397-account artefact joining only 81 of its accounts to the book then
+    on disk. The glob's `"2026" in name` filter is exactly what excluded it.
+
+    PRECEDENCE, each tier saying what it is worth:
+
+      * `explicit` -- `--run-output PATH`, or `generate(run_path=...)`. Reproducible: the caller
+        named it. A named path that does not exist RAISES rather than falling through, because a
+        silent fallback from a named path is how the wrong world gets priced quietly.
+      * `prefer_newest` -- `--adopt-latest`. The old behaviour, opted into by name, and recorded
+        as NOT reproducible. Not deleted: a dial that orders work, never zeroes it.
+      * the tracked run output, if this checkout has it. The default.
+      * nothing -- RAISES, naming the missing file and how many candidates the glob would have had
+        to choose from here. "We cannot tell" is a result; silently picking one of 6,219
+        unreviewed files is not.
+    """
+    reports = Path(reports_dir) if reports_dir else (PROJECT / "docs" / "reports")
+    tracked = reports / TRACKED_RUN_OUTPUT.name
+    if explicit is not None:
+        path = Path(explicit)
+        if not path.is_file():
+            raise MarginDecisionUnavailable(
+                "the run output named by the caller does not exist: {}".format(path))
+        return path, _how("argument", True, "named by the caller: {}".format(path))
+    if prefer_newest:
+        path = latest_run_output(reports)
+        return path, _how(
+            "newest_by_name", False,
+            "lexical max over the glob `run_output_*.json` restricted to names containing "
+            "'2026' -- NOT a content check, and the candidate set differs between checkouts of "
+            "one commit because these files are untracked. Opted into with --adopt-latest, so "
+            "this reading is NOT reproducible from the commit alone.")
+    if tracked.is_file():
+        shown = (tracked.relative_to(PROJECT) if tracked.is_relative_to(PROJECT) else tracked)
+        return tracked, _how(
+            "tracked_run_output", True,
+            "`{}`, which is TRACKED IN GIT and is the same file `tools/generate_customers_json` "
+            "builds the book from -- so a second checkout of this commit reads the same run, and "
+            "the run and the book are one run by construction".format(shown))
+    raise MarginDecisionUnavailable(
+        "no reproducible run output: {} is not in this checkout. Pass --run-output PATH to name "
+        "one, or --adopt-latest to take the newest of the {} untracked candidate(s) here and have "
+        "the artefact record that the reading is not reproducible.".format(
+            tracked, _run_output_candidate_count(reports)))
 
 
 def _legs(book: dict) -> dict:
@@ -596,7 +693,8 @@ def _legs(book: dict) -> dict:
     return out
 
 
-def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict) -> dict:
+def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict,
+                 how: dict | None = None) -> dict:
     """WHICH TWO FILES this comparison priced, snapshotted BY THE CALLER as it read them.
 
     The sibling producer's `book_at_run` snapshots per arm because an arm there is a two-hour
@@ -652,11 +750,22 @@ def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict) -> dict
         "run_output": {
             "path": str(run_path.relative_to(PROJECT)) if run_path.is_relative_to(PROJECT)
                     else str(run_path),
-            "tracked_in_git": False,
-            "selected_by": (
-                "lexical max over the glob `docs/reports/run_output_*.json` restricted to names "
-                "containing '2026' -- NOT a content check, and the candidate set differs between "
-                "checkouts of one commit because these files are untracked"),
+            #: WHETHER THIS FILE IS THE TRACKED ONE, by identity with the path the default
+            #: tier resolves and never by name alone: a `run_output_latest.json` sitting in some
+            #: other directory is a different file that a checkout cannot resolve, and calling it
+            #: tracked would be the flattering answer.
+            "tracked_in_git": run_path.resolve() == TRACKED_RUN_OUTPUT.resolve(),
+            #: HOW IT WAS CHOSEN, TAKEN FROM THE CALLER'S OWN RESOLUTION and never re-derived
+            #: here. Re-deriving would describe the selection this snapshot WOULD make now, which
+            #: is a different measurement from the one that produced these figures -- the same
+            #: mistake `book_at_read` exists to stop `book_identity` making about the book.
+            "selected_by": (how or {}).get("selected_by") or (
+                "NOT RECORDED BY THE CALLER -- this snapshot cannot say how the run output was "
+                "chosen"),
+            "resolved_by": (how or {}).get("resolved_by"),
+            #: WOULD A SECOND CHECKOUT OF THIS COMMIT READ THE SAME FILE. None means the caller
+            #: did not say, which is not False and must never be read as True.
+            "reproducible_across_checkouts": (how or {}).get("reproducible_across_checkouts"),
             "candidates_seen": _run_output_candidate_count(),
             "producing_commit": meta.get("git_commit"),
             "generated_at": meta.get("generated_at_utc"),
@@ -683,11 +792,14 @@ def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict) -> dict
     }
 
 
-def _run_output_candidate_count() -> int | None:
-    """How many files the selection above chose from. Part of the snapshot because a candidate set
-    of 4 and one of 6,219 are different questions, and the answer looks identical either way."""
+def _run_output_candidate_count(reports_dir: Path | None = None) -> int | None:
+    """How many files the GLOB tier would have chosen from. Still published under the tracked
+    default, and that is deliberate: it is the standing evidence that two checkouts of one commit
+    see different candidate sets, which is why the default is no longer the glob. A candidate set
+    of 4 and one of 6,219 are different questions and the answer looks identical either way."""
+    reports = Path(reports_dir) if reports_dir else (PROJECT / "docs" / "reports")
     try:
-        return sum(1 for p in glob.glob(str(PROJECT / "docs" / "reports" / "run_output_*.json"))
+        return sum(1 for p in glob.glob(str(reports / "run_output_*.json"))
                    if "2026" in Path(p).name)
     except OSError:
         return None
@@ -1444,13 +1556,17 @@ def price_belief_gap(rows: list[dict], provenance: dict | None = None,
     )
 
 
-def generate(out_path: Path | None = None) -> dict:
-    run_path = latest_run_output()
+def generate(out_path: Path | None = None, run_path: Path | str | None = None, *,
+             prefer_newest: bool = False) -> dict:
+    # WHICH RUN, RESOLVED ONCE AND CARRIED, never re-asked. `how` travels with the path for the
+    # same reason the snapshot travels with the read: re-deriving the selection at assembly would
+    # answer a question about the tree as it is now, not about the files these figures came from.
+    run_path, how = resolve_run_output(run_path, prefer_newest=prefer_newest)
     run = json.loads(run_path.read_text(encoding="utf-8"))
     book = json.loads(BOOK_PATH.read_text(encoding="utf-8"))
     # SNAPSHOTTED HERE, BESIDE THE READ, and passed down -- never re-resolved at assembly. That
     # difference is the whole control rather than a style point: see `book_at_read`.
-    at_read = book_at_read(run_path, BOOK_PATH, run, book)
+    at_read = book_at_read(run_path, BOOK_PATH, run, book, how)
     data = compare(run, book)
     # PROVENANCE FIRST IN THE FILE, above every figure it qualifies, because a reader who has to
     # scroll past 400 accounts to find out which book they describe will not scroll.
@@ -1478,16 +1594,33 @@ if __name__ == "__main__":
     _ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     _ap.add_argument("--write-ledger", action="store_true",
                      help="persist the measured price-belief gap into coupled_gap_ledger.json")
+    _ap.add_argument("--run-output", metavar="PATH", default=None,
+                     help="price THIS run output. The reproducible form: a re-run given the path "
+                          "the published artefact names reads the same file this one did.")
+    _ap.add_argument("--adopt-latest", action="store_true",
+                     help="take the newest dated run output by name instead of the tracked one. "
+                          "The pre-2026-09-16 behaviour, and NOT reproducible -- the candidate "
+                          "set differs between checkouts of one commit. Recorded as such on the "
+                          "artefact.")
     _args = _ap.parse_args()
-    d = generate()
+    d = generate(run_path=_args.run_output, prefer_newest=_args.adopt_latest)
     # THE PROVENANCE ON THE SURFACE, not only in the file. The operator who runs this is the one
     # person who can still tell that the wrong run output was picked, and only while they are here.
     _book = d["book_identity"]
     _src = (_book.get("read_from") or {}).get("run_output") or {}
-    print("read {} ({} of {} candidates, {} accounts) against {}".format(
-        _src.get("path"), 1, _src.get("candidates_seen"),
-        _src.get("accounts_in_per_customer_lifetime"),
+    print("read {} ({} accounts) against {}".format(
+        _src.get("path"), _src.get("accounts_in_per_customer_lifetime"),
         ((_book.get("read_from") or {}).get("book") or {}).get("path")))
+    # WHETHER THIS RUN CAN BE REPEATED, on the surface and not only in the file. The operator is
+    # the one person who can still name a run deliberately, and only while they are here.
+    if _src.get("reproducible_across_checkouts"):
+        print("  selection REPRODUCIBLE ({}): {}".format(
+            _src.get("resolved_by"), _src.get("selected_by")))
+    else:
+        print("  selection NOT REPRODUCIBLE ({}): {} of {} untracked candidate(s) in this "
+              "checkout. A second checkout of this commit would read a different file; re-run "
+              "with --run-output {} to repeat exactly this reading.".format(
+                  _src.get("resolved_by"), 1, _src.get("candidates_seen"), _src.get("path")))
     print("code {} | world {}".format(
         d["producing_commit"]["commit"] or "UNAVAILABLE",
         d["world_identity"].get("digest") or "UNAVAILABLE"))
