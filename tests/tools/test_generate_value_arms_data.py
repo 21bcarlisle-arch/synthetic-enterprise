@@ -6062,6 +6062,41 @@ def test_a_product_this_page_has_no_reading_for_is_named_and_not_folded_in():
         "reason `is_a_defect` is three-valued")
 
 
+def test_both_branches_that_name_the_defect_class_give_it_one_account():
+    """The defect: two branches of one sentence telling a reader two things about one class.
+
+    WHAT WAS LIVE UNTIL 2026-09-16. The mixed branch said the unlabelled refusals are "our defect
+    and is REACHABLE"; the defect-only branch said "every one of them is a household a real
+    supplier would have made a renewal offer to". Neither was checked against the other, and the
+    first was wrong on the merits: reachability is a claim about what repairing the LABEL delivers,
+    and it turns on whether the account can LEAVE -- which this surface cannot see. The live
+    roster's unlabelled gas legs are exactly its gas-only households, and `run_phase2b` books a
+    departure only inside `if commodity == "electricity"`
+    (`tests/simulation/test_a_departure_is_booked_only_on_an_electricity_leg.py`).
+
+    KEYED TO THE PROPERTY. It does not pin the wording. It asserts the two branches SHARE one, so
+    rewording either alone goes red and rewording the constant moves both together. Mutation-proven
+    by restoring the old mixed-branch clause: the shared account disappears from that sentence.
+    """
+    from tools.product_gate_refusal import _DEFECT_CLASS_CLAUSE, refusal_breakdown
+
+    mixed = refusal_breakdown({"'svt'": 1347, "None": 158})["why"]
+    defect_only = refusal_breakdown({"None": 158})["why"]
+
+    assert len(_DEFECT_CLASS_CLAUSE) > 100, (
+        "the shared account has shrunk to something a coincidence could satisfy, so the two "
+        "assertions below stop distinguishing one account from two")
+    for label, sentence in (("mixed", mixed), ("defect-only", defect_only)):
+        assert _DEFECT_CLASS_CLAUSE in sentence, (
+            f"the {label} branch has written its own account of the unlabelled refusals again; "
+            "one class, one sentence -- that split is the defect this module was built to end")
+
+    # NOT A COMPARISON OF TWO IDENTICAL STRINGS: the branches must still differ where they should.
+    assert "1,347" in mixed and "1,347" not in defect_only, (
+        "the two branches no longer differ on the structural half, so the assertion above is "
+        "satisfied by them having collapsed into one branch rather than by sharing a clause")
+
+
 def test_the_remedy_under_the_product_gate_asks_for_work_that_is_not_already_done():
     """`what_is_owed` is a claim and rots like one. It asked for a shipped product for five days."""
     from tools.product_gate_refusal import refusal_breakdown
