@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** (Lane 0 delivery — promote-the-leg-conditioning-pair-when-the-nine-seed-floor-lands)
 
+**Discharged:** 2026-09-16. `tests/tools/test_generate_value_arms_data.py::test_the_generator_reads_the_current_world_floor_from_its_own_constant` — green in this tree. This document's whole content is a refusal to execute a drawn item's three copy legs, and the refusal was right: it said leg 3 (overwrite the 2026-09-08 floor artefact with the nine-seed floor) would revert leg 2. The outcome it was holding out for is what landed. The selection leg reached the nine-seed sample by a constant move — CURRENT_WORLD_NOISE_FLOOR_PATH now names the 20260909b floor — so no promoted artefact was overwritten and nothing was reverted. Every leg this document graded is now spent: leg 1 named a file that never existed, leg 2 was already on origin, leg 3 was made unnecessary rather than executed. There is no live defect left in it; it is archived as the record of a correct refusal.
+
 # The Lane 0 pair move is two thirds spent, and its remaining third would revert the landing it depends on
 
 **2026-09-09, scheduled tick.** The drawn Lane 0 item states three copies and a regenerate:

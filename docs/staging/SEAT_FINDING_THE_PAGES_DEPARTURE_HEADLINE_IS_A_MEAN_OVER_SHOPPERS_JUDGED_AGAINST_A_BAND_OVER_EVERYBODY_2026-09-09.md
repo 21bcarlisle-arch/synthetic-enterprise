@@ -2,6 +2,28 @@
 
 # The page's departure headline is a mean over shoppers judged against a band over everybody
 
+## ADJUDICATION 2026-09-16 — the archival was REFUSED, because the half this document says was NOT fixed is still on the published page
+
+An uncommitted staging archival moved this document to `done/`. The move is refused and the
+document stays live in `A_strategy_governance`. The reason is the document's own section "What was
+fixed in this landing and what deliberately was not", read against the feed as it ships today.
+
+Measured on `site/data/value_arms.json` in this tree, 2026-09-16:
+
+| the document's split | state today |
+|---|---|
+| FIXED — the `denominator` field describes the renewal column, and the comparable whole-book reading is published alongside | holds: `departure_level.denominator` names both populations and `departure_level.whole_book` is present with its own per-year verdicts |
+| NOT FIXED — which of the two is the headline | **still not fixed.** `world_mean_pct` is 28.08 (the renewal-decision reading) and `statement` still ends *"Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor"* against a stated 1.63x |
+
+The comparable figure is in the same feed and disagrees: `bounding_statement` says the whole-book
+reading is 15.96% against the publisher's 14.03% — **1.14x, not 1.63x**. So the page still carries
+its central instruction to the reader at the overstated factor, with the refutation of that factor
+beside it in a different block. That is the defect this document was filed for, it is on a live
+public surface, and none of the three items in "what is next" below has been done.
+
+An archival is a discharge. Discharging this one would record that a published instruction to
+misread a page had been repaired when it has not, so the document goes back on the queue instead.
+
 **Measured:** 2026-09-09, delivery seat, while working the Lane 0 switching-band item. **Class:**
 `figures_on_a_superseded_clock`. Result document:
 `SEAT_RESULT_THE_CORRECTED_RECORD_MAKES_THE_WORLD_LOOK_WORSE_AND_THE_PAGE_WAS_COMPARING_SHOPPERS_TO_EVERYBODY_2026-09-09.md`.

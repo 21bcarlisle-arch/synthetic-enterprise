@@ -1,8 +1,50 @@
-**Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** (Lane 0 delivery — `land-the-nine-seed-floor-by-the-three-pointer-recipe-and-own-it-to-the-rendered-selection-leg`) · **Class:** controls_that_cannot_fail
+**Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** (Lane 0 delivery — `land-the-nine-seed-floor-by-the-three-pointer-recipe-and-own-it-to-the-rendered-selection-leg`) · **Class:** controls_that_cannot_fail
 
 **Subject:** `site/test_the_baseline_comparison_reaches_the_reader.py::_measured_cuts_only` and
 `::test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval`;
 the `decisions` field `tools/run_value_cycle_ab.py` writes onto each `pair_strata` stratum.
+
+## ADJUDICATION 2026-09-16 — the archival was REFUSED, and the severity is corrected beside the original claim
+
+This document was moved to `done/` by an uncommitted staging archival and the move is held back.
+The header above read **BLOCKING** when filed; it is corrected to **LATENT** here rather than
+quietly, because the sentence that earned the BLOCKING is now false and the sentence that earned
+the finding is still true. Both are measured below, not asserted.
+
+**The BLOCKING premise is refuted.** The whole of "Why this is BLOCKING and not LATENT" below is
+*"it is a red at `origin/main` in the site lane, and the site lane's reds refuse every lane's
+commit"*. Run in this tree, 2026-09-16:
+
+```
+site/test_the_baseline_comparison_reaches_the_reader.py::
+test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval   1 passed
+```
+
+There is no red, so there is nothing refusing any lane, so the severity that was keyed to that
+refusal cannot stand. A control keyed to today's answer goes red when the code becomes more honest
+and green when the claim rots — the severity had the same defect, and this is the correction.
+
+**The finding itself is NOT discharged, which is why the archival is refused rather than landed.**
+The document says in as many words what must not be done — item 1 of "what is next": *"do not relax
+`assert strata_on_the_page >= 1` ... deleting it because the class went empty is how a partition
+stops being covered."* Measured at HEAD, that is the route that was taken:
+
+| what the finding asked for | state at HEAD 2026-09-16 |
+|---|---|
+| the decomposition class survives in the splitter | `_DECOMPOSITION_KEYS` is gone; `_measured_cuts_only` now splits measured / hypothetical / unclassifiable only |
+| `assert strata_on_the_page >= 1` survives | the identifier `strata_on_the_page` appears nowhere in `site/`, `tools/` or `tests/` |
+| the producer stops naming a participation count `decisions` | unchanged — `tools/run_value_cycle_ab.py` still writes `"decisions"` beside `"comparable_pairs"` on `within_settled`, `within_zero` and `cross` |
+
+So the red cleared and the payload defect did not. The one control that noticed the payload defect
+is the one that was removed. Archiving this document would leave the tree with no record anywhere
+that the class ever existed, which is the exact failure the document was written to prevent.
+
+**What is still owed is unchanged and is item 2 below**, at the producer: rename a stratum's
+`decisions` to what it counts, or drop it, since `comparable_pairs` is already the stratum's n.
+`test_the_attribution_of_the_inversion_reaches_the_reader_BESIDE_the_figure` is a live reachability
+control over `pair_strata` on the published feed, but it grades the cross stratum's number reaching
+a reader — it is not a control over which class a stratum sorts into, and it would stay green
+through the rename either way.
 
 # FINDING — the decomposition class's reachability leg cannot pass, because every stratum carries a `decisions` count it was not measured over
 

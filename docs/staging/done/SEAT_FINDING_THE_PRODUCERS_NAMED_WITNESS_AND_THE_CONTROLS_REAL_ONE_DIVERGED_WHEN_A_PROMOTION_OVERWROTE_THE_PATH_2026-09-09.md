@@ -1,6 +1,8 @@
 **Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none — Lane 0
 delivery
 
+**Discharged:** 2026-09-16. `tests/tools/test_generate_value_arms_data.py::test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_currency` — green in this tree, and it is the control this document's own "Controls, and the poison round that proves they can fail" section landed. The defect was a headline sentence asserting the older of two same-world runs was the present one; the guard that was missing is the one that asks which panel is LATER, and it exists and is keyed to the stamp rather than to a constant, which is what makes it able to see a promote-by-copy at all. **What this does NOT discharge:** the census in "What is next" — asking of every promote-by-copy target *"if the bytes at this path were replaced by a newer run of the same shape, would any sentence on the page become false"*. That was filed by this document as a question for the seat's next orientation and is a new atom, not an undischarged leg of this finding.
+
 # FINDING — a promote-by-copy put a false claim in the page headline, and no world guard could see it
 
 **Filed:** 2026-09-09, delivery seat (isolated worktree `/var/tmp/se-seat-executor`).

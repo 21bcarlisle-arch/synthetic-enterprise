@@ -2,6 +2,8 @@
 
 **Severity:** BLOCKING · **Lane:** G_data_learning
 
+**Discharged:** 2026-09-16. `tests/tools/test_generate_value_arms_data.py::test_the_superseded_panels_attribution_is_COUNTED_and_the_whole_partition_is_reachable` — green in this tree. The defect was two prose sentences asserting a relationship between two artefacts, written when it held, in a function that could see neither artefact's identity; the repair made the current-world clause and the composition-in-this-world clause derive the comparison instead of stating it, and this document carries the mutation evidence for that in its own "Mutation evidence" section. A derived clause cannot invert when the artefact under it is promoted, which is the property, not today's answer. **What this does NOT discharge:** item 3 of "what is next" — nothing has established that these two were the only two published sentences naming a figure from an artefact a constant points at. That sweep is the same census the W2 sibling finding files, and it belongs to one new atom rather than to two archived findings.
+
 **Found 2026-09-08 ~22:20Z, on the live `site/data/value_arms.json`, while preparing the promotion
 of the 2026-09-08b value-arms run.** Fixed in the same turn. Not hypothetical and not a control gap:
 this sentence was on the published surface.

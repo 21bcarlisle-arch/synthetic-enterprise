@@ -2,6 +2,22 @@
 
 # The interactive seat stopped mid-work, and this is what it was holding
 
+## ARCHIVAL NOTE 2026-09-16 — the `done/` copy was REPAIRED before the move, because it dropped 47 committed lines
+
+This ledger is `seat_continuity.py`'s append-only record for one condition, and the archival that
+moved it was held back for a measured reason: the `done/` copy on disk was BEHIND the committed
+root copy by 47 lines and ahead of it by none. What it was missing was a whole 2026-09-15 15:09 UTC
+occurrence — its claim row, its repetition line, and the full what-to-do-with-it block.
+
+An append-only ledger archived from a stale copy loses exactly the most recent thing that happened
+to it, and does so at the moment the one control that checks a discharge against the filesystem
+stops reading the document at all. So the bytes landing here are the committed root copy's, not the
+stale disk copy's, and the move is the rename it always claimed to be.
+
+The condition itself still has a live home:
+`WORKER_FINDING_REPEATING_ALARM_SEAT_CONTINUITY_2026-09-15.md` is in the staging root and is what
+the next tick draws.
+
 **Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
 tool for **0.4h** and its process is gone. It did not stop on purpose: an
 interactive session that finishes says so, and this one just stopped — which is the shape an

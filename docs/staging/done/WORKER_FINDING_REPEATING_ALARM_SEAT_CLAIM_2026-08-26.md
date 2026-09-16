@@ -2,6 +2,21 @@
 
 # [SEAT] value-cycle-ab-rerun-after-the-observables-fix was claimed and has not moved for 2.0h
 
+## ARCHIVAL NOTE 2026-09-16 — moved with its later occurrences intact, and superseded by a live successor
+
+This ledger is `alarm_repetition.py`'s append-only record for one condition. It is archived, and
+two things were checked first because an archival is a discharge and this one moves committed
+lines.
+
+1. **Nothing is dropped.** The copy landing here is a strict SUPERSET of the root copy it
+   replaces: nine lines the root never carried — two 2026-09-10/09-11 occurrence lines and seven
+   claim rows first seen 2026-09-10 and 2026-09-11 — and zero lines only the root had. The
+   held-back reading that this `done/` copy was OLDER than the root was measured and is false for
+   this document; it was true of its `SEAT_CONTINUITY` sibling, which was repaired before landing.
+2. **The condition still has a live home.** `WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-09-15.md`
+   is in the staging root and is the document the next tick draws. Archiving the 08-26 ledger
+   retires a spent record, not a live alarm.
+
 **Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
 fired **1 times without its state changing**, over **2.0h**. Under the
 director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
@@ -37,6 +52,8 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 
 ## Still live
 - **2026-08-28** — still live. 1 repeats over 3.5h without the state changing. No second document filed: this condition already has one.
+- **2026-09-10** — still live. 1 repeats over 0.8h without the state changing. No second document filed: this condition already has one.
+- **2026-09-11** — still live. 1 repeats over 0.8h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `land-the-suspended-book-and-rerun-on-residential` (first seen 2026-08-26)
 - `rerun-the-ab-on-the-dual-fuel-book-and-attribute-the-divergence` (first seen 2026-08-26)
@@ -57,3 +74,10 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `reconcile-the-two-net-margins-the-ab-publishes-for-the-same-arm` (first seen 2026-08-28)
 - `rerun-the-three-arm-ab-on-the-repaired-clock-and-restate-the-headline` (first seen 2026-08-28)
 - `repair-the-published-treasury-clock-and-register-the-class` (first seen 2026-08-28)
+- `pair-move-20260910-after-the-floor-lands` (first seen 2026-09-10)
+- `the-settlement-sample-is-a-count-based-cull-and-the-chooser-earns-1.64x-at-its-size` (first seen 2026-09-11)
+- `the-renewal-funnel-not-the-redraw-key-is-what-keeps-the-rest-of-the-book-out-of-the-floor` (first seen 2026-09-11)
+- `the-fork-is-one-conflicted-file-and-it-holds-the-selection-legs-two-homes` (first seen 2026-09-11)
+- `the-stretch-split-seven-and-seven-and-the-prereg-exists-twice` (first seen 2026-09-11)
+- `the-third-arm-separates-fewer-accounts-from-different-accounts-in-p6s-2` (first seen 2026-09-11)
+- `close-the-fork-six-conflict-paths-each-with-a-named-resolution` (first seen 2026-09-11)
