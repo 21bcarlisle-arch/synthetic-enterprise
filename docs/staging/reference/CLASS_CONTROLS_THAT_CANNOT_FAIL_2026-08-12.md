@@ -78,15 +78,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_SHARED_TREE_HOLDS_A_SUPERSEDED_DRAFT_THAT_DELETES_TWO_LANDED_RUNGS_AND_23_TESTS_ARE_RED_BEHIND_IT_2026-09-05.md`
 - `WORKER_FINDING_THE_WALL_CENSUS_PINS_CUSTOMER_IDENTIFIERS_AS_A_SCHEMA_2026-09-01.md`
 
-<!-- Discharged 2026-09-16, commit 76e74f854, and dropped from the list above (7 -> 6):
-SEAT_FINDING_THE_SELF_CLEARING_ALARM_CENSUS_HAS_AN_UNDISPOSITIONED_HIT_..._2026-09-16.md. The
-`.launch_records.json` row is written and `self_clearing_alarm_census --check` is rc=0. Its instance
-line in the list of 46 now reads RECORDED; the note lives here rather than beside it because
-`_INSTANCE_LINE_RE` requires that line to END at the severity token, and a trailing clause drops the
-row from the count. The class header stays BLOCKING -- it is DERIVED from the six that remain. What
-that finding warned about is NOT closed by the row: the suppression is live as
-SEAT_FINDING_A_RELAUNCH_DELETES_THE_UNSETTLED_LIVE_RECORD_..._2026-09-16.md (LATENT). -->
-
 ## Refused consolidation — out of lane, still live
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.

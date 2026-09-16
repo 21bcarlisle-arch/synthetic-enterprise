@@ -1,27 +1,27 @@
 {
   "meta": {
-    "generated_at": "2026-09-10T01:09:00Z",
-    "git_commit": "258720283",
-    "household_count": 164,
+    "generated_at": "2026-09-16T13:29:01Z",
+    "git_commit": "770497ddd",
+    "household_count": 154,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "177 timeline + reaction-chain entries on record",
+      "headline": "122 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "PROS-2017-0065",
-      "base_account_id": "PROS-2017-0065",
+      "account_id": "SYN-2016-021",
+      "base_account_id": "SYN-2016-021",
       "segment": "resi",
-      "commodity": "electricity",
+      "commodity": "gas",
       "link": {
-        "acc": "PROS-2017-0065",
+        "acc": "SYN-2016-021",
         "tab": "timeline"
       }
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "66.3 percentage points apart at the 2020 renewal (sim 95.9% vs company 29.6%)",
+      "headline": "69.1 percentage points apart at the 2020 renewal (sim 96.3% vs company 27.3%)",
       "wall_side": "sim",
       "account_id": "C5",
       "base_account_id": "C5",
@@ -63,30 +63,30 @@
     },
     {
       "category": "Notable life event",
-      "headline": "Income recovery (2022) -- Real downstream drift: income stress high -> low; late-payment rate 8% -> 17%",
+      "headline": "Job loss (2025) -- Real downstream drift: income stress moderate -> high; late-payment rate 17% -> 67%",
       "wall_side": "sim",
-      "account_id": "SYN-2016-037",
-      "base_account_id": "SYN-2016-037",
+      "account_id": "PROS-2021-0212",
+      "base_account_id": "PROS-2021-0212",
       "segment": "resi",
-      "commodity": "gas",
+      "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-037",
+        "acc": "PROS-2021-0212",
         "tab": "timeline",
-        "year": 2022
+        "year": 2025
       }
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 6.0 percentage points (73.8% in 2019 to 67.8% in 2021) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 9.0 percentage points (70.7% in 2017 to 61.7% in 2020) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "PROS-2018-0238",
-      "base_account_id": "PROS-2018-0238",
+      "account_id": "PROS-2016-0098",
+      "base_account_id": "PROS-2016-0098",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0238",
+        "acc": "PROS-2016-0098",
         "tab": "timeline",
-        "year": 2021
+        "year": 2020
       }
     }
   ]
