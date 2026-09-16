@@ -450,6 +450,50 @@ _LEVEL_ZERO_TIMEOUT_S = 60
 _LEVEL_ZERO_BUDGET_S = 300
 
 
+#: Where a row goes when the check returned no cause for it. It should now be unreachable --
+#: `ungradable_causes` is total as of 2026-09-16 -- and it is kept precisely for that reason: the
+#: day a new branch in the producer returns nothing, the row must show up under a key that says
+#: so, not vanish out of the brief. A fallback deleted because "it cannot happen" is how the
+#: fail-silent this whole field exists to end gets back in.
+NO_CAUSE_RECORDED = "no cause recorded by the check -- the producer returned an empty list"
+
+
+def _by_cause(ungradable: list[dict], causes_of=None) -> dict:
+    """`{cause: [atom id, ...]}` over the whole ungradable set, sorted for a stable brief.
+
+    BY CAUSE, NOT BY REASON, and the two are different questions -- the module that computes them
+    says so in the comment above its own vocabulary. A `reason` is the SHAPE of the row's
+    `file_scope` ("names a control file that is not on disk"); a `cause` is the state of the WORK
+    and carries the repair. Three rows sharing one reason had three different repairs, which is
+    the split this grouping exists to show, and grouping by reason re-merged it one level up in
+    the only place the check is ever read. That is this project's most-repeated defect: a repair
+    landed in the producer while the reader kept getting the old answer.
+
+    A ROW WITH SEVERAL CAUSES APPEARS UNDER EACH. `A51` has a pointer to repoint AND a control to
+    write; filing it under a single primary cause would send a reader to repoint the pointer and
+    call the row repaired. That means the group sizes SUM TO MORE THAN the row count, on purpose
+    -- these are repairs owed, not a partition of rows, and anyone differencing the two numbers
+    should read this line rather than infer a bug.
+
+    NO CAUSE VOCABULARY OF ITS OWN. The keys are whatever the producer returned, so a cause this
+    function has never heard of is grouped under it rather than dropped -- a fixed list of groups
+    cannot promise that across a change to the producer, and the unrecognised member falling
+    through every branch is exactly how a row goes silently missing.
+
+    `causes_of` exists so a test can hand rows their causes without a repository; `None` reads the
+    `causes` the producer already attached, which is the live path.
+    """
+    out: dict = {}
+    for u in ungradable:
+        attached = causes_of(u) if causes_of else (u.get("causes") or [])
+        named = [str(c["cause"]) for c in attached
+                 if isinstance(c, dict) and c.get("cause")]
+        for cause in (named or [NO_CAUSE_RECORDED]):
+            if u.get("id") not in out.setdefault(cause, []):
+                out[cause].append(u.get("id"))
+    return {k: sorted(v, key=lambda x: (x is None, str(x))) for k, v in sorted(out.items())}
+
+
 def self_contradicting_levels() -> dict:
     """Atoms at `level_current: 0` / `loop_stage: build` whose OWN named controls all pass.
 
@@ -473,6 +517,10 @@ def self_contradicting_levels() -> dict:
                                              budget_s=_LEVEL_ZERO_BUDGET_S)
     except Exception as exc:  # noqa: BLE001 -- an unavailable check is reported, never inferred
         return {"available": False, "why": repr(exc)}
+    # Computed once and read by three fields below, because they have to agree: a split, the rows
+    # excluded from it, and a count of what is left are three views of ONE grouping, and building
+    # each from its own pass is how they come to disagree.
+    by_cause = _by_cause(ungradable)
     return {
         "available": True,
         # The IDS, not a count. A count tells the seat a number it cannot act on; the ids are the
@@ -488,17 +536,57 @@ def self_contradicting_levels() -> dict:
         # freeze says who has to move first, never that the row is acceptable.
         "contradicted_but_frozen": {c["id"]: list(c.get("frozen_by") or [])
                                     for c in contradicted if c.get("frozen_by")},
-        # Reported as a COUNT because it is the coverage limit, not a work list: 28 of 34 rows
-        # name no control a runner can execute
+        # Kept, because it is the coverage headline and several readers want the one number:
+        # 28 of 34 rows named no control a runner could execute when this was measured
         # (docs/staging/SEAT_FINDING_TWENTY_EIGHT_OF_THIRTY_FOUR_LEVEL_ZERO_ROWS_NAME_NO_CONTROL_A_RUNNER_CAN_EXECUTE_2026-09-06.md).
         "ungradable_count": len(ungradable),
+        # AND THE ROWS THEMSELVES, BY NAME AND BY REPAIR CLASS. A count is a coverage limit; it
+        # is not the thing that was skipped. Reporting only the number made the majority of the
+        # partition anonymous: a reader could see that 28 rows went ungraded and had no way to
+        # learn WHICH, so the one row among them that was ungradable for a fixable reason -- a
+        # stale path, a scope where a control should be -- was indistinguishable from the ones
+        # that are honestly unbuilt. That is a silent skip wearing a count.
+        #
+        # GROUPED BY CAUSE AND NOT BY REASON (2026-09-16), because only the cause carries a
+        # repair. `ungradable_causes` had already made that split in the producer and this, its
+        # only consumer, was still grouping by the `reason` shape field -- so the split existed
+        # and the brief printed the undifferentiated count anyway. A repair landing in the
+        # producer while the reader gets the old answer is this project's most-repeated defect,
+        # and it was committed here against its own census.
+        #
+        # THE KEY IS RENAMED, not reused. Same field name with different contents is exactly how
+        # a downstream reader comes to be quietly wrong about what it is reading.
+        #
+        # ROWS OWING NO REPAIR ARE NOT IN HERE. See the field below -- they are the part of this
+        # count that was never a defect, and leaving them in is what made the number look stuck.
+        "ungradable_by_cause": {k: v for k, v in by_cause.items()
+                                if k not in lz.CAUSES_OWING_NO_REPAIR},
+        # The rows that are RIGHT to read zero: no file the atom names exists, so the map is not
+        # wrong about them and there is nothing to repair until someone builds the atom or closes
+        # it. Reported apart rather than netted off, because a count that silently excluded them
+        # would be a smaller number nobody could check.
+        "ungradable_owing_no_repair": sorted(
+            {aid for cause in lz.CAUSES_OWING_NO_REPAIR for aid in by_cause.get(cause, [])},
+            key=lambda x: (x is None, str(x))),
+        # ROWS, not repairs: a row with two causes appears under both keys above, so summing the
+        # groups double-counts it. This is the number the census is actually trying to move.
+        "ungradable_owing_repair_count": len(
+            {aid for cause, ids in by_cause.items() if cause not in lz.CAUSES_OWING_NO_REPAIR
+             for aid in ids}),
         # NO SILENT CAP. The two counts above cannot distinguish "this row names no control" from
         # "this row HAS a control and I ran out of time to run it" -- and only the second means
         # the seat is being told less than the check could have told it. A 120s budget once
         # returned zero contradictions with every row unreached, which reads identically to a
         # clean map. These are the rows the bound cost us, by name.
+        #
+        # `.get`, and that is not defensiveness: subscripting here raised KeyError on a row with
+        # no `reason`, which the caller's own `except` turned into `available: False` for the
+        # WHOLE check -- one malformed row costing the seat every verdict in the pass. A row that
+        # cannot be classified is not in `bounded_out`, which is the honest answer, and it is
+        # still named in `ungradable_by_cause` above -- under NOTHING_IN_THE_ROW, which is what
+        # a budget-spent or runner-unavailable row now carries.
         "bounded_out": [u["id"] for u in ungradable
-                        if u["reason"] in (lz.BUDGET_EXHAUSTED, lz.RUN_UNAVAILABLE)],
+                        if u.get("reason") in (lz.BUDGET_EXHAUSTED, lz.RUN_UNAVAILABLE)],
     }
 
 

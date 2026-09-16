@@ -165,6 +165,19 @@ CONTROL_NEVER_WRITTEN = "the subject is on disk and the control that would grade
 HONESTLY_UNBUILT = "no named file exists, so the row is RIGHT to read zero and owes no repair"
 NAMES_ONLY_A_SCOPE = "every named entry is a directory, so no file-level evidence exists either way"
 CAUSE_UNDECIDABLE = "git could not be asked whether the absent path ever existed"
+#: The row is not the problem. Every path it names is here and one of them is a runnable control,
+#: so no edit to `file_scope` would change the verdict -- the refusal came from the PASS (a
+#: timeout, a spent budget, a control older than the row).
+#:
+#: THIS USED TO BE AN EMPTY LIST, and the emptiness was argued for in `assess` as the honest
+#: answer because those states "say something about the pass, not about the state of the work".
+#: That was half right and the half it got wrong was expensive: "the pass, not the row" IS a
+#: cause, and returning nothing made five of the thirty ungradable rows invisible to any consumer
+#: that groups by cause -- a fail-silent in the very control built to end an undifferentiated
+#: count. A partition with a hole is not a partition. (Measured 2026-09-16: D27, D9, KNIFE3, H41
+#: and W2_31 carried no cause at all.)
+NOTHING_IN_THE_ROW = ("every named path is on disk and one of them is a runnable control, so the "
+                      "refusal came from the pass and not from the row")
 
 #: What each cause instructs. Kept beside the cause rather than written at the call site, because
 #: the pair is the whole point: a cause without its repair is the undifferentiated count again.
@@ -175,7 +188,14 @@ CAUSE_REPAIR = {
     HONESTLY_UNBUILT: "nothing to repair in the row -- build the atom, or close it",
     NAMES_ONLY_A_SCOPE: "name the FILES this atom writes, not the directory they live in",
     CAUSE_UNDECIDABLE: "classify this row in a tree that has commit history",
+    NOTHING_IN_THE_ROW: "re-run this row ALONE (`--atom <id>`) and read its reason line -- do not "
+                        "edit `file_scope`, because nothing in it is wrong",
 }
+
+#: The one cause that asks for no work. Named here rather than at each reader, because "which of
+#: these is not a defect" is a judgement the module that defines the vocabulary owes its
+#: consumers -- a caller left to decide it will decide differently from the next caller.
+CAUSES_OWING_NO_REPAIR = frozenset({HONESTLY_UNBUILT})
 
 #: Stands in the `frozen_by` list when the lane's blockers could not be read. A string, in the
 #: same list as the real finding names, so no caller can treat "unknown" as "clear" by looking
@@ -312,6 +332,16 @@ def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -
     elif not controls:
         out.append({"cause": CONTROL_NEVER_WRITTEN, "paths": ["(file_scope names no test_*.py)"],
                     "repair": CAUSE_REPAIR[CONTROL_NEVER_WRITTEN]})
+    # AND THE PARTITION IS CLOSED HERE. Reaching this line with nothing found means every path
+    # the row names is on disk and at least one is a runnable control -- there is no edit to the
+    # row that would help, which is itself the answer and not the absence of one. Returning `[]`
+    # for it is what made five rows invisible to every consumer that groups by cause; see
+    # NOTHING_IN_THE_ROW. The test is `if not out`, deliberately, and not a re-derivation of the
+    # conditions above: a second spelling of "none of the other branches fired" is the shape that
+    # drifts away from the branches it is describing and reopens the hole.
+    if not out:
+        out.append({"cause": NOTHING_IN_THE_ROW, "paths": controls,
+                    "repair": CAUSE_REPAIR[NOTHING_IN_THE_ROW]})
     return out
 
 
@@ -542,11 +572,16 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
                                  "level_target": atom.get("level_target"),
                                  "paths": controls, "detail": detail,
                                  "frozen_by": lane_cache[lane]})
-    # Every ungradable row is asked WHY, uniformly -- not only the two shapes that need it. The
+    # Every ungradable row is asked WHY, uniformly -- not only the two shapes that need it.
+    # Special-casing which reasons get asked would put the split back under a hand-maintained
+    # list of reasons, which is the shape that rotted.
+    #
+    # CORRECTION, 2026-09-16, beside the claim it replaces. This comment used to say the
     # instrument states (budget spent, runner unavailable, control predates the row) return no
-    # cause, and that emptiness is the honest answer: those say something about the pass or the
-    # dating, not about the state of the work. Special-casing which reasons get asked would put
-    # the split back under a hand-maintained list of reasons, which is the shape that rotted.
+    # cause and that the emptiness was the honest answer. It is not: an empty list is not a
+    # reading, and a consumer grouping by cause drops the row entirely. Those rows now carry
+    # NOTHING_IN_THE_ROW, which says the same thing as a fact the reader can act on -- the
+    # refusal is in the pass, so do not go and edit the row. `ungradable_causes` is total.
     by_id = {a.get("id"): a for a in atoms}
     for u in ungradable:
         u["causes"] = causes(by_id.get(u["id"], {}), root)

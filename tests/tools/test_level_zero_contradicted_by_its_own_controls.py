@@ -624,13 +624,13 @@ def _known(answers: dict):
     return known
 
 
-def test_all_five_causes_are_reachable_in_one_pass(tmp_path: Path):
+def test_all_six_causes_are_reachable_in_one_pass(tmp_path: Path):
     """One control over the whole cause partition, and the reason it is one assertion and not
-    five is this file's own opening paragraph: every leg below is a POSITIVE claim about one
+    six is this file's own opening paragraph: every leg below is a POSITIVE claim about one
     cause, and a classifier that returned the same cause for everything would pass each of them
     read alone. This is the leg that goes red when a cause stops being reachable.
 
-    It is keyed to REACHABILITY, not to today's live map: the fixture states five worlds, and
+    It is keyed to REACHABILITY, not to today's live map: the fixture states six worlds, and
     the assertion is that the classifier distinguishes them. Repairing every live row leaves it
     green, which is what a control over a property rather than over an answer has to do."""
     (tmp_path / "subject.py").write_text("x = 1\n")
@@ -647,6 +647,9 @@ def test_all_five_causes_are_reachable_in_one_pass(tmp_path: Path):
         "UNBUILT": (_atom("UNBUILT", scope=["never/made.py", "tests/test_planned.py"]),
                     {"never/made.py": False, "tests/test_planned.py": False}),
         "NO_CONTROL": (_atom("NO_CONTROL", scope=["subject.py"]), {}),
+        # The row that is not the problem: subject and control both on disk, nothing absent.
+        # This world used to return `[]` and was the hole in the partition.
+        "NOTHING_WRONG": (_atom("NOTHING_WRONG", scope=["subject.py", "test_here.py"]), {}),
     }
     got = {name: [c["cause"] for c in lz.ungradable_causes(atom, root=tmp_path,
                                                            known=_known(answers))]
@@ -658,6 +661,7 @@ def test_all_five_causes_are_reachable_in_one_pass(tmp_path: Path):
         "SCOPE_ONLY": [lz.NAMES_ONLY_A_SCOPE],
         "UNBUILT": [lz.HONESTLY_UNBUILT],
         "NO_CONTROL": [lz.CONTROL_NEVER_WRITTEN],
+        "NOTHING_WRONG": [lz.NOTHING_IN_THE_ROW],
     }, "the cause partition is not fully reachable: {!r}".format(got)
 
 
@@ -720,12 +724,23 @@ def test_assess_attaches_causes_to_every_ungradable_row(tmp_path: Path):
         "the cause did not reach the record the brief and the CLI both read: %r" % ungradable)
 
 
-def test_an_instrument_state_carries_NO_cause_because_it_says_nothing_about_the_work(
+def test_an_instrument_state_says_the_refusal_is_IN_THE_PASS_and_not_in_the_row(
         tmp_path: Path):
     """A row the budget never reached, or one whose control predates it, is a fact about the
-    PASS or about the dating -- not about whether the atom is built. Manufacturing a cause there
-    would put a repair instruction under a row that needs a re-run, and the honest empty list is
-    what tells the reader the sub-split does not apply."""
+    PASS or about the dating -- not about whether the atom is built. The instruction it owes the
+    reader is therefore "do not edit `file_scope`, re-run it", and NOTHING_IN_THE_ROW says
+    exactly that.
+
+    CORRECTION, 2026-09-16, replacing the assertion that stood here. This test used to demand
+    `causes == []` and argued the emptiness was the honest answer. It was not. "The refusal is in
+    the pass" is a reading, and returning nothing left five of the thirty live ungradable rows
+    with no cause at all -- invisible to `delivery_seat._by_cause`, which groups by exactly that
+    field. A fail-silent in the control built to end an undifferentiated count, defended by its
+    own test. The honest empty list was the flattering half of "a mutation that does not fire is
+    either a missing test or an equivalence".
+
+    The leg it keeps: no cause here may instruct a REPAIR TO THE ROW, because nothing in the row
+    is wrong. That is asserted directly rather than by the absence of a cause."""
     (tmp_path / "subject.py").write_text("x = 1\n")
     (tmp_path / "test_old.py").write_text("def test_x():\n    assert True\n")
     atoms = [_atom("OLDER", scope=["subject.py", "test_old.py"])]
@@ -734,4 +749,40 @@ def test_an_instrument_state_carries_NO_cause_because_it_says_nothing_about_the_
         runner=lambda *a, **k: (True, "1 passed"),
         causes=lambda atom, root: lz.ungradable_causes(atom, root=root, known=_known({})))
     assert ungradable[0]["reason"] == lz.CONTROL_PREDATES_ROW
-    assert ungradable[0]["causes"] == [], ungradable[0]["causes"]
+    assert [c["cause"] for c in ungradable[0]["causes"]] == [lz.NOTHING_IN_THE_ROW]
+    assert "do not edit" in ungradable[0]["causes"][0]["repair"], (
+        "the row's scope is correct, so a repair pointing at `file_scope` would send the reader "
+        "to edit a row that is right: %r" % ungradable[0]["causes"])
+
+
+def test_EVERY_ungradable_row_carries_at_least_one_cause(tmp_path: Path):
+    """Totality, over the partition rather than over an example. The hole this closes was not a
+    wrong cause -- it was five rows with no cause at all, which every consumer that groups by
+    cause silently drops.
+
+    THE FIXTURE SPANS ALL FOUR REFUSAL SHAPES `assess` can emit, because the hole was in the one
+    nobody thought to check: the row whose scope is entirely correct. A per-shape leg would have
+    been written for the three that obviously need a cause and would have missed it again.
+
+    MUTATION (must fire): delete the `if not out` tail in `ungradable_causes` and OLDER,
+    NO_VERDICT and NEVER_REACHED all come back empty."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_old.py").write_text("def test_x():\n    assert True\n")
+    (tmp_path / "test_slow.py").write_text("def test_x():\n    assert True\n")
+    atoms = [
+        _atom("NAMES_NOTHING", scope=["subject.py"]),
+        _atom("ABSENT_CONTROL", scope=["subject.py", "tests/test_gone.py"]),
+        _atom("OLDER", scope=["subject.py", "test_old.py"]),
+        _atom("NO_VERDICT", scope=["subject.py", "test_slow.py"]),
+    ]
+    _, ungradable = lz.assess(
+        atoms, root=tmp_path, ages=_ages(predating={"OLDER": ["test_old.py"]}),
+        runner=lambda *a, **k: (None, "timed out"),
+        causes=lambda atom, root: lz.ungradable_causes(
+            atom, root=root, known=_known({"tests/test_gone.py": False})))
+
+    assert {u["id"] for u in ungradable} == {a["id"] for a in atoms}
+    uncaused = sorted(u["id"] for u in ungradable if not u.get("causes"))
+    assert not uncaused, (
+        "row(s) reached the brief with no cause at all: {}. A consumer grouping by cause drops "
+        "them entirely, which is the undifferentiated count with a hole in it".format(uncaused))
