@@ -67,13 +67,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
 
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_FINDING_REFRESH_TO_HEAD_HAS_NO_MOVE_FOR_A_COPY_THIS_LANE_ITSELF_DECLARED_AS_DROPPED_2026-09-09.md` — lane `A_strategy_governance`
-- `SEAT_FINDING_THE_TABLE_HALF_OF_THE_PAIR_STRATUM_BLOCK_IS_WITHDRAWN_UNTIL_THE_RECONCILE_LANDS_2026-09-09.md` — lane `A_strategy_governance`
-
 ## Disposition
 
 **Decision:** OPEN

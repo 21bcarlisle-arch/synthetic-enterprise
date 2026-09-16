@@ -24,14 +24,6 @@ This document supersedes the individual findings listed below, which are **archi
 
 **0 hours traced** across 9 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_FINDING_THE_SAME_SENTENCE_COUNTS_DECISIONS_IN_ONE_POPULATION_AND_ACCOUNTS_IN_ANOTHER_2026-09-10.md` — lane `A_strategy_governance`
-- `SEAT_RESULT_THE_ESTIMANDS_INVERSION_IS_NOT_THE_TIE_MASS_IT_IS_THE_ARM_PRICING_UP_THE_CUSTOMERS_IT_LOST_2026-09-09.md` — lane `A_strategy_governance`
-- `SEAT_RESULT_THE_RENEWAL_ROUTE_IS_A_MINORITY_ROUTE_AND_BOTH_FLOOR_KEYS_LIVE_ON_IT_WHILE_SEVEN_EIGHTHS_OF_THE_BOOK_DEPARTS_THROUGH_SVT_2026-09-11.md` — lane `A_strategy_governance`
-
 ## Disposition
 
 **Decision:** OPEN

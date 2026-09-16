@@ -197,6 +197,34 @@ def refusal_breakdown(by_tariff_type) -> dict:
     }
 
 
+#: THE ONE ACCOUNT OF THE DEFECT CLASS. Both branches below that mention it use this and neither
+#: writes its own.
+#:
+#: WHY IT IS A CONSTANT (2026-09-16). Until today the two branches gave two different accounts of
+#: one class -- "which is our defect and is reachable" in the mixed branch, and "every one of them
+#: is a household a real supplier would have made a renewal offer to" in the defect-only one. That
+#: is this module's own founding defect, one name and two answers, reproduced inside the repair
+#: written for it. A reader who saw the mixed branch and a reader who saw the other were told
+#: different things about the same 158 renewals.
+#:
+#: AND "REACHABLE" WAS THE WRONG WORD, not merely a second wording. It is a claim about what
+#: repairing the label DELIVERS, and this surface cannot see what decides that. Measured
+#: 2026-09-16: the live roster's unlabelled gas legs are exactly its GAS-ONLY households, and
+#: `simulation/run_phase2b` books a departure only inside `if commodity == "electricity"` -- so
+#: repairing the label alone would admit decisions whose accounts cannot leave, into a concordance
+#: `run_value_cycle_ab._survivorship` publishes as conditioned on survival. The defect is real and
+#: the record is ours; whether fixing it makes the term PRICEABLE has a different subject, and this
+#: sentence now names that subject instead of answering it.
+#: See `tests/simulation/test_a_departure_is_booked_only_on_an_electricity_leg.py`.
+_DEFECT_CLASS_CLAUSE = (
+    "the world settled these terms without deciding what product they were, so the arm refused a "
+    "RECORD rather than a PRODUCT, and the record is ours to fix. Whether fixing it makes the term "
+    "PRICEABLE is a SEPARATE question and this surface cannot answer it: that turns on whether the "
+    "account can LEAVE, which is a property of the world and not of the label. Do not read this "
+    "count as a backlog the arm can collect."
+)
+
+
 def _why_sentence(rows: list[dict], total: int, defect: int, structural: int,
                   unexplained: list[str]) -> str:
     """The published cause, composed from the counts. Every clause is a count a reader can check.
@@ -232,17 +260,14 @@ def _why_sentence(rows: list[dict], total: int, defect: int, structural: int,
             .format(structural=structural))
     elif defect and not structural:
         parts.append(
-            "All {defect:,} are OUR defect, not the market's shape: the world settled these terms "
-            "without deciding what product they were, so the arm refused a record rather than a "
-            "product. Every one of them is a household a real supplier would have made a renewal "
-            "offer to.".format(defect=defect))
+            "All {defect:,} are OUR defect, not the market's shape: ".format(defect=defect)
+            + _DEFECT_CLASS_CLAUSE)
     elif defect and structural:
         parts.append(
             "The two halves are NOT the same finding. {structural:,} are households on a product "
             "with no renewal to price -- the arm's real ceiling, which no repair to our code "
-            "moves -- and {defect:,} are terms the world settled without deciding what product "
-            "they were, which is our defect and is reachable.".format(
-                structural=structural, defect=defect))
+            "moves. For the other {defect:,}, ".format(structural=structural, defect=defect)
+            + _DEFECT_CLASS_CLAUSE)
     return " ".join(parts)
 
 

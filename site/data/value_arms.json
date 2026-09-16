@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T02:57:28.368594Z",
+  "generated_at": "2026-09-16T03:33:00.597896Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -494,7 +494,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "186a9159202d2dc390f295decb622c6e019fd833",
+    "publishing_tree_commit": "da95e8b0e4c9e9dfe292c8e063d75fc2c7dafbe2",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -506,7 +506,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from 186a91592 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from da95e8b0e -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -901,7 +901,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "186a9159202d2dc390f295decb622c6e019fd833",
+      "publishing_tree_commit": "da95e8b0e4c9e9dfe292c8e063d75fc2c7dafbe2",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -913,7 +913,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from 186a91592 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from da95e8b0e -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -964,21 +964,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 148558.61,
+      "dashboard_net_gbp": 147886.78,
       "run_identity": {
-        "dashboard_run_id": "run_output_3346182b6_20260916T005538Z.json",
-        "dashboard_commit": "3346182b6",
+        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
+        "dashboard_commit": "258720283",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_3346182b6_20260916T005538Z.json",
-        "last_verified_commit": "3346182b6",
+        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
+        "last_verified_commit": "258720283",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": 604.3543389992556,
-      "statement": "The published run's net margin (\u00a3148,558.61) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a3604.35. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": -67.47566100073163,
+      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.48. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -2776,7 +2776,7 @@
         "share_of_renewals_offered": 0.7388,
         "by_design": false,
         "exclusion_class": "both_our_defect_and_the_worlds_product_mix",
-        "why": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). The breakdown beside this count is the evidence and this sentence is derived from it: 1,347 on `svt`; 158 on `None`. The two halves are NOT the same finding. 1,347 are households on a product with no renewal to price -- the arm's real ceiling, which no repair to our code moves -- and 158 are terms the world settled without deciding what product they were, which is our defect and is reachable.",
+        "why": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). The breakdown beside this count is the evidence and this sentence is derived from it: 1,347 on `svt`; 158 on `None`. The two halves are NOT the same finding. 1,347 are households on a product with no renewal to price -- the arm's real ceiling, which no repair to our code moves. For the other 158, the world settled these terms without deciding what product they were, so the arm refused a RECORD rather than a PRODUCT, and the record is ours to fix. Whether fixing it makes the term PRICEABLE is a SEPARATE question and this surface cannot answer it: that turns on whether the account can LEAVE, which is a property of the world and not of the label. Do not read this count as a backlog the arm can collect.",
         "by_tariff_type": [
           {
             "tariff_type": "svt",
