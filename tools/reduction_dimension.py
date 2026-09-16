@@ -365,15 +365,17 @@ def declaration_of(dotted: str):
 #: the debt is re-measured rather than inherited. The count may only fall
 #: (`test_the_outstanding_debt_is_shrink_only`); raising it in the same commit as a new silent claim
 #: is the amnesty this shape is otherwise prone to.
-OUTSTANDING: dict[str, str] = {
-    "simulation.weather_cell_siting": (
-        "the declaration is written and landing it selects tests/simulation/"
-        "test_weather_cell_siting.py, red at pristine HEAD on an artefact cut owned by lane "
-        "W1_market_weather -- docs/staging/done/SEAT_FINDING_TWO_LANES_BUILT_W1_14S_ARTEFACT_CUT"
-        "_TWICE_AND_THE_SHARED_TREE_HELD_THE_LOSING_ONE_IN_A_STATE_THAT_COULD_NOT_COLLECT"
-        "_2026-09-07.md"
-    ),
-}
+#:
+#: EMPTIED 2026-09-16, and the route out was the one this comment predicted rather than a decision to
+#: forgive. The blocker was W1_market_weather's artefact cut; `1bf4821b6` established that the
+#: COMMITTED artefact was the stale one and re-cut it, and `test_weather_cell_siting.py` went green.
+#: The declaration had been on the shared tree since 2026-09-08 and reached no branch, so what kept
+#: the row alive after its stated condition was met was that nothing connects a red's repair to the
+#: debt rows waiting on it -- `stale_outstanding()` is that connection and it is PRINTED, not
+#: asserted, for the reason its own docstring gives. It named this row the moment the declaration was
+#: back on disk. Landed in the same commit as the declaration, so the census never passes through a
+#: state where the claim is silent and unaccounted for.
+OUTSTANDING: dict[str, str] = {}
 
 
 def unexpected_silence(root: Path | None = None) -> list[tuple[str, list[str]]]:

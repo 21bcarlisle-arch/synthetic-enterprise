@@ -196,6 +196,38 @@ PROJECT = Path(__file__).resolve().parent.parent
 #: The committed answer. Regenerate with `python3 -m simulation.weather_cell_siting --derive`.
 ARTEFACT = PROJECT / "sim" / "weather_cells" / "site_cells.json"
 
+from tools.reduction_dimension import declare  # noqa: E402
+
+#: WHAT THE ARCHIVE COVERS, per driver and jointly -- the two `archive_coverage` reports, declared
+#: separately because they are two different statements. Four sites can cover most of the country on
+#: every driver taken alone and miss a corner of the joint, which is the same margin-versus-joint
+#: distinction `tools/weather_cell_derivation.py` carries on the partition it sites into.
+#:
+#: BOTH ARE BLIND TO THE FABRIC, inherited from the partition they read. That is not this module's
+#: defect to fix -- it sites premises into a partition it does not own -- but a coverage figure that
+#: does not say so reads as coverage of the demand the archive can drive, which it is not.
+_HEAT_LOAD_DRIVERS = ("winter_temp", "annual_wind", "annual_sun", "dwelling_fabric")
+
+REDUCES_OVER = (
+    declare(
+        "the household share of GB the archive sites cover, per driver",
+        kind="coverage",
+        of=_HEAT_LOAD_DRIVERS,
+        reduces_over=("winter_temp", "annual_wind", "annual_sun"),
+        blind_to=("dwelling_fabric",),
+        joint=False,
+    ),
+    declare(
+        "the household share of GB the archive sites cover, jointly",
+        kind="coverage",
+        of=_HEAT_LOAD_DRIVERS,
+        reduces_over=("heat_load_driver_triple",),
+        derived_from={"heat_load_driver_triple": ("winter_temp", "annual_wind", "annual_sun")},
+        blind_to=("dwelling_fabric",),
+        joint=True,
+    ),
+)
+
 #: The BULK table: every occupied 1 km land cell of the derivation, with its per-driver cell.
 #: Written by the SAME `--derive` run as `ARTEFACT`, from the same partition, so the two cannot be
 #: regenerated apart. See "WHAT THE ARTEFACT IS CUT OVER" above for why this is the whole grid and
