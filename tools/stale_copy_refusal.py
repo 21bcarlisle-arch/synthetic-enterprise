@@ -163,12 +163,20 @@ def blob_at(root: Path, tree: str, path: str) -> str | None:
 # ------------------------------------------------------------------ rule 1: predates the landing
 
 
-def _trivial(line: str) -> bool:
+def _trivial(line: str, *, comments_are_evidence: bool = False) -> bool:
     """Lines that carry no evidence of WHICH commit they came from. A bare `return None` or a
     closing bracket appears in a thousand files, so its absence proves nothing about staleness and
-    its presence proves nothing about freshness."""
+    its presence proves nothing about freshness.
+
+    COMMENTS ARE WEAK EVIDENCE, NOT NO EVIDENCE, and the difference is the whole of `distinctive_
+    lines`' fallback. A comment is excluded by default because a licence header or a `# noqa` says
+    nothing about provenance -- but that is a reason to prefer code, not a reason to throw the
+    evidence away when there is no code to prefer. `comments_are_evidence=True` keeps the length and
+    bracket-noise floors and drops only the comment-prefix exclusion."""
     s = line.strip()
-    return len(s) < 5 or s.startswith(("#", "//", "*")) or set(s) <= set("{}()[],:\"'")
+    if len(s) < 5 or set(s) <= set("{}()[],:\"'"):
+        return True
+    return not comments_are_evidence and s.startswith(("#", "//", "*"))
 
 
 def last_commit_touching(root: Path, path: str, upto: str = "HEAD") -> str | None:
@@ -182,7 +190,27 @@ def distinctive_lines(root: Path, path: str, commit: str) -> tuple[str, ...]:
 
     UNIQUENESS IS A PROPERTY OF THE EVIDENCE, NOT A DIAL. A line the commit added twice cannot
     distinguish "your copy has the landing" from "your copy happens to contain that line already",
-    so it is not evidence either way and is dropped before the question is asked -- not weighted."""
+    so it is not evidence either way and is dropped before the question is asked -- not weighted.
+
+    AN EMPTY EVIDENCE SET IS "CANNOT TELL", AND `judge` READS IT AS "NO COMPLAINT" -- so it must
+    never be empty while any evidence survives at all. `judge` guards rule 1 with `if distinctive:`,
+    which means every filter here is also a silent fail-open: filter the set to nothing and the
+    staleness question is not asked, the copy falls through to the symbol-subset leg, and a copy
+    that changes only a CALL SITE keeps every module-level name and passes clean.
+
+    THAT WAS LIVE, AND IT COST THE SUITE. `dcb8c6d10` added exactly five lines to
+    `simulation/renewals.py`: three comments, and `fuel="electricity",` twice. The comment filter
+    took the three, the uniqueness filter took the other two, and the working copy -- twelve days
+    older than the landing, and dropping the argument that `build_svt_schedule` had just made
+    required -- was graded CLEAN by the census while `test_svt_product.py` died on a `TypeError`.
+    Eight siblings from the same landing were caught; the ninth, the only one that reddened
+    anything, was the one the filters emptied.
+
+    So the comment filter is a PREFERENCE, applied only while it leaves something behind. It never
+    gets to be the reason there is nothing to ask. This is narrow by construction: the fallback is
+    reachable only where the strong set is already empty, so it cannot change a verdict that has
+    evidence -- measured over the 47 modified readable files on the tree of 2026-09-16, it moves
+    two, and both genuinely predate their own landing by mtime."""
     parent = _git(root, "rev-parse", "--verify", "{}^".format(commit))
     if parent.returncode != 0:
         # The commit that CREATED the file. There is no "before" to have landed over, and a copy
@@ -193,7 +221,11 @@ def distinctive_lines(root: Path, path: str, commit: str) -> tuple[str, ...]:
              if ln.startswith("+") and not ln.startswith("+++")]
     version = blob_at(root, commit, path) or ""
     freq = Counter(ln.strip() for ln in version.splitlines())
-    return tuple(ln for ln in added if not _trivial(ln) and freq[ln] == 1)
+    strong = tuple(ln for ln in added if not _trivial(ln) and freq[ln] == 1)
+    if strong:
+        return strong
+    return tuple(ln for ln in added
+                 if not _trivial(ln, comments_are_evidence=True) and freq[ln] == 1)
 
 
 # ------------------------------------------------------------------ rule 2: strict symbol subset

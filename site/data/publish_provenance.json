@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-08T19:16:01Z",
+    "checked_at": "2026-09-16T03:56:17Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,35 +9,35 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 8
+    "open_findings": 11
   },
   "last_verified": {
-    "generated_at": "2026-09-10T01:31:55Z",
-    "git_commit": "258720283",
+    "generated_at": "2026-09-16T05:26:18Z",
+    "git_commit": "dbd92cedc",
     "population": {
-      "accounts": 251,
-      "bills": 10924,
-      "total_revenue_gbp": 677289.18
+      "accounts": 226,
+      "bills": 10881,
+      "total_revenue_gbp": 676597.23
     },
-    "run_id": "run_output_258720283_20260910T005624Z.json",
+    "run_id": "run_output_dbd92cedc_20260916T044947Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-10T01:31:55Z"
+    "verified_at": "2026-09-16T05:26:18Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=edded3973; blocking tests: FAILED tests/background/test_an_exit_code_is_not_a_landing.py::test_the_channel_reads_the_SHARED_trees_log_not_the_importing_trees",
+  "paused_since": "2026-09-16T09:36:22Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-10T01:31:55Z",
-    "git_commit": "258720283",
+    "generated_at": "2026-09-16T05:26:18Z",
+    "git_commit": "dbd92cedc",
     "population": {
-      "accounts": 251,
-      "bills": 10924,
-      "total_revenue_gbp": 677289.18
+      "accounts": 226,
+      "bills": 10881,
+      "total_revenue_gbp": 676597.23
     },
-    "run_id": "run_output_258720283_20260910T005624Z.json",
+    "run_id": "run_output_dbd92cedc_20260916T044947Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-10T01:31:55Z"
+    "verified_at": "2026-09-16T05:26:18Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-10T01:31:55Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-16T09:36:22Z"
 }

@@ -682,3 +682,97 @@ def test_a_copy_the_trunk_supersedes_reads_as_holder_work_when_the_base_is_behin
     assert scr.gains_over(trunk_text, LANDED, "m.py") == (), (
         "against the TRUNK the same copy supplies nothing, so the honest door was refresh_to_head "
         "all along and the two bases disagree about which door exists")
+
+
+#: The copy taken BEFORE the landing below. It keeps every module-level name (`alpha` is the only
+#: one either side declares), so the symbol-subset leg is blind to it by construction: what the
+#: landing changed is an ARGUMENT at a call site, and rule 2 does not read call sites.
+PRE_CALL_SITE_LANDING = (
+    "def alpha():\n"
+    "    first = helper(\n"
+    "        1,\n"
+    "    )\n"
+    "    second = helper(\n"
+    "        2,\n"
+    "    )\n"
+    "    return first + second\n"
+)
+
+#: `dcb8c6d10` against `simulation/renewals.py`, reduced to its shape. Every line it adds is thrown
+#: away by one filter or the other: three COMMENTS, and `fuel="electricity",` added TWICE, so the
+#: uniqueness filter drops it as unable to discriminate. Five added lines, zero survivors.
+CALL_SITE_LANDING = (
+    "def alpha():\n"
+    "    # THIS BUILDER IS ELECTRICITY'S AND NAMES IT: it took no fuel until gas needed one,\n"
+    "    # and it now refuses to guess -- a builder that guesses a commodity is one that\n"
+    "    # prices the wrong fuel in silence and says nothing whatever about having done so.\n"
+    "    first = helper(\n"
+    "        1,\n"
+    '        fuel="electricity",\n'
+    "    )\n"
+    "    second = helper(\n"
+    "        2,\n"
+    '        fuel="electricity",\n'
+    "    )\n"
+    "    return first + second\n"
+)
+
+
+def test_a_landing_whose_added_lines_are_all_filtered_still_yields_evidence(repo: Path) -> None:
+    """MUTATION: delete the `comments_are_evidence` fallback in `distinctive_lines` and this FIRES.
+
+    THE FILTERS ARE ALSO A FAIL-OPEN, which is the half this file already knew about the duplicate
+    filter -- `test_a_repeated_line_is_not_evidence_of_freshness` says in terms that an empty set
+    makes rule 1 unreachable -- and never asked about the comment filter. `judge` guards rule 1
+    with `if distinctive:`, so a filter that empties the set does not weaken the question, it
+    DELETES it, and the copy is graded by the symbol leg alone.
+
+    Live instance, 2026-09-16: `dcb8c6d10` added exactly three comments and one twice-repeated line
+    to `simulation/renewals.py`. Both filters fired, the evidence set was empty, and a working copy
+    twelve days older than the landing -- missing the `fuel=` argument the same commit had just
+    made required -- was graded CLEAN by the census while the tests it broke went red."""
+    _commit(repo, "m.py", PRE_CALL_SITE_LANDING, "the base the landing lands over")
+    sha = _commit(repo, "m.py", CALL_SITE_LANDING, "a landing whose every added line is filtered")
+    assert scr.distinctive_lines(repo, "m.py", sha), (
+        "every added line was filtered away, so rule 1 is never asked and the staleness question "
+        "is deleted rather than answered -- this is the fail-open, not a conservative reading")
+
+
+def test_the_comment_fallback_does_not_displace_code_evidence(repo: Path) -> None:
+    """THE OTHER SIDE OF THE PARTITION, and the reason this is a fallback and not a widening.
+
+    A control whose evidence set silently grew to include every comment would be a DIFFERENT
+    control: comments travel with cherry-picks, rewraps and reverts, so preferring them over code
+    would make the refusal noisier everywhere it already works. Asserting the fallback FIRES says
+    nothing about whether it fires only where it is needed -- so assert the strong branch is still
+    taken while code evidence exists, or `comments_are_evidence=True` may as well be unconditional.
+    Both branches are constructed here because a fallback that had quietly become the only branch
+    would pass the test above and nothing else in this file would notice."""
+    _commit(repo, "m.py", PRE_CALL_SITE_LANDING, "the base")
+    mixed = CALL_SITE_LANDING + "\n\ndef beta():\n    return 8675309\n"
+    sha = _commit(repo, "m.py", mixed, "a landing carrying BOTH comments and distinctive code")
+    distinctive = scr.distinctive_lines(repo, "m.py", sha)
+    assert any("8675309" in d for d in distinctive), "the code line is the strong evidence"
+    assert not any(d.startswith("#") for d in distinctive), (
+        "while code evidence survives, the comment filter still applies -- the fallback must be "
+        "reachable ONLY where the strong set is empty, or it is a widening wearing a fallback's name")
+
+
+def test_a_call_site_only_stale_copy_is_refused(repo: Path) -> None:
+    """THE CONSEQUENCE, end to end: what `judge` actually returns for the live shape.
+
+    The two rules are not redundant here, they are BOTH blind. Rule 2 compares declared names and
+    this copy keeps every one of them -- only an argument inside a call differs. So rule 1 emptied
+    is the whole of the control, and without the fallback `judge` returns None on a copy that
+    reverts a landing. The `scr.PREDATES` leg is asserted explicitly because a refusal arriving by
+    any other rule would be the right answer for the wrong reason."""
+    _commit(repo, "m.py", PRE_CALL_SITE_LANDING, "the base")
+    _commit(repo, "m.py", CALL_SITE_LANDING, "the landing")
+    head_text = scr.blob_at(repo, "HEAD", "m.py")
+    assert scr.symbols(head_text, "m.py") == scr.symbols(PRE_CALL_SITE_LANDING, "m.py"), (
+        "if the two sides ever declare different names, rule 2 can see this copy and rule 1 is no "
+        "longer the only thing standing between it and a clean verdict -- the test would still "
+        "pass, and would have stopped being about the hole it was written for")
+    loss = scr.judge(repo, "m.py", head_text, PRE_CALL_SITE_LANDING)
+    assert loss is not None, "a copy predating the landing was graded clean"
+    assert loss.rule == scr.PREDATES, "it must be refused AS predating the landing"
