@@ -138,6 +138,13 @@ MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 CLAIMS_FILE = (seat_continuation.shared_tree_dir() / "docs" / "observability"
                / ".delivery_lane_claims.json")
 
+#: `DIRECTION.yaml` as GIT spells it, for `_direction_history_text`'s walk of its revisions.
+#: DERIVED FROM `direction.DIRECTION_PATH` RATHER THAN WRITTEN OUT AGAIN: two spellings of one
+#: file is how this leg would go quietly silent the day the record moves, and silent here reads as
+#: "the item named no subject", which is the flattering answer.
+DIRECTION_RECORD_PATH = direction_mod.DIRECTION_PATH.relative_to(
+    direction_mod.PROJECT_DIR).as_posix()
+
 
 def claims_file(project_dir: Path | None = None) -> Path:
     """Claims on delivery-lane items, in the MAIN worktree whatever tree this process stands in.
@@ -739,29 +746,134 @@ def _paths_named_in(text: str) -> list[str]:
     return sorted(out)
 
 
+#: The prose fields a direction/continuation item carries, in the order a reader would read them.
+#: One tuple, because three call sites extracting "the same four keys" is how the history leg and
+#: the live leg would come to disagree about what an item's prose IS.
+_ITEM_PROSE_KEYS = ("what", "why", "done_means", "note")
+
+#: `DIRECTION.yaml`'s whole history, by id, built once per process. `None` until the first call.
+#: CACHED BECAUSE THE READER IS A LIST, NOT A ROW: `drawn_without_landing` asks this of every
+#: swept row, and the walk costs one `git log` plus one `git show` per revision of the file (72 on
+#: 2026-09-16, 0.55s). Per-row that is 0.55s x 58 unstamped rows on the orientation brief; built
+#: once it is 0.55s for the brief. A process-lifetime cache is right for a reader whose subject is
+#: a committed history — it cannot change under a single brief — and `_reset_direction_history`
+#: exists so a test that stubs `_git` is not answered from another test's stub.
+_DIRECTION_HISTORY: dict[str, str] | None = None
+
+
+def _reset_direction_history() -> None:
+    """Drop the cached history map. FOR TESTS, and it is not a convenience.
+
+    A module-level cache filled from a monkeypatched `_git` outlives the test that stubbed it and
+    answers the next one from a fake — the cross-test fail-open, and the reason this is a named
+    function rather than a line each test remembers to write.
+    """
+    global _DIRECTION_HISTORY
+    _DIRECTION_HISTORY = None
+
+
+def _direction_history_text() -> dict[str, str]:
+    """Every focus/not_now item's prose, by id, from the WHOLE COMMITTED HISTORY of DIRECTION.yaml.
+
+    THE REACH WAS THE BINDING CONSTRAINT, NOT THE JOIN (measured 2026-09-16 on the live ledger,
+    before this was written). 67 rows had closed a window with nothing landed; `_item_text` could
+    give 9 of them a subject and the join ran on those 9. The other 58 were silent for one reason,
+    and it was not that their prose never existed: BOTH STORES `_item_text` READS ARE LIVE STORES.
+    `DIRECTION.yaml` is rewritten whole at each orientation and the continuation store is emptied
+    by `drop` and by the expiry, so an item's prose leaves them within hours while the row it drew
+    stays in the ledger for months. Every one of those 58 rows had a doorbell printed for it.
+
+    `DIRECTION.yaml` IS TRACKED AND EVERY ORIENTATION COMMITS IT, so the prose is not gone — it is
+    in git, where nothing clears it. Walking its 72 revisions recovers 39 of the 58, taking the
+    reach from 9 to 47 of 67.
+
+    THE TWO SOURCES THE INSTRUCTION NAMED CANNOT DO THIS, and both were measured before this one
+    was written rather than after:
+      * THE SUPERVISOR LOG holds the doorbell text but not the focus id. Three sampled never-landed
+        ids occur ZERO times in its 216MB, so there is nothing to key a lookup on; taking the
+        doorbell nearest in time would attribute one item's paths to another's window, which is
+        evidence in the flattering direction and the exact failure `LANDED_UNBOUND` exists to end.
+      * THE CLAIM NOTE is keyed by id, but `release` and `sweep_stale` POP the record, and every
+        row this reach-back serves is BY DEFINITION one whose window closed and was swept. It
+        reached 0 of the 67 and it would reach 0 of any 67 — a branch that cannot be taken rather
+        than a leg that happens to be empty today, so it is not written.
+
+    NEWEST PROSE WINS for an id several revisions carry (`git log` is newest-first). An id redrawn
+    against rewritten prose therefore gets prose that may postdate the window being judged. Named
+    as a bound rather than closed: the row's own `named_paths` stamp is the exact answer and this
+    is only the reach-back for rows that predate it, and the alternative — the revision live at the
+    draw instant — reads identically whenever the item was not rewritten, which is nearly always.
+
+    Never raises. Git silent, `yaml` missing, a revision that will not parse: all give `{}` or fewer
+    ids, so the row gets no subject and falls to the residual. Fail-closed, which is the direction
+    an unavailable check has to fail in (R15) and the one this whole repair needs.
+    """
+    global _DIRECTION_HISTORY
+    if _DIRECTION_HISTORY is not None:
+        return _DIRECTION_HISTORY
+    found: dict[str, str] = {}
+    try:
+        import yaml
+
+        revisions = (_git("log", "--all", "--format=%H", "--", DIRECTION_RECORD_PATH) or "").split()
+        for sha in revisions:
+            blob = _git("show", "{}:{}".format(sha, DIRECTION_RECORD_PATH))
+            if not blob:
+                continue
+            try:
+                record = yaml.safe_load(blob)
+            except Exception:
+                continue
+            if not isinstance(record, dict):
+                continue
+            for section in ("focus", "not_now"):
+                rows = record.get(section)
+                if not isinstance(rows, list):
+                    continue
+                for item in rows:
+                    if not isinstance(item, dict) or not item.get("id"):
+                        continue
+                    fid = str(item["id"])
+                    if fid in found:
+                        continue
+                    text = " ".join(str(item.get(k) or "") for k in _ITEM_PROSE_KEYS).strip()
+                    if text:
+                        found[fid] = text
+    except Exception:
+        pass
+    _DIRECTION_HISTORY = found
+    return found
+
+
 def _item_text(focus_id: str) -> str:
-    """Everything the live stores say about `focus_id`, for the path extractor. "" if nothing.
+    """Everything we can still read about `focus_id`, for the path extractor. "" if nothing.
 
     THE ROW'S OWN STAMP IS THE DURABLE SOURCE and this is the reach-back for rows written before
-    the stamp existed, or whose draw came through a route that had no text. Both stores are read
-    because a focus row and a hand-off are two spellings of the same item and either may be the
-    one still holding it; a row that has left both reads "", which lands on the residual.
+    the stamp existed, or whose draw came through a route that had no text. Both live stores are
+    read because a focus row and a hand-off are two spellings of the same item and either may be
+    the one still holding it.
+
+    THE HISTORY IS A FALLBACK AND NOT A THIRD VOICE. A row still in a live store is described by
+    that store NOW; splicing in prose from a revision that has since been rewritten would add paths
+    to a subject whose owner has already narrowed it, and more paths is more chance of a hit, which
+    is the flattering direction. So git is asked only when both live stores are silent — which is
+    the case the widening was for, and the only one in which it can change an answer.
     """
     parts: list[str] = []
     try:
         for item in direction_mod.unreachable_focus(_atom_ids()):
             if str(item.get("id")) == str(focus_id):
-                parts.extend(str(item.get(k) or "") for k in ("what", "why", "done_means", "note"))
+                parts.extend(str(item.get(k) or "") for k in _ITEM_PROSE_KEYS)
     except Exception:
         pass
     try:
         for entry in seat_continuation._load():
             if str(entry.get("id")) == str(focus_id):
-                parts.extend(str(entry.get(k) or "")
-                             for k in ("what", "why", "done_means", "note"))
+                parts.extend(str(entry.get(k) or "") for k in _ITEM_PROSE_KEYS)
     except Exception:
         pass
-    return " ".join(p for p in parts if p)
+    live = " ".join(p for p in parts if p).strip()
+    return live or _direction_history_text().get(str(focus_id), "")
 
 
 def _bound_instants(ledger: dict) -> frozenset:

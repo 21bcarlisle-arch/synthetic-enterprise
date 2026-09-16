@@ -45,6 +45,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from background import delivery_lane as dl
 
 #: Synthetic ids. NOT the live ledger's: a control pinned to today's rows goes green the moment the
@@ -84,20 +86,48 @@ def _row(**extra):
     return row
 
 
-def _fake_git(log_lines, *, tracked=(SUBJECT_PATH, OTHER_PATH)):
-    """A git that answers ONLY the two questions asked of it, from an explicit table.
+@pytest.fixture(autouse=True)
+def _no_cached_direction_history():
+    """`_direction_history_text` caches for the life of the PROCESS, and a test suite is one.
+
+    NOT A CONVENIENCE. The cache is filled on first use, so the first test here that stubs `_git`
+    would answer every later test -- including the ones that ask REAL git -- from its fake, and a
+    fake that outlives its test is the cross-test fail-open. Cleared on both sides so this file
+    neither inherits a map nor leaves one behind for the rest of the suite.
+    """
+    dl._reset_direction_history()
+    yield
+    dl._reset_direction_history()
+
+
+def _fake_git(log_lines, *, tracked=(SUBJECT_PATH, OTHER_PATH), revisions=()):
+    """A git that answers ONLY the questions asked of it, from an explicit table.
 
     STRICTER THAN REAL GIT ON PURPOSE. It returns None for anything it was not told about, so it
     can only make the subject refuse MORE than the real thing would -- a fake more permissive than
     its subject is how a fail-open becomes a green suite here. `log_lines` is a list of
     `(sha, when, subject, paths)`, and the fake applies the pathspec ITSELF, which is what lets
     the pathspec leg below be a discriminator rather than a restatement of the fixture.
+
+    `revisions` is the SECOND question, added with the history reach-back: a list of
+    `(sha, yaml_text)` NEWEST FIRST, which is the order real `git log` gives. The two `log` calls
+    are told apart by their PATHSPEC and not by their format string, because the pathspec is what
+    the subject actually varies -- an id-keyed fixture would still be a fixture if the subject
+    stopped asking about `DIRECTION.yaml` at all. `revisions=()` answers "" and None exactly as
+    this fake did before the parameter existed, so every test above is untouched by it.
     """
+    blobs = dict(revisions)
+
     def fake(*args):
         if args and args[0] == "ls-files":
             return "\n".join(tracked) + "\n"
+        if args and args[0] == "show":
+            sha, _, path = str(args[1]).partition(":")
+            return blobs.get(sha) if path == dl.DIRECTION_RECORD_PATH else None
         if args and args[0] == "log":
             wanted = list(args[args.index("--") + 1:]) if "--" in args else []
+            if wanted == [dl.DIRECTION_RECORD_PATH]:
+                return "\n".join(sha for sha, _ in revisions) + "\n" if revisions else ""
             out = []
             for sha, when, subject, paths in log_lines:
                 if wanted and not any(
@@ -107,6 +137,19 @@ def _fake_git(log_lines, *, tracked=(SUBJECT_PATH, OTHER_PATH)):
             return "\n".join(out) + "\n" if out else ""
         return None
     return fake
+
+
+def _record(*items) -> str:
+    """A `DIRECTION.yaml` revision naming `items` as focus. Hand-written YAML, not dumped.
+
+    The subject parses this with `yaml.safe_load` and nothing else, so writing it out is what
+    makes the fixture a document rather than a round-trip of the subject's own reader.
+    """
+    body = ["version: 1", "oriented_at: '2026-09-16T04:00:00+00:00'", "focus:"]
+    for fid, what in items:
+        body.append(f"  - id: {fid}")
+        body.append(f"    what: {what}")
+    return "\n".join(body) + "\n"
 
 
 def _five_shapes(tmp_path):
@@ -326,3 +369,182 @@ def test_GIT_SILENT_READS_AS_THE_RESIDUAL_and_never_raises_into_the_brief(tmp_pa
     assert (silent["disposition"] == dl.NOT_DONE and raised["disposition"] == dl.NOT_DONE
             and unnamed["disposition"] == dl.NOT_DONE), (silent, raised, unnamed)
     assert [r["disposition"] for r in listed] == [dl.NOT_DONE]
+
+
+# ---------------------------------------------------------------------------------------------
+# THE REACH, not the join (2026-09-16, second pass on this mechanism).
+#
+# The join above was right and it ran on a fifth of its room. Measured on the live ledger before
+# any of this was written: 67 rows had closed a window with nothing landed, 9 of them could be
+# given a subject at all, 8 named a path git tracks, and the join returned 2 hits. The other 58
+# were not silent because their prose never existed -- a doorbell was printed for every one of
+# them -- but because BOTH STORES `_item_text` READ ARE LIVE STORES, and an item's prose leaves
+# them within hours while its ledger row survives for months. Reading `DIRECTION.yaml`'s COMMITTED
+# HISTORY takes the same measurement to 48 with a subject, 45 with a tracked path, and 21 hits.
+#
+# KEYED TO THE PROPERTY, NEVER TO THOSE NUMBERS. The property is: **a row whose prose has left
+# every live store is still given the subject its prose named, and the live stores still outrank a
+# revision that has since been rewritten.** The numbers are the finding; the controls below are
+# synthetic end to end and would hold on an empty ledger.
+#
+# MUTATIONS (each must fire, and which test catches it):
+#   (j) delete the history fallback from `_item_text` -- `..._A_ROW_WHOSE_PROSE_LEFT_EVERY_LIVE
+#       _STORE` reds (this is the defect itself);
+#   (k) consult the history ALWAYS instead of only when the live stores are silent --
+#       `..._THE_LIVE_STORES_OUTRANK_A_REVISION_SINCE_REWRITTEN` reds;
+#   (l) take the OLDEST revision naming an id, or merge every revision's prose --
+#       `..._THE_NEWEST_REVISION_IS_THE_ONE_THAT_DESCRIBES_THE_WINDOW` reds;
+#   (m) let one unparseable revision abort the walk -- `..._A_REVISION_THAT_WILL_NOT_PARSE`  reds;
+#   (n) drop `_reset_direction_history`, or stop calling it -- nothing reds HERE, which is the
+#       point of the autouse fixture: the cache is process-wide, and a stub that outlives its test
+#       is not a defect this file can assert about itself. It is asserted from the other side, by
+#       `..._THE_CACHE_IS_BUILT_ONCE_AND_RESETTABLE`.
+
+
+def test_THE_REACH_a_row_whose_prose_left_every_live_store_still_gets_its_subject(
+        tmp_path, monkeypatch):
+    """The widening, as one statement over the partition it splits.
+
+    ONE LEDGER, ONE ROW, TWO GITS. The row has no `named_paths` stamp (it predates it, which is
+    what all 58 of them are) and neither live store holds it. With a git whose `DIRECTION.yaml`
+    history names it, the subject is recovered and the window's commit is found; with a git whose
+    history is empty, the same row falls to the loud residual. Asserting both together is what
+    makes this the reach and not a restatement of the join -- a `_item_text` that returned the
+    item's prose unconditionally would pass the first leg and fail the second.
+    """
+    store = _ledger(tmp_path, {MISSED_ID: _row()})
+    landing = [(UNBOUND_SHA, IN_WINDOW, "the work, landed under nobody's name", [SUBJECT_PATH])]
+
+    monkeypatch.setattr(dl, "_git", _fake_git(landing, revisions=(
+        ("rev1", _record((MISSED_ID, "rewrite " + SUBJECT_PATH + " so the join has a subject"))),
+    )))
+    reached = dl.disposition_of(MISSED_ID, path=store)
+
+    dl._reset_direction_history()
+    monkeypatch.setattr(dl, "_git", _fake_git(landing, revisions=()))
+    unreached = dl.disposition_of(MISSED_ID, path=store)
+
+    assert reached["disposition"] == dl.LANDED_UNBOUND, reached
+    assert UNBOUND_SHA[:9] in reached["evidence"] and SUBJECT_PATH in reached["evidence"]
+    assert unreached["disposition"] == dl.NOT_DONE, unreached
+
+
+def test_THE_LIVE_STORES_OUTRANK_a_revision_since_rewritten(tmp_path, monkeypatch):
+    """A row a live store still describes is described by THAT, and git is not consulted for it.
+
+    WHY THE FALLBACK IS NOT A THIRD VOICE. The history holds every revision the record ever had,
+    including subjects its owner has since narrowed or dropped. Splicing those in beside the live
+    text can only ADD paths, more paths is more chance of a commit landing on one, and a hit
+    manufactured from a subject the item no longer claims is evidence in the flattering direction
+    -- which is the failure `LANDED_UNBOUND` was written to end, one layer in.
+
+    The discriminator is that the stale revision names `OTHER_PATH` and the live store does not,
+    and the only commit in the window is on `OTHER_PATH`. A `_item_text` that unioned the two
+    would report this window as landed-but-unbound on a file the item stopped naming.
+    """
+    store = _ledger(tmp_path, {MISSED_ID: _row()})
+    monkeypatch.setattr(dl.direction_mod, "unreachable_focus", lambda *_a, **_k: [
+        {"id": MISSED_ID, "what": "rewrite " + SUBJECT_PATH, "why": "", "done_means": ""},
+    ])
+    monkeypatch.setattr(dl, "_git", _fake_git(
+        [(UNBOUND_SHA, IN_WINDOW, "a landing on the subject this item DROPPED", [OTHER_PATH])],
+        revisions=(("rev1", _record((MISSED_ID, "an older cut of this item, over " + OTHER_PATH))),
+                   )))
+
+    assert dl.disposition_of(MISSED_ID, path=store)["disposition"] == dl.NOT_DONE
+    # ...and the same fixture with the live store SILENT is the positive half, so the leg above
+    # is proven to be the live store winning rather than the history simply never working here.
+    dl._reset_direction_history()
+    monkeypatch.setattr(dl.direction_mod, "unreachable_focus", lambda *_a, **_k: [])
+    assert dl.disposition_of(MISSED_ID, path=store)["disposition"] == dl.LANDED_UNBOUND
+
+
+def test_THE_NEWEST_REVISION_IS_THE_ONE_THAT_DESCRIBES_THE_WINDOW(monkeypatch):
+    """`git log` is newest-first and the first revision naming an id is the one kept.
+
+    An item rewritten between orientations has several revisions describing it, and the newest is
+    the closest thing on disk to the prose the draw was made against. Taking the oldest, or
+    merging them all, both pass a single-revision fixture -- so the fixture carries three, and the
+    two the walk must NOT return name a path that would change the answer.
+    """
+    monkeypatch.setattr(dl, "_git", _fake_git([], revisions=(
+        ("newest", _record((MISSED_ID, "the current cut, over " + SUBJECT_PATH))),
+        ("middle", _record((MISSED_ID, "an earlier cut, over " + OTHER_PATH))),
+        ("oldest", _record((MISSED_ID, "the first cut, over " + OTHER_PATH))),
+    )))
+
+    assert dl._paths_named_in(dl._item_text(MISSED_ID)) == [SUBJECT_PATH]
+
+
+def test_A_REVISION_THAT_WILL_NOT_PARSE_does_not_take_the_walk_down(monkeypatch):
+    """One bad revision in seventy is a skipped revision, never a lost history.
+
+    `DIRECTION.yaml` is hand-written by the seat and its history contains whatever was committed,
+    including mid-edit states. A walk that aborted on the first `yaml` error would go silent for
+    every id behind that revision -- and silent here reads as "the item named no subject", which
+    is the flattering answer. So the newest revision is deliberately unparseable and the id behind
+    it must still come back.
+    """
+    monkeypatch.setattr(dl, "_git", _fake_git([], revisions=(
+        ("broken", "focus:\n  - id: [unterminated\n"),
+        ("good", _record((MISSED_ID, "the prose behind the broken revision, "
+                                     "over " + SUBJECT_PATH))),
+    )))
+
+    assert dl._paths_named_in(dl._item_text(MISSED_ID)) == [SUBJECT_PATH]
+
+
+def test_THE_CACHE_IS_BUILT_ONCE_AND_RESETTABLE(monkeypatch):
+    """The walk costs one `git show` per revision, and the reader asks it PER ROW.
+
+    `drawn_without_landing` runs `_item_text` for every swept row without a stamp, so a walk
+    rebuilt per row multiplies the whole history by the population -- the reason the map is
+    cached. The cache is process-wide, which is also how a monkeypatched git leaks out of the test
+    that installed it, so the reset is part of the mechanism rather than test scaffolding and is
+    asserted here as such.
+    """
+    calls = []
+    inner = _fake_git([], revisions=(("rev1", _record((MISSED_ID, "over " + SUBJECT_PATH))),))
+
+    def counting(*args):
+        calls.append(args[0] if args else "")
+        return inner(*args)
+
+    monkeypatch.setattr(dl, "_git", counting)
+
+    first = dl._direction_history_text()
+    walked = calls.count("show")
+    again = dl._direction_history_text()
+
+    assert first == again and walked == 1
+    assert calls.count("show") == walked, "a second call re-walked the history"
+
+    dl._reset_direction_history()
+    dl._direction_history_text()
+    assert calls.count("show") == walked + 1, "the reset did not drop the cached map"
+
+
+def test_THE_CLAIM_NOTE_LEG_IS_NOT_WRITTEN_and_the_store_says_why(tmp_path):
+    """The reach-back the instruction asked for, and the measurement that says it cannot fire.
+
+    THE INSTRUCTION NAMED TWO SOURCES AND NEITHER IS THE ONE IMPLEMENTED, which is recorded here
+    rather than only in prose, because "we considered it" is unfalsifiable and this is not. The
+    claim store is keyed by id and does hold a note -- but `release` and `sweep_stale` POP the
+    record, and EVERY row this reach-back serves is by definition one whose window closed and was
+    swept. So the leg is not empty today; it is empty for every row it would ever be asked about,
+    which is the branch-that-cannot-be-taken shape (R15) rather than a source worth reading.
+
+    Asserted over the STORE'S OWN BEHAVIOUR and not over today's file: claim, sweep, and show that
+    what the sweep leaves behind carries no note to read.
+    """
+    store = tmp_path / "claims.json"
+    store.write_text("{}", encoding="utf-8")
+    dl.claims_mod.claim(MISSED_ID, note="rewrite " + SUBJECT_PATH, path=store)
+
+    assert (dl.claims_mod._load(store).get(MISSED_ID) or {}).get("note")
+
+    dl.claims_mod.release(MISSED_ID, path=store)
+
+    assert dl.claims_mod._load(store).get(MISSED_ID) is None, (
+        "a released claim still holds its note -- if this ever becomes true the claim-note leg "
+        "is worth writing, and this control is where that is noticed")
