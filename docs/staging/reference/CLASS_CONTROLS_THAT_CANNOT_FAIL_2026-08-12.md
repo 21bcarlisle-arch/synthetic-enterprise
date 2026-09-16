@@ -18,7 +18,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_CLASS_DECLARATION_CHANNEL_CANNOT_READ_THE_FORM_ITS_OWN_RENDERER_WRITES_2026-09-15.md` — LATENT
 - `SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_INSTANCES_2026-09-15.md` — LATENT
 - `SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md` — RECORDED
-- `SEAT_RESULT_THE_STRETCH_ALARM_WAS_HOSTED_INSIDE_THE_PUBLISHER_THAT_WAS_WEDGED_AND_THE_PRODUCT_FLOOR_WAS_A_SENTENCE_2026-09-16.md` — LATENT
 - `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md` — BLOCKING
 - `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md` — BLOCKING
 - `SEAT_FINDING_THE_REFUTED_HANDOFF_WON_THE_DRAW_BECAUSE_ITS_CORRECTION_USED_A_NEW_ID_2026-09-03.md` — LATENT
@@ -28,6 +27,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_RESULT_EIGHT_OF_TEN_ROOMS_CANNOT_FAIL_FOR_THIS_SUBJECT_AND_THE_CONTROL_NAMED_FOR_ITS_CONTRACT_GRADED_ITS_OWN_FIXTURE_2026-09-05.md` — LATENT
 - `SEAT_RESULT_NOTHING_IN_THE_CALLER_POPULATION_KILLS_ANY_OF_FUEL_MIXS_ELEVEN_CONTRACTS_AND_THE_TENTH_SUITES_GREEN_CANNOT_BE_A_SWALLOW_2026-09-06.md` — LATENT
 - `SEAT_RESULT_THE_LOOSE_BOUNDARY_STAYS_UNGUARDED_ON_A_MEASURED_ZERO_AND_TWO_OF_THE_ALWAYS_RUN_EIGHTEEN_WERE_EARNED_BY_A_NAME_COLLISION_2026-09-10.md` — LATENT
+- `SEAT_RESULT_THE_STRETCH_ALARM_WAS_HOSTED_INSIDE_THE_PUBLISHER_THAT_WAS_WEDGED_AND_THE_PRODUCT_FLOOR_WAS_A_SENTENCE_2026-09-16.md` — LATENT
 - `WORKER_FINDING_A_BULK_PASS_BLINDS_THE_AGED_STAGING_DIGEST_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md` — RECORDED
@@ -60,11 +60,12 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**195.0 recorded episode-hours** across 3 of the 46 instances; largest single recorded episode **146h**; 8 instance(s) name a published figure in scope.
+**228.0 recorded episode-hours** across 4 of the 47 instances; largest single recorded episode **146h**; 8 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **146 hours** — `SEAT_FINDING_A_LIVE_RECORD_IS_TRACKED_SO_EVERY_WORKTREE_READS_A_TWO_MONTH_OLD_PLACEHOLDER_AS_LIVE_STATE_2026-09-16.md`: …that read its own tree — the obedient reading — would have recorded a 146-hour publish wedge as cleared on the strength of a two-month-old empty fil…
+- **33 hours** — `SEAT_RESULT_THE_STRETCH_ALARM_WAS_HOSTED_INSIDE_THE_PUBLISHER_THAT_WAS_WEDGED_AND_THE_PRODUCT_FLOOR_WAS_A_SENTENCE_2026-09-16.md`: …because `supervisor.py` line ~167 forbids exactly that, and names the 33-hour outage it caused. ## Cause 2 — the canon's one unbuilt clause Of DI…
 - **25 hours** — `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md`: …start — a reset would publish "paused since 30 seconds ago" through a 25-hour outage, the ruling's own cardinal sin wearing the opposite coat. So…
 - **24 hours** — `WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_VIOLATION_ABBREVIATED_2026-08-19.md`: …ontrol born red is a control someone disables."* It has been red for ~24h against a record that is accurate, and the pressure that creates is t…
 
@@ -84,6 +85,7 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_THE_DECOMPOSITION_CLASSS_REACHABILITY_LEG_CANNOT_PASS_BECAUSE_EVERY_STRATUM_CARRIES_A_DECISIONS_COUNT_IT_WAS_NOT_MEASURED_OVER_2026-09-09.md` — lane `A_strategy_governance`
+- `SEAT_FINDING_THE_HALF_HOURLY_SHAPE_REACHES_FOUR_CUSTOMERS_AND_AN_UNCOMMITTED_ARTEFACT_KILLS_THE_ONE_MECHANISM_THAT_WIDENS_IT_2026-09-16.md` — lane `W1_market_weather`
 - `SEAT_FINDING_THE_WORLD_IDENTITY_DIGEST_IS_BLIND_TO_THE_HOME_STOCK_2026-09-15.md` — lane `W2_customer_generator`
 
 ## Disposition

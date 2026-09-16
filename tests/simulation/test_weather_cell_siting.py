@@ -16,7 +16,12 @@ from simulation.weather_inputs import _WEATHER_SOURCE_CUSTOMERS, _weather_source
 LONDON = {"lat": 51.5074, "lon": -0.1278, "region": "London"}
 BIRMINGHAM = {"lat": 52.4862, "lon": -1.8904, "region": "Birmingham"}
 TEESSIDE = {"lat": 54.5973, "lon": -1.1049, "region": "Teesside"}
-WITNESS = {"lat": 50.4689, "lon": -4.1492, "region": "Cornish coast"}
+# READ FROM THE MODULE, never re-typed. It was a hard-coded copy until 2026-09-16, which meant one
+# fact lived in two files and a re-derivation had to remember to edit both. A witness expires with
+# the partition it witnesses (it has now moved twice), and the copy was the reason the expiry could
+# present as "the mechanism accepts nothing" instead of "this constant is out of date".
+_WITNESS_NAME, (_WITNESS_LAT, _WITNESS_LON) = next(iter(wcs.REACHABILITY_WITNESS.items()))
+WITNESS = {"lat": _WITNESS_LAT, "lon": _WITNESS_LON, "region": _WITNESS_NAME}
 
 
 def test_the_sim_imports_the_derivation_rather_than_reimplementing_it():
@@ -55,6 +60,14 @@ def test_the_accept_branch_is_reachable_and_it_matches_climate_not_proximity():
     rather than by a code change. The witness was re-measured, not the assertion relaxed. The
     distance is asserted as a DISTANCE now rather than as per-axis deltas, one of which was passing
     by 0.02 degrees and would have failed the next re-cut for a reason that is not the property.
+
+    2026-09-16: it happened AGAIN, on the re-cut to the completed ONSUD placement, and this time the
+    expiry was read from outside as the mechanism being dead — a scoping pass probed three
+    coordinates, one of them this witness, got `None` from all three and concluded `cell_matched_site`
+    "accepts nothing". It accepts 117 of the 194,865 occupied land cells. **An expired witness and a
+    broken mechanism return the identical `None`, so the witness is now read from
+    `wcs.REACHABILITY_WITNESS` rather than re-typed here**: one fact, one place, and the module's own
+    note carries the rule that `--derive` re-measures it in the same pass.
     """
     assert wcs.cell_matched_site(WITNESS) == "C1"
 
@@ -70,22 +83,51 @@ def test_the_accept_branch_is_reachable_and_it_matches_climate_not_proximity():
     assert 6371.0 * 2 * math.asin(math.sqrt(a)) > 250
 
 
-def test_one_driver_disagreeing_refuses_the_whole_substitution():
+def test_a_partial_agreement_refuses_the_whole_substitution():
     """DEFECT: taking a site's temperature while quietly taking its wind and cloud too.
 
-    The archive CSV carries all three drivers in one row, so a substitution is all-or-nothing.
-    Birmingham is the case that proves the AND is load-bearing rather than decorative: it shares
-    Manchester's wind cell (19) and neither its temperature cell nor its sunshine cell. Relaxing
-    the comparison to any-driver-matches turns this red.
+    The archive CSV carries all three drivers in one row, so a substitution is all-or-nothing, and
+    the case that proves the AND is load-bearing is a coordinate agreeing with a site on SOME
+    drivers and not all. Relaxing the comparison to any-driver-matches turns this red.
+
+    KEYED TO THE PROPERTY, NOT TO A PAIR (R15, rewritten 2026-09-16). This asked Birmingham-against-
+    Manchester by name, because on the 2026-09-07 partition Birmingham shared Manchester's wind cell
+    and neither other. It went red on the re-cut to the completed ONSUD placement — not because the
+    AND weakened but because that particular pair stopped agreeing on anything at all, which leaves
+    the any-driver-matches defect **completely ungraded** while the suite reads as though a control
+    caught something. A partition is free to move every pair; what must not move is that a partial
+    agreement is refused. So the partial agreements are now FOUND in the committed artefact.
+
+    Two assertions, and the first is the one that matters: a control that can only refuse is a
+    control that passes against a mechanism refusing everything, so the population is asserted
+    NON-EMPTY before anything is asserted about it.
     """
-    sited = wcs.cells_for_location(BIRMINGHAM)
-    manchester = wcs.load()["archive_sites"]["Manchester"]
+    drivers = tuple(wcs.load()["drivers"])
+    site_triples = {name: tuple(v["cells"][d] for d in drivers)
+                    for name, v in wcs.load()["archive_sites"].items()
+                    if name in wcs.ARCHIVE_SITES}
+    _, cells = wcs.load_land_cells()
 
-    assert sited["cells"]["annual_wind"] == manchester["cells"]["annual_wind"]
-    assert sited["cells"]["winter_temp"] != manchester["cells"]["winter_temp"]
-    assert sited["cells"]["annual_sun"] != manchester["cells"]["annual_sun"]
+    partial = []
+    for key, labels in cells.items():
+        agreements = [sum(a == b for a, b in zip(labels, t)) for t in site_triples.values()]
+        if max(agreements) == 3:
+            continue                      # a full match: accepting it is the accept branch's job
+        if max(agreements) >= 1:
+            partial.append((key, labels))
 
-    assert wcs.cell_matched_site(BIRMINGHAM) is None
+    assert partial, (
+        "no occupied land cell partially agrees with any archive site, so this control cannot "
+        "distinguish an all-three AND from an any-driver OR and is vacuous. That is a finding "
+        "about the partition, not a licence to pass."
+    )
+
+    for key, labels in partial[:200]:
+        lat, lon = (float(x) for x in key.split(","))
+        assert wcs.cell_matched_site({"lat": lat, "lon": lon}) is None, (
+            f"({lat}, {lon}) has cells {dict(zip(drivers, labels))} and matches no archive site on "
+            f"all three drivers, yet a site was returned — the AND has been relaxed to an OR"
+        )
 
 
 def test_an_unsited_coordinate_is_refused_and_never_placed_by_nearest_anything():

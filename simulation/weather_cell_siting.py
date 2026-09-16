@@ -31,23 +31,43 @@ the household share of GB they cover is:
 
 | driver | cells occupied | GB households covered |
 |---|---|---|
-| winter temperature | 4 / 21 | **20.4%** |
-| annual wind | 4 / 21 | 27.8% |
-| annual sunshine | 4 / 21 | 17.3% |
-| **all three at once** | — | **2.0%** |
+| winter temperature | 4 / 21 | **21.1%** |
+| annual wind | 4 / 21 | 20.6% |
+| annual sunshine | 4 / 21 | 24.9% |
+| **all three at once** | — | **1.91%** |
 
-RE-CUT 2026-09-07 on the OS Open UPRN placement (175,188 occupied 1 km cells). The figures this
-table carried until then — 20.5% / 30.7% / 27.9% / 3.5% — were the POSTCODE CENTROID method's
-(121,668 cells), and the placement moved on 2026-09-06 without the artefact being regenerated. They
-are kept here beside their correction because every one of them overstated the archive: annual
-sunshine read 27.9% against a true 17.3%, and `all_three` read 3.5% against 2.0%. Superseded
-figures, not a recalculation of the same thing.
+THIS TABLE HAS BEEN CUT THREE TIMES AND EVERY CUT IS KEPT, because the same four numbers measured
+against three different household placements is not one figure revised twice:
+
+| cut | placement | occupied cells | temp / wind / sun / all three |
+|---|---|---|---|
+| 2026-09-06 | postcode centroids | 121,668 | 20.5% / 30.7% / 27.9% / **3.5%** |
+| 2026-09-07 | OS Open UPRN, ONSUD **partial** | 175,188 | 20.4% / 27.8% / 17.3% / **2.0%** |
+| 2026-09-16 | OS Open UPRN, ONSUD complete | 194,865 | 21.1% / 20.6% / 24.9% / **1.91%** |
+
+The 09-07 row was not a finished measurement and nothing at the time could tell. It landed in
+`f27695607` at 02:06 on 2026-09-07; the ONSUD address placement it is cut over was still being
+built — `~/.cache/synthetic-enterprise/onsud/oa_cell_addresses.pkl` at 07:33 and `oa_region.pkl` at
+09:56 the same morning. So the artefact was derived from an input that grew by 19,677 occupied cells
+(11%) a few hours later, and it then sat in the tree **unreproducible for nine days**, with
+`test_derive_reproduces_the_committed_artefact` red in any clean worktree that had the caches. The
+HadUK normals never moved (2026-09-05, land mask still asserting 245,077 cells): the drivers are the
+same, the households under them are not.
+
+The direction of travel is not monotone and that is the point of keeping all three: annual sunshine
+went 27.9% → 17.3% → 24.9%, so "the earlier figure overstated the archive" — which is what the 09-07
+cut said, correctly, about the 09-06 one — was NOT a general truth about placements getting stricter.
+Only `all_three` has fallen at every cut, and it is the only one of the four that gates anything.
 
 So the substitution branch below is real but narrow, and NEITHER of the two uncovered locations in
-the supply book clears it: Birmingham shares Manchester's wind cell and neither its temperature nor
-its sunshine cell; Teesside shares nothing with anything. **The gap between the derivation and the
-world is archive breadth, not a lookup** -- four real pulls against a decision of twenty-one -- and
-no mapping written here can close it.
+the supply book clears it: Birmingham is (0, 5, 15) and Teesside (19, 1, 15) against London
+(16, 10, 12), Manchester (1, 10, 8), Glasgow (7, 0, 20) and the Cotswolds (8, 3, 6) — as of this cut
+neither shares a single cell with a single archive site on a single driver. (At the 09-07 cut
+Birmingham shared Manchester's wind cell; it no longer does. That partial agreement never mattered —
+the branch needs all three — but it is worth naming, because a reader checking one driver would have
+called it a near miss then and cannot now.) **The gap between the derivation and the world is archive
+breadth, not a lookup** -- four real pulls against a decision of twenty-one -- and no mapping written
+here can close it.
 
 AND THAT IS THE I&C GAP, NOT THE HOUSEHOLD ONE (measured 2026-09-06, pre-registered in
 `docs/staging/SEAT_PREREG_WEATHER_CELL_BRANCH_REACHABILITY_2026-09-06.md`)
@@ -74,19 +94,60 @@ a drawn household's coordinate was never in it and could not collide with it.
 
 WHAT THE ARTEFACT IS CUT OVER, AND WHY IT IS THE GRID AND NOT THE DRAWN POPULATION
 ----------------------------------------------------------------------------------
-Re-cut 2026-09-07. `cells_for_location` now asks two tables: the JSON's named `locations` first
-(archive sites, supply book, witness -- they keep their names and their measured
-`km_to_cell_centre`), then `occupied_land_cells.csv`, which holds **all 175,188 occupied 1 km land
-cells** with their per-driver cell. **210/210 drawn households now resolve, and 2 of them match an
-archive site** (both London's cells). The site_cells.json this replaced was byte-identical
-afterwards: the re-cut is purely additive and moved no coverage figure and no named location.
+Re-cut 2026-09-07, re-cut again 2026-09-16. `cells_for_location` asks two tables: the JSON's named
+`locations` first (archive sites, supply book, witness -- they keep their names and their measured
+`km_to_cell_centre`), then `occupied_land_cells.csv`, which holds **all 194,865 occupied 1 km land
+cells** with their per-driver cell. At the 09-07 cut, 210/210 drawn households resolved and 2 of them
+matched an archive site (both London's cells); the 09-16 cut has not re-run that draw, for the
+reason in the next paragraph, and the property it replaces it with is measured over the whole grid.
+
+WHY THE 210-HOUSEHOLD FIGURE IS NOT RE-STATED HERE. Neither the 09-07 result document nor this
+module records the draw that produced those 210 -- `draw_population(7)` yields five customers on the
+committed defaults, and the 210 came from a run artefact (`run_output_f4b0b6334_*.json`) that is not
+in the tree. **A published count whose population cannot be re-drawn cannot be re-measured**, so
+re-stating it against this partition would be inventing a draw and reporting it as the old one.
+Filed as its own finding rather than quietly dropped. What replaces it is a count over the
+population the artefact IS cut over -- every occupied land cell -- which needs no draw dial:
+
+| archive site | land cells sharing all three of its cells | furthest such cell |
+|---|---|---|
+| London | 28 → **23** | 301 km → **306 km** (north Cornish coast) |
+| Manchester | 4 → **6** | **3 km** |
+| Glasgow | 3 → **3** | **1 km** |
+| Cotswolds | 168 → **85** | **514 km** — a cell in Fife |
+
+**203 → 117 of 194,865 occupied land cells reach the accept branch.** The branch lost 42% of its
+reach in the re-cut and is nowhere near dead, which is worth stating plainly because a scoping pass
+on 2026-09-16 concluded it "accepts nothing" after probing three coordinates, one of which was the
+witness below at the moment the witness had expired. A witness that has expired reports the same
+`None` as a mechanism that is broken.
+
+The Cotswolds row is the clearest statement of what this branch is: 85 cells, the furthest of them
+in Fife, 514 km north. **A proximity test cannot produce that row and no amount of it would ever
+pay -- climate matching is the only thing here that can put a Scottish east-coast household on an
+Oxfordshire weather CSV and be right.**
 
 The join is an EQUALITY and nothing is fabricated to make it. `tools/household_siting_frame.py`
 builds each frame row's coordinate from `round(d["latitude"][i], 4)` and the normals' own longitude
 auxiliary coordinate -- the identical two expressions `_occupied_space()` uses -- so a drawn
-coordinate IS a land cell's own coordinate at the same precision. Measured: **139,938 distinct
-frame coordinates, 139,938 join, 0 miss**, and the 175,188 grid keys are 175,188 distinct keys, so
-4 dp cannot merge two cells.
+coordinate IS a land cell's own coordinate at the same precision. The 194,865 grid keys are 194,865
+distinct keys, so 4 dp cannot merge two cells.
+
+THE JOIN IS NO LONGER TOTAL, AND THE RESIDUAL IS THREE HOUSEHOLDS. Re-measured 2026-09-16:
+`sim/household_siting/region_household_frame.csv` holds 179,931 rows over **175,188 distinct
+coordinates** -- which is the 09-07 grid's row count exactly, because the frame is cut over the same
+occupied set the superseded artefact was. Against this cut, **175,077 join and 111 miss**. The
+re-cut did not only ADD cells: 19,788 were gained and **111 were lost**, and the 111 are cells the
+partial ONSUD placement thought held addresses and the completed one says do not. The frame still
+places 3 households in them.
+
+Those 3 receive the artefact refusal -- "not one of the 194,865 occupied 1 km land cells" -- and
+that refusal is correct as far as this module can see, because this module's occupancy IS the
+completed placement. It is nonetheless a DISAGREEMENT BETWEEN TWO ARTEFACTS and not a property of a
+coordinate, and it will not be fixed here: the frame is W2_18's, regenerating it is that lane's
+call, and 3 of 24,664,502 households is not a licence to reach into another atom's 5 MB artefact.
+Filed, with its number, in `docs/staging/`. **If the frame is ever regenerated, this paragraph is
+the thing to re-measure, and the honest outcome is 0 miss.**
 
 The direction was to cut over the drawn population; the artefact is cut over the **whole grid**
 instead, which is 25% larger (4.3 MB against 3.4 MB, beside the 5.0 MB frame that is already
@@ -101,12 +162,13 @@ FAIL-CLOSED SURVIVES THE RE-CUT. A coordinate that is not a land cell -- offshor
 22 m off a cell centre -- is still refused with its reason. There is no nearest-cell fallback and
 adding one is what `fabric_physics.latitude_for_weather_site` refuses one layer down. What the
 re-cut changed is which refusal a drawn household receives: not "absent from the artefact" any
-more, but the honest third one, "shares no archive site's cells on all three drivers" -- 208 of the
-210. **The re-cut is a LOOKUP fix and not an archive-breadth fix**, and the 2.0% is untouched.
+more, but the honest third one, "shares no archive site's cells on all three drivers". **Neither
+re-cut is an archive-breadth fix**: the 09-07 one was a LOOKUP fix, the 09-16 one is a STALENESS fix,
+and the archive is four CSVs before and after.
 
-The accept branch is not decorative and is not a proximity test. Twenty-eight 1 km cells share all
-three of London's cells (re-measured 2026-09-07 on the UPRN placement; seventeen on the superseded
-centroid one), and the furthest of them is on the Cornish coast 301 km away
+The accept branch is not decorative and is not a proximity test. **23** 1 km cells share all three of
+London's cells (re-measured 2026-09-16; twenty-eight on the superseded partial-ONSUD cut, seventeen
+on the centroid one before that), and the furthest of them is on the north Cornish coast 306 km away
 (`tests/simulation/test_weather_cell_siting.py`): the mechanism matches CLIMATE, and a control that
 only ever exercised a neighbouring postcode could not tell the two apart.
 
@@ -137,7 +199,7 @@ ARTEFACT = PROJECT / "sim" / "weather_cells" / "site_cells.json"
 #: The BULK table: every occupied 1 km land cell of the derivation, with its per-driver cell.
 #: Written by the SAME `--derive` run as `ARTEFACT`, from the same partition, so the two cannot be
 #: regenerated apart. See "WHAT THE ARTEFACT IS CUT OVER" above for why this is the whole grid and
-#: not the frame's 139,938 cells.
+#: not the frame's 175,188 cells.
 LAND_CELLS = PROJECT / "sim" / "weather_cells" / "occupied_land_cells.csv"
 
 #: W1_27's build decision, per driver and held separately -- NOT the 987 the joint curve wanted.
@@ -159,20 +221,29 @@ KNOWN_LOCATIONS: dict[str, tuple[float, float]] = {
 }
 
 #: A REACHABILITY WITNESS, not a premise: an occupied 1 km land cell on the north Cornish coast that
-#: the derivation puts in all three of London's cells, 301 km away. It is sited into the artefact so
+#: the derivation puts in all three of London's cells, 306 km away. It is sited into the artefact so
 #: that the accept branch below can be exercised from the committed answer, with no `~/.cache` and
 #: no k-means — because a branch this project cannot prove is REACHABLE is one it must assume is
 #: unreachable (R15). It also fixes what the branch means: a control that only ever tried a
 #: neighbouring postcode could not tell climate matching from a proximity test.
 #:
-#: MOVED 2026-09-07, from (50.5392, -4.2371). A WITNESS IS A MEASUREMENT AND EXPIRES WITH THE THING
-#: IT WITNESSES: when the placement moved from postcode centroids to the UPRN address record the old
-#: cell stopped sharing all three of London's, so the accept branch briefly had NO witness and was
-#: unreachable again — the exact R15 failure this constant exists to prevent, reintroduced by a
-#: re-derivation rather than by a code change. Re-measured against the current partition: 28 cells
-#: share all three of London's, and this is the furthest of them.
+#: A WITNESS IS A MEASUREMENT AND EXPIRES WITH THE THING IT WITNESSES. It has now moved twice, for
+#: the same reason both times — a re-derivation, not a code change — so the rule is stated rather
+#: than the instance: **whoever runs `--derive` re-measures this constant in the same pass, or the
+#: accept branch is unreachable again and the suite says so.**
+#:
+#: * MOVED 2026-09-07, from (50.5392, -4.2371) to (50.4689, -4.1492), when the household placement
+#:   went from postcode centroids to the UPRN address record.
+#: * MOVED 2026-09-16, from (50.4689, -4.1492) to the coordinate below, when the artefact was re-cut
+#:   on the completed ONSUD placement. The 09-07 cell became (6, 10, 12) against London's
+#:   (16, 10, 12) — it kept the wind and sun cells and lost the temperature one, which is why a
+#:   two-driver reader would have called it a match. It is 1.4 km from the ORIGINAL centroid-era
+#:   witness: the place was right both times and the 09-07 partition was the odd one out.
+#:
+#: Re-measured against the current partition: 23 occupied land cells share all three of London's,
+#: and this is the furthest of them.
 REACHABILITY_WITNESS: dict[str, tuple[float, float]] = {
-    "Cornish coast (reachability witness, not a premise)": (50.4689, -4.1492),
+    "Cornish coast (reachability witness, not a premise)": (50.5305, -4.2225),
 }
 
 #: Which archive CSV each covered location's premises settle on.
@@ -222,7 +293,7 @@ def load_land_cells(path: Path | str = LAND_CELLS) -> tuple[tuple[str, ...],
     is checked against the JSON by `test_the_two_artefacts_were_cut_by_the_same_partition`.
 
     Held as `key -> tuple` rather than `key -> {driver: label}` because the second costs 50 MB
-    against this one's 30 MB for 175,188 rows (measured), and the dict is rebuilt per lookup, which
+    against this one's 30 MB for 194,865 rows (measured), and the dict is rebuilt per lookup, which
     happens once per premise and not once per settlement period.
 
     FAIL-CLOSED (R15): a missing table RAISES rather than returning empty. Returning `{}` would
@@ -492,7 +563,7 @@ def derive_land_cells(cells_per_driver: int = CELLS_PER_DRIVER) -> list[tuple]:
     """`(lat, lon, *cell labels)` for every occupied 1 km land cell, sorted.
 
     Sorted so the committed CSV is a stable diff: a re-derivation that moves one cell shows as one
-    changed line rather than as 175,188 reordered ones, which is the difference between a review
+    changed line rather than as 194,865 reordered ones, which is the difference between a review
     that can see a change and one that cannot.
     """
     return _derived(cells_per_driver)[1]

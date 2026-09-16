@@ -897,7 +897,12 @@ def _prompt(brief: dict) -> str:
             "already and is not yours to redo; if one of the `not_done` rows landed under "
             "another id or was drawn against a premise something else had already spent, say so "
             "with `--landed-under` or `--premise-spent` rather than leaving it "
-            "unnamed:\n\n".format(len(undisposed), len(rows))
+            "unnamed. A `landed_unbound` row is the one exception to `is not yours to redo` "
+            "being the end of it: it names a commit that landed on that item's own paths inside "
+            "its own window with nothing bound to it, which is evidence the work MOVED and not "
+            "that it finished -- read the commit it names, then `--landed <id> --commit <sha>` "
+            "if it is the work, and carry on from there rather than from "
+            "scratch:\n\n".format(len(undisposed), len(rows))
             + "\n".join("- {} (drawn {}h ago, {}{})".format(
                 r.get("id"), r.get("hours_since_draw"),
                 r.get("disposition", delivery_lane_NOT_DONE),
