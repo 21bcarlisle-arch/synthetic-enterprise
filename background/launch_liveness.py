@@ -24,6 +24,39 @@ writing. `reask()` asks systemd FIRST and treats the rc file as corroboration on
 AND IT FAILS CLOSED ON A BROKEN PROBE. If `systemctl` cannot be run at all we return UNREADABLE and
 say so, rather than reading "no unit" as "it died" -- reporting a death because we could not look is
 the failure mode that would make this module worse than the hand-check it replaces.
+
+THERE IS ONE BOOK AND IT LIVES ON THE SHARED TREE (2026-09-16). `RECORDS_PATH` is derived from
+`__file__`, so this module imported out of a linked worktree -- which is where the seat executor
+mandates delivery turns run -- bound the register to git's CHECKOUT of a TRACKED file. Measured in
+`/var/tmp/se-seat-executor` against `/home/rich/synthetic-enterprise`, same commit, same code, two
+trees: the worktree's copy held **4** records of which **2 still claimed `live`**
+(`noise-floor-20260910`, `arms-rerun-20260910b`); the shared tree's held **12**, and both of those
+two were `finished`, settled six days earlier. So `check()` re-asks claims the machine settled long
+ago, `unregistered_live_units()` grades systemd's real units against a book missing eight of them,
+and -- the direction that actually loses data -- `record()` from a worktree writes a launch nothing
+else will ever read.
+
+THE SUBJECT IS WHY THE ANSWER IS THE SHARED TREE AND NOT "WHICHEVER TREE ASKED". A record's subject
+is a `systemctl --user` UNIT, and there is ONE user manager per machine. The register describes
+machine state, not tree state, so two books is not a tolerable divergence -- it is two answers to a
+question that has one. (Contrast `docs/observability/.seat_heartbeat.json`, the other
+read-modify-write over a live record, where the opposite holds and the redirect was REFUSED: see
+`background/seat_continuity.note_activity`. Same shape, different subject, different answer.)
+
+AND THE READ SIDE COULD NOT BE DECIDED ALONE, which is why this was filed as owed rather than wired
+with the other five readers in `e9ad946cd`. `record()` is `load()` then `save()`. Resolving the READ
+without the WRITE makes a worktree read the shared book and write it into its own copy, where the
+next read ignores it -- trading a stale read for a LOST write, which is strictly worse. Both sides
+resolve here, and `load`/`save` are the only two functions in this module that touch the path, so
+every caller is covered and no future one can resolve half of it. The resolution is a pure function
+of the filesystem, so the two calls cannot disagree.
+
+THE GUARD RUNS BEFORE THE REDIRECT, AND THE ORDER IS LOAD-BEARING (R15). `is_live_record_path` --
+which is what `guard_live_ledger_write` refuses on -- derives its room from THIS tree's
+`LIVE_RECORD_DIR`. A path already redirected to the shared tree is outside that room, so guarding
+after resolving would turn the refusal into a silent no-op and hand a test process the real
+register. Resolving the write is exactly what opens that hole, so the write-side doctrine is applied
+first, to the path the caller actually named.
 """
 from __future__ import annotations
 
@@ -33,6 +66,8 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+from background.live_ledger_guard import guard_live_ledger_write, shared_tree_live_record
 
 _HERE = Path(__file__).resolve().parent
 _REPO = _HERE.parent
@@ -164,15 +199,26 @@ def _read_rc(rc_path) -> int | None:
 
 
 def load(path: Path | None = None) -> list:
+    """The launch register. THE SHARED TREE'S copy when read from a linked worktree -- module
+    docstring for the measurement, and for why this could not be wired without `save` below."""
     try:
-        data = json.loads((path or RECORDS_PATH).read_text(encoding="utf-8"))
+        resolved = Path(shared_tree_live_record(path or RECORDS_PATH))
+        data = json.loads(resolved.read_text(encoding="utf-8"))
     except Exception:
         return []
     return data if isinstance(data, list) else []
 
 
 def save(records: list, path: Path | None = None) -> None:
+    """Replace the launch register. Resolves to the SAME copy `load` reads -- see the module
+    docstring: a read redirected without its write does not stale a read, it loses a write."""
     target = path or RECORDS_PATH
+    # BEFORE the redirect, never after, and this is not bookkeeping. `guard_live_ledger_write`
+    # refuses on THIS tree's live-record room; the redirect's whole job is to hand back a path
+    # outside it, so guarding second would make the refusal unreachable for exactly the callers
+    # the redirect applies to. The write-side doctrine is applied to the path the caller named.
+    guard_live_ledger_write(target, writer="launch_liveness.save")
+    target = Path(shared_tree_live_record(target))
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
 
