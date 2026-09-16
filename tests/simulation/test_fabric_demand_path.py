@@ -102,6 +102,58 @@ def test_every_exclusion_carries_its_reason(kwargs, household, expected_in_reaso
     assert expected_in_reason in verdict.reason
 
 
+def test_two_uncovered_premises_do_not_receive_the_same_archive_refusal():
+    """THE DEFECT: until 2026-09-16 every premise with no archive got one identical sentence --
+    "no weather archive for this customer's location" -- so 213 refusals in the settling book
+    named 213 nothings and could not tell anyone WHICH archives to pull.
+
+    Asked of `reason` ALONE and not of the verdict, because `customer_id` already differs between
+    any two premises: a distinguishability control asked over the union of the fields passes with
+    the defect fully in place (R15).
+    """
+    def refusal(cid, lat, lon, site):
+        verdict = fdp.fabric_eligibility(
+            {"customer_id": cid, "location": {"lat": lat, "lon": lon}},
+            make_household(cid),
+            is_half_hourly_metered=False,
+            weather_available=False,
+            weather_site=site,
+        )
+        assert verdict.is_eligible is False
+        return verdict.reason
+
+    birmingham = refusal("C_B", 52.4862, -1.8904, "C_B")
+    teesside = refusal("C_T", 54.5973, -1.1049, "C_T")
+
+    assert birmingham != teesside
+    # Not merely different -- each names the coordinate a pull would be aimed at.
+    assert "52.4862" in birmingham and "-1.8904" in birmingham
+    assert "54.5973" in teesside and "-1.1049" in teesside
+    # And both are still grouped by the shared prefix the book's coverage count reads.
+    assert birmingham.startswith(fdp.NO_ARCHIVE_REFUSAL)
+    assert teesside.startswith(fdp.NO_ARCHIVE_REFUSAL)
+
+
+def test_a_premise_with_no_coordinate_is_not_told_to_pull_an_archive():
+    """The refusal splits, because the two populations need OPPOSITE things. A premise with a
+    real coordinate is cleared by a pull; a premise carrying `lat: None` is cleared only by a
+    coordinate at the draw, and printing a pull instruction for it would send someone to fetch a
+    location nobody has. Kept as its own control so the split cannot be collapsed back into one
+    sentence without a red."""
+    verdict = fdp.fabric_eligibility(
+        {"customer_id": "C_NONE", "location": {"lat": None, "lon": None}},
+        make_household("C_NONE"),
+        is_half_hourly_metered=False,
+        weather_available=False,
+        weather_site="C_NONE",
+    )
+    assert verdict.is_eligible is False
+    assert verdict.reason.startswith(fdp.NO_ARCHIVE_REFUSAL)
+    assert "no coordinate" in verdict.reason
+    assert "NO PULL CAN CLEAR THIS ONE" in verdict.reason
+    assert "does not exist -- pull that coordinate" not in verdict.reason
+
+
 def test_a_customer_without_an_id_cannot_be_classified():
     """FAIL-OPEN guard: an unidentifiable customer must raise, never quietly
     return 'not eligible' and take the legacy path unnoticed."""

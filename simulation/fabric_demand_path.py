@@ -120,12 +120,43 @@ class FabricEligibility:
     reason: str
 
 
+#: The leading phrase of the archive-breadth refusal, kept as a constant so a reader can group
+#: the book's verdicts by it. What follows the colon NAMES THE SITE, and that is the whole point:
+#: 213 occurrences of one identical sentence cannot tell anyone which archives to pull, which is
+#: the state this refusal was in from the day it was written until 2026-09-16.
+NO_ARCHIVE_REFUSAL = "no weather archive for this customer's location"
+
+
+def _no_archive_refusal(customer: Mapping, weather_site: str | None) -> str:
+    """The archive-breadth refusal, naming the site it could not find and where that site is.
+
+    A refusal is only useful to the person who has to CLEAR it. This one is cleared by pulling a
+    weather archive, so it names the two things a pull needs -- which archive id was resolved, and
+    the coordinate to pull it at -- and nothing else changes about the decision.
+
+    The coordinate is reported as the premise carries it, never rounded or defaulted: a refusal
+    that prints `(0.0, 0.0)` for a premise with no coordinate would send someone to pull the Gulf
+    of Guinea. `lat`/`lon` absent is its OWN sentence, because that premise needs a coordinate at
+    the draw and no pull can help it.
+    """
+    location = customer.get("location") or {}
+    lat, lon = location.get("lat"), location.get("lon")
+    site = repr(weather_site) if weather_site else "no site (the resolver was not asked)"
+    if lat is None or lon is None:
+        return (f"{NO_ARCHIVE_REFUSAL}: resolved to {site}, and the premise carries no coordinate "
+                f"(lat/lon are None), so NO PULL CAN CLEAR THIS ONE -- it needs a coordinate at "
+                f"the draw first")
+    return (f"{NO_ARCHIVE_REFUSAL}: resolved to {site} at ({lat}, {lon}), and "
+            f"sim/weather_data/{weather_site}.csv does not exist -- pull that coordinate")
+
+
 def fabric_eligibility(
     customer: Mapping,
     household: Household | None,
     *,
     is_half_hourly_metered: bool,
     weather_available: bool,
+    weather_site: str | None = None,
 ) -> FabricEligibility:
     """The eligibility predicate. Fabric-driven demand requires a DOMESTIC premise
     with a household record and a weather archive; everything else keeps the legacy
@@ -147,7 +178,7 @@ def fabric_eligibility(
     if household.bedrooms is None:
         return FabricEligibility(cid, False, "no bedroom count: the occupancy prior cannot be drawn")
     if not weather_available:
-        return FabricEligibility(cid, False, "no weather archive for this customer's location")
+        return FabricEligibility(cid, False, _no_archive_refusal(customer, weather_site))
     return FabricEligibility(cid, True, "domestic premise with fabric parameters and local weather")
 
 
@@ -462,6 +493,7 @@ def fabric_providers_for_book(
             household_at_date(cid, start.isoformat()),
             is_half_hourly_metered=is_half_hourly_metered(customer),
             weather_available=weather_available(site),
+            weather_site=site,
         )
         if not verdict.is_eligible:
             verdicts.append(verdict)
