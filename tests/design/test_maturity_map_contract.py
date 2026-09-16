@@ -774,6 +774,89 @@ def test_ungradable_build_rows_allowlist_only_shrinks():
     )
 
 
+#: The commit that froze the list above. Its two map halves are the snapshot every entry has to
+#: appear in, so the freeze is a fact in git rather than a date in a comment.
+ALLOWLIST_FREEZE_COMMIT = "2ebae50eae1276541d1e1102a879380b383d7b05"
+
+
+def atom_ids_at(commit: str) -> set | None:
+    """Every atom id in either map half at `commit`, or None if the commit cannot be read.
+
+    None is "this tree has no history to answer with", never "no ids existed" -- an empty set
+    here would make every allowlist entry look post-freeze and red the suite on a `git archive`
+    extract, which is a refusal nothing measured.
+    """
+    import subprocess
+    ids: set = set()
+    for rel in lz.MAP_PATHS:
+        try:
+            r = subprocess.run(["git", "show", f"{commit}:{rel}"], cwd=PROJECT,
+                               capture_output=True, text=True, timeout=60)
+        except Exception:  # noqa: BLE001 -- no git, no snapshot, no verdict
+            return None
+        if r.returncode != 0:
+            return None
+        ids |= set(re.findall(r"^\s*-?\s*id:\s*(\S+)", r.stdout, re.M))
+    return ids or None
+
+
+def check_allowlist_holds_only_rows_that_existed_at_the_freeze(allowlist, frozen_ids) -> list:
+    """(h2) allowlisted ids that were not on the map when the list was frozen."""
+    return sorted(aid for aid in allowlist if aid not in frozen_ids)
+
+
+def test_ungradable_build_rows_allowlist_admits_no_row_minted_after_the_freeze():
+    """The leg the count ratchet cannot carry: a RECYCLED slot.
+
+    `only_shrinks` catches the naive edit -- append an id, count goes to 25, red. It cannot catch
+    the edit that keeps the count: delete an entry that has since been FIXED (which the test below
+    actively demands) and spend the freed slot on a row minted this afternoon. Every other leg
+    stays green through that, because 24 <= 24, because the deleted row now names a control, and
+    because the new row is allowlisted. The list would then be a 24-slot standing permit, renewable
+    every time a legacy row is repaired -- the exact "a frozen list nobody counts" shape the
+    sibling's own docstring names, one indirection further out.
+
+    Membership at the freeze commit is what closes it, because it is the property rather than
+    today's answer: the list may only ever have held rows that already existed, so an id absent
+    from that snapshot was minted after the freeze and is a violation being allowlisted.
+    """
+    frozen_ids = atom_ids_at(ALLOWLIST_FREEZE_COMMIT)
+    if frozen_ids is None:
+        pytest.skip(
+            f"no readable map at {ALLOWLIST_FREEZE_COMMIT[:9]} in this tree, so the freeze "
+            "snapshot cannot be built. `only_shrinks` still holds the count."
+        )
+    late = check_allowlist_holds_only_rows_that_existed_at_the_freeze(
+        LEGACY_UNGRADABLE_BUILD_ROWS, frozen_ids)
+    assert not late, (
+        f"LEGACY_UNGRADABLE_BUILD_ROWS names row(s) that did not exist when it was frozen at "
+        f"{ALLOWLIST_FREEZE_COMMIT[:9]}: {late}. A row minted after the freeze is the case the "
+        "list exists to refuse -- name the control its build will write instead."
+    )
+
+
+def test_MUTATION_a_recycled_allowlist_slot_FIRES():
+    """R15: the defect itself -- count unchanged, one legacy id swapped for a new one."""
+    frozen = {"OLD_a", "OLD_b"}
+    recycled = {"OLD_a", "ZZ4_minted_this_afternoon"}
+    assert check_allowlist_holds_only_rows_that_existed_at_the_freeze(recycled, frozen) == [
+        "ZZ4_minted_this_afternoon"]
+
+
+def test_MUTATION_the_frozen_list_against_the_real_snapshot_does_NOT_fire():
+    """The null control, against the live repository rather than a fixture.
+
+    It is what makes the leg above evidence about THIS list: were the snapshot empty, unreadable
+    or parsed wrong, this would fire on all 24 rather than passing silently.
+    """
+    frozen_ids = atom_ids_at(ALLOWLIST_FREEZE_COMMIT)
+    if frozen_ids is None:
+        pytest.skip("no history in this tree")
+    assert len(frozen_ids) > len(LEGACY_UNGRADABLE_BUILD_ROWS)
+    assert check_allowlist_holds_only_rows_that_existed_at_the_freeze(
+        LEGACY_UNGRADABLE_BUILD_ROWS, frozen_ids) == []
+
+
 def test_ungradable_build_rows_allowlist_has_no_FIXED_entries():
     """Fix-is-not-complete: a listed row still in the partition that now names a control.
 
