@@ -3993,55 +3993,23 @@ def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
 
 
 def raise_stretch_report_owed(log_fn=None, notify_fn=None):
-    """The stretch-report finding, on a channel that has a reader. Returns what it did.
+    """One of TWO hosts for the stretch-report finding. The alarm itself is in the leaf.
 
-    THE DEFECT (director, 2026-09-10): *"three days, 100 commits, and no stretch report since 7
-    September -- the mechanism you built to stop exactly this has silently stopped."* It had not
-    stopped. It fired on all 75 publish cycles across those three days, correctly, every time --
-    into `docs/observability/sim-runner-log.md`, which is a quarter of a million lines of routine
-    progress chatter. A finding written where the routine chatter goes is indistinguishable from
-    the chatter, and no reader goes there. **The mechanism was not silent; its channel was.**
+    It used to live here in full, and this was its only caller -- which meant the alarm that says
+    *the machine has stopped telling you why* was hosted inside the subsystem whose failure is the
+    loudest instance of that. This publisher last succeeded 2026-09-10 02:35 and not again until
+    2026-09-16 14:41: six days wedged, 184 commits landed, no report, and the control that exists
+    to notice went silent with its host. **An alarm hosted in the subsystem it reports on is
+    silent exactly when it is right.**
 
-    So the log line stays -- it carries the LISTING, which says what the report is owed about --
-    and the finding additionally goes to `notify(kind="real_alarm")`, which is the one channel in
-    this project that both suppresses an unchanged condition and, on the third repetition,
-    escalates itself into a staged finding document the tick DRAWS as work.
-
-    A FINDING, NEVER A REFUSAL, on the director's own framing: a report is written when a piece of
-    work FINISHES, so blocking every publish in between would stop the work it describes.
-
-    KEYED EXPLICITLY. `notify`'s auto-key normalises numbers and timestamps out of an alarm's
-    identity but not prose, and the check's message carries twelve rotating commit subjects -- an
-    auto-keyed page would be a NEW condition every cycle and 75 escalation documents would stand
-    for one condition. The key is the subject; the STATE is the newest entry's head stamp, so
-    writing a report changes the state and clears the alarm by construction rather than by anyone
-    remembering to.
+    So it moved to `tools.stretch_log`, and `background/supervisor`'s tick -- which ran throughout
+    those six days -- calls it too. Two independent hosts, deliberately: neither one's outage is
+    the alarm's outage. This wrapper stays because publishing IS when a piece of work finishes,
+    which is the moment a report is most owed, and because `notify`'s transition key makes the
+    second caller free -- an unchanged state does not page twice.
     """
-    from tools.stretch_log import alarm_message, check, newest_entry_head, owed
-    log_fn = log if log_fn is None else log_fn
-
-    rc, msg = check()
-    if not rc:
-        return {"owed": False, "logged": False, "paged": False}
-    log_fn("STRETCH REPORT OWED -- " + msg.replace("\n", " | ")[:600])
-
-    verdict = owed()
-    if not verdict["escalate"]:
-        return {"owed": True, "logged": True, "paged": False, "reason": verdict["reason"]}
-
-    if notify_fn is None:
-        from background.notify import notify as notify_fn
-    sent = notify_fn(
-        alarm_message(verdict), kind="real_alarm",
-        transition_key="stretch-log:report-owed",
-        state=str(newest_entry_head()),
-        # Still owed a day later is a fresh page, not a new condition. Without this, a state that
-        # cannot change until someone acts is silenced forever by the first send -- which is the
-        # failure mode this whole repair exists to end, one channel over.
-        re_escalate_after=24 * 3600,
-        topic_class="action_needed")
-    return {"owed": True, "logged": True, "paged": True,
-            "reason": verdict["reason"], "sent": sent}
+    from tools.stretch_log import raise_stretch_report_owed as _raise
+    return _raise(log_fn=log if log_fn is None else log_fn, notify_fn=notify_fn)
 
 
 def generate_dashboard_json(json_path, git_hash="unknown"):
