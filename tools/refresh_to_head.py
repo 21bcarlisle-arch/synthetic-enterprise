@@ -158,24 +158,49 @@ def _staged_paths(root: Path) -> frozenset[str]:
     return frozenset(p.strip() for p in out.stdout.splitlines() if p.strip())
 
 
-def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None) -> Verdict:
-    """The whole precondition for one path. Reads; writes nothing, ever."""
+def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
+               base: str = "HEAD") -> Verdict:
+    """The whole precondition for one path. Reads; writes nothing, ever.
+
+    `base` IS THE TREE THAT MUST SUPERSEDE THE COPY, AND IT IS NOT ALWAYS `HEAD`. On a tree that is
+    BEHIND origin -- which is every tree this is called from by `background.origin_reconcile`, since
+    that module has already established `ahead == 0` before it asks -- HEAD is itself a stale base,
+    and `tools/stale_copy_refusal.py`'s own banner says its verdicts are unsafe there. Asking
+    "does HEAD supersede this copy" of a path origin has moved since HEAD gets the wrong answer
+    twice over: `last_commit_touching(..., "HEAD")` cannot see the landing that superseded the copy,
+    and the symbol comparison runs against a blob that is not the one the tree is about to hold.
+
+    THE WRITE IS STILL HEAD'S BYTES, AND THAT IS NOT AN INCONSISTENCY. `refresh` clears a path by
+    returning it to HEAD, because what refuses a fast-forward is *worktree differs from HEAD* --
+    writing origin's bytes over it leaves it differing from HEAD and the advance still refused. The
+    fast-forward the caller runs next is what installs `base`'s bytes. So the question asked is
+    about the tree the path is about to hold and the act is the one that lets it get there.
+    """
     staged = _staged_paths(root) if staged is None else staged
     if Path(path).suffix not in READABLE:
         return Verdict(path, NO_READER,
                        "this control has no reader for {} files, so it CANNOT establish that the "
                        "copy has nothing to lose. An unavailable check is a failed check.".format(
                            Path(path).suffix or "extension-less"))
-    head_text = blob_at(root, "HEAD", path)
+    head_text = blob_at(root, base, path)
     if head_text is None:
         return Verdict(path, NO_BASE,
-                       "HEAD has no such path, so there is nothing for HEAD to supersede it with.")
+                       "{} has no such path, so there is nothing for it to supersede the copy "
+                       "with.".format(base))
+    if base != "HEAD" and blob_at(root, "HEAD", path) is None:
+        # The judgement tree holds it and HEAD does not, so there are no HEAD bytes to write and
+        # `preserve` -- whose tree is HEAD's with these paths swapped in -- has no entry to swap.
+        # Refusing here is what stops that surfacing as a `RefreshError` mid-write.
+        return Verdict(path, NO_BASE,
+                       "{} holds this path and HEAD does not, so the refresh has no HEAD bytes to "
+                       "write over the copy. The fast-forward adds it; nothing needs clearing "
+                       "here.".format(base))
     try:
         work_text = (root / path).read_text(encoding="utf-8", errors="replace")
     except OSError as exc:
         return Verdict(path, NO_BASE, "the working copy could not be read: {}".format(exc))
     if work_text == head_text:
-        return Verdict(path, AT_HEAD, "identical to HEAD -- nothing to refresh.")
+        return Verdict(path, AT_HEAD, "identical to {} -- nothing to refresh.".format(base))
     if path in staged:
         return Verdict(path, STAGED,
                        "the holder has this path STAGED. A commit from that index makes the tree "
@@ -193,20 +218,22 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None) -> V
     gains = tuple(sorted(work_names - head_names))
     if gains:
         return Verdict(path, SUPPLIES_NEW,
-                       "this copy SUPPLIES {} name(s) HEAD does not have, so it is not a copy HEAD "
+                       "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
                        "supersedes -- it is holder work. Use `python3 -m tools.isolate_hunks "
-                       "--survey {}` and land those hunks over HEAD.".format(len(gains), path),
+                       "--survey {}` and land those hunks over HEAD.".format(
+                           len(gains), base, base, path),
                        gains=gains)
-    loss = judge(root, path, head_text, work_text)
+    loss = judge(root, path, head_text, work_text, parent=base)
     if loss is None:
         return Verdict(path, NOT_SUPERSEDED,
-                       "the stale-copy control has NO complaint about this copy: it does not "
-                       "predate the last landing here and it deletes no name. Refreshing it would "
-                       "discard an ordinary edit, which is `git checkout <path>` with a nicer name "
-                       "-- and that is forbidden here for this exact reason.")
+                       "the stale-copy control has NO complaint about this copy against {}: it "
+                       "does not predate the last landing there and it deletes no name. Refreshing "
+                       "it would discard an ordinary edit, which is `git checkout <path>` with a "
+                       "nicer name -- and that is forbidden here for this exact reason.".format(
+                           base))
     return Verdict(path, REFRESHABLE,
-                   "rival copy: supplies no name HEAD lacks, and the stale-copy control refuses it "
-                   "[{}]. HEAD strictly supersedes it.".format(loss.rule),
+                   "rival copy: supplies no name {} lacks, and the stale-copy control refuses it "
+                   "[{}]. {} strictly supersedes it.".format(base, loss.rule, base),
                    discarded=_discarded_lines(head_text, work_text))
 
 
@@ -282,10 +309,15 @@ def _probe(verdict: Verdict) -> str | None:
 # ------------------------------------------------------------------------------------ the move
 
 
-def refresh(root: Path, paths: list[str], slug: str | None, write: bool) -> tuple[int, str]:
-    """Survey, and when `write` is set and EVERY named path is refreshable, do it."""
+def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
+            base: str = "HEAD") -> tuple[int, str]:
+    """Survey, and when `write` is set and EVERY named path is refreshable, do it.
+
+    `base` is the JUDGEMENT tree only -- see `judge_copy`. The bytes written are always HEAD's,
+    because the block this clears is *worktree differs from HEAD*.
+    """
     staged = _staged_paths(root)
-    verdicts = [judge_copy(root, path, staged) for path in paths]
+    verdicts = [judge_copy(root, path, staged, base=base) for path in paths]
     report = "".join(v.render() for v in verdicts)
     refusals = [v for v in verdicts if v.refused]
     doable = [v for v in verdicts if v.state == REFRESHABLE]
@@ -333,9 +365,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", default=str(ROOT), help="the repository holding the rival copies")
     ap.add_argument("--write", action="store_true", help="perform it (default is survey only)")
     ap.add_argument("--slug", help="names the refs/preserved/refresh-to-head/<slug> ref")
+    ap.add_argument("--base", default="HEAD",
+                    help="the tree that must supersede the copy (default HEAD). Use "
+                         "`origin/main` on a tree that is BEHIND origin, where HEAD is itself a "
+                         "stale base -- the bytes written are HEAD's either way.")
     args = ap.parse_args(argv)
     try:
-        rc, text = refresh(Path(args.root), args.paths, args.slug, args.write)
+        rc, text = refresh(Path(args.root), args.paths, args.slug, args.write, base=args.base)
     except RefreshError as exc:
         print("\n[refresh-to-head] ❌ {}".format(exc))
         return 1

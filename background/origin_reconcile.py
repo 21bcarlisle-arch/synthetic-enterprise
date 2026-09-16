@@ -133,6 +133,16 @@ REFUSED_RACE = "REFUSED_RACE"
 #: The two ways a shared tree refuses to advance. They are reported apart because they are cleared
 #: apart -- one is a lane's uncommitted work, the other is usually a byte-identical twin of a file
 #: origin is adding, and telling a reader "dirty" for both sends them down the wrong one.
+#: Where a refreshed rival working copy's own bytes go before they are overwritten, mirrored from
+#: `tools.refresh_to_head.PRESERVED_PREFIX` so a refusal can name the ref without importing it.
+REFRESH_PRESERVED_PREFIX = "refs/preserved/refresh-to-head/"
+
+#: THE SLUG CARRIES THE HEAD SHA AND THAT IS NOT DECORATION. `git update-ref` REPLACES a ref, so a
+#: fixed slug would make each advance's preservation delete the previous one's -- the bytes go
+#: unreachable and the `git log --all -S` route this tool advertises stops finding them, silently
+#: and only for the runs nobody has needed yet. Keyed to the commit the copy was superseded by.
+REFRESH_SLUG_STEM = "origin-reconcile-"
+
 FF_MODIFIED = "modified here, and origin changes it too"
 FF_UNTRACKED = "untracked here, and origin adds its own copy"
 UNREADABLE = "UNREADABLE"
@@ -554,9 +564,108 @@ def identical_untracked_twins(project: Path | None = None,
     return sorted(twins)
 
 
+def stale_copy_verdicts(project: Path | None = None,
+                        paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
+    """For each path, `(is_refreshable, why)` judged against ORIGIN's blob. `None` if unreadable.
+
+    THE THIRD CLASS, AND IT IS THE ONE THAT REFILLS THE QUEUE ONCE PER LANDING. The two twin
+    sweeps beside this one clear a path whose bytes ALREADY equal origin's. That proof is
+    unavailable for the blocker this tree actually grows: `tools/surgical_land --content` does not
+    write the working tree -- deliberately, because that is what makes it safe on a file two lanes
+    hold -- so EVERY correct landing through that door leaves a working copy strictly behind its
+    own commit, and the next fast-forward refuses on it. Clearing that by hand is what was done on
+    2026-09-15, and the list refilled in three hours. A refusal whose remedy is provable and which
+    nothing automatically applies, standing in front of a queue that refills once per landing, is a
+    wedge with no exit.
+
+    THE PROOF IS `tools/refresh_to_head.py`'s, ENTIRE, AND IT IS NOT RE-CUT HERE. Its three
+    conjunctive preconditions are exactly what "this costs the holding lane nothing" means:
+    the copy supplies no NAME the judgement tree lacks (computed over both blobs, never asserted);
+    `stale_copy_refusal.judge` HAS a complaint about it (without which this is `git checkout` with
+    a nicer name, which is a wall here); and the bytes reach a `refs/preserved/*` commit whose
+    advertised `git log --all -S` recovery is RUN before a byte is destroyed.
+
+    ASKED AGAINST `origin/main` AND NOT AGAINST HEAD. The caller has already established
+    `ahead == 0`, so HEAD is an ancestor of origin and is exactly the stale base
+    `stale_copy_refusal`'s own banner warns its verdicts are unsafe against. A copy superseded by a
+    landing that reached origin but not yet this HEAD reads as an ORDINARY EDIT against HEAD and is
+    refused -- the wrong answer, arrived at honestly, which is the shape that survives review.
+
+    THE REFUSAL REASON IS CARRIED, NOT DISCARDED. Every path this cannot prove is residue the
+    caller must refuse on, and it must refuse BY NAME with the reason attached: "not byte-identical
+    to origin" was the whole of what the old refusal could say, and it is true of a path that is
+    holder work and of a path nobody has a reader for alike.
+    """
+    project = project or PROJECT_DIR
+    if paths is None:
+        return None
+    if not paths:
+        return {}
+    try:
+        from tools.refresh_to_head import REFRESHABLE, judge_copy
+    except ImportError as exc:
+        # FAIL-CLOSED, and it reads as a refusal for every path rather than as an empty result:
+        # `{}` here would mean "nothing is refreshable", which is what a caller acts on.
+        return {p: (False, "the stale-copy judgement could not be imported ({}), so whether this "
+                           "copy costs its lane anything is UNESTABLISHED".format(exc))
+                for p in paths}
+    verdicts = {}
+    for path in sorted(set(paths)):
+        try:
+            verdict = judge_copy(project, path, base="{}/{}".format(REMOTE, BRANCH))
+        except Exception as exc:  # noqa: BLE001 -- an unread judgement is a refusal, never a pass
+            verdicts[path] = (False, "the stale-copy judgement raised {}: {}".format(
+                type(exc).__name__, exc))
+            continue
+        verdicts[path] = (verdict.state == REFRESHABLE, verdict.reason)
+    return verdicts
+
+
+def refresh_slug(project: Path | None = None) -> str:
+    """`origin-reconcile-<head sha>`, so one advance's preservation cannot replace another's."""
+    project = project or PROJECT_DIR
+    try:
+        res = _git(project, "rev-parse", "--short", "HEAD")
+        head = (res.stdout or "").strip() if res.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        head = ""
+    return REFRESH_SLUG_STEM + (head or "unknown-head")
+
+
+def refresh_stale_copies(project: Path | None = None, paths: list[str] | None = None,
+                         slug: str | None = None) -> str | None:
+    """Write HEAD's bytes over the proven-stale copies, preserving them first. `None` on success.
+
+    A THIN SEAM ON PURPOSE. Everything that decides is `refresh_to_head.refresh`'s, including the
+    preservation and the verified recovery route; this exists so the caller has one call to make
+    under the tree lock and one failure string to report. It re-runs the judgement rather than
+    trusting the survey the caller already took, because the tree is shared and minutes may have
+    passed -- a second lane's edit arriving between the survey and the write turns a proven-lossless
+    refresh into the deletion this whole module refuses to make.
+    """
+    project = project or PROJECT_DIR
+    if not paths:
+        return None
+    try:
+        from tools.refresh_to_head import RefreshError, refresh
+    except ImportError as exc:
+        return "the stale-copy refresh could not be imported: {}".format(exc)
+    try:
+        rc, text = refresh(project, sorted(set(paths)), slug or refresh_slug(project), write=True,
+                           base="{}/{}".format(REMOTE, BRANCH))
+    except RefreshError as exc:
+        return "refresh-to-head refused mid-move and wrote nothing: {}".format(exc)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return "refresh-to-head failed: {}: {}".format(type(exc).__name__, exc)
+    if rc != 0:
+        return "refresh-to-head refused and wrote nothing: {}".format(
+            " ".join(text.split())[:300])
+    return None
+
+
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
-                        locker=None, ahead_fn=None) -> dict:
+                        locker=None, ahead_fn=None, stale_fn=None, refresher=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing byte-identical twins of BOTH kinds.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -688,13 +797,37 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     # refused with an EMPTY held list, which is the 2026-09-09 wedge. What refuses is a path nobody
     # hash-proved, so that is what is computed and what is reported.
     blocked_paths = {b["path"] for b in blocking}
+    # THE THIRD CLASS IS ASKED ONLY OF WHAT THE TWO HASH PROOFS COULD NOT TAKE, and only of paths
+    # git already TRACKS. An untracked path is not a rival working copy of anything -- HEAD holds
+    # no bytes to write over it -- and asking the stale-copy judgement about one gets a `NO_BASE`
+    # refusal that reads like a verdict.
+    untracked_only = {b["path"] for b in blocking if b.get("kind") == FF_UNTRACKED} - {
+        b["path"] for b in blocking if b.get("kind") == FF_MODIFIED}
+    candidates = sorted(blocked_paths - set(resolvable) - untracked_only)
+    verdicts = (stale_fn or stale_copy_verdicts)(project, candidates)
+    if verdicts is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "whether the remaining blocking paths are copies origin strictly "
+                          "supersedes could not be established, so nothing was touched -- a file "
+                          "is never written over on an unread comparison"}
+    stale = sorted(p for p, (ok, _) in verdicts.items() if ok)
+    resolvable = sorted(set(resolvable) | set(stale))
     held = sorted(blocked_paths - set(resolvable))
     if held:
+        # KEYED TO THE PROPERTY AND NOT TO TODAY'S PATHS: what reaches this list is a blocker NO
+        # available proof could show costs its holding lane nothing -- neither hash equality with
+        # origin nor `refresh_to_head`'s three conjunctive preconditions. The per-path reason is
+        # carried through because "not byte-identical to origin" is equally true of holder work
+        # nobody may touch and of a file this tree has no reader for, and those want opposite acts.
+        named = []
+        for path in held[:12]:
+            why = (verdicts.get(path) or (False, "not byte-identical to what origin brings"))[1]
+            named.append("{} -- {}".format(path, " ".join(str(why).split())[:220]))
         return {"advanced": False, "cleared": [],
-                "reason": "{} of {} blocking path(s) are NOT byte-identical to what origin brings, "
-                          "so clearing the {} that are would delete files and still not advance. "
-                          "Nothing was removed. Held by: {}".format(
-                              len(held), len(blocked_paths), len(resolvable), "; ".join(held[:12]))}
+                "reason": "{} of {} blocking path(s) could NOT be proven lossless, so clearing the "
+                          "{} that could would touch files and still not advance. Nothing was "
+                          "written. Held by: {}".format(
+                              len(held), len(blocked_paths), len(resolvable), "; ".join(named))}
 
     try:
         from background.tree_lock import TreeLockTimeout, tree_lock
@@ -705,11 +838,32 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     _remove = remover or (lambda p: (project / p).unlink())
     _restore = restorer or (lambda p: restore_tracked_twin(project, p))
     _lock = locker or (lambda: tree_lock(timeout=ADVANCE_LOCK_TIMEOUT_SECONDS))
-    tracked_set = set(tracked)
+    # READ ONCE, BEFORE THE ADVANCE. `refresh_slug` is keyed to HEAD, and HEAD MOVES three lines
+    # below: a reason that recomputed it after the fast-forward would name a ref that does not
+    # exist, which is worse than naming none -- the reader would search for it and conclude the
+    # bytes were never preserved.
+    slug = refresh_slug(project)
+    _refresh = refresher or (lambda p: refresh_stale_copies(project, p, slug))
+    tracked_set, stale_set = set(tracked), set(stale)
     try:
         with _lock():
+            # THE REFRESH GOES FIRST AND IT IS ALL-OR-NOTHING WITH ITSELF. `refresh_to_head`
+            # writes nothing unless every path it is handed is refreshable, so a failure here has
+            # touched no byte and the twins beside it are still on disk untouched.
+            if stale_set:
+                failure = _refresh(sorted(stale_set))
+                if failure:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "the {} stale working copy/copies origin supersedes could "
+                                      "not be refreshed, so nothing was touched and the advance "
+                                      "was not attempted: {}".format(len(stale_set), failure)}
             cleared = []
             for path in resolvable:
+                if path in stale_set:
+                    # Already written above, and by a different act: a rival copy is REPLACED by
+                    # HEAD's bytes, not removed and not restored from the index.
+                    cleared.append(path)
+                    continue
                 # The two kinds are cleared by different acts and the difference is not cosmetic:
                 # `unlink` on a path with an index entry leaves that entry behind, and the
                 # fast-forward stays refused on a file that is no longer even on disk.
@@ -736,20 +890,33 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
 
     if second.returncode == 0:
         return {"advanced": True, "cleared": cleared,
-                "reason": "cleared {} path(s) whose bytes origin already held at the same path "
-                          "({} tracked, {} untracked), then fast-forwarded -- every one is back on "
-                          "disk, tracked, with identical content: {}".format(
-                              len(cleared), len(tracked_set), len(cleared) - len(tracked_set),
+                "reason": "cleared {} blocking path(s) ({} tracked twin(s), {} untracked twin(s), "
+                          "{} stale copy/copies origin supersedes, preserved at {}{}), then "
+                          "fast-forwarded -- every one is on disk, tracked, holding origin's "
+                          "bytes: {}".format(
+                              len(cleared), len(tracked_set),
+                              len(cleared) - len(tracked_set) - len(stale_set), len(stale_set),
+                              REFRESH_PRESERVED_PREFIX, slug,
                               "; ".join(cleared[:12]))}
     # THE TWINS ARE NOT RESTORED HERE, AND THAT IS DELIBERATE. Their content is on origin by the
     # hash equality that selected them, so `git checkout origin/main -- <path>` returns any of them
     # exactly; re-writing them from a second guess at what they held would be this module inventing
     # bytes. The reason names them so the next reader has the command's arguments already.
+    # THE STALE COPIES ARE NAMED APART FROM THE TWINS, because their recovery route is NOT the
+    # twins'. A twin's bytes are on origin by the hash equality that selected it, so
+    # `git checkout origin/main -- <path>` returns it exactly. A refreshed rival copy's own bytes
+    # are on NO branch: the only thing that holds them is the preserved commit, and a reason that
+    # sent the reader to origin for them would be sending them to bytes that were never theirs.
     return {"advanced": False, "cleared": cleared,
-            "reason": "removed {} byte-identical twin(s) and git STILL refused the fast-forward, "
-                      "which means the cause was not the collision this cleared. Recover any of "
-                      "them with `git checkout {}/{} -- <path>`: {}. git: {}".format(
-                          len(cleared), REMOTE, BRANCH, "; ".join(cleared[:12]),
+            "reason": "cleared {} blocking path(s) and git STILL refused the fast-forward, which "
+                      "means the cause was not the collision this cleared. Recover a twin with "
+                      "`git checkout {}/{} -- <path>`: {}.{} git: {}".format(
+                          len(cleared), REMOTE, BRANCH, "; ".join(sorted(
+                              set(cleared) - stale_set)[:12]),
+                          (" The {} refreshed rival copy/copies ({}) are on NO branch and come "
+                           "back only from {}{}.".format(
+                               len(stale_set), "; ".join(sorted(stale_set)[:12]),
+                               REFRESH_PRESERVED_PREFIX, slug)) if stale_set else "",
                           (second.stderr or second.stdout or "").strip()[:200])}
 
 
