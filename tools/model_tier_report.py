@@ -64,6 +64,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from background.live_ledger_guard import shared_tree_live_record  # noqa: E402
 from background.model_tier import PILOT_CONFIG, TIER_LOG  # noqa: E402
 
 PUBLISH_GATE_STATE = ROOT / "docs" / "observability" / ".publish_gate_state.json"
@@ -149,8 +150,13 @@ def _git_commits(since: float, until: float) -> list[dict]:
 
 
 def _gate_failures() -> list[dict]:
+    # WHICH TREE'S COPY (2026-09-16). The file is TRACKED and its only commit is a 2026-07-17
+    # `{"failures": []}` placeholder, so run from a linked worktree this reported every tier's
+    # gate as never having failed while the live record held 37 failures. `except: return []`
+    # already collapses unreadable into none, which is why the stale read was invisible: both
+    # the honest "cannot tell" and the flattering "nothing failed" print as a clean tier.
     try:
-        return json.loads(PUBLISH_GATE_STATE.read_text()).get("failures") or []
+        return json.loads(shared_tree_live_record(PUBLISH_GATE_STATE).read_text()).get("failures") or []
     except Exception:
         return []
 
