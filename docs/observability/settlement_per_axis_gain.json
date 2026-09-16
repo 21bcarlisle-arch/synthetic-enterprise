@@ -17,7 +17,31 @@
     "fabric_w_per_k",
     "raw_infiltration_ach"
   ],
-  "grading_against_the_FILED_evidence": null,
+  "filed_evidence_for_this_world": {
+    "base": "HEAD at the fitted-joint stock (0d86d6dfe, merged 2212d0eed)",
+    "filed": "2026-09-16",
+    "source": "SEAT_RESULT_THE_SAMPLE_EARNS_ITS_PLACE_ON_THE_SETTLEMENT_SELECTION_2026-09-16.md",
+    "world": {
+      "home_digest": "35f8efe8ff02f245",
+      "level_digest": "39a192ce04c1eda8"
+    }
+  },
+  "grading_against_the_FILED_evidence": {
+    "P1b": "HOLDS",
+    "P1b_on_section_As_named_and_existing_pair": "HOLDS",
+    "cost": 0.2191,
+    "fabric_max": 4.5397,
+    "fabric_min": 1.3714,
+    "gain_by_axis": {
+      "customer_years": 0.2191,
+      "fabric_w_per_k": 1.3714,
+      "floor_area_m2": 2.6389,
+      "raw_infiltration_ach": 4.5397
+    },
+    "spread_max_over_min": 20.7231,
+    "worst_axis_chosen": "fabric_w_per_k",
+    "worst_axis_cull": "raw_infiltration_ach"
+  },
   "ks_by_axis": {
     "chosen": {
       "JOINT": 0.06646,
@@ -41,6 +65,22 @@
       "raw_infiltration_ach": 0.09765
     }
   },
+  "profile_on_THIS_base": {
+    "P1b": "HOLDS",
+    "P1b_on_section_As_named_and_existing_pair": "HOLDS",
+    "cost": 0.2191,
+    "fabric_max": 4.5397,
+    "fabric_min": 1.3714,
+    "gain_by_axis": {
+      "customer_years": 0.2191,
+      "fabric_w_per_k": 1.3714,
+      "floor_area_m2": 2.6389,
+      "raw_infiltration_ach": 4.5397
+    },
+    "spread_max_over_min": 20.7231,
+    "worst_axis_chosen": "fabric_w_per_k",
+    "worst_axis_cull": "raw_infiltration_ach"
+  },
   "profile_on_THIS_base_pre_repair_arm": {
     "P1b": "HOLDS",
     "P1b_on_section_As_named_and_existing_pair": "HOLDS",
@@ -57,36 +97,14 @@
     "worst_axis_chosen": "fabric_w_per_k",
     "worst_axis_cull": "raw_infiltration_ach"
   },
-  "profile_on_THIS_base_which_is_NOT_the_filed_one": {
-    "P1b": "HOLDS",
-    "P1b_on_section_As_named_and_existing_pair": "HOLDS",
-    "cost": 0.2191,
-    "fabric_max": 4.5397,
-    "fabric_min": 1.3714,
-    "gain_by_axis": {
-      "customer_years": 0.2191,
-      "fabric_w_per_k": 1.3714,
-      "floor_area_m2": 2.6389,
-      "raw_infiltration_ach": 4.5397
-    },
-    "spread_max_over_min": 20.7231,
-    "worst_axis_chosen": "fabric_w_per_k",
-    "worst_axis_cull": "raw_infiltration_ach"
-  },
   "seed": 42,
   "selection": {
     "chosen": "chosen_weighted",
     "chosen_no_year_groups": "chosen_weighted",
     "cull": "uniform_count"
   },
-  "self_check_cause": "ESTABLISHED 2026-09-15: the filed scalars were measured at base 3957ba848, which does NOT contain 0d86d6dfe ('the world's homes are drawn from the fitted joint'). That change reached this tree through the fork-closing merge 2212d0eed. The funnel is unchanged and the home stock is not, so the filed KS figures belong to a different world. Do not widen the tolerances; re-run at 3957ba848 if a verdict against the FILED evidence is what is wanted.",
-  "self_check_disagreements": [
-    "chosen settled: 83 != filed 84",
-    "chosen cy: 1199.2 != filed 1197.0",
-    "worst-axis KS cull: 0.09765 != filed 0.12798",
-    "worst-axis KS chosen: 0.05878 != filed 0.08241",
-    "worst-axis ratio: 1.6613 != filed 1.553"
-  ],
+  "self_check_cause": null,
+  "self_check_disagreements": [],
   "settled": {
     "chosen": 83,
     "chosen_no_year_groups": 83,

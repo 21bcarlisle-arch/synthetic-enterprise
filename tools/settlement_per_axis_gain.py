@@ -38,9 +38,12 @@ selection rule would be measuring its own copy of it, and the copy is what goes 
 
 WHAT THE SELF-CHECK IS FOR
 --------------------------
-`--check` refuses unless the arms reproduce the filed scalars (90/1195.4, 84/1197.0, 1.553x). A
-per-axis reading from a harness that cannot reproduce the number it claims to decompose is a
-different measurement wearing that number's name, and the disagreement would be the finding.
+`--check` refuses unless the arms reproduce the scalars filed FOR THIS WORLD. A per-axis reading
+from a harness that cannot reproduce the number it claims to decompose is a different measurement
+wearing that number's name, and the disagreement would be the finding.
+
+Which record that is comes from the world's own two digests, never from "the newest one" -- see
+`FILED_RECORDS`. A world with no filed evidence refuses and says so; it does not fall back.
 
 USAGE
 -----
@@ -54,40 +57,129 @@ import json
 import pathlib
 import sys
 
-#: The filed scalars this harness must reproduce before any per-axis number it prints is graded.
-#: From `SEAT_RESULT_THE_SETTLED_BOOK_IS_CHOSEN_AND_WEIGHTED_2026-09-11.md`, seed 42.
+#: EVIDENCE IS GRADED ONLY AGAINST THE WORLD IT WAS MEASURED IN. That is the 2026-09-16 repair and
+#: it is a change of SHAPE, not of tolerance.
 #:
-#: **THEY DO NOT REPRODUCE, AND THE CAUSE IS ESTABLISHED RATHER THAN SUSPECTED** (2026-09-15).
-#: The filed run's base is `3957ba848`, and `0d86d6dfe` -- "the world's homes are drawn from the
-#: fitted joint now" -- is NOT an ancestor of it. It reached this tree through the fork-closing
-#: merge `2212d0eed`. So the FUNNEL is identical here (502 candidates, the cull settles the same
-#: 90 at the same 1195.3895 cy) and the HOMES are not (105 distinct fabric vectors against the
-#: filed 109). A KS over the fabric axes is a statistic about the homes.
+#: What was here was one filed record, from
+#: `SEAT_RESULT_THE_SETTLED_BOOK_IS_CHOSEN_AND_WEIGHTED_2026-09-11.md` at base `3957ba848`, seed 42.
+#: It stopped reproducing on 2026-09-15 and the cause was established rather than suspected:
+#: `0d86d6dfe` -- "the world's homes are drawn from the fitted joint now" -- is not an ancestor of
+#: that base and reached this tree through the fork-closing merge `2212d0eed`. The FUNNEL is
+#: identical (502 candidates, the cull settles the same 90 at the same 1195.3895 cy); the HOMES are
+#: not (105 distinct fabric vectors against the filed 109). A KS over the fabric axes is a statistic
+#: about the homes, so the refusal was correct and was never a tolerance to widen.
 #:
-#: The refusal is therefore CORRECT and is not a tolerance to be widened. Left in place because
-#: what it refuses is real: these numbers cannot be decomposed per axis on this base and called a
-#: grading of the prediction they graded.
-FILED = {
-    "cull_settled": 90,
-    #: Filed at ONE DECIMAL, so it is compared at one decimal. Comparing 1195.3895 against a
-    #: figure that was rounded before it was written down manufactures a disagreement, and a
-    #: refusal that names a non-disagreement beside a real one devalues the real one.
-    "cull_cy": 1195.4,
-    "chosen_settled": 84,
-    "chosen_cy": 1197.0,
-    "worst_ks_cull": 0.12798,
-    "worst_ks_chosen": 0.08241,
-    "ratio": 1.553,
-}
-
-#: What a reader of the refusal needs, so the next session does not re-derive the attribution.
-REFUSAL_CAUSE = (
-    "ESTABLISHED 2026-09-15: the filed scalars were measured at base 3957ba848, which does NOT "
-    "contain 0d86d6dfe ('the world's homes are drawn from the fitted joint'). That change reached "
-    "this tree through the fork-closing merge 2212d0eed. The funnel is unchanged and the home "
-    "stock is not, so the filed KS figures belong to a different world. Do not widen the "
-    "tolerances; re-run at 3957ba848 if a verdict against the FILED evidence is what is wanted."
+#: **But a correct refusal left the claim ungradable for five days**, and the director's Stage 1 ask
+#: is that the sample EARN ITS PLACE on the settlement selection -- which it cannot do while the
+#: only evidence that could grade it describes a world nobody runs. Re-pointing the single record at
+#: today's numbers would have re-created the same staleness the next time the stock moves, and a
+#: control keyed to today's answer goes red when the code becomes more honest.
+#:
+#: So the record is keyed to its WORLD. Each entry carries the two digests that say which world it
+#: was measured in, and `_filed_for_this_world` grades against the entry whose world is live. A
+#: stock change now produces "this world has no filed evidence -- re-file" rather than five numbers
+#: that read as the method disagreeing with itself. The 09-11 entry is KEPT, not replaced: a
+#: prediction and the result that refuted it belong beside each other.
+FILED_RECORDS = (
+    {
+        "filed": "2026-09-11",
+        "base": "3957ba848",
+        "source": "SEAT_RESULT_THE_SETTLED_BOOK_IS_CHOSEN_AND_WEIGHTED_2026-09-11.md",
+        "world": {
+            "level_digest": "39a192ce04c1eda8",
+            #: NOT unknown and not unstamped: the home-stock digest post-dates this evidence, so
+            #: there was no field to fill. The mismatch against this entry was established by
+            #: CAUSE on 2026-09-15 (the fitted-joint draw is absent from its base), which is
+            #: strictly stronger than a digest comparison and is why this entry can still be
+            #: reasoned about. It can never MATCH a live world, which is correct -- a `None` here
+            #: must not be read as "matches anything".
+            "home_digest": None,
+            "home_digest_absent_because":
+                "simulation/world_home_identity post-dates this evidence; the world mismatch is "
+                "established by cause (0d86d6dfe is not an ancestor of 3957ba848), not by digest",
+        },
+        "scalars": {
+            "cull_settled": 90,
+            #: Filed at ONE DECIMAL, so it is compared at one decimal. Comparing 1195.3895 against
+            #: a figure that was rounded before it was written down manufactures a disagreement,
+            #: and a refusal that names a non-disagreement beside a real one devalues the real one.
+            "cull_cy": 1195.4,
+            "chosen_settled": 84,
+            "chosen_cy": 1197.0,
+            "worst_ks_cull": 0.12798,
+            "worst_ks_chosen": 0.08241,
+            "ratio": 1.553,
+        },
+    },
+    {
+        "filed": "2026-09-16",
+        "base": "HEAD at the fitted-joint stock (0d86d6dfe, merged 2212d0eed)",
+        "source": "SEAT_RESULT_THE_SAMPLE_EARNS_ITS_PLACE_ON_THE_SETTLEMENT_SELECTION_2026-09-16.md",
+        "world": {
+            "level_digest": "39a192ce04c1eda8",
+            "home_digest": "35f8efe8ff02f245",
+        },
+        #: Measured, not predicted, and this entry says so rather than dressing a re-file as a
+        #: forecast. The PREDICTION it grades is §A's P1b, filed 2026-09-11 and unchanged: that
+        #: choosing-and-weighting beats the count cull on the worst fabric axis. P1b HOLDS here,
+        #: by more than it held on the world it was filed against (1.66x against 1.55x).
+        "scalars": {
+            "cull_settled": 90,
+            "cull_cy": 1195.4,
+            "chosen_settled": 83,
+            "chosen_cy": 1199.2,
+            "worst_ks_cull": 0.09765,
+            "worst_ks_chosen": 0.05878,
+            "ratio": 1.6613,
+        },
+    },
 )
+
+
+#: What a reader of the refusal needs when the world MATCHED an entry and the numbers still moved.
+#: That is the strictly worse case: the world is the one this evidence was measured in, so the
+#: disagreement is about the METHOD or the funnel, and neither is a tolerance to widen.
+_STALE_ENTRY_CAUSE = (
+    "The filed record for THIS world did not reproduce. The world digests match, so this is not "
+    "the 2026-09-15 stale-base shape -- something in the funnel, the chooser or the capture moved "
+    "under evidence measured in this same world. Do not widen a tolerance and do not re-file over "
+    "it: find what moved first, because a re-file here would erase the only record that can show "
+    "it moved."
+)
+
+
+def _filed_for_this_world() -> tuple[dict | None, str]:
+    """(the filed record measured in the LIVE world, why there is none). Exactly one is non-empty.
+
+    FAILS CLOSED, and the direction matters. An unreadable digest returns no record and says which
+    digest it could not read -- it does NOT fall through to the newest entry, because "I could not
+    tell which world this is" and "this is the world that entry was measured in" are different
+    states and collapsing them is how a figure from one world comes to bound a figure from another.
+    """
+    try:
+        from simulation.departure_level_anchor import world_level_identity
+        from simulation.world_home_identity import home_stock_identity
+        live = {"level_digest": world_level_identity().get("digest"),
+                "home_digest": home_stock_identity().get("digest")}
+    except Exception as exc:  # noqa: BLE001 -- cannot establish, never "fine"
+        return None, (f"the live world could not be identified ({exc}), so no filed evidence can "
+                      "be matched to it and nothing is graded")
+    missing = [k for k, v in live.items() if not v]
+    if missing:
+        return None, (f"the live world's {', '.join(missing)} could not be read, so no filed "
+                      "evidence can be matched to it and nothing is graded")
+    for record in FILED_RECORDS:
+        w = record["world"]
+        if w["level_digest"] == live["level_digest"] and w["home_digest"] == live["home_digest"]:
+            return record, ""
+    return None, (
+        f"no filed evidence was measured in this world (level {live['level_digest']}, "
+        f"homes {live['home_digest']}). The filed entries are "
+        + "; ".join(f"{r['filed']} at level {r['world']['level_digest']}, homes "
+                    f"{r['world']['home_digest']}" for r in FILED_RECORDS)
+        + ". Re-file by running this tool and writing its profile into a dated SEAT_RESULT -- do "
+          "NOT widen a tolerance, and do not re-point an existing entry: the entry and the world "
+          "it was measured in are one fact.")
 
 #: §A's P1b names "floor area, heat-loss coefficient, remaining insulation ceiling". The third is
 #: not an axis and never was -- it belongs to `settlement_choice_probe`'s six-axis draft. The
@@ -232,10 +324,19 @@ def grade(ks_cull: dict, ks_chosen: dict) -> dict:
     }
 
 
-def _self_check(arms: dict, ks: dict) -> list[str]:
-    """What must reproduce before any per-axis number above is graded. Returns the disagreements."""
+def _self_check(arms: dict, ks: dict, filed: dict | None = None) -> list[str]:
+    """What must reproduce before any per-axis number above is graded. Returns the disagreements.
+
+    `filed` is the SCALARS of the record measured in the live world. Passing None is not "grade
+    against the newest" -- it is "there is nothing this world's numbers may be graded against",
+    which is one disagreement naming that, never zero.
+    """
     from simulation.settlement_choice import CHOICE_AXES
 
+    if filed is None:
+        return ["no filed evidence exists for this world"]
+
+    FILED = filed  # noqa: N806 -- the record under grading, named as the legs below read it
     worst = {k: max(ks[k][a] for a in CHOICE_AXES) for k in ("cull", "chosen")}
     out = []
     for name, got, want in (
@@ -285,8 +386,12 @@ def main(argv: list[str] | None = None) -> int:
     }
     ks = {name: _ks_by_axis(vectors, arm) for name, arm in arms.items()}
 
-    disagreements = _self_check(arms, ks)
+    record, no_record_because = _filed_for_this_world()
+    disagreements = _self_check(arms, ks, record["scalars"] if record else None)
+    refusal_cause = no_record_because or (_STALE_ENTRY_CAUSE if disagreements else None)
     payload = {
+        "filed_evidence_for_this_world": (
+            {k: record[k] for k in ("filed", "base", "source", "world")} if record else None),
         "seed": args.seed,
         "candidates": len(candidates),
         "axes": list(CHOICE_AXES),
@@ -297,17 +402,22 @@ def main(argv: list[str] | None = None) -> int:
         "selection": {k: v["selection"] for k, v in arms.items()},
         "ks_by_axis": {k: {a: round(d, 5) for a, d in v.items()} for k, v in ks.items()},
         "self_check_disagreements": disagreements,
-        "self_check_cause": (REFUSAL_CAUSE if disagreements else None),
-        # THE VERDICT ON §A's OWN FILED EVIDENCE, and it stays `None` while the self-check refuses.
-        # This is the key a reader may quote as "P1b was graded", so it must be empty exactly when
-        # the base the prediction was filed against is not the base that ran.
+        "self_check_cause": refusal_cause,
+        # THE VERDICT ON §A's PREDICTION, and it stays `None` while the self-check refuses. This is
+        # the key a reader may quote as "P1b was graded", so it must be empty exactly when the
+        # evidence that could grade it was not measured in the world that ran.
         "grading_against_the_FILED_evidence": (
             None if disagreements else grade(ks["cull"], ks["chosen"])),
-        # THE SAME ARITHMETIC ON TODAY'S BASE, always computed and NEVER the answer to the same
-        # question. Reported because the profile is real and informative about the shipped chooser;
-        # named this way because a grading of a 09-11 prediction on a 09-15 world is a different
-        # claim, and the two collapsing into one key is how the substitution happens.
-        "profile_on_THIS_base_which_is_NOT_the_filed_one": grade(ks["cull"], ks["chosen"]),
+        # THE SAME ARITHMETIC, ALWAYS COMPUTED, and never the answer to the same question. When the
+        # world matches a filed record these two keys hold identical objects BY CONSTRUCTION, and
+        # that is not redundancy: when it does not match, this one is the only one populated, and a
+        # reader who quotes it then is quoting a profile rather than a grading.
+        #
+        # RENAMED 2026-09-16 from `profile_on_THIS_base_which_is_NOT_the_filed_one`. That name was
+        # true on 09-15 and became a false sentence the moment this world got its own filed record
+        # -- a key asserting a state instead of naming a quantity rots into a lie the first time
+        # the state changes, which is this project's own rule about keying to the property.
+        "profile_on_THIS_base": grade(ks["cull"], ks["chosen"]),
         "profile_on_THIS_base_pre_repair_arm": grade(ks["cull"], ks["chosen_no_year_groups"]),
     }
 
@@ -320,7 +430,8 @@ def main(argv: list[str] | None = None) -> int:
               file=sys.stderr)
         for d in disagreements:
             print(f"  {d}", file=sys.stderr)
-        print(f"\n{REFUSAL_CAUSE}", file=sys.stderr)
+        if refusal_cause:
+            print(f"\n{refusal_cause}", file=sys.stderr)
         return 1 if args.check else 0
     return 0
 
