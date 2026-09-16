@@ -111,6 +111,89 @@ PROJECT = Path(__file__).resolve().parent.parent
 BOOK_PATH = PROJECT / "site" / "data" / "customers.json"
 OUT_PATH = PROJECT / "docs" / "observability" / "value_based_pricing_arms.json"
 
+
+def _git_head() -> str | None:
+    try:
+        out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT),
+                             capture_output=True, text=True, timeout=30)
+        return out.stdout.strip()[:12] if out.returncode == 0 else None
+    except Exception:  # noqa: BLE001 -- any failure is "cannot name the commit", not "fine"
+        return None
+
+
+#: THE COMMIT THIS ARTEFACT WAS PRODUCED AT, resolved at import and never again -- the discipline
+#: `tools/run_value_cycle_ab.py` landed in `f9866cd2a` and this file was never given. Import is when
+#: Python bound the modules that will price these arms; the tree can move before the file is
+#: written, and a sha read at assembly names a tree that did not make these numbers.
+#:
+#: A run that cannot resolve one publishes `None` and the reason, never the assembly tree's sha: the
+#: whole use of this field is to let a reader tell two trees apart, and a wrong commit defeats that
+#: where an admitted absence does not.
+PRODUCING_COMMIT: str | None = _git_head()
+PRODUCING_COMMIT_RESOLVED_AT: str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _resolve_world_identity() -> dict:
+    try:
+        from simulation.departure_level_anchor import world_level_identity
+
+        return dict(world_level_identity(), unavailable_because=None)
+    except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
+        return {
+            "digest": None,
+            "unavailable_because": (
+                "the world's departure-level block could not be read in this process ({}), so "
+                "this comparison cannot name the world it priced in".format(exc)),
+        }
+
+
+#: WHICH WORLD, beside which code. The commit says what was BUILT; this says what departure level
+#: it was built over, and that is the quantity a later reader has to compare. It is load-bearing
+#: HERE specifically: `belief_versus_truth` reads the world's own response curve, so a re-fit of the
+#: departure anchor moves every belief figure in this artefact without moving a single line of this
+#: file. Resolved at import for the same reason `PRODUCING_COMMIT` is.
+WORLD_IDENTITY: dict = _resolve_world_identity()
+
+#: WHICH FIELDS OF THIS ARTEFACT ARE ITS RUN IDENTITY. Read by
+#: `tools.promoted_artefact_claim_census` under the key `run_identity_fields` and by nothing else.
+#:
+#: WHAT IS DELIBERATELY OUT: `book_identity` and `world_identity.anchors` are facts about what the
+#: run was measured OVER, not about which run it is. A reader citing them is not citing a run.
+_RUN_IDENTITY_FIELDS = [
+    "generated_at",
+    "producing_commit.commit",
+    "producing_commit.resolved_at",
+    "world_identity.digest",
+]
+
+
+def producing_commit() -> dict:
+    """The commit that made this artefact, as a block a consumer can fail closed on.
+
+    A READ OF A CONSTANT, NOT A MEASUREMENT -- everything interesting happened at import. Calling
+    `_git_head()` here would reintroduce exactly the defect the constant exists to remove.
+
+    `unavailable_because` IS THE FAIL-CLOSED LEG. Consumers key on the ABSENCE of `commit`; they
+    never meet an empty string or a placeholder sha, because a consumer that cannot tell "no
+    commit" from "some commit" is the fail-open shape this field replaces.
+    """
+    return {
+        "commit": PRODUCING_COMMIT,
+        "resolved_at": PRODUCING_COMMIT_RESOLVED_AT,
+        "resolved_when": (
+            "at process start, when Python bound the modules that priced these arms -- NOT at "
+            "artefact assembly, which is a later tree"),
+        "unavailable_because": (
+            None if PRODUCING_COMMIT else
+            "`git rev-parse HEAD` did not answer in this process, so this comparison cannot name "
+            "the code that priced it"),
+    }
+
+
+def world_identity() -> dict:
+    """WHICH WORLD these arms were priced in. See `WORLD_IDENTITY` for why it is not the commit."""
+    return dict(WORLD_IDENTITY)
+
 #: Renewal year the comparison is struck at. The arms are compared at ONE moment so the
 #: difference between them is the RULE and never the calendar.
 AS_OF_YEAR = 2025
@@ -511,6 +594,217 @@ def _legs(book: dict) -> dict:
             if cid:
                 out[cid] = leg
     return out
+
+
+def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict) -> dict:
+    """WHICH TWO FILES this comparison priced, snapshotted BY THE CALLER as it read them.
+
+    The sibling producer's `book_at_run` snapshots per arm because an arm there is a two-hour
+    phase-4c pass and the curriculum can move between arms. **That is not the free variable here**,
+    and propagating it verbatim would have missed the one that is. Both arms in this file are
+    priced in ONE loop over ONE `per_customer_lifetime`, so they cannot be on two books and no
+    cross-arm comparison has a reachable FAIL branch -- see `inputs_agree_on_the_book`.
+
+    WHAT CAN DIFFER, AND DID, is which pair of INPUT FILES the process read, because both are
+    regenerated independently by other lanes and neither is named anywhere in the output.
+    `latest_run_output()` takes the lexical max of a glob over `docs/reports/run_output_*.json`,
+    and those files are UNTRACKED. Measured 2026-09-16 at one commit, from two checkouts of it:
+
+        shared tree      6,219 candidates -> run_output_edded3973_20260916T085959Z.json   27.5 MB
+        linked worktree      4 candidates -> run_output_f5808bd_20260618T054253Z.json    205.9 KB
+
+    Same code, same commit, same command; a run from this morning against a run from June, one
+    holding 14 accounts and the other tens of thousands. Nothing in the artefact said which, so the
+    published 397-account reading and a 226-account re-run read as rival calibrations of one book
+    when they were two different books -- `SEAT_RESULT_THE_TWO_BLIND_ARM_ARTEFACTS_ARE_TWO_WORLDS_
+    NOT_TWO_CALIBRATIONS_AND_NEITHER_CAN_GRADE_THE_OTHER_2026-09-16`, which cost a full Lane 0
+    invocation to establish by hand.
+
+    `served_segments` is recorded in the sibling's shape so the two artefacts can be read against
+    each other at all, with the override kept SEPARATELY from the resolved list for the sibling's
+    reason: an env-overridden run and a curriculum run are different claims even when they resolve
+    the same.
+    """
+    from simulation.live_population import served_segments
+
+    override = os.environ.get("SE_SERVED_SEGMENTS", "").strip()
+
+    def _stat(path: Path) -> dict:
+        try:
+            st = path.stat()
+            return {"bytes": st.st_size,
+                    "mtime": datetime.fromtimestamp(
+                        st.st_mtime, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+        except OSError as exc:
+            return {"bytes": None, "mtime": None, "unavailable_because": str(exc)}
+
+    # The run's OWN stamp where it carries one, rather than a re-derivation from the filename:
+    # the filename is a convention and `_cache_meta` is what the producer wrote.
+    meta = run.get("_cache_meta") if isinstance(run.get("_cache_meta"), dict) else {}
+    # THE JOIN, MEASURED HERE, because this is the only place both files are in hand. It must NOT
+    # be re-derived from `compare`'s output: `accounts_skipped` counts an account the book has
+    # never heard of in the same bucket as one the book holds with no consumption, so
+    # `priced + skipped` equals the run's account count whatever the book is -- a denominator that
+    # tracks its own numerator, and a control that cannot fail. Caught by its own test.
+    run_ids = set(run.get("per_customer_lifetime") or {})
+    book_ids = set(_legs(book))
+    return {
+        "run_output": {
+            "path": str(run_path.relative_to(PROJECT)) if run_path.is_relative_to(PROJECT)
+                    else str(run_path),
+            "tracked_in_git": False,
+            "selected_by": (
+                "lexical max over the glob `docs/reports/run_output_*.json` restricted to names "
+                "containing '2026' -- NOT a content check, and the candidate set differs between "
+                "checkouts of one commit because these files are untracked"),
+            "candidates_seen": _run_output_candidate_count(),
+            "producing_commit": meta.get("git_commit"),
+            "generated_at": meta.get("generated_at_utc"),
+            "accounts_in_per_customer_lifetime": len(run_ids),
+            **_stat(run_path),
+        },
+        "join": {
+            "run_accounts": len(run_ids),
+            "book_legs": len(book_ids),
+            "accounts_in_both": len(run_ids & book_ids),
+            "run_accounts_absent_from_the_book": len(run_ids - book_ids),
+        },
+        "book": {
+            "path": str(book_path.relative_to(PROJECT)) if book_path.is_relative_to(PROJECT)
+                    else str(book_path),
+            "generated": book.get("generated"),
+            "customer_count": book.get("customer_count"),
+            "legs": len(_legs(book)),
+            **_stat(book_path),
+        },
+        "served_segments": list(served_segments()),
+        "resolved_from": "SE_SERVED_SEGMENTS" if override else "curriculum",
+        "override_env": override or None,
+    }
+
+
+def _run_output_candidate_count() -> int | None:
+    """How many files the selection above chose from. Part of the snapshot because a candidate set
+    of 4 and one of 6,219 are different questions, and the answer looks identical either way."""
+    try:
+        return sum(1 for p in glob.glob(str(PROJECT / "docs" / "reports" / "run_output_*.json"))
+                   if "2026" in Path(p).name)
+    except OSError:
+        return None
+
+
+def inputs_agree_on_the_book(at_read: dict | None, data: dict) -> dict:
+    """Do the run output and the customers book describe the SAME population? The reachable control.
+
+    THE SIBLING'S `same_book_across_arms` IS NOT PROPAGATED, DELIBERATELY, and this is its place.
+    There, two arms are two phase-4c passes and can genuinely serve two books. Here both arms are
+    decided inside one loop over one list, so a cross-arm book check compares a value with itself:
+    a control whose FAIL branch does not exist, which is the exact shape `book_at_run`'s own
+    docstring warns against and `docs/design/CONTROLS_THAT_CANNOT_FAIL.md` forbids. Shipping it
+    would have looked like discharging this finding while guarding nothing.
+
+    THE FREE VARIABLE IS THE JOIN. `compare` walks the run's `per_customer_lifetime` and looks each
+    account up in the book by `customer_id`, and the two files are regenerated independently. That
+    key is NOT stable across runs -- `C1` has appeared in two artefacts with different `eac_kwh` --
+    so a run output and a book from different vintages still join, thinly and silently, and produce
+    a clean complete artefact over a population that never existed. Measured in a linked worktree
+    on 2026-09-16: 13 of 14 run accounts joined a 251-leg book, and the published 397-account
+    artefact joins only 81 of its accounts to the book now on disk.
+
+    TRI-STATE, and `None` is "cannot tell" -- the verdict whenever no snapshot was recorded. FAILS
+    CLOSED there rather than assuming agreement, for `book_identity`'s reason: a `None` a reader
+    can see beats the current answer standing in for a join nobody observed.
+
+    NOT KEYED TO TODAY'S ANSWER. The threshold asks whether the run's accounts are MOSTLY absent
+    from the book, which is a property of a mismatched pair; it does not pin a coverage figure that
+    would go red the day the book legitimately grows.
+    """
+    snapshot = at_read if isinstance(at_read, dict) else {}
+    join = snapshot.get("join") if isinstance(snapshot.get("join"), dict) else {}
+    run_accounts = join.get("run_accounts")
+    in_both = join.get("accounts_in_both")
+    joined = None
+    if isinstance(run_accounts, int) and run_accounts and isinstance(in_both, int):
+        joined = in_both / run_accounts
+    return {
+        "same_book": None if joined is None else joined >= 0.5,
+        "run_accounts": run_accounts,
+        "book_legs": join.get("book_legs"),
+        "accounts_in_both": in_both,
+        "share_joined": None if joined is None else round(joined, 4),
+        "unavailable_because": (
+            None if joined is not None else
+            "no snapshot of the input pair was recorded at read time, so whether the two files "
+            "describe one population is not known -- stated rather than assumed, because the join "
+            "succeeds thinly and silently when they do not"),
+        "why_this_is_here": (
+            "`compare` joins two independently-regenerated files on `customer_id`, which is not a "
+            "stable key across runs. A mismatched pair still produces a complete-looking artefact "
+            "over a population that never existed. This is the population control the sibling's "
+            "`same_book_across_arms` plays there; a cross-arm check HERE would be a tautology."
+        ),
+    }
+
+
+def book_identity(data: dict, at_read: dict | None = None) -> dict:
+    """WHICH BOOK this priced, so the next reader does not infer it from a date.
+
+    Dual-fuel share is here for the sibling's reason: one household is one billing account, so a
+    gas leg moves cost-to-serve, churn and lifetime value together. The legs are collapsed on the
+    `-g` suffix this file's own ids carry.
+
+    FAILS CLOSED when the caller recorded nothing. The segment list is the CALLER'S snapshot, taken
+    when the inputs were read, and never a fresh resolve here -- resolving here would report the
+    curriculum at assembly time, which is a different measurement and would silently stand in for a
+    book this comparison may never have been priced on.
+    """
+    rows = data.get("accounts") or []
+    accounts: dict[str, set] = collections.defaultdict(set)
+    for row in rows:
+        cid = row.get("customer_id")
+        if not isinstance(cid, str):
+            continue
+        # The gas leg is the same billing account as its electricity twin; `-g` is how this
+        # artefact's own ids mark it, and `PROS-2025-0136`/`PROS-2025-0136g` is one household.
+        accounts[cid[:-1] if cid.endswith("g") else cid].add(
+            "gas" if cid.endswith("g") else "electricity")
+    snapshot = at_read if isinstance(at_read, dict) else {}
+    elec = sum(1 for c in accounts.values() if "electricity" in c)
+    gas = sum(1 for c in accounts.values() if "gas" in c)
+    dual = sum(1 for c in accounts.values() if {"electricity", "gas"} <= c)
+    return {
+        "served_segments": snapshot.get("served_segments"),
+        "served_segments_resolved_from": snapshot.get("resolved_from"),
+        "served_segments_override_env": snapshot.get("override_env"),
+        "served_segments_unavailable_because": (
+            None if snapshot else
+            "the caller recorded no book when it read the inputs, so which segments this priced "
+            "is not known -- stated rather than filled in from the current curriculum, which "
+            "would report a book this comparison may never have been run on"),
+        "read_from": {"run_output": snapshot.get("run_output"), "book": snapshot.get("book")}
+                     if snapshot else None,
+        "billing_accounts_priced": len(accounts),
+        "with_an_electricity_leg": elec,
+        "with_a_gas_leg": gas,
+        "dual_fuel": dual,
+        "dual_fuel_share_of_accounts": (dual / len(accounts)) if accounts else None,
+        "what_each_count_selects": {
+            "billing_accounts_priced": (
+                "billing accounts with at least one PRICED leg, dual-fuel legs collapsed. Smaller "
+                "than `accounts_priced`, which counts LEGS and is the unit of every other count "
+                "in this file -- see `population.unit`."
+            ),
+        },
+        "inputs_agree_on_the_book": inputs_agree_on_the_book(at_read, data),
+        "why_this_is_here": (
+            "So a reader can tell WHICH book a figure describes without diffing a commit date "
+            "against a run timestamp. Two readings of this artefact days apart were read as rival "
+            "calibrations of one book when they were two books, two worlds and two producer "
+            "vintages, and nothing in the file could say so -- SEAT_RESULT_THE_TWO_BLIND_ARM_"
+            "ARTEFACTS_ARE_TWO_WORLDS_NOT_TWO_CALIBRATIONS_AND_NEITHER_CAN_GRADE_THE_OTHER_"
+            "2026-09-16."
+        ),
+    }
 
 
 def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_years: float,
@@ -1095,15 +1389,6 @@ def coupling_is_declared() -> tuple[bool, str]:
     ).format(WORLD_ATOM_ID, TWIN_ATOM_ID, declared)
 
 
-def _git_head() -> str | None:
-    try:
-        out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT),
-                             capture_output=True, text=True, timeout=30)
-        return out.stdout.strip()[:12] if out.returncode == 0 else None
-    except Exception:
-        return None
-
-
 def price_belief_gap(rows: list[dict], provenance: dict | None = None,
                      claim: dict | None = None):
     """The company's price-response belief against the world's, normalised by NO SKILL.
@@ -1160,9 +1445,29 @@ def price_belief_gap(rows: list[dict], provenance: dict | None = None,
 
 
 def generate(out_path: Path | None = None) -> dict:
-    run = json.loads(latest_run_output().read_text(encoding="utf-8"))
+    run_path = latest_run_output()
+    run = json.loads(run_path.read_text(encoding="utf-8"))
     book = json.loads(BOOK_PATH.read_text(encoding="utf-8"))
+    # SNAPSHOTTED HERE, BESIDE THE READ, and passed down -- never re-resolved at assembly. That
+    # difference is the whole control rather than a style point: see `book_at_read`.
+    at_read = book_at_read(run_path, BOOK_PATH, run, book)
     data = compare(run, book)
+    # PROVENANCE FIRST IN THE FILE, above every figure it qualifies, because a reader who has to
+    # scroll past 400 accounts to find out which book they describe will not scroll.
+    data = {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # WHICH CODE MADE THIS. `generated_at` is the one timestamp here guaranteed NOT to be when
+        # the numbers were decided.
+        "producing_commit": producing_commit(),
+        # WHICH WORLD, beside which code -- the departure level every belief figure below is
+        # measured over, which a commit hash does not answer.
+        "world_identity": world_identity(),
+        # WHICH OF THESE FIELDS IS THE RUN IDENTITY, said here because only the producer knows.
+        "run_identity_fields": _RUN_IDENTITY_FIELDS,
+        # WHICH BOOK, and which two files it was read from.
+        "book_identity": book_identity(data, at_read),
+        **data,
+    }
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")
@@ -1175,6 +1480,25 @@ if __name__ == "__main__":
                      help="persist the measured price-belief gap into coupled_gap_ledger.json")
     _args = _ap.parse_args()
     d = generate()
+    # THE PROVENANCE ON THE SURFACE, not only in the file. The operator who runs this is the one
+    # person who can still tell that the wrong run output was picked, and only while they are here.
+    _book = d["book_identity"]
+    _src = (_book.get("read_from") or {}).get("run_output") or {}
+    print("read {} ({} of {} candidates, {} accounts) against {}".format(
+        _src.get("path"), 1, _src.get("candidates_seen"),
+        _src.get("accounts_in_per_customer_lifetime"),
+        ((_book.get("read_from") or {}).get("book") or {}).get("path")))
+    print("code {} | world {}".format(
+        d["producing_commit"]["commit"] or "UNAVAILABLE",
+        d["world_identity"].get("digest") or "UNAVAILABLE"))
+    _agree = _book["inputs_agree_on_the_book"]
+    if _agree["same_book"] is False:
+        print("  INPUTS DISAGREE ON THE BOOK: only {} of the run's accounts are in the book -- "
+              "these two files are probably not from one population".format(
+                  _agree["share_joined"]))
+    elif _agree["same_book"] is None:
+        print("  CANNOT TELL whether the inputs describe one book: {}".format(
+            _agree["unavailable_because"]))
     print("priced {} account(s); {} differ from the control; {} at a grid edge".format(
         d["accounts_priced"], d["differs_from_control"], d["endpoint_bound"]))
     print("fit to run: {} -- {}".format(d["verdict"]["fit_to_run"], d["verdict"]["why"]))
@@ -1208,7 +1532,9 @@ if __name__ == "__main__":
             _ledger = write_gap_entry(
                 WORLD_ATOM_ID, TWIN_ATOM_ID, _gap,
                 measured_at=datetime.now(timezone.utc).isoformat(),
-                run_git_commit=_git_head(),
+                # THE COMMIT THAT PRICED IT, not the tree at the moment the ledger is written.
+                # Two answers to "which commit" in one file would be two facts that drift.
+                run_git_commit=PRODUCING_COMMIT,
             )
             print("  ledger written: {} -> gap={}".format(
                 WORLD_ATOM_ID, _ledger[WORLD_ATOM_ID]["gap"]))

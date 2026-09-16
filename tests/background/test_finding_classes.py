@@ -397,6 +397,97 @@ def test_MUTATION_the_stranded_archive_leg_catches_the_refuted_blind_remedy(tmp_
     )
 
 
+# --- the passive-`reached` widening, and the two alternatives it was scored against ---
+#
+# The pattern that discharged `_KNOWN_STRANDED_ARCHIVED_INSTANCES`. Both legs below run against
+# REAL subjects taken verbatim from the staged corpus, because the whole point of the measurement
+# was that a rule chosen without printing the corpus was wrong in both directions.
+
+#: The pattern's own source, as one anchor for `_load_mutant`.
+#:
+#: RE-ANCHORED 2026-09-16 AND THE FIRST DRAFT IS KEPT HERE BECAUSE IT IS THE EVIDENCE. These legs
+#: were written against a WIDER candidate that was scored and then NOT shipped —
+#: `\b(cannot|can[_ ]?not|could[_ ]not|can[_ ]no[_ ]longer|never|not|no|none)\b[\w_ ]{0,20}?\b(be|
+#: is|are|was|were|been)[_ ]reached\b` — and sat in a working copy for a day while the tight form
+#: below landed instead. An anchor naming a line the module does not have is the failure
+#: `_load_mutant` asserts against: it does not silently pass, it refuses. Pointing it at the
+#: SHIPPED line is what turns the two legs below from a dead holder's draft into a live proof of
+#: the claim `background/finding_classes.py` makes in prose beside this pattern.
+_PASSIVE_REACH_PATTERN_SOURCE = (
+    '            r"(cannot|can[_ ]?not|could[_ ]not)[_ ]be[_ ]reached",'
+)
+
+#: Real subjects, verbatim. `reach` here is PUBLICATION — the subject travels to a destination —
+#: and none of them is a thing no caller invokes. 44 of these are in the corpus; these five are the
+#: shapes, including the two that also carry a negation and would fool a negation-only rule.
+_REACH_MEANING_PUBLICATION = (
+    "SEAT FINDING TWENTY ONE GATED COMMITS NEVER REACHED ORIGIN AND THE TREES HAVE DIVERGED",
+    "SEAT FINDING THE SHARING CEILINGS PREMISE WAS SPENT AND ITS FRONTIER REACHED NO READER",
+    "SEAT FINDING THE CURRENT WORLD BOUND IS A CONSTANT FALSE SO THE RUNNING LEG CANNOT REACH THE PAGE",
+    "SEAT RESULT THE LEG CONDITIONING COLUMN REACHES THE READER AND THE DEFERRALS HAZARD EXPIRED",
+    "WORKER FINDING THE FRESHNESS BANNER REACHES NO PAGE AND ITS CONTROL ASKS FIVE DELETED DOORS",
+)
+
+#: The one AFFIRMATIVE passive in the corpus, and the class's own opposite: these modules ARE
+#: reached. A passive-only rule without the negation requirement files it as a member.
+_REACHED_BY_SOMETHING_AFFIRMATIVE = (
+    "SEAT FINDING THE CONVERGED MODULES ARE REACHED BY HUNDREDS OF SUITES AND NAMED BY FOUR"
+)
+
+
+def test_the_passive_reach_pattern_does_not_admit_the_publication_sense():
+    """The live rule, against the family it must refuse. Keyed to the property — active voice is
+    propagation, passive is invocation — not to today's filenames."""
+    admitted = [
+        s for s in _REACH_MEANING_PUBLICATION
+        if fc.classify_subject(s).class_id == "no_caller_and_never_runs"
+    ]
+    assert admitted == [], (
+        "`reach` is this project's word for publication in 44 of the 47 staged subjects that use "
+        f"it; filing these under a class about code nothing invokes is the misfiling: {admitted}"
+    )
+    assert fc.classify_subject(_REACHED_BY_SOMETHING_AFFIRMATIVE).class_id != (
+        "no_caller_and_never_runs"
+    ), "a document about modules that ARE reached is the class's opposite, not a member of it"
+
+
+def test_MUTATION_without_the_passive_reach_pattern_the_churn_cap_instance_strands_again(tmp_path):
+    """The pattern is load-bearing: delete it and the archived instance this claim was drawn to
+    reach goes back to being counted as a member of a class that cannot classify it."""
+    mutant = _load_mutant(tmp_path, _PASSIVE_REACH_PATTERN_SOURCE, "", "fc_no_passive_reach")
+    stranded = _stranded_archived_instances(mutant, fc.DEFAULT_STAGING_ROOT)
+    assert "WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31.md" in (
+        stranded
+    ), (
+        "removing the pattern must re-strand the instance it was written for; if it does not, the "
+        f"stranding is being closed by something else and this pattern guards nothing: {stranded}"
+    )
+
+
+def test_MUTATION_the_obvious_bare_reach_widening_misfiles_the_publication_family(tmp_path):
+    """The refuted alternative, run rather than argued. `\\breach` reaches the stranded instance —
+    and takes the whole propagation family with it, which is why voice and not vocabulary is the
+    rule. This is the leg that makes the narrowing above falsifiable."""
+    mutant = _load_mutant(
+        tmp_path, _PASSIVE_REACH_PATTERN_SOURCE, '            r"\\breach",', "fc_bare_reach"
+    )
+    misfiled = [
+        s for s in _REACH_MEANING_PUBLICATION
+        if mutant.classify_subject(s).class_id == "no_caller_and_never_runs"
+    ]
+    assert len(misfiled) >= 4, (
+        "the bare widening was measured to swallow the publication family; this mutant swallowed "
+        f"{len(misfiled)} of {len(_REACH_MEANING_PUBLICATION)}, so the refutation above is no "
+        "longer demonstrated and the narrowing has become an unexplained preference"
+    )
+    assert mutant.classify_subject(
+        "WORKER FINDING THE BILL SHOCK CHURN CAP CANNOT BE REACHED BY ANY CALLER"
+    ).class_id == "no_caller_and_never_runs", (
+        "the refuted alternative must still SOLVE the problem — an alternative that fails the "
+        "original task too is not evidence that this rule was the better of two"
+    )
+
+
 def test_a_class_document_is_not_a_member_of_its_own_class(tmp_path):
     """Without the prefix exclusion, each class document matches its own patterns and
     becomes its own first instance — a register counting itself."""

@@ -147,7 +147,10 @@ from background.episode_prior import (  # noqa: E402
     preserve_unreadable,
     prior_unreadable,
 )
-from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
+from background.live_ledger_guard import (  # noqa: E402
+    guard_live_ledger_write,
+    shared_tree_live_record,
+)
 from background.notify import notify  # noqa: E402
 
 # The draw and the writer must agree about when `timed_out_at` holds a real nodeid rather than
@@ -3941,7 +3944,14 @@ def _publish_gate_wedge_active(
     (fires on this morning's exact recorded state; silent on a passed/empty gate) in
     test_publish_gate_wedge_draw.py."""
     now = time.time() if now is None else now
-    sp = state_path or PUBLISH_GATE_STATE_FILE
+    # WHICH TREE'S COPY (2026-09-16). BOTH halves resolve, and they resolve together for the
+    # reason the paired-read comment below already gives: this control's independence rests on
+    # the two files being different sources, NOT on their being different TREES. `.publish_gate_
+    # state.json` is TRACKED and its only commit is a 2026-07-17 `{"failures": []}` placeholder,
+    # so in a linked worktree -- where the seat executor mandates delivery turns run -- the
+    # `len(failures) < MIN` line below returns None against a gate the live record said had
+    # failed 37 times. The flattering answer is the silent one: no wedge, no draw, no page.
+    sp = state_path or shared_tree_live_record(PUBLISH_GATE_STATE_FILE)
     try:
         state = json.loads(Path(sp).read_text())
     except (OSError, ValueError):
@@ -3954,7 +3964,7 @@ def _publish_gate_wedge_active(
     # INDEPENDENCE (R15): cross-check against .last_tested_hash -- keyed on real cross-process state,
     # never the same source the failures came from. A pass at HEAD => stale failures => no draw.
     head = head if head is not None else _current_head_hash()
-    lp = last_tested_path or LAST_TESTED_HASH_FILE
+    lp = last_tested_path or shared_tree_live_record(LAST_TESTED_HASH_FILE)
     try:
         last_tested = Path(lp).read_text().strip()
     except OSError:
@@ -4395,7 +4405,12 @@ def _operational_red_persistent_draw(
     already-fixed red is a whole wasted tick. UNKNOWN either way (git unavailable, no `last_run_ts`)
     prints the base message unchanged -- an unavailable check never gets to soften the draw."""
     now = time.time() if now is None else now
-    sp = state_path or OPERATIONAL_LAYER_SIGNAL_FILE
+    # WHICH TREE'S COPY (2026-09-16). TRACKED and stale, and the flattering direction here is not
+    # a wrong value but a FROZEN one: the only `last_result` that draws is a red, and git's
+    # checkout holds whatever was committed forever. A linked worktree could never draw this rung
+    # however red the layer went. It agrees with live today by luck; it cannot disagree by
+    # construction, which is exactly the shape of a control that grades nothing.
+    sp = state_path or shared_tree_live_record(OPERATIONAL_LAYER_SIGNAL_FILE)
     try:
         state = json.loads(Path(sp).read_text())
     except (OSError, ValueError):
@@ -6239,8 +6254,17 @@ def _load_stuck_state_classified() -> tuple[dict, str]:
 
     This used to return `{}` for a missing file AND for a corrupt one, and to return a LIST or
     `None` for a file holding `[1, 2, 3]` or `null` -- which parse, so they escaped the
-    except-clause and left through a `-> dict` annotation into `state.get(...)` at line 6013."""
-    return load_episode_prior(STUCK_STATE_FILE)
+    except-clause and left through a `-> dict` annotation into `state.get(...)` at line 6013.
+
+    WHICH TREE'S COPY (2026-09-16). READ ONLY -- `_save_stuck_state` below deliberately keeps
+    writing the caller's own tree, because the only writer of this record is the supervisor
+    DAEMON and the daemon runs on the shared tree, where the resolver is a no-op. A linked
+    worktree is a reader here, never the writer, so there is no read-modify-write to split.
+    What it was reading: git's checkout carries the PRE-RENAME schema (`"key"`, where live
+    holds `"episode_key"`) stamped 2026-05. The current episode key can never match a record
+    written before the field was renamed, so `first_seen_at` resets on every cycle and the
+    stuck episode this tracker exists to escalate never gets old enough to escalate."""
+    return load_episode_prior(shared_tree_live_record(STUCK_STATE_FILE))
 
 
 def _save_stuck_state(state: dict) -> None:

@@ -6931,7 +6931,23 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
     # `since_fields` (earliest-wins), so the monotonic guard cannot express it and it is carried
     # here instead. A failure write proposes None and must keep the prior -- otherwise the very
     # next red erases the evidence that the gate passed 40 minutes ago, which is the whole point
-    # of recording it. Only an evidenced episode close clears it.
+    # of recording it.
+    #
+    # NOTHING CLEARS IT ANY MORE, AND `episode_closed` IS STILL THE RIGHT GUARD (2026-09-16).
+    # This said "only an evidenced episode close clears it", which was the defect rather than the
+    # contract: the close is the moment the field is most TRUE, and clearing it there made a
+    # recovered publisher read exactly like the tracked placeholder. `record_publish_gate_success`
+    # now proposes `stamp` on BOTH exits, so no live caller reaches this carry with
+    # `episode_closed=True` and the condition is, today, an equivalence -- deleting it passes every
+    # control (measured, not assumed).
+    #
+    # It stays because of the direction it fails in. Without it, a future writer that proposes
+    # None on a close gets the PRIOR episode's stamp carried silently into the new record: the
+    # field would then be non-null without any publish having written it, which is this field's
+    # fail-open direction and would blunt
+    # `test_a_closed_episode_is_distinguishable_from_a_publisher_that_never_ran` into passing on
+    # manufactured evidence. With it, the same mistake writes null and that control fires. The
+    # invariant it buys: `last_clean_publish` only ever holds an instant a real publish stamped.
     if not episode_closed and out.get("last_clean_publish") is None and isinstance(prior, dict):
         out["last_clean_publish"] = prior.get("last_clean_publish")
     # AND THE SAME CARRY, FOR THE SAME REASON, ON THE LIVENESS-SURFACE REFUSAL. `out` is built
@@ -7970,7 +7986,29 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
                                        "the gate passed, so there is no named red to attribute "
                                        "to a tree.",
                                    "episode_clean_publishes": episode_clean,
-                                   "last_clean_publish": None if episode_closed else stamp},
+                                   # THE TIMESTAMP TAKES THE STAMP ON *BOTH* EXITS, AND THE
+                                   # COUNTER BESIDE IT STILL RESETS (2026-09-16). This read
+                                   # `None if episode_closed else stamp`, so the field was
+                                   # cleared at the instant it was most true: the publish that
+                                   # drained the queue and closed a 146-hour episode wrote
+                                   # `last_clean_publish: null`. A cleanly closed episode then
+                                   # read `failures: [] · alerted_at: null · episode_failures: 0
+                                   # · last_clean_publish: null` -- byte-for-byte what the
+                                   # two-month-old TRACKED placeholder says, so a RECOVERED
+                                   # publisher and one that has NEVER RUN were indistinguishable
+                                   # in the live record. Absence is what the placeholder asserts
+                                   # too; only a timestamp is positive evidence.
+                                   #
+                                   # The split is the point: an episode close clears the EPISODE,
+                                   # not the evidence that a publish happened. The counter is
+                                   # episode-scoped and its name says so -- a count that only
+                                   # accumulated would make every later episode read as
+                                   # intermittent. A timestamp does not accumulate, and
+                                   # `_episode_phrase` reads it ONLY inside the branch gated on
+                                   # `clean_publishes > 0`, which this same statement resets --
+                                   # so a timestamp carried across a close can never be rendered
+                                   # as a publish inside the wrong episode.
+                                   "last_clean_publish": stamp},
                                   episode_closed=episode_closed)
         if had_state:
             # THE LOG LINE MUST NAME THE BRANCH IT TOOK (2026-09-04). This said "cleared wedge
