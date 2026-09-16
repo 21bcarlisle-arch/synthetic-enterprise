@@ -143,6 +143,44 @@ def note_activity(tool: str, *, session_id: str = "", pid: int | None = None,
     Writes through a temp file and replaces, because this runs on EVERY tool call and a
     half-written heartbeat read by the 5-minute sweep would be a corrupt file that reads as
     ABSENT -- i.e. the recovery mechanism disabled by its own write pattern.
+
+    THIS BEAT IS DELIBERATELY *NOT* RESOLVED TO THE SHARED TREE, and the refusal names its reason
+    (2026-09-16). `HEARTBEAT_FILE` is derived from `__file__`, so a seat running in a linked
+    worktree stamps that worktree's copy of a TRACKED file -- the same rebinding
+    `live_ledger_guard.shared_tree_live_record` exists to undo, and this is a read-modify-write
+    (`prev = _read(p)` then replace) so the read cannot be wired without the write. It was drawn
+    as owed alongside `.launch_records.json`. It is being refused, not deferred.
+
+    WHAT WAS MEASURED, and it is the whole argument. At 2026-09-16T14:20Z the two trees held TWO
+    LIVE SEATS, not one seat and one stale checkout: `/var/tmp/se-seat-executor` had session
+    `f4c65996` (pid 3399771) beating 0.1s ago, `/home/rich/synthetic-enterprise` had session
+    `53b48707` (pid 3394062) beating 76s ago. Both current. Both real.
+
+    SO THE RECORD IS SINGLE-VALUED AND THE POPULATION IS NOT, which is this project's most
+    expensive recurring shape and the reason to say what a thing is before measuring it. Merging
+    the beats onto the shared tree does not give one honest answer; it gives the SURVIVOR's answer.
+    When one of two concurrent seats dies, the other keeps the shared beat warm, `state()` never
+    reaches SILENT_AFTER_SECONDS, `sweep()` never fires, and the dead seat's uncommitted work is
+    orphaned in silence -- the exact outcome this module exists to prevent, reintroduced by the
+    repair. That is a FAIL-SILENT, and it is worse than the staleness it would fix: a stale beat
+    over-reports death, which is noisy and self-correcting, and is why the 09-16 survey already
+    graded this reader NOT FLATTERING. (`launch_liveness` has the same shape and the opposite
+    answer, because its subject is a `systemctl --user` unit and there is one user manager per
+    machine. Same shape, different subject.)
+
+    THE COST ARGUMENT IS REAL BUT IT IS NOT THE REASON. The resolver spends a `git` subprocess per
+    live-record read and this runs on every tool call, in a fresh hook process that no module-level
+    cache can outlive. That would be worth paying for a correct answer. It is not worth paying for
+    a wrong one, and it would still be wrong.
+
+    THE GAP THIS LEAVES IS NAMED RATHER THAN PAPERED OVER. `sweep()` only ever reads the tree it
+    was imported from, so a seat that dies in a linked worktree is swept by nobody unless a tick
+    happens to run in that same worktree. The fix for that is a sweeper that enumerates
+    `git worktree list` and holds ONE RECORD PER SEAT -- a keyed store, not a redirect onto a
+    single-valued one. It is not built, and an honest gap is worth more than a redirect that looks
+    like an answer. What IS enforced today is that the read and the write agree:
+    `tests/background/test_a_read_modify_write_live_record_reads_and_writes_one_tree.py` refuses a
+    future session wiring one side of this pair without the other, in either direction.
     """
     p = path or HEARTBEAT_FILE
     now = time.time() if now is None else now

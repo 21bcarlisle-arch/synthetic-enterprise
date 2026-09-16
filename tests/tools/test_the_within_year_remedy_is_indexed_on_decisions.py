@@ -235,3 +235,116 @@ def test_BOTH_availability_branches_can_be_taken(artefact):
     # hand the reader the stronger conclusion no run on this book supports.
     assert "conditioned on value-arm survival" in b["what_is_still_not_independent"]
     assert "why_not" not in b
+
+
+def _graded(**over) -> dict:
+    """The producer's own block, at a population small enough for the page's exact null."""
+    return {
+        "available": True,
+        "discrimination_auc": 0.61,
+        "auc_population": {"retained": 80, "left": 40},
+        "priced_and_scored": 120,
+        "population_terms_absent_from_the_control_world": 3,
+        "scored_share_of_priced": 120 / 123,
+        **over,
+    }
+
+
+def _available_gap(artefact, **over) -> dict:
+    return _within_year_concordance(
+        artefact["belief_vs_outcome"],
+        {**artefact, "belief_against_control_outcomes": _graded(**over)},
+    )["the_grading_population_is_not_independent"]
+
+
+def test_the_independent_figure_never_reaches_the_reader_without_its_own_bound(artefact):
+    """DEFECT: the available branch published `discrimination_auc` and a population count and
+    nothing that says what a signal carrying NO information reaches on a population that size.
+    That is the shape `_auc_null`'s own docstring records this file paying for once already, and
+    it would have arrived on the page the day a run first wrote the field -- not caught by any
+    suite, because every artefact on disk took the refusal branch."""
+    graded = _available_gap(artefact)["graded_against_the_control_arms_outcomes"]
+    bound = graded["null_bound"]
+    assert bound["available"], bound
+    # THE BOUND IS THE ONE THE PAGE USES EVERYWHERE ELSE, not a second idea of a null: 80-vs-40
+    # is 3,200 ordered pairs, inside the exact enumerator's cap, so it is computed and not
+    # withheld -- and it brackets 0.5, which is what a no-information null must do.
+    assert bound["null_95_low"] < 0.5 < bound["null_95_high"]
+    # ...AND THE READER IS TOLD IN WORDS, never left to compare two decimals -- on BOTH SIDES of
+    # the partition, because a `cannot_tell` that fires on everything reads exactly like one that
+    # works. At 80-vs-40 the null runs 0.390-0.610, so the fixture's own 0.61 sits ON its edge and
+    # the sentence renders; the second figure below clears it and the sentence is withheld.
+    # (My first draft asserted `is None` here, having guessed the null was narrower than it is.
+    # Printing it at the real inputs is what said otherwise, before the test was written.)
+    assert "we cannot tell" in graded["cannot_tell"]
+    clears = _available_gap(artefact, discrimination_auc=0.93)[
+        "graded_against_the_control_arms_outcomes"]
+    assert clears["cannot_tell"] is None
+
+
+def test_a_population_too_big_for_the_exact_null_still_refuses_to_print_a_bare_number(artefact):
+    """DEFECT: the run this block exists for scores every renewal the value arm priced -- 278 on
+    the current book -- which is far past the exact enumerator's 4,000-pair cap. A branch that
+    published the AUC and dropped the bound when the bound could not be computed would print its
+    least-bounded figure on its largest sample, which is exactly backwards.
+
+    FAIL CLOSED, ON THE SURFACE. The refusal carries its reason and the words still render."""
+    graded = _available_gap(
+        artefact, auc_population={"retained": 238, "left": 40})[
+            "graded_against_the_control_arms_outcomes"]
+    assert graded["null_bound"]["available"] is False
+    assert graded["null_bound"]["reason"]
+    assert "no interval" in graded["cannot_tell"]
+    assert graded["discrimination_auc"] == 0.61
+
+
+def test_the_two_gradings_of_one_belief_are_published_together(artefact):
+    """DEFECT: the whole content of the independent figure is a COMPARISON -- the producer's own
+    docstring says "read this beside `belief_vs_outcome`, never instead of it" -- and the page
+    rendered one side of it. A reader who met the independent AUC alone could not tell whether
+    it moved."""
+    pair = _available_gap(artefact)["read_it_beside_the_value_arm_figure"]
+    arm = pair["graded_against_the_arms_own_outcomes"]
+    ctl = pair["graded_against_the_control_arms_outcomes"]
+    # BOTH FIGURES, BOTH BOUNDS. Keyed to the property: nothing here says the two are close.
+    assert arm["discrimination_auc"] == artefact["belief_vs_outcome"]["discrimination_auc"]
+    assert ctl["discrimination_auc"] == 0.61
+    assert "null_bound" in arm and "null_bound" in ctl
+    # ...AND EACH SIDE SAYS WHAT ITS OUTCOME COUNTS, because the two differ in nothing else.
+    assert "UNDER THE VALUE ARM" in arm["what_the_outcome_is"]
+    assert "UNDER THE CONTROL ARM" in ctl["what_the_outcome_is"]
+
+
+def test_no_difference_between_the_two_aucs_is_minted(artefact):
+    """DEFECT: two correctly-bounded figures differenced into a third with no null is this
+    project's most expensive recurring shape. The two AUCs grade ONE belief over heavily
+    overlapping rows, so they are not independent measurements and neither bound licenses a
+    reading of the gap. The block must publish both and refuse the subtraction."""
+    pair = _available_gap(artefact)["read_it_beside_the_value_arm_figure"]
+    refusal = pair["no_test_of_the_distance_between_them_is_published"]
+    assert "not two independent measurements" in refusal
+    assert "permutation" in refusal
+    # NO FIGURE ANYWHERE IN THE BLOCK IS THE SUBTRACTION. A key whose value equals the gap would
+    # be read as the answer whatever the prose beside it said.
+    #
+    # WALKED, NOT TOKENISED, and the first draft here is why. It split `json.dumps` on whitespace
+    # and kept the tokens where `.replace(".", "").isdigit()` -- which is blind to a leading minus
+    # AND to JSON's trailing comma, so it saw neither `-0.0169` nor `0.0169,`. A poison round that
+    # minted the subtraction passed it. The signed difference is the value a reader would take,
+    # so BOTH signs are the subject.
+    gap = artefact["belief_vs_outcome"]["discrimination_auc"] - 0.61
+
+    def _numbers(node):
+        if isinstance(node, bool):
+            return
+        if isinstance(node, (int, float)):
+            yield float(node)
+        elif isinstance(node, dict):
+            for value in node.values():
+                yield from _numbers(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from _numbers(value)
+
+    minted = [n for n in _numbers(pair) if min(abs(n - gap), abs(n + gap)) < 1e-9]
+    assert not minted, minted
