@@ -2698,7 +2698,7 @@
   depends_on: []
   couples_with: [A51_the_plain_english_report_on_the_use_case_register_reaches_the_director]
   file_scope:
-    - docs/staging/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md
+    - docs/staging/done/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md
     - tools/generate_capabilities_door.py
     - site/capabilities/index.html
     - site/capabilities/test_capabilities_door.py
@@ -2721,7 +2721,7 @@
     - G15_forward_curve_series_to_backtest_hedging_by_physics
   couples_with: []
   file_scope:
-    - docs/staging/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md
+    - docs/staging/done/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md
     - docs/staging/records/
     - tests/design/test_the_use_case_report_reached_the_director.py
   expert_hour: {status: not_attempted, last: null, findings: []}

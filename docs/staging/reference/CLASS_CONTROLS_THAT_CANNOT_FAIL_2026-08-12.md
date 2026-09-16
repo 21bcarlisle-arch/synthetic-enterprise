@@ -78,13 +78,8 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
-- `SEAT_FINDING_THE_CROSS_STRATUMS_BOUNDED_BRANCH_STATED_A_BARE_NUMBER_AND_NO_ARTEFACT_ON_DISK_COULD_REACH_IT_2026-09-09.md` — lane `A_strategy_governance`
 - `SEAT_FINDING_THE_DECOMPOSITION_CLASSS_REACHABILITY_LEG_CANNOT_PASS_BECAUSE_EVERY_STRATUM_CARRIES_A_DECISIONS_COUNT_IT_WAS_NOT_MEASURED_OVER_2026-09-09.md` — lane `A_strategy_governance`
-- `SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_RULE_IS_A_STAMP_PROXY_WRONG_IN_BOTH_DIRECTIONS_2026-09-09.md` — lane `A_strategy_governance`
-- `SEAT_FINDING_THE_PROMOTE_BY_COPY_CENSUS_REFUSES_ON_THE_RECORD_OF_THE_DEFECT_IT_EXISTS_TO_CATCH_2026-09-09.md` — lane `A_strategy_governance`
 - `SEAT_FINDING_THE_WORLD_IDENTITY_DIGEST_IS_BLIND_TO_THE_HOME_STOCK_2026-09-15.md` — lane `W2_customer_generator`
-- `SEAT_RESULT_THE_GIT_CWD_CENSUS_IS_44_MODULES_AND_THE_HAZARD_IS_TWELVE_2026-09-09.md` — lane `A_strategy_governance`
-- `SEAT_RESULT_THE_PROMOTE_BY_COPY_CLASS_IS_FIVE_TARGETS_AND_THE_CENSUS_IS_BLIND_TO_THE_HALF_THAT_REACHES_THE_READER_2026-09-09.md` — lane `A_strategy_governance`
 
 ## Disposition
 

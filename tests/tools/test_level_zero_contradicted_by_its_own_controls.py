@@ -590,3 +590,148 @@ def test_a_lane_is_probed_ONCE_per_pass_however_many_rows_share_it(tmp_path: Pat
     lz.assess(atoms, root=tmp_path, ages=_ages(), runner=lambda *a, **k: (True, "1 passed"),
               blockers_for=lambda lane: asked.append(lane) or [])
     assert asked == ["SAME_LANE"]
+
+
+# --------------------------------------------------------------------------- #
+# WHY a row cannot be graded, which is not the same question as the reason     #
+# --------------------------------------------------------------------------- #
+#
+# THE DEFECT THESE EXIST TO CATCH, measured on the live map 2026-09-16: thirty-one ungradable
+# rows under four reasons, and the count had not moved in twelve briefs. The reasons describe
+# the SHAPE of `file_scope`; none of them says what to do, and rows sharing one reason had
+# different causes and opposite repairs. Three rows read "names a control file that is not on
+# disk": `A51` had a subject that MOVED, `PB5` had a control nobody wrote over a subject that is
+# on disk, and `W1_28` was honestly unbuilt and correctly reading zero. Three repairs, one
+# number, so the number could not go down -- and an instrument whose number cannot go down reads
+# as a stuck problem rather than as a mixed class.
+#
+# WHAT THE SPLIT ACTUALLY MEASURED, kept here beside the prediction it corrects. The reading
+# going in was that a large part of the census was never a defect. It is not. Of the 31 rows:
+# 3 are honestly unbuilt and owe no repair, 14 have a subject on disk and no control anyone
+# wrote, 4 have a rotted pointer (3 of those ALSO owe a control), 4 name only directories, and
+# 6 are instrument states carrying no cause at all. The census was not mostly noise -- it was
+# mostly a real backlog of unwritten controls wearing one undifferentiated label. The wrong
+# prediction stays written down: it is the only evidence the split was designed before its
+# answer was known.
+
+
+def _known(answers: dict):
+    """An injected `git log --all` oracle: `{path: True|False|None}`. Injected for the same
+    reason `_runner` and `_ages` are -- a `tmp_path` is not a repository, so the real one answers
+    None for every path and only the undecidable branch could ever be reached."""
+    def known(rel, root=REPO):
+        return answers.get(rel)
+    return known
+
+
+def test_all_five_causes_are_reachable_in_one_pass(tmp_path: Path):
+    """One control over the whole cause partition, and the reason it is one assertion and not
+    five is this file's own opening paragraph: every leg below is a POSITIVE claim about one
+    cause, and a classifier that returned the same cause for everything would pass each of them
+    read alone. This is the leg that goes red when a cause stops being reachable.
+
+    It is keyed to REACHABILITY, not to today's live map: the fixture states five worlds, and
+    the assertion is that the classifier distinguishes them. Repairing every live row leaves it
+    green, which is what a control over a property rather than over an answer has to do."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
+    (tmp_path / "tests").mkdir()
+
+    worlds = {
+        "ROTTED": (_atom("ROTTED", scope=["gone/moved.py", "subject.py", "test_here.py"]),
+                   {"gone/moved.py": True}),
+        "UNDECIDABLE": (_atom("UNDECIDABLE", scope=["gone/unknown.py", "subject.py",
+                                                    "test_here.py"]),
+                        {"gone/unknown.py": None}),
+        "SCOPE_ONLY": (_atom("SCOPE_ONLY", scope=["tests/"]), {}),
+        "UNBUILT": (_atom("UNBUILT", scope=["never/made.py", "tests/test_planned.py"]),
+                    {"never/made.py": False, "tests/test_planned.py": False}),
+        "NO_CONTROL": (_atom("NO_CONTROL", scope=["subject.py"]), {}),
+    }
+    got = {name: [c["cause"] for c in lz.ungradable_causes(atom, root=tmp_path,
+                                                           known=_known(answers))]
+           for name, (atom, answers) in worlds.items()}
+
+    assert got == {
+        "ROTTED": [lz.POINTER_ROT],
+        "UNDECIDABLE": [lz.CAUSE_UNDECIDABLE],
+        "SCOPE_ONLY": [lz.NAMES_ONLY_A_SCOPE],
+        "UNBUILT": [lz.HONESTLY_UNBUILT],
+        "NO_CONTROL": [lz.CONTROL_NEVER_WRITTEN],
+    }, "the cause partition is not fully reachable: {!r}".format(got)
+
+
+def test_a_row_with_a_rotted_pointer_AND_an_unwritten_control_names_BOTH(tmp_path: Path):
+    """`A51`'s live shape, and the leg that stops the split being re-merged one level up.
+
+    Its ruling moved into `docs/staging/done/` and it names a test nobody has written. A
+    classifier returning one primary cause sends the reader to repoint the pointer and call the
+    row repaired -- and the row stays ungradable, which is how a census reports work it has
+    already been given. A mixed class is resolved by its sub-breakdown or refused, never whole."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    atom = _atom("A51_shape", scope=["moved/ruling.md", "subject.py", "tests/test_nobody.py"])
+    causes = lz.ungradable_causes(
+        atom, root=tmp_path,
+        known=_known({"moved/ruling.md": True, "tests/test_nobody.py": False}))
+    assert [c["cause"] for c in causes] == [lz.POINTER_ROT, lz.CONTROL_NEVER_WRITTEN], (
+        "both repairs must be printed on the first pass, not one per re-run: %r" % causes)
+
+
+def test_a_mislaid_subject_is_never_read_as_HONESTLY_UNBUILT(tmp_path: Path):
+    """The rot gate, stated as its own leg because removing it is a one-word change that leaves
+    every other test here green.
+
+    `honestly unbuilt` is the only cause that says "this row owes NO repair". Reached over a path
+    the row names wrongly it is exactly backwards -- the subject can be on disk under the name
+    the row stopped using -- and it would close an atom that is built. The undecidable answer is
+    held to the same bar: "git could not be asked" is not "the file was never written"."""
+    atom = _atom("MISLAID", scope=["gone/moved.py", "tests/test_planned.py"])
+    for answer in (True, None):
+        causes = [c["cause"] for c in lz.ungradable_causes(
+            atom, root=tmp_path,
+            known=_known({"gone/moved.py": answer, "tests/test_planned.py": False}))]
+        assert lz.HONESTLY_UNBUILT not in causes, (
+            "a row whose subject pointer is {} was declared right to read zero: {!r}".format(
+                "rotted" if answer else "unreadable", causes))
+
+
+def test_every_cause_carries_the_repair_it_instructs(tmp_path: Path):
+    """A cause without its repair is the undifferentiated count again, one level down. The
+    twelve-brief failure was not that the census said too little -- it said thirty-one, loudly,
+    every time -- it was that nothing it said could be acted on."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    causes = lz.ungradable_causes(_atom("NEEDS_A_CONTROL", scope=["subject.py"]),
+                                  root=tmp_path, known=_known({}))
+    assert causes and all(c["repair"] == lz.CAUSE_REPAIR[c["cause"]] and c["repair"].strip()
+                          for c in causes), causes
+
+
+def test_assess_attaches_causes_to_every_ungradable_row(tmp_path: Path):
+    """The classifier has to reach the census's own output, not merely exist beside it. A
+    refusal landed in the producer while the published surface goes on printing the old answer
+    is this repository's most-repeated shape."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    atoms = [_atom("NEEDS_A_CONTROL", scope=["subject.py"])]
+    _, ungradable = lz.assess(atoms, root=tmp_path, ages=_ages(),
+                              runner=lambda *a, **k: (True, "1 passed"),
+                              causes=lambda atom, root: lz.ungradable_causes(
+                                  atom, root=root, known=_known({})))
+    assert [c["cause"] for c in ungradable[0]["causes"]] == [lz.CONTROL_NEVER_WRITTEN], (
+        "the cause did not reach the record the brief and the CLI both read: %r" % ungradable)
+
+
+def test_an_instrument_state_carries_NO_cause_because_it_says_nothing_about_the_work(
+        tmp_path: Path):
+    """A row the budget never reached, or one whose control predates it, is a fact about the
+    PASS or about the dating -- not about whether the atom is built. Manufacturing a cause there
+    would put a repair instruction under a row that needs a re-run, and the honest empty list is
+    what tells the reader the sub-split does not apply."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_old.py").write_text("def test_x():\n    assert True\n")
+    atoms = [_atom("OLDER", scope=["subject.py", "test_old.py"])]
+    _, ungradable = lz.assess(
+        atoms, root=tmp_path, ages=_ages(predating={"OLDER": ["test_old.py"]}),
+        runner=lambda *a, **k: (True, "1 passed"),
+        causes=lambda atom, root: lz.ungradable_causes(atom, root=root, known=_known({})))
+    assert ungradable[0]["reason"] == lz.CONTROL_PREDATES_ROW
+    assert ungradable[0]["causes"] == [], ungradable[0]["causes"]

@@ -150,6 +150,33 @@ PROVENANCE_UNKNOWN = "the age of the row or of its named controls could not be e
 RUN_UNAVAILABLE = "the named controls could not be run to a verdict"
 BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
 
+#: WHY A ROW CANNOT BE GRADED, which is a different question from the reason above and the one
+#: the census could not answer for twelve briefs. NO_CONTROL_NAMED and NAMED_CONTROL_ABSENT are
+#: shapes of the row's `file_scope`; these are states of the WORK, and the repairs do not overlap.
+#: A row honestly unbuilt and a row whose pointer rotted were counted as one number, and that
+#: number then did not move -- which read as a stuck census rather than as a mixed class.
+#:
+#: A row may carry MORE THAN ONE, and `ungradable_causes` returns a list for that reason: `A51`
+#: has a subject path that moved AND names a control nobody wrote, and a single primary cause
+#: would send the reader to repoint the pointer and call the row repaired. A mixed class is
+#: resolved by its sub-breakdown or refused, never summarised whole.
+POINTER_ROT = "a named path is absent here and git knows it, so the pointer rotted"
+CONTROL_NEVER_WRITTEN = "the subject is on disk and the control that would grade it was never written"
+HONESTLY_UNBUILT = "no named file exists, so the row is RIGHT to read zero and owes no repair"
+NAMES_ONLY_A_SCOPE = "every named entry is a directory, so no file-level evidence exists either way"
+CAUSE_UNDECIDABLE = "git could not be asked whether the absent path ever existed"
+
+#: What each cause instructs. Kept beside the cause rather than written at the call site, because
+#: the pair is the whole point: a cause without its repair is the undifferentiated count again.
+CAUSE_REPAIR = {
+    POINTER_ROT: "repoint `file_scope` at where the path lives now -- `git log --all -- <path>`",
+    CONTROL_NEVER_WRITTEN: "write the named control and prove it can fail; until then the row "
+                           "is ungradable and that is the honest reading, not a defect",
+    HONESTLY_UNBUILT: "nothing to repair in the row -- build the atom, or close it",
+    NAMES_ONLY_A_SCOPE: "name the FILES this atom writes, not the directory they live in",
+    CAUSE_UNDECIDABLE: "classify this row in a tree that has commit history",
+}
+
 #: Stands in the `frozen_by` list when the lane's blockers could not be read. A string, in the
 #: same list as the real finding names, so no caller can treat "unknown" as "clear" by looking
 #: only at emptiness -- the shape that reads a not-found as a valid extreme.
@@ -184,6 +211,107 @@ def named_controls(atom: dict) -> list[str]:
         base = rel.rsplit("/", 1)[-1]
         if base.startswith("test_") and base.endswith(".py"):
             out.append(rel)
+    return out
+
+
+def _is_declared_directory(rel: str, root: Path) -> bool:
+    """Whether the row named a DIRECTORY rather than a file.
+
+    A trailing slash counts even when the directory is gone, because the row's own syntax is the
+    claim being read -- resolving it only against disk would reclassify `docs/staging/records/`
+    as a rotted file pointer the day the directory empties.
+    """
+    return rel.endswith("/") or (root / rel).is_dir()
+
+
+def _path_known_to_git(rel: str, root: Path = ROOT) -> bool | None:
+    """Did this path EVER exist on any ref here? `True`/`False`, or `None` for "cannot ask".
+
+    `--all`, not `HEAD`: a control written on a lane branch that never merged did exist, and
+    calling it never-written would send a reader to write a file that is already somewhere.
+
+    None is the fail-closed answer and is never folded into False. "Never written" is the cause
+    that tells a reader to sit down and write a test; producing it out of a missing `.git` --
+    which is what a `git archive` extract is -- would manufacture that instruction from nothing.
+    """
+    try:
+        r = subprocess.run(["git", "log", "--all", "--format=%H", "-1", "--", rel],
+                           cwd=str(root), capture_output=True, text=True, timeout=60)
+    except Exception:  # noqa: BLE001 -- no git binary, no history, no answer
+        return None
+    if r.returncode != 0:
+        return None
+    return bool(r.stdout.strip())
+
+
+def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -> list[dict]:
+    """Why this row cannot be graded, as `[{cause, paths, repair}, ...]`, possibly several.
+
+    THE SPLIT THIS EXISTS TO MAKE. The census reported thirty-one ungradable rows under four
+    reasons, all four of which describe the SHAPE of `file_scope` and none of which says what to
+    do. Three rows sharing "names a control file that is not on disk" had three different causes
+    and three different repairs -- one pointer to repoint, one control to write, one atom that is
+    simply unbuilt and correctly reading zero. Counting those as one number is why the count did
+    not move for twelve briefs: two thirds of it was never a defect.
+
+    WHY IT IS COMPUTED AND NOT A FIELD IN THE ROW. A hand-written `cause:` in the map is pinned
+    to today's answer -- it stays "unbuilt" through the build that fixes it and stays
+    "pointer rot" after the repoint. The rot this very function detects is a map field that
+    stopped matching the tree. Deriving it every pass is the only version that cannot go stale.
+
+    ORDER IS REPAIR ORDER, not severity: a rotted pointer is fixed first because every later
+    question is asked of paths the row got wrong.
+    """
+    scope = [str(e) for e in (atom.get("file_scope") or [])] if isinstance(
+        atom.get("file_scope"), list) else []
+    controls = named_controls(atom)
+    dirs = [rel for rel in scope if _is_declared_directory(rel, root)]
+    files = [rel for rel in scope if rel not in dirs]
+    absent = [rel for rel in files if not (root / rel).exists()]
+
+    rotted, never, unknown = [], [], []
+    for rel in absent:
+        answer = known(rel, root)
+        (rotted if answer else never if answer is False else unknown).append(rel)
+
+    out: list[dict] = []
+    if rotted:
+        out.append({"cause": POINTER_ROT, "paths": rotted, "repair": CAUSE_REPAIR[POINTER_ROT]})
+    if unknown:
+        out.append({"cause": CAUSE_UNDECIDABLE, "paths": unknown,
+                    "repair": CAUSE_REPAIR[CAUSE_UNDECIDABLE]})
+
+    if not files:
+        # Directories only, or nothing named at all. A directory is not evidence in either
+        # direction -- `tests/` exists in every tree, built or not -- so calling this row unbuilt
+        # would be a claim nothing measured.
+        out.append({"cause": NAMES_ONLY_A_SCOPE, "paths": dirs,
+                    "repair": CAUSE_REPAIR[NAMES_ONLY_A_SCOPE]})
+        return out
+
+    subject_on_disk = [rel for rel in files if rel not in controls and (root / rel).exists()]
+    if not subject_on_disk and not (rotted or unknown):
+        # No subject file the row names is here, and nothing the row names was mislaid -- it was
+        # never written. The atom is unbuilt and its zero is the true answer: this is the part of
+        # the census that was never a defect and was being counted as one.
+        #
+        # THE ROT GATE IS WHY THIS IS NOT ONE LINE. "Unbuilt" is a claim about work, and it may
+        # only be made of paths the row gets right. With a rotted pointer in the set, the subject
+        # may be on disk under the name the row has stopped using, and "right to read zero" would
+        # then be exactly backwards. The control question below is NOT gated the same way: it
+        # asks about a different path, and a mislaid subject says nothing about whether the test
+        # was ever written. (`A51` is that row: one pointer to repoint AND one control to write.)
+        out.append({"cause": HONESTLY_UNBUILT, "paths": sorted(files),
+                    "repair": CAUSE_REPAIR[HONESTLY_UNBUILT]})
+        return out
+
+    never_controls = [rel for rel in controls if rel in never]
+    if never_controls:
+        out.append({"cause": CONTROL_NEVER_WRITTEN, "paths": never_controls,
+                    "repair": CAUSE_REPAIR[CONTROL_NEVER_WRITTEN]})
+    elif not controls:
+        out.append({"cause": CONTROL_NEVER_WRITTEN, "paths": ["(file_scope names no test_*.py)"],
+                    "repair": CAUSE_REPAIR[CONTROL_NEVER_WRITTEN]})
     return out
 
 
@@ -334,7 +462,8 @@ def run_controls(paths: list[str], root: Path = ROOT,
 def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
            timeout_s: int = DEFAULT_TIMEOUT_S, budget_s: float | None = None,
            clock=time.monotonic, ages=controls_older_than_the_row,
-           blockers_for=_lane_blockers) -> tuple[list[dict], list[dict]]:
+           blockers_for=_lane_blockers,
+           causes=ungradable_causes) -> tuple[list[dict], list[dict]]:
     """`(contradicted, ungradable)` over the candidate partition. Rows whose controls do not all
     pass appear in neither: the map and the controls agree, and agreement is not a finding.
 
@@ -375,10 +504,10 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
             # measured 2026-09-06, no test on disk asserts the pounds/percent scale on the company
             # side, and the row is correctly at zero.
             ungradable.append({"id": aid, "reason": NAMED_CONTROL_ABSENT, "paths": absent,
-                               "detail": "if the build LANDED under a different name, repoint the "
-                                         "row at the control that exists; if it has not run, this "
-                                         "is a planned name and the row is right to read zero -- "
-                                         "check which before writing either"})
+                               "detail": "which of those it is, is answered on the CAUSE line "
+                                         "below -- `ungradable_causes` asks git whether the path "
+                                         "ever existed, so the reader is no longer the one who "
+                                         "has to check"})
             continue
         # Dating runs BEFORE the budget check and before the run: it costs a fraction of a second
         # against pytest's seconds-to-minutes, and a set that cannot be evidence about this atom
@@ -413,6 +542,14 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
                                  "level_target": atom.get("level_target"),
                                  "paths": controls, "detail": detail,
                                  "frozen_by": lane_cache[lane]})
+    # Every ungradable row is asked WHY, uniformly -- not only the two shapes that need it. The
+    # instrument states (budget spent, runner unavailable, control predates the row) return no
+    # cause, and that emptiness is the honest answer: those say something about the pass or the
+    # dating, not about the state of the work. Special-casing which reasons get asked would put
+    # the split back under a hand-maintained list of reasons, which is the shape that rotted.
+    by_id = {a.get("id"): a for a in atoms}
+    for u in ungradable:
+        u["causes"] = causes(by_id.get(u["id"], {}), root)
     return contradicted, ungradable
 
 
@@ -461,6 +598,13 @@ def main(argv: list[str] | None = None) -> int:
                 sys.stderr.write("      {}: {}\n".format(label, p))
             if u["detail"]:
                 sys.stderr.write("      {}\n".format(u["detail"]))
+            # The cause and its repair, never the cause alone: the reason line above is what the
+            # census could already say, and saying it louder is what it did for twelve briefs.
+            for c in u.get("causes") or []:
+                sys.stderr.write("      CAUSE: {}\n".format(c["cause"]))
+                for p in c["paths"]:
+                    sys.stderr.write("        {}\n".format(p))
+                sys.stderr.write("        REPAIR: {}\n".format(c["repair"]))
 
     if not contradicted:
         return 0
