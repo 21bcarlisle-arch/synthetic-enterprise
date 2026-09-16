@@ -4955,7 +4955,76 @@ def _commits_origin_is_ahead_by():
         return None
 
 
-def _divergence_refusal():
+#: The non-`files` paths the publish commit names, hoisted out of the commit site so that the
+#: disjointness question below is asked over THE SAME SET the commit actually writes. Inlined at
+#: one site and re-typed at the other, the two would drift, and a disjointness verdict measured
+#: over a different path set than the commit writes is not a verdict about this commit at all --
+#: it is the "before dividing two numbers, say what each one counts" defect wearing a set
+#: intersection. One name, both callers.
+PUBLISH_EXTRA_RELATIVE = ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
+                          "docs/design/atom_status")
+
+
+def _publish_surface_collisions(publish_paths):
+    """Which of origin's INCOMING paths this commit would also write. `[]` means disjoint.
+
+    Returns a sorted list of repo-relative paths, or `None` for "could not be established" --
+    and the two are deliberately distinct, for `paths_blocking_fast_forward`'s reason: *"nothing
+    collides" is a finding, "I could not look" is not, and a verdict that renders them the same
+    is how a fail-open reads as a clean bill.* Every caller here treats `None` as a refusal.
+
+    WHY THE QUESTION IS WORTH ASKING AT ALL (delivery seat, 2026-09-16, measured). The publish
+    path had been dark for 145.8 hours -- `last_clean_publish: null`, `episode_failures: 38` --
+    and the named cause of the last two cycles was `behind_origin`, which refuses on `ahead > 0`
+    ALONE. On the tree that produced this function, origin was 6 commits ahead and those 6
+    commits touched `tools/`, `background/`, `tests/` and `docs/staging/`: **zero** paths under
+    `site/`, `docs/reports/` or `docs/status/`, which is the entire publish surface. So the
+    commit `behind_origin` refused could not have conflicted with a single thing it was refused
+    for, and the reconciler would have absorbed it on the next cadence.
+
+    WHAT THE ORIGINAL REFUSAL WAS RIGHT ABOUT, because this narrows it rather than reversing it.
+    `_divergence_refusal`'s incident (2026-09-01) was real: `HEAD..origin/main` = 23, and two of
+    the three local commits were this loop's own retries of a push that had already been rejected
+    non-fast-forward. What made those retries poisonous was that they re-committed THE SAME
+    PUBLISH SURFACE that origin was moving underneath them -- the fork did not merely get wider,
+    it got wider in the one place a merge would have to adjudicate. That is exactly the condition
+    this function measures, and it is the condition that has changed since: `origin_reconcile`
+    now closes the fork unattended on the deadman cadence, in an isolated worktree, and a
+    disjoint commit is one it absorbs without a judgement call. A COLLIDING commit still refuses,
+    because resolving two lanes' edits to one file is still not a cadence's decision.
+
+    THE BOUND THIS DOES NOT REMOVE. Publishing while behind still widens the fork by one commit
+    per cycle, and if the reconciler stops, that grows without limit. It grows in paths nothing
+    else is touching, which is the whole claim -- but "disjoint" is not "free", and the deadman's
+    [ORIGIN FORK] page is still the alarm that this has stopped being true.
+    """
+    try:
+        from background.origin_reconcile import _arriving_paths
+        arriving = _arriving_paths(PROJECT_DIR)
+    except Exception as exc:  # noqa: BLE001 -- an unreadable remote must refuse, never pass
+        log("Publish-surface disjointness NOT established ({}: {}), so the divergence refusal "
+            "stands as written.".format(type(exc).__name__, exc))
+        return None
+    if arriving is None:
+        return None
+    ours = set()
+    for absolute in publish_paths or ():
+        try:
+            ours.add(str(Path(absolute).resolve().relative_to(PROJECT_DIR)))
+        except ValueError:
+            # A path outside the repo cannot be compared against a repo-relative arriving set.
+            # Refusing to claim disjointness is the only honest answer: an unmatched path is
+            # silently absent from the intersection, which would read as "nothing collides".
+            return None
+    if not ours:
+        # No publish paths means no basis for a disjointness claim. `_commit_pathspec` never
+        # returns empty for a real cycle and its caller refuses when it does; arriving here means
+        # the question was asked about nothing, and `[]` would answer "disjoint" about nothing.
+        return None
+    return sorted(set(arriving).intersection(ours))
+
+
+def _divergence_refusal(publish_paths=None):
     """The evidence string for refusing to commit, or `None` when committing is legal.
 
     THE RETRY IS THE THING THAT WIDENS THE FORK (2026-09-01). Measured that morning:
@@ -4980,12 +5049,57 @@ def _divergence_refusal():
         return ("origin is UNREADABLE (`git fetch origin main` or the rev-list that follows it "
                 "did not answer), so whether a commit here could be pushed cannot be "
                 "established -- refusing rather than creating one that may be rejected")
-    return ("origin/main is {} commit(s) AHEAD of HEAD, so a commit created here could only be "
-            "rejected non-fast-forward and would widen the fork by one more. Reconcile first: "
-            "`python3 -m background.origin_reconcile`, which does the gated merge in an ISOLATED "
-            "worktree. Do NOT run `surgical_land --merge origin/main` in the shared tree: it "
-            "opens the shared index, and this refusal's own reason for existing is that routinely "
-            "three lanes have uncommitted work in it".format(ahead))
+    # AND NOW ASK WHETHER THE FORK IS ANYWHERE NEAR THIS COMMIT (2026-09-16). `ahead > 0` is the
+    # state; it is not by itself a collision. See `_publish_surface_collisions` for the
+    # measurement that put this branch here and for what the original refusal was right about.
+    collisions = _publish_surface_collisions(publish_paths)
+    if collisions is not None and not collisions:
+        # `is not None and not collisions` rather than `not collisions`: `None` is "could not
+        # look", and reading it as "nothing collides" is precisely the fail-open this whole
+        # function exists to avoid.
+        log("origin/main is {} commit(s) ahead, but NONE of its incoming paths is one this "
+            "publish commit writes -- so this commit cannot conflict with the fork it would "
+            "widen, and `origin_reconcile` absorbs it on the next cadence. Publishing."
+            .format(ahead))
+        return None
+    # SHORT, AND THE REASON IS ARITHMETIC RATHER THAN TASTE (measured 2026-09-16).
+    # `publish_cause.write_cause` keeps `evidence[:600]`, and this refusal was ALREADY 620 at the
+    # ahead-count alone -- 450 of it the standing "Reconcile first / Do NOT run surgical_land"
+    # prose, which is identical on every refusal and carries no diagnosis. The 150 characters of
+    # headroom left are what `_why_not`'s lost-race-vs-real-fork attribution lives in, and the
+    # first draft of this clause spent 131 of them: four controls in
+    # `test_the_publisher_dropped_a_cycle_after_a_single_lost_race_it_could_have_re_run` went red
+    # because the attribution they assert on had been pushed off the end of the field. They were
+    # right, and the lesson generalises past this line -- ANY new sentence added to the FRONT of a
+    # capped diagnostic silently evicts the one at the back, and only a control keyed to the
+    # survivor notices. `test_the_advance_attribution_survives_the_cause_file_cap` is now that
+    # control.
+    #
+    # So the capped field gets the VERDICT and the uncapped log line above gets the prose. The
+    # full reasoning is in `_publish_surface_collisions`, where a reader has room for it.
+    _collision_clause = ""
+    if collisions:
+        _collision_clause = " (collides with {} of ours: {})".format(
+            len(collisions), collisions[0])
+    elif collisions is None:
+        _collision_clause = " (overlap with our own paths NOT ESTABLISHED, so fail-closed)"
+    # ORDERED BY INFORMATION DENSITY, BECAUSE THE FIELD IS CAPPED. The variable facts -- how far
+    # ahead, and whether the fork is anywhere near us -- come first; the standing advice comes
+    # last, because it is identical on every refusal and a reader who loses it can find it in
+    # `origin_reconcile`, whereas a reader who loses the attribution cannot recover it at all.
+    #
+    # AND THE ADVICE ITSELF WAS SHORTENED to 367 characters from 450 (measured). It was not
+    # carrying 83 characters of meaning -- it was carrying them of throat-clearing, inside a field
+    # whose whole budget is 600 and which was ALREADY over at 620 before this branch existed. The
+    # two controls that keep this honest are keyed to properties rather than to this wording:
+    # `test_the_property_holds_over_every_refusal_the_publish_path_can_emit` still requires it to
+    # name a door that is safe in the shared tree, and
+    # `test_the_advance_attribution_survives_the_cause_file_cap` requires the headroom to remain.
+    return ("origin/main is {} commit(s) AHEAD of HEAD{}, so a commit here could only be rejected "
+            "non-fast-forward and would widen the fork by one more. Reconcile first: `python3 -m "
+            "background.origin_reconcile` -- the gated merge, in an ISOLATED worktree. Never "
+            "`surgical_land --merge origin/main` in the shared tree: it opens the shared index "
+            "that three lanes routinely hold work in".format(ahead, _collision_clause))
 
 
 #: How long a fast-forward of this checkout may take. Generous for a ~130 MB tree on a machine
@@ -5614,7 +5728,13 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # `git rev-list`. Two fail-closed refusals in a row cannot mask each other into publishing, so
     # the order is free to be chosen, and the cheap LOCAL check belongs in front of the one that
     # opens a network round trip with a 60s timeout to answer a question we no longer need asked.
-    _behind = _divergence_refusal()
+    #
+    # AND IT IS ASKED ABOUT THIS COMMIT'S OWN PATHS, not about the fork in the abstract. The
+    # pathspec is computed here as well as at the landing 140 lines below; both go through
+    # `_commit_pathspec(files, PUBLISH_EXTRA_RELATIVE)`, which is the whole reason that tuple has
+    # a name. Computing it twice is two `Path.exists` sweeps over ~20 paths and buys the property
+    # that the set the refusal reasons about IS the set the commit writes.
+    _behind = _divergence_refusal(_commit_pathspec(files, PUBLISH_EXTRA_RELATIVE))
     # AND WHEN IT REFUSES, TRY TO EARN THE COMMIT BEFORE DROPPING THE CYCLE (2026-09-04). The
     # refusal above was evaluated 672s (median) after this cycle started, against a remote whose
     # commits arrive every 3.8 min -- so ~2.9 arrive DURING a cycle and the check passes only by
@@ -5657,7 +5777,13 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # `origin_reconcile` paid 29 empty merges to learn. The fast-forward moved HEAD onto
             # origin/main AS OF ITS OWN FETCH, so a refusal surviving this re-read can only mean a
             # commit arrived in between: that, and only that, is the retryable case.
-            _behind = _divergence_refusal()
+            #
+            # RE-COMPUTED, not reused from above: the fast-forward rewrote every tracked path this
+            # tree has not modified, so both sides of the disjointness question -- what origin is
+            # bringing and which of our paths exist -- are answers about the OLD tree. The
+            # provenance re-read forty lines down was added for exactly this reason; passing a
+            # stale pathspec here would reintroduce that defect through the other door.
+            _behind = _divergence_refusal(_commit_pathspec(files, PUBLISH_EXTRA_RELATIVE))
             if _behind is None:
                 log("Fork closed by fast-forward on attempt {}; this cycle's completed work is "
                     "publishable after all and continues to the commit.".format(_attempt))
@@ -5754,9 +5880,7 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # acquisition from this process would block until the 900s swap timeout and then report as
     # contention. The lock is now held for the three plumbing calls of the swap instead of for
     # the whole hook chain, which is strictly less contention than the version it replaces.
-    pathspec = _commit_pathspec(
-        files, ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
-                "docs/design/atom_status"))
+    pathspec = _commit_pathspec(files, PUBLISH_EXTRA_RELATIVE)
     if not pathspec:
         log("Publish commit REFUSED: nothing in the publish surface is known to git, so there is "
             "no pathspec to land -- and a landing with no paths is refused by the tool itself. "
@@ -6461,7 +6585,14 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # was observed is what makes a class recur -- the note on `_git_add_or_refuse` above is the
     # same lesson, learned in this function. On a behind-origin tree the banner cannot reach
     # origin either, so refusing costs nothing that was going to be published.
-    _behind = _divergence_refusal()
+    #
+    # AND THE SAME NARROWING, asked over THIS site's own paths. `paths` is what this function
+    # commits -- it does not go through `_commit_pathspec` -- so passing anything else here would
+    # make the disjointness verdict a claim about a different commit. The liveness surface is
+    # `site/data/*.json`, which is precisely the surface the content publish also writes, so this
+    # site is not getting a laxer test than the other one: it is getting the same test over the
+    # smaller set it actually touches.
+    _behind = _divergence_refusal(paths)
     # AND THE SAME ADVANCE AT THE OTHER COMMIT SITE, by the rule stated three lines up and twice
     # more in this file: a repair placed only where the incident was observed is what makes a
     # class recur. The advance landed at `git_commit_push` alone, and this path deepens -- and is
@@ -6487,7 +6618,7 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
             # rewrites tracked paths the provenance check had already read off disk. This path
             # publishes `publish_provenance.json` itself on a red cycle, so it is the likeliest
             # file of all to have just been replaced with origin's copy.
-            _behind = _divergence_refusal()
+            _behind = _divergence_refusal(paths)
             if _behind is None and not _provenance_is_publishable(
                     paths, label="{} (re-read after the advance)".format(label)):
                 _record_liveness_surface_refusal(
