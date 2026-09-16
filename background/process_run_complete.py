@@ -46,6 +46,7 @@ if _PROJECT_ROOT not in sys.path:
 from background.live_ledger_guard import (  # noqa: E402 -- ditto
     guard_live_ledger_write,
     guard_site_publish_pipeline,
+    shared_tree_live_record,
 )
 
 # THE VOCABULARY THIS MODULE WRITES AND THE SUPERVISOR READS, owned by a leaf so that reading it
@@ -6663,10 +6664,15 @@ def _read_publish_gate_state():
     unreadable/corrupt state is itself a failed check -- signalled via
     state_unavailable=True so the current failure escalates immediately rather
     than being lost to a silent reset that would suppress the alarm."""
-    if not PUBLISH_GATE_STATE_FILE.exists():
+    # WHICH TREE'S COPY (2026-09-16). This file is TRACKED, and its only commit is a 2026-07-17
+    # placeholder, so a linked worktree is handed `{"alerted_at": null, "failures": []}` -- against
+    # which every setdefault below lands on the flattering value and the publisher reads clean.
+    # Resolved to the shared tree's copy, which is the only one the daemons write.
+    state_file = shared_tree_live_record(PUBLISH_GATE_STATE_FILE)
+    if not state_file.exists():
         return {"failures": [], "alerted_at": None, "state_unavailable": False}
     try:
-        st = json.loads(PUBLISH_GATE_STATE_FILE.read_text())
+        st = json.loads(state_file.read_text())
         if not isinstance(st, dict):
             raise ValueError("gate state is not an object")
         st.setdefault("failures", [])

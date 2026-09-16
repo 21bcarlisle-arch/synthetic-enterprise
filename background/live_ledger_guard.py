@@ -57,6 +57,7 @@ place to stand. Read the second one's docstring for why the seam decides the sha
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -110,6 +111,70 @@ def is_live_record_path(path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def shared_tree_live_record(path):
+    """Resolve a live record to the SHARED tree's copy when read from a linked worktree.
+
+    THE READ SIDE OF THE SAME DOCTRINE, and it was fixed as an INSTANCE while the write
+    side above was fixed as a class. `guard_live_ledger_write` stops a test process
+    POISONING the record. Nothing stopped a reader in a linked worktree being handed
+    git's two-month-old CHECKOUT of that record and reading it as live state.
+
+    THE DEFECT, MEASURED 2026-09-16, not hypothetical. `docs/observability/.publish_gate_state.json`
+    is TRACKED, and its only commit is `f534b9f3d` (2026-07-17) carrying
+    `{"alerted_at": null, "failures": []}`. Every linked worktree checks that out. Fed to
+    `process_run_complete._read_publish_gate_state`, every `setdefault` there lands on the
+    flattering value -- `episode_failures` 0, `total_red` 0, `wedge_since` None,
+    `state_unavailable` False -- so it reads as a clean publisher while the live file on the
+    shared tree read `episode_failures: 34` and `last_clean_publish: null`. Each of those
+    defaults has a careful comment reasoning about a state file "written before this field
+    existed"; none of them can see that the file belongs to a different tree.
+
+    THE ROOM IS THE SAME ROOM. A live record == any path under `LIVE_RECORD_DIR`, derived
+    exactly as `is_live_record_path` derives it, so a ledger nobody thought to enumerate is
+    covered the day it is created. Of the 75 live-state paths the daemons write, 30 are
+    tracked and 23 had HEAD content differing from live when this was measured -- the class
+    is 23 wide and `seat_executor._shared_tree_log` had closed one of them.
+
+    ITS PREDECESSOR is that function, and the reasoning is borrowed wholesale: `PROJECT_DIR`
+    is derived from `__file__`, so a module imported out of a linked worktree silently rebinds
+    the whole published record to that worktree. `git rev-parse --git-common-dir` is the
+    question "where is the real tree" asked of the only thing that knows.
+
+    FAILS TO THE CALLER'S EXISTING BEHAVIOUR, deliberately. A non-live path, a git that will
+    not answer, a main (non-linked) tree, or a shared copy that is absent all return `path`
+    UNCHANGED. This is a resolver, not a guard: it must not turn a read that works today into
+    a raise on the orientation paths that call it, and every caller already handles a missing
+    file. The narrowing that matters is that it can only ever redirect INTO the shared tree's
+    copy of a path already inside the live-record room.
+    """
+    # BEHAVIOURALLY SUBSUMED, and kept on purpose -- do not read this line as graded. Deleting it
+    # changes no outcome (established 2026-09-16 by mutation: the `relative_to` below refuses every
+    # path this would have refused, so the mutant passed all five legs). It stays because it is the
+    # only thing that skips a `git` subprocess on a non-live path, and this is called per read.
+    if not is_live_record_path(path):
+        return path
+    path = Path(path)
+    try:
+        out = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
+                             capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return path
+    if out.returncode != 0 or not out.stdout.strip():
+        return path
+    common = Path(out.stdout.strip())
+    if not common.is_absolute():
+        common = (PROJECT_DIR / common).resolve()
+    # In the MAIN tree `--git-common-dir` is this tree's own `.git`, so `shared` resolves back
+    # to `path` and the redirect is a no-op. In a LINKED worktree it points at the shared
+    # `.git`, whose parent is the tree the daemons actually run in.
+    try:
+        relative = path.resolve().relative_to(LIVE_RECORD_DIR.resolve())
+    except (OSError, RuntimeError, ValueError):
+        return path
+    shared = common.parent / "docs" / "observability" / relative
+    return shared if shared.exists() else path
 
 
 def guard_live_ledger_write(path, *, writer: str):

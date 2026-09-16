@@ -88,7 +88,10 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background import delivery_lane, doomed_at_teardown, seat_work_in_hand  # noqa: E402
 from background.fork_salvage import salvage_worktree  # noqa: E402
-from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
+from background.live_ledger_guard import (  # noqa: E402
+    guard_live_ledger_write,
+    shared_tree_live_record,
+)
 from background.seat_work_in_hand import DuplicateWork  # noqa: E402
 from tools.wait_for import pid_is_alive  # noqa: E402
 
@@ -165,19 +168,13 @@ def _shared_tree_log() -> Path:
     thing that knows. Falls back to `LOG_FILE` when git will not answer or the shared copy is
     absent, which preserves the deliberate missing-log-is-empty behaviour rather than trading one
     silent failure for a noisy one on a path an orientation must survive.
+
+    THE BODY MOVED (2026-09-16) to `live_ledger_guard.shared_tree_live_record`, because this was
+    an INSTANCE fix to a class 23 files wide -- the same room `guard_live_ledger_write` already
+    derives, read from the wrong side. `.publish_gate_state.json` was the next one to bite. This
+    function stays as the named subject of its own regression test and of the measurement above.
     """
-    try:
-        out = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
-                             capture_output=True, text=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
-        return LOG_FILE
-    if out.returncode != 0 or not out.stdout.strip():
-        return LOG_FILE
-    common = Path(out.stdout.strip())
-    if not common.is_absolute():
-        common = (PROJECT_DIR / common).resolve()
-    shared = common.parent / "docs" / "observability" / LOG_FILE.name
-    return shared if shared.exists() else LOG_FILE
+    return shared_tree_live_record(LOG_FILE)
 
 
 def ids_run_since(cutoff: float, *, path: Path | None = None) -> list[str]:
