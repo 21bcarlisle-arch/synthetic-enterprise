@@ -802,6 +802,85 @@ def _store_is_worktree_local(store: Path) -> bool:
     return True
 
 
+def _spelling_class(focus_id: str, keys) -> list[str]:
+    """The store keys that are the SAME PIECE OF WORK as `focus_id`, sorted shortest first.
+
+    Same piece of work means BOTH of: the two spellings agree up to the first character the
+    dispatch capture could not hold (see `_TRUNCATED_SPELLING`), AND one is a prefix of the other.
+    Truncation is the only way one item ever got two rows, and truncation always leaves a prefix --
+    so the second clause costs nothing on the real population and is what stops `a-2.45-percent`
+    reaching a claim on `a-2.99-other`, which shares the first test and is different work.
+
+    An id with no dot in it has exactly one spelling and can only ever match itself, which is why
+    this cannot quietly merge two unrelated focus items that merely share a hyphenated prefix.
+    """
+    spell = _dispatch_spelling(focus_id)
+    if not spell:
+        return []
+    return sorted((k for k in keys
+                   if isinstance(k, str) and _dispatch_spelling(k) == spell
+                   and (k.startswith(focus_id) or focus_id.startswith(k))),
+                  key=lambda k: (len(k), k))
+
+
+def _dispatch_spelling(focus_id: str) -> str:
+    match = _TRUNCATED_SPELLING.match(focus_id or "")
+    return match.group(0) if match else ""
+
+
+def resolve_claim_id(focus_id: str, *, path: Path | None = None) -> str | None:
+    """The id the STORE actually holds for `focus_id`, or None if it holds none unambiguously.
+
+    THE REPAIR THE 2026-09-11 FINDING ASKED FOR, and it is the half that could be made keyed to the
+    property rather than to today's answer. Its first remedy -- "quote the truncated id in future
+    items" -- was refused there for the right reason; its second, "resolve the id the way the draw
+    did", is this. `--landed`/`--release` accept EITHER spelling and reach the one claim.
+
+    THE EARLIEST ROW WINS when the store holds both, and that is the load-bearing choice. The two
+    rows are not two claims: one is the claim the draw made and the other was minted minutes later
+    by the route that spelt it differently. The deadline that will actually sweep the work belongs
+    to the first, so binding to the newer one would leave the real claim empty -- which is the
+    finding's consequence 1, reproduced by the fix meant to end it. Ties cannot happen (dict keys
+    are unique) and a row with no `claimed_at` sorts first, which is the conservative direction:
+    an unstamped row is older than anything stamped.
+
+    REFUSES, returning None, when the store holds nothing in the class -- `--landed` then binds
+    nothing and MINTS NOTHING, which it already did not do (the finding believed otherwise; see
+    the correction filed beside it) and which now has a control saying so.
+
+    Never raises: every caller is already on a path that declines to.
+    """
+    store = path or CLAIMS_FILE
+    try:
+        rows = claims_mod._load(store)
+    except Exception:
+        return None
+    family = _spelling_class(focus_id, list(rows))
+    if not family:
+        return None
+    return min(family, key=lambda k: float((rows.get(k) or {}).get("claimed_at") or 0.0))
+
+
+def near_claim_ids(focus_id: str, *, path: Path | None = None) -> list[str]:
+    """Store keys that LOOK like `focus_id`. For refusals only -- never for deciding a bind.
+
+    Deliberately WIDER than `_spelling_class`: it drops the prefix clause and asks only whether the
+    two ids agree up to the first character the dispatch capture could not hold. So the population
+    it names is exactly the one `resolve_claim_id` looked at and would not act on, which is what a
+    reader staring at "it is NOT CLAIMED" needs to see. Naming a candidate is free; binding to one
+    is not, and the two questions get two predicates on purpose.
+    """
+    spell = _dispatch_spelling(focus_id)
+    if not spell:
+        return []
+    try:
+        keys = list(claims_mod._load(path or CLAIMS_FILE))
+    except Exception:
+        return []
+    return sorted(k for k in keys
+                  if isinstance(k, str) and k != focus_id and _dispatch_spelling(k) == spell)
+
+
 def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
                    since: str | None = None) -> str:
     """WHICH of `record_landing`'s four refusals fired. Called only after one did.
@@ -818,8 +897,23 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
     """
     try:
         store = path or CLAIMS_FILE
+        # READS THE ROW THE BIND READ. `record_landing` resolves the spelling before it looks, so a
+        # reason derived from the unresolved id would explain a different row from the one that
+        # refused -- and on the commonest shape (resolved fine, commit too old) it would report
+        # "not claimed" about a claim that is right there.
+        focus_id = resolve_claim_id(focus_id, path=store) or focus_id
         rec = claims_mod._load(store).get(focus_id)
         if not isinstance(rec, dict):
+            near = near_claim_ids(focus_id, path=store)
+            if near:
+                # THE CAUSE THE 2026-09-11 FINDING WATCHED A SEAT MISREAD. An id whose only
+                # difference from a live claim is where its spelling stops is not an unclaimed id
+                # and not another lane's work, and both of the readings below would send the
+                # reader somewhere there is nothing to find. Name the row that IS there.
+                return ("it is NOT CLAIMED under that spelling, but the store holds "
+                        f"{', '.join(near)} -- the same id spelt to a different stopping point. "
+                        "Nothing was minted for the id you gave. Bind the one the store holds; "
+                        "if it is genuinely different work, the store has no claim for yours")
             if _store_is_worktree_local(store):
                 # THE CAUSE THIS REFUSAL COULD NOT NAME (2026-09-05). It offered exactly two
                 # readings, both about the CLAIM's state, and the true one -- "I am reading a
@@ -1024,6 +1118,11 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
     """
     try:
         store = path or CLAIMS_FILE
+        # EITHER SPELLING REACHES THE ONE CLAIM (2026-09-16). The id printed in the doorbell's own
+        # bind instruction and the id the dispatch registered were not always the same string, so
+        # this resolves before it reads. It can only ever return a row the store already holds:
+        # binding still refuses on an unknown id, and still writes nothing.
+        focus_id = resolve_claim_id(focus_id, path=store) or focus_id
         rec = claims_mod._load(store).get(focus_id)
         if not isinstance(rec, dict):
             return []
@@ -1218,14 +1317,16 @@ def doorbell(item: dict) -> str:
         "finished -- a landed increment is what proves the claim is moving. IMMEDIATELY AFTER "
         "EACH COMMIT, run `python3 -m background.delivery_lane --landed {key}`: that binds the "
         "paths that commit touched to your claim, and it is the ONLY way this lane can see your "
-        "work moving. Skip it and the claim is swept back into the pool in 100 minutes however "
-        "much you landed. When you judge it finished: "
-        "`python3 -m background.delivery_lane --release {key}`. You do not have to: the "
-        "seat re-orients every three hours and drops what is done, which is the real acceptance "
-        "test."
+        "work moving. Skip it and the claim is swept back into the pool in {sweep_minutes} "
+        "minutes however much you landed. When you judge it finished: "
+        "`python3 -m background.delivery_lane --release {key}`, and DO NOT LEAVE IT: the sweep "
+        "fires at {sweep_minutes} minutes but the seat only re-orients every three hours, so a "
+        "finished item you leave claimed goes back into the pool and is drawn again BEFORE the "
+        "seat can drop it -- a whole invocation spent re-deriving that the work was already done."
     ).format(what=str(item.get("what") or item.get("id") or "").strip(),
              why=str(item.get("why") or "").strip(),
-             key=item.get("id"))
+             key=item.get("id"),
+             sweep_minutes=CLAIM_STALE_SECONDS // 60)
 
 
 #: The id a composed doorbell was built for, recovered from the `--landed` instruction it carries.
@@ -1233,7 +1334,22 @@ def doorbell(item: dict) -> str:
 #: reason it is the tell the 2026-09-05 finding named: an instruction that cannot succeed is worse
 #: than none. Anchored on the literal flag rather than on a bare slug so a hyphenated word anywhere
 #: else in a multi-lane message cannot be mistaken for an id.
-_DISPATCHED_ID = re.compile(r"--landed ([a-z0-9][a-z0-9-]*)")
+#:
+#: A DOT IS PART OF AN ID, and it was not until 2026-09-16. The class was `[a-z0-9-]`, so an id
+#: carrying a decimal -- `...-in-p6s-2.45-percent` -- was captured as `...-in-p6s-2`, and the
+#: dispatch minted its claim under a spelling THE DOORBELL NEVER PRINTED. Two routes then held two
+#: rows for one item: this one (truncated) and `seat_executor.run_once`/`draw` (the id as written
+#: in `DIRECTION.yaml`), so the worker's own `--landed` instruction bound nothing, the real claim
+#: kept `paths: []` and was swept, and the other row sat there looking like a fresher rival.
+#: Trailing `.` and `-` stay out of the capture so an id ending a sentence does not eat its
+#: full stop.
+_DISPATCHED_ID = re.compile(r"--landed ([a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)")
+
+#: What the OLD capture above would have made of an id: everything up to the first character it
+#: could not spell. It is kept -- as the definition of the equivalence, not as a parser -- because
+#: the store still holds rows written under it, and because it is exactly the relation "these two
+#: spellings are one piece of work". `resolve_claim_id` is the only reader.
+_TRUNCATED_SPELLING = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 def claim_dispatched(reason: str, *, now: float | None = None,
@@ -1269,6 +1385,12 @@ def claim_dispatched(reason: str, *, now: float | None = None,
             return None
         focus_id = match.group(1)
         store = path or CLAIMS_FILE
+        # ADOPT A LIVE CLAIM UNDER THE OTHER SPELLING RATHER THAN MINTING A SECOND ROW. The widened
+        # capture above means this lane no longer produces the two spellings, but the store still
+        # holds rows written before it did, and a dispatch is exactly where the rival used to
+        # appear. Resolving to `None` leaves `focus_id` as written, so an id nothing holds is
+        # claimed normally -- this narrows nothing and mints nothing new.
+        focus_id = resolve_claim_id(focus_id, path=store) or focus_id
         if focus_id in claims_mod.held(path=store):
             # Already in hand -- a re-dispatch of a live claim must not restart its deadline, or
             # the sweep that catches a stalled item becomes a timer the dispatcher keeps resetting.
@@ -1566,13 +1688,22 @@ def main(argv=None) -> int:
         # id handed over as a continuation and finished after its claim was swept holds no claim by
         # construction, and reporting that as a failure would train the next tick to ignore the one
         # message that does mean "the lane cannot see your work".
-        if not claims_mod.release(args.release, path=CLAIMS_FILE):
+        # THE SAME RESOLUTION `--landed` USES, and it is here rather than only there because a
+        # release that misses is the more expensive miss: the bind can be repeated next commit,
+        # while a claim left standing under the other spelling is re-offered to a later tick as
+        # unstarted work. Falls back to what was typed, so an id the store has never held still
+        # reaches `release_refusal_reason` and gets its own reading.
+        release_id = resolve_claim_id(args.release, path=CLAIMS_FILE) or args.release
+        if not claims_mod.release(release_id, path=CLAIMS_FILE):
             print(f"released NO CLAIM for {args.release}: "
-                  f"{release_refusal_reason(args.release)}")
+                  f"{release_refusal_reason(release_id)}")
             return 1 if not retired else 0
-        print(f"released {args.release}")
+        print(f"released {args.release}"
+              + (f" (the claim the store held for it: {release_id})"
+                 if release_id != args.release else ""))
         return 0
     if args.landed:
+        bound_id = resolve_claim_id(args.landed) or args.landed
         scope = record_landing(args.landed, commit=args.commit, since=args.since)
         if not scope:
             # Non-zero: the caller believes it landed something and the lane disagrees, which it
@@ -1580,7 +1711,9 @@ def main(argv=None) -> int:
             print(f"bound NOTHING to {args.landed}: "
                   f"{refusal_reason(args.landed, commit=args.commit, since=args.since)}")
             return 1
-        print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
+        print("bound {} path(s) to {}: {}".format(len(scope), bound_id, ", ".join(scope[:8]))
+              + (f" [the id you gave, {args.landed}, is the same claim spelt differently]"
+                 if bound_id != args.landed else ""))
         return 0
     if args.landed_under:
         focus_id, other_id = args.landed_under
