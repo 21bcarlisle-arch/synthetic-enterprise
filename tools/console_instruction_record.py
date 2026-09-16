@@ -67,10 +67,20 @@ import argparse
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
+
+# `python3 tools/console_instruction_record.py` puts `tools/` on the path, not the project root,
+# and this module is invoked both ways. Inserted before the import below rather than wrapped in a
+# `try`: an unavailable resolver would silently restore the stale read it exists to stop.
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
+
+from background.live_ledger_guard import shared_tree_live_record  # noqa: E402
+
 
 # Where the harness keeps session transcripts. DERIVED FROM THE LAUNCH DIRECTORY, never
 # hardcoded, and that is the whole of the 2026-09-07 defect.
@@ -678,14 +688,22 @@ def check(staging: Path | None = None, now: float | None = None) -> tuple[int, s
     import time
 
     now = time.time() if now is None else now
-    if not HUMAN_PRESENCE_STAMP.is_file():
-        return 1, (f"{HUMAN_PRESENCE_STAMP} is absent, so there is no independent signal that the "
+    # WHICH TREE'S COPY (2026-09-16). The stamp is TRACKED, so a linked worktree gets git's
+    # checkout of it -- and the flattering direction is the one that matters here. `lag_h` below
+    # is `last_human - captured_end`: an OLDER `last_human` makes the lag SMALLER, so a stale
+    # stamp pushes this control TOWARD silence. Measured today: HEAD 1788196377 against a live
+    # 1789557569, fifteen days of console input that would not have counted as a lapse. This is
+    # a control whose entire subject is one signal being stale; reading it from the wrong tree
+    # made it stale in the direction that cannot fire.
+    stamp = shared_tree_live_record(HUMAN_PRESENCE_STAMP)
+    if not stamp.is_file():
+        return 1, (f"{stamp} is absent, so there is no independent signal that the "
                    "director is at the console and this record cannot be shown to be current. "
                    "That is a finding, not an all-clear.")
     try:
-        last_human = float(HUMAN_PRESENCE_STAMP.read_text(encoding="utf-8").strip())
+        last_human = float(stamp.read_text(encoding="utf-8").strip())
     except (OSError, ValueError) as exc:
-        return 1, f"{HUMAN_PRESENCE_STAMP} is unreadable ({exc}); cannot show the capture is live."
+        return 1, f"{stamp} is unreadable ({exc}); cannot show the capture is live."
 
     captured = _newest_captured_day(staging)
     if captured is None:

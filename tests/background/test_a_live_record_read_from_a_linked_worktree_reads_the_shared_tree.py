@@ -25,6 +25,17 @@ an orientation report `drawn: [], steered: false`. Statically, 75 live-state pat
 by the daemons; 30 are tracked; 23 had HEAD content differing from live when this was measured.
 One of the 23 was closed. This closes the room.
 
+CORRECTION, 2026-09-16, LEFT BESIDE THE CLAIM IT CORRECTS. "This closes the room" was wrong on
+two counts and both were found by asking the tracked set the question directly rather than
+trusting the enumeration. (1) The room is 54 tracked records whose live bytes differ from HEAD's,
+not 23; 23 was the subset that had been listed. (2) `.publish_gate_state.json` -- the file this
+whole control is named for -- had THREE readers and the commit wired one. The other two were
+`supervisor._publish_gate_wedge_active` and `model_tier_report._gate_failures`, and both answered
+"no failures" on the placeholder. The head was open while this docstring said the tail was the
+work. The five legs at the bottom of this file wire the readers proven flattering; the survey and
+the four readers proven FAIL-SAFE (and so deliberately left alone) are in
+`docs/staging/SEAT_FINDING_THE_LIVE_RECORD_RESOLVER_WAS_NOT_EVEN_WIRED_INTO_THE_OTHER_TWO_READERS_OF_THE_FILE_IT_WAS_NAMED_FOR_2026-09-16.md`.
+
 WHAT CAN FAIL HERE. The redirect is the rare branch, so it is asserted REACHABLE over the whole
 partition before anything asserts what it does -- a resolver that redirected NOTHING would pass
 every "does it leave ordinary paths alone" leg on its own.
@@ -159,3 +170,200 @@ def test_the_publish_gate_reader_routes_through_the_resolver(tmp_path, monkeypat
     assert state["episode_failures"] == 34, (
         "the publish gate reader did not resolve its state file through shared_tree_live_record, "
         "so in a linked worktree it reads git's checkout instead of the live record")
+
+
+# ---------------------------------------------------------------------------
+# THE WIRING, one leg per reader proven FLATTERING on the stale copy (2026-09-16).
+#
+# EVERY LEG IS BUILT THE SAME WAY AND THE SHAPE IS THE POINT. Two fixture directories:
+# `stale/` holds what git checks out into a linked worktree, `live/` holds what the daemons
+# actually wrote. The reader's MODULE CONSTANT is pointed at `stale/`, and the resolver in that
+# reader's namespace is substituted with one that maps any path to its `live/` twin. So:
+#
+#   * wired   -> the reader resolves, reads `live/`, and reports the alarming answer;
+#   * reverted to the bare constant -> it reads `stale/` and reports the flattering one.
+#
+# The constant is redirected too, deliberately. Substituting ONLY the resolver would leave a
+# reverted reader reading the REAL `docs/observability/` file on this machine -- a control keyed
+# to whatever the shared tree happens to hold today, which is the failure mode CLAUDE.md names:
+# it goes red when the code becomes more honest and green when the claim rots.
+#
+# PRE-REGISTERED before these were run: reverting any ONE reader fails exactly its own leg and no
+# other. A revert that fails nothing means the leg is a tautology; a revert that fails several
+# means they are grading one thing while claiming five.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def stale_and_live(tmp_path):
+    """`(stale_dir, live_dir, resolver)` -- the two trees a linked worktree sees at once."""
+    stale = tmp_path / "stale"
+    live = tmp_path / "live"
+    stale.mkdir()
+    live.mkdir()
+
+    def resolver(path):
+        twin = live / Path(path).name
+        return twin if twin.exists() else Path(path)
+
+    return stale, live, resolver
+
+
+def test_the_supervisors_wedge_draw_sees_the_live_failures_not_the_committed_placeholder(
+        stale_and_live, monkeypatch):
+    """`_publish_gate_wedge_active` returning None is SILENCE, and silence was the flattering
+    answer: git's copy holds `{"failures": []}`, `len([]) < PUBLISH_GATE_WEDGE_MIN_FAILURES`, no
+    wedge, no RUNG-1 draw -- against a live record that said the gate had failed 37 times.
+
+    BOTH HALVES ARE REDIRECTED AND THAT IS LOAD-BEARING. This control's independence rests on
+    `.publish_gate_state.json` and `.last_tested_hash` being different SOURCES, never different
+    TREES; wiring one and not the other would have made it compare a live wedge against a
+    two-month-old pass and call the failures stale."""
+    import time
+
+    import background.supervisor as sup
+    stale, live, resolver = stale_and_live
+
+    now = time.time()
+    old = now - 4 * 60 * 60                      # older than PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS
+    failures = [{"ts": old + i, "reason": "red", "git_hash": "aaaaaaaaa"} for i in range(5)]
+
+    (stale / ".publish_gate_state.json").write_text(json.dumps({"alerted_at": None, "failures": []}))
+    (live / ".publish_gate_state.json").write_text(
+        json.dumps({"alerted_at": old, "wedge_since": old, "failures": failures}))
+    # Neither copy of the cross-check names HEAD, so the "a pass superseded these" escape is shut
+    # in both worlds -- the ONLY thing that differs between them is the failure list.
+    # THE STALE HASH NAMES HEAD, and that is the whole point of this half. A linked worktree is
+    # checked out at some commit; git's blob for `.last_tested_hash` is a sha from that same
+    # history, and a worktree detached AT that sha reads "the gate passed at HEAD" -- the escape
+    # clause, which returns None. The live record names a different sha, so no pass supersedes.
+    # A first draft wrote two arbitrary shas here and the leg could not fail: with NEITHER copy
+    # naming HEAD the escape was shut in both worlds, so resolved and unresolved agreed. That is
+    # a fixture that does not discriminate, not an equivalence in the code.
+    (stale / ".last_tested_hash").write_text("deadbeef0")
+    (live / ".last_tested_hash").write_text("11ve00000")
+
+    monkeypatch.setattr(sup, "PUBLISH_GATE_STATE_FILE", stale / ".publish_gate_state.json")
+    monkeypatch.setattr(sup, "LAST_TESTED_HASH_FILE", stale / ".last_tested_hash")
+    monkeypatch.setattr(sup, "shared_tree_live_record", resolver)
+
+    drawn = sup._publish_gate_wedge_active(now=now, head="deadbeef0")
+
+    assert drawn is not None, (
+        "the supervisor's publish-gate wedge draw read git's checked-out placeholder: a gate with "
+        "5 recorded failures four hours old reads as never having failed, so RUNG 1 never fires "
+        "and nothing pages -- the silent direction, which is why this was invisible")
+
+
+def test_the_operational_red_draw_sees_the_live_signal_not_a_frozen_green(
+        stale_and_live, monkeypatch):
+    """The flattering direction here is not a wrong value but a FROZEN one. The only
+    `last_result` that draws is a red, and a tracked file's checkout holds what was committed
+    forever -- so a linked worktree could never draw this rung however red the layer went. It
+    agreed with live on the day this was found, by luck. It could not have disagreed."""
+    import time
+
+    import background.supervisor as sup
+    stale, live, resolver = stale_and_live
+
+    now = time.time()
+    (stale / ".operational_layer_signal.json").write_text(json.dumps(
+        {"consecutive_green": 1, "consecutive_red": 0, "last_result": "green",
+         "last_run_ts": now - 30 * 24 * 3600}))
+    (live / ".operational_layer_signal.json").write_text(json.dumps(
+        {"consecutive_green": 0, "consecutive_red": sup.OPERATIONAL_RED_DRAWABLE_THRESHOLD + 2,
+         "last_result": "red", "last_run_ts": now - 600, "blocked_by": []}))
+
+    monkeypatch.setattr(sup, "OPERATIONAL_LAYER_SIGNAL_FILE",
+                        stale / ".operational_layer_signal.json")
+    monkeypatch.setattr(sup, "shared_tree_live_record", resolver)
+
+    drawn = sup._operational_red_persistent_draw(now=now)
+
+    assert drawn is not None, (
+        "the operational-layer red rung read a committed green: the layer is UNMONITORED and the "
+        "stated fail-safe direction is TOWARD drawing, and reading the wrong tree inverted it")
+
+
+def test_the_stuck_tracker_sees_the_live_episode_key_not_the_pre_rename_schema(
+        stale_and_live, monkeypatch):
+    """Not a stale VALUE -- a stale SCHEMA. git's copy predates the `key` -> `episode_key`
+    rename, so the current episode can never match it, `first_seen_at` resets every cycle, and
+    the stuck episode this tracker exists to escalate never gets old enough to escalate.
+
+    READ-ONLY BY DESIGN: `_save_stuck_state` still writes the caller's own tree, because the only
+    writer is the supervisor daemon and the daemon runs on the shared tree."""
+    import background.supervisor as sup
+    stale, live, resolver = stale_and_live
+
+    (stale / ".supervisor_stuck_state.json").write_text(json.dumps(
+        {"escalated": False, "first_seen_at": 1784223884.0, "key": "a pre-rename episode"}))
+    (live / ".supervisor_stuck_state.json").write_text(json.dumps(
+        {"escalated": False, "first_seen_at": 1789000000.0, "episode_key": "the live episode"}))
+
+    monkeypatch.setattr(sup, "STUCK_STATE_FILE", stale / ".supervisor_stuck_state.json")
+    monkeypatch.setattr(sup, "shared_tree_live_record", resolver)
+
+    state, _verdict = sup._load_stuck_state_classified()
+
+    assert state.get("episode_key") == "the live episode", (
+        "the stuck-episode tracker read a record written before the field was renamed, so no "
+        "episode can ever match it and none can ever escalate")
+
+
+def test_the_model_tier_report_sees_the_live_gate_failures_not_an_empty_list(
+        stale_and_live, monkeypatch):
+    """`except Exception: return []` already collapses unreadable into none, which is exactly why
+    the stale read was invisible here: the honest "cannot tell" and the flattering "nothing
+    failed" print as the same clean tier."""
+    import tools.model_tier_report as mtr
+    stale, live, resolver = stale_and_live
+
+    (stale / ".publish_gate_state.json").write_text(json.dumps({"failures": []}))
+    (live / ".publish_gate_state.json").write_text(json.dumps(
+        {"failures": [{"ts": 1789093371.0, "kind": "test_regression", "rc": 1}]}))
+
+    monkeypatch.setattr(mtr, "PUBLISH_GATE_STATE", stale / ".publish_gate_state.json")
+    monkeypatch.setattr(mtr, "shared_tree_live_record", resolver)
+
+    assert mtr._gate_failures(), (
+        "the model-tier report read git's placeholder and reported every tier's gate as never "
+        "having failed")
+
+
+def test_the_console_capture_lapse_check_sees_the_live_keystroke_not_a_fortnight_ago(
+        tmp_path, monkeypatch):
+    """THE FLATTERING DIRECTION IS ARITHMETIC, not a missing field. `lag_h` is
+    `last_human - captured_end`: an OLDER `last_human` makes the lag SMALLER, so a stale stamp
+    pushes this control toward SILENCE. A control whose whole subject is one signal going stale
+    was itself reading a stale signal, in the one direction that cannot fire."""
+    import time
+
+    import tools.console_instruction_record as cir
+
+    now = time.time()
+    captured_day = time.strftime("%Y-%m-%d", time.localtime(now - 20 * 24 * 3600))
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    (staging / f"DIRECTOR_CONSOLE_{captured_day}.md").write_text(f"# console {captured_day}\n")
+
+    # THE STALE STAMP IS PLACED RELATIVE TO THE CAPTURE'S OWN END INSTANT, the way the function
+    # measures it -- not "19 days ago", which was the first draft and left the leg unable to
+    # fail: 19-days-ago is still ~24h after a 20-day-old capture, over the 12h bar, so the
+    # reverted reader reported the lapse anyway and the mutation passed. A fixture that agrees
+    # with the fixed and the broken code alike grades nothing.
+    captured_end = time.mktime(time.strptime(captured_day + " 23:59", "%Y-%m-%d %H:%M"))
+    stale_stamp = tmp_path / "stale_stamp"
+    live_stamp = tmp_path / ".human_last_input"
+    stale_stamp.write_text(str(int(captured_end + 6 * 3600)))   # 6h after the capture: no lapse
+    live_stamp.write_text(str(int(now)))                        # ~20 days after it: a lapse
+
+    monkeypatch.setattr(cir, "HUMAN_PRESENCE_STAMP", stale_stamp)
+    monkeypatch.setattr(cir, "shared_tree_live_record", lambda _p: live_stamp)
+
+    rc, message = cir.check(staging=staging, now=now)
+
+    assert rc == 1 and "LAPSED" in message, (
+        "the console-capture lapse check read git's checkout of .human_last_input, whose older "
+        f"timestamp shrinks the measured lag below CAPTURE_LAG_FINDING_HOURS -- got rc={rc}: "
+        f"{message}")

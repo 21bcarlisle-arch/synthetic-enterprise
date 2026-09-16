@@ -34,8 +34,14 @@ MUTATION SENSITIVITY (R15) — each proven by reverting the fix, not asserted:
     `test_a_genuinely_unbroken_outage_still_reads_as_one` red. THIS IS THE NULL CONTROL: without
     it, deleting the word "consecutive" everywhere would pass every other test in this file while
     destroying the distinction the file exists to draw.
-  * pass `episode_closed=True` on a drained queue without clearing -> `test_draining_the_queue_
-    to_zero_closes_the_episode_and_forgets_the_publishes` red.
+  * pass `episode_closed=True` on a drained queue without clearing the COUNT ->
+    `test_draining_the_queue_to_zero_closes_the_episode_and_forgets_the_COUNT` red.
+  * clear `last_clean_publish` on the close exit (the 2026-09-16 defect, and what that test used
+    to assert) -> `test_a_closed_episode_is_distinguishable_from_a_publisher_that_never_ran` red.
+  * stamp `last_clean_publish` on a path where nothing published ->
+    `test_a_record_that_has_only_ever_seen_FAILURES_still_has_no_publish_time` red. The two
+    together are the partition: the field must survive a close AND stay absent when there is
+    nothing to survive.
 
 TWO OF THOSE MUTATIONS FIRST SURVIVED, and the reason is recorded here rather than quietly fixed.
 The failure write originally ALSO passed both fields explicitly, read from the prior state. That
@@ -133,10 +139,19 @@ def test_the_next_failure_cannot_forget_the_publish_that_happened(gate):
     assert st["last_clean_publish"] == T0 + 5 * 3600
 
 
-def test_draining_the_queue_to_zero_closes_the_episode_and_forgets_the_publishes(gate):
-    """The null control for the memory: episode-scoped means it MUST reset on a real close.
+def test_draining_the_queue_to_zero_closes_the_episode_and_forgets_the_COUNT(gate):
+    """The null control for the COUNTER: episode-scoped means it MUST reset on a real close.
 
-    A field that only ever accumulates would make every later episode read as intermittent.
+    A count that only ever accumulates would make every later episode read as intermittent.
+
+    IT IS THE COUNTER'S NULL CONTROL AND NEVER WAS THE TIMESTAMP'S (2026-09-16). This also
+    asserted `last_clean_publish is None` on the close path, under the same rationale — and the
+    rationale does not transfer. A timestamp does not accumulate, and `_episode_phrase` reads it
+    only inside the branch gated on `clean_publishes > 0`, which the line above resets. What that
+    assertion actually pinned was the defect in
+    `SEAT_FINDING_LAST_CLEAN_PUBLISH_IS_CLEARED_AT_THE_INSTANT_IT_BECOMES_TRUE_..._2026-09-16`:
+    the field was written `None` by the very publish that earned it. The timestamp's own control
+    is `test_a_closed_episode_is_distinguishable_from_a_publisher_that_never_ran` below.
     """
     tmp_path, staging = gate
     _open_an_episode(staging)
@@ -150,7 +165,89 @@ def test_draining_the_queue_to_zero_closes_the_episode_and_forgets_the_publishes
     st = _state(tmp_path)
     assert st["wedge_since"] is None and st["episode_failures"] == 0, "premise: episode closed"
     assert st["episode_clean_publishes"] == 0, "the memory outlived the episode it was scoped to"
-    assert st["last_clean_publish"] is None
+
+
+#: THE TRACKED PLACEHOLDER, verbatim — `docs/observability/.publish_gate_state.json` as it is
+#: committed, which is what every fresh linked worktree reads as if it were live state. It is the
+#: comparison subject below because it is the real thing a reader can be fooled by, not a dict
+#: invented to make a point.
+PLACEHOLDER_BYTES = '{"alerted_at": null, "failures": []}'
+
+
+def test_a_closed_episode_is_distinguishable_from_a_publisher_that_never_ran(gate):
+    """A cleanly closed episode must carry POSITIVE evidence that a publish succeeded.
+
+    THE DEFECT (2026-09-16). A clean close wrote `failures: [] · alerted_at: null ·
+    episode_failures: 0 · episode_clean_publishes: 0 · last_clean_publish: null` — byte-for-byte
+    the reading the two-month-old TRACKED placeholder gives. So a publisher that had just
+    recovered and one that had never run once were the same record, and every downstream reader
+    had only ABSENCE to go on. Absence is exactly what the placeholder asserts too.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER: it asks whether the two records differ on a
+    field that is POSITIVE EVIDENCE A PUBLISH HAPPENED. It stays green if a future writer adds
+    another such field and drops this one, and reds if the evidence goes away.
+
+    AND "DO THEY DIFFER AT ALL" IS NOT THAT QUESTION, which this control was first written as and
+    which the mutation below refuted in one run. The two records differ under the defect anyway —
+    on `red_at_head_reason`, which a success path rewrites — so the union test was green with the
+    defect installed. Differing is not the property; differing ON THE EVIDENCE is. Recorded here
+    rather than quietly narrowed, because the green version looked exactly as convincing.
+
+    MUTATION (proven by reverting, not asserted): restore
+    `"last_clean_publish": None if episode_closed else stamp` in `record_publish_gate_success`
+    and this reds, while every other control in this file stays green.
+    """
+    tmp_path, staging = gate
+    state_file = tmp_path / ".publish_gate_state.json"
+
+    # The publisher that has never run: the committed placeholder, read the way a reader reads it.
+    state_file.write_text(PLACEHOLDER_BYTES)
+    never_ran = prc._read_publish_gate_state()
+    assert never_ran["episode_failures"] == 0 and never_ran["episode_clean_publishes"] == 0, \
+        "premise: the placeholder really does read as a quiet, unwedged publisher"
+
+    # The publisher that wedged for an episode and then drained its queue to zero.
+    state_file.unlink()
+    _open_an_episode(staging)
+    _queue(staging, 0)
+    prc.record_publish_gate_success(now=T0 + 6 * 3600)
+    recovered = _state(tmp_path)
+    assert recovered["wedge_since"] is None and recovered["episode_failures"] == 0, \
+        "premise: the episode really closed, which is what makes the two look alike"
+
+    # The fields that say a publish HAPPENED, as opposed to saying no failure is standing. Every
+    # other field in this record is about the absence of trouble, and absence is precisely what
+    # the placeholder also asserts.
+    evidence_fields = ("last_clean_publish", "episode_clean_publishes")
+    evidence = {k for k in evidence_fields if never_ran.get(k) != recovered.get(k)}
+    assert evidence, (
+        "a recovered publisher and one that has NEVER RUN carry the same evidence of publishing "
+        "— which is none. Nothing downstream can tell 'it published and is fine' from 'it has "
+        "never published at all': both records only say that no failure is standing"
+    )
+    assert recovered["last_clean_publish"] == T0 + 6 * 3600, (
+        "the publish that closed the episode left the wrong timestamp, or none — the field is "
+        "cleared at the instant it becomes most true"
+    )
+
+
+def test_a_record_that_has_only_ever_seen_FAILURES_still_has_no_publish_time(gate):
+    """THE OTHER HALF OF THE PARTITION, and the reason the control above is not "assert non-null".
+
+    A timestamp that survives a close must still be absent when nothing has ever published —
+    otherwise "always non-null" passes the control above while asserting a publish nobody
+    observed, which is the fail-open direction for this field.
+
+    MUTATION: have `record_publish_gate_failure` stamp the field (or default it to `time.time()`
+    anywhere on the read path) and this reds.
+    """
+    tmp_path, staging = gate
+    _open_an_episode(staging)
+
+    st = _state(tmp_path)
+    assert st["episode_failures"] == 8, "premise: this record has a real history, just no publish"
+    assert st["last_clean_publish"] is None, \
+        "a publisher that has never published carries a publish time"
 
 
 # ── the sentence the director actually reads ────────────────────────────────────────────
