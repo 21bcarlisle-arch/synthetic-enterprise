@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-16T11:33:36Z",
+    "checked_at": "2026-09-16T13:41:34Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -12,32 +12,32 @@
     "open_findings": 15
   },
   "last_verified": {
-    "generated_at": "2026-09-16T13:35:52Z",
-    "git_commit": "770497ddd",
+    "generated_at": "2026-09-16T17:20:44Z",
+    "git_commit": "2c89bd534",
     "population": {
       "accounts": 226,
       "bills": 9996,
-      "total_revenue_gbp": 667820.94
+      "total_revenue_gbp": 667241.42
     },
-    "run_id": "run_output_770497ddd_20260916T125142Z.json",
+    "run_id": "run_output_2c89bd534_20260916T164255Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-16T13:35:52Z"
+    "verified_at": "2026-09-16T17:20:44Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=56788c664; blocking tests: FAILED tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py::test_a_level_tree_still_publishes, FAILED tests/background/test_a_refused_publish_commit_reaches_the_wedge_detector.py::test_a_lost_tree_lock_is_a_named_outcome_and_not_an_uncaught_traceback, FAILED tests/background/test_a_refused_publish_co",
+  "paused_since": "2026-09-16T19:37:36Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-16T13:35:52Z",
-    "git_commit": "770497ddd",
+    "generated_at": "2026-09-16T17:20:44Z",
+    "git_commit": "2c89bd534",
     "population": {
       "accounts": 226,
       "bills": 9996,
-      "total_revenue_gbp": 667820.94
+      "total_revenue_gbp": 667241.42
     },
-    "run_id": "run_output_770497ddd_20260916T125142Z.json",
+    "run_id": "run_output_2c89bd534_20260916T164255Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-16T13:35:52Z"
+    "verified_at": "2026-09-16T17:20:44Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-16T13:35:52Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-16T19:37:36Z"
 }

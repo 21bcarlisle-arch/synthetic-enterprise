@@ -35,6 +35,12 @@ This document supersedes the individual findings listed below, which are **archi
 
 - `WORKER_FINDING_THE_DRAWN_LANE_0_ITEM_WAS_NEVER_CLAIMED_SO_ITS_OWN_BIND_INSTRUCTION_IS_INERT_2026-09-05.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_RESULT_THE_CENSUS_HEADCOUNT_REACHED_EVERY_CALLER_EXCEPT_THE_ONE_THE_BOOK_IS_SETTLED_ON_2026-09-16.md` — lane `W2_customer_generator`
+
 ## Disposition
 
 **Decision:** OPEN
