@@ -905,12 +905,19 @@ def test_an_unrecorded_book_is_a_NAMED_absence_and_never_todays_resolver():
 def test_the_snapshot_names_BOTH_input_files_and_how_the_run_output_was_chosen(tmp_path):
     """THE DEFECT: `latest_run_output()` takes the lexical max of a glob over UNTRACKED files, so
     one commit checked out twice selects two different runs. Recording only the numbers leaves a
-    reader with no route back to which pair produced them."""
+    reader with no route back to which pair produced them.
+
+    `_snapshot` passes no `how`, so this also pins the UNRECORDED branch: a caller that does not
+    say how it chose gets a named absence and `reproducible_across_checkouts` is None. None is not
+    False and must never read as True -- the same tri-state the join control is held to.
+    """
     snap = _snapshot(tmp_path)
 
     assert snap["run_output"]["path"].endswith("run_output_deadbeef_20260618T054253Z.json")
     assert snap["run_output"]["tracked_in_git"] is False
-    assert "lexical max" in snap["run_output"]["selected_by"]
+    assert "NOT RECORDED BY THE CALLER" in snap["run_output"]["selected_by"]
+    assert snap["run_output"]["resolved_by"] is None
+    assert snap["run_output"]["reproducible_across_checkouts"] is None
     # The run's OWN stamp, not a re-parse of the filename.
     assert snap["run_output"]["producing_commit"] == "abc123f"
     assert snap["run_output"]["accounts_in_per_customer_lifetime"] == len(
@@ -1029,3 +1036,168 @@ def test_dual_fuel_legs_are_COLLAPSED_so_the_book_counts_households_not_meters()
     assert out["billing_accounts_priced"] == 1, "and they are one household"
     assert out["dual_fuel"] == 1
     assert out["dual_fuel_share_of_accounts"] == 1.0
+
+
+# ---------------------------------------------------------------------------------------------
+# WHICH RUN OUTPUT, AND WOULD A SECOND CHECKOUT AGREE
+#
+# `79f7484f3` made the selection VISIBLE in every artefact. These pin the next thing it owed:
+# that the selection is decided by the COMMIT rather than by which untracked files happen to sit
+# on this disk. Measured 2026-09-16 at one commit, from two checkouts of it: 6,219 candidates and
+# a 27.5 MB run from that morning in the shared tree, 4 candidates and a 205.9 KB run from June
+# in a linked worktree.
+# ---------------------------------------------------------------------------------------------
+
+#: The dated sibling every fixture below puts beside the tracked run output. It must carry
+#: "2026" in its name or the glob tier's own filter drops it and the tier resolves nothing --
+#: which is how the FIRST draft of these tests passed the refusal legs for the wrong reason.
+#:
+#: THAT FILTER IS THE ORIGINAL DEFECT'S MECHANISM, which is why it is named here rather than
+#: worked around. `run_output_latest.json` has no "2026" in it, so the glob could never select
+#: the one run output in this repo that a second checkout can resolve -- and it is the file
+#: `tools/generate_customers_json` builds the book from. The tracked file was not overlooked;
+#: it was excluded.
+_DATED_SIBLING = "run_output_ffffffff_20260101T000000Z.json"
+
+
+def _reports(tmp_path, *, tracked=True, dated=True):
+    """A reports directory holding a TRACKED-name run output and a DATED one the glob can see.
+
+    The two tiers must resolve DIFFERENT files or every assertion below passes with the defect
+    installed, so the names are distinct and each tier's own key picks its own.
+    """
+    reports = tmp_path / "reports"
+    reports.mkdir(exist_ok=True)
+    if tracked:
+        (reports / "run_output_latest.json").write_text(
+            json.dumps(dict(RUN_WITH_META, _tag="tracked")), encoding="utf-8")
+    if dated:
+        (reports / _DATED_SIBLING).write_text(
+            json.dumps(dict(RUN_WITH_META, _tag="newest")), encoding="utf-8")
+    return reports
+
+
+def test_the_DEFAULT_run_output_is_the_TRACKED_one_and_the_GLOB_is_OPT_IN(tmp_path):
+    """THE DEFECT: the default was the lexical max of a glob over untracked files, so a re-run
+    after a repair landed priced whatever run happened to be newest in THAT checkout and could not
+    be graded against the published artefact. `run_output_latest.json` is tracked in git and is
+    the file the book itself is built from.
+
+    BOTH BRANCHES IN ONE TEST. A resolver that always returned the tracked file would pass the
+    first assertion and is not the mechanism: `--adopt-latest` must still reach the glob, and the
+    dated file here sorts ABOVE the tracked one, so only a real tier order satisfies both.
+    """
+    reports = _reports(tmp_path)
+
+    path, how = cvp.resolve_run_output(reports_dir=reports)
+
+    assert path.name == "run_output_latest.json", "the default must be the TRACKED run output"
+    assert how["resolved_by"] == "tracked_run_output"
+    assert how["reproducible_across_checkouts"] is True
+    assert "TRACKED IN GIT" in how["selected_by"]
+
+    newest, how_newest = cvp.resolve_run_output(prefer_newest=True, reports_dir=reports)
+
+    assert newest.name == _DATED_SIBLING, (
+        "--adopt-latest must still reach the glob -- a dial that orders work, never zeroes it")
+    assert how_newest["resolved_by"] == "newest_by_name"
+    # AND IT MUST SAY SO. The old behaviour is reachable; what it may not be is silent.
+    assert how_newest["reproducible_across_checkouts"] is False
+    assert "NOT reproducible" in how_newest["selected_by"]
+
+
+def test_a_checkout_WITHOUT_the_tracked_run_REFUSES_rather_than_picking_one_of_the_glob(tmp_path):
+    """THE DEFECT: falling back to the glob when the tracked file is absent reinstates the whole
+    failure under a name that sounds safe. A linked worktree is exactly the checkout that has the
+    dated files and not the tracked one, and it is where the June run got priced.
+
+    THE REFUSAL MUST NOT BE TOTAL. The second half proves this same directory IS resolvable when
+    the caller opts in -- a guard that refuses everything passes every test of its refusal.
+    """
+    reports = _reports(tmp_path, tracked=False)
+
+    with pytest.raises(cvp.MarginDecisionUnavailable) as caught:
+        cvp.resolve_run_output(reports_dir=reports)
+
+    message = str(caught.value)
+    assert "run_output_latest.json" in message, "the refusal must name what is missing"
+    assert "--run-output" in message and "--adopt-latest" in message, (
+        "a refusal that does not say how to proceed is a stall, not a result")
+    assert "1 untracked candidate" in message, (
+        "the candidate count is the evidence two checkouts differ; it belongs in the refusal")
+
+    path, how = cvp.resolve_run_output(prefer_newest=True, reports_dir=reports)
+
+    assert path.name == _DATED_SIBLING
+    assert how["reproducible_across_checkouts"] is False
+
+
+def test_a_run_output_NAMED_by_the_caller_wins_and_a_MISSING_one_never_falls_back(tmp_path):
+    """THE DEFECT: falling through from a path the caller named to some other file prices a world
+    nobody asked for and says nothing. The named path is the reproducible form -- it is how a
+    re-run repeats the reading a published artefact records.
+
+    BOTH BRANCHES: the named path must be HONOURED even with a tracked file sitting beside it,
+    and a named path that does not exist must RAISE rather than resolve to that neighbour.
+    """
+    reports = _reports(tmp_path)
+    named = reports / _DATED_SIBLING
+
+    path, how = cvp.resolve_run_output(named, reports_dir=reports)
+
+    assert path == named, "an explicitly named run output must beat the tracked default"
+    assert how["resolved_by"] == "argument"
+    assert how["reproducible_across_checkouts"] is True
+
+    with pytest.raises(cvp.MarginDecisionUnavailable) as caught:
+        cvp.resolve_run_output(reports / "run_output_does_not_exist.json", reports_dir=reports)
+
+    assert "run_output_does_not_exist.json" in str(caught.value), (
+        "the refusal must name the path it was given, not the one it would have used")
+
+
+def test_the_artefact_says_whether_a_SECOND_CHECKOUT_would_read_the_SAME_file(tmp_path):
+    """THE DEFECT: recording only WHICH file was read leaves a reader unable to tell a reading
+    they can repeat from one they cannot -- and those are the two artefacts that were presented as
+    rival calibrations of one book when they were two books.
+
+    The snapshot must carry the CALLER'S resolution, not re-derive it: re-deriving would answer
+    for the tree as it is at assembly, which is a different question.
+    """
+    reports = _reports(tmp_path)
+    book_path = tmp_path / "customers.json"
+    book_path.write_text(json.dumps(BOOK_STAMPED), encoding="utf-8")
+
+    run_path, how = cvp.resolve_run_output(reports_dir=reports)
+    tracked = cvp.book_at_read(run_path, book_path, RUN_WITH_META, BOOK_STAMPED, how)
+
+    assert tracked["run_output"]["reproducible_across_checkouts"] is True
+    assert tracked["run_output"]["resolved_by"] == "tracked_run_output"
+    # NOT the real tracked file -- it is a same-named file in a tmp directory, which no checkout
+    # can resolve. `tracked_in_git` is answered by identity with the path the default tier of THIS
+    # repo resolves, never by the name alone.
+    assert tracked["run_output"]["tracked_in_git"] is False
+
+    glob_path, glob_how = cvp.resolve_run_output(prefer_newest=True, reports_dir=reports)
+    globbed = cvp.book_at_read(glob_path, book_path, RUN_WITH_META, BOOK_STAMPED, glob_how)
+
+    assert globbed["run_output"]["reproducible_across_checkouts"] is False
+    assert "lexical max" in globbed["run_output"]["selected_by"]
+
+
+def test_the_RUN_IDENTITY_FIELDS_a_census_grades_include_WHICH_RUN_was_read(tmp_path):
+    """THE DEFECT: `run_identity_fields` named only the commit, the clock and the world digest --
+    and two checkouts of ONE commit priced two different runs, so none of those three can tell the
+    resulting artefacts apart. A census grading "which run sits at this path" needs the input's
+    own identity, and every field it names must actually be reachable in the artefact."""
+    out = cvp.generate(out_path=tmp_path / "arms.json")
+
+    assert "book_identity.read_from.run_output.path" in out["run_identity_fields"]
+    assert "book_identity.read_from.run_output.reproducible_across_checkouts" in (
+        out["run_identity_fields"])
+    for dotted in out["run_identity_fields"]:
+        cursor = out
+        for part in dotted.split("."):
+            assert isinstance(cursor, dict) and part in cursor, (
+                "run_identity_fields names %s, which the artefact does not carry" % dotted)
+            cursor = cursor[part]
