@@ -1692,7 +1692,13 @@
   provenance: seat_finding
   depends_on: []
   couples_with: []
-  file_scope: ['docs/PROJECT_OVERVIEW.md', 'tools/startup_anchor_freshness.py']
+  file_scope: ['docs/PROJECT_OVERVIEW.md', 'tools/startup_anchor_freshness.py', 'tests/tools/test_the_startup_header_states_the_figures_it_computes.py']
+  #   The test path is named because the control now EXISTS (56d746816): the header's four figures
+  #   are graded against the sources the header names, mutation-proven in both directions. Until
+  #   this line the row named no control a runner could execute, which is the only reason it read
+  #   as ungradable -- the subject was on disk the whole time. It names the file the control was
+  #   MOVED INTO (aff4b153f) and not the freshness suite it was first appended to: the grader dates
+  #   a control by its FILE's birth, so a row can only be graded by a file younger than itself.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
