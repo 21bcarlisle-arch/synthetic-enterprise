@@ -497,12 +497,21 @@ def _self_issued_chain(path: Path | None = None) -> int:
     return links
 
 
-def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None:
+def record_draw(focus_id: str, when: float, *, path: Path | None = None,
+                text: str | None = None) -> None:
     """Remember that `focus_id` was handed out at `when`. Idempotent on the FIRST draw.
 
     `first_drawn_at` is written once and never moved -- it is the whole mechanism, and a version
     that refreshed it on every draw would restore the trap exactly. `last_drawn_at` is the one
     that moves.
+
+    `text` IS THE ITEM'S OWN PROSE AND IT IS STAMPED, NOT RE-READ. `_landed_unbound` needs to know
+    which paths the item named, and by the time a swept window is being read the item may have
+    left `DIRECTION.yaml` and the continuation store both -- `_item_text` is the reach-back for
+    the rows that predate this stamp, and it goes quiet exactly when the item does. Written on
+    EVERY draw rather than once, unlike `source`: a re-drawn id can be re-drawn against different
+    prose, and the paths must describe the window actually being judged. An empty extraction
+    leaves the key absent so the reach-back still runs.
 
     Never raises: this is called from inside `draw()`, which must never take the ladder down.
     """
@@ -513,6 +522,9 @@ def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None
         if not isinstance(row, dict):
             row = {"first_drawn_at": float(when)}
         row["last_drawn_at"] = float(when)
+        named = _paths_named_in(text) if text else []
+        if named:
+            row["named_paths"] = named
         # WHERE THIS ROW CAME FROM, stamped ONCE beside `first_drawn_at` and for the same
         # reason: it is a fact about the draw, and a version that re-derived it later would read
         # a continuation store the drop/expiry has since emptied and call every past draw `focus`.
@@ -663,19 +675,184 @@ def drawn_without_landing(cutoff: float | None = None, now: float | None = None,
             continue
         out.append({"id": str(fid), "drawn_at": drawn,
                     "hours_since_draw": round((stamp - drawn) / 3600.0, 1),
-                    **_disposition(row, drawn)})
+                    **_disposition(row, drawn, focus_id=str(fid),
+                                   bound_at=_bound_instants(ledger))})
     return sorted(out, key=lambda r: r["drawn_at"], reverse=True)
 
 
-#: The three things a window that closed with no landing of its own can mean, and the ONLY three.
+#: Top-level directories of this repository, and the ONLY roots a path token in an item's prose is
+#: allowed to have. Without this the extractor below matches `a/b` in ordinary English; with it,
+#: every candidate is checked against `git ls-files` anyway, so this is the cheap first cut rather
+#: than the guard.
+_REPO_ROOTS = ("background", "company", "saas", "sim", "simulation", "site", "tools", "tests",
+               "docs", "data", "interface", "functions")
+_PATH_TOKEN = re.compile(
+    r"\b(?:" + "|".join(_REPO_ROOTS) + r")/[A-Za-z0-9_][A-Za-z0-9_./-]*[A-Za-z0-9_]")
+
+
+def _tracked_files() -> set[str]:
+    """Every path git tracks here, or an EMPTY set if git will not answer.
+
+    Empty means `_paths_named_in` keeps nothing, which means the git join below cannot run and the
+    row falls to the residual. That is the fail-closed direction and it is the one this whole
+    repair needs: an unavailable check must not manufacture the flattering answer.
+    """
+    return {ln.strip() for ln in (_git("ls-files") or "").splitlines() if ln.strip()}
+
+
+def _paths_named_in(text: str) -> list[str]:
+    """The repo paths an item's own prose names. `[]` when it names none we can confirm.
+
+    EVERY PATH RETURNED IS ONE GIT TRACKS, which is what keeps this a join and not a guess. The
+    prose is written by a seat, not by a form, so it spells the same subject several ways:
+    `background/delivery_lane.py`, `background/delivery_lane._disposition`, `tests/background/`.
+    The first is a path; the second is a path with a symbol glued on; the third is a directory.
+    So each candidate is peeled back one dotted suffix at a time — and `.py` offered at each
+    step, because `module._function` is how this project's prose names code — and only spellings
+    the tracked set confirms survive.
+
+    A BARE DIRECTORY IS NOT A SUBJECT, and the first draft kept it as a pathspec prefix on the
+    reasoning that `git log -- docs/staging` asks the question the prose asked. Measured on the
+    live ledger before the reasoning was trusted: the retrospective sweep confirmed a row whose
+    only extracted names were `docs/design` and one html file, and `docs/design` is a room EVERY
+    lane writes in — the prose that produced it said "file it in docs/design", which names a place
+    and not a subject. A pathspec that matches whatever anyone did in a shared room is evidence in
+    the flattering direction, which is the exact failure this repair exists to end. Files only.
+    """
+    tracked = _tracked_files()
+    if not tracked:
+        return []
+    out: set[str] = set()
+    for token in _PATH_TOKEN.findall(text or ""):
+        head = token
+        while True:
+            if head in tracked:
+                out.add(head)
+                break
+            candidate = head + ".py"
+            if candidate in tracked:
+                out.add(candidate)
+                break
+            if "." not in head.rsplit("/", 1)[-1]:
+                break
+            head = head.rsplit(".", 1)[0]
+    return sorted(out)
+
+
+def _item_text(focus_id: str) -> str:
+    """Everything the live stores say about `focus_id`, for the path extractor. "" if nothing.
+
+    THE ROW'S OWN STAMP IS THE DURABLE SOURCE and this is the reach-back for rows written before
+    the stamp existed, or whose draw came through a route that had no text. Both stores are read
+    because a focus row and a hand-off are two spellings of the same item and either may be the
+    one still holding it; a row that has left both reads "", which lands on the residual.
+    """
+    parts: list[str] = []
+    try:
+        for item in direction_mod.unreachable_focus(_atom_ids()):
+            if str(item.get("id")) == str(focus_id):
+                parts.extend(str(item.get(k) or "") for k in ("what", "why", "done_means", "note"))
+    except Exception:
+        pass
+    try:
+        for entry in seat_continuation._load():
+            if str(entry.get("id")) == str(focus_id):
+                parts.extend(str(entry.get(k) or "")
+                             for k in ("what", "why", "done_means", "note"))
+    except Exception:
+        pass
+    return " ".join(p for p in parts if p)
+
+
+def _bound_instants(ledger: dict) -> frozenset:
+    """Every commit instant the ledger has already bound to SOME row.
+
+    THIS IS WHAT MAKES THE JOIN BELOW SAY "UNBOUND" RATHER THAN "SOMETHING HAPPENED". Several
+    lanes commit into this tree every hour and they touch each other's files constantly, so "a
+    commit inside the window touched a path this item named" on its own would report the busiest
+    files as delivered work forever. A commit another row is already credited with is somebody
+    else's landing by the lane's own record, and the only commits left are the ones nothing
+    claims — which is precisely the class this repair exists to surface.
+
+    Keyed to the COMMIT'S OWN TIMESTAMP because that is what `_remember_landing` stores (`%ct`,
+    the commit's fact, never `now`). A collision between two commits in the same second reads as
+    bound and so falls to the residual — the loud direction, not the flattering one.
+    """
+    return frozenset(
+        float(row["last_landing_at"]) for row in ledger.values()
+        if isinstance(row, dict) and row.get("last_landing_at"))
+
+
+def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset) -> dict | None:
+    """Work that landed on this item's paths inside its window with nothing bound to it, or None.
+
+    THE JOIN THE THREE-WAY READING DID NOT HAVE (director, 2026-09-16). Both of the non-residual
+    dispositions require a human to have run `--landed-under` or `--premise-spent` by hand, and
+    nobody does, so every swept row read `not_done` with an empty evidence string and the brief
+    had to tell every reader to go and check `git status` themselves. That is the fail-silent
+    shape: a dial that reports the flattering residual by construction. Git already holds the
+    fact, and `_git` already ran `rev-list`/`merge-base`/`diff` twenty lines up.
+
+    SAY WHAT IT IS. The window is `[drawn, drawn + CLAIM_STALE_SECONDS]` — the window the item was
+    actually given, not "since then" — and a commit counts when all three hold: its committer
+    instant falls inside that window, it touched a path the item's own prose named, and no row of
+    this ledger is credited with it. The disposition is named `LANDED_UNBOUND` for exactly that
+    reading and NOT `DELIVERED`: it says work landed on this subject and nothing bound it, which
+    is what was measured. Calling it delivered would be inferring the item was finished from the
+    fact that its files moved, and the reader can tell the difference only if the label does.
+
+    IT RETURNS None RATHER THAN A GUESS in every case where the join cannot run — git silent, the
+    item naming no path git tracks, a row whose prose has left both stores. The residual stays
+    loud, which is the direction an unavailable check has to fail in (R15).
+    """
+    paths = [str(p) for p in (row.get("named_paths") or ())] or _paths_named_in(_item_text(focus_id))
+    if not paths:
+        return None
+    window_ends = drawn + CLAIM_STALE_SECONDS
+    out = _git("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
+               "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
+               "--", *paths)
+    if not out:
+        return None
+    hits = []
+    for line in out.splitlines():
+        parts = line.split("\x1f")
+        if len(parts) != 3:
+            continue
+        sha, stamp, subject = parts
+        try:
+            when = float(stamp)
+        except ValueError:
+            continue
+        if when in bound_at or not (drawn <= when <= window_ends):
+            continue
+        hits.append((sha, subject))
+    if not hits:
+        return None
+    sha, subject = hits[0]
+    more = " (+{} more)".format(len(hits) - 1) if len(hits) > 1 else ""
+    return {"disposition": LANDED_UNBOUND,
+            "evidence": "{} {} touched {}{}".format(
+                sha[:9], subject.strip()[:80], ", ".join(paths[:3]), more)}
+
+
+#: The FOUR things a window that closed with no landing of its own can mean.
 #: `NOT_DONE` is the residual and carries no evidence by construction — it is what is left when
-#: neither join holds, which is why it is named here rather than left as the absence of the other
-#: two. `LANDED_ELSEWHERE` is `note_landing_under`'s; `PREMISE_SPENT` is `note_premise_spent`'s.
+#: no join holds, which is why it is named here rather than left as the absence of the others.
+#: `LANDED_ELSEWHERE` is `note_landing_under`'s; `PREMISE_SPENT` is `note_premise_spent`'s.
+#:
+#: THIS BLOCK SAID "AND THE ONLY THREE" AND THAT IS NOW FALSE, corrected beside the claim rather
+#: than rewritten over it. The three were right about what the ROW can say and wrong about what
+#: can be ASKED: both non-residual values are written by a hand-run command and nobody ran one,
+#: so in eleven weeks the reading produced `not_done` and an empty string for every swept row
+#: alive. `LANDED_UNBOUND` is the fourth and the first that asks git instead of waiting to be
+#: told — see `_landed_unbound` for what it means and, more to the point, what it does not.
 NOT_DONE = "not_done"
 LANDED_ELSEWHERE = "landed_elsewhere"
 PREMISE_SPENT = "premise_spent"
+LANDED_UNBOUND = "landed_unbound"
 
-#: The two answers `disposition_of` can give that are NOT one of the three, because they are not
+#: The two answers `disposition_of` can give that are NOT one of the four, because they are not
 #: windows that closed with nothing: the id delivered under its own name, or was never handed out.
 #: Kept distinct from `NOT_DONE` on purpose -- collapsing "nobody did it" into "nobody was asked"
 #: is the same conflation one rung up, and it is the one that would make the dial read healthy.
@@ -702,19 +879,24 @@ def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
     which is not one of the three because it is not a window at all.
     """
     try:
-        row = claims_mod._load(_ledger_path(path or CLAIMS_FILE)).get(focus_id)
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
     except Exception:
-        row = None
+        ledger = {}
+    row = ledger.get(focus_id) if isinstance(ledger, dict) else None
     if not isinstance(row, dict):
         return {"disposition": NOT_DRAWN, "evidence": ""}
     drawn = float(row.get("last_drawn_at") or 0.0)
     if float(row.get("last_landing_at") or 0.0) >= drawn and not row.get("landed_under"):
         return {"disposition": DELIVERED,
                 "evidence": ", ".join(str(p) for p in (row.get("last_landing_paths") or [])[:4])}
-    return _disposition(row, drawn)
+    # THE WHOLE LEDGER, not just this row, because `_bound_instants` is what separates "landed and
+    # nobody bound it" from "another lane's landing on a file we happen to share". Reading one row
+    # here and the whole store in `drawn_without_landing` would be two definitions again.
+    return _disposition(row, drawn, focus_id=focus_id, bound_at=_bound_instants(ledger))
 
 
-def _disposition(row: dict, drawn: float) -> dict:
+def _disposition(row: dict, drawn: float, *, focus_id: str = "",
+                 bound_at: frozenset = frozenset()) -> dict:
     """WHICH of the three a row whose window closed without a landing of its own is.
 
     THE DEFECT THIS ENDS (director, 2026-09-09, on this lane's own ledger): 61 of 224 rows read
@@ -729,7 +911,20 @@ def _disposition(row: dict, drawn: float) -> dict:
     is written only by a join between two ledger rows; `premise_spent` only by a join against git.
     This function chooses between them and falls to `NOT_DONE`, so the residual is the shape with
     NO evidence rather than the shape nobody bothered to classify — the direction that keeps a
-    real miss loud when a disposition is missing, and the reason there is no fourth value.
+    real miss loud when a disposition is missing.
+
+    THE SENTENCE THAT USED TO END THAT PARAGRAPH — "and the reason there is no fourth value" — was
+    wrong and is corrected here rather than deleted. Both of the two it chose between are written
+    BY HAND, and in the eleven weeks since nobody ran either command, so every swept row this
+    lane has ever shown a seat read `not_done` with an empty string and the brief had to send its
+    reader to `git status`. A residual that is the only reachable answer is not a residual; it is
+    a dial wired to a constant. `_landed_unbound` is the fourth value and the first that ASKS —
+    it runs the git-side join this module already had the machinery for, and it still returns
+    None rather than a guess whenever the join cannot be made, so the residual stays loud.
+
+    ORDER IS DELIBERATE: the two hand-written facts outrank the derived one. Somebody who said in
+    so many words that this window's premise was spent knows something git cannot be asked, and a
+    derived reading that overrode a stated one would make the stating pointless.
 
     A STALE CREDIT DOES NOT SETTLE A NEW WINDOW. `landed_under` sits on the row forever, so a
     credited id that is DRAWN AGAIN and lands nothing has both the credit and a genuine second
@@ -744,6 +939,12 @@ def _disposition(row: dict, drawn: float) -> dict:
     other = row.get("landed_under")
     if other and float(row.get("last_landing_at") or 0.0) >= drawn:
         return {"disposition": LANDED_ELSEWHERE, "evidence": f"landed under {other}"}
+    try:
+        unbound = _landed_unbound(focus_id, row, drawn, bound_at)
+    except Exception:
+        unbound = None          # a join that cannot run leaves the residual loud. Never raises
+    if unbound:                 # into `drawn_without_landing`, which the orientation brief reads.
+        return unbound
     return {"disposition": NOT_DONE, "evidence": ""}
 
 
@@ -1447,7 +1648,7 @@ def claim_dispatched(reason: str, *, now: float | None = None,
         # AFTER the claim and with the claim's own instant, exactly as `draw` does it: the ledger
         # records what was handed out, so a dispatch that failed to claim must not appear in it.
         rec = claims_mod._load(store).get(focus_id) or {}
-        record_draw(focus_id, float(rec.get("claimed_at") or 0.0), path=store)
+        record_draw(focus_id, float(rec.get("claimed_at") or 0.0), path=store, text=reason)
         return focus_id
     except Exception:
         return None
@@ -1624,8 +1825,14 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
                          path=store, now=now)
         # AFTER the claim and with the claim's own instant: the ledger records what was handed
         # out, so a draw that failed to claim must not appear in it.
+        #
+        # THE WHOLE DOORBELL IS THE TEXT, not `item["what"]`: the claim's note is truncated at 200
+        # characters and the paths an item names are as often in `done_means` as in `what` -- this
+        # very repair's own item named `background/delivery_lane._disposition` in its first line
+        # and `tools/surgical_land` in its last.
         rec = claims_mod._load(store).get(item["id"]) or {}
-        record_draw(item["id"], float(rec.get("claimed_at") or 0.0), path=store)
+        record_draw(item["id"], float(rec.get("claimed_at") or 0.0), path=store,
+                    text=doorbell(item))
         return doorbell(item)
     except Exception:
         return None
