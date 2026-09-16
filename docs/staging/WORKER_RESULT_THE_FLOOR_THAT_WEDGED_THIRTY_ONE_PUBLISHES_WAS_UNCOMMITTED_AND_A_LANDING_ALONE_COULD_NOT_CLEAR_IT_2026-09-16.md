@@ -80,13 +80,29 @@ The state file still cites `site/knowledge/test_index_reflects_the_record.py::te
 as the blocking test. That was recorded against 4b658d862. The whole file is green at 7dde2e36b in a
 clean extract, twelve of twelve. It is a stale suspect the state file has not cleared, not a live red.
 
-## What is not yet proven
+## What the next cycle then did — measured, not predicted
 
-`last_clean_publish` is still `null` and `episode_failures` still 31 at filing time. What is
-established is that the mechanism that refused all thirty-one is gone from both copies. Whether the
-publisher clears on its next cycle is the thing to check next, and it is checkable in one read of
-`docs/observability/.publish_gate_state.json` — if it is still refusing, the cause will be a NEW one
-and belongs in a new finding, not this one.
+The prediction above was written before the publisher's next cycle and is left standing beside what
+happened. At 1789521212 the liveness surface published: committed f8408124a and pushed it, and
+`_record_liveness_surface_publish` retired the standing refusal into `cleared_refusal`, where it can
+be read as the orphan-ratchet text verbatim. `liveness_surface_refusal` is now `null` — meaning
+"none standing", which is the field's whole design. HEAD and `origin/main` are both f8408124a.
+
+That is the first publish of any kind in this episode, and it is the evidence that the cause named
+here was the live one: the same surface, the same gate, refused at 0d8f7174d and clean one cycle
+later with nothing between them but the working-tree write.
+
+**It is NOT the content publish, and must not be read as one.** `last_clean_publish` is still `null`
+and `episode_failures` is still 31. The module's own docstring is explicit that these are two
+subjects — *"a heartbeat reaching origin does NOT mean the run_complete backlog published"* — and one
+figure measured across both is the failure this project pays for most often. The content side has
+had no completed run to process since the fix, so it has not yet been tested. Its last recorded
+cause was the site-knowledge red, which is green at HEAD.
+
+So the remaining question is narrow and is one read: when the next `run_complete_*.md` is processed,
+does `last_clean_publish` take a timestamp? If it refuses again, the cause will be a new one and
+belongs in a new finding, not this one. The claim stays held until then rather than released on a
+heartbeat.
 
 Deliberately not built: a watchdog over the publisher. The direction forbade it, and the two causes
 here were both one-off stale state rather than a missing control.
