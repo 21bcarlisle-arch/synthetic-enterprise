@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T00:03:53.950586Z",
+  "generated_at": "2026-09-16T02:57:28.368594Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -494,7 +494,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "cd952db813f30f8c26cb612eecd981d60e9fad7d",
+    "publishing_tree_commit": "186a9159202d2dc390f295decb622c6e019fd833",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -506,7 +506,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from cd952db81 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from 186a91592 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -901,7 +901,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "cd952db813f30f8c26cb612eecd981d60e9fad7d",
+      "publishing_tree_commit": "186a9159202d2dc390f295decb622c6e019fd833",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -913,7 +913,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from cd952db81 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from 186a91592 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -964,21 +964,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 147886.78,
+      "dashboard_net_gbp": 148558.61,
       "run_identity": {
-        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
-        "dashboard_commit": "258720283",
+        "dashboard_run_id": "run_output_3346182b6_20260916T005538Z.json",
+        "dashboard_commit": "3346182b6",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
-        "last_verified_commit": "258720283",
+        "last_verified_run_id": "run_output_3346182b6_20260916T005538Z.json",
+        "last_verified_commit": "3346182b6",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": -67.47566100073163,
-      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.48. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": 604.3543389992556,
+      "statement": "The published run's net margin (\u00a3148,558.61) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a3604.35. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -1566,6 +1566,8 @@
           "detectable_excess": 0.05055454799107145,
           "detectable_concordance": 0.5505545479910714,
           "accounts_needed": 73,
+          "reachable_on_this_books_decisions": true,
+          "verdict_rests_on": "attained",
           "is_this_run": true
         },
         {
@@ -1574,6 +1576,8 @@
           "detectable_excess": 0.03574746370430738,
           "detectable_concordance": 0.5357474637043074,
           "accounts_needed": 146,
+          "reachable_on_this_books_decisions": false,
+          "verdict_rests_on": "beyond_this_book",
           "is_this_run": false
         },
         {
@@ -1582,6 +1586,8 @@
           "detectable_excess": 0.025277273995535726,
           "detectable_concordance": 0.5252772739955357,
           "accounts_needed": 292,
+          "reachable_on_this_books_decisions": false,
+          "verdict_rests_on": "beyond_this_book",
           "is_this_run": false
         },
         {
@@ -1590,6 +1596,8 @@
           "detectable_excess": 0.01787373185215369,
           "detectable_concordance": 0.5178737318521537,
           "accounts_needed": 584,
+          "reachable_on_this_books_decisions": false,
+          "verdict_rests_on": "beyond_this_book",
           "is_this_run": false
         }
       ],
@@ -1600,6 +1608,8 @@
           "decisions_needed": 20,
           "accounts_needed": 9,
           "within_the_settled_book_ceiling": null,
+          "reachable_on_this_books_decisions": true,
+          "verdict_rests_on": "attained",
           "is_the_observed_effect": false
         },
         {
@@ -1608,6 +1618,8 @@
           "decisions_needed": 44,
           "accounts_needed": 19,
           "within_the_settled_book_ceiling": null,
+          "reachable_on_this_books_decisions": true,
+          "verdict_rests_on": "attained",
           "is_the_observed_effect": false
         },
         {
@@ -1616,6 +1628,8 @@
           "decisions_needed": 174,
           "accounts_needed": 75,
           "within_the_settled_book_ceiling": null,
+          "reachable_on_this_books_decisions": null,
+          "verdict_rests_on": "coverage_gap_only",
           "is_the_observed_effect": false
         },
         {
@@ -1624,6 +1638,8 @@
           "decisions_needed": 222,
           "accounts_needed": 96,
           "within_the_settled_book_ceiling": null,
+          "reachable_on_this_books_decisions": false,
+          "verdict_rests_on": "beyond_this_book",
           "is_the_observed_effect": true
         },
         {
@@ -1632,6 +1648,8 @@
           "decisions_needed": 483,
           "accounts_needed": 208,
           "within_the_settled_book_ceiling": null,
+          "reachable_on_this_books_decisions": false,
+          "verdict_rests_on": "beyond_this_book",
           "is_the_observed_effect": false
         },
         {
@@ -1640,6 +1658,8 @@
           "decisions_needed": 1087,
           "accounts_needed": 467,
           "within_the_settled_book_ceiling": null,
+          "reachable_on_this_books_decisions": false,
+          "verdict_rests_on": "beyond_this_book",
           "is_the_observed_effect": false
         }
       ],
@@ -1668,6 +1688,39 @@
         ],
         "accounts_short": null,
         "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+      },
+      "this_books_decisions": {
+        "available": true,
+        "decisions_that_existed": 280,
+        "decisions_scored_this_run": 170,
+        "scorable_ceiling": 176,
+        "recoverable_on_this_book": 6,
+        "recoverable_by_class": {
+          "join": 0,
+          "coverage": 6
+        },
+        "unrecoverable_on_this_book": 104,
+        "unrecoverable_by_class": {
+          "eligibility": 39
+        },
+        "declined": 65,
+        "what_each_count_counts": {
+          "the_concordance": "PRICED RENEWAL DECISIONS THAT SETTLED. The arm struck a per-customer rate at a term boundary AND the world billed something under that rate inside the term, so there is an outcome to rank the price against. This is `method_skill.decisions_scored` -- 170 decisions on 73 accounts on the run this page publishes. Every decision count in the floor and the curve below is in THIS population.",
+          "the_decision_ceiling": "RENEWALS AT WHICH A DECISION EXISTED. Every term boundary the arm logged, priced or declined: a rate was struck for this household and a prior term existed, so a per-customer pricing decision was actually available to be made. This is `decisions.decisions_that_existed` and the drop-out funnel's `decisions_the_arm_logged` -- 280 on this run, by two independent routes that are checked against each other here. The concordance's population is a SUBSET of it, by the run's own reconciliation: 170 scored + 110 dropped = 280 logged.",
+          "not_the_auc_population": "`decisions.auc_population` IS A THIRD SET AND IS NEITHER OF THE ABOVE -- 124 scored on 66 accounts, 85 retained against 39 who left. It scores a CHURN belief against whether a household departed, not a renewal price against value created. It shares no numerator and no denominator with the two above, and no ceiling on this block bounds it."
+        },
+        "why_the_ceiling_is_not_the_population": "280 decisions existed and at most 176 of them are scorable. The difference is 104: decisions the arm declined, so no price exists to rank, and decisions the world never billed under the price that was chosen, so no outcome exists to rank against. Both are properties of what happened, not of our code, and neither is recovered by anything except a wider book.",
+        "the_two_bounds_point_opposite_ways": "`decisions_scored_this_run` is ATTAINED and therefore certifies; `scorable_ceiling` is an UPPER bound and therefore only refuses. Between them this page cannot tell, and says so. The settled book's ACCOUNT ceiling beside this one is upper-only and keeps its one-sided verdict unchanged -- it answers a different question over a different population and the two are never combined.",
+        "what_each_verdict_means": {
+          "attained": "This run ALREADY scored at least this many decisions. Unlike the settled-book ceiling beside it, this is a realised count and therefore a LOWER bound -- which is the one direction in which a positive verdict is safe. It says the requirement was met, not that it could be.",
+          "coverage_gap_only": "More decisions than this run scored, but within what this book could yield if the drop-outs classed `join` (our own defect) and `coverage` (a gap in the tariff series we are supposed to supply) were closed. Neither is demonstrated and neither is a book size, so the verdict is that we cannot tell.",
+          "beyond_this_book": "More decisions than this book can yield at all. What remains dropped is classed neither `join` nor `coverage`: the world billed nothing under the price that was chosen, or the arm declined and so emitted no price to rank. No code we write and no sourcing we do recovers them, so only a WIDER BOOK reaches this row.",
+          "undecidable": "Either this row states no requirement, or the run does not carry a reconciling drop-out funnel, so there is nothing to put against a ceiling."
+        },
+        "the_observed_effect_is_reachable_on_this_book": false,
+        "the_observed_verdict_rests_on": "beyond_this_book",
+        "decisions_needed_for_the_observed_effect": 222,
+        "sentence": "Reading a departure of 0.044 needs about 222 scored decisions. This book yielded 170, and at most 176 of its 280 decisions were ever scorable. IT IS NOT RESOLVABLE ON THIS BOOK: the requirement is 46 scored decisions beyond the most this book could ever have supplied. The 104 that separate the 280 which existed from the 176 which were scorable carry no price to rank -- the arm declined -- or no outcome to rank against, because the world billed nothing under the price that was chosen. Neither is recovered by code or by sourcing, so this verdict needs a WIDER BOOK and not more work on this one. R12: that is a bound being reported, never a book size to grow towards."
       },
       "method": "The half-width of the permutation null falls as 0.659 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(170), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=170 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
       "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
@@ -1767,6 +1820,8 @@
             "detectable_excess": 0.054035512510088785,
             "detectable_concordance": 0.5540355125100888,
             "accounts_needed": 88,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_this_run": true
           },
           {
@@ -1775,6 +1830,8 @@
             "detectable_excess": 0.0382088773207743,
             "detectable_concordance": 0.5382088773207743,
             "accounts_needed": 176,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_this_run": false
           },
           {
@@ -1783,6 +1840,8 @@
             "detectable_excess": 0.027017756255044392,
             "detectable_concordance": 0.5270177562550444,
             "accounts_needed": 352,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_this_run": false
           },
           {
@@ -1791,6 +1850,8 @@
             "detectable_excess": 0.01910443866038715,
             "detectable_concordance": 0.5191044386603871,
             "accounts_needed": 704,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_this_run": false
           }
         ],
@@ -1801,6 +1862,8 @@
             "decisions_needed": 22,
             "accounts_needed": 12,
             "within_the_settled_book_ceiling": null,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_the_observed_effect": false
           },
           {
@@ -1809,6 +1872,8 @@
             "decisions_needed": 48,
             "accounts_needed": 27,
             "within_the_settled_book_ceiling": null,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_the_observed_effect": false
           },
           {
@@ -1817,6 +1882,8 @@
             "decisions_needed": 116,
             "accounts_needed": 64,
             "within_the_settled_book_ceiling": null,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_the_observed_effect": true
           },
           {
@@ -1825,6 +1892,8 @@
             "decisions_needed": 190,
             "accounts_needed": 104,
             "within_the_settled_book_ceiling": null,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_the_observed_effect": false
           },
           {
@@ -1833,6 +1902,8 @@
             "decisions_needed": 526,
             "accounts_needed": 286,
             "within_the_settled_book_ceiling": null,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_the_observed_effect": false
           },
           {
@@ -1841,6 +1912,8 @@
             "decisions_needed": 1183,
             "accounts_needed": 643,
             "within_the_settled_book_ceiling": null,
+            "reachable_on_this_books_decisions": null,
+            "verdict_rests_on": "undecidable",
             "is_the_observed_effect": false
           }
         ],
@@ -1869,6 +1942,20 @@
           ],
           "accounts_short": null,
           "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+        },
+        "this_books_decisions": {
+          "available": false,
+          "reason": "this page was built without the run's drop-out funnel, so what this book could have scored was never put to it",
+          "what_each_verdict_means": {
+            "attained": "This run ALREADY scored at least this many decisions. Unlike the settled-book ceiling beside it, this is a realised count and therefore a LOWER bound -- which is the one direction in which a positive verdict is safe. It says the requirement was met, not that it could be.",
+            "coverage_gap_only": "More decisions than this run scored, but within what this book could yield if the drop-outs classed `join` (our own defect) and `coverage` (a gap in the tariff series we are supposed to supply) were closed. Neither is demonstrated and neither is a book size, so the verdict is that we cannot tell.",
+            "beyond_this_book": "More decisions than this book can yield at all. What remains dropped is classed neither `join` nor `coverage`: the world billed nothing under the price that was chosen, or the arm declined and so emitted no price to rank. No code we write and no sourcing we do recovers them, so only a WIDER BOOK reaches this row.",
+            "undecidable": "Either this row states no requirement, or the run does not carry a reconciling drop-out funnel, so there is nothing to put against a ceiling."
+          },
+          "the_observed_effect_is_reachable_on_this_book": null,
+          "the_observed_verdict_rests_on": "undecidable",
+          "decisions_needed_for_the_observed_effect": 116,
+          "sentence": "Whether the departure this run read is resolvable on this book at all, this page cannot say: no ceiling was supplied. Until it can, 'not yet' and 'not ever here' read identically above."
         },
         "method": "The half-width of the permutation null falls as 0.688 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(162), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=162 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
         "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
@@ -2173,6 +2260,8 @@
               "detectable_excess": 0.12066831683168318,
               "detectable_concordance": 0.6206683168316832,
               "accounts_needed": 66,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": true
             },
             {
@@ -2181,6 +2270,8 @@
               "detectable_excess": 0.08532538510604998,
               "detectable_concordance": 0.58532538510605,
               "accounts_needed": 132,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": false
             },
             {
@@ -2189,6 +2280,8 @@
               "detectable_excess": 0.06033415841584159,
               "detectable_concordance": 0.5603341584158416,
               "accounts_needed": 264,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": false
             },
             {
@@ -2197,6 +2290,8 @@
               "detectable_excess": 0.04266269255302499,
               "detectable_concordance": 0.542662692553025,
               "accounts_needed": 528,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": false
             }
           ],
@@ -2207,6 +2302,8 @@
               "decisions_needed": 81,
               "accounts_needed": 44,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -2215,6 +2312,8 @@
               "decisions_needed": 181,
               "accounts_needed": 97,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -2223,6 +2322,8 @@
               "decisions_needed": 307,
               "accounts_needed": 164,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": true
             },
             {
@@ -2231,6 +2332,8 @@
               "decisions_needed": 723,
               "accounts_needed": 385,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -2239,6 +2342,8 @@
               "decisions_needed": 2007,
               "accounts_needed": 1069,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -2247,6 +2352,8 @@
               "decisions_needed": 4514,
               "accounts_needed": 2403,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             }
           ],
@@ -2275,6 +2382,20 @@
             ],
             "accounts_short": null,
             "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+          },
+          "this_books_decisions": {
+            "available": false,
+            "reason": "this page was built without the run's drop-out funnel, so what this book could have scored was never put to it",
+            "what_each_verdict_means": {
+              "attained": "This run ALREADY scored at least this many decisions. Unlike the settled-book ceiling beside it, this is a realised count and therefore a LOWER bound -- which is the one direction in which a positive verdict is safe. It says the requirement was met, not that it could be.",
+              "coverage_gap_only": "More decisions than this run scored, but within what this book could yield if the drop-outs classed `join` (our own defect) and `coverage` (a gap in the tariff series we are supposed to supply) were closed. Neither is demonstrated and neither is a book size, so the verdict is that we cannot tell.",
+              "beyond_this_book": "More decisions than this book can yield at all. What remains dropped is classed neither `join` nor `coverage`: the world billed nothing under the price that was chosen, or the arm declined and so emitted no price to rank. No code we write and no sourcing we do recovers them, so only a WIDER BOOK reaches this row.",
+              "undecidable": "Either this row states no requirement, or the run does not carry a reconciling drop-out funnel, so there is nothing to put against a ceiling."
+            },
+            "the_observed_effect_is_reachable_on_this_book": null,
+            "the_observed_verdict_rests_on": "undecidable",
+            "decisions_needed_for_the_observed_effect": 307,
+            "sentence": "Whether the departure this run read is resolvable on this book at all, this page cannot say: no ceiling was supplied. Until it can, 'not yet' and 'not ever here' read identically above."
           },
           "method": "The half-width of the permutation null falls as 1.344 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(124), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=124 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
           "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
@@ -3336,6 +3457,8 @@
               "detectable_excess": 0.12066831683168318,
               "detectable_concordance": 0.6206683168316832,
               "accounts_needed": 66,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": true
             },
             {
@@ -3344,6 +3467,8 @@
               "detectable_excess": 0.08532538510604998,
               "detectable_concordance": 0.58532538510605,
               "accounts_needed": 132,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": false
             },
             {
@@ -3352,6 +3477,8 @@
               "detectable_excess": 0.06033415841584159,
               "detectable_concordance": 0.5603341584158416,
               "accounts_needed": 264,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": false
             },
             {
@@ -3360,6 +3487,8 @@
               "detectable_excess": 0.04266269255302499,
               "detectable_concordance": 0.542662692553025,
               "accounts_needed": 528,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_this_run": false
             }
           ],
@@ -3370,6 +3499,8 @@
               "decisions_needed": 81,
               "accounts_needed": 44,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -3378,6 +3509,8 @@
               "decisions_needed": 181,
               "accounts_needed": 97,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -3386,6 +3519,8 @@
               "decisions_needed": 307,
               "accounts_needed": 164,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": true
             },
             {
@@ -3394,6 +3529,8 @@
               "decisions_needed": 723,
               "accounts_needed": 385,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -3402,6 +3539,8 @@
               "decisions_needed": 2007,
               "accounts_needed": 1069,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             },
             {
@@ -3410,6 +3549,8 @@
               "decisions_needed": 4514,
               "accounts_needed": 2403,
               "within_the_settled_book_ceiling": null,
+              "reachable_on_this_books_decisions": null,
+              "verdict_rests_on": "undecidable",
               "is_the_observed_effect": false
             }
           ],
@@ -3438,6 +3579,20 @@
             ],
             "accounts_short": null,
             "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+          },
+          "this_books_decisions": {
+            "available": false,
+            "reason": "this page was built without the run's drop-out funnel, so what this book could have scored was never put to it",
+            "what_each_verdict_means": {
+              "attained": "This run ALREADY scored at least this many decisions. Unlike the settled-book ceiling beside it, this is a realised count and therefore a LOWER bound -- which is the one direction in which a positive verdict is safe. It says the requirement was met, not that it could be.",
+              "coverage_gap_only": "More decisions than this run scored, but within what this book could yield if the drop-outs classed `join` (our own defect) and `coverage` (a gap in the tariff series we are supposed to supply) were closed. Neither is demonstrated and neither is a book size, so the verdict is that we cannot tell.",
+              "beyond_this_book": "More decisions than this book can yield at all. What remains dropped is classed neither `join` nor `coverage`: the world billed nothing under the price that was chosen, or the arm declined and so emitted no price to rank. No code we write and no sourcing we do recovers them, so only a WIDER BOOK reaches this row.",
+              "undecidable": "Either this row states no requirement, or the run does not carry a reconciling drop-out funnel, so there is nothing to put against a ceiling."
+            },
+            "the_observed_effect_is_reachable_on_this_book": null,
+            "the_observed_verdict_rests_on": "undecidable",
+            "decisions_needed_for_the_observed_effect": 307,
+            "sentence": "Whether the departure this run read is resolvable on this book at all, this page cannot say: no ceiling was supplied. Until it can, 'not yet' and 'not ever here' read identically above."
           },
           "method": "The half-width of the permutation null falls as 1.344 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(124), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=124 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
           "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",

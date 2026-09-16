@@ -384,6 +384,213 @@ def test_the_live_feed_states_what_the_concordance_could_have_detected():
     assert "eligibility" in block["the_book_this_would_need"]["why_only_a_larger_book"]
 
 
+#: The run's own drop-out funnel, in the shape `this_books_decision_ceiling` consumes and at the
+#: live run's classes. `decisions_scored` is held at `LIVE_N` so the fixture's "attained" boundary
+#: is the same sample the rest of this file's arithmetic runs at -- a book whose scored count
+#: disagreed with the block's `n` would make every verdict below a statement about the fixture.
+#: The class counts are the knobs and `decisions_the_arm_logged` is DERIVED from them, so a
+#: fixture cannot be tuned into a funnel that does not add up without saying so: the producer
+#: refuses exactly that, and a hand-set total would make the refusal untestable by accident.
+def _drop_out(*, scored=LIVE_N, join=0, coverage=6, eligibility=39, declined=65, **over):
+    counts = {"declined": declined,
+              "account_has_no_settled_row_anywhere": join,
+              "the_priced_term_carried_no_settled_row": eligibility,
+              "no_published_counterfactual_rate_for_the_term": coverage}
+    funnel = {"available": True, "reconciles": True,
+              "decisions_the_arm_logged": scored + sum(counts.values()),
+              "decisions_scored": scored,
+              "dropped_by_reason": counts,
+              "dropped_by_class": {"join": join, "coverage": coverage,
+                                   "eligibility": eligibility}}
+    funnel.update(over)
+    return funnel
+
+
+def _book(**over):
+    return ic.this_books_decision_ceiling(drop_out=_drop_out(**over))
+
+
+def test_all_three_book_verdicts_are_reachable_and_the_bound_is_what_moves_them():
+    """DEFECT: a tri-state verdict with an unreachable branch, and the CONTROL that cannot see it.
+
+    Every other test here asks "does this row refuse correctly", and a verdict that refused
+    EVERYTHING would pass all of them -- the trap CLAUDE.md records being walked into three times
+    in one afternoon. So this asserts the WHOLE PARTITION over one fixed requirement, moving only
+    the bound: 177 scored decisions (the 0.05 rung of the published ladder) is attained by a book
+    that scored more, undecided by a book that could still reach it, and refused by one that could
+    not. Nothing else in this file would notice a verdict frozen on one leg.
+
+    Fires on: collapsing the tri-state to a boolean, testing `needed <= decisions_that_existed`
+    (which would make the middle and upper rungs both `True` here), or keying the positive branch
+    to `scorable_ceiling` instead of the realised count.
+    """
+    def verdict_at(book):
+        rung = [row for row in _block(book=book)["floor"]
+                if row["excess_over_no_information"] == 0.05]
+        assert len(rung) == 1
+        return rung[0]["reachable_on_this_books_decisions"], rung[0]["verdict_rests_on"]
+
+    # A book that SCORED more than the rung needs -- the only bound that can certify.
+    assert verdict_at(_book(scored=200)) == (True, "attained")
+    # ...one that did not, but whose own defect and coverage gap could still supply it.
+    assert verdict_at(_book(join=4, coverage=120)) == (
+        None, "coverage_gap_only")
+    # ...and one that could not, at the live run's own classes.
+    assert verdict_at(_book()) == (False, "beyond_this_book")
+
+
+def test_the_ceiling_is_what_is_scorable_and_never_what_the_book_decided():
+    """DEFECT: the generous count published as the bound, which is a FAIL-OPEN by 104 decisions.
+
+    `decisions_that_existed` is 280 on the live run and `scorable_ceiling` is 176. The difference
+    is decisions the arm declined (no price exists to rank) and decisions the world never billed
+    under the price that was chosen (no outcome to rank against). A requirement between the two
+    is out of reach of this book and reads as attainable if the wider number is used.
+
+    Fires on: `ceiling = logged`, or folding `eligibility` or `declined` into the recoverable set.
+    """
+    book = _book()
+    assert book["scorable_ceiling"] == book["decisions_scored_this_run"] + 6
+    assert book["scorable_ceiling"] < book["decisions_that_existed"]
+    # The band that separates them is where the fail-open would live, and every requirement in it
+    # is refused.
+    between = (book["scorable_ceiling"] + book["decisions_that_existed"]) // 2
+    assert ic._reachable_on_this_book(between, book) == (False, "beyond_this_book")
+    assert ic._reachable_on_this_book(book["scorable_ceiling"], book)[0] is None
+    # ...and the arithmetic closes for a reader: what existed is what was scored, plus what is
+    # recoverable, plus what is not, plus the declines that never entered the priced population.
+    assert (book["decisions_scored_this_run"] + book["recoverable_on_this_book"]
+            + sum(book["unrecoverable_by_class"].values())
+            + book["declined"]) == book["decisions_that_existed"]
+
+
+def test_a_funnel_that_does_not_add_up_or_carries_an_unknown_class_bounds_nothing():
+    """DEFECT: FAIL-OPEN. A ceiling computed over the classes it happened to recognise.
+
+    A drop-out class this module has never heard of is exactly the denominator-missing-a-guard
+    defect one level down, and the permissive reading of it -- treat the unknown class as
+    unrecoverable -- would make the ceiling TIGHTER and its refusals therefore unsafe.
+
+    Fires on: defaulting an unknown class to either side, or dropping the reconciliation check.
+    """
+    broken = ic.this_books_decision_ceiling(drop_out=_drop_out(reconciles=False,
+                                                              reconciliation="86 + 110 vs 280"))
+    assert broken["available"] is False and "86 + 110 vs 280" in broken["reason"]
+    unknown = ic.this_books_decision_ceiling(
+        drop_out=_drop_out(dropped_by_class={"join": 0, "coverage": 6, "provenance": 39}))
+    assert unknown["available"] is False and "provenance" in unknown["reason"]
+    for absent in ({"available": False}, {}, None):
+        assert ic.this_books_decision_ceiling(drop_out=absent)["available"] is False
+    # ...and an unavailable ceiling leaves every row saying so, never saying "in reach".
+    rows = _block(book=unknown)["floor"] + _block(book=unknown)["curve"]
+    assert {row["reachable_on_this_books_decisions"] for row in rows} == {None}
+    assert {row["verdict_rests_on"] for row in rows} == {"undecidable"}
+
+
+def test_the_two_routes_to_the_decision_population_have_to_agree():
+    """DEFECT: two counts of one population, one published as a bound, the disagreement buried.
+
+    `decisions.decisions_that_existed` comes from the renewal funnel's stage counts and
+    `decisions_the_arm_logged` from the arm's own decision log. They agree at 280 today. A run
+    where they do not has a population defect, and picking either number would hide it.
+
+    Fires on: dropping the cross-check, or resolving a disagreement by preferring one route.
+    """
+    agreeing = ic.this_books_decision_ceiling(drop_out=_drop_out(),
+                                              decisions_that_existed=LIVE_N + 110)
+    assert agreeing["available"] is True
+    split = ic.this_books_decision_ceiling(drop_out=_drop_out(),
+                                           decisions_that_existed=LIVE_N + 111)
+    assert split["available"] is False
+    assert "disagree" in split["reason"] and str(LIVE_N + 111) in split["reason"]
+
+
+def test_the_resolvable_sentence_cannot_disagree_with_the_verdict_it_reports():
+    """DEFECT: prose beside a verdict rather than derived from it -- this page's oldest failure.
+
+    The sentence is the only part of this block the reader actually meets, so a claim that the
+    book is the bound must be impossible while the arithmetic says it is not, in BOTH directions.
+
+    Fires on: hand-writing the sentence, or keeping a branch whose words outlive their verdict.
+    """
+    refused = _block(book=_book())["this_books_decisions"]
+    assert refused["the_observed_effect_is_reachable_on_this_book"] is False
+    assert "NOT RESOLVABLE ON THIS BOOK" in refused["sentence"]
+    assert "WIDER BOOK" in refused["sentence"]
+    # ...and a reading that CLEARS its null needs fewer decisions than the run scored, so the
+    # same composition has to say the opposite. A sentence hard-wired to the refusal fails here.
+    attained = _block(observed=0.75, book=_book())["this_books_decisions"]
+    assert attained["the_observed_effect_is_reachable_on_this_book"] is True
+    assert "ATTAINED" in attained["sentence"]
+    assert "NOT RESOLVABLE" not in attained["sentence"]
+    # ...and the undecided middle says we cannot tell rather than either of the above. The book
+    # here is one whose coverage gap ALONE could supply the ~1,500 decisions this reading needs:
+    # more than it scored, not more than it could score.
+    middle = _block(book=_book(coverage=1500))["this_books_decisions"]
+    assert middle["the_observed_effect_is_reachable_on_this_book"] is None
+    assert "cannot tell" in middle["sentence"]
+
+
+def test_the_two_ceilings_are_never_merged_into_one_field():
+    """DEFECT: one name, two answers -- the shape this whole block exists to have stopped making.
+
+    `within_the_settled_book_ceiling` is counted over settled-book ACCOUNTS and is upper-only, so
+    it can never certify. `reachable_on_this_books_decisions` is counted over this book's own
+    DECISIONS and rests on a realised count, so it can. Filling the first from the second would
+    publish an attainability claim about a population it was not measured over.
+
+    Fires on: writing the decision verdict into the settled-book field, or dropping either field.
+    """
+    row = [r for r in _block(book=_book(scored=200))["floor"]
+           if r["excess_over_no_information"] == 0.15][0]
+    assert row["reachable_on_this_books_decisions"] is True
+    assert row["within_the_settled_book_ceiling"] is not True
+    # ...and the account verdict keeps its own one-sidedness whatever the decision book says.
+    for observed in (0.501, 0.52, 0.54, 0.60, 0.75, 0.99, 0.46, 0.25):
+        block = _block(observed=observed, book=_book(scored=5000))
+        assert block["the_book_this_would_need"]["the_observed_effect_is_attainable"] in (
+            False, None), observed
+    # The populations are named on the block BEFORE any of them is put against another.
+    counts = _book()["what_each_count_counts"]
+    assert "PRICED RENEWAL DECISIONS THAT SETTLED" in counts["the_concordance"]
+    assert "RENEWALS AT WHICH A DECISION EXISTED" in counts["the_decision_ceiling"]
+    assert "THIRD SET" in counts["not_the_auc_population"]
+
+
+def test_the_live_feed_says_whether_the_verdict_is_reachable_on_this_book():
+    """DEFECT: the page says "we cannot tell" and cannot say whether that is NOT YET or NOT EVER.
+
+    That distinction decides what to do next -- improve the arm on this book, or widen the book --
+    and `within_the_settled_book_ceiling` read null on every row for six days while the answer sat
+    in the run's own drop-out funnel. Reads the LIVE feed: a green unit test beside an unpublished
+    field is the shape this project files findings about.
+
+    Fires on: dropping `book=` at the call site, shipping the block unavailable, or leaving any
+    published row without a verdict.
+    """
+    msk = json.loads(FEED.read_text(encoding="utf-8"))["method_skill"]
+    if not msk.get("available"):
+        pytest.skip("this feed carries no method-skill reading to qualify")
+    block = (msk.get("what_it_could_have_detected") or {})
+    book = block.get("this_books_decisions") or {}
+    assert book.get("available") is True, book.get("reason")
+    # EVERY published row carries a verdict and its reason -- no row is left for the reader to
+    # guess at, which was the whole finding.
+    for row in block["floor"] + block["curve"]:
+        assert "reachable_on_this_books_decisions" in row
+        assert row["verdict_rests_on"] in ic.BOOK_REACH_REASONS
+        assert row["verdict_rests_on"] != "undecidable", row
+    # ...and the verdict on the observed effect is STATED, not withheld.
+    assert book["the_observed_effect_is_reachable_on_this_book"] in (True, False, None)
+    assert book["the_observed_verdict_rests_on"] != "undecidable"
+    assert book["decisions_scored_this_run"] == msk["decisions_scored"]
+    # The ceiling is the SCORABLE one, checked against the feed's own funnel rather than restated.
+    drop = msk["drop_out"]
+    assert book["decisions_that_existed"] == drop["priced_decisions"] + drop["declined"]
+    assert book["scorable_ceiling"] == (
+        msk["decisions_scored"] + drop["by_class"]["join"] + drop["by_class"]["coverage"])
+
+
 def test_the_floor_is_published_as_a_diagnostic_and_never_as_a_target():
     """DEFECT: R12. A floor on the page reads as a book size to grow towards.
 

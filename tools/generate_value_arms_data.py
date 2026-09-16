@@ -139,6 +139,7 @@ from tools.inference_claim import (
     concordance_reading,
     detectability,
     inference_claim,
+    this_books_decision_ceiling,
 )
 from tools.product_gate_refusal import refusal_breakdown
 
@@ -4449,6 +4450,18 @@ def _method_skill(three_arm: dict) -> dict:
             # SAME REFUSAL AS THE FIXED-HORIZON CUT ABOVE, and for the same two reasons -- see the
             # comment there. Both cuts feed the same `detectability`, so a window declared for one
             # is a window declared for both, and neither may reach for it before then.
+            #
+            # ...AND THE CEILING THAT DOES NOT NEED A WINDOW, because it is counted in DECISIONS
+            # over the very population `decisions_scored` is counted over. It was inside this
+            # artefact all along: the run's own drop-out funnel reconciles 170 scored + 110
+            # dropped against 280 logged and classes every one of the 110. Passing the FUNNEL's
+            # independent count of the same population beside it makes the two routes check each
+            # other rather than making a reader take one on trust.
+            book=this_books_decision_ceiling(
+                drop_out=ms.get("drop_out"),
+                decisions_that_existed=(decisions_that_existed(
+                    ((three_arm or {}).get("renewal_funnel") or {}).get("value_arm") or {}
+                ) or {}).get("decisions_that_existed")),
             ),
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),

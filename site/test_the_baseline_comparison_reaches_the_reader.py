@@ -3725,6 +3725,63 @@ def test_the_page_says_what_the_concordance_COULD_have_detected_beside_what_it_d
             "the page refuses without the cause the arithmetic gave it: " + why)
 
 
+def test_the_page_says_whether_that_floor_is_reachable_on_the_book_that_actually_ran(live):
+    """NOT YET, OR NOT EVER HERE -- and until 2026-09-16 the page could not tell them apart.
+
+    The test above gets the floor onto the page: the smallest departure this run could have
+    called. What it cannot get there is whether that floor is REACHABLE, because the only bound it
+    prices against is the settled book's ACCOUNT ceiling, which refuses without a declared window
+    and so read "this page cannot say" on every row for six days. A reader met "we cannot tell"
+    about the concordance and nothing at all about whether the telling was NOT YET or NOT EVER
+    HERE -- which are opposite instructions: improve the arm on this book, or widen the book.
+
+    The answer was inside the artefact the whole time. The run's own drop-out funnel reconciles
+    170 scored + 110 dropped against 280 logged and classes every one of the 110, which is a bound
+    in DECISIONS -- the population the requirement is stated in -- needing no window and no
+    account bridge.
+
+    SCOPED TO THE SURVIVOR CUT'S REGION for the same reason as the pair above, and DERIVED FROM
+    THE FEED'S OWN NUMBERS rather than from literals: a fixture copy of 176 here would be a second
+    source for a published figure and would stay green while the page rotted.
+
+    Fires on: dropping the render, rendering a verdict the arithmetic does not support, or
+    shipping the sentence for a block whose ceiling could not be read.
+    """
+    msk = _live_feed().get("method_skill") or {}
+    if not msk.get("available"):
+        pytest.skip("the live feed carries no method-skill reading to qualify")
+    block = msk.get("what_it_could_have_detected") or {}
+    book = block.get("this_books_decisions") or {}
+    assert book, "the feed prices a floor and never asks whether this book reaches it"
+
+    below = "And the same question over every decision the arm priced?"
+    region = live["arms-method"].split(below)[0]
+    if not book.get("available"):
+        # FAIL-CLOSED ON THE SURFACE. An unreadable ceiling is a result and the reader meets it.
+        assert "cannot say" in region, book.get("reason")
+        return
+    # THE TWO BOUNDS, IN THE PAGE'S OWN WORDS, built from the feed's counts. This clause belongs
+    # to no other sentence on the panel, so its presence cannot be satisfied by a neighbour.
+    assert "at most {c:,} of its {e:,} decisions were ever scorable".format(
+        c=book["scorable_ceiling"], e=book["decisions_that_existed"]) in region, (
+        "the page prices a floor in decisions and never says how many decisions this book could "
+        "ever have supplied")
+    # ...AND THE VERDICT, DERIVED. Each branch is asserted against the arithmetic that produced
+    # it, so prose claiming the book is the bound cannot survive a verdict saying it is not.
+    reachable = book["the_observed_effect_is_reachable_on_this_book"]
+    if reachable is False:
+        assert "NOT RESOLVABLE ON THIS BOOK" in region, (
+            "the arithmetic says the departure this run read is beyond anything this book could "
+            "have scored, and the page does not say so")
+        assert "WIDER BOOK" in region, "the page refuses without naming the only lever left"
+    elif reachable is True:
+        assert "ATTAINED" in region and "NOT RESOLVABLE" not in region
+    else:
+        assert "cannot tell" in region, (
+            "the requirement sits between what was scored and what was scorable and the page "
+            "states neither the doubt nor its cause")
+
+
 def test_the_detectability_block_going_unavailable_says_so_rather_than_going_quiet():
     """FAIL-CLOSED, ON THE SURFACE. A missing bound is a result and it belongs on the page.
 

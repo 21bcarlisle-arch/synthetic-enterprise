@@ -2598,6 +2598,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + "What this reading could have detected: "
                     + prose(msk.what_it_could_have_detected.reason) + "</p>"
                   : ""))
+          /* ...AND WHETHER THAT FLOOR IS REACHABLE ON THE BOOK THAT ACTUALLY RAN, which is the
+             half the paragraph above could not supply. Its verdict is priced against the settled
+             book's ACCOUNT ceiling, which refuses without a declared window and so read "this
+             page cannot say" on every row for six days — leaving a reader unable to tell NOT YET
+             from NOT EVER HERE, which are opposite instructions about what to do next. This
+             sentence is priced against this book's own DECISIONS, counted over the population the
+             requirement is counted in, and it comes from the same feed block as the verdict so
+             prose cannot outlive the arithmetic. Amber: it qualifies the floor, it does not
+             footnote it. */
+          + (msk.what_it_could_have_detected
+             && msk.what_it_could_have_detected.this_books_decisions
+              ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
+                + 'color:var(--amber);">'
+                + prose(msk.what_it_could_have_detected.this_books_decisions.sentence) + "</p>"
+              : "")
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(msk.reading) + "</p>"
           /* ...AND WHETHER THE REASON THAT SENTENCE GIVES STANDS UP. The run's own words above

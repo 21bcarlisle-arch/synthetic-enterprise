@@ -463,8 +463,202 @@ def settled_book_ceiling_accounts(*, window_years: int | None = None) -> dict:
     }
 
 
+#: WHICH POPULATION EACH FIGURE ON THIS BLOCK IS COUNTED OVER, stated BEFORE any of them is put
+#: against another. Three different sets appear within a few hundred pixels of each other on the
+#: capabilities page and two of them are routinely quoted as if they were one.
+#:
+#: This is the project's most expensive recurring shape and it has already been paid for twice in
+#: this very block -- once on the window (a per-customer-YEAR ceiling against a whole-window
+#: requirement) and once on the population (a SETTLED-book ceiling against a SCORED-decision
+#: requirement). What follows is not commentary; it is the precondition for the verdicts below.
+DECISION_POPULATIONS = {
+    "the_concordance": (
+        "PRICED RENEWAL DECISIONS THAT SETTLED. The arm struck a per-customer rate at a term "
+        "boundary AND the world billed something under that rate inside the term, so there is an "
+        "outcome to rank the price against. This is `method_skill.decisions_scored` -- 170 "
+        "decisions on 73 accounts on the run this page publishes. Every decision count in the "
+        "floor and the curve below is in THIS population."),
+    "the_decision_ceiling": (
+        "RENEWALS AT WHICH A DECISION EXISTED. Every term boundary the arm logged, priced or "
+        "declined: a rate was struck for this household and a prior term existed, so a "
+        "per-customer pricing decision was actually available to be made. This is "
+        "`decisions.decisions_that_existed` and the drop-out funnel's `decisions_the_arm_logged` "
+        "-- 280 on this run, by two independent routes that are checked against each other here. "
+        "The concordance's population is a SUBSET of it, by the run's own reconciliation: 170 "
+        "scored + 110 dropped = 280 logged."),
+    "not_the_auc_population": (
+        "`decisions.auc_population` IS A THIRD SET AND IS NEITHER OF THE ABOVE -- 124 scored on "
+        "66 accounts, 85 retained against 39 who left. It scores a CHURN belief against whether a "
+        "household departed, not a renewal price against value created. It shares no numerator "
+        "and no denominator with the two above, and no ceiling on this block bounds it."),
+}
+
+#: WHAT EACH PER-ROW VERDICT RESTS ON. One key per branch of `_reachable_on_this_book`, so the
+#: row carries a short key a test can assert over a partition and the reader gets the sentence
+#: once rather than the same paragraph repeated on ten rows.
+BOOK_REACH_REASONS = {
+    "attained": (
+        "This run ALREADY scored at least this many decisions. Unlike the settled-book ceiling "
+        "beside it, this is a realised count and therefore a LOWER bound -- which is the one "
+        "direction in which a positive verdict is safe. It says the requirement was met, not "
+        "that it could be."),
+    "coverage_gap_only": (
+        "More decisions than this run scored, but within what this book could yield if the "
+        "drop-outs classed `join` (our own defect) and `coverage` (a gap in the tariff series we "
+        "are supposed to supply) were closed. Neither is demonstrated and neither is a book "
+        "size, so the verdict is that we cannot tell."),
+    "beyond_this_book": (
+        "More decisions than this book can yield at all. What remains dropped is classed neither "
+        "`join` nor `coverage`: the world billed nothing under the price that was chosen, or the "
+        "arm declined and so emitted no price to rank. No code we write and no sourcing we do "
+        "recovers them, so only a WIDER BOOK reaches this row."),
+    "undecidable": (
+        "Either this row states no requirement, or the run does not carry a reconciling drop-out "
+        "funnel, so there is nothing to put against a ceiling."),
+}
+
+
+#: Drop-out classes whose own definition says the decision is still scorable from THIS book -- our
+#: defect, or data this repository owes. Read as names rather than counts so a class added
+#: upstream lands in the `unknown` refusal below and not silently on the permissive side.
+RECOVERABLE_CLASSES = ("join", "coverage")
+
+#: ...and the ones it does not. `eligibility` is the funnel's own word for "the concordance
+#: genuinely needs it and no code we write supplies it": the world billed nothing under the price
+#: that was chosen. On THIS book that is terminal, which is the only claim made here -- whether a
+#: LARGER book puts decisions here is a question this ceiling does not ask and does not answer.
+UNRECOVERABLE_CLASSES = ("eligibility",)
+
+
+def this_books_decision_ceiling(*, drop_out: dict | None,
+                                decisions_that_existed: int | None = None) -> dict:
+    """HOW MANY SCORED DECISIONS THIS BOOK COULD EVER HAVE YIELDED, or an explicit refusal.
+
+    WHY THIS EXISTS (2026-09-16). `within_the_settled_book_ceiling` read `None` on every floor and
+    curve row for six days, because the only ceiling this block had was the settled book's ACCOUNT
+    ceiling and that refuses without a declared window. So the page said "we cannot tell" about
+    the concordance and then could not tell the reader whether the thing it could not tell was
+    NOT YET or NOT EVER HERE -- and that distinction is the whole decision about what to do next:
+    improve the arm on this book, or widen the book.
+
+    A SECOND CEILING WAS ALREADY INSIDE THE ARTEFACT and nothing read it. The run's own drop-out
+    funnel reconciles 170 scored + 110 dropped against 280 logged, and it classes every one of the
+    110. That is a bound in DECISIONS -- the same unit and the same population the floor's
+    `decisions_needed` is stated in -- so it needs no account bridge and no window. It is exactly
+    the number the earlier repair could not have: a bound counted over the population the
+    requirement is counted over.
+
+    THE TWO CEILINGS ARE NOT THE SAME KIND AND THIS ONE HAS A SAFE POSITIVE DIRECTION. The settled
+    book's ceiling is an UPPER bound on a hypothetical, so it can refuse and never certify --
+    `_attainability` has no `True` branch and that is deliberate. This block reports TWO bounds of
+    OPPOSITE direction over one realised run:
+
+      * `decisions_scored_this_run` is ATTAINED. It is not an estimate of what the book might
+        yield; it is what the book DID yield. A requirement at or under it was met, and saying so
+        is safe for the exact reason the other verdict's `True` was not.
+      * `scorable_ceiling` is an UPPER bound on this book: everything still scorable here, which
+        is what was scored plus the drop-outs whose own class says they are recoverable without a
+        world change. A requirement above it is out of reach of this book, which is a refusal.
+
+    IT FAILS CLOSED ON A FUNNEL THAT DOES NOT ADD UP, on a class it has never heard of, and on a
+    disagreement between the two routes to the decision population. A ceiling computed over the
+    classes it happened to recognise is the same defect one level down: a denominator quietly
+    missing a guard.
+    """
+    drop = drop_out or {}
+    if not drop.get("available"):
+        return {"available": False,
+                "reason": ("the run that produced this artefact carries no drop-out funnel, so "
+                           "what this book could have scored is unknown rather than large")}
+    if not drop.get("reconciles"):
+        return {"available": False,
+                "reason": ("the run's drop-out funnel does not reconcile against the decisions it "
+                           "logged (" + str(drop.get("reconciliation") or "no reconciliation was "
+                                            "reported") + "), so no ceiling can be read from it")}
+    logged = drop.get("decisions_the_arm_logged")
+    scored = drop.get("decisions_scored")
+    by_class = drop.get("dropped_by_class") or {}
+    if not isinstance(logged, int) or not isinstance(scored, int) or scored > logged:
+        return {"available": False,
+                "reason": "the funnel's own logged and scored counts are not a usable pair"}
+    unknown = sorted(set(by_class) - set(RECOVERABLE_CLASSES) - set(UNRECOVERABLE_CLASSES))
+    if unknown:
+        return {"available": False,
+                "reason": ("the funnel carries a drop-out class this ceiling has never heard of ("
+                           + ", ".join(unknown) + "), and a ceiling computed over the classes it "
+                           "did recognise would be a bound quietly missing a guard")}
+    # THE CROSS-CHECK, and it is a real one: `decisions_that_existed` reaches this page from the
+    # renewal funnel's STAGE COUNTS and `decisions_the_arm_logged` from the arm's own decision log.
+    # Two routes to one population. They agree on this run at 280; a run where they disagree has a
+    # population defect somewhere, and publishing either number as the ceiling would bury it.
+    if isinstance(decisions_that_existed, int) and decisions_that_existed != logged:
+        return {"available": False,
+                "reason": ("the two routes to this book's decision population disagree -- the "
+                           "renewal funnel's stage counts say {f:,} and the arm's own decision "
+                           "log says {a:,}. One of them is wrong and this ceiling will not pick "
+                           "which.".format(f=decisions_that_existed, a=logged))}
+    recoverable = sum(int(by_class.get(name) or 0) for name in RECOVERABLE_CLASSES)
+    ceiling = scored + recoverable
+    return {
+        "available": True,
+        # WHAT THE BOOK PUT IN FRONT OF THE ARM AT ALL. The widest number here and the one a
+        # reader is most likely to mistake for the ceiling: it counts decisions that carry no
+        # price to rank and decisions with no outcome to rank against, so it bounds nothing this
+        # instrument can consume. Published because the gap between it and `scorable_ceiling` IS
+        # the finding.
+        "decisions_that_existed": logged,
+        # ATTAINED. A LOWER bound, realised, and the only figure on this page that can certify.
+        "decisions_scored_this_run": scored,
+        # ...AND THE UPPER ONE, on this book.
+        "scorable_ceiling": ceiling,
+        "recoverable_on_this_book": recoverable,
+        "recoverable_by_class": {name: int(by_class.get(name) or 0)
+                                 for name in RECOVERABLE_CLASSES},
+        "unrecoverable_on_this_book": logged - ceiling,
+        "unrecoverable_by_class": {name: int(by_class.get(name) or 0)
+                                   for name in UNRECOVERABLE_CLASSES},
+        # DECLINES ARE THE REST OF IT, and they are not in `dropped_by_class` at all -- the funnel
+        # excludes them from every class on purpose, because a decline never entered the PRICED
+        # population. Named here so the arithmetic `logged - scored - dropped_by_class` closes for
+        # a reader instead of leaving an unexplained remainder.
+        "declined": (drop.get("dropped_by_reason") or {}).get("declined"),
+        "what_each_count_counts": DECISION_POPULATIONS,
+        "why_the_ceiling_is_not_the_population": (
+            "{existed:,} decisions existed and at most {ceiling:,} of them are scorable. The "
+            "difference is {gap:,}: decisions the arm declined, so no price exists to rank, and "
+            "decisions the world never billed under the price that was chosen, so no outcome "
+            "exists to rank against. Both are properties of what happened, not of our code, and "
+            "neither is recovered by anything except a wider book.".format(
+                existed=logged, ceiling=ceiling, gap=logged - ceiling)),
+        "the_two_bounds_point_opposite_ways": (
+            "`decisions_scored_this_run` is ATTAINED and therefore certifies; `scorable_ceiling` "
+            "is an UPPER bound and therefore only refuses. Between them this page cannot tell, "
+            "and says so. The settled book's ACCOUNT ceiling beside this one is upper-only and "
+            "keeps its one-sided verdict unchanged -- it answers a different question over a "
+            "different population and the two are never combined."),
+    }
+
+
+def _reachable_on_this_book(decisions_needed, book: dict | None):
+    """TRI-STATE, and all three are reachable -- see `this_books_decision_ceiling`.
+
+    Returns `(verdict, rests_on)` with verdict in {True, False, None} and `rests_on` a key of
+    `BOOK_REACH_REASONS`. `True` is safe HERE and was not safe for the settled-book verdict,
+    because the bound it rests on is a count this run realised rather than a bound on a
+    hypothetical. That asymmetry is the whole reason the two verdicts are separate fields.
+    """
+    if not (book or {}).get("available") or decisions_needed is None:
+        return None, "undecidable"
+    if decisions_needed <= book["decisions_scored_this_run"]:
+        return True, "attained"
+    if decisions_needed <= book["scorable_ceiling"]:
+        return None, "coverage_gap_only"
+    return False, "beyond_this_book"
+
+
 def detectability(*, observed, null_low, null_high, n, accounts=None, window_years=None,
-                  settled_book_accounts=None, ceiling: dict | None = None) -> dict:
+                  settled_book_accounts=None, ceiling: dict | None = None,
+                  book: dict | None = None) -> dict:
     """WHAT THIS READING COULD HAVE DETECTED, beside what it did.
 
     WHY THIS EXISTS. `cannot_tell_sentence` above publishes that the concordance sits inside its
@@ -579,6 +773,11 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
         """TRI-STATE, and now only two of the three are reachable. See `_attainability`."""
         return _attainability(needed_accounts)[0]
 
+    def book_reach(decisions_needed):
+        """The row's two book fields, built together so a verdict and its reason cannot drift."""
+        verdict, rests_on = _reachable_on_this_book(decisions_needed, book)
+        return {"reachable_on_this_books_decisions": verdict, "verdict_rests_on": rests_on}
+
     curve = []
     for multiple in CURVE_MULTIPLES:
         size = n * multiple
@@ -589,6 +788,9 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
             "detectable_excess": excess,
             "detectable_concordance": 0.5 + excess,
             "accounts_needed": accounts_for(size),
+            # THE ACCOUNT CEILING'S VERDICT STAYS UPPER-ONLY AND ABSENT FROM THE CURVE; this is the
+            # DECISION ceiling's, counted over the population `decisions_scored` is counted over.
+            **book_reach(size),
             "is_this_run": multiple == 1,
         })
     if ceiling_decisions and ceiling_decisions not in {row["decisions_scored"] for row in curve}:
@@ -598,6 +800,7 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
             "detectable_excess": ceiling_excess,
             "detectable_concordance": 0.5 + ceiling_excess,
             "accounts_needed": ceiling_accounts,
+            **book_reach(ceiling_decisions),
             "is_this_run": False,
             "is_the_ceiling": True,
         })
@@ -615,13 +818,22 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
             "concordance": 0.5 + excess,
             "decisions_needed": needed,
             "accounts_needed": needed_accounts,
+            # TWO CEILINGS, TWO FIELDS, AND THEY ARE DELIBERATELY NOT MERGED. This one is over
+            # settled-book ACCOUNTS and is upper-only, so it refuses or is silent and reads `None`
+            # whenever the window is undeclared. The pair below is over this book's own DECISIONS
+            # -- the population `decisions_needed` on this same row is counted in -- and carries a
+            # realised lower bound, so it can also certify. Filling this field from that bound
+            # would put one name on two answers, which is the failure this whole block exists to
+            # have stopped making.
             "within_the_settled_book_ceiling": within_ceiling(needed_accounts),
+            **book_reach(needed),
             "is_the_observed_effect": is_observed,
         })
 
     observed_needed = decisions_for(observed_excess) if observed_excess > 0 else None
     observed_accounts = accounts_for(observed_needed)
     attainable, why_no_verdict = _attainability(observed_accounts)
+    observed_reach, observed_rests_on = _reachable_on_this_book(observed_needed, book)
     return {
         "available": True,
         "decisions_scored": n,
@@ -690,6 +902,26 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
                 "billed nothing under the price that was chosen -- so no widening of the join "
                 "and no sourcing work adds a decision here. Only a larger settled book does."),
         },
+        # ...AND THE SAME QUESTION ASKED OF THE BOOK THAT ACTUALLY RAN, which is the one a reader
+        # can act on. `the_book_this_would_need` above is about a book we do not have and its
+        # verdict is `None` whenever the window is undeclared -- so for six days this block could
+        # say "we cannot tell" about the reading and nothing at all about whether the telling was
+        # NOT YET or NOT EVER HERE. Those are opposite instructions: the first says improve the
+        # arm on this book, the second says the book is the bound.
+        "this_books_decisions": {
+            **(book or {"available": False,
+                        "reason": ("this page was built without the run's drop-out funnel, so "
+                                   "what this book could have scored was never put to it")}),
+            "what_each_verdict_means": BOOK_REACH_REASONS,
+            "the_observed_effect_is_reachable_on_this_book": observed_reach,
+            "the_observed_verdict_rests_on": observed_rests_on,
+            "decisions_needed_for_the_observed_effect": observed_needed,
+            # THE ONE SENTENCE THE PAGE OWES ITS READER, derived from the verdict rather than
+            # written beside it, so no edit here can leave prose disagreeing with the arithmetic.
+            "sentence": _resolvable_sentence(
+                observed_excess=observed_excess, needed=observed_needed,
+                reach=observed_reach, rests_on=observed_rests_on, book=book),
+        },
         "method": _sqrt_n_law_note(n, k),
         "it_is_a_diagnostic": (
             "R12. This floor is a bound on what the instrument can see and NEVER a book size to "
@@ -713,6 +945,56 @@ def _upper_first(text: str) -> str:
     capitals are the whole point of the sentences they sit in.
     """
     return text[:1].upper() + text[1:] if text else text
+
+
+def _resolvable_sentence(*, observed_excess, needed, reach, rests_on, book) -> str:
+    """NOT YET, OR NOT EVER HERE -- in one sentence, composed from the verdict.
+
+    The director's question behind this whole block is which of two things to do next: improve the
+    arm on the book we have, or widen the book. A page that says "we cannot tell" and stops leaves
+    that undecided, and "we cannot tell" was ALL this block could say while its only ceiling was
+    one that refuses without a declared window.
+
+    DERIVED, NOT PARALLEL. `reach` and `rests_on` come from `_reachable_on_this_book`, so a
+    sentence claiming the book is the bound cannot survive arithmetic saying it is not.
+    """
+    if not (book or {}).get("available"):
+        return ("Whether the departure this run read is resolvable on this book at all, this page "
+                "cannot say: " + str((book or {}).get("reason") or "no ceiling was supplied")
+                + ". Until it can, 'not yet' and 'not ever here' read identically above.")
+    if needed is None:
+        return ("This reading sits on no information at all, so there is no departure to ask a "
+                "book size about. {scored:,} decisions were scored and at most {ceiling:,} were "
+                "ever scorable here.".format(scored=book["decisions_scored_this_run"],
+                                             ceiling=book["scorable_ceiling"]))
+    head = ("Reading a departure of {excess:.3f} needs about {needed:,} scored decisions. This "
+            "book yielded {scored:,}, and at most {ceiling:,} of its {existed:,} decisions were "
+            "ever scorable. ").format(
+                excess=observed_excess, needed=needed,
+                scored=book["decisions_scored_this_run"], ceiling=book["scorable_ceiling"],
+                existed=book["decisions_that_existed"])
+    if reach is True:
+        return head + ("The requirement is ATTAINED -- this run scored it -- so the reading is "
+                       "resolvable here and this book is not the bound.")
+    if reach is False:
+        return head + (
+            "IT IS NOT RESOLVABLE ON THIS BOOK: the requirement is {short:,} scored decisions "
+            "beyond the most this book could ever have supplied. The {gap:,} that separate the "
+            "{existed:,} which existed from the {ceiling:,} which were scorable carry no price to "
+            "rank -- the arm declined -- or no outcome to rank against, because the world billed "
+            "nothing under the price that was chosen. Neither is recovered by code or by "
+            "sourcing, so this verdict needs a WIDER BOOK and not more work on this one. R12: "
+            "that is a bound being reported, never a book size to grow towards.".format(
+                short=needed - book["scorable_ceiling"],
+                gap=book["decisions_that_existed"] - book["scorable_ceiling"],
+                existed=book["decisions_that_existed"],
+                ceiling=book["scorable_ceiling"]))
+    return head + (
+        "It is not resolved here and this book is not yet refused: the requirement sits between "
+        "what was scored and what was scorable, so it turns on closing the {rec:,} drop-outs "
+        "classed as our own defect or our own missing data. That is work outside this "
+        "measurement and it is not a book size -- and it is not demonstrated, so the honest "
+        "answer remains that we cannot tell.".format(rec=book["recoverable_on_this_book"]))
 
 
 def _detectability_sentence(*, half_width, observed, observed_excess, n, needed, needed_accounts,
