@@ -57,6 +57,28 @@ whole of the director's instruction.
 FAIL-CLOSED. Git unavailable, the anchor block unparseable, or fewer than `MIN_ANCHORS` anchors
 recovered all REFUSE. The floor is what stops the cheapest possible silencing of a register-driven
 control: deleting the rows. An empty anchor set is a broken check, never a clean pass.
+
+THE SECOND HALF, added 2026-09-16 (H47): THE DATE WAS GATED AND THE FIGURES WERE NOT
+-----------------------------------------------------------------------------------
+Everything above grades one word of the startup header -- its DATE. The same sentence states four
+QUANTITIES, and in the incident that produced this module three of them were wrong by 3.7x, 15x and
+2,905 tests while the date was wrong by 8 days. A header can therefore be perfectly fresh by the
+check above and still tell a session it is orienting on a project a fifteenth of this one's size:
+freshness is not agreement, and nothing here asked whether the figures were COMPUTED at all.
+
+What is graded is not "is the figure today's number" -- that control would red on every commit and
+be turned off within a day. It is: **does each stated figure lie inside the range its own named
+source actually took, over the window the date sentence is already allowed to be wrong by?** A
+figure computed from the source when the header was written is inside that band by construction; a
+figure typed from memory is not. It is a property, not today's answer -- it stays green as the repo
+grows, it reds in EITHER direction (a figure too high and a figure too low are both outside the
+band), and it is always satisfiable by recomputing one sentence.
+
+The sources are the ones the header itself names, not a second opinion: `9,385 commits` is
+`git rev-list --count`; `826,700 lines across 2,701 tracked Python modules (all *.py in the index)`
+is the index; `26,731 tests collected` is the figure CLAUDE.md's Build line carries, which is what
+the incident measured the header against ("2,905 behind CLAUDE.md on the day it was read") and what
+the live site is already generated from.
 """
 from __future__ import annotations
 
@@ -103,6 +125,25 @@ _DECLARED_RE = re.compile(
     r"(?:last\s+updated|last\s+seeded|generated)\s*:?\s*"
     r"(\d{4}-\d{2}-\d{2})", re.I)
 _DECLARED_HEAD_LINES = 10
+
+#: Each quantity the startup header states -> the source the header itself says it comes from.
+#: Named here so a refusal can tell the reader what to recompute, and so no figure can be checked
+#: against a source the sentence never claimed.
+FIGURE_SOURCES = {
+    "commits": "`git rev-list --count`",
+    "tests": "the full-suite collection count on CLAUDE.md's Build line",
+    "lines": "newlines across every `*.py` in the git index",
+    "modules": "the count of `*.py` in the git index",
+}
+#: Matched on the NUMBER AND ITS NOUN, so rewording the sentence around a figure keeps passing and
+#: deleting the figure refuses. Each pattern is anchored on the words the header uses to say what
+#: the quantity IS -- never on its current value.
+_FIGURE_RES = {
+    "commits": re.compile(r"([\d,]+)\s+commits\b", re.I),
+    "tests": re.compile(r"([\d,]+)\s+tests\s+collected\b", re.I),
+    "lines": re.compile(r"([\d,]+)\s+lines\b", re.I),
+    "modules": re.compile(r"([\d,]+)\s+tracked\s+Python\s+modules\b", re.I),
+}
 
 
 #: Directories the GitHub Pages workflow's `paths-ignore` excludes, plus the retired shadow mirror.
@@ -274,15 +315,8 @@ def true_last_change(path: str, today: dt.date | None = None) -> dt.date | None:
     return dt.datetime.fromisoformat(out).date()
 
 
-def declared_date(path: str) -> dt.date | None:
-    """What the document CLAIMS about its own age, or None if it makes no claim."""
-    try:
-        head = "\n".join(
-            (PROJECT / path).read_text(encoding="utf-8", errors="replace").splitlines()
-            [:_DECLARED_HEAD_LINES]
-        )
-    except OSError:
-        return None
+def _declared_from_text(text: str) -> dt.date | None:
+    head = "\n".join(text.splitlines()[:_DECLARED_HEAD_LINES])
     m = _DECLARED_RE.search(head)
     if not m:
         return None
@@ -290,6 +324,181 @@ def declared_date(path: str) -> dt.date | None:
         return dt.date.fromisoformat(m.group(1))
     except ValueError:
         return None
+
+
+def declared_date(path: str) -> dt.date | None:
+    """What the document CLAIMS about its own age, or None if it makes no claim."""
+    try:
+        text = (PROJECT / path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    return _declared_from_text(text)
+
+
+def stated_figures(overview_text: str | None = None) -> dict[str, int]:
+    """The quantities the startup header STATES, read from the header that states them.
+
+    Read from the same narrow head-of-document window as `declared_date`, and for the same reason:
+    a figure deep in the body is a fact about a section, not the sentence a session orients on.
+
+    FAIL-CLOSED on a missing figure, which is the cheapest possible silencing of this half of the
+    check -- delete the number and there is nothing left to disagree with. A reworded header that
+    still states the quantity keeps passing (only the number and its noun are matched); a header
+    that drops one refuses and names which.
+    """
+    if overview_text is None:
+        try:
+            overview_text = OVERVIEW.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            raise AnchorRefusal(f"cannot read the startup header at {OVERVIEW}: {exc}") from exc
+    head = "\n".join(overview_text.splitlines()[:_DECLARED_HEAD_LINES])
+
+    found: dict[str, int] = {}
+    for key, pattern in _FIGURE_RES.items():
+        m = pattern.search(head)
+        if m:
+            found[key] = int(m.group(1).replace(",", ""))
+    missing = [k for k in _FIGURE_RES if k not in found]
+    if missing:
+        raise AnchorRefusal(
+            f"the startup header states no {', '.join(missing)} figure. The header's quantities are "
+            "what a session orients on; a figure that is not stated cannot be checked against the "
+            f"source it comes from ({', '.join(FIGURE_SOURCES[k] for k in missing)}), and an "
+            "unstated figure is a broken check rather than a clean one."
+        )
+    return found
+
+
+def _tests_figure(claude_md: str) -> int | None:
+    """The full-suite collection count CLAUDE.md's Build line carries.
+
+    The Build line specifically, not the first "tests collected" in the file: this project's own
+    phase-close prose quotes partial, scoped counts in the same words, and a first-match scan
+    landing on one of those is a defect `generate_dashboard_data` has already paid for twice.
+    """
+    m = re.search(r"\*\*Build:\*\*\s*([\d,]+)\s+tests collected", claude_md)
+    return int(m.group(1).replace(",", "")) if m else None
+
+
+def _figures_at(rev: str) -> dict[str, int]:
+    """Every stated figure, computed from its named source at one revision."""
+    names = _git("ls-tree", "-r", "--name-only", rev).splitlines()
+    modules = [n for n in names if n.endswith(".py")]
+    lines = 0
+    if modules:
+        spec = "".join(f"{rev}:{n}\n" for n in modules).encode()
+        done = subprocess.run(("git", "cat-file", "--batch"), cwd=str(PROJECT),
+                              input=spec, capture_output=True, timeout=300)
+        if done.returncode != 0:
+            raise AnchorRefusal("git cat-file could not read the index's modules at "
+                                f"{rev[:12]} -- the figure check cannot be performed")
+        blob, i = done.stdout, 0
+        while i < len(blob):
+            j = blob.index(b"\n", i)
+            size = int(blob[i:j].split()[2])
+            lines += blob[j + 1:j + 1 + size].count(b"\n")
+            i = j + 1 + size + 1
+    out = {
+        "commits": int(_git("rev-list", "--count", rev)),
+        "modules": len(modules),
+        "lines": lines,
+    }
+    # None, not a refusal: CLAUDE.md's Build line only exists since the 2026-08-28 rewrite, so a
+    # window reaching further back has NO SOURCE for the test figure rather than a wrong one.
+    # Refusing there would wedge on a document that is merely old and honest -- the exact shape the
+    # age half of this module deliberately does not refuse on -- and the route an author could
+    # abuse it by (back-dating the header past the source) is already closed by the LIES check,
+    # which ties the declared date to the document's real last change.
+    out["tests"] = _tests_figure(_git("show", f"{rev}:CLAUDE.md"))
+    return out
+
+
+def _figures_in_working_tree() -> dict[str, int]:
+    """The same figures for the tree on disk, for a header being written TODAY.
+
+    The band's upper end has to reach the tree the author is looking at, or a header written and
+    committed in the same hour would be graded against a repository that no longer exists. This is
+    the same "both sides must read one tree" lesson `true_last_change` records.
+    """
+    modules = [n for n in _git("ls-files", "--", "*.py").splitlines() if n]
+    lines = 0
+    for rel in modules:
+        try:
+            lines += (PROJECT / rel).read_bytes().count(b"\n")
+        except OSError:
+            continue  # deleted-but-tracked: the committed copy already sets the other bound
+    tests = _tests_figure((PROJECT / "CLAUDE.md").read_text(encoding="utf-8", errors="replace"))
+    return {
+        "commits": int(_git("rev-list", "--count", "HEAD")),
+        "modules": len(modules),
+        "lines": lines,
+        "tests": tests if tests is not None else 0,
+    }
+
+
+def figure_band(declared: dt.date) -> dict[str, tuple[int, int]]:
+    """For each stated figure, the range its named source took across the declared date's window.
+
+    The window is `DECLARED_DATE_TOLERANCE_DAYS` either side of the declared date -- the same slack
+    the date sentence itself is already granted above, rather than a second tolerance minted here.
+    Tying the two means the header may be written one day and land the next without this going red,
+    and it cannot be widened without widening the date check that every publish already runs.
+    """
+    low_rev = _git("rev-list", "-1",
+                   f"--before={declared - dt.timedelta(days=DECLARED_DATE_TOLERANCE_DAYS)} 00:00:00",
+                   "HEAD")
+    if not low_rev:
+        # A declared date older than the repository itself: the floor is the first commit there was.
+        low_rev = _git("rev-list", "--max-parents=0", "HEAD").splitlines()[-1]
+    high_rev = _git("rev-list", "-1",
+                    "--before="
+                    f"{declared + dt.timedelta(days=DECLARED_DATE_TOLERANCE_DAYS + 1)} 00:00:00",
+                    "HEAD")
+    head = _git("rev-parse", "HEAD")
+    low, high = _figures_at(low_rev), _figures_at(high_rev or head)
+    if not high_rev or high_rev == head:
+        live = _figures_in_working_tree()
+        high = {k: v if (v is None or live[k] is None) else max(v, live[k])
+                for k, v in high.items()}
+    return {k: (None, None) if (low[k] is None or high[k] is None)
+            else (min(low[k], high[k]), max(low[k], high[k])) for k in low}
+
+
+def figure_verdicts(overview_text: str | None = None) -> list[dict]:
+    """One row per stated figure: what the header says, what its source could have said, verdict."""
+    stated = stated_figures(overview_text)
+    if overview_text is None:
+        overview_text = OVERVIEW.read_text(encoding="utf-8", errors="replace")
+    declared = _declared_from_text(overview_text)
+    if declared is None:
+        raise AnchorRefusal(
+            "the startup header states figures but no date, so there is no window to compute them "
+            "over. A quantity with no as-of is unfalsifiable.")
+    band = figure_band(declared)
+    rows = []
+    for key in sorted(stated):
+        low, high = band[key]
+        value = stated[key]
+        if low is None:
+            verdict = "UNGRADED"
+        elif value < low:
+            verdict = "UNDERSTATES"
+        elif value > high:
+            verdict = "OVERSTATES"
+        else:
+            verdict = "AGREES"
+        rows.append({"figure": key, "source": FIGURE_SOURCES[key], "stated": value,
+                     "band_low": low, "band_high": high, "verdict": verdict})
+    return rows
+
+
+def figure_refusals(rows: list[dict]) -> list[dict]:
+    """A stated figure its own source never carried, in either direction.
+
+    `UNGRADED` is deliberately not a refusal and is deliberately not silence either: it is printed
+    on the published surface, because "we cannot tell" is a result a reader is owed.
+    """
+    return [r for r in rows if r["verdict"] in ("OVERSTATES", "UNDERSTATES")]
 
 
 def assess(today: dt.date | None = None) -> list[dict]:
@@ -329,7 +538,8 @@ def refusals(rows: list[dict]) -> list[dict]:
     return [r for r in rows if r["verdict"] in ("LIES", "MISSING")]
 
 
-def render(rows: list[dict], today: dt.date | None = None) -> str:
+def render(rows: list[dict], today: dt.date | None = None,
+           figure_rows: list[dict] | None = None) -> str:
     today = today or dt.date.today()
     out = [
         "# Startup anchors -- computed freshness",
@@ -361,7 +571,37 @@ def render(rows: list[dict], today: dt.date | None = None) -> str:
         f"more than {DECLARED_DATE_TOLERANCE_DAYS} days from its real one · `MISSING` not in HEAD.",
         "",
     ]
+    out += _render_figures(figure_rows)
     return "\n".join(out)
+
+
+def _render_figures(rows: list[dict] | None) -> list[str]:
+    """The header's own quantities, against what their sources could have said. On the surface and
+    not in a footnote: a reader orienting on the header is entitled to the same reading the gate
+    gets, including when the check could not be performed at all."""
+    out = ["## The header's stated figures", ""]
+    if rows is None:
+        out += ["**Could not be computed on this run.** The figures below the title are therefore "
+                "unchecked -- treat them as hand-typed.", ""]
+        return out
+    out += [
+        "The sentence under the title states four quantities. Each is graded against the range its",
+        f"own named source took over the {DECLARED_DATE_TOLERANCE_DAYS} days either side of the",
+        "date that sentence declares -- so a figure computed when the header was written agrees, and",
+        "one typed from memory does not.",
+        "",
+        "| Figure | Stated | Its source could have said | Verdict |",
+        "|---|---|---|---|",
+    ]
+    for r in rows:
+        band = ("no source existed over this window"
+                if r["band_low"] is None else f"{r['band_low']:,} – {r['band_high']:,}")
+        out.append("| {} | {:,} | {} ({}) | {} |".format(
+            r["figure"], r["stated"], band, r["source"], r["verdict"]))
+    out += ["", "`AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source "
+            "never carried in that window · `UNGRADED` the source did not exist that far back, so "
+            "this figure is unchecked and the reader is told so rather than reassured.", ""]
+    return out
 
 
 def staged_anchors(paths: list[str]) -> set[str]:
@@ -373,6 +613,15 @@ def staged_anchors(paths: list[str]) -> set[str]:
 def main(argv: list[str] | None = None) -> int:
     argv = list(argv if argv is not None else sys.argv[1:])
     write = "--check" not in argv and "--gate" not in argv
+    # `--overview PATH` grades the figures stated by ANOTHER copy of the header against this
+    # repository's real sources. That is how the check is mutation-proved by hand -- type a wrong
+    # number into a copy and watch it refuse -- and it is why the figure half takes text rather
+    # than only reading `OVERVIEW` off disk.
+    overview_text = None
+    if "--overview" in argv:
+        overview_text = Path(argv[argv.index("--overview") + 1]).read_text(
+            encoding="utf-8", errors="replace")
+        write = False
     try:
         rows = assess()
         # `--gate` (the pre-commit hook) judges ONLY anchors this commit touches. Refusing an
@@ -381,11 +630,18 @@ def main(argv: list[str] | None = None) -> int:
         # someone else's uncommitted work -- and "the red that refused your land was already at
         # HEAD" is a trap this project has paid for before. The publish path (no flag) still
         # reports every anchor, so nothing goes unseen; only the REFUSAL is scoped to the author.
-        if "--gate" in argv:
+        gated = "--gate" in argv
+        if gated:
             touched = staged_anchors([r["path"] for r in rows])
             if not touched:
                 return 0
             rows = [r for r in rows if r["path"] in touched]
+        # Scoped exactly like the date refusal above, and for the same reason: the lane whose
+        # commit makes the header's figures wrong is the lane asked to recompute them, and no
+        # other. Unscoped, one rotted sentence would wedge every lane in the tree.
+        overview_rel = str(OVERVIEW.relative_to(PROJECT))
+        figure_rows = (figure_verdicts(overview_text)
+                       if (not gated or overview_rel in touched or overview_text) else [])
     except AnchorRefusal as exc:
         # FAILS CLOSED. Unlike the next-step gate (one missed trailer is recoverable), an
         # unmeasurable startup surface is the exact condition being guarded against.
@@ -394,7 +650,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if write:
         OUT.parent.mkdir(parents=True, exist_ok=True)
-        OUT.write_text(render(rows), encoding="utf-8")
+        OUT.write_text(render(rows, figure_rows=figure_rows), encoding="utf-8")
         print(f"[startup-anchors] wrote {OUT.relative_to(PROJECT)} ({len(rows)} anchors)")
 
     missing = unnamed_surfaces()
@@ -407,6 +663,14 @@ def main(argv: list[str] | None = None) -> int:
                   "sentence saying what it is for.", file=sys.stderr)
         return 1
 
+    bad_figures = figure_refusals(figure_rows)
+    for r in bad_figures:
+        print(f"[startup-anchors] REFUSED: the startup header {r['verdict'].lower()} "
+              f"{r['figure']} -- it says {r['stated']:,}, and {r['source']} was never outside "
+              f"{r['band_low']:,}–{r['band_high']:,} in the window its own date declares. A "
+              "session's first number is this sentence; recompute the figure from that source, or "
+              "correct the date it is as-of.", file=sys.stderr)
+
     bad = refusals(rows)
     for r in bad:
         if r["verdict"] == "LIES":
@@ -417,7 +681,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(f"[startup-anchors] REFUSED: {r['path']} is declared as a startup anchor but is "
                   f"not in HEAD.", file=sys.stderr)
-    return 1 if bad else 0
+    return 1 if (bad or bad_figures) else 0
 
 
 if __name__ == "__main__":
