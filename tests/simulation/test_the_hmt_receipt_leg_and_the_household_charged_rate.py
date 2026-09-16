@@ -85,7 +85,7 @@ def straddling_schedule(monkeypatch):
     import simulation.svt_product as sp
 
     monkeypatch.setattr(sp, "generate_forward_price", lambda *a, **k: 50.0)
-    return sp.build_svt_schedule("C-EPG", "2022-07-01", "2023-12-31", [])
+    return sp.build_svt_schedule("C-EPG", "2022-07-01", "2023-12-31", [], fuel="electricity")
 
 
 def test_the_epg_overlay_is_published_at_all():

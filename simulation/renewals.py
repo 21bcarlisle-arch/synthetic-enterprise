@@ -104,6 +104,10 @@ def build_renewal_schedule(
         return build_svt_schedule(
             customer_id, original_acquisition_date, report_end_date, price_records,
             lookback_temps_fn=lookback_temps_fn,
+            # THIS BUILDER IS ELECTRICITY'S AND NAMES IT (2026-09-16). `build_svt_schedule` took
+            # no `fuel` until gas needed one, and it now refuses to guess -- gas terms are built
+            # by `run_phase2b._build_gas_renewal_schedule`, which names its own.
+            fuel="electricity",
         )
 
     term_start = date.fromisoformat(original_acquisition_date)
@@ -166,6 +170,7 @@ def build_renewal_schedule(
                     min(_anniversary - timedelta(days=1), report_end).isoformat(),
                     price_records,
                     lookback_temps_fn=lookback_temps_fn,
+                    fuel="electricity",
                 ))
                 # The rate this household is on is now the cap, and the cap is not a struck
                 # price. Clearing the lock stops the next fixed offer being classified against a

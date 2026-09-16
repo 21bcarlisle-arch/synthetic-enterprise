@@ -116,6 +116,17 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-16  I001 1309 -> 1308  (the gas leg rolls onto the cap: repair 2 of the tariff-type
+#     determination). ONE FILE, `tests/simulation/test_run_phase2b.py`, and it is a side effect
+#     rather than a tidying pass: that file's import block was unsorted AT HEAD, this commit had
+#     it open anyway to add `SVT_TARIFF_TYPE` (the notice-date control must now partition fixed
+#     terms from cap-period segments), and adding to the block was the act of sorting it.
+#     MEASURED ON THE TREE THIS COMMIT WOULD CREATE, per this log's standing rule: the pre-commit
+#     gate read I001 1308 against this baseline's 1309 on exactly that tree, which is what
+#     refused the first attempt and is the attribution.
+#     NOTHING ELSE IS BANKED. The shared working tree carries other lanes' uncommitted work and
+#     is not read here — banking a -1 that only a dirty tree can meet leaves a floor no committed
+#     tree reaches and wedges every lane, which is the 2026-09-01 and 2026-09-08 entries' lesson.
 #   2026-09-06  I001 1326 -> 1323, F401 265 -> 264  (one obligation gets one decider: atom C32)
 #     NOT A TIDYING PASS. Every file counted here is one this commit had open anyway. The three
 #     I001s are the import blocks the new cross-module delegation forced open:
@@ -721,7 +732,8 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1309,  # lowered 2026-09-08 (the substring-control residue: five source-scanning
+    "I001": 1308,  # lowered 2026-09-16 (see the SHRINK LOG head). Previously 1309,
+    #             lowered 2026-09-08 (the substring-control residue: five source-scanning
     #             controls re-read through `tools/python_code_text`): -1, in
     #             `tests/background/test_process_reconciler.py`, whose block was unsorted AT HEAD
     #             and which this commit had open anyway to give the kill-path scan one home.
@@ -731,6 +743,10 @@ RUFF_BASELINE: dict[str, int] = {
     #             five files: 1309 there against 1310 at clean HEAD, and 1308 in the dirty shared
     #             tree. Banking 1308 would make the floor unreachable the moment this landed
     #             alone, reding every lane until the neighbour committed.  SHRINK-ONLY.
+    #             BESIDE THAT CLAIM, NOT OVER IT (2026-09-16): 1308 is now the banked floor, and
+    #             it is NOT the neighbour's -1 being claimed eight days late. That one is long
+    #             since committed or gone; this -1 is `tests/simulation/test_run_phase2b.py`,
+    #             measured on THIS commit's tree by the gate that refused its first attempt.
     # (was 1310) lowered 2026-09-07 (the CM levy commons derivation control): -1 more, in
     # `tests/simulation/test_phase30a_cm_levy.py`, which this commit had open anyway to re-key
     # `test_clamps_post_2024` off today's answer. Its block was unsorted AT HEAD -- proved with
@@ -842,7 +858,9 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2286  # 2287 -> 2286 on 2026-09-08: the I001 above, same attribution --
+RUFF_BASELINE_TOTAL = 2285  # 2286 -> 2285 on 2026-09-16: the I001 above, same attribution --
+# `tests/simulation/test_run_phase2b.py`, whose block this commit had open anyway.
+# 2287 -> 2286 on 2026-09-08: the earlier I001, same attribution --
 # this commit's own `tests/background/test_process_reconciler.py`, and NOT the neighbouring
 # lane's second uncommitted I001 fix, which the dirty shared tree also shows.
 # 2288 -> 2287 on 2026-09-08: the E402 above, same attribution.

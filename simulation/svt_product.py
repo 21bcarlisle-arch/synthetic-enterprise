@@ -60,13 +60,31 @@ All three things that were owed before assignment are built:
     `departure_risks.svt_inertia_hazard`. The anchored ceiling is still
     `renewal_engagement.PASSIVE_CHURN_CAP = 0.10` on a passive roller's realised churn, and a
     departure can land in any quarter because an SVT stint has no term structure.
-  * **assignment generated from behaviour** — the C1b branch in `simulation/renewals.py`. At each
-    non-first resi fixed boundary `rolls_active_renewal` decides whether the household shops or
-    rolls onto the cap, at the anchored 35% population active-renewal rate with a per-household
-    engagement archetype. It assigns MID-TENURE and never touches the roster, which is why the
-    old interlock — a scanner over `ELEC_CUSTOMERS` for `tariff_type: "svt"` — would have stayed
-    green through exactly the change it existed to catch. It was retired and re-keyed to the
-    property, as `test_an_account_on_the_svt_product_can_leave_it`.
+  * **assignment generated from behaviour** — the C1b branch, in TWO places since 2026-09-16 and
+    said so here because a docstring naming one home when there are two is this project's most
+    expensive recurring shape. Electricity: `simulation/renewals.build_renewal_schedule`. Gas:
+    `run_phase2b._build_gas_renewal_schedule`, which is a separate builder because gas terms are
+    priced off NBP and a separate cold-start bootstrap, not because the DECISION differs. At each
+    non-first resi fixed boundary, on either fuel, `rolls_active_renewal` decides whether the
+    household shops or rolls onto the cap, at the anchored 35% population active-renewal rate
+    with a per-household engagement archetype — same function, same seed grammar
+    (`{household}_{rows emitted so far}`), same anchor. It assigns MID-TENURE and never touches
+    the roster, which is why the old interlock — a scanner over `ELEC_CUSTOMERS` for
+    `tariff_type: "svt"` — would have stayed green through exactly the change it existed to
+    catch. It was retired and re-keyed to the property, as
+    `test_an_account_on_the_svt_product_can_leave_it`.
+
+    WHAT THE SHARED SEED GRAMMAR DOES AND DOES NOT MAKE TRUE, stated because it is a real
+    simplification and not a claim. `household_of` strips the gas-leg suffix, so a dual-fuel
+    household's two legs reach their FIRST boundary with the same household key and the same row
+    count, and therefore roll the SAME answer — which is right: a household that shops, shops.
+    Once either leg emits a different number of rows (an SVT stint emits one row per cap period
+    and a fixed year emits one), the row counts diverge and the two legs decorrelate. That is not
+    defended as fidelity; it is the cost of mirroring electricity's grammar exactly rather than
+    inventing a second one, and it is strictly closer to the truth than what it replaces, which
+    was gas never rolling at all. Keying the seed on the boundary DATE instead would correlate
+    the legs for the whole tenure and is the obvious repair — it moves the electricity world, so
+    it is a determination and not a tidy-up.
   * the **published year-by-year fixed/SVT split** printed beside the result as a CHECK. Never
     an input: if the split has to be set to land in range, the behaviour is wrong and setting it
     hides that. The report is `tools/svt_generated_share_check.py`, and the band it reads lives
@@ -124,6 +142,8 @@ from simulation.svt_rates import (
     CAP_PERIOD_START_MONTHS,
     get_svt_elec_rate_charged_to_household_gbp_per_mwh,
     get_svt_elec_rate_gbp_per_mwh,
+    get_svt_gas_rate_charged_to_household_gbp_per_mwh,
+    get_svt_gas_rate_gbp_per_mwh,
 )
 
 # Cap-period starts are now IMPORTED from `simulation/svt_rates.py`, which is where the published
@@ -134,6 +154,28 @@ from simulation.svt_rates import (
 
 #: What the world calls this product wherever a `tariff_type` is read.
 SVT_TARIFF_TYPE = "svt"
+
+#: The two rate readings a segment needs, per fuel: (what the tariff was PRICED at and what the
+#: supplier was compensated to, what the HOUSEHOLD actually paid). Both legs come from
+#: `simulation/svt_rates.py`, which is the only home of either series.
+#:
+#: A TABLE AND NOT A DISPATCHER FUNCTION, on purpose. `svt_rates` deliberately declines to publish
+#: a `get_svt_rate(fuel, date)` of its own so that a caller always knows which instrument it got --
+#: a pre-cap supplier-discretion estimate for 2016-18, a published ceiling after. This does not
+#: undo that: the only caller is the segment loop below, which needs BOTH legs of ONE fuel to close
+#: the `unit_rate = household_charged + hmt_epg_receipt` identity, and reading them from one row
+#: is what stops a future edit pairing one fuel's cap with the other's charged rate. Nothing
+#: outside this module may import it, for the reason `svt_rates` gives.
+_RATE_LEGS_BY_FUEL = {
+    "electricity": (
+        get_svt_elec_rate_gbp_per_mwh,
+        get_svt_elec_rate_charged_to_household_gbp_per_mwh,
+    ),
+    "gas": (
+        get_svt_gas_rate_gbp_per_mwh,
+        get_svt_gas_rate_charged_to_household_gbp_per_mwh,
+    ),
+}
 
 
 def _next_cap_period_start(day: date) -> date:
@@ -185,8 +227,19 @@ def build_svt_schedule(
     report_end_date: str,
     price_records: list[dict],
     lookback_temps_fn=None,
+    *,
+    fuel: str,
 ) -> list[dict]:
     """One segment per cap period from acquisition to report end, priced at the published rate.
+
+    `fuel` IS REQUIRED AND KEYWORD-ONLY, AND HAS NO DEFAULT (2026-09-16). Every reading in the
+    loop below is fuel-specific -- two cap series, two charged-to-household series, two EPG
+    levels, two forward curves -- and a default would have made "electricity" the answer for a
+    caller that never thought about the question. That is the shape this world has already paid
+    for: the gas `tariff_type` read sat on `.get(..., "fixed")` for eight days looking exactly
+    like the repaired electricity one. A missing `fuel` is now a `TypeError` at the call site
+    rather than a gas household billed the electricity cap, which is a difference of about
+    2.5x on the unit rate and nothing on the surface that would say so.
 
     Shaped exactly like the term dicts `simulation.settlement.run_settlement` expects, so a
     schedule from here is interchangeable with one from `build_renewal_schedule` at every
@@ -229,7 +282,26 @@ def build_svt_schedule(
     estimate, which settlement needs for margin and hedging and which is not a price offered to
     anybody. The signature deliberately does NOT take `eac_kwh` or `segment`: neither can change
     a capped rate, and taking them would invite a future edit that lets them.
+
+    THE SEGMENTATION IS THE SAME FOR BOTH FUELS AND THAT IS NOT AN ASSUMPTION MADE HERE. The
+    Default Tariff Cap Act names both fuels and Ofgem publishes one cap schedule covering both, so
+    `CAP_PERIOD_START_MONTHS` is a property of the instrument rather than of electricity — the
+    commons artefact `ofgem_default_tariff_cap_windows.json` has carried the gas leg at the same
+    granularity since W3_1b. What differs between the fuels is the LEVEL, and that is the whole of
+    what `_RATE_LEGS_BY_FUEL` selects.
     """
+    try:
+        cap_rate_of, charged_rate_of = _RATE_LEGS_BY_FUEL[fuel]
+    except KeyError:
+        # FAIL CLOSED, NAMING THE REASON. A fuel with no published domestic default tariff has no
+        # SVT product to be put on, and inventing one would put a made-up ceiling into settlement
+        # under a name that says "published".
+        raise ValueError(
+            f"no published domestic default-tariff series for fuel {fuel!r}: "
+            f"`simulation/svt_rates.py` publishes {sorted(_RATE_LEGS_BY_FUEL)} and an SVT "
+            "segment cannot be billed off a cap that does not exist"
+        ) from None
+
     segment_start = date.fromisoformat(original_acquisition_date)
     report_end = date.fromisoformat(report_end_date)
     segments: list[dict] = []
@@ -239,7 +311,7 @@ def build_svt_schedule(
         next_start = _next_cap_period_start(segment_start)
         segment_end = min(next_start, report_end + timedelta(days=1))
 
-        rate = get_svt_elec_rate_gbp_per_mwh(segment_start_str)
+        rate = cap_rate_of(segment_start_str)
         # THE RECEIPT IS ASKED FOR, NOT DIFFERENCED, and the reason is about what the CONTROL
         # means, not about what the number is. `receipt = rate - charged` returns the identical
         # value on every date -- proven by mutation, 2026-09-08: swapping this line for the
@@ -254,17 +326,18 @@ def build_svt_schedule(
         # Both rate legs are None on exactly the same dates (pre-2016), and a receipt against a
         # bill that could not be computed is unknown rather than zero, so the split is only
         # written where both legs are numbers.
-        charged = get_svt_elec_rate_charged_to_household_gbp_per_mwh(segment_start_str)
+        charged = charged_rate_of(segment_start_str)
         receipt = (
             None
             if (rate is None or charged is None)
-            else hmt_epg_receipt_gbp_per_mwh("electricity", segment_start)
+            else hmt_epg_receipt_gbp_per_mwh(fuel, segment_start)
         )
         lookback_temps = (
             lookback_temps_fn(segment_start_str) if lookback_temps_fn else None
         )
         sim_fwd = generate_forward_price(
-            segment_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
+            segment_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps,
+            fuel=fuel,
         )
         segments.append({
             "customer_id": customer_id,

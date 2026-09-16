@@ -74,7 +74,7 @@ def schedule(monkeypatch):
     """
     import simulation.svt_product as sp
     monkeypatch.setattr(sp, "generate_forward_price", lambda *a, **k: 50.0)
-    return build_svt_schedule("C-SVT", START, END, [])
+    return build_svt_schedule("C-SVT", START, END, [], fuel="electricity")
 
 
 def test_a_segment_is_a_cap_period_not_a_contract_year(schedule):
@@ -194,14 +194,39 @@ def test_an_account_on_the_svt_product_can_leave_it():
         "the renewal decision is the only other place run_phase2b rolls a departure, and this "
         "product correctly has none")
 
-    # POPULATION FLOOR, dated 2026-08-30, measured at 150 electricity legs -- 90 won by the
-    # funnel, 51 drawn by the curriculum, 9 founder, per the addendum to
-    # DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md. An emptied roster would satisfy the
-    # assertion above by having no subjects, which is how a scanning control goes quiet rather
-    # than loud. The floor sits below the measurement with headroom, never AT it: pinning it to
-    # today's count would red on any lane that lands one account.
-    assert len(ELEC_CUSTOMERS) >= 140, (
-        f"only {len(ELEC_CUSTOMERS)} electricity accounts; the check above has lost its subjects")
+    # THE FLOOR WAS A COUNT AND THE COUNT WAS A CURRICULUM OUTPUT. It read
+    # `assert len(ELEC_CUSTOMERS) >= 140`, under a comment saying the floor "sits below the
+    # measurement with headroom, never AT it: pinning it to today's count would red on any lane
+    # that lands one account". It was set on 2026-08-30 against a measured 150 -- 9 founder, 51
+    # drawn, 90 won -- and it went RED at HEAD on 2026-09-16 at 136: 9 founder, 46 drawn, 81 won.
+    # Nothing was deleted. The draw and the funnel are GENERATED, so a floor over their sum is
+    # keyed to today's answer in precisely the way the comment beside it warned against, and each
+    # re-run can move it. Lowering it to 130 would be the control-that-cannot-fail shape: a floor
+    # moved down every time it fires.
+    #
+    # SO IT IS RE-KEYED TO THE PROPERTY IT WAS REACHING FOR, and the re-keying is also a repair of
+    # a false claim. The assertion above uses a hand-built `segment` dict and never reads the
+    # roster at all, so "an emptied roster would satisfy the assertion above by having no
+    # subjects" was not true of it. What DOES need subjects is the route onto the product: C1b
+    # assigns mid-tenure from a resi household's own engagement roll, so a roster with no resi
+    # electricity household, or one where every household shops with certainty, has no account
+    # that can reach the product this test is about -- and every control in
+    # `test_svt_assignment.py` would skip rather than fail.
+    # Measured and filed as `docs/staging/WORKER_FINDING_THE_SVT_POPULATION_FLOOR_IS_RED_AT_HEAD_
+    # BECAUSE_THE_ELECTRICITY_ROSTER_LOST_FOURTEEN_LEGS_2026-09-16.md`.
+    from simulation.household import household_of
+    from simulation.household_segments import active_renewal_probability_for_customer
+
+    reachable = [
+        c for c in ELEC_CUSTOMERS
+        if c.get("segment", "resi") == "resi"
+        and active_renewal_probability_for_customer(household_of(c["customer_id"])) < 1.0
+    ]
+    assert reachable, (
+        f"none of the {len(ELEC_CUSTOMERS)} electricity accounts can reach the standard variable "
+        "product: C1b assigns it from a resi household's engagement roll, and either there is no "
+        "resi household on the roster or every one of them shops with certainty -- so the hazard "
+        "asserted above is carried by nobody and this file's subject is gone")
 
 
 def test_the_inertia_hazard_recomposes_to_the_published_annual_rate():

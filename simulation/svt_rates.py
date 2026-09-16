@@ -54,13 +54,18 @@ CAP one, deliberately:
     THIS name would still be the same defect with the sign flipped, which is why
     the name is eight words long.
 
-GAS HAS NO `charged_to_household` TWIN AND THAT IS A GAP, NOT A SYMMETRY CLAIM.
-The EPG capped gas at 10.3p against a 17.08p cap, so the same 6.8p/kWh split
-exists there. It is not built because it would have no caller: every consumer
-re-pointed on 2026-09-08 — the price differential, the SVT position, the churn
-basis reference — is electricity-only, and an accessor with no caller is an
-orphan that reads as coverage. When a gas consumer appears, the twin is two lines
-over `binding_cap_unit_rate_gbp_per_mwh_inc_vat` and this paragraph is its brief.
+GAS HAD NO `charged_to_household` TWIN AND THAT WAS A GAP, NOT A SYMMETRY CLAIM.
+This paragraph used to say the twin was unbuilt because it *"would have no
+caller: every consumer re-pointed on 2026-09-08 — the price differential, the SVT
+position, the churn basis reference — is electricity-only, and an accessor with
+no caller is an orphan that reads as coverage. When a gas consumer appears, the
+twin is two lines over `binding_cap_unit_rate_gbp_per_mwh_inc_vat` and this
+paragraph is its brief."* The gas consumer appeared on 2026-09-16: repair 2 of the
+tariff-type determination puts gas legs on the SVT product, and
+`svt_product.build_svt_schedule` bills a gas segment's three rate fields the same
+way it bills an electricity one. So the twin is built, below, and it is the two
+lines the brief said it would be. The EPG capped gas at 10.3p against a 17.08p
+cap, and until today a gas SVT segment would have had no field able to say so.
 
 R13: every value reaching this module is published regulatory history, sourced
 blind to company P&L.
@@ -246,3 +251,38 @@ def get_svt_gas_rate_gbp_per_mwh(date_str: str) -> float | None:
     )
 
     return ofgem_cap_unit_rate_gbp_per_mwh_inc_vat("gas", d)
+
+
+def get_svt_gas_rate_charged_to_household_gbp_per_mwh(date_str: str) -> float | None:
+    """What a domestic default-tariff household was actually CHARGED per MWh of
+    GAS on `date_str`, £/MWh inc-VAT, excluding standing charge.
+
+    THE GAS TWIN OF `get_svt_elec_rate_charged_to_household_gbp_per_mwh`, built
+    2026-09-16 because a gas consumer finally exists (see the module docstring).
+    Same rule, same two instruments, same pre-cap table — the only thing that
+    differs is the fuel string handed to the commons, and that is exactly why the
+    module docstring said this would be two lines.
+
+    ASK THIS ONE WHEN THE ANSWER IS ABOUT A HOUSEHOLD'S EXPERIENCE of its gas
+    bill; ask `get_svt_gas_rate_gbp_per_mwh` when the answer is about the
+    supplier's book. Across 2022-10-01..2023-06-30 the two differ by the HM
+    Treasury receipt and everywhere else they are the same number.
+
+    STILL NOT A `get_svt_rate(fuel, date)` DISPATCHER, and the reason survives the
+    symmetry: the two fuels are answered by different instruments for different
+    spans (a pre-cap estimate versus a published ceiling), and a caller that could
+    not tell which it got is the defect this module's four accessors exist to
+    prevent. Four names is the price of that, and it is worth paying.
+
+    Returns None before 2016 (no data), on the same rule as every accessor here.
+    """
+    d = date.fromisoformat(date_str)
+    if d.year < 2016:
+        return None
+    if d.year in _SVT_GAS_PRECAP_PENCE_PER_KWH:
+        return round(_SVT_GAS_PRECAP_PENCE_PER_KWH[d.year] * 10, 2)
+    from simulation.price_cap_enforcement import (
+        binding_cap_unit_rate_gbp_per_mwh_inc_vat,
+    )
+
+    return binding_cap_unit_rate_gbp_per_mwh_inc_vat("gas", d)

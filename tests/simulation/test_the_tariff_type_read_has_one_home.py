@@ -18,11 +18,22 @@ What the other two then published, for eight days, in one artefact:
 Two blocks of one file disagreeing about one read, and each internally consistent, is what a
 restated spelling buys. So the read now has one home and these controls hold it there.
 
-KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that gas resolves to `None`.
-`test_the_two_commodities_are_read_differently_and_that_is_the_finding` asserts they DIFFER and
-names which is which; when the gas fidelity determination lands and the difference goes away, that
-control goes red and is deleted with the finding it records, rather than silently passing on a
-world that got better.
+KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER — AND ON 2026-09-16 THAT PAID OUT. This file used to
+carry `test_the_two_commodities_are_read_differently_and_that_is_the_finding`, asserting that gas
+resolved to `None` and electricity to `"fixed"`, over a docstring saying *"when the gas fidelity
+determination lands and the difference goes away, that control goes red and is deleted with the
+finding it records, rather than silently passing on a world that got better."* Repair 2 landed, it
+went red, and it is deleted. `test_the_two_commodities_are_now_read_the_same_way_on_purpose` stands
+in its place and asserts the opposite, with the same both-legs-in-one-control shape: a function
+returning `"fixed"` for everything and one returning the record's value for everything would each
+pass a single-leg test.
+
+What replaced it is not weaker. The old control's job was to keep a live defect VISIBLE; the new
+one's is to keep the repair from being half-undone, and the half that matters is not here — it is
+the C1b roll that makes `or "fixed"` an opening term rather than the blanket the determination
+refused. That pairing is controlled in
+`tests/simulation/test_the_gas_leg_rolls_onto_the_cap_like_the_electricity_one.py`, which this
+docstring points at because a control whose other half nobody can find is half a control.
 """
 from __future__ import annotations
 
@@ -100,19 +111,27 @@ def test_the_census_calls_the_read_rather_than_respelling_it():
         f"the census derives `resolved` from {resolved_from}, not from the world's own read")
 
 
-def test_the_two_commodities_are_read_differently_and_that_is_the_finding():
-    """A drawn record carries the key PRESENT and unset, and the two builders disagree on it.
+def test_the_two_commodities_are_now_read_the_same_way_on_purpose():
+    """A drawn record carries the key PRESENT and unset, and BOTH builders now open it `fixed`.
 
-    Both legs of the partition in one control, because a function that returned `None` for
-    everything and one that returned `"fixed"` for everything would each pass a single-leg test.
+    THE DEFECT: the gas spelling drifting back to `.get(..., "fixed")`, which never reaches its
+    default on a drawn record and put 158 gas terms through the value arm's product gate
+    unlabelled. Replaces the control that asserted the two DIFFER, which went red on the repair
+    exactly as its own docstring said it would.
+
+    Both legs of the partition in one control, and a THIRD record that is not drawn: a function
+    hard-wired to `"fixed"` would pass the first two assertions and is what the 2026-08-28
+    determination refused. The record's own value still governs when it has one.
     """
     drawn_elec = {"customer_id": "PROS-2016-0067", "commodity": "electricity", "tariff_type": None}
     drawn_gas = {"customer_id": "PROS-2016-0067-G", "commodity": "gas", "tariff_type": None}
+    decided_gas = {"customer_id": "C_IC3g", "commodity": "gas", "tariff_type": "pass_through"}
 
     assert resolved_tariff_type(drawn_elec) == "fixed"
-    # NOT a statement that this is right. It is the live gas defect, held visible so that the
-    # determination which closes it also deletes this control.
-    assert resolved_tariff_type(drawn_gas) is None
+    assert resolved_tariff_type(drawn_gas) == "fixed"
+    assert resolved_tariff_type(decided_gas) == "pass_through", (
+        "the read has become a constant: a record that names its product must keep it, or the "
+        "I&C pass-through and flex books are silently relabelled as domestic fixed terms")
 
 
 def test_a_successor_leg_is_read_off_its_call_site_not_its_record():

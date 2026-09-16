@@ -11,8 +11,11 @@ from simulation.run_phase2b import (
     _build_gas_renewal_schedule,
     _clamp_term_end,
     _weather_adjusted_shape_fn,
+)
+from simulation.run_phase2b import (
     main as _run_phase2b_main,
 )
+from simulation.svt_product import SVT_TARIFF_TYPE
 
 
 def _flat_base_shape(date_str):
@@ -43,10 +46,19 @@ def _flat_gas_price_records(start_date: str, end_date: str, price: float = 50.0)
     return records
 
 
+# `customer_id` IS NOW REQUIRED ON EVERY GAS RECORD THESE TESTS BUILD (2026-09-16). It was absent
+# from these fixtures for as long as `_build_gas_renewal_schedule` never read it; the C1b roll
+# reads it, through `household_of`, to ask which engagement archetype decides each boundary, and
+# the builder REFUSES a record without one rather than quietly giving that leg a fixed tenure.
+# `C1g` is a real roster gas leg, so the archetype drawn here is the one the world draws.
+_GAS_FIXTURE_ID = "C1g"
+
+
 def test_build_gas_renewal_schedule_cold_spell_does_not_affect_gas_price():
     # Phase 42: weather adjustment is electricity-only. Gas uses seasonal calibration instead.
     records = _flat_gas_price_records("2015-10-01", "2017-06-30")
-    customer = {"aq_kwh": 12000, "acquisition_date": "2016-01-01"}
+    customer = {"customer_id": _GAS_FIXTURE_ID, "aq_kwh": 12000,
+                "acquisition_date": "2016-01-01"}
 
     no_weather = _build_gas_renewal_schedule(
         {**customer, "acquisition_date": "2016-01-01"}, records
@@ -89,7 +101,8 @@ def test_clamp_term_end_does_not_truncate_when_natural_end_is_within_window():
 
 def test_build_gas_renewal_schedule_truncates_on_report_end():
     records = _flat_gas_price_records("2015-01-01", "2022-12-31")
-    customer = {"aq_kwh": 12000, "acquisition_date": "2016-01-01"}
+    customer = {"customer_id": _GAS_FIXTURE_ID, "aq_kwh": 12000,
+                "acquisition_date": "2016-01-01"}
 
     short_end = "2017-06-30"
     schedule = _build_gas_renewal_schedule(customer, records, report_end=short_end)
@@ -108,19 +121,46 @@ def test_build_gas_renewal_schedule_truncates_on_report_end():
 
 def test_gas_schedule_notice_date_present():
     records = _flat_gas_price_records("2015-10-01", "2017-06-30")
-    customer = {"aq_kwh": 12000, "acquisition_date": "2016-01-01"}
+    customer = {"customer_id": _GAS_FIXTURE_ID, "aq_kwh": 12000,
+                "acquisition_date": "2016-01-01"}
     schedule = _build_gas_renewal_schedule(customer, records)
     assert "notice_date" in schedule[0]
 
 
 def test_gas_schedule_notice_date_is_42_days_before_term_start():
+    """The 42-day statutory notice belongs to a CONTRACT ENDING, and since 2026-09-16 not every
+    row this builder emits is one.
+
+    This used to loop over the whole schedule. A gas leg can now roll onto the standard variable
+    product, whose segments are cap periods rather than terms: nothing ends, so `notice_date`
+    equals the segment start and the old loop reds on a world that got more honest. The repair is
+    NOT a narrowing -- a narrowing added for a false positive can only hide, and it hides in
+    exactly the direction that would let a fixed term lose its notice. BOTH partitions are
+    asserted, and both are asserted to be NON-EMPTY, so "every row is an SVT segment" and "the
+    roll never fired" are as red as a missing notice.
+    """
     records = _flat_gas_price_records("2015-01-01", "2020-12-31")
-    customer = {"aq_kwh": 12000, "acquisition_date": "2016-06-01"}
+    customer = {"customer_id": _GAS_FIXTURE_ID, "aq_kwh": 12000,
+                "acquisition_date": "2016-06-01"}
     schedule = _build_gas_renewal_schedule(customer, records)
-    for term in schedule:
+
+    fixed = [t for t in schedule if t["tariff_type"] == "fixed"]
+    segments = [t for t in schedule if t["tariff_type"] == SVT_TARIFF_TYPE]
+    assert fixed, "no fixed term in the gas schedule -- the notice claim has lost its subject"
+    assert segments, (
+        "no SVT segment in the gas schedule: either the C1b roll is gone or this household "
+        "shopped at every boundary, and either way the second half of this control is vacuous")
+
+    for term in fixed:
         term_start = date.fromisoformat(term["acquisition_date"])
         notice_date = date.fromisoformat(term["notice_date"])
         assert (term_start - notice_date).days == NOTICE_DAYS
+
+    for term in segments:
+        assert term["notice_date"] == term["acquisition_date"], (
+            "a cap-period segment carries a 42-day notice: nothing is ending, so there is "
+            "nothing to give notice of, and a notice here makes the product a fixed term "
+            "wearing a new label")
 
 
 # Phase 12e: _compute_company_divergence tests

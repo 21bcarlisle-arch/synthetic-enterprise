@@ -168,6 +168,7 @@ from simulation.hh_consumption import (
 from simulation.household import household_of
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import seasonal_gas_splits_for_book
+from simulation.household_segments import active_renewal_probability_for_customer
 from simulation.live_population import (
     campaign_quotes_paid_for,
     founding_capital_gbp,
@@ -191,7 +192,11 @@ from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.settlement_daily import PeriodRegisters, TreasuryDrawdown, fold_to_days
 from simulation.settlement_fold import SettlementFold
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
-from simulation.svt_product import SVT_TARIFF_TYPE, inertia_hazard_for_term
+from simulation.svt_product import (
+    SVT_TARIFF_TYPE,
+    build_svt_schedule,
+    inertia_hazard_for_term,
+)
 from simulation.tou_periods import is_peak_period as _is_peak_period
 from simulation.triad import (
     _triad_year,
@@ -574,14 +579,14 @@ def _clamp_term_end(term_start: str, end_date: str = REPORT_END) -> str:
 def resolved_tariff_type(record: dict, *, successor: bool = False) -> str | None:
     """The `tariff_type` this record's schedule builder ACTUALLY stamps on every term it emits.
 
-    ONE function because the answer differs by commodity and the difference is a live defect, not
-    a style choice. `population_draw.to_customer_dict` renders `"tariff_type": self.tariff_type`
-    unconditionally, so a drawn or won record carries the key PRESENT and `None`, and
+    ONE function, and since 2026-09-16 ONE answer -- the commodity split is gone. It existed
+    because the answer DIFFERED by commodity and the difference was a live defect:
+    `population_draw.to_customer_dict` renders `"tariff_type": self.tariff_type` unconditionally,
+    so a drawn or won record carries the key PRESENT and `None`, and
     `record.get("tariff_type", "fixed")` never reaches its default
     (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28). The
-    electricity call site was repaired to `or "fixed"` on 2026-08-30 and the GAS one was not, so
-    the two schedule builders resolve the same record differently and neither spelling is "how
-    `run_phase2b` spells it" any more.
+    electricity call site was repaired to `or "fixed"` on 2026-08-30 and the gas one was not, so
+    for eighteen days the two schedule builders resolved the same record differently.
 
     That mattered twice over, because `run_value_cycle_ab.product_label_by_account_class` had
     restated the pre-repair spelling as a THIRD copy in order to census the guard's own input. It
@@ -590,21 +595,31 @@ def resolved_tariff_type(record: dict, *, successor: bool = False) -> str | None
     funnel measured only 158 unlabelled refusals -- all of them gas. Two blocks of one file
     disagreeing about one read is what a restated spelling buys.
 
-    So the census IMPORTS this rather than restating it, and a future repair of the gas side is
-    one edit in one place that moves the world and the diagnostic together.
+    So the census IMPORTS this rather than restating it, which is why repairing the gas side was
+    one edit in one place that moved the world and the diagnostic together.
 
-    NOT a fidelity change. Each branch returns exactly what its call site returned before, gas
-    defect included -- whether the drawn gas book should carry a decided product is a curriculum
-    question owed a determination, and it is filed as one rather than answered here by a lane that
-    has already seen what it would do to the arm's denominator.
+    WHY `or "fixed"` IS NOT THE BLANKET-FIXED THE DETERMINATION REFUSED, and this is the whole of
+    why repair 2 could not be this line alone. The determination refused labelling the drawn book
+    `fixed` FOR ITS WHOLE TENURE, against a published domestic fixed share of roughly a third.
+    What this resolves is the OPENING TERM: an account the company won or drew arrived by taking a
+    deal, so its first product is a fixed term, on either fuel. Every boundary after that is
+    decided by the household's own engagement roll -- `rolls_active_renewal`, in
+    `renewals.build_renewal_schedule` for electricity and in `_build_gas_renewal_schedule` below
+    for gas, landed in the same commit as this line and for this reason. Read this line on its own
+    and it IS the refused blanket; read it with the roll it is paired with and it is the opening
+    term of a tenure the world then decides. Deleting that roll and keeping this line would
+    re-create the refused shape with nothing here to say so, which is what the pairing note
+    at the gas builder's C1b block exists to stop.
+
+    THE REMAINING ASYMMETRY IS THE SUCCESSOR LEG AND IT IS ABOUT THE CALL SITE, NOT THE RECORD.
     """
     if successor:
         # The successor call site passes no `tariff_type` at all, so `build_renewal_schedule`'s
         # own signature default decides -- not the record, whatever the record happens to carry.
         return "fixed"
-    if record.get("commodity") == "electricity":
-        return record.get("tariff_type") or "fixed"
-    return record.get("tariff_type", "fixed")
+    # NO COMMODITY BRANCH. Both builders now spell the read the same way, and a branch returning
+    # the identical value on both legs would read as a live distinction to the next editor.
+    return record.get("tariff_type") or "fixed"
 
 
 def _bootstrap_first_term_forward_price(
@@ -661,14 +676,108 @@ def _build_gas_renewal_schedule(
     `simulation.renewals.build_renewal_schedule` — same callable, threaded
     through to `generate_forward_price`'s `lookback_daily_mean_temps_c`.
     Phase 30b: gas CCL + GGL (policy) and gas network cost passed through in unit rate.
+
+    C1b REACHES GAS (2026-09-16) — see the block inside the loop. Until today every term this
+    builder emitted was a fixed term, whatever the household did, and `resolved_tariff_type`
+    resolving to `"fixed"` without this would BE the blanket-fixed the 2026-08-28 determination
+    refused. The two land together and neither is correct alone.
     """
     aq_kwh = customer["aq_kwh"]
     acq_date = customer["acquisition_date"]
     cust_segment = customer.get("segment", "resi")
+    if "customer_id" not in customer:
+        # A NAMED REFUSAL, NOT A `.get()`. Until 2026-09-16 this builder never read the id at all,
+        # so a caller could hand it a record without one. The C1b roll below needs the HOUSEHOLD
+        # (`household_of(customer_id)`) to ask which engagement archetype this family has, and a
+        # record with no id has no household -- so the roll cannot be taken. Skipping it instead
+        # would put that leg on a fixed term for its whole tenure without saying so, which is
+        # exactly the blanket-fixed shape the determination refused, arrived at by a missing key.
+        raise ValueError(
+            "a gas customer record reaching _build_gas_renewal_schedule carries no "
+            "`customer_id`, so `household_of` cannot name the household whose engagement roll "
+            "decides each boundary: the record is incomplete, and defaulting it to a fixed "
+            "tenure would be the 2026-08-28 determination's refused blanket arrived at quietly"
+        )
+
+    # A STANDARD VARIABLE TARIFF IS NOT A TERM, so it is not built by a loop over terms. The same
+    # delegation `renewals.build_renewal_schedule` makes at its own head, and for the same reason:
+    # every line below assumes a contract that ends -- a 42-day notice date, a rate struck through
+    # `request_fixed_unit_rate`, a renewal decision at each boundary -- and an SVT has none of
+    # them. Reached by a record that arrives already ON the product; the mid-tenure route is the
+    # C1b roll below.
+    if tariff_type == SVT_TARIFF_TYPE:
+        return build_svt_schedule(
+            customer["customer_id"], acq_date, report_end, gas_records,
+            lookback_temps_fn=lookback_temps_fn, fuel="gas",
+        )
+
     schedule = []
     term_start = acq_date
 
     while term_start <= report_end:
+        # ═══════════════════════════════════════════════════════════════════════════════════
+        # C1b — THE GAS LEG NOW ROLLS TOO (2026-09-16), repair 2 of the tariff-type determination
+        # ═══════════════════════════════════════════════════════════════════════════════════
+        #
+        # NO NEW RULE, NO NEW CONSTANT AND NO SECOND IMPLEMENTATION. This is the block
+        # `renewals.build_renewal_schedule` has carried since 2026-08-30, reached through the same
+        # `rolls_active_renewal`, seeded with the same grammar (`{household}_{rows emitted so
+        # far}`, and `len(schedule)` is this builder's row count exactly as `len(terms)` is that
+        # one's), at the same anchored 35% population active-renewal rate with the same
+        # per-household engagement archetype, and forced passive across the same
+        # `renewal_engagement.FTC_WITHDRAWAL_WINDOW`. What differs is the fuel handed to
+        # `build_svt_schedule`, which is the whole of what repair 2 had to build.
+        #
+        # WHY IT IS HERE AND NOT SHARED WITH ELECTRICITY'S COPY. The two builders differ in how a
+        # TERM is priced -- NBP against Elexon, a cold-start bootstrap this one needs and that one
+        # does not -- not in how the DECISION is taken, and the decision is one imported function
+        # in both. Hoisting the six lines around it into a third module would put the boundary
+        # arithmetic somewhere neither builder's loop can be read against, for no property gained.
+        # What IS controlled is that neither builder restates the roll:
+        # `tests/simulation/test_the_gas_leg_rolls_onto_the_cap_like_the_electricity_one.py`.
+        #
+        # DOMESTIC ONLY, because the product is: `simulation/svt_rates.py` is the Ofgem DOMESTIC
+        # default-tariff cap and an SME or I&C gas site has no default tariff to roll onto. That
+        # is the published scope of the anchor, not a carve-out chosen here.
+        #
+        # THE HOUSEHOLD KEY IS `household_of`, NOT THE SUPPLY POINT. A gas leg is registered as
+        # `<point>g`; the engagement archetype is a fact about the HOUSEHOLD, so a dual-fuel
+        # household's two legs must ask about the same one. Seeding on the raw gas id would draw a
+        # second, independent archetype for the same family under a different name.
+        if schedule and tariff_type == "fixed" and cust_segment == "resi":
+            _household = household_of(customer["customer_id"])
+            _anniversary = (
+                date.fromisoformat(term_start) + timedelta(days=CONTRACT_LENGTH_DAYS)
+            )
+            if not rolls_active_renewal(
+                term_start,
+                f"{_household}_{len(schedule)}",
+                active_renewal_probability_for_customer(_household),
+            ):
+                _stint_end = min(
+                    _anniversary - timedelta(days=1), date.fromisoformat(report_end)
+                )
+                try:
+                    _stint = build_svt_schedule(
+                        customer["customer_id"],
+                        term_start,
+                        _stint_end.isoformat(),
+                        gas_records,
+                        lookback_temps_fn=lookback_temps_fn,
+                        fuel="gas",
+                    )
+                except ValueError:
+                    # THE SAME RULE THE FIXED PATH BELOW ALREADY FOLLOWS, and it has to be stated
+                    # here too or the two products end differently when the NBP series runs out:
+                    # a fixed term `break`s and the schedule simply stops, while a cap segment
+                    # would raise out of `generate_forward_price` and take the whole run with it.
+                    # "The price history ends here" is one fact about the world and it cannot have
+                    # two answers depending on which product the household happens to be on.
+                    break
+                schedule.extend(_stint)
+                term_start = _anniversary.isoformat()
+                continue
+
         term_end = _clamp_term_end(term_start, end_date=report_end)
         lookback_temps = lookback_temps_fn(term_start) if lookback_temps_fn else None
         try:
