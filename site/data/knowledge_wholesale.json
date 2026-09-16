@@ -907,7 +907,11 @@
    "scope": "A complete treatment covers the market these prices live in: half-hourly settlement periods; the roles of generators, suppliers, the ESO and Elexon; the trading timeline from forward contracting to gate closure to imbalance; and how BSC settlement reconciles metered volumes against contracted positions. It is the parent context node for the electricity price at the margin.",
    "rate_of_change": "slow",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "Elexon BSC settlement runs and glossary (II, SF, R1, R2, R3, RF; RF at 14 months, disputes at 28); MHHS Programme settlement-timetable transition milestones -- go-live 22 September 2025, RF 14 to seven months for settlement days from 1 October 2026 and seven to four from 1 April 2027, migration to May 2027",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "SHARPENED. The account of buying, truing up and settling is correct and stands. Its settlement timetable was stated in the present tense and is a dated fact: true of 2016-2025, and being compressed by MHHS on a published schedule whose first step lands three weeks from this check. Now dated. Also narrowed: 'a supplier is not a participant' in the Balancing Mechanism is true of a domestic supplier, not a rule.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-08-19",
@@ -925,7 +929,11 @@
    "scope": "A complete treatment covers the cheapest-first dispatch queue and residual demand (demand less wind, solar and must-run generation): how the intersection of residual demand with the stack picks the marginal unit whose short-run marginal cost becomes the price, and how a growing renewable fleet shifts the stack -- more hours on cheap or zero-marginal-cost plant, more negative-price hours, and sharper peaks when the wind drops. It is the central price-setting mechanism of electricity wholesale.",
    "rate_of_change": "slow",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "NETA/BETTA self-dispatch (Electricity Pool abolished 2001, BETTA from 2005); DESNZ Review of Electricity Market Arrangements Summer Update, 10 July 2025, rejecting zonal pricing and confirming reformed national pricing",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "CHECKED, no error established. Every economic claim holds. Two sharpenings: the body never said GB has no central dispatcher -- not wrong, but the substance of the 2026-08-19 self-dispatch correction had not survived into it, and 'work along the line' invites a reader to supply a dispatcher; and the single-price-zone note is now a decided question rather than an open one.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-08-19",
@@ -939,11 +947,15 @@
    "title": "The UK carbon price (UK ETS + CPS)",
    "kind": "page",
    "class": "slow",
-   "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned.",
-   "scope": "A complete treatment covers the price of emitting a tonne of CO2 in GB power: the traded UK ETS allowance price set by a capped auction market, plus the fixed Carbon Price Support top-up; how the cap trajectory, industrial demand and policy set the allowance price; and how that per-tonne cost enters every fossil plant's marginal bid and therefore the electricity price. Its market and drivers are distinct from both gas and electricity, so it is a separate topic joined by a drives edge.",
+   "blurb": "The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.",
+   "scope": "A complete treatment covers the price of emitting a tonne of CO2 in GB power: the traded UK ETS allowance price set by a capped auction market, plus the fixed Carbon Price Support top-up, which is levied per unit of fuel rather than per tonne and calibrated to a target per-tonne price; how the cap trajectory, industrial demand and policy set the allowance price; and how that per-tonne cost enters every fossil plant's marginal bid and therefore the electricity price. Its market and drivers are distinct from both gas and electricity, so it is a separate topic joined by a drives edge.",
    "rate_of_change": "medium",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "HMRC/GOV.UK Climate Change Levy rate publications -- CPS rates frozen since 2016 at 0.331p/kWh gas, 5.28p/kg LPG, 1.5479p/GJ solid fuels, unchanged to 31 March 2028 at a level equivalent to £18/tCO2; published CCGT emissions-intensity estimates (approx. 320-353 kgCO2/MWh)",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "CORRECTED. The body called carbon a cost per tonne and named the top-up without saying what it is charged on. CPS is levied per unit of FUEL, inside the Climate Change Levy -- the same correction made to this topic's predecessor on 2026-08-19 and lost when the body was rewritten on 2026-08-24. Also corrected: the page's blanket refusal to state any number, which was wrong for a rate frozen by statute to 2028.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-08-19",
