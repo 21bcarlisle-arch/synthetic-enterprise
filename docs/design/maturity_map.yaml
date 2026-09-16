@@ -1692,7 +1692,11 @@
   provenance: seat_finding
   depends_on: []
   couples_with: []
-  file_scope: ['docs/PROJECT_OVERVIEW.md', 'tools/startup_anchor_freshness.py']
+  file_scope: ['docs/PROJECT_OVERVIEW.md', 'tools/startup_anchor_freshness.py', 'tests/tools/test_startup_anchor_freshness.py']
+  #   The test path is named because the control now EXISTS (56d746816): the header's four figures
+  #   are graded against the sources the header names, mutation-proven in both directions. Until
+  #   this line the row named no control a runner could execute, which is the only reason it read
+  #   as ungradable -- the subject was on disk the whole time.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
