@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T01:13:58Z",
+  "generated_at": "2026-09-16T13:34:03Z",
   "available": true,
   "source": "sim/hh_data/<account>.csv -- the world's half-hourly record, one dated day per panel, no averaging",
   "accounts": {
@@ -426,8 +426,26 @@
       "why": "no_hh_record"
     },
     {
+      "customer_group": "PROS-2016-0003",
+      "account_id": "PROS-2016-0003",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2016-0024",
+      "account_id": "PROS-2016-0024",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
       "customer_group": "PROS-2016-0042",
       "account_id": "PROS-2016-0042",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2016-0046",
+      "account_id": "PROS-2016-0046",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -438,8 +456,26 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2016-0099",
-      "account_id": "PROS-2016-0099",
+      "customer_group": "PROS-2016-0075",
+      "account_id": "PROS-2016-0075",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2016-0092",
+      "account_id": "PROS-2016-0092",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2016-0098",
+      "account_id": "PROS-2016-0098",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2016-0104",
+      "account_id": "PROS-2016-0104",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -450,68 +486,74 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0038",
-      "account_id": "PROS-2017-0038",
+      "customer_group": "PROS-2016-0129",
+      "account_id": "PROS-2016-0129",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2016-0133",
+      "account_id": "PROS-2016-0133",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2017-0049",
+      "account_id": "PROS-2017-0049",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2017-0056",
+      "account_id": "PROS-2017-0056",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2017-0064",
+      "account_id": "PROS-2017-0064",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2017-0183",
+      "account_id": "PROS-2017-0183",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0065",
-      "account_id": "PROS-2017-0065",
+      "customer_group": "PROS-2018-0002",
+      "account_id": "PROS-2018-0002",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0084",
-      "account_id": "PROS-2017-0084",
+      "customer_group": "PROS-2018-0035",
+      "account_id": "PROS-2018-0035",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0130",
-      "account_id": "PROS-2017-0130",
+      "customer_group": "PROS-2018-0120",
+      "account_id": "PROS-2018-0120",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0160",
-      "account_id": "PROS-2017-0160",
+      "customer_group": "PROS-2018-0123",
+      "account_id": "PROS-2018-0123",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0185",
-      "account_id": "PROS-2017-0185",
+      "customer_group": "PROS-2018-0142",
+      "account_id": "PROS-2018-0142",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2018-0016",
-      "account_id": "PROS-2018-0016",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2018-0039",
-      "account_id": "PROS-2018-0039",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2018-0080",
-      "account_id": "PROS-2018-0080",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2018-0137",
-      "account_id": "PROS-2018-0137",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2018-0161",
-      "account_id": "PROS-2018-0161",
+      "customer_group": "PROS-2018-0149",
+      "account_id": "PROS-2018-0149",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -522,20 +564,14 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2018-0223",
-      "account_id": "PROS-2018-0223",
+      "customer_group": "PROS-2018-0260",
+      "account_id": "PROS-2018-0260",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2018-0238",
-      "account_id": "PROS-2018-0238",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0009",
-      "account_id": "PROS-2019-0009",
+      "customer_group": "PROS-2019-0023",
+      "account_id": "PROS-2019-0023",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -546,33 +582,27 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0069",
-      "account_id": "PROS-2019-0069",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0105",
-      "account_id": "PROS-2019-0105",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0135",
-      "account_id": "PROS-2019-0135",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0164",
-      "account_id": "PROS-2019-0164",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0190",
-      "account_id": "PROS-2019-0190",
+      "customer_group": "PROS-2019-0136",
+      "account_id": "PROS-2019-0136",
       "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2019-0167",
+      "account_id": "PROS-2019-0167",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2019-0207",
+      "account_id": "PROS-2019-0207",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2019-0212",
+      "account_id": "PROS-2019-0212",
+      "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
@@ -588,8 +618,8 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0282",
-      "account_id": "PROS-2019-0282",
+      "customer_group": "PROS-2019-0261",
+      "account_id": "PROS-2019-0261",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -600,15 +630,21 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0310",
-      "account_id": "PROS-2019-0310",
-      "meter_type": "Smart",
+      "customer_group": "PROS-2019-0309",
+      "account_id": "PROS-2019-0309",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0329",
-      "account_id": "PROS-2019-0329",
+      "customer_group": "PROS-2019-0321",
+      "account_id": "PROS-2019-0321",
       "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2020-0002",
+      "account_id": "PROS-2020-0002",
+      "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
@@ -618,32 +654,14 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2020-0032",
-      "account_id": "PROS-2020-0032",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0067",
-      "account_id": "PROS-2020-0067",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0097",
-      "account_id": "PROS-2020-0097",
+      "customer_group": "PROS-2020-0132",
+      "account_id": "PROS-2020-0132",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2020-0118",
-      "account_id": "PROS-2020-0118",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0170",
-      "account_id": "PROS-2020-0170",
+      "customer_group": "PROS-2020-0188",
+      "account_id": "PROS-2020-0188",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -654,39 +672,15 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2020-0221",
-      "account_id": "PROS-2020-0221",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0249",
-      "account_id": "PROS-2020-0249",
+      "customer_group": "PROS-2020-0205",
+      "account_id": "PROS-2020-0205",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2020-0287",
-      "account_id": "PROS-2020-0287",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0303",
-      "account_id": "PROS-2020-0303",
+      "customer_group": "PROS-2020-0334",
+      "account_id": "PROS-2020-0334",
       "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0347",
-      "account_id": "PROS-2020-0347",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0391",
-      "account_id": "PROS-2020-0391",
-      "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
@@ -696,26 +690,26 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0060",
-      "account_id": "PROS-2021-0060",
+      "customer_group": "PROS-2021-0044",
+      "account_id": "PROS-2021-0044",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2021-0139",
+      "account_id": "PROS-2021-0139",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0105",
-      "account_id": "PROS-2021-0105",
-      "meter_type": "Smart",
+      "customer_group": "PROS-2021-0201",
+      "account_id": "PROS-2021-0201",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0133",
-      "account_id": "PROS-2021-0133",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2021-0175",
-      "account_id": "PROS-2021-0175",
+      "customer_group": "PROS-2021-0202",
+      "account_id": "PROS-2021-0202",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -726,80 +720,62 @@
       "why": "no_hh_record"
     },
     {
+      "customer_group": "PROS-2021-0236",
+      "account_id": "PROS-2021-0236",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
       "customer_group": "PROS-2021-0248",
       "account_id": "PROS-2021-0248",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0288",
-      "account_id": "PROS-2021-0288",
+      "customer_group": "PROS-2021-0254",
+      "account_id": "PROS-2021-0254",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2021-0383",
+      "account_id": "PROS-2021-0383",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2022-0010",
+      "account_id": "PROS-2022-0010",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2022-0063",
+      "account_id": "PROS-2022-0063",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0324",
-      "account_id": "PROS-2021-0324",
+      "customer_group": "PROS-2022-0097",
+      "account_id": "PROS-2022-0097",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2023-0014",
+      "account_id": "PROS-2023-0014",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0362",
-      "account_id": "PROS-2021-0362",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2021-0399",
-      "account_id": "PROS-2021-0399",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2022-0019",
-      "account_id": "PROS-2022-0019",
+      "customer_group": "PROS-2023-0096",
+      "account_id": "PROS-2023-0096",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2022-0049",
-      "account_id": "PROS-2022-0049",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2022-0081",
-      "account_id": "PROS-2022-0081",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0001",
-      "account_id": "PROS-2023-0001",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0025",
-      "account_id": "PROS-2023-0025",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0072",
-      "account_id": "PROS-2023-0072",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0113",
-      "account_id": "PROS-2023-0113",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0146",
-      "account_id": "PROS-2023-0146",
+      "customer_group": "PROS-2023-0166",
+      "account_id": "PROS-2023-0166",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -810,75 +786,45 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2023-0205",
-      "account_id": "PROS-2023-0205",
+      "customer_group": "PROS-2023-0237",
+      "account_id": "PROS-2023-0237",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2023-0294",
+      "account_id": "PROS-2023-0294",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2023-0303",
+      "account_id": "PROS-2023-0303",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2023-0225",
-      "account_id": "PROS-2023-0225",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0248",
-      "account_id": "PROS-2023-0248",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0280",
-      "account_id": "PROS-2023-0280",
+      "customer_group": "PROS-2024-0010",
+      "account_id": "PROS-2024-0010",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2023-0305",
-      "account_id": "PROS-2023-0305",
+      "customer_group": "PROS-2024-0076",
+      "account_id": "PROS-2024-0076",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0014",
-      "account_id": "PROS-2024-0014",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0040",
-      "account_id": "PROS-2024-0040",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0065",
-      "account_id": "PROS-2024-0065",
+      "customer_group": "PROS-2024-0082",
+      "account_id": "PROS-2024-0082",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0083",
-      "account_id": "PROS-2024-0083",
+      "customer_group": "PROS-2024-0197",
+      "account_id": "PROS-2024-0197",
       "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0110",
-      "account_id": "PROS-2024-0110",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0131",
-      "account_id": "PROS-2024-0131",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0179",
-      "account_id": "PROS-2024-0179",
-      "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
@@ -888,38 +834,50 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0218",
-      "account_id": "PROS-2024-0218",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0241",
-      "account_id": "PROS-2024-0241",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0270",
-      "account_id": "PROS-2024-0270",
+      "customer_group": "PROS-2024-0244",
+      "account_id": "PROS-2024-0244",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0289",
-      "account_id": "PROS-2024-0289",
+      "customer_group": "PROS-2024-0263",
+      "account_id": "PROS-2024-0263",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0287",
+      "account_id": "PROS-2024-0287",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0315",
-      "account_id": "PROS-2024-0315",
+      "customer_group": "PROS-2024-0294",
+      "account_id": "PROS-2024-0294",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0335",
-      "account_id": "PROS-2024-0335",
+      "customer_group": "PROS-2024-0297",
+      "account_id": "PROS-2024-0297",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0305",
+      "account_id": "PROS-2024-0305",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0324",
+      "account_id": "PROS-2024-0324",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0344",
+      "account_id": "PROS-2024-0344",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -930,45 +888,27 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2025-0033",
-      "account_id": "PROS-2025-0033",
+      "customer_group": "PROS-2025-0013",
+      "account_id": "PROS-2025-0013",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2025-0051",
-      "account_id": "PROS-2025-0051",
+      "customer_group": "PROS-2025-0041",
+      "account_id": "PROS-2025-0041",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2025-0077",
-      "account_id": "PROS-2025-0077",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0087",
-      "account_id": "PROS-2025-0087",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0106",
-      "account_id": "PROS-2025-0106",
+      "customer_group": "PROS-2025-0103",
+      "account_id": "PROS-2025-0103",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2025-0136",
-      "account_id": "PROS-2025-0136",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0163",
-      "account_id": "PROS-2025-0163",
-      "meter_type": "Smart",
+      "customer_group": "PROS-2025-0170",
+      "account_id": "PROS-2025-0170",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -1268,50 +1208,38 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0038",
-      "account_id": "PROS-2017-0038",
+      "customer_group": "PROS-2017-0183",
+      "account_id": "PROS-2017-0183",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0130",
-      "account_id": "PROS-2017-0130",
+      "customer_group": "PROS-2018-0120",
+      "account_id": "PROS-2018-0120",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2018-0080",
-      "account_id": "PROS-2018-0080",
+      "customer_group": "PROS-2018-0260",
+      "account_id": "PROS-2018-0260",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2018-0223",
-      "account_id": "PROS-2018-0223",
+      "customer_group": "PROS-2019-0167",
+      "account_id": "PROS-2019-0167",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0069",
-      "account_id": "PROS-2019-0069",
+      "customer_group": "PROS-2019-0207",
+      "account_id": "PROS-2019-0207",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0105",
-      "account_id": "PROS-2019-0105",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0135",
-      "account_id": "PROS-2019-0135",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2019-0164",
-      "account_id": "PROS-2019-0164",
+      "customer_group": "PROS-2019-0212",
+      "account_id": "PROS-2019-0212",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1322,38 +1250,8 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2019-0310",
-      "account_id": "PROS-2019-0310",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0032",
-      "account_id": "PROS-2020-0032",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0067",
-      "account_id": "PROS-2020-0067",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0221",
-      "account_id": "PROS-2020-0221",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0287",
-      "account_id": "PROS-2020-0287",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2020-0391",
-      "account_id": "PROS-2020-0391",
+      "customer_group": "PROS-2020-0002",
+      "account_id": "PROS-2020-0002",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1364,14 +1262,8 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0105",
-      "account_id": "PROS-2021-0105",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2021-0133",
-      "account_id": "PROS-2021-0133",
+      "customer_group": "PROS-2021-0044",
+      "account_id": "PROS-2021-0044",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1382,44 +1274,26 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0362",
-      "account_id": "PROS-2021-0362",
+      "customer_group": "PROS-2021-0254",
+      "account_id": "PROS-2021-0254",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2021-0399",
-      "account_id": "PROS-2021-0399",
+      "customer_group": "PROS-2021-0383",
+      "account_id": "PROS-2021-0383",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2022-0049",
-      "account_id": "PROS-2022-0049",
+      "customer_group": "PROS-2022-0010",
+      "account_id": "PROS-2022-0010",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2022-0081",
-      "account_id": "PROS-2022-0081",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0001",
-      "account_id": "PROS-2023-0001",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0025",
-      "account_id": "PROS-2023-0025",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2023-0113",
-      "account_id": "PROS-2023-0113",
+      "customer_group": "PROS-2022-0097",
+      "account_id": "PROS-2022-0097",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1430,44 +1304,20 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2023-0225",
-      "account_id": "PROS-2023-0225",
+      "customer_group": "PROS-2023-0237",
+      "account_id": "PROS-2023-0237",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2023-0248",
-      "account_id": "PROS-2023-0248",
+      "customer_group": "PROS-2023-0294",
+      "account_id": "PROS-2023-0294",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2023-0305",
-      "account_id": "PROS-2023-0305",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0014",
-      "account_id": "PROS-2024-0014",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0040",
-      "account_id": "PROS-2024-0040",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0110",
-      "account_id": "PROS-2024-0110",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2024-0179",
-      "account_id": "PROS-2024-0179",
+      "customer_group": "PROS-2024-0076",
+      "account_id": "PROS-2024-0076",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1478,14 +1328,32 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0270",
-      "account_id": "PROS-2024-0270",
+      "customer_group": "PROS-2024-0244",
+      "account_id": "PROS-2024-0244",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2024-0335",
-      "account_id": "PROS-2024-0335",
+      "customer_group": "PROS-2024-0263",
+      "account_id": "PROS-2024-0263",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0305",
+      "account_id": "PROS-2024-0305",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0324",
+      "account_id": "PROS-2024-0324",
+      "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "PROS-2024-0344",
+      "account_id": "PROS-2024-0344",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1496,38 +1364,14 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2025-0033",
-      "account_id": "PROS-2025-0033",
+      "customer_group": "PROS-2025-0013",
+      "account_id": "PROS-2025-0013",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2025-0051",
-      "account_id": "PROS-2025-0051",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0077",
-      "account_id": "PROS-2025-0077",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0087",
-      "account_id": "PROS-2025-0087",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0136",
-      "account_id": "PROS-2025-0136",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2025-0163",
-      "account_id": "PROS-2025-0163",
+      "customer_group": "PROS-2025-0041",
+      "account_id": "PROS-2025-0041",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1564,13 +1408,13 @@
   ],
   "counts": {
     "with_hh_reads": 3,
-    "smart_without_hh_reads": 53,
-    "without_smart_meter": 90,
-    "households": 146
+    "smart_without_hh_reads": 37,
+    "without_smart_meter": 96,
+    "households": 136
   },
   "meter_types_seen": [
     "Smart",
     "Traditional"
   ],
-  "coverage_statement": "3 of 146 households on this book have a half-hourly read record, so a real day can be drawn for them. The rest report a handful of readings a year -- the curve for those homes is inferred from a profile, not measured. 53 of them have a SMART METER and still no half-hourly reads: the meter can measure every half-hour, but read frequency is the customer's consent to give, and without it the supplier holds monthly figures from a meter capable of 17,520 a year."
+  "coverage_statement": "3 of 136 households on this book have a half-hourly read record, so a real day can be drawn for them. The rest report a handful of readings a year -- the curve for those homes is inferred from a profile, not measured. 37 of them have a SMART METER and still no half-hourly reads: the meter can measure every half-hour, but read frequency is the customer's consent to give, and without it the supplier holds monthly figures from a meter capable of 17,520 a year."
 }

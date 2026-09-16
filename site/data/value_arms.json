@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T08:04:34.345631Z",
+  "generated_at": "2026-09-16T13:34:00.519387Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -494,7 +494,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "dbd92cedca5a8653f187eff3fd358da7d6c273b1",
+    "publishing_tree_commit": "c4809c5fcd36b8eaa1287def885a16b892d9234e",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -506,7 +506,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from dbd92cedc -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from c4809c5fc -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -901,7 +901,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "dbd92cedca5a8653f187eff3fd358da7d6c273b1",
+      "publishing_tree_commit": "c4809c5fcd36b8eaa1287def885a16b892d9234e",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -913,7 +913,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from dbd92cedc -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from c4809c5fc -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -964,21 +964,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 148558.61,
+      "dashboard_net_gbp": 163302.16,
       "run_identity": {
-        "dashboard_run_id": "run_output_dbd92cedc_20260916T044947Z.json",
-        "dashboard_commit": "dbd92cedc",
+        "dashboard_run_id": "run_output_770497ddd_20260916T125142Z.json",
+        "dashboard_commit": "770497ddd",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_186a91592_20260916T025342Z.json",
-        "last_verified_commit": "186a91592",
+        "last_verified_run_id": "run_output_770497ddd_20260916T125142Z.json",
+        "last_verified_commit": "770497ddd",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": 604.3543389992556,
-      "statement": "The published run's net margin (\u00a3148,558.61) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a3604.35. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": 15347.904338999273,
+      "statement": "The published run's net margin (\u00a3163,302.16) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a315,347.90. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {

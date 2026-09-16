@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-16T03:56:17Z",
+    "checked_at": "2026-09-16T11:33:36Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,35 +9,35 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 11
+    "open_findings": 15
   },
   "last_verified": {
-    "generated_at": "2026-09-16T05:26:18Z",
-    "git_commit": "dbd92cedc",
+    "generated_at": "2026-09-16T13:35:52Z",
+    "git_commit": "770497ddd",
     "population": {
       "accounts": 226,
-      "bills": 10881,
-      "total_revenue_gbp": 676597.23
+      "bills": 9996,
+      "total_revenue_gbp": 667820.94
     },
-    "run_id": "run_output_dbd92cedc_20260916T044947Z.json",
+    "run_id": "run_output_770497ddd_20260916T125142Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-16T05:26:18Z"
+    "verified_at": "2026-09-16T13:35:52Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=edded3973; blocking tests: FAILED tests/background/test_an_exit_code_is_not_a_landing.py::test_the_channel_reads_the_SHARED_trees_log_not_the_importing_trees",
-  "paused_since": "2026-09-16T09:36:22Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-16T05:26:18Z",
-    "git_commit": "dbd92cedc",
+    "generated_at": "2026-09-16T13:35:52Z",
+    "git_commit": "770497ddd",
     "population": {
       "accounts": 226,
-      "bills": 10881,
-      "total_revenue_gbp": 676597.23
+      "bills": 9996,
+      "total_revenue_gbp": 667820.94
     },
-    "run_id": "run_output_dbd92cedc_20260916T044947Z.json",
+    "run_id": "run_output_770497ddd_20260916T125142Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-16T05:26:18Z"
+    "verified_at": "2026-09-16T13:35:52Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-16T10:20:26Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-16T13:35:52Z"
 }
