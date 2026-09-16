@@ -24,7 +24,7 @@ import time
 
 import pytest
 
-from background import delivery_lane, delivery_seat, seat_executor
+from background import delivery_lane, delivery_seat, live_ledger_guard, seat_executor
 
 
 @pytest.fixture()
@@ -436,6 +436,26 @@ def test_the_channel_reads_the_SHARED_trees_log_not_the_importing_trees(tmp_path
     worktree and is told to orient there.
 
     MUTATION: revert `ids_run_since`'s default to `LOG_FILE` and this fires.
+
+    THE FIXTURE STOPPED STANDING WHERE THE DEFECT IS (2026-09-16, and this is why the wedge moved
+    here). `_shared_tree_log`'s body moved that same day to
+    `live_ledger_guard.shared_tree_live_record` -- an INSTANCE-to-CLASS extraction that was right,
+    and that this fixture could not see. The resolver asks ITS OWN module globals: `PROJECT_DIR`
+    for the `git rev-parse` cwd, and `LIVE_RECORD_DIR` for the `is_live_record_path` gate and the
+    `relative_to` below it. Both are derived from `live_ledger_guard.__file__`, so patching only
+    `seat_executor`'s left the resolver measuring this fixture's `tmp_path` against the REAL
+    repo's `docs/observability`: not a live record, return `path` unchanged, never ask git.
+
+    So the red this produced was NOT a broken channel. Measured from a real linked worktree at
+    the same commit, `ids_run_since(0.0)` answered 193 ids off the shared tree's log -- the
+    production path is intact, because in a real worktree both modules are imported from that
+    same tree and their `PROJECT_DIR`s agree. Only the fixture can make them disagree.
+
+    IT WENT RED, WHICH IS THE LUCKY DIRECTION AND IS NOT A REASON TO RELAX. Had
+    `is_live_record_path` defaulted the other way, this test would have gone GREEN while measuring
+    nothing at all, and the extraction would have been reviewed as proven by a control that had
+    silently lost its subject. That a fixture is un-subjected by a body moving out from under it
+    is the finding; the repair is to patch the module that now HOLDS the body.
     """
     shared = tmp_path / "shared"
     (shared / "docs" / "observability").mkdir(parents=True)
@@ -453,7 +473,16 @@ def test_the_channel_reads_the_SHARED_trees_log_not_the_importing_trees(tmp_path
     monkeypatch.setattr(seat_executor, "PROJECT_DIR", worktree)
     monkeypatch.setattr(seat_executor, "LOG_FILE",
                         worktree / "docs" / "observability" / log_name)
+    # ...AND IN THE MODULE THAT NOW HOLDS THE RESOLVER, which is the whole of the docstring's
+    # second half. A real worktree import moves BOTH modules' globals together; a fixture that
+    # moves one is describing a tree that cannot exist.
+    monkeypatch.setattr(live_ledger_guard, "PROJECT_DIR", worktree)
+    monkeypatch.setattr(live_ledger_guard, "LIVE_RECORD_DIR",
+                        worktree / "docs" / "observability")
     assert not seat_executor.LOG_FILE.exists(), "fixture is not standing where the defect was"
+    assert live_ledger_guard.is_live_record_path(seat_executor.LOG_FILE), \
+        "the resolver does not consider this fixture's log a live record at all, so it returns " \
+        "before asking git and the assertion below would grade the gate, not the channel"
 
     assert seat_executor.ids_run_since(0.0) == ["only-on-the-shared-tree"], \
         "a worktree-imported channel silently lost the shared tree's log, so a steer that IS " \
