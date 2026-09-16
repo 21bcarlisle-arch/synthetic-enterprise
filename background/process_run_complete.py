@@ -5873,7 +5873,11 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         log("TWO ROOMS, not safely repairable, so the landing below is expected to be REFUSED "
             "and every other commit in the tree with it: {} -- resolve by hand."
             .format(", ".join(_rooms["conflicts"])))
-    landing = _land_publish_commit(pathspec, msg, git_hash)
+    # THE MARKER SPANS THE LANDING, not the commit: what the heartbeat must not interrupt is the
+    # GATE, because that is the window in which a HEAD move turns a passing verdict into a verdict
+    # about a tree that no longer exists. See `LANDING_IN_FLIGHT_FILE`.
+    with _landing_in_flight_marker(git_hash):
+        landing = _land_publish_commit(pathspec, msg, git_hash)
     if not landing["sha"]:
         _text = landing["refusal"]
         if "are already at HEAD" in _text:
@@ -6067,6 +6071,117 @@ def _record_push_time() -> None:
     guard_live_ledger_write(LAST_PUSH_FILE, writer="process_run_complete._record_push_time").write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
 
 
+# ── THE SAME INVARIANT, THE OTHER DIMENSION (2026-09-16) ─────────────────────────────────
+#
+# "LIVENESS MUST NEVER BE EASIER TO PUBLISH THAN CONTENT" is the director's ruling of
+# 2026-08-13, and until today it was wired on ONE dimension: the hook-chain DEADLINE (see
+# GIT_COMMIT_HOOK_TIMEOUT_SECONDS above, and `test_liveness_is_never_easier_to_publish_than_
+# content`, whose own docstring records that the two paths stopped sharing a constant on
+# 2026-09-08). Equal deadlines, and liveness is still the easier publish -- because the two
+# paths differ in a way no deadline describes:
+#
+#   * CONTENT lands through `surgical_land`: a full gate in a clean extract, and if HEAD moved
+#     while that gate ran the verdict describes a tree that no longer exists, so it re-gates.
+#     Two attempts (PUBLISH_LAND_ATTEMPTS), then it gives up until the next completed run.
+#   * LIVENESS lands through `_commit_and_push_paths`: a narrow pathspec, and -- its own comment
+#     -- "never-hold-the-lock-across-commit". Short, and every thirty minutes.
+#
+# So the heartbeat WINS THE RACE THE CONTENT PUBLISH LOSES, and worse, it is what the content
+# publish loses the race TO. Measured on 2026-09-16 (publish failure #41, the first of its
+# class in 41): the landing's attempt 1/2 lost its base 96b99dea4 to 3be374b75 -- which IS the
+# `chore(liveness)` heartbeat, landed at 17:21:49 by this very module, one minute into the gate
+# it invalidated. Attempt 2/2 then lost to a seat commit and the publish was refused with
+# `total_red: 0` and the publisher's own scoped suite GREEN.
+#
+# AND THE HEARTBEAT'S TRIGGER IS THE WEDGE ITSELF. It fires "while sim output unchanged" -- which
+# is by construction the state that holds WHILE a content publish has not landed. The two are not
+# independent writers who happened to collide; the condition that arms the heartbeat is the
+# condition the content publish exists to end. 2026-08-12 is the same picture through the deadline
+# door: twenty-one killed content commits with a heartbeat landing throughout. The masked freeze
+# came back by the one route the fix for it did not cover.
+#
+# WHY SKIPPING IS NOT SUPPRESSION. The heartbeat's premise is "content is not being published".
+# While a landing is in flight that premise is FALSE, so declining is the heartbeat answering its
+# own question correctly, not liveness being starved for content's benefit.
+LANDING_IN_FLIGHT_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_landing_in_flight.json"
+
+#: How long a landing marker is believed before it is read as a CORPSE.
+#:
+#: DERIVED, and the derivation is the whole point: liveness may yield AT MOST ONE BEAT to a
+#: content landing. Beyond one throttle interval the heartbeat publishes regardless of what the
+#: marker says, because a publisher that died mid-landing must not be able to freeze the liveness
+#: surface -- that is Fault #1 (2026-07-25) exactly, and re-manufacturing it while closing a
+#: publish race would be the more expensive trade. So the bound is the heartbeat's own cadence.
+#:
+#: It covers the real case with room: the worst landing yet OBSERVED is 1381.52s over two attempts
+#: (`docs/observability/commit_hook_duration.jsonl`, 2026-09-16T17:43:46Z, the failure above) and
+#: the ordinary one is 250-330s. It is deliberately NOT `PUBLISH_LAND_ATTEMPTS *
+#: surgical_land.GATE_TIMEOUT_SECONDS` (7200s), which is the landing's worst permitted cost: that
+#: would let one crashed publish hold the heartbeat down for two hours to cover a case the record
+#: has never shown.
+LANDING_MARKER_TRUSTED_SECONDS = PUSH_THROTTLE_SECONDS
+
+
+def _landing_in_flight() -> dict:
+    """`{"live": bool, "why": str}` -- is a content publish landing running right now?
+
+    FAIL OPEN, ON PURPOSE, AND THE DIRECTION IS ARGUED. Every unreadable, absent, malformed or
+    expired marker answers "not in flight", so the heartbeat publishes. The asymmetry is that the
+    two failures cost different things: a heartbeat that publishes during a landing costs ONE
+    content publish, retried on the next completed run; a heartbeat that does not publish costs
+    the liveness surface, which is the only signal anyone outside has that the machine is alive,
+    and whose freeze is what Fault #1 was. R15 says an unavailable check is a failed check -- and
+    here the safe direction for a check that cannot answer is "beat".
+    """
+    try:
+        raw = json.loads(LANDING_IN_FLIGHT_FILE.read_text(encoding="utf-8"))
+        started = float(raw["started"])
+    except (FileNotFoundError, ValueError, KeyError, TypeError, OSError):
+        return {"live": False, "why": "no readable landing marker, so no landing is claimed"}
+    age = datetime.now(timezone.utc).timestamp() - started
+    if age > LANDING_MARKER_TRUSTED_SECONDS:
+        return {"live": False,
+                "why": "a landing marker exists and is {:.0f}s old, past the {}s a marker is "
+                       "believed -- read as a publisher that died mid-landing, so liveness stops "
+                       "yielding to it".format(age, LANDING_MARKER_TRUSTED_SECONDS)}
+    return {"live": True,
+            "why": "a content publish landing has been in flight for {:.0f}s (marker written by "
+                   "{})".format(age, raw.get("writer") or "an unnamed caller")}
+
+
+@contextmanager
+def _landing_in_flight_marker(git_hash):
+    """Hold the landing marker across a content landing. Never fails the landing.
+
+    The marker is cleared in a `finally`, so the only way it outlives the landing is the process
+    dying -- which is the case `LANDING_MARKER_TRUSTED_SECONDS` exists to bound.
+    """
+    try:
+        LANDING_IN_FLIGHT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        # THROUGH THE LEDGER GUARD, like `_record_push_time` beside it. This is a live
+        # observability write, and `test_the_narrowing_to_measurement_ledgers_is_measured_not_
+        # assumed` refused the first draft of this commit for bypassing it -- correctly, and its
+        # refusal names the right remedy: widen the guard, never the bound.
+        guard_live_ledger_write(
+            LANDING_IN_FLIGHT_FILE,
+            writer="process_run_complete._landing_in_flight_marker").write_text(json.dumps({
+                "started": datetime.now(timezone.utc).timestamp(),
+                "git_hash": git_hash,
+                "writer": "process_run_complete._land_publish_commit"}), encoding="utf-8")
+    except OSError as exc:
+        # An unwritable marker means the heartbeat is not interlocked this cycle. Said out loud,
+        # because the failure it re-opens is a silent one.
+        log("Publish landing marker could not be written ({}), so this cycle's liveness heartbeat "
+            "is NOT interlocked against the landing and may take the race from it.".format(exc))
+    try:
+        yield
+    finally:
+        try:
+            LANDING_IN_FLIGHT_FILE.unlink()
+        except OSError:
+            pass
+
+
 # ── Fault #1 (2026-07-25 overnight publish-freeze): liveness publication must NOT
 # be coupled to business-output-change ──────────────────────────────────────────
 LIVENESS_SURFACE_FILES = (
@@ -6129,6 +6244,18 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
               "(process_run_complete._refresh_published_liveness_on_skip)", file=sys.stderr)
         return False
     if not _push_due():
+        return False
+    # THE CONTENT PUBLISH GETS THE TREE (2026-09-16, publish failure #41). Checked AFTER the
+    # throttle and BEFORE any work, because this is the heartbeat's own precondition failing: it
+    # publishes "while sim output unchanged", and a landing in flight is content being published.
+    # See `LANDING_IN_FLIGHT_FILE` for the measurement and for why this is at most a one-beat
+    # yield rather than a suppression.
+    _flight = _landing_in_flight()
+    if _flight["live"]:
+        log("Liveness heartbeat STOOD DOWN this cycle: {}. Landing during that gate moves HEAD "
+            "under it and refuses the content publish -- which is exactly what took publish #41. "
+            "The heartbeat is one beat late, not skipped: the next cycle publishes it.".format(
+                _flight["why"]))
         return False
     files = [str(PROJECT_DIR / rel) for rel in LIVENESS_SURFACE_FILES
              if (PROJECT_DIR / rel).exists()]
