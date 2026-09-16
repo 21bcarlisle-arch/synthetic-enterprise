@@ -21,7 +21,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md` — BLOCKING
 - `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md` — BLOCKING
 - `SEAT_FINDING_THE_REFUTED_HANDOFF_WON_THE_DRAW_BECAUSE_ITS_CORRECTION_USED_A_NEW_ID_2026-09-03.md` — LATENT
-- `SEAT_FINDING_THE_SELF_CLEARING_ALARM_CENSUS_HAS_AN_UNDISPOSITIONED_HIT_AND_IT_IS_RED_AT_HEAD_NOT_IN_ANY_LANES_WORKING_TREE_2026-09-16.md` — BLOCKING
+- `SEAT_FINDING_THE_SELF_CLEARING_ALARM_CENSUS_HAS_AN_UNDISPOSITIONED_HIT_AND_IT_IS_RED_AT_HEAD_NOT_IN_ANY_LANES_WORKING_TREE_2026-09-16.md` — RECORDED
 - `SEAT_FINDING_THE_TREE_KEYED_ORACLE_WAS_BLIND_TO_A_PATH_SPELLED_AS_ONE_WHOLE_STRING_2026-09-15.md` — LATENT
 - `SEAT_FINDING_THE_WITHDRAWN_HOUSEHOLD_CLAIM_IS_GUARDED_BY_ITS_WORDS_SO_A_STRONGER_CLAIM_IN_NEW_WORDS_PASSES_2026-09-10.md` — LATENT
 - `SEAT_RESULT_EIGHT_OF_TEN_ROOMS_CANNOT_FAIL_FOR_THIS_SUBJECT_AND_THE_CONTROL_NAMED_FOR_ITS_CONTRACT_GRADED_ITS_OWN_FIXTURE_2026-09-05.md` — LATENT
@@ -69,15 +69,23 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-7 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+6 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_FINDING_A_LIVE_RECORD_IS_TRACKED_SO_EVERY_WORKTREE_READS_A_TWO_MONTH_OLD_PLACEHOLDER_AS_LIVE_STATE_2026-09-16.md`
 - `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md`
 - `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md`
-- `SEAT_FINDING_THE_SELF_CLEARING_ALARM_CENSUS_HAS_AN_UNDISPOSITIONED_HIT_AND_IT_IS_RED_AT_HEAD_NOT_IN_ANY_LANES_WORKING_TREE_2026-09-16.md`
 - `WORKER_FINDING_THE_LANE_WALL_WAS_FAIL_OPEN_ON_A_FULL_DISK_2026-08-31.md`
 - `WORKER_FINDING_THE_SHARED_TREE_HOLDS_A_SUPERSEDED_DRAFT_THAT_DELETES_TWO_LANDED_RUNGS_AND_23_TESTS_ARE_RED_BEHIND_IT_2026-09-05.md`
 - `WORKER_FINDING_THE_WALL_CENSUS_PINS_CUSTOMER_IDENTIFIERS_AS_A_SCHEMA_2026-09-01.md`
+
+<!-- Discharged 2026-09-16, commit 76e74f854, and dropped from the list above (7 -> 6):
+SEAT_FINDING_THE_SELF_CLEARING_ALARM_CENSUS_HAS_AN_UNDISPOSITIONED_HIT_..._2026-09-16.md. The
+`.launch_records.json` row is written and `self_clearing_alarm_census --check` is rc=0. Its instance
+line in the list of 46 now reads RECORDED; the note lives here rather than beside it because
+`_INSTANCE_LINE_RE` requires that line to END at the severity token, and a trailing clause drops the
+row from the count. The class header stays BLOCKING -- it is DERIVED from the six that remain. What
+that finding warned about is NOT closed by the row: the suppression is live as
+SEAT_FINDING_A_RELAUNCH_DELETES_THE_UNSETTLED_LIVE_RECORD_..._2026-09-16.md (LATENT). -->
 
 ## Refused consolidation — out of lane, still live
 
