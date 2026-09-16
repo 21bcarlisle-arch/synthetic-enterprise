@@ -78,6 +78,13 @@ from simulation.fabric_physics import (
     texture_is_not_a_rescaled_shape,
 )
 from simulation.household import Household
+
+# THE HEADCOUNT THE CENSUS MARGINAL SETS, not the one bedrooms imply. Used in
+# `build_fabric_series`, where the comment on the call records what it was measured to move.
+# Imported from the physical layer rather than re-derived: two draws of one quantity is the defect
+# `household_physical_layer.occupancy_band_for` already names, and a second copy here would be a
+# third answer to "how many people live here".
+from simulation.household_physical_layer import people_count_for
 from simulation.premise_trace import (
     REFERENCE_UNIT_PRICE_P_PER_KWH,
     ComfortConstraint,
@@ -283,7 +290,25 @@ def build_fabric_series(
     dates = [day.date for day in weather]
     segments = household_segments(household_at_date, dates)
 
-    profile = behaviour_profile_for(customer_id, segments[0].household, seed=seed)
+    # THE CENSUS-ANCHORED HEADCOUNT, and it reaches the settled book here for the first time
+    # (2026-09-16). `behaviour_profile_for` has always ACCEPTED `people_count` and falls back to
+    # `_PEOPLE_BY_BEDROOMS` when a caller omits it. The 2026-09-08 finding anchored the draw on ONS
+    # TS017 and wired it into `household_physical_layer._profile_for` -- but not here, and THIS is
+    # the path `run_phase2b` settles real money on. Measured over 2,000 residential premises off
+    # the live draw, this one call was the whole gap:
+    #
+    #     one-person households   11.0% here   against   30.1% census-anchored and 30.1% ONS
+    #     mean headcount           2.71 here   against    2.34 census-anchored and 2.37 ONS
+    #
+    # A BASELINE FIDELITY CHANGE, decided blind to P&L (R13). One-person households are the largest
+    # single band in GB and the world settled a third of them: lowest annual volume, flattest
+    # half-hourly shape, highest standing-charge share of bill, and the population most exposed to
+    # the fixed-cost leg of the cap. The direction this moves margin was not looked at before the
+    # change and is not a reason for it.
+    profile = behaviour_profile_for(
+        customer_id, segments[0].household, seed=seed,
+        people_count=people_count_for(customer_id),
+    )
     away = away_day_calendar(customer_id, profile, dates, seed=seed)
 
     gross: dict[str, list[float]] = {}
