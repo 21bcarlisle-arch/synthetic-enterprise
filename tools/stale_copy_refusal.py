@@ -26,6 +26,13 @@ TWO RULES, AND THE ORDER THEY WERE ARRIVED AT IS EVIDENCE, SO IT IS RECORDED HER
      not one. Cheap, exact, and it catches a deletion that rule 1 misses because the deleted name
      came from an older commit than C.
 
+WHICH DOOR THE REFUSAL NAMES IS A THIRD QUESTION, AND IT HAS THREE ANSWERS, NOT TWO. A copy that
+supplies a name the base lacks was called HOLDER WORK and sent to `surgical_land --content`. That is
+a set difference, and a set difference cannot tell a name the base NEVER HAD from one it CUT ON
+PURPOSE -- so the remedy told a lane to land back a forbidden import that had closed every lane's
+publish for 33 hours. `cut_of` asks git instead, per name, and a name whose binding stopped at a
+commit is a CUT: the verdict says so, names that commit, and never names the land-it door.
+
 **RULE 2 WAS THE ONE SPECIFIED, AND MEASURING IT REFUTED IT AS THE PRIMARY.** Pre-registered in
 `docs/staging/PREREG_THE_STALE_COPY_CENSUS_IS_A_DIFFERENT_QUESTION_FROM_THE_MTIME_CENSUS_2026-09-08.md`:
 I predicted rule 2 would fire on 2-8 of the sixteen mtime-stale paths in the shared tree. It fired
@@ -302,6 +309,73 @@ def gains_over(head_text: str, new_text: str, path: str) -> tuple[str, ...] | No
 
 
 @dataclass(frozen=True)
+class Cut:
+    """A name the copy supplies that the base ONCE HAD AND DELIBERATELY REMOVED, with the commit
+    that removed it. Not holder work by any reading: landing it re-creates a decision."""
+    name: str
+    commit: str
+
+
+def _supplied_at(root: Path, path: str, commit: str) -> frozenset[str] | None:
+    """The names `path` BOUND at `commit`, or `None` when that cannot be established there."""
+    blob = blob_at(root, commit, path)
+    if blob is None:
+        return frozenset()  # the path did not exist there, so it bound nothing -- an answer.
+    try:
+        return symbols(blob, path)
+    except Unparseable:
+        return None
+
+
+def cut_of(root: Path, path: str, name: str, parent: str = "HEAD") -> Cut | None:
+    """The commit in `parent`'s history that REMOVED `name` from `path` -- or `None` when that
+    history never bound it, or when the removal cannot be attributed to one commit.
+
+    THE DEFECT THIS OWNS, banked as `THE_HOLDER_WORK_VERDICT_NAMED_A_FORBIDDEN_IMPORT_AS_WORK_TO_
+    LAND_AND_IT_WAS_RED_ON_THE_TREE` (2026-09-16). `gains_over` is a SET DIFFERENCE, and a set
+    difference cannot tell a name the base NEVER HAD from a name the base CUT ON PURPOSE. The two
+    need opposite treatment and the verdict gave them the same one: *"so it is HOLDER WORK"*,
+    followed by `surgical_land --content`, which lands the cut back. The live instance was an import
+    HEAD forbids in a fourteen-line comment naming the 33-hour outage it caused, and the control
+    beside it was red on the shared tree while the census called the copy an asset.
+
+    ASK GIT, BECAUSE GIT IS WHERE THE DECISION IS RECORDED. `-S` is the candidate finder -- the
+    commits where this token's OCCURRENCE COUNT moved in this path -- and `symbols()` is the oracle,
+    the same reader that produced the verdict. Using the pickaxe as the oracle too would attribute a
+    cut to a later comment edit that merely mentions the name (the live instance's own docstring at
+    HEAD says in words that the test is deleted), and would read `Class.method` by its last
+    component and call a same-named method of another class the same name.
+
+    THE ERROR DIRECTION IS DELIBERATE AND IT IS NOT THE FLATTERING ONE. Every `None` here means
+    *"not established as a cut"*, which leaves the copy reading as holder work -- today's verdict.
+    That matters because the cut door OVERWRITES BYTES (`refresh_to_head`), so a cut claimed on a
+    guess destroys a lane's work through the repair for losing it. An unattributable removal, an
+    unparseable historic blob and a name this history never bound all take that same exit.
+    """
+    token = name.rsplit(".", 1)[-1]
+    log = _git(root, "log", "--format=%H", "--pickaxe-regex",
+               "-S" + r"\b{}\b".format(re.escape(token)), parent, "--", path)
+    removed_at: str | None = None
+    for sha in (ln.strip() for ln in log.stdout.splitlines() if ln.strip()):  # newest first
+        supplied = _supplied_at(root, path, sha)
+        if supplied is None:
+            return None
+        if name in supplied:
+            # The boundary: this commit still bound it, so the one after it is where it stopped.
+            return Cut(name, removed_at) if removed_at is not None else None
+        removed_at = sha
+    return None
+
+
+def cuts_among(root: Path, path: str, names: tuple[str, ...],
+               parent: str = "HEAD") -> tuple[Cut, ...]:
+    """Which of `names` the base cut on purpose. One `git log -S` per candidate, on a population of
+    at most a handful per refusal -- and only ever on the REFUSAL path, never on a clean commit."""
+    found = (cut_of(root, path, name, parent) for name in names)
+    return tuple(cut for cut in found if cut is not None)
+
+
+@dataclass(frozen=True)
 class Loss:
     path: str
     rule: str
@@ -309,12 +383,49 @@ class Loss:
     commit: str = ""
     #: () = supplies nothing HEAD lacks; a tuple = holder work; None = could not be told.
     gains: tuple[str, ...] | None = None
+    #: The subset of `gains` the base DELETED on purpose -- see `cut_of`. Never holder work.
+    cuts: tuple[Cut, ...] = ()
+
+    @property
+    def novel(self) -> tuple[str, ...]:
+        """The gains that are genuinely new -- what the holder-work verdict was always claiming."""
+        cut = {c.name for c in self.cuts}
+        return tuple(n for n in (self.gains or ()) if n not in cut)
+
+    @property
+    def is_rival(self) -> bool:
+        """True when this copy supplies the base NOTHING it does not already have BY CHOICE. A copy
+        whose every "new" name is a re-creation of a deletion is a rival copy exactly as much as one
+        with no new name at all -- which is why the door is the same and `gains == ()` is no longer
+        the test."""
+        return self.gains is not None and not self.novel
+
+    def _cut_lines(self) -> str:
+        return "".join("        - {}  <- REMOVED by {}\n".format(c.name[:90], c.commit[:9])
+                       for c in self.cuts)
 
     def remedy(self) -> str:
         if self.gains is None:
             return ("      REMEDY: cannot tell which door -- this copy's names could not be read, "
                     "so\n      neither `refresh_to_head` nor `isolate_hunks` is licensed until "
                     "that is fixed.")
+        if self.cuts and not self.novel:
+            return ("      REMEDY: every name HEAD \"lacks\" here is a RE-CREATION OF A DELIBERATE "
+                    "DELETION, so\n      this copy is NOT holder work -- landing it puts back what "
+                    "HEAD removed on purpose:\n{}"
+                    "      It is a rival copy HEAD supersedes. `python3 -m tools.refresh_to_head "
+                    "{}`\n      surveys it; `--write --slug NAME` preserves these bytes and writes "
+                    "HEAD's over them.".format(self._cut_lines(), self.path))
+        if self.cuts:
+            return ("      REMEDY: this copy supplies {} name(s) HEAD lacks, but {} of them are "
+                    "RE-CREATIONS\n      of deliberate deletions, so it must NEVER be landed whole:"
+                    "\n{}"
+                    "      `python3 -m tools.isolate_hunks --survey {}` and keep ONLY the hunks "
+                    "carrying\n      {} -- NOT `--content {}=<file>`, which lands the file and the "
+                    "cuts with it.".format(
+                        len(self.gains), len(self.cuts), self._cut_lines(), self.path,
+                        ", ".join(self.novel[:3]) + ("..." if len(self.novel) > 3 else ""),
+                        self.path))
         if self.gains:
             return ("      REMEDY: this copy supplies {} name(s) HEAD lacks ({}), so it is HOLDER "
                     "WORK.\n      `python3 -m tools.isolate_hunks --survey {}`, `--keep N` builds "
@@ -362,8 +473,9 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
         if distinctive:
             present = {ln.strip() for ln in new_text.splitlines()}
             if not any(d in present for d in distinctive):
-                return Loss(path, PREDATES, distinctive, commit,
-                            gains_over(head_text, new_text, path))
+                gains = gains_over(head_text, new_text, path)
+                return Loss(path, PREDATES, distinctive, commit, gains,
+                            cuts_among(root, path, gains or (), parent))
     try:
         before, after = symbols(head_text, path), symbols(new_text, path)
     except Unparseable as exc:
@@ -672,7 +784,7 @@ def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
     out: dict[str, str] = {}
     index = None
     for loss in losses:
-        if loss.gains == ():
+        if loss.is_rival:
             verdict = refresh_to_head.judge_copy(root, loss.path)
             out[loss.path] = (
                 "      the door this refusal names IS OPEN: {}".format(verdict.state)

@@ -19,9 +19,13 @@ a rule that leaves no legal move evaporates -- the same argument that produced `
 
 WHAT STOPS THIS BEING `git checkout` WITH A NICER NAME. Three things, and they are conjunctive.
 
-  1. THE COPY MUST SUPPLY NO NAME HEAD LACKS. Computed, never asserted: `stale_copy_refusal.symbols`
-     over both blobs, and a single name on the copy's side is a REFUSAL that names it and sends the
-     caller to `isolate_hunks`. This is the whole of the Kind-A/Kind-B split, made a precondition.
+  1. THE COPY MUST SUPPLY NO NAME HEAD NEVER BOUND. Computed, never asserted:
+     `stale_copy_refusal.symbols` over both blobs, and a single name on the copy's side is a REFUSAL
+     that names it and sends the caller to `isolate_hunks`. This is the whole of the Kind-A/Kind-B
+     split, made a precondition. NEVER BOUND and not merely ABSENT, since 2026-09-16: a name HEAD
+     DELETED on purpose is a re-creation, not holder work, and reading it as holder work shut this
+     door against exactly the copies the census sends here -- `stale_copy_refusal.cut_of` has that
+     argument in full.
   2. HEAD MUST ACTUALLY SUPERSEDE IT. `stale_copy_refusal.judge` must have a complaint about this
      copy. Keyed to the PROPERTY (this copy would revert a landing), not to a path anyone listed:
      without it the tool reverts any edit you point it at, which IS `git checkout`.
@@ -63,7 +67,7 @@ from pathlib import Path
 # which is what lets refusal 1 fail closed instead of waving an unreadable file through; its
 # `judge()` is refusal 2 entire. Re-deriving either would be a second opinion about what a stale
 # copy is, and two answers to that question is the defect this class already banked.
-from tools.stale_copy_refusal import READABLE, Unparseable, blob_at, judge, symbols
+from tools.stale_copy_refusal import READABLE, Unparseable, blob_at, cuts_among, judge, symbols
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -215,7 +219,20 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         return Verdict(path, NO_READER,
                        "no symbol reader for this path, so 'supplies nothing HEAD lacks' is "
                        "unestablished and the refresh is not licensed.")
-    gains = tuple(sorted(work_names - head_names))
+    # A NAME THE BASE CUT ON PURPOSE IS NOT HOLDER WORK, AND THIS TOOL WAS GATED ON THE OPPOSITE
+    # READING. Rule 1 asks "does the copy supply a name the base lacks" as a set difference, and
+    # `WORKER_FINDING_THE_HOLDER_WORK_VERDICT_NAMED_A_FORBIDDEN_IMPORT_AS_WORK_TO_LAND` is what that
+    # cost at both ends: the census called a deliberately-deleted name holder work and named THIS
+    # door as the remedy for the copies where it did not -- and this door then refused the very
+    # copies the census sends it, for the same reason, because it re-implemented the same
+    # difference. One question, one implementation: `cuts_among` is the census's own discriminator.
+    # The precondition is UNCHANGED in strength -- a name the base never bound still refuses here.
+    # Stated as a SET DIFFERENCE and not a membership filter on purpose: `tools/
+    # substring_source_scan_census.py` reads `not in` over anything reachable from file text as a
+    # substring-shaped interrogation of Python source, and it is right to -- these names came out of
+    # `symbols()`. The difference says the same thing without asking that question of a string.
+    cuts = cuts_among(root, path, tuple(sorted(work_names - head_names)), parent=base)
+    gains = tuple(sorted(work_names - head_names - frozenset(c.name for c in cuts)))
     if gains:
         return Verdict(path, SUPPLIES_NEW,
                        "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
@@ -232,8 +249,12 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                        "nicer name -- and that is forbidden here for this exact reason.".format(
                            base))
     return Verdict(path, REFRESHABLE,
-                   "rival copy: supplies no name {} lacks, and the stale-copy control refuses it "
-                   "[{}]. {} strictly supersedes it.".format(base, loss.rule, base),
+                   "rival copy: supplies no name {} lacks{}, and the stale-copy control refuses it "
+                   "[{}]. {} strictly supersedes it.".format(
+                       base, "" if not cuts else
+                       " that it did not CUT ON PURPOSE ({} -- see `git show {}`)".format(
+                           ", ".join(c.name for c in cuts[:3]), cuts[0].commit[:9]),
+                       loss.rule, base),
                    discarded=_discarded_lines(head_text, work_text))
 
 

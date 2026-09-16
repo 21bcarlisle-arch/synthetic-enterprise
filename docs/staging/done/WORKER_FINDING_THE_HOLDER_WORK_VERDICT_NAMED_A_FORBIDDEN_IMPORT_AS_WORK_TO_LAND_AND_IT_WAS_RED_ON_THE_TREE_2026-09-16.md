@@ -104,3 +104,89 @@ population of at most a handful per census.
 Until that discriminator lands, `background/supervisor.py` will return to the census the next time
 any lane leaves a stale copy of it on disk, and the remedy printed beside it will again be to land
 the import that closed every lane's publish for 33 hours.
+
+## What landed
+
+**2026-09-16, scheduled tick, worker seat — the discriminator this document asked for.**
+
+`tools/stale_copy_refusal.py` gains `cut_of` / `cuts_among`: per name the copy supplies, the
+pickaxe (`git log -S --pickaxe-regex`, word-bounded) finds the commits where that token's occurrence
+count moved in that path, and `symbols()` — the same reader that produced the verdict — is asked at
+each, newest first. A name still BOUND at a commit whose successor does not bind it names that
+successor as the cut. The verdict is now three-way, and the cut branch never prints the land-it door:
+
+* every "new" name is a cut → **rival copy**, `refresh_to_head`, with the removing commit named;
+* some are → **never land whole**, `isolate_hunks --survey` naming which hunks to keep and which
+  cuts to exclude, and `--content` appears only in the sentence forbidding it;
+* none are → HOLDER WORK, exactly as before.
+
+**The pickaxe is the candidate finder, never the oracle.** It moves on any occurrence — a comment, a
+docstring, a call site — and this file's own live instance has a HEAD docstring that says in words
+that the test is deleted. Reading occurrences as bindings would call a lane's genuinely new function
+a re-creation and send its bytes to the tool that overwrites them.
+
+**Every uncertainty exits as "not a cut"**, which is today's verdict: an unattributable removal, an
+unparseable historic blob, and a name this history never bound all fall back to HOLDER WORK. The
+error direction is deliberate — the cut door overwrites bytes.
+
+**The named door was shut, by the same defect, from the other side.** `tools/refresh_to_head.py`
+rule 1 re-implemented the same set difference, so it refused precisely the copies the census sends
+it — measured on the live instance before the repair: `refused_supplies_names_head_lacks`. It now
+asks the census's own discriminator, so the question has one implementation and two readers. The
+precondition is not weakened: a name HEAD never bound still refuses, and a cut sitting *beside*
+unlanded work still refuses.
+
+### Measured on the live instance, which is what this finding predicted would still be there
+
+`tests/simulation/test_the_tariff_type_read_has_one_home.py`, before → after:
+
+| | verdict |
+|---|---|
+| before | *"this copy supplies 1 name(s) HEAD lacks (…), so it is HOLDER WORK"* + `--content` |
+| after | *"every name HEAD lacks here is a RE-CREATION OF A DELIBERATE DELETION … REMOVED by dcb8c6d10"* |
+| the door it now names | `refreshable` — the census runs it and prints *the door this refusal names IS OPEN* |
+
+Measured on a base level with the trunk (HEAD 1 ahead, 0 behind `origin/main`), because this
+module's own banner says a behind base makes these readings unsafe.
+
+The live census also now shows the mixed shape in the wild — `tests/background/
+test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py` supplies two names, one of them
+removed by `8dfb28f9f`, and would have been sent to `--content` whole.
+
+### Mutation-proven both ways, on both modules
+
+Re-measured at landing time rather than quoted from the build, because the first draft of this table
+named legs that do not exist and undercounted three of the four rows. Each mutation was applied as a
+pytest plugin patching the discriminator only, against the unmodified suites:
+
+| mutation | reds | the leg that names the defect |
+|---|---|---|
+| `cut_of` always answers "never a cut" (this defect, restored) | 3 of 46 | `test_a_name_head_deleted_on_purpose_is_a_cut_and_never_holder_work` |
+| `cut_of` calls every new name a cut (the overwriting direction) | 8 of 46 | `test_a_name_head_never_had_is_still_holder_work` |
+| the refresh widening removed | 2 of 19 | `test_a_copy_whose_only_new_name_head_deleted_is_refreshable` |
+| every new name treated as a cut, in the refresh | 3 of 19 | `test_a_copy_carrying_a_cut_AND_an_unlanded_name_is_still_refused` |
+
+The two directions are deliberately asymmetric in blast radius: answering "cut" for everything reds
+8 legs to "never a cut"'s 3, because five further legs already assert the holder-work remedy by its
+printed text and that remedy disappears under the wide mutation. That asymmetry is the guard the
+error direction was chosen for — the cut door overwrites bytes, so the failure that destroys work is
+the loudly-caught one.
+
+The whole three-way partition is asserted reachable in one tree in both suites
+(`test_the_whole_three_way_partition_is_reachable_in_one_tree`,
+`test_every_verdict_in_the_partition_is_reachable`) rather than a leg per branch — a discriminator
+stuck on any single answer passes most of the legs above.
+
+## The prediction, resolved beside itself
+
+The prediction was that `background/supervisor.py` would return to the census with the land-it
+remedy beside it the next time any lane left a stale copy on disk. It is not refuted — it is spent:
+the discriminator it was waiting on is in this commit, and the live instance the prediction pointed
+at is now named as a cut. What the prediction did NOT anticipate is that the census's named door
+would have refused the repair even if a lane had walked to it; that half was found only by running
+the door instead of reading it.
+
+## Class registration
+
+Belongs to `controls_that_cannot_fail` — a verdict that could not distinguish the two populations it
+routes, and whose wrong branch instructed a lane to re-create a measured outage.

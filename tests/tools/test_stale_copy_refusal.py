@@ -776,3 +776,125 @@ def test_a_call_site_only_stale_copy_is_refused(repo: Path) -> None:
     loss = scr.judge(repo, "m.py", head_text, PRE_CALL_SITE_LANDING)
     assert loss is not None, "a copy predating the landing was graded clean"
     assert loss.rule == scr.PREDATES, "it must be refused AS predating the landing"
+
+
+# ------------------------------------------------------- the third verdict: a name HEAD CUT ON PURPOSE
+#
+# The defect, banked as THE_HOLDER_WORK_VERDICT_NAMED_A_FORBIDDEN_IMPORT_AS_WORK_TO_LAND_AND_IT_WAS_
+# RED_ON_THE_TREE (2026-09-16): "supplies a name HEAD lacks" is a SET DIFFERENCE, and a set
+# difference cannot tell a name HEAD never had from one HEAD deleted on purpose. The live instance
+# was an import HEAD forbids in a comment naming the 33-hour outage it caused, and the remedy
+# printed beside it was `surgical_land --content` -- land it back.
+#
+# Each test below names the way this discriminator could be useless. The two that matter most are
+# the NEGATIVE ones: a discriminator that called EVERY new name a cut would pass every positive
+# test here and be far worse than the defect, because the cut door OVERWRITES BYTES.
+
+#: HEAD's bytes: the helper the copy still carries was DELETED here, on purpose, and a distinctive
+#: line landed with the deletion. This is the live shape -- a test that went red as designed, an
+#: import cut for a measured outage -- not an invented one.
+CUT_LANDING = (
+    "def alpha():\n    return 1\n\n\n"
+    "def replacement_helper(argument):\n"
+    '    """The one distinctive line this landing added, appearing exactly once."""\n'
+    "    return argument * 41 + 7\n"
+)
+
+#: The stale copy: taken before that landing, so it still binds the deleted name and nothing else.
+COPY_CARRYING_THE_CUT = (
+    "def alpha():\n    return 1\n\n\n"
+    "def deliberately_deleted_helper():\n    return 'the decision HEAD recorded by removing me'\n"
+)
+
+
+def _cut_fixture(repo: Path) -> str:
+    """Bind the name, then DELETE it in a landing. Returns the deleting commit."""
+    _commit(repo, "m.py", COPY_CARRYING_THE_CUT, "the helper is written")
+    return _commit(repo, "m.py", CUT_LANDING, "the helper is deleted on purpose")
+
+
+def test_a_name_head_deleted_on_purpose_is_a_cut_and_never_holder_work(repo: Path) -> None:
+    """THE DEFECT ITSELF. Before this discriminator the verdict read 'so it is HOLDER WORK' and sent
+    the lane to `surgical_land --content`, which lands the deletion back. The set difference is
+    IDENTICAL in both cases, so nothing about the name alone can tell them apart -- only git can."""
+    removed_at = _cut_fixture(repo)
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), COPY_CARRYING_THE_CUT)
+    assert loss is not None and loss.gains == ("deliberately_deleted_helper",), (
+        "the fixture no longer reaches the holder-work verdict, so it cannot show it was wrong")
+    assert [c.name for c in loss.cuts] == ["deliberately_deleted_helper"], (
+        "a name HEAD deleted on purpose is still reading as a name HEAD never had")
+    assert loss.cuts[0].commit == removed_at, "the cut must name the commit that removed it"
+    text = loss.render()
+    assert removed_at[:9] in text, "the reader cannot check the claim without the commit"
+    assert "--content" not in text, (
+        "the land-it remedy is still printed for a copy whose only 'new' name re-creates a "
+        "deletion: {}".format(text))
+    assert _commands(text) and all("refresh_to_head" in c for c in _commands(text)), (
+        "a copy that supplies nothing HEAD did not delete is a rival copy, and the door for one is "
+        "the refresh: {}".format(_commands(text)))
+
+
+def test_a_name_head_never_had_is_still_holder_work(repo: Path) -> None:
+    """THE NEGATIVE CONTROL, and it is the one that matters more: the cut door OVERWRITES BYTES. A
+    discriminator that answered 'cut' for every unfamiliar name would pass the test above and
+    destroy a lane's unlanded work through the repair for losing it."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), STALE_WITH_OWN_WORK)
+    assert loss is not None and loss.gains == ("my_own_new_function",)
+    assert loss.cuts == () and loss.novel == ("my_own_new_function",), (
+        "a name this history never bound was called a deliberate deletion, which points the "
+        "overwriting door at a lane's real work")
+    assert not loss.is_rival, "holder work must never read as a rival copy"
+
+
+def test_a_name_that_only_ever_APPEARED_is_not_a_cut(repo: Path) -> None:
+    """THE PICKAXE IS THE CANDIDATE FINDER, NOT THE ORACLE. `git log -S` moves on any occurrence of
+    the token -- a comment, a docstring, a call site. Reading those as 'HEAD once had this name'
+    would call a copy's genuinely new function a re-creation, on the strength of a sentence
+    mentioning it. The live instance's own HEAD docstring says in words that its test is deleted,
+    so this is the normal case and not a contrived one."""
+    _commit(repo, "m.py", "def alpha():\n    # mentions never_bound_helper and nothing more\n"
+                          "    return 1\n", "a comment mentioning a name")
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    supplies = "def alpha():\n    return 2\n\n\ndef never_bound_helper():\n    return 'new'\n"
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), supplies)
+    assert loss is not None and "never_bound_helper" in (loss.gains or ()), (
+        "the fixture no longer supplies the name, so it cannot show how it is classified")
+    assert loss.cuts == (), (
+        "a name that only ever appeared in a COMMENT was read as a binding HEAD deleted")
+    assert scr.cut_of(repo, "m.py", "never_bound_helper") is None
+
+
+def test_a_copy_carrying_both_a_cut_and_real_work_may_never_be_landed_whole(repo: Path) -> None:
+    """THE MIXED SHAPE, and the reason the cut verdict is not simply the rival-copy verdict. Some of
+    this copy IS holder work, so the refresh would destroy it -- and landing the file whole puts the
+    deletion back. Only hunk selection is legal, and the refusal has to say which hunks."""
+    removed_at = _cut_fixture(repo)
+    mixed = COPY_CARRYING_THE_CUT + "\n\ndef genuinely_new_work():\n    return 'unlanded'\n"
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), mixed)
+    assert loss is not None and loss.novel == ("genuinely_new_work",) and len(loss.cuts) == 1, (
+        "the fixture no longer produces a copy that is BOTH, which is what this test is about")
+    assert not loss.is_rival, "a copy carrying unlanded work must never be sent to the overwriter"
+    text = loss.render()
+    assert "--content" in text and "NOT `--content" in text, (
+        "the whole-file door must be named only to forbid it: {}".format(text))
+    assert _commands(text) and all("isolate_hunks" in c for c in _commands(text)), (
+        "the only legal move is hunk selection: {}".format(_commands(text)))
+    assert removed_at[:9] in text and "genuinely_new_work" in text, (
+        "the lane cannot select correctly unless the refusal names both halves")
+
+
+def test_the_whole_three_way_partition_is_reachable_in_one_tree(repo: Path) -> None:
+    """A CONTROL OVER THE PARTITION, NOT A LEG PER BRANCH. A discriminator stuck on any one answer
+    passes two of the three tests above; only asking for all three at once refuses it."""
+    removed_at = _cut_fixture(repo)
+    head = scr.blob_at(repo, "HEAD", "m.py")
+    cut = scr.judge(repo, "m.py", head, COPY_CARRYING_THE_CUT)
+    holder = scr.judge(repo, "m.py", head,
+                       "def alpha():\n    return 1\n\n\ndef mine():\n    return 2\n")
+    rival = scr.judge(repo, "m.py", head, "def alpha():\n    return 1\n")
+    assert cut is not None and holder is not None and rival is not None
+    assert cut.cuts and cut.is_rival, "the cut verdict is unreachable"
+    assert not holder.cuts and holder.novel and not holder.is_rival, "holder work is unreachable"
+    assert rival.gains == () and not rival.cuts and rival.is_rival, "the rival verdict is unreachable"
+    assert removed_at[:9] in cut.render()

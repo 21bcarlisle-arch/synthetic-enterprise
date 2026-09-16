@@ -272,3 +272,56 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
     states.add(rth.judge_copy(repo, "brand_new.py").state)
     assert states == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.NOT_SUPERSEDED, rth.AT_HEAD,
                       rth.NO_READER, rth.NO_BASE}
+
+
+# --------------------------------------- rule 1 asks NEVER BOUND, not merely ABSENT (2026-09-16)
+#
+# The defect, banked as THE_HOLDER_WORK_VERDICT_NAMED_A_FORBIDDEN_IMPORT_AS_WORK_TO_LAND: a name
+# HEAD DELETED on purpose is not holder work, and reading it as holder work shut this door against
+# exactly the copies the census sends here -- the census named the refresh, the refresh answered
+# `refused_supplies_names_head_lacks`, and the only remaining route was the land-it door that puts
+# the deletion back. Measured live on `tests/simulation/test_the_tariff_type_read_has_one_home.py`.
+
+#: HEAD DELETED this helper on purpose -- a test that went red as designed, an import cut for a
+#: measured outage. The copy still carrying it supplies a name HEAD lacks and is not holder work.
+CUT_BY_HEAD = (
+    "def alpha():\n    return 1\n\n\n"
+    "def helper_head_deleted_on_purpose():\n    return 'the decision HEAD recorded'\n"
+)
+
+
+def _head_deletes_the_helper(repo: Path) -> None:
+    """Bind the helper, then DELETE it in the landing HEAD now holds."""
+    for text, message in ((CUT_BY_HEAD, "the helper is written"),
+                          (LANDED, "the helper is deleted on purpose")):
+        (repo / "m.py").write_text(text)
+        _run(repo, "add", "m.py")
+        _run(repo, "commit", "-qm", message)
+
+
+def test_a_copy_whose_only_new_name_head_deleted_is_refreshable(repo: Path) -> None:
+    """THE DOOR THE CENSUS NAMES MUST BE OPEN. This is the finding's own instance: the census sends
+    a copy here precisely because its 'new' name is a re-creation of a deletion, and until this
+    asked NEVER BOUND rather than ABSENT the tool refused it for being what it was sent for."""
+    _head_deletes_the_helper(repo)
+    (repo / "m.py").write_text(CUT_BY_HEAD)
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state == rth.REFRESHABLE, (
+        "the door the stale-copy census names for a cut is still shut: [{}] {}".format(
+            verdict.state, verdict.reason))
+    assert "CUT ON PURPOSE" in verdict.reason, (
+        "the refresh is licensed by a deletion the reader cannot see, so the write is silent about "
+        "the one fact that licenses it")
+
+
+def test_a_copy_carrying_a_cut_AND_an_unlanded_name_is_still_refused(repo: Path) -> None:
+    """THE DIRECTION THAT DESTROYS WORK, and the whole reason the widening is per name rather than
+    per copy. This tool OVERWRITES BYTES: one genuinely new name beside the cut must still refuse,
+    or the repair for losing a lane's work becomes the way it is lost."""
+    _head_deletes_the_helper(repo)
+    (repo / "m.py").write_text(CUT_BY_HEAD + "\n\ndef my_own_unlanded_function():\n    return 2\n")
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state == rth.SUPPLIES_NEW, (
+        "a copy holding unlanded work was cleared for overwriting because a CUT sat beside it")
+    assert verdict.gains == ("my_own_unlanded_function",), (
+        "the refusal must name the unlanded work and not the cut: {}".format(verdict.gains))
