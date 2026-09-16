@@ -4806,6 +4806,23 @@ def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome:
     """How long the pre-commit HOOK CHAIN actually took, recorded against the deadline that
     actually kills it.
 
+    A ROW MAY HOLD MORE THAN ONE CHAIN, AND A READER MUST NOT ASSUME OTHERWISE (2026-09-16).
+    `GIT_COMMIT_HOOK_TIMEOUT_SECONDS` bounds ONE `git commit` subprocess -- that is the liveness
+    path. Since 2026-09-08 the CONTENT path lands through `surgical_land.land(attempts=
+    PUBLISH_LAND_ATTEMPTS)`, which is not bounded by it and which RE-GATES when it loses the
+    compare-and-swap: the race is detected after the gate has returned a verdict, so every attempt
+    is a full chain and the elapsed time holds all of them. `2c89bd534` recorded 1381.52s that way
+    -- the publisher's own record names it *"lost the race to another writer on all 2 attempt(s)"*
+    -- and the live headroom control read it as ONE chain costing 1382s against an 880s deadline
+    that another control caps at 900s. There was no deadline satisfying both, and every commit in
+    the tree was refused by a comparison between a one-chain deadline and a two-chain measurement.
+
+    THE ROW ALREADY CARRIES THE CONTRADICTION, which is why nothing is added to it here: a run that
+    exceeded `ceiling_seconds` AND returned a verdict cannot have been bounded by that ceiling,
+    because a bounded chain that exceeds it is KILLED and recorded as `timeout`. See
+    `_recent_hook_chain_seconds`, which drops exactly those rows. Before comparing two numbers, say
+    what each one counts.
+
     THE THING THAT TIMES OUT WAS THE ONE THING UNMEASURED. `publish_gate_duration.jsonl` records
     the publisher's OWN scoped gate and grades its headroom against `GATE_SUITE_TIMEOUT_SECONDS`
     (3800s), reporting `band: ok, headroom_ratio: 0.85` -- while the commit that runs a comparable
@@ -5408,6 +5425,11 @@ def _land_publish_commit(pathspec, msg, git_hash):
         # break across this change -- including the KILLED case, which stays a distinct label
         # because "the chain outran its deadline" and "the chain returned a verdict" are the two
         # facts a reader of that series most needs to be able to tell apart.
+        # THIS ELAPSED TIME CAN HOLD `len(lost) + 1` CHAINS, not one: the race is detected by the
+        # compare-and-swap AFTER the gate has returned a verdict, so a lost attempt ran a full
+        # chain. Nothing is added to the row to say so -- the row already contradicts itself when
+        # it happens (duration past the ceiling with a verdict returned), and
+        # `_recent_hook_chain_seconds` reads that contradiction. See `_record_commit_hook_duration`.
         _record_commit_hook_duration(time.monotonic() - started, git_hash,
                                      "timeout" if _gate_was_killed(str(exc)) else "refused")
         return {"sha": "", "refusal": str(exc), "lost": lost}
@@ -5990,57 +6012,191 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                               stderr=subprocess.PIPE, text=True)
         local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
                                     capture_output=True, text=True, timeout=15).stdout.strip()
-        remote_head = ""
-        try:
-            ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
-                                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
-            remote_head = ls.stdout.split()[0] if ls.stdout.strip() else ""
-        except Exception as exc:
-            log("Push verify: ls-remote failed ({}) -- cannot confirm origin advanced".format(exc))
-        if _push_reached_origin(push.returncode, remote_head, local_head):
-            _record_push_time()
-            _record_content_published()
-            return _outcome(PUBLISHED, True)
-        from background.notify import notify
-        notify(
-            "[SIM] PUSH DID NOT REACH ORIGIN (rc={}, origin={}, head={}) -- {} -- publish pipeline "
-            "commits are stacking LOCALLY and the advisor bridge is blind. NOT recording a push "
-            "time; next cycle retries. If this repeats, the remote-tracking ref or auth is the "
-            "cause.".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
-                            failure_detail(getattr(push, "stderr", None))),
-            kind="real_alarm",
-        )
-        _tail = stderr_tail(getattr(push, "stderr", None))
-        log("PUSH did NOT advance origin (rc={}, origin={}, head={}) -- throttle left untouched, "
-            "will retry next cycle{}".format(
-                push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
-                "\n  git push stderr:\n{}".format(_tail) if _tail
-                else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
-        # THE EVIDENCE IS THE REMOTE REF, read by ls-remote above -- not the push's exit status,
-        # which returned 0 while origin stood still for 3.5 hours in the 2026-07-24 incident.
-        # The commit is on this machine and the hook chain passed to get it there, so this is
-        # the one rc=77 cause where the reader must be told NOT to look at the tests at all.
-        return _outcome(
-            PUSH_DID_NOT_REACH_ORIGIN, False,
-            evidence="the commit LANDED locally (HEAD {}) and `git ls-remote` shows "
-                     "origin/main still at {} -- the hook chain passed, so no test is "
-                     "implicated; the remote ref, not the push's rc={}, is the evidence"
-                     .format((local_head or "?")[:9],
-                             (remote_head or "unreadable")[:9], push.returncode))
+        remote_head = _origin_main_sha()
+        push_rc = push.returncode
+        # LEG TWO'S PRECONDITION, READ HERE AND ACTED ON BELOW -- OUTSIDE THIS LOCK.
+        absorbable = (not _push_reached_origin(push_rc, remote_head, local_head)
+                      and _publish_is_absorbable(getattr(push, "stderr", None), pathspec))
+
+    # ── THE VERDICT IS TAKEN AFTER THE CADENCE THE COMMIT WAS CREATED FOR, NOT BEFORE IT ────
+    #
+    # (2026-09-16, WORKER_FINDING_THE_PUBLISH_SUCCEEDS_BY_REACHABILITY_AND_IS_GRADED_BY_EQUALITY.)
+    # `_divergence_refusal` admits a publish commit created while BEHIND origin when its paths are
+    # disjoint from what origin is bringing, on its own stated grounds that `origin_reconcile`
+    # absorbs it on the next cadence. That commit's push is then rejected non-fast-forward -- by
+    # construction, every time -- and the publisher used to declare its outcome right there, before
+    # the mechanism its own narrowing names had run. MEASURED, not assumed: `05add41ab` was NOT on
+    # origin at the instant the publisher pushed, so even an ancestry test taken at that moment
+    # would have answered False; the reconciler carried it there minutes later, after the publisher
+    # had exited. That is why the predicate's shape and the verdict's TIMING are two legs and why
+    # neither alone would have recorded the clean publish that actually happened.
+    #
+    # OUTSIDE THE TREE LOCK ON PURPOSE. `origin_reconcile.advance_shared_tree` takes this same
+    # flock, and flock is held per open-file-description: a second acquisition from this process
+    # blocks against itself. Running the reconciler inside the `with` above would spend its whole
+    # lock timeout and then leave the shared tree behind origin -- the exact state it exists to
+    # clear.
+    if absorbable:
+        # THE RECONCILER'S PUSH, NOT OURS, so the rc handed to the verdict is 0: what is graded now
+        # is the REF, which is what the 2026-07-24 lesson says is the evidence in every case. If
+        # the reconciler achieved nothing, origin still lacks this commit and the ancestry test
+        # below says so -- the recovery can only turn a False into a True by moving the remote.
+        push_rc, remote_head = 0, _reconcile_then_reread_origin()
+    if _push_reached_origin(push_rc, remote_head, local_head):
+        _record_push_time()
+        _record_content_published()
+        return _outcome(PUBLISHED, True)
+    # SAID ON THE FAILURE, because a reader who is told "did not reach origin" needs to know
+    # whether the absorbing cadence was tried and still did not get it there -- that is a
+    # different fault from a push nobody retried.
+    _recovery = (" -- `origin_reconcile` was run to absorb this disjoint publish and origin STILL "
+                 "does not have it" if absorbable else "")
+    from background.notify import notify
+    notify(
+        "[SIM] PUSH DID NOT REACH ORIGIN (rc={}, origin={}, head={}){} -- {} -- publish pipeline "
+        "commits are stacking LOCALLY and the advisor bridge is blind. NOT recording a push "
+        "time; next cycle retries. If this repeats, the remote-tracking ref or auth is the "
+        "cause.".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
+                        _recovery, failure_detail(getattr(push, "stderr", None))),
+        kind="real_alarm",
+    )
+    _tail = stderr_tail(getattr(push, "stderr", None))
+    log("PUSH did NOT advance origin (rc={}, origin={}, head={}){} -- throttle left untouched, "
+        "will retry next cycle{}".format(
+            push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9], _recovery,
+            "\n  git push stderr:\n{}".format(_tail) if _tail
+            else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
+    # THE EVIDENCE IS THE REMOTE REF, read by ls-remote above -- not the push's exit status,
+    # which returned 0 while origin stood still for 3.5 hours in the 2026-07-24 incident.
+    # The commit is on this machine and the hook chain passed to get it there, so this is
+    # the one rc=77 cause where the reader must be told NOT to look at the tests at all.
+    return _outcome(
+        PUSH_DID_NOT_REACH_ORIGIN, False,
+        evidence="the commit LANDED locally (HEAD {}) and `git ls-remote` shows "
+                 "origin/main at {}, which does NOT contain it{} -- the hook chain passed, so no "
+                 "test is implicated; the remote ref, not the push's rc={}, is the evidence"
+                 .format((local_head or "?")[:9], (remote_head or "unreadable")[:9],
+                         _recovery, push.returncode))
 
 
-def _push_reached_origin(push_rc: int, remote_head: str, local_head: str) -> bool:
-    """A push counts as SUCCESS only if it advanced origin to the local HEAD.
+def _origin_main_sha(label: str = "Push verify") -> str:
+    """The sha `origin/main` REALLY points at, read from the remote itself.
 
-    The 3.5h origin-freeze (2026-07-24): a bare `git push` returned rc=0 while
-    origin did NOT advance (phantom "Everything up-to-date"), and the caller
-    recorded a push time anyway -- so _push_due() stayed False and every real
-    push was deferred behind a success that never happened. This makes the
-    success condition GROUND-TRUTH: rc==0 AND the real remote head (from
-    ls-remote, not the local tracking ref) equals local HEAD. A phantom rc=0
-    with a stale/behind remote head returns False -> no throttle reset -> retry.
+    ONE READER FOR EVERY PUSH SITE. The content push and the liveness push each carried their own
+    copy of this six-line read, and `_push_reached_origin`'s whole lesson is that the evidence must
+    be the remote and never the local tracking ref -- a rule spelled out in two places drifts in
+    one. Empty string on any failure: a remote we could not read is not a remote that agrees.
     """
-    return push_rc == 0 and bool(remote_head) and remote_head == local_head
+    try:
+        ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
+                            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+    except Exception as exc:  # noqa: BLE001 -- an unverifiable push reads as NOT pushed
+        log("{}: ls-remote failed ({}) -- cannot confirm origin advanced".format(label, exc))
+        return ""
+    return ls.stdout.split()[0] if ls.stdout.strip() else ""
+
+
+def _commit_is_ancestor(commit: str, tip: str, *, _run=None) -> bool:
+    """Is `commit` REACHABLE FROM `tip`? FAIL-CLOSED: a question git cannot answer is False.
+
+    `git merge-base --is-ancestor` answers with an exit status and nothing else, and it can only
+    answer about objects this repository holds -- so a tip that was never fetched is False here,
+    which is the honest direction: we have no evidence the commit reached it.
+    """
+    if not commit or not tip:
+        return False
+    run = _run or subprocess.run
+    try:
+        r = run(["git", "merge-base", "--is-ancestor", commit, tip],
+                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+    except Exception:  # noqa: BLE001 -- an unanswerable ancestry question is not a success
+        return False
+    return getattr(r, "returncode", 1) == 0
+
+
+def _push_reached_origin(push_rc: int, remote_head: str, local_head: str, *, _run=None) -> bool:
+    """Did THIS commit reach origin? Asked by REACHABILITY, against `ls-remote`'s ground truth.
+
+    THE 3.5h ORIGIN-FREEZE (2026-07-24) is why the evidence is the remote ref and never the push's
+    own rc: a bare `git push` returned rc=0 while origin did NOT advance (a phantom "Everything
+    up-to-date"), the caller recorded a push time anyway, `_push_due()` stayed False, and every
+    real push was deferred behind a success that never happened. That lesson is untouched here.
+
+    WHAT CHANGED IS THE SHAPE, NOT THE STRENGTH (2026-09-16). The test used to be
+    `remote_head == local_head`. Equality was a correct PROXY for the property only while every
+    publish was a fast-forward; the property was always *"the publish commit reached origin"*.
+    On 2026-09-16 `_publish_surface_collisions` widened the COMMIT gate to admit a publish created
+    while BEHIND origin, on the stated grounds that `origin_reconcile` absorbs it on the next
+    cadence -- and a commit created while behind can never make origin's head EQUAL ours, because
+    origin is ahead by construction. So the widening admitted a commit into a state whose success
+    the next predicate could not express, and `05add41ab` -- a full figure publish that IS on
+    origin -- was recorded as `push_did_not_reach_origin`, with `last_clean_publish: null` six days
+    into a wedge that was already over. CLAUDE.md's own rule: key a control to the PROPERTY, not to
+    today's answer, and the failure direction here was the diagnostic one -- it went red when the
+    system became MORE capable.
+
+    IT COSTS THE ANTI-PHANTOM GUARD NOTHING. On a phantom rc=0 against an origin standing still at
+    an OLDER commit, ours is not an ancestor of it, so the verdict is still False, no push time is
+    recorded, and the next cycle retries immediately. Equality is kept as the first leg only
+    because a commit is an ancestor of itself: on the ordinary fast-forward it is the same answer
+    without paying for a subprocess.
+    """
+    if push_rc != 0 or not remote_head or not local_head:
+        return False
+    return remote_head == local_head or _commit_is_ancestor(local_head, remote_head, _run=_run)
+
+
+def _publish_is_absorbable(push_stderr, publish_paths) -> bool:
+    """Did this push fail ONLY because origin moved, in paths this commit does not write?
+
+    Both halves are BORROWED rather than restated. `origin_reconcile._classify_push_failure`
+    already owns "is this git's words for a lost race" -- it matches both spellings
+    (`(non-fast-forward)` and `(fetch first)`), and its own docstring records why a second
+    hand-rolled string test beside it regresses every repair the helper holds.
+    `_publish_surface_collisions` already owns "is the fork anywhere near this commit", including
+    the distinction this must not lose: `None` is *could not look*, and reading it as *nothing
+    collides* is precisely the fail-open both functions exist to avoid -- hence `== []`, never
+    `not collisions`.
+    """
+    from background.origin_reconcile import REFUSED_RACE, _classify_push_failure
+    status, _ = _classify_push_failure(push_stderr or "")
+    if status != REFUSED_RACE:
+        return False
+    return _publish_surface_collisions(publish_paths) == []
+
+
+def _reconcile_then_reread_origin() -> str:
+    """Run the cadence this publish commit was created to be absorbed by, then re-read origin.
+
+    Returns the sha `origin/main` points at AFTERWARDS, read from the remote and never from the
+    tracking ref. The caller grades that with the SAME predicate it used before, so the publish
+    path keeps one success criterion rather than growing a second one for the recovery.
+
+    THE STATUS IS NOT BRANCHED ON, deliberately. `origin_reconcile.reconcile` never raises and
+    reports its own outcome, but a status describes the STEPS and the question here is about the
+    SUBJECT -- the reconciler's own comment on why it re-reads the fork after acting rather than
+    inferring success from its steps succeeding. The ref is the only thing that can answer it.
+    """
+    try:
+        from background.origin_reconcile import reconcile
+        result = reconcile()
+        log("Publish push was rejected non-fast-forward and the fork touches NONE of this "
+            "commit's paths, so `origin_reconcile` ran to absorb it: {} -- {}".format(
+                result.get("status"), str(result.get("detail"))[:400]))
+    except Exception as exc:  # noqa: BLE001 -- the re-read below is worth taking either way
+        log("Publish push recovery: `origin_reconcile` could not run ({}: {}); re-reading origin "
+            "anyway, because the ref is the evidence in both cases".format(
+                type(exc).__name__, exc))
+    # SO THE ANCESTRY QUESTION CAN BE ASKED AT ALL: `merge-base --is-ancestor` answers only about
+    # objects this repository holds, and the merge the reconciler just pushed is not one of them
+    # until it is fetched. A failed fetch leaves the verdict failing closed, which is correct.
+    try:
+        subprocess.run(["git", "fetch", "origin", "main"], cwd=str(PROJECT_DIR),
+                       capture_output=True, text=True, timeout=120)
+    except Exception as exc:  # noqa: BLE001
+        log("Publish push recovery: fetch failed ({}) -- the ancestry test can only fail "
+            "closed".format(exc))
+    return _origin_main_sha(label="Publish push recovery")
 
 
 def _record_content_published() -> None:
@@ -6788,13 +6944,7 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
                           timeout=60, stderr=subprocess.PIPE, text=True)
     local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
                                 capture_output=True, text=True, timeout=15).stdout.strip()
-    remote_head = ""
-    try:
-        ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
-                            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
-        remote_head = ls.stdout.split()[0] if ls.stdout.strip() else ""
-    except Exception as exc:  # noqa: BLE001 -- an unverifiable push reads as NOT pushed
-        log("{} push verify: ls-remote failed ({})".format(label, exc))
+    remote_head = _origin_main_sha(label="{} push verify".format(label))
     if _push_reached_origin(push.returncode, remote_head, local_head):
         log("{} published to origin.".format(label))
         # THE FIFTH EXIT -- the only one that succeeds, and until 2026-09-06 the only one that

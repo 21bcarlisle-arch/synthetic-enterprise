@@ -25,11 +25,13 @@ publishing rather than to the one that did.
 
 TWO CLOCKS, AND THEY ARE ALLOWED TO DISAGREE
 --------------------------------------------
-  published_age_seconds  since the PUBLISH PATH last got content to origin. Stamped by
-                         `record_published()`, which is reachable from exactly one place: after
-                         `_push_reached_origin` returned True on a content commit. Ground-truth-
-                         gated the same way the push throttle is -- a phantom "up to date" never
-                         advances it.
+  published_age_seconds  since the PUBLISH PATH last got content to origin. Two sources, newer
+                         wins (see `last_published_ts`): `record_published()`'s stamp, written
+                         from exactly one place after `_push_reached_origin` returned True on a
+                         content commit; and git's own answer for when CONTENT_PATHS last moved in
+                         a commit origin HAS. Both are ground-truth-gated -- a phantom "up to date"
+                         advances neither -- and the second exists because the first is silent
+                         whenever the publisher mis-grades its own push (2026-09-16).
   committed_age_seconds  since content was last COMMITTED at all, asked of git rather than of our
                          own bookkeeping -- by ANY writer, not only the publisher.
 
@@ -142,12 +144,71 @@ def record_published(now: float | None = None) -> None:
         pass  # never take a successful publish down over its own bookkeeping
 
 
-def last_published_ts() -> float | None:
-    """When content last reached origin, or None if never recorded / unreadable (= UNKNOWN)."""
+def _stamped_publish_ts() -> float | None:
+    """Our OWN record of a verified publish, or None if never recorded / unreadable (= UNKNOWN)."""
     try:
         return float(json.loads(STATE_FILE.read_text())["ts"])
     except (OSError, ValueError, KeyError, TypeError):
         return None
+
+
+def content_on_origin_ts(*, _run=None) -> float | None:
+    """When CONTENT_PATHS last moved in a commit ORIGIN HAS — asked of git, by reachability.
+
+    THE SECOND READER OF A FALSE STATE (2026-09-16). This module's clock was a stamp written by
+    `process_run_complete._record_content_published`, which fires only when the publisher's own
+    push verdict returns True. That verdict was `remote_head == local_head`, which a publish
+    created while BEHIND origin can never satisfy -- so on 2026-09-16 `describe()` told the
+    delivery brief *"figures reached origin 159.8h ago"* three hours after `05add41ab` put
+    `LATEST.md`, the annual report and every customer file on origin. Repairing the publisher's
+    predicate alone would have left this sentence wrong until the NEXT publish; the honest fix is
+    for this module to ask the same question the publisher now asks, of the same subject.
+
+    `refs/remotes/origin/main` rather than the stamp, and the failure direction is the safe one:
+    the tracking ref can only be BEHIND the remote (it moves on fetch and on push), so this can
+    report the figures as older than they are and never as newer. That is the same direction
+    `snapshot` already chose when it took the older of its two clocks.
+    """
+    run = _run or subprocess.run
+    try:
+        r = run(["git", "log", "-1", "--format=%ct", "refs/remotes/origin/main", "--"]
+                + list(CONTENT_PATHS),
+                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=15)
+    except Exception:  # noqa: BLE001 -- an unavailable check is UNKNOWN, never fresh
+        return None
+    if getattr(r, "returncode", 1) != 0:
+        return None
+    out = (r.stdout or "").strip().splitlines()
+    try:
+        return float(out[0]) if out else None
+    except ValueError:
+        return None
+
+
+def last_published_ts(*, _run=None) -> float | None:
+    """When content last reached origin, or None if neither source can say (= UNKNOWN).
+
+    TWO SOURCES FOR ONE QUESTION, and the NEWER wins. Each can only MISS a publish, never invent
+    one: the stamp is missed when the publisher mis-grades its own push (the defect above), and
+    git's answer is missed when the tracking ref is behind the remote. Taking the newer therefore
+    lets either one say "it reached", and neither can veto the other.
+
+    The stamp's own known weakness -- it is written on a verified push whatever paths moved, so a
+    provenance banner used to refresh it (2026-08-21) -- is NOT reintroduced by this, because
+    `snapshot`'s verdict takes the OLDER of this clock and the content clock. A fresh stamp over
+    frozen figures still reads `stale`; that is the control that closed the 28-hour outage and it
+    is untouched here.
+
+    `_run` is injected for tests only, and the production caller passes nothing on purpose: this
+    is monkeypatched as a bare `lambda:` in the controls that pin one clock against the other.
+    """
+    on_origin = content_on_origin_ts(_run=_run)
+    stamped = _stamped_publish_ts()
+    if on_origin is None:
+        return stamped
+    if stamped is None:
+        return on_origin
+    return max(on_origin, stamped)
 
 
 def last_committed_ts(*, _run=None) -> float | None:

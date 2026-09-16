@@ -126,12 +126,24 @@ def fake_completed(cmd, returncode=0, **kwargs):
     (EXIT_PUBLISH_DID_NOT_LAND names the incident); the moment the exit code started carrying
     the outcome, the fixture's own claim became visible and false. The two tests that are about
     a push NOT reaching origin set `ls-remote` explicitly on top of this, as they always did.
+
+    `git merge-base --is-ancestor` ANSWERS ONLY WHAT A STUB HONESTLY CAN (2026-09-16). The push
+    verdict now asks REACHABILITY rather than equality (`_push_reached_origin`), so this fixture
+    acquired a new subject -- and the blanket rc=0 fall-through answered "yes, reachable" to every
+    question, which turned the phantom-push control green with the phantom still in it. That is
+    the fake-more-permissive-than-its-subject shape, one paragraph below the fixture defect this
+    docstring already records. There is no commit graph here, so the only ancestry a stub can
+    honestly claim is identity: same sha -> reachable, anything else -> not. A test that needs a
+    real ancestry answer builds a real repository -- see
+    test_the_publish_verdict_asks_reachability_and_not_equality.py.
     """
     text = bool(kwargs.get("text") or kwargs.get("universal_newlines") or kwargs.get("encoding"))
     head = list(cmd[:2])
     out = _FAKE_HEAD_SHA + "\n" if head == ["git", "rev-parse"] else ""
     if head == ["git", "ls-remote"]:
         out = "{}\trefs/heads/main\n".format(_FAKE_HEAD_SHA)
+    if list(cmd[:3]) == ["git", "merge-base", "--is-ancestor"]:
+        returncode = 0 if len(cmd) > 4 and cmd[3] == cmd[4] else 1
     m = MagicMock()
     m.returncode = returncode
     m.stdout = out if text else out.encode()
@@ -1833,12 +1845,34 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
                        prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04))
 
 
-def _recent_hook_chain_seconds():
-    """The last twenty pre-commit HOOK CHAIN durations this machine actually recorded.
+def _recent_hook_chain_seconds(series=None):
+    """The last twenty pre-commit HOOK CHAIN costs this machine actually recorded, PER CHAIN.
 
     ONE READER, shared by the live half of the headroom control and by the R15 test that proves
     that half can red. Two copies of this window would let the control and its own teeth grade
     different data, which is the exact class of defect being repaired here.
+
+    ONLY ROWS THE DEADLINE COULD HAVE BOUND, and that clause is the 2026-09-16 repair.
+    `GIT_COMMIT_HOOK_TIMEOUT_SECONDS` is the `timeout=` on ONE `git commit` subprocess. Since
+    2026-09-08 the CONTENT path lands through `surgical_land.land(attempts=PUBLISH_LAND_ATTEMPTS)`,
+    which that constant does not bound and which RE-GATES when it loses the compare-and-swap -- so
+    one of its rows can hold two full chains. `2c89bd534` recorded 1381.52s that way (the
+    publisher's own record: *"lost the race to another writer on all 2 attempt(s)"*), this control
+    read it as a single chain costing 1382s, and 1.25 * 1382 = 1727 against a deadline that
+    `test_the_deadline_leaves_room_for_the_publish_path_after_the_gate` caps at 900. No deadline
+    satisfied both controls; every commit in the tree was refused by an empty intersection.
+
+    THE DISCRIMINATOR IS ALREADY ON THE ROW, so nothing was added to the schema. A run that
+    exceeded `ceiling_seconds` AND returned a verdict cannot have been bounded by that ceiling: a
+    bounded chain that exceeds it is KILLED and recorded as `outcome: timeout`, which is why that
+    label exists. So `duration > ceiling and outcome != "timeout"` is a row that proves, from its
+    own fields, that it is not a measurement of the thing this deadline bounds -- and grading the
+    deadline against it is the *"a deadline over here against a measurement of something over
+    there"* defect this control already carries a scar from.
+
+    THE DIRECTION IS CONSERVATIVE, which is what a headroom control needs. A multi-chain row whose
+    TOTAL still fits under the ceiling is kept and read as one chain -- i.e. over-reported -- so
+    this can only ever demand more headroom than reality, never less.
 
     Skips -- never returns a degenerate window -- when the chain's cost is UNOBSERVED, which is
     not the same as small. Callers get either a real window or no test.
@@ -1847,9 +1881,12 @@ def _recent_hook_chain_seconds():
     from pathlib import Path as _Path
 
     # THE REAL REPO, not `prc.PROJECT_DIR`: this directory's conftest isolates that to a tmp tree
-    # so no test can write the live one.
-    series = (_Path(__file__).resolve().parents[2] / "docs" / "observability"
-              / "commit_hook_duration.jsonl")
+    # so no test can write the live one. `series` is overridden ONLY by the controls that prove
+    # this reader's own arithmetic, which cannot be shown against a live file whose contents are
+    # whatever this machine happened to do -- and it stays ONE reader, which is the point.
+    series = _Path(series) if series is not None else (
+        _Path(__file__).resolve().parents[2] / "docs" / "observability"
+        / "commit_hook_duration.jsonl")
     if not series.is_file():
         pytest.skip("no hook-chain history on this tree -- the deadline cannot be graded against "
                     "a machine that has never run it; the committed half still applies")
@@ -1862,11 +1899,27 @@ def _recent_hook_chain_seconds():
             row = _json.loads(line)
         except ValueError:
             continue
-        if isinstance(row.get("duration_seconds"), (int, float)):
-            rows.append(float(row["duration_seconds"]))
+        if not isinstance(row.get("duration_seconds"), (int, float)):
+            continue
+        duration = float(row["duration_seconds"])
+        ceiling = row.get("ceiling_seconds")
+        if (isinstance(ceiling, (int, float)) and duration > ceiling
+                and row.get("outcome") != "timeout"):
+            # NOT BOUNDED BY THIS DEADLINE, proven by the row itself -- see the docstring. Kept as
+            # a hole rather than dropped silently, so the skip below can say how many there were.
+            rows.append(None)
+            continue
+        rows.append(duration)
     if not rows:
         pytest.skip("the hook-chain history holds no readable duration")
-    recent = rows[-20:]
+    window = rows[-20:]
+    recent = [r for r in window if r is not None]
+    if not recent:
+        pytest.skip(
+            "every one of the last {} rows ran PAST its own ceiling and still returned a verdict, "
+            "so not one of them was produced under the deadline this grades -- there is nothing "
+            "here that measures a bounded chain. The committed half still applies.".format(
+                len(window)))
 
     # AN EARLY-EXIT ROW IS A LOWER BOUND, NOT A MEASUREMENT, and a window made only of them would
     # make the control vacuously green -- the fail-open that matters here. A hook that refuses
@@ -2540,6 +2593,68 @@ def test_the_commit_call_is_TIMED_on_both_paths():
 
     assert source.count("_record_commit_hook_duration(") >= 2
     assert '"timeout"' in source
+
+
+# ── A ROW THAT OUTRAN ITS OWN CEILING WAS NOT BOUND BY IT (2026-09-16) ───────────────────────
+#
+# `GIT_COMMIT_HOOK_TIMEOUT_SECONDS` is the `timeout=` on ONE `git commit`. Since 2026-09-08 the
+# CONTENT path lands through `surgical_land.land(attempts=PUBLISH_LAND_ATTEMPTS)`, which it does
+# not bound and which RE-GATES when it loses the compare-and-swap: the race is detected after the
+# gate has returned a verdict, so a lost attempt ran a full chain and the elapsed time holds every
+# one of them. `2c89bd534` recorded 1381.52s that way; the live headroom control read it as ONE
+# chain and demanded 1.25 * 1382 = 1727s of a deadline that
+# `test_the_deadline_leaves_room_for_the_publish_path_after_the_gate` caps at 900s. The
+# intersection of the two controls was EMPTY, and every commit in the tree was refused by it.
+
+def test_a_row_that_outran_its_ceiling_and_still_answered_is_not_graded(tmp_path):
+    """THE READ, and the property is the row's own contradiction.
+
+    A bounded chain that exceeds its deadline is KILLED and recorded `timeout`. A row that exceeds
+    the ceiling and still reports a verdict therefore proves, from its own fields, that it was not
+    produced under that ceiling -- so it is not a measurement of what this deadline bounds.
+
+    MUTATION (must fire): drop the `duration > ceiling` clause and the wedge is restored; drop the
+    `outcome != "timeout"` clause and a genuine kill stops being gradeable, which is the case the
+    control exists for.
+    """
+    import json as _json
+
+    n = [0]
+
+    def _series(rows):
+        n[0] += 1
+        p = tmp_path / "s{}.jsonl".format(n[0])
+        p.write_text("\n".join(_json.dumps(r) for r in rows) + "\n")
+        return p
+
+    # THE LIVE INSTANCE: 1381.52s against an 880s ceiling, verdict returned. Not our subject.
+    wedge = _series([{"duration_seconds": 1381.52, "ceiling_seconds": 880, "outcome": "refused"},
+                     {"duration_seconds": 333.22, "ceiling_seconds": 880, "outcome": "pass"}])
+    assert _recent_hook_chain_seconds(wedge) == [pytest.approx(333.22)]
+    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= (
+        prc.COMMIT_DEADLINE_HEADROOM * max(_recent_hook_chain_seconds(wedge))), (
+        "the window that wedged the tree grades GREEN once the row that was never bounded by this "
+        "deadline stops being read as though it were")
+
+    # A KILL IS STILL THE SUBJECT. The deadline is exactly what ended it, so it must be graded --
+    # this is the 2026-08-25 case the whole control exists for and it must never be filtered out.
+    killed = _series([{"duration_seconds": 900.0, "ceiling_seconds": 880, "outcome": "timeout"}])
+    assert _recent_hook_chain_seconds(killed) == [pytest.approx(900.0)]
+    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS < (
+        prc.COMMIT_DEADLINE_HEADROOM * max(_recent_hook_chain_seconds(killed)))
+
+    # A SLOW CHAIN THAT STAYED UNDER ITS CEILING IS STILL GRADED, and still reds at 1.25x.
+    slow = _series([{"duration_seconds": 800.0, "ceiling_seconds": 880, "outcome": "pass"}])
+    assert _recent_hook_chain_seconds(slow) == [pytest.approx(800.0)]
+    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS < (
+        prc.COMMIT_DEADLINE_HEADROOM * max(_recent_hook_chain_seconds(slow))), (
+        "the repair is about what a row COUNTS, not about tolerating a slow chain")
+
+    # And a window with nothing gradeable in it SKIPS rather than passing -- an unmeasured
+    # deadline is inapplicable, never green.
+    with pytest.raises(pytest.skip.Exception):
+        _recent_hook_chain_seconds(_series([
+            {"duration_seconds": 1381.52, "ceiling_seconds": 880, "outcome": "refused"}]))
 
 
 # ── the two-rooms repair runs at the COMMIT, not a cycle upstream of it ───────────────────
