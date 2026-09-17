@@ -1662,13 +1662,232 @@ def premise_note(item: dict) -> str:
         return ""
 
 
+#: A token in a work id. Two characters minimum: a single character is never distinctive and the
+#: decimal in `...-p6s-2.45-percent` would otherwise contribute a bare `2` to every comparison.
+_SUBJECT_TOKEN = re.compile(r"[a-z0-9]{2,}")
+
+#: How much of the draw ledger may use a token before it stops being evidence of a shared subject,
+#: as a SHARE of the remembered draws rather than a count -- the vocabulary grows with the ledger,
+#: so a fixed count would slowly turn every ordinary word into a rival signal.
+#:
+#: ORIGIN: measured 2026-09-17 over the live ledger's 357 ids, all 63,546 pairs. At 1% (a ceiling
+#: of 3 ids) the rule fires on 31 pairs -- 0.049% -- and the 2026-09-17 collision this exists for
+#: is one of them, sharing `23`, `era5` and `pull`. Reading the 31: every one names work a reader
+#: would call the same subject. It is not tuned to that pair; it is the point where "words almost
+#: nothing else here uses" stops meaning anything.
+_DISTINCTIVE_SHARE = 0.01
+
+#: The ceiling never falls below this, or a young ledger would call every token distinctive. Two
+#: is the floor that still admits the shape being looked for: both ids are usually IN the ledger,
+#: so a token they share already has a count of two before anything else uses it.
+_DISTINCTIVE_FLOOR = 2
+
+#: How many distinctive tokens two ids must share. Measured 2026-09-17 over the same live ledger as
+#: `_DISTINCTIVE_SHARE`: one token fires on 456 of the 63,903 pairs (0.714%), two on 31 (0.049%),
+#: three on 10. One is a coincidence at fifteen times the volume, and volume is what trains a reader
+#: to skip the line; two is the smallest number that says the ids agree about more than their topic.
+#:
+#: IT DOES NOT EXCLUDE EVERY SAME-SUBJECT PAIR, and an earlier draft of this comment claimed it did
+#: -- it named the 09-05 `resume-the-era5-pull-for-the-last-31-weather-cells` as work two would let
+#: through, and two does not: that id shares `era5` AND `pull` with both 09-17 ids and fires against
+#: each. Corrected here beside the constant rather than quietly, because the flattering reading is
+#: the one that gets believed. The firing is right anyway for `rival_note`'s reason -- this
+#: annotates and never refuses, and a reader with both claims' prose can tell those three apart in
+#: a sentence. A threshold that had to be RIGHT about which is the one this deliberately is not.
+_RIVAL_TOKEN_COUNT = 2
+
+#: Below this many remembered draws, "rare across the ledger" is not established and the subject
+#: leg returns nothing. An empty or truncated ledger gives EVERY token a count of zero, which
+#: would make every pair of ids rivals -- the noise direction, and the one that trains a reader to
+#: skip the line. The path leg is unaffected and still runs.
+_VOCABULARY_FLOOR = 40
+
+
+def _subject_tokens(text: str) -> set[str]:
+    """The lowercase word-and-number tokens of `text`. Set, because repetition is not evidence."""
+    return set(_SUBJECT_TOKEN.findall((text or "").lower()))
+
+
+def _ledger_vocabulary(path: Path | None = None) -> tuple[dict[str, int], int]:
+    """`({token: how many drawn ids use it}, how many ids were counted)`, or `({}, 0)`.
+
+    COUNTED OVER IDS AND NOT OVER THE ITEMS' PROSE, deliberately. The rarity ceiling below is
+    applied to tokens of an id, so the population it is measured against has to be ids too. Mixing
+    in `what`/`why` would count a word once per sentence that uses it and compare that against a
+    ceiling derived from a per-id count -- two different quantities either side of one `<=`, which
+    is the "before dividing two numbers, say what each one counts" shape.
+    """
+    try:
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
+    except Exception:  # noqa: BLE001 - an unreadable ledger must not take the draw down
+        return ({}, 0)
+    if not isinstance(ledger, dict):
+        return ({}, 0)
+    ids = [k for k in ledger if isinstance(k, str)]
+    counts: dict[str, int] = {}
+    for work_id in ids:
+        for token in _subject_tokens(work_id):
+            counts[token] = counts.get(token, 0) + 1
+    return (counts, len(ids))
+
+
+def _distinctive_shared(left: str, right: str, counts: dict[str, int], population: int) -> list[str]:
+    """The tokens two ids share that almost nothing else in the ledger uses. Sorted, possibly []."""
+    if population < _VOCABULARY_FLOOR:
+        return []
+    ceiling = max(_DISTINCTIVE_FLOOR, int(population * _DISTINCTIVE_SHARE))
+    return sorted(t for t in _subject_tokens(left) & _subject_tokens(right)
+                  if counts.get(t, 0) <= ceiling)
+
+
+def _item_prose(item: dict) -> str:
+    """The item's own words, for path extraction. NOT the composed doorbell — `doorbell` calls the
+    rival check, so reading the doorbell here would be a cycle."""
+    return " ".join(str(item.get(k) or "")
+                    for k in ("id", "what", "why", "done_means", "note"))
+
+
+def _rival_stores() -> list[tuple[Path, float]]:
+    """Every claim store with its own deadline. BOTH, for `overlapping_claims`' reason: the two
+    writers claim in different files, and the pair that collided on 2026-08-31 was one item held by
+    a tick and the other by a session."""
+    return [(CLAIMS_FILE, float(CLAIM_STALE_SECONDS)),
+            (claims_mod.CLAIMS_FILE, float(claims_mod.STALE_AFTER_SECONDS))]
+
+
+def rival_claims(item: dict, *, now: float | None = None,
+                 stores: list[tuple[Path, float]] | None = None) -> dict[str, list[str]]:
+    """`{another live claim's id: why it may be this item under another name}`. `{}` when none.
+
+    TWO LEGS, AND THEY ANSWER AT DIFFERENT AGES OF A CLAIM.
+
+      * SUBJECT. Two ids that share two or more words almost nothing else in the draw ledger uses.
+        This is the leg that works at the moment of the collision, when NEITHER claim has landed
+        anything and so neither has a path bound to it.
+      * PATHS. A file this item's prose names that another live claim already holds — either bound
+        by a landing (`paths`) or extracted from its own prose at its draw (`named_paths`).
+        Shared-by-design rooms are dropped by `claims_mod._informative`: `docs/staging/` overlap is
+        traffic, and reporting it would train every reader to skip this line.
+
+    NEITHER LEG SWEEPS. `claims_mod.overlapping_claims` is the nearest existing organ and it does
+    one thing this must not: it calls `sweep()`, which releases claims and files escalations. A
+    read taken to compose a doorbell must not change what is claimed; a stale claim is instead
+    excluded by reading `stale_claims`, which is the same measurement without the write. It also
+    reads only `paths`, and at draw time the interesting half is `named_paths`.
+
+    THE ITEM'S OWN CLAIM IS NOT A RIVAL, and both spellings of it are excluded — `draw()` claims
+    before it composes, so by the time this runs the item is already in the store, and an id
+    carrying a decimal still has a truncated twin in the store from before 2026-09-16.
+    """
+    focus_id = str(item.get("id") or "")
+    mine = {focus_id}
+    truncated = _TRUNCATED_SPELLING.match(focus_id)
+    if truncated:
+        mine.add(truncated.group(0))
+
+    others: dict[str, set[str]] = {}
+    for store, deadline in (stores if stores is not None else _rival_stores()):
+        try:
+            rows = claims_mod._load(store)
+            stale = {w for w, _rec, _idle in
+                     claims_mod.stale_claims(path=store, now=now, stale_after=deadline)}
+            ledger = claims_mod._load(_ledger_path(store))
+        except Exception:  # noqa: BLE001 - one unreadable store must not blind the other
+            continue
+        if not isinstance(rows, dict):
+            continue
+        for work_id, rec in rows.items():
+            if work_id in mine or work_id in stale or not isinstance(rec, dict):
+                continue
+            known = set(rec.get("paths") or ())
+            row = ledger.get(work_id) if isinstance(ledger, dict) else None
+            if isinstance(row, dict):
+                known |= set(row.get("named_paths") or ())
+            others.setdefault(work_id, set()).update(str(p) for p in known)
+    if not others:
+        # THE SHORT CIRCUIT IS LOAD-BEARING, not a micro-optimisation: `_paths_named_in` shells out
+        # to `git ls-files`, and `doorbell` is composed two or three times per draw. Nothing to
+        # compare against means nothing to pay for, which is the ordinary case.
+        return {}
+
+    # THE VOCABULARY COMES FROM THE FIRST STORE'S LEDGER, which is this lane's own. It is the
+    # population the rarity ceiling was measured against, and passing `stores` has to move it too:
+    # a check whose evidence store is swappable but whose vocabulary is not would grade synthetic
+    # ids against the live ledger and call every one of them distinctive.
+    vocabulary_store = (stores if stores is not None else _rival_stores())[0][0]
+    counts, population = _ledger_vocabulary(vocabulary_store)
+    my_paths = {p for p in _paths_named_in(_item_prose(item)) if claims_mod._informative(p)}
+
+    found: dict[str, list[str]] = {}
+    for work_id, their_paths in sorted(others.items()):
+        reasons = []
+        shared_words = _distinctive_shared(focus_id, work_id, counts, population)
+        if len(shared_words) >= _RIVAL_TOKEN_COUNT:
+            reasons.append("shares the distinctive words " + ", ".join(shared_words))
+        shared_paths = sorted(my_paths & {p for p in their_paths
+                                          if claims_mod._informative(p)})
+        if shared_paths:
+            reasons.append("already holds " + ", ".join(shared_paths)
+                           + ", which this item names")
+        if reasons:
+            found[work_id] = reasons
+    return found
+
+
+def rival_note(item: dict, *, now: float | None = None,
+               stores: list[tuple[Path, float]] | None = None) -> str:
+    """A line for the doorbell when another LIVE claim may be this item under another name, else "".
+
+    THE DEFECT (2026-09-17, measured on this lane's own two draws). `era5-pull-the-last-23-cells-
+    in-two-passes-an-hour-apart` and `era5-pull-the-last-23-in-book-weather-cells-after-the-quota-
+    resets` were drawn concurrently against the same 23 cells. The rival landed `7d9eabe49` at
+    07:24 and this seat re-derived the same premise from a two-commit-stale worktree minutes later.
+    Two full seat turns on one piece of work, and it happened twice in two days.
+
+    THE DISPOSITION HALF ALREADY WORKED. `--landed-under` credits one id with another's landing,
+    and it correctly REFUSED here because the rival landed BEFORE the draw. Nothing looked at the
+    DRAW, where it was still cheap: both items cited commits that were genuine ancestors, so
+    `premise_note` had no question that would catch it. The tell that actually caught it was `ps`,
+    read for an unrelated reason, which is not a mechanism.
+
+    IT ANNOTATES AND NEVER REFUSES, for `premise_note`'s reason and one more of its own. Two live
+    claims on one subject are often correct — a finding and its repair, a floor and the promotion
+    waiting on it — and this lane's own history is a list of items that legitimately share a
+    topic. A refusal would have to be right about which; a note only has to be worth reading, and
+    it leaves the judgement with the reader who can see both claims' prose.
+
+    NEVER RAISES, and an unanswerable store yields "" — no note, i.e. the behaviour before this
+    existed. Same direction and same argument as `premise_note`: a missing annotation is visible
+    to the tick that then does the work anyway, where a suppressed item is visible to nobody.
+    """
+    try:
+        rivals = rival_claims(item, now=now, stores=stores)
+        if not rivals:
+            return ""
+        named = "; ".join("`{}` ({})".format(work_id, " and ".join(reasons))
+                          for work_id, reasons in sorted(rivals.items()))
+        return (
+            "DUPLICATE-WORK CHECK (live claims, run at draw time): {n} other live claim(s) may be "
+            "this work under another name -- {named}. TWO IDS FOR ONE PIECE OF WORK COST TWO "
+            "TURNS. BEFORE YOU BUILD, read that claim and decide whether it is this item: if it "
+            "is, take the DISPOSITION instead of the work -- `--landed-under <this id> <that id>` "
+            "when it has already landed, else `--release <this id>` -- and say which in "
+            "docs/staging/. If it is genuinely different work on the same subject, carry on: this "
+            "is a note, not a refusal. "
+        ).format(n=len(rivals), named=named)
+    except Exception:
+        return ""
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
 
-    `premise_note` goes FIRST, ahead of the standing preamble, because a tick that reads the work
-    before it reads the check has already started."""
-    return premise_note(item) + (
+    `premise_note` and `rival_note` go FIRST, ahead of the standing preamble, because a tick that
+    reads the work before it reads the checks has already started. They are the same shape asked of
+    two different stores: has this item's premise already been spent, and is somebody else spending
+    it right now."""
+    return premise_note(item) + rival_note(item) + (
         "LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
         "lanes because a judgement about what matters beats a weighted coin over a map whose "
         "idle atoms are all over their pass ceiling. WORK: {what} WHY: {why} "
