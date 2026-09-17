@@ -78,8 +78,19 @@ class _QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 
 @contextmanager
-def published_site_server(root: Path | None = None):
-    """Serve the PUBLISHED (index) copy of `site/` on an ephemeral port; yield the base URL.
+def published_site(root: Path | None = None):
+    """Extract and serve the PUBLISHED (index) copy of `site/`; yield `(base_url, docroot)`.
+
+    THE DOCROOT IS YIELDED BECAUSE A READER-SIDE CONTROL USUALLY NEEDS BOTH HALVES OF ONE SUBJECT.
+    `site/test_every_door_element_a_reader_meets.py` derives which element ids to ask the browser
+    about by running the door's script under node's `vm` -- and if that vm run reads the WORKING
+    TREE while the browser reads the published bytes, the two halves are describing different
+    pages, and the control's whole claim ("the reader meets what the door rendered") is about a
+    page that exists nowhere. One extract, both readings.
+
+    `published_site_server` below is this function with the docroot dropped; it is what the
+    per-door legs use, and it is kept because a caller that only wants a URL should not have to
+    unpack a pair it will not use.
 
     FAIL-CLOSED, AND IN THOSE WORDS. git being unable to answer is not "assume the tree is fine".
     An unmerged index, a repo git cannot read, a timeout -- every one of them means the caller has
@@ -162,10 +173,17 @@ def published_site_server(root: Path | None = None):
             t = threading.Thread(target=httpd.serve_forever, daemon=True)
             t.start()
             try:
-                yield f"http://127.0.0.1:{port}"
+                yield f"http://127.0.0.1:{port}", docroot
             finally:
                 httpd.shutdown()
                 t.join(timeout=10)
+
+
+@contextmanager
+def published_site_server(root: Path | None = None):
+    """`published_site` with the docroot dropped -- the published base URL, nothing else."""
+    with published_site(root=root) as (base_url, _docroot):
+        yield base_url
 
 
 def browser_available() -> str | None:
@@ -231,6 +249,50 @@ def read_in_browser(url: str, *element_ids: str) -> dict:
             f"reader sees: {payload.get('error')}"
         )
     return payload
+
+
+def read_pages_in_browser(jobs: list[tuple[str, list[str]]]) -> dict[str, dict]:
+    """Read MANY pages in ONE browser: `[(url, [ids...]), ...]` -> `{url: payload}`.
+
+    Each payload has the same shape `read_in_browser` returns, so `assert_visible_reading` grades
+    either without knowing which form produced it.
+
+    WHY THIS IS NOT JUST A LOOP OVER `read_in_browser`. A chromium launch is ~1.5s and the page
+    load it exists to serve is ~0.4s, so a control whose subject is EVERY published door spends
+    four fifths of its time starting browsers. Measured over the 22 doors on 2026-09-17: 22 launches
+    took 3m14s, one launch driving all 22 took 39s. The three-minute version is a control nobody
+    leaves in the commit path, which is the only place it catches anything before it deploys.
+
+    A PAGE THAT COULD NOT BE LOADED FAILS HERE, BY URL, rather than being returned as a reading
+    with no elements -- which every caller would then report as "the reader meets nothing on this
+    door", blaming the page for the probe's own failure to look at it.
+    """
+    payload_in = [{"url": url, "ids": list(ids)} for url, ids in jobs]
+    env = {**os.environ, "POESYS_PLAYWRIGHT_BASE": str(playwright_base())}
+    proc = subprocess.run(
+        ["node", str(PROBE), "--jobs"],
+        input=json.dumps(payload_in), cwd=str(playwright_base()),
+        capture_output=True, text=True, timeout=1800, env=env,
+    )
+    if not proc.stdout.strip():
+        pytest.fail(
+            f"the browser probe returned nothing for {len(payload_in)} page(s) "
+            f"(rc={proc.returncode}): {proc.stderr[:400]}"
+        )
+    out = json.loads(proc.stdout)
+    pages = out.get("pages") or []
+    unread = [f"{p.get('url')}: {p.get('error')}" for p in pages if not p.get("ok")]
+    if unread:
+        pytest.fail(
+            "the browser could not load {} of {} published page(s), so no claim is made about what "
+            "a reader sees on them: {}".format(len(unread), len(payload_in), "; ".join(unread))
+        )
+    if len(pages) != len(payload_in):
+        pytest.fail(
+            f"the probe was asked about {len(payload_in)} page(s) and reported on {len(pages)} -- "
+            "a short reading read as a complete one is how a door drops out of a sweep unnoticed"
+        )
+    return {p["url"]: p for p in pages}
 
 
 def assert_visible_reading(payload: dict, element_id: str, *, must_contain: str = "") -> dict:
@@ -397,6 +459,47 @@ def test_a_machine_that_has_playwright_is_never_told_it_does_not():
         )
 
 
+def test_many_pages_read_in_one_browser_give_each_page_its_own_reading():
+    """THE BATCH POSITIVE LEG, and it is a NULL CONTROL as much as a positive one: it asserts the
+    two pages read DIFFERENTLY. One browser reused across navigations is exactly the shape that
+    silently returns the first page's DOM for every job, and every assertion in the sweep above it
+    would then be graded against one page wearing twenty-two names."""
+    why = browser_available()
+    if why:
+        pytest.skip(why)
+    with _serve(_page()) as first, _serve(
+        _page(extra_markup='<div id="only-here">the second page</div>')
+    ) as second:
+        got = read_pages_in_browser([(first, ["present", "wired"]),
+                                     (second, ["present", "only-here"])])
+        assert set(got) == {first, second}, got.keys()
+        assert_visible_reading(got[first], "wired", must_contain="the wired sentence")
+        assert_visible_reading(got[second], "only-here", must_contain="the second page")
+        # The teeth: the element that exists ONLY on the second page must be absent from the
+        # first's reading. Without this the leg passes on a probe that read one page twice.
+        assert got[first]["elements"]["present"]["exists"]
+        alone = read_pages_in_browser([(first, ["only-here"])])
+        assert not alone[first]["elements"]["only-here"]["exists"], (
+            "the probe reports an element from a DIFFERENT page as present on this one"
+        )
+
+
+def test_a_page_the_batch_could_not_load_fails_and_is_named():
+    """FAIL-CLOSED FOR THE BATCH. A job that did not load must not come back as a page whose
+    elements are all absent -- that reads as a broken DOOR and would send the next session to fix a
+    page that is fine. The port below is closed, so the navigation genuinely fails."""
+    why = browser_available()
+    if why:
+        pytest.skip(why)
+    with _serve(_page()) as good:
+        dead = "http://127.0.0.1:1/index.html"
+        # `pytest.fail` raises `Failed`, which derives from BaseException and NOT from Exception --
+        # `pytest.raises(Exception)` here would let the refusal through and red this leg on the
+        # very behaviour it is asserting.
+        with pytest.raises(pytest.fail.Exception, match="could not load"):
+            read_pages_in_browser([(good, ["present"]), (dead, ["present"])])
+
+
 def test_the_server_serves_the_index_copy_and_not_the_working_tree():
     """THE SUBJECT LEG. Proved against a scratch repo whose index and working tree deliberately
     disagree, because on this project's own tree they agree almost always and a control that only
@@ -416,10 +519,18 @@ def test_the_server_serves_the_index_copy_and_not_the_working_tree():
         run("commit", "-qm", "base")
         # Now the working tree disagrees with the index, and ONLY the index copy may be served.
         page.write_text("<!doctype html><html><body><div id=x>WORKING TREE COPY</div></body></html>")
-        with published_site_server(root=root) as base_url:
+        with published_site(root=root) as (base_url, docroot):
             import urllib.request
 
             got = urllib.request.urlopen(f"{base_url}/index.html", timeout=30).read().decode()
+            # THE DOCROOT IS THE SAME SUBJECT AS THE URL, and that is the whole reason it is
+            # yielded: a sweep that drives the door's script over the docroot and reads the result
+            # over the url is otherwise free to be describing two different pages.
+            on_disk = (docroot / "index.html").read_text()
+        assert "INDEX COPY" in on_disk and "WORKING TREE COPY" not in on_disk, (
+            "the yielded docroot is not the published copy, so a caller reading the file and a "
+            f"caller reading the url disagree about the page: {on_disk!r}"
+        )
         assert "INDEX COPY" in got, "the server served something that is not the published copy"
         assert "WORKING TREE COPY" not in got, (
             "the browser reading is taken from the working tree, so it cannot tell 'the reader can "
