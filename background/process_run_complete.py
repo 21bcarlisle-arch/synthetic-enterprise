@@ -4987,9 +4987,35 @@ COMMIT_HOOK_DURATION_PATH = (
     PROJECT_DIR / "docs" / "observability" / "commit_hook_duration.jsonl")
 
 
-def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome: str) -> None:
-    """How long the pre-commit HOOK CHAIN actually took, recorded against the deadline that
+def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome: str,
+                                 *, chains: int = 1) -> None:
+    """How long ONE pre-commit HOOK CHAIN actually took, recorded against the deadline that
     actually kills it.
+
+    THE UNIT OF THIS SERIES IS ONE CHAIN, AND FOR NINE DAYS THE PRODUCER WROTE A TOTAL INTO IT
+    (2026-09-17). `chains` is how many full chains `elapsed_seconds` holds, and the row records
+    the per-chain cost. Every consumer already speaks that unit and none of them could get it:
+    `ceiling_seconds` is `GIT_COMMIT_HOOK_TIMEOUT_SECONDS`, which bounds ONE `git commit`
+    subprocess; `suite_duration_watch`'s banding, headroom ratio and transition alarm all grade
+    against that ceiling; and the reader's own name is `_recent_hook_chain_seconds`, documented
+    as "the last twenty pre-commit HOOK CHAIN costs this machine actually recorded, PER CHAIN".
+    A multi-chain total in a per-chain series is not a tight measurement, it is a measurement of
+    something else -- the defect one notch down from the one the paragraph below repairs.
+
+    THE PARAGRAPH BELOW WAS WRONG AND IS KEPT SO THE CORRECTION HAS SOMETHING TO SIT BESIDE. It
+    argued that nothing need be recorded about the chain count because "the row already carries
+    the contradiction": a row over `ceiling_seconds` that still returned a verdict cannot have
+    been bounded by that ceiling. True, and one-sided -- it catches a multi-chain row only when
+    the TOTAL exceeds the ceiling. MEASURED, 2026-09-17: the landing for `b55667741` lost the
+    race on both attempts and recorded 666.95s, which is two chains of ~333s, and 666.95 < 880,
+    so the discriminator kept it and read it as ONE chain costing 667s. That reding
+    `test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today` at
+    `worst <= 0.75 * 880`, missing by seven seconds, and refused EVERY ordinary commit in the
+    shared tree -- the liveness heartbeat included -- with a demand no re-measurement could
+    satisfy, because no deadline can be generous against a number that counts two of the thing
+    it bounds. That is the identical shape the 2026-09-16 repair below was written to end,
+    reached through the one door it left open. A discriminator that fires on a THRESHOLD cannot
+    replace a producer that knows the answer, and this producer always knew it.
 
     A ROW MAY HOLD MORE THAN ONE CHAIN, AND A READER MUST NOT ASSUME OTHERWISE (2026-09-16).
     `GIT_COMMIT_HOOK_TIMEOUT_SECONDS` bounds ONE `git commit` subprocess -- that is the liveness
@@ -5024,7 +5050,16 @@ def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome:
     try:
         from background.suite_duration_watch import record_gate_run
 
-        record_gate_run(float(elapsed_seconds), GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+        # DIVIDED HERE AND NOT IN THE RECORDER, because `record_gate_run` is shared with the
+        # publisher's scoped-gate series, where a run is one run and there is nothing to divide.
+        # The caller is the only place that knows how many chains its stopwatch spanned.
+        # FAIL-SAFE TOWARD THE OLD READING: a chain count that is not a positive int is treated
+        # as 1, so a broken caller over-reports (the direction every consumer of this series is
+        # already safe in) rather than silently shrinking a real cost.
+        per_chain = float(elapsed_seconds)
+        if isinstance(chains, int) and not isinstance(chains, bool) and chains > 1:
+            per_chain = per_chain / chains
+        record_gate_run(per_chain, GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
                         str(git_hash or "unknown"), outcome, COMMIT_HOOK_DURATION_PATH)
     except Exception:  # noqa: BLE001 - see docstring
         pass
@@ -5692,6 +5727,23 @@ def _land_publish_commit(pathspec, msg, git_hash):
                                len(outside), ", ".join(outside[:5]))}
     lost = []
 
+    def _chains_run(exhausted: bool) -> int:
+        """How many full gated chains the ONE stopwatch below actually spanned.
+
+        `on_lost` fires AFTER a chain has run and lost the compare-and-swap, so `len(lost)` counts
+        COMPLETED chains, and whether to add the one in progress depends on how the loop ended:
+
+          * the landing returned, or the gate said NO      -> a further chain ran   -> len+1
+          * the loop EXHAUSTED its attempts (all lost)     -> there is no further chain -> len
+
+        THE OFF-BY-ONE IS NOT HYPOTHETICAL AND IT POINTS THE UNSAFE WAY. Both multi-chain rows this
+        machine has ever recorded -- `2c89bd534` (2026-09-16) and `b55667741` (2026-09-17) -- are
+        EXHAUSTIONS, so a flat `len(lost) + 1` would have divided 666.95s by three and filed 222s
+        as a chain cost that really was 333s. Under-reporting is the fail-OPEN direction for every
+        consumer of this series: it invents headroom. So the two endings are counted apart.
+        """
+        return len(lost) if exhausted else len(lost) + 1
+
     def _on_lost(attempt, exc):
         lost.append(attempt)
         log("Publish landing lost the race on attempt {}/{} (base {} -> {}) -- re-gating against "
@@ -5710,19 +5762,28 @@ def _land_publish_commit(pathspec, msg, git_hash):
         # facts a reader of that series most needs to be able to tell apart.
         # THIS ELAPSED TIME CAN HOLD `len(lost) + 1` CHAINS, not one: the race is detected by the
         # compare-and-swap AFTER the gate has returned a verdict, so a lost attempt ran a full
-        # chain. Nothing is added to the row to say so -- the row already contradicts itself when
-        # it happens (duration past the ceiling with a verdict returned), and
-        # `_recent_hook_chain_seconds` reads that contradiction. See `_record_commit_hook_duration`.
+        # chain. THE COUNT IS PASSED ON rather than left for a reader to infer from a threshold --
+        # see `_record_commit_hook_duration` for the seven seconds that argument cost, and for why
+        # "the row already contradicts itself" is only true when the TOTAL clears the ceiling.
+        # EXHAUSTED IFF EVERY ATTEMPT WAS LOST -- structural, not a match on the refusal text.
+        # `land()` leaves its loop only by returning, by propagating a non-race refusal, or by
+        # running out of attempts, and only the last of those has `len(lost) == attempts`.
         _record_commit_hook_duration(time.monotonic() - started, git_hash,
-                                     "timeout" if _gate_was_killed(str(exc)) else "refused")
+                                     "timeout" if _gate_was_killed(str(exc)) else "refused",
+                                     chains=_chains_run(len(lost) >= PUBLISH_LAND_ATTEMPTS))
         return {"sha": "", "refusal": str(exc), "lost": lost}
     except Exception as exc:  # noqa: BLE001 -- see the docstring: every failure is a value
-        _record_commit_hook_duration(time.monotonic() - started, git_hash, "refused")
+        # A raise interrupts an attempt that WAS running, so that partial chain counts.
+        _record_commit_hook_duration(time.monotonic() - started, git_hash, "refused",
+                                     chains=_chains_run(False))
         return {"sha": "", "lost": lost,
                 "refusal": "the publish landing raised {} rather than refusing: {}. Treated as a "
                            "refusal, so nothing is committed and the next cycle "
                            "retries.".format(type(exc).__name__, exc)}
-    _record_commit_hook_duration(time.monotonic() - started, git_hash, "pass")
+    # A LANDING THAT WON ON ATTEMPT N RAN N CHAINS, and the successful row is the one the headroom
+    # control most wants to be true: it is the only outcome that proves a chain can finish.
+    _record_commit_hook_duration(time.monotonic() - started, git_hash, "pass",
+                                 chains=_chains_run(False))
     return {"sha": sha, "refusal": "", "lost": lost}
 
 
