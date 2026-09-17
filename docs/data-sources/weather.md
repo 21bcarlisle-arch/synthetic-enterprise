@@ -66,6 +66,23 @@ Three consequences for anyone planning a pull:
    alone is not grounds to slow every future pull down by 30%. Recorded so the next reader knows
    the gap is known rather than unnoticed.
 
+**CONSEQUENCE 1 IS REFUTED, AND SO IS THE HOURLY ATTRIBUTION ABOVE IT. Corrected beside the claim
+rather than over it, 2026-09-17, by the pull it was written to plan.** The 23-cell pass ran
+08:07–08:18 and completed **all 23 cells in eleven minutes with zero 429s** — one pass, not two an
+hour apart. By this page's own arithmetic that is ~6,000 call-units inside eleven minutes, against
+a stated hourly ceiling of 5,000; and with the 21 cells of `f94ebb1d2` at 05:26 the same day, 44
+cells against a stated daily 38.3. Both ceilings were passed without a single refusal.
+
+So the cell ceilings in the table above are **not established**, and no plan should be built on
+19.2/hour or 38.3/day. The suspect term is the per-cell cost: one cell is **one HTTP request**
+(`sim.weather_ingestor.get_daily_weather`, no cache), and the `3653 / 14 = 260.9` weighting is the
+only part of the sum nothing here has measured. Consequence 3 already recorded the same direction
+of error at the minute scale; this is that finding at the hour and the day.
+
+What survives is what the code relies on and nothing more: the 02:38 refusal was real, it refused
+every cell alike, and it cleared with time rather than with backoff. Measurement:
+`docs/staging/records/WORKER_RESULT_THE_LAST_23_IN_BOOK_CELLS_PULLED_IN_ELEVEN_MINUTES_AND_THE_HOURLY_CEILING_DERIVED_FROM_THE_PUBLISHED_RULE_IS_REFUTED_2026-09-17.md`.
+
 The daily quota's refusal is a distinct type — `sim.weather_ingestor.WeatherQuotaExhausted` — and
 is matched on Open-Meteo's `reason` string (*"Daily API request limit exceeded"*), never on the 429
 status, because every limit above returns the same status.
