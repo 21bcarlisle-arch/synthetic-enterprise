@@ -497,11 +497,26 @@ def read_series(path: Path | None = None, limit: int | None = None,
 
 
 def record(duration_seconds, ceiling_seconds, git_hash: str, outcome: str,
-           path: Path | None = None) -> dict:
+           path: Path | None = None, chains=None) -> dict:
     """Append one gate run to the series and return the record.
 
     Stores the raw duration AND the raw ceiling alongside the derived ratio, so the ratio can be
     re-derived by an independent reader and a ceiling change stays visible in the history.
+
+    `chains` IS THE ROW'S UNIT, AND WITHOUT IT ON THE ROW NO READER CAN ASK (2026-09-17). The
+    caller divides a multi-chain stopwatch down to a per-chain cost before it gets here — it is
+    the only place that knows the count — and until now that count was DISCARDED at this call.
+    So the repair that began dividing correctly could not be told apart, by any consumer, from
+    the nine days of totals it replaced: every row in `commit_hook_duration.jsonl` reads
+    identically whether its unit was stated or inferred, and 0 of 195 carry a count. A silent
+    row is exactly the shape that wedged the shared tree — `666.95s`, two chains of ~333s read
+    as one, refusing every commit including the liveness heartbeat. Stating the unit is the
+    same discipline as the paragraph below: an answer the producer knew, written onto the row
+    rather than dropped, so the question can be asked of history and not only of new rows.
+
+    `None` means UNSTATED, not one. A caller that says nothing has not claimed its row is a
+    single chain — the publisher's scoped-gate series, where a run is one run, simply never had
+    a count to give. Reading an absent field as `1` is the inference that produced the wedge.
 
     RAISES `LiveLedgerWriteUnderTest` when a test process aims this at the live series — BEFORE
     any work, so the refusal cannot be mistaken for a write that half-happened. A test that
@@ -530,6 +545,12 @@ def record(duration_seconds, ceiling_seconds, git_hash: str, outcome: str,
                                           "outcome": outcome}),
         "cadence_seconds": PUBLISH_CADENCE_SECONDS,
         "outcome": outcome,
+        # The KEY is always present so a reader can tell "stated 1" from "said nothing"; the
+        # VALUE is None unless the caller gave a positive int, because a bad count is an
+        # unstated unit and not a claim of one chain.
+        "chains": chains
+        if isinstance(chains, int) and not isinstance(chains, bool) and chains > 0
+        else None,
     }
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -734,14 +755,18 @@ def absolute_alarm(current: dict, previous: dict | None = None, *, notify_fn=Non
 
 
 def record_gate_run(duration_seconds, ceiling_seconds, git_hash: str, outcome: str,
-                    path: Path | None = None):
+                    path: Path | None = None, chains=None):
     """The publish path's single entry point: record, then alarm on a transition.
+
+    `chains` is forwarded verbatim to `record`, which documents why an absent count is UNSTATED
+    rather than one. This entry point had no parameter for it, which is where the count the
+    caller had already computed was being dropped.
 
     NEVER RAISES. An observer that can red the gate it observes is itself a defect, so every
     failure here degrades to "no measurement this cycle" and the publish continues."""
     try:
         prev_rows = read_series(path)
-        rec = record(duration_seconds, ceiling_seconds, git_hash, outcome, path)
+        rec = record(duration_seconds, ceiling_seconds, git_hash, outcome, path, chains=chains)
         prev = prev_rows[-1] if prev_rows else None
         alarm(rec, prev)
         absolute_alarm(rec, prev)
