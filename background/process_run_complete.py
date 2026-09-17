@@ -6,6 +6,7 @@ import json
 import os
 import re
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -5674,6 +5675,166 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None, b
 PUBLISH_LAND_ATTEMPTS = 2
 
 
+def _recent_gate_chain_costs(limit: int = 20) -> list[float]:
+    """The per-chain pre-commit costs THIS tree actually recorded, oldest first. Never raises.
+
+    THE SERIES BELONGS TO THE TREE, NOT TO THE MACHINE, and the path is re-derived from
+    `PROJECT_DIR` on every call rather than read off the frozen module constant beside it.
+    `PROJECT_DIR` is what decides which working tree a landing is going into, and a landing into
+    some other checkout must not size its wait from a series describing this one. It also makes
+    the wait structurally inert wherever the publisher is driven against a scratch repository --
+    there is no series there, so there is no budget, so nothing waits.
+
+    A KILLED chain is DROPPED. Its row measures the deadline that stopped it and not the work,
+    so keeping it would size the wait against the ceiling by construction -- the same shape as
+    the multi-chain total this series has already paid for once.
+    """
+    path = Path(PROJECT_DIR) / "docs" / "observability" / COMMIT_HOOK_DURATION_PATH.name
+    costs: list[float] = []
+    try:
+        with path.open(encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(row, dict) or row.get("outcome") == "timeout":
+                    continue
+                seconds = row.get("duration_seconds")
+                if isinstance(seconds, (int, float)) and not isinstance(seconds, bool):
+                    if seconds > 0:
+                        costs.append(float(seconds))
+    except OSError:
+        return []
+    return costs[-limit:] if limit else costs
+
+
+def _quiet_wait_budget_seconds(costs=None) -> float:
+    """How long a publish landing may wait for another writer's gate to finish. 0 == never wait.
+
+    DERIVED FROM THIS TREE'S OWN RECORD, because a number picked to fill the slot would be
+    load-bearing within a week and unattributable within a month. A gate chain costs a MEDIAN of
+    C seconds here (250-333s through September); a rival already in flight when we look is on
+    average half-way through one, so C covers the ordinary case with room and stops before a
+    second chain's worth of cycle time has been spent asleep. Past C the rival is in the tail of
+    its own distribution and racing it is the better use of what is left of the cycle -- which
+    is exactly today's behaviour, so an expired budget leaves the publisher no worse off than
+    never having waited.
+
+    FAIL-OPEN, AND THE DIRECTION IS ARGUED. An unreadable or empty series returns 0 and the
+    landing starts at once. The two failures cost different things: not waiting costs one publish
+    cycle, retried on the next completed run; waiting on a budget nobody can justify costs the
+    cycle itself, and a publisher asleep is indistinguishable from the wedge it exists to end.
+    """
+    costs = _recent_gate_chain_costs() if costs is None else list(costs)
+    if not costs:
+        return 0.0
+    return float(statistics.median(costs))
+
+
+def _rival_gate_probe(matcher=None, ancestry=None, pattern=None):
+    """A `wait_for` probe: is a pre-commit chain running that is NOT this process's own?
+
+    ONE PATTERN SEES EVERY DOOR. An ordinary `git commit` runs the hook by its absolute path and
+    `surgical_land.run_gate` runs `sh tools/git-hooks/pre-commit` inside its extract, so the
+    tool's own `HOOK_REL` is a substring of both command lines. It is taken FROM the tool rather
+    than retyped here: a pattern that drifts from the hook it names is a probe that silently
+    stops matching, and a probe that matches nothing is indistinguishable from a quiet tree.
+
+    OUR OWN CHAIN MUST NOT BE THE SUBJECT. `wait_for` strikes out this process and its
+    ANCESTORS, which is what stops a waiter matching its own argv -- it cannot know about a
+    DESCENDANT, and every gate this module runs is one. A waiter whose subject is its own child
+    can never see it end, so each surviving candidate's ancestry is walked and anything under
+    this pid is dropped. Both call sites below run with no gate of their own in flight, so this
+    is a property of the probe rather than a repair of a live defect; it is here because the
+    defect it forecloses is the exact one `tools/wait_for.py` was written to make unwritable.
+    """
+    from tools import wait_for
+
+    if pattern is None:
+        from tools.surgical_land import HOOK_REL
+
+        pattern = HOOK_REL
+    matcher = matcher or wait_for.matching_pids
+    ancestry = ancestry or wait_for.self_and_ancestors
+    exclude = ancestry()
+    mine = os.getpid()
+
+    def probe():
+        pids, raw = matcher(pattern, exclude)
+        rivals = [pid for pid in pids if mine not in ancestry(pid)]
+        if rivals:
+            return True, "another writer is gating: pid {}".format(
+                ", ".join(str(pid) for pid in rivals))
+        return False, ("no gate chain matches {!r} that is not ours ({} raw match(es))"
+                       .format(pattern, raw))
+
+    return probe
+
+
+def _wait_for_a_quiet_tree(subject, *, probe=None, budget=None, waiter=None):
+    """Decline to start a gate chain into a tree another writer is already committing to.
+
+    THE MEASUREMENT (2026-09-17, publish failure #61, `.publish_gate_state.json`). The landing
+    lost the race on BOTH attempts and the record read *"the gate's verdict was about a tree
+    that no longer existed and NO test is implicated"*. The two commits that took it --
+    `118374229` at +94s of attempt 1 and `ce4806807` at +25s of attempt 2 -- each landed far
+    sooner than a chain costs on this machine (250-333s per chain,
+    `docs/observability/commit_hook_duration.jsonl`), so BOTH rivals were already running their
+    own gate when this publisher started its. Neither attempt was ever winnable, and both were
+    observable before one second of CPU was spent: a pre-commit chain is a PROCESS.
+
+    So this is neither a retry nor a budget -- the director ruled on 2026-08-21 that no gate
+    budget grows here, and this spends no gate time at all. It is the publisher declining to
+    enter a race it can already see it has lost, and the cost of being wrong about that is
+    bounded by `_quiet_wait_budget_seconds`, past which it races exactly as it does today.
+
+    WHY THE ODDS MOVE, stated before the outcome is known so it can refute me. Commits arrive on
+    this tree with a median gap of 396s (277 commits, 48h to 2026-09-17) and a chain costs a
+    median 265s, so a chain STARTED INTO A QUIET TREE survives to its swap 57% of the time,
+    against two consecutively doomed starts in the episode measured. Two attempts that each wait
+    for quiet should therefore land about four times in five. If the next failures are still
+    `lost the race` with a recorded wait of zero, this mechanism is not firing and the diagnosis
+    above is wrong.
+
+    Returns a `wait_for`-shaped dict and NEVER raises: every failure to look resolves to "go
+    now", which is the behaviour this replaces.
+    """
+    budget = _quiet_wait_budget_seconds() if budget is None else float(budget)
+    if budget <= 0:
+        return {"verdict": "unbudgeted", "waited_seconds": 0.0, "subject": subject,
+                "detail": "no readable chain-cost series for this tree, so no wait is justified"}
+    try:
+        probe = probe or _rival_gate_probe()
+        present, detail = probe()
+        if not present:
+            return {"verdict": "quiet", "waited_seconds": 0.0, "subject": subject,
+                    "detail": detail}
+        log("Publish landing: {} -- {}. Waiting up to {:.0f}s for the tree to go quiet rather "
+            "than spending a full gate on a race this publisher can already see it has lost."
+            .format(subject, detail, budget))
+        if waiter is None:
+            from tools import wait_for
+
+            waiter = wait_for.wait
+        outcome = waiter(subject, budget, probe, emit=lambda m: log("  {}".format(m)))
+        return outcome
+    except Exception as exc:  # noqa: BLE001 -- a probe that cannot look may not hold the publish
+        # THE BREADTH IS THE POINT, and it is not the fail-silent shape: this function's ONLY
+        # power is to delay, so its failure can cost at most the delay it would have bought. An
+        # exception escaping here would turn an optimisation into an outage of the one pipeline
+        # that reaches a visible surface. The reason rides out in the returned dict and is
+        # logged, so nothing is swallowed; only the crash is.
+        log("Publish landing: could not look for rival gate chains ({}: {}) -- starting the gate "
+            "immediately, which is what this cycle would have done anyway."
+            .format(type(exc).__name__, exc))
+        return {"verdict": "unreadable", "waited_seconds": 0.0, "subject": subject,
+                "detail": "{}: {}".format(type(exc).__name__, exc)}
+
+
 def _gate_was_killed(refusal: str) -> bool:
     """Did the landing fail because the hook chain outran its DEADLINE, rather than refusing?
 
@@ -5744,13 +5905,38 @@ def _land_publish_commit(pathspec, msg, git_hash):
         """
         return len(lost) if exhausted else len(lost) + 1
 
+    #: Seconds spent WAITING between attempts, kept out of the stopwatch below. The series that
+    #: stopwatch feeds is per-CHAIN and is graded against the deadline that kills a chain, so a
+    #: wait folded into it would read as a chain that nearly outran its deadline -- the identical
+    #: unit defect the `chains=` repair closed on 2026-09-17, arriving through a new door within
+    #: the day. The attempt-1 wait needs no entry here because it happens before the stopwatch
+    #: starts; only the between-attempt waits are inside it.
+    waited_between = [0.0]
+
     def _on_lost(attempt, exc):
         lost.append(attempt)
         log("Publish landing lost the race on attempt {}/{} (base {} -> {}) -- re-gating against "
             "the new base rather than committing a verdict about a tree that no longer exists."
             .format(attempt, PUBLISH_LAND_ATTEMPTS, exc.parent[:9], exc.observed[:9]))
+        # ONLY WHEN THERE IS AN ATTEMPT LEFT TO SPEND. `on_lost` also fires on the attempt that
+        # exhausts the loop, and waiting for a quiet tree we will never gate against is pure
+        # delay on the path that is already the failure.
+        if attempt < PUBLISH_LAND_ATTEMPTS:
+            outcome = _wait_for_a_quiet_tree(
+                "a quiet tree before publish landing attempt {}/{}".format(
+                    attempt + 1, PUBLISH_LAND_ATTEMPTS))
+            waited_between[0] += float(outcome.get("waited_seconds") or 0.0)
+
+    # BEFORE THE STOPWATCH, so the wait is not recorded as gate time -- see `waited_between`.
+    _wait_for_a_quiet_tree("a quiet tree before publish landing attempt 1/{}".format(
+        PUBLISH_LAND_ATTEMPTS))
 
     started = time.monotonic()
+
+    def _gated_seconds() -> float:
+        """Wall clock spent GATING, which is the stopwatch minus what was spent waiting."""
+        return time.monotonic() - started - waited_between[0]
+
     try:
         sha = surgical_land.land(root, relative, msg,
                                  attempts=PUBLISH_LAND_ATTEMPTS, on_lost=_on_lost)
@@ -5768,23 +5954,25 @@ def _land_publish_commit(pathspec, msg, git_hash):
         # EXHAUSTED IFF EVERY ATTEMPT WAS LOST -- structural, not a match on the refusal text.
         # `land()` leaves its loop only by returning, by propagating a non-race refusal, or by
         # running out of attempts, and only the last of those has `len(lost) == attempts`.
-        _record_commit_hook_duration(time.monotonic() - started, git_hash,
+        _record_commit_hook_duration(_gated_seconds(), git_hash,
                                      "timeout" if _gate_was_killed(str(exc)) else "refused",
                                      chains=_chains_run(len(lost) >= PUBLISH_LAND_ATTEMPTS))
-        return {"sha": "", "refusal": str(exc), "lost": lost}
+        return {"sha": "", "refusal": str(exc), "lost": lost,
+                "waited_seconds": round(waited_between[0], 1)}
     except Exception as exc:  # noqa: BLE001 -- see the docstring: every failure is a value
         # A raise interrupts an attempt that WAS running, so that partial chain counts.
-        _record_commit_hook_duration(time.monotonic() - started, git_hash, "refused",
+        _record_commit_hook_duration(_gated_seconds(), git_hash, "refused",
                                      chains=_chains_run(False))
-        return {"sha": "", "lost": lost,
+        return {"sha": "", "lost": lost, "waited_seconds": round(waited_between[0], 1),
                 "refusal": "the publish landing raised {} rather than refusing: {}. Treated as a "
                            "refusal, so nothing is committed and the next cycle "
                            "retries.".format(type(exc).__name__, exc)}
     # A LANDING THAT WON ON ATTEMPT N RAN N CHAINS, and the successful row is the one the headroom
     # control most wants to be true: it is the only outcome that proves a chain can finish.
-    _record_commit_hook_duration(time.monotonic() - started, git_hash, "pass",
+    _record_commit_hook_duration(_gated_seconds(), git_hash, "pass",
                                  chains=_chains_run(False))
-    return {"sha": sha, "refusal": "", "lost": lost}
+    return {"sha": sha, "refusal": "", "lost": lost,
+            "waited_seconds": round(waited_between[0], 1)}
 
 
 def git_commit_push(git_hash, net_margin, outcome=None):
@@ -6274,16 +6462,29 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         _reds = _record_commit_refusal_reds(_text, "", git_hash)
         _gate = _parse_refusing_gate(_text)
         if landing["lost"]:
+            # THE WAIT IS PART OF THE EVIDENCE, not a log line. "Lost the race" said nothing
+            # about whether the publisher had STARTED the race blind, and that is the one fact
+            # that separates "the quiet-tree wait is not firing" from "it fired and the tree is
+            # hotter than a wait can cover" -- two conditions with opposite remedies and, until
+            # this clause, one sentence between them.
+            _waited = float(landing.get("waited_seconds") or 0.0)
+            _wait_clause = (
+                "it waited {:.0f}s between attempts for the tree to go quiet first, so this is a "
+                "tree hotter than one chain rather than a start into a race already "
+                "running".format(_waited) if _waited > 0 else
+                "NO waiting was bought -- either the tree was quiet at every start, or the "
+                "chain-cost series that budgets the wait could not be read")
             log("Publish landing REFUSED: HEAD moved under the gate on all {} attempt(s), so no "
                 "verdict ever described the tree the commit would have created. Nothing was "
                 "committed and no test is implicated -- the gate is longer than the gap between "
-                "commits on this tree.".format(PUBLISH_LAND_ATTEMPTS))
+                "commits on this tree, and {}".format(PUBLISH_LAND_ATTEMPTS, _wait_clause))
             return _outcome(
                 COMMIT_REFUSED, False,
                 cause=None if _reds else NON_TEST_REFUSAL_CAUSE,
                 evidence="the surgical landing lost the race to another writer on all {} "
                          "attempt(s), so the gate's verdict was about a tree that no longer "
-                         "existed and NO test is implicated".format(PUBLISH_LAND_ATTEMPTS))
+                         "existed and NO test is implicated, and {}".format(
+                             PUBLISH_LAND_ATTEMPTS, _wait_clause))
         log("Publish landing REFUSED on the tree the commit WOULD create -- which is HEAD plus "
             "this publisher's own paths, so the red is ours and not another lane's uncommitted "
             "work:\n{}".format(_text[:4000]))
