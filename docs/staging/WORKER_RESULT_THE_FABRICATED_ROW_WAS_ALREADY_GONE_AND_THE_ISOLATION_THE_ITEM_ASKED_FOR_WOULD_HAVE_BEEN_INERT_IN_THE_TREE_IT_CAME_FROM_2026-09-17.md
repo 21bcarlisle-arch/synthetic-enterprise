@@ -112,11 +112,32 @@ for a reader to discover, and it is why the table above is the evidence and the 
 ESTABLISHED: the row is gone; the write is refused from both trees; the two rows cost neither
 control its grading power, by mutation; the one-room re-root was a real hole and is closed.
 
-NOT ESTABLISHED IN THIS TURN: a full `tests/background/` run. It was launched and is ~2 hours in this
-tree; the landing did not wait for it, and the cheap gates plus the three directly-implicated suites
-(59 passed) are what the commit stands on. Both live stores were byte-identical (`md5sum -c`) across
-every run made during this turn, which is the property the item asked to see and is weaker than a
-full pass.
+THE FULL RUN, which the item made half of its done-condition: `tests/background/` complete, **5,638
+passed, 40 failed, 3 errors, 3 skipped, 28m42s**, with these bytes in force. The item's other half —
+*a run that cannot write it back* — HOLDS: across the whole 5,681-test run
+`.delivery_lane_claims.draws.json` is **byte-identical** by `md5sum -c`. `.delivery_lane_claims.json`
+moved once, and the move is attributed rather than assumed: another lane claimed
+`the-publisher-has-never-graded-a-clean-publish-and-the-site-lane-is-red-right-now` at 12:05 UTC and
+released its predecessor. That is a production draw, not a test. No fixture-shaped id is in either
+store.
+
+THE 40 ARE NOT THIS LANE'S, and the attribution was done rather than hoped for. They were re-run
+against a stable tree after the landing (the first run had my own commit move HEAD under it, which
+would have explained the divergence-reading block for free and explained it wrongly): **34 of them
+reproduce**, so the tree move was not the cause. What they are: another lane's uncommitted edit to
+`background/finding_classes.py` has moved a mutation anchor out from under its own test
+(`mutation anchor is not unique`), and `test_doorbell_redaction` fails on
+`production_surface_guard` refusing `.sent_ntfy_ids.json.lock` — the same isolation class as this
+change, for a constant this change does not name.
+
+They cannot be caused by these bytes, and that is a derivation over the code rather than a reading of
+two tracebacks. The `_reroot` change is behaviour-identical in a main checkout — `_rooms` is
+provably `[root]` here, measured — so the ONLY behavioural delta is re-rooting
+`delivery_lane.CLAIMS_FILE` and `DRAW_LEDGER_FILE`. A test can be moved by that only if it reads one
+of those two attributes, and the AST sweep over the whole directory found exactly two files that do.
+Neither is among the eight that failed; none of the eight names `delivery_lane` at all.
+
+They belong in the red register against the lanes that own them, not against this claim.
 
 ## Direction this leaves
 
