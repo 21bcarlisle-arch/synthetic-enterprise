@@ -36,6 +36,11 @@ cause is separable at the moment it happens, by a different observation:
   * `behind_origin`     — `git rev-list --count HEAD..FETCH_HEAD` is non-zero (or unreadable)
                           BEFORE the commit. A fetched ref, read ahead of the commit, is what
                           separates this from `push_never_landed`.
+  * `lost_push_race`    — `git ls-remote`, read AFTER the absorbing cadence has had its turn and
+                          the benign window has expired. The observation that separates it from
+                          `push_never_landed` is git's own non-fast-forward rejection on stderr
+                          plus a second, later read of the ref — one read cannot tell a race
+                          from a standstill, which is why 58 races were filed as standstills.
 
 Five, not the three the direction named: `provenance_refused` and `behind_origin` are real paths
 to rc=77, and folding either into one of the three to make the count match would be exactly the
@@ -138,19 +143,31 @@ PROVENANCE_REFUSED = "provenance_refused"
 #: same fork observed one commit too late: there the local commit already exists and the fork is
 #: one wider. The observation is `git rev-list --count HEAD..FETCH_HEAD` after a fetch.
 BEHIND_ORIGIN = "behind_origin"
+#: The commit landed locally and gated, the push WAS issued, git rejected it non-fast-forward
+#: because origin moved while the absorbing merge was being gated, and the absorbing cadence has
+#: since had its turn and STILL not delivered it. Re-measured against the remote ref after the
+#: cadence, never inferred from the push's rc — see `publish_delivery_deferral`.
+#:
+#: DISTINCT FROM `PUSH_NEVER_LANDED`, and the distinction is the repair. There the ref stood still
+#: with NOTHING to explain it: a phantom "Everything up-to-date", auth, a dead remote — a push to
+#: be MADE. Here the push was made and lost a race that is measured at 556s of gate against a
+#: ~600s sibling push interval — a race to be WON. For 58 consecutive cycles over 7.2 days every
+#: one of these was filed as the other, which sent every reader at a push that was being issued
+#: correctly every time.
+LOST_PUSH_RACE = "lost_push_race"
 #: Not a cause: the honest answer when no usable record exists for the failure being described.
 UNATTRIBUTED = "unattributed"
 
 #: Every cause this module will accept a write for. A write naming anything else is refused
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
 CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
-                    PROVENANCE_REFUSED, BEHIND_ORIGIN})
+                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE})
 
 #: Causes on which NO test returned a verdict, so no blocking list or suspect may be attached.
 #: See the module docstring. `GATE_REFUSAL`'s absence is the content of this set, not an
 #: oversight — that is the one cause where a named red is real evidence about THIS cycle.
 NO_TEST_JUDGED_CAUSES = frozenset({NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
-                                   PROVENANCE_REFUSED, BEHIND_ORIGIN})
+                                   PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE})
 
 #: Mirrors the publisher's blocking-record bound for the same reason that one has a default:
 #: a reader outside the publish path must not import the publisher to learn a policy. Held

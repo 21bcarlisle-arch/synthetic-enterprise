@@ -210,6 +210,39 @@ EXIT_GATE_TIMED_OUT = 78
 # the NEXT one retries. But it is still a FAILED publish (R15: an unavailable check is a failed
 # check), so it keeps the streak and fires the alarm -- what changes is only what the alarm SAYS.
 EXIT_TREE_LOCK_UNAVAILABLE = 79
+# THE FIFTH CLOCK IS NOT A CLOCK AT ALL — IT IS A VERDICT TAKEN TOO EARLY, closed 2026-09-17
+# (WORKER_RESULT_THE_FIFTY_EIGHT_FAILURE_PUBLISH_EPISODE_HAS_NO_RED_TEST_AND_THE_WEDGE_IS_A_
+# MERGE_TO_PUSH_RACE_2026-09-17.md, and the item that drew this repair).
+#
+# The four codes above all answer "this cycle published nothing, and here is which mechanism
+# stopped it". This one answers something none of them can: the commit LANDED, gated, and its
+# delivery is with a DIFFERENT mechanism that has not finished. rc=77 said "the publish COMMIT
+# did not land" about a commit that had landed and that reached origin minutes later.
+#
+# OBSERVED, not inferred (`docs/observability/.publish_gate_state.json`, 2026-09-17):
+# `episode_failures: 58`, `last_clean_publish: null`, `wedge_since` 7.2 days, `total_red: 0`,
+# `blocking_tests: []` — 58 consecutive recorded failures with no red test in any of them. The
+# evidence line on #58 names its own remedy ("`origin_reconcile` was run to absorb this disjoint
+# publish and origin STILL does not have it"), and `84c8bdee7`, the commit that failure is about,
+# IS on origin: carried there by that same cadence after this process had exited. The verdict was
+# taken before the thing it was about had finished happening, and every cycle took it again.
+#
+# WHY A CODE AND NOT A RETRY. `PUBLISH_PATH_ALLOWANCE_SECONDS` (900s) covers everything after the
+# gate returns green, including the hook-chain commit at GIT_COMMIT_HOOK_TIMEOUT_SECONDS (880s).
+# The absorbing cadence is measured at 556s end to end. One fits; a second cannot, and the
+# director ruled on 2026-08-21 that no gate budget grows here. A retry loop inside the cycle would
+# be killed by the publisher's own wrapper and filed as `deadline_kill` — worse attribution than
+# the one it replaced. So the cycle records what it OBSERVED and the verdict is graded later, from
+# the ref, by `record_publish_gate_outcome` (see `grade_outstanding_delivery`).
+#
+# NOT rc=0 AND NOT IN NO_PUBLISH_EXIT_CODES, both deliberately. rc=0 is routed into
+# `record_publish_gate_success`, which would stamp `last_clean_publish` at an instant when origin
+# demonstrably did not have the content — the fail-open direction, and the 2026-08-19 defect
+# EXIT_PUBLISH_DID_NOT_LAND exists to stop. `NO_PUBLISH_EXIT_CODES` means "evidence of NOTHING
+# about the gate's health", and this is evidence: the gate passed and the commit landed. What this
+# code buys is the third answer neither of those can give — record NEITHER yet, and grade it when
+# the ref can answer.
+EXIT_PUBLISH_DELIVERY_DEFERRED = 80
 # The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
 # the published surfaces are current. Anything that publishes nothing states so with its own
 # code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
@@ -1175,6 +1208,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 from background import (  # noqa: E402
     finding_severity,  # (OPS9 header parser; exoneration field)
     publish_cause,  # (which of the four an rc=77 was, and the observation that decided it)
+    publish_delivery_deferral,  # (a landed commit whose delivery is still with the cadence)
     publish_gate_blocking_read,  # (the record's honesty contract)
     publish_provenance,  # BOUND HERE ON PURPOSE — see below
 )
@@ -3390,6 +3424,13 @@ GATE_BLOCKING_TESTS_FILE = PROJECT_DIR / "docs" / "observability" / ".last_gate_
 # LATER PROCESS, which otherwise sees only the exit code. See `background/publish_cause.py` for
 # why an exit code cannot carry this and why the record is keyed to its own commit.
 PUBLISH_CAUSE_FILE = PROJECT_DIR / "docs" / "observability" / ".last_publish_cause.json"
+# THE ONE OUTSTANDING DELIVERY: a publish commit that landed and gated here and whose push lost a
+# race, written by `git_commit_push` and graded from the REMOTE REF by a later process. Beside
+# PUBLISH_CAUSE_FILE and not inside it, because the two carry opposite claims: that record says
+# "this cycle failed, and here is why", this one says "no verdict is due on this cycle yet".
+# See `background/publish_delivery_deferral.py`.
+PUBLISH_DELIVERY_DEFERRAL_FILE = (
+    PROJECT_DIR / "docs" / "observability" / ".publish_delivery_deferral.json")
 # Two full gate timeouts. Comfortably longer than any real red-to-alarm gap (the recorder runs
 # seconds after the gate returns) and far short of the multi-hour episodes, so a wedge whose
 # cause has since been repaired cannot keep re-citing yesterday's test.
@@ -3576,87 +3617,25 @@ def run_red_census(gate_argv, cwd, full_env, fail_fast_ids, *, runner=None, budg
     return merged, status
 
 
-# ── HOW FAR THE GRADED TREE STOOD FROM ORIGIN (2026-09-17) ───────────────────────────────────
-#
-# WHY. `git_hash` says WHICH commit was graded and `census` says by WHOSE gate, and between them
-# `red_at_head_verdict` can place the red against HEAD. Neither says where HEAD itself stood, and
-# on a FORKED tree that is the whole question: measured 2026-09-17 (337afc848), `159a2d4fc`
-# landed on origin/main 59 minutes AFTER the fork opened, the gate graded `882ef8aad`, and the
-# twelve node ids it cited are GREEN at origin/main. Every consumer of that list -- the wedge
-# draw, the alarm, the suspects blame trail -- then sent a reader at innocent tests with no
-# caveat. The state file is already scrupulous about exactly this for `red_at_head` and was
-# silent here.
-#
-# READ AT WRITE TIME, not at alarm time. The fact wanted is where the tree stood WHEN IT WAS
-# GRADED; asking again from the alarm path measures a different moment and would quietly answer
-# a different question. This is the same reason `census` is recorded beside the node ids.
-#
-# BOUNDED, because `fork_state` FETCHES (`origin_reconcile.commits_behind` fetches first, on
-# git's own 300s budget) and this runs on the publish gate's refusal path. `_head_sha_for_
-# attribution` beside it already carries this rule in words: a monitoring step that shells out
-# is a monitoring step that can hang the pipeline it observes, and losing the whole record to
-# save a diagnostic field is the wrong way round. A read that does not come back inside the
-# bound degrades to the unestablished answer, WITH its reason, exactly like every other refusal
-# in this file.
-GATE_FORK_READ_TIMEOUT_SECONDS = 60
-
-
-def _fork_state_for_record():
-    """`(behind, ahead)` of this tree against origin/main, or `(None, None)`. NEVER raises.
-
-    ONE SEAM, and `origin_reconcile.fork_state`'s own docstring is why: it was split into
-    `commits_behind` + `commits_ahead` once and the pin that covered one of them was fail-open on
-    the other, for 28 assertions. Asking the seam means a future world-read added there arrives
-    here for free, and `tests/background/conftest.py`'s pin still steers this.
-
-    `(None, None)` is a DISTINCT answer from `(0, 0)` all the way to the page -- see
-    `red_tree_fork_verdict`, where it is `not_established` and never `level`."""
-    import threading
-
-    box = {}
-
-    def _read():
-        try:
-            from background.origin_reconcile import fork_state
-            box["v"] = fork_state(PROJECT_DIR)
-        except Exception as exc:  # noqa: BLE001 -- a diagnostic may never red the path it observes
-            box["exc"] = exc
-
-    # Daemon, so a hung fetch can never hold this process open at exit. The subprocess behind it
-    # is git's to reap; what matters here is that the gate path is not waiting on it.
-    t = threading.Thread(target=_read, daemon=True, name="gate-fork-state")
-    t.start()
-    t.join(GATE_FORK_READ_TIMEOUT_SECONDS)
-    if "exc" in box:
-        log("Publish gate: could not read how far this tree stands from origin/main ({}: {}) -- "
-            "recording the divergence as unestablished.".format(
-                type(box["exc"]).__name__, box["exc"]))
-        return None, None
-    if "v" not in box:
-        log("Publish gate: reading how far this tree stands from origin/main did not return "
-            "within {}s -- recording the divergence as unestablished.".format(
-                GATE_FORK_READ_TIMEOUT_SECONDS))
-        return None, None
-    behind, ahead = box["v"]
-    return behind, ahead
-
-
 def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY):
     """Publish the red gate's blocking node IDs for the alarm process. Never raises.
 
     `total_red` is the size of the set BEFORE the citation cap, so a reader can tell a cap that
     bound from one that did not -- the cap must never be able to look like the answer.
 
-    `fork` is how far the tree that was graded stood from origin/main at the moment it was
-    graded -- see `_fork_state_for_record` above for the incident, and `red_tree_fork_verdict`
-    for what a reader is allowed to conclude from it."""
-    behind, ahead = _fork_state_for_record()
+    `fork_behind`/`fork_ahead` are read HERE, at the write, and not at the reader (2026-09-17).
+    The fork moves -- that is its entire nature -- so a count taken when the state file is read
+    describes a different tree from the one these node ids were graded on, which is the class of
+    defect `git_hash` and `census` are recorded together to prevent. `None` in either slot means
+    the question was asked and could not be answered; see `fork_state_verdict`, which refuses to
+    read that as zero."""
     try:
+        fork_behind, fork_ahead = _fork_state_for_record()
         GATE_BLOCKING_TESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
         guard_live_ledger_write(GATE_BLOCKING_TESTS_FILE, writer="process_run_complete._write_blocking_tests").write_text(json.dumps(
             {"ts": time.time(), "git_hash": str(git_hash),
              "census": str(census), "total_red": len(node_ids),
-             "fork": {"behind": behind, "ahead": ahead},
+             "fork_behind": fork_behind, "fork_ahead": fork_ahead,
              "node_ids": [str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]]},
             sort_keys=True))
     except OSError as exc:
@@ -3844,18 +3823,17 @@ def last_red_census(now=None, path=None):
 
 
 def last_fork_state(now=None, path=None):
-    """`(behind, ahead)` recorded with the last red, or `(None, None)`.
+    """`(behind, ahead)` as recorded WITH the red `last_blocking_tests` just read.
 
-    A THIRD READER OVER THE SAME RECORD, for the reason `last_red_census` gives about being the
-    second: every caller of `last_blocking_tests` wants the node ids, only the payload builders
-    want this, and a six-tuple would have call sites unpacking fields they ignore. It carries the
-    SAME age bound, so the three can never describe different cycles.
+    A THIRD SEPARATE READER, for the reason `last_red_census` gives about being the second: only
+    the payload builders want this pair, and widening either existing tuple would have every
+    other call site unpacking a field it ignores.
 
-    Every unreadable shape -- absent, stale, malformed, or a record written before this field
-    existed -- answers `(None, None)`. That is a claim of IGNORANCE and `red_tree_fork_verdict`
-    renders it as one; `(0, 0)` would be a claim that the tree was LEVEL, which no such record
-    ever made. A bool is refused explicitly: `isinstance(True, int)` is true and `True` is not a
-    commit count."""
+    EVERY UNREADABLE SHAPE ANSWERS `(None, None)`, including a record written before these
+    fields existed -- which is what it was. `(0, 0)` is an affirmative claim that the citation
+    names the shared branch's red, and a record that cannot substantiate it must not make it.
+    Stale reads as unknown for the same reason it does above: the fork this describes has moved.
+    """
     p = Path(path) if path is not None else GATE_BLOCKING_TESTS_FILE
     now = time.time() if now is None else float(now)
     try:
@@ -3865,15 +3843,11 @@ def last_fork_state(now=None, path=None):
         ts = rec.get("ts")
         if not isinstance(ts, (int, float)) or now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
             return None, None
-        fork = rec.get("fork")
-        if not isinstance(fork, dict):
-            return None, None
-        out = []
-        for key in ("behind", "ahead"):
-            v = fork.get(key)
-            out.append(int(v) if isinstance(v, int) and not isinstance(v, bool) and v >= 0
-                       else None)
-        return out[0], out[1]
+        pair = []
+        for key in ("fork_behind", "fork_ahead"):
+            v = rec.get(key)
+            pair.append(v if isinstance(v, int) and not isinstance(v, bool) and v >= 0 else None)
+        return pair[0], pair[1]
     except (json.JSONDecodeError, OSError, ValueError, TypeError):
         return None, None
 
@@ -3982,59 +3956,92 @@ def red_at_head_verdict(node_ids, blocking_hash, census, head_sha):
             "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
 
 
-# ── AND WHERE DID THAT TREE STAND? (2026-09-17) ──────────────────────────────────────────────
+# ── AND WHICH TREE IS *THAT*? THE RED'S SUBJECT MAY NOT BE ORIGIN'S (2026-09-17) ─────────────
 #
-# `red_at_head_verdict` above places the red against HEAD. This places HEAD itself against
-# origin/main, and the two answer different questions: a red can be squarely AT HEAD -- verdict
-# `yes`, entirely correct -- and still be green at origin/main, because HEAD is 41 commits behind
-# a fix that landed while the gate was running. That is the 2026-09-17 measurement, and `yes`
-# beside it read to every consumer as "repair this test".
+# `red_at_head_verdict` above settles HEAD's red against the commit COMMIT would create. It
+# cannot settle the question one axis over, because every input it has is local: **is HEAD the
+# same tree as `origin/main`?** When it is not, "the red is AT HEAD and repairing it is the
+# unblock" is still true of HEAD and can be false of the branch every reader actually shares.
 #
-# WHAT IT DELIBERATELY DOES NOT CLAIM. `diverged` is NOT "these tests are green at origin/main".
-# Establishing that needs a run on origin/main's tree, which this file will not do from the alarm
-# path (see `red_at_head_verdict` on why nothing here shells out or runs pytest). It says the
-# graded tree was not origin/main's, so the red is UNATTRIBUTED between the two -- and it points
-# the reader at the cheap thing that settles it. The inverse is refused just as hard: `level` is
-# not "the fix is not on origin", it is "nothing origin holds was missing from what was graded".
-RED_TREE_FORK_DIVERGED = "diverged"
-RED_TREE_FORK_LEVEL = "level"
-RED_TREE_FORK_NOT_ESTABLISHED = "not_established"
+# MEASURED 2026-09-17 (337afc848). `159a2d4fc` landed on origin 59 minutes AFTER the fork opened,
+# so the gate graded `882ef8aad` and cited 12 reds that are GREEN at `origin/main`. Every
+# consumer of `blocking_tests` -- the RUNG-1 wedge draw, the alarm, the suspects blame trail --
+# sent its reader at those innocent tests with no caveat. This turn's own drawn item is the cost:
+# written to re-grade a gate, it directed the seat at a ref-lock message already superseded.
+#
+# THE ASYMMETRY IS THE WHOLE POINT, and it is why `red_at_head` could not answer this. The record
+# is scrupulous about the subject COMMIT -- `not_established`, naming both SHAs -- and silent
+# about the subject BRANCH. One field carried the caveat and the other did not, so a reader who
+# had learned to trust the first inherited no warning from the second.
+#
+# BOTH DIRECTIONS DIVERGE, and a reader needs to know which:
+#   * BEHIND -- origin holds commits this tree does not, so a cited red may already be repaired
+#     there. That is the 12-red instance above.
+#   * AHEAD -- this tree holds commits origin does not, so a cited red may be CAUSED by unpushed
+#     local work and not exist on the shared branch at all.
+# Either way the claim "this is the branch's red" is unearned, so both read as DIVERGED and the
+# reason names the two counts rather than a direction word a reader would have to decode.
+#
+# KEYED TO THE PROPERTY -- was the graded tree the shared branch? -- never to today's fork. It
+# says LEVEL the moment the fork closes, and LEVEL is a real answer: it is the state in which the
+# citation may be read at face value, which no previous record ever established either.
+FORK_DIVERGED = "diverged"
+FORK_LEVEL = "level"
+FORK_NOT_ESTABLISHED = "not_established"
 
 
-def red_tree_fork_verdict(node_ids, behind, ahead):
-    """Where did the tree the red was graded on stand against origin/main? Never raises.
+def fork_state_verdict(behind, ahead):
+    """Was the tree this red was graded on level with `origin/main`? Never raises.
 
-    Pure, for the same reason as `red_at_head_verdict`: every input is already in the caller's
-    hand, having been read off the blocking record `_write_blocking_tests` wrote at grading time.
+    `{"verdict": ..., "reason": ...}`, and PURE for the same reason `red_at_head_verdict` is:
+    the caller already holds both numbers, and a monitoring step that shells out is a monitoring
+    step that can hang the pipeline it observes. The fetch happens once, at the write, and what
+    reaches here is the answer it got.
 
-    Every branch names its reason, including each refusal -- the refusals are the ones a reader
-    will want to argue with, and one of them being wrong is how we find out."""
-    ids = [str(n) for n in (node_ids or [])]
-    if not ids:
-        return {"verdict": RED_TREE_FORK_NOT_ESTABLISHED,
-                "reason": "no red is named on this failure, so there is no graded tree to place "
-                          "against origin/main. This is not evidence the tree was level."}
-    ok = [v for v in (behind, ahead)
-          if isinstance(v, int) and not isinstance(v, bool) and v >= 0]
-    if len(ok) != 2:
-        return {"verdict": RED_TREE_FORK_NOT_ESTABLISHED,
-                "reason": "how far the graded tree stood from origin/main was not recorded (the "
-                          "record predates the field, or origin could not be read when the {} "
-                          "red(s) were measured), so whether they are origin/main's reds is "
-                          "unestablished -- not settled either way.".format(len(ids))}
-    if behind or ahead:
-        return {"verdict": RED_TREE_FORK_DIVERGED,
-                "reason": "graded on a FORKED tree -- {} commit(s) behind origin/main and {} "
-                          "ahead -- so these {} red(s) are NOT established as origin/main's. "
-                          "Check one of them at origin/main before repairing it: a fix that "
-                          "landed on origin while the gate ran is green there and red "
-                          "here.".format(behind, ahead, len(ids)),
-                "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
-    return {"verdict": RED_TREE_FORK_LEVEL,
-            "reason": "graded on a tree LEVEL with origin/main (0 behind, 0 ahead), so nothing "
-                      "origin/main holds was missing from what was measured and divergence does "
-                      "not explain these {} red(s).".format(len(ids)),
-            "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
+    `None` IN EITHER SLOT IS NOT ZERO. `origin_reconcile.commits_behind` returns `None` when it
+    cannot reach the remote, and that module's own contract treats it as "do not act" precisely
+    because reading it as `0` publishes LEVEL -- an affirmative claim that the citation is safe
+    to quote -- on the strength of a failed fetch."""
+    if not isinstance(behind, int) or not isinstance(ahead, int) \
+            or isinstance(behind, bool) or isinstance(ahead, bool):
+        return {"verdict": FORK_NOT_ESTABLISHED,
+                "reason": "the fork with origin/main could not be counted when this red was "
+                          "graded, so whether the graded tree is the shared branch is unknown. "
+                          "Confirm with `git rev-list --count HEAD..origin/main` before "
+                          "quoting the citation below."}
+    if behind == 0 and ahead == 0:
+        return {"verdict": FORK_LEVEL,
+                "reason": "the graded tree was LEVEL with origin/main, so the citation names "
+                          "the shared branch's red and may be read at face value."}
+    return {"verdict": FORK_DIVERGED,
+            "reason": "the graded tree was DIVERGED from origin/main -- {} behind, {} ahead -- "
+                      "so the citation is NOT established as the shared branch's red. A cited "
+                      "test may be green at origin/main (repaired in one of the {} commit(s) "
+                      "this tree lacks) or red only because of the {} unpushed commit(s) this "
+                      "tree carries. Re-grade in a clean extract of origin/main before sending "
+                      "anyone at it.".format(behind, ahead, behind, ahead)}
+
+
+def _fork_state_for_record(project=None):
+    """`(behind, ahead)` for the record, or `(None, None)`. NEVER raises and never costs it.
+
+    LAZY IMPORT, like every other reach into `origin_reconcile` from this module (see
+    `_divergence_refusal`): `fork_state` is that module's ONE window onto the world, and
+    `tests/background/conftest.py` pins it there. An import bound at module load would read the
+    real remote from inside every test in this directory; resolved at call time, the pin holds.
+
+    Same contract as `_head_sha_for_attribution` one function up, and for the same reason: this
+    is the ALARM path, so losing the whole failure record to save a diagnostic field is the
+    wrong way round. `(None, None)` degrades to `not_established`, with its reason."""
+    try:
+        from background.origin_reconcile import fork_state
+        behind, ahead = fork_state(project if project is not None else PROJECT_DIR)
+        return (behind if isinstance(behind, int) and not isinstance(behind, bool) else None,
+                ahead if isinstance(ahead, int) and not isinstance(ahead, bool) else None)
+    except Exception as exc:  # noqa: BLE001 -- see the docstring: the record outranks the field
+        log("Publish gate: could not read the fork with origin to attribute the red to a "
+            "branch: {}".format(exc))
+        return (None, None)
 
 
 def _head_sha_for_attribution():
@@ -4814,13 +4821,23 @@ PUSH_DID_NOT_REACH_ORIGIN = "push_did_not_reach_origin"
 PROVENANCE_REFUSED = "provenance_refused"     # fail-closed: we would have published a false stamp
 BEHIND_ORIGIN = "behind_origin"               # origin is ahead: a commit here CANNOT be pushed
 TREE_LOCK_UNAVAILABLE = "tree_lock_unavailable"   # another writer held the tree lock; nothing ran
+#: The commit LANDED and gated; its push lost a race to origin's movement in paths this commit
+#: does not write, and delivery is with `origin_reconcile`. Not a failure and not a success: the
+#: verdict is graded later, from the ref. See EXIT_PUBLISH_DELIVERY_DEFERRED.
+COMMITTED_DELIVERY_DEFERRED = "committed_delivery_deferred"
 #: Outcomes after which re-running this identical cycle would genuinely find nothing to do. Every
 #: other outcome leaves the fingerprint alone so the next cycle really does retry.
+#:
+#: `COMMITTED_DELIVERY_DEFERRED` IS DELIBERATELY NOT IN HERE. The content is committed, so a
+#: re-run finds nothing to commit -- which is exactly the reading that would be wrong. The cycle
+#: is unfinished: something it produced has not been delivered, and a fingerprint would retire
+#: the marker as processed while the verdict on it is still owed.
 RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
 #: Outcomes that report their OWN exit code rather than the generic EXIT_PUBLISH_DID_NOT_LAND,
 #: because the reader is sent somewhere different to look. Kept as a mapping beside the closed
 #: set above so `publish_exit_code` stays the single place both answers are decided.
-NAMED_PUBLISH_EXIT_CODES = {TREE_LOCK_UNAVAILABLE: EXIT_TREE_LOCK_UNAVAILABLE}
+NAMED_PUBLISH_EXIT_CODES = {TREE_LOCK_UNAVAILABLE: EXIT_TREE_LOCK_UNAVAILABLE,
+                            COMMITTED_DELIVERY_DEFERRED: EXIT_PUBLISH_DELIVERY_DEFERRED}
 #: The four outcomes that all report rc=77, mapped onto the causes the LATER process records.
 #: Two vocabularies rather than one because they answer different questions and are read by
 #: different people: an outcome decides what THIS process does next (fingerprint? which exit
@@ -4846,7 +4863,14 @@ NON_TEST_REFUSAL_CAUSE = publish_cause.NON_TEST_GATE_REFUSAL
 #: route can produce is a branch no reader will ever see, and that property is what the control
 #: protects. This set is load-bearing (the refusal branch reads `NON_TEST_REFUSAL_CAUSE` itself),
 #: never a list written beside the code that could drift from it.
-PUBLISH_CAUSE_OVERRIDES = frozenset({NON_TEST_REFUSAL_CAUSE})
+#: The cause the DEFERRAL GRADER records when a held-open delivery expires (2026-09-17). Also an
+#: override rather than a table row, and for the same reason one axis over: the table is keyed by
+#: OUTCOME, and there is no outcome for it -- the cycle that observed the race exited
+#: `COMMITTED_DELIVERY_DEFERRED` and is gone. The grader is a LATER observation of the same
+#: subject, and the observation (the ref, re-read after the cadence had its turn) is what decides
+#: it. See `grade_outstanding_delivery`.
+DEFERRED_DELIVERY_OVERDUE_CAUSE = publish_cause.LOST_PUSH_RACE
+PUBLISH_CAUSE_OVERRIDES = frozenset({NON_TEST_REFUSAL_CAUSE, DEFERRED_DELIVERY_OVERDUE_CAUSE})
 
 
 def publish_exit_code(reason):
@@ -5153,21 +5177,98 @@ def _publish_surface_collisions(publish_paths):
         return None
     if arriving is None:
         return None
+    ours = _our_publish_paths(publish_paths)
+    if ours is None:
+        return None
+    return sorted(set(arriving).intersection(ours))
+
+
+def _our_publish_paths(publish_paths):
+    """This commit's paths, repo-relative, or `None` when they cannot all be expressed that way.
+
+    EXTRACTED RATHER THAN CLONED, because a second caller arrived (the unabsorbed-commit ceiling
+    below) and `git rev-list -- <paths>` needs exactly the same repo-relative set that the
+    disjointness intersection needs. The two must ask about the SAME surface or the ceiling would
+    bound a different population from the one the narrowing admits.
+
+    `None` RATHER THAN A SHORTER LIST, at both exits:
+      * a path outside the repo cannot be compared against a repo-relative set, and an unmatched
+        path is silently absent from an intersection -- which reads as "nothing collides";
+      * an EMPTY set is no basis for a claim about a surface. `_commit_pathspec` never returns
+        empty for a real cycle and its caller refuses when it does, so arriving here means the
+        question was asked about nothing, and `[]` would answer "disjoint" about nothing.
+    """
     ours = set()
     for absolute in publish_paths or ():
         try:
             ours.add(str(Path(absolute).resolve().relative_to(PROJECT_DIR)))
         except ValueError:
-            # A path outside the repo cannot be compared against a repo-relative arriving set.
-            # Refusing to claim disjointness is the only honest answer: an unmatched path is
-            # silently absent from the intersection, which would read as "nothing collides".
             return None
-    if not ours:
-        # No publish paths means no basis for a disjointness claim. `_commit_pathspec` never
-        # returns empty for a real cycle and its caller refuses when it does; arriving here means
-        # the question was asked about nothing, and `[]` would answer "disjoint" about nothing.
+    return sorted(ours) or None
+
+
+def _unabsorbed_publish_commits(publish_paths):
+    """How many commits on the LOCAL side of the fork ALREADY write this publish surface.
+
+    THE CEILING THE NARROWING DELEGATED TO AN ALARM (measured 2026-09-17, 7.0 days into a wedge).
+    `_publish_surface_collisions` admits a disjoint commit on a stated premise -- *"the reconciler
+    would have absorbed it on the next cadence"* -- and its own docstring names the bound it does
+    not impose: *"publishing while behind still widens the fork by one commit per cycle, and if
+    the reconciler stops, that grows without limit ... the deadman's [ORIGIN FORK] page is still
+    the alarm that this has stopped being true."*
+
+    The reconciler HAD stopped, five days before that sentence was written.
+    `origin_reconcile` refuses on merge conflict by design -- *"an automatic reconciler must not
+    pick"* -- and the [ORIGIN FORK] alarm had fired 46 times over 101.9 hours on that refusal
+    before escalating itself into the draw, where it sat. What the shared tree held by then:
+
+        7c28ea31f 02:54  site/data/publish_provenance.json  -- the paused banner
+        882ef8aad 02:56  agent_status.json, tick_heartbeat.json -- the liveness heartbeat
+        8a7be23f0 03:56  the SAME banner, same git=761daca4c
+        1a69fbb23 03:58  the SAME heartbeat
+
+    Four unpushable commits out of nine, two identical pairs an hour apart. **An alarm is not a
+    ceiling.** Path disjointness has no bearing on pushability either -- `git push` needs a
+    fast-forward of origin's ref, so a commit created while origin is ahead cannot be pushed
+    whatever it touches, and `.publish_gate_state.json` recorded `push_never_landed` for
+    `8a7be23f0` to prove it.
+
+    SO THE BOUND IS ONE, AND THE EVIDENCE IS ALREADY IN THE TREE. The first disjoint publish is a
+    bet that the cadence will absorb it; a SECOND is a measurement that the cadence is not
+    running, and `git rev-list origin/main..HEAD -- <our paths>` is where that measurement
+    already lives. Keyed to the property -- *never create a second unpushable copy of the same
+    surface* -- so it goes quiet the moment the fork closes and says nothing about today's fork.
+
+    Returns an int, or `None` when git would not answer; the caller treats `None` as a refusal,
+    because "we could not tell whether a previous copy is stranded" is the state in which
+    creating another one is least defensible.
+    """
+    ours = _our_publish_paths(publish_paths)
+    if ours is None:
         return None
-    return sorted(set(arriving).intersection(ours))
+    try:
+        counted = subprocess.run(
+            # `FETCH_HEAD`, NOT `origin/main`, for the reason the sibling control pinned:
+            # `refs/remotes/origin/main` is only opportunistically updated by `git fetch origin
+            # main`, which is a property of the git version rather than of the refspec asked for.
+            # `_commits_origin_is_ahead_by` has already fetched by the time this is reached -- it
+            # is what decided `ahead > 0` -- so FETCH_HEAD is this cycle's own read of origin, and
+            # a missing one makes rev-list fail and this function refuse, which is the right
+            # direction.
+            ["git", "rev-list", "--count", "FETCH_HEAD..HEAD", "--", *ours],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("Unabsorbed-publish count NOT established ({}: {}).".format(type(exc).__name__, exc))
+        return None
+    if counted.returncode != 0:
+        return None
+    try:
+        return int(counted.stdout.strip())
+    except ValueError:
+        # rc=0 with nothing parseable on stdout is the fail-open shape the R15 catalogue names
+        # first, and this function's whole subject is a count that must not be spelled 0 when it
+        # was not read. See the sibling `_commits_origin_is_ahead_by`, which paid for this.
+        return None
 
 
 def _divergence_refusal(publish_paths=None):
@@ -5203,10 +5304,31 @@ def _divergence_refusal(publish_paths=None):
         # `is not None and not collisions` rather than `not collisions`: `None` is "could not
         # look", and reading it as "nothing collides" is precisely the fail-open this whole
         # function exists to avoid.
-        log("origin/main is {} commit(s) ahead, but NONE of its incoming paths is one this "
-            "publish commit writes -- so this commit cannot conflict with the fork it would "
-            "widen, and `origin_reconcile` absorbs it on the next cadence. Publishing."
-            .format(ahead))
+        #
+        # AND THE CEILING ON THAT ADMISSION (2026-09-17). The line below used to end "and
+        # `origin_reconcile` absorbs it on the next cadence. Publishing." -- an assertion about a
+        # cadence, made without asking it. `_unabsorbed_publish_commits` asks: if the local side
+        # of the fork ALREADY holds a commit writing this surface, the last admission was not
+        # absorbed and this one would be the second identical unpushable copy. That is the
+        # 2026-09-01 incident, and it had recurred four commits deep by the time anyone looked.
+        stranded = _unabsorbed_publish_commits(publish_paths)
+        if stranded is None:
+            return ("origin/main is {} commit(s) AHEAD and whether a previous publish commit is "
+                    "already stranded on this side of the fork could NOT be established, so "
+                    "creating another one is refused rather than guessed. Reconcile first: "
+                    "`python3 -m background.origin_reconcile`".format(ahead))
+        if stranded:
+            return ("origin/main is {} commit(s) AHEAD and {} commit(s) here ALREADY write this "
+                    "publish surface without reaching origin -- the disjoint admission is a bet "
+                    "that the reconciler absorbs one, not a licence to stack them, and a second "
+                    "copy is evidence the cadence is not running. Reconcile first: `python3 -m "
+                    "background.origin_reconcile`; a REFUSED_CONFLICT there is a judgement for "
+                    "the seat and `surgical_land --merge origin/main --resolve` is how it lands"
+                    .format(ahead, stranded))
+        log("origin/main is {} commit(s) ahead, NONE of its incoming paths is one this publish "
+            "commit writes, and no earlier commit of this surface is stranded on our side -- so "
+            "this commit cannot conflict with the fork it would widen, and one unabsorbed copy "
+            "is the most it can cost. Publishing.".format(ahead))
         return None
     # SHORT, AND THE REASON IS ARITHMETIC RATHER THAN TASTE (measured 2026-09-16).
     # `publish_cause.write_cause` keeps `evidence[:600]`, and this refusal was ALREADY 620 at the
@@ -6207,6 +6329,44 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         _record_push_time()
         _record_content_published()
         return _outcome(PUBLISHED, True)
+    # ── THE VERDICT IS NOT THIS CYCLE'S TO TAKE (2026-09-17) ─────────────────────────────────
+    #
+    # `absorbable` is already the narrow, measured condition: git's own words for a lost race
+    # (`_classify_push_failure`) AND a fork touching NONE of this commit's paths. On that exact
+    # condition the delivery belongs to `origin_reconcile`, which has just had ONE 556-second
+    # attempt inside a 900-second allowance and cannot be given another here. So this cycle
+    # records what it OBSERVED and stops; `grade_outstanding_delivery` asks the ref again, later.
+    #
+    # WHAT THIS IS NOT: it is not a success, and nothing on this path stamps one. `_record_push
+    # _time` and `_record_content_published` are NOT called, so the throttle stays untouched and
+    # the next cycle pushes immediately -- the 2026-07-24 anti-phantom rule is unchanged. The
+    # fingerprint is withheld too (COMMITTED_DELIVERY_DEFERRED is not retryable), so the marker
+    # is not retired as processed while a verdict on it is owed.
+    #
+    # AND NO ALARM FIRES HERE, deliberately. A single lost race is the condition the deadman
+    # already measures as an EPISODE and pages on at RACE_PERSISTENCE_SECONDS; paging per cycle
+    # for it is what produced 58 pages describing one repeating race as 58 separate publish
+    # failures. The page that this path owes arrives from `grade_outstanding_delivery` when the
+    # race stops being benign, and it arrives with a cause that was re-measured.
+    if absorbable:
+        _deferral_evidence = (
+            "the commit LANDED locally and gated (HEAD {}), the push WAS issued and git rejected "
+            "it non-fast-forward, the fork with origin (at {}) touches NONE of this commit's "
+            "paths, and `origin_reconcile` was run and had not delivered it when this cycle "
+            "exited".format((local_head or "?")[:9], (remote_head or "unreadable")[:9]))
+        if publish_delivery_deferral.record(PUBLISH_DELIVERY_DEFERRAL_FILE, local_head,
+                                           git_hash, _deferral_evidence):
+            log("Publish delivery DEFERRED: {} -- no verdict is recorded for this cycle; the ref "
+                "is re-read and graded by `grade_outstanding_delivery`, and the failure this "
+                "owes is recorded there if the delivery is still missing past the {:.0f}s this "
+                "machine calls benign.".format(_deferral_evidence, _race_benign_seconds()))
+            return _outcome(COMMITTED_DELIVERY_DEFERRED, True)
+        # THE DEFERRAL IS THE ONLY THING THAT HOLDS THE VERDICT OPEN, so a deferral that could
+        # not be written falls through to the failure below rather than returning a deferred
+        # outcome nothing will ever grade. An unavailable check is a failed check.
+        log("Publish delivery deferral could NOT be recorded -- falling through to the ordinary "
+            "failure verdict, because a held-open verdict nothing can grade is worse than a "
+            "pessimistic one.")
     # SAID ON THE FAILURE, because a reader who is told "did not reach origin" needs to know
     # whether the absorbing cadence was tried and still did not get it there -- that is a
     # different fault from a push nobody retried.
@@ -6351,13 +6511,128 @@ def _reconcile_then_reread_origin() -> str:
     # SO THE ANCESTRY QUESTION CAN BE ASKED AT ALL: `merge-base --is-ancestor` answers only about
     # objects this repository holds, and the merge the reconciler just pushed is not one of them
     # until it is fetched. A failed fetch leaves the verdict failing closed, which is correct.
+    # ONE FETCH FOR BOTH READERS (2026-09-17), for the reason `_origin_main_sha` is one reader of
+    # the ref: `grade_outstanding_delivery` needs the identical step before the identical
+    # question, and a precondition spelled out in two places drifts in one.
+    _fetch_origin_main()
+    return _origin_main_sha(label="Publish push recovery")
+
+
+def _race_benign_seconds() -> float:
+    """How long a lost push race stays benign — BORROWED from the deadman, never minted here.
+
+    `deadmans_switch.RACE_PERSISTENCE_SECONDS` is the quantity this machine ALREADY declares for
+    exactly this question, and its own comment says why a second one must not exist: "what makes
+    [a race] benign is not the race, it is the healing — so the question to ask of it is the one
+    BLOCKED_THRESHOLD_SECONDS already answers, 'how long may work sit undelivered before that is
+    worth a person's attention'. An open fork IS undelivered work; giving it its own number would
+    be one name carrying two values by another route."
+
+    LAZY, like every other reach out of this module into a daemon (see the `origin_reconcile`
+    imports): the deadman pulls in the primary-state scan, and the publish path must not acquire
+    that at import time.
+
+    FAIL-CLOSED IS ZERO, which expires the deferral immediately and records the failure. An
+    unavailable check is a failed check, and the failing direction here is toward the alarm: a
+    window we cannot read must never become an unbounded licence to wait.
+    """
+    try:
+        from background.deadmans_switch import RACE_PERSISTENCE_SECONDS
+        return float(RACE_PERSISTENCE_SECONDS)
+    except Exception as exc:  # noqa: BLE001 -- an unreadable window is not a licence to wait
+        log("Deferred delivery: the benign-race window could not be read ({}: {}) -- grading as "
+            "expired, because a window nobody can read must not hold a verdict open".format(
+                type(exc).__name__, exc))
+        return 0.0
+
+
+def grade_outstanding_delivery(*, now=None, remote_head_fn=None, ancestor_fn=None,
+                               fetch_fn=None, benign_fn=None,
+                               success_fn=None, failure_fn=None):
+    """Take the verdict a `COMMITTED_DELIVERY_DEFERRED` cycle left owed. Returns the status.
+
+    THIS IS THE RE-MEASUREMENT, and it is the whole repair. The publisher's own cycle records what
+    it OBSERVED (a gated commit, a push git rejected non-fast-forward, an absorbing cadence that
+    had not finished) and records NO verdict; this function asks `git ls-remote` again, later, and
+    grades. Before 2026-09-17 the verdict was taken inside the cycle, 556 seconds after the
+    cadence started, and `push_never_landed` was recorded 58 times for commits the cadence
+    delivered minutes after the publisher exited — one of which, `84c8bdee7`, is on origin now.
+
+    THREE OUTCOMES AND EACH IS A VERDICT ON THE REF, not on this function's own steps:
+      * REACHED  -> the publish HAPPENED. The push clock and the content-publish stamp are taken
+                    here, in the one place that has proved origin advanced, and the gate records
+                    its own clean publish — which is what `last_clean_publish` has never held.
+      * OVERDUE  -> a real failure, with `lost_push_race` as its cause and the second read of the
+                    ref as its evidence. Recorded HERE rather than by the cycle, because the
+                    cycle could not know it.
+      * ABSORBING-> nothing is written. Not silence: the caller logs it, and the deadman's own
+                    race episode is measuring the same condition independently.
+
+    Every seam is injectable for the same reason `origin_reconcile.reconcile`'s are: each real
+    step either reads the network or writes the wedge state, and neither belongs in a test.
+    """
+    path = PUBLISH_DELIVERY_DEFERRAL_FILE
+    now = time.time() if now is None else float(now)
+    rec = publish_delivery_deferral.read(path)
+    sha = str((rec or {}).get("sha") or "")
+    reached = None
+    if sha:
+        # THE FETCH IS WHAT MAKES THE ANCESTRY QUESTION ASKABLE AT ALL, for the reason
+        # `_reconcile_then_reread_origin` gives at its own: `merge-base --is-ancestor` answers only
+        # about objects this repository holds, and the merge that carried our commit to origin is
+        # not one of them until it is fetched. A failed fetch leaves `reached` at None, which is
+        # "could not look" and never "not there".
+        (fetch_fn or _fetch_origin_main)()
+        remote = (remote_head_fn or (lambda: _origin_main_sha(label="Deferred delivery")))()
+        if remote:
+            reached = (sha == remote
+                       or (ancestor_fn or _commit_is_ancestor)(sha, remote))
+    status, evidence = publish_delivery_deferral.verdict(
+        path, reached=reached, now=now,
+        benign_seconds=(benign_fn or _race_benign_seconds)())
+    if status == publish_delivery_deferral.NONE:
+        return status
+    log("Deferred delivery ({}): {}".format(status, evidence))
+    if status == publish_delivery_deferral.REACHED:
+        # THE STAMPS MAY NOT DECIDE WHETHER THE PUBLISH IS RECORDED (2026-08-31's lesson, from
+        # `record_publish_gate_success`'s own suspect-list wrapper): a bookkeeping write that
+        # fails must not abandon the function it sits in, or "the push-clock file is unwritable"
+        # becomes "the clean publish is never recorded" with only a swallowed line to say why.
+        try:
+            _record_push_time()
+            _record_content_published()
+        except Exception as exc:  # noqa: BLE001 -- bookkeeping may never gate a recorded publish
+            log("Deferred delivery: push/content stamps skipped ({}: {}) -- the clean publish is "
+                "still recorded, because the REF is the evidence and it has "
+                "answered".format(type(exc).__name__, exc))
+        (success_fn or record_publish_gate_success)()
+        publish_delivery_deferral.clear(path)
+        return status
+    if status == publish_delivery_deferral.OVERDUE:
+        (failure_fn or record_publish_gate_failure)(
+            "the publish commit LANDED and gated here and was never DELIVERED to origin -- the "
+            "publisher's own scoped suite was GREEN and the pre-commit chain passed, so no test "
+            "is implicated. Cause: {} ({})".format(DEFERRED_DELIVERY_OVERDUE_CAUSE, evidence),
+            rc=EXIT_PUBLISH_DELIVERY_DEFERRED,
+            git_hash=str((rec or {}).get("git_hash") or "unknown"),
+            kind=DELIVERY_NOT_REACHED_KIND,
+            cause=DEFERRED_DELIVERY_OVERDUE_CAUSE, cause_evidence=evidence)
+        # CLEARED ON THE VERDICT, not on the delivery. The record's job was to hold a verdict
+        # open; once one is taken, leaving it behind would have the next cycle grade the same
+        # delivery again and record a second failure for one publish -- the carried-forward
+        # record defect, arriving through a field that was added to prevent one.
+        publish_delivery_deferral.clear(path)
+    return status
+
+
+def _fetch_origin_main() -> None:
+    """Fetch `origin/main` so ancestry can be asked. Never raises; failure is not a verdict."""
     try:
         subprocess.run(["git", "fetch", "origin", "main"], cwd=str(PROJECT_DIR),
                        capture_output=True, text=True, timeout=120)
     except Exception as exc:  # noqa: BLE001
-        log("Publish push recovery: fetch failed ({}) -- the ancestry test can only fail "
+        log("Deferred delivery: fetch failed ({}) -- the ancestry test can only fail "
             "closed".format(exc))
-    return _origin_main_sha(label="Publish push recovery")
 
 
 def _record_content_published() -> None:
@@ -7170,6 +7445,16 @@ def _classify_gate_failure(rc):
 #: `tests/background/test_publish_gate_alert.py` holds it to the class.
 UNJUDGED_GATE_KINDS = frozenset({"gate_timeout", "tree_lock_unavailable"})
 
+#: THE KIND FOR A COMMIT THAT LANDED AND WAS NEVER DELIVERED (2026-09-17). Deliberately NOT
+#: `commit_did_not_land`, whose label says in so many words that the commit did not land -- here
+#: it did, gated, and the only thing missing is the ref move. Filing this under that kind is how
+#: 58 consecutive records told every reader to go and read a hook-output tail for a hook chain
+#: that had passed. Deliberately NOT in `UNJUDGED_GATE_KINDS` either: the suite DID return a
+#: verdict and it was green, so the suppression this failure needs is the CAUSE-keyed one
+#: (`publish_cause.NO_TEST_JUDGED_CAUSES`, which `LOST_PUSH_RACE` is in), exactly as
+#: `commit_did_not_land` gets it.
+DELIVERY_NOT_REACHED_KIND = "delivery_did_not_reach_origin"
+
 
 def _gate_failure_label(kind):
     return {
@@ -7192,6 +7477,13 @@ def _gate_failure_label(kind):
                                 "lane's red on the shared tree), outran the hook deadline, or "
                                 "the push never reached origin. Read the 'git/hook output' tail "
                                 "in the log -- it names the refusing gate"),
+        DELIVERY_NOT_REACHED_KIND: (
+            "the publish commit LANDED and gated and was never DELIVERED to origin -- NOT a test "
+            "failure and NOT a hook refusal: the scoped suite was green and the pre-commit chain "
+            "passed. The push WAS issued and git rejected it non-fast-forward, and the absorbing "
+            "cadence (`background/origin_reconcile`) has since had its turn and still not got it "
+            "there. Read `git ls-remote origin refs/heads/main` against HEAD and the reconciler's "
+            "own log -- there is no gate output to read, because no gate refused"),
         "unknown": "unknown cause (return code unavailable)",
     }.get(kind, kind)
 
@@ -7257,14 +7549,13 @@ def _read_publish_gate_state():
         st.setdefault("red_at_head_reason",
                       "this record predates the attribution field, so which tree its red was "
                       "measured on was never written down.")
-        # WHERE THAT TREE STOOD AGAINST ORIGIN/MAIN (2026-09-17). Same discipline, one field
-        # along: an old record never asked, so it gets `not_established` and not `level` --
-        # `level` would tell the reader divergence is ruled out on the strength of a question
-        # nobody put.
-        st.setdefault("red_tree_fork", RED_TREE_FORK_NOT_ESTABLISHED)
-        st.setdefault("red_tree_fork_reason",
-                      "this record predates the divergence field, so how far the tree its red "
-                      "was graded on stood from origin/main was never written down.")
+        # AND WHICH BRANCH (2026-09-17). Same shape, same reasoning one axis over: an old record
+        # never counted the fork, and `level` -- which tells the reader the citation is safe to
+        # quote -- is the one answer it must never inherit by default.
+        st.setdefault("fork_state", FORK_NOT_ESTABLISHED)
+        st.setdefault("fork_state_reason",
+                      "this record predates the fork field, so whether the tree its red was "
+                      "graded on was level with origin/main was never written down.")
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
@@ -7336,13 +7627,13 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
            "red_at_head_reason": state.get(
                "red_at_head_reason",
                "no writer proposed an attribution for this record."),
-           # The divergence of that tree, carried by the same fixed key list and round-tripped by
-           # the same setdefault -- so a liveness heartbeat landing between the red and its reader
-           # cannot drop it, which is the defect both clauses below `last_clean_publish` exist for.
-           "red_tree_fork": state.get("red_tree_fork", RED_TREE_FORK_NOT_ESTABLISHED),
-           "red_tree_fork_reason": state.get(
-               "red_tree_fork_reason",
-               "no writer proposed a divergence for this record."),
+           # WHICH BRANCH THAT TREE WAS. Rides the same fixed key list for the same reason: the
+           # liveness writers hand this a full `_read_publish_gate_state()` dict, so a key absent
+           # from this list is a field a heartbeat lands on and erases.
+           "fork_state": state.get("fork_state", FORK_NOT_ESTABLISHED),
+           "fork_state_reason": state.get(
+               "fork_state_reason",
+               "no writer proposed a fork reading for this record."),
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
            "last_clean_publish": state.get("last_clean_publish"),
            "liveness_surface_refusal": state.get("liveness_surface_refusal"),
@@ -8218,16 +8509,11 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # Read from the SAME record, at the same moment, so the depth claim can never describe a
         # different red than the node ids beside it.
         census, total_red = last_red_census(now=now)
-        # ...and the divergence of the tree those node ids were graded on, off the same record at
-        # the same moment, for the same reason.
-        fork_behind, fork_ahead = last_fork_state(now=now)
         if blocking_hash is None and publish_cause.no_test_was_judged(cause):
             # The census counts the SAME record just suppressed. Leaving `total_red: 3` beside
             # `blocking_tests: []` would be the accusation-with-no-accused shape inverted, and
             # a depth claim about reds that were never this cycle's is still a claim.
             census, total_red = CENSUS_FAIL_FAST_ONLY, 0
-            # A fork claim about a tree that graded a DIFFERENT cycle's red is a claim too.
-            fork_behind, fork_ahead = None, None
         # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
         # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
         # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
@@ -8246,15 +8532,17 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         entry["red_at_head_reason"] = red_at_head["reason"]
         log("Publish gate: the named red is `{}` -- {}".format(
             red_at_head["verdict"], red_at_head["reason"]))
-        # ...AND WHERE THAT TREE STOOD (2026-09-17). A separate field beside it, never folded
-        # into the verdict above: `red_at_head: yes` on a tree 41 commits behind origin is a
-        # CORRECT attribution to a tree whose red is green at origin/main, and collapsing the two
-        # would make one of the two true answers unsayable.
-        red_tree_fork = red_tree_fork_verdict(blocking, fork_behind, fork_ahead)
-        entry["red_tree_fork"] = red_tree_fork["verdict"]
-        entry["red_tree_fork_reason"] = red_tree_fork["reason"]
-        log("Publish gate: the tree it was graded on is `{}` against origin/main -- {}".format(
-            red_tree_fork["verdict"], red_tree_fork["reason"]))
+        # AND WHICH BRANCH WAS THAT TREE (2026-09-17)? Read from the SAME record, at the same
+        # moment, so the fork claim can never describe a different tree from the node ids beside
+        # it -- and suppressed by the SAME condition, because a fork reading attached to a red
+        # this cycle did not name is a caveat about somebody else's citation.
+        fork_behind, fork_ahead = ((None, None) if not blocking
+                                   else last_fork_state(now=now))
+        fork = fork_state_verdict(fork_behind, fork_ahead)
+        entry["fork_state"] = fork["verdict"]
+        entry["fork_state_reason"] = fork["reason"]
+        log("Publish gate: the graded tree is `{}` against origin/main -- {}".format(
+            fork["verdict"], fork["reason"]))
         if threshold_met and armed:
             # ALARM->DIAL: the citation is persisted as well as paged, because the supervisor's
             # RUNG-1 unwedge draw reads the state file, not the NTFY.
@@ -8276,8 +8564,8 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                    "red_census": census, "total_red": total_red,
                                    "red_at_head": red_at_head["verdict"],
                                    "red_at_head_reason": red_at_head["reason"],
-                                   "red_tree_fork": red_tree_fork["verdict"],
-                                   "red_tree_fork_reason": red_tree_fork["reason"],
+                                   "fork_state": fork["verdict"],
+                                   "fork_state_reason": fork["reason"],
                                    "suspects": suspects})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
@@ -8422,10 +8710,14 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
                                    "red_at_head_reason":
                                        "the gate passed, so there is no named red to attribute "
                                        "to a tree.",
-                                   "red_tree_fork": RED_TREE_FORK_NOT_ESTABLISHED,
-                                   "red_tree_fork_reason":
+                                   # Symmetric, and NOT `level`: a green gate says nothing about
+                                   # the fork, and publishing `level` here would be an
+                                   # affirmative claim about origin bought with a passing test
+                                   # run -- a claim over a population it was never measured on.
+                                   "fork_state": FORK_NOT_ESTABLISHED,
+                                   "fork_state_reason":
                                        "the gate passed, so there is no named red whose graded "
-                                       "tree could be placed against origin/main.",
+                                       "tree needs placing against origin/main.",
                                    "episode_clean_publishes": episode_clean,
                                    # THE TIMESTAMP TAKES THE STAMP ON *BOTH* EXITS, AND THE
                                    # COUNTER BESIDE IT STILL RESETS (2026-09-16). This read
@@ -8548,10 +8840,35 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
     try:
         if rc in NO_PUBLISH_EXIT_CODES:
             return "skipped"
-        # Read the hash WHEREVER THE MARKER IS NOW -- a successful publish archives it before
-        # this router ever runs, and reading only the handed path made every green publish
-        # "unproven". See _marker_git_hash.
+        # ── THE OWED VERDICT IS TAKEN FIRST, AND FOR EVERY rc (2026-09-17) ───────────────────
+        #
+        # A previous cycle may have exited EXIT_PUBLISH_DELIVERY_DEFERRED, which records neither
+        # a success nor a failure and leaves one owed. This is the verdict writer, so this is
+        # where the re-read of `git ls-remote` belongs -- before anything is recorded about the
+        # CURRENT cycle, and for every rc this router grades, because a deferral that only graded
+        # on the happy path would be held open by exactly the red cycles that most need it
+        # graded. The two `NO_PUBLISH_EXIT_CODES` above return before this line and that is
+        # correct: on those the publisher never ran, so there is no later observation to offer,
+        # and the deferral keeps waiting for a cycle that actually looked.
+        #
+        # ORDERING IS SAFE IN BOTH DIRECTIONS. A REACHED deferral writes a success and a red
+        # current cycle then writes a failure over it: both are true, both are recorded, and
+        # `PUBLISH_GATE_STREAK_FIELDS` is what stops the failure write forgetting the clean
+        # publish this one just counted.
+        _deferral = grade_outstanding_delivery()
         git_hash = _marker_git_hash(marker)
+        if rc == EXIT_PUBLISH_DELIVERY_DEFERRED:
+            # THE CYCLE THAT JUST DEFERRED. Its own delivery is seconds old, so the grading above
+            # will normally have answered ABSORBING and written nothing -- which is the honest
+            # answer and not a hole: the deferral outlives this process and the NEXT router call
+            # grades it, as does the deadman's independent race episode meanwhile. Neither a
+            # success nor a failure is recorded here, and the streak is left exactly as found --
+            # the same shape as the "unproven" branch below, for the same reason.
+            log("Publish gate: {} deferred its delivery (rc={}) -- the commit landed and gated "
+                "and the absorbing cadence owns the push, so NEITHER a success nor a failure is "
+                "recorded. Outstanding-delivery grading: {}.".format(
+                    Path(marker).name, rc, _deferral))
+            return "deferred"
         if rc == EXIT_PUBLISH_DID_NOT_LAND:
             # NAMED, not left to `_classify_gate_failure`, which would read rc=77 as
             # "test_regression" and send the RUNG-1 draw hunting a red test that is not the
@@ -8602,6 +8919,20 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
                     "-- publishing nothing is not evidence the gate is healthy, so the wedge "
                     "streak is left exactly as it was found.".format(
                         Path(marker).name, git_hash))
+                return "unproven"
+            # AND A GREEN CYCLE MAY NOT CLEAR A WEDGE ITS OWN PREDECESSOR'S CONTENT IS STILL
+            # STUCK IN (2026-09-17). An unfinished delivery leaves the previous cycle's figures
+            # off origin, and the ordinary next cycle then finds NOTHING_TO_COMMIT -- retryable,
+            # rc=0 -- so without this leg the deferral mechanism would BUY a clean-publish stamp
+            # for a publish that never reached the public surface. That is the 2026-08-19
+            # disarm-by-rc-0 defect (see EXIT_PUBLISH_DID_NOT_LAND) one door over, and the door
+            # would have been opened by the repair. `grade_outstanding_delivery` above has
+            # already recorded the success if the ref says the delivery arrived.
+            if _deferral == publish_delivery_deferral.ABSORBING:
+                log("Publish gate: {} exited 0, and a previous cycle's committed content is "
+                    "still NOT on origin -- no clean publish is claimed and the streak is left "
+                    "exactly as it was found. A green gate over undelivered figures is not a "
+                    "publish.".format(Path(marker).name))
                 return "unproven"
             record_publish_gate_success()
             return "success"
