@@ -267,8 +267,54 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: on 2026-09-09 in words -- "the selection leg's own figure renders 2 times in this headline".
 #: Moving it also changes no verdict (its selection leg reads no sign at n=9 and at n=18 alike),
 #: so it buys a wider sample for a block that already refuses, at the price of a door. Held.
+#:
+#: MOVED AGAIN 2026-09-17 TO THE SINGLE-ARM EIGHTEEN, AND THIS MOVE GOES THE OTHER WAY: the page
+#: now STATES a negative selection sign where it refused one. The paragraph above says the honest
+#: direction is the less confident one, and that is still true as a prior -- so the reason has to
+#: carry the weight, not the arithmetic. Measured both ways, one variable:
+#:
+#:   floor                 n    selection mean    sem       sems from 0   bar     verdict
+#:   folded18 (was)        18   -GBP   624.13     347.16    1.80          2.11    NO SIGN, refused
+#:   folded18_single_arm   18   -GBP   959.78     384.62    2.50          2.11    NEGATIVE, stated
+#:
+#: THE NEW FAMILY IS NOT THE TIGHTER ONE and that is the tell that this is not sample-shopping.
+#: Its stdev is WIDER (1631.80 against 1472.89) and its sem is WIDER (384.62 against 347.16). The
+#: sign appears because the MEAN moves, and the fold's own artefact records why: on nine identical
+#: seeds `c066c114` sits GBP671.31 above `9f0ab066`, 20.4 sems from zero.
+#:
+#: SO THE OLD FAMILY WAS NOT A REDRAW-NOISE FAMILY. `folded18` pools `c066c114b` with `9f0ab066f`,
+#: and `git diff` over the value-arm paths returns `value_based_renewal.py` +93 and
+#: `run_value_cycle_ab.py` +1036 -- two pricing instruments. Its spread is redraw dispersion plus a
+#: GBP671 step between them, and that step is what held the leg under the bar. A refusal produced
+#: by pooling two instruments is not a cautious reading of the evidence; it is a wrong reading that
+#: happens to point at caution, and being wrong in the comfortable direction is still being wrong
+#: about what the number counts. `folded18_single_arm` pools `4e7938f673` with `9f0ab066f`, whose
+#: diff over those same paths is EMPTY, and declares `same_value_arm: true, differing_paths: []`.
+#: The old family's `value_arm_pairing` is `null` -- it cannot answer the question at all. Between
+#: a family that answers and one whose field for it is null, publishing the one that answers is the
+#: fail-closed choice even when its answer is the less comfortable one.
+#:
+#: WHAT THE MOVE DOES NOT TOUCH, VERIFIED BY DIFFING THE RENDERED PAGE. `current_world` and
+#: `blind_envelope` are BYTE-IDENTICAL: `CURRENT_WORLD_NOISE_FLOOR_PATH` does not move with this,
+#: for the reason the paragraph above gives -- moving both puts one family's selection mean in two
+#: regions of one headline, which `_the_legs_own_regions` refused in words on 2026-09-09. That door
+#: passes here (166 passed), which is what licensed the move rather than the argument above.
+#: No sentence was edited: `legs_on_one_bar` and `the_verdicts` recompose from the signs.
+#:
+#: WHAT IT IS NOT INNOCENT OF. The fold is still two commits, so `floor_tree_pairing` still reports
+#: a tree difference and should -- see `_floor_value_arm_pairing`, added in this commit because the
+#: page had no way to say that these two trees price ALIKE while the old two did not. A prediction
+#: filed before the render said that block would stop reporting a difference; it was WRONG, and it
+#: was wrong usefully: the block counts COMMITS, and the thing that mattered had no field.
+#:
+#: HOW IT GETS REFUTED. Twelve seeds are in flight at `7da627b90`, which differs from BOTH members
+#: over the value-arm paths (18 files) and is therefore a THIRD instrument that may not be folded
+#: into this family. That run is the independent test of this sign. If its selection mean lands
+#: positive, or its own sign is not negative, this constant is the first thing to re-open. Filed
+#: before those seeds were readable, in `docs/staging/PREREG_THE_PUBLISHED_FLOOR_POOLS_TWO_VALUE`
+#: `_ARMS_AND_THE_SINGLE_ARM_FAMILY_STATES_A_SIGN_2026-09-17.md`.
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
-    "value_cycle_ab_s1_noise_floor_folded18_20260917.json")
+    "value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json")
 #: THE ONLY FAMILY IN THIS REPOSITORY THAT CARRIES THE DISCRIMINATION AUC PER SEED, and it is a
 #: DIFFERENT family from `NOISE_FLOOR_PATH` above. Three seeds, world `39a192ce04c1eda8` -- the
 #: same world the folded 18 ran in -- drawn 2026-09-17 under commit `c9bd2eae7`.
@@ -1236,6 +1282,107 @@ def _floor_admission(floor: dict, three_arm: dict) -> dict:
     }
 
 
+def _floor_value_arm_pairing(floor: dict) -> dict:
+    """WHETHER A FOLD'S SEVERAL TREES ARE SEVERAL PRICING INSTRUMENTS.
+
+    THE DEFECT (2026-09-17). `_floor_tree_pairing` answers "were both sides drawn by one tree" and
+    for a fold the answer is always no -- two members, two commits. That is TRUE and it was the
+    wrong SIZE, because it is the same `False` whether the two trees differ in a docstring or in
+    `value_based_renewal.py`. The page published one sentence for both and a reader could not tell
+    a bound carrying incidental code drift from a bound carrying a step between two instruments.
+
+    IT WAS LOAD-BEARING THE DAY IT WAS FOUND. The published floor folded `c066c114b` with
+    `9f0ab066f`, which differ over the value-arm paths, and on nine identical seeds the first sits
+    GBP671.31 above the second at 20.4 sems from zero. That step was inside a number labelled
+    redraw noise, and it is what held the selection leg at 1.80 sems and no sign. The single-arm
+    fold of the same width states a NEGATIVE. So the difference between these two readings of
+    "2 code trees" is the difference between a published sign and a published refusal, and the
+    page had no field for it.
+
+    THE PRODUCER ALREADY ANSWERED IT AND NOBODY ASKED. `tools/fold_noise_floor_family.py` has
+    computed and tested `value_arm_pairing` since `471dfd417`; this module never read it. A fact
+    established in an artefact and unread by the surface that turns on it is not published.
+
+    FAIL-CLOSED, AND THE UNKNOWN IS NOT THE MILD ONE. `same_value_arm is None` -- an older fold
+    with no such field, a member with no commit, a producer that could not diff -- renders as an
+    unanswered question, never as agreement. Only an explicit True softens the amber, and even
+    then it softens it rather than removing it: the trees still differ and `_floor_tree_pairing`
+    still says so. This refines that sentence; it may not silence it.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S FLOOR. Nothing here names a family, a commit or a path.
+    The day the published floor becomes single-arm this goes quiet on its own, and the day someone
+    points the constant back at a mixed fold it speaks up without a string being edited.
+    """
+    pairing = (floor or {}).get("value_arm_pairing")
+    if not isinstance(pairing, dict):
+        return {
+            "rule": "not_asked",
+            "same_value_arm": None,
+            "differing_paths": None,
+            "why_this_rule": (
+                "WHETHER THOSE TREES ARE THE SAME PRICING CODE IS NOT RECORDED BY THIS FLOOR -- it "
+                "predates the field that answers it -- so the width may pool two instruments and "
+                "this page cannot tell. Read as unanswered, never as agreement."),
+            "caveat": (
+                "AND IT IS NOT KNOWN WHETHER THOSE TREES PRICE ALIKE, so the width may carry a "
+                "step between two instruments on top of the world's dispersion."),
+        }
+
+    same = pairing.get("same_value_arm")
+    differing = [p for p in (pairing.get("differing_paths") or []) if isinstance(p, str)]
+    watched = [p for p in (pairing.get("value_arm_paths") or []) if isinstance(p, str)]
+    watched_text = (", ".join(watched) if watched else "the pricing paths this fold watches")
+
+    if same is True:
+        return {
+            "rule": "same_value_arm",
+            "same_value_arm": True,
+            "differing_paths": [],
+            "value_arm_paths": watched,
+            "why_this_rule": (
+                "THOSE TREES ARE THE SAME PRICING CODE: the fold diffed its members over {paths} "
+                "and found no difference, so the several trees above are several commits and NOT "
+                "several instruments.").format(paths=watched_text),
+            "caveat": (
+                "The trees do differ, but NOT IN THE PRICING CODE ({paths} are identical across "
+                "them), so the width carries incidental drift rather than a step between two "
+                "instruments.").format(paths=watched_text),
+        }
+
+    if same is False:
+        return {
+            "rule": "mixed_value_arms",
+            "same_value_arm": False,
+            "differing_paths": differing,
+            "value_arm_paths": watched,
+            "why_this_rule": (
+                "THOSE TREES ARE NOT THE SAME PRICING CODE -- they differ over {named} -- so this "
+                "width pools TWO INSTRUMENTS and the step between them is inside a number "
+                "presented as redraw noise. A mean over two instruments estimates neither.").format(
+                    named=(", ".join(differing) if differing else watched_text)),
+            "caveat": (
+                "AND THOSE TREES PRICE DIFFERENTLY ({named}), so the width is not redraw "
+                "dispersion at all -- it is redraw dispersion plus an unmeasured step between two "
+                "pricing instruments, and any sign it refuses may be refused by that step.").format(
+                    named=(", ".join(differing) if differing else watched_text)),
+        }
+
+    return {
+        "rule": "undeterminable",
+        "same_value_arm": None,
+        "differing_paths": None,
+        "value_arm_paths": watched,
+        "why_this_rule": (
+            "THE FOLD ASKED WHETHER ITS MEMBERS SHARE A PRICING TREE AND COULD NOT ANSWER: "
+            "\"{why}\" Read as unanswered, never as agreement.").format(
+                why=(pairing.get("unavailable_because")
+                     or "the artefact records no reason").strip()),
+        "caveat": (
+            "AND WHETHER THOSE TREES PRICE ALIKE COULD NOT BE DETERMINED, so the width may carry a "
+            "step between two instruments on top of the world's dispersion."),
+    }
+
+
 def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
     """WHETHER THE SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY THE SAME CODE.
 
@@ -1305,6 +1452,7 @@ def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
                       and isinstance(member.get("producing_commit"), str)
                       and member.get("producing_commit").strip()]
     if not floor_short and isinstance(floor_declared, str) and floor_declared.strip():
+        arm = _floor_value_arm_pairing(floor)
         return {
             # `same_tree` is FALSE and not None. The unstamped branch below cannot say whether one
             # tree drew both sides; here the artefact states that no ONE tree drew even the floor,
@@ -1317,11 +1465,15 @@ def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
             "figure_tree_is_one_of_the_floors": (
                 figure_commit in member_commits if figure_short and member_commits else None),
             "floor_says_why": floor_declared,
+            # WHETHER THOSE SEVERAL TREES ARE SEVERAL INSTRUMENTS. See `_floor_value_arm_pairing`:
+            # `same_tree: False` above is a true statement that was, on its own, the wrong size.
+            "value_arm_pairing": arm,
             "why_this_rule": (
                 "THIS SPREAD WAS NOT DRAWN BY ONE CODE TREE, AND ITS OWN ARTEFACT SAYS SO rather "
                 "than leaving the stamp blank: \"{declared}\" So this is not a bound whose "
                 "provenance was never recorded -- it is a bound whose provenance is several, and "
-                "the figure beside it is one tree's.").format(declared=floor_declared),
+                "the figure beside it is one tree's. {arm}").format(
+                    declared=floor_declared, arm=arm["why_this_rule"]),
             # BOTH SIDES ARE NAMED, which the split branch below has always done and this one
             # owes for the same reason: a reader told the trees differ and shown only one of them
             # cannot check the claim against the repository. Caught by grading the live door leg
@@ -1331,13 +1483,14 @@ def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
                 "THE WIDTH BELOW IS POOLED ACROSS {n} CODE TREES{named} and the figure it bounds "
                 "is a single tree's{figure}. Read it as a bound that carries a tree difference "
                 "inside it, which is wider than the world's own dispersion by an amount this page "
-                "does not size -- not as {n} readings of one tree.").format(
+                "does not size -- not as {n} readings of one tree. {arm}").format(
                     n=len(member_commits) if member_commits else "several",
                     named=(" ({})".format(", ".join(_short(c) for c in member_commits))
                            if member_commits else
                            ", none of which this artefact names"),
                     figure=(", {}".format(figure_short) if figure_short else
-                            ", and that tree is not recorded either")),
+                            ", and that tree is not recorded either"),
+                    arm=arm["caveat"]),
         }
 
     if not floor_short or not figure_short:
