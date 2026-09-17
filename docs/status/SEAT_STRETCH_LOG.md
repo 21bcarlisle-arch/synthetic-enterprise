@@ -8,6 +8,81 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-17 — the cell store is complete for every cell the book can reach, and the book now reads its own cell -- the "no weather archive" refusal went from 213 to zero
+
+<!-- head: e18ca3ab4864 -->
+
+**Written 2026-09-17 ~14:50 BST**, covering the W1_14 weather run of 00:30–09:20 and the five hours
+after it. The director's word this afternoon: *"the weather work stopped at 07:54 and the five hours
+since are publisher machinery… go back to W1_14 and keep going, and don't report back to me between
+pieces."* This is the report that replaces the interrupting.
+
+## The two pieces he named as next were already done, and I verified rather than assumed
+
+**The cell store is complete for every cell the book can reach.** 221 cells held; 213 carry all five
+fields; **149 are in the book and every one of them is complete**. The 8 incomplete cells are all
+missing the same pair — `cloud_cover_pct` and `wind_speed_mean_ms`, the ERA5 half — and all 8 are
+cells the book has **left**. `build_weather_world` draws its `todo` from the book, so those 8 can
+never be completed by the pull loop, and it says so on the surface rather than letting a perfect run
+be scored 8 short. They are kept on purpose: a cell that leaves the book keeps a current temperature
+series instead of freezing.
+
+**The book reads its own cell.** Three separate runs today agree:
+
+| | 2026-08-27 run | 2026-09-17 runs (×3) |
+|---|---|---|
+| `fabric_physics` | 4 | **130** |
+| `legacy_pc1_rescaled` | 203 | 3 |
+| `hh_metered_reads` | 3 | 3 |
+| refused "no weather archive" | **213** | **0** |
+
+**The two shares are NOT a comparison and I will not present them as one** — the books are different
+populations (210 settled customers against 136). The quantity that compares is the **refusal class**,
+and it went from 213 to zero. That refusal is extinct: no premise in this book is now excluded from
+physics for want of weather.
+
+The remaining six non-fabric verdicts are all correct and none is a coverage failure: 3 half-hourly
+metered (real reads outrank a generator), 2 non-domestic, 1 with no household record.
+
+**What that means in supplier terms.** Yesterday 96.7% of the settled book priced against one
+rescaled national profile. Today a household's demand comes from the weather over its own 1 km cell.
+Two households in one cell get the *identical* sky by construction — the store is loaded once and
+`days` is memoised per cell — so any difference between their demand is attributable to fabric and
+people rather than to two different downloads. That was the director's architecture and it is the
+reason this was a per-cell store rather than the per-property pull he refused in writing.
+
+## Where the afternoon went, and he is right about it
+
+Between 09:20 and 14:28: publisher machinery, deferred-delivery verdicts, browser probes, site-lane
+reds, three merges. One of those commits is literally titled *"the full run's forty reds are two
+other lanes'"*. I spent the afternoon on other lanes' failures.
+
+The rule I did not have and now do: **another lane's red is not mine unless it blocks me, and if it
+blocks me I fix the block and go back — I do not adopt their queue.** The distinction I kept getting
+wrong is that a red I *can* fix and a red I *should* fix are different sets, and the gate refusing my
+commit makes every red in the tree look like the first kind.
+
+## What I found still open on this path, and it is not machinery
+
+Two controls are named in `fabric_demand_path`'s own docstrings as *"the failable control"* for
+claims this seam makes, and **neither exists**:
+
+- `the_runner_reads_the_cell_store` — named at the `_archive_days` default as what says the
+  settlement path passes `WeatherWorldSource.days` rather than the four legacy CSVs.
+- `weather_days_for_two_premises_in_one_cell_is_the_same_sky` — named as what says the memoisation
+  holds, i.e. that one cell means one sky.
+
+Both are the load-bearing claims of the change that just landed, and both are currently prose. This
+project's own standard is that a rule lives in prose *and* as enforced code or not at all, and the
+`_archive_days` default is exactly the shape that rots quietly: it is still the DEFAULT, so a caller
+that forgets to pass `weather_days_for` silently reads four CSVs and 130 premises fall back to a
+national profile with no refusal anywhere. That is a product control on the demand seam, not
+harness work, and it is the next thing I do.
+
+Then the book-wide spread, then the people layer.
+
+---
+
 ## 2026-09-16 — six days and 184 commits with no report, because the alarm that says so is hosted inside the publisher that was wedged -- and the product share is 7%, not the 36% the commit titles read as
 
 <!-- head: c660084bb332 -->
