@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T13:33:16.535300+00:00",
+  "generated_at": "2026-09-17T07:52:23.804856+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -23,7 +23,7 @@
   "changes": [
     "reserved queue: 1 added (publish_gate_wedged)",
     "4 daemon(s) went stale: discovery-daemon, dispatcher, epistemic-verifier, ntfy-responder",
-    "total_open_atoms: 55 -> 110"
+    "total_open_atoms: 55 -> 109"
   ],
   "detail": {
     "new_decisions": [],
@@ -45,7 +45,7 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 110
+        "to": 109
       }
     ]
   },
@@ -77,11 +77,11 @@
       "overturned": 0,
       "canon_version": 3
     },
-    "open_atoms": 110
+    "open_atoms": 109
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-09-16T07:25:24.576249+00:00",
-    "health_last_updated": "2026-09-16T13:33:07.366422+00:00",
+    "reserved_generated_at": "2026-09-17T07:11:54.694884+00:00",
+    "health_last_updated": "2026-09-17T07:52:02.808131+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

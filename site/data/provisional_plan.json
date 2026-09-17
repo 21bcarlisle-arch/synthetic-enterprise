@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T13:29:02.264072+00:00",
+  "generated_at": "2026-09-17T07:47:42.829539+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -9,8 +9,8 @@
     "5": "COARSE"
   },
   "empirical_cycle_times": {
-    "transition_count": 331,
-    "median_cycle_days": 0.12,
+    "transition_count": 336,
+    "median_cycle_days": 0.119,
     "min_cycle_days": 0.003,
     "max_cycle_days": 30.091,
     "note": "Sub-1-day median across every observed level transition -- reflects dense agent-turn cadence (many turns/day), NOT literal human-scale build difficulty per level. The slowest transitions (up to ~0.9 days) correspond to atoms needing multiple Expert Hour passes (e.g. W5_1_banking_payment_rails' final L2->L3), which is the real signal in this data -- REVIEW ITERATIONS, not raw elapsed time, drive the slow tail.",
@@ -24,6 +24,16 @@
         "loop_stage_to": "build",
         "date": "2026-09-02T22:08:15+01:00",
         "cycle_days": 30.091
+      },
+      {
+        "atom_id": "SITE4_ia_register_and_nav",
+        "lane": "H_harness",
+        "epoch": 3,
+        "from_level": 0,
+        "to_level": 2,
+        "loop_stage_to": "idle",
+        "date": "2026-09-17T03:56:07+01:00",
+        "cycle_days": 29.807
       },
       {
         "atom_id": "H27_payment_belief_gap",
@@ -54,30 +64,19 @@
         "loop_stage_to": "build",
         "date": "2026-08-25T12:02:34+01:00",
         "cycle_days": 16.496
-      },
-      {
-        "atom_id": "W1_5_premise_demand_shape",
-        "lane": "W1_market_weather",
-        "epoch": 3,
-        "from_level": 3,
-        "to_level": 1,
-        "loop_stage_to": "build",
-        "date": "2026-08-03T09:18:57+01:00",
-        "cycle_days": 12.769
       }
     ]
   },
   "critical_path_by_epoch": {
     "3": {
-      "open_atoms": 70,
+      "open_atoms": 69,
       "critical_chain": [
-        "SITE4_ia_register_and_nav",
         "SITE6_knowledge_in_nav_glossary_dissolved",
         "SITE8_home_reordered_and_link_labels",
         "SITE9_harness_tab_and_director_record",
         "SITE11_proof_dissolved"
       ],
-      "critical_chain_length": 5
+      "critical_chain_length": 4
     },
     "4": {
       "open_atoms": 11,
@@ -118,13 +117,13 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 110,
+    "total_open_atoms": 109,
     "code_free_discover_frame_atoms": 30,
-    "atoms_with_real_file_scope": 80,
+    "atoms_with_real_file_scope": 79,
     "max_concurrent_width_overall": 78,
     "per_epoch": {
       "3": {
-        "open_atoms": 70,
+        "open_atoms": 69,
         "max_concurrent_width": 50
       },
       "4": {
@@ -148,11 +147,11 @@
   },
   "director_hours": {
     "window_days": 3.0,
-    "from_rich_touches": 59,
-    "substantive_staged_doc_touches": 1525,
-    "routine_daemon_markers_excluded": 4164,
+    "from_rich_touches": 69,
+    "substantive_staged_doc_touches": 1541,
+    "routine_daemon_markers_excluded": 4165,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 214.43,
+    "estimated_director_hours_per_day": 217.09,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },
