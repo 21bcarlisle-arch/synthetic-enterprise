@@ -28,9 +28,25 @@ GUARANTEES
 G1  reachability -- every canonical door returns 200 DIRECTLY from the live host.
     A door that only resolves via a redirect is not a canonical door; the sitemap
     would be advertising a URL that is not the real one.
-G2  rendered pixel (R11) -- each door is driven by its LIVE feeds and must render
+G2  live render (R11) -- each door is driven by its LIVE feeds and must produce
     real content. No element the door's own script wrote may contain an error or
     placeholder token.
+
+    READ G2 AS "THE PAGE COMPUTED IT", NOT "A PERSON CAN READ IT". This module's
+    name says pixel and NO PIXEL HAS EVER BEEN RENDERED BY IT: it drives
+    `site/_live_harness.mjs`, which runs the door's script in node's `vm` against a
+    stub `document` that mints an element for any id, parses no CSS, and reads only
+    the FIRST inline `<script>`. On 2026-09-17 three constructed breakages -- a
+    `display:none` rule, a later script clearing the section, and a renamed container
+    -- each left a reader looking at nothing and passed a vm door on all six legs
+    (`docs/design/WHAT_THE_VM_DOORS_GRADE.md`).
+
+    What G2 IS evidence for is not available any other way and is why this module
+    stays: the LIVE deployed host served these bytes, the LIVE feeds were reachable
+    and parsed, and the door's own boot path turned them into content. The
+    reader-side half is `site/test_the_browser_reading.py`, which loads published
+    bytes in chromium; it is not wired to this module's live host yet, and that
+    remains owed.
 G3  feed integrity -- every `../data/*.json` a door fetches must itself be live,
     200, and parse as JSON with a non-empty payload.
 
@@ -310,7 +326,10 @@ def run_harness(html: str, feeds: dict[str, object]) -> dict:
 
 
 def verify_door(door_path: str, fetcher=None) -> DoorResult:
-    """Fetch the LIVE door and its LIVE feeds, render, and judge the rendered pixels."""
+    """Fetch the LIVE door and its LIVE feeds, drive the door's own script, and judge what it wrote.
+
+    "Wrote", not "displayed" -- the render runs in node's `vm`, never a browser. See G2.
+    """
     res = DoorResult(path=door_path)
 
     status, body = _http_get(CANONICAL_HOST + door_path, fetcher)
@@ -440,7 +459,7 @@ def main(argv: list[str] | None = None) -> int:
             for f in r.failures:
                 print(f"         - {f}")
             for k, v in r.sample.items():
-                print(f"         pixel #{k}: {v}")
+                print(f"         wrote #{k}: {v}")
         bad = [r.path for r in results if not r.ok]
         print(f"\n{len(results) - len(bad)}/{len(results)} doors verified on the LIVE surface.")
         if bad:

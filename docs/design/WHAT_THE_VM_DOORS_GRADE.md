@@ -93,15 +93,52 @@ clause). A fourth mutation — renaming `#corrections`, leaving `#deployment` pe
 feed and the wiring better than a browser would; the browser leg grades only what they structurally
 cannot see. This is not a replacement and the vm harnesses are not deprecated.
 
+## The leg existed and did not run — corrected 2026-09-17
+
+The section above was filed the day the browser leg landed. What it did not establish is whether
+that leg *runs* in the environment the work happens in, and it did not:
+
+**In every linked worktree — where every autonomous executor turn and every isolated seat
+invocation runs — 7 of the 8 browser legs skipped, and the reason given was false.** They reported
+*"playwright is not installed"* on a machine that has had playwright and both chromium binaries
+installed since `b55667741`. `node_modules/` is gitignored, so it exists only in the main checkout,
+and node's ESM resolution walks up from the **importing file** — `<worktree>/site/_browser_probe.mjs`
+— which has no `node_modules` above it.
+
+`read_in_browser` named this hazard in its own docstring and stated `cwd=PROJECT` as the
+mitigation. That mitigation could not work and the docstring's own reasoning said why: `cwd` is what
+**CJS** resolves against, ESM is not. Measured both ways from a worktree — `node -e
+"require.resolve('playwright')"` succeeds with `cwd` set to the main checkout, and the ESM `import`
+inside the probe fails identically with or without it. Pre-registered before the run:
+`docs/staging/records/SEAT_PREREGISTRATION_DOES_THE_NEW_BROWSER_LEG_RUN_WHERE_THE_SEAT_ACTUALLY_WORKS_2026-09-17.md`.
+
+**So the gap this page reported closed was still open in practice for one day**, and nothing could
+have noticed: a skip is the same colour as a pass in a run summary, and the remedy the wrong reason
+implied (`npx playwright install`) was not the remedy.
+
+The probe is now handed `POESYS_PLAYWRIGHT_BASE`, derived from `git rev-parse --git-common-dir`
+(whose parent is the main checkout from a worktree *and* from the main checkout itself), and falls
+back to ordinary resolution first so the main checkout needs no environment.
+`test_a_machine_that_has_playwright_is_never_told_it_does_not` is the control, and it is the one leg
+in that file that does **not** guard itself with `browser_available()` — a guard shared by every leg
+is exactly how they all go quiet together. It is keyed to the property, not to today's answer: it
+asserts the *refusal is true*, so it passes honestly on a machine with no browser at all.
+Mutation-proved — reverting the base to the worktree reds it from a worktree and leaves it green in
+the main checkout, which is the asymmetry that let the defect live. **From this worktree, 9 legs now
+pass and none skip.**
+
 ### What is still owed
 
 - **Only one door has a browser leg.** The other ~23 vm-backed suites carry the same gap. This page
   is the statement on the surface that they do; wiring them is not done.
-- **`live_pixel_verify.py`'s G2 wording still says "rendered pixel"** and should be corrected to
-  what it grades, or given a browser leg against the live host.
+- **`live_pixel_verify.py` has been corrected in wording but not in reach.** Its G2 now says "live
+  render", states plainly that no pixel has ever been rendered by it and what it *is* evidence for.
+  A browser leg against the **live host** — the one subject no other control reaches — is still
+  owed, and is the single highest-value next piece here.
 - **The vm door beside the new leg still reads `_HERE / "index.html"`** — the working-tree copy, not
   the published one — so it cannot tell "the reader can see this" from "someone in this tree has
   fixed it and not landed it". That is the defect `site/test_the_published_bytes_reader.py` exists
   for, unfixed in that file.
-- **Playwright absence skips rather than fails**, matching how `node` absence is treated. A skip is
-  a stated hole, not a pass.
+- **Playwright absence still skips rather than fails**, matching how `node` absence is treated. That
+  remains right — but the skip must now name where it looked, and a machine that *has* playwright
+  can no longer be told it does not.

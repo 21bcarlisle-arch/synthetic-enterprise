@@ -14,7 +14,50 @@
 // can see this" from "someone in this tree has fixed it and not landed it".
 //
 // Usage: node _browser_probe.mjs <url> <elementId> [<elementId> ...]   -> JSON on stdout.
-import { chromium } from "playwright";
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
+
+// WHY PLAYWRIGHT IS NOT A PLAIN `import`. `node_modules/` is gitignored, so it exists only in the
+// MAIN checkout -- and node's ESM resolution walks up from THIS FILE, not from `cwd`. In a linked
+// worktree (which is where every autonomous executor turn and every isolated seat invocation
+// runs) nothing above this file has a `node_modules`, so `import ... from "playwright"` threw
+// ERR_MODULE_NOT_FOUND and the whole browser leg skipped -- reporting "playwright is not
+// installed" on a machine that has had it installed throughout. Measured 2026-09-17: 7 of the 8
+// browser legs skipped from a worktree, and setting `cwd` fixes the CJS probe while leaving the
+// ESM import failing exactly as before, because `cwd` is not what ESM resolves against.
+//
+// So the caller passes the directory to resolve against in `POESYS_PLAYWRIGHT_BASE` (see
+// `site/test_the_browser_reading.py`, which derives it from `git rev-parse --git-common-dir`).
+// Plain resolution is tried FIRST so the main checkout needs no environment at all.
+async function loadPlaywright() {
+  const attempts = [];
+  try {
+    const ns = await import("playwright");
+    return ns.chromium ? ns : ns.default;
+  } catch (err) {
+    attempts.push(`resolving from ${import.meta.url}: ${err.message}`);
+  }
+  const base = process.env.POESYS_PLAYWRIGHT_BASE;
+  if (base) {
+    try {
+      // `playwright/index.js` is CJS, so the ESM namespace puts it under `default` -- asking for
+      // `ns.chromium` alone returned undefined and failed one call later with a message naming
+      // neither playwright nor resolution.
+      const resolved = createRequire(base.replace(/\/?$/, "/") + "noop.js").resolve("playwright");
+      const ns = await import(pathToFileURL(resolved).href);
+      return ns.chromium ? ns : ns.default;
+    } catch (err) {
+      attempts.push(`resolving from POESYS_PLAYWRIGHT_BASE=${base}: ${err.message}`);
+    }
+  } else {
+    attempts.push("POESYS_PLAYWRIGHT_BASE is unset, so no second location was tried");
+  }
+  // FAIL CLOSED AND NAME THE REASON. Returning a null browser here would make every leg below
+  // report "the element is not visible", which reads as a broken PAGE rather than a missing tool.
+  throw new Error(`playwright could not be loaded. ${attempts.join(" | ")}`);
+}
+
+const { chromium } = await loadPlaywright();
 
 const url = process.argv[2];
 const ids = process.argv.slice(3);
