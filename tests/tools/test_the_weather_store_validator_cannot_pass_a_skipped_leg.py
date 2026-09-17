@@ -92,6 +92,33 @@ def test_a_leg_that_could_not_run_is_never_counted_as_a_pass(store, monkeypatch)
     assert haduk not in [leg for leg in legs if leg.passed is True]
 
 
+def test_a_leg_NOT_ASKED_FOR_is_never_counted_as_a_pass_either(store):
+    """THE SECOND ROUTE TO A SKIP, and the one the flag actually takes (2026-09-17).
+
+    A skipped leg arrives two ways and only the first was asked about:
+
+      * the HadUK cache is absent, so `check_temperature_reproduces` returns `None` -- above;
+      * `--no-temperature` was passed, so `validate` builds `Leg(..., None, "not asked for")`
+        itself and the checker never runs at all -- HERE.
+
+    The second is not the exotic one. The re-derive opens 360 monthly grids and takes minutes, so
+    `--no-temperature` is the mode a gate or a cron reaches for, and under it the mutation
+    `Leg(..., None, "not asked for")` -> `Leg(..., True, "not asked for")` survived every one of
+    this file's controls: the store reported "5 passed, 0 failed, 0 could not run" with its most
+    expensive leg never executed. The module's whole name is that this cannot happen.
+
+    Asked of the PROPERTY -- a skip is a skip however it arose -- and not of today's exit codes.
+    """
+    legs = vw.validate(temperature=False)
+    haduk = next(leg for leg in legs if "HadUK" in leg.name)
+
+    assert haduk.passed is None, (
+        "a leg that was NOT ASKED FOR must read as a skip, not a pass; counting it green is a "
+        "validator reporting a measurement it declined to make")
+    assert haduk.mark == "COULD NOT RUN"
+    assert haduk not in [leg for leg in legs if leg.passed is True]
+
+
 def test_require_temperature_turns_a_skip_into_a_refusal(store, monkeypatch):
     """A gate wants the skip to be fatal; an exploratory run does not. Both are asserted.
 
@@ -102,6 +129,11 @@ def test_require_temperature_turns_a_skip_into_a_refusal(store, monkeypatch):
     # thing separating these two exit codes is how the skipped leg is treated.
     assert vw.main(["--no-temperature"]) == 0
     assert vw.main(["--require-temperature"]) == 2
+    # ...AND ASKED OF THE OTHER ROUTE. Both flags at once is the contradiction a gate hits when it
+    # wants the cheap run to be authoritative, and the honest answer is a refusal: the leg was
+    # required and it was not run. Without this line the `--no-temperature` skip can be minted as
+    # a pass and both assertions above still hold, because neither of them is reached through it.
+    assert vw.main(["--no-temperature", "--require-temperature"]) == 2
 
 
 def test_the_agreement_leg_refuses_a_store_whose_files_disagree(store):

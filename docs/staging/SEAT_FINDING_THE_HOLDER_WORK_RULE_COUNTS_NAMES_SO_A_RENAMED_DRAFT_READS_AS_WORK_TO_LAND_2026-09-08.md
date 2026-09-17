@@ -1,5 +1,24 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Discharged:** `tests/tools/test_refresh_to_head.py::test_a_copy_whose_every_hunk_deletes_landed_work_is_not_called_holder_work`,
+`tests/tools/test_refresh_to_head.py::test_a_copy_that_appends_without_deleting_is_still_holder_work`,
+`tests/tools/test_refresh_to_head.py::test_the_holder_work_verdict_names_a_hunk_the_landing_tool_agrees_with`,
+`tests/tools/test_refresh_to_head.py::test_every_verdict_in_the_partition_is_reachable` — 2026-09-17,
+the delivery seat; each of the four mutation-proven to fire.
+
+The one-clause discriminator this finding specifies is built as `landable_hunks` in
+`tools/stale_copy_refusal.py` and consumed by `judge_copy` in `tools/refresh_to_head.py`, which now
+returns a third state, REPLACEMENT, for a copy whose every hunk carrying a new name also deletes a
+name the base has — the case where `--keep` has no legal selection and `--content` lands a revert.
+Per HUNK and not per file, as the finding insists, and computed on the isolated OUTPUT's symbol
+set, which is the cheap step the finding's own closing paragraph names.
+
+That suite's `RIVAL_KIND_B` fixture was itself an instance of the defect, for nine days: labelled
+as the case the `--keep` remedy applies to, when it replaces the landed helper in one indivisible
+hunk. It is kept under its own name, now grades REPLACEMENT, and carries the correction beside it.
+All four copies this finding names are at HEAD on the shared tree as of 882ef8aad, so the roster is
+empty and the RULE is what was repaired — an empty instance list never clears a rule-class finding.
+
 # The Kind-A/Kind-B discriminator counts NAMES, so a renamed draft of a control HEAD already carries reads as holder work to land — and three of the five drawn copies are that
 
 **Filed 2026-09-08 by the delivery seat (lane 0), working the drawn item "five rival working copies

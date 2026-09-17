@@ -52,11 +52,9 @@ from simulation.run_phase2b import (
     REPORT_START,
     is_hh_customer,
 )
-from simulation.weather_inputs import _weather_source_customer_id
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "fabric_settlement_gap.json"
-WEATHER_DIR = PROJECT_DIR / "sim" / "weather_data"
 
 
 def _declared_annual_kwh(customer_id: str) -> dict[str, float]:
@@ -100,16 +98,24 @@ def measure(seed: int = fdp.DEFAULT_TRACE_SEED) -> dict:
     # The SAME eligibility pass and the SAME trace generation `run_phase2b` settles
     # on (`fabric_providers_for_book`). Measuring a population the runner does not
     # use would not be a measurement of the switch.
+    #
+    # WHICH IS WHY THE WEATHER SOURCE MOVED HERE TOO, 2026-09-17, in the commit that moved the
+    # runner. This tool resolved a premise to one of four `sim/weather_data/*.csv` files while
+    # the runner read the per-cell store; the two would have agreed about eligibility for four
+    # premises and disagreed about every other one, and this tool's whole claim is that its
+    # population IS the settling one.
+    weather = fdp.WeatherWorldSource.load()
     series_by_customer, verdicts = fdp.fabric_providers_for_book(
         customers=ELEC_CUSTOMERS,
         household_at_date=register.household_at_date,
         is_half_hourly_metered=is_hh_customer,
-        weather_site_for=_weather_source_customer_id,
-        weather_available=lambda site: (WEATHER_DIR / f"{site}.csv").exists(),
+        weather_site_for=weather.site_for,
+        weather_available=weather.available,
         latitude_for=lambda c: c.get("location", {}).get("lat") or 53.0,
         start=start,
         end=end,
         seed=seed,
+        weather_days_for=weather.days,
     )
     rows = []
     excluded = [

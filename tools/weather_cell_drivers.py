@@ -95,6 +95,7 @@ def drivers() -> dict:
         xs = ds.coords["projection_x_coordinate"].values
         ys = ds.coords["projection_y_coordinate"].values
         lat = ds.coords["latitude"].values
+        lon = ds.coords["longitude"].values
     yy, xx = np.meshgrid(ys, xs, indexing="ij")
 
     return {
@@ -125,6 +126,10 @@ def drivers() -> dict:
         # winter deficit and understate the swing. Monthly totals in hours, like `annual_sun`.
         "monthly_sun": sun[:, mask],
         "latitude": lat[mask],
+        # LONGITUDE, for the same reason latitude is here and it was the one missing piece: a cell
+        # store keyed on this grid has to be able to snap a (lat, lon) to a cell CENTRE, and half a
+        # coordinate cannot. `east`/`north` are OSGB and the book's locations are WGS84.
+        "longitude": lon[mask],
         "land_cells": n,
     }
 

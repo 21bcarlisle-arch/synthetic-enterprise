@@ -6,7 +6,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sim.weather_ingestor import WeatherArchiveRefusal, get_daily_weather, write_weather_csv
+from sim.weather_ingestor import (
+    WeatherArchiveRefusal,
+    WeatherQuotaExhausted,
+    get_daily_weather,
+    write_weather_csv,
+)
 
 
 def _records(n: int) -> list[dict]:
@@ -68,6 +73,50 @@ def test_rate_limit_refusal_carries_open_meteos_own_reason():
             get_daily_weather("BIRMINGHAM", 52.4862, -1.8904, "2016-01-01", "2025-06-07")
     assert "Daily API request limit exceeded" in str(excinfo.value)
     assert "BIRMINGHAM" in str(excinfo.value)
+
+
+def test_the_two_429s_are_told_apart_by_reason_and_not_by_status():
+    """DEFECT (measured 2026-09-17): both of Open-Meteo's limits arrive as 429, and every caller
+    told them apart by the STATUS, which cannot.
+
+    `tools/build_weather_world._fetch_with_backoff` asked `"429" not in str(exc)` and so gave the
+    daily quota the same four-attempt, six-minute backoff it gave a burst limit -- against a limit
+    that resets tomorrow. A 23-cell resume spent ~2h15m asleep and wrote nothing.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, both legs in one test on purpose. A version that
+    classified EVERY 429 as the daily quota would pass the first leg alone, and a version that
+    classified NONE of them would pass the second alone; only the pair can fail both ways.
+    """
+    quota = {"error": True,
+             "reason": "Daily API request limit exceeded. Please try again tomorrow."}
+    with patch("requests.get", return_value=_mock_response(quota, status=429)):
+        with pytest.raises(WeatherQuotaExhausted) as excinfo:
+            get_daily_weather("BIRMINGHAM", 52.4862, -1.8904, "2016-01-01", "2025-12-31")
+    assert "try again tomorrow" in str(excinfo.value).lower()
+
+    # The OTHER 429. Same status, different reason, and it must NOT be the quota type -- this is
+    # the leg that stops the fix turning every transient rate limit into a run-ending stop.
+    burst = {"error": True, "reason": "Minutely API request limit exceeded."}
+    with patch("requests.get", return_value=_mock_response(burst, status=429)):
+        with pytest.raises(WeatherArchiveRefusal) as excinfo:
+            get_daily_weather("BIRMINGHAM", 52.4862, -1.8904, "2016-01-01", "2025-12-31")
+    assert not isinstance(excinfo.value, WeatherQuotaExhausted), (
+        "a burst 429 must stay retryable: it is cleared by the pause that "
+        "build_weather_world.PAUSE_SECONDS was measured against")
+
+
+def test_the_quota_type_is_still_caught_by_every_existing_handler():
+    """The subclassing is load-bearing, not tidiness.
+
+    Four `except WeatherArchiveRefusal` sites predate the split. If the new type were a sibling
+    rather than a subclass, a daily quota would escape all of them as an uncaught exception --
+    which is the fail-open version of this fix and is invisible to the test above.
+    """
+    assert issubclass(WeatherQuotaExhausted, WeatherArchiveRefusal)
+    body = {"error": True, "reason": "Daily API request limit exceeded."}
+    with patch("requests.get", return_value=_mock_response(body, status=429)):
+        with pytest.raises(WeatherArchiveRefusal):
+            get_daily_weather("LON", 51.5, -0.1, "2016-01-01", "2016-01-02")
 
 
 def test_empty_records_never_reach_disk(tmp_path):

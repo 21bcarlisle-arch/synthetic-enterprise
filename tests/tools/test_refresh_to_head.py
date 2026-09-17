@@ -36,16 +36,88 @@ RIVAL_KIND_A = (
     "    return 1\n"
 )
 
-#: KIND B -- carries a name of its own. The drawn remedy applies to this one and this tool must not.
+#: KIND B AS THIS FILE FIRST WROTE IT, and it was MIS-SPECIFIED -- kept under its own name because
+#: the correction is the finding. It was labelled "carries a name of its own, the drawn remedy
+#: applies to this one", and the drawn remedy (`isolate_hunks --keep N`, then `--content`) has NO
+#: legal application to it: it REPLACES `freshly_landed_helper` in a single indivisible hunk, so
+#: every selection that takes `my_own_unlanded_function` also deletes landed work. That is
+#: `SEAT_FINDING_THE_HOLDER_WORK_RULE_COUNTS_NAMES_SO_A_RENAMED_DRAFT_READS_AS_WORK_TO_LAND`'s
+#: whole point, standing in this suite's own fixture for nine days: at the level of a symbol SET a
+#: replacement and an addition are identical, so the fixture that was supposed to prove the Kind-B
+#: branch was an instance of the defect instead.
 RIVAL_KIND_B = (
     "def alpha():\n    return 1\n\n\n"
     "def my_own_unlanded_function():\n"
     "    return 'work that only exists in this lane and nowhere else'\n"
 )
 
+#: GENUINE HOLDER WORK, which is what `RIVAL_KIND_B` was believed to be: it ADDS and deletes
+#: nothing, so `--keep` has a selection and the land-it door is the right one to be sent to.
+HOLDER_APPENDS = LANDED + (
+    "\n\ndef my_own_unlanded_function():\n"
+    "    return 'work that only exists in this lane and nowhere else'\n"
+)
+
 #: An ORDINARY EDIT on top of the landing: it has the distinctive line, and its symbol set is
 #: HEAD's exactly. Nothing is stale about it.
 ORDINARY_EDIT = LANDED.replace("return argument * 41 + 7", "return argument * 41 + 8")
+
+
+# ------------------------------------------------- the API that MOVED, which is the r1 instance
+#
+# `SEAT_FINDING_THE_R1_COPYS_MISSING_PARTNER_IS_IN_A_SALVAGE_COMMIT_AND_HEAD_SUPERSEDED_IT_UNDER_
+# NEW_NAMES_2026-09-08`, reduced to two modules and two commits. A lane drafted controls against
+# `honest_point_estimate`; the landing that followed replaced that estimator with a different one
+# under a different name, and renamed the controls to match. The lane's working copy survives,
+# supplies names HEAD lacks, and is worth nothing: run it and every one of those names raises
+# `AttributeError`. The old name still EXISTS in the first commit, which is the correction the
+# finding itself is -- three documents read "absent from HEAD" as "exists nowhere" because they
+# asked branches rather than `git log --all -S`.
+
+DEP_BEFORE = (
+    "def honest_point_estimate(book):\n"
+    '    """the estimator the first design shipped"""\n'
+    "    return sum(book) / len(book)\n"
+)
+DEP_AFTER = (
+    "def three_way_estimate(book):\n"
+    '    """the estimator that replaced it -- a different design, not a rename"""\n'
+    "    return sorted(book)[len(book) // 2]\n"
+)
+
+#: The shared ancestor both sides keep. It matters that this EXISTS and that the landing MODIFIED
+#: `d.py` rather than creating it: `distinctive_lines` is "what this commit ADDED", so on a file a
+#: commit creates, the draft's own import line is evidence of the landing and rule 2 never fires.
+#: A control file a landing creates outright is not the population either finding is about.
+D_BASELINE = (
+    "import dep\n\n\n"
+    "def test_the_module_is_importable():\n"
+    "    assert dep is not None\n"
+)
+#: The lane's stale working copy of the control file: written against the dead API.
+DEAD_DRAFT = D_BASELINE + (
+    "\n\ndef test_the_reported_maximum_is_biased_up_on_an_empty_book():\n"
+    "    assert dep.honest_point_estimate([1, 2, 3]) == 2\n"
+)
+#: What HEAD carries for the same property, under the new name.
+D_LANDED = D_BASELINE + (
+    "\n\ndef test_the_three_way_estimate_recovers_a_target_that_is_really_there():\n"
+    "    assert dep.three_way_estimate([1, 2, 3]) == 2\n"
+)
+#: The dangerous neighbour: a dead draft with ONE genuinely live name beside it. Overwriting this
+#: destroys unlanded work, so the dead names must never license a write for the whole file.
+DEAD_DRAFT_PLUS_LIVE = DEAD_DRAFT + (
+    "\n\ndef test_a_control_that_runs_perfectly_well_today():\n"
+    "    assert dep.three_way_estimate([1, 2, 3]) == 2\n"
+)
+#: THE FALSE POSITIVE DEADNESS CANNOT RULE OUT, appended to what HEAD landed: a lane writing the
+#: control BEFORE the module it will grade. Every static and every dynamic reading of this is the
+#: same as the dead draft's -- an attribute that is not there. What separates them is that the base
+#: has no complaint about this copy, which is rule 2 and is why rule 2 survives the flag.
+TEST_FIRST_APPEND = (
+    "\n\ndef test_the_estimator_i_am_about_to_write():\n"
+    "    assert dep.not_written_yet([1, 2, 3]) == 2\n"
+)
 
 
 @pytest.fixture
@@ -59,11 +131,21 @@ def repo(tmp_path: Path) -> Path:
     _run(root, "config", "user.name", "t")
     (root / "m.py").write_text("def alpha():\n    return 1\n")
     (root / "notes.md").write_text("# notes\n\nprose\n")
-    _run(root, "add", "m.py", "notes.md")
+    (root / "dep.py").write_text(DEP_BEFORE)
+    (root / "d.py").write_text(D_BASELINE)
+    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py")
     _run(root, "commit", "-qm", "base")
     (root / "m.py").write_text(LANDED)
-    _run(root, "add", "m.py")
-    _run(root, "commit", "-qm", "lane B lands a helper")
+    (root / "dep.py").write_text(DEP_AFTER)
+    # THE DRAFT'S NAMES ARE COMMITTED BY NOBODY, and that is the whole difference between this
+    # class and the one `cut_of` already closed. `d.py` gains the three-way control here and never
+    # held the `honest_point_estimate` one, so `git log -S` finds no deletion to attribute and the
+    # lane's copy reads as holder work. Committing the draft first would make its names CUTS --
+    # which the 2026-09-16 door already admits -- and the fixture would grade green with the
+    # defect still in.
+    (root / "d.py").write_text(D_LANDED)
+    _run(root, "add", "m.py", "dep.py", "d.py")
+    _run(root, "commit", "-qm", "lane B lands a helper, and dep's API moves under it")
     return root
 
 
@@ -111,11 +193,11 @@ def test_a_copy_supplying_a_name_head_lacks_is_refused_and_not_touched(repo: Pat
     """THE REFUSAL THAT STOPS THIS BEING `git checkout`. A Kind-B copy is holder work; writing
     HEAD over it destroys a lane's unlanded function, which is the exact harm the prohibition on
     `git checkout <path>` exists to prevent."""
-    (repo / "m.py").write_text(RIVAL_KIND_B)
+    (repo / "m.py").write_text(HOLDER_APPENDS)
     rc, text = rth.refresh(repo, ["m.py"], "kind-b", write=True)
     assert rc == 1 and rth.SUPPLIES_NEW in text
     assert "my_own_unlanded_function" in text, "the refusal did not name what it was protecting"
-    assert (repo / "m.py").read_text() == RIVAL_KIND_B, "a refused path was written anyway"
+    assert (repo / "m.py").read_text() == HOLDER_APPENDS, "a refused path was written anyway"
     assert "isolate_hunks" in text, "a refusal with no next move is where a bypass comes from"
 
 
@@ -262,7 +344,8 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
     (repo / "notes.md").write_text("# notes\n\nrewritten prose\n")
     (repo / "brand_new.py").write_text("def novel():\n    return 1\n")
     states = set()
-    for content, state in ((RIVAL_KIND_A, rth.REFRESHABLE), (RIVAL_KIND_B, rth.SUPPLIES_NEW),
+    for content, state in ((RIVAL_KIND_A, rth.REFRESHABLE), (HOLDER_APPENDS, rth.SUPPLIES_NEW),
+                           (RIVAL_KIND_B, rth.REPLACEMENT),
                            (ORDINARY_EDIT, rth.NOT_SUPERSEDED), (LANDED, rth.AT_HEAD)):
         (repo / "m.py").write_text(content)
         got = rth.judge_copy(repo, "m.py").state
@@ -270,8 +353,10 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
         states.add(got)
     states.add(rth.judge_copy(repo, "notes.md").state)
     states.add(rth.judge_copy(repo, "brand_new.py").state)
-    assert states == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.NOT_SUPERSEDED, rth.AT_HEAD,
-                      rth.NO_READER, rth.NO_BASE}
+    (repo / "d.py").write_text(DEAD_DRAFT)
+    states.add(rth.judge_copy(repo, "d.py").state)
+    assert states == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.REPLACEMENT, rth.SUPERSEDED_DEAD,
+                      rth.NOT_SUPERSEDED, rth.AT_HEAD, rth.NO_READER, rth.NO_BASE}
 
 
 # --------------------------------------- rule 1 asks NEVER BOUND, not merely ABSENT (2026-09-16)
@@ -321,7 +406,154 @@ def test_a_copy_carrying_a_cut_AND_an_unlanded_name_is_still_refused(repo: Path)
     _head_deletes_the_helper(repo)
     (repo / "m.py").write_text(CUT_BY_HEAD + "\n\ndef my_own_unlanded_function():\n    return 2\n")
     verdict = rth.judge_copy(repo, "m.py")
-    assert verdict.state == rth.SUPPLIES_NEW, (
+    # KEYED TO THE PROPERTY, NOT TO THE STATE STRING. This used to assert `SUPPLIES_NEW`, and the
+    # copy it builds REPLACES `freshly_landed_helper`, so it is a REPLACEMENT on the 2026-09-17
+    # split -- a strictly narrower refusal. Pinning the leg to the old string would have made it go
+    # red for the code becoming more honest, which is backwards. What this leg is FOR is that the
+    # unlanded name is never overwritten and is named on the way out; both states satisfy that and
+    # `REFRESHABLE` is the one that must never appear.
+    assert verdict.refused, (
         "a copy holding unlanded work was cleared for overwriting because a CUT sat beside it")
     assert verdict.gains == ("my_own_unlanded_function",), (
         "the refusal must name the unlanded work and not the cut: {}".format(verdict.gains))
+
+
+# ------------------------------------------- the third and fourth states (2026-09-17)
+#
+# THE DEFECT, and it is one defect that two 2026-09-08 findings each saw half of. Rule 1 asked
+# "does this copy supply a name the base lacks", and answered YES for three different copies that
+# need three different answers: genuine unlanded work, a REPLACEMENT whose every hunk deletes
+# landed work, and a DRAFT AGAINST A DEAD API that cannot run at all. Both doors were keyed to that
+# one count, so they failed in the same direction on the same input -- `isolate_hunks` offered to
+# land dead-API tests and `refresh_to_head` refused to discard them. The two findings BLOCKED lane
+# `H_harness` for nine days, which is how `SITE4_ia_register_and_nav` and `H47_the_orientation_
+# header_states_a_figure_it_computes` sat at level 0 with every control they name passing.
+#
+# Every test below names the way its own branch could be useless, because the permissive one of the
+# four OVERWRITES A LANE'S BYTES and the restrictive ones are what stop it.
+
+
+def test_a_draft_against_a_dead_api_is_refused_until_the_flag_is_typed(repo: Path) -> None:
+    """THE DEFAULT MUST STAY SHUT. A lane writing the control BEFORE the module it grades produces
+    a byte-identical file to this one -- the difference is intent and intent is not on disk. So
+    deadness may inform a person and must never, by itself, license the write."""
+    (repo / "d.py").write_text(DEAD_DRAFT)
+    verdict = rth.judge_copy(repo, "d.py")
+    assert verdict.state == rth.SUPERSEDED_DEAD, (
+        "a draft against an API no committed tree defines was graded [{}]".format(verdict.state))
+    rc, text = rth.refresh(repo, ["d.py"], "dead", write=True)
+    assert rc == 1 and (repo / "d.py").read_text() == DEAD_DRAFT, (
+        "the copy was overwritten without anyone typing --superseded")
+    assert "--superseded" in text, "a refusal with no next move is where a bypass comes from"
+
+
+def test_the_flag_actually_opens_the_door_and_heads_bytes_land_on_disk(repo: Path) -> None:
+    """REACHABILITY. Every other leg here asserts a refusal, and a door that refuses even when the
+    flag is typed passes all of them while repairing none of the copies it was built for -- which
+    is exactly the state the r1 copy sat in: no `--content` route and no `refresh` route either."""
+    (repo / "d.py").write_text(DEAD_DRAFT)
+    rc, text = rth.refresh(repo, ["d.py"], "dead", write=True, superseded=True)
+    assert rc == 0, text
+    assert (repo / "d.py").read_text() == D_LANDED, (
+        "the flag was typed and the copy was still not replaced by HEAD's bytes")
+    found = _run(repo, "log", "--all", "--format=%H", "-S", "honest_point_estimate", "--",
+                 "d.py").split()
+    assert any(_run(repo, "show", "{}:d.py".format(sha)) == DEAD_DRAFT for sha in found), (
+        "the discarded draft is not reachable by the recovery route this tool advertises")
+
+
+def test_one_live_name_beside_the_dead_ones_shuts_the_door_even_with_the_flag(repo: Path) -> None:
+    """THE DIRECTION THAT DESTROYS WORK. `--superseded` admits a copy whose names are ALL dead; a
+    single name that runs is unlanded work, and a flag that waved the file through because most of
+    it was dead would make the repair for losing a lane's work the way it is lost."""
+    (repo / "d.py").write_text(DEAD_DRAFT_PLUS_LIVE)
+    verdict = rth.judge_copy(repo, "d.py", superseded=True)
+    assert verdict.state != rth.REFRESHABLE, (
+        "a copy carrying a LIVE unlanded control was cleared for overwriting because dead drafts "
+        "sat beside it: [{}]".format(verdict.state))
+    assert "test_a_control_that_runs_perfectly_well_today" in verdict.gains, (
+        "the refusal must name the live work it is protecting, not the dead drafts: {}".format(
+            verdict.gains))
+
+
+def test_the_flag_does_not_relax_the_base_must_supersede_it_rule(repo: Path) -> None:
+    """RULES 2 AND 3 ARE UNTOUCHED, and without this leg `--superseded` is `git checkout` with a
+    longer name. A draft against a dead API that the base has NO complaint about is an ordinary
+    edit someone is mid-way through, and reverting it is the wall."""
+    (repo / "d.py").write_text(D_LANDED + TEST_FIRST_APPEND)
+    verdict = rth.judge_copy(repo, "d.py", superseded=True)
+    assert verdict.state == rth.NOT_SUPERSEDED, (
+        "the flag reverted a copy the stale-copy control has no complaint about, which is "
+        "`git checkout <path>` wearing this tool's name: [{}]".format(verdict.state))
+
+
+def test_the_missing_attribute_and_the_commit_that_did_bind_it_reach_the_reader(
+        repo: Path) -> None:
+    """THE SURFACE IS THE LICENCE, and the second half is the finding's own correction. Three
+    documents called the r1 copy's missing partner non-existent because they asked branches; it was
+    in a salvage commit all along and `git log --all -S` found it in one command. A reader deciding
+    whether the module is worth reviving needs that commit named, and an exemption nobody can see
+    is a hole."""
+    (repo / "d.py").write_text(DEAD_DRAFT)
+    verdict = rth.judge_copy(repo, "d.py")
+    assert [(d.module, d.attr) for d in verdict.dead] == [("dep.py", "honest_point_estimate")], (
+        "the verdict does not say WHICH attribute is missing from WHICH module: {}".format(
+            verdict.dead))
+    assert verdict.dead[0].elsewhere, (
+        "the commit that DID bind the attribute was not looked up, so the reader is told the name "
+        "is missing and not that it is recoverable -- which is the error the finding corrects")
+    rendered = verdict.render()
+    assert "honest_point_estimate" in rendered and "dep" in rendered, (
+        "the dead names are not printed, so the one fact licensing the write is invisible")
+
+
+def test_a_copy_whose_every_hunk_deletes_landed_work_is_not_called_holder_work(
+        repo: Path) -> None:
+    """THE VERDICT THAT COST MOST: it said LAND THIS, of a copy whose landing is a revert. The
+    remedy it printed -- `isolate_hunks --keep N` -- has no legal selection here, because the
+    addition and the deletion are ONE hunk. Naming the state is the repair; picking a side is a
+    judgement neither door may make."""
+    (repo / "m.py").write_text(RIVAL_KIND_B)
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state == rth.REPLACEMENT, (
+        "a copy with no landable hunk was graded [{}] and sent to a door that lands a "
+        "revert".format(verdict.state))
+    assert "freshly_landed_helper" in verdict.drops, (
+        "the refusal must name the LANDED work the copy would delete: {}".format(verdict.drops))
+    assert "isolate_hunks" not in verdict.reason, (
+        "the replacement verdict still prints the `--keep` remedy, and there is no `--keep` "
+        "selection here -- a remedy that cannot be performed is the pressure toward bypass")
+
+
+def test_a_copy_that_appends_without_deleting_is_still_holder_work(repo: Path) -> None:
+    """THE OTHER SIDE OF THE SPLIT, and the reason the clause is per HUNK and not per FILE. A
+    file-level 'does it drop any landed name' test would swallow this one too and strand a lane's
+    real work behind a refusal with no door -- refusing everything is not the safe direction when
+    the alternative move is `git checkout`."""
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state == rth.SUPPLIES_NEW, (
+        "genuine holder work was graded [{}], so the lane has no door at all".format(
+            verdict.state))
+    assert "isolate_hunks" in verdict.reason, "holder work must be sent to the land-it door"
+
+
+def test_the_holder_work_verdict_names_a_hunk_the_landing_tool_agrees_with(repo: Path) -> None:
+    """A CITED INDEX THAT THE TOOL DOES NOT AGREE WITH IS WORSE THAN NO INDEX. The verdict now
+    prints which hunks `--keep` should take, and it earns that only by numbering them the way
+    `isolate_hunks --survey` does -- so this asserts the selection it names actually reconstructs
+    HEAD plus the unlanded work and nothing else."""
+    from tools.isolate_hunks import group_opcodes, reconstruct
+    from tools.stale_copy_refusal import landable_hunks
+
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    landable = landable_hunks(LANDED, HOLDER_APPENDS, "m.py")
+    assert landable, "no hunk was called landable, so the cited remedy names nothing"
+    assert all(str(gid) in rth.judge_copy(repo, "m.py").reason for gid in landable), (
+        "the verdict cites a hunk selection the reader cannot find in `--survey`")
+    base, work = LANDED.splitlines(keepends=True), HOLDER_APPENDS.splitlines(keepends=True)
+    ops, groups = group_opcodes(base, work)
+    built = "".join(reconstruct(base, work, ops, groups, set(landable)))
+    assert "freshly_landed_helper" in built and "my_own_unlanded_function" in built, (
+        "the selection this verdict names does not build HEAD-plus-the-holder's-work, so the "
+        "remedy sends a lane to a landing that loses something")

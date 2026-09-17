@@ -931,3 +931,289 @@ def test_the_inert_switch_control_is_NOT_AN_ORPHAN():
     assert run_phase2b.the_switch_moves_the_settled_volume is (
         fdp.the_switch_moves_the_settled_volume
     ), "run_phase2b imported a different symbol than the one tested here"
+
+
+# ---------------------------------------------------------------------------
+# The weather source — ONE SKY PER CELL (2026-09-17)
+# ---------------------------------------------------------------------------
+#
+# Until this date the seam's weather came from `sim/weather_data/{customer_id}.csv` — four files,
+# so four of the book's 146 electricity premises settled on fabric physics and 137 were refused.
+# The replacement is not a wider pull but a different architecture, and these controls are keyed
+# to the PROPERTY that makes it different rather than to today's cell count.
+
+
+def _fake_world(cells, daily, regimes=None):
+    """A tiny `WeatherWorld` built from the REAL classes.
+
+    The real store is an 8 MB gzip; loading it per test would cost more than it proves, and the
+    behaviour under test — snapping, the level offset, the NaN columns — is all in the class.
+    """
+    from sim.weather_world import Cell, WeatherWorld
+
+    return WeatherWorld({k: Cell(**v) for k, v in cells.items()}, daily, regimes or {})
+
+
+def _flat_days(start, end, **overrides):
+    """A regime's daily record: the stored ANOMALY, so temperatures sit near zero here and
+    `for_cell` adds each cell's own `level_c` back."""
+    row = dict(temperature_min_c=-2.0, temperature_mean_c=0.0, temperature_max_c=2.0,
+               wind_speed_mean_ms=4.0, cloud_cover_pct=60.0, precipitation_mm=0.5)
+    row.update(overrides)
+    days, day = {}, start
+    while day <= end:
+        days[day.isoformat()] = dict(row)
+        day += dt.timedelta(days=1)
+    return days
+
+
+#: Two cells one kilometre apart, and a premise sitting in each.
+_CELL_A = dict(cell_id="E400N0300", east_km=400, north_km=300,
+               latitude=53.0000, longitude=-1.5000, level_c=9.5)
+_CELL_B = dict(cell_id="E401N0300", east_km=401, north_km=300,
+               latitude=53.0000, longitude=-1.4850, level_c=11.0)
+
+
+def _source_over(cells, daily, regimes=None):
+    return fdp.WeatherWorldSource(_fake_world(cells, daily, regimes))
+
+
+def _premise(cid, lat, lon):
+    return {"customer_id": cid, "location": {"lat": lat, "lon": lon}}
+
+
+def test_two_premises_in_one_cell_read_the_IDENTICAL_sky():
+    """THE DEFECT THE STORE EXISTS TO END, and the director's own words for it: "Two households
+    in the same cell must experience identical weather -- that's what makes the difference in
+    their demand attributable to fabric and people rather than to two separate downloads."
+
+    Asked of the WEATHER DAYS and not of the resulting demand: two premises in one cell settle
+    to different kWh whatever the source, because their fabric differs, so a control asked of
+    the demand would pass with two separate downloads fully in place.
+    """
+    source = _source_over({"E400N0300": _CELL_A},
+                          {"E400N0300": _flat_days(WINDOW_START, WINDOW_END)})
+    one = source.site_for(_premise("C_ONE", 53.0002, -1.5001))
+    two = source.site_for(_premise("C_TWO", 52.9998, -1.4999))
+    assert one == two == "E400N0300", "two premises 40 m apart did not resolve to one cell"
+
+    days_one = source.days(one, start=WINDOW_START, end=WINDOW_END)
+    days_two = source.days(two, start=WINDOW_START, end=WINDOW_END)
+    assert days_one == days_two
+    # Not merely equal by value: the SAME list, so no later step can round one and not the other.
+    assert days_one is days_two
+
+    # THE MUTATION: a per-property source — the design this replaced — keyed on the customer id.
+    # Every assertion above fails on it, which is what makes them a control rather than a
+    # restatement of `==`.
+    per_property = {
+        cid: source.days("E400N0300", start=WINDOW_START, end=WINDOW_END)[:]
+        for cid in ("C_ONE", "C_TWO")
+    }
+    per_property["C_TWO"][0] = dataclasses.replace(
+        per_property["C_TWO"][0],
+        weather=dataclasses.replace(per_property["C_TWO"][0].weather,
+                                    temperature_mean_c=9.51),
+    )
+    assert per_property["C_ONE"] != per_property["C_TWO"], (
+        "the mutation did not separate the two skies, so the control above proves nothing"
+    )
+
+
+def test_a_cell_carries_its_own_climatology_into_the_trace():
+    """The two cells share one regime and must still differ, by their `level_c` and only by it.
+    Without this the decomposition is a store of anomalies read as temperatures — correct-looking
+    and about eleven degrees wrong."""
+    daily = {"R00": _flat_days(WINDOW_START, WINDOW_END)}
+    source = _source_over({"E400N0300": _CELL_A, "E401N0300": _CELL_B}, daily,
+                          {"E400N0300": "R00", "E401N0300": "R00"})
+    a = source.days("E400N0300", start=WINDOW_START, end=WINDOW_START)[0].weather
+    b = source.days("E401N0300", start=WINDOW_START, end=WINDOW_START)[0].weather
+    assert a.temperature_mean_c == pytest.approx(9.5)
+    assert b.temperature_mean_c == pytest.approx(11.0)
+    # The regime is shared, so everything that is NOT the cell's climatology must be identical.
+    assert a.wind_speed_mean_ms == b.wind_speed_mean_ms
+    assert a.cloud_cover_pct == b.cloud_cover_pct
+
+
+def test_a_temperature_ONLY_cell_is_refused_and_not_answered_with_a_NaN():
+    """THE NAMED FAIL the store shipped with: 18 of 156 cells held temperature and no wind,
+    cloud or precipitation, and `for_cell` answers for every one of them with NaN in three
+    columns. `fabric_physics` does arithmetic on all five fields, so a membership test here
+    would hand `simulate_premise` a NaN that is neither an error nor a number — it settles,
+    and it prices.
+    """
+    partial = _flat_days(WINDOW_START, WINDOW_END,
+                         wind_speed_mean_ms=float("nan"), cloud_cover_pct=float("nan"))
+    source = _source_over({"E400N0300": _CELL_A}, {"E400N0300": partial})
+
+    assert source.available("E400N0300") is False
+    with pytest.raises(fdp.WeatherWorldRefusal, match="wind_speed_mean_ms"):
+        source.days("E400N0300", start=WINDOW_START, end=WINDOW_END)
+
+    # THE MUTATION: availability asked as membership, which is the check a reader reaches for.
+    held_by_membership = "E400N0300" in source.world.cells
+    assert held_by_membership is True, (
+        "the mutation is not distinguishable from the real check: the cell must BE in the store "
+        "and still be unavailable, or this control passes for the wrong reason"
+    )
+
+
+def test_a_complete_cell_IS_available_so_the_refusal_is_not_universal():
+    """The partition, over one control rather than a leg per branch: a source that refuses
+    EVERYTHING passes every refusal test above. This is the assertion that the accepting branch
+    can be reached at all."""
+    source = _source_over({"E400N0300": _CELL_A},
+                          {"E400N0300": _flat_days(WINDOW_START, WINDOW_END)})
+    assert source.available("E400N0300") is True
+    assert source.available("E999N9999") is False
+
+
+def test_a_premise_beyond_the_snap_radius_is_refused_and_the_refusal_says_how_far():
+    """A silent snap would give a Cornish premise Birmingham's weather and read as a hit. The
+    distance belongs in the reason because the person clearing it has to decide whether the cell
+    is missing or the coordinate is wrong."""
+    source = _source_over({"E400N0300": _CELL_A},
+                          {"E400N0300": _flat_days(WINDOW_START, WINDOW_END)})
+    site = source.site_for(_premise("C_FAR", 50.2660, -5.0527))    # Falmouth
+    assert not site.startswith("E"), f"a far premise snapped to a cell: {site}"
+    assert "km from the nearest cell" in site
+    assert source.available(site) is False
+
+
+def test_a_premise_with_no_coordinate_gets_a_marker_that_is_not_a_cell_id():
+    source = _source_over({"E400N0300": _CELL_A},
+                          {"E400N0300": _flat_days(WINDOW_START, WINDOW_END)})
+    assert source.site_for({"customer_id": "C_NONE", "location": {}}) == fdp.NO_CELL_SITE
+    assert source.site_for({"customer_id": "C_NONE"}) == fdp.NO_CELL_SITE
+
+
+def test_the_refusal_does_not_send_the_reader_to_build_the_REFUSED_design():
+    """Keyed to the property, not to today's wording. The remedy sentence said "pull that
+    coordinate" until 2026-09-17 — an instruction to download one archive per property, which is
+    the design the director refused in writing and the reason the per-cell store exists. A
+    refusal that names the wrong remedy recruits the reader into rebuilding it.
+    """
+    reason = fdp.fabric_eligibility(
+        _premise("C_B", 52.4862, -1.8904),
+        make_household("C_B"),
+        is_half_hourly_metered=False,
+        weather_available=False,
+        weather_site="E406N0287",
+    ).reason
+    assert reason.startswith(fdp.NO_ARCHIVE_REFUSAL)
+    assert "52.4862" in reason and "-1.8904" in reason
+    assert "CELL" in reason and "never a per-property pull" in reason
+    assert "pull that coordinate" not in reason
+    assert "sim/weather_data" not in reason
+
+
+def test_the_book_provider_ACTUALLY_USES_the_weather_days_callable_it_is_given():
+    """A function gaining a parameter is ungraded until something proves the parameter reaches
+    the work. Every other test in this file drives `fabric_providers_for_book` through `_book()`,
+    which leaves `weather_days_for` at its default — so without this control the store could be
+    wired into `run_phase2b` and silently never read.
+
+    Proven by the SERIES DIFFERING, not by a call count: a spy that records the call would pass
+    on a provider that called the callable and then threw its answer away.
+    """
+    daily = _flat_days(WINDOW_START, WINDOW_END)
+    source = _source_over({"E400N0300": _CELL_A}, {"E400N0300": daily})
+    from_store, verdicts = fdp.fabric_providers_for_book(
+        **_book(weather_site_for=lambda _c: "E400N0300",
+                weather_available=source.available,
+                weather_days_for=source.days)
+    )
+    assert sorted(from_store) == ["C1"], [v.reason for v in verdicts if not v.is_eligible]
+
+    from_archive, _ = fdp.fabric_providers_for_book(**_book())
+    dates = sorted(from_store["C1"].gross_electricity_kwh)
+    assert dates == sorted(from_archive["C1"].gross_electricity_kwh)
+    assert (from_store["C1"].gross_electricity_kwh
+            != from_archive["C1"].gross_electricity_kwh), (
+        "the store-fed book returned the archive-fed book's demand: `weather_days_for` is not "
+        "reaching the trace, and wiring the store into the runner would change nothing"
+    )
+
+
+def test_the_settlement_path_and_the_gas_leg_READ_ONE_WEATHER_SOURCE():
+    """R11/R15: the electricity leg and the gas leg must not be able to disagree about which
+    premises have physics. Two independently-constructed resolvers is exactly how that promise
+    rots — the electricity leg moving to the cell store while the gas leg kept reading
+    `sim/weather_data/*.csv` would have split the book in silence, with no red anywhere.
+    """
+    import inspect
+
+    from simulation import run_phase2b
+
+    source = inspect.getsource(run_phase2b)
+    assert source.count("WeatherWorldSource.load()") == 1, (
+        "run_phase2b builds the weather source more than once (or not at all): the two fabric "
+        "legs can now resolve a premise differently"
+    )
+    assert "weather_days_for=_weather_source.days" in source, (
+        "run_phase2b decides eligibility from the cell store but builds the trace from something "
+        "else -- the exact fail-open shape `available` exists to prevent"
+    )
+    assert "WEATHER_DATA_DIR_PATH" not in source, (
+        "the per-customer archive is still deciding a fabric verdict somewhere in the runner"
+    )
+    assert run_phase2b.WeatherWorldSource is fdp.WeatherWorldSource
+
+
+# ---------------------------------------------------------------------------
+# The switch reaches the BOOK — the per-premise floor generalised (2026-09-17)
+# ---------------------------------------------------------------------------
+
+
+def test_the_book_control_REFUSES_an_inert_switch():
+    """The defect it inherits: a switch labelled, declared and textured, settling exactly the
+    legacy volume everywhere. Every premise says no, so the book does."""
+    assert fdp.the_switch_reaches_the_book([False] * 91) is False
+    assert fdp.the_switch_reaches_the_book([True] + [False] * 90) is False
+
+
+def test_the_book_control_ACCEPTS_a_book_that_moved_and_is_not_unfailable():
+    """The partition over one control. A predicate that refuses EVERYTHING passes the refusal
+    test above, so the accepting branch has to be asserted reachable in the same breath — and
+    with the FOUR unmoved premises the real book has, not with a clean sweep."""
+    real = [True] * 87 + [False] * 4              # the 2026-09-17 measurement
+    assert fdp.the_switch_reaches_the_book(real) is True
+    assert fdp.the_switch_reaches_the_book([True, False]) is True      # exactly the floor
+    assert fdp.the_switch_reaches_the_book([True, False, False]) is False
+
+
+def test_the_book_control_REFUSES_an_empty_book():
+    """R15: a control that passes on an empty set is the fail-open this whole set exists to
+    refuse. "Nobody was eligible, so nobody failed to be switched" is how the switch un-throws
+    itself in silence — it must be a refusal, never a vacuous True."""
+    with pytest.raises(ValueError, match="no premise settles"):
+        fdp.the_switch_reaches_the_book([])
+
+
+def test_the_book_control_REFUSES_an_unfailable_share():
+    """A share of 0 passes any book including the wholly inert one; a share above 1 can never be
+    met. Both are unfailable by construction, which is a defect and not a setting."""
+    for bad in (0.0, -0.1, 1.5):
+        with pytest.raises(ValueError, match="unfailable or unsatisfiable"):
+            fdp.the_switch_reaches_the_book([True, True], min_share=bad)
+
+
+def test_the_book_control_IS_NOT_AN_ORPHAN_and_the_per_premise_raise_is_gone():
+    """R11, and the half that matters: the per-premise `raise` must be GONE, not merely joined.
+    Left in place it still refuses the four premises the measurement says are entitled to settle
+    nearly the legacy electricity volume, and the book-level control never gets a subject."""
+    import inspect
+
+    from simulation import run_phase2b
+
+    source = inspect.getsource(run_phase2b)
+    assert "the_switch_reaches_the_book(" in source
+    assert run_phase2b.the_switch_reaches_the_book is fdp.the_switch_reaches_the_book
+    assert "the_switch_moves_the_settled_volume(" in source, (
+        "the per-premise predicate is no longer called, so the book-level count is over nothing"
+    )
+    assert "settles on the fabric provider but its settled volume" not in source, (
+        "the per-premise raise is still live: one premise below the 2% floor still wedges the "
+        "whole run, and the book-level control it was replaced by can never be reached"
+    )

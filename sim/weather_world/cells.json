@@ -1,0 +1,1778 @@
+{
+ "source": "temperature: HadUK-Grid 1 km daily (CEDA). wind/cloud/precip: ERA5 via Open-Meteo, per cell centre.",
+ "window": [
+  "2016-01-01",
+  "2025-12-31"
+ ],
+ "decomposition": "per-cell LEVEL + shared regime ANOMALY; see sim/weather_world.py",
+ "cells": {
+  "E224N0382": {
+   "cell_id": "E224N0382",
+   "east_km": 224,
+   "north_km": 382,
+   "latitude": 53.31004,
+   "longitude": -4.63452,
+   "level_c": 11.148
+  },
+  "E224N0691": {
+   "cell_id": "E224N0691",
+   "east_km": 224,
+   "north_km": 691,
+   "latitude": 56.08409,
+   "longitude": -4.82078,
+   "level_c": 9.767
+  },
+  "E232N0639": {
+   "cell_id": "E232N0639",
+   "east_km": 232,
+   "north_km": 639,
+   "latitude": 55.6202,
+   "longitude": -4.66026,
+   "level_c": 10.315
+  },
+  "E240N0678": {
+   "cell_id": "E240N0678",
+   "east_km": 240,
+   "north_km": 678,
+   "latitude": 55.97299,
+   "longitude": -4.55619,
+   "level_c": 9.498
+  },
+  "E259N0665": {
+   "cell_id": "E259N0665",
+   "east_km": 259,
+   "north_km": 665,
+   "latitude": 55.8622,
+   "longitude": -4.24521,
+   "level_c": 10.503
+  },
+  "E264N0666": {
+   "cell_id": "E264N0666",
+   "east_km": 264,
+   "north_km": 666,
+   "latitude": 55.87261,
+   "longitude": -4.16588,
+   "level_c": 9.605
+  },
+  "E274N0195": {
+   "cell_id": "E274N0195",
+   "east_km": 274,
+   "north_km": 195,
+   "latitude": 51.64381,
+   "longitude": -3.81398,
+   "level_c": 11.872
+  },
+  "E275N0189": {
+   "cell_id": "E275N0189",
+   "east_km": 275,
+   "north_km": 189,
+   "latitude": 51.5901,
+   "longitude": -3.7974,
+   "level_c": 12.164
+  },
+  "E283N0182": {
+   "cell_id": "E283N0182",
+   "east_km": 283,
+   "north_km": 182,
+   "latitude": 51.5289,
+   "longitude": -3.67964,
+   "level_c": 11.395
+  },
+  "E292N0660": {
+   "cell_id": "E292N0660",
+   "east_km": 292,
+   "north_km": 660,
+   "latitude": 55.82578,
+   "longitude": -3.7162,
+   "level_c": 8.283
+  },
+  "E303N0669": {
+   "cell_id": "E303N0669",
+   "east_km": 303,
+   "north_km": 669,
+   "latitude": 55.90895,
+   "longitude": -3.54386,
+   "level_c": 8.648
+  },
+  "E303N0858": {
+   "cell_id": "E303N0858",
+   "east_km": 303,
+   "north_km": 858,
+   "latitude": 57.6064,
+   "longitude": -3.61514,
+   "level_c": 9.664
+  },
+  "E304N0206": {
+   "cell_id": "E304N0206",
+   "east_km": 304,
+   "north_km": 206,
+   "latitude": 51.74859,
+   "longitude": -3.38353,
+   "level_c": 10.499
+  },
+  "E314N0683": {
+   "cell_id": "E314N0683",
+   "east_km": 314,
+   "north_km": 683,
+   "latitude": 56.03679,
+   "longitude": -3.37239,
+   "level_c": 9.694
+  },
+  "E323N0191": {
+   "cell_id": "E323N0191",
+   "east_km": 323,
+   "north_km": 191,
+   "latitude": 51.61665,
+   "longitude": -3.10505,
+   "level_c": 10.969
+  },
+  "E325N0387": {
+   "cell_id": "E325N0387",
+   "east_km": 325,
+   "north_km": 387,
+   "latitude": 53.37883,
+   "longitude": -3.12007,
+   "level_c": 11.378
+  },
+  "E326N0472": {
+   "cell_id": "E326N0472",
+   "east_km": 326,
+   "north_km": 472,
+   "latitude": 54.14289,
+   "longitude": -3.12528,
+   "level_c": 10.414
+  },
+  "E326N0671": {
+   "cell_id": "E326N0671",
+   "east_km": 326,
+   "north_km": 671,
+   "latitude": 55.93098,
+   "longitude": -3.17654,
+   "level_c": 10.262
+  },
+  "E326N0675": {
+   "cell_id": "E326N0675",
+   "east_km": 326,
+   "north_km": 675,
+   "latitude": 55.96692,
+   "longitude": -3.17763,
+   "level_c": 10.094
+  },
+  "E326N0676": {
+   "cell_id": "E326N0676",
+   "east_km": 326,
+   "north_km": 676,
+   "latitude": 55.9759,
+   "longitude": -3.1779,
+   "level_c": 10.038
+  },
+  "E327N0692": {
+   "cell_id": "E327N0692",
+   "east_km": 327,
+   "north_km": 692,
+   "latitude": 56.11979,
+   "longitude": -3.16621,
+   "level_c": 9.578
+  },
+  "E329N0303": {
+   "cell_id": "E329N0303",
+   "east_km": 329,
+   "north_km": 303,
+   "latitude": 52.62433,
+   "longitude": -3.04161,
+   "level_c": 10.59
+  },
+  "E330N0351": {
+   "cell_id": "E330N0351",
+   "east_km": 330,
+   "north_km": 351,
+   "latitude": 53.05593,
+   "longitude": -3.03706,
+   "level_c": 10.494
+  },
+  "E330N0389": {
+   "cell_id": "E330N0389",
+   "east_km": 330,
+   "north_km": 389,
+   "latitude": 53.39749,
+   "longitude": -3.04535,
+   "level_c": 11.437
+  },
+  "E330N0483": {
+   "cell_id": "E330N0483",
+   "east_km": 330,
+   "north_km": 483,
+   "latitude": 54.24231,
+   "longitude": -3.06659,
+   "level_c": 10.054
+  },
+  "E331N0349": {
+   "cell_id": "E331N0349",
+   "east_km": 331,
+   "north_km": 349,
+   "latitude": 53.03808,
+   "longitude": -3.02172,
+   "level_c": 10.721
+  },
+  "E331N0398": {
+   "cell_id": "E331N0398",
+   "east_km": 331,
+   "north_km": 398,
+   "latitude": 53.47851,
+   "longitude": -3.03227,
+   "level_c": 11.262
+  },
+  "E331N0436": {
+   "cell_id": "E331N0436",
+   "east_km": 331,
+   "north_km": 436,
+   "latitude": 53.82004,
+   "longitude": -3.04065,
+   "level_c": 10.824
+  },
+  "E333N0416": {
+   "cell_id": "E333N0416",
+   "east_km": 333,
+   "north_km": 416,
+   "latitude": 53.64055,
+   "longitude": -3.00597,
+   "level_c": 10.974
+  },
+  "E335N0114": {
+   "cell_id": "E335N0114",
+   "east_km": 335,
+   "north_km": 114,
+   "latitude": 50.92579,
+   "longitude": -2.91783,
+   "level_c": 11.596
+  },
+  "E337N0396": {
+   "cell_id": "E337N0396",
+   "east_km": 337,
+   "north_km": 396,
+   "latitude": 53.46128,
+   "longitude": -2.94147,
+   "level_c": 11.425
+  },
+  "E337N0442": {
+   "cell_id": "E337N0442",
+   "east_km": 337,
+   "north_km": 442,
+   "latitude": 53.87473,
+   "longitude": -2.95073,
+   "level_c": 10.565
+  },
+  "E338N0131": {
+   "cell_id": "E338N0131",
+   "east_km": 338,
+   "north_km": 131,
+   "latitude": 51.07899,
+   "longitude": -2.87803,
+   "level_c": 11.484
+  },
+  "E342N0128": {
+   "cell_id": "E342N0128",
+   "east_km": 342,
+   "north_km": 128,
+   "latitude": 51.05243,
+   "longitude": -2.82045,
+   "level_c": 11.248
+  },
+  "E344N0351": {
+   "cell_id": "E344N0351",
+   "east_km": 344,
+   "north_km": 351,
+   "latitude": 53.05756,
+   "longitude": -2.82819,
+   "level_c": 10.928
+  },
+  "E347N0460": {
+   "cell_id": "E347N0460",
+   "east_km": 347,
+   "north_km": 460,
+   "latitude": 54.03762,
+   "longitude": -2.80173,
+   "level_c": 10.584
+  },
+  "E348N0367": {
+   "cell_id": "E348N0367",
+   "east_km": 348,
+   "north_km": 367,
+   "latitude": 53.20179,
+   "longitude": -2.77107,
+   "level_c": 10.823
+  },
+  "E350N0388": {
+   "cell_id": "E350N0388",
+   "east_km": 350,
+   "north_km": 388,
+   "latitude": 53.39075,
+   "longitude": -2.74441,
+   "level_c": 10.911
+  },
+  "E351N0241": {
+   "cell_id": "E351N0241",
+   "east_km": 351,
+   "north_km": 241,
+   "latitude": 52.06933,
+   "longitude": -2.70764,
+   "level_c": 11.057
+  },
+  "E353N0382": {
+   "cell_id": "E353N0382",
+   "east_km": 353,
+   "north_km": 382,
+   "latitude": 53.33709,
+   "longitude": -2.69841,
+   "level_c": 11.055
+  },
+  "E355N0358": {
+   "cell_id": "E355N0358",
+   "east_km": 355,
+   "north_km": 358,
+   "latitude": 53.12152,
+   "longitude": -2.66502,
+   "level_c": 10.57
+  },
+  "E356N0734": {
+   "cell_id": "E356N0734",
+   "east_km": 356,
+   "north_km": 734,
+   "latitude": 56.50067,
+   "longitude": -2.70671,
+   "level_c": 9.607
+  },
+  "E357N0177": {
+   "cell_id": "E357N0177",
+   "east_km": 357,
+   "north_km": 177,
+   "latitude": 51.49436,
+   "longitude": -2.61227,
+   "level_c": 11.658
+  },
+  "E357N0404": {
+   "cell_id": "E357N0404",
+   "east_km": 357,
+   "north_km": 404,
+   "latitude": 53.53518,
+   "longitude": -2.64131,
+   "level_c": 10.944
+  },
+  "E360N0759": {
+   "cell_id": "E360N0759",
+   "east_km": 360,
+   "north_km": 759,
+   "latitude": 56.72563,
+   "longitude": -2.64555,
+   "level_c": 8.994
+  },
+  "E363N0366": {
+   "cell_id": "E363N0366",
+   "east_km": 363,
+   "north_km": 366,
+   "latitude": 53.19404,
+   "longitude": -2.54639,
+   "level_c": 10.856
+  },
+  "E363N0385": {
+   "cell_id": "E363N0385",
+   "east_km": 363,
+   "north_km": 385,
+   "latitude": 53.36484,
+   "longitude": -2.54857,
+   "level_c": 10.834
+  },
+  "E364N0364": {
+   "cell_id": "E364N0364",
+   "east_km": 364,
+   "north_km": 364,
+   "latitude": 53.17613,
+   "longitude": -2.5312,
+   "level_c": 10.784
+  },
+  "E369N0072": {
+   "cell_id": "E369N0072",
+   "east_km": 369,
+   "north_km": 72,
+   "latitude": 50.55087,
+   "longitude": -2.43056,
+   "level_c": 11.786
+  },
+  "E369N0353": {
+   "cell_id": "E369N0353",
+   "east_km": 369,
+   "north_km": 353,
+   "latitude": 53.07756,
+   "longitude": -2.45534,
+   "level_c": 10.693
+  },
+  "E369N0366": {
+   "cell_id": "E369N0366",
+   "east_km": 369,
+   "north_km": 366,
+   "latitude": 53.19442,
+   "longitude": -2.45657,
+   "level_c": 11.013
+  },
+  "E370N0352": {
+   "cell_id": "E370N0352",
+   "east_km": 370,
+   "north_km": 352,
+   "latitude": 53.06862,
+   "longitude": -2.44032,
+   "level_c": 10.7
+  },
+  "E370N0428": {
+   "cell_id": "E370N0428",
+   "east_km": 370,
+   "north_km": 428,
+   "latitude": 53.75181,
+   "longitude": -2.44743,
+   "level_c": 10.223
+  },
+  "E371N0182": {
+   "cell_id": "E371N0182",
+   "east_km": 371,
+   "north_km": 182,
+   "latitude": 51.5402,
+   "longitude": -2.41099,
+   "level_c": 11.103
+  },
+  "E375N0166": {
+   "cell_id": "E375N0166",
+   "east_km": 375,
+   "north_km": 166,
+   "latitude": 51.39651,
+   "longitude": -2.3522,
+   "level_c": 11.42
+  },
+  "E376N0298": {
+   "cell_id": "E376N0298",
+   "east_km": 376,
+   "north_km": 298,
+   "latitude": 52.58344,
+   "longitude": -2.34687,
+   "level_c": 10.72
+  },
+  "E380N0409": {
+   "cell_id": "E380N0409",
+   "east_km": 380,
+   "north_km": 409,
+   "latitude": 53.58149,
+   "longitude": -2.29457,
+   "level_c": 10.53
+  },
+  "E383N0219": {
+   "cell_id": "E383N0219",
+   "east_km": 383,
+   "north_km": 219,
+   "latitude": 51.87339,
+   "longitude": -2.2397,
+   "level_c": 11.839
+  },
+  "E383N0398": {
+   "cell_id": "E383N0398",
+   "east_km": 383,
+   "north_km": 398,
+   "latitude": 53.48271,
+   "longitude": -2.24867,
+   "level_c": 11.646
+  },
+  "E383N0647": {
+   "cell_id": "E383N0647",
+   "east_km": 383,
+   "north_km": 647,
+   "latitude": 55.72065,
+   "longitude": -2.26269,
+   "level_c": 9.418
+  },
+  "E384N0431": {
+   "cell_id": "E384N0431",
+   "east_km": 384,
+   "north_km": 431,
+   "latitude": 53.77938,
+   "longitude": -2.23524,
+   "level_c": 9.868
+  },
+  "E385N0300": {
+   "cell_id": "E385N0300",
+   "east_km": 385,
+   "north_km": 300,
+   "latitude": 52.60174,
+   "longitude": -2.21412,
+   "level_c": 10.531
+  },
+  "E389N0398": {
+   "cell_id": "E389N0398",
+   "east_km": 389,
+   "north_km": 398,
+   "latitude": 53.48286,
+   "longitude": -2.15824,
+   "level_c": 11.175
+  },
+  "E389N0806": {
+   "cell_id": "E389N0806",
+   "east_km": 389,
+   "north_km": 806,
+   "latitude": 57.14945,
+   "longitude": -2.17356,
+   "level_c": 8.744
+  },
+  "E390N0401": {
+   "cell_id": "E390N0401",
+   "east_km": 390,
+   "north_km": 401,
+   "latitude": 53.50985,
+   "longitude": -2.14326,
+   "level_c": 10.93
+  },
+  "E391N0222": {
+   "cell_id": "E391N0222",
+   "east_km": 391,
+   "north_km": 222,
+   "latitude": 51.90054,
+   "longitude": -2.12355,
+   "level_c": 11.617
+  },
+  "E391N0344": {
+   "cell_id": "E391N0344",
+   "east_km": 391,
+   "north_km": 344,
+   "latitude": 52.99745,
+   "longitude": -2.12666,
+   "level_c": 9.894
+  },
+  "E392N0236": {
+   "cell_id": "E392N0236",
+   "east_km": 392,
+   "north_km": 236,
+   "latitude": 52.02644,
+   "longitude": -2.10932,
+   "level_c": 11.393
+  },
+  "E393N0289": {
+   "cell_id": "E393N0289",
+   "east_km": 393,
+   "north_km": 289,
+   "latitude": 52.50299,
+   "longitude": -2.09577,
+   "level_c": 10.813
+  },
+  "E397N0300": {
+   "cell_id": "E397N0300",
+   "east_km": 397,
+   "north_km": 300,
+   "latitude": 52.60193,
+   "longitude": -2.03692,
+   "level_c": 10.859
+  },
+  "E399N0295": {
+   "cell_id": "E399N0295",
+   "east_km": 399,
+   "north_km": 295,
+   "latitude": 52.55698,
+   "longitude": -2.00738,
+   "level_c": 11.032
+  },
+  "E404N0278": {
+   "cell_id": "E404N0278",
+   "east_km": 404,
+   "north_km": 278,
+   "latitude": 52.40411,
+   "longitude": -1.93385,
+   "level_c": 10.541
+  },
+  "E404N0394": {
+   "cell_id": "E404N0394",
+   "east_km": 404,
+   "north_km": 394,
+   "latitude": 53.44699,
+   "longitude": -1.93224,
+   "level_c": 9.944
+  },
+  "E407N0100": {
+   "cell_id": "E407N0100",
+   "east_km": 407,
+   "north_km": 100,
+   "latitude": 50.80344,
+   "longitude": -1.89355,
+   "level_c": 11.328
+  },
+  "E407N0266": {
+   "cell_id": "E407N0266",
+   "east_km": 407,
+   "north_km": 266,
+   "latitude": 52.29619,
+   "longitude": -1.89001,
+   "level_c": 10.941
+  },
+  "E408N0332": {
+   "cell_id": "E408N0332",
+   "east_km": 408,
+   "north_km": 332,
+   "latitude": 52.88956,
+   "longitude": -1.87365,
+   "level_c": 10.462
+  },
+  "E410N0214": {
+   "cell_id": "E410N0214",
+   "east_km": 410,
+   "north_km": 214,
+   "latitude": 51.82857,
+   "longitude": -1.84762,
+   "level_c": 10.313
+  },
+  "E411N0294": {
+   "cell_id": "E411N0294",
+   "east_km": 411,
+   "north_km": 294,
+   "latitude": 52.54787,
+   "longitude": -1.83039,
+   "level_c": 10.837
+  },
+  "E411N0448": {
+   "cell_id": "E411N0448",
+   "east_km": 411,
+   "north_km": 448,
+   "latitude": 53.9323,
+   "longitude": -1.82483,
+   "level_c": 10.397
+  },
+  "E411N0550": {
+   "cell_id": "E411N0550",
+   "east_km": 411,
+   "north_km": 550,
+   "latitude": 54.84908,
+   "longitude": -1.82088,
+   "level_c": 9.028
+  },
+  "E412N0277": {
+   "cell_id": "E412N0277",
+   "east_km": 412,
+   "north_km": 277,
+   "latitude": 52.395,
+   "longitude": -1.81628,
+   "level_c": 10.56
+  },
+  "E413N0447": {
+   "cell_id": "E413N0447",
+   "east_km": 413,
+   "north_km": 447,
+   "latitude": 53.92326,
+   "longitude": -1.79441,
+   "level_c": 10.287
+  },
+  "E414N0186": {
+   "cell_id": "E414N0186",
+   "east_km": 414,
+   "north_km": 186,
+   "latitude": 51.5767,
+   "longitude": -1.79073,
+   "level_c": 11.398
+  },
+  "E414N0238": {
+   "cell_id": "E414N0238",
+   "east_km": 414,
+   "north_km": 238,
+   "latitude": 52.04429,
+   "longitude": -1.78856,
+   "level_c": 10.525
+  },
+  "E414N0285": {
+   "cell_id": "E414N0285",
+   "east_km": 414,
+   "north_km": 285,
+   "latitude": 52.46688,
+   "longitude": -1.78654,
+   "level_c": 10.87
+  },
+  "E417N0184": {
+   "cell_id": "E417N0184",
+   "east_km": 417,
+   "north_km": 184,
+   "latitude": 51.55863,
+   "longitude": -1.74754,
+   "level_c": 11.335
+  },
+  "E419N0430": {
+   "cell_id": "E419N0430",
+   "east_km": 419,
+   "north_km": 430,
+   "latitude": 53.77026,
+   "longitude": -1.70411,
+   "level_c": 9.827
+  },
+  "E419N0585": {
+   "cell_id": "E419N0585",
+   "east_km": 419,
+   "north_km": 585,
+   "latitude": 55.16338,
+   "longitude": -1.69389,
+   "level_c": 9.901
+  },
+  "E420N0232": {
+   "cell_id": "E420N0232",
+   "east_km": 420,
+   "north_km": 232,
+   "latitude": 51.99015,
+   "longitude": -1.70142,
+   "level_c": 10.662
+  },
+  "E420N0428": {
+   "cell_id": "E420N0428",
+   "east_km": 420,
+   "north_km": 428,
+   "latitude": 53.75224,
+   "longitude": -1.68907,
+   "level_c": 9.824
+  },
+  "E423N0095": {
+   "cell_id": "E423N0095",
+   "east_km": 423,
+   "north_km": 95,
+   "latitude": 50.75805,
+   "longitude": -1.66679,
+   "level_c": 11.5
+  },
+  "E424N0438": {
+   "cell_id": "E424N0438",
+   "east_km": 424,
+   "north_km": 438,
+   "latitude": 53.84196,
+   "longitude": -1.62761,
+   "level_c": 10.384
+  },
+  "E425N0432": {
+   "cell_id": "E425N0432",
+   "east_km": 425,
+   "north_km": 432,
+   "latitude": 53.78798,
+   "longitude": -1.61291,
+   "level_c": 10.647
+  },
+  "E427N0586": {
+   "cell_id": "E427N0586",
+   "east_km": 427,
+   "north_km": 586,
+   "latitude": 55.17199,
+   "longitude": -1.56821,
+   "level_c": 10.248
+  },
+  "E429N0425": {
+   "cell_id": "E429N0425",
+   "east_km": 429,
+   "north_km": 425,
+   "latitude": 53.72484,
+   "longitude": -1.55286,
+   "level_c": 10.198
+  },
+  "E429N0435": {
+   "cell_id": "E429N0435",
+   "east_km": 429,
+   "north_km": 435,
+   "latitude": 53.81473,
+   "longitude": -1.5519,
+   "level_c": 10.819
+  },
+  "E431N0336": {
+   "cell_id": "E431N0336",
+   "east_km": 431,
+   "north_km": 336,
+   "latitude": 52.92467,
+   "longitude": -1.53139,
+   "level_c": 10.487
+  },
+  "E432N0294": {
+   "cell_id": "E432N0294",
+   "east_km": 432,
+   "north_km": 294,
+   "latitude": 52.54702,
+   "longitude": -1.52068,
+   "level_c": 10.543
+  },
+  "E433N0168": {
+   "cell_id": "E433N0168",
+   "east_km": 433,
+   "north_km": 168,
+   "latitude": 51.41403,
+   "longitude": -1.51824,
+   "level_c": 10.884
+  },
+  "E434N0147": {
+   "cell_id": "E434N0147",
+   "east_km": 434,
+   "north_km": 147,
+   "latitude": 51.22513,
+   "longitude": -1.50589,
+   "level_c": 11.247
+  },
+  "E434N0336": {
+   "cell_id": "E434N0336",
+   "east_km": 434,
+   "north_km": 336,
+   "latitude": 52.92449,
+   "longitude": -1.48677,
+   "level_c": 11.08
+  },
+  "E434N0397": {
+   "cell_id": "E434N0397",
+   "east_km": 434,
+   "north_km": 397,
+   "latitude": 53.47285,
+   "longitude": -1.48017,
+   "level_c": 10.306
+  },
+  "E435N0121": {
+   "cell_id": "E435N0121",
+   "east_km": 435,
+   "north_km": 121,
+   "latitude": 50.99126,
+   "longitude": -1.49413,
+   "level_c": 11.685
+  },
+  "E435N0280": {
+   "cell_id": "E435N0280",
+   "east_km": 435,
+   "north_km": 280,
+   "latitude": 52.42096,
+   "longitude": -1.47793,
+   "level_c": 11.054
+  },
+  "E435N0292": {
+   "cell_id": "E435N0292",
+   "east_km": 435,
+   "north_km": 292,
+   "latitude": 52.52885,
+   "longitude": -1.47665,
+   "level_c": 10.86
+  },
+  "E435N0295": {
+   "cell_id": "E435N0295",
+   "east_km": 435,
+   "north_km": 295,
+   "latitude": 52.55582,
+   "longitude": -1.47633,
+   "level_c": 10.906
+  },
+  "E435N0348": {
+   "cell_id": "E435N0348",
+   "east_km": 435,
+   "north_km": 348,
+   "latitude": 53.0323,
+   "longitude": -1.47057,
+   "level_c": 10.328
+  },
+  "E436N0372": {
+   "cell_id": "E436N0372",
+   "east_km": 436,
+   "north_km": 372,
+   "latitude": 53.24798,
+   "longitude": -1.45293,
+   "level_c": 10.487
+  },
+  "E436N0437": {
+   "cell_id": "E436N0437",
+   "east_km": 436,
+   "north_km": 437,
+   "latitude": 53.83227,
+   "longitude": -1.44534,
+   "level_c": 10.258
+  },
+  "E436N0554": {
+   "cell_id": "E436N0554",
+   "east_km": 436,
+   "north_km": 554,
+   "latitude": 54.88383,
+   "longitude": -1.43099,
+   "level_c": 10.165
+  },
+  "E437N0278": {
+   "cell_id": "E437N0278",
+   "east_km": 437,
+   "north_km": 278,
+   "latitude": 52.40285,
+   "longitude": -1.44874,
+   "level_c": 11.016
+  },
+  "E437N0396": {
+   "cell_id": "E437N0396",
+   "east_km": 437,
+   "north_km": 396,
+   "latitude": 53.46365,
+   "longitude": -1.43509,
+   "level_c": 10.303
+  },
+  "E438N0110": {
+   "cell_id": "E438N0110",
+   "east_km": 438,
+   "north_km": 110,
+   "latitude": 50.89214,
+   "longitude": -1.45254,
+   "level_c": 12.185
+  },
+  "E439N0293": {
+   "cell_id": "E439N0293",
+   "east_km": 439,
+   "north_km": 293,
+   "latitude": 52.53756,
+   "longitude": -1.41756,
+   "level_c": 10.905
+  },
+  "E440N0558": {
+   "cell_id": "E440N0558",
+   "east_km": 440,
+   "north_km": 558,
+   "latitude": 54.91947,
+   "longitude": -1.36808,
+   "level_c": 10.428
+  },
+  "E443N0209": {
+   "cell_id": "E443N0209",
+   "east_km": 443,
+   "north_km": 209,
+   "latitude": 51.78202,
+   "longitude": -1.36935,
+   "level_c": 11.268
+  },
+  "E443N0346": {
+   "cell_id": "E443N0346",
+   "east_km": 443,
+   "north_km": 346,
+   "latitude": 53.01373,
+   "longitude": -1.35154,
+   "level_c": 10.379
+  },
+  "E445N0406": {
+   "cell_id": "E445N0406",
+   "east_km": 445,
+   "north_km": 406,
+   "latitude": 53.55291,
+   "longitude": -1.31314,
+   "level_c": 10.64
+  },
+  "E448N0383": {
+   "cell_id": "E448N0383",
+   "east_km": 448,
+   "north_km": 383,
+   "latitude": 53.3459,
+   "longitude": -1.2714,
+   "level_c": 10.412
+  },
+  "E448N0392": {
+   "cell_id": "E448N0392",
+   "east_km": 448,
+   "north_km": 392,
+   "latitude": 53.4268,
+   "longitude": -1.27002,
+   "level_c": 10.031
+  },
+  "E450N0206": {
+   "cell_id": "E450N0206",
+   "east_km": 450,
+   "north_km": 206,
+   "latitude": 51.75446,
+   "longitude": -1.26831,
+   "level_c": 11.645
+  },
+  "E450N0334": {
+   "cell_id": "E450N0334",
+   "east_km": 450,
+   "north_km": 334,
+   "latitude": 52.90524,
+   "longitude": -1.24907,
+   "level_c": 11.293
+  },
+  "E451N0278": {
+   "cell_id": "E451N0278",
+   "east_km": 451,
+   "north_km": 278,
+   "latitude": 52.40171,
+   "longitude": -1.24295,
+   "level_c": 10.677
+  },
+  "E451N0319": {
+   "cell_id": "E451N0319",
+   "east_km": 451,
+   "north_km": 319,
+   "latitude": 52.7703,
+   "longitude": -1.23657,
+   "level_c": 10.945
+  },
+  "E456N0104": {
+   "cell_id": "E456N0104",
+   "east_km": 456,
+   "north_km": 104,
+   "latitude": 50.83671,
+   "longitude": -1.19754,
+   "level_c": 11.914
+  },
+  "E456N0339": {
+   "cell_id": "E456N0339",
+   "east_km": 456,
+   "north_km": 339,
+   "latitude": 52.94959,
+   "longitude": -1.15899,
+   "level_c": 11.423
+  },
+  "E457N0081": {
+   "cell_id": "E457N0081",
+   "east_km": 457,
+   "north_km": 81,
+   "latitude": 50.62978,
+   "longitude": -1.18693,
+   "level_c": 11.832
+  },
+  "E457N0335": {
+   "cell_id": "E457N0335",
+   "east_km": 457,
+   "north_km": 335,
+   "latitude": 52.91353,
+   "longitude": -1.14482,
+   "level_c": 11.243
+  },
+  "E457N0402": {
+   "cell_id": "E457N0402",
+   "east_km": 457,
+   "north_km": 402,
+   "latitude": 53.51578,
+   "longitude": -1.13274,
+   "level_c": 11.126
+  },
+  "E459N0344": {
+   "cell_id": "E459N0344",
+   "east_km": 459,
+   "north_km": 344,
+   "latitude": 52.99421,
+   "longitude": -1.11342,
+   "level_c": 10.942
+  },
+  "E459N0523": {
+   "cell_id": "E459N0523",
+   "east_km": 459,
+   "north_km": 523,
+   "latitude": 54.60304,
+   "longitude": -1.07882,
+   "level_c": 11.029
+  },
+  "E460N0337": {
+   "cell_id": "E460N0337",
+   "east_km": 460,
+   "north_km": 337,
+   "latitude": 52.93117,
+   "longitude": -1.09983,
+   "level_c": 11.39
+  },
+  "E461N0154": {
+   "cell_id": "E461N0154",
+   "east_km": 461,
+   "north_km": 154,
+   "latitude": 51.2858,
+   "longitude": -1.11803,
+   "level_c": 11.038
+  },
+  "E461N0349": {
+   "cell_id": "E461N0349",
+   "east_km": 461,
+   "north_km": 349,
+   "latitude": 53.03893,
+   "longitude": -1.08267,
+   "level_c": 10.806
+  },
+  "E461N0455": {
+   "cell_id": "E461N0455",
+   "east_km": 461,
+   "north_km": 455,
+   "latitude": 53.99169,
+   "longitude": -1.06186,
+   "level_c": 10.79
+  },
+  "E461N0515": {
+   "cell_id": "E461N0515",
+   "east_km": 461,
+   "north_km": 515,
+   "latitude": 54.53091,
+   "longitude": -1.04954,
+   "level_c": 10.062
+  },
+  "E462N0153": {
+   "cell_id": "E462N0153",
+   "east_km": 462,
+   "north_km": 153,
+   "latitude": 51.2767,
+   "longitude": -1.10387,
+   "level_c": 11.12
+  },
+  "E464N0153": {
+   "cell_id": "E464N0153",
+   "east_km": 464,
+   "north_km": 153,
+   "latitude": 51.27648,
+   "longitude": -1.07519,
+   "level_c": 11.184
+  },
+  "E464N0154": {
+   "cell_id": "E464N0154",
+   "east_km": 464,
+   "north_km": 154,
+   "latitude": 51.28547,
+   "longitude": -1.07501,
+   "level_c": 11.29
+  },
+  "E465N0098": {
+   "cell_id": "E465N0098",
+   "east_km": 465,
+   "north_km": 98,
+   "latitude": 50.78181,
+   "longitude": -1.0708,
+   "level_c": 12.187
+  },
+  "E467N0104": {
+   "cell_id": "E467N0104",
+   "east_km": 467,
+   "north_km": 104,
+   "latitude": 50.83553,
+   "longitude": -1.04133,
+   "level_c": 12.063
+  },
+  "E471N0260": {
+   "cell_id": "E471N0260",
+   "east_km": 471,
+   "north_km": 260,
+   "latitude": 52.23764,
+   "longitude": -0.95282,
+   "level_c": 10.882
+  },
+  "E480N0170": {
+   "cell_id": "E480N0170",
+   "east_km": 480,
+   "north_km": 170,
+   "latitude": 51.42729,
+   "longitude": -0.84198,
+   "level_c": 11.259
+  },
+  "E480N0263": {
+   "cell_id": "E480N0263",
+   "east_km": 480,
+   "north_km": 263,
+   "latitude": 52.26337,
+   "longitude": -0.82033,
+   "level_c": 10.941
+  },
+  "E487N0194": {
+   "cell_id": "E487N0194",
+   "east_km": 487,
+   "north_km": 194,
+   "latitude": 51.64202,
+   "longitude": -0.73535,
+   "level_c": 10.843
+  },
+  "E489N0194": {
+   "cell_id": "E489N0194",
+   "east_km": 489,
+   "north_km": 194,
+   "latitude": 51.6417,
+   "longitude": -0.70645,
+   "level_c": 10.786
+  },
+  "E499N0343": {
+   "cell_id": "E499N0343",
+   "east_km": 499,
+   "north_km": 343,
+   "latitude": 52.97929,
+   "longitude": -0.51789,
+   "level_c": 10.823
+  },
+  "E503N0163": {
+   "cell_id": "E503N0163",
+   "east_km": 503,
+   "north_km": 163,
+   "latitude": 51.36063,
+   "longitude": -0.51327,
+   "level_c": 11.563
+  },
+  "E504N0248": {
+   "cell_id": "E504N0248",
+   "east_km": 504,
+   "north_km": 248,
+   "latitude": 52.12451,
+   "longitude": -0.47337,
+   "level_c": 11.267
+  },
+  "E507N0432": {
+   "cell_id": "E507N0432",
+   "east_km": 507,
+   "north_km": 432,
+   "latitude": 53.7775,
+   "longitude": -0.36848,
+   "level_c": 11.137
+  },
+  "E508N0429": {
+   "cell_id": "E508N0429",
+   "east_km": 508,
+   "north_km": 429,
+   "latitude": 53.75034,
+   "longitude": -0.35437,
+   "level_c": 11.195
+  },
+  "E509N0175": {
+   "cell_id": "E509N0175",
+   "east_km": 509,
+   "north_km": 175,
+   "latitude": 51.46737,
+   "longitude": -0.42341,
+   "level_c": 12.337
+  },
+  "E510N0431": {
+   "cell_id": "E510N0431",
+   "east_km": 510,
+   "north_km": 431,
+   "latitude": 53.76789,
+   "longitude": -0.32333,
+   "level_c": 11.193
+  },
+  "E512N0168": {
+   "cell_id": "E512N0168",
+   "east_km": 512,
+   "north_km": 168,
+   "latitude": 51.40386,
+   "longitude": -0.38246,
+   "level_c": 12.029
+  },
+  "E514N0188": {
+   "cell_id": "E514N0188",
+   "east_km": 514,
+   "north_km": 188,
+   "latitude": 51.58324,
+   "longitude": -0.34722,
+   "level_c": 11.753
+  },
+  "E516N0139": {
+   "cell_id": "E516N0139",
+   "east_km": 516,
+   "north_km": 139,
+   "latitude": 51.14237,
+   "longitude": -0.33443,
+   "level_c": 10.95
+  },
+  "E516N0158": {
+   "cell_id": "E516N0158",
+   "east_km": 516,
+   "north_km": 158,
+   "latitude": 51.31317,
+   "longitude": -0.32825,
+   "level_c": 11.353
+  },
+  "E516N0204": {
+   "cell_id": "E516N0204",
+   "east_km": 516,
+   "north_km": 204,
+   "latitude": 51.72664,
+   "longitude": -0.31304,
+   "level_c": 11.202
+  },
+  "E516N0206": {
+   "cell_id": "E516N0206",
+   "east_km": 516,
+   "north_km": 206,
+   "latitude": 51.74462,
+   "longitude": -0.31237,
+   "level_c": 11.079
+  },
+  "E517N0167": {
+   "cell_id": "E517N0167",
+   "east_km": 517,
+   "north_km": 167,
+   "latitude": 51.39386,
+   "longitude": -0.31093,
+   "level_c": 11.97
+  },
+  "E517N0180": {
+   "cell_id": "E517N0180",
+   "east_km": 517,
+   "north_km": 180,
+   "latitude": 51.51071,
+   "longitude": -0.30661,
+   "level_c": 11.965
+  },
+  "E518N0105": {
+   "cell_id": "E518N0105",
+   "east_km": 518,
+   "north_km": 105,
+   "latitude": 50.83632,
+   "longitude": -0.31694,
+   "level_c": 11.697
+  },
+  "E521N0193": {
+   "cell_id": "E521N0193",
+   "east_km": 521,
+   "north_km": 193,
+   "latitude": 51.62671,
+   "longitude": -0.2445,
+   "level_c": 11.356
+  },
+  "E521N0207": {
+   "cell_id": "E521N0207",
+   "east_km": 521,
+   "north_km": 207,
+   "latitude": 51.75254,
+   "longitude": -0.23962,
+   "level_c": 11.124
+  },
+  "E521N0237": {
+   "cell_id": "E521N0237",
+   "east_km": 521,
+   "north_km": 237,
+   "latitude": 52.02217,
+   "longitude": -0.22905,
+   "level_c": 11.428
+  },
+  "E525N0134": {
+   "cell_id": "E525N0134",
+   "east_km": 525,
+   "north_km": 134,
+   "latitude": 51.09553,
+   "longitude": -0.20756,
+   "level_c": 11.096
+  },
+  "E525N0182": {
+   "cell_id": "E525N0182",
+   "east_km": 525,
+   "north_km": 182,
+   "latitude": 51.52697,
+   "longitude": -0.19067,
+   "level_c": 12.349
+  },
+  "E525N0212": {
+   "cell_id": "E525N0212",
+   "east_km": 525,
+   "north_km": 212,
+   "latitude": 51.7966,
+   "longitude": -0.17989,
+   "level_c": 11.205
+  },
+  "E525N0223": {
+   "cell_id": "E525N0223",
+   "east_km": 525,
+   "north_km": 223,
+   "latitude": 51.89546,
+   "longitude": -0.1759,
+   "level_c": 11.088
+  },
+  "E525N0406": {
+   "cell_id": "E525N0406",
+   "east_km": 525,
+   "north_km": 406,
+   "latitude": 53.53988,
+   "longitude": -0.10596,
+   "level_c": 10.975
+  },
+  "E526N0136": {
+   "cell_id": "E526N0136",
+   "east_km": 526,
+   "north_km": 136,
+   "latitude": 51.11328,
+   "longitude": -0.19258,
+   "level_c": 11.245
+  },
+  "E526N0182": {
+   "cell_id": "E526N0182",
+   "east_km": 526,
+   "north_km": 182,
+   "latitude": 51.52674,
+   "longitude": -0.17626,
+   "level_c": 12.35
+  },
+  "E527N0166": {
+   "cell_id": "E527N0166",
+   "east_km": 527,
+   "north_km": 166,
+   "latitude": 51.38271,
+   "longitude": -0.16762,
+   "level_c": 12.018
+  },
+  "E528N0179": {
+   "cell_id": "E528N0179",
+   "east_km": 528,
+   "north_km": 179,
+   "latitude": 51.49933,
+   "longitude": -0.14853,
+   "level_c": 12.688
+  },
+  "E528N0193": {
+   "cell_id": "E528N0193",
+   "east_km": 528,
+   "north_km": 193,
+   "latitude": 51.62516,
+   "longitude": -0.14341,
+   "level_c": 11.911
+  },
+  "E529N0105": {
+   "cell_id": "E529N0105",
+   "east_km": 529,
+   "north_km": 105,
+   "latitude": 50.83397,
+   "longitude": -0.16079,
+   "level_c": 11.884
+  },
+  "E529N0175": {
+   "cell_id": "E529N0175",
+   "east_km": 529,
+   "north_km": 175,
+   "latitude": 51.46315,
+   "longitude": -0.1356,
+   "level_c": 12.431
+  },
+  "E529N0180": {
+   "cell_id": "E529N0180",
+   "east_km": 529,
+   "north_km": 180,
+   "latitude": 51.50809,
+   "longitude": -0.13376,
+   "level_c": 12.628
+  },
+  "E531N0174": {
+   "cell_id": "E531N0174",
+   "east_km": 531,
+   "north_km": 174,
+   "latitude": 51.4537,
+   "longitude": -0.10719,
+   "level_c": 12.331
+  },
+  "E532N0166": {
+   "cell_id": "E532N0166",
+   "east_km": 532,
+   "north_km": 166,
+   "latitude": 51.38157,
+   "longitude": -0.0958,
+   "level_c": 11.818
+  },
+  "E532N0344": {
+   "cell_id": "E532N0344",
+   "east_km": 532,
+   "north_km": 344,
+   "latitude": 52.98113,
+   "longitude": -0.0262,
+   "level_c": 10.913
+  },
+  "E533N0157": {
+   "cell_id": "E533N0157",
+   "east_km": 533,
+   "north_km": 157,
+   "latitude": 51.30044,
+   "longitude": -0.08481,
+   "level_c": 10.857
+  },
+  "E533N0175": {
+   "cell_id": "E533N0175",
+   "east_km": 533,
+   "north_km": 175,
+   "latitude": 51.46222,
+   "longitude": -0.07805,
+   "level_c": 12.366
+  },
+  "E533N0183": {
+   "cell_id": "E533N0183",
+   "east_km": 533,
+   "north_km": 183,
+   "latitude": 51.53412,
+   "longitude": -0.07502,
+   "level_c": 12.55
+  },
+  "E533N0428": {
+   "cell_id": "E533N0428",
+   "east_km": 533,
+   "north_km": 428,
+   "latitude": 53.73555,
+   "longitude": 0.02414,
+   "level_c": 10.66
+  },
+  "E534N0182": {
+   "cell_id": "E534N0182",
+   "east_km": 534,
+   "north_km": 182,
+   "latitude": 51.5249,
+   "longitude": -0.06099,
+   "level_c": 12.58
+  },
+  "E536N0172": {
+   "cell_id": "E536N0172",
+   "east_km": 536,
+   "north_km": 172,
+   "latitude": 51.43454,
+   "longitude": -0.03604,
+   "level_c": 12.152
+  },
+  "E539N0170": {
+   "cell_id": "E539N0170",
+   "east_km": 539,
+   "north_km": 170,
+   "latitude": 51.41584,
+   "longitude": 0.00631,
+   "level_c": 11.922
+  },
+  "E539N0177": {
+   "cell_id": "E539N0177",
+   "east_km": 539,
+   "north_km": 177,
+   "latitude": 51.47875,
+   "longitude": 0.00907,
+   "level_c": 12.266
+  },
+  "E539N0181": {
+   "cell_id": "E539N0181",
+   "east_km": 539,
+   "north_km": 181,
+   "latitude": 51.5147,
+   "longitude": 0.01065,
+   "level_c": 12.491
+  },
+  "E541N0192": {
+   "cell_id": "E541N0192",
+   "east_km": 541,
+   "north_km": 192,
+   "latitude": 51.61305,
+   "longitude": 0.04389,
+   "level_c": 11.932
+  },
+  "E542N0180": {
+   "cell_id": "E542N0180",
+   "east_km": 542,
+   "north_km": 180,
+   "latitude": 51.50496,
+   "longitude": 0.05346,
+   "level_c": 12.46
+  },
+  "E544N0187": {
+   "cell_id": "E544N0187",
+   "east_km": 544,
+   "north_km": 187,
+   "latitude": 51.56736,
+   "longitude": 0.08513,
+   "level_c": 12.13
+  },
+  "E544N0191": {
+   "cell_id": "E544N0191",
+   "east_km": 544,
+   "north_km": 191,
+   "latitude": 51.6033,
+   "longitude": 0.08678,
+   "level_c": 11.795
+  },
+  "E545N0207": {
+   "cell_id": "E545N0207",
+   "east_km": 545,
+   "north_km": 207,
+   "latitude": 51.74682,
+   "longitude": 0.10787,
+   "level_c": 11.244
+  },
+  "E548N0215": {
+   "cell_id": "E548N0215",
+   "east_km": 548,
+   "north_km": 215,
+   "latitude": 51.81792,
+   "longitude": 0.15473,
+   "level_c": 11.307
+  },
+  "E549N0179": {
+   "cell_id": "E549N0179",
+   "east_km": 549,
+   "north_km": 179,
+   "latitude": 51.49416,
+   "longitude": 0.15383,
+   "level_c": 12.177
+  },
+  "E553N0156": {
+   "cell_id": "E553N0156",
+   "east_km": 553,
+   "north_km": 156,
+   "latitude": 51.28641,
+   "longitude": 0.20147,
+   "level_c": 10.966
+  },
+  "E553N0172": {
+   "cell_id": "E553N0172",
+   "east_km": 553,
+   "north_km": 172,
+   "latitude": 51.43019,
+   "longitude": 0.20837,
+   "level_c": 11.788
+  },
+  "E555N0364": {
+   "cell_id": "E555N0364",
+   "east_km": 555,
+   "north_km": 364,
+   "latitude": 53.15461,
+   "longitude": 0.3258,
+   "level_c": 11.112
+  },
+  "E558N0173": {
+   "cell_id": "E558N0173",
+   "east_km": 558,
+   "north_km": 173,
+   "latitude": 51.4378,
+   "longitude": 0.28069,
+   "level_c": 11.944
+  },
+  "E558N0174": {
+   "cell_id": "E558N0174",
+   "east_km": 558,
+   "north_km": 174,
+   "latitude": 51.44679,
+   "longitude": 0.28114,
+   "level_c": 12.031
+  },
+  "E558N0182": {
+   "cell_id": "E558N0182",
+   "east_km": 558,
+   "north_km": 182,
+   "latitude": 51.51867,
+   "longitude": 0.28473,
+   "level_c": 11.736
+  },
+  "E560N0099": {
+   "cell_id": "E560N0099",
+   "east_km": 560,
+   "north_km": 99,
+   "latitude": 50.77228,
+   "longitude": 0.27653,
+   "level_c": 12.127
+  },
+  "E560N0174": {
+   "cell_id": "E560N0174",
+   "east_km": 560,
+   "north_km": 174,
+   "latitude": 51.44622,
+   "longitude": 0.3099,
+   "level_c": 11.933
+  },
+  "E564N0258": {
+   "cell_id": "E564N0258",
+   "east_km": 564,
+   "north_km": 258,
+   "latitude": 52.19975,
+   "longitude": 0.40733,
+   "level_c": 10.833
+  },
+  "E570N0206": {
+   "cell_id": "E570N0206",
+   "east_km": 570,
+   "north_km": 206,
+   "latitude": 51.73079,
+   "longitude": 0.46923,
+   "level_c": 11.322
+  },
+  "E572N0189": {
+   "cell_id": "E572N0189",
+   "east_km": 572,
+   "north_km": 189,
+   "latitude": 51.57745,
+   "longitude": 0.48977,
+   "level_c": 11.75
+  },
+  "E576N0155": {
+   "cell_id": "E576N0155",
+   "east_km": 576,
+   "north_km": 155,
+   "latitude": 51.27077,
+   "longitude": 0.53051,
+   "level_c": 11.599
+  },
+  "E581N0197": {
+   "cell_id": "E581N0197",
+   "east_km": 581,
+   "north_km": 197,
+   "latitude": 51.64649,
+   "longitude": 0.62367,
+   "level_c": 11.535
+  },
+  "E592N0174": {
+   "cell_id": "E592N0174",
+   "east_km": 592,
+   "north_km": 174,
+   "latitude": 51.43625,
+   "longitude": 0.76991,
+   "level_c": 12.115
+  },
+  "E595N0210": {
+   "cell_id": "E595N0210",
+   "east_km": 595,
+   "north_km": 210,
+   "latitude": 51.75856,
+   "longitude": 0.83308,
+   "level_c": 11.465
+  },
+  "E601N0161": {
+   "cell_id": "E601N0161",
+   "east_km": 601,
+   "north_km": 161,
+   "latitude": 51.31637,
+   "longitude": 0.89187,
+   "level_c": 11.724
+  },
+  "E604N0120": {
+   "cell_id": "E604N0120",
+   "east_km": 604,
+   "north_km": 120,
+   "latitude": 50.94706,
+   "longitude": 0.91159,
+   "level_c": 11.615
+  },
+  "E614N0242": {
+   "cell_id": "E614N0242",
+   "east_km": 614,
+   "north_km": 242,
+   "latitude": 52.03892,
+   "longitude": 1.12791,
+   "level_c": 11.442
+  },
+  "E614N0244": {
+   "cell_id": "E614N0244",
+   "east_km": 614,
+   "north_km": 244,
+   "latitude": 52.05687,
+   "longitude": 1.12917,
+   "level_c": 11.555
+  },
+  "E616N0215": {
+   "cell_id": "E616N0215",
+   "east_km": 616,
+   "north_km": 215,
+   "latitude": 51.79573,
+   "longitude": 1.14005,
+   "level_c": 11.549
+  },
+  "E616N0244": {
+   "cell_id": "E616N0244",
+   "east_km": 616,
+   "north_km": 244,
+   "latitude": 52.05609,
+   "longitude": 1.15829,
+   "level_c": 11.619
+  },
+  "E618N0217": {
+   "cell_id": "E618N0217",
+   "east_km": 618,
+   "north_km": 217,
+   "latitude": 51.8129,
+   "longitude": 1.17027,
+   "level_c": 11.543
+  },
+  "E624N0310": {
+   "cell_id": "E624N0310",
+   "east_km": 624,
+   "north_km": 310,
+   "latitude": 52.64535,
+   "longitude": 1.31892,
+   "level_c": 10.94
+  },
+  "E652N0306": {
+   "cell_id": "E652N0306",
+   "east_km": 652,
+   "north_km": 306,
+   "latitude": 52.59716,
+   "longitude": 1.7289,
+   "level_c": 11.207
+  }
+ }
+}
