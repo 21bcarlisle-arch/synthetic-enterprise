@@ -28,6 +28,35 @@ class WeatherArchiveRefusal(RuntimeError):
     """
 
 
+class WeatherQuotaExhausted(WeatherArchiveRefusal):
+    """The DAILY quota is spent, so no wait inside this run can clear it.
+
+    A SUBCLASS on purpose: every existing `except WeatherArchiveRefusal` keeps catching it
+    unchanged, and only a caller that wants the distinction has to know the name.
+
+    WHY THE DISTINCTION IS WORTH A TYPE, measured 2026-09-17. Open-Meteo enforces at least two
+    limits behind the SAME 429, and only its `reason` string separates them: a burst limit, which
+    `tools/build_weather_world.PAUSE_SECONDS` was measured against and which a pause does clear,
+    and this one, which resets tomorrow. `_fetch_with_backoff` asked `"429" not in str(exc)` and
+    so retried both identically -- four backoffs totalling six minutes PER CELL against a limit
+    that six minutes cannot reach. A 23-cell resume run under an exhausted daily quota spends
+    about two and a quarter hours sleeping, writes nothing, and reports 23 refusals whose shared
+    cause appears nowhere in the summary.
+    """
+
+
+#: Open-Meteo's own words for the limit a wait cannot clear, lowercased for comparison. MATCHED ON
+#: THE REASON, NOT THE STATUS: the status is 429 for both limits, which is exactly the confusion
+#: this exists to end. Kept as a prefix of the live string ("... Please try again tomorrow.") so a
+#: change to the trailing advice does not silently turn every daily quota back into a burst retry.
+DAILY_QUOTA_REASON = "daily api request limit exceeded"
+
+
+def _is_daily_quota(reason: str) -> bool:
+    """Whether Open-Meteo's reason names the daily quota rather than the burst limit."""
+    return DAILY_QUOTA_REASON in reason.lower()
+
+
 def _existing_row_count(output_path: str) -> int | None:
     """Data rows already at `output_path`, or None if there is nothing there to protect.
 
@@ -86,10 +115,15 @@ def get_daily_weather(location_id: str, latitude: float, longitude: float,
         # rate-limited pull DESTROYED ten years of real weather and exited 0. Found by
         # running it — Open-Meteo answered 429 "Daily API request limit exceeded", the
         # two new sites came back with 0 records, and nothing anywhere said so.
-        raise WeatherArchiveRefusal(
+        reason = _response_reason(response)
+        # THE TYPE IS CHOSEN HERE, where the reason is read, and nowhere else. A caller that
+        # re-sniffs the message string would be a second place to keep in step with Open-Meteo's
+        # wording, and the first one already drifted once.
+        refusal = WeatherQuotaExhausted if _is_daily_quota(reason) else WeatherArchiveRefusal
+        raise refusal(
             f"Open-Meteo refused the archive for {location_id!r} "
             f"({latitude}, {longitude}) {start_date}..{end_date}: "
-            f"HTTP {response.status_code} — {_response_reason(response)}"
+            f"HTTP {response.status_code} — {reason}"
         )
 
     data = response.json()

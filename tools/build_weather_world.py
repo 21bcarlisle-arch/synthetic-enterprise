@@ -131,6 +131,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
+from sim.weather_ingestor import WeatherQuotaExhausted  # noqa: E402
 from sim.weather_world import (  # noqa: E402
     CELLS_PATH,
     FIELDS,
@@ -280,14 +281,20 @@ def extract_temperature(cells: dict[str, dict], progress=print) -> dict:
 
 
 def _fetch_with_backoff(fetch, key, lat, lon, start, end, progress):
-    """A 429 is "come back later", not a refusal. Anything else fails on the first attempt.
+    """A BURST 429 is "come back later", not a refusal. Anything else fails on the first attempt.
 
     Resumability is the real protection and it is structural: `build` skips cells already in the
     store, so an interrupted run is resumed by re-running the same command.
+
+    A DAILY-QUOTA 429 IS NOT A WAIT THIS FUNCTION CAN OUTLIVE, and it is raised straight through
+    rather than backed off. See `sim.weather_ingestor.WeatherQuotaExhausted` for the measurement:
+    retrying it burnt six minutes per cell against a limit that resets tomorrow.
     """
     for attempt in range(1, RETRY_ATTEMPTS + 1):
         try:
             return fetch(key, lat, lon, start, end)
+        except WeatherQuotaExhausted:
+            raise
         except Exception as exc:  # noqa: BLE001 -- re-raised below when it is not a rate limit
             if "429" not in str(exc) or attempt == RETRY_ATTEMPTS:
                 raise
@@ -426,18 +433,37 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
         overlay_temperature(known, held, progress=progress)
 
     todo = [c for c in cells.values() if not _has_era5(held.get(c["cell_id"], []))]
+    # NAMED ON THE SURFACE, because the two numbers are not the same and the difference reads as a
+    # failed pull. `todo` is drawn from the BOOK; the store also holds cells the book has left, and
+    # `_write` keeps them on purpose. Those can never be completed by this loop, so a run that
+    # succeeds at everything it attempts still leaves them temperature-only -- and a reader who was
+    # told only "31 incomplete" would score a perfect run as 8 short.
+    unreachable = sorted(k for k in held
+                         if k not in cells and not _has_era5(held[k]))
     if limit is not None:
         todo = todo[:limit]
     progress(f"{len(cells)} cell(s) in the book; {len(held)} held; "
              f"{len(todo)} still needing the ERA5 archive")
+    if unreachable:
+        progress(f"  {len(unreachable)} further incomplete cell(s) are NOT in the book and this "
+                 f"pass cannot reach them: {', '.join(unreachable)}")
 
     refused = []
+    quota_exhausted = None
     for index, cell in enumerate(todo, start=1):
         key = cell["cell_id"]
         try:
             records = _fetch_with_backoff(
                 get_daily_weather, key, cell["latitude"], cell["longitude"],
                 START_DATE, END_DATE, progress)
+        except WeatherQuotaExhausted as exc:
+            # STOP THE RUN, not this cell. The quota is a property of the DAY and of this
+            # machine's key, so every remaining cell would refuse for the identical reason. Going
+            # on turns one legible "come back tomorrow" into a list of N refusals whose shared
+            # cause is visible only to someone who reads all N.
+            quota_exhausted = str(exc)
+            progress(f"  [{index}/{len(todo)}] {key} QUOTA EXHAUSTED, stopping: {str(exc)[:110]}")
+            break
         except Exception as exc:  # noqa: BLE001 -- recorded, not swallowed
             refused.append({"cell_id": key, "reason": str(exc)[:200]})
             progress(f"  [{index}/{len(todo)}] {key} REFUSED: {str(exc)[:110]}")
@@ -460,7 +486,8 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
         time.sleep(pause)
 
     written = _write(known, held)
-    return {"cells": len(cells), "held": len(held), "refused": refused, **written}
+    return {"cells": len(cells), "held": len(held), "refused": refused,
+            "quota_exhausted": quota_exhausted, "unreachable": unreachable, **written}
 
 
 SOURCE_LINE = ("temperature: HadUK-Grid 1 km daily (CEDA). "
@@ -592,6 +619,16 @@ def main(argv: list[str] | None = None) -> int:
                        temperature=not args.no_temperature)
         print(f"cells held {result['held']}/{result['cells']}, "
               f"regimes {result['regimes']}, refused {len(result['refused'])}")
+        if result["unreachable"]:
+            print(f"{len(result['unreachable'])} incomplete cell(s) are outside the book and were "
+                  f"not attempted: {', '.join(result['unreachable'])}")
+        if result["quota_exhausted"]:
+            # ON THE SURFACE AND IN THE EXIT CODE. "Try again tomorrow" is a RESULT, not a
+            # footnote: it tells the next session that re-running now cannot help, which is the
+            # one thing a list of per-cell refusals does not say.
+            print(f"STOPPED ON THE DAILY QUOTA — re-running before it resets cannot help.\n"
+                  f"  {result['quota_exhausted']}")
+            return 1
         return 1 if result["refused"] else 0
     parser.print_help(sys.stderr)
     return 2
