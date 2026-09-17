@@ -8350,3 +8350,175 @@ def test_the_advantage_never_reaches_the_page_without_a_discrimination_block_bes
         "the live floor produces a discrimination state this control does not know about")
     assert (block.get("reading") or "").strip(), (
         "the live floor's discrimination block reaches the page with no sentence in it")
+
+
+# ---------------------------------------------------------------------------
+# THE AUC AGAINST THE NULL OF THE STATISTIC ITSELF (2026-09-17)
+#
+# The block above could say only "0 of 18 draws carry a figure" -- a count, and no reading -- while
+# the one artefact in this repo carrying the statistic per seed sat on disk with three draws of it.
+# `sqrt((n1+n2+1)/(12*n1*n2))` needs no family at all, so the ruler was available the whole time.
+#
+# R15 -- the mutations, each run and reverted:
+#   * pass `auc_family=None` at the `_error_bar` call site -> the live-artefact leg reds (the
+#     reading computes perfectly and reaches no reader, which was the state on 2026-09-17).
+#   * return the family's own sd from `_auc_against_its_own_null` as `null_sd` -> the spread
+#     mutation below reds, because 1.96 x 0.00834 is nowhere near the exact null's half-width.
+#   * divide the distance by `null_sd / sqrt(n)` -> the sqrt(n) leg reds.
+# ---------------------------------------------------------------------------
+
+
+def _auc_family_rows():
+    """The three real rows, off the artefact the page actually reads."""
+    family = gva._read(gva.AUC_FAMILY_FLOOR_PATH)
+    if not family:
+        pytest.fail("the AUC-carrying floor named by `AUC_FAMILY_FLOOR_PATH` could not be read, "
+                    "so no leg of this section is measuring its subject (R15)")
+    return family
+
+
+def test_the_null_ruler_is_available_at_ONE_seed_which_is_the_whole_point_of_it():
+    """A family-shaped ruler is unavailable at every sample size this book has ever run at.
+
+    Fires on: computing the null from a spread over seeds. The formula is a function of the two
+    outcome counts and of nothing else, so it must resolve on a single row with no family
+    anywhere near it -- which is the state every AUC this project has published was in.
+    """
+    assert gva._auc_null_sd(64, 42) is not None
+    assert gva._auc_null_sd(1, 1) is not None, (
+        "the null refuses at the smallest population that has one, so the ruler needs a sample "
+        "size it was chosen precisely because it does not need")
+    assert gva._auc_null_sd(64, 0) is None, (
+        "an empty outcome class returned a null width; there is no rank statistic there, and a "
+        "number here is a bound every observed value clears")
+    assert gva._auc_null_sd(True, 42) is None, (
+        "a bool passed as a count produced a null, so `True` scores as a population of one")
+
+
+def test_MUTATION_the_seed_familys_own_spread_is_NEVER_this_figures_interval():
+    """THE TEMPTING WRONG REPAIR, refused by a control because it was refuted by measurement.
+
+    THE DEFECT: publish the AUC's spread ACROSS THE SEED FAMILY as its error bar. It is the
+    obvious move, it is what a reader expects beside a family of draws, and it is wrong: measured
+    2026-09-17, the family's own sd is 0.00834 against a null sd of 0.0578, so it is SEVEN TIMES
+    TOO NARROW. Publishing it would put the most misleading interval on the page rather than the
+    missing one -- a figure would read as decisively clear of chance on a spread that measures
+    how far the instrument moves when its SEED moves.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S NUMBERS, and it is checked against an INDEPENDENT
+    derivation rather than by recomputing the formula this module already wrote. `_auc_null`
+    enumerates the Mann-Whitney distribution combinatorially; the published `null_sd` must agree
+    with the half-width of THAT interval. A family spread substituted here cannot satisfy it at
+    any sample size, because the two quantities answer different questions.
+    """
+    out = gva._auc_against_its_own_null(
+        _auc_family_rows()["seeds"], world="39a192ce04c1eda8",
+        source="a control", is_the_advantages_family=False)
+    assert out["available"] is True, (
+        "the real AUC family produced no reading, so every assertion below is vacuous (R15)")
+    half_width = out["exact_null_half_width"]
+    assert half_width, (
+        "the exact null did not resolve on the real population, so the published width is "
+        "checked against nothing and this control cannot fail")
+    # THE INDEPENDENT CHECK. 1.96 is the two-sided 95% normal quantile the exact interval was cut
+    # at (`_auc_null` takes its bounds at cumulative 0.025), so the two widths are comparable.
+    assert abs(half_width / 1.959963984540054 - out["null_sd"]) < 0.005, (
+        "the published `null_sd` ({}) does not reproduce the half-width of the statistic's own "
+        "exact null ({}), which is what a seed spread substituted for the null looks like"
+        .format(out["null_sd"], half_width))
+    family_sd = out["family_spread_is_not_the_interval"]["family_sd"]
+    assert family_sd and family_sd != out["null_sd"], (
+        "the family's own spread IS the published null width, which is the substitution this "
+        "control exists to refuse")
+    assert out["family_spread_is_not_the_interval"]["times_narrower_than_the_null"] > 1, (
+        "the refuted ruler is published without the ratio that refutes it, so a reader meets two "
+        "widths and no reason to prefer either")
+
+
+def test_MUTATION_the_distance_is_stated_at_the_SINGLE_DRAW_null_and_earns_no_sqrt_n():
+    """Dividing by `sd/sqrt(n)` is the flattering arithmetic and these draws do not earn it.
+
+    Fires on: treating the family's seeds as n independent samples of the statistic. They are
+    re-draws of the same instrument over near-identical populations, so a sqrt(n) here would
+    narrow the ruler by 1.7x on three seeds and turn a NOT DEMONSTRATED into a demonstrated one
+    with no new evidence at all.
+    """
+    out = gva._auc_against_its_own_null(
+        _auc_family_rows()["seeds"], world="39a192ce04c1eda8",
+        source="a control", is_the_advantages_family=False)
+    expected = (out["mean_auc"] - out["null_point"]) / out["null_sd"]
+    assert abs(out["null_sds_above_no_information"] - expected) < 1e-9, (
+        "the published distance is not the mean's distance from 0.5 in single-draw null widths, "
+        "so the ruler printed beside it is not the ruler used")
+    assert out["seeds_read"] > 1, (
+        "this family has one row, so a sqrt(n) mutation could not move the figure and this "
+        "control cannot fail on it (R15)")
+
+
+def test_the_null_reading_REACHES_the_error_bar_off_the_LIVE_artefacts():
+    """A correct function nothing calls is the exact state this repair found, twice.
+
+    `_auc_across_seeds` computed a family reading for a day before any consumer read it, and the
+    AUC-carrying floor sat on disk for hours while the page published a count. So this drives the
+    REAL builder over the REAL constants and asserts the reader gets a verdict.
+
+    Keyed to the property: it asserts a reading exists and states a side, never that the side is
+    today's. A family that starts clearing its null keeps this green.
+    """
+    floor = gva._read(gva.NOISE_FLOOR_PATH)
+    if not floor:
+        pytest.fail("the advantage floor could not be read, so this control cannot run (R15)")
+    bar = gva._error_bar(floor, None, {}, None, None, gva._read(gva.AUC_FAMILY_FLOOR_PATH))
+    block = (bar["discrimination_across_the_family"] or {}).get(
+        "against_the_statistics_own_null")
+    assert block, (
+        "the error bar publishes no reading against the statistic's own null, so the page can "
+        "only say how many draws carry a figure and never what the figure means")
+    assert block.get("available") is True, (
+        "the live artefacts produce no null reading, so the page states a count where it now has "
+        "the evidence for a verdict: " + str(block.get("reason")))
+    assert block.get("demonstrated") in (True, False), (
+        "the reading reaches the page with no side stated, which is the half of the thesis this "
+        "block exists to answer")
+    assert "0.5" in block["reading"], (
+        "the sentence quotes an AUC without the no-information point beside it")
+
+
+def test_a_reading_from_a_DIFFERENT_family_says_so_in_its_own_sentence():
+    """The mispairing every other block in this file refuses, asserted on the prose.
+
+    THE DEFECT: the AUC family and the family the advantage is bounded over are NOT the same
+    family, and a reader who is not told will read this as an interval on that advantage -- which
+    is the retraction already on this page (`withdrawn_claim`), re-run.
+
+    Both sides are asserted, because a label that is always on is not a label.
+    """
+    rows = _auc_family_rows()["seeds"]
+    theirs = gva._auc_against_its_own_null(
+        rows, world=None, source=gva.AUC_FAMILY_SOURCE, is_the_advantages_family=False)
+    assert theirs["is_the_family_the_advantage_is_bounded_over"] is False
+    assert gva.AUC_FAMILY_SOURCE in theirs["reading"] and "DIFFERENT family" in theirs["reading"], (
+        "a reading drawn from another family does not name it, so it reads as a bound on the "
+        "advantage printed above it")
+    ours = gva._auc_against_its_own_null(
+        rows, world=None, source="this family", is_the_advantages_family=True)
+    assert "DIFFERENT family" not in ours["reading"], (
+        "the warning is printed even when the rows ARE the advantage's own family, so it is "
+        "decoration rather than a label and a reader learns nothing from meeting it")
+
+
+def test_a_row_carrying_an_AUC_with_NO_population_is_counted_out_not_defaulted():
+    """An AUC with no population has no null, and guessing one is the fail-open direction.
+
+    Fires on: defaulting a missing `auc_population` to the last row's, or to any population at
+    all. The ruler's whole claim is that it comes from THIS figure's outcome counts.
+    """
+    usable = gva._auc_rows([
+        {"seed": 1, "discrimination_auc": 0.6, "auc_population": {"retained": 10, "left": 10}},
+        {"seed": 2, "discrimination_auc": 0.9},
+        {"seed": 3, "auc_population": {"retained": 10, "left": 10}},
+        {"seed": 4, "discrimination_auc": 0.7, "auc_population": {"retained": 0, "left": 10}},
+    ])
+    assert [r["seed"] for r in usable] == [1], (
+        "a row with no population, no AUC or an empty outcome class was read as usable, so the "
+        "null published beside a figure did not come from that figure's own population")

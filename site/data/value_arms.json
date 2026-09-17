@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T18:44:43.711225Z",
+  "generated_at": "2026-09-17T19:42:41.020669Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -495,7 +495,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "228b61ce3647a3a830f422d7f4d3cfe4df5b072a",
+    "publishing_tree_commit": "e231f862c8498719c14358eb53bc0a1f2db62a35",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -507,7 +507,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from 228b61ce3 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from e231f862c -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -902,7 +902,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "228b61ce3647a3a830f422d7f4d3cfe4df5b072a",
+      "publishing_tree_commit": "e231f862c8498719c14358eb53bc0a1f2db62a35",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -914,7 +914,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from 228b61ce3 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from e231f862c -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1213,6 +1213,64 @@
       "the_verdicts": "On 18 re-draws the legs split, and the split is the finding rather than a gap in it: the whole advantage over flat rules is positive, the price-LEVEL leg is positive, while the selection leg still has no direction at this sample. The leg that CAN be called is the price LEVEL -- a flat margin with no per-customer inference in it anywhere -- and the level is value MOVED, not made. The leg the mission turns on is the one this book cannot yet call."
     },
     "discrimination_across_the_family": {
+      "against_the_statistics_own_null": {
+        "available": true,
+        "source": "the 3-seed AUC-carrying floor of 2026-09-17",
+        "is_the_family_the_advantage_is_bounded_over": false,
+        "seeds_read": 3,
+        "mean_auc": 0.5697337962962963,
+        "auc_by_seed": [
+          {
+            "seed": 1234567,
+            "auc": 0.5649181547619048,
+            "retained": 64,
+            "left": 42
+          },
+          {
+            "seed": 2345678,
+            "auc": 0.5649181547619048,
+            "retained": 64,
+            "left": 42
+          },
+          {
+            "seed": 3456789,
+            "auc": 0.5793650793650794,
+            "retained": 63,
+            "left": 42
+          }
+        ],
+        "null_point": 0.5,
+        "null_sd": 0.05777864991492475,
+        "null_sd_population": {
+          "retained": 63,
+          "left": 42
+        },
+        "null_sd_formula": "sqrt((retained + left + 1) / (12 * retained * left))",
+        "null_sds_above_no_information": 1.2069128717783246,
+        "exact_null": {
+          "available": true,
+          "retained": 63,
+          "left": 42,
+          "ordered_pairs": 2646,
+          "null_point": 0.5,
+          "null_95_low": 0.3869992441421013,
+          "null_95_high": 0.6130007558578987,
+          "p_two_sided": 0.2311468669201442,
+          "inside_the_null": true,
+          "measured_in_world": "39a192ce04c1eda8",
+          "verdict_withheld_because": null,
+          "basis": "exact Mann-Whitney null over all 388212866177054207116394767200 arrangements of 63 retained and 42 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
+        },
+        "exact_null_half_width": 0.1130007558578987,
+        "closed_form_agrees_with_the_exact_null": true,
+        "family_spread_is_not_the_interval": {
+          "family_sd": 0.00834093580860511,
+          "times_narrower_than_the_null": 6.92711840022988,
+          "why": "A seed family measures how far this instrument moves when its SEED moves. The null measures how far a rank statistic moves when there is NOTHING TO FIND on a population this size. They are different questions and their answers differ by an order of magnitude here, so the family's spread is published as a property of the instrument and never as this figure's interval."
+        },
+        "demonstrated": false,
+        "reading": "Discrimination reads 0.5697 across 3 draw(s), measured over a DIFFERENT family from the one the advantage above is bounded over (the 3-seed AUC-carrying floor of 2026-09-17), so it bounds nothing on this page and is not offered as an interval on anything: it is this book's only measured answer to whether the arm knows anything. 0.5 is the no-information point, and on 63 retained against 42 departed renewals a signal carrying nothing at all scatters with a standard deviation of 0.0578. This figure sits 1.21 of those above 0.5. That is INSIDE its own exact 95% null (0.3870-0.6130, two-sided p=0.231), so DISCRIMINATION IS NOT DEMONSTRATED HERE -- in either direction. An arm that beat the control while scoring at chance won by charging and not by knowing, and this book cannot yet tell those apart. That is a finding about the instrument's sample size and not a cue to re-run until a seed agrees."
+      },
       "available": false,
       "state": "asked_and_unanswerable",
       "reason": "18 of this family's 18 seed rows carry no `discrimination_auc`. Floors produced before 2026-09-17 did not record it, so the advantage figures in this family have no discrimination reading beside them and none can be recovered without re-running the seeds. A spread over only the 0 rows that DO answer would bound a different family from the one whose advantage is published here, so this states an unknown instead.",

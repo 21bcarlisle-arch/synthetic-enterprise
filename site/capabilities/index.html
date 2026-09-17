@@ -1479,7 +1479,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + " draws carry a figure)"
             : "")
         + ". " + prose(d.reading) + " " + prose(d.what_this_costs)
-        + (d.reason ? " " + prose(d.reason) : "") + "</span>";
+        + (d.reason ? " " + prose(d.reason) : "") + "</span>"
+        + ownNull(d.against_the_statistics_own_null);
     }
     var s = d.spread || {};
     return '<span style="display:block;margin-top:10px;color:var(--muted);">'
@@ -1487,7 +1488,52 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + esc(typeof s.mean === "number" ? s.mean.toFixed(3) : "no figure") + "</strong>"
       + (typeof s.min === "number" && typeof s.max === "number"
           ? " (" + s.min.toFixed(3) + "&ndash;" + s.max.toFixed(3) + " across draws)" : "")
-      + ". " + prose(d.reading) + "</span>";
+      + ". " + prose(d.reading)
+      /* THE SPREAD ABOVE IS SEED SENSITIVITY AND THE READER IS TOLD SO IN THE SAME PARAGRAPH.
+         Measured 2026-09-17: the seed family's own sd is SEVEN TIMES NARROWER than the null, so
+         a range printed across draws with nothing beside it is the most misleading interval this
+         block could carry. */
+      + (d.spread_is_seed_sensitivity_not_the_null
+          ? " " + prose(d.spread_is_seed_sensitivity_not_the_null) : "")
+      + "</span>"
+      + ownNull(d.against_the_statistics_own_null);
+  }
+
+  /* THE AUC AGAINST THE NULL OF THE STATISTIC ITSELF, which is the only ruler that does not need
+     a seed family and is therefore the only one available at the sample sizes this book runs at.
+     Rendered on EVERY branch of the block above, refusal included: the question "did the arm win
+     by knowing anything" is the half of the thesis this page exists to answer, and a reading that
+     appeared only when a family happened to carry the figure would go quiet in exactly the state
+     the page has been in since it was built. See `_auc_against_its_own_null`. */
+  function ownNull(n) {
+    if (!n) {
+      return '<span style="display:block;margin-top:6px;color:var(--amber);">'
+        + "<strong>AND NOTHING PLACES IT AGAINST ITS OWN NULL.</strong> The feed carries no such "
+        + "reading at all, so whether any measured discrimination clears chance is unread here "
+        + "rather than answered.</span>";
+    }
+    if (!n.available) {
+      return '<span style="display:block;margin-top:6px;color:var(--amber);">'
+        + prose(n.reading) + " " + prose(n.reason) + "</span>";
+    }
+    var f = n.family_spread_is_not_the_interval || {};
+    return '<span style="display:block;margin-top:6px;color:'
+      + (n.demonstrated === true ? "var(--muted)" : "var(--amber)") + ';">'
+      + "<strong>Against the statistic's own null &mdash; "
+      + esc(typeof n.mean_auc === "number" ? n.mean_auc.toFixed(4) : "no figure")
+      + (typeof n.null_sds_above_no_information === "number"
+          ? ", " + n.null_sds_above_no_information.toFixed(2) + " null SDs from chance" : "")
+      + "</strong>. " + prose(n.reading)
+      /* WHY THE FAMILY'S OWN SPREAD IS NOT THIS INTERVAL, with the ratio that refutes it. The
+         tempting repair was measured and rejected; a reader shown only the right ruler cannot
+         tell that the wrong one was considered. */
+      + (typeof f.times_narrower_than_the_null === "number"
+          ? '<span style="display:block;margin-top:4px;color:var(--muted);">The seed family’s '
+            + "own spread is " + f.times_narrower_than_the_null.toFixed(1)
+            + "&times; narrower than this null and is NOT the interval on this figure. "
+            + prose(f.why) + "</span>"
+          : "")
+      + "</span>";
   }
 
   /* THE SECOND DRAW OF THE FIGURE THIS PANEL BOUNDS, rendered INSIDE the panel and not under it.

@@ -269,6 +269,27 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: so it buys a wider sample for a block that already refuses, at the price of a door. Held.
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
     "value_cycle_ab_s1_noise_floor_folded18_20260917.json")
+#: THE ONLY FAMILY IN THIS REPOSITORY THAT CARRIES THE DISCRIMINATION AUC PER SEED, and it is a
+#: DIFFERENT family from `NOISE_FLOOR_PATH` above. Three seeds, world `39a192ce04c1eda8` -- the
+#: same world the folded 18 ran in -- drawn 2026-09-17 under commit `c9bd2eae7`.
+#:
+#: WHY IT IS A SECOND CONSTANT AND NOT FOLDED INTO THE ONE ABOVE. Folding is one command and it
+#: was deliberately not done: it would move the ADVANTAGE family from 18 draws to 21, which is the
+#: sibling lane's subject and has twelve more seeds in flight, and it would LOSE the served book
+#: (`folded18` declares none, so the folded 21 states no book at all). Nothing about the
+#: discrimination reading needs that fold -- the AUC's null comes from its own outcome counts, not
+#: from the advantage family -- so the two families stay separate and the block that reads this
+#: one says in every branch that it is not the family the advantage is bounded over.
+#:
+#: WHAT IT MAY NEVER BE USED FOR. It bounds nothing else on this page. Its seeds' `selection_gbp`
+#: must not join the error bar's family, and its spread must not become any figure's interval:
+#: `_auc_against_its_own_null` publishes the family's own sd explicitly as REFUTED for that use.
+AUC_FAMILY_FLOOR_PATH = PROJECT / "docs" / "observability" / (
+    "value_cycle_ab_s1_noise_floor_auc3_20260917.json")
+#: How the AUC family names itself wherever its reading renders. One spelling, because the block
+#: states in prose which family a figure came from and a second wording is how that label drifts
+#: away from the constant it describes.
+AUC_FAMILY_SOURCE = "the 3-seed AUC-carrying floor of 2026-09-17"
 #: The floor re-run over the world the contrast above was measured in. WITHOUT THIS CONSTANT THE
 #: PAGE CANNOT BE BOUND AT ALL: `CURRENT_WORLD_THREE_ARM_PATH` was moved to the re-run when the
 #: arms were re-taken and the floor beside it was not, so `_current_world_contrast` read a floor
@@ -1463,7 +1484,8 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
 
 
 def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
-               point_clock: str | None = None, split: dict | None = None) -> dict:
+               point_clock: str | None = None, split: dict | None = None,
+               auc_family: dict | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
 
     NEVER fails open to a spread of zero: a spread of zero is the one value that would make an
@@ -1656,7 +1678,9 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # (2026-09-17). The advantage and the discrimination are the two halves of one question and
         # this page has published the first without the second before -- the retraction is in
         # `withdrawn_claim`. See `_family_discrimination`: it is a REFUSAL today, and it renders.
-        "discrimination_across_the_family": _family_discrimination(floor),
+        # PASSED THE AUC FAMILY AS WELL AS THE ADVANTAGE FAMILY, because they are not the same
+        # family and today only the second carries the statistic. See `AUC_FAMILY_FLOOR_PATH`.
+        "discrimination_across_the_family": _family_discrimination(floor, auc_family),
     }
 
 
@@ -1666,7 +1690,206 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
 FAMILY_AUC_KEY = "discrimination_auc_across_seeds"
 
 
-def _family_discrimination(floor: dict | None) -> dict:
+def _auc_null_sd(retained, left):
+    """The AUC's own null standard deviation, `sqrt((n1+n2+1)/(12*n1*n2))`.
+
+    THE RULER THIS FIGURE HAS ALWAYS NEEDED AND NEVER HAD, and the point of it is what it does NOT
+    require. It is a function of the two outcome counts and of nothing else: no family, no second
+    seed, no re-draw. It is available at ONE run, which is the state every AUC this project has
+    ever published was in, and it is what the 2026-08-30 retraction on this page demanded in
+    words -- a reading "composed from the figure's own exact null interval".
+
+    WHY IT IS PUBLISHED BESIDE THE EXACT NULL RATHER THAN INSTEAD OF IT. `_auc_null` enumerates the
+    Mann-Whitney distribution and is the verdict; this is the SCALE, and a distance stated in null
+    standard deviations is what makes two readings on different populations comparable at a glance.
+    The two agree where both exist -- at 64 retained x 42 left the exact 95% bound is 0.3873..0.6127
+    and 1.96 of this sd is 0.1129, the same half-width to three places -- and `_auc_against_its_own_
+    null` asserts that agreement rather than assuming it, because a closed form that has drifted
+    from the enumeration it claims to approximate is a ruler nobody would notice was wrong.
+
+    Returns `None` when either outcome class is empty: there is no rank statistic there, so there
+    is no null either, and a zero would read as a null of no width -- the direction in which every
+    observed value clears its bound.
+    """
+    if isinstance(retained, bool) or isinstance(left, bool):
+        return None
+    if not isinstance(retained, int) or not isinstance(left, int):
+        return None
+    if retained < 1 or left < 1:
+        return None
+    return math.sqrt((retained + left + 1) / (12.0 * retained * left))
+
+
+def _auc_rows(rows) -> list:
+    """Every seed row carrying BOTH an AUC and the population it was scored on.
+
+    Both, because either alone is unreadable: an AUC with no population has no null, and a
+    population with no AUC has nothing to place against one. A row carrying only one of them is
+    not a row this reading can use, and it is counted as such rather than defaulted.
+    """
+    out = []
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        auc = row.get("discrimination_auc")
+        if isinstance(auc, bool) or not isinstance(auc, (int, float)):
+            continue
+        population = row.get("auc_population")
+        if not isinstance(population, dict):
+            continue
+        sd = _auc_null_sd(population.get("retained"), population.get("left"))
+        if sd is None:
+            continue
+        out.append({"seed": row.get("seed"), "auc": float(auc),
+                    "retained": population.get("retained"), "left": population.get("left"),
+                    "null_sd": sd})
+    return out
+
+
+def _auc_against_its_own_null(rows, *, world: str | None, source: str,
+                              is_the_advantages_family: bool) -> dict:
+    """What the AUC reads against the null of the statistic ITSELF, not against a redraw family.
+
+    THE DEFECT THIS CLOSES. `_family_discrimination` could say only "0 of 18 draws carry a figure"
+    -- a count, and no reading -- while the one artefact in this repo that carries the statistic
+    per seed sat on disk with three draws of it. The thesis question the director's direction turns
+    on is whether the advantage comes from INFERENCE or from ACCESS, and a count cannot answer it
+    in either direction. This states the answer: 0.5697 at 1.21 null standard deviations above the
+    no-information point, inside its own exact null. NOT DEMONSTRATED, which is a result.
+
+    THE FAMILY'S OWN SPREAD IS NEVER THIS INTERVAL, AND THAT IS THE WHOLE POINT OF THE SHAPE. The
+    tempting repair -- publish the AUC's spread across the seed family as its error bar -- was
+    measured and REFUTED before this was written (2026-09-17): the three-seed family's own sd is
+    0.00834 against a null sd of 0.0576, so it is SEVEN TIMES TOO NARROW and publishing it would
+    put the most misleading interval on the page rather than the missing one. A redraw family
+    measures how much this instrument moves when its seed moves. It does not measure how much a
+    rank statistic moves when nothing is there to find, and those are different questions with
+    answers an order of magnitude apart. The spread is still published -- as
+    `family_spread_is_not_the_interval`, with the ratio that refutes it -- because a reader who is
+    shown only the right ruler cannot see that the wrong one was considered and rejected.
+
+    THE MEAN IS PLACED AS ONE DRAW'S WORTH OF EVIDENCE, not as a mean of n. Dividing by
+    `sd/sqrt(n)` would be the flattering arithmetic and it would be wrong here: these are re-draws
+    of the same instrument over near-identical populations, so they are not n independent samples
+    of the statistic and no sqrt(n) is earned. Stating it at the single-draw null is the
+    conservative direction, and `null_sds_above_no_information` counts exactly that: how far the
+    family's mean AUC sits from 0.5, in units of what ONE draw of a no-information signal would
+    scatter by on this population.
+
+    THE POPULATION USED IS THE ONE WITH THE WIDEST NULL, when the rows disagree. Rows here run
+    64x42, 64x42 and 63x42; the widest null is the smallest population's, and taking it is the
+    direction that makes the reading harder to clear rather than easier.
+    """
+    usable = _auc_rows(rows)
+    if not usable:
+        return {
+            "available": False,
+            "reason": ("no row in {} carries both a `discrimination_auc` and the "
+                       "`auc_population` it was scored on, so there is no figure to place against "
+                       "a null and none to compute a null from.".format(source)),
+            "reading": (
+                "NOTHING HERE STATES WHETHER THE ARM WON BY KNOWING ANYTHING. That is not a "
+                "caveat on the advantage beside it -- it is the half of the thesis this "
+                "instrument has not measured."),
+        }
+    aucs = [r["auc"] for r in usable]
+    mean = statistics.fmean(aucs)
+    # THE WIDEST NULL AMONG THE ROWS, and the row it comes from, so the two cannot come apart.
+    widest = max(usable, key=lambda r: r["null_sd"])
+    null_sd = widest["null_sd"]
+    distance = (mean - 0.5) / null_sd
+    exact = _auc_null(widest["retained"], widest["left"], mean, measured_in_world=world)
+    # THE CLOSED FORM CHECKED AGAINST THE ENUMERATION IT APPROXIMATES, not assumed to match it.
+    half_width = None
+    agrees = None
+    if exact.get("available"):
+        half_width = (exact["null_95_high"] - exact["null_95_low"]) / 2.0
+        agrees = abs(half_width - 1.959963984540054 * null_sd) < 0.005
+    family_sd = statistics.stdev(aucs) if len(aucs) > 1 else None
+    demonstrated = None if exact.get("inside_the_null") is None else (
+        not exact["inside_the_null"])
+    return {
+        "available": True,
+        "source": source,
+        "is_the_family_the_advantage_is_bounded_over": is_the_advantages_family,
+        "seeds_read": len(usable),
+        "mean_auc": mean,
+        "auc_by_seed": [{"seed": r["seed"], "auc": r["auc"],
+                         "retained": r["retained"], "left": r["left"]} for r in usable],
+        "null_point": 0.5,
+        "null_sd": null_sd,
+        "null_sd_population": {"retained": widest["retained"], "left": widest["left"]},
+        "null_sd_formula": "sqrt((retained + left + 1) / (12 * retained * left))",
+        "null_sds_above_no_information": distance,
+        "exact_null": exact,
+        "exact_null_half_width": half_width,
+        "closed_form_agrees_with_the_exact_null": agrees,
+        # THE REFUTED RULER, PUBLISHED AS REFUTED. See the docstring: a reader shown only the right
+        # interval cannot tell that the wrong one was rejected on evidence rather than overlooked.
+        "family_spread_is_not_the_interval": {
+            "family_sd": family_sd,
+            "times_narrower_than_the_null": (
+                None if not family_sd else null_sd / family_sd),
+            "why": (
+                "A seed family measures how far this instrument moves when its SEED moves. The "
+                "null measures how far a rank statistic moves when there is NOTHING TO FIND on a "
+                "population this size. They are different questions and their answers differ by "
+                "an order of magnitude here, so the family's spread is published as a property of "
+                "the instrument and never as this figure's interval."),
+        },
+        "demonstrated": demonstrated,
+        "reading": _auc_null_reading(
+            mean=mean, distance=distance, null_sd=null_sd, seeds=len(usable),
+            retained=widest["retained"], left=widest["left"], exact=exact,
+            demonstrated=demonstrated, source=source,
+            is_the_advantages_family=is_the_advantages_family),
+    }
+
+
+def _auc_null_reading(*, mean, distance, null_sd, seeds, retained, left, exact, demonstrated,
+                      source, is_the_advantages_family) -> str:
+    """The sentence, DERIVED from the verdict rather than written beside it.
+
+    THREE BRANCHES BECAUSE `demonstrated` IS A TRI-STATE. `None` is "the exact null could not be
+    enumerated or names no world", which is neither "clears it" nor "does not" -- and a two-branch
+    `if` here would send it down the falsy edge and print the refusal as a finding, which is the
+    defect `_selection_leg_reading` was repaired for on 2026-08-29.
+
+    IT NAMES WHICH FAMILY IT CAME FROM IN EVERY BRANCH. When these rows are NOT the family the
+    advantage above is bounded over, a reader who is not told that will read this as a bound on
+    that advantage -- the mispairing every other block in this file refuses.
+    """
+    where = ("measured over the same draws the advantage above is bounded over"
+             if is_the_advantages_family else
+             "measured over a DIFFERENT family from the one the advantage above is bounded over "
+             "({}), so it bounds nothing on this page and is not offered as an interval on "
+             "anything: it is this book's only measured answer to whether the arm knows "
+             "anything".format(source))
+    head = ("Discrimination reads {mean:.4f} across {seeds} draw(s), {where}. 0.5 is the "
+            "no-information point, and on {ret} retained against {left} departed renewals a "
+            "signal carrying nothing at all scatters with a standard deviation of {sd:.4f}. This "
+            "figure sits {d:.2f} of those above 0.5.").format(
+        mean=mean, seeds=seeds, where=where, ret=retained, left=left, sd=null_sd, d=distance)
+    if demonstrated is None:
+        return head + (" WHETHER THAT CLEARS ITS NULL IS WITHHELD: {}".format(
+            exact.get("verdict_withheld_because") or exact.get("reason")
+            or "the exact null could not be enumerated on this population."))
+    if demonstrated:
+        return head + (" That is OUTSIDE its own exact 95% null ({lo:.4f}-{hi:.4f}, two-sided "
+                       "p={p:.3f}), so on this population the arm is discriminating rather than "
+                       "scoring at chance. It is a statement about this instrument and not a "
+                       "target.").format(lo=exact["null_95_low"], hi=exact["null_95_high"],
+                                         p=exact["p_two_sided"])
+    return head + (" That is INSIDE its own exact 95% null ({lo:.4f}-{hi:.4f}, two-sided "
+                   "p={p:.3f}), so DISCRIMINATION IS NOT DEMONSTRATED HERE -- in either "
+                   "direction. An arm that beat the control while scoring at chance won by "
+                   "charging and not by knowing, and this book cannot yet tell those apart. That "
+                   "is a finding about the instrument's sample size and not a cue to re-run until "
+                   "a seed agrees.").format(
+        lo=exact["null_95_low"], hi=exact["null_95_high"], p=exact["p_two_sided"])
+
+
+def _family_discrimination(floor: dict | None, auc_family: dict | None = None) -> dict:
     """The discrimination reading for the SAME family whose advantage is published beside it.
 
     THE DEFECT THIS CLOSES, AND IT IS THE DIRECTION'S OWN BAR. The standing instruction on this
@@ -1701,9 +1924,44 @@ def _family_discrimination(floor: dict | None) -> dict:
     `decisions.discrimination_auc`, 0.61 -- and it is ONE RUN's, against an advantage bounded over
     eighteen. Pairing them would be the mispairing every other block in this file refuses, and it
     would read as though the question had been answered.
+
+    AND SINCE 2026-09-17 IT CARRIES `against_the_statistics_own_null`, WHICH IS NOT A SUBSTITUTE
+    AND IS WHY THE PARAGRAPH ABOVE STILL STANDS. The four states above answer ONE question -- what
+    bound does THIS family put on the advantage printed beside it -- and on today's family the
+    honest answer is still none. The new key answers a DIFFERENT question that needs no family at
+    all: does the AUC this book has measured clear the null of the statistic itself? That ruler is
+    `sqrt((n1+n2+1)/(12*n1*n2))`, a function of the two outcome counts and nothing else, so it is
+    available at one seed. The reason the old block could not use it is not that it was unavailable
+    -- it is that nothing here had looked at `auc_population`, which travels with every row that
+    carries an AUC. It is labelled with the family it came from in every branch, and it is
+    published as an interval on ITSELF and never on the advantage. Today it reads NOT DEMONSTRATED,
+    which is a result and is what belongs on the page.
     """
+    own_rows = _auc_rows((floor or {}).get("seeds"))
+    if own_rows:
+        against_the_null = _auc_against_its_own_null(
+            (floor or {}).get("seeds"),
+            world=((floor or {}).get("world_identity") or {}).get("digest"),
+            source="this family", is_the_advantages_family=True)
+    elif auc_family:
+        against_the_null = _auc_against_its_own_null(
+            auc_family.get("seeds"),
+            world=((auc_family.get("world_identity") or {}).get("digest")),
+            source=AUC_FAMILY_SOURCE, is_the_advantages_family=False)
+    else:
+        against_the_null = {
+            "available": False,
+            "reason": ("no artefact reaching this page carries a `discrimination_auc` with the "
+                       "population it was scored on, so the statistic's own null cannot be "
+                       "computed -- not because the ruler needs a family it has not got, but "
+                       "because there is no figure to place against it."),
+            "reading": (
+                "NOTHING HERE STATES WHETHER THE ARM WON BY KNOWING ANYTHING, and no run "
+                "reaching this page has measured it."),
+        }
     if not floor:
         return {
+            "against_the_statistics_own_null": against_the_null,
             "available": False,
             "state": "no_floor",
             "reading": (
@@ -1715,6 +1973,7 @@ def _family_discrimination(floor: dict | None) -> dict:
         }
     if FAMILY_AUC_KEY not in floor:
         return {
+            "against_the_statistics_own_null": against_the_null,
             "available": False,
             "state": "never_asked",
             "reading": (
@@ -1732,6 +1991,7 @@ def _family_discrimination(floor: dict | None) -> dict:
     block = floor.get(FAMILY_AUC_KEY) or {}
     if not block.get("available"):
         return {
+            "against_the_statistics_own_null": against_the_null,
             "available": False,
             "state": "asked_and_unanswerable",
             # THE FOLD'S OWN WORDS, NOT A SUMMARY OF THEM. The reason names which rows could not
@@ -1754,9 +2014,21 @@ def _family_discrimination(floor: dict | None) -> dict:
         }
     spread = block.get("spread") or {}
     return {
+        # FIRST, AND IT IS THE INTERVAL. The family spread below is a property of the instrument;
+        # THIS is the reading against the null of the statistic itself, and on the evidence of
+        # 2026-09-17 the two differ by a factor of seven with the family's the narrower. A block
+        # that led with the spread would put the flattering ruler in the reader's first sentence.
+        "against_the_statistics_own_null": against_the_null,
         "available": True,
         "state": "measured",
         "spread": spread,
+        # WHAT THE SPREAD IS AND IS NOT, in the payload rather than left to a renderer. Named so a
+        # control can pin it: the one thing this block must never do is publish the seed family's
+        # own spread as the AUC's interval.
+        "spread_is_seed_sensitivity_not_the_null": (
+            "This is how far the AUC moved when the SEED moved. It is not the interval on the "
+            "figure: `against_the_statistics_own_null` is, and it is computed from the outcome "
+            "counts rather than from re-draws."),
         "distance_from_no_information": block.get("distance_from_no_information"),
         "seeds_in_family": block.get("seeds_in_family"),
         "reading": (
@@ -9823,7 +10095,8 @@ def build(three_arm: dict | None, floor: dict | None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
           departure_rerun: dict | None = None,
           departure_baseline: dict | None = None,
-          blind_envelope_arms: dict | None = None) -> dict:
+          blind_envelope_arms: dict | None = None,
+          auc_family: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -9977,7 +10250,7 @@ def build(three_arm: dict | None, floor: dict | None,
         # THE WHOLE SPLIT IS HANDED OVER, NOT JUST THE SELECTION FIGURE. Each leg's own published
         # run is what its reading names as a member of its own family; three legs sharing one
         # run's number would be the mispairing every other block in this file refuses.
-        error_bar=_error_bar(floor, point, three_arm, point_clock, split),
+        error_bar=_error_bar(floor, point, three_arm, point_clock, split, auc_family),
         # THE SECOND DRAW OF THE FIGURE THE BAR ABOVE IS A BAR ON, in the same payload as both, so
         # the surface cannot render the move without the bar it moved inside of. Passed the SAME
         # floor `_error_bar` gets -- not re-read -- because a move placed against a different
@@ -10517,7 +10790,8 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              current_noise_floor_path: Path | None = None,
              departure_rerun_path: Path | None = None,
              departure_baseline_path: Path | None = None,
-             blind_envelope_arms_path: Path | None = None) -> dict:
+             blind_envelope_arms_path: Path | None = None,
+             auc_family_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
                  _read(DECOMPOSITION_PATH if decomposition_path is None
@@ -10535,7 +10809,12 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
                  _read(DEPARTURE_TERM_BASELINE_PATH if departure_baseline_path is None
                        else departure_baseline_path),
                  _read(BLIND_ENVELOPE_ARMS_PATH if blind_envelope_arms_path is None
-                       else blind_envelope_arms_path))
+                       else blind_envelope_arms_path),
+                 # THE STEP WITHOUT WHICH THE WHOLE READING IS INERT, and the reason it is spelled
+                 # out here rather than defaulted inside the block: `_family_discrimination` can
+                 # compute the null perfectly and the page still says only "0 of 18 draws carry a
+                 # figure" if the artefact never reaches it. That was the state on 2026-09-17.
+                 _read(AUC_FAMILY_FLOOR_PATH if auc_family_path is None else auc_family_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
