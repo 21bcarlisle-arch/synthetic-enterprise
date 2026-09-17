@@ -203,11 +203,30 @@ def test_a_lane_that_cannot_import_does_not_take_the_tick_down(_isolate, monkeyp
     import builtins
     real_import = builtins.__import__
 
+    fired = []
+
     def _boom(name, *a, **k):
-        if name == "background.delivery_lane" or name.endswith("delivery_lane"):
+        # `from background import delivery_lane` calls `__import__("background", ...)` with
+        # `delivery_lane` in the FROMLIST -- the submodule never appears as `name`. Matching on
+        # `name` alone (which this did until 2026-09-17) meant the simulated failure NEVER fired:
+        # the real import succeeded, `_claim_dispatched` took the real path, and the assertion
+        # below was true on both sides of the branch it claims to test. That is a control that
+        # cannot fail, and it had a second cost -- the real `claim_dispatched` wrote `some-id`
+        # into the LIVE draw ledger, where it reset the delivery lane's self-issued chain.
+        fromlist = k.get("fromlist") if "fromlist" in k else (a[2] if len(a) > 2 else None)
+        if name == "background.delivery_lane" or name.endswith("delivery_lane") or (
+                name == "background" and "delivery_lane" in (fromlist or ())):
+            fired.append(name)
             raise ImportError("simulated")
         return real_import(name, *a, **k)
 
     monkeypatch.setattr(builtins, "__import__", _boom)
 
-    assert wt.run_tick().outcome == "SPAWNED", "the tick must survive a lane that cannot import"
+    outcome = wt.run_tick().outcome
+
+    monkeypatch.undo()
+    assert fired, (
+        "the simulated ImportError never fired, so the `except` arm in `_claim_dispatched` was "
+        "never entered and this test graded nothing -- see the comment in `_boom`"
+    )
+    assert outcome == "SPAWNED", "the tick must survive a lane that cannot import"
