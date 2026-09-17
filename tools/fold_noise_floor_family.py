@@ -55,7 +55,7 @@ from pathlib import Path
 #: implementation of one rule is this project's most expensive recurring defect, and a folded
 #: family whose mean is computed differently from the family it extends is that defect with the
 #: two copies one import apart.
-from tools.run_value_cycle_ab import _spread
+from tools.run_value_cycle_ab import _spread, distance_to_a_sign
 
 _REPO = Path(__file__).resolve().parent.parent
 
@@ -134,25 +134,131 @@ def _seed_rows(sources: list) -> list:
     return rows
 
 
+def _leg(rows: list, key: str) -> dict:
+    """One leg's spread, standard error and sign verdict, under the bar BOTH legs are judged at.
+
+    THE BAR IS `_DISTINGUISHABLE_SEMS` AND NOT A SECOND ONE. The whole use of a level leg beside a
+    selection leg is the CONTRAST between their verdicts -- "one leg's sign is stateable and the
+    other's is not" is a claim about the two legs, and it is only a claim about the legs if both
+    were asked the same question. Judging the level leg at a different bar would make the contrast
+    an artefact of the rule rather than of the data, which is this project's most expensive shape
+    wearing a statistic's clothes.
+    """
+    spread = _spread([r.get(key) for r in rows])
+    sem = None
+    distinguishable = None
+    if spread["stdev"] is not None and spread["n"] > 1:
+        sem = spread["stdev"] / math.sqrt(spread["n"])
+        distinguishable = abs(spread["mean"]) > _DISTINGUISHABLE_SEMS * sem
+    values = [r.get(key) for r in rows if isinstance(r.get(key), (int, float))
+              and not isinstance(r.get(key), bool)]
+    positive = sum(1 for v in values if v > 0)
+    return {
+        "spread": spread,
+        "sem_gbp": sem,
+        "distinguishable_from_zero": distinguishable,
+        #: THE SAME QUESTION ASKED WITHOUT AN ESTIMATOR, because the two can disagree and a reader
+        #: who can see both learns something a reader given only one cannot. The count is
+        #: distribution-free: it does not care whether the leg is normal, and on a leg whose values
+        #: repeat (this book's level arm returns a handful of discrete nets) it is the more
+        #: conservative of the two readings.
+        "positive_seeds": positive,
+        "negative_or_zero_seeds": len(values) - positive,
+        "seeds_with_a_figure": len(values),
+        #: HOW FAR FROM A SIGN AND WHAT WOULD CLOSE IT -- the producer's own function, imported.
+        "distance_to_a_sign": distance_to_a_sign(
+            spread["mean"], spread["stdev"], spread["n"]),
+    }
+
+
+def _auc_across_seeds(rows: list) -> dict:
+    """The discrimination AUC's spread over the family, or a named refusal.
+
+    WHY THIS IS HERE AT ALL. The advantage and the AUC answer the two halves of one question -- how
+    much the arm won, and whether it won by knowing anything -- and the project has published the
+    first without the second before (`site/data/value_arms.json` carries the retraction: the same
+    estimator scored 0.646, 0.672, 0.465, 0.465 and 0.130 across five runs in four days, and a
+    corroboration argument was built on one of them). A floor family is nine or more draws of the
+    advantage and is therefore the ONE instrument in this repo that could put an error bar on the
+    AUC. Until 2026-09-17 it discarded the AUC entirely, so the bound could not be computed from
+    any artefact on disk however many seeds were drawn.
+
+    FAILS CLOSED, AND NAMES HOW MANY ROWS COULD NOT ANSWER. Every floor written before the producer
+    carried the field has rows with no AUC at all, and a spread over the subset that HAS one would
+    be a bound on a different family from the one whose advantage is published beside it. So a
+    single row without an AUC makes the whole block an unavailable with a count, never a spread
+    over whoever happened to answer.
+    """
+    present = [r.get("discrimination_auc") for r in rows
+               if isinstance(r.get("discrimination_auc"), (int, float))
+               and not isinstance(r.get("discrimination_auc"), bool)]
+    if len(present) != len(rows):
+        return {
+            "available": False,
+            "seeds_carrying_an_auc": len(present),
+            "seeds_in_family": len(rows),
+            "unavailable_because": (
+                "{} of this family's {} seed rows carry no `discrimination_auc`. Floors produced "
+                "before 2026-09-17 did not record it, so the advantage figures in this family "
+                "have no discrimination reading beside them and none can be recovered without "
+                "re-running the seeds. A spread over only the {} rows that DO answer would bound "
+                "a different family from the one whose advantage is published here, so this "
+                "states an unknown instead.".format(
+                    len(rows) - len(present), len(rows), len(present))),
+        }
+    return {
+        "available": True,
+        "spread": _spread(present),
+        #: 0.5 IS THE NO-INFORMATION POINT, and the distance from it is the reading -- not the
+        #: distance from zero, which is what a leg-shaped helper would have computed.
+        "distance_from_no_information": _spread([v - 0.5 for v in present]),
+        "retained_and_left_by_seed": [
+            {"seed": r.get("seed"), "auc_population": r.get("auc_population")} for r in rows],
+    }
+
+
 def summarise(rows: list) -> dict:
     """The producer's own summary block, recomputed over the folded rows.
 
     Split out from `fold` so a control can run it against an artefact already on disk and check it
     reproduces that artefact's published figures -- which is the only evidence that this fold and
     the producer agree about what a mean is.
+
+    BOTH LEGS SINCE 2026-09-17, AND THE ONE THAT WAS MISSING IS THE ONE THE THESIS TURNS ON. Until
+    then this block summarised `selection_gbp` alone, while `level_advantage_gbp` sat in every seed
+    row of every floor ever written and was read by nothing. The consequence was not a rounding
+    error: the level leg's sign had been determined and POSITIVE on the nine-seed floors since
+    2026-09-09, at 18 of 18 draws once two of them are folded, and the surface went on publishing
+    "the split cannot be read" -- which was true of the selection half and false of the level half.
+    A leg nobody summarises reads exactly like a leg with nothing in it.
     """
-    selection = _spread([r.get("selection_gbp") for r in rows])
+    selection = _leg(rows, "selection_gbp")
+    level = _leg(rows, "level_advantage_gbp")
+    value = _leg(rows, "value_advantage_gbp")
     share = _spread([r.get("level_share_of_advantage") for r in rows])
-    sem = None
-    distinguishable = None
-    if selection["stdev"] is not None and selection["n"] > 1:
-        sem = selection["stdev"] / math.sqrt(selection["n"])
-        distinguishable = abs(selection["mean"]) > _DISTINGUISHABLE_SEMS * sem
     return {
-        "selection_gbp_spread": selection,
+        # The four fields the producer published before 2026-09-17, unchanged in name and value so
+        # every consumer keyed to them keeps working and the pinning control keeps its subject.
+        "selection_gbp_spread": selection["spread"],
         "level_share_spread": share,
-        "selection_sem_gbp": sem,
-        "selection_distinguishable_from_zero": distinguishable,
+        "selection_sem_gbp": selection["sem_gbp"],
+        "selection_distinguishable_from_zero": selection["distinguishable_from_zero"],
+        # The legs, each carrying its own verdict under the same bar. `selection_leg` restates the
+        # four above rather than replacing them -- a consumer reading either gets one answer.
+        "selection_leg": selection,
+        "level_leg": level,
+        "value_leg": value,
+        "discrimination_auc_across_seeds": _auc_across_seeds(rows),
+        "how_to_read_the_two_legs": (
+            "`value_leg` is what the arm beat the control by. `level_leg` is what a FLAT rule "
+            "charging the same median margin, with no per-customer inference at all, beat the "
+            "control by. `selection_leg` is the difference -- what the inference itself was "
+            "worth -- and it is the only one of the three that bears on whether the advantage "
+            "came from knowing something rather than from charging more. A level leg with a "
+            "stateable sign and a selection leg without one is the unflattering reading and is "
+            "reported as such: it says the demonstrable advantage is the price level. Read "
+            "`discrimination_auc_across_seeds` beside it, and when that says unavailable, the "
+            "advantage in this family has no discrimination reading beside it at all."),
     }
 
 
