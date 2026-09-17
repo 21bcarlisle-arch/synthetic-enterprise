@@ -23,7 +23,7 @@
     "run_retained": true,
     "verified_at": "2026-09-17T12:29:43Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=effaec724; blocking tests: FAILED tests/background/test_the_publish_refusal_asks_whether_the_fork_touches_its_own_paths.py::test_both_sides_of_the_new_branch_are_reachable, FAILED tests/background/test_the_publish_refusal_asks_whether_the_fork_touches_its_own_paths.py::test_a_fork_that_touches_none_of_this_commits_paths_publishes",
+  "paused_reason": "scoped publish-path suite red at git=effaec724; blocking tests: FAILED tests/background/test_a_multi_chain_landing_is_not_recorded_as_one_chain.py::test_a_landing_that_lost_two_races_records_one_chain_not_three, FAILED tests/background/test_a_multi_chain_landing_is_not_recorded_as_one_chain.py::test_the_ordinary_single_chain_landing_is_unchanged, FAILED tests/background/test_a_multi_chain_landing_",
   "paused_since": "2026-09-17T14:51:38Z",
   "schema": 1,
   "showing_run": {
@@ -39,5 +39,5 @@
     "verified_at": "2026-09-17T12:29:43Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-17T21:12:49Z"
+  "written_at": "2026-09-17T21:53:37Z"
 }
