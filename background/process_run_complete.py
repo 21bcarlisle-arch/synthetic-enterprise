@@ -3576,16 +3576,87 @@ def run_red_census(gate_argv, cwd, full_env, fail_fast_ids, *, runner=None, budg
     return merged, status
 
 
+# ── HOW FAR THE GRADED TREE STOOD FROM ORIGIN (2026-09-17) ───────────────────────────────────
+#
+# WHY. `git_hash` says WHICH commit was graded and `census` says by WHOSE gate, and between them
+# `red_at_head_verdict` can place the red against HEAD. Neither says where HEAD itself stood, and
+# on a FORKED tree that is the whole question: measured 2026-09-17 (337afc848), `159a2d4fc`
+# landed on origin/main 59 minutes AFTER the fork opened, the gate graded `882ef8aad`, and the
+# twelve node ids it cited are GREEN at origin/main. Every consumer of that list -- the wedge
+# draw, the alarm, the suspects blame trail -- then sent a reader at innocent tests with no
+# caveat. The state file is already scrupulous about exactly this for `red_at_head` and was
+# silent here.
+#
+# READ AT WRITE TIME, not at alarm time. The fact wanted is where the tree stood WHEN IT WAS
+# GRADED; asking again from the alarm path measures a different moment and would quietly answer
+# a different question. This is the same reason `census` is recorded beside the node ids.
+#
+# BOUNDED, because `fork_state` FETCHES (`origin_reconcile.commits_behind` fetches first, on
+# git's own 300s budget) and this runs on the publish gate's refusal path. `_head_sha_for_
+# attribution` beside it already carries this rule in words: a monitoring step that shells out
+# is a monitoring step that can hang the pipeline it observes, and losing the whole record to
+# save a diagnostic field is the wrong way round. A read that does not come back inside the
+# bound degrades to the unestablished answer, WITH its reason, exactly like every other refusal
+# in this file.
+GATE_FORK_READ_TIMEOUT_SECONDS = 60
+
+
+def _fork_state_for_record():
+    """`(behind, ahead)` of this tree against origin/main, or `(None, None)`. NEVER raises.
+
+    ONE SEAM, and `origin_reconcile.fork_state`'s own docstring is why: it was split into
+    `commits_behind` + `commits_ahead` once and the pin that covered one of them was fail-open on
+    the other, for 28 assertions. Asking the seam means a future world-read added there arrives
+    here for free, and `tests/background/conftest.py`'s pin still steers this.
+
+    `(None, None)` is a DISTINCT answer from `(0, 0)` all the way to the page -- see
+    `red_tree_fork_verdict`, where it is `not_established` and never `level`."""
+    import threading
+
+    box = {}
+
+    def _read():
+        try:
+            from background.origin_reconcile import fork_state
+            box["v"] = fork_state(PROJECT_DIR)
+        except Exception as exc:  # noqa: BLE001 -- a diagnostic may never red the path it observes
+            box["exc"] = exc
+
+    # Daemon, so a hung fetch can never hold this process open at exit. The subprocess behind it
+    # is git's to reap; what matters here is that the gate path is not waiting on it.
+    t = threading.Thread(target=_read, daemon=True, name="gate-fork-state")
+    t.start()
+    t.join(GATE_FORK_READ_TIMEOUT_SECONDS)
+    if "exc" in box:
+        log("Publish gate: could not read how far this tree stands from origin/main ({}: {}) -- "
+            "recording the divergence as unestablished.".format(
+                type(box["exc"]).__name__, box["exc"]))
+        return None, None
+    if "v" not in box:
+        log("Publish gate: reading how far this tree stands from origin/main did not return "
+            "within {}s -- recording the divergence as unestablished.".format(
+                GATE_FORK_READ_TIMEOUT_SECONDS))
+        return None, None
+    behind, ahead = box["v"]
+    return behind, ahead
+
+
 def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY):
     """Publish the red gate's blocking node IDs for the alarm process. Never raises.
 
     `total_red` is the size of the set BEFORE the citation cap, so a reader can tell a cap that
-    bound from one that did not -- the cap must never be able to look like the answer."""
+    bound from one that did not -- the cap must never be able to look like the answer.
+
+    `fork` is how far the tree that was graded stood from origin/main at the moment it was
+    graded -- see `_fork_state_for_record` above for the incident, and `red_tree_fork_verdict`
+    for what a reader is allowed to conclude from it."""
+    behind, ahead = _fork_state_for_record()
     try:
         GATE_BLOCKING_TESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
         guard_live_ledger_write(GATE_BLOCKING_TESTS_FILE, writer="process_run_complete._write_blocking_tests").write_text(json.dumps(
             {"ts": time.time(), "git_hash": str(git_hash),
              "census": str(census), "total_red": len(node_ids),
+             "fork": {"behind": behind, "ahead": ahead},
              "node_ids": [str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]]},
             sort_keys=True))
     except OSError as exc:
@@ -3772,6 +3843,41 @@ def last_red_census(now=None, path=None):
         return CENSUS_FAIL_FAST_ONLY, 0
 
 
+def last_fork_state(now=None, path=None):
+    """`(behind, ahead)` recorded with the last red, or `(None, None)`.
+
+    A THIRD READER OVER THE SAME RECORD, for the reason `last_red_census` gives about being the
+    second: every caller of `last_blocking_tests` wants the node ids, only the payload builders
+    want this, and a six-tuple would have call sites unpacking fields they ignore. It carries the
+    SAME age bound, so the three can never describe different cycles.
+
+    Every unreadable shape -- absent, stale, malformed, or a record written before this field
+    existed -- answers `(None, None)`. That is a claim of IGNORANCE and `red_tree_fork_verdict`
+    renders it as one; `(0, 0)` would be a claim that the tree was LEVEL, which no such record
+    ever made. A bool is refused explicitly: `isinstance(True, int)` is true and `True` is not a
+    commit count."""
+    p = Path(path) if path is not None else GATE_BLOCKING_TESTS_FILE
+    now = time.time() if now is None else float(now)
+    try:
+        rec = json.loads(p.read_text())
+        if not isinstance(rec, dict):
+            return None, None
+        ts = rec.get("ts")
+        if not isinstance(ts, (int, float)) or now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
+            return None, None
+        fork = rec.get("fork")
+        if not isinstance(fork, dict):
+            return None, None
+        out = []
+        for key in ("behind", "ahead"):
+            v = fork.get(key)
+            out.append(int(v) if isinstance(v, int) and not isinstance(v, bool) and v >= 0
+                       else None)
+        return out[0], out[1]
+    except (json.JSONDecodeError, OSError, ValueError, TypeError):
+        return None, None
+
+
 # ── WHOSE RED IS IT: HEAD'S, OR THE ONE THIS PUBLISH WOULD HAVE CREATED? (2026-09-16) ─────────
 #
 # WHY. Thirty-two consecutive failures of the episode opened 2026-09-10 each NAMED a red, and not
@@ -3873,6 +3979,61 @@ def red_at_head_verdict(node_ids, blocking_hash, census, head_sha):
             "reason": "measured by the publisher's own scoped gate, whose subject is a clean "
                       "checkout of exactly git={}, which is HEAD. The red is AT HEAD and "
                       "repairing it is the unblock.".format(str(head_sha)[:9]),
+            "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
+
+
+# ── AND WHERE DID THAT TREE STAND? (2026-09-17) ──────────────────────────────────────────────
+#
+# `red_at_head_verdict` above places the red against HEAD. This places HEAD itself against
+# origin/main, and the two answer different questions: a red can be squarely AT HEAD -- verdict
+# `yes`, entirely correct -- and still be green at origin/main, because HEAD is 41 commits behind
+# a fix that landed while the gate was running. That is the 2026-09-17 measurement, and `yes`
+# beside it read to every consumer as "repair this test".
+#
+# WHAT IT DELIBERATELY DOES NOT CLAIM. `diverged` is NOT "these tests are green at origin/main".
+# Establishing that needs a run on origin/main's tree, which this file will not do from the alarm
+# path (see `red_at_head_verdict` on why nothing here shells out or runs pytest). It says the
+# graded tree was not origin/main's, so the red is UNATTRIBUTED between the two -- and it points
+# the reader at the cheap thing that settles it. The inverse is refused just as hard: `level` is
+# not "the fix is not on origin", it is "nothing origin holds was missing from what was graded".
+RED_TREE_FORK_DIVERGED = "diverged"
+RED_TREE_FORK_LEVEL = "level"
+RED_TREE_FORK_NOT_ESTABLISHED = "not_established"
+
+
+def red_tree_fork_verdict(node_ids, behind, ahead):
+    """Where did the tree the red was graded on stand against origin/main? Never raises.
+
+    Pure, for the same reason as `red_at_head_verdict`: every input is already in the caller's
+    hand, having been read off the blocking record `_write_blocking_tests` wrote at grading time.
+
+    Every branch names its reason, including each refusal -- the refusals are the ones a reader
+    will want to argue with, and one of them being wrong is how we find out."""
+    ids = [str(n) for n in (node_ids or [])]
+    if not ids:
+        return {"verdict": RED_TREE_FORK_NOT_ESTABLISHED,
+                "reason": "no red is named on this failure, so there is no graded tree to place "
+                          "against origin/main. This is not evidence the tree was level."}
+    ok = [v for v in (behind, ahead)
+          if isinstance(v, int) and not isinstance(v, bool) and v >= 0]
+    if len(ok) != 2:
+        return {"verdict": RED_TREE_FORK_NOT_ESTABLISHED,
+                "reason": "how far the graded tree stood from origin/main was not recorded (the "
+                          "record predates the field, or origin could not be read when the {} "
+                          "red(s) were measured), so whether they are origin/main's reds is "
+                          "unestablished -- not settled either way.".format(len(ids))}
+    if behind or ahead:
+        return {"verdict": RED_TREE_FORK_DIVERGED,
+                "reason": "graded on a FORKED tree -- {} commit(s) behind origin/main and {} "
+                          "ahead -- so these {} red(s) are NOT established as origin/main's. "
+                          "Check one of them at origin/main before repairing it: a fix that "
+                          "landed on origin while the gate ran is green there and red "
+                          "here.".format(behind, ahead, len(ids)),
+                "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
+    return {"verdict": RED_TREE_FORK_LEVEL,
+            "reason": "graded on a tree LEVEL with origin/main (0 behind, 0 ahead), so nothing "
+                      "origin/main holds was missing from what was measured and divergence does "
+                      "not explain these {} red(s).".format(len(ids)),
             "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
 
 
@@ -7096,6 +7257,14 @@ def _read_publish_gate_state():
         st.setdefault("red_at_head_reason",
                       "this record predates the attribution field, so which tree its red was "
                       "measured on was never written down.")
+        # WHERE THAT TREE STOOD AGAINST ORIGIN/MAIN (2026-09-17). Same discipline, one field
+        # along: an old record never asked, so it gets `not_established` and not `level` --
+        # `level` would tell the reader divergence is ruled out on the strength of a question
+        # nobody put.
+        st.setdefault("red_tree_fork", RED_TREE_FORK_NOT_ESTABLISHED)
+        st.setdefault("red_tree_fork_reason",
+                      "this record predates the divergence field, so how far the tree its red "
+                      "was graded on stood from origin/main was never written down.")
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
@@ -7167,6 +7336,13 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
            "red_at_head_reason": state.get(
                "red_at_head_reason",
                "no writer proposed an attribution for this record."),
+           # The divergence of that tree, carried by the same fixed key list and round-tripped by
+           # the same setdefault -- so a liveness heartbeat landing between the red and its reader
+           # cannot drop it, which is the defect both clauses below `last_clean_publish` exist for.
+           "red_tree_fork": state.get("red_tree_fork", RED_TREE_FORK_NOT_ESTABLISHED),
+           "red_tree_fork_reason": state.get(
+               "red_tree_fork_reason",
+               "no writer proposed a divergence for this record."),
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
            "last_clean_publish": state.get("last_clean_publish"),
            "liveness_surface_refusal": state.get("liveness_surface_refusal"),
@@ -8042,11 +8218,16 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # Read from the SAME record, at the same moment, so the depth claim can never describe a
         # different red than the node ids beside it.
         census, total_red = last_red_census(now=now)
+        # ...and the divergence of the tree those node ids were graded on, off the same record at
+        # the same moment, for the same reason.
+        fork_behind, fork_ahead = last_fork_state(now=now)
         if blocking_hash is None and publish_cause.no_test_was_judged(cause):
             # The census counts the SAME record just suppressed. Leaving `total_red: 3` beside
             # `blocking_tests: []` would be the accusation-with-no-accused shape inverted, and
             # a depth claim about reds that were never this cycle's is still a claim.
             census, total_red = CENSUS_FAIL_FAST_ONLY, 0
+            # A fork claim about a tree that graded a DIFFERENT cycle's red is a claim too.
+            fork_behind, fork_ahead = None, None
         # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
         # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
         # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
@@ -8065,6 +8246,15 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         entry["red_at_head_reason"] = red_at_head["reason"]
         log("Publish gate: the named red is `{}` -- {}".format(
             red_at_head["verdict"], red_at_head["reason"]))
+        # ...AND WHERE THAT TREE STOOD (2026-09-17). A separate field beside it, never folded
+        # into the verdict above: `red_at_head: yes` on a tree 41 commits behind origin is a
+        # CORRECT attribution to a tree whose red is green at origin/main, and collapsing the two
+        # would make one of the two true answers unsayable.
+        red_tree_fork = red_tree_fork_verdict(blocking, fork_behind, fork_ahead)
+        entry["red_tree_fork"] = red_tree_fork["verdict"]
+        entry["red_tree_fork_reason"] = red_tree_fork["reason"]
+        log("Publish gate: the tree it was graded on is `{}` against origin/main -- {}".format(
+            red_tree_fork["verdict"], red_tree_fork["reason"]))
         if threshold_met and armed:
             # ALARM->DIAL: the citation is persisted as well as paged, because the supervisor's
             # RUNG-1 unwedge draw reads the state file, not the NTFY.
@@ -8086,6 +8276,8 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                    "red_census": census, "total_red": total_red,
                                    "red_at_head": red_at_head["verdict"],
                                    "red_at_head_reason": red_at_head["reason"],
+                                   "red_tree_fork": red_tree_fork["verdict"],
+                                   "red_tree_fork_reason": red_tree_fork["reason"],
                                    "suspects": suspects})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
@@ -8230,6 +8422,10 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
                                    "red_at_head_reason":
                                        "the gate passed, so there is no named red to attribute "
                                        "to a tree.",
+                                   "red_tree_fork": RED_TREE_FORK_NOT_ESTABLISHED,
+                                   "red_tree_fork_reason":
+                                       "the gate passed, so there is no named red whose graded "
+                                       "tree could be placed against origin/main.",
                                    "episode_clean_publishes": episode_clean,
                                    # THE TIMESTAMP TAKES THE STAMP ON *BOTH* EXITS, AND THE
                                    # COUNTER BESIDE IT STILL RESETS (2026-09-16). This read
