@@ -74,14 +74,25 @@ figure typed from memory is not. It is a property, not today's answer -- it stay
 grows, it reds in EITHER direction (a figure too high and a figure too low are both outside the
 band), and it is always satisfiable by recomputing one sentence.
 
-The sources are the ones the header itself names, not a second opinion: `9,385 commits` is
-`git rev-list --count`; `826,700 lines across 2,701 tracked Python modules (all *.py in the index)`
-is the index; `26,731 tests collected` is the figure CLAUDE.md's Build line carries, which is what
-the incident measured the header against ("2,905 behind CLAUDE.md on the day it was read") and what
-the live site is already generated from.
+The sources are the ones the header itself names, not a second opinion: the commits figure is
+`git rev-list --count`; the lines and modules figures are the `*.py` blobs in the index; the tests
+figure is what CLAUDE.md's Build line carries, which is what the incident measured the header
+against ("2,905 behind CLAUDE.md on the day it was read") and what the live site is generated from.
+
+AND THE TESTS FIGURE ALONE NEEDED A SECOND SOURCE (Expert Hour EH-3, 2026-09-17). Three of those
+four sources are git, which nobody can type into. The Build line is another HAND-TYPED number, so
+the band it gives is degenerate -- low == high == stated -- and the leg was clearable by typing:
+update both documents in one commit and the check agrees with you. It was not a hypothetical. On
+the day this paragraph was written both documents said 26,731, the Build line had not moved in 20
+days and 1,440 commits, a real collection returned 36,835, this check said AGREES, and the live
+site published the typed number. `_collectible_test_functions` is the independent bound, and it
+costs nothing this function was not already paying. It floors the figure and does NOT cap it --
+`@parametrize` expansion is unbounded, so only a real collection could -- and the published table
+says so in the reader's own words rather than letting one AGREES look like another.
 """
 from __future__ import annotations
 
+import ast
 import datetime as dt
 import re
 import subprocess
@@ -131,10 +142,65 @@ _DECLARED_HEAD_LINES = 10
 #: against a source the sentence never claimed.
 FIGURE_SOURCES = {
     "commits": "`git rev-list --count`",
-    "tests": "the full-suite collection count on CLAUDE.md's Build line",
+    "tests": "CLAUDE.md's Build line, floored by the test functions in the git index",
     "lines": "newlines across every `*.py` in the git index",
     "modules": "the count of `*.py` in the git index",
 }
+
+#: Which tracked paths pytest will collect from. There is no `testpaths`, `norecursedirs`,
+#: `collect_ignore` or `python_files` anywhere in this repository (measured 2026-09-17, across
+#: every `conftest.py`, `pyproject.toml`, `pytest.ini`, `setup.cfg` and `tox.ini` at HEAD), so
+#: collection is pytest's default and these two spellings are exactly what it walks into.
+def _is_test_file(rel: str) -> bool:
+    """pytest's default `python_files`, over a PATH -- `test_*.py` and `*_test.py`.
+
+    Spelled with `str` methods rather than a regex on purpose. This prefilter sits in the same
+    function that holds Python source in a local, and `substring_source_scan_census` reads a regex
+    there as a substring scan OF that source -- which is the very thing
+    `_collectible_test_functions` exists to avoid doing. The source itself goes through the AST;
+    this only ever looks at a name.
+    """
+    name = rel.rpartition("/")[2]
+    return name.endswith(".py") and (name.startswith("test_") or name.endswith("_test.py"))
+
+
+def _collectible_test_functions(source: bytes) -> int:
+    """How many test items pytest will collect from this file, read as CODE and not as text.
+
+    A collected item is never fewer than one per test function -- skipped and xfailed functions
+    are still COLLECTED, and `@parametrize` only ever multiplies -- so this is a floor a truthful
+    collection count cannot sit below. See `figure_verdicts` for what it is a floor FOR.
+
+    THE FIRST DRAFT WAS A REGEX OVER THE RAW BYTES AND THE GATE WAS RIGHT TO REFUSE IT
+    (`tests/architecture/test_a_control_reads_python_as_code.py`, 2026-09-17). It over-counted by
+    25 against the real tree, because `def test_x():` inside a STRING LITERAL is not a test -- this
+    repository's own control fixtures write exactly that text into temporary files. A floor that
+    counts prose can rise above the truth it is bounding and red an honest figure, which is the
+    one failure this direction must not have. `python_code_text.searchable()` was tried, as the
+    control's message suggests, and removed only ONE of the 25: it blanks comments and bare string
+    expressions, and these literals are call arguments. It also cost 5.7s against the AST's 1.4s.
+    So the sanctioned reading here is the AST, and it is both the correct one and the cheap one.
+
+    Matched to what pytest ACTUALLY collects rather than to every `def test_`: module-level
+    functions, plus methods of `Test`-prefixed classes. A method of a class pytest ignores, or a
+    function nested inside another function, is not collected and would inflate the floor.
+
+    Unparseable source counts ZERO rather than refusing. That is the safe direction for a bound:
+    under-counting keeps it a floor, and a file that will not parse fails collection loudly
+    anyway.
+    """
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return 0
+    total = 0
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            total += node.name.startswith("test_")
+        elif isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
+            total += sum(m.name.startswith("test_") for m in node.body
+                         if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef)))
+    return total
 #: Matched on the NUMBER AND ITS NOUN, so rewording the sentence around a figure keeps passing and
 #: deleting the figure refuses. Each pattern is anchored on the words the header uses to say what
 #: the quantity IS -- never on its current value.
@@ -392,10 +458,17 @@ def _tests_figure(claude_md: str) -> int | None:
 
 
 def _figures_at(rev: str) -> dict[str, int]:
-    """Every stated figure, computed from its named source at one revision."""
+    """Every stated figure, computed from its named source at one revision.
+
+    `tests_floor` is not a stated figure and gets no row of its own. It is the INDEPENDENT bound
+    the `tests` figure had none of -- see `figure_verdicts`. It costs nothing: this function
+    already streams every `*.py` blob at `rev` to count newlines, so the test functions are counted
+    in the same pass rather than by a second read of the tree.
+    """
     names = _git("ls-tree", "-r", "--name-only", rev).splitlines()
     modules = [n for n in names if n.endswith(".py")]
     lines = 0
+    test_funcs = 0
     if modules:
         spec = "".join(f"{rev}:{n}\n" for n in modules).encode()
         done = subprocess.run(("git", "cat-file", "--batch"), cwd=str(PROJECT),
@@ -403,16 +476,21 @@ def _figures_at(rev: str) -> dict[str, int]:
         if done.returncode != 0:
             raise AnchorRefusal("git cat-file could not read the index's modules at "
                                 f"{rev[:12]} -- the figure check cannot be performed")
-        blob, i = done.stdout, 0
+        blob, i, k = done.stdout, 0, 0
         while i < len(blob):
             j = blob.index(b"\n", i)
             size = int(blob[i:j].split()[2])
-            lines += blob[j + 1:j + 1 + size].count(b"\n")
+            body = blob[j + 1:j + 1 + size]
+            lines += body.count(b"\n")
+            if _is_test_file(modules[k]):
+                test_funcs += _collectible_test_functions(body)
             i = j + 1 + size + 1
+            k += 1
     out = {
         "commits": int(_git("rev-list", "--count", rev)),
         "modules": len(modules),
         "lines": lines,
+        "tests_floor": test_funcs,
     }
     # None, not a refusal: CLAUDE.md's Build line only exists since the 2026-08-28 rewrite, so a
     # window reaching further back has NO SOURCE for the test figure rather than a wrong one.
@@ -433,16 +511,21 @@ def _figures_in_working_tree() -> dict[str, int]:
     """
     modules = [n for n in _git("ls-files", "--", "*.py").splitlines() if n]
     lines = 0
+    test_funcs = 0
     for rel in modules:
         try:
-            lines += (PROJECT / rel).read_bytes().count(b"\n")
+            body = (PROJECT / rel).read_bytes()
         except OSError:
             continue  # deleted-but-tracked: the committed copy already sets the other bound
+        lines += body.count(b"\n")
+        if _is_test_file(rel):
+            test_funcs += _collectible_test_functions(body)
     tests = _tests_figure((PROJECT / "CLAUDE.md").read_text(encoding="utf-8", errors="replace"))
     return {
         "commits": int(_git("rev-list", "--count", "HEAD")),
         "modules": len(modules),
         "lines": lines,
+        "tests_floor": test_funcs,
         "tests": tests if tests is not None else 0,
     }
 
@@ -502,7 +585,30 @@ def figure_verdicts(overview_text: str | None = None) -> list[dict]:
     for key in sorted(stated):
         low, high = band[key]
         value = stated[key]
-        if low is None:
+        floor = band["tests_floor"][0] if key == "tests" else None
+        if floor is not None and value < floor:
+            # EH-3, THE LEG THAT WAS GRADED AGAINST A COPY OF ITSELF (Expert Hour, 2026-09-17).
+            # Three of the four figures come from git, which nobody can type into. `tests` came
+            # from CLAUDE.md's Build line -- another hand-typed number -- so the band was
+            # DEGENERATE (low == high == stated) and the leg was clearable by typing: an author
+            # who invents a count and updates both documents in one commit was agreed with.
+            #
+            # It was not hypothetical. Measured the day this was written: both documents said
+            # 26,731, the Build line had not moved since the spelling was introduced 20 days and
+            # 1,440 commits earlier, a real collection of a clean HEAD extract returned 36,835,
+            # and this check said AGREES while the live site published the typed number.
+            #
+            # The floor is what git can answer on its own: a collected item is never fewer than
+            # one per test function, class-nested/skipped/xfailed functions are all still
+            # collected, and `@parametrize` only multiplies. So a stated collection count BELOW
+            # the test functions the index carries is not a matter of tolerance -- no truthful
+            # collection can sit there. Taken at the LOW end of the window, so a figure computed
+            # honestly anywhere inside it clears the bound rather than racing the suite's growth.
+            #
+            # Checked BEFORE the band, and before `low is None`: the whole point is that this
+            # bound does not depend on the typed source being present, readable, or right.
+            verdict = "BELOW_THE_INDEX_FLOOR"
+        elif low is None:
             # TWO CAUSES, ONE BAND, AND ONLY ONE OF THEM IS HONEST (Expert Hour, 2026-09-17). A
             # source that did not exist yet cannot grade the figure and saying so is the result.
             # A source that WAS readable at the start of the window and is not readable at the end
@@ -526,7 +632,7 @@ def figure_verdicts(overview_text: str | None = None) -> list[dict]:
         else:
             verdict = "AGREES"
         rows.append({"figure": key, "source": FIGURE_SOURCES[key], "stated": value,
-                     "band_low": low, "band_high": high, "verdict": verdict})
+                     "band_low": low, "band_high": high, "floor": floor, "verdict": verdict})
     return rows
 
 
@@ -539,8 +645,13 @@ def figure_refusals(rows: list[dict]) -> list[dict]:
     `SOURCE_GONE` IS a refusal, and it is the same figure in the same `(None, None)` band: the
     difference is that nobody chose for the source not to exist in 2026-08, and somebody did choose
     to stop it being readable today. An unearned "we cannot tell" is how this check gets turned off.
+
+    `BELOW_THE_INDEX_FLOOR` is a refusal on evidence the typed source cannot reach -- see
+    `figure_verdicts`. It is the only leg here that survives the Build line being wrong, absent or
+    deleted, which is exactly why it exists.
     """
-    return [r for r in rows if r["verdict"] in ("OVERSTATES", "UNDERSTATES", "SOURCE_GONE")]
+    return [r for r in rows if r["verdict"] in ("OVERSTATES", "UNDERSTATES", "SOURCE_GONE",
+                                                "BELOW_THE_INDEX_FLOOR")]
 
 
 def assess(today: dt.date | None = None) -> list[dict]:
@@ -636,7 +747,10 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
         "|---|---|---|---|",
     ]
     for r in rows:
-        if r["band_low"] is not None:
+        if r["verdict"] == "BELOW_THE_INDEX_FLOOR":
+            band = (f"**at least {r['floor']:,}** -- the test functions the git index carries, "
+                    "which no collection can be smaller than")
+        elif r["band_low"] is not None:
             band = f"{r['band_low']:,} – {r['band_high']:,}"
         elif r["verdict"] == "SOURCE_GONE":
             band = "**its source was readable at the start of this window and is not now**"
@@ -649,7 +763,18 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
             "this figure is unchecked and the reader is told so rather than reassured · "
             "`SOURCE_GONE` the source existed and stopped being readable inside this window, which "
             "is a refusal rather than an unchecked figure -- nobody chooses for a source not to "
-            "have existed yet, and somebody chose this.", ""]
+            "have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is "
+            "smaller than the number of test functions the repository actually contains, which no "
+            "collection can be.",
+            "",
+            "**These four verdicts are not all worth the same, and the reader is owed that.** "
+            "`commits`, `lines` and `modules` are graded against git, which nobody can type into. "
+            "`tests` is graded against another hand-typed line -- CLAUDE.md's Build stamp -- so "
+            "its band is only as independent as that line is, and it is floored, but not capped, "
+            "by the index. An `AGREES` on `tests` therefore rules out a count that is too small "
+            "and does not rule out one that is too large: a figure inflated in both documents at "
+            "once would still read as agreeing. That gap is named rather than papered over.",
+            ""]
     return out
 
 
@@ -721,6 +846,16 @@ def main(argv: list[str] | None = None) -> int:
                   "is a source that was taken away, not one that never existed, and leaving it as "
                   "an unchecked figure is how this check gets switched off. Restore the source, or "
                   "point this figure at the one that replaced it.", file=sys.stderr)
+            continue
+        if r["verdict"] == "BELOW_THE_INDEX_FLOOR":
+            print(f"[startup-anchors] REFUSED: the startup header says {r['stated']:,} tests "
+                  f"collected, and this repository's git index carries {r['floor']:,} test "
+                  "functions. A collection is never smaller than one item per test function, so "
+                  "that figure is not merely stale -- no run of this suite could have produced it. "
+                  "Both this sentence and CLAUDE.md's Build line are hand-typed and agree with "
+                  "each other, which is why nothing else here catches it. Recompute it: "
+                  "`python3 -m pytest --collect-only -q | tail -1`, then correct BOTH.",
+                  file=sys.stderr)
             continue
         print(f"[startup-anchors] REFUSED: the startup header {r['verdict'].lower()} "
               f"{r['figure']} -- it says {r['stated']:,}, and {r['source']} was never outside "

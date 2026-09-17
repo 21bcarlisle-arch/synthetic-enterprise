@@ -316,9 +316,12 @@ read it, never quote it: `background.resource_headroom.sample()["total_mb"]`. Da
 Open-Meteo. NTFY topic loads from `~/.config/synthetic-enterprise/.env.ntfy`; there is no committed
 default.
 
-**Build:** 26,731 tests collected, epistemic verifier PASS. *This figure is parsed by
+**Build:** 36,838 tests collected, epistemic verifier PASS. *This figure is parsed by
 `generate_dashboard_data._derive_build_from_claude_md` for the live site — correct it at each phase
-close, never delete it.*
+close, never delete it. It sat at 26,731 for 20 days and 1,440 commits while the real count reached
+36,838, and nothing noticed because the only check on it compared it to a second hand-typed copy of
+itself in `docs/PROJECT_OVERVIEW.md`. `startup_anchor_freshness` now floors it with the test
+functions in the git index, which no collection can be smaller than.*
 
 → Architecture and module inventory: `docs/PROJECT_OVERVIEW.md` · Phase history:
 `docs/claude/phase-history.md`

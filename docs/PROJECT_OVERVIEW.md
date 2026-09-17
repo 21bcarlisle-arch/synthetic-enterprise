@@ -1,7 +1,7 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-09-05. 9,385 commits. 26,731 tests collected (full suite). Codebase: 826,700
-lines across 2,701 tracked Python modules (all `*.py` in the index, tests included).*
+*Last updated: 2026-09-17. 10,474 commits. 36,838 tests collected (full suite). Codebase: 960,622
+lines across 2,948 tracked Python modules (all `*.py` in the index, tests included).*
 
 > **Do not judge any of these documents' freshness by this sentence, or by the HTTP
 > `last-modified` header of the URLs below.** This sentence is hand-typed and rots; the header is
@@ -12,7 +12,11 @@ lines across 2,701 tracked Python modules (all `*.py` in the index, tests includ
 > "2026-08-09. 2,500+ commits. 23,826 tests. ~55,700 lines across 360+ modules" — every figure
 > wrong, commits by 3.7x and lines by 15x, and a session that started from it was orienting on a
 > project a fifteenth of this one's size. `tools/startup_anchor_freshness.py` is what now refuses
-> that.)*
+> that.)* *(2026-09-17: and the tests figure was STILL wrong after that repair — 26,731 against a
+> real collection of 36,838 — because it was the one figure of the four graded not against git but
+> against CLAUDE.md's Build line, itself hand-typed and unchanged for 20 days and 1,440 commits.
+> Two hand-typed numbers agreeing with each other read as a check passing. That figure now also
+> carries a floor computed from the test functions in the index, which is what caught this.)*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md

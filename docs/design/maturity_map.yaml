@@ -1598,11 +1598,12 @@
   value_stream: price_to_bill
   epoch: 3
   level_current: 2   # L0->L2 2026-09-17, recorded in gate_authorizations.jsonl. HELD AT 2 by its
-  #   OWN Expert Hour (2026-09-17, below): the Hour returned FAIL. Two of its disqualifying
-  #   questions were answered NO against the live tree and are repaired; EH-3 is open.
+  #   OWN Expert Hour (2026-09-17, below): the Hour returned FAIL. All three disqualifying
+  #   questions are now repaired, and EH-3's repair caught the defect LIVE on this tree.
   level_target: 3
-  loop_stage: harden   # L2->L3 now waits on EH-3 and a SECOND blind pass after it -- a verdict
-  #   cannot certify the repairs it prescribed.
+  loop_stage: harden   # L2->L3 waits on a SECOND blind pass -- a verdict cannot certify the
+  #   repairs it prescribed -- and on EH-3's named residual: the tests figure is floored by the
+  #   index but NOT capped, so an overstatement typed into both documents still reads AGREES.
   dial_inherited: 12    # presentation, not product. Ranked with H31, below the R-set: the header
   #   is now correct and gated for STALENESS, so what is left is preventing the next drift rather
   #   than repairing a live wrong page.
@@ -1617,7 +1618,7 @@
   #   MOVED INTO (aff4b153f) and not the freshness suite it was first appended to: the grader dates
   #   a control by its FILE's birth, so a row can only be graded by a file younger than itself.
   records_rehomed: [expert_hour_findings]
-  expert_hour: {status: attempted_finding_open, last: '2026-09-17 blind pass, persona a veteran of corporate reporting and disclosure controls, via tools/blind_review.py -- packet and 16-question battery recorded verbatim in docs/observability/blind_review_ledger.jsonl, blindfold re-derived PASS by --audit, independence false per 3c. VERDICT FAIL, level held. EH-1 (UNGRADED was an unearned escape hatch) and EH-2 (a hedged figure read as no figure, so the real incident never reached the grading legs) repaired with mutation-proven controls; EH-3 open -- one of the four figures is graded against another hand-typed number and is clearable by typing.'}
+  expert_hour: {status: attempted_finding_open, last: '2026-09-17 blind pass, persona a veteran of corporate reporting and disclosure controls, via tools/blind_review.py -- packet and 16-question battery recorded verbatim in docs/observability/blind_review_ledger.jsonl, blindfold re-derived PASS by --audit, independence false per 3c. VERDICT FAIL, level held. EH-1 (UNGRADED was an unearned escape hatch) and EH-2 (a hedged figure read as no figure, so the real incident never reached the grading legs) repaired with mutation-proven controls; EH-3 repaired in part the same day and its prediction CONFIRMED LIVE: the tests figure was graded only against CLAUDE.md''s hand-typed Build line, both documents said 26,731, a real collection returned 36,838, and the check said AGREES while the site published it. That leg now carries a floor computed from the test functions in the git index, at no extra cost. Residual: floored, not capped.'}
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
   title: "phase 1: the smallest set of weather cells that captures household-weighted heat-load variation across GB"

@@ -30,6 +30,22 @@ def _live_header() -> str:
     return (saf.OVERVIEW).read_text(encoding="utf-8")
 
 
+def _commits(header: str) -> str:
+    """The commits phrase AS THIS HEADER CURRENTLY WRITES IT.
+
+    Every mutation below used to carry the literal `9,385 commits`, and on the first commit that
+    corrected the header all six of them failed with "the mutation did not apply" -- a suite pinned
+    to today's answer, which is the trap this project keeps paying for and which these tests exist
+    to enforce against the MODULE. Derived here so the mutations survive the header being right.
+    """
+    return f"{saf.stated_figures(header)['commits']:,} commits"
+
+
+def _declared(header: str) -> str:
+    """The header's own date sentence, for the same reason."""
+    return f"*Last updated: {saf._declared_from_text(header).isoformat()}."
+
+
 def test_the_startup_headers_figures_agree_with_the_sources_it_names():
     """THE CONTROL. The date sentence was gated and the four quantities beside it were not -- and
     in the incident that produced this module the date was 8 days out while the figures were out by
@@ -61,8 +77,8 @@ def test_a_hand_typed_figure_is_refused_IN_EITHER_DIRECTION():
     other. Both verdicts must be REACHABLE from real mutations of the real header.
     """
     header = _live_header()
-    low = header.replace("9,385 commits", "2,500 commits")
-    high = header.replace("9,385 commits", "94,385 commits")
+    low = header.replace(_commits(header), "2,500 commits")
+    high = header.replace(_commits(header), "94,385 commits")
     assert low != header and high != header, "the mutation did not apply -- the header was reworded"
 
     verdicts = {r["figure"]: r["verdict"] for r in saf.figure_verdicts(low)}
@@ -77,7 +93,8 @@ def test_deleting_a_figure_refuses_rather_than_leaving_nothing_to_disagree_with(
     """FAIL-CLOSED, and the cheapest possible silencing of this half of the check: a check that
     compares a stated number to its source is silenced by deleting the number, and an absent figure
     would otherwise read as a clean pass -- the same shape `MIN_ANCHORS` exists to stop."""
-    stripped = _live_header().replace("9,385 commits. ", "")
+    header = _live_header()
+    stripped = header.replace(_commits(header) + ". ", "")
 
     with pytest.raises(saf.AnchorRefusal) as exc:
         saf.stated_figures(stripped)
@@ -87,7 +104,8 @@ def test_deleting_a_figure_refuses_rather_than_leaving_nothing_to_disagree_with(
 def test_a_figure_with_no_as_of_date_is_refused_because_it_cannot_be_falsified():
     """A quantity with no date is not a claim about anything: there is no window to compute the
     source over, so every value is as good as every other. Refuse rather than invent a window."""
-    undated = _live_header().replace("*Last updated: 2026-09-05.", "*")
+    header = _live_header()
+    undated = header.replace(_declared(header), "*")
 
     with pytest.raises(saf.AnchorRefusal):
         saf.figure_verdicts(undated)
@@ -115,7 +133,8 @@ def test_a_figure_whose_source_did_not_exist_yet_is_UNGRADED_and_says_so():
     be told the figure was checked. So it is reported, and the route an author could abuse it by --
     back-dating the header past the source -- is closed by the LIES check, not by this leg.
     """
-    header = _live_header().replace("*Last updated: 2026-09-05.", "*Last updated: 2026-08-01.")
+    live = _live_header()
+    header = live.replace(_declared(live), "*Last updated: 2026-08-01.")
     assert saf.figure_band(dt.date(2026, 8, 1))["tests"] == (None, None)
 
     rows = {r["figure"]: r["verdict"] for r in saf.figure_verdicts(header)}
@@ -149,10 +168,11 @@ def test_a_wrong_figure_actually_REFUSES_and_a_right_one_does_not(tmp_path):
     one hand-typed figure must exit 1. Asserting only the refusal would be satisfied by a check that
     refuses everything, and this pair cannot be.
     """
+    header = _live_header()
     clean = tmp_path / "clean.md"
-    clean.write_text(_live_header())
+    clean.write_text(header)
     wrong = tmp_path / "wrong.md"
-    wrong.write_text(_live_header().replace("9,385 commits", "2,500 commits"))
+    wrong.write_text(header.replace(_commits(header), "2,500 commits"))
 
     verdicts = (saf.main(["--check", "--overview", str(clean)]),
                 saf.main(["--check", "--overview", str(wrong)]))
@@ -180,15 +200,18 @@ def test_a_HEDGED_figure_is_still_a_figure_and_is_still_graded():
     every hedge would pass a test that only checked the false one.
     """
     header = _live_header()
-    honest = header.replace("9,385 commits", "9,000+ commits")
-    stale = header.replace("9,385 commits", "2,500+ commits")
+    # The honest hedge is the header's OWN figure wearing a `+`, not a literal that was honest on
+    # the day this was written -- "9,000+" was inside the band in 2026-09 and outside it by 2026-09-17.
+    true = saf.stated_figures(header)["commits"]
+    honest = header.replace(_commits(header), f"{true:,}+ commits")
+    stale = header.replace(_commits(header), "2,500+ commits")
     assert honest != header and stale != header, "the mutation did not apply -- header reworded"
 
     seen = (saf.stated_figures(honest)["commits"], saf.stated_figures(stale)["commits"])
     graded = ({r["figure"]: r["verdict"] for r in saf.figure_verdicts(honest)}["commits"],
               {r["figure"]: r["verdict"] for r in saf.figure_verdicts(stale)}["commits"])
 
-    assert seen == (9000, 2500), f"a hedged figure must still be READ as a figure, got {seen}"
+    assert seen == (true, 2500), f"a hedged figure must still be READ as a figure, got {seen}"
     assert graded == ("AGREES", "UNDERSTATES"), (
         f"a hedged figure must still be GRADED, and the hedge cannot rescue a 3.7x miss: {graded}")
 
@@ -249,3 +272,95 @@ def test_a_source_TAKEN_AWAY_refuses_while_one_that_never_existed_stays_UNGRADED
         "a source readable at the start of the window and gone at the end must REFUSE, and one "
         f"that never existed must stay an honest unchecked reading: {taken_away} / "
         f"{never_existed}. Equal verdicts here mean the two causes were merged again.")
+
+
+def _tests_row(header: str) -> dict:
+    return {r["figure"]: r for r in saf.figure_verdicts(header)}["tests"]
+
+
+def test_a_test_count_BELOW_THE_INDEX_FLOOR_is_refused_though_both_documents_agree(tmp_path):
+    """EXPERT HOUR, 2026-09-17, EH-3 -- the one leg that was graded against a copy of itself.
+
+    Three of the four figures come from git, which nobody can type into. `tests` came from
+    CLAUDE.md's Build line, itself hand-typed, so the band was DEGENERATE (low == high == stated)
+    and the leg was clearable by typing: invent a count, update both documents in one commit, and
+    this check agreed with you.
+
+    IT WAS NOT HYPOTHETICAL. Measured the day this was written: both documents said 26,731, the
+    Build line had not moved since its spelling was introduced 20 days and 1,440 commits earlier,
+    a real collection of a clean HEAD extract returned 36,835, and this check said AGREES while the
+    live site published the typed number.
+
+    The floor is what git can answer alone -- a collection is never fewer than one item per test
+    function, and `@parametrize` only multiplies -- so it needs no collection at publish time and
+    cannot be moved by editing either document.
+
+    ONE ASSERTION OVER THE WHOLE PARTITION: an impossible figure refuses AND the live one does not.
+    A rule that refused every test count would pass the first half and wedge every commit.
+    """
+    header = _live_header()
+    floor = _tests_row(header)["floor"]
+    assert floor, "the tests leg carries no index floor -- EH-3 is open again"
+
+    stated = saf.stated_figures(header)["tests"]
+    impossible = header.replace(f"{stated:,} tests collected", f"{floor - 1:,} tests collected")
+    assert impossible != header, "the mutation did not apply -- the header was reworded"
+
+    clean, wrong = tmp_path / "clean.md", tmp_path / "wrong.md"
+    clean.write_text(header, encoding="utf-8")
+    wrong.write_text(impossible, encoding="utf-8")
+    verdicts = (_tests_row(header)["verdict"], _tests_row(impossible)["verdict"])
+    exits = (saf.main(["--check", "--overview", str(clean)]),
+             saf.main(["--check", "--overview", str(wrong)]))
+
+    assert verdicts == ("AGREES", "BELOW_THE_INDEX_FLOOR"), (
+        f"the live header and one stating fewer tests than the index holds must differ: {verdicts}")
+    assert exits == (0, 1), (
+        f"the verdict must decide the exit code, and both halves must be reachable: {exits}")
+
+
+def test_the_floor_CANNOT_BE_MOVED_by_the_hand_typed_line_it_exists_to_check(monkeypatch):
+    """The forgery EH-3 named, performed: an author who invents a test count and updates BOTH
+    documents in the same commit, so the header and its named source agree perfectly.
+
+    Under the pre-repair rule that is an `AGREES` -- the band is read off the very line being
+    forged, so moving it moves both ends of the band with it. The floor comes from the index, so it
+    does not move, and the assertion below checks the forgery TOOK (the band really did follow the
+    typed line) before checking that it failed anyway -- a stub that changed nothing would
+    otherwise prove nothing.
+    """
+    header = _live_header()
+    floor = _tests_row(header)["floor"]
+    stated = saf.stated_figures(header)["tests"]
+    forged = header.replace(f"{stated:,} tests collected", f"{floor - 1:,} tests collected")
+    assert forged != header, "the mutation did not apply -- the header was reworded"
+
+    monkeypatch.setattr(saf, "_tests_figure", lambda _text: floor - 1)
+    monkeypatch.setattr(saf, "_figures_in_working_tree",
+                        lambda: dict(saf._figures_at("HEAD"), tests=floor - 1))
+    row = _tests_row(forged)
+
+    assert (row["band_low"], row["band_high"]) == (floor - 1, floor - 1), (
+        "the forgery did not take -- this test is not exercising what it claims to: "
+        f"band was {row['band_low']}-{row['band_high']}, expected the forged {floor - 1}")
+    assert row["verdict"] == "BELOW_THE_INDEX_FLOOR", (
+        "a figure agreeing perfectly with its own hand-typed source must still be refused when "
+        f"the index contradicts it, got {row['verdict']}")
+
+
+def test_the_floor_is_COMPUTED_from_the_index_and_outlives_the_typed_source():
+    """Keyed to the property, never to today's count: the floor grows with the suite, and it is
+    readable over windows where the hand-typed source does not exist at all.
+
+    That second half is the whole reason it is checked BEFORE the band and before `low is None`.
+    Every other route to grading this figure runs through a line in another document that can be
+    reworded, deleted or back-dated out of reach; this one runs through the tree itself.
+    """
+    early = saf.figure_band(dt.date(2026, 8, 1))
+    late = saf.figure_band(dt.date(2026, 9, 5))
+
+    assert early["tests_floor"][1] < late["tests_floor"][0], (
+        "the floor must track the index, not a literal: "
+        f"{early['tests_floor']} then {late['tests_floor']}")
+    assert early["tests"] == (None, None), "the typed source is not readable that far back"
+    assert all(early["tests_floor"]), "and the floor still is -- that is what it is for"
