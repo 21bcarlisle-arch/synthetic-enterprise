@@ -45,7 +45,9 @@ def test_the_startup_headers_figures_agree_with_the_sources_it_names():
     assert {r["figure"] for r in rows} == set(saf.FIGURE_SOURCES), "a figure stopped being graded"
     assert saf.figure_refusals(rows) == [], (
         "the startup header states a figure its own source never carried: "
-        + "; ".join(f"{r['figure']}={r['stated']:,} vs {r['band_low']:,}-{r['band_high']:,}"
+        + "; ".join(f"{r['figure']}={r['stated']:,} vs "
+                    + ("no band -- " + r["verdict"] if r["band_low"] is None
+                       else f"{r['band_low']:,}-{r['band_high']:,}")
                     for r in saf.figure_refusals(rows)))
 
 
@@ -159,3 +161,91 @@ def test_a_wrong_figure_actually_REFUSES_and_a_right_one_does_not(tmp_path):
         "the header's own figures must decide the exit code: (clean, hand-typed) was "
         f"{verdicts}. A 0 on the right is a gate that computes a refusal and drops it; a 1 on the "
         "left means the live tree is refusing for some other reason -- read the stderr above.")
+
+
+def test_a_HEDGED_figure_is_still_a_figure_and_is_still_graded():
+    """EXPERT HOUR, 2026-09-17. The blind reviewer's hardest question was "would this have caught
+    the last real error?", and replaying it answered NO for half the sentence. The header that cost
+    a session its bearings said `2,500+ commits ... 360+ Python modules`, and a pattern that ended
+    the number at `[\\d,]+` saw NO FIGURE THERE -- so the replay refused by the unstated-figure leg
+    while the OVERSTATES/UNDERSTATES machinery, which is the whole substance of this module, was
+    never reached by the only real instance of the defect it exists for.
+
+    The trailing `+` is where this class LIVES: it is exactly how a person types a number they
+    already know is going stale. `~` and `over` never had the problem because they sit to the LEFT
+    of the digits, which is why the gap survived a reading of the patterns.
+
+    BOTH HALVES IN ONE ASSERTION over the same hedge, because a pattern that accepted the hedge and
+    then graded nothing would pass a test that only checked the true figure, and one that refused
+    every hedge would pass a test that only checked the false one.
+    """
+    header = _live_header()
+    honest = header.replace("9,385 commits", "9,000+ commits")
+    stale = header.replace("9,385 commits", "2,500+ commits")
+    assert honest != header and stale != header, "the mutation did not apply -- header reworded"
+
+    seen = (saf.stated_figures(honest)["commits"], saf.stated_figures(stale)["commits"])
+    graded = ({r["figure"]: r["verdict"] for r in saf.figure_verdicts(honest)}["commits"],
+              {r["figure"]: r["verdict"] for r in saf.figure_verdicts(stale)}["commits"])
+
+    assert seen == (9000, 2500), f"a hedged figure must still be READ as a figure, got {seen}"
+    assert graded == ("AGREES", "UNDERSTATES"), (
+        f"a hedged figure must still be GRADED, and the hedge cannot rescue a 3.7x miss: {graded}")
+
+
+def test_a_source_TAKEN_AWAY_refuses_while_one_that_never_existed_stays_UNGRADED(tmp_path,
+                                                                                monkeypatch):
+    """EXPERT HOUR, 2026-09-17 -- the reviewer's named escape hatch, and it was open.
+
+    `UNGRADED` was computed dynamically from "the band has no floor", and both causes of a floorless
+    band landed on it: a source that did not exist that far back (honest, and the reader is owed the
+    reading) and a source that WAS readable at the start of the window and is not readable now. The
+    second is not the passage of time -- somebody changed something -- and it is reachable by one
+    edit: the test figure's source is matched on a literal `**Build:**`, the pre-2026-08-28 spelling
+    `Build:` returns None, and an audit has already deleted that line once before. One reword of one
+    line in another document and this leg switched itself off, with a green gate and a published
+    table telling the reader the figure merely could not be checked.
+
+    The module's own note closed the BACK-DATING route to `UNGRADED` and pointed at the LIES check
+    to do it. LIES grades the date of the header's own document and can see nothing about a source
+    living in a different one, so it was never going to reach this.
+
+    ONE ASSERTION OVER THE WHOLE PARTITION: taken-away refuses AND never-existed does not. A rule
+    that refused every floorless band would pass the first half and fail the second, and that rule
+    would wedge every commit on a document that is merely old and honest.
+    """
+    overview = tmp_path / "OVERVIEW.md"
+    overview.write_text(_live_header(), encoding="utf-8")
+    real_at = saf._figures_at
+    # Patch the SOURCE side only. The header on disk is untouched and every other figure still
+    # grades against real git, so a stub that broke the whole path would red the other three legs
+    # rather than quietly satisfying this one.
+    calls = {"n": 0}
+
+    def _end(kill_high: bool, kill_low: bool):
+        def fake(rev):
+            out = dict(real_at(rev))
+            calls["n"] += 1
+            if (calls["n"] == 1 and kill_low) or (calls["n"] == 2 and kill_high):
+                out["tests"] = None
+            return out
+        return fake
+
+    def _verdict(*, kill_high: bool, kill_low: bool) -> tuple[str, int]:
+        calls["n"] = 0
+        monkeypatch.setattr(saf, "_figures_at", _end(kill_high, kill_low))
+        # The REAL one, so it cannot perturb the call ordering the fake keys on. It only runs at
+        # all when the window's late end IS head, and a `None` high survives the max() either way.
+        monkeypatch.setattr(saf, "_figures_in_working_tree", lambda: dict(real_at("HEAD")))
+        rows = saf.figure_verdicts(overview.read_text(encoding="utf-8"))
+        calls["n"] = 0
+        return ({r["figure"]: r["verdict"] for r in rows}["tests"],
+                saf.main(["--check", "--overview", str(overview)]))
+
+    taken_away = _verdict(kill_high=True, kill_low=False)
+    never_existed = _verdict(kill_high=True, kill_low=True)
+
+    assert taken_away == ("SOURCE_GONE", 1) and never_existed == ("UNGRADED", 0), (
+        "a source readable at the start of the window and gone at the end must REFUSE, and one "
+        f"that never existed must stay an honest unchecked reading: {taken_away} / "
+        f"{never_existed}. Equal verdicts here mean the two causes were merged again.")
