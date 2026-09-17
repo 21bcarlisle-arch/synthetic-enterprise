@@ -100,7 +100,14 @@ FAIL  every cell carries the ERA5 columns: 18 of 156 cell(s) hold temperature on
 ```
 
 Prediction 5 confirmed: the FAIL is real and it is the correct answer, not a defect in the
-validator. The full HadUK re-derive was launched and is reported in §6.
+validator. **The full HadUK re-derive then returned within this turn and is reported in §6: 100%
+of 1,709,604 values within 0.001 C, worst |diff| 0.0000 C.** So the store's verdict entire is
+`4 passed, 1 failed, 0 could not run` — the one FAIL being the 18 temperature-only cells, which is
+the reason the artefact stays out and not a reason to doubt the half that reproduces.
+
+All five pre-registered predictions are now settled: 1, 2, 3 and 5 confirmed, and **4 refuted in
+the direction I said would not surprise me** — I predicted at least one control would need a
+mutation before I believed it, and the one that failed was the file's own namesake.
 
 ## 5. WHAT LANDED
 
@@ -136,12 +143,24 @@ section reads as a landed one. The refusal was right and the prose was wrong.*
 
 ## 6. WHAT IS STILL OWED
 
-* **The full HadUK re-derive.** Launched in this turn against the real 39 GB cache to test the
+* ~~**The full HadUK re-derive.** Launched in this turn against the real 39 GB cache to test the
   stranded finding's headline claim — 1,709,604 values, zero disagreement. It had not returned when
-  this turn ended, so **I am not repeating that claim as confirmed.** It is the stranded lane's
-  measurement, not mine, and the next lane should re-run `python3 -m tools.validate_weather_world`
-  and record the answer here either way. A prediction filed after the answer is not a prediction,
-  and a claim inherited without re-running is not a measurement.
+  this turn ended, so **I am not repeating that claim as confirmed.**~~ **DISCHARGED IN THIS TURN,
+  and the sentence above is struck rather than deleted because it was written before the answer
+  came back and is the evidence this was not a claim adopted on trust.** The run returned at
+  01:5x BST and the headline reproduces exactly, first-hand:
+
+      PASS  temperature re-derives from HadUK: 1709604 value(s) compared, 100.0000% within
+            0.001 C, worst |diff| 0.0000 C; temperature_min_c mean +0.00000;
+            temperature_mean_c mean +0.00000; temperature_max_c mean +0.00000
+
+      4 passed, 1 failed, 0 could not run
+
+  The extractor's own incidental claim reproduced too — `reordered 310 crossed min/max cell-day(s)`
+  against a docstring that said 310 — so the HadUK interpolation artefact is the same 310 cell-days
+  it was on 2026-09-09. **The half of the store called unreproducible is byte-reproducible from
+  code that was in the tree and had never been called.** Note `0 could not run`: the leg actually
+  executed, which is the thing §3's repair exists to make legible rather than assumed.
 * **18 temperature-only cells** need an archive pull (~6 min at the measured 20 s pause); **65 book
   cells the store never held** need ~22 min. Until then the store answers for a book that no longer
   exists — 156 stored against 149 in the book today, 84 shared.
