@@ -19,10 +19,19 @@ publisher gets ONE attempt at the end of a 672s cycle, and its refusal throws th
 at the door -- so the same blocking twin that costs the reconciler a cadence costs the publisher a
 simulation, a gate and a page nobody sees.
 
-WHAT IS ASSERTED HERE. That the publisher's advance now reaches the twin repair, and that reaching
-it did not widen what the publisher is willing to delete. Real git throughout: the property under
-test is git's own `--ff-only` refusal and the hash equality that answers it, and a stub asserting
-against a stub would be a tautology in both directions.
+WHAT IS ASSERTED HERE. That the publisher's advance now reaches the twin repair, and what it is
+and is not willing to clear on the way. Real git throughout: the property under test is git's own
+`--ff-only` refusal and the hash equality that answers it, and a stub asserting against a stub
+would be a tautology in both directions.
+
+AND THAT SECOND CLAUSE CHANGED ON 2026-09-17, so it is stated here rather than left to be
+discovered in a diff. It used to read *"and that reaching it did not widen what the publisher is
+willing to delete"*, with a leg requiring the fork to stay OPEN over any untracked file whose bytes
+were not origin's. That leg pinned the 7.68-day wedge: the copy origin adds is never the copy on
+disk, because landing a staging document edits it. An untracked draft of a document origin also
+adds is now cleared -- after its bytes reach a ref and the recovery route has been run -- and
+`test_an_untracked_draft_origin_also_adds_survives_on_a_ref_and_the_fork_closes` carries the
+correction beside the claim it replaced. Tracked holder work is unchanged and still refuses.
 
 SEPARATE FROM THE SIBLING THAT GRADES THE HELPER.
 `test_the_advance_refused_on_files_it_was_about_to_write_back_unchanged.py` grades
@@ -181,28 +190,92 @@ def test_a_clean_tree_still_advances_and_deletes_nothing(behind_with_an_incoming
 
 # ── and reaching it did not widen what the publisher will delete ─────────────────────────────
 
-def test_a_twin_whose_bytes_differ_is_never_deleted_and_never_advanced_over(
+def test_an_untracked_draft_origin_also_adds_survives_on_a_ref_and_the_fork_closes(
         behind_with_an_incoming_note, unlocked):
-    """THE SAFETY NULL, and it is the reason this repair is not a wider act than the publisher
-    already sanctioned. A local file that is NOT what origin holds is somebody's unlanded work: it
-    must survive, and the fork must stay open.
+    """THE SAFETY NULL, REWRITTEN ON 2026-09-17, AND WHAT IT USED TO SAY IS KEPT HERE BESIDE IT.
 
-    Without this leg the control above passes on a version that clears every blocking path -- which
-    would make the publish path delete a lane's work to save its own cycle.
+    IT SAID: *"A local file that is NOT what origin holds is somebody's unlanded work: it must
+    survive, and the fork must stay open"* -- and asserted `advanced is False` with the draft still
+    on disk. That was right about the FIRST half and wrong about the second, and the second half is
+    what it actually pinned.
 
-    MUTATION: drop the hash comparison (`twins_fn` returning `blocking` wholesale) and this reds on
-    both assertions.
+    WHAT IT COST. `surgical_land --content` does not write the shared working tree, and a staging
+    document is routinely EDITED in the act of landing it, so the copy origin adds is never the
+    copy on disk here -- the twin sweep cannot match it and this leg required the fork to stay
+    open. Measured on the live shared tree 2026-09-17: one such draft, 8,906 bytes against origin's
+    9,846 at the same path, held a checkout five commits behind while `.publish_gate_state.json`
+    carried `last_clean_publish: null` and a wedge 7.68 days old, and every daemon on the box ran
+    superseded code. The class refills once per landing, so there was no exit.
+
+    WHAT SURVIVES OF THE OLD PROPERTY, WHICH IS THE PART THAT MATTERED. The bytes are not
+    destroyed. They reach `refs/preserved/origin-reconcile-orphan/<slug>` and the advertised
+    recovery route is RUN before the file is removed -- both legs asserted below, against real git.
+    And the path is not emptied: what stands there afterwards is origin's copy of the same
+    document, which is why this is not "deleting a lane's work to buy a fast-forward" but
+    superseding a draft by the landed version of itself.
+
+    WHAT IS NOT LICENSED BY THIS, and has its own leg below: a TRACKED path a lane is holding
+    dirty. That work exists in no other form and the lane is mid-turn on it, so it still refuses
+    everything -- see `test_a_tracked_dirty_path_blocks_the_advance_and_clears_no_untracked_twin`.
+
+    MUTATION: drop `set(orphans)` from `advance_shared_tree`'s `resolvable` union and the fork
+    stays open, so the first assertion reds.
     """
     local, origin = behind_with_an_incoming_note
-    before_head = _head(local)
-    _write_untracked_note(local, "MINE, and origin has never seen these bytes\n")
+    mine = "MINE, and origin has never seen these bytes\n"
+    _write_untracked_note(local, mine)
+    _git(local, "fetch", "origin", "main")
+    slug = orc.refresh_slug(local)
 
     result = prc._advance_to_origin_or_say_why(local)
 
-    assert result["advanced"] is False
-    assert (local / NOTE).read_text() == "MINE, and origin has never seen these bytes\n", \
-        "an unlanded local file is never deleted to buy a fast-forward"
-    assert _head(local) == before_head != _origin_head(origin)
+    assert result["advanced"] is True, result["reason"]
+    assert _head(local) == _origin_head(origin), \
+        "the fork must actually close -- a checkout behind origin runs superseded code in every " \
+        "daemon on the box, which is the cost this leg used to require"
+    assert (local / NOTE).read_text() == NOTE_BYTES, \
+        "the path is not emptied: origin's copy of the same document stands there afterwards"
+
+    ref = orc.ORPHAN_PRESERVED_PREFIX + slug
+    stored = _git(local, "show", "{}:{}".format(ref, NOTE))
+    assert stored.returncode == 0 and stored.stdout == mine, \
+        "the draft's own bytes must be readable from the preservation ref: {}".format(
+            stored.stderr)
+    found = _git(local, "log", "--all", "--format=%H", "-S", mine.rstrip("\n"), "--", NOTE)
+    assert found.stdout.strip(), \
+        "the `git log --all -S` route the refusal advertises must reach the preserved commit; one " \
+        "that does not is a preservation in name only"
+
+
+def test_an_untracked_file_origin_does_not_touch_is_never_preserved_or_removed(
+        behind_with_an_incoming_note, unlocked):
+    """THE NULL FOR THE LEG ABOVE, and the boundary of what it licenses.
+
+    The class is "an untracked draft of a document origin ADDS at the same path". A file origin has
+    no copy of is not in it, is not blocking anything, and must be left exactly where it is -- an
+    advance that swept the untracked set generally would pass the leg above and quietly clear every
+    lane's scratch file on the box.
+
+    MUTATION, AND IT TAKES BOTH GATES: hand `untracked_orphan_verdicts` the whole untracked set
+    rather than the blocking intersection, AND drop its own refusal of a path `origin/main` holds
+    nothing at. Then the scratch file is preserved and unlinked for no advance and this reds.
+
+    WIDENING THE CANDIDATE SET ALONE IS AN EQUIVALENCE, measured rather than assumed: the verdict
+    function asks `origin/main` for the path's bytes and refuses when there are none, so the
+    scratch file is offered and declined. Two independent gates hold this boundary, and saying so
+    is the difference between a control that looks dead to the next reader and one that is not.
+    """
+    local, origin = behind_with_an_incoming_note
+    _write_untracked_note(local, NOTE_BYTES)
+    scratch = local / "docs" / "staging" / "SEAT_SCRATCH_NOBODY_ELSE_HAS_2026-09-17.md"
+    scratch.write_text("a draft origin has never heard of\n")
+
+    result = prc._advance_to_origin_or_say_why(local)
+
+    assert result["advanced"] is True, result["reason"]
+    assert scratch.read_text() == "a draft origin has never heard of\n", \
+        "a file origin does not touch is not this mechanism's business at all"
+    assert _head(local) == _origin_head(origin)
 
 
 def test_a_tracked_dirty_path_blocks_the_advance_and_clears_no_untracked_twin(
