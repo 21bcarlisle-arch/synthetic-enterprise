@@ -131,10 +131,8 @@ pass and none skip.**
 
 - **Only one door has a browser leg.** The other ~23 vm-backed suites carry the same gap. This page
   is the statement on the surface that they do; wiring them is not done.
-- **`live_pixel_verify.py` has been corrected in wording but not in reach.** Its G2 now says "live
-  render", states plainly that no pixel has ever been rendered by it and what it *is* evidence for.
-  A browser leg against the **live host** — the one subject no other control reaches — is still
-  owed, and is the single highest-value next piece here.
+- ~~**`live_pixel_verify.py` has been corrected in wording but not in reach.**~~ **Closed
+  2026-09-17 — see "The live host is now read by a browser" below.**
 - **The vm door beside the new leg still reads `_HERE / "index.html"`** — the working-tree copy, not
   the published one — so it cannot tell "the reader can see this" from "someone in this tree has
   fixed it and not landed it". That is the defect `site/test_the_published_bytes_reader.py` exists
@@ -142,3 +140,60 @@ pass and none skip.**
 - **Playwright absence still skips rather than fails**, matching how `node` absence is treated. That
   remains right — but the skip must now name where it looked, and a machine that *has* playwright
   can no longer be told it does not.
+
+## The live host is now read by a browser — 2026-09-17
+
+The hole this page described was in the UNION of the two halves, exactly where the reader is. The
+vm verifier proved the live host served the bytes and the live feeds parsed; the browser leg proved
+a person could read the PUBLISHED bytes. Neither proved a person can read the **LIVE page**, which
+is the only claim R11 and CLAUDE.md's "done means the rendered value changed" actually make — and
+all three breakages in the table above are deployable, invisible to the vm verifier, and reach
+readers.
+
+`site/live_pixel_verify.py` now carries **G4**: the live url is loaded in chromium and every
+element the door's own script wrote content into must EXIST in the live DOM, be VISIBLE, and carry
+words.
+
+**The element list is derived, never typed.** It is G2's own output — the ids the vm harness
+reports the door wrote into — so G4 is a strict addition to G2 rather than a second opinion, and
+a section added to a door is graded on the day it ships without anyone editing a list. The three
+breakages line up against it by construction: the renamed container reads `exists: false` (the vm
+mints an element for any id), the stylesheet rule reads `visible: false` (the vm parses no CSS),
+and the later inline script leaves a box with no words in it (the vm's regex takes only the first).
+
+**`:body` — the whole-page reading — is always in the subject list**, which is what carries a
+STATIC door. `/privacy/` and the Front Door write into no element, so a G4 whose subject was "the
+written elements" would have had an EMPTY subject on exactly the doors where a broken build ships a
+nav-and-footer shell.
+
+**It fails closed, and differently from the pytest suite on purpose.** `test_the_browser_reading.py`
+SKIPS when playwright is absent, because it runs on every machine and this repo tolerates one
+without a browser. G4 RAISES, because this is a tool invoked at door close to produce R11 evidence,
+and reporting "the live doors verified" having rendered nothing is the fail-silent shape the module
+exists to refuse.
+
+### What the first reading found
+
+Pre-registered before the run, in
+`docs/staging/records/SEAT_PREREGISTRATION_WHAT_A_BROWSER_MEETS_ON_THE_LIVE_DEPLOYED_DOORS_2026-09-17.md`,
+which holds the table and the corrections. **86 written elements across the 5 live dynamic doors:
+0 not in the DOM, 0 not visible, 0 page errors, every door 200 to chromium.** No live defect. The
+prediction that at least one would be hidden was **wrong and is recorded as wrong** — and it is
+what let the STRICT rule be chosen instead of the weaker one I had been hedging toward, because the
+false-positive risk it was hedging against does not exist on this site.
+
+So G4 has never fired on a real defect, which is weaker than a control caught in the wild. It is
+mutation-proved offline instead, through a `reader` seam mirroring `fetcher`: dropping the
+visibility clause, letting an unreadable page return an empty reading, and hand-typing the element
+list each red their own leg. A fourth mutation did not fire and was established as an
+**equivalence**, not a missing test — the clause it removed could never change a verdict, and has
+been deleted rather than left reading as protection.
+
+### What is still owed after this
+
+- **The other ~23 vm-backed suites still have no browser leg.** G4 covers every DEPLOYED DOOR; it
+  does not cover a door's individual pytest suite, and `site/harness/test_the_deployment_reading_is_visible_to_a_browser.py`
+  is still the only one of those built.
+- **G4 costs a browser launch per door**, so a full run is minutes rather than seconds. That is
+  right for a door-close tool and would be wrong in a commit gate — which is where this module has
+  always said it does not belong.

@@ -49,6 +49,7 @@ import os
 import shutil
 import socketserver
 import subprocess
+import sys
 import tempfile
 import threading
 from contextlib import contextmanager
@@ -59,6 +60,16 @@ import pytest
 SITE = Path(__file__).resolve().parent
 PROJECT = SITE.parent
 PROBE = SITE / "_browser_probe.mjs"
+
+sys.path.insert(0, str(SITE))
+
+# `playwright_base` WAS WRITTEN HERE and now lives in `live_pixel_verify`, which needs it too for
+# its own browser leg against the LIVE host. One definition, imported, rather than a copy in each:
+# a resolver duplicated across two files is a resolver that will answer differently in one of them,
+# and this one already went wrong once -- it reported "playwright is not installed" from every
+# linked worktree, which is where every executor turn runs. The import direction is forced: that
+# module is a TOOL and must not depend on pytest, so it cannot import from here.
+from live_pixel_verify import playwright_base  # noqa: E402
 
 
 class _QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -155,35 +166,6 @@ def published_site_server(root: Path | None = None):
             finally:
                 httpd.shutdown()
                 t.join(timeout=10)
-
-
-def playwright_base() -> Path:
-    """The directory to resolve `playwright` against: the MAIN checkout, not this one.
-
-    `node_modules/` is gitignored, so it exists only in the main checkout. A linked worktree has
-    none -- and that is where every autonomous executor turn and every isolated seat invocation
-    runs, so "the environment the doors are graded in" is the case this has to get right, not an
-    edge case. `git rev-parse --git-common-dir` points at the SHARED `.git` (a worktree's own
-    `--git-dir` is `.git/worktrees/<name>`), so its parent is the main checkout in both cases.
-
-    FALLS BACK TO `PROJECT`, DELIBERATELY. A clean `git archive` extract has no `.git` at all, and
-    a base that raised there would turn "no browser here" into a collection error in every tree
-    that is not a repository. The fallback is the same answer the old code assumed unconditionally,
-    so it can only be as wrong as the code this replaces.
-    """
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(PROJECT), "rev-parse", "--git-common-dir"],
-            capture_output=True, text=True, timeout=60,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return PROJECT
-    if out.returncode != 0 or not out.stdout.strip():
-        return PROJECT
-    common = Path(out.stdout.strip())
-    if not common.is_absolute():
-        common = (PROJECT / common).resolve()
-    return common.parent
 
 
 def browser_available() -> str | None:

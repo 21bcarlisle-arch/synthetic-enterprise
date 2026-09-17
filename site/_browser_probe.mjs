@@ -13,6 +13,12 @@
 // `site/_browser_reading.py`) because a probe pointed at the working tree cannot tell "the reader
 // can see this" from "someone in this tree has fixed it and not landed it".
 //
+// IT IS NOT LIMITED TO LOCALHOST. `site/live_pixel_verify.py` points it at the LIVE deployed host
+// (`https://poesys.net/<door>`), which is the one subject no other control in this repository
+// reaches with a browser -- the vm verifier proves the live host served the bytes, this proves a
+// person can read what they became. When the target IS a live origin, set
+// POESYS_BROWSER_CACHE_BUST: see the route handler below for why the page URL alone is not enough.
+//
 // Usage: node _browser_probe.mjs <url> <elementId> [<elementId> ...]   -> JSON on stdout.
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
@@ -70,8 +76,42 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const pageErrors = [];
 page.on("pageerror", (e) => pageErrors.push(String(e.message)));
+
+// EVERY SUBRESOURCE IS CACHE-BUSTED, NOT JUST THE PAGE, and that is a property of what THIS probe
+// concludes rather than tidiness. `live_pixel_verify.cache_bust` records the incident: the edge
+// served deleted pages `200` for eight hours, immune to purge, and a check that concludes
+// something is ABSENT or NOT VISIBLE through a cached copy cannot tell absence from staleness.
+//
+// The page URL is busted by the caller. That is enough for G1/G2/G3, which conclude about the HTML
+// and the feeds -- but VISIBILITY is decided by the STYLESHEET, and a stale `assets/*.css` can only
+// ever make an element look visible that the current one hides. A false GREEN, which is the
+// direction that matters. So the busting happens here, inside the browser, where every request the
+// page makes passes through.
+//
+// FALLS BACK TO THE UNTOUCHED REQUEST ON ANY ERROR. A route handler that throws leaves the request
+// hanging until the navigation times out, and the probe would report "the live page did not load"
+// on a page that is perfectly fine -- turning a rewriting bug into a false RED on the live site.
+const cacheBust = process.env.POESYS_BROWSER_CACHE_BUST;
+if (cacheBust) {
+  await page.route("**/*", async (route) => {
+    try {
+      const u = new URL(route.request().url());
+      if (u.protocol === "http:" || u.protocol === "https:") {
+        u.searchParams.set("cb", cacheBust);
+        await route.continue({ url: u.toString() });
+        return;
+      }
+    } catch { /* fall through to the untouched request */ }
+    await route.continue();
+  });
+}
+
 try {
-  await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+  // The RESPONSE is kept: a live origin answering 404 or 503 still produces a DOM, and every
+  // element would then read `exists: false` -- which describes a broken page rather than a missing
+  // one. The caller gets the status and can say which it met.
+  const response = await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+  const status = response ? response.status() : null;
   // The page's sections render from `fetch(...).then(...)`, so networkidle is necessary but not
   // sufficient -- a render scheduled on the microtask queue after the last response can still be
   // pending. This settles it without pinning a selector the probe is supposed to be neutral about.
@@ -80,7 +120,12 @@ try {
   const elements = await page.evaluate((wanted) => {
     const out = {};
     for (const id of wanted) {
-      const el = document.getElementById(id);
+      // `:body` IS THE WHOLE-PAGE READING, and it exists because a door with no client render has
+      // no element id to ask about. Without it a STATIC door -- the Front Door, /privacy/ -- would
+      // have no reader-side subject at all, and "this control does not cover those" is a hole
+      // rather than a design. A shell served by a broken build has a body and no words in it,
+      // which is exactly what this reading catches.
+      const el = id === ":body" ? document.body : document.getElementById(id);
       if (!el) { out[id] = { exists: false }; continue; }
       const cs = getComputedStyle(el);
       const box = el.getBoundingClientRect();
@@ -89,7 +134,21 @@ try {
         // VISIBLE means the reader meets it, which is a conjunction and not a single property:
         // `display:none` on any ancestor, `visibility:hidden`, zero opacity and a collapsed box
         // are four different ways to publish nothing, and each has been a real defect somewhere.
-        visible: !!(el.offsetParent !== null || cs.position === "fixed") &&
+        //
+        // `document.body` IS CARVED OUT OF THE offsetParent CLAUSE, not exempted from the others.
+        // `offsetParent` is specified to return null for the body element and for the root, the
+        // same answer it gives for `display:none` -- so without this the whole-page reading would
+        // report every healthy page as invisible, and a control that fires on everything is not a
+        // control. `visibility`, `opacity` and the box are all still judged on it.
+        //
+        // A `cs.display !== "none"` clause was written here to stop that carve-out becoming a
+        // blanket exemption, and then DELETED: removing it changed no verdict, because a
+        // `display:none` body still collapses its box to 0x0 and the box clause catches it.
+        // Mutation-checked 2026-09-17 rather than assumed -- an unfiring mutation is an
+        // equivalence or a missing test and must be established, and the flattering answer is
+        // not the default. `test_the_WHOLE_PAGE_reading_is_a_real_reading_and_not_a_carve_out`
+        // is what holds this, in a real browser, on a real hidden page.
+        visible: !!(el.offsetParent !== null || cs.position === "fixed" || el === document.body) &&
                  cs.visibility !== "hidden" && cs.opacity !== "0" &&
                  box.width > 0 && box.height > 0,
         display: cs.display,
@@ -112,7 +171,7 @@ try {
     return out;
   }, ids);
 
-  console.log(JSON.stringify({ ok: true, url, elements, pageErrors }));
+  console.log(JSON.stringify({ ok: true, url, status, elements, pageErrors }));
 } catch (err) {
   console.log(JSON.stringify({ ok: false, url, error: String(err && err.message), pageErrors }));
   process.exitCode = 1;

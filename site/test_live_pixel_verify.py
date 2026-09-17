@@ -99,11 +99,41 @@ def door_pages(html=DOOR_HTML, feed=GOOD_FEED, door_status=200, feed_status=200)
 
 
 # --------------------------------------------------------------------------
+# The G4 seam. `reader` is to the browser half what `fetcher` is to G1-G3: without it
+# every test in this file would launch chromium against the real poesys.net.
+# --------------------------------------------------------------------------
+HEALTHY_READING = {
+    "exists": True, "visible": True, "display": "block", "visibility": "visible",
+    "opacity": "1", "width": 900, "height": 40, "innerLength": 20, "text": "a readable sentence",
+}
+
+
+def make_reader(overrides=None, *, status=200, ok=True, error=None):
+    """A double for the chromium probe: healthy for every id asked, except where overridden.
+
+    IT MIRRORS THE REAL PAYLOAD KEY FOR KEY, and `test_the_real_probe_answers_in_the_shape_this_
+    double_claims` binds it to the subject. A double more permissive than the mechanism it stands
+    in for turns a fail-open into a green suite -- this repo's catalogued R15 mode -- and the
+    shape of the reading is exactly where that would happen silently.
+    """
+    def read(url, ids):
+        if not ok:
+            return {"ok": False, "url": url, "error": error, "pageErrors": []}
+        elements = {}
+        for i in ids:
+            el = dict(HEALTHY_READING)
+            el.update((overrides or {}).get(i, {}))
+            elements[i] = el
+        return {"ok": True, "url": url, "status": status, "elements": elements, "pageErrors": []}
+    return read
+
+
+# --------------------------------------------------------------------------
 # BASELINE: a healthy door passes. Without this the failure tests below prove
 # nothing -- a verifier that fails on everything is not a control either.
 # --------------------------------------------------------------------------
 def test_healthy_door_passes():
-    r = V.verify_door("/x/", make_fetcher(door_pages()))
+    r = V.verify_door("/x/", make_fetcher(door_pages()), make_reader())
     assert r.ok, r.failures
     assert r.rendered_elements > 0
     assert "Net: 1234" in r.sample.get("headline", "")
@@ -121,7 +151,7 @@ def test_source_string_does_not_satisfy_the_check():
     html = """<!doctype html><html><body>
     <div id="headline">Net: 1234</div>
     <script>var unused = 1;</script></body></html>"""
-    r = V.verify_door("/x/", make_fetcher(door_pages(html=html)))
+    r = V.verify_door("/x/", make_fetcher(door_pages(html=html)), make_reader())
     assert not r.ok
     assert any("rendered NOTHING" in f for f in r.failures), r.failures
 
@@ -131,13 +161,13 @@ def test_source_string_does_not_satisfy_the_check():
 # --------------------------------------------------------------------------
 def test_empty_feed_payload_fails():
     """An empty feed makes every structural assertion pass vacuously. Must fail."""
-    r = V.verify_door("/x/", make_fetcher(door_pages(feed={})))
+    r = V.verify_door("/x/", make_fetcher(door_pages(feed={})), make_reader())
     assert not r.ok
     assert any("empty payload" in f for f in r.failures), r.failures
 
 
 def test_feed_404_fails_and_the_door_error_path_is_caught():
-    r = V.verify_door("/x/", make_fetcher(door_pages(feed_status=404)))
+    r = V.verify_door("/x/", make_fetcher(door_pages(feed_status=404)), make_reader())
     assert not r.ok
     assert any("returned 404" in f for f in r.failures), r.failures
     # The door's own catch branch rendered its error text; that is caught too.
@@ -147,7 +177,7 @@ def test_feed_404_fails_and_the_door_error_path_is_caught():
 def test_malformed_feed_json_fails():
     pages = door_pages()
     pages["https://poesys.net/data/thing.json"] = (200, b"{not json")
-    r = V.verify_door("/x/", make_fetcher(pages))
+    r = V.verify_door("/x/", make_fetcher(pages), make_reader())
     assert not r.ok
     assert any("not valid JSON" in f for f in r.failures), r.failures
 
@@ -155,13 +185,13 @@ def test_malformed_feed_json_fails():
 def test_redirected_door_fails_g1():
     """A canonical door that only resolves via a redirect is advertising a URL that is
     not the real one. Following redirects here would turn that into a silent pass."""
-    r = V.verify_door("/x/", make_fetcher(door_pages(door_status=301)))
+    r = V.verify_door("/x/", make_fetcher(door_pages(door_status=301)), make_reader())
     assert not r.ok
     assert any("does not serve 200" in f for f in r.failures), r.failures
 
 
 def test_empty_body_fails():
-    r = V.verify_door("/x/", make_fetcher(door_pages(html="")))
+    r = V.verify_door("/x/", make_fetcher(door_pages(html="")), make_reader())
     assert not r.ok
     assert any("empty body" in f for f in r.failures), r.failures
 
@@ -243,7 +273,7 @@ def test_network_unavailable_is_a_failure_not_a_skip():
         raise V.LiveCheckUnavailable(f"{url}: network is down")
 
     with pytest.raises(V.LiveCheckUnavailable):
-        V.verify_door("/x/", dead)
+        V.verify_door("/x/", dead, make_reader())
 
 
 def test_main_reports_unavailable_as_nonzero_exit(monkeypatch):
@@ -264,7 +294,8 @@ def test_object_object_is_caught_as_a_rendered_defect():
     'belief_coeffs: [object Object]', found by this verifier and fixed in
     site/proof/index.html (fmtComponent). The control that found it must stay able to.
     """
-    r = V.verify_door("/x/", make_fetcher(door_pages(feed={"net": 1, "coeffs": {"b_hdd": 0.4}})))
+    r = V.verify_door("/x/", make_fetcher(door_pages(feed={"net": 1, "coeffs": {"b_hdd": 0.4}})),
+                      make_reader())
     assert not r.ok
     assert any("[object object]" in f.lower() for f in r.failures), r.failures
 
@@ -347,3 +378,217 @@ def test_an_element_appended_to_itself_does_not_hang_the_harness():
     panel = rendered.get("panel") or {}
     assert "CYCLIC_ROW" in "{}".format(panel.get("textContent") or ""), (
         "the cycle guard dropped the honest content along with the cycle")
+
+
+# ==========================================================================
+# G4 -- the READER-SIDE reading of the LIVE host (wired 2026-09-17).
+#
+# G2 answers "the page computed it"; these answer "a person can read it". Every leg below names
+# one of the three breakages measured on 2026-09-17 against a live vm door, each of which left a
+# reader looking at nothing and passed all six of that door's legs
+# (docs/design/WHAT_THE_VM_DOORS_GRADE.md). They run OFFLINE through the `reader` seam, for the
+# same reason the rest of this file runs offline through `fetcher`: a control proved only against
+# the real site is a control that passes whatever the real site happens to be doing today.
+# ==========================================================================
+def test_a_healthy_door_is_actually_READ_by_the_browser():
+    """THE POSITIVE LEG, first on purpose (CLAUDE.md: assert the branch CAN be taken).
+
+    Without it, every negative leg below is satisfied by a G4 that reports nothing readable on
+    any page -- and `read_elements` would sit at 0 while the door still passed, because "no
+    failures" and "something was read" are different statements.
+    """
+    r = V.verify_door("/x/", make_fetcher(door_pages()), make_reader())
+    assert r.ok, r.failures
+    assert r.read_elements > 0, "G4 raised no failure and also read nothing -- it has no subject"
+
+
+def test_the_browser_is_asked_about_exactly_what_the_door_WROTE_INTO():
+    """THE DERIVATION, which is the whole design and the thing most likely to rot.
+
+    The subject list is G2's own output plus the whole-page reading -- never a hand-typed list.
+    If it ever becomes one, a section added to a door stops being graded on the day it ships and
+    nothing says so. This asserts the coupling directly rather than trusting the comment.
+    """
+    asked = []
+
+    def spy(url, ids):
+        asked.append((url, sorted(ids)))
+        return make_reader()(url, ids)
+
+    r = V.verify_door("/x/", make_fetcher(door_pages()), spy)
+    assert r.ok, r.failures
+    assert len(asked) == 1, asked
+    url, ids = asked[0]
+    assert url.startswith("https://poesys.net/x/"), url
+    assert "cb=" in url, f"G4 loaded the live page through a copy the edge may have cached: {url}"
+    # `headline` and `detail` are what DOOR_HTML's script writes into; `:body` is the floor.
+    assert ids == [V.WHOLE_PAGE, "detail", "headline"], ids
+
+
+def test_a_renamed_container_passes_the_vm_and_is_caught_HERE():
+    """BREAKAGE C, the worst of the three and the one that sets this control's bar.
+
+    The vm's `document.getElementById` MINTS an element for any id asked of it, so G2 reads a
+    complete, correct render out of a div that is not on the live page at all. In chromium the
+    same bytes raise a TypeError inside a `.then()`, a `.catch()` swallows it, four later
+    sections never render, and the page publishes "The record behind this page could not be
+    loaded" -- which is false. Nothing in this repository could see that before G4.
+    """
+    r = V.verify_door("/x/", make_fetcher(door_pages()),
+                      make_reader({"headline": {"exists": False}}))
+    assert not r.ok
+    assert any("#headline is not in the live DOM" in f for f in r.failures), r.failures
+    # ...and G2 is still perfectly happy, which is the point being proved.
+    assert not any(f.startswith("G2") for f in r.failures), r.failures
+
+
+def test_a_stylesheet_rule_that_hides_the_rendered_element_is_caught():
+    """BREAKAGE A: the render function is untouched and correct, and a CSS rule the vm harness
+    never parses means nobody reads its output. Note the reading still carries the WORDS --
+    `innerText` falls back to `textContent` for an unrendered element -- so a control asserting
+    only on text passes this. `visible` is why it is a separate clause."""
+    r = V.verify_door("/x/", make_fetcher(door_pages()),
+                      make_reader({"detail": {"visible": False, "display": "none",
+                                              "width": 0, "height": 0}}))
+    assert not r.ok
+    assert any("#detail is on the live page but not visible" in f for f in r.failures), r.failures
+    assert any("display=none" in f for f in r.failures), r.failures
+
+
+def test_an_element_that_is_visible_but_WORDLESS_is_caught():
+    """BREAKAGE B: a later inline `<script>` clears the section after it renders. The vm's
+    `match(/<script>...)` is neither global nor greedy, so it is blind to every script after the
+    first -- and the emptied container can keep its box (padding, a border, a min-height), so
+    `visible` alone passes it. This is why emptiness is judged separately from visibility rather
+    than assumed to follow from a collapsed box."""
+    r = V.verify_door("/x/", make_fetcher(door_pages()),
+                      make_reader({"detail": {"text": "   ", "innerLength": 0}}))
+    assert not r.ok
+    assert any("#detail is visible but the reader meets no words" in f for f in r.failures), \
+        r.failures
+
+
+def test_a_static_door_is_still_read_as_a_WHOLE_PAGE():
+    """THE FAIL-OPEN THIS CLOSES. A static door (/privacy/, the Front Door) has no client render,
+    so it writes into no element -- and a G4 whose subject is "the written elements" would have
+    an EMPTY subject there and pass silently. Those are exactly the doors where a broken build
+    ships a nav-and-footer shell. `:body` is always in the list, so the subject is never empty.
+    """
+    static_html = "<!doctype html><html><body><p>a page with no script at all</p></body></html>"
+    asked = []
+
+    def spy(url, ids):
+        asked.append(sorted(ids))
+        return make_reader({V.WHOLE_PAGE: {"visible": False, "display": "none"}})(url, ids)
+
+    r = V.verify_door("/x/", make_fetcher(door_pages(html=static_html)), spy)
+    assert asked == [[V.WHOLE_PAGE]], f"a static door gave G4 no subject at all: {asked}"
+    assert not r.ok
+    assert any("the page is on the live page but not visible" in f for f in r.failures), r.failures
+
+
+def test_a_browser_that_could_not_LOOK_is_a_failure_never_a_pass():
+    """FAIL-SILENT, the killer this module exists for, on the new half.
+
+    A reading that could not be taken must raise `LiveCheckUnavailable` -- which `main` reports
+    as a non-zero exit -- and must never return an empty reading. An empty reading has no
+    element to complain about, so it would pass G4 on every door in the run at once, and the
+    report would say the live doors were verified by a browser that never opened.
+    """
+    with pytest.raises(V.LiveCheckUnavailable, match="no claim is made about what a reader sees"):
+        V.verify_door("/x/", make_fetcher(door_pages()),
+                      make_reader(ok=False, error="net::ERR_CONNECTION_REFUSED"))
+
+
+def test_a_reading_that_answers_about_OTHER_elements_is_refused():
+    """A probe that silently drops an id it was asked about would make that section ungraded and
+    report nothing -- the same colour as a pass. The answer must cover the question exactly."""
+    def short(url, ids):
+        payload = make_reader()(url, ids)
+        payload["elements"].pop("detail", None)
+        return payload
+
+    with pytest.raises(V.LiveCheckUnavailable, match="does not answer about what it was asked"):
+        V.verify_door("/x/", make_fetcher(door_pages()), short)
+
+
+def test_a_reading_MISSING_THE_KEYS_IT_IS_JUDGED_ON_is_refused():
+    """The guard on the double itself. A reader returning `{"exists": true}` and nothing else
+    would be judged only on existence, quietly dropping the visibility and emptiness clauses --
+    a fake more permissive than its subject, which is this repository's catalogued way of
+    turning a fail-open into a green suite. It is refused rather than partially believed."""
+    def thin(url, ids):
+        return {"ok": True, "url": url, "status": 200, "pageErrors": [],
+                "elements": {i: {"exists": True} for i in ids}}
+
+    with pytest.raises(V.LiveCheckUnavailable, match="is missing"):
+        V.verify_door("/x/", make_fetcher(door_pages()), thin)
+
+
+def test_the_browser_being_served_a_non_200_is_caught_even_though_G1_passed():
+    """G1 and G4 fetch the live host by different clients, and they can disagree: a UA-gated
+    rule, a bot challenge, or an edge that answers a browser's `Accept` header differently gives
+    the reader a page G1 never saw. Whichever one is right, a disagreement is a finding."""
+    r = V.verify_door("/x/", make_fetcher(door_pages()), make_reader(status=403))
+    assert not r.ok
+    assert any("G4 the browser was served 403" in f for f in r.failures), r.failures
+
+
+def test_the_real_probe_answers_in_the_SHAPE_these_doubles_claim():
+    """THE CONTRACT LEG, binding every double above to the mechanism it stands in for.
+
+    Every G4 test here is offline, so all of them together are evidence about `_judge_reading`
+    and none about whether the real chromium probe reports what it is being judged on. A double
+    that drifts from its subject makes this whole section decorative -- so this runs the REAL
+    probe against a REAL page and asserts the keys, and that a `display:none` element genuinely
+    comes back with `visible: false` rather than merely being assumed to.
+    """
+    reading = pytest.importorskip("test_the_browser_reading")
+    why = reading.browser_available()
+    if why:
+        pytest.skip(why)
+    page = ("<!doctype html><html><head><style>#gone{display:none}</style></head><body>"
+            "<div id='shown'>readable words</div><div id='gone'>hidden words</div></body></html>")
+    with reading._serve(page) as url:
+        payload = reading.read_in_browser(url, "shown", "gone")
+    assert set(payload["elements"]) == {"shown", "gone"}
+    for eid, el in payload["elements"].items():
+        missing = [k for k in V._READING_KEYS if k not in el]
+        assert not missing, f"the real probe omits {missing} for #{eid}, which G4 judges on"
+    assert payload["elements"]["shown"]["visible"] is True
+    assert payload["elements"]["gone"]["visible"] is False, (
+        "the real probe reports a display:none element as visible, so every G4 visibility leg "
+        "above is proving something the mechanism does not do"
+    )
+    assert set(HEALTHY_READING) <= set(payload["elements"]["shown"]), (
+        "the double claims keys the real probe does not send, so it is not a stand-in for it"
+    )
+
+
+def test_the_WHOLE_PAGE_reading_is_a_real_reading_and_not_a_carve_out():
+    """`:body` is what carries a STATIC door, and it needed an exemption to work at all --
+    `offsetParent` is specified to return null for `document.body`, the same answer it gives for
+    `display:none`, so without a carve-out the whole-page reading would call every healthy page
+    invisible. An exemption written to stop a control firing on everything is one keystroke from
+    an exemption that stops it firing at all, and this repository has catalogued that exact
+    move. So: the carve-out is proved to be NARROW, in a real browser, on a real page -- a
+    healthy body reads visible WITH ITS WORDS, and a hidden body still reads invisible.
+    """
+    reading = pytest.importorskip("test_the_browser_reading")
+    why = reading.browser_available()
+    if why:
+        pytest.skip(why)
+    healthy = "<!doctype html><html><body><p>words a reader meets</p></body></html>"
+    with reading._serve(healthy) as url:
+        el = reading.read_in_browser(url, V.WHOLE_PAGE)["elements"][V.WHOLE_PAGE]
+    assert el["exists"] and el["visible"], f"a healthy page reads as unreadable: {el}"
+    assert "words a reader meets" in el["text"], el["text"]
+
+    hidden = ("<!doctype html><html><head><style>body{display:none}</style></head>"
+              "<body><p>nobody meets this</p></body></html>")
+    with reading._serve(hidden) as url:
+        el = reading.read_in_browser(url, V.WHOLE_PAGE)["elements"][V.WHOLE_PAGE]
+    assert not el["visible"], (
+        "a page whose whole body is display:none reads as visible, so the `:body` carve-out is "
+        f"a blanket exemption and every static door is ungraded: {el}"
+    )

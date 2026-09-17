@@ -43,18 +43,57 @@ G2  live render (R11) -- each door is driven by its LIVE feeds and must produce
 
     What G2 IS evidence for is not available any other way and is why this module
     stays: the LIVE deployed host served these bytes, the LIVE feeds were reachable
-    and parsed, and the door's own boot path turned them into content. The
-    reader-side half is `site/test_the_browser_reading.py`, which loads published
-    bytes in chromium; it is not wired to this module's live host yet, and that
-    remains owed.
+    and parsed, and the door's own boot path turned them into content. What a person
+    with a browser then MEETS is G4.
 G3  feed integrity -- every `../data/*.json` a door fetches must itself be live,
     200, and parse as JSON with a non-empty payload.
+G4  reader-side live render (R11, the half nothing reached until 2026-09-17) -- the
+    LIVE url is loaded in chromium and every element the door's own script wrote
+    content into must EXIST in the live DOM, be VISIBLE, and carry words.
+
+    THE ELEMENT LIST IS DERIVED, NEVER TYPED. It is exactly G2's own output: the
+    ids the vm harness reports the door wrote into. That makes G4 a strict addition
+    to G2 rather than a second opinion, and it lines the three measured breakages up
+    against it by construction --
+
+      * renamed container: the vm MINTS an element for any id, so G2 reads a perfect
+        render out of a div that is not on the page. G4 reads `exists: false`.
+      * `display:none` in the page's own `<style>`: the vm parses no CSS. G4 reads
+        `visible: false`.
+      * a LATER inline `<script>` clearing the section: the vm's regex takes only the
+        first. G4 reads a collapsed box.
+
+    A STATIC DOOR HAS NO WRITTEN ELEMENT, so `:body` -- the whole-page reading -- is
+    always in the subject list. G4 therefore never has an empty subject, which is the
+    fail-open this control would otherwise have on exactly the doors G2 treats
+    specially.
+
+    WHY THE STRICT RULE IS THE RIGHT ONE, and it was measured rather than assumed. A
+    rule of "every written element must be visible" risks firing on content that is
+    hidden ON PURPOSE -- a panel behind a tab, a detail block a click expands -- which
+    is the false-positive class that has stalled this project's publish path before.
+    Pre-registered before the reading
+    (`docs/staging/records/SEAT_PREREGISTRATION_WHAT_A_BROWSER_MEETS_ON_THE_LIVE_DEPLOYED_DOORS_2026-09-17.md`),
+    then read: 86 written elements across the 5 live dynamic doors, ZERO missing and
+    ZERO hidden. No deliberately-hidden written element exists on this site, so the
+    strict rule costs nothing today and the weaker one would have been chosen out of
+    a fear the evidence refutes. If a tabbed door is ever built, THIS control going
+    red is the correct first notice, and the carve-out gets written then, against a
+    real case, by someone who can see it.
 
 FAIL-CLOSED, DELIBERATELY (R15)
 -------------------------------
 An unavailable check is a FAILED check. If the host is unreachable, if node is
-missing, if a feed is empty, if the harness errors -- this verifier FAILS. It has no
-"skip" verdict and no offline pass. That is the single most important property here:
+missing, if a feed is empty, if the harness errors, IF NO BROWSER CAN BE LAUNCHED --
+this verifier FAILS. It has no "skip" verdict and no offline pass.
+
+That last one is a deliberate difference from `site/test_the_browser_reading.py`,
+which SKIPS when playwright is absent, and the two are right for opposite reasons.
+That file is a pytest suite run on every machine, where a missing browser is an
+environment this repo tolerates. THIS is a tool invoked at door close to produce R11
+evidence, where a missing browser means the evidence was not produced -- and reporting
+"the live doors verified" having rendered nothing is the exact fail-silent shape the
+module exists to refuse. That is the single most important property here:
 the whole point is that a live check which quietly no-ops when the network is down is
 worth less than no check at all, because it reports green.
 
@@ -98,8 +137,14 @@ from pathlib import Path
 SITE = Path(__file__).resolve().parent
 SITEMAP = SITE / "sitemap.xml"
 HARNESS = SITE / "_live_harness.mjs"
+PROBE = SITE / "_browser_probe.mjs"
 CANONICAL_HOST = "https://poesys.net"
 TIMEOUT = 30
+
+#: The id that means "the whole page" to `_browser_probe.mjs`. Named here rather than written out
+#: at each use for the reason `INTERNAL_DOORS` records below: two spellings of one token are two
+#: spellings that will disagree, and this one crosses a language boundary where nothing can check.
+WHOLE_PAGE = ":body"
 
 #: Counter behind `cache_bust()`. Not a timestamp: two checks inside the same second must
 #: still get distinct URLs, or the second one reads the first one's cache entry.
@@ -163,6 +208,10 @@ class DoorResult:
     static: bool = False
     feeds: dict[str, int] = field(default_factory=dict)
     rendered_elements: int = 0
+    #: G4. How many of the ids the door WROTE INTO a browser could actually read on the live page.
+    #: Reported next to `rendered_elements` on purpose: the gap between the two numbers is the
+    #: whole distance between "the page computed it" and "a person can read it".
+    read_elements: int = 0
     failures: list[str] = field(default_factory=list)
     sample: dict[str, str] = field(default_factory=dict)
 
@@ -325,10 +374,155 @@ def run_harness(html: str, feeds: dict[str, object]) -> dict:
         raise LiveCheckUnavailable(f"render harness produced no JSON: {e}") from e
 
 
-def verify_door(door_path: str, fetcher=None) -> DoorResult:
-    """Fetch the LIVE door and its LIVE feeds, drive the door's own script, and judge what it wrote.
+def playwright_base() -> Path:
+    """The directory to resolve `playwright` against: the MAIN checkout, not this one.
 
-    "Wrote", not "displayed" -- the render runs in node's `vm`, never a browser. See G2.
+    `node_modules/` is gitignored, so it exists only in the main checkout. A linked worktree has
+    none -- and that is where every autonomous executor turn and every isolated seat invocation
+    runs, so "the environment the doors are graded in" is the case this has to get right, not an
+    edge case. `git rev-parse --git-common-dir` points at the SHARED `.git` (a worktree's own
+    `--git-dir` is `.git/worktrees/<name>`), so its parent is the main checkout in both cases.
+
+    THIS IS THE ONE DEFINITION and `site/test_the_browser_reading.py` imports it. It was written
+    there first, on 2026-09-17, to fix browser legs that skipped in every worktree while claiming
+    the machine had no playwright. It lives HERE now because this module needs it too and a
+    resolver copied into two files is a resolver that will answer differently in one of them --
+    the same reasoning `INTERNAL_DOORS` above was moved for. Importing the other direction is not
+    available: that module is a pytest suite and a tool must not depend on pytest.
+
+    FALLS BACK TO `SITE.parent`, DELIBERATELY. A clean `git archive` extract has no `.git` at all,
+    and a base that raised there would turn "no browser here" into an import-time error in every
+    tree that is not a repository.
+    """
+    project = SITE.parent
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(project), "rev-parse", "--git-common-dir"],
+            capture_output=True, text=True, timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return project
+    if out.returncode != 0 or not out.stdout.strip():
+        return project
+    common = Path(out.stdout.strip())
+    if not common.is_absolute():
+        common = (project / common).resolve()
+    return common.parent
+
+
+#: The keys a reading must carry for `_judge_reading` to say anything. Enforced on EVERY payload,
+#: including an injected one -- see `read_live_page`.
+_READING_KEYS = ("exists", "visible", "display", "visibility", "opacity", "width", "height", "text")
+
+
+def read_live_page(url: str, element_ids: list[str], reader=None) -> dict:
+    """Load the LIVE url in chromium and report what a reader meets in each element.
+
+    RAISES RATHER THAN RETURNING A VERDICT. Every way this can fail to produce a reading -- no
+    node, no probe file, playwright unresolvable, the browser refusing to launch, the page not
+    loading -- is `LiveCheckUnavailable`, which this module's contract already defines as a
+    FAILURE and which no caller can accidentally except-and-continue into a green result. A
+    "could not look" that returned an empty reading would pass G4 on every door at once.
+
+    THE PAYLOAD IS VALIDATED EVEN WHEN IT CAME FROM AN INJECTED `reader`, and that is not
+    belt-and-braces. A test double more permissive than the mechanism it stands in for is how a
+    fail-open becomes a green suite -- so a double that omits a key its subject always sends
+    fails here rather than being read as a healthy element.
+    """
+    ids = list(element_ids)
+    if not ids:  # fail-closed: no subject is not a clean reading
+        raise LiveCheckUnavailable(f"no element was named to read on {url}")
+
+    if reader is not None:
+        payload = reader(url, ids)
+    else:
+        if not PROBE.is_file():
+            raise LiveCheckUnavailable(f"the browser probe is missing at {PROBE}")
+        base = playwright_base()
+        env = {
+            **os.environ,
+            "POESYS_PLAYWRIGHT_BASE": str(base),
+            # The probe busts every SUBRESOURCE the page requests. The page url is busted by the
+            # caller; visibility is decided by the stylesheet, which is not. See `cache_bust`.
+            "POESYS_BROWSER_CACHE_BUST": f"{os.getpid()}-{next(_NONCE)}",
+        }
+        try:
+            proc = subprocess.run(
+                ["node", str(PROBE), url, *ids],
+                cwd=str(base), capture_output=True, text=True, timeout=300, env=env,
+            )
+        except FileNotFoundError as e:
+            raise LiveCheckUnavailable("node is not available to run the browser probe") from e
+        except subprocess.TimeoutExpired as e:
+            raise LiveCheckUnavailable(f"the browser probe timed out on {url}") from e
+        if not proc.stdout.strip():
+            raise LiveCheckUnavailable(
+                f"the browser probe returned nothing for {url} (rc={proc.returncode}): "
+                f"{proc.stderr.strip()[:400]}"
+            )
+        try:
+            payload = json.loads(proc.stdout)
+        except json.JSONDecodeError as e:
+            raise LiveCheckUnavailable(f"the browser probe produced no JSON for {url}: {e}") from e
+
+    if not payload.get("ok"):
+        raise LiveCheckUnavailable(
+            f"the browser could not load {url}, so no claim is made about what a reader sees: "
+            f"{payload.get('error')}"
+        )
+    elements = payload.get("elements")
+    if not isinstance(elements, dict) or set(elements) != set(ids):
+        raise LiveCheckUnavailable(
+            f"the browser reading of {url} does not answer about what it was asked: "
+            f"wanted {sorted(ids)}, got {sorted(elements or [])}"
+        )
+    for eid, el in elements.items():
+        if not isinstance(el, dict):
+            raise LiveCheckUnavailable(f"the browser reading of #{eid} on {url} is not a reading")
+        if el.get("exists") and not all(k in el for k in _READING_KEYS):
+            missing = [k for k in _READING_KEYS if k not in el]
+            raise LiveCheckUnavailable(
+                f"the browser reading of #{eid} on {url} is missing {missing}, so it cannot be "
+                "judged"
+            )
+    return payload
+
+
+def _judge_reading(res: DoorResult, payload: dict) -> None:
+    """Turn a browser reading into G4 failures on `res`. Every clause names a measured breakage."""
+    status = payload.get("status")
+    if status is not None and status != 200:
+        res.failures.append(f"G4 the browser was served {status} by the live host")
+    for elem_id, el in sorted(payload.get("elements", {}).items()):
+        where = "the page" if elem_id == WHOLE_PAGE else f"#{elem_id}"
+        if not el.get("exists"):
+            res.failures.append(
+                f"G4 {where} is not in the live DOM, so the reader meets nothing there -- the vm "
+                "harness mints an element for any id and CANNOT see this"
+            )
+            continue
+        if not el.get("visible"):
+            res.failures.append(
+                f"G4 {where} is on the live page but not visible to a reader "
+                f"(display={el['display']}, visibility={el['visibility']}, "
+                f"opacity={el['opacity']}, box={el['width']}x{el['height']})"
+            )
+            continue
+        # Visible and empty is its own defect and not a milder one: it is what a later script
+        # clearing the section leaves behind, and `visible` alone passes an empty box with padding.
+        if not str(el.get("text", "")).strip():
+            res.failures.append(f"G4 {where} is visible but the reader meets no words in it")
+            continue
+        res.read_elements += 1
+
+
+def verify_door(door_path: str, fetcher=None, reader=None) -> DoorResult:
+    """Fetch the LIVE door and its LIVE feeds, drive the door's own script, and judge what it wrote
+    (G1-G3) -- then load the same live url in a BROWSER and judge what a reader meets (G4).
+
+    `reader` is the G4 seam, exactly as `fetcher` is the G1-G3 one: it makes the browser half
+    testable offline against a reading whose defect is known by construction, rather than waiting
+    for the live site to break.
     """
     res = DoorResult(path=door_path)
 
@@ -421,14 +615,23 @@ def verify_door(door_path: str, fetcher=None) -> DoorResult:
     elif res.rendered_elements == 0:
         res.failures.append("G2 the door rendered NOTHING -- no element received content")
 
+    # G4. The subject is G2's OWN OUTPUT -- the ids the door's script wrote into -- plus the
+    # whole-page reading, which is what carries a STATIC door (no written element) and is the
+    # reason this list is never empty. `read_live_page` raises on anything that is not a clean
+    # reading, so there is no path from "could not look" to a green door.
+    wanted = sorted(eid for eid, content in rendered.items()
+                    if f"{content.get('innerHTML', '')} {content.get('textContent', '')}".strip())
+    _judge_reading(res, read_live_page(cache_bust(CANONICAL_HOST + door_path),
+                                       [WHOLE_PAGE, *wanted], reader=reader))
+
     res.ok = not res.failures
     return res
 
 
-def verify_all(doors: list[str] | None = None, fetcher=None) -> list[DoorResult]:
+def verify_all(doors: list[str] | None = None, fetcher=None, reader=None) -> list[DoorResult]:
     # Default coverage is EVERY deployed door (advertised + internal), not just the
     # advertised set -- see INTERNAL_DOORS.
-    return [verify_door(d, fetcher) for d in (doors or all_doors())]
+    return [verify_door(d, fetcher, reader) for d in (doors or all_doors())]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -455,7 +658,8 @@ def main(argv: list[str] | None = None) -> int:
         for r in results:
             mark = "PASS" if r.ok else "FAIL"
             print(f"[{mark}] {r.path}  http={r.http_status} "
-                  f"feeds={len(r.feeds)} rendered_elements={r.rendered_elements}")
+                  f"feeds={len(r.feeds)} rendered_elements={r.rendered_elements} "
+                  f"read_by_a_browser={r.read_elements}")
             for f in r.failures:
                 print(f"         - {f}")
             for k, v in r.sample.items():
