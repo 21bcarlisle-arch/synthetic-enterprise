@@ -22,6 +22,14 @@ INDEX: searched "weather pull", "open-meteo", "build store", "cell weather", "in
        names, `pull_book_weather.py` is live on disk and this paragraph is the only thing
        saying otherwise.
 
+       TRUE AS OF 2026-09-17, and by the test the paragraph above set itself: this file landed
+       in fd2d4c1ba/f0af86639, and the commit that wires `sim.weather_world` into the settlement
+       path (`simulation/fabric_demand_path.WeatherWorldSource`) is the one that deletes
+       `tools/pull_book_weather.py` from the disk. The first paragraph's past tense is now the
+       record of what happened rather than a description of an intention. The two corrections
+       are both kept, in order, because the only evidence the claim was checked rather than
+       assumed is that the wrong version is still legible beside the right one.
+
        TWO FURTHER CLAIMS IN THIS DOCSTRING WERE NOT TRUE OF THE TREE, and they are why the
        module could not simply be landed to make the first one true:
          * `tools/validate_weather_world.py`, cited below as the HadUK check that measures the

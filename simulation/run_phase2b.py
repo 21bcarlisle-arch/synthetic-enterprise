@@ -142,6 +142,7 @@ from simulation.fabric_demand_path import (
     FABRIC_PROVIDER,
     LEGACY_PROVIDER,
     METERED_PROVIDER,
+    WeatherWorldSource,
     build_fabric_series_for_site,
     coverage_refusals,
     fabric_eligibility,
@@ -150,6 +151,7 @@ from simulation.fabric_demand_path import (
     settled_shape_is_physically_textured,
     settlement_providers_match_eligibility,
     the_switch_moves_the_settled_volume,
+    the_switch_reaches_the_book,
 )
 from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.feedback_survey import (
@@ -183,7 +185,6 @@ from simulation.policy_costs import (
     get_gas_network_cost_per_mwh,
     get_ggl_per_mwh,
 )
-from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
 from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
@@ -207,7 +208,6 @@ from simulation.triad import (
 )
 from simulation.volume_tolerance import compute_term_volume_tolerance
 from simulation.weather_inputs import (
-    _weather_source_customer_id,
     cloud_cover_for_customer,
     lookback_mean_temps,
     weather_means_for_customer,
@@ -1351,15 +1351,26 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # AQ reconciliation is registered as the next atom, not built here.
     _fabric_start = date.fromisoformat(REPORT_START)
     _fabric_end = date.fromisoformat(effective_end)
+    # THE WEATHER COMES FROM THE PER-CELL STORE (2026-09-17), not from four per-customer archive
+    # CSVs. `_weather_source_customer_id` resolved a premise to one of the four `sim/weather_data`
+    # files, so 4 of the book's 146 electricity premises settled on fabric physics and 137 were
+    # refused with "no weather archive for this customer's location". `sim.weather_world` holds
+    # the world's daily weather keyed by 1 km OSGB cell, and the premise READS it -- which is the
+    # director's architecture rather than a wider pull: two households in one cell now get the
+    # identical sky, so the difference between their demand is attributable to fabric and people.
+    # The store is loaded ONCE here and its accessors handed to the seam; a load per premise would
+    # be the per-property design in a different coat.
+    _weather_source = WeatherWorldSource.load()
     fabric_series_by_customer, fabric_eligibility_verdicts = fabric_providers_for_book(
         customers=ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS,
         household_at_date=household_demand_register.household_at_date,
         is_half_hourly_metered=is_hh_customer,
-        weather_site_for=_weather_source_customer_id,
-        weather_available=lambda site: (WEATHER_DATA_DIR_PATH / f"{site}.csv").exists(),
+        weather_site_for=_weather_source.site_for,
+        weather_available=_weather_source.available,
         latitude_for=lambda c: c.get("location", {}).get("lat") or DEFAULT_LATITUDE_DEG,
         start=_fabric_start,
         end=_fabric_end,
+        weather_days_for=_weather_source.days,
     )
     # W2_30, the GAS half. The comment above is still right that gas must not be driven
     # off fabric VOLUME while the AQ belief stays frozen -- and the canon does not ask for
@@ -1380,12 +1391,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         physics."""
         cid = str(customer["customer_id"])
         _hh = household_demand_register.household_at_date(cid, _fabric_start.isoformat())
-        _site = _weather_source_customer_id(customer)
+        # THE SAME SOURCE OBJECT as the electricity leg above, not a second one built the same
+        # way. The docstring's promise is that the two paths cannot disagree about which premises
+        # have physics, and two independently-constructed resolvers is exactly how that promise
+        # rots -- the electricity leg moving to the cell store while this one kept reading
+        # `sim/weather_data/*.csv` would have split the book silently.
+        _site = _weather_source.site_for(customer)
         _verdict = fabric_eligibility(
             customer,
             _hh,
             is_half_hourly_metered=False,
-            weather_available=(WEATHER_DATA_DIR_PATH / f"{_site}.csv").exists(),
+            weather_available=_weather_source.available(_site),
+            weather_site=_site,
         )
         if not _verdict.is_eligible:
             return None
@@ -1397,6 +1414,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             start=_fabric_start,
             end=_gas_fit_end,
             seed=DEFAULT_TRACE_SEED,
+            weather_days_for=_weather_source.days,
         )
         _dates = sorted(_series.gas_kwh)
         return (
@@ -1444,6 +1462,28 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # rather than exhaustive: a fortnight from each end of the window costs nothing
     # and a rescaled shape recurs on 100% of days by construction, so it cannot hide
     # in the unsampled middle.
+    # ASKED OF THE BOOK, NOT OF EACH PREMISE, and the reason is a measurement rather than a red
+    # (2026-09-17, the commit that moved the weather source to the per-cell store). This was a
+    # per-premise `raise`, and it was the right shape for a fabric population of FOUR: if any one
+    # of four premises settled the legacy volume, the switch was largely inert. Over 91 premises
+    # it asserts something the control was never written to assert -- a per-premise fidelity
+    # claim rather than an inertness one. Measured over all 91:
+    #
+    #     every premise moves (>0); median move 44.0%; largest 1396%
+    #     4 of 91 move less than the 2% floor: 0.43%, 0.57%, 1.09%, 1.09%
+    #
+    # C1 is one of the four and its reason is legible: its 1 km cell reads +1.19 C warmer than
+    # its old point archive -- the London urban heat island, which is the thing the 1 km pull was
+    # for -- so its heating falls, and C1 is GAS-heated, so the fall lands in gas (-8.3% annual)
+    # while its electricity moves +0.45%. A gas-heated premise whose electricity is mostly not
+    # heating is entitled to settle nearly the legacy electricity volume. That is fidelity, not
+    # an inert switch.
+    #
+    # WHAT WOULD MAKE THIS RED: the switch failing to move a MAJORITY of fabric premises. An
+    # inert switch -- the defect the control exists for -- moves none of them and fails on the
+    # first count. The floor is 50%, not the 96% measured today, so it is keyed to "the switch
+    # reached the book" and not to this book's answer.
+    _switch_verdicts: list[tuple[str, bool]] = []
     for _fab_cid, _fab_series in sorted(fabric_series_by_customer.items()):
         _sample_dates = sorted(_fab_series.gross_electricity_kwh)
         _sample_dates = _sample_dates[:14] + _sample_dates[-14:]
@@ -1469,7 +1509,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Built against the same legacy provider the else-branch below constructs,
         # so this is the real counterfactual, not a reconstruction of one.
         _legacy_customer = get_customer(_fab_cid)
-        if not the_switch_moves_the_settled_volume(
+        _switch_verdicts.append((_fab_cid, the_switch_moves_the_settled_volume(
             fabric_shape_fn(
                 _fab_series,
                 "electricity",
@@ -1486,12 +1526,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 eac_kwh=_base_profile_eac(_legacy_customer),
             ),
             _sample_dates,
-        ):
-            raise AssertionError(
-                f"{_fab_cid} settles on the fabric provider but its settled volume "
-                "is indistinguishable from the legacy provider's: the switch is "
-                "labelled and textured but INERT"
-            )
+        )))
+
+    _switch_moved = [cid for cid, moved in _switch_verdicts if moved]
+    if not the_switch_reaches_the_book([moved for _, moved in _switch_verdicts]):
+        _still = sorted(cid for cid, moved in _switch_verdicts if not moved)
+        raise AssertionError(
+            f"the fabric switch moves the settled volume for only {len(_switch_moved)} of "
+            f"{len(_switch_verdicts)} fabric premise(s): it is labelled and textured but INERT "
+            f"across the book. Unmoved: {_still[:12]}"
+        )
 
     def _lookback_temps_fn(cid):
         weather_means = weather_by_customer[cid]

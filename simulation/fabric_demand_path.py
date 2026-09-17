@@ -72,8 +72,10 @@ import math
 from dataclasses import dataclass
 from typing import Callable, Mapping, Sequence
 
+from sim.weather_world import WeatherWorld, WeatherWorldRefusal
 from simulation.fabric_physics import (
     PERIODS_PER_DAY,
+    DailyWeather,
     ThermalState,
     texture_is_not_a_rescaled_shape,
 )
@@ -127,17 +129,27 @@ class FabricEligibility:
 NO_ARCHIVE_REFUSAL = "no weather archive for this customer's location"
 
 
-def _no_archive_refusal(customer: Mapping, weather_site: str | None) -> str:
-    """The archive-breadth refusal, naming the site it could not find and where that site is.
+#: THE REMEDY SENTENCE, and it names a CELL because the archive is per-cell. It was
+#: "sim/weather_data/{site}.csv does not exist -- pull that coordinate" until 2026-09-17, which
+#: was an instruction to do the thing the director refused in writing: one download per property,
+#: so that two households in one cell get two skies and any difference between them stops being
+#: attributable to fabric. A refusal that names the wrong remedy is worse than one that names
+#: none -- it recruits the reader into rebuilding the design. See `sim/weather_world.py`.
+ADD_THE_CELL_REMEDY = ("add that CELL to the per-cell store "
+                       "(`python3 -m tools.build_weather_world --build`), never a per-property pull")
 
-    A refusal is only useful to the person who has to CLEAR it. This one is cleared by pulling a
-    weather archive, so it names the two things a pull needs -- which archive id was resolved, and
-    the coordinate to pull it at -- and nothing else changes about the decision.
+
+def _no_archive_refusal(customer: Mapping, weather_site: str | None) -> str:
+    """The archive-breadth refusal, naming the cell it could not read and where that cell is.
+
+    A refusal is only useful to the person who has to CLEAR it. This one is cleared by extending
+    the per-cell store, so it names the two things that needs -- which cell the premise resolved
+    to, and the coordinate it resolved from -- and nothing else changes about the decision.
 
     The coordinate is reported as the premise carries it, never rounded or defaulted: a refusal
     that prints `(0.0, 0.0)` for a premise with no coordinate would send someone to pull the Gulf
     of Guinea. `lat`/`lon` absent is its OWN sentence, because that premise needs a coordinate at
-    the draw and no pull can help it.
+    the draw and no build can help it.
     """
     location = customer.get("location") or {}
     lat, lon = location.get("lat"), location.get("lon")
@@ -146,8 +158,8 @@ def _no_archive_refusal(customer: Mapping, weather_site: str | None) -> str:
         return (f"{NO_ARCHIVE_REFUSAL}: resolved to {site}, and the premise carries no coordinate "
                 f"(lat/lon are None), so NO PULL CAN CLEAR THIS ONE -- it needs a coordinate at "
                 f"the draw first")
-    return (f"{NO_ARCHIVE_REFUSAL}: resolved to {site} at ({lat}, {lon}), and "
-            f"sim/weather_data/{weather_site}.csv does not exist -- pull that coordinate")
+    return (f"{NO_ARCHIVE_REFUSAL}: resolved to {site} at ({lat}, {lon}), and the store holds no "
+            f"complete weather for it -- {ADD_THE_CELL_REMEDY}")
 
 
 def fabric_eligibility(
@@ -394,6 +406,143 @@ def build_fabric_series(
     )
 
 
+# ---------------------------------------------------------------------------
+# Where the weather comes from — ONE SKY PER CELL
+# ---------------------------------------------------------------------------
+
+#: The five fields `DailyWeather` requires. A cell missing ANY of them on ANY day of the window is
+#: refused whole rather than answered with a NaN: `fabric_physics` does arithmetic on all five, and
+#: a NaN propagates to a kWh that is neither an error nor a number, settles, and prices.
+TRACE_WEATHER_FIELDS = (
+    "temperature_min_c",
+    "temperature_max_c",
+    "temperature_mean_c",
+    "cloud_cover_pct",
+    "wind_speed_mean_ms",
+)
+
+#: What `site_for` returns for a premise with no usable coordinate. NOT a cell id and deliberately
+#: not shaped like one, so a marker can never be mistaken for a cell the store might hold.
+NO_CELL_SITE = "no cell (the premise has no usable coordinate)"
+
+
+class WeatherWorldSource:
+    """`sim.weather_world` behind the accessors `fabric_providers_for_book` takes.
+
+    WHY THIS EXISTS. The seam already took `weather_site_for`/`weather_available` callables, and
+    `run_phase2b` filled them with "the customer_id whose `sim/weather_data/*.csv` covers this
+    premise" — four files, so four of the book's premises settled on physics and the rest were
+    refused. This class fills the same two callables from the per-cell store, which is not a
+    wider version of the same thing but a different architecture:
+
+        "The world exists, and a property reads its conditions from it... Two households in the
+         same cell must experience identical weather -- that's what makes the difference in their
+         demand attributable to fabric and people rather than to two separate downloads."
+
+    So `site_for` returns a CELL, and every premise that snaps to one gets the identical list of
+    days. `weather_days_for_two_premises_in_one_cell_is_the_same_sky` is the failable control.
+
+    THE STORE IS READ ONCE. `WeatherWorld.load()` reads an 8 MB gzip; doing that per premise is
+    the per-property design wearing a different coat, and it is why this is an object holding a
+    loaded world rather than three module-level functions.
+    """
+
+    def __init__(self, world: WeatherWorld):
+        self.world = world
+        self._complete: dict[str, bool] = {}
+        self._days: dict[str, list[TraceWeatherDay]] = {}
+
+    @classmethod
+    def load(cls) -> "WeatherWorldSource":
+        return cls(WeatherWorld.load())
+
+    def site_for(self, customer: Mapping) -> str:
+        """The cell this premise reads, or a marker that is not a cell id.
+
+        A marker rather than an exception because the caller's next move is to record WHY this
+        premise is not fabric-driven, beside every other reason, in one verdict list.
+        """
+        location = customer.get("location") or {}
+        lat, lon = location.get("lat"), location.get("lon")
+        if lat is None or lon is None:
+            return NO_CELL_SITE
+        try:
+            return self.world.cell_id_for(float(lat), float(lon))
+        except WeatherWorldRefusal as exc:
+            return f"no cell ({exc})"
+
+    def available(self, site: str) -> bool:
+        """Does the store hold a COMPLETE series for this cell?
+
+        Completeness is asked over all five fields and every day, not over the cell's existence.
+        The store's own validator counts 18 cells holding temperature and no wind, cloud or
+        precipitation; `for_cell` answers for every one of them, with NaN in three columns. A
+        membership test would call those cells available and hand `simulate_premise` a NaN.
+        """
+        if site in self._complete:
+            return self._complete[site]
+        try:
+            rows = self.world.for_cell(site)
+        except WeatherWorldRefusal:
+            self._complete[site] = False
+            return False
+        ok = bool(rows) and all(
+            _is_a_number(row.get(field)) for row in rows for field in TRACE_WEATHER_FIELDS
+        )
+        self._complete[site] = ok
+        return ok
+
+    def days(self, site: str, *, start: dt.date, end: dt.date) -> list[TraceWeatherDay]:
+        """The cell's window as `TraceWeatherDay`s — memoised, so two premises in one cell get
+        the SAME list object and cannot diverge even by a rounding step.
+
+        Raises rather than truncating: a short window is a coverage refusal decided up front by
+        `fabric_providers_for_book`, never a trace quietly generated over fewer days.
+        """
+        key = f"{site}|{start.isoformat()}|{end.isoformat()}"
+        if key in self._days:
+            return self._days[key]
+        rows = self.world.for_cell(site, start=start.isoformat(), end=end.isoformat())
+        days: list[TraceWeatherDay] = []
+        for row in rows:
+            missing = [f for f in TRACE_WEATHER_FIELDS if not _is_a_number(row.get(f))]
+            if missing:
+                raise WeatherWorldRefusal(
+                    f"cell {site!r} has no {', '.join(missing)} on {row['date']} -- "
+                    f"{ADD_THE_CELL_REMEDY}")
+            date = dt.date.fromisoformat(row["date"])
+            days.append(TraceWeatherDay(
+                date=date,
+                weather=DailyWeather(
+                    day_of_year=date.timetuple().tm_yday,
+                    temperature_min_c=row["temperature_min_c"],
+                    temperature_max_c=row["temperature_max_c"],
+                    temperature_mean_c=row["temperature_mean_c"],
+                    cloud_cover_pct=row["cloud_cover_pct"],
+                    wind_speed_mean_ms=row["wind_speed_mean_ms"],
+                ),
+            ))
+        if not days:
+            raise WeatherWorldRefusal(
+                f"cell {site!r} holds no day between {start} and {end}")
+        self._days[key] = days
+        return days
+
+
+def _is_a_number(value) -> bool:
+    """A real float. `load_daily` writes NaN for an empty column, and `NaN != NaN` is the only
+    thing that distinguishes it from a reading of zero -- which cloud cover legitimately is."""
+    return isinstance(value, (int, float)) and value == value
+
+
+def _archive_days(site: str, *, start: dt.date, end: dt.date) -> list[TraceWeatherDay]:
+    """The legacy per-customer archive as a `weather_days_for`. Kept as the DEFAULT only because
+    the tests and `tools/fabric_settlement_gap` still drive the seam with four archive sites; the
+    settlement path passes `WeatherWorldSource.days` and `the_runner_reads_the_cell_store` is the
+    control that says so."""
+    return load_trace_weather(site, start=start, end=end)
+
+
 def build_fabric_series_for_site(
     *,
     customer_id: str,
@@ -403,14 +552,14 @@ def build_fabric_series_for_site(
     start: dt.date,
     end: dt.date,
     seed: int = DEFAULT_TRACE_SEED,
+    weather_days_for: Callable[..., list[TraceWeatherDay]] = _archive_days,
 ) -> FabricDemandSeries:
-    """`build_fabric_series` against the real Open-Meteo archive for a location.
+    """`build_fabric_series` against the real weather for a location.
 
-    The archive read is deliberately not wrapped: a missing or short archive raises
-    in `load_trace_weather`, because a trace built on invented weather would settle
-    real money against a number with no meaning.
+    The weather read is deliberately not wrapped: a missing or short archive raises, because a
+    trace built on invented weather would settle real money against a number with no meaning.
     """
-    weather = load_trace_weather(weather_site, start=start, end=end)
+    weather = weather_days_for(weather_site, start=start, end=end)
     return build_fabric_series(
         customer_id=customer_id,
         household_at_date=household_at_date,
@@ -455,6 +604,7 @@ def fabric_providers_for_book(
     start: dt.date,
     end: dt.date,
     seed: int = DEFAULT_TRACE_SEED,
+    weather_days_for: Callable[..., list[TraceWeatherDay]] = _archive_days,
 ) -> tuple[dict[str, FabricDemandSeries], list[FabricEligibility]]:
     """Decide, ONCE for the whole book, which customers settle on fabric physics,
     and build their traces.
@@ -506,6 +656,7 @@ def fabric_providers_for_book(
             start=start,
             end=end,
             seed=seed,
+            weather_days_for=weather_days_for,
         )
         if not series_covers_window(series, window):
             verdicts.append(
@@ -817,6 +968,38 @@ def the_switch_moves_the_settled_volume(
             "would pass every book"
         )
     return abs(fabric_total - legacy_total) / legacy_total >= min_relative_change
+
+
+def the_switch_reaches_the_book(verdicts: Sequence[bool], *, min_share: float = 0.5) -> bool:
+    """Did the switch move the settled volume across the BOOK, not merely somewhere in it?
+
+    `the_switch_moves_the_settled_volume` answers for ONE premise, and `run_phase2b` used to
+    raise on the first premise that said no. That was the right shape for a fabric population of
+    four; over 91 premises it asserts a per-premise fidelity claim rather than the inertness one
+    the control was written for. Measured over all 91 on 2026-09-17: every premise moves, median
+    44%, and four move less than the 2% floor -- one of them C1, whose 1 km cell reads +1.19 C
+    warmer than its old point archive, so its heating falls into GAS (-8.3%) and its electricity
+    moves +0.45%. A gas-heated premise settling nearly the legacy ELECTRICITY volume is fidelity.
+
+    THE FLOOR IS A MAJORITY AND NOT TODAY'S 96%, deliberately: keyed to "the switch reached the
+    book", which is the property, rather than to this book's answer, which would go red the first
+    time the world got more honest.
+
+    Raises on an empty book rather than returning True. A switch nobody was eligible for is the
+    fail-open this whole control set exists to refuse, and `vacuously reached` is not a reading.
+    """
+    if not verdicts:
+        raise ValueError(
+            "no premise settles on the fabric provider, so whether the switch moves the book's "
+            "volume is undefined -- an empty population cannot answer it, and returning True "
+            "would pass exactly the book where the switch reached nobody"
+        )
+    if not (0.0 < min_share <= 1.0):
+        raise ValueError(
+            f"a share of {min_share} makes this control unfailable or unsatisfiable: it must "
+            "name a real fraction of the book"
+        )
+    return sum(1 for moved in verdicts if moved) >= min_share * len(verdicts)
 
 
 def prebound_channel_is_fed(series: FabricDemandSeries) -> bool:
