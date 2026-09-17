@@ -1,0 +1,444 @@
+{
+ "generated_at": "2026-09-17T15:14:19Z",
+ "folded": true,
+ "producing_commit": {
+  "commit": null,
+  "resolved_at": null,
+  "unavailable_because": "this family is FOLDED from 2 runs drawn by 2 distinct code tree(s); no single commit produced these rows. Each member's own producing commit is in `folded_from`. A bound reading this field gets an unknown rather than the newest member's commit, because that value would be read as the tree that drew the whole family and it drew part of it.",
+  "resolved_when": "not applicable to a folded family -- the members resolved their own commits at their own process starts, hours and sometimes days apart",
+  "why_this_is_here": "A consumer that publishes counts from this family needs to know which code drew them. For a fold the honest answer is `several, listed in folded_from`, and the field that can only hold one says so rather than picking."
+ },
+ "world_identity": {
+  "digest": "39a192ce04c1eda8",
+  "anchors": {
+   "2016": 4.259915,
+   "2017": 7.372584,
+   "2018": 2.945347,
+   "2019": 6.637286,
+   "2020": 6.359296,
+   "2021": 5.641346,
+   "2022": 1.0,
+   "2023": 2.033232,
+   "2024": 4.259915,
+   "2025": 4.259915
+  },
+  "fitted_years": [
+   2017,
+   2018,
+   2019,
+   2020,
+   2021,
+   2023,
+   2024
+  ],
+  "declared_years": [
+   2016,
+   2022,
+   2025
+  ],
+  "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other.",
+  "unavailable_because": null
+ },
+ "book_identity": {
+  "digest": null,
+  "unavailable_because": "this family is folded from runs that do not all name their book: `docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json` carries none. The book identity of the members that do have one does not cover the rows of the members that do not, so this family states no book rather than one it cannot show it was drawn over."
+ },
+ "report_end": null,
+ "what_this_is": "The three-arm A/B re-run once per seed with ONLY the per-household elasticity assignment re-drawn, FOLDED across 2 runs of the same world into one family of 18 seeds. The spread below is the error bar on `selection_gbp` -- the figure the level-vs-selection split publishes.",
+ "clock": "settled-realised",
+ "redraw_scope": {
+  "mode": "all",
+  "accounts": [],
+  "accounts_in_roster": 0,
+  "means": "every household re-drawn -- the undecomposed floor, and the only mode whose spread bounds the published figure directly"
+ },
+ "symbol_patched": "simulation.population_draw.price_elasticity_for_customer",
+ "symbol_resolution": "read from `simulation.customer_events`'s own import statement, not written down here, so a rename disconnects this tool LOUDLY instead of silently returning a spread of zero",
+ "seeds": [
+  {
+   "seed": 11111,
+   "elasticity_draws": 295,
+   "elasticity_redrawn": 295,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 19607.507551999995,
+   "level_advantage_gbp": 18346.58135200001,
+   "selection_gbp": 1260.9261999999871,
+   "level_share_of_advantage": 0.9356916631725907
+  },
+  {
+   "seed": 22222,
+   "elasticity_draws": 293,
+   "elasticity_redrawn": 293,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 67,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 17244.433779999992,
+   "level_advantage_gbp": 20280.688190999994,
+   "selection_gbp": -3036.2544110000017,
+   "level_share_of_advantage": 1.1760715631336898
+  },
+  {
+   "seed": 33333,
+   "elasticity_draws": 296,
+   "elasticity_redrawn": 296,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 19903.595164,
+   "level_advantage_gbp": 19409.147331000015,
+   "selection_gbp": 494.4478329999838,
+   "level_share_of_advantage": 0.9751578632440082
+  },
+  {
+   "seed": 44444,
+   "elasticity_draws": 295,
+   "elasticity_redrawn": 295,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 67,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 16890.32416399999,
+   "level_advantage_gbp": 19534.671988999995,
+   "selection_gbp": -2644.3478250000044,
+   "level_share_of_advantage": 1.1565599214866558
+  },
+  {
+   "seed": 55555,
+   "elasticity_draws": 296,
+   "elasticity_redrawn": 296,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 20742.894054000004,
+   "level_advantage_gbp": 20456.838805000007,
+   "selection_gbp": 286.0552489999973,
+   "level_share_of_advantage": 0.9862094822325511
+  },
+  {
+   "seed": 66666,
+   "elasticity_draws": 297,
+   "elasticity_redrawn": 297,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 67,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 21546.838982000016,
+   "level_advantage_gbp": 20456.838805000007,
+   "selection_gbp": 1090.000177000009,
+   "level_share_of_advantage": 0.9494125250617698
+  },
+  {
+   "seed": 77777,
+   "elasticity_draws": 292,
+   "elasticity_redrawn": 292,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 14329.175675999984,
+   "level_advantage_gbp": 16811.754979999998,
+   "selection_gbp": -2482.5793040000135,
+   "level_share_of_advantage": 1.1732534627346427
+  },
+  {
+   "seed": 88888,
+   "elasticity_draws": 288,
+   "elasticity_redrawn": 288,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 17170.483406000014,
+   "level_advantage_gbp": 19889.592204000015,
+   "selection_gbp": -2719.108798000001,
+   "level_share_of_advantage": 1.158359478513566
+  },
+  {
+   "seed": 99999,
+   "elasticity_draws": 293,
+   "elasticity_redrawn": 293,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 17456.516900000017,
+   "level_advantage_gbp": 19409.147331000015,
+   "selection_gbp": -1952.6304309999978,
+   "level_share_of_advantage": 1.1118568178397603
+  },
+  {
+   "seed": 111111,
+   "elasticity_draws": 296,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 296,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 17541.620637999993,
+   "level_advantage_gbp": 16920.695630000002,
+   "selection_gbp": 620.9250079999911,
+   "level_share_of_advantage": 0.9646027570192177
+  },
+  {
+   "seed": 222222,
+   "elasticity_draws": 294,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 294,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 16656.01438800001,
+   "level_advantage_gbp": 18087.575741999986,
+   "selection_gbp": -1431.5613539999758,
+   "level_share_of_advantage": 1.0859486141553383
+  },
+  {
+   "seed": 333333,
+   "elasticity_draws": 296,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 296,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 21176.170358000003,
+   "level_advantage_gbp": 20802.144380000012,
+   "selection_gbp": 374.0259779999906,
+   "level_share_of_advantage": 0.9823374117379685
+  },
+  {
+   "seed": 444444,
+   "elasticity_draws": 296,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 296,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 19180.377175,
+   "level_advantage_gbp": 19326.27940500001,
+   "selection_gbp": -145.90223000000697,
+   "level_share_of_advantage": 1.0076068488470695
+  },
+  {
+   "seed": 555555,
+   "elasticity_draws": 296,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 296,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 19947.204413,
+   "level_advantage_gbp": 19326.27940500001,
+   "selection_gbp": 620.9250079999911,
+   "level_share_of_advantage": 0.9688715774329097
+  },
+  {
+   "seed": 666666,
+   "elasticity_draws": 294,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 294,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 19090.765678999975,
+   "level_advantage_gbp": 20072.308536999975,
+   "selection_gbp": -981.5428580000007,
+   "level_share_of_advantage": 1.051414535933449
+  },
+  {
+   "seed": 777777,
+   "elasticity_draws": 291,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 291,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 18281.892907,
+   "level_advantage_gbp": 19921.846844999993,
+   "selection_gbp": -1639.9539379999915,
+   "level_share_of_advantage": 1.0897037274172012
+  },
+  {
+   "seed": 888888,
+   "elasticity_draws": 298,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 298,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 67,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 17560.445038999984,
+   "level_advantage_gbp": 17129.08821399999,
+   "selection_gbp": 431.3568249999953,
+   "level_share_of_advantage": 0.9754358830859927
+  },
+  {
+   "seed": 999999,
+   "elasticity_draws": 291,
+   "billing_accounts_settled_in_window": 164,
+   "elasticity_redrawn": 291,
+   "elasticity_held_fixed": 0,
+   "accounts_redrawn": 66,
+   "clock": "settled-realised",
+   "level_gbp_per_mwh": 20.0,
+   "value_advantage_gbp": 21464.161724000005,
+   "level_advantage_gbp": 20843.236716000014,
+   "selection_gbp": 620.9250079999911,
+   "level_share_of_advantage": 0.9710715463299129
+  }
+ ],
+ "folded_from": [
+  {
+   "path": "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
+   "generated_at": "2026-09-09T15:17:31Z",
+   "producing_commit": "c066c114b4746d9fa6a16da1848ef1f2c610c9e1",
+   "book_identity": null,
+   "n": 9,
+   "seeds": [
+    11111,
+    22222,
+    33333,
+    44444,
+    55555,
+    66666,
+    77777,
+    88888,
+    99999
+   ]
+  },
+  {
+   "path": "docs/observability/value_cycle_ab_s1_noise_floor_20260910b.json",
+   "generated_at": "2026-09-10T21:34:43Z",
+   "producing_commit": "9f0ab066fdcd7cbc54a3f0faaf0761e53182e955",
+   "book_identity": null,
+   "n": 9,
+   "seeds": [
+    111111,
+    222222,
+    333333,
+    444444,
+    555555,
+    666666,
+    777777,
+    888888,
+    999999
+   ]
+  }
+ ],
+ "how_to_read_this": "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection instrument cannot yet resolve the question being asked of it, and every reading built on it carries that caveat. That is a finding about the INSTRUMENT and not about the pricing arm -- it is not a cue to re-run until a seed agrees (R12). THIS FAMILY IS FOLDED: the rows come from 2 runs of world `39a192ce04c1eda8` in redraw mode `all`, and the members are named in `folded_from`. What a fold does NOT remove is that runs made by different trees can return different values for the same seed; the spread below carries that difference and `producing_commit` states it as an unknown rather than naming one tree for rows several trees drew.",
+ "selection_gbp_spread": {
+  "n": 18,
+  "mean": -624.1274368333366,
+  "stdev": 1472.887988125315,
+  "min": -3036.2544110000017,
+  "max": 1260.9261999999871,
+  "range": 4297.180610999989
+ },
+ "level_share_spread": {
+  "n": 18,
+  "mean": 1.0399758710765719,
+  "stdev": 0.0853934638624856,
+  "min": 0.9356916631725907,
+  "max": 1.1760715631336898,
+  "range": 0.2403798999610991
+ },
+ "selection_sem_gbp": 347.16302811054044,
+ "selection_distinguishable_from_zero": false,
+ "selection_leg": {
+  "spread": {
+   "n": 18,
+   "mean": -624.1274368333366,
+   "stdev": 1472.887988125315,
+   "min": -3036.2544110000017,
+   "max": 1260.9261999999871,
+   "range": 4297.180610999989
+  },
+  "sem_gbp": 347.16302811054044,
+  "distinguishable_from_zero": false,
+  "positive_seeds": 9,
+  "negative_or_zero_seeds": 9,
+  "seeds_with_a_figure": 18,
+  "distance_to_a_sign": {
+   "available": true,
+   "sems_from_zero": 1.7977935041936772,
+   "sems_needed_to_state_a_sign": 2.0,
+   "seeds_needed_to_state_a_sign": 23,
+   "seeds_in_hand": 18,
+   "sign_if_it_were_stateable": "negative",
+   "seeds_needed_unavailable_because": null,
+   "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+   "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+  }
+ },
+ "level_leg": {
+  "spread": {
+   "n": 18,
+   "mean": 19279.150881222224,
+   "stdev": 1297.5958754389328,
+   "min": 16811.754979999998,
+   "max": 20843.236716000014,
+   "range": 4031.481736000016
+  },
+  "sem_gbp": 305.8462809208547,
+  "distinguishable_from_zero": true,
+  "positive_seeds": 18,
+  "negative_or_zero_seeds": 0,
+  "seeds_with_a_figure": 18,
+  "distance_to_a_sign": {
+   "available": true,
+   "sems_from_zero": 63.03542689214907,
+   "sems_needed_to_state_a_sign": 2.0,
+   "seeds_needed_to_state_a_sign": 1,
+   "seeds_in_hand": 18,
+   "sign_if_it_were_stateable": "positive",
+   "seeds_needed_unavailable_because": null,
+   "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+   "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+  }
+ },
+ "value_leg": {
+  "spread": {
+   "n": 18,
+   "mean": 18655.023444388888,
+   "stdev": 1964.4066797230532,
+   "min": 14329.175675999984,
+   "max": 21546.838982000016,
+   "range": 7217.663306000031
+  },
+  "sem_gbp": 463.0150947467738,
+  "distinguishable_from_zero": true,
+  "positive_seeds": 18,
+  "negative_or_zero_seeds": 0,
+  "seeds_with_a_figure": 18,
+  "distance_to_a_sign": {
+   "available": true,
+   "sems_from_zero": 40.29031376307818,
+   "sems_needed_to_state_a_sign": 2.0,
+   "seeds_needed_to_state_a_sign": 1,
+   "seeds_in_hand": 18,
+   "sign_if_it_were_stateable": "positive",
+   "seeds_needed_unavailable_because": null,
+   "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+   "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+  }
+ },
+ "discrimination_auc_across_seeds": {
+  "available": false,
+  "seeds_carrying_an_auc": 0,
+  "seeds_in_family": 18,
+  "unavailable_because": "18 of this family's 18 seed rows carry no `discrimination_auc`. Floors produced before 2026-09-17 did not record it, so the advantage figures in this family have no discrimination reading beside them and none can be recovered without re-running the seeds. A spread over only the 0 rows that DO answer would bound a different family from the one whose advantage is published here, so this states an unknown instead."
+ },
+ "how_to_read_the_two_legs": "`value_leg` is what the arm beat the control by. `level_leg` is what a FLAT rule charging the same median margin, with no per-customer inference at all, beat the control by. `selection_leg` is the difference -- what the inference itself was worth -- and it is the only one of the three that bears on whether the advantage came from knowing something rather than from charging more. A level leg with a stateable sign and a selection leg without one is the unflattering reading and is reported as such: it says the demonstrable advantage is the price level. Read `discrimination_auc_across_seeds` beside it, and when that says unavailable, the advantage in this family has no discrimination reading beside it at all."
+}

@@ -5436,6 +5436,10 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 "seed {}: the `{}` leg held NO household fixed, so it is the undecomposed floor "
                 "wearing a decomposed label.".format(seed, redraw_mode))
         lvs = result["level_vs_selection"]
+        #: NOT REQUIRED TO BE AVAILABLE, unlike the split above. A run whose belief could not be
+        #: scored still produced a real advantage, and refusing the whole floor for a missing AUC
+        #: would throw away the leg the family exists to measure. The row says so instead.
+        bvo = result.get("belief_vs_outcome") or {}
         if not lvs.get("available"):
             raise AssertionError(
                 "seed {}: the runner produced no level arm ({}), so there is no selection figure "
@@ -5482,6 +5486,33 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             "level_advantage_gbp": lvs["level_advantage_gbp"],
             "selection_gbp": lvs["selection_gbp"],
             "level_share_of_advantage": lvs["level_share_of_advantage"],
+            # WHETHER THE ARM KNEW ANYTHING, ON THE SAME ROW AS WHAT IT WON. Added 2026-09-17.
+            # A floor family is the only instrument in this repo that draws the advantage more
+            # than once, so it is the only one that can put an error bar on the AUC -- and it
+            # threw the AUC away, which is why no artefact on disk can answer "what was the
+            # discrimination beside THIS advantage" for any seed. The site's own retraction of
+            # the 0.4653 corroboration argument says the estimator has scored 0.646, 0.672,
+            # 0.465, 0.465 and 0.130 across five runs in four days; an unbounded statistic used
+            # to attribute an advantage is the defect that retraction is about, and a bound is
+            # the only thing that retires it.
+            #
+            # `auc_population` TRAVELS WITH IT AND IS NOT OPTIONAL. This statistic is noise when
+            # one side is small, and the run block that produces it says so in its own `reading`.
+            # A bare AUC on a row is the same figure-without-its-sample-size the project has
+            # published before.
+            #
+            # FAILS CLOSED PER ROW. An unavailable `belief_vs_outcome` writes None plus the run's
+            # own stated reason -- never 0.5, which is a real reading meaning "knew nothing" and
+            # would be indistinguishable from "was not measured".
+            "discrimination_auc": (bvo.get("discrimination_auc")
+                                   if bvo.get("available") else None),
+            "auc_population": bvo.get("auc_population") if bvo.get("available") else None,
+            "auc_scored_share_of_priced": (bvo.get("scored_share_of_priced")
+                                           if bvo.get("available") else None),
+            "auc_unavailable_because": (
+                None if bvo.get("available")
+                else (bvo.get("why_not")
+                      or "this seed's run produced no `belief_vs_outcome` block")),
         })
 
     selection = _spread([r["selection_gbp"] for r in rows])
