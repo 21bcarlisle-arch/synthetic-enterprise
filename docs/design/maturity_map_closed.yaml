@@ -4016,10 +4016,7 @@
     docs/market_research/the_three_weather_drivers_per_land_cell_and_the_sign_that_flips.md and
     qualified in place by W1_20. NEXT would be the knowledge page, which is W1_14.
   loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
-  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
-  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
-  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  dial_inherited: 60    # STAGE 1, minted ahead of W1_14 -- MATURITY_MAP.md §8.
   provenance: director_ruling
   depends_on: []
   couples_with: [W1_14_weather_cells_for_household_heat_load]
@@ -4041,10 +4038,7 @@
     land cells hold nobody and weighting halves the spread on every driver. NOT COVERED: the
     elevation correction to house height, registered as the open half of this atom.
   loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
-  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
-  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
-  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  dial_inherited: 60    # STAGE 1, minted ahead of W1_14 -- MATURITY_MAP.md §8.
   provenance: director_ruling
   depends_on: []
   couples_with: [W1_14_weather_cells_for_household_heat_load]
@@ -4067,10 +4061,7 @@
     the industry comparators are read at their COUNTS, not from their boundaries -- 82.3/83.1/87.0%
     are upper bounds and a per-boundary figure needs a polygon pull.
   loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
-  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
-  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
-  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  dial_inherited: 60    # STAGE 1, minted ahead of W1_14 -- MATURITY_MAP.md §8.
   provenance: director_ruling
   depends_on: [W1_19_the_three_drivers_per_land_cell_from_the_normals, W1_20_household_weights_per_cell_from_the_census]
   couples_with: [W1_14_weather_cells_for_household_heat_load]
@@ -4095,10 +4086,7 @@
     pair at 2.81; the whole book cold on 1991-02-07. 10 controls, 9 mutation kills. NOT COVERED:
     wind and sun persistence, and what a spell costs in kWh (W1_18, stage 2).
   loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
-  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
-  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
-  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  dial_inherited: 60    # STAGE 1, minted ahead of W1_14 -- MATURITY_MAP.md §8.
   provenance: director_ruling
   depends_on: [W1_19_the_three_drivers_per_land_cell_from_the_normals]
   couples_with: [W1_14_weather_cells_for_household_heat_load]
@@ -4318,3 +4306,119 @@
   file_scope: ['simulation/population_draw.py', 'tools/', 'docs/market_research/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."
+
+- id: W2_32_the_billing_and_commercial_axes_are_measured_against_the_demand_sample
+  title: "whether the demand sample spans billing and commercial complexity, answered as a measurement -- spanned, or named as an uncounted dimension"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: verify
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
+  couples_with: [W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
+  # EXECUTABLE CONTROL, not a directory. The census is runnable and the control is a pytest file,
+  # because a `file_scope` naming `docs/` cannot be asserted past by anything.
+  file_scope:
+    - tools/billing_axis_coverage.py
+    - tests/tools/test_billing_axis_coverage.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "two households with the same annual kWh, one on quarterly estimates in arrears and one half-hourly on direct debit -- identical to the demand model and entirely different to bill, to serve and to lose."
+  # ITEM 4 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 4, verbatim: "a sample
+  # sized against the demand vector may not be sized against billing complexity... Whether the
+  # demand sample spans that is an OPEN MEASUREMENT, NOT AN ASSUMPTION."
+  #
+  # THE ANSWER MAY BE "NO", AND "NO" IS THE DELIVERABLE. This row is not "make the sample span
+  # billing"; it is "find out, and publish which". The canon offers both outcomes as acceptable --
+  # spanned, or NAMED AS AN UNCOUNTED DIMENSION -- and the failure mode is neither of those: it is
+  # the sample being sized on demand and read as if it were sized on billing. That is the
+  # undeclared-reduction shape W2_28's control exists to refuse, one seam further out.
+  #
+  # THE AXES ARE NAMED BY THE CANON AND ARE NOT FOR THIS ROW TO INVENT: meter type and read
+  # pattern, payment method, tariff with its dates, move history, credit position. A quantity this
+  # row needs that the book does not carry is a GAP TO FILE, never a value to pick.
+  #
+  # SECOND HALF, AND IT IS THE HALF THAT ROTS IF LEFT OUT: the canon also rules that the demand
+  # sample "must not be built in a way that forecloses adding those axes". A measurement taken once
+  # and left as prose goes stale beside the next change to the draw, so the exit below asks for a
+  # control, not a document.
+  #
+  # EXIT: (1) a runnable census reporting, per named billing/commercial axis, whether the drawn
+  # book spans it, with the population figure it is measured against and the N the answer earns;
+  # (2) every axis that is NOT spanned published as an uncounted dimension on a reader-facing
+  # surface rather than in a footnote; (3) a control that reds when an axis is added to the canon's
+  # list and not to the census.
+  #
+  # ANSWERED 2026-09-09, AND THE ANSWER IS "NO" ON ALL FIVE -- which the canon offers as an
+  # acceptable outcome and which this row was written to be able to return. `tools/
+  # billing_axis_coverage.py --measure`: 0 spanned, 1 carried-but-not-spanned, 4 absent. Meter type
+  # and read pattern, tariff and its dates, move history and credit position have NO FIELD in the
+  # drawn sample, so no larger sample produces a figure about them. Payment method is carried and
+  # still not spanned for two independent reasons -- two categories where the published record
+  # establishes three, and a margin the sample DRAWS from the very constant it would be scored
+  # against, so agreement there is arithmetic. That second reason is the one a reader of the output
+  # could not have caught, and `test_AN_AGREEMENT_THE_SAMPLE_WAS_BUILT_TO_PRODUCE_IS_NOT_SCORED_AS_
+  # FIDELITY` is what stops it being published as fidelity.
+  #
+  # WHAT IS AT L2 AND WHAT IS NOT. Exit (1) and (3) are the census and its controls; exit (2) is
+  # the `how-many-synthetic-households` knowledge page's evidence rung, proven to reach a reader by
+  # `site/test_the_sampling_page_reaches_the_reader.py::test_EVERY_UNCOUNTED_BILLING_AXIS_REACHES_
+  # THE_READER_ON_THE_RENDERED_PAGE` (red under a poisoned page). The census is re-asked daily
+  # through `background/daily_self_note.py`, because the answer changes the moment the draw gains a
+  # field or the canon gains an axis and neither arrives announcing itself. NOT done here, and not
+  # this row's: giving the sample any of the four absent axes. That is a build, it belongs where the
+  # draw is, and this row's job was to find out and publish which -- not to close the gap.
+
+- id: W2_33_a_weighted_case_can_still_be_inflated_into_a_small_population
+  title: "the two reversibility properties the canon requires of the book -- inflating a weighted case into a small population, and raising the count on a high-volume case -- kept open by a control rather than by intention"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 2   # 2026-09-09 L0->L2 SELF-CERTIFIED (ledger row in gate_authorizations.jsonl).
+  # The seam DID NOT EXIST -- `fit_weights` solved for a share and nothing multiplied it by a
+  # household count -- so the property had no place it could be foreclosed AND none where it could
+  # be asserted. `case_household_counts` names it, `gb_households()` counts 27,291,846 from the two
+  # censuses at call time, and the variation slot is carried empty with its reason. The control's
+  # poison round: 5 mutations, 5 kills, none survived. Measured, the biggest chosen case stands for
+  # 1,575,773 households -- the canon says "tens of thousands"; it is millions.
+  # L2 not L1 because the household total is a counted artefact, not a handed-in figure.
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
+  file_scope:
+    - tools/demand_vector_coverage.py
+    - tests/architecture/test_a_weighted_case_can_still_be_inflated.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that can show it beats the average on one distinct household and cannot separate two that look alike and behave differently -- which is the harder problem and the one that is commercially real."
+  # ITEM 5 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 3. Two properties,
+  # both stated as "neither is built now, both must stay possible":
+  #   (a) a weighted case can LATER be inflated into a small population with within-group variation;
+  #   (b) the count on high-volume cases can be RAISED where a use case makes it worth doing.
+  #
+  # THIS IS A NEGATIVE DELIVERABLE AND THAT IS WHY IT NEEDS A CONTROL RATHER THAN A BUILD. Nothing
+  # is to be built here. What is asked is that nothing ELSE forecloses these -- and a foreclosure
+  # arrives as somebody else's reasonable change, in a lane that has never read this canon, with a
+  # green suite. An intention cannot catch that; only a control keyed to the property can. Keying it
+  # to today's answer would be exactly backwards: it must red when the build stops ADMITTING
+  # inflation, not when the book's current contents change.
+  #
+  # THE KNOWN HAZARD IS ALREADY VISIBLE. The canon's own stated limit is that near-duplicates are
+  # rejected by construction (`tools/space_filling_sample.py` draws for difference), so the world
+  # holds no two households that are similar but not identical. Any code that reads "one case, one
+  # household" -- an integer count, a 1:1 case-to-account join, a uniqueness assumption on the
+  # roster -- is the foreclosure, and it will look like a simplification when it lands.
+  #
+  # EXIT: (1) the seam through which a case's weight becomes a count named and stated to be
+  # inflatable, with the within-group variation slot present and honestly empty rather than absent;
+  # (2) a control that reds when a caller assumes a case stands for exactly one household; proven by
+  # a poison round, because a control over a property nobody violates today passes vacuously and
+  # "survived" would mean two opposite things.

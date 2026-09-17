@@ -92,6 +92,24 @@ def test_the_declared_control_exists_on_disk():
 
 # --- Layer 2: the selected control BITES -------------------------------------
 
+def _tools_modules_imported_by(path: Path) -> list[str]:
+    """The `tools.<module>` names a file imports, read from its AST.
+
+    READ AS CODE, not as text: a commented-out import must not put a file in the stand-in tree, and
+    `from tools import (\\n    a, b)` is invisible to any single-line spelling. Both directions of
+    the same mistake this repository keeps making (tools/python_code_text.py's own subject)."""
+    import ast
+
+    out: list[str] = []
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.ImportFrom) and node.module == "tools":
+            out += [a.name for a in node.names]
+        elif isinstance(node, ast.Import):
+            out += [a.name.split(".", 1)[1] for a in node.names
+                    if a.name.startswith("tools.") and a.name.count(".") == 1]
+    return out
+
+
 @pytest.fixture()
 def tree(tmp_path: Path) -> Path:
     """A minimal copy: the map, the store, the loader, and the control itself."""
@@ -125,8 +143,17 @@ def tree(tmp_path: Path) -> Path:
         src = REPO_ROOT / pkg / "__init__.py"
         if src.is_file():
             shutil.copy(src, root / pkg / "__init__.py")
-    for module in ("simplifications_store.py", "maturity_map_store.py"):
-        shutil.copy(REPO_ROOT / "tools" / module, root / "tools")
+    # THE SAME DEFECT AS THE MAP SPLIT ABOVE, AND NOW DERIVED SO IT CANNOT RECUR (2026-09-17).
+    # This list was hand-kept, so the third `from tools import ...` the control grew -- the
+    # duplicated-comment finder -- made all three mutation tests below fail on `ImportError`
+    # instead of on their own subjects, exactly as the split had. The control's own import
+    # statements are the authority on what it needs, so they are read rather than mirrored: a
+    # fourth one is inherited here with no edit.
+    needed = sorted(set(_tools_modules_imported_by(REPO_ROOT / STORE_TEST)) | {
+        "simplifications_store", "maturity_map_store",  # imported indirectly, below the top level
+    })
+    for module in needed:
+        shutil.copy(REPO_ROOT / "tools" / f"{module}.py", root / "tools")
     shutil.copy(REPO_ROOT / STORE_TEST, root / STORE_TEST)
     return root
 
@@ -150,9 +177,15 @@ def test_the_selected_control_goes_RED_when_the_map_is_ONE_BYTE_over(tree: Path)
     # The ceiling is READ FROM THE CONTROL, never restated here: a hard-coded 409600 in
     # this file would keep passing after someone moved the line, which is the tautology
     # shape (a check whose subject is its own copy of the value).
+    #
+    # REPOINTED 2026-09-17: the declaration moved to `tools/maturity_map_store.py` so the
+    # commit-time WARNING and this commit-time REFUSAL read one number. Still read as SOURCE
+    # TEXT rather than imported, deliberately -- importing it would make this proof agree with
+    # whatever the control imports, and what must be proven is that the control bites at the
+    # number a reader of the source can see.
     m = re.search(
         r"MAP_SIZE_CEILING\s*=\s*(\d+)\s*\*\s*(\d+)",
-        (REPO_ROOT / STORE_TEST).read_text(encoding="utf-8"),
+        (REPO_ROOT / "tools" / "maturity_map_store.py").read_text(encoding="utf-8"),
     )
     assert m, "MAP_SIZE_CEILING not found in the control -- this proof cannot size its mutation"
     ceiling = int(m.group(1)) * int(m.group(2))

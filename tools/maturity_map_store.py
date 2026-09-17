@@ -61,6 +61,41 @@ CLOSED_PATH = PROJECT / CLOSED_REL
 # worktree (the level gate reads the staged/HEAD text, not the file on disk).
 MAP_PARTS_REL = (MAP_REL, CLOSED_REL)
 
+# ── The spine size ratchet's NUMBER, and this is its one home ────────────────────────────────
+# MOVED HERE 2026-09-17 from tests/design/test_simplifications_store.py, where it was declared,
+# because a second reader needed it. The ratchet REFUSES a commit; the surface below WARNS one
+# that still fits. Those are two readings of one limit, and one limit with two copies is the
+# shape this project pays for repeatedly (one VAT rule, five implementations, fixed in one of
+# them in July and still live in another in August). The test that guards the ratchet now reads
+# the number from here, and `tests/tools/test_pre_commit_gate_store_surface.py` sizes its
+# one-byte mutation from here too, so no copy exists to drift.
+#
+# THE NUMBER HAS NEVER BEEN RAISED and that is the control's whole history: 400K, raised to 640K
+# for ten hours during a publish wedge on 2026-08-09, restored the same day by H32 draining the
+# narrative-note class into the sibling store (521,770 -> 393,692 B), red again in 24h and paid
+# again by H41 moving `evidence`/`exit_evidence` into `map_records:` (430,962 -> 300,565 B). Every
+# wedge in its history has been paid by moving content OUT, never by moving the line. The full
+# reasoning, and the scale-invariant per-atom budget that backs it up, stay beside the assertion
+# in tests/design/test_simplifications_store.py.
+MAP_SIZE_CEILING = 400 * 1024
+
+# The band in which `size_warning` speaks while the write still SUCCEEDS.
+#
+# DERIVED, NOT PICKED, from the map's own history: over the 200 most recent commits touching
+# either half, 127 grew it, and the growth distribution is median +695 B, p75 +2,008, p90 +4,451,
+# p95 +6,404, max +19,406 (measured 2026-09-17 via `git cat-file -s` on both halves at each
+# revision). 8 KB is above p95, so a lane that sees this warning has roughly 19 in 20 odds that
+# its own next map commit still lands -- which is the property a warning needs and a refusal does
+# not: it must arrive with room left to act in.
+#
+# WHY IT EXISTS (SEAT_FINDING_THE_MAP_IS_185_BYTES_FROM_ITS_RATCHET_CEILING_2026-09-17): the
+# ratchet prints the size and the ceiling only once it has already failed, at commit time, after
+# the nine cheap gates, naming a file the author never touched. Recording two ordinary levels
+# cost ~1,130 B of provenance comment and wedged EVERY lane's commit; headroom afterwards was 185
+# B, under two lines of comment. The author of the next row would have met the same wedge with no
+# warning at all, and the only door the pressure pointed at was raising the line above.
+MAP_SIZE_WARN_HEADROOM = 8 * 1024
+
 
 class MapStoreError(RuntimeError):
     """The map could not be read WHOLE. Never raised for an empty live half -- a map with
@@ -145,6 +180,58 @@ def map_text(live_path: Path | str = LIVE_PATH) -> str:
     if not live.endswith("\n"):
         live += "\n"
     return live + closed
+
+
+def map_bytes(text: str | None = None, live_path: Path | str = LIVE_PATH) -> int:
+    """The bytes the ratchet measures: the WHOLE map, both halves.
+
+    BOTH HALVES OR NOTHING. Measuring only the drawn half would have turned the ratchet
+    fail-open the moment the map was split -- 3,947 of its 5,420 lines moved to the sibling, so
+    the ceiling would have been met by the SPLIT rather than by content leaving the spine, and
+    unbounded accretion into a closed atom would be invisible to the one control that sees it.
+
+    `text` is for the reader that already HAS the map text and must not go to disk for it: the
+    level gate holds the STAGED bytes, which are the ones about to become a commit and are not
+    the ones on disk when another lane is mid-edit."""
+    if text is None:
+        text = map_text(live_path)
+    return len(text.encode("utf-8"))
+
+
+def size_headroom(text: str | None = None, live_path: Path | str = LIVE_PATH) -> int:
+    """Bytes of room left under `MAP_SIZE_CEILING`. NEGATIVE once the ratchet refuses."""
+    return MAP_SIZE_CEILING - map_bytes(text, live_path)
+
+
+def size_warning(text: str | None = None, live_path: Path | str = LIVE_PATH) -> str | None:
+    """One line for a surface to print, or None when there is nothing to say.
+
+    THE POINT OF THIS FUNCTION IS THE CASE WHERE THE WRITE SUCCEEDS. A ratchet that speaks only
+    when it refuses hands the next author a red naming a file they never touched; this speaks
+    while there is still room to act, and says how much room, so the reader can size their own
+    edit against it instead of discovering the limit by hitting it.
+
+    It states the remedy DOWNWARD -- drain, rehome -- and never mentions raising the ceiling,
+    because raising it is the single move the control exists to refuse and a warning is read
+    under exactly the time pressure that makes the wrong door look reasonable."""
+    left = size_headroom(text, live_path)
+    if left >= MAP_SIZE_WARN_HEADROOM:
+        return None
+    where = f"{MAP_REL} + {CLOSED_REL}"
+    if left <= 0:
+        return (
+            f"[map-size] the map is {-left} bytes OVER the {MAP_SIZE_CEILING}-byte ratchet "
+            f"({where}) -- tests/design/ is now RED FOR EVERY LANE, not just this commit. "
+            "Drain a row's comments to their load-bearing sentence, or rehome a growing field "
+            "to docs/design/simplifications/<atom_id>.yaml. Do not raise the ceiling."
+        )
+    return (
+        f"[map-size] {left} bytes of headroom left under the {MAP_SIZE_CEILING}-byte ratchet "
+        f"({where}). This commit fits. The map's own history says the median commit that touches "
+        "it adds ~695 bytes, so budget accordingly: when it goes over, tests/design/ reds EVERY "
+        "lane's commit and names a file its author never touched. Drain comments to their "
+        "load-bearing sentence or rehome a growing field to the store; never raise the ceiling."
+    )
 
 
 def _as_atom_list(text: str, where: str) -> list:
@@ -384,3 +471,10 @@ if __name__ == "__main__":  # pragma: no cover -- operator convenience
     print(f"live (still carrying work): {len(live)}")
     print(f"closed (at or above target): {len(closed)}")
     print(f"whole map: {len(load_atoms())}")
+    # The headroom goes on the OPERATOR's surface as well as the commit's, because this is what
+    # a lane runs BEFORE it writes a row -- which is the only moment the number can change a
+    # decision rather than explain a refusal.
+    print(f"map bytes: {map_bytes()} of {MAP_SIZE_CEILING} (headroom {size_headroom()})")
+    warning = size_warning()
+    if warning:
+        print(warning)

@@ -269,10 +269,6 @@
   loop_stage: build   # 2026-08-19: the 2026-07-20 "no in-scope BUILD increment" park reason was STALE and is deleted. It was true of the rungs it considered (SAVED feed, SPENT emitter) but the atom's own 2026-07-29 FRAME had already named a third increment that is factor-agnostic and values-call-free -- the absent-feed fail-open and the R14 labels dropped at aggregation -- and that increment was BUILT this tick without touching a single values-call. REMAINING build IS values-call/trajectory-gated as before: SAVED needs the unbuilt per-household cost-and-carbon trajectory; the SPENT emitter needs the emissions-factor SET, which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). Lesson worth keeping: a park reason that names the gated rungs is not the same as proving the atom has no ungated work.
   frame_saturated: true   # 2026-07-29 RE-CLOSED by the Lane-3 DISCOVER/FRAME fork that delivered BOTH director-named widened-scope items (observables-only trajectory + the carbon clock/basis triple) in docs/design/E5_CARBON_THREE_LEDGER_FRAME.md. Re-opens automatically when loop_stage flips off idle. PRIOR RE-OPEN NOTE RETAINED:   # 2026-07-29 RE-OPENED (director from_rich_20260729_173731, "put all eleven backlog items into the map as real unfinished work items"). This atom IS BACKLOG.md item B9 (BACKLOG says so explicitly: "B9 IS the existing map atom E5_carbon_three_ledger, NOT a new atom" -- do not mint a duplicate). It was in the map but INVISIBLE to the picker: H23 hard-skips FRAME-saturated atoms, so E5 contributed nothing to the draw. The 2026-07-20 saturation was honest FOR THE SCOPE THEN FRAMED (data model + counterfactual comparison + emissions-factor register) -- B9 WIDENED the scope past it, and the widened part is genuinely un-FRAMEd: how a per-household cost-and-carbon trajectory is derived FROM OBSERVABLES ONLY (the wall), and how the site's £/tCO2e figure carries its clock/basis (R14) plus the plain-language working. Those two are the drawable FRAME work now. UNCHANGED WALL: the emissions-factor SET and the counterfactual METHOD stay director values-calls (carbon is the mission = category 6), and the "not yet instrumented" site disclaimer comes off only when the LIVE rendered figure is asserted (R11).
   dial_inherited: 45    # R3 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: proposal
   file_scope: [company/carbon, tests/company/test_carbon_ledger.py, tests/company/test_carbon_not_a_target.py, tests/company/test_carbon_cannot_reach_the_sim.py]
   depends_on: []
@@ -736,10 +732,6 @@
   level_target: 3
   loop_stage: build
   dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: []
@@ -774,10 +766,6 @@
   level_target: 3
   loop_stage: idle
   dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: []
@@ -794,18 +782,6 @@
   level_target: 3
   loop_stage: idle
   dial_inherited: 50    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-    #   SUPERSEDED 2026-09-05 by the director's three-stage sequencing, which he said
-    #   supersedes the ranking where they conflict. The derivation above was for 45 and is
-    #   NOT redone here, because the sequence is not a weighting argument: it is first,
-    #   second, only then. MEASURED after the change -- stage 1 takes 26.2% of the
-    #   dial-weighted draw (300 of 1144 over 93 drawable atoms), stage 2 13.1%. That is a
-    #   PREFERENCE, not a sequence, and no dial value can make it one while 85 other atoms
-    #   remain drawable. What the dial can do it now does; the order itself is held by the
-    #   seat and by the direction record, and that gap is reported to the director.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: []
@@ -934,10 +910,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -953,10 +926,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -988,10 +958,7 @@
   #   waiting on is appended to SEAT_FINDING_THE_PASS_CEILING_IS_ON_THE_DRAW_NOBODY_CALLS_2026-09-06.
   #   NOT A HOLD, and not a level move: an R11 cache, reversible by deleting this line, and it
   #   auto-clears when the BUILD gate opens (`loop_stage` leaves `idle`, atom re-enters via BUILD).
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1008,10 +975,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1027,10 +991,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1046,10 +1007,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1118,10 +1076,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
-  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
-  #   because typing an interface changes how the two sides speak, not what the company
-  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1175,18 +1130,6 @@
   loop_stage: idle
   block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). Population ACTIVATION is separately director-reserved as curriculum (the SE_DRAW_POPULATION reservation). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 6 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work."
   dial_inherited: 60    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-    #   SUPERSEDED 2026-09-05 by the director's three-stage sequencing, which he said
-    #   supersedes the ranking where they conflict. The derivation above was for 45 and is
-    #   NOT redone here, because the sequence is not a weighting argument: it is first,
-    #   second, only then. MEASURED after the change -- stage 1 takes 26.2% of the
-    #   dial-weighted draw (300 of 1144 over 93 drawable atoms), stage 2 13.1%. That is a
-    #   PREFERENCE, not a sequence, and no dial value can make it one while 85 other atoms
-    #   remain drawable. What the dial can do it now does; the order itself is held by the
-    #   seat and by the direction record, and that gap is reported to the director.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: ['EP16_anchored_generators']
   couples_with: []
@@ -1583,10 +1526,6 @@
   level_target: 3
   loop_stage: build
   dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: [B10_competitor_switching_response, B8_discovered_price_sensitivity_holdout, PB5_pounds_or_percent_resolved]
@@ -1924,10 +1863,7 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
-  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
-  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
-  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
+  dial_inherited: 60    # STAGE 1, minted ahead of W2_18 -- MATURITY_MAP.md §8.
   provenance: director_ruling
   depends_on: []
   couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
@@ -1943,10 +1879,7 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
-  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
-  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
-  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
+  dial_inherited: 60    # STAGE 1, minted ahead of W2_18 -- MATURITY_MAP.md §8.
   provenance: director_ruling
   depends_on: [W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system]
   couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
@@ -2002,10 +1935,6 @@
   level_target: 2
   loop_stage: build
   dial_inherited: 60    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: [PB4_engagement_separated_from_elasticity, B10_competitor_switching_response]
@@ -2034,10 +1963,6 @@
   level_target: 2
   loop_stage: build
   dial_inherited: 45    # R5 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   blocked_on: null
   block_reason: null   # NOT blocked. The DECISION is R13 curriculum and is the director's; the PRICED MENU he needs to take it is this atom's own deliverable and is drawable now. Parking the atom on his answer would make the thing he is waiting for unbuildable -- which is how a real reserved-class item and a permission ceremony end up looking the same.
@@ -2056,10 +1981,6 @@
   level_target: 3
   loop_stage: idle
   dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   block_reason: "Sequencing, not permission. depends_on B10 (a world that can react) and the two household atoms (variation with a channel and a scale). A decision surface widened against a flat world produces a better-instrumented null -- measured, not assumed: the current surface is nine accounts wide and the choosing is worth -£175 against an error bar 25x that. DISCOVER and FRAME on this atom are drawable NOW."
   blocked_on: null
@@ -2094,10 +2015,6 @@
   level_target: 3
   loop_stage: idle
   dial_inherited: 45    # R4 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   blocked_on: null
   block_reason: "Sequencing, and the director's own instruction to note rather than fix. An advice channel delivered into a world where nothing responds (C2), scored by an objective with no household-side term (A47), produces a capability that cannot be measured -- the same argument that parks C29. DISCOVER and FRAME on this atom are drawable NOW."
@@ -2116,10 +2033,6 @@
   level_target: 3
   loop_stage: idle
   dial_inherited: 45    # R4 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
-  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
-  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
-  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   blocked_on: null
   block_reason: "Sequencing, and the director's own instruction to note rather than fix. Time cannot be SAVED before there is a household model of what things COST in attention, and that model belongs behind the wall with the other hidden traits -- so it sits behind the household atoms (PB4/PB5) and the two-sided objective (A47). DISCOVER and FRAME on this atom are drawable NOW."
@@ -2138,8 +2051,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 60    # the phase-1 parent's, not decayed by phase number; order is
-  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  dial_inherited: 60    # the phase-1 parent's; order held by blocked_on, not by the dial.
   provenance: director_ruling
   blocked_on: null
   block_reason: "DECIDED, NOT AUTHORISED (weather ruling 2026-09-05 section 2 item 2). OPENING CONDITION, director verbatim: 'opens when phase 1 lands' -- W1_14 reaching level_target 3. Registration is not authorisation: DISCOVER and FRAME only, no BUILD code."
@@ -2158,8 +2070,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 60    # the phase-1 parent's, not decayed by phase number; order is
-  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  dial_inherited: 60    # the phase-1 parent's; order held by blocked_on, not by the dial.
   provenance: director_ruling
   blocked_on: null
   block_reason: "DECIDED, NOT AUTHORISED (weather ruling 2026-09-05 section 2 item 3). OPENING CONDITION is a DISJUNCTION, either limb opening it: (a) 'the drawn population's heat-pump share makes it material' -- itself gated on a director curriculum decision, since heat pump is excluded from all three housing phases; or (b) 'the fabric layer takes on solid-wall moisture'. Neither is a date. DISCOVER and FRAME only, and the seat records WHICH limb opened it."
@@ -2178,8 +2089,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
-  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  dial_inherited: 50    # the phase-1 parent's; order held by blocked_on, not by the dial.
   provenance: director_ruling
   blocked_on: null
   block_reason: "DECIDED, NOT AUTHORISED (housing ruling 2026-09-05 section 2 item 1: 'Phases 2 and 3 are decided and registered, not authorised'). OPENING CONDITION: W2_18 lands -- there is no observation layer to build until there is a hidden truth for it to be a partial, dated, modelled view OF. DISCOVER and FRAME only."
@@ -2198,8 +2108,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
-  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  dial_inherited: 50    # the phase-1 parent's; order held by blocked_on, not by the dial.
   provenance: director_ruling
   blocked_on: null
   block_reason: "DECIDED, NOT AUTHORISED (housing ruling 2026-09-05 section 2 item 1). OPENING CONDITION: phases 1 and 2 land -- a timeline needs a house to change (W2_18) and an observation layer to fall behind (W2_23). DISCOVER and FRAME only. CARRIES A STANDING EXCLUSION: heat pump is out until the director rules otherwise, so any adoption curve minted here that includes one is the defect."
@@ -2218,8 +2127,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
-  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  dial_inherited: 50    # the phase-1 parent's; order held by blocked_on, not by the dial.
   provenance: director_ruling
   blocked_on: null
   block_reason: "DECIDED, NOT AUTHORISED (people ruling 2026-09-05 section 2 item 1). OPENING CONDITION, in the ruling's own words for this phase: 'conditional on phase 1' -- W2_19 landing. DISCOVER and FRAME only. THE SCOPE IS THE AMENDED ONE: a build opening against the ORIGINAL ruling's phase-2 list would rebuild what the amendment pulled forward into phase 1."
@@ -2238,8 +2146,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
-  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  dial_inherited: 50    # the phase-1 parent's; order held by blocked_on, not by the dial.
   provenance: director_ruling
   blocked_on: null
   block_reason: "DECIDED, NOT AUTHORISED (people ruling 2026-09-05 section 2 item 1). OPENING CONDITION: phases 1 and 2 land -- the value-add term is conditional on the attitudes phase 2 draws, and a residual is only definable once there is something for it to be residual TO. DISCOVER and FRAME only. THE SCOPE IS THE AMENDED ONE, strictly smaller than the original ruling's phase 3."
@@ -2520,121 +2427,6 @@
   # fails when a physical quantity is derived solely from a commercial one, and the correlation
   # structure stated and measured rather than assumed.
 
-- id: W2_32_the_billing_and_commercial_axes_are_measured_against_the_demand_sample
-  title: "whether the demand sample spans billing and commercial complexity, answered as a measurement -- spanned, or named as an uncounted dimension"
-  lane: W2_customer_generator
-  value_stream: meter_to_cash
-  epoch: 3
-  level_current: 2
-  level_target: 2
-  loop_stage: verify
-  dial_inherited: 50
-  provenance: director_ruling
-  blocked_on: null
-  block_reason: null
-  depends_on: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
-  couples_with: [W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
-  # EXECUTABLE CONTROL, not a directory. The census is runnable and the control is a pytest file,
-  # because a `file_scope` naming `docs/` cannot be asserted past by anything.
-  file_scope:
-    - tools/billing_axis_coverage.py
-    - tests/tools/test_billing_axis_coverage.py
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "two households with the same annual kWh, one on quarterly estimates in arrears and one half-hourly on direct debit -- identical to the demand model and entirely different to bill, to serve and to lose."
-  # ITEM 4 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 4, verbatim: "a sample
-  # sized against the demand vector may not be sized against billing complexity... Whether the
-  # demand sample spans that is an OPEN MEASUREMENT, NOT AN ASSUMPTION."
-  #
-  # THE ANSWER MAY BE "NO", AND "NO" IS THE DELIVERABLE. This row is not "make the sample span
-  # billing"; it is "find out, and publish which". The canon offers both outcomes as acceptable --
-  # spanned, or NAMED AS AN UNCOUNTED DIMENSION -- and the failure mode is neither of those: it is
-  # the sample being sized on demand and read as if it were sized on billing. That is the
-  # undeclared-reduction shape W2_28's control exists to refuse, one seam further out.
-  #
-  # THE AXES ARE NAMED BY THE CANON AND ARE NOT FOR THIS ROW TO INVENT: meter type and read
-  # pattern, payment method, tariff with its dates, move history, credit position. A quantity this
-  # row needs that the book does not carry is a GAP TO FILE, never a value to pick.
-  #
-  # SECOND HALF, AND IT IS THE HALF THAT ROTS IF LEFT OUT: the canon also rules that the demand
-  # sample "must not be built in a way that forecloses adding those axes". A measurement taken once
-  # and left as prose goes stale beside the next change to the draw, so the exit below asks for a
-  # control, not a document.
-  #
-  # EXIT: (1) a runnable census reporting, per named billing/commercial axis, whether the drawn
-  # book spans it, with the population figure it is measured against and the N the answer earns;
-  # (2) every axis that is NOT spanned published as an uncounted dimension on a reader-facing
-  # surface rather than in a footnote; (3) a control that reds when an axis is added to the canon's
-  # list and not to the census.
-  #
-  # ANSWERED 2026-09-09, AND THE ANSWER IS "NO" ON ALL FIVE -- which the canon offers as an
-  # acceptable outcome and which this row was written to be able to return. `tools/
-  # billing_axis_coverage.py --measure`: 0 spanned, 1 carried-but-not-spanned, 4 absent. Meter type
-  # and read pattern, tariff and its dates, move history and credit position have NO FIELD in the
-  # drawn sample, so no larger sample produces a figure about them. Payment method is carried and
-  # still not spanned for two independent reasons -- two categories where the published record
-  # establishes three, and a margin the sample DRAWS from the very constant it would be scored
-  # against, so agreement there is arithmetic. That second reason is the one a reader of the output
-  # could not have caught, and `test_AN_AGREEMENT_THE_SAMPLE_WAS_BUILT_TO_PRODUCE_IS_NOT_SCORED_AS_
-  # FIDELITY` is what stops it being published as fidelity.
-  #
-  # WHAT IS AT L2 AND WHAT IS NOT. Exit (1) and (3) are the census and its controls; exit (2) is
-  # the `how-many-synthetic-households` knowledge page's evidence rung, proven to reach a reader by
-  # `site/test_the_sampling_page_reaches_the_reader.py::test_EVERY_UNCOUNTED_BILLING_AXIS_REACHES_
-  # THE_READER_ON_THE_RENDERED_PAGE` (red under a poisoned page). The census is re-asked daily
-  # through `background/daily_self_note.py`, because the answer changes the moment the draw gains a
-  # field or the canon gains an axis and neither arrives announcing itself. NOT done here, and not
-  # this row's: giving the sample any of the four absent axes. That is a build, it belongs where the
-  # draw is, and this row's job was to find out and publish which -- not to close the gap.
-
-- id: W2_33_a_weighted_case_can_still_be_inflated_into_a_small_population
-  title: "the two reversibility properties the canon requires of the book -- inflating a weighted case into a small population, and raising the count on a high-volume case -- kept open by a control rather than by intention"
-  lane: W2_customer_generator
-  value_stream: price_to_bill
-  epoch: 3
-  level_current: 2   # 2026-09-09 L0->L2 SELF-CERTIFIED (ledger row in gate_authorizations.jsonl).
-  # The seam DID NOT EXIST -- `fit_weights` solved for a share and nothing multiplied it by a
-  # household count -- so the property had no place it could be foreclosed AND none where it could
-  # be asserted. `case_household_counts` names it, `gb_households()` counts 27,291,846 from the two
-  # censuses at call time, and the variation slot is carried empty with its reason. The control's
-  # poison round: 5 mutations, 5 kills, none survived. Measured, the biggest chosen case stands for
-  # 1,575,773 households -- the canon says "tens of thousands"; it is millions.
-  # L2 not L1 because the household total is a counted artefact, not a handed-in figure.
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 50
-  provenance: director_ruling
-  blocked_on: null
-  block_reason: null
-  depends_on: []
-  couples_with: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
-  file_scope:
-    - tools/demand_vector_coverage.py
-    - tests/architecture/test_a_weighted_case_can_still_be_inflated.py
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a supplier that can show it beats the average on one distinct household and cannot separate two that look alike and behave differently -- which is the harder problem and the one that is commercially real."
-  # ITEM 5 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 3. Two properties,
-  # both stated as "neither is built now, both must stay possible":
-  #   (a) a weighted case can LATER be inflated into a small population with within-group variation;
-  #   (b) the count on high-volume cases can be RAISED where a use case makes it worth doing.
-  #
-  # THIS IS A NEGATIVE DELIVERABLE AND THAT IS WHY IT NEEDS A CONTROL RATHER THAN A BUILD. Nothing
-  # is to be built here. What is asked is that nothing ELSE forecloses these -- and a foreclosure
-  # arrives as somebody else's reasonable change, in a lane that has never read this canon, with a
-  # green suite. An intention cannot catch that; only a control keyed to the property can. Keying it
-  # to today's answer would be exactly backwards: it must red when the build stops ADMITTING
-  # inflation, not when the book's current contents change.
-  #
-  # THE KNOWN HAZARD IS ALREADY VISIBLE. The canon's own stated limit is that near-duplicates are
-  # rejected by construction (`tools/space_filling_sample.py` draws for difference), so the world
-  # holds no two households that are similar but not identical. Any code that reads "one case, one
-  # household" -- an integer count, a 1:1 case-to-account join, a uniqueness assumption on the
-  # roster -- is the foreclosure, and it will look like a simplification when it lands.
-  #
-  # EXIT: (1) the seam through which a case's weight becomes a count named and stated to be
-  # inflatable, with the within-group variation slot present and honestly empty rather than absent;
-  # (2) a control that reds when a caller assumes a case stands for exactly one household; proven by
-  # a poison round, because a control over a property nobody violates today passes vacuously and
-  # "survived" would mean two opposite things.
 - id: W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing
   title: "a zero-capital measure in the offer book, refused below a health floor rather than priced against a comfort cost -- so the company's advice leg exists and cannot recommend that the coldest households be colder"
   lane: W2_customer_generator

@@ -132,6 +132,70 @@ The canonical store is **data, not prose** (`docs/design/maturity_map.yaml`), so
 
 Supervisor self-refill draws work from lanes proportional to dials, respecting loop-stage pipelining (a hot lane in DISCOVER generates background research tasks, not build tasks).
 
+### 8a. Per-row dial provenance, stated once (drained out of the map 2026-09-17)
+
+Six paragraphs of dial reasoning had been pasted onto thirty rows of `maturity_map.yaml` — 9,207
+bytes of byte-identical text, which is most of the map's headroom under its size ratchet. Each
+one's subject is a **family** of rows, not the row it sat on, so each is recorded here once,
+naming the rows it covers. One copy had drifted into being false where it sat: the 45-derivation
+below was pasted onto rows carrying dial 50 and 60, with the paragraph above it saying the
+derivation "was for 45 and is NOT redone here". That is the cost of recitation, and it is the
+reason these live in one place now. The rows keep their one-line pointer to the ruling.
+`tools/drain_map_duplicated_provenance.py` is the drain, and `--check` is its falsifier.
+
+**R1–R5 dial 45 — `DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04` §2/§5.** *Covers*
+`E5_carbon_three_ledger`, `EP1_clv_three_horizon`, `EP3_pricing_engine_late_truth`,
+`EP4_collections_journey`, `EP17_varied_population_draw`,
+`PB4_engagement_separated_from_elasticity`, `PB5_pounds_or_percent_resolved`,
+`A46_book_depth_is_a_curriculum_question`, `C29_decisions_stop_being_lookup_tables`,
+`C30_advice_reaches_a_household`, `C31_time_is_the_currency_that_does_not_exist`.
+Derived, not picked: 45 gives the eleven R1–R5 atoms 75% of a dial-weighted draw against the other
+71 drawable atoms' total weight of 163. One draw in four still goes elsewhere, which is what keeps
+a broken machine fixable without it becoming the week. A change of WEIGHTS, not of machinery (§5).
+
+**Superseded by the three-stage sequencing, 2026-09-05.** *Covers* `EP4_collections_journey`,
+`EP17_varied_population_draw` (and qualifies the derivation above wherever it is read). The
+director's three-stage sequencing supersedes the ranking where they conflict. The derivation above
+was for 45 and is not redone for it, because the sequence is not a weighting argument: it is first,
+second, only then. Measured after the change — stage 1 takes 26.2% of the dial-weighted draw (300
+of 1144 over 93 drawable atoms), stage 2 13.1%. That is a PREFERENCE, not a sequence, and no dial
+value can make it one while 85 other atoms remain drawable. What the dial can do it now does; the
+order itself is held by the seat and by the direction record, and that gap is reported to the
+director.
+
+**The EP adapter block lift — same canon, §4.** *Covers* `EP7_adapter_elexon_insights`,
+`EP8_adapter_dcc_duis`, `EP9_adapter_n3rgy_consented_metering`, `EP10_adapter_uk_link_xoserve`,
+`EP11_adapter_gocardless_bacs`, `EP12_adapter_css_rec_switching`,
+`EP14_adapter_published_cost_stack`. Lifted on the reading accepted for EP6 on 24 August: epoch
+position alone never reserves an atom, because typing an interface changes how the two sides speak,
+not what the company faces or how hard its world is. These now rank BELOW R1–R5 (§2), by weight not
+by block.
+
+**Phase-2/3 rows inherit the phase-1 parent's dial, undecayed.** *Covers*
+`W1_23_weather_phase2_the_other_loads_the_cells_do_not_carry`,
+`W1_24_weather_phase3_the_drivers_that_wait_on_a_population`,
+`W2_23_housing_phase2_what_the_company_can_see_of_a_house`,
+`W2_24_housing_phase3_houses_change_on_their_own_timeline`,
+`W2_25_people_phase2_shape_and_attitudes`, `W2_26_people_phase3_the_residual_and_the_change`.
+Order is held by `blocked_on`, not by the dial, and dropping under the 45 product floor would strip
+the exemption — so the dial is inherited rather than decayed by phase number.
+
+**Minted ahead of its predecessor: the W2_18 pair.** *Covers*
+`W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system`,
+`W2_21_the_premise_joint_is_fitted_not_drawn_independently`. Stage 1, minted before the work that
+precedes it finished, because the director's fifth instance of "the follow-on was not in the queue"
+was traced to a NEXT trailer naming W2_18 — the whole ruling deliverable — which is true and
+undrawable. A bounded tick cannot pick up "the housing joint"; it can pick up these.
+
+**Minted ahead of its predecessor: the W1_14 quartet.** *Covers*
+`W1_19_the_three_drivers_per_land_cell_from_the_normals`,
+`W1_20_household_weights_per_cell_from_the_census`,
+`W1_21_the_cells_and_the_level_coverage_curve`,
+`W1_22_cold_spell_persistence_and_cross_cell_synchrony`. Stage 1, minted 2026-09-07 because W1_14
+is ruling-sized and a bounded tick reading "derive the weather cells" has no first move — the third
+time that shape has left an expensive prerequisite finished and its work undrawn. The HadUK pull
+completed 2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+
 ---
 
 ## 9. Operating rules

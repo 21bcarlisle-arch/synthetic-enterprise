@@ -385,3 +385,65 @@ def test_one_lane_is_scanned_ONCE_however_many_atoms_it_holds():
         [{"atom": "H99_thing", "from": 1, "to": 2}, {"atom": "H99_thing", "from": 2, "to": 3},
          {"atom": "D9_bill", "from": 1, "to": 2}], gate.atom_lane_names(_LANE_MAP), counting)
     assert calls == ["H_harness", "D_billing_metering"]
+# ── the size warning on the surface this gate already owns ───────────────────────────────────
+#
+# SEAT_FINDING_THE_MAP_IS_185_BYTES_FROM_ITS_RATCHET_CEILING_2026-09-17. The gate is where the
+# warning goes because it already holds the staged bytes of BOTH halves and already runs on
+# exactly the commits that move a row. The two defects these guard are the ones that would make
+# it worse than nothing: a warning that never reaches the author (the finding), and a warning
+# that refuses (a second ratchet under a softer name, on a number this gate has no authority
+# over -- and the level move it exists to record would then be blocked by the map's SIZE).
+def _gate_main_over(monkeypatch, map_text: str) -> tuple[int, str]:
+    """Drive main() with a staged map of our choosing and no level change at all, so the only
+    thing it can possibly print is the size line.
+
+    `low_water_failures` is stubbed to CLEAN deliberately, and not to make anything pass: it reads
+    the retired register out of git and fail-closes when it cannot, so in any tree without a `.git`
+    (a `git archive` extract, which is how a landing gates itself) HEAD's own gate returns 1 for a
+    reason that has nothing to do with the size warning. Measured: HEAD's unmodified gate refuses in
+    such a tree with "the staged copy could not be read". A test whose subject is the warning must
+    not be answerable by a different control's git dependency."""
+    monkeypatch.setattr(gate, "_staged_names", lambda: {gate.MAP_REL})
+    monkeypatch.setattr(gate, "_whole_map", lambda rev_prefix: map_text)
+    monkeypatch.setattr(gate, "read_ledger", lambda: [])
+    monkeypatch.setattr(gate, "low_water_failures", lambda **kw: [])
+    err: list[str] = []
+    monkeypatch.setattr(gate.sys.stderr, "write", err.append)
+    return gate.main(), "".join(err)
+
+
+def _map_of_bytes(n: int) -> str:
+    """A parseable one-atom map padded with comment bytes to exactly `n` bytes."""
+    body = _map(2)
+    return body + "#" + "x" * (n - len(body.encode("utf-8")) - 2) + "\n"
+
+
+def test_the_gate_PRINTS_the_headroom_on_a_commit_it_ALLOWS(monkeypatch):
+    """The finding in one line: the author of the row that still fits must hear the number while
+    there is room to act on it."""
+    from tools import maturity_map_store as map_store
+
+    inside = map_store.MAP_SIZE_CEILING - (map_store.MAP_SIZE_WARN_HEADROOM // 2)
+    rc, err = _gate_main_over(monkeypatch, _map_of_bytes(inside))
+    assert rc == 0, "the size warning changed the exit code -- it is advisory, never a refusal"
+    assert "[map-size]" in err and "headroom" in err
+
+
+def test_the_gate_is_SILENT_about_size_when_the_map_has_room(monkeypatch):
+    """Not an equivalence: the same call path with a small map must say nothing, or the test above
+    is passing on a line the gate prints unconditionally."""
+    rc, err = _gate_main_over(monkeypatch, _map(2))
+    assert rc == 0
+    assert "[map-size]" not in err, f"warned with the whole ceiling free: {err}"
+
+
+def test_a_map_OVER_the_ceiling_is_still_ALLOWED_by_THIS_gate(monkeypatch):
+    """The boundary of this gate's authority, asserted so nobody later 'strengthens' the warning
+    into a refusal. The ratchet in tests/design/ refuses an oversized map; if this gate refused
+    too, a lane whose only crime was recording a level would meet two reds for one cause, and the
+    one that named the remedy is not this one."""
+    from tools import maturity_map_store as map_store
+
+    rc, err = _gate_main_over(monkeypatch, _map_of_bytes(map_store.MAP_SIZE_CEILING + 500))
+    assert rc == 0, "the gate refused a commit for the map's SIZE -- not its subject"
+    assert "OVER" in err and "EVERY LANE" in err

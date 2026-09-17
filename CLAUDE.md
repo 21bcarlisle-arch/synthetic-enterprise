@@ -267,6 +267,14 @@ serially, and each refusal costs a full cycle:
 `tools/write_time_gate.py --explain <new module>`, `ruff check --select I001`,
 `pytest tests/design/ tests/architecture/test_static_quality_ratchet.py`.
 
+**Writing a map row — a level, a park, a `blocked_on` — costs bytes against a ratchet, so ask its
+headroom before you write, not after:** `python3 -m tools.maturity_map_store` prints bytes, ceiling
+and headroom, and the level gate prints the same line on every commit that stages the map while the
+write still succeeds. Over the line, `tests/design/` reds EVERY lane and names a file you never
+touched. The remedy is always downward — drain a comment to its load-bearing sentence, or rehome a
+growing field to `docs/design/simplifications/<atom_id>.yaml`. **Never raise the ceiling**; the
+shared reasoning behind a family of rows goes in `MATURITY_MAP.md` §8a, once, not on each row.
+
 **Commit by pathspec, never `-A`.** Other lanes have work staged in this tree; the pathspec, not the
 tree lock, is what stops you sweeping it — but only for other FILES. A pathspec stages the
 **working-tree copy**, so a file another lane has edited *in place* carries their work inside yours.

@@ -146,6 +146,95 @@ def test_the_real_store_reads_whole_and_both_halves_are_populated():
     assert len(ids) == len(set(ids)), "an atom is in BOTH halves -- the split duplicated it"
 
 
+# ── the size surface: a limit that speaks BEFORE it refuses ─────────────────────────────────
+#
+# SEAT_FINDING_THE_MAP_IS_185_BYTES_FROM_ITS_RATCHET_CEILING_2026-09-17. The defect these guard
+# is not "the warning is wrong", it is the two ways a warning is worthless: SILENT when it
+# should speak (the wedge arrives unannounced, which is the finding) and LOUD always (read as
+# decoration and then not read at all). So every test below asserts a boundary in BOTH
+# directions, and the population is synthetic text because the live map's headroom is a moving
+# number that would pin these to today's answer.
+
+
+def _text_of_bytes(n: int) -> str:
+    """Map text of exactly `n` bytes -- ASCII, so bytes and characters agree."""
+    return "#" + "x" * (n - 2) + "\n"
+
+
+def test_map_bytes_measures_BOTH_halves_and_not_just_the_drawn_one(refile_map: Path):
+    """The fail-open the split could have caused: a ceiling met by MOVING atoms to the sibling
+    rather than by content leaving the spine. The whole must exceed either half."""
+    live_only = len(refile_map.read_text(encoding="utf-8").encode("utf-8"))
+    closed_only = len(
+        (refile_map.parent / "maturity_map_closed.yaml").read_text(encoding="utf-8").encode("utf-8")
+    )
+    whole = map_store.map_bytes(live_path=refile_map)
+    assert whole > live_only and whole > closed_only
+    assert whole == live_only + closed_only, "a half went missing from the measurement"
+
+
+def test_the_warning_is_SILENT_with_room_and_SPEAKS_inside_the_band():
+    """The boundary, from both sides. A warning that only ever fires is not a signal, and one
+    that never fires is the finding itself."""
+    ceiling = map_store.MAP_SIZE_CEILING
+    band = map_store.MAP_SIZE_WARN_HEADROOM
+    roomy = map_store.size_warning(_text_of_bytes(ceiling - band - 1))
+    assert roomy is None, f"spoke with more than the band's headroom: {roomy}"
+    at_the_edge = map_store.size_warning(_text_of_bytes(ceiling - band + 1))
+    assert at_the_edge and "headroom" in at_the_edge
+    assert "fits" in at_the_edge, "it must say the write SUCCEEDED, or it reads as a refusal"
+
+
+def test_the_warning_NAMES_THE_NUMBER_and_points_DOWNWARD_never_at_the_ceiling():
+    """The finding's own diagnosis: the pressure at a wedge points at raising the line, which is
+    the one move the control exists to refuse. A warning read under that pressure must not offer
+    it, and must carry the size so the reader can budget an edit instead of discovering the limit
+    by hitting it."""
+    left = 250
+    msg = map_store.size_warning(_text_of_bytes(map_store.MAP_SIZE_CEILING - left))
+    assert msg and str(left) in msg, f"the warning does not state the headroom: {msg}"
+    assert "raise" in msg and "never raise the ceiling" in msg.lower()
+    assert "drain" in msg.lower() and "rehome" in msg.lower(), "no remedy named"
+
+
+def test_the_warning_reports_a_BREACH_as_a_breach_and_says_it_reds_every_lane():
+    """Over the line the message must change, because the reader's situation has: the commit is
+    refused, and by a test file naming a subject they never touched. A single message that said
+    'headroom -400' would read as the same advisory it read as yesterday."""
+    over = map_store.size_warning(_text_of_bytes(map_store.MAP_SIZE_CEILING + 400))
+    assert over and "OVER" in over and "400 bytes" in over
+    assert "EVERY LANE" in over
+    assert map_store.size_headroom(_text_of_bytes(map_store.MAP_SIZE_CEILING + 400)) == -400
+
+
+def test_the_ratchet_and_the_warning_read_ONE_number():
+    """The reason the constant moved here (2026-09-17): the refusal and the warning are two
+    readings of one limit. If the test file ever restates it, this fires -- which is the VAT
+    shape this project has paid for, one rule with several implementations."""
+    import ast
+
+    from tests.design import test_simplifications_store as ratchet
+
+    assert ratchet.MAP_SIZE_CEILING is map_store.MAP_SIZE_CEILING
+
+    # READ AS CODE, not as text (tools/python_code_text.py's subject, and this control was refused
+    # once for getting it wrong). A substring check for "400 * 1024" would fire on a comment that
+    # merely quotes the number -- this file's own provenance does -- and would miss the same literal
+    # spelled `409600`. What must hold is a property of the binding: the ratchet takes the ceiling
+    # from somewhere else, so its value node is an ATTRIBUTE and never a literal expression.
+    src = Path(__file__).resolve().parents[1] / "design" / "test_simplifications_store.py"
+    bindings = [
+        node for node in ast.walk(ast.parse(src.read_text(encoding="utf-8")))
+        if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "MAP_SIZE_CEILING" for t in node.targets)
+    ]
+    assert len(bindings) == 1, f"{len(bindings)} bindings of MAP_SIZE_CEILING in the ratchet"
+    assert isinstance(bindings[0].value, ast.Attribute), (
+        "the ratchet computes its own ceiling again instead of reading the store's -- the warning "
+        "surface will drift from the refusal the moment either number moves"
+    )
+
+
 # ── the invariant's RELEASE: refile ─────────────────────────────────────────────────────────
 #
 # The invariant below asserts against the LIVE tree and reds a tree-wide test file, so it

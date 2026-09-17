@@ -23,6 +23,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tools import drain_map_duplicated_provenance as drain
 from tools import simplifications_store as store
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
@@ -67,7 +68,11 @@ STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 # verbatim), taking the map 430,962 -> 300,565. THIS NUMBER IS STILL 400K, unraised, for the
 # third time — every wedge in this control's history has been paid by moving content out,
 # never by moving the line.
-MAP_SIZE_CEILING = 400 * 1024
+# THE NUMBER ITSELF NOW LIVES IN `tools/maturity_map_store.py` (2026-09-17), imported and never
+# restated: the level gate warns on the same limit this assertion refuses on, and two copies of
+# one limit is how a rule gets fixed in one implementation and stays broken in the other. The
+# history above is the reasoning and stays here, beside the assertion it justifies.
+MAP_SIZE_CEILING = map_store.MAP_SIZE_CEILING
 PER_FILE_CEILING = 100 * 1024
 
 # ── The scale-invariant half of the control (H41) ────────────────────────────────
@@ -355,12 +360,10 @@ def test_map_has_no_simplifications_field_when_store_populated():
 
 
 def _map_bytes() -> int:
-    """The WHOLE map on disk -- both halves (2026-08-26). Measuring only the drawn half would
-    have turned this ratchet fail-open the moment the map was split: 3,947 of its 5,420 lines
-    moved to the sibling file, so the ceiling would have been met by the SPLIT rather than by
-    the register living in the store, and unbounded accretion into a closed atom would have
-    become invisible to the one control that exists to see it."""
-    return len(map_store.map_text(MAP_PATH).encode("utf-8"))
+    """The WHOLE map on disk -- both halves (2026-08-26), measured by the store so that the
+    warning surface and this refusal cannot measure different things. Why both halves, and why
+    measuring one would have made this ratchet fail-open, is in `map_store.map_bytes`."""
+    return map_store.map_bytes(live_path=MAP_PATH)
 
 
 def test_map_within_size_ratchet_when_store_populated():
@@ -960,3 +963,41 @@ def test_the_prose_budget_is_not_vacuous_on_the_live_map():
         f"longest live field is {longest} chars -- the budget is {store.INLINE_PROSE_BUDGET}, "
         "so far above what the map actually carries that it could never fire"
     )
+
+
+# ── the map's shared reasoning lives in ONE place (2026-09-17) ───────────────────────────────
+#
+# WHY THIS IS A CONTROL AND NOT A ONE-OFF CLEAN-UP. Six paragraphs of dial provenance had been
+# pasted across thirty rows -- 9,207 bytes, most of the headroom under the ratchet above -- and one
+# of them had drifted into being FALSE where it sat, arguing a derivation for dial 45 on rows
+# carrying 50 and 60. The bytes are the cheap half of the damage. Copy-paste provenance also can
+# never be corrected once: the next reader fixes the copy in front of them.
+#
+# Keyed to the PROPERTY, not to those six: any comment run repeated anywhere in either half fires
+# this. A control that listed the six would go green on a seventh.
+def test_no_comment_run_is_duplicated_anywhere_in_the_map():
+    dups = drain.duplicated_comment_blocks(map_store.map_text(MAP_PATH))
+    assert not dups, (
+        "comment run(s) appear more than once in the map:\n  "
+        + "\n  ".join(
+            f"{len(b.encode())}B x{len(lines)} at lines {lines}: {b.splitlines()[0].strip()[:70]}"
+            for b, lines in sorted(dups.items(), key=lambda kv: -len(kv[0]))
+        )
+        + "\n\nShared reasoning belongs in MATURITY_MAP.md section 8a, once, naming the rows it "
+        "covers -- the row keeps its one-line pointer. `python3 -m tools."
+        "drain_map_duplicated_provenance --check` is the same question from the command line."
+    )
+
+
+def test_MUTATION_the_duplicate_finder_FIRES_on_a_duplicated_run():
+    """R15 both ways, on synthetic text: the control above is worth nothing if its finder cannot
+    see a duplicate, and worth nothing if it sees one in a map that has none."""
+    block = "  # a shared paragraph\n  #   second line of it\n"
+    doubled = f"- id: A\n{block}  level_current: 0\n- id: B\n{block}  level_current: 1\n"
+    found = drain.duplicated_comment_blocks(doubled)
+    assert found and list(found) == [block], found
+    assert list(found.values()) == [[2, 6]], found  # the two starts, 1-indexed
+    assert not drain.duplicated_comment_blocks(f"- id: A\n{block}  level_current: 0\n")
+    # A run that differs by ONE character is not a duplicate -- the finder must not cluster.
+    near = doubled.replace("second line of it\n", "second line of it too\n", 1)
+    assert not drain.duplicated_comment_blocks(near)

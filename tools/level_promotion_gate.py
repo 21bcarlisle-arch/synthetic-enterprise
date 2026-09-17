@@ -132,7 +132,7 @@ MAP_REL = "docs/design/maturity_map.yaml"
 RETIRED_REL = "docs/design/maturity_map_retired.yaml"
 # Both halves of the map -- see _whole_map below. Imported rather than restated so the two
 # files can never drift apart from the store that defines them.
-from tools.maturity_map_store import MAP_PARTS_REL  # noqa: E402
+from tools.maturity_map_store import MAP_PARTS_REL, size_warning  # noqa: E402
 
 
 # ── pure map parsing (mutation-testable) ────────────────────────────────────────────────────
@@ -619,6 +619,22 @@ def main() -> int:
             f"COMMIT REFUSED (fail-closed; an unverifiable map change may hide a level increase).\n"
         )
         return 1
+    # ── THE SIZE WARNING, and it is the one thing this gate says on a commit it ALLOWS ─────────
+    # Printed here rather than by the ratchet because the ratchet's subject is a map already over
+    # the line: it prints the size only once it has refused, at commit time, after the nine cheap
+    # gates, naming tests/design/ and a file the author never touched. This gate already holds the
+    # staged bytes of both halves and already runs on exactly the commits that move rows, so it is
+    # where a lane can be told how much room is left while its own write still succeeds.
+    #
+    # IT NEVER CHANGES THE EXIT CODE. A warning that can refuse is a second ratchet with a softer
+    # name, and the number it is warning about is one this gate has no authority over. The count is
+    # one byte conservative against `map_text`'s (the join above always inserts a separator, where
+    # the concatenation on disk only adds one when the live half lacks a trailing newline) --
+    # conservative in the safe direction, and stated so nobody later "fixes" it into optimism.
+    warning = size_warning(new_text)
+    if warning:
+        sys.stderr.write(f"\n{warning}\n")
+
     old_text = _whole_map("HEAD:")  # None => new file, allowed
 
     # ── FOURTH CONTROL, and it runs FIRST because it is the only one whose subject is the REGISTER
