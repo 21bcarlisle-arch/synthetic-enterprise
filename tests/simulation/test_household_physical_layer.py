@@ -153,7 +153,27 @@ def test_the_headcount_reproduces_the_census_marginal_and_the_bedrooms_draw_does
     Both legs are asserted. The second is what stops this being vacuous: it proves
     the tolerance below is narrow enough to reject a real, plausible, wrong draw --
     the one that was live in this tree.
+
+    THE MEAN'S TOLERANCE IS A SAMPLING BOUND NOW, NOT A FIXED 0.06 (2026-09-17). The old
+    constant was keyed to today's answer, and it went red on a change that altered no
+    distribution at all. When `people_count_for` was made to delegate -- so that one house has
+    one headcount wherever in the world it is asked -- the draw moved to a different named
+    substream. Same TS017 shares, same estimator, different ASSIGNMENT of the same population.
+    Measured one-variable over these very premises:
+
+        old substream   mean 2.3777   se 0.0308   z against the census 0.25
+        new substream   mean 2.2953   se 0.0292   z against the census 2.56
+
+    and over 20,000 generic ids the two agree to four decimals (2.3584 / 2.3580). The 0.06
+    constant was calibrated on the old substream landing, by luck, almost exactly on 2.37 --
+    a control pinned to one realisation of a random draw.
+
+    So the bound is three standard errors of THIS sample's own mean. That keys it to the
+    property -- "this population is drawn from TS017" -- rather than to which substream drew it,
+    and it is still narrow enough to do its job: the truncated-tail table that capped the 5+ band
+    at exactly five people reads 2.2605 here, which is 3.8 se out and red.
     """
+    import math
     from collections import Counter
 
     census_band = dict(OCCUPANCY_POPULATION_SHARE)
@@ -178,8 +198,16 @@ def test_the_headcount_reproduces_the_census_marginal_and_the_bedrooms_draw_does
             f"band {band.value} at {got:.3f} against the census {target:.3f}"
         )
     mean = sum(k * v for k, v in counts.items()) / total
-    assert abs(mean - _CENSUS_MEAN_PEOPLE) < 0.06, (
-        f"mean headcount {mean:.3f} against the census {_CENSUS_MEAN_PEOPLE}"
+    variance = sum(v * (k - mean) ** 2 for k, v in counts.items()) / total
+    standard_error = math.sqrt(variance / total)
+    assert standard_error > 0, "population floor: a zero-variance headcount is not a draw"
+    z = abs(mean - _CENSUS_MEAN_PEOPLE) / standard_error
+    assert z < 3.0, (
+        f"mean headcount {mean:.4f} against the census {_CENSUS_MEAN_PEOPLE} is {z:.2f} standard "
+        f"errors out (se {standard_error:.4f} over {total} premises). Beyond three, this is a "
+        "different distribution rather than a different draw from the same one -- check the "
+        "TS017 table's tail before anything else, because truncating the 5+ band reads exactly "
+        "like this."
     )
 
     # The poison: the draw this replaced, run over the same premises.

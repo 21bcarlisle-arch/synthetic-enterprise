@@ -185,10 +185,44 @@ def test_the_supplier_has_no_authored_knowledge_of_ev_or_solar():
 def test_the_household_size_anchor_agrees_across_its_copies():
     """Both `simulation.demand_model` and this module hold the ONS TS017 shares as
     their own literal, each for a stated reason. They must still be the same
-    published statistic."""
+    published statistic.
+
+    AGREEMENT IS AT THE GRANULARITY THEY SHARE, not dict equality (2026-09-17). The two copies
+    stopped being the same shape when the world's DRAW gained the published 5+ tail
+    (5/6/7/8+ at 4.5/1.5/0.5/0.4% renormalised into the 7.0% band), because a draw has to place a
+    six-person household somewhere and a collapsed band makes one impossible. `demand_model`'s
+    copy is a different object with a different job: the fixed reference population the volume
+    normaliser divides by, held at 1/2/3/4/5+ deliberately -- *"held here rather than imported so
+    the volume normaliser cannot be silently re-levelled by an unrelated edit to the segment
+    bands"*. Extending it to match would do exactly what that comment forbids.
+
+    So what must hold is that both are still TS017: the 1-4 shares identical, and the world's
+    tail summing to the published 5+ band the normaliser uses. Dict equality would have forced a
+    choice between a draw that cannot make a six-person home and a normaliser re-levelled as a
+    side effect.
+
+    This control earned its keep on the way through: it caught the tail being written in RAW,
+    summing to 6.9% against the published 7.0%, which left the whole table at 0.999.
+    """
     from simulation.demand_model import HOUSEHOLD_SIZE_POPULATION_SHARE
 
-    assert dict(world.HOUSEHOLD_SIZE_SHARE_ONS_TS017) == HOUSEHOLD_SIZE_POPULATION_SHARE
+    world_shares = dict(world.HOUSEHOLD_SIZE_SHARE_ONS_TS017)
+    for size in (1, 2, 3, 4):
+        assert world_shares[size] == HOUSEHOLD_SIZE_POPULATION_SHARE[size], (
+            f"{size}-person share differs between the world's draw and the normaliser's "
+            "reference population; these are the same published statistic"
+        )
+    world_five_plus = sum(share for size, share in world_shares.items() if size >= 5)
+    assert abs(world_five_plus - HOUSEHOLD_SIZE_POPULATION_SHARE[5]) < 1e-9, (
+        f"the world's 5+ tail sums to {world_five_plus:.6f} against the published band "
+        f"{HOUSEHOLD_SIZE_POPULATION_SHARE[5]}. The tail is a SPLIT of that band, never an "
+        "addition to it -- if these drift apart the world draws a different population from the "
+        "one the volume normaliser is mean-1 over."
+    )
+    assert abs(sum(world_shares.values()) - 1.0) < 1e-9
+    assert max(world_shares) >= 6, (
+        "the world's draw can no longer place a household larger than five people"
+    )
 
 
 def test_the_world_builder_raises_where_it_used_to_guess():
