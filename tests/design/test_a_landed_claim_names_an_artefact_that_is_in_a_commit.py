@@ -38,7 +38,20 @@ RECORDS = PROJECT / "docs" / "staging"
 #: The past-tense claim this control is about. Kept to the heading the records actually use rather
 #: than a general "landed" search: a sentence mentioning the word in passing is not an assertion,
 #: and a control that cannot tell those apart reports the OR of the two.
-_HEADING = re.compile(r"^(#+)\s*What landed\b.*$", re.IGNORECASE | re.MULTILINE)
+#:
+#: THE SECTION NUMBER IS OPTIONAL, 2026-09-17, AND ITS ABSENCE WAS A BLIND SPOT OF EXACTLY THIS
+#: CONTROL'S OWN DEFECT. `\s*` allows only whitespace between the hashes and the phrase, so the
+#: numbered form this project's records actually favour -- `## 8. WHAT LANDED` -- did not match and
+#: the whole document went ungraded. 22 of the 128 records in `docs/staging/` head the section that
+#: way, and re-asking all 128 under the widened pattern fired on exactly ONE: a 2026-09-16 worker
+#: result headed `## 8. WHAT LANDED` that named five files -- `tools/build_weather_world.py`,
+#: `tools/validate_weather_world.py`, `sim/weather_world.py` and two test files -- and asserted
+#: "The code is landed" while `git log --all` returned nothing for any of them. The other 21 told
+#: the truth, so this widening bought one real defect and no noise.
+#:
+#: THE DIRECTION OF THE CHANGE IS WHY IT IS SAFE. It enlarges the population the control grades;
+#: it does not add an exception to it. A narrowing here could only ever hide a claim.
+_HEADING = re.compile(r"^(#+)\s*(?:\d+[.)]\s*)?What landed\b.*$", re.IGNORECASE | re.MULTILINE)
 
 #: A repo path in backticks. Requires a directory separator, so bare module names and prose in
 #: `code font` do not become artefact claims.
@@ -135,3 +148,32 @@ def test_MUTATION_a_mention_outside_the_landed_section_is_not_a_claim():
     absent = "docs/staging/a_file_that_was_never_written_2026-09-01.md"
     assert unlanded_claims(f"## What is owed\n\n`{absent}` -- still to write.\n") == []
     assert unlanded_claims(f"## What landed\n\n`x`\n\n## What is owed\n\n`{absent}`\n") == []
+
+
+def test_MUTATION_a_NUMBERED_landed_heading_is_graded_like_an_unnumbered_one():
+    """R15: the blind spot that let a false claim through for a day, kept as the control on it.
+
+    ASKED OF A SYNTHETIC RECORD AND NOT OF THE LIVE ONE, on purpose. The document that exposed this
+    -- a 2026-09-16 worker result headed `## 8. WHAT LANDED` naming five uncommitted files -- is
+    discharged by the commit that lands those files, so a control keyed to it would go green
+    because the tree got MORE honest and could never fire again. The property is the heading
+    grammar, which is permanent; today's offender is not.
+
+    Both directions, because a checker that grades every heading shape by grading none of them
+    passes the first assertion alone.
+    """
+    absent = "docs/staging/a_file_that_was_never_written_2026-09-01.md"
+    assert not is_in_some_commit(absent), "fixture invalid: the decoy path is in a commit"
+
+    for heading in ("## 8. WHAT LANDED", "## 3. What landed", "## 1) What landed anyway",
+                    "## What landed"):
+        claimed = f"{heading}\n\n**`{absent}`** -- the control.\n\n## Next\n"
+        assert unlanded_claims(claimed) == [absent], (
+            f"{heading!r} was not graded: a numbered section heading is the form this project's "
+            "records actually favour, and a control blind to it reads a false landing claim as "
+            "no claim at all."
+        )
+
+    present = "background/publish_cause.py"
+    assert is_in_some_commit(present), "fixture invalid: the control path is in no commit"
+    assert unlanded_claims(f"## 8. WHAT LANDED\n\n**`{present}`** -- the cause.\n\n## Next\n") == []
