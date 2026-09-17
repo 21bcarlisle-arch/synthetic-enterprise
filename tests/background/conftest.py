@@ -36,6 +36,7 @@ from background import (
     origin_reconcile,
     process_run_complete,
     publish_freshness,
+    seat_continuation,
     sim_runner,
     supervisor,
 )
@@ -65,6 +66,34 @@ _LEAKING_STATE_CONSTANTS = (
     # suppresses the liveness publish for a full throttle interval, which is Fault #1 through a
     # new door. The guard must keep refusing this path; the destination is what moves.
     ("background.process_run_complete", "LANDING_IN_FLIGHT_FILE"),
+    # 2026-09-17 -- the delivery lane's two claim stores. A `some-id` row (the monkeypatch literal
+    # from `test_dispatch_is_the_claim.py`'s import-failure test) reached the LIVE draw ledger
+    # stamped `source: focus`, and because `_self_issued_chain` stops at the first row without an
+    # authorship flag it reset the live chain from 5 to 0 and postponed the seat's own focus list
+    # by three draws. Two repairs landed before this one and both were at the instance: the `_boom`
+    # fromlist fix, which stopped THAT test taking the real path, and the shared-room widening of
+    # `is_live_record_path`, which stopped the WRITE from a linked worktree. This is the isolation
+    # the other two leave missing -- with the guard now refusing from every tree, an incidental
+    # write here REDS on the guard instead of reaching the record, and the re-root is what keeps a
+    # test failing on its own subject rather than on a path it never meant to touch.
+    #
+    # NOBODY'S SUBJECT, and MEASURED rather than asserted -- which is the membership test for this
+    # tuple. Two controls in this directory read these constants without setting them first (found
+    # by AST over every `Load` of the two names, not by grep):
+    #   * `test_delivery_lane::test_the_ledger_is_DERIVED_from_the_claims_store_so_a_test_never_
+    #     writes_the_live_one` -- its named mutation (`_ledger_path` returns `DRAW_LEDGER_FILE`
+    #     directly) was APPLIED in a clean HEAD extract with these two rows in force, and the test
+    #     RED on `_ledger_path(store).parent`. It grades what it always did: both sides of its
+    #     equality move together under a re-root that preserves the repo-relative path.
+    #   * `test_a_claim_is_visible_from_every_worktree::test_the_resolution_is_wired_into_both_
+    #     module_constants` -- `claims_file()` returns the module global, so the constant and the
+    #     resolver's answer re-root together. Its own mutation (bind `CLAIMS_FILE` to `PROJECT_DIR`
+    #     instead of `shared_tree_dir()`) was run both WITH and WITHOUT these rows: 11 passed each
+    #     time, identical. The addition costs it nothing, because it was already the equivalence
+    #     its own docstring declares it to be in a main checkout, and the crossing tests that DO
+    #     carry the property pass an explicit `project_dir` no re-root can reach.
+    ("background.delivery_lane", "CLAIMS_FILE"),
+    ("background.delivery_lane", "DRAW_LEDGER_FILE"),
 )
 
 
@@ -233,16 +262,35 @@ def _no_daemon_state_reaches_the_live_record(tmp_path, monkeypatch):
 
     live_dir = (REPO_ROOT / "docs" / "observability").resolve()
     root = REPO_ROOT.resolve()
+    # TWO ROOMS, because a constant can resolve OUTSIDE the tree this file lives in. `REPO_ROOT` is
+    # derived from `__file__`, so in a linked worktree it is the WORKTREE -- while
+    # `delivery_lane.CLAIMS_FILE` resolves through `seat_continuation.shared_tree_dir()` and points
+    # at the SHARED tree on purpose (the store's only reader is the tick, which runs there). Under
+    # one room `relative_to` raised, `_reroot` returned "already pointed somewhere harmless", and
+    # the constant was left aimed at the live record -- so the two rows added above would have been
+    # INERT in precisely the tree the `some-id` row was written from (`/var/tmp/se-seat-executor`,
+    # measured 2026-09-17; five linked worktrees exist on this machine). Same question and same
+    # answer as `live_ledger_guard._shared_record_dir` had to reach for the WRITE guard's subject.
+    # In a main checkout `shared_tree_dir()` returns `PROJECT_DIR`, so the second room IS the first
+    # and this loop is a no-op -- which is why a main-checkout run cannot tell the two apart.
+    _rooms = [root]
+    _shared = seat_continuation.shared_tree_dir(REPO_ROOT).resolve()
+    if _shared != root:
+        _rooms.append(_shared)
 
     def _reroot(module, attribute):
         current = getattr(module, attribute, None)
         if not isinstance(current, Path):
             return
-        try:
-            relative = current.resolve().relative_to(root)
-        except (ValueError, OSError):
-            return  # already pointed somewhere harmless
-        monkeypatch.setattr(module, attribute, tmp_path / relative, raising=False)
+        resolved = current.resolve()
+        for room in _rooms:
+            try:
+                relative = resolved.relative_to(room)
+            except (ValueError, OSError):
+                continue
+            monkeypatch.setattr(module, attribute, tmp_path / relative, raising=False)
+            return
+        return  # already pointed somewhere harmless
 
     for name, module in list(sys.modules.items()):
         if not name.startswith("background.") or module is None:
