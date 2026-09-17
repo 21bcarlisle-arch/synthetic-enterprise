@@ -716,10 +716,25 @@ def test_a_killed_run_is_not_certified_as_inside_the_cadence():
     below it, the run was stopped before it could say, and that is `unknown` — never a green.
 
     MUTATION: drop the `outcome == "timeout"` branch from `row_cadence_band` and the first
-    assertion fails with `within_cadence`."""
+    assertion fails with `within_cadence`.
+
+    THE ABOVE-CADENCE LEG IS DERIVED, NOT PINNED (2026-09-17). It read a literal 4503.7s, which
+    was above the cadence when it was written and stopped being above it the moment
+    `PUBLISH_CADENCE_SECONDS` was re-measured 1500 -> 5400. The leg then tested nothing it was
+    written to test -- it had quietly become a SECOND below-cadence case, and it went red only
+    because `over_cadence` and `unknown` differ. Both legs now say what they mean in terms of the
+    constant, so a future re-measurement moves them with it. The below-cadence leg keeps its
+    literal 304.05s because that is the REAL row that found the defect, and its precondition is
+    now asserted rather than assumed."""
+    cadence = sdw.PUBLISH_CADENCE_SECONDS
+    assert 304.05 < cadence, (
+        "the found-in-the-wild row is no longer BELOW the cadence, so it can no longer exercise "
+        "the censoring branch it was written for -- the cadence has fallen far enough that this "
+        "test needs a new instance, not a new number")
     killed_early = {"duration_seconds": 304.05, "ceiling_seconds": 300, "outcome": "timeout"}
     assert sdw.row_cadence_band(killed_early) == "unknown"
-    killed_late = {"duration_seconds": 4503.7, "ceiling_seconds": 4500, "outcome": "timeout"}
+    killed_late = {"duration_seconds": cadence + 3.7, "ceiling_seconds": cadence,
+                   "outcome": "timeout"}
     assert sdw.row_cadence_band(killed_late) == "over_cadence"
     # NULL CONTROL: the censoring rule must key on the OUTCOME, not on the duration being small.
     # A run that genuinely COMPLETED in 304s is a measurement and must read as one.
