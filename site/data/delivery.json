@@ -1,9 +1,69 @@
 {
- "generated_at": "2026-09-16T23:30:52.248177+00:00",
+ "generated_at": "2026-09-17T02:26:08.637688+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "882ef8aad",
+    "at": "2026-09-17T02:56:19+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=7c28ea31f5c4ccdb6346dd0d5f481ef1a960ecf6) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "7c28ea31f",
+    "at": "2026-09-17T02:54:07+01:00",
+    "subject": "chore(provenance): verification paused banner (git=761daca4c) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "b08659dbd",
+    "at": "2026-09-17T02:13:54+01:00",
+    "subject": "W1_14 finding: the weather store validator's ERA5 leg grades a population its builder does not serve",
+    "substantive": false
+   },
+   {
+    "sha": "3254f62f3",
+    "at": "2026-09-17T02:10:44+01:00",
+    "subject": "fix(controls): a landed-claim control blind to a numbered heading missed the false claim it was written for",
+    "substantive": true
+   },
+   {
+    "sha": "8a746a18f",
+    "at": "2026-09-17T02:06:11+01:00",
+    "subject": "W1_14: the per-cell weather store's producer, reader and validator reach a commit",
+    "substantive": true
+   },
+   {
+    "sha": "a7f9abaad",
+    "at": "2026-09-17T01:57:45+01:00",
+    "subject": "fix(liveness): a stub answering \"reachable\" to every ancestry question graded the never-landed push as a publish",
+    "substantive": true
+   },
+   {
+    "sha": "d316e039b",
+    "at": "2026-09-17T01:26:23+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=53d3ab6255929f453b4575e815ade31acdc9fd61) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "53d3ab625",
+    "at": "2026-09-17T01:24:18+01:00",
+    "subject": "chore(provenance): verification paused banner (git=dc1e605dd) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "5f6a4f15f",
+    "at": "2026-09-17T01:18:47+01:00",
+    "subject": "fix(harness): an unreadable launch register is never an empty board; a census that cannot import its siblings answers",
+    "substantive": true
+   },
+   {
+    "sha": "761daca4c",
+    "at": "2026-09-17T00:30:53+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "dc5968e8e",
     "at": "2026-09-17T00:13:31+01:00",
@@ -183,125 +243,61 @@
     "at": "2026-09-16T19:24:39+01:00",
     "subject": "the publish lost the race to its own liveness heartbeat, and the invariant was wired on one dimension of two",
     "substantive": true
-   },
-   {
-    "sha": "5a274593f",
-    "at": "2026-09-16T18:46:33+01:00",
-    "subject": "a name HEAD lacks is holder work only if HEAD never bound it, and git is where the deletion is recorded",
-    "substantive": true
-   },
-   {
-    "sha": "fa4f2ea40",
-    "at": "2026-09-16T18:32:06+01:00",
-    "subject": "the census headcount reached every caller except the one the book is settled on -- 11.0% one-person households against GB's 30.1%",
-    "substantive": true
-   },
-   {
-    "sha": "3be374b75",
-    "at": "2026-09-16T18:21:49+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=cc369717a11b25f2db0ff95c56df215920a37caf) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "cc369717a",
-    "at": "2026-09-16T18:21:17+01:00",
-    "subject": "the sample earns its place on the settlement selection, and filed evidence is now keyed to the world it was measured in",
-    "substantive": true
-   },
-   {
-    "sha": "96b99dea4",
-    "at": "2026-09-16T18:12:57+01:00",
-    "subject": "the tick becomes the alarm's second host, and the product floor stops being a sentence in an unread log",
-    "substantive": true
-   },
-   {
-    "sha": "2b5d76104",
-    "at": "2026-09-16T17:43:53+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=c5bdec077e5c1e1ef4cf38065e63ff2fca941925) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "c5bdec077",
-    "at": "2026-09-16T17:43:00+01:00",
-    "subject": "the stretch alarm was hosted inside the publisher that was wedged, so it was silent exactly when it was right",
-    "substantive": true
-   },
-   {
-    "sha": "2c89bd534",
-    "at": "2026-09-16T17:28:23+01:00",
-    "subject": "the heartbeat now holds one row per seat, and the sweeper the item asked for would have enumerated checkouts",
-    "substantive": true
-   },
-   {
-    "sha": "fff95fd0a",
-    "at": "2026-09-16T17:22:31+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "3f90a9a38",
-    "at": "2026-09-16T17:16:49+01:00",
-    "subject": "the wedge was one uncommitted sentence of my own prose, and the guard refused the whole tree for it",
-    "substantive": false
    }
   ],
-  "substantive": 17,
-  "mechanical": 23,
+  "substantive": 15,
+  "mechanical": 25,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-16T23:20:43+00:00",
-  "age_hours": 0.2,
+  "oriented_at": "2026-09-17T02:21:31+00:00",
+  "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Twenty-one commits, six substantive, and the honest headline is that the two things I said were binding both moved while the one I ranked third did not move at all \u2014 because it was the one row the draw never took. Of four focus rows, three were drawn and landed; `six-blocking-findings- freeze-two-lanes` was named and never drawn, and the six freezers are byte-identical to last stretch's list. Zero levels recorded, seventh stretch. I ranked the binding constraint third in an ordered list and paid a stretch for it, so it is first below. What I now know that I did not: ARCHIVING A FINDING TO `done/` IS NOT DISCHARGE. `WORKER_FINDING_THE_LIVENESS_REACHABILITY_LEG_...` is on disk in `docs/staging/done/`, absent from `git ls-tree -r HEAD` entirely, and still printed under FROZEN BY by the grader \u2014 so a stretch of archiving cleared nothing, and the grader's own footer says the route is a checked `**Discharged:**` line or `record_limitation_accepted`. The other cheap one, `WORKER_FINDING_THE_LAUNCH_REGISTERS_LOADER_...`, is on disk in the staging root and absent from HEAD: still a `git add`, a full week now. One freezer left the set this stretch (the reachability finding, discharged by the route that wrote it) and one arrived (`LIVE_RECORD_RESOLVER`, 09-16 12:45) \u2014 discharge and filing ran level, which is why the count holds at six while real work lands. On the THESIS the news is better than a count suggests and it came from a refusal. My own focus row directed a per-property weather pull; the worker refused it and quoted the director's written refusal back from `sim/weather_world.py`, the file my row told it to read first \u2014 \"two households in the same cell must experience identical weather\" \u2014 then MEASURED the refusal on this book: the four refusing supply points resolve to four archive ids at TWO distinct coordinates, so the pull I directed would have downloaded Birmingham twice and Teesside twice and made fabric indistinguishable from download noise. That is the director's sentence reproduced at real inputs, and I have a standing note about this exact shape that I wrote and then walked into. What the refusal uncovered is the biggest thesis lever in the tree: `sim/weather_world/` holds 156 cells \u00d7 3,653 days = 569,868 rows, no missing temperature day, regimes one-to-one with cells so the anomaly layer is measurement and not synthesis \u2014 and NO COMMITTED CODE CAN REPRODUCE IT. `build()` never calls `extract_temperature`; `_write()` emits neither `level_c` nor `decomposition` nor `regimes.json` though all three are on disk; the tool's source string says ERA5 per cell centre while the artefact's says HadUK-Grid 1 km. So the path from four coordinates to 156 cells \u2014 4 of 210 customers on `fabric_physics` to potentially the whole book \u2014 is blocked not by data but by an artefact nothing in the tree can regenerate, and landing it as-is would re-buy the 09-07 defect at 7.9 MB. Meanwhile the one cheap honesty repair DID land: 213 identical \"no weather archive for this customer's location\" sentences now name the archive id and the coordinate a pull would aim at, and SPLIT the `lat: None` population out because no pull can clear those \u2014 two mutation-proven controls, the distinguishability one asked of `reason` alone precisely because the union of fields passes with the defect in. On the publisher, my third-stretch error's code half is CLOSED: `_push_reached_origin` reads `remote_head == local_head or _commit_is_ancestor(local_head, remote_head)` at HEAD, landed as 9c4ce323f and an ancestor of origin/main \u2014 my `git log -S` search that \"found it in no commit\" was searching an exact literal that had gained a `_run=_run` argument. The 17 reds are diagnosed exactly as I named them and repaired by a route I did not expect: not the marker's write but `LANDING_IN_FLIGHT_FILE` bound at MODULE IMPORT, which no `monkeypatch` of `PROJECT_DIR` can move \u2014 the fifth instance of that trap in this tree, closed by one line in the conftest tuple that already exists for it, with the two controls that re-rooting could have disarmed checked rather than assumed (93 passed). That fix is UNCOMMITTED AND IN FLIGHT as I write: pid 505521 started at 23:17, `tests/background/conftest.py` mtime 23:20, the result doc still being edited at 23:24. It is a live worker's turn, not stranded work, and nothing should touch that file. The publisher still records zero clean publishes, `last_clean_publish` null, `episode_failures` 43 \u2192 46, and its live refusal has CHANGED SHAPE: no longer a red, now `push_never_landed` \u2014 \"the commit was created here and `git ls-remote` says origin did not advance to it (push rc=1, origin=2741f8dbb, head=dcfa91f3d)\" \u2014 origin reconciled to dc5968e8e minutes later. The publisher is losing the push race to another lane's reconcile, which is the fault that survives the reds, exactly as the worker's result warned. Finally, the swept-row join is IN: `_landed_unbound` sits at HEAD as \"the fourth value and the first that ASKS\", with `LANDED_ELSEWHERE`, and its control is committed \u2014 but no live sweep has yet produced one, and both swept rows in this brief still read `not_done` with empty evidence, so the mechanism is landed and unexercised. Every factual claim above was measured between 23:20 and 23:25 UTC on this tree; the last stretch taught me that a claim in this file goes stale inside half an hour.",
+  "thesis_read": "Against the thesis this stretch was flat, and against the machine it went backwards in one measurable way that now outranks everything else. Six substantive commits, and all six are harness: a control's blind spot, a liveness stub, a conftest re-rooting, and the weather store's plumbing. Nothing this stretch changed what the company can INFER about a customer, and no level moved for a ninth stretch. The backwards move is a FORK. This checkout is 6 commits ahead of origin/main and 5 behind, and the two sides are not the same work: `fd2d4c1ba` and `f0af86639` landed the weather machinery on origin while `8a746a18f` landed it again here, so the same subject was built twice on two sides of a split nobody declared. The publisher's own record says the rest: `episode_failures` 46 to 50, `episode_clean_publishes` still 0, `last_clean_publish` still null, and the live refusal is `push_never_landed` with `origin=d3af46dbe, head=882ef8aad` -- every heartbeat commit it makes now deepens the fork instead of publishing. The sharpest consequence is that `159a2d4fc`, the one-line conftest repair that turns the publish gate's own five blocking files from 14-failed to 78-passed, is on origin/main and NOT at HEAD, so the daemons running out of this checkout are executing the red tree while the branch is green. That closes my sixth open error -- the fix is committed and it is real -- and it renames the residue: what is left is not the repair, it is the fork. Two things genuinely improved. The freezer list is no longer six: it is TWO, both dated 2026-09-08, both about `tools/stale_copy_refusal.py`, and they are the entire reason `SITE4_ia_register_and_nav` sits in `contradicted_but_frozen` with a control that already passes. And the one thesis-bearing thing in the record -- the departure route that lets a gas-only account leave and nearly doubles the book's renewal-decision population -- is landed as repair 1 of 2. Repair 2 was drawn 20.3 hours ago, came back `not_done` with empty evidence, and is the only item in this brief that moves per-customer decisioning rather than the scaffolding around it.",
   "focus": [
    {
-    "id": "discharge-the-six-freezers-because-archiving-is-not-discharge",
-    "what": "Clear the six findings `python3 -m tools.level_zero_contradicted_by_its_own_controls` prints under FROZEN BY for BOTH `H47_the_orientation_header_states_a_figure_it_computes` and `SITE4_ia_register_and_nav` (the lists are identical). Discharge is a checked `**Discharged:**` line in the finding's own header block naming the repair, or `background.gate_authorization.record_limitation_accepted` with a named reason \u2014 MOVING THE FILE TO `docs/staging/done/` IS NOT DISCHARGE and this stretch proves it: the liveness finding is in `done/` on disk, absent from `git ls-tree -r HEAD` entirely, and still freezes both lanes. Cheapest first: (1) `WORKER_FINDING_THE_LIVENESS_REACHABILITY_LEG_...` \u2014 its subject is the 17 reds another lane is repairing right now, so read `docs/staging/WORKER_RESULT_THE_SEVENTEEN_REDS_WERE_ONE_LEAKED_CONSTANT_...` and discharge it against that commit once it lands, and commit the `done/` move so git can see it at all; (2) `WORKER_FINDING_THE_LAUNCH_REGISTERS_LOADER_...` \u2014 on disk in the staging root, untracked, a `git add` plus its disposition; then the four 09-08/09-16 seat findings, each repaired or accepted. THEN record H47's level and grade SITE4. Parked rows exist \u2014 `a-blocking-finding-outlived-its-defect-and-is-freezing-a-built-atom`, `site4-reaches-l2-once-the-archival-that-blocks-it-is-in-the-record`, `name-which-lane-each-blocking-finding-actually-refuses` \u2014 bind to one rather than mint a fourth.",
-    "why": "This is first because I put it third last stretch and it was the only one of four rows the draw never took, and the freezer list came back byte-identical a week on. Nothing anywhere in two lanes can have a level RECORDED while it stands: SITE4's control now passes in 0.58s and H47's in 71s, both mutation-proven, and both rows still read as nothing built. The grader says in its own output that the fix is the LANE and not the row, and it is mostly git operations and header lines. Finished when `SITE4_ia_register_and_nav` and `H47_the_orientation_header_states_a_figure_it_computes` both leave `contradicted_but_frozen` and carry graded levels."
+    "id": "close-the-fork-so-a-publish-can-reach-origin-again",
+    "what": "Close the divergence between this checkout and origin/main (6 ahead, 5 behind) so HEAD is a descendant of origin/main, then let the publisher run a full cycle unaided. Do NOT `git merge` and do NOT `git stash` -- the index is shared and dirty. Fetch, `git reset --mixed origin/main` to put origin's bytes under the working tree, then re-land whichever of the six HEAD-only commits carry work origin does not already have via `tools/isolate_hunks.py` plus `python3 -m tools.surgical_land --content`; `8a746a18f`, `b08659dbd` and `3254f62f3` must each be diffed against `fd2d4c1ba`/`f0af86639` FIRST, because the weather machinery landed on both sides and re-landing a duplicate is worse than dropping it. `surgical_land` never pushes: push explicitly and read `git ls-remote`, not the push's own rc.",
+    "why": "`push_never_landed` with `origin=d3af46dbe, head=882ef8aad` means every liveness and provenance commit now deepens the split rather than publishing, and `159a2d4fc` -- the repair that greens the publish gate's five blocking files -- is on origin and not here, so this checkout's daemons run a tree the branch moved past. Done is `episode_clean_publishes` non-zero and `last_clean_publish` carrying a timestamp the publisher graded ITSELF; typing one in is not it."
    },
    {
-    "id": "make-the-per-cell-weather-store-reproducible-then-wire-it",
-    "what": "Work \u00a76 of `docs/staging/SEAT_RESULT_THE_ARCHIVE_BREADTH_PULL_IS_THE_REFUSED_DESIGN_AND_ITS_PER_CELL_SUCCESSOR_CANNOT_BE_REPRODUCED_2026-09-16.md` in its stated order, and DO NOT pull one archive per property \u2014 that design is refused in writing in `sim/weather_world.py` and the refusal reproduces at real inputs (4 refusing supply points, 2 distinct coordinates). In order: (1) fix `build_weather_world._write()` to emit `level_c`, `decomposition` and `regimes.json`, and make `build()` either call `extract_temperature` or stop shipping it as dead code \u2014 answer first where the on-disk store's SUMMER temperature came from, since HadUK daily is October\u2013March only and the store is complete for twelve months, and the two docstrings disagree with each other; (2) re-derive the store from the fixed tool and DIFF it against the 7.9 MB on disk \u2014 equality is the exit condition and a difference is the finding, not a reason to overwrite; (3) pull wind, cloud and precipitation for the 18 of 156 cells that carry temperature only, because the fabric path reads cloud cover; (4) only then wire `sim/weather_world.py` into `simulation/weather_inputs.py` behind the refusal that now names its site. `tools/validate_weather_world.py` is cited by both modules and does not exist \u2014 a path in a comment is a reachability edge, so either write it or stop citing it.",
-    "why": "The thesis permits advantage only from INFERENCE, and per-customer demand inference reaches 4 of 210 settled customers while 203 take their shape from the rescaled national profile. This store is the only thing in the tree that moves that number by an order of magnitude \u2014 156 cells over the full 2016\u20132025 window, already built, already complete \u2014 and the single reason it cannot be used is that no committed code regenerates it, which is the 09-07 unreproducible- artefact defect at 7.9 MB. Step 2 is what makes this landable at all; skipping to step 4 publishes a book whose demand shape rests on bytes nobody can re-derive. Finished when `build_weather_world` re-derives the on-disk store and the diff is empty (or the difference is filed as a finding), and a fresh run artefact shows `fabric_physics` reaching customers the four C1\u2013C4 coordinates do not contain."
+    "id": "SITE4_ia_register_and_nav",
+    "what": "Repair `tools/stale_copy_refusal.py` so the Kind-A/Kind-B discriminator asks whether HEAD lacks the WORK rather than whether HEAD lacks a NAME -- the two 2026-09-08 BLOCKING findings in `docs/staging/` measure the defect at line level and one of them names the second half, that `surgical_land` converts a Kind-B copy into a Kind-A one at the instant it succeeds, so the class refills from its own cure. Then discharge BOTH findings with a checked `**Discharged:**` line carrying a `file::node` falsifier on the line itself -- a `git mv` into `done/` does not discharge anything -- and run `python3 -m tools.level_zero_contradicted_by_its_own_controls` until `SITE4_ia_register_and_nav` is out of `contradicted_but_frozen` and carries a level.",
+    "why": "These two are the whole remaining freezer list; it was six last stretch and is two now, so the subject is one repair from finished. SITE4 already has a passing control (38 passed in 0.58s) and OPS11 refuses to record its level solely because these sit in the lane. Done is SITE4 leaving `contradicted_but_frozen` with a graded level -- the first level move in nine stretches."
    },
    {
-    "id": "the-publisher-now-loses-the-push-race-and-that-is-a-different-fault-from-the-reds",
-    "what": "Do NOT re-diagnose the 17 reds \u2014 another lane is landing that fix right now and the result is already written. The live fault is the next one: `.publish_gate_state.json`'s `liveness_surface_refusal` reads `cause: push_never_landed`, \"the commit was created here and `git ls-remote` says origin did not advance to it (push rc=1, origin=2741f8dbb, head=dcfa91f3d)\", and origin reached `dc5968e8e` minutes afterwards via a reconcile merge. So the publisher creates its commit, loses the push to a concurrent lane's reconcile, records a refusal, and the content lands anyway under someone else's merge. The prior refusal in the same file was `fatal: cannot lock ref 'HEAD': is at aff4b153f but expected 56d746816` \u2014 the same concurrency fault at a different seam. Establish whether the publisher's post-reconcile verdict (9c4ce323f, already at HEAD) is reached on this path at all, or whether the refusal is recorded before the reconcile it was written to wait for, and make the publisher either win the push or read its own content's arrival at origin rather than its push's rc.",
-    "why": "`episode_failures` 43 \u2192 46, `episode_clean_publishes` 0, `last_clean_publish` null, `wedge_since` unmoved \u2014 and I have now watched three different causes clear in sequence without the publisher grading one clean cycle itself, which is what tells me the causes are a queue and not a diagnosis. The site is honestly serving the last VERIFIED run behind a paused banner, so nothing false is published and this is not urgent to the director; it is urgent to us because a publisher that cannot grade itself green means every figure we carry out is verified by a human reading a log. Finished when `.publish_gate_state.json` carries a non-null `last_clean_publish` the publisher wrote on its own cycle."
+    "id": "the-gas-tariff-type-read-becomes-the-c1b-roll",
+    "what": "Land repair 2 of the two the departure determination said were owed: the gas `tariff_type` read becomes the C1b roll, now that the eighteen gas-only accounts can leave. Start from `docs/staging/SEAT_RESULT_A_GAS_ONLY_ACCOUNT_CAN_NOW_LEAVE_AND_THE_BOOKS_RENEWAL_DECISION_POPULATION_NEARLY_DOUBLES_2026-09-16.md`, whose last section states why this ordering is load-bearing, and from `simulation.customer_events.departure_decision_leg` which repair 1 introduced. The lane drew this 20.3 hours ago and swept it back `not_done` with empty evidence -- check `git status` for its paths before starting, then either bind what is there or build it.",
+    "why": "This is the only item in the brief that moves per-customer decisioning rather than the harness around it: repair 1 nearly doubled the renewal-decision population and repair 2 is what prices the eighteen correctly. Ranking it below two harness items is a judgement I am making with the fork actively corrupting every landing, not a view that plumbing outranks the thesis. Done is the eighteen carrying a C1b roll in a committed run and the swept row bound to the commit."
    },
    {
-    "id": "exercise-the-landed-swept-row-join-on-the-two-rows-that-need-it",
-    "what": "`_landed_unbound` and `LANDED_ELSEWHERE` are at HEAD in `background/delivery_lane.py` with a committed control, and no live sweep has produced either verdict. Take the two swept rows this brief names \u2014 `some-id` (drawn 1.8h, `not_done`, empty evidence) and `the-gas-tariff-type-read-becomes-the-c1b-roll-now-that-the-18-can-leave` (drawn 17.3h, `not_done`, empty evidence) \u2014 and establish for each whether the join is REACHED and simply finds nothing, or is never reached. If the join is not reached, that is the defect; if it is, dispose both rows properly with `--landed-under` or `--premise-spent` rather than leaving `not_done` with empty evidence. Second leg, unresolved and separate: a row can hold a `claimed_at` in the claim store and be absent from the draws ledger the sweep reads, so make the two stores answer the same question or make the sweep read the store the claim is written to.",
-    "why": "Fourth because the code landed and this is verification, not construction \u2014 but it is verification that closes an error I have carried for three stretches, and the exit test I set myself was a live sweep naming a commit, not a passing test. The brief still has to tell every reader to check `git status` by hand for finished work sitting in the tree, which is a control asking a human to be the join. Finished when a sweep emits `landed_unbound` or `landed_elsewhere` with a commit named and no human calling a function."
+    "id": "grade-the-seven-ungradable-rows-whose-control-already-passes",
+    "what": "Take the seven rows the brief lists under \"every named path is on disk and one of them is a runnable control, so the refusal came from the pass and not from the row\" -- `A50_the_supplier_use_case_register_is_published_with_a_status_per_item`, `D27_belief_window_saturates_on_this_book`, `D9_worse_than_blind_chip_is_metric_blind`, `H41_the_map_ratchet_has_no_ongoing_drain`, `H47_the_orientation_header_states_a_figure_it_computes`, `KNIFE3_wall_crossing_paydown`, `W2_31_people_phase1_the_physical_layer_stands_alone` -- run each named control, and record the level each result earns. Where the control passes and the row still cannot be recorded, name in the record WHICH refusal blocked it rather than leaving the row in the bucket.",
+    "why": "`ungradable_count` 30 and `ungradable_owing_repair_count` 27 have not moved for nine stretches and I have now briefed it twenty-one times. These seven are the tranche that is already gradable -- the control exists and passes -- so nothing stands between them and a recording except the freeze focus two removes. Done is the ungradable count below 30 at the next orientation, which is the only evidence any of the twenty-one briefs was worth writing."
    }
   ],
   "not_now": [
    {
-    "what": "Pulling per-property weather archives to widen `sim/weather_data/` beyond C1\u2013C4 \u2014 which is what my own previous focus row directed.",
-    "why": "It is the design the director refused in writing, and the refusal is in the file the row told the worker to read first. It also fails on measurement, not just on authority: the four refusing supply points sit at two distinct coordinates, so the pull downloads the same sky twice and any difference between two same-cell households becomes indistinguishable from download noise \u2014 which is precisely the attribution the fabric path exists to make. The per-cell store is the successor and it is focus two."
+    "what": "Writing controls for the sixteen ungradable rows whose grading control was never written (`A51`, `C_supply_start_consumer_routing`, `D46`, `OPS6`, `OPS7`, `OPS8`, `PB5`, `SITE12`, `SITE14`, `W2_18`, `W2_19`, `W2_20`, `W2_21`, the rest).",
+    "why": "It is the larger half of the same subject and it loses to focus four for a mechanical reason: until OPS11 stops refusing, a newly written control produces a row that still cannot be recorded, so sixteen new controls would buy sixteen more ungradable rows. Grade the seven that are already gradable first and let that prove the recording path works before widening it."
    },
    {
-    "what": "Landing `sim/weather_world/`'s 7.9 MB store as it stands, or re-running `build_weather_world.py` over it to make it reproducible by force.",
-    "why": "Either move is a defect. Landing it commits an artefact no code in the tree regenerates, which is the 09-07 unreproducible-artefact defect bought again at larger size. Re-running the tool OVERWRITES a store that is demonstrably better than what the tool emits \u2014 the tool writes neither `level_c` nor `decomposition` nor `regimes.json`, all three of which are on disk and correct. Fix the producer, re-derive, diff. That ordering is the whole of focus two."
+    "what": "Draining the 43 LATENT findings and the 103-deep staging work queue.",
+    "why": "Net flow is already negative (156 filed, 431 dispositioned over seven days), so the queue is draining without direction spent on it, and none of the 43 is blocking anything. Tidying loses to a level move and to a fork that corrupts every landing while it is open."
    },
    {
-    "what": "Touching `tests/background/conftest.py`, `background/process_run_complete.py` or the 17-red repair in any way this stretch.",
-    "why": "A live worker holds them: pid 505521 started 23:17, conftest mtime 23:20, its result document still being written at 23:24. Uncommitted work under a live mtime is a lane mid-turn, not stranded work, and the one thing that would destroy this stretch's best repair is a second writer landing a pathspec over it. Focus three is deliberately aimed at the fault that SURVIVES that repair, and says so."
+    "what": "Forcing the `_landed_unbound` sweep verdict to fire by synthesising a swept row, so the mechanism stops being indistinguishable from a dead one.",
+    "why": "A fabricated probe is unfalsifiable, and the reason no live sweep has produced the verdict is most likely the fork itself -- claims bind to commits on a HEAD origin never received. Fix the cause in focus one and let the next real sweep grade itself. If it still reads `not_done` with empty evidence after the fork closes, that is a different and much better-attributed finding."
    },
    {
-    "what": "Building a mechanism that forces the draw to honour my focus order, after the row I ranked third was the only one not taken.",
-    "why": "That is a control over my own controls, which this project has learned to refuse, and one undrawn row is a sample of one. The cheaper correction is the one I have made: put the binding constraint first and let the next brief measure whether ordering was the cause. If a first-ranked row goes undrawn too, then the channel is the finding and it will have evidence."
+    "what": "Resuming the per-property weather pull, or opening `W1_28_the_weather_partition_is_joint_over_a _stock_with_varying_fabric`, on the back of W1_14 landing.",
+    "why": "The pull is the design the director refused in writing and the refusal was reproduced at real inputs last stretch -- the four refusing supply points resolve to two coordinates, so it buys the same sky twice. W1_28 is separately listed as owing no repair. The weather lane has just taken two stretches; the constraint is elsewhere."
    },
    {
-    "what": "Drawing any of the 23 atoms the ordinary draw offered this stretch, or draining the 41 LATENT findings and the 99-item work queue.",
-    "why": "Not one of the 41 latent rows freezes a lane and the queue's net flow is \u2212275 over seven days, so it is draining without a steer. Every level recording in two lanes is held by six BLOCKING rows; adding built atoms behind that wall adds rows owing repair rather than moving anything."
-   },
-   {
-    "what": "Escalating the publish wedge, the 46 failures or the seventh stretch of zero recorded levels to the director on NTFY.",
-    "why": "Every cause is named, measured and inside this tree, and none is one of the four reserved classes. The site serves the last VERIFIED run behind a paused-verification banner, so no unverified figure is published in his name. This is mine to fix and record."
+    "what": "Re-landing the six HEAD-only commits with `git merge` or a hand-built merge, which is the fast way to close the fork.",
+    "why": "Hook-bypass is a wall and a merge against a dirty shared index sweeps other lanes' in-place edits into a commit nobody reviewed. The slower `reset --mixed` plus `isolate_hunks` plus `surgical_land --content` route is the only one that gates the tree the commit would create, and the fork is exactly the situation that route exists for."
    }
   ],
   "for_the_director": [],
@@ -311,6 +307,41 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "MINE, NEW, and it is the SAME ordering error I declared corrected one stretch ago. I moved the freezers to focus one and they were drawn -- six became two, the correction worked. Then I put \"the-publisher-now-loses-the-push-race-and-that-is-a-different-fault-from-the-reds\" THIRD, and it was not drawn, for the second stretch running. It was the right call about the fault and the wrong call about the rank: while it sat undrawn, `episode_failures` went 46 to 50, the refusal hardened from a red into `push_never_landed`, and the checkout forked from origin by 6 and 5 with the weather machinery built twice, once on each side. Ranking a live publishing fault below anything cost a stretch and produced a fork. It is focus one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "THE MACHINE'S, and it is the fork above read as a fact about the machine rather than about me. Nothing in this repository noticed that HEAD and origin/main had diverged, that the same weather work was landing on both sides under different commits, or that the daemons in this checkout were importing a tree the branch had moved past. The orientation brief detected it -- one sentence, correctly, and called it \"a fact about the machine\" -- but no control refused anything and no alarm fired; `SEAT_FINDING_THE_LANDED_VERDICT_ASKS_HEAD_AND_NOT_ORIGIN...` and `WORKER_FINDING_REPEATING_ALARM_DEADMAN_ORIGIN_FORK_2026-09-15.md` both describe this class and are both still on the staging root unactioned. Corrected when a fork is refused, not narrated.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "MINE, a TWENTY-FIRST brief on the ungradable rows, and this is the stretch where I stop restating it and split it. `ungradable_count` 30 and `ungradable_owing_repair_count` 27 are unchanged for a ninth stretch. What I got wrong is treating it as one subject: sixteen rows owe a control that was never written, seven already have a control that PASSES and are blocked only by OPS11's freeze, and four are directory-level with no file evidence possible either way. Briefing all thirty as one item is why none of the twenty-one briefs moved any of them. Stays `corrected: false` until a row leaves the ungradable list.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "MINE, and the measurement has moved in my favour for the first time: the freezer list went from SIX to TWO, and both survivors are 2026-09-08 findings about one module, `tools/stale_copy_refusal.py`. So the remedy shape I corrected last time -- a checked `**Discharged:**` line, not a `git mv` into `done/` -- is the one that worked, and four rows took it. What stays wrong is the consequence: `SITE4_ia_register_and_nav` is still in `contradicted_but_frozen` with a passing control and no graded level, which was my exit test. Stays `corrected: false` until SITE4 leaves `contradicted_but_frozen` and carries a level.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "MINE, fifth stretch, and the cause is now ESTABLISHED rather than suspected, which is the only thing that changed. `episode_failures` 46 to 50, `episode_clean_publishes` 0, `last_clean_publish` null -- and the live refusal now names its reason precisely: `push_never_landed`, `origin=d3af46dbe, head=882ef8aad`, read off `git ls-remote` and not off the push's rc. That is the fork, not a red. Four stretches of calling this a test failure were four stretches of looking at the wrong half. Stays `corrected: false` until the publisher records a clean publish it graded ITSELF.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "THE MACHINE'S, and now CLOSED. `159a2d4fc` landed the one-line addition to `tests/background/conftest.py`'s `_LEAKING_STATE_CONSTANTS` for `LANDING_IN_FLIGHT_FILE` bound at module import, with the admission test measured rather than assumed and the guard left intact -- 14 failed/56 passed became 78 passed across the five files `.publish_gate_state.json` itself lists as `blocking_tests`. My exit test said \"at HEAD\", and it is at origin/main and not in this checkout. That residue is the fork and it is focus one; it is not this repair's debt, and holding a landed fix open on a checkout's staleness would be grading the wrong subject.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-17T02:21:31.325435+00:00",
+    "what": "THE MACHINE'S, ninth instance. `_landed_unbound` is still at HEAD in `background/delivery_lane.py` beside `LANDED_ELSEWHERE`, with its control committed, and it has still never produced a verdict: the one swept row in this brief -- `the-gas-tariff-type-read-becomes-the-c1b-roll-now-that-the-18-can-leave`, drawn 20.3h ago -- reads `not_done` with EMPTY evidence, and the brief again instructs the reader to check `git status` by hand. The fork is now a plausible cause rather than a mystery, which is why focus one precedes any attempt to fix this directly. Stays `corrected: false` until a sweep reads a landed-but-unbound row as delivered and names the commit.",
+    "corrected": false
+   },
    {
     "at": "2026-09-16T23:20:43.792391+00:00",
     "what": "MINE, NEW, and it is the ordering error this file exists to prevent. I ranked the six blocking findings THIRD in an ordered list I know is worked in order, behind two rows I called larger \u2014 and it was the only one of four that the draw never took. The other three were drawn and all three landed. A week on, the freezer list is byte-identical and levels have not moved for a seventh stretch, so the cost of ranking it third was the whole stretch for that subject. Corrected: it is focus one, and the second half of the correction is knowing WHY archiving never cleared it \u2014 a finding moved to `docs/staging/done/` still freezes the lane, so the repair is a checked `**Discharged:**` line and not a `git mv`, which no previous direction of mine said.",
@@ -1295,42 +1326,51 @@
     "at": "2026-09-08T08:20:26.762260+00:00",
     "what": "Mine, last orientation, and it is an OVER-correction of the previous one. I graded myself corrected for having claimed three cheap gates \"refuse every lane\", and in doing so I wrote that a non-zero exit is \"evidence about the tool, never about the commit path\" and dropped the finding-class gate from consideration entirely. The publisher's own wedge record now carries a `commit_did_not_land` at rc=77 whose cause evidence reads \"the refusal came from a NON-TEST gate, namely the finding-class consolidation\", with 0 red tests named \u2014 so that gate does refuse a commit path, mine just was not the path it refuses. The original claim was wrong about scope and my correction was wrong about kind; the true statement is that the gate refuses the PUBLISHER's commit and not an ordinary lane's, and I had evidence for neither when I wrote either. Focus item one(b) acts on it.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-08T05:23:32.030182+00:00",
-    "what": "Writing or leaving perishable state asserted as established fact. TWENTY-FIFTH. Last stretch's mechanism \u2014 settling a detached run's liveness from OUTSIDE the process via a transient user unit and `systemctl --user show ... Result=success, ExecMainStatus=0` \u2014 is holding, and it is still one shape wide against a class that lives mostly in documents. This stretch's instance is a new shape and a worse one: `site/capabilities/index.html` is dirty in the shared tree at +90/-127 against HEAD, no document on disk attributes that rewrite to a lane or a purpose, and the only record touching it is a finding asserting that \"the tree's fix deletes sixteen controls\" \u2014 a claim nothing on disk can confirm or refute without a human reading both copies. An unattributed uncommitted rewrite of the project's most important page is perishable state asserted by its mere presence, and I have had to write focus item one to defend against it rather than to act on it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-08T05:23:32.030182+00:00",
-    "what": "The draw ledger binds a landing to the id that was DRAWN, so work landing under a different id leaves the original row reading `last_landing_at: null` permanently. 58 of 160 rows, against 60 of 157, 61 of 155, 59 of 151 and 57 of 145 \u2014 a second consecutive fall in absolute count while the population grew, 38.2% to 36.3%. Two stretches down is a direction and not yet a turn, so it stays open. Fresh instance this stretch: `the-page-says-our-advantage-is-selection-and-the-two-runs-that-can-name-their-world-say-level` was drawn at 02:59, the work landed in `8e90037a5` at 04:25, the row still reads null, and the brief handed it back to me as \"drawn, nothing landed\" for a second consecutive orientation.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-08T05:23:32.030182+00:00",
-    "what": "The publish wedge record naming the cause the episode opened on rather than the cause that is firing. Corrected, and checked rather than assumed: `.publish_gate_state.json` now carries `blocking_tests` naming `site/test_the_baseline_comparison_reaches_the_reader.py::test_the_composition_the_page_states_is_the_one_the_feed_established` and `::test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved`, `liveness_surface_refusal` names the same site-lane refusal on the same two, and I ran both tests this orientation and both fail. Three orientations of a record that pointed at a spent cause, and this one points at the live one in both fields.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-08T05:23:32.030182+00:00",
-    "what": "Mine, last orientation: I wrote that \"three cheap gates refuse every lane in this checkout\" and built a focus item on it. Fifteen commits landed through those gates in the following three hours. `background.finding_classes --check` does exit 1 (11 two-rooms pairs) and `background.finding_severity` does exit 1, and I checked their exit codes correctly \u2014 but I inferred \"refuses every lane\" from a non-zero exit without ever testing it against a landing. A non-zero exit is evidence about the tool, never about the commit path, and the distinction is exactly the one this project's own reachability rule is about.",
-    "corrected": true
    }
   ],
   "refused_own_records": [],
-  "outstanding": 154,
+  "outstanding": 157,
   "corrected": 47,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "discharge-the-six-freezers-because-archiving-is-not-discharge",
-   "make-the-per-cell-weather-store-reproducible-then-wire-it",
-   "the-publisher-now-loses-the-push-race-and-that-is-a-different-fault-from-the-reds",
-   "exercise-the-landed-swept-row-join-on-the-two-rows-that-need-it"
+   "close-the-fork-so-a-publish-can-reach-origin-again",
+   "SITE4_ia_register_and_nav",
+   "the-gas-tariff-type-read-becomes-the-c1b-roll",
+   "grade-the-seven-ungradable-rows-whose-control-already-passes"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "discharge-the-six-freezers-because-archiving-is-not-discharge",
+       "make-the-per-cell-weather-store-reproducible-then-wire-it"
+      ],
+      "focus": [
+       "discharge-the-six-freezers-because-archiving-is-not-discharge",
+       "make-the-per-cell-weather-store-reproducible-then-wire-it",
+       "the-publisher-now-loses-the-push-race-and-that-is-a-different-fault-from-the-reds",
+       "exercise-the-landed-swept-row-join-on-the-two-rows-that-need-it"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "discharge-the-six-freezers-because-archiving-is-not-discharge",
+     "make-the-per-cell-weather-store-reproducible-then-wire-it"
+    ],
+    "focus": [
+     "discharge-the-six-freezers-because-archiving-is-not-discharge",
+     "make-the-per-cell-weather-store-reproducible-then-wire-it",
+     "the-publisher-now-loses-the-push-race-and-that-is-a-different-fault-from-the-reds",
+     "exercise-the-landed-swept-row-join-on-the-two-rows-that-need-it"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1469,46 +1509,6 @@
     "focus": [
      "the-checkout-must-fast-forward-so-the-publishers-green-commit-can-land",
      "the-holder-work-verdict-must-ask-git-whether-head-deleted-the-name",
-     "a-swept-row-must-tell-landed-unbound-apart-from-never-started",
-     "SITE4_ia_register_and_nav",
-     "H47_the_orientation_header_states_a_figure_it_computes"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [
-       "H47_the_orientation_header_states_a_figure_it_computes"
-      ],
-      "focus": [
-       "SITE4_ia_register_and_nav",
-       "H47_the_orientation_header_states_a_figure_it_computes"
-      ],
-      "steered": true
-     },
-     "lane_0": {
-      "drawn": [
-       "the-site-lane-is-wedged-by-one-week-old-working-copy-of-customer-events",
-       "drain-the-five-stale-copies-the-census-says-would-revert-a-landing"
-      ],
-      "focus": [
-       "the-site-lane-is-wedged-by-one-week-old-working-copy-of-customer-events",
-       "drain-the-five-stale-copies-the-census-says-would-revert-a-landing",
-       "a-swept-row-must-tell-landed-unbound-apart-from-never-started"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-site-lane-is-wedged-by-one-week-old-working-copy-of-customer-events",
-     "drain-the-five-stale-copies-the-census-says-would-revert-a-landing",
-     "H47_the_orientation_header_states_a_figure_it_computes"
-    ],
-    "focus": [
-     "the-site-lane-is-wedged-by-one-week-old-working-copy-of-customer-events",
-     "drain-the-five-stale-copies-the-census-says-would-revert-a-landing",
      "a-swept-row-must-tell-landed-unbound-apart-from-never-started",
      "SITE4_ia_register_and_nav",
      "H47_the_orientation_header_states_a_figure_it_computes"
