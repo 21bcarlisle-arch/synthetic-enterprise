@@ -195,14 +195,106 @@ def test_a_member_without_a_book_identity_makes_the_whole_family_state_none(tmp_
     that predate it -- and the flattering move is to let the one that answers speak for all."""
     sources = _two_sources(tmp_path, lambda d: d.pop("book_identity", None))
     # The live artefact may itself predate the field; ensure the FIRST member has one so this is
-    # a one-variable test of the second member's absence.
+    # a one-variable test of the second member's absence. It is the PRODUCER's shape and not an
+    # invented one: this fixture used to write `{"digest": "abc123"}`, a key no producer of a
+    # floor book block has ever emitted, and a control whose fixture is unreachable in the field
+    # cannot tell a live defect from a live pass. See the reachability control below.
     first = json.loads(sources[0].read_text(encoding="utf-8"))
-    first["book_identity"] = {"digest": "abc123"}
+    first["book_identity"] = _A_DECLARED_BOOK
     sources[0].write_text(json.dumps(first), encoding="utf-8")
 
     folded = fold(sources)
     assert folded["book_identity"]["digest"] is None
     assert "do not all name their book" in folded["book_identity"]["unavailable_because"]
+
+
+#: The producer's own shape for a floor that DID observe its book, as `floor_book_identity` writes
+#: it. Kept beside the controls that use it so a reader can see there is no `digest` in it.
+_A_DECLARED_BOOK = {
+    "declared": {
+        "served_segments": ["resi", "SME"],
+        "served_segments_resolved_from": "curriculum",
+        "served_segments_override_env": None,
+    },
+    "seeds_reconciled": 9,
+    "seeds_that_recorded_no_book": 0,
+    "unavailable_because": None,
+    "realised_across_seeds": {"billing_accounts_settled_in_window": {"min": 164, "max": 164,
+                                                                     "n": 9}},
+}
+
+
+def test_a_family_whose_members_all_declare_one_book_NAMES_it(tmp_path):
+    """THE DEFECT, and it was live on the published page: the fold took its agreement over
+    `book_identity.digest`, which `run_value_cycle_ab.floor_book_identity` -- the only thing that
+    writes a floor's book block -- has never emitted. So the success branch could not be reached
+    by any real pair. Both members of the served 18-seed family declare `['resi', 'SME']` from the
+    curriculum, and the fold published `the folded runs name 1 different books (None)` and dropped
+    `declared`, which is the ONLY key `generate_value_arms_data._floor_book_admission` reads. The
+    page then admitted its own error bar on a date-ordering stamp proxy while the book sat agreed
+    in both members.
+
+    THIS IS THE PARTITION CONTROL FOR THE BOOK BRANCHES, in the shape CLAUDE.md asks for: a guard
+    that answers `unknown` to EVERYTHING passes both refusal tests around it, and until this
+    assertion existed that is exactly what it did."""
+    sources = _two_sources(tmp_path)
+    for path in sources:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["book_identity"] = copy.deepcopy(_A_DECLARED_BOOK)
+        path.write_text(json.dumps(data), encoding="utf-8")
+
+    book = fold(sources)["book_identity"]
+
+    assert book["unavailable_because"] is None
+    assert book["declared"] == _A_DECLARED_BOOK["declared"], (
+        "the folded family must carry the declared book forward -- it is what the consumer pairs "
+        "on, and a family that drops it is admitted on a proxy instead")
+    assert book["folded_over_members"] == 2
+    # The seed counts are SUMMED, not inherited from the first member: a family of 18 that says it
+    # reconciled 9 is a count over a third of its own rows.
+    assert book["seeds_reconciled"] == 2 * _A_DECLARED_BOOK["seeds_reconciled"]
+    # ...and the realised half is NOT carried, because each member measured it over its own seeds.
+    assert "realised_across_seeds" not in book
+    assert book["realised_across_seeds_unavailable_because"]
+
+
+def test_two_declared_books_are_never_folded_into_one(tmp_path):
+    """THE DEFECT: rows drawn over a resi-only book pooled with rows drawn over resi+SME, and the
+    family naming one of the two. The spread of two populations is not an error bar on either."""
+    sources = _two_sources(tmp_path)
+    for path, segments in zip(sources, (["resi", "SME"], ["resi"])):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["book_identity"] = copy.deepcopy(_A_DECLARED_BOOK)
+        data["book_identity"]["declared"]["served_segments"] = segments
+        path.write_text(json.dumps(data), encoding="utf-8")
+
+    book = fold(sources)["book_identity"]
+
+    assert book["digest"] is None
+    assert "2 different books" in book["unavailable_because"]
+
+
+def test_a_book_block_that_declares_nothing_is_an_unknown_and_not_an_agreement(tmp_path):
+    """THE DEFECT: `floor_book_identity` fails closed to `declared: None` when a seed inside the
+    run recorded no book. That block is truthy, so a `not (data.get("book_identity") or {})` test
+    sails past it -- and a set of one `None` is a set of size one, which reads as agreement. The
+    two unknowns must not collapse into the flattering branch."""
+    sources = _two_sources(tmp_path)
+    for path in sources:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["book_identity"] = copy.deepcopy(_A_DECLARED_BOOK)
+        path.write_text(json.dumps(data), encoding="utf-8")
+    second = json.loads(sources[1].read_text(encoding="utf-8"))
+    second["book_identity"]["declared"] = None
+    second["book_identity"]["unavailable_because"] = "3 of 9 seeds recorded no book"
+    sources[1].write_text(json.dumps(second), encoding="utf-8")
+
+    book = fold(sources)["book_identity"]
+
+    assert book["digest"] is None
+    assert "declaring no population" in book["unavailable_because"]
+    assert "floor_b.json" in book["unavailable_because"], (
+        "an unknown that does not name the member responsible cannot be acted on")
 
 
 def test_writing_the_fold_over_one_of_its_own_sources_is_refused(tmp_path):
