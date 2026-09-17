@@ -277,6 +277,124 @@ def test_discovery_finds_a_surface_by_ITS_MODULE_DECLARING_A_PATH_not_by_edit_fr
     assert not any(p.endswith(".json") for p in found), "a JSON feed is machinery output, not reading"
 
 
+def _unfiltered_discovery(root):
+    """`discover_maintained_surfaces` WITHOUT its line prefilter -- the reference implementation.
+
+    Deliberately a transcription of the pre-2026-09-17 body rather than a call into the module:
+    a reference that imports the thing it grades moves with it, and this one has to stay still.
+    """
+    import ast
+    import re
+
+    found = {}
+    for tree in ("tools", "background"):
+        for f in sorted((root / tree).glob("*.py")):
+            try:
+                text = f.read_text(encoding="utf-8", errors="replace")
+                parsed = ast.parse(text)
+            except (OSError, SyntaxError):
+                continue
+            for node in ast.walk(parsed):
+                if not isinstance(node, ast.Assign):
+                    continue
+                src = ast.get_source_segment(text, node) or ""
+                m = re.search(r'"docs"\s*/\s*(.+)', src, re.S)
+                if not m:
+                    continue
+                segs = re.findall(r'"([^"]+)"', m.group(1))
+                if not segs:
+                    continue
+                rel = "docs/" + "/".join(segs)
+                if rel.startswith(saf._UNPUBLISHED) or not rel.endswith(saf._READER_SUFFIXES):
+                    continue
+                found.setdefault(rel, set()).add(f"{tree}/{f.name}")
+    return found
+
+
+def test_the_prefilter_finds_exactly_what_the_unfiltered_walk_finds(tmp_path):
+    """THE SPEED-UP MAY NOT NARROW THE CONTROL (2026-09-17).
+
+    `discover_maintained_surfaces` called `ast.get_source_segment` once per `Assign`, and that
+    function re-splits the whole file on every call: 42.2s over tools/ + background/ to return
+    EIGHT surfaces, paid by every commit staging an anchor. It now skips a file with no literal
+    `"docs"` and only segments nodes spanning a line that has one -- 2.0s, 18,947 calls down to
+    450.
+
+    A faster scan that finds LESS is the defect, not the repair, so this grades the two
+    implementations against each other rather than against a list of today's answers. Keyed to
+    the property: it stays true when a new surface is declared and goes red the moment the
+    prefilter drops a node the regex would have matched.
+
+    THE MUTATION IT EXISTS FOR, and the tempting wrong version: prefilter on `node.lineno` alone
+    instead of the node's whole line span. `SPREAD_OVER_LINES` below is an `Assign` whose
+    `"docs"` sits on its SECOND line, so the cheaper predicate loses it and this reds. The
+    single-line and the false-friend cases are here so a prefilter that simply gives up and
+    segments everything is not what makes it pass.
+    """
+    for tree in ("tools", "background"):
+        (tmp_path / tree).mkdir()
+
+    (tmp_path / "tools" / "single_line.py").write_text(
+        'from pathlib import Path\n'
+        'ROOT = Path(".")\n'
+        'PLAIN = ROOT / "docs" / "status" / "PLAIN.md"\n',
+        encoding="utf-8")
+
+    # The node whose `"docs"` is NOT on its opening line -- the mutation's victim.
+    (tmp_path / "tools" / "spread_over_lines.py").write_text(
+        'from pathlib import Path\n'
+        'ROOT = Path(".")\n'
+        'SPREAD_OVER_LINES = (\n'
+        '    ROOT\n'
+        '    / "docs"\n'
+        '    / "status"\n'
+        '    / "SPREAD.md"\n'
+        ')\n',
+        encoding="utf-8")
+
+    # A module with no `"docs"` at all -- the file-level skip must not change the answer.
+    (tmp_path / "background" / "no_docs_here.py").write_text(
+        'from pathlib import Path\n'
+        'ELSEWHERE = Path(".") / "site" / "data" / "feed.json"\n',
+        encoding="utf-8")
+
+    # False friends: a JSON feed and an unpublished room are machinery, not reading, and both
+    # implementations must agree on rejecting them for the SAME reason.
+    (tmp_path / "background" / "false_friends.py").write_text(
+        'from pathlib import Path\n'
+        'ROOT = Path(".")\n'
+        'FEED = ROOT / "docs" / "observability" / "feed.json"\n'
+        'STAGED = ROOT / "docs" / "staging" / "THING.md"\n',
+        encoding="utf-8")
+
+    fast = saf.discover_maintained_surfaces(root=tmp_path)
+    slow = _unfiltered_discovery(tmp_path)
+
+    assert fast == slow, (
+        "the prefiltered scan and the unfiltered walk disagree -- the speed-up narrowed the "
+        f"control.\n  prefiltered: {fast}\n  unfiltered:  {slow}")
+
+    # NOT A TAUTOLOGY: two empty dicts would satisfy the line above, and a scan that finds
+    # nothing is this repo's recorded shape for a control that quietly stopped being one.
+    assert "docs/status/PLAIN.md" in fast
+    assert "docs/status/SPREAD.md" in fast, (
+        "the multi-line declaration was lost -- the prefilter is keyed to the opening line "
+        "instead of the node's whole span")
+    assert not any(p.endswith(".json") for p in fast)
+
+
+def test_the_prefilter_agrees_with_the_unfiltered_walk_ON_THE_REAL_TREE():
+    """The synthetic tree above proves the shapes; this proves the TREE, which is the subject.
+
+    IT COSTS THE 42s IT SAVED, and that is the right trade rather than an accident: it runs the
+    slow reference implementation, and it is selected ONLY when `tools/startup_anchor_freshness.py`
+    itself is staged, while the saving is paid back on every commit that stages any anchor. A
+    prefilter's failure mode is "correct on every case I imagined", so the real tree -- 445
+    modules nobody wrote a fixture for -- is the only thing that can grade it.
+    """
+    assert saf.discover_maintained_surfaces() == _unfiltered_discovery(saf.PROJECT)
+
+
 def test_the_named_exemptions_are_still_undiscoverable():
     """`UNDISCOVERABLE` names surfaces the scan structurally cannot see -- a path assembled in two
     steps. The exemption must not outlive its reason: if one becomes discoverable it belongs in the

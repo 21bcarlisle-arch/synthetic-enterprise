@@ -272,8 +272,38 @@ def discover_maintained_surfaces(root: Path | None = None) -> dict[str, set[str]
                 parsed = _ast.parse(text)
             except (OSError, SyntaxError):
                 continue
+            # THE PREFILTER IS WHY THIS COSTS A SECOND AND NOT FORTY (2026-09-17).
+            # `ast.get_source_segment` re-splits the WHOLE file into lines on every call, so
+            # calling it once per `Assign` made this O(assigns x file size): 42.2s over
+            # tools/ + background/ to return EIGHT surfaces, paid by every commit that stages
+            # an anchor. Measured, not reasoned: 18,947 calls become 450, and 218 of the 445
+            # modules are never segmented at all.
+            #
+            # WHERE THAT NUMBER CAME FROM: `tools/time_the_commit_hook_chain.py`, which times
+            # the pre-commit chain step by step. Until it existed the chain had ONE number per
+            # commit, so this step's 42s was invisible inside a 333s total and every argument
+            # about what to cut was an argument about what LOOKED expensive.
+            #
+            # IT IS EXACT, NOT AN APPROXIMATION, and that is the only reason it is allowed to
+            # be here -- a speed-up that narrows a control is the class this repo keeps paying
+            # for. The regex below needs the literal `"docs"` INSIDE the node's own source
+            # segment; that segment lies wholly within lines `lineno..end_lineno`, so a node
+            # spanning no line that contains `"docs"` cannot match. The line set is a SUPERSET
+            # of the matching nodes (a `"docs"` sitting before `col_offset` on the opening line
+            # keeps the node in, and `get_source_segment` then returns the true segment and the
+            # regex simply declines it), so every surface the unfiltered walk found is still
+            # found. `test_the_prefilter_finds_exactly_what_the_unfiltered_walk_finds` is the
+            # control, and it compares the two implementations over the real tree.
+            if '"docs"' not in text:
+                continue
+            docs_lines = {i + 1 for i, line in enumerate(text.splitlines())
+                          if '"docs"' in line}
             for node in _ast.walk(parsed):
                 if not isinstance(node, _ast.Assign):
+                    continue
+                if not any(ln in docs_lines
+                           for ln in range(node.lineno,
+                                           (node.end_lineno or node.lineno) + 1)):
                     continue
                 src = _ast.get_source_segment(text, node) or ""
                 m = _re.search(r'"docs"\s*/\s*(.+)', src, _re.S)

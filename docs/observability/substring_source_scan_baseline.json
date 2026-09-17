@@ -1012,6 +1012,12 @@
       "subject": "unknown"
     },
     {
+      "path": "tests/tools/test_startup_anchor_freshness.py",
+      "function": "_unfiltered_discovery",
+      "subject": "python",
+      "why_frozen": "IT MUST HOLD THE UNMODIFIED SOURCE, and that is the whole point of it (2026-09-17). This is the reference implementation of discover_maintained_surfaces as it stood before its line prefilter, kept so the prefilter can be graded against it. Its subject is ast.get_source_segment(text, node), which resolves BYTE OFFSETS into that exact text. Routing it through tools/python_code_text.py would blank prose and rejoin argv literals -- moving the very offsets under test -- so the laundered version would grade a different string than the one the live scan reads, and the control would go green on a prefilter that had narrowed. The read is deliberate and cannot be removed without deleting the control."
+    },
+    {
       "path": "tests/tools/test_symbol_landing_check.py",
       "function": "test_it_judges_the_tree_and_not_the_working_tree",
       "subject": "python"
