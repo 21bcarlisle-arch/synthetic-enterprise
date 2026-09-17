@@ -1829,7 +1829,7 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
 
     Two halves, and they fail differently:
       * the COMMITTED half runs everywhere, including a fresh clone and the gate's own HEAD
-        checkout, against `MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04` -- whose date is in its
+        checkout, against `MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17` -- whose date is in its
         NAME, so a stale measurement is visible in every diff rather than in a comment nobody
         re-reads;
       * the LIVE half runs where there is hook history, against the worst of the last twenty
@@ -1839,10 +1839,16 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
     records why 600 no longer fires it and why that is the correction, not a loss of teeth.
     """
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= (
-        prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04), (
+        prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17), (
         "the commit deadline has under {:.0%} headroom over the last measured hook chain "
         "({}s)".format(prc.COMMIT_DEADLINE_HEADROOM - 1,
-                       prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04))
+                       prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17))
+
+
+#: How many rows the live half grades. ONE NAME, because the transition rule below has to demand
+#: the same size window it would be replacing -- two spellings of "twenty" is how a rule that says
+#: "a full window" comes to mean "most of a window" without anyone deciding it.
+HOOK_CHAIN_WINDOW_ROWS = 20
 
 
 def _recent_hook_chain_seconds(series=None):
@@ -1874,6 +1880,30 @@ def _recent_hook_chain_seconds(series=None):
     TOTAL still fits under the ceiling is kept and read as one chain -- i.e. over-reported -- so
     this can only ever demand more headroom than reality, never less.
 
+    AND SINCE 2026-09-17 A ROW CAN STATE ITS OWN UNIT, which is the repair one notch below that
+    conservatism. `chains` is written by `_record_commit_hook_duration` and holds the divisor the
+    producer already applied, so a STATED row's `duration_seconds` IS the per-chain cost and must
+    not be divided again here. A row with no `chains` key, or a null one, is UNKNOWN-UNIT: it may
+    be a total over any number of chains, so it is an UPPER BOUND on the per-chain cost and never
+    a measurement of it. `max` over a mixture of measurements and upper bounds is an upper bound,
+    which is sound for the headroom assert and unfair to the staleness one -- `666.95s`, two
+    chains of ~333s with no count on the row, is what refused every commit in the tree on
+    2026-09-16 while missing the staleness bar by seven seconds.
+
+    THE TRANSITION RULE IS "A FULL WINDOW OR NOTHING", and it exists because the obvious rule is
+    a sample-size collapse. `max` is monotone in the sample: any subset's worst is <= the whole
+    window's worst, so switching to the stated rows can only ever LOWER what this control demands
+    -- the fail-open direction. Preferring stated rows the moment the first one lands would grade
+    an 880s deadline against a ONE-ROW window and call the result a regime. So the stated reading
+    engages only when there are `HOOK_CHAIN_WINDOW_ROWS` stated rows to read, and then it reads
+    exactly that many: the sample never shrinks at the changeover, and there is no threshold
+    between "one row" and "a window" for anyone to pick. Until then the legacy reading stands,
+    over-reporting, which is the direction this control has always been safe in.
+
+    The cost of that rule is that `chains` buys nothing for twenty commits, and that is accepted
+    rather than worked around. A rule tuned to make today's red go away is a rule keyed to today's
+    answer, and this control has been through that once already.
+
     Skips -- never returns a degenerate window -- when the chain's cost is UNOBSERVED, which is
     not the same as small. Callers get either a real window or no test.
     """
@@ -1891,6 +1921,7 @@ def _recent_hook_chain_seconds(series=None):
         pytest.skip("no hook-chain history on this tree -- the deadline cannot be graded against "
                     "a machine that has never run it; the committed half still applies")
     rows = []
+    stated = []
     for line in series.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
@@ -1910,9 +1941,22 @@ def _recent_hook_chain_seconds(series=None):
             rows.append(None)
             continue
         rows.append(duration)
+        # THE ROW'S OWN UNIT, and the same predicate the producer writes it under: a bool is an
+        # int in Python, and `chains: true` is a broken caller, not a claim of one chain. No
+        # division here -- the producer divided before it wrote the row, and dividing again would
+        # turn a stated two-chain row into a quarter of what it cost.
+        n_chains = row.get("chains")
+        if isinstance(n_chains, int) and not isinstance(n_chains, bool) and n_chains > 0:
+            stated.append(duration)
     if not rows:
         pytest.skip("the hook-chain history holds no readable duration")
-    window = rows[-20:]
+    if len(stated) >= HOOK_CHAIN_WINDOW_ROWS:
+        # A FULL WINDOW OF ROWS THAT STATE THEIR UNIT -- see the docstring for why the changeover
+        # is all-or-nothing. Every one of these is a per-chain measurement, so there are no holes
+        # to carry and nothing below can skip for want of a gradeable row.
+        window = stated[-HOOK_CHAIN_WINDOW_ROWS:]
+    else:
+        window = rows[-HOOK_CHAIN_WINDOW_ROWS:]
     recent = [r for r in window if r is not None]
     if not recent:
         pytest.skip(
@@ -1924,11 +1968,16 @@ def _recent_hook_chain_seconds(series=None):
     # AN EARLY-EXIT ROW IS A LOWER BOUND, NOT A MEASUREMENT, and a window made only of them would
     # make the control vacuously green -- the fail-open that matters here. A hook that refuses
     # BEFORE the test gate returns in about a second; one that actually runs the gate cannot.
-    # The discriminator sits in empty space rather than at a picked number: across all 152 rows
-    # recorded to 2026-09-04 the eight early exits span 0.93-1.38s and the next observation is
-    # 67.44s, with NOTHING between them. A quarter of the committed measurement (33.5s) is 24x
-    # above every early exit and 2x below every real chain.
-    floor_of_a_real_chain = prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04 / 4.0
+    #
+    # CUT FROM THE REGIME CONSTANT ON 2026-09-17. This was
+    # `MEASURED_COMMIT_HOOK_CHAIN_SECONDS / 4`, and that tie meant a GROWING REGIME WALKED THE
+    # DISCRIMINATOR UP THROUGH THE REAL-CHAIN POPULATION: at the 333s re-measurement the derived
+    # floor is 83.25s, above the smallest real chain ever recorded (67.44s), and the effect is not
+    # a red -- it is the whole live half SKIPPING, in the direction that reads as health. The two
+    # uses pull opposite ways and one number could not serve both, which is why the re-measurement
+    # could not safely be taken until they were separated. See
+    # `REAL_CHAIN_FLOOR_SECONDS_2026_09_17` for where in the 42.7x empty band it sits and why.
+    floor_of_a_real_chain = prc.REAL_CHAIN_FLOOR_SECONDS_2026_09_17
     if max(recent) < floor_of_a_real_chain:
         pytest.skip(
             "every one of the last {} commits short-circuited before the test gate (worst {:.1f}s "
@@ -1974,7 +2023,7 @@ def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
         "{}s -- the committed half of this control has gone stale and must be RE-MEASURED (and "
         "renamed with today's date), or it will keep reporting room that is no longer there"
         .format(worst, prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
-                prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04))
+                prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17))
 
 
 # --- R10 class closure for the ~4.5h publish wedge: the stub-contract guard -------------------
@@ -2497,10 +2546,13 @@ def test_the_headroom_control_ACTUALLY_REDS_at_a_deadline_below_the_measured_cha
 
     WHY THIS NO LONGER PINS 600 (2026-09-04). It used to assert `600 < floor` against a floor of
     1.25 * 674 = 843. That floor was computed from the publisher's scoped gate, which this
-    deadline does not bound; against the chain's own ledger the floor is 1.25 * 134 = 168, and
-    600 sits comfortably above it. The honest reading is NOT that the control lost its teeth --
+    deadline does not bound; against the chain's own ledger the floor was 1.25 * 134 = 168, and
+    600 sat comfortably above it. The honest reading is NOT that the control lost its teeth --
     it is that 600 was never the number that mattered, and pinning it was pinning today's answer.
     600 killed twelve commits in August because the chain then cost 837s; at 134s it would not.
+    At the 2026-09-17 re-measurement the floor is 1.25 * 333 = 416 and 600 STILL does not fire it
+    -- but the margin has gone from 3.6x to 1.4x in a fortnight, which is the reading a pinned 600
+    would have hidden completely and a derived floor states on every run.
     The property is "a deadline under the measured chain reds this control", so that is what is
     asserted, with the deadline DERIVED FROM THE LIVE SERIES rather than transcribed. If the
     chain moves again this control moves with it instead of going quietly wrong.
@@ -2509,7 +2561,7 @@ def test_the_headroom_control_ACTUALLY_REDS_at_a_deadline_below_the_measured_cha
     comparison would prove that `>=` works, not that the module's assert can fail.
     """
     committed_floor = (prc.COMMIT_DEADLINE_HEADROOM
-                       * prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04)
+                       * prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17)
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= committed_floor, (
         "the control is not green as shipped")
 
@@ -2655,6 +2707,176 @@ def test_a_row_that_outran_its_ceiling_and_still_answered_is_not_graded(tmp_path
     with pytest.raises(pytest.skip.Exception):
         _recent_hook_chain_seconds(_series([
             {"duration_seconds": 1381.52, "ceiling_seconds": 880, "outcome": "refused"}]))
+
+
+# ── ONE NUMBER WAS SERVING TWO USES WITH OPPOSITE GRADIENTS (2026-09-17) ─────────────────────
+#
+# `floor_of_a_real_chain` was `MEASURED_COMMIT_HOOK_CHAIN_SECONDS / 4`. That constant must RISE
+# with the regime (it is the representative per-chain cost the committed half grades against);
+# the floor must stay BELOW THE SMALLEST REAL CHAIN (it is the early-exit discriminator, and what
+# an early exit costs is a property of the hook refusing, not of the suite growing). Tied
+# together, re-dating 134 -> 333 puts the floor at 83.25s -- above the smallest real chain ever
+# recorded, 67.44s -- and the live half stops grading rather than going red. That is why the
+# staleness refusal spent a fortnight naming a re-measurement that could not safely be taken.
+
+def test_the_early_exit_floor_does_not_MOVE_when_the_regime_constant_does(tmp_path, monkeypatch):
+    """THE DECOUPLING, and the defect it names is a discriminator dragged by a constant that has
+    no business setting it.
+
+    The property under test is INDEPENDENCE, not today's value: a real chain at the smallest cost
+    this machine has ever recorded stays gradeable however far the regime constant moves. Keyed
+    that way on purpose -- a control pinned to "the floor is 10" goes red the day the floor is
+    honestly re-measured and stays green the day the coupling comes back.
+
+    MUTATION (must fire): restore `floor_of_a_real_chain = prc.MEASURED_...  / 4.0` and the last
+    leg reds, because 333/4 = 83.25 > 67.44 and the window stops grading.
+
+    AND MY FIRST DRAFT OF THIS TEST COULD NOT FAIL FOR THAT MUTATION. The coupled floor makes the
+    reader SKIP, and a bare call here propagated the skip straight out of the test -- which pytest
+    reports in a colour indistinguishable from a pass, and the mutation battery duly recorded
+    "8 passed" against the one mutation this control is named for. `_must_grade` below converts
+    that skip into the failure it always was. A shared skip silencing a whole leg is the class
+    this file has been caught by before; it is cheap to write and invisible to read.
+    """
+    import json as _json
+
+    smallest_real_chain = 67.44          # the live series' minimum over all 195 rows
+    worst_early_exit = 1.58              # and its maximum early exit; nothing lies between them
+    n = [0]
+
+    def _series(rows):
+        n[0] += 1
+        p = tmp_path / "s{}.jsonl".format(n[0])
+        p.write_text("\n".join(_json.dumps(r) for r in rows) + "\n")
+        return p
+
+    def _must_grade(path, why):
+        """Read the window, and make a SKIP a failure. The reader skips when it judges the chain
+        cost unobserved, which is right on a real machine and is precisely the defect here."""
+        try:
+            return _recent_hook_chain_seconds(path)
+        except pytest.skip.Exception as exc:
+            raise AssertionError("{}: the reader refused to grade it -- {}".format(why, exc))
+
+    real = _series([{"duration_seconds": smallest_real_chain, "ceiling_seconds": 880,
+                     "outcome": "pass"}])
+    early = _series([{"duration_seconds": worst_early_exit, "ceiling_seconds": 880,
+                      "outcome": "refused"}])
+
+    # THE FLOOR IS IN THE EMPTY BAND: it separates the two populations as shipped.
+    assert _must_grade(real, "the smallest real chain this machine has recorded") == [
+        pytest.approx(smallest_real_chain)]
+    with pytest.raises(pytest.skip.Exception):
+        _recent_hook_chain_seconds(early)
+
+    # AND IT STAYS THERE WHEN THE REGIME MOVES. Both directions, because a coupling is only
+    # visible from the side the regime happens to be travelling -- 134 was yesterday's value, 333
+    # is today's, and 900 is what a deadline-sized regime would do to a floor tied to it.
+    for regime in (134, 333, 900):
+        monkeypatch.setattr(prc, "MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17", regime)
+        assert _must_grade(
+            real,
+            "a real chain at this machine's smallest recorded cost, with the regime constant at "
+            "{}s -- the discriminator is coupled to it again".format(regime)) == [
+                pytest.approx(smallest_real_chain)]
+        with pytest.raises(pytest.skip.Exception):
+            _recent_hook_chain_seconds(early)
+
+
+def test_the_early_exit_floor_SEPARATES_the_two_populations_it_was_measured_over():
+    """The floor's own placement, against the band it was measured in.
+
+    Not a restatement of its value: this asserts the RELATION to the two populations, so an honest
+    re-measurement that moves the floor within the band keeps it green and a floor that leaves the
+    band reds whatever it is called.
+
+    MUTATION (must fire): `REAL_CHAIN_FLOOR_SECONDS_2026_09_17 = 70.0` reds the upper leg;
+    `= 0.5` reds the lower one.
+    """
+    floor = prc.REAL_CHAIN_FLOOR_SECONDS_2026_09_17
+    assert floor > 1.58, (
+        "the floor is at or below the worst early exit this machine has recorded (1.58s), so a "
+        "window of nothing but early exits reads as a measurement -- the fail-open this "
+        "discriminator exists to close")
+    assert floor < 67.44, (
+        "the floor is at or above the smallest real chain this machine has recorded (67.44s), so "
+        "genuine chains are re-labelled early exits and the live half SKIPS -- silently, and in "
+        "the direction that reads as health")
+
+
+# ── A ROW MAY NOW STATE ITS OWN UNIT, AND A SILENT ONE MUST NOT BE READ AS STATING ONE ───────
+#
+# `chains` landed at `8cb9a6b96`. The producer divides a multi-chain stopwatch down to a per-chain
+# cost and writes the divisor onto the row, so a stated row's `duration_seconds` IS per-chain. A
+# row with no count is UNKNOWN-UNIT -- an upper bound, never a measurement. 0 of the 195 rows in
+# the live series carry one, which is exactly the state this reader has to survive.
+
+def test_a_window_of_stated_rows_is_preferred_and_a_SILENT_row_is_not_read_as_stating_one(
+        tmp_path):
+    """The unit split, and the transition rule that stops it collapsing the sample.
+
+    WHAT THIS IS DEFENDING. `max` is monotone in the sample, so preferring the stated rows can
+    only ever LOWER what the live half demands -- the fail-open direction. A reader that switched
+    on the first stated row would grade an 880s deadline against a ONE-ROW window and call it a
+    regime. So the changeover needs a FULL window on the other side of it, and the sample never
+    shrinks as it crosses.
+
+    MUTATIONS (must fire):
+      * read a silent row as `chains == 1` -> the first leg reds; the split is decorative.
+      * drop the threshold to `len(stated) >= 1` -> the second leg reds with a one-row window.
+      * divide a stated row by its own `chains` -> the third leg reds; the producer already did.
+    """
+    import json as _json
+
+    n = [0]
+
+    def _series(rows):
+        n[0] += 1
+        p = tmp_path / "s{}.jsonl".format(n[0])
+        p.write_text("\n".join(_json.dumps(r) for r in rows) + "\n")
+        return p
+
+    def _row(duration, **extra):
+        r = {"duration_seconds": duration, "ceiling_seconds": 880, "outcome": "pass"}
+        r.update(extra)
+        return r
+
+    # ONE STATED ROW AMONG SILENT ONES DOES NOT TAKE OVER. The silent 800s row is an upper bound
+    # and stays in the reading; a reader that preferred the single stated row would report 250.
+    mostly_silent = _series([_row(800.0)] * 5 + [_row(250.0, chains=2)])
+    assert max(_recent_hook_chain_seconds(mostly_silent)) == pytest.approx(800.0), (
+        "one stated row displaced a window of upper bounds -- that is the sample-size collapse "
+        "the transition rule exists to stop")
+
+    # A FULL WINDOW OF STATED ROWS DOES take over, and the silent outlier drops out of it.
+    #
+    # THE SILENT ROW GOES LAST, and that placement is the whole discrimination of this leg. My
+    # first draft put it FIRST, where the twenty-row window drops it under BOTH readings -- the
+    # assert passed and proved nothing, which is the tautology this file is named for. Last is
+    # also the realistic arrival order: a stale module copy still writing countless rows behind a
+    # repaired one.
+    full = _series([_row(250.0, chains=1)] * HOOK_CHAIN_WINDOW_ROWS + [_row(800.0)])
+    assert _recent_hook_chain_seconds(full) == [pytest.approx(250.0)] * HOOK_CHAIN_WINDOW_ROWS, (
+        "a full window of rows that state their unit must be read on its own terms")
+
+    # A STATED ROW IS ALREADY PER-CHAIN. The producer divided before writing; dividing again here
+    # would turn a two-chain row costing 250s per chain into 125s and under-report by half.
+    two_chain = _series([_row(250.0, chains=2)] * HOOK_CHAIN_WINDOW_ROWS)
+    assert max(_recent_hook_chain_seconds(two_chain)) == pytest.approx(250.0), (
+        "`chains` is the divisor the producer ALREADY applied, not one for this reader to apply")
+
+    # A BAD COUNT IS SILENCE, not a claim of one chain -- the same predicate the producer writes
+    # under, because a bool is an int in Python and `chains: true` is a broken caller.
+    bad = _series([_row(250.0, chains=True)] * HOOK_CHAIN_WINDOW_ROWS + [_row(800.0)])
+    assert max(_recent_hook_chain_seconds(bad)) == pytest.approx(800.0), (
+        "`chains: true` is a broken caller and must read as UNSTATED; treating it as a count "
+        "lets a bad caller shrink a real cost")
+
+    # AND THE LIVE STATE IS THE ALL-SILENT ONE: 0 of 195 rows carry a count, so the legacy reading
+    # must still work unchanged. A repair that only works once the series has turned over is a
+    # repair that is untested for as long as it matters.
+    legacy = _series([_row(100.0), _row(333.22)])
+    assert _recent_hook_chain_seconds(legacy) == [pytest.approx(100.0), pytest.approx(333.22)]
 
 
 # ── the two-rooms repair runs at the COMMIT, not a cycle upstream of it ───────────────────
@@ -2803,3 +3025,76 @@ class TestTheTwoRoomsRepairRunsAtTheCommitRatherThanACycleEarlier:
         REFUSED commit, and a crashed publisher is the worse outage."""
         monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path / "does" / "not" / "exist")
         assert prc._clear_two_rooms_before_commit() == {"repaired": [], "conflicts": []}
+
+
+def test_the_hook_chain_row_STATES_how_many_chains_its_stopwatch_held(tmp_path, monkeypatch):
+    """END TO END, PRODUCER TO ROW -- and the link this pins had NO control until 2026-09-17.
+
+    `_record_commit_hook_duration` computes the chain count, divides by it, and hands it to
+    `record_gate_run`. Removing the `chains=` argument from THAT call left every control green:
+    the recorder's own tests pass `chains` directly and never exercise this caller, and the two
+    headroom controls read `duration_seconds` alone. So the one link that actually carries the
+    count to the live series was the one link nothing graded -- the shape CLAUDE.md names, a
+    mutation that fires nothing because no control sits on the path.
+
+    WHY THE COUNT AND NOT ONLY THE DIVISION. `2c89bd534` (1381.52s) and `b55667741` (666.95s)
+    were each a lost compare-and-swap that re-gated, so the stopwatch held two full chains. The
+    first was caught by the ceiling discriminator; the second was 667 < 880 and was read as ONE
+    chain, reding the headroom control at `worst <= 0.75 * 880` by seven seconds and refusing
+    every ordinary commit in the shared tree. A threshold cannot recover a unit. The producer
+    always knew it, and now says it.
+
+    MUTATION (must fire, and did not before this test existed): drop `chains=n_chains` from the
+    `record_gate_run` call in `_record_commit_hook_duration`.
+    """
+    series = tmp_path / "commit_hook_duration.jsonl"
+    monkeypatch.setattr(prc, "COMMIT_HOOK_DURATION_PATH", series)
+
+    prc._record_commit_hook_duration(666.95, "b55667741", "refused", chains=2)
+
+    rows = [json.loads(ln) for ln in series.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    assert len(rows) == 1, "one call, one row"
+    assert rows[0]["chains"] == 2, (
+        "the row must STATE the divisor -- without it a reader cannot tell this repaired row "
+        "from the nine days of totals behind it, which is how 666.95s read as one chain")
+    assert abs(rows[0]["duration_seconds"] - 333.48) < 0.01, (
+        "and the duration must be PER CHAIN, or the series holds two units at once")
+
+
+def test_a_hook_chain_row_with_no_stated_count_is_still_recorded_as_one(tmp_path, monkeypatch):
+    """THE DEFAULT PATH KEEPS ITS MEANING, AND THE BROKEN-CALLER PATH IS THE HALF WITH TEETH.
+
+    Every ordinary commit records one chain and says so -- `chains: 1` is a CLAIM, and it is the
+    claim that lets a later reader trust the row at face value rather than re-infer the unit.
+
+    THE FALLBACK IS REACHED ONLY BY A BROKEN CALLER, WHICH IS WHY THIS TEST CALLS AS ONE. The
+    signature is `chains: int = 1`, so an ordinary call never takes the `else` branch at all --
+    a defaulted parameter had made that branch unreachable, and a first draft of this test
+    asserted a mutation on it that consequently fired NOTHING. Recorded rather than quietly
+    fixed: an unreachable branch and a correct one are the same colour from the outside.
+
+    THE DIRECTION IS THE PRODUCER'S STATED FAIL-SAFE: a count that is not a positive int is
+    treated as ONE, so a broken caller OVER-reports the per-chain cost (the direction every
+    consumer of this series is already safe in) rather than silently shrinking a real one.
+
+    MUTATION (must fire, both legs): make the fallback `None` instead of 1 -- the `chains=None`
+    leg below fails on the row's claim. Divide by the raw `chains` instead of `n_chains` -- the
+    same leg dies on a TypeError, which is the crash the guard exists to prevent.
+    """
+    series = tmp_path / "commit_hook_duration.jsonl"
+    monkeypatch.setattr(prc, "COMMIT_HOOK_DURATION_PATH", series)
+
+    prc._record_commit_hook_duration(254.85, "abc1234", "pass")
+    row = json.loads(series.read_text(encoding="utf-8").splitlines()[-1])
+    assert row["chains"] == 1
+    assert abs(row["duration_seconds"] - 254.85) < 0.01, "one chain is not divided"
+
+    # A BROKEN CALLER -- the only way into the fallback. `None`, 0 and a bool each reach it.
+    for bad in (None, 0, -1, True):
+        prc._record_commit_hook_duration(254.85, "abc1234", "pass", chains=bad)
+        row = json.loads(series.read_text(encoding="utf-8").splitlines()[-1])
+        assert row["chains"] == 1, (
+            "chains={!r} is a caller bug, and the fail-safe is to claim ONE chain and "
+            "over-report -- never to divide by it or to go silent".format(bad))
+        assert abs(row["duration_seconds"] - 254.85) < 0.01, (
+            "chains={!r} must not shrink the recorded cost".format(bad))

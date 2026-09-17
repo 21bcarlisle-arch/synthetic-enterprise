@@ -6827,3 +6827,179 @@ def test_MUTATION_a_single_WITHHELD_line_renders_as_a_row_and_not_as_a_shorter_t
     assert "WITHHELD" in text, "a withheld line renders with no word telling the reader it is one"
     assert "no span over them is the same quantity" in text, (
         "the withheld line names no reason, so it reads as a line nobody got round to")
+
+
+# ---------------------------------------------------------------------------
+# WHETHER THE ARM WON BY KNOWING ANYTHING, BESIDE HOW MUCH IT WON (2026-09-17)
+#
+# The direction standing over this work: the discrimination is reported beside the advantage on
+# EVERY run, *because the 0.4653 reading is what makes the advantage unattributable*. The panel
+# published an 18-draw advantage, three legs and their verdicts, and no discrimination reading.
+# ---------------------------------------------------------------------------
+
+
+def _feed_with_discrimination(block) -> dict:
+    """The live feed with the discrimination block replaced, driven through the real door.
+
+    `None` removes the key entirely, which is a THIRD state and not a spelling of absence: a feed
+    that never carried the block and a feed carrying a refusal must not render the same.
+    """
+    feed = copy.deepcopy(_live_feed())
+    if block is None:
+        feed["error_bar"].pop("discrimination_across_the_family", None)
+    else:
+        feed["error_bar"]["discrimination_across_the_family"] = block
+    return feed
+
+
+def test_the_families_discrimination_reaches_the_reader_BESIDE_the_advantage(live):
+    """THE DEFECT: an advantage published with nothing beside it saying whether it was earned.
+
+    The legs say how much the arm beat the control by. Whether it beat it by KNOWING anything is
+    the other half of the same question, and this page has published the first without the second
+    before -- `withdrawn_claim` is the retraction of an argument built on a single AUC reading
+    from an estimator that scored 0.646, 0.672, 0.465, 0.465 and 0.130 in four days.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. It asserts a reader meets a discrimination
+    verdict in the same panel as the advantage, whatever that verdict is. A family that gains a
+    real AUC keeps this green; a page that goes quiet about it reds.
+    """
+    rendered = live["arms-errorbar"]
+    assert "DISCRIMINATION BESIDE THIS ADVANTAGE" in rendered.upper(), (
+        "the advantage and its legs reach the reader with no discrimination verdict beside them, "
+        "so a reader cannot tell an arm that won by knowing from one that won by charging: "
+        + rendered[-600:])
+
+
+def test_a_discrimination_that_CANNOT_be_read_says_so_rather_than_going_quiet():
+    """R15 fail-silent, on the branch this page is actually in today.
+
+    A block that rendered only when it resolved would put "measured and unavailable" into the same
+    pixels as "nobody asked" -- which is the exact defect this panel was repaired for this morning
+    one level up, where a leg nobody summarised read identically to a leg with nothing in it.
+    """
+    rendered = _render(_feed_with_discrimination({
+        "available": False, "state": "asked_and_unanswerable",
+        "seeds_carrying_an_auc": 0, "seeds_in_family": 18,
+        "reading": "THIS FAMILY WAS ASKED AND CANNOT ANSWER.",
+        "what_this_costs": "So this page cannot say whether it won by knowing anything.",
+        "reason": "18 of 18 seed rows carry no figure."}))["arms-errorbar"]
+    assert "CANNOT BE READ" in rendered.upper(), rendered[-500:]
+    assert "THIS FAMILY WAS ASKED AND CANNOT ANSWER." in rendered, rendered[-500:]
+    assert "won by knowing anything" in rendered, (
+        "the refusal reached the page without what it COSTS, so it reads as a footnote rather "
+        "than as half the thesis going unmeasured: " + rendered[-500:])
+    assert "0 of 18" in rendered, (
+        "the counts that let a reader check the refusal did not reach them: " + rendered[-500:])
+
+
+def test_MUTATION_a_feed_with_NO_discrimination_block_AT_ALL_says_so_rather_than_going_quiet():
+    """THE FALLTHROUGH BRANCH, which is the one a truthy check silently takes.
+
+    "The feed carries no block" and "the block says unavailable" are different failures -- the
+    first is a publisher that stopped emitting, the second a family that cannot answer -- and a
+    page that rendered nothing for the first would hide a regression in the producer behind a
+    sentence that looks like a considered refusal.
+    """
+    rendered = _render(_feed_with_discrimination(None))["arms-errorbar"]
+    assert "SAYS NOTHING ABOUT WHETHER THE ARM WON BY KNOWING ANYTHING" in rendered.upper(), (
+        "the discrimination block vanished from the feed and the page rendered nothing at all, so "
+        "a producer that stops emitting it is invisible to a reader: " + rendered[-500:])
+
+
+def test_a_MEASURED_discrimination_renders_its_FIGURE_with_the_no_information_point(live):
+    """THE OTHER HALF: without it, every control above is satisfied by a page that only refuses.
+
+    A renderer that returned the refusal on every branch would pass both tests above. This drives
+    the measured branch -- the state a floor run under today's producer will be in -- and asserts
+    the figure reaches the reader NEXT TO 0.5, because 0.61 means nothing to a reader who is not
+    told what no information would have scored.
+    """
+    rendered = _render(_feed_with_discrimination({
+        "available": True, "state": "measured", "seeds_in_family": 9,
+        "spread": {"mean": 0.6148, "min": 0.55, "max": 0.68},
+        "reading": "Measured over the same 9 draws. 0.5 is the no-information point."
+    }))["arms-errorbar"]
+    assert "0.615" in rendered, (
+        "a measured discrimination did not reach the reader as a figure: " + rendered[-500:])
+    assert "0.550" in rendered and "0.680" in rendered, (
+        "the spread across draws did not reach the reader, so one family's mean reads as a "
+        "single settled number: " + rendered[-500:])
+    assert "0.5 is the no-information point" in rendered, rendered[-500:]
+
+
+# ---------------------------------------------------------------------------
+# AND WHETHER WHAT WAS MEASURED CLEARS ITS OWN NULL (2026-09-17)
+#
+# The block above reached the reader saying "0 of 18 draws carry a figure". That is a count and it
+# answers the thesis question in neither direction. The AUC's own null needs no family -- it is
+# `sqrt((n1+n2+1)/(12*n1*n2))` over the outcome counts -- so the reading was available at one seed
+# the whole time and the page published a count instead.
+# ---------------------------------------------------------------------------
+
+
+def test_the_AUC_reaches_the_reader_AGAINST_ITS_OWN_NULL_and_not_as_a_count(live):
+    """THE DEFECT: a page that can only say how many draws carry a figure.
+
+    KEYED TO THE PROPERTY. It asserts the reader meets a distance from the no-information point
+    and a side, never that the side is today's NOT DEMONSTRATED. An arm that starts clearing its
+    null keeps this green, which is the direction a control must stay green in.
+    """
+    rendered = live["arms-errorbar"]
+    assert "own null" in rendered, (
+        "the page states a discrimination count with nothing placing it against the null of the "
+        "statistic itself, so a reader cannot tell 0.57 from chance: " + rendered[-600:])
+    assert "null SDs from chance" in rendered, (
+        "the reading reaches the reader with no ruler on it, and an AUC without its null is the "
+        "figure this page already retracted once")
+
+
+def test_the_seed_familys_spread_NEVER_renders_as_the_AUCs_interval():
+    """The tempting wrong repair, refused where a reader would actually meet it.
+
+    Fires on: a renderer that prints the family's min-max across draws beside the AUC with nothing
+    saying it is seed sensitivity. Measured 2026-09-17: that spread is seven times narrower than
+    the null, so it is the most misleading interval this block could carry.
+
+    Driven through the MEASURED branch, which the live feed is not in -- a control that only ever
+    saw today's refusal could not fire on the branch where the wrong ruler becomes renderable.
+    """
+    feed = _feed_with_discrimination({
+        "available": True, "state": "measured", "seeds_in_family": 9,
+        "spread": {"mean": 0.6148, "min": 0.55, "max": 0.68},
+        "spread_is_seed_sensitivity_not_the_null": (
+            "This is how far the AUC moved when the SEED moved. It is not the interval on the "
+            "figure."),
+        "reading": "Measured over the same 9 draws. 0.5 is the no-information point.",
+        "against_the_statistics_own_null": {
+            "available": True, "mean_auc": 0.6148, "demonstrated": False,
+            "null_sds_above_no_information": 1.99, "null_point": 0.5,
+            "reading": "Inside its own exact 95% null, so discrimination is not demonstrated.",
+            "family_spread_is_not_the_interval": {
+                "family_sd": 0.0083, "times_narrower_than_the_null": 6.9,
+                "why": "A seed family measures how far this instrument moves when its SEED moves."},
+        }})
+    text = _render(feed)["arms-errorbar"]
+    assert "0.550" in text or "0.55" in text, (
+        "the measured branch stopped rendering its spread at all, so this control is asserting "
+        "against a block that is not on the page (R15)")
+    assert "when the SEED moved" in text, (
+        "a range across draws renders beside the AUC with nothing telling the reader it is seed "
+        "sensitivity rather than the figure's interval")
+    assert "narrower than this null" in text, (
+        "the page prints two widths and no reason to prefer either, which leaves the narrower -- "
+        "and wrong -- one as the reader's interval")
+
+
+def test_a_feed_carrying_NO_null_reading_says_so_rather_than_going_quiet():
+    """R15 fail-silent. "Nobody computed it" and "computed and it clears nothing" are not the
+    same sentence, and a block rendered only when it resolves puts them in the same pixels.
+    """
+    feed = _feed_with_discrimination({
+        "available": False, "state": "asked_and_unanswerable", "seeds_in_family": 18,
+        "seeds_carrying_an_auc": 0, "reading": "This family was asked and cannot answer.",
+        "what_this_costs": "The advantage beside it cannot be attributed."})
+    text = _render(feed)["arms-errorbar"]
+    assert "NOTHING PLACES IT AGAINST ITS OWN NULL" in text.upper(), (
+        "a feed with no null reading renders nothing about it, so a page that has stopped "
+        "computing the figure looks exactly like a page whose figure sits on chance")

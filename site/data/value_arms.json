@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T17:46:05.022163Z",
+  "generated_at": "2026-09-17T19:42:41.020669Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -495,7 +495,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "5696a3e236d3f37cdc7b859c163e519c31b4fcee",
+    "publishing_tree_commit": "e231f862c8498719c14358eb53bc0a1f2db62a35",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -507,7 +507,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from 5696a3e23 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from e231f862c -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -902,7 +902,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "5696a3e236d3f37cdc7b859c163e519c31b4fcee",
+      "publishing_tree_commit": "e231f862c8498719c14358eb53bc0a1f2db62a35",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -914,7 +914,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from 5696a3e23 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from e231f862c -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -963,23 +963,22 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": false,
-      "dashboard_net_gbp": 157806.88,
+      "checked": false,
+      "same_supplier": null,
+      "dashboard_net_gbp": 158380.28,
       "run_identity": {
-        "dashboard_run_id": "run_output_797c3164f_20260917T161215Z.json",
-        "dashboard_commit": "797c3164f",
+        "dashboard_run_id": "run_output_f620fed2c_20260917T072251Z.json",
+        "dashboard_commit": "f620fed2c",
         "dashboard_commit_source": "run_stamp",
         "last_verified_run_id": "run_output_b55667741_20260917T114201Z.json",
         "last_verified_commit": "b55667741",
-        "not_older_than_verified": true,
+        "not_older_than_verified": false,
         "order_not_asked_because": null,
-        "state": "established",
-        "why": null
+        "state": "stale",
+        "why": "the site's figure came from a run older than the one the site last verified"
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": 9852.624338999274,
-      "statement": "The published run's net margin (\u00a3157,806.88) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a39,852.62. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The figure the site publishes came from run run_output_f620fed2c_20260917T072251Z.json, and the site's own provenance says the last run it verified was run_output_b55667741_20260917T114201Z.json -- which STARTED LATER. A published figure older than the last verified run is not a run the site is showing, so the claim is withheld. `generate_dashboard_data._find_latest_run_json()` picks the run the dashboard is built from by file mtime over gitignored artefacts, which is how a dashboard generated outside the shared tree comes to publish an old run's figure. The figure it publishes is \u00a3158,380.28."
     }
   },
   "provisioned": {
@@ -1212,6 +1211,73 @@
         }
       },
       "the_verdicts": "On 18 re-draws the legs split, and the split is the finding rather than a gap in it: the whole advantage over flat rules is positive, the price-LEVEL leg is positive, while the selection leg still has no direction at this sample. The leg that CAN be called is the price LEVEL -- a flat margin with no per-customer inference in it anywhere -- and the level is value MOVED, not made. The leg the mission turns on is the one this book cannot yet call."
+    },
+    "discrimination_across_the_family": {
+      "against_the_statistics_own_null": {
+        "available": true,
+        "source": "the 3-seed AUC-carrying floor of 2026-09-17",
+        "is_the_family_the_advantage_is_bounded_over": false,
+        "seeds_read": 3,
+        "mean_auc": 0.5697337962962963,
+        "auc_by_seed": [
+          {
+            "seed": 1234567,
+            "auc": 0.5649181547619048,
+            "retained": 64,
+            "left": 42
+          },
+          {
+            "seed": 2345678,
+            "auc": 0.5649181547619048,
+            "retained": 64,
+            "left": 42
+          },
+          {
+            "seed": 3456789,
+            "auc": 0.5793650793650794,
+            "retained": 63,
+            "left": 42
+          }
+        ],
+        "null_point": 0.5,
+        "null_sd": 0.05777864991492475,
+        "null_sd_population": {
+          "retained": 63,
+          "left": 42
+        },
+        "null_sd_formula": "sqrt((retained + left + 1) / (12 * retained * left))",
+        "null_sds_above_no_information": 1.2069128717783246,
+        "exact_null": {
+          "available": true,
+          "retained": 63,
+          "left": 42,
+          "ordered_pairs": 2646,
+          "null_point": 0.5,
+          "null_95_low": 0.3869992441421013,
+          "null_95_high": 0.6130007558578987,
+          "p_two_sided": 0.2311468669201442,
+          "inside_the_null": true,
+          "measured_in_world": "39a192ce04c1eda8",
+          "verdict_withheld_because": null,
+          "basis": "exact Mann-Whitney null over all 388212866177054207116394767200 arrangements of 63 retained and 42 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
+        },
+        "exact_null_half_width": 0.1130007558578987,
+        "closed_form_agrees_with_the_exact_null": true,
+        "family_spread_is_not_the_interval": {
+          "family_sd": 0.00834093580860511,
+          "times_narrower_than_the_null": 6.92711840022988,
+          "why": "A seed family measures how far this instrument moves when its SEED moves. The null measures how far a rank statistic moves when there is NOTHING TO FIND on a population this size. They are different questions and their answers differ by an order of magnitude here, so the family's spread is published as a property of the instrument and never as this figure's interval."
+        },
+        "demonstrated": false,
+        "reading": "Discrimination reads 0.5697 across 3 draw(s), measured over a DIFFERENT family from the one the advantage above is bounded over (the 3-seed AUC-carrying floor of 2026-09-17), so it bounds nothing on this page and is not offered as an interval on anything: it is this book's only measured answer to whether the arm knows anything. 0.5 is the no-information point, and on 63 retained against 42 departed renewals a signal carrying nothing at all scatters with a standard deviation of 0.0578. This figure sits 1.21 of those above 0.5. That is INSIDE its own exact 95% null (0.3870-0.6130, two-sided p=0.231), so DISCRIMINATION IS NOT DEMONSTRATED HERE -- in either direction. An arm that beat the control while scoring at chance won by charging and not by knowing, and this book cannot yet tell those apart. That is a finding about the instrument's sample size and not a cue to re-run until a seed agrees."
+      },
+      "available": false,
+      "state": "asked_and_unanswerable",
+      "reason": "18 of this family's 18 seed rows carry no `discrimination_auc`. Floors produced before 2026-09-17 did not record it, so the advantage figures in this family have no discrimination reading beside them and none can be recovered without re-running the seeds. A spread over only the 0 rows that DO answer would bound a different family from the one whose advantage is published here, so this states an unknown instead.",
+      "seeds_carrying_an_auc": 0,
+      "seeds_in_family": 18,
+      "reading": "THE ADVANTAGE BESIDE THIS HAS NO DISCRIMINATION READING. This family WAS asked and cannot answer: its rows do not all carry the figure, and a spread over only those that do would bound a different family from the one whose advantage is published here.",
+      "what_this_costs": "So the legs above say how much the arm won and this page cannot yet say whether it won by knowing anything. That is not a caveat on the finding -- it is the half of the thesis this instrument has not measured, and it cannot be recovered from these rows at any sample size. It needs a new family drawn under a producer that records the figure per seed."
     }
   },
   "departure_term_rerun": {

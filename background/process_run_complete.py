@@ -359,14 +359,18 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 # with headroom in it"* and spent a turn on it.
 #
 # Both halves are instrumented and neither supports it:
-#   * the publisher's own scoped gate ~660s (`publish_gate_duration.jsonl`)
-#   * the commit hook chain       ~134s (`commit_hook_duration.jsonl`)
-# The second run is a FIFTH of the first, not a comparable one, and has not been comparable since
-# 2026-08-31 (see MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04, which records the 5.4x step).
-# Together they are ~12 min of a cycle, so halving the gate returns ~5 min. There is no headroom
-# in this lever. The identical correction was already recorded at the 880s constant below and NOT
-# here, which is how one refuted claim went on being read as current in the same file that
-# disproved it -- the same one-rule-many-copies shape as the VAT defect.
+#   * the publisher's own scoped gate ~837s median (`publish_gate_duration.jsonl`, full runs in
+#     the last 60 rows span 563-1004s; the sub-200s rows are early failures, not gate runs)
+#   * the commit hook chain           ~333s        (`commit_hook_duration.jsonl`)
+# RE-MEASURED 2026-09-17 AND THE RATIO MOVED, so the sentence that stood here is corrected rather
+# than left: it read *"the second run is a FIFTH of the first"*, from a 660/134 reading taken on
+# 2026-09-04. BOTH series have grown since and the hook chain grew faster. The second run is now
+# ROUGHLY TWO FIFTHS of the first. Together they are ~19.5 min of a cycle, so halving the gate
+# returns ~7 min of it. That is more than the ~5 min claimed here in September and it is still not
+# a lever with headroom in it -- but the reason has changed, and a correct conclusion resting on a
+# stale ratio is a claim waiting to rot. The identical correction was already recorded at the 880s
+# constant below and NOT here, which is how one refuted claim went on being read as current in the
+# same file that disproved it -- the same one-rule-many-copies shape as the VAT defect.
 #
 # The constant this paragraph annotates is still a STOPGAP with a measurement behind it rather
 # than an answer. That part was right and stands.
@@ -394,17 +398,58 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 #: until now. Worst of the last twenty rows on 2026-09-04: 134.3s.
 #:
 #: THE REGIME IS PART OF THE MEASUREMENT, so it is recorded here rather than left for the next
-#: reader to rediscover (n=152, 2026-08-25 -> 2026-09-04):
+#: reader to rediscover (n=195, 2026-08-25 -> 2026-09-17):
 #:   * 2026-08-25          837s, 674s   -- the incident this control exists for, machine loaded
 #:   * 2026-08-26 -> 08-31 390-425s     -- ~60 runs, +-4%
-#:   * 2026-08-31 19:28 -> 101-134s     -- ~40 runs over four days, +-13%
-#: The step is SHARP (392.6s at 16:35 UTC, 72.7s at 19:28 UTC) and it has HELD. I cannot
-#: attribute it to a single commit: six landed in that window, and at least two remove exactly
-#: the shape that would cause it (`e8a2e0b37` stopped nineteen tests writing the live evidence
-#: base; `3ba51f9cf` removed an import that built the whole book). The old regime was
-#: defect-driven, so grading against the current one is right -- but a 5.4x step in one interval
-#: is why this number is a MEASUREMENT WITH A DATE and not a property.
-MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04 = 134
+#:   * 2026-08-31 19:28 -> 101-134s     -- ~40 runs over four days, +-13%   <- the 09-04 reading
+#:   * 2026-09-08 -> 09-10  91-218s     -- the climb back, no single step in it
+#:   * 2026-09-15 -> 09-17 253-333s     -- 9 runs over three days, +-12%    <- the reading here
+#: The 08-31 step was SHARP (392.6s at 16:35 UTC, 72.7s at 19:28 UTC) and it did NOT hold: the
+#: chain has climbed steadily back since 09-08 and is now 2.5x the figure this constant carried.
+#: I cannot attribute either move to a single commit -- six landed in the 08-31 window, and the
+#: climb since is spread over a fortnight of ordinary growth -- which is exactly why this number
+#: is a MEASUREMENT WITH A DATE and not a property. It has now been re-taken twice; assume it
+#: will need re-taking again.
+#:
+#: RE-DATED 134 -> 333 (2026-09-17). Worst of the last twenty rows is 666.95 and that is NOT the
+#: figure taken, because 666.95 is a row whose UNIT IS UNSTATED: `b55667741` lost the landing
+#: race and its stopwatch spans two full chains of ~333s, as the publisher's own record says and
+#: as `_record_commit_hook_duration` now documents. Setting a per-chain constant from a row that
+#: counts two of them would restate, in a committed number, the exact inference that wedged the
+#: shared tree on 2026-09-16. The worst row in the window that is not one of the two the
+#: publisher's record names as multi-chain landings (`2c89bd534` 1381.52s, `b55667741` 666.95s)
+#: is `770497ddd` at 333.22s, a clean `pass`. That is the figure.
+#:
+#: THIS CONSTANT NO LONGER SETS THE EARLY-EXIT DISCRIMINATOR, and the split is the 2026-09-17
+#: repair -- see `REAL_CHAIN_FLOOR_SECONDS_2026_09_17` below for why one number could not do
+#: both jobs. Re-dating it while the two were still tied would have been unsafe, which is why the
+#: staleness refusal has spent a fortnight naming a re-measurement nobody could take.
+MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17 = 333
+
+#: BELOW THIS, A "CHAIN" NEVER RAN THE TEST GATE AT ALL -- a hook that refuses early returns in
+#: about a second and its row is a LOWER BOUND, not a measurement. A window made only of those
+#: rows must make the live half SKIP, because a machine whose chain cost is UNOBSERVED is not a
+#: machine with a fast chain, and reading it as one is the fail-open that matters here.
+#:
+#: WHY THIS IS ITS OWN CONSTANT (2026-09-17). It was `MEASURED_COMMIT_HOOK_CHAIN_SECONDS / 4`,
+#: and that one number was serving two uses whose gradients point OPPOSITE WAYS. As the
+#: representative per-chain cost it must RISE with the regime or the deadline control reports
+#: room that is not there. As the early-exit discriminator it must stay BELOW THE SMALLEST REAL
+#: CHAIN, which is a property of what the gate does and has not moved. Tied together, a growing
+#: regime walks the discriminator up through the real-chain population: at 333 the derived floor
+#: is 83.25s, and every genuine chain between 67.44s and 83.25s is re-labelled an early exit --
+#: which does not red anything, it makes the whole live half SKIP. Silently, and in the direction
+#: that reads as health. The constants are cut apart here so the re-measurement above could be
+#: taken at all.
+#:
+#: THE VALUE SITS IN EMPTY SPACE, NOT AT A PICKED NUMBER. Measured over all 195 rows of
+#: `docs/observability/commit_hook_duration.jsonl` (2026-08-25 -> 2026-09-17): 9 early exits
+#: spanning 0.93-1.58s, 186 real chains, the smallest 67.44s, and NOTHING BETWEEN THEM -- a
+#: 42.7x empty band. 10.0s is the round number nearest its geometric centre (sqrt(1.58 * 67.44)
+#: = 10.3): 6.3x above every early exit ever recorded and 6.7x below every real chain ever
+#: recorded. A regime change moves the real chains; it does not move what an early exit costs,
+#: because an early exit is a hook deciding not to run the suite.
+REAL_CHAIN_FLOOR_SECONDS_2026_09_17 = 10.0
 
 #: How much room the deadline must have over measured reality. 1.25 rather than the old 5x: a
 #: large multiple over a small stale number is what made the previous control unable to fail.
@@ -419,25 +464,32 @@ COMMIT_DEADLINE_HEADROOM = 1.25
 # `publish_gate_duration.jsonl` -- the publisher's separate scoped gate, which this deadline does
 # not bound. Against the ledger that DOES measure this deadline's subject:
 #
-#   * FLOOR   168s -- COMMIT_DEADLINE_HEADROOM * MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04.
+#   * FLOOR   416s -- COMMIT_DEADLINE_HEADROOM * MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17.
+#     It read 168s until 2026-09-17, off the 134s regime; the chain has since grown to 333s and
+#     the floor moved with it, which is the one direction this constant is SUPPOSED to move in.
 #   * CEILING 900s -- PUBLISH_PATH_ALLOWANCE_SECONDS. `test_the_deadline_leaves_room_for_the_
 #     publish_path_after_the_gate` requires slack >= this deadline, and the allowance may not
 #     grow: the director ruled on 2026-08-21 that no gate budget grows here ("A 75-minute gate is
 #     absurd on its face and neither of us said so"). GATE_SUITE_TIMEOUT_SECONDS stays 3800 and
 #     PUBLISH_PATH_TIMEOUT_SECONDS stays 4700.
 #
-# The room is 732 seconds, not 57. There was never a box.
+# The room is 484 seconds, not 57. There was never a box -- though it is HALF what it was on
+# 2026-09-04 (732s), because the floor rises with the chain and the chain has grown 2.5x since.
+# At the 09-04 growth rate the floor reaches 900 in about a month, and THAT is the wall, not 880.
 #
 # 880 IS NOT LOWERED, and that is a decision rather than an oversight. It is inside the allowance
-# already reserved, no commit has ever been killed by it, and the all-time worst chain this
-# machine has recorded is 837.3s (2026-08-25, under the old regime) -- 880 covers even that.
-# Cutting it would buy nothing and can only kill commits.
+# already reserved, no commit has ever been killed by it, and the worst SINGLE chain this machine
+# has recorded is 837.3s (2026-08-25, under the old regime) -- 880 covers even that. Two rows
+# exceed it (1381.52s, 666.95s) and both are landings that lost the compare-and-swap and re-gated,
+# so neither is one chain; see `_record_commit_hook_duration`. Cutting 880 would buy nothing and
+# can only kill commits.
 #
 # AND THE REPAIR THIS COMMENT USED TO NAME IS PROBABLY ALREADY DONE. It said the publisher pays
 # for "TWO comparable full-suite runs per cycle" and that halving them was the only move left.
-# Measured: the publisher's scoped gate costs ~660s and the hook chain ~134s. The second run is a
-# fifth of the first. They are not comparable and have not been since 2026-08-31. The expensive
-# run is the publisher's own gate. Nobody should design that removal off the old claim.
+# Measured 2026-09-17: the publisher's scoped gate ~837s median and the hook chain ~333s. The
+# second run is roughly two fifths of the first -- it said "a fifth" on 09-04 and both series have
+# grown since, the chain faster. They are still not comparable and the expensive run is still the
+# publisher's own gate. Nobody should design that removal off either reading without re-taking it.
 # Filed: docs/staging/SEAT_FINDING_THE_COMMIT_DEADLINE_IS_BOXED_BETWEEN_TWO_CONTROLS_AND_THE_
 # ROOM_IS_57_SECONDS_2026-09-04.md (whose title is now the refuted claim; disposition at its foot).
 GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 880
@@ -5090,11 +5142,17 @@ def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome:
         # FAIL-SAFE TOWARD THE OLD READING: a chain count that is not a positive int is treated
         # as 1, so a broken caller over-reports (the direction every consumer of this series is
         # already safe in) rather than silently shrinking a real cost.
-        per_chain = float(elapsed_seconds)
-        if isinstance(chains, int) and not isinstance(chains, bool) and chains > 1:
-            per_chain = per_chain / chains
+        # AND THE COUNT GOES ON THE ROW, not only into the division (2026-09-17). Dividing
+        # fixes the rows written from here on; recording the divisor is what lets a reader tell
+        # one of those from the nine days of totals behind it. Without it the repair above is
+        # invisible to every consumer of this series and the next reader re-infers the unit --
+        # which is the whole defect, one notch down.
+        n_chains = chains if (isinstance(chains, int) and not isinstance(chains, bool)
+                              and chains > 0) else 1
+        per_chain = float(elapsed_seconds) / n_chains
         record_gate_run(per_chain, GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
-                        str(git_hash or "unknown"), outcome, COMMIT_HOOK_DURATION_PATH)
+                        str(git_hash or "unknown"), outcome, COMMIT_HOOK_DURATION_PATH,
+                        chains=n_chains)
     except Exception:  # noqa: BLE001 - see docstring
         pass
 
