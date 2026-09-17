@@ -1,5 +1,33 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Discharged:** `tests/tools/test_refresh_to_head.py::test_a_draft_against_a_dead_api_is_refused_until_the_flag_is_typed`,
+`tests/tools/test_refresh_to_head.py::test_the_flag_actually_opens_the_door_and_heads_bytes_land_on_disk`,
+`tests/tools/test_refresh_to_head.py::test_one_live_name_beside_the_dead_ones_shuts_the_door_even_with_the_flag`,
+`tests/tools/test_refresh_to_head.py::test_the_flag_does_not_relax_the_base_must_supersede_it_rule`,
+`tests/tools/test_refresh_to_head.py::test_the_missing_attribute_and_the_commit_that_did_bind_it_reach_the_reader` — 2026-09-17,
+the delivery seat; each of the five mutation-proven to fire.
+
+The third door this finding proposes is built: `refresh_to_head --superseded`, gated on `dead_among`
+in `tools/stale_copy_refusal.py`, which admits a copy only when EVERY name it supplies reaches for
+an attribute the base's own module does not bind. Rules 2 and 3 are untouched — the base must still
+supersede the copy, the bytes are still preserved, the recovery is still verified before a byte
+moves — and the dead names are printed on the surface the way a declared deletion is.
+
+STATIC WHERE THE FINDING PROPOSED RUNNING IT, and the trade is in the code rather than left for a
+reader to discover: executing a rival lane's uncommitted module inside a control that then destroys
+bytes is a hazard this repo has already banked, and the AST asks the same question of the same two
+facts. What it cannot see — a getattr-shaped reference — leaves the name reading as HOLDER WORK,
+which is the only direction this discriminator is allowed to be wrong in.
+
+This finding's own correction is carried into the verdict rather than only recorded: `Dead.elsewhere`
+runs the `git log --all -S` lookup whose absence is what made three documents call the missing
+partner non-existent, and names the commit that did bind it.
+
+THE FALSE POSITIVE THE FINDING DID NOT NAME, and the reason the flag is a person and never a
+default: a lane writing the control BEFORE the module it grades produces a byte-identical file, and
+the difference is intent, which is not on disk. `TEST_FIRST_APPEND` is that case in the suite, and
+it is refused even under the flag — by rule 2, which is why rule 2 survives it.
+
 # The r1 copy's "missing" partner is in a salvage commit, HEAD superseded it under different names, and the two findings that called it non-existent are wrong in the same sentence
 
 **Filed 2026-09-08 by the delivery seat (lane 0), working the drawn item "five rival working copies

@@ -375,6 +375,221 @@ def cuts_among(root: Path, path: str, names: tuple[str, ...],
     return tuple(cut for cut in found if cut is not None)
 
 
+# ------------------------------------------- rule 1c: a name that is SUPPLIED but CANNOT RUN
+#
+# THE DEFECT THIS OWNS, and it is the second of the two 2026-09-08 findings that froze `H_harness`
+# for nine days: `SEAT_FINDING_THE_R1_COPYS_MISSING_PARTNER_IS_IN_A_SALVAGE_COMMIT_AND_HEAD_
+# SUPERSEDED_IT_UNDER_NEW_NAMES`. `cut_of` above widened the difference by one class -- a name the
+# base DELETED is not holder work -- and that class is not this one. A name the base NEVER BOUND is
+# still counted as work to land, and a draft written against an API that no longer exists supplies
+# eleven such names and not one unit of landable work. The finding measured it by running the copy:
+# 26 collected, 6 failed, every failure an `AttributeError` for an attribute HEAD's module does not
+# define. Landing any hunk of it adds a red test to the suite.
+#
+# STATIC, WHERE THE FINDING PROPOSED RUNNING IT, and the trade is stated rather than hidden. The
+# finding's predicate was "the file's own execution of it raises AttributeError"; executing a rival
+# WORKING COPY to decide whether to overwrite it means importing an arbitrary lane's uncommitted
+# module inside a control that then destroys bytes, and this repo has already banked what probing an
+# unknown module costs (`probing_an_unknown_module_with_help_can_run_it_and_write_the_shared_tree`).
+# The AST asks the same question of the same two facts -- does this name's own body reach for an
+# attribute the base's module does not bind -- without being the thing that runs it. WHAT IT CANNOT
+# SEE, said here because a blindness nobody wrote down is a fail-open: a reference built by
+# `getattr(mod, name)` or through an alias this walker did not resolve reads as no reference at all,
+# so the name stays HOLDER WORK. That is the safe direction and it is the only direction this
+# discriminator is allowed to be wrong in, because the door it opens overwrites a lane's bytes.
+
+
+@dataclass(frozen=True)
+class Dead:
+    """A name the copy supplies whose OWN BODY reaches for an attribute the base does not bind, on
+    a first-party module the base DOES hold. Not holder work: landing it lands a red."""
+    name: str
+    #: repo-relative path of the module whose attribute is missing
+    module: str
+    attr: str
+    #: a commit that DID bind `attr` there, or "". CONTEXT FOR THE READER, NEVER THE PREDICATE --
+    #: the r1 instance's missing half was in a SALVAGE commit on no branch, which three documents
+    #: read as "exists nowhere" because they asked branches instead of `--all`. Whether some
+    #: unreachable commit once had it says nothing about whether the copy can land; it says a great
+    #: deal to whoever is deciding if the module is worth reviving, so it goes on the surface.
+    elsewhere: str = ""
+
+
+def _dotted(node: ast.AST) -> str | None:
+    """`a.b.c` as a string when the node is a pure dotted name, else `None`."""
+    parts: list[str] = []
+    while isinstance(node, ast.Attribute):
+        parts.append(node.attr)
+        node = node.value
+    if not isinstance(node, ast.Name):
+        return None
+    parts.append(node.id)
+    return ".".join(reversed(parts))
+
+
+def _module_aliases(text: str) -> dict[str, str]:
+    """Local name -> dotted module path, for every import shape this file uses.
+
+    `from a.b import c` is included because `c` may be a MODULE rather than a symbol; whether it
+    resolves to a file on disk is `_module_blob`'s question, and a name that resolves to nothing
+    yields no verdict at all."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return {}
+    out: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                out[alias.asname or alias.name] = alias.name
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            for alias in node.names:
+                if alias.name != "*":
+                    out[alias.asname or alias.name] = "{}.{}".format(node.module, alias.name)
+    return out
+
+
+def _module_blob(root: Path, dotted: str, parent: str) -> tuple[str, str] | None:
+    """(repo-relative path, text) of the module `dotted` names IN THE BASE TREE, or `None`.
+
+    `None` means "not a first-party module of this repository at `parent`" -- a stdlib or site-
+    packages import, or a module the base does not hold. No opinion is the answer there: this
+    control can only speak about attributes the base itself is supposed to supply."""
+    stem = dotted.replace(".", "/")
+    for candidate in ("{}.py".format(stem), "{}/__init__.py".format(stem)):
+        text = blob_at(root, parent, candidate)
+        if text is not None:
+            return candidate, text
+    return None
+
+
+def _definition_of(text: str, name: str) -> ast.AST | None:
+    """The top-level `def`/`class` that binds `name`, or `None` when it is bound some other way."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return None
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) \
+                and node.name == name:
+            return node
+    return None
+
+
+def dead_of(root: Path, path: str, name: str, text: str, parent: str = "HEAD") -> Dead | None:
+    """`name`'s own body reaches for an attribute `parent`'s copy of a first-party module does not
+    bind -- or `None`, which means NOT ESTABLISHED AS DEAD and leaves the name reading as work.
+
+    Every early return here is that `None`. The error direction is deliberate and it is not the
+    flattering one: the only consumer of a `Dead` is a door that OVERWRITES the copy, so a name
+    called dead on a guess destroys a lane's work through the repair for losing it.
+
+    THE FALSE POSITIVE THIS CANNOT RULE OUT, AND WHY IT IS NOT AUTOMATED ANYWHERE. A lane writing
+    test-first -- the control before the module it will grade -- produces a file that is
+    indistinguishable from this one by any static or dynamic reading: both name an attribute that
+    does not exist yet. The difference is intent, and intent is not on disk. So `Dead` never clears
+    a door by itself; `refresh_to_head` requires rule 2 (the base must already supersede the copy)
+    AND an explicit `--superseded` typed by someone who has read these names printed out. Four
+    conjunctive guards and a human, for a verdict whose honest confidence is "probably".
+    """
+    definition = _definition_of(text, name)
+    if definition is None:
+        return None
+    aliases = _module_aliases(text)
+    for node in ast.walk(definition):
+        if not isinstance(node, ast.Attribute):
+            continue
+        dotted = _dotted(node.value)
+        if dotted is None or dotted not in aliases:
+            continue
+        found = _module_blob(root, aliases[dotted], parent)
+        if found is None:
+            continue
+        module, blob = found
+        try:
+            bound = symbols(blob, module)
+        except Unparseable:
+            continue
+        if bound is None or node.attr in bound:
+            continue
+        where = _git(root, "log", "--all", "--max-count=1", "--format=%H",
+                     "-S", node.attr, "--", module).stdout.strip()
+        return Dead(name, module, node.attr, where)
+    return None
+
+
+def dead_among(root: Path, path: str, names: tuple[str, ...], text: str,
+               parent: str = "HEAD") -> tuple[Dead, ...]:
+    """Which of `names` cannot run against the base. Same shape and same cost model as
+    `cuts_among`: refusal path only, a handful of candidates, and silence is "not established"."""
+    found = (dead_of(root, path, name, text, parent) for name in names)
+    return tuple(dead for dead in found if dead is not None)
+
+
+# --------------------------------- the clause that separates HOLDER WORK from a REPLACEMENT
+#
+# THE DEFECT THIS OWNS is the FIRST of the two 2026-09-08 findings, `SEAT_FINDING_THE_HOLDER_WORK_
+# RULE_COUNTS_NAMES_SO_A_RENAMED_DRAFT_READS_AS_WORK_TO_LAND`, and the direction it fails in is the
+# expensive one: the verdict says LAND THIS, of a copy whose landing is a revert. A copy that
+# renames a control HEAD already carries supplies a name and no work, and at the level of a symbol
+# SET a rename and a genuine addition are identical -- so the set difference cannot be the test.
+#
+# The finding's clause, verbatim, and it is about HUNKS and not about the file:
+#
+#     holder work  <=>  exists a hunk H such that  symbols_added(H) - HEAD_symbols  is non-empty
+#                       AND  symbols_deleted(H) & HEAD_symbols  is empty
+#
+# WHY IT MUST BE PER HUNK. `--keep N` is the remedy the verdict names, and it selects hunks. A copy
+# that appends a function AND separately rewrites another one has a legal selection -- take the
+# append, leave the rewrite -- so it IS holder work. A copy whose addition and deletion are THE SAME
+# HUNK has none: the finding's live instance was `@@ -441,728 +440,81 @@`, 718 lines out and 70 in,
+# indivisible, and `isolate_hunks` is right to have no `--keep` that splits it. A file-level test
+# would collapse those two onto each other and refuse the first, which is the wrong answer in the
+# direction that strands a lane's real work.
+#
+# COMPUTED ON THE ISOLATED OUTPUT, not on the +/- lines. The finding's own closing paragraph names
+# this as the cheap step that turns the class up -- "checking the isolated output's symbol set
+# against HEAD, rather than the copy's, and it is one AST parse". It is also exact where a line
+# walk is approximate: `reconstruct` builds the bytes `--keep N` would actually hand to
+# `surgical_land`, so what is graded is the thing that would land.
+
+
+def landable_hunks(head_text: str, work_text: str, path: str) -> tuple[int, ...]:
+    """The hunk indices `--keep` could take that ADD a name the base lacks and DROP none it has.
+
+    Empty means there is NO legal `--keep` selection: every hunk carrying new work also deletes
+    landed work, so the copy is a REPLACEMENT and the choice between the two implementations is a
+    judgement neither door is allowed to make. Numbering is `isolate_hunks --survey`'s, so a caller
+    can print an index a reader can then select.
+    """
+    # REUSED rather than re-cut: `group_opcodes`/`reconstruct` ARE the hunk map `--keep` selects
+    # over, and they are pure. Re-deriving a second hunk numbering here would mean this verdict
+    # cites an index that the tool it sends the reader to does not agree with.
+    from tools.isolate_hunks import group_opcodes, reconstruct
+
+    try:
+        head_names = symbols(head_text, path)
+    except Unparseable:
+        return ()
+    if head_names is None:
+        return ()
+    base = head_text.splitlines(keepends=True)
+    work = work_text.splitlines(keepends=True)
+    ops, groups = group_opcodes(base, work)
+    out: list[int] = []
+    for gid in range(len(groups)):
+        isolated = "".join(reconstruct(base, work, ops, groups, {gid}))
+        try:
+            names = symbols(isolated, path)
+        except Unparseable:
+            continue  # an isolation that will not parse is not a route anyone can take
+        if names is None:
+            continue
+        if names - head_names and not head_names - names:
+            out.append(gid)
+    return tuple(out)
+
+
 @dataclass(frozen=True)
 class Loss:
     path: str

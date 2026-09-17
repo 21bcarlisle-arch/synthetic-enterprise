@@ -25,7 +25,16 @@ WHAT STOPS THIS BEING `git checkout` WITH A NICER NAME. Three things, and they a
      split, made a precondition. NEVER BOUND and not merely ABSENT, since 2026-09-16: a name HEAD
      DELETED on purpose is a re-creation, not holder work, and reading it as holder work shut this
      door against exactly the copies the census sends here -- `stale_copy_refusal.cut_of` has that
-     argument in full.
+     argument in full. And since 2026-09-17, NEVER BOUND *AND ABLE TO RUN*: a name whose own body
+     reaches for an attribute the base's module does not bind is a draft against a dead API, not
+     work -- `stale_copy_refusal.Dead`. That class needs an explicit `--superseded`, because a lane
+     writing the control before the module it grades produces the identical file.
+
+  1b. A COPY THAT SUPPLIES REAL WORK MAY STILL HAVE NO DOOR, and saying so is the repair rather
+     than a gap. When every hunk carrying a new name also deletes a name the base has, `--keep`
+     has no selection and `--content` lands a revert, so neither door applies: the verdict is
+     `REPLACEMENT` and the choice between two implementations of one property goes back to a
+     person. `stale_copy_refusal.landable_hunks` computes it on the bytes `--keep` would build.
   2. HEAD MUST ACTUALLY SUPERSEDE IT. `stale_copy_refusal.judge` must have a complaint about this
      copy. Keyed to the PROPERTY (this copy would revert a landing), not to a path anyone listed:
      without it the tool reverts any edit you point it at, which IS `git checkout`.
@@ -67,7 +76,17 @@ from pathlib import Path
 # which is what lets refusal 1 fail closed instead of waving an unreadable file through; its
 # `judge()` is refusal 2 entire. Re-deriving either would be a second opinion about what a stale
 # copy is, and two answers to that question is the defect this class already banked.
-from tools.stale_copy_refusal import READABLE, Unparseable, blob_at, cuts_among, judge, symbols
+from tools.stale_copy_refusal import (
+    READABLE,
+    Dead,
+    Unparseable,
+    blob_at,
+    cuts_among,
+    dead_among,
+    judge,
+    landable_hunks,
+    symbols,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -83,6 +102,18 @@ UNPARSEABLE = "refused_unparseable"
 SUPPLIES_NEW = "refused_supplies_names_head_lacks"
 NOT_SUPERSEDED = "refused_head_does_not_supersede_it"
 STAGED = "refused_holder_has_it_staged"
+#: THE THIRD STATE THE TWO DOORS DID NOT HAVE. The copy supplies names, AND every hunk that carries
+#: one also deletes a name the base has -- so `--keep` has no legal selection and `--content` lands
+#: a revert, while this tool refuses because the copy does supply names. Both existing doors are
+#: keyed to the same name count and both are wrong here, which is the pair the two 2026-09-08
+#: findings each named half of. Naming the state IS the repair: the choice between two
+#: implementations of one property is a judgement, and a refusal that says so is worth more than a
+#: verdict that picks the flattering side of it.
+REPLACEMENT = "refused_replacement_no_landable_hunk"
+#: Supplies names, but NOT ONE of them can run against the base -- see `stale_copy_refusal.Dead`.
+#: A refusal by default and writable only under `--superseded`, because a test-first lane looks
+#: exactly like this and the difference is intent, which is not on disk.
+SUPERSEDED_DEAD = "refused_supplies_only_dead_names"
 
 
 class RefreshError(RuntimeError):
@@ -125,6 +156,8 @@ class Verdict:
     reason: str
     gains: tuple[str, ...] = ()       # names the copy supplies that HEAD does not
     discarded: tuple[str, ...] = ()   # lines the copy has that HEAD does not
+    dead: tuple[Dead, ...] = ()       # of `gains`, the ones that cannot run against the base
+    drops: tuple[str, ...] = ()       # names HEAD has that the copy does not
 
     @property
     def refused(self) -> bool:
@@ -136,6 +169,19 @@ class Verdict:
             body += "        + {}\n".format(name[:110])
         if len(self.gains) > 8:
             body += "        (+{} more name(s))\n".format(len(self.gains) - 8)
+        # THE DEAD NAMES GO ON THE SURFACE WHETHER THEY ARE ADMITTED OR REFUSED, the way
+        # `surgical_land --drops` prints a deliberate deletion: this is the one fact licensing a
+        # write that destroys bytes, and an exemption nobody can see is a hole.
+        for gone in self.dead[:8]:
+            body += "        ✗ {} -> {}.{} is bound nowhere in HEAD's copy{}\n".format(
+                gone.name[:60], Path(gone.module).stem, gone.attr,
+                "" if not gone.elsewhere else
+                " (but {} did bind it -- `git show {}:{}`)".format(
+                    gone.elsewhere[:9], gone.elsewhere[:9], gone.module))
+        for name in self.drops[:8]:
+            body += "        - {}  <- HEAD HAS THIS AND THE COPY DOES NOT\n".format(name[:96])
+        if len(self.drops) > 8:
+            body += "        (+{} more landed name(s) the copy drops)\n".format(len(self.drops) - 8)
         if self.state == REFRESHABLE:
             body += "      LINES THAT WILL BE DISCARDED ({}), recoverable from the preserved " \
                     "commit:\n".format(len(self.discarded))
@@ -163,7 +209,7 @@ def _staged_paths(root: Path) -> frozenset[str]:
 
 
 def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
-               base: str = "HEAD") -> Verdict:
+               base: str = "HEAD", superseded: bool = False) -> Verdict:
     """The whole precondition for one path. Reads; writes nothing, ever.
 
     `base` IS THE TREE THAT MUST SUPERSEDE THE COPY, AND IT IS NOT ALWAYS `HEAD`. On a tree that is
@@ -173,6 +219,14 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     "does HEAD supersede this copy" of a path origin has moved since HEAD gets the wrong answer
     twice over: `last_commit_touching(..., "HEAD")` cannot see the landing that superseded the copy,
     and the symbol comparison runs against a blob that is not the one the tree is about to hold.
+
+    `superseded` RELAXES RULE 1 BY ONE CLASS AND NOTHING ELSE. It admits a copy whose every
+    supplied name is proven unable to run against `base` -- and rules 2 and 3 still apply in full,
+    so the base must still have a complaint about the copy and the bytes are still preserved and
+    the recovery still verified before a byte moves. It is never a default and no automated caller
+    passes it: `background.origin_reconcile` requires `REFRESHABLE`, which this state is not until
+    a person types the flag. See `stale_copy_refusal.Dead` for the false positive it cannot rule
+    out, which is why it is a person.
 
     THE WRITE IS STILL HEAD'S BYTES, AND THAT IS NOT AN INCONSISTENCY. `refresh` clears a path by
     returning it to HEAD, because what refuses a fast-forward is *worktree differs from HEAD* --
@@ -233,13 +287,50 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     # `symbols()`. The difference says the same thing without asking that question of a string.
     cuts = cuts_among(root, path, tuple(sorted(work_names - head_names)), parent=base)
     gains = tuple(sorted(work_names - head_names - frozenset(c.name for c in cuts)))
-    if gains:
+    dead = dead_among(root, path, gains, work_text, parent=base)
+    # THE NAME COUNT WAS THE WHOLE TEST AND IT GRADED THREE DIFFERENT COPIES THE SAME WAY. Two
+    # 2026-09-08 findings each named half of that (`..._THE_HOLDER_WORK_RULE_COUNTS_NAMES_...` and
+    # `..._THE_R1_COPYS_MISSING_PARTNER_IS_IN_A_SALVAGE_COMMIT_...`) and froze `H_harness` for nine
+    # days between them. The split below is theirs, in their order of confidence: a name that
+    # CANNOT RUN is decided by the base's own module; a copy with NO LANDABLE HUNK is decided by
+    # the reconstruction `--keep` would build; and what survives both is holder work, unchanged.
+    # A SET DIFFERENCE AND NOT A MEMBERSHIP FILTER, for the same reason the `cuts` line above is
+    # one: `tools/substring_source_scan_census.py` reads a `not in` over anything reachable from
+    # file text as a substring-shaped interrogation of Python source, and it is right to -- these
+    # names came out of `symbols()`. The difference says the same thing without asking that
+    # question of a string. (Written as a filter first; the census caught it at the commit gate.)
+    live = tuple(sorted(frozenset(gains) - frozenset(d.name for d in dead)))
+    if gains and not live and not superseded:
+        return Verdict(path, SUPERSEDED_DEAD,
+                       "this copy supplies {} name(s) {} lacks and NOT ONE of them can run against "
+                       "it -- each reaches for an attribute {}'s own module does not bind, so "
+                       "landing any hunk of it lands a red. That is not holder work. Re-run with "
+                       "`--superseded` to admit it, AFTER reading the names below: a lane writing "
+                       "the control before the module it grades produces exactly this file, and "
+                       "the difference is intent, which is not on disk.".format(
+                           len(gains), base, base),
+                       gains=gains, dead=dead)
+    if live:
+        landable = landable_hunks(head_text, work_text, path)
+        if not landable:
+            drops = tuple(sorted(head_names - work_names))
+            return Verdict(path, REPLACEMENT,
+                           "this copy supplies {} name(s) {} lacks, and EVERY hunk carrying one "
+                           "also deletes a name {} has -- so `--keep` has no selection that takes "
+                           "the work without the revert, and `--content` would land the revert. "
+                           "It is a REPLACEMENT, not holder work: two implementations of one "
+                           "property, and which survives is a judgement neither door may make. "
+                           "Decide it, then land the winner deliberately.".format(
+                               len(live), base, base),
+                           gains=live, drops=drops)
         return Verdict(path, SUPPLIES_NEW,
                        "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
                        "supersedes -- it is holder work. Use `python3 -m tools.isolate_hunks "
-                       "--survey {}` and land those hunks over HEAD.".format(
-                           len(gains), base, base, path),
-                       gains=gains)
+                       "--survey {}` and land hunk(s) {} over HEAD -- those are the ones that add "
+                       "without deleting anything {} carries.".format(
+                           len(live), base, base, path,
+                           ", ".join(str(h) for h in landable), base),
+                       gains=live)
     loss = judge(root, path, head_text, work_text, parent=base)
     if loss is None:
         return Verdict(path, NOT_SUPERSEDED,
@@ -249,12 +340,16 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                        "nicer name -- and that is forbidden here for this exact reason.".format(
                            base))
     return Verdict(path, REFRESHABLE,
-                   "rival copy: supplies no name {} lacks{}, and the stale-copy control refuses it "
-                   "[{}]. {} strictly supersedes it.".format(
+                   "rival copy: supplies no name {} lacks{}{}, and the stale-copy control refuses "
+                   "it [{}]. {} strictly supersedes it.".format(
                        base, "" if not cuts else
                        " that it did not CUT ON PURPOSE ({} -- see `git show {}`)".format(
                            ", ".join(c.name for c in cuts[:3]), cuts[0].commit[:9]),
+                       "" if not dead else
+                       " that CAN RUN against it ({} admitted under --superseded)".format(
+                           len(dead)),
                        loss.rule, base),
+                   gains=gains, dead=dead,
                    discarded=_discarded_lines(head_text, work_text))
 
 
@@ -331,14 +426,15 @@ def _probe(verdict: Verdict) -> str | None:
 
 
 def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
-            base: str = "HEAD") -> tuple[int, str]:
+            base: str = "HEAD", superseded: bool = False) -> tuple[int, str]:
     """Survey, and when `write` is set and EVERY named path is refreshable, do it.
 
     `base` is the JUDGEMENT tree only -- see `judge_copy`. The bytes written are always HEAD's,
     because the block this clears is *worktree differs from HEAD*.
     """
     staged = _staged_paths(root)
-    verdicts = [judge_copy(root, path, staged, base=base) for path in paths]
+    verdicts = [judge_copy(root, path, staged, base=base, superseded=superseded)
+                for path in paths]
     report = "".join(v.render() for v in verdicts)
     refusals = [v for v in verdicts if v.refused]
     doable = [v for v in verdicts if v.state == REFRESHABLE]
@@ -390,9 +486,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="the tree that must supersede the copy (default HEAD). Use "
                          "`origin/main` on a tree that is BEHIND origin, where HEAD is itself a "
                          "stale base -- the bytes written are HEAD's either way.")
+    ap.add_argument("--superseded", action="store_true",
+                    help="admit a copy whose supplied names CANNOT RUN against the base -- each "
+                         "reaches for an attribute the base's own module does not bind. Survey it "
+                         "first: the names are printed, and a lane writing a control before the "
+                         "module it grades produces the same file.")
     args = ap.parse_args(argv)
     try:
-        rc, text = refresh(Path(args.root), args.paths, args.slug, args.write, base=args.base)
+        rc, text = refresh(Path(args.root), args.paths, args.slug, args.write, base=args.base,
+                           superseded=args.superseded)
     except RefreshError as exc:
         print("\n[refresh-to-head] ❌ {}".format(exc))
         return 1
