@@ -23,7 +23,7 @@
     "run_retained": true,
     "verified_at": "2026-09-17T12:29:43Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=797c3164f; blocking tests: FAILED tests/background/test_a_recorded_red_says_how_far_its_tree_stood_from_origin.py::test_a_red_graded_on_a_forked_tree_names_the_divergence, FAILED tests/background/test_a_recorded_red_says_how_far_its_tree_stood_from_origin.py::test_being_ahead_alone_is_still_a_fork, FAILED tests/background/test_a_recorded_red_says_how_far_its_tr",
+  "paused_reason": "scoped publish-path suite red at git=797c3164f; blocking tests: FAILED tests/background/test_the_publish_refusal_asks_whether_the_fork_touches_its_own_paths.py::test_both_sides_of_the_new_branch_are_reachable, FAILED tests/background/test_the_publish_refusal_asks_whether_the_fork_touches_its_own_paths.py::test_a_fork_that_touches_none_of_this_commits_paths_publishes",
   "paused_since": "2026-09-17T14:51:38Z",
   "schema": 1,
   "showing_run": {
@@ -39,5 +39,5 @@
     "verified_at": "2026-09-17T12:29:43Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-17T17:23:45Z"
+  "written_at": "2026-09-17T18:12:29Z"
 }

@@ -1522,7 +1522,8 @@ def test_the_page_says_WHICH_TREES_drew_the_two_sides_of_its_bound(live):
             "this control must red for that rather than skip past it".format(where, key))
         pairing = block[key]
         rendered = live[element]
-        assert pairing["rule"] in ("producing_commit", "unstamped"), pairing["rule"]
+        assert pairing["rule"] in ("producing_commit", "unstamped",
+                                   "declared_unavailable"), pairing["rule"]
         assert _door_prose(pairing["why_this_rule"]) in rendered, (
             "the page publishes a bound and does not say which code drew each side of it, so a "
             "reader takes a width and a figure from two trees for two readings of one")
@@ -1530,10 +1531,23 @@ def test_the_page_says_WHICH_TREES_drew_the_two_sides_of_its_bound(live):
             # THE COMMITS THEMSELVES, read off the feed rather than hardcoded, so this holds for
             # whichever pair is promoted next. A reader told the trees differ and not told which
             # two cannot check the claim against the repository.
-            for side in ("floor_producing_commit", "figure_producing_commit"):
-                assert pairing[side][:9] in rendered, (
+            #
+            # A POOLED FLOOR NAMES SEVERAL AND THE SINGULAR FIELD IS None (2026-09-17). Both
+            # states answer `same_tree is False` and the trees to name are in a DIFFERENT field,
+            # so reading only the singular one would have raised `None[:9]` -- a control dying of
+            # a TypeError rather than refusing, which grades nothing. Each side contributes the
+            # names it has, and every name it has must be on the page.
+            floor_side = ([pairing["floor_producing_commit"]]
+                          if pairing.get("floor_producing_commit")
+                          else list(pairing.get("floor_producing_commits") or []))
+            assert floor_side, (
+                "the page says the bound and the figure came from different trees and the feed "
+                "names no floor tree at all, in either the singular or the pooled field -- so "
+                "the claim cannot be checked against the repository: {!r}".format(pairing))
+            for commit in floor_side + [pairing["figure_producing_commit"]]:
+                assert commit[:9] in rendered, (
                     "the page says the bound and the figure came from different trees without "
-                    "naming the {} it means".format(side))
+                    "naming {}".format(commit[:9]))
         if pairing["caveat"]:
             assert _door_prose(pairing["caveat"]) in rendered, (
                 "the producer says the split has a cost and the reader is not told what it is")
@@ -1566,10 +1580,24 @@ def test_MUTATION_every_tree_pairing_renders_as_a_different_page():
                                    "THE SAME CODE CANNOT BE TOLD FROM THIS PAGE.",
                      caveat="THE BOUND BELOW AND THE FIGURE IT BOUNDS CANNOT BE SHOWN TO SHARE A "
                             "CODE TREE.")
+    # THE FOURTH STATE (2026-09-17), which arrives the moment a POOLED floor bounds the page. It
+    # is not `unstamped`: that one is one tree nobody recorded, this one is several trees the
+    # artefact DOES record, which is a known negative rather than an unknown. They rendered
+    # identically until this leg existed, and the sentence they shared was the milder one.
+    pooled = dict(rule="declared_unavailable", same_tree=False,
+                  floor_producing_commit=None,
+                  floor_producing_commits=["a" * 9, "b" * 9],
+                  figure_producing_commit="0" * 40,
+                  figure_tree_is_one_of_the_floors=False,
+                  floor_says_why="FOLDED from 2 runs drawn by 2 distinct code tree(s).",
+                  why_this_rule="THIS SPREAD WAS NOT DRAWN BY ONE CODE TREE, AND ITS OWN "
+                                "ARTEFACT SAYS SO rather than leaving the stamp blank.",
+                  caveat="THE WIDTH BELOW IS POOLED ACROSS 2 CODE TREES (aaaaaaaaa, bbbbbbbbb) "
+                         "and the figure it bounds is a single tree's.")
 
     for where, element in (("error_bar", "arms-errorbar"), ("current_world", "arms-redraw")):
         texts = [_render(_feed_paired_across(where, **p))[element]
-                 for p in (split, matched, unstamped)]
+                 for p in (split, matched, unstamped, pooled)]
         assert "DRAWN BY DIFFERENT" in texts[0], (
             "a bound drawn by another tree than the figure it bounds reaches {} silently".format(
                 element))
@@ -1577,8 +1605,15 @@ def test_MUTATION_every_tree_pairing_renders_as_a_different_page():
         assert "CANNOT BE TOLD" in texts[2], (
             "an unknowable pairing renders as a match, which is absence wearing the flattering "
             "answer")
-        assert len(set(texts)) == 3, (
-            "two of the three tree pairings render identically in {}, so a reader cannot tell "
+        assert "NOT DRAWN BY ONE CODE TREE" in texts[3] and "aaaaaaaaa" in texts[3], (
+            "a bound POOLED across trees reaches {} without saying so, or without naming the "
+            "trees it pooled -- which renders it as the milder 'nobody recorded it'".format(
+                element))
+        assert "CANNOT BE TOLD" not in texts[3], (
+            "a pooled bound renders as an UNKNOWN pairing. The page can tell, and the answer is "
+            "no: collapsing the two puts the flattering sentence on the adverse state")
+        assert len(set(texts)) == 4, (
+            "two of the four tree pairings render identically in {}, so a reader cannot tell "
             "which one the bound in front of them was published under".format(element))
         # AND THE STYLING, which the text extraction is blind to and which carries the meaning: a
         # matched pairing is a footnote, a split one is a qualification of the figure beside it.

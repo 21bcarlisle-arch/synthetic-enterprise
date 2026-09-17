@@ -226,7 +226,49 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: for the promoted-copy twin the census used to count twice.
 CURRENT_WORLD_THREE_ARM_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
-NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
+#: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
+#: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
+#: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
+#: holding the page's over-confident selection sign, and moving it does not touch the sign at all.
+#: `error_bar` is byte-identical under both settings of it. The sign is stated HERE.
+#:
+#: MOVED 2026-09-17 TO THE FOLDED EIGHTEEN, and the reason is that the page was stating a sign its
+#: own evidence had stopped supporting. Measured by building both ways and diffing, one variable:
+#:
+#:   floor              n    selection mean    sem       sems from 0   bar     verdict
+#:   _20260910 (was)    9    -GBP 1,749.47     613.46    2.85          2.31    NEGATIVE, stated
+#:   folded18 (now)     18   -GBP   624.13     347.16    1.80          2.11    NO SIGN, refused
+#:
+#: So the page published "on 9 re-draws ... the selection leg is negative" while an 18-draw family
+#: of the SAME world in the SAME redraw mode sat on disk unable to call it. The nine draws are not
+#: an independent second opinion either: `_20260910` runs seed values 11111..99999, which is
+#: exactly the seed set `_20260909b` runs, and `_20260909b` is one of the two members folded here.
+#: The smaller family was the same draws under a different tree, in the more confident position.
+#: THE MOVE MAKES THE PAGE LESS CONFIDENT AND THAT IS THE HONEST DIRECTION -- a retraction of a
+#: verdict, not a claim. No sentence was edited: `legs_on_one_bar` recomposes from the two signs.
+#:
+#: WHY THIS IS NOT THE PAIRING DEFECT THE CONSTANT BELOW WARNS ABOUT. "The bound alone bounds the
+#: wrong run" means a floor drawn over a DIFFERENT WORLD from the arms it bounds. Both floors and
+#: `THREE_ARM_PATH` carry world digest `39a192ce04c1eda8`, so the bound is over the right world
+#: before and after, and the folded family is stamped 2026-09-17T15:14:19Z against the arms'
+#: 2026-09-10T14:04:08Z, so `_staleness_caveat` is satisfied rather than bypassed. What changes is
+#: only how many draws of that world there are: 9 -> 18.
+#:
+#: WHAT IT IS NOT INNOCENT OF, AND THE PAGE NOW SAYS IT. The folded family has no single producing
+#: commit -- it pools two trees, `c066c114b` and `9f0ab066f`. That is a REAL cost and it is wider
+#: than the old single-tree floor's: the width now carries a tree difference inside it. It is on
+#: the surface in `error_bar.floor_tree_pairing`, whose `declared_unavailable` branch was written
+#: in this same commit because the old code called this state "the floor carries no such stamp"
+#: and that sentence is false here -- see `_floor_tree_pairing`.
+#:
+#: AND `CURRENT_WORLD_NOISE_FLOOR_PATH` DOES NOT MOVE WITH IT. Tried and measured, not assumed:
+#: pointing both at the folded family puts that family's selection mean into the `error_bar`
+#: region AND the `current_world` region, which is the duplicate `_the_legs_own_regions` refused
+#: on 2026-09-09 in words -- "the selection leg's own figure renders 2 times in this headline".
+#: Moving it also changes no verdict (its selection leg reads no sign at n=9 and at n=18 alike),
+#: so it buys a wider sample for a block that already refuses, at the price of a door. Held.
+NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
+    "value_cycle_ab_s1_noise_floor_folded18_20260917.json")
 #: The floor re-run over the world the contrast above was measured in. WITHOUT THIS CONSTANT THE
 #: PAGE CANNOT BE BOUND AT ALL: `CURRENT_WORLD_THREE_ARM_PATH` was moved to the re-run when the
 #: arms were re-taken and the floor beside it was not, so `_current_world_contrast` read a floor
@@ -1221,6 +1263,62 @@ def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
         return commit[:9] if isinstance(commit, str) and commit.strip() else None
 
     floor_short, figure_short = _short(floor_commit), _short(figure_commit)
+
+    # A FOLD'S MISSING COMMIT IS A DECLARED ANSWER, NOT A SILENCE, AND IT IS THE ADVERSE ONE.
+    # Both states arrive here as `producing_commit.commit is None`, and until 2026-09-17 both
+    # rendered "the floor carries no such stamp" -- which is false of a fold and false in the
+    # flattering direction. An UNSTAMPED floor was drawn by one tree nobody wrote down: one
+    # unknown. A FOLDED floor was drawn by several trees that ARE written down, in its own
+    # `folded_from`: the spread is not one tree's reading at all, which is a known negative and
+    # strictly worse than an unknown. The two license opposite readings of the same width and the
+    # page was publishing the milder one.
+    #
+    # KEYED TO THE PROPERTY. The test is "does the artefact say WHY it has no single commit",
+    # not "is this a fold" -- any producer that declares its reason gets it republished verbatim
+    # rather than replaced by this module's guess at one. The fold is today's only instance and
+    # this branch does not name it.
+    floor_declared = ((floor or {}).get("producing_commit") or {}).get("unavailable_because")
+    member_commits = [member.get("producing_commit")
+                      for member in ((floor or {}).get("folded_from") or [])
+                      if isinstance(member, dict)
+                      and isinstance(member.get("producing_commit"), str)
+                      and member.get("producing_commit").strip()]
+    if not floor_short and isinstance(floor_declared, str) and floor_declared.strip():
+        return {
+            # `same_tree` is FALSE and not None. The unstamped branch below cannot say whether one
+            # tree drew both sides; here the artefact states that no ONE tree drew even the floor,
+            # so the answer to "were these two drawn by the same code" is known and it is no.
+            "rule": "declared_unavailable",
+            "same_tree": False,
+            "floor_producing_commit": None,
+            "floor_producing_commits": [_short(commit) for commit in member_commits],
+            "figure_producing_commit": figure_commit,
+            "figure_tree_is_one_of_the_floors": (
+                figure_commit in member_commits if figure_short and member_commits else None),
+            "floor_says_why": floor_declared,
+            "why_this_rule": (
+                "THIS SPREAD WAS NOT DRAWN BY ONE CODE TREE, AND ITS OWN ARTEFACT SAYS SO rather "
+                "than leaving the stamp blank: \"{declared}\" So this is not a bound whose "
+                "provenance was never recorded -- it is a bound whose provenance is several, and "
+                "the figure beside it is one tree's.").format(declared=floor_declared),
+            # BOTH SIDES ARE NAMED, which the split branch below has always done and this one
+            # owes for the same reason: a reader told the trees differ and shown only one of them
+            # cannot check the claim against the repository. Caught by grading the live door leg
+            # against the bytes the commit would carry -- the floors were named, the figure was
+            # not, and the door's own message says "naming the {side} it means".
+            "caveat": (
+                "THE WIDTH BELOW IS POOLED ACROSS {n} CODE TREES{named} and the figure it bounds "
+                "is a single tree's{figure}. Read it as a bound that carries a tree difference "
+                "inside it, which is wider than the world's own dispersion by an amount this page "
+                "does not size -- not as {n} readings of one tree.").format(
+                    n=len(member_commits) if member_commits else "several",
+                    named=(" ({})".format(", ".join(_short(c) for c in member_commits))
+                           if member_commits else
+                           ", none of which this artefact names"),
+                    figure=(", {}".format(figure_short) if figure_short else
+                            ", and that tree is not recorded either")),
+        }
+
     if not floor_short or not figure_short:
         # UNSTAMPED IS ITS OWN ANSWER AND NEVER THE FLATTERING ONE. A missing stamp on either side
         # is not evidence the trees agree, and defaulting `same_tree` to True here would make the
@@ -2809,6 +2907,23 @@ WITHDRAWN_CLAIMS = [{
     # to re-emit the sentence, and an absent key would leave a later reader unable to tell an
     # answered question from one nobody put.
     "retracted": None,
+    # THE OCCASION PASSED ON 2026-09-17 AND THE REFUSAL DID NOT, which is the distinction worth
+    # keeping. `NOISE_FLOOR_PATH` moved onto the folded eighteen and the selection leg's sign gate
+    # CLOSED again -- 1.80 standard errors against a 2.11 bar -- so the composer no longer emits
+    # the withdrawn sentence and the thing the refusal below was answering is no longer happening.
+    # That is NOT a discharge and the record is not rewritten to read as one. The refusal's
+    # reasoning was never "the gate is open and should not be", it was "two figures agreeing on a
+    # sign is evidence of identity and is not identity" -- which is just as true with the gate
+    # shut, and is what will still be true the next time some larger family opens it. A refusal
+    # deleted when its occasion passes has to be re-derived by whoever meets the occasion again.
+    "the_occasion_for_this_refusal_has_passed": (
+        "Stated 2026-09-17. The nine-seed family this refusal was measured against is no longer "
+        "what bounds this page: at eighteen draws the selection leg reads 1.80 standard errors "
+        "against a 2.11 bar and states no sign at all, so the composer's negative branch is not "
+        "firing and nothing is currently trying to re-publish the withdrawn words. The refusal "
+        "stands unchanged anyway, because its reason was about IDENTITY between two claims and "
+        "not about the gate -- and the 2.9-sems-against-2.31 reading it cites is the nine-seed "
+        "family's, correct on the day it was written and superseded as a description of today."),
     "retraction_refused_on": "2026-09-15",
     "retraction_refused_because": (
         "The 2026-09-11 fork close opens the sign gate on this leg -- the nine-seed family's mean "

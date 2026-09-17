@@ -82,7 +82,15 @@ THREE_ARM_NO_WORLD = (
 #: onto it -- and then a control went red on a page that had become more honest.
 THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260831.json")
-NOISE_FLOOR = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
+#: THE FLOOR THE FEED ACTUALLY PUBLISHES, read from the production constant and never re-spelled.
+#: This was a hand-typed copy of `gva.NOISE_FLOOR_PATH`'s value, and on 2026-09-17 the constant
+#: moved onto the folded eighteen while this line did not. For the hours that gap existed every
+#: control in this file built its feed from a floor the site does not serve -- the suite measuring
+#: one page and the reader getting another, with nothing red. The same shape as the build count
+#: checked only against a second hand-typed copy of itself. A test of a PROPERTY of "whatever
+#: floor is published" reads this; a test that needs a PARTICULAR floor pins its dated name, as
+#: `THREE_ARM_20260829` does above.
+NOISE_FLOOR = gva.NOISE_FLOOR_PATH
 
 
 
@@ -749,10 +757,135 @@ def test_EVERY_tree_pairing_OUTCOME_IS_REACHABLE_from_this_feeds_own_inputs():
          gva._floor_tree_pairing(_floor_produced_by(other), arms)["same_tree"]),
         (gva._floor_tree_pairing(_floor_produced_by(None), arms)["rule"],
          gva._floor_tree_pairing(_floor_produced_by(None), arms)["same_tree"]),
+        # The fourth outcome, added 2026-09-17 with the branch itself. Without this line the
+        # partition control passes on a function that can no longer reach `unstamped` at all.
+        (gva._floor_tree_pairing(
+            _floor_declaring_no_single_commit("folded", ["a" * 40]), arms)["rule"],
+         gva._floor_tree_pairing(
+             _floor_declaring_no_single_commit("folded", ["a" * 40]), arms)["same_tree"]),
     }
     assert outcomes == {("producing_commit", True), ("producing_commit", False),
-                        ("unstamped", None)}, (
-        "the tree pairing cannot reach all three of its outcomes: {!r}".format(outcomes))
+                        ("unstamped", None),
+                        ("declared_unavailable", False)}, (
+        "the tree pairing cannot reach all four of its outcomes: {!r}".format(outcomes))
+
+
+def _floor_declaring_no_single_commit(reason: str, members: list | None = None) -> dict:
+    """A floor whose stamp is EMPTY BUT EXPLAINED -- a fold is today's only producer of this.
+
+    Constructed rather than read off `NOISE_FLOOR`, for this file's standing reason: the live
+    floor is a fold TODAY, so a control reading it would be green on the real artefact and equally
+    green on a function that returned this branch unconditionally.
+    """
+    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    floor["producing_commit"] = {"commit": None, "unavailable_because": reason}
+    floor["folded_from"] = [{"path": "a.json", "producing_commit": c, "n": 9}
+                            for c in (members or [])]
+    return floor
+
+
+def test_a_floor_that_SAYS_WHY_it_has_no_commit_is_not_reported_as_an_UNSTAMPED_SILENCE():
+    """THE DEFECT, live from the moment `NOISE_FLOOR_PATH` moved onto a fold (2026-09-17).
+
+    Both states reach this function as `producing_commit.commit is None`, and the unstamped branch
+    rendered "the floor carries no such stamp" for both. Of a fold that sentence is FALSE and false
+    in the FLATTERING direction: an unstamped floor is one tree nobody recorded, a folded one is
+    several trees that ARE recorded, which is a known negative rather than an unknown.
+
+    MUTATION: delete the `declared_unavailable` branch so a fold falls through to `unstamped` --
+    the page reverts to calling a declared multiplicity a silence and this reds.
+    """
+    reason = "FOLDED from 2 runs drawn by 2 distinct code tree(s)"
+    pairing = gva._floor_tree_pairing(
+        _floor_declaring_no_single_commit(reason, ["a" * 40, "b" * 40]), _load(THREE_ARM))
+    assert pairing["rule"] == "declared_unavailable", (
+        "the floor stated WHY it has no single commit and the page filed it as an unrecorded "
+        "stamp: {!r}".format(pairing["rule"]))
+    assert reason in pairing["floor_says_why"] and reason in pairing["why_this_rule"], (
+        "the artefact's own reason is discarded and replaced by this module's guess at one")
+    assert "carries no such stamp" not in pairing["why_this_rule"], (
+        "the page tells a reader nobody recorded the tree, when the artefact recorded two")
+
+
+def test_a_bound_POOLED_ACROSS_TREES_is_a_KNOWN_NO_and_never_an_UNKNOWN():
+    """The fail-open in the milder direction, which is the one that would have been chosen.
+
+    `same_tree: None` means "this page cannot tell". For a fold the page CAN tell, and the answer
+    is no: the spread was not drawn by one tree, so it cannot have been drawn by the figure's.
+    Reporting it as unknown reads as a question nobody could answer rather than one already
+    answered against us -- and it is the width of the published error bar that this qualifies.
+
+    MUTATION: return `same_tree: None` on this branch -- every other pairing test stays green
+    (none of them reach it) and only this reds.
+    """
+    pairing = gva._floor_tree_pairing(
+        _floor_declaring_no_single_commit("folded", ["a" * 40, "b" * 40]), _load(THREE_ARM))
+    assert pairing["same_tree"] is False, (
+        "a spread pooled across two trees is published as an open question: {!r}".format(
+            pairing["same_tree"]))
+    assert pairing["figure_tree_is_one_of_the_floors"] is False
+    assert pairing["caveat"], "a bound carrying a tree difference is published without a reading"
+
+
+def test_the_trees_a_pooled_bound_WAS_drawn_by_are_NAMED_and_not_merely_COUNTED():
+    """A reader told "several trees" cannot check which, and this page's whole standard for the
+    matched and split branches is that both trees are named. A fold is the case where naming is
+    cheapest -- the members are in the artefact -- so it is the case where omitting them is least
+    excusable.
+
+    MUTATION: drop `floor_producing_commits` and the names from the caveat, keeping the count --
+    this reds and nothing else does.
+    """
+    pairing = gva._floor_tree_pairing(
+        _floor_declaring_no_single_commit("folded", ["a" * 40, "b" * 40]), _load(THREE_ARM))
+    assert pairing["floor_producing_commits"] == ["a" * 9, "b" * 9]
+    assert "a" * 9 in pairing["caveat"] and "b" * 9 in pairing["caveat"], (
+        "the bound says it pools several trees and names none of them: {!r}".format(
+            pairing["caveat"]))
+
+
+def test_a_pooled_bound_names_the_FIGURES_tree_TOO_and_not_only_the_floors():
+    """THE HALF THIS BRANCH FORGOT, and it was live until a mutation found it empty.
+
+    The `producing_commit` split branch names BOTH sides -- that is what the door demands in its
+    own words, "naming the {side} it means". The pooled branch named its two floor trees and was
+    silent about the figure's, so a reader was told the width came from aaaaaaaaa and bbbbbbbbb
+    and never told what the number beside it came from. Half a pairing reads like a whole one.
+
+    WHY A MUTATION FOUND IT AND NO CONTROL DID. The door that grades this reads the PUBLISHED
+    feed, so it cannot see an uncommitted producer change at all; and the render partition feeds
+    the page a hand-built pairing, so it grades the RENDER and never the producer's sentence.
+    Both were green on a caveat missing half its subject.
+
+    MUTATION: drop `figure` from the caveat format -- before this control, all six controls in
+    this family passed and only the pre-commit gate would ever have said so.
+    """
+    pairing = gva._floor_tree_pairing(
+        _floor_declaring_no_single_commit("folded", ["a" * 40, "b" * 40]), _load(THREE_ARM))
+    figure = pairing["figure_producing_commit"][:9]
+    assert figure in pairing["caveat"], (
+        "the pooled bound names the trees that drew the WIDTH and not the one that drew the "
+        "FIGURE, so a reader cannot check half the pairing: {!r}".format(pairing["caveat"]))
+
+
+def test_a_declared_reason_with_NO_MEMBERS_still_refuses_rather_than_claiming_to_name_trees():
+    """THE EMPTY-LIST HOLE. A producer could declare a reason and list no members -- and a control
+    that only ever sees the two-member case would never learn what this branch does with none.
+    The honest answer is still `same_tree: False` (the stamp is empty either way) with the naming
+    claim withdrawn, NOT a caveat asserting it named trees it has none of.
+
+    MUTATION: format the caveat's tree list unguarded -- it renders "pooled across 0 CODE TREES ()"
+    and this reds.
+    """
+    pairing = gva._floor_tree_pairing(
+        _floor_declaring_no_single_commit("no single commit, and the members are not recorded"),
+        _load(THREE_ARM))
+    assert pairing["same_tree"] is False and pairing["floor_producing_commits"] == []
+    assert pairing["figure_tree_is_one_of_the_floors"] is None, (
+        "no member trees are recorded and the page still answers whether the figure's is among "
+        "them: {!r}".format(pairing["figure_tree_is_one_of_the_floors"]))
+    assert "0 CODE TREES" not in pairing["caveat"] and "()" not in pairing["caveat"], (
+        "the caveat counts trees it was never given: {!r}".format(pairing["caveat"]))
 
 
 def _the_feed_with_its_current_world() -> dict:
