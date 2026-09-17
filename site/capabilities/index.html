@@ -1451,6 +1451,45 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return rows;
   }
 
+  /* THE DISCRIMINATION READING FOR THE FAMILY WHOSE ADVANTAGE IS PRINTED ABOVE IT.
+
+     WHY IT RENDERS ON EVERY BRANCH INCLUDING THE EMPTY ONE. The standing instruction on this work
+     is that the discrimination is reported beside the advantage on EVERY run, because an arm that
+     beat the control while discriminating at chance won by charging and not by knowing. A block
+     that rendered only when it resolved would put "we measured it and it is unavailable" and "no
+     one ever asked" into the same pixels as each other and as a page with no block at all -- and
+     this panel's own history is exactly that failure: a leg nobody summarised read identically to
+     a leg with nothing in it.
+
+     AMBER ON EVERY REFUSAL, AND THE REFUSALS SAY WHICH ONE THEY ARE. `asked_and_unanswerable`
+     cannot be fixed by re-running these seeds; `never_asked` can. They are different next actions
+     and so they are different sentences. */
+  function familyDiscrimination(d) {
+    if (!d) {
+      return '<span style="display:block;margin-top:10px;color:var(--amber);">'
+        + "<strong>THIS PAGE SAYS NOTHING ABOUT WHETHER THE ARM WON BY KNOWING ANYTHING.</strong> "
+        + "The feed carries no discrimination block beside this advantage at all, so the question "
+        + "is unread here rather than answered.</span>";
+    }
+    if (!d.available) {
+      return '<span style="display:block;margin-top:10px;color:var(--amber);">'
+        + "<strong>DISCRIMINATION BESIDE THIS ADVANTAGE &mdash; CANNOT BE READ</strong>"
+        + (d.seeds_in_family
+            ? " (" + esc(d.seeds_carrying_an_auc) + " of " + esc(d.seeds_in_family)
+              + " draws carry a figure)"
+            : "")
+        + ". " + prose(d.reading) + " " + prose(d.what_this_costs)
+        + (d.reason ? " " + prose(d.reason) : "") + "</span>";
+    }
+    var s = d.spread || {};
+    return '<span style="display:block;margin-top:10px;color:var(--muted);">'
+      + "<strong>Discrimination beside this advantage &mdash; "
+      + esc(typeof s.mean === "number" ? s.mean.toFixed(3) : "no figure") + "</strong>"
+      + (typeof s.min === "number" && typeof s.max === "number"
+          ? " (" + s.min.toFixed(3) + "&ndash;" + s.max.toFixed(3) + " across draws)" : "")
+      + ". " + prose(d.reading) + "</span>";
+  }
+
   /* THE SECOND DRAW OF THE FIGURE THIS PANEL BOUNDS, rendered INSIDE the panel and not under it.
      The choosing leg went through zero when the objective was changed, and a reader who meets that
      anywhere other than beside the ±£1,811 bar has been told the arm's choosing became worthless.
@@ -2170,6 +2209,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + prose(eb.legs_on_one_bar.why_no_leg_is_graded) + " "
                     + prose(eb.legs_on_one_bar.reason) + "</span>"
                   : "")
+          /* AND WHETHER THE ARM WON BY KNOWING ANYTHING, IN THE SAME PANEL AS HOW MUCH IT WON
+             (2026-09-17). The legs above are the advantage; this is the discrimination for the
+             SAME family, and the two are halves of one question. This page has published the
+             first without the second before and had to withdraw the claim built on it. It renders
+             on every branch, absence included -- see `familyDiscrimination`. */
+          + familyDiscrimination(eb.discrimination_across_the_family)
           /* THE OTHER RULE THAT ANSWERS THE SAME QUESTION (2026-09-11). `eb.reading` above is this
              page's answer to "can we call the side"; `eb.distinguishable_from_zero` is the run
              artefact's own answer at a different bar, and until this line it reached no sentence

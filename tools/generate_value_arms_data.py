@@ -1652,6 +1652,118 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # what this block said, which made the page silent about a leg whose sign has been
         # determined since the first floor was ever run. See `_legs_on_one_bar`.
         "legs_on_one_bar": _legs_on_one_bar(floor, three_arm, split, point_clock),
+        # AND WHETHER THE ARM WON BY KNOWING ANYTHING, BESIDE THE FIGURE FOR HOW MUCH IT WON
+        # (2026-09-17). The advantage and the discrimination are the two halves of one question and
+        # this page has published the first without the second before -- the retraction is in
+        # `withdrawn_claim`. See `_family_discrimination`: it is a REFUSAL today, and it renders.
+        "discrimination_across_the_family": _family_discrimination(floor),
+    }
+
+
+#: The key `tools/fold_noise_floor_family.py` writes its family-wide discrimination reading under.
+#: Named once because the publisher and the control that proves the publisher reads it must agree,
+#: and a second spelling of a key is how a reader-side leg goes quiet without going red.
+FAMILY_AUC_KEY = "discrimination_auc_across_seeds"
+
+
+def _family_discrimination(floor: dict | None) -> dict:
+    """The discrimination reading for the SAME family whose advantage is published beside it.
+
+    THE DEFECT THIS CLOSES, AND IT IS THE DIRECTION'S OWN BAR. The standing instruction on this
+    work is that `discrimination_auc` is reported beside the advantage on every run, *because the
+    0.4653 reading is what makes the advantage unattributable* -- an arm that beat the control
+    while discriminating at chance did not win by knowing anything. `error_bar` published an
+    18-draw advantage, all three legs and their verdicts, and no discrimination reading of any
+    kind. The fold has computed one since 2026-09-17 and nothing here read it.
+
+    FOUR STATES, AND THE TWO REFUSALS ARE NOT THE SAME REFUSAL. This is the whole reason the block
+    is shaped this way rather than as a truthy check on one key:
+
+      * `measured`              -- the family carries an AUC on every row; the spread is published.
+      * `asked_and_unanswerable` -- the fold ASKED and named why it cannot answer. The family's
+                                    own rows do not all carry the field, so no bound exists.
+      * `never_asked`           -- the floor predates the field entirely and carries no such block.
+      * `no_floor`              -- there is no family here at all.
+
+    A `get(...) or {}` would collapse the middle two into one branch, and they license opposite
+    next actions: the third is fixed by re-running seeds under today's producer, the second cannot
+    be fixed by re-running at all because those rows are what they are. This repo's catalogue names
+    the shape -- a declared `None` and a silent one collapsing into the flattering branch -- and
+    the flattering branch here is `never_asked`, because it reads like an omission rather than a
+    measured dead end.
+
+    IT NEVER SOFTENS THE FOLD'S REFUSAL AND NEVER COMPUTES ITS OWN. `_auc_across_seeds` refuses a
+    spread over whichever rows happen to answer, by name, because that would bound a DIFFERENT
+    family from the one whose advantage is printed beside it. Republishing that verbatim is the
+    only honest move; re-deriving it here would be the permissive second implementation.
+
+    NO SUBSTITUTE IS OFFERED, WHICH IS THE POINT. The feed does carry a discrimination figure --
+    `decisions.discrimination_auc`, 0.61 -- and it is ONE RUN's, against an advantage bounded over
+    eighteen. Pairing them would be the mispairing every other block in this file refuses, and it
+    would read as though the question had been answered.
+    """
+    if not floor:
+        return {
+            "available": False,
+            "state": "no_floor",
+            "reading": (
+                "THIS PAGE HAS NO SEED FAMILY AT ALL, so there is neither an advantage bound nor a "
+                "discrimination reading to put beside one."),
+            "what_this_costs": (
+                "Nothing here can say whether an advantage came from knowing something, because "
+                "nothing here has measured an advantage either."),
+        }
+    if FAMILY_AUC_KEY not in floor:
+        return {
+            "available": False,
+            "state": "never_asked",
+            "reading": (
+                "THE ADVANTAGE BESIDE THIS HAS NO DISCRIMINATION READING, AND THIS FAMILY WAS "
+                "NEVER ASKED FOR ONE. The floor it is bounded over was written before the producer "
+                "recorded `{}` at all, so its rows carry no discrimination figure and the family "
+                "carries no refusal either -- the question is unasked here rather than "
+                "answered.".format(FAMILY_AUC_KEY)),
+            "what_this_costs": (
+                "An advantage published without it cannot be attributed: an arm that beat the "
+                "control while discriminating at chance won by charging, not by knowing. Re-run "
+                "the family's seeds under a producer that records the figure and this becomes "
+                "answerable."),
+        }
+    block = floor.get(FAMILY_AUC_KEY) or {}
+    if not block.get("available"):
+        return {
+            "available": False,
+            "state": "asked_and_unanswerable",
+            # THE FOLD'S OWN WORDS, NOT A SUMMARY OF THEM. The reason names which rows could not
+            # answer and why a spread over the rest would bound the wrong family; a paraphrase
+            # here would be a second, looser statement of a refusal that is already exact.
+            "reason": block.get("unavailable_because"),
+            "seeds_carrying_an_auc": block.get("seeds_carrying_an_auc"),
+            "seeds_in_family": block.get("seeds_in_family"),
+            "reading": (
+                "THE ADVANTAGE BESIDE THIS HAS NO DISCRIMINATION READING. This family WAS asked "
+                "and cannot answer: its rows do not all carry the figure, and a spread over only "
+                "those that do would bound a different family from the one whose advantage is "
+                "published here."),
+            "what_this_costs": (
+                "So the legs above say how much the arm won and this page cannot yet say whether "
+                "it won by knowing anything. That is not a caveat on the finding -- it is the "
+                "half of the thesis this instrument has not measured, and it cannot be recovered "
+                "from these rows at any sample size. It needs a new family drawn under a producer "
+                "that records the figure per seed."),
+        }
+    spread = block.get("spread") or {}
+    return {
+        "available": True,
+        "state": "measured",
+        "spread": spread,
+        "distance_from_no_information": block.get("distance_from_no_information"),
+        "seeds_in_family": block.get("seeds_in_family"),
+        "reading": (
+            "Measured over the same {} draws the advantage above is bounded over. 0.5 is the "
+            "no-information point: a family sitting on it won by charging, whatever its advantage "
+            "reads.".format(block.get("seeds_in_family"))),
+        "what_this_costs": None,
     }
 
 
