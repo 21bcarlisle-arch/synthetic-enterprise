@@ -24,13 +24,35 @@ R15, both directions:
   * MUTATION   -- the fail-open reading, `not isinstance` dropped so `(None, None)` falls through
                   `behind or ahead` to `level`, is asserted to FAIL. That mutant publishes "the
                   tree was level with origin/main" on a question nobody could answer.
-  * NOT COLLAPSED -- `red_at_head: yes` and `red_tree_fork: diverged` must be able to stand
+  * NOT COLLAPSED -- `red_at_head: yes` and `fork_state: diverged` must be able to stand
                   together, because that pair IS the 2026-09-17 incident.
   * FAIL-SAFE  -- an unreadable origin, a record predating the field, a stale record and a
                   failure naming no red each degrade to `not_established` WITH a reason.
   * THE RECORD -- the field must survive to `.publish_gate_state.json`, which is what the RUNG-1
                   draw and the seat brief actually quote, and survive a liveness write landing
                   between the red and its reader.
+
+THIS FILE WAS RED AT HEAD FOR THE SEVEN DAYS THE PUBLISHER WAS WEDGED, AND THAT IS THE MORE
+USEFUL HALF OF ITS HISTORY (repaired 2026-09-17). It landed GREEN and gated at `4138879cd`,
+naming the field `red_tree_fork`. `9b563a563` then landed `process_run_complete.py` as a
+WORKING-TREE COPY -- 528 insertions, a `--content` landing whose stated subject was the
+deferred-delivery verdict -- and carried another lane's in-place rewrite of this region inside
+it, renaming the field to `fork_state`. Its gate reported `1178 passed`. This file was not among
+them: gate selection is by SUBJECT-MODULE STEM, and a control named for the defect it closes
+shares no stem with `process_run_complete`. So 18 assertions went red at HEAD, were 12 of the
+publish gate's `blocking_tests`, and held `last_clean_publish` at null.
+
+The repair adopts the NEW name, because it is the one `origin_reconcile`, `tests/background/
+conftest.py` and the published `site/data/delivery.json` all already read -- reverting would
+break live readers to satisfy this file. Two properties the rename dropped are restored in the
+MODULE rather than deleted from here, and each has its own control below: the no-red refusal
+naming its own cause (`fork_state_no_red_refusal`), and a negative count refusing instead of
+rendering "-1 commit(s) behind".
+
+NEEDLES ARE KEYED TO PROPERTIES, NOT SENTENCES, for the reason the rename just demonstrated. The
+pre-repair assertions pinned whole clauses of the prose ("Check one of them at origin/main"), so
+a rewrite that PRESERVED every property still reddened them. What each refusal must carry is: its
+own cause, and the anti-flattering clause that stops its silence being read as `level`.
 """
 import json
 
@@ -64,8 +86,10 @@ def _isolate(tmp_path, monkeypatch):
     yield
 
 
-def _verdict(node_ids=(RED,), behind=0, ahead=0):
-    return prc.red_tree_fork_verdict(list(node_ids), behind, ahead)
+def _verdict(behind=0, ahead=0):
+    """The verdict over the two COUNTS. No `node_ids`: the suppression for a failure naming no
+    red lives at the call site now, and `fork_state_no_red_refusal` is its own subject below."""
+    return prc.fork_state_verdict(behind, ahead)
 
 
 # ── FIRES ────────────────────────────────────────────────────────────────────────────────────
@@ -73,24 +97,25 @@ def _verdict(node_ids=(RED,), behind=0, ahead=0):
 def test_a_red_graded_on_a_forked_tree_names_the_divergence():
     """THE INCIDENT. Behind origin is how a fix that already landed reads as a live red."""
     v = _verdict(behind=41, ahead=3)
-    assert v["verdict"] == prc.RED_TREE_FORK_DIVERGED
+    assert v["verdict"] == prc.FORK_DIVERGED
     # Both directions named, with their counts -- "diverged" alone tells the reader nothing about
-    # which way to look.
+    # which way to look. The PROPERTY is that both numbers and both direction words reach the
+    # reader; which sentence carries them is the module's business.
     assert "41" in v["reason"] and "3" in v["reason"]
-    assert "behind origin/main" in v["reason"] and "ahead" in v["reason"]
+    assert "behind" in v["reason"] and "ahead" in v["reason"]
 
 
 def test_being_ahead_alone_is_still_a_fork():
     """A tree holding commits origin has never seen did not grade origin/main's tree either. The
     behind direction is the one that was measured; a control that only closed it would be the
     `commits_ahead` defect (origin_reconcile, 2026-09-02) reproduced one module along."""
-    assert _verdict(behind=0, ahead=2)["verdict"] == prc.RED_TREE_FORK_DIVERGED
+    assert _verdict(behind=0, ahead=2)["verdict"] == prc.FORK_DIVERGED
 
 
 def test_a_red_graded_on_a_level_tree_says_level():
     v = _verdict(behind=0, ahead=0)
-    assert v["verdict"] == prc.RED_TREE_FORK_LEVEL
-    assert "0 behind, 0 ahead" in v["reason"]
+    assert v["verdict"] == prc.FORK_LEVEL
+    assert "LEVEL" in v["reason"] and "origin/main" in v["reason"]
 
 
 def test_diverged_does_not_claim_the_reds_are_green_at_origin():
@@ -99,15 +124,25 @@ def test_diverged_does_not_claim_the_reds_are_green_at_origin():
     UNATTRIBUTED between two trees and point at the cheap thing that settles it, not answer a
     question it never measured."""
     reason = _verdict(behind=41, ahead=0)["reason"]
-    assert "NOT established as origin/main's" in reason
-    assert "Check one of them at origin/main" in reason
+    # It REFUSES the attribution...
+    assert "NOT established" in reason
+    # ...HEDGES the thing it did not measure, rather than asserting it...
+    assert "may be green at origin/main" in reason
     assert "are green at origin/main" not in reason
+    # ...and names the cheap thing that WOULD settle it, so the refusal is actionable.
+    assert "Re-grade" in reason and "origin/main" in reason
 
 
 def test_level_does_not_claim_the_fix_is_absent_from_origin():
     """The inverse refusal. `level` is "nothing origin holds was missing from what was measured",
-    never "origin has no fix for this" -- which would be a claim over a tree nobody read."""
-    assert "does not explain" in _verdict(behind=0, ahead=0)["reason"]
+    never "origin has no fix for this" -- which would be a claim over a tree nobody read.
+
+    So what `level` licenses is a claim about the CITATION -- it may be quoted as the shared
+    branch's red -- and never a claim about origin's contents."""
+    reason = _verdict(behind=0, ahead=0)["reason"]
+    assert "may be read at face value" in reason
+    for overclaim in ("no fix", "is absent", "has no fix", "nothing to repair"):
+        assert overclaim not in reason, reason
 
 
 # ── MUTATION: the fail-open reading, asserted to fail ────────────────────────────────────────
@@ -117,30 +152,38 @@ def test_treating_an_unreadable_origin_as_level_is_the_fail_open_and_fails_this_
     `behind or ahead` to the LEVEL branch. It publishes "the tree was level with origin/main" on
     a question nobody could answer -- ruling out divergence on the strength of a failed read,
     which is the exact direction that sends the reader back at the innocent tests."""
-    def mutant(node_ids, behind, ahead):
-        if not node_ids:
-            return {"verdict": prc.RED_TREE_FORK_NOT_ESTABLISHED, "reason": "no red"}
+    def mutant(behind, ahead):
         if behind or ahead:
-            return {"verdict": prc.RED_TREE_FORK_DIVERGED, "reason": "forked"}
-        return {"verdict": prc.RED_TREE_FORK_LEVEL, "reason": "level"}
+            return {"verdict": prc.FORK_DIVERGED, "reason": "forked"}
+        return {"verdict": prc.FORK_LEVEL, "reason": "level"}
 
-    assert mutant([RED], None, None)["verdict"] == prc.RED_TREE_FORK_LEVEL
+    assert mutant(None, None)["verdict"] == prc.FORK_LEVEL
     # ...and the real one refuses to say that. A control the mutant also passes is not a control.
-    assert _verdict(behind=None, ahead=None)["verdict"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
+    assert _verdict(behind=None, ahead=None)["verdict"] == prc.FORK_NOT_ESTABLISHED
 
 
 def test_a_half_read_fork_is_not_established_rather_than_the_half_that_answered():
     """`fork_state` returns a PAIR and either half can be None on its own -- `commits_behind`
     fetches and `commits_ahead` does not, so the fetch failing gives `(None, 0)`. Reporting that
     as `level` off the half that answered is the same fail-open through a narrower door."""
-    assert _verdict(behind=None, ahead=0)["verdict"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
-    assert _verdict(behind=0, ahead=None)["verdict"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
+    assert _verdict(behind=None, ahead=0)["verdict"] == prc.FORK_NOT_ESTABLISHED
+    assert _verdict(behind=0, ahead=None)["verdict"] == prc.FORK_NOT_ESTABLISHED
 
 
 def test_a_bool_is_not_a_commit_count():
     """`isinstance(True, int)` is true. `True` reaching this field means something upstream wrote
     a flag where a count belongs, and rendering it as "1 commit behind" would invent a fork."""
-    assert _verdict(behind=True, ahead=False)["verdict"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
+    assert _verdict(behind=True, ahead=False)["verdict"] == prc.FORK_NOT_ESTABLISHED
+
+
+def test_a_negative_count_is_not_a_fork():
+    """RESTORED 2026-09-17, having been dropped in the `red_tree_fork` -> `fork_state` rename
+    (the pre-rename guard required `v >= 0`). `git rev-list --count` cannot return a negative, so
+    one here means a sentinel or a subtraction reached the slot where a count belongs -- and the
+    unguarded code renders it to the reader as "-1 commit(s) behind origin/main", INVENTING a
+    divergence. Same fail-open direction as the bool leg above, through a narrower door."""
+    assert _verdict(behind=-1, ahead=0)["verdict"] == prc.FORK_NOT_ESTABLISHED
+    assert _verdict(behind=0, ahead=-1)["verdict"] == prc.FORK_NOT_ESTABLISHED
 
 
 # ── PARTITION: every verdict must be REACHABLE ───────────────────────────────────────────────
@@ -152,26 +195,47 @@ def test_all_three_verdicts_are_reachable():
     reached = {
         _verdict(behind=41, ahead=3)["verdict"],
         _verdict(behind=0, ahead=0)["verdict"],
-        _verdict(node_ids=())["verdict"],
+        _verdict(behind=None, ahead=None)["verdict"],
     }
-    assert reached == {prc.RED_TREE_FORK_DIVERGED,
-                       prc.RED_TREE_FORK_LEVEL,
-                       prc.RED_TREE_FORK_NOT_ESTABLISHED}
+    assert reached == {prc.FORK_DIVERGED,
+                       prc.FORK_LEVEL,
+                       prc.FORK_NOT_ESTABLISHED}
+    # ...and the refusal that lives OUTSIDE the verdict is reachable too, or the suppression at
+    # the call site could route to a verdict nobody can produce and nothing here would notice.
+    assert prc.fork_state_no_red_refusal()["verdict"] == prc.FORK_NOT_ESTABLISHED
 
 
-# ── FAIL-SAFE: every refusal names its reason ────────────────────────────────────────────────
+# ── FAIL-SAFE: every refusal names ITS OWN reason ────────────────────────────────────────────
 
-@pytest.mark.parametrize("kwargs,needle", [
-    ({"node_ids": ()}, "no red is named"),
-    ({"behind": None, "ahead": None}, "was not recorded"),
-    ({"behind": None, "ahead": 4}, "was not recorded"),
+# Each entry is a refusal and the cause it must name. THE TWO CAUSES ARE DIFFERENT QUESTIONS and
+# the rename collapsed them: "there was no question to put" was answered with "the question could
+# not be answered", which blames an unreadable origin for a fetch that never ran. A reader who
+# argued with that refusal would have gone looking at the remote.
+@pytest.mark.parametrize("make,needle", [
+    (lambda: prc.fork_state_no_red_refusal(), "no red is named"),
+    (lambda: _verdict(behind=None, ahead=None), "was not recorded"),
+    (lambda: _verdict(behind=None, ahead=4), "was not recorded"),
+    (lambda: _verdict(behind=-1, ahead=0), "was not recorded"),
 ])
-def test_every_refusal_is_not_established_and_names_why(kwargs, needle):
-    v = _verdict(**kwargs)
-    assert v["verdict"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
+def test_every_refusal_is_not_established_and_names_why(make, needle):
+    v = make()
+    assert v["verdict"] == prc.FORK_NOT_ESTABLISHED
     assert needle in v["reason"], v["reason"]
-    # ...and never the flattering reading of its own silence.
-    assert "This is not evidence the tree was level" in v["reason"] or "not settled" in v["reason"]
+    # ...and never the flattering reading of its own silence. Divergence RULED OUT because nobody
+    # could measure it is the direction that sends a reader back at innocent tests.
+    assert ("This is not evidence the tree was level" in v["reason"]
+            or "not settled either way" in v["reason"]), v["reason"]
+
+
+def test_the_two_refusals_do_not_give_each_others_reason():
+    """The partition control for the refusal CAUSES, and the one that fails on the rename defect.
+    Both legs above pass if a single collapsed message happens to contain both needles; this
+    fails unless the two causes are genuinely distinguishable to a reader."""
+    no_red = prc.fork_state_no_red_refusal()["reason"]
+    unreadable = _verdict(behind=None, ahead=None)["reason"]
+    assert no_red != unreadable
+    assert "was not recorded" not in no_red, no_red
+    assert "no red is named" not in unreadable, unreadable
 
 
 # ── THE READ SIDE: a record that never carried the field must not appear to ──────────────────
@@ -246,12 +310,12 @@ def test_the_failure_record_carries_the_divergence(monkeypatch):
                                     send_ntfy_fn=lambda *a, **k: None)
 
     st = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
-    assert st["red_tree_fork"] == prc.RED_TREE_FORK_DIVERGED
-    assert "41" in st["red_tree_fork_reason"]
+    assert st["fork_state"] == prc.FORK_DIVERGED
+    assert "41" in st["fork_state_reason"]
     # ...and on the ENTRY too, which is what survives into the history a later episode reads.
     entry = st["failures"][-1]
-    assert entry["red_tree_fork"] == prc.RED_TREE_FORK_DIVERGED
-    assert entry["red_tree_fork_reason"] == st["red_tree_fork_reason"]
+    assert entry["fork_state"] == prc.FORK_DIVERGED
+    assert entry["fork_state_reason"] == st["fork_state_reason"]
 
 
 def test_the_incident_pair_can_both_be_told(monkeypatch):
@@ -268,8 +332,8 @@ def test_the_incident_pair_can_both_be_told(monkeypatch):
 
     st = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
     assert st["red_at_head"] == prc.RED_AT_HEAD_YES
-    assert st["red_tree_fork"] == prc.RED_TREE_FORK_DIVERGED
-    assert ON_ORIGIN[:9] not in st["red_tree_fork_reason"]  # it names the counts, not a guess
+    assert st["fork_state"] == prc.FORK_DIVERGED
+    assert ON_ORIGIN[:9] not in st["fork_state_reason"]  # it names the counts, not a guess
 
 
 def test_a_failure_naming_no_red_records_the_refusal_and_its_reason(monkeypatch):
@@ -277,8 +341,8 @@ def test_a_failure_naming_no_red_records_the_refusal_and_its_reason(monkeypatch)
     prc.record_publish_gate_failure("behind origin", rc=77, git_hash=HEAD,
                                     send_ntfy_fn=lambda *a, **k: None)
     st = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
-    assert st["red_tree_fork"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
-    assert "no red is named" in st["red_tree_fork_reason"]
+    assert st["fork_state"] == prc.FORK_NOT_ESTABLISHED
+    assert "no red is named" in st["fork_state_reason"]
 
 
 def test_a_liveness_write_does_not_erase_the_divergence(monkeypatch):
@@ -295,8 +359,8 @@ def test_a_liveness_write_does_not_erase_the_divergence(monkeypatch):
                                          evidence="origin moved", git_hash=HEAD)
 
     st = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
-    assert st["red_tree_fork"] == prc.RED_TREE_FORK_DIVERGED
-    assert "41" in st["red_tree_fork_reason"]
+    assert st["fork_state"] == prc.FORK_DIVERGED
+    assert "41" in st["fork_state_reason"]
 
 
 def test_a_green_gate_retires_the_divergence_with_the_red_it_described(monkeypatch):
@@ -307,13 +371,13 @@ def test_a_green_gate_retires_the_divergence_with_the_red_it_described(monkeypat
     monkeypatch.setattr(prc, "_head_sha", lambda: HEAD)
     prc.record_publish_gate_failure("a refusal", rc=1, git_hash=HEAD,
                                     send_ntfy_fn=lambda *a, **k: None)
-    assert json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())["red_tree_fork"] == \
-        prc.RED_TREE_FORK_DIVERGED
+    assert json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())["fork_state"] == \
+        prc.FORK_DIVERGED
 
     prc.record_publish_gate_success(markers_pending=0)
     st = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
-    assert st["red_tree_fork"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
-    assert "the gate passed" in st["red_tree_fork_reason"]
+    assert st["fork_state"] == prc.FORK_NOT_ESTABLISHED
+    assert "the gate passed" in st["fork_state_reason"]
 
 
 def test_a_state_file_predating_the_field_reads_as_not_established():
@@ -322,5 +386,5 @@ def test_a_state_file_predating_the_field_reads_as_not_established():
     prc.PUBLISH_GATE_STATE_FILE.write_text(json.dumps(
         {"failures": [], "alerted_at": None, "blocking_tests": [RED]}))
     st = prc._read_publish_gate_state()
-    assert st["red_tree_fork"] == prc.RED_TREE_FORK_NOT_ESTABLISHED
-    assert "predates" in st["red_tree_fork_reason"]
+    assert st["fork_state"] == prc.FORK_NOT_ESTABLISHED
+    assert "predates" in st["fork_state_reason"]

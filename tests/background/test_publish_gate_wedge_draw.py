@@ -16,6 +16,7 @@ R15 requires a control that can FAIL. These tests prove it BOTH ways:
 The window-trim root cause is covered too: `alerted_at`/`failures` alone cap the measurable age below
 60 min for a live wedge, so `wedge_since` (persistent, un-trimmed) is what makes ">60 min" provable.
 """
+import ast
 import json
 import re
 from datetime import datetime, timezone
@@ -1095,17 +1096,78 @@ def test_depth_unknown_is_the_only_clause_the_countermand_can_displace(tmp_path,
     assert "DEPTH" not in msg
 
 
+def _kinds_written_by(module_filename):
+    """Every string reaching a `kind=` argument in that module, by AST -- literal or NAMED.
+
+    WAS A TEXT GREP FOR `kind="<literal>"`, AND THAT IS THE DEFECT IT ACQUIRED (2026-09-17).
+    `delivery_did_not_reach_origin` is written by the publisher at
+    `process_run_complete.py:6712` -- as `kind=DELIVERY_NOT_REACHED_KIND`, the constant bound
+    two lines under a docstring explaining why the kind deserves a name. The grep saw no literal
+    and reported "no longer written by the publisher -- this set is describing a producer that
+    has moved". The producer had not moved. It had been given a constant, which is the shape this
+    repository asks for everywhere else, and the control punished it.
+
+    That red was one of the 12 `blocking_tests` holding `last_clean_publish` at null.
+
+    A NAME IS RESOLVED ONLY FROM A MODULE-LEVEL `NAME = "literal"` binding. Anything else -- an
+    f-string, a dict lookup, a parameter -- resolves to nothing and the caller's assertion FAILS.
+    That is the fail-closed direction on purpose: a kind this function cannot see is a kind it
+    cannot vouch for, and the anti-drift claim is worth nothing if an unresolvable spelling reads
+    the same as a present one."""
+    tree = ast.parse((Path(supervisor.__file__).parent / module_filename).read_text())
+    consts = {t.id: n.value.value
+              for n in tree.body if isinstance(n, ast.Assign)
+              for t in n.targets
+              if isinstance(t, ast.Name) and isinstance(n.value, ast.Constant)
+              and isinstance(n.value.value, str)}
+    found = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        for kw in node.keywords:
+            if kw.arg != "kind":
+                continue
+            if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                found.add(kw.value.value)
+            elif isinstance(kw.value, ast.Name) and kw.value.id in consts:
+                found.add(consts[kw.value.id])
+    return found
+
+
 def test_the_publishers_kinds_and_the_supervisors_set_have_not_drifted():
     """ANTI-DRIFT (R10). This clause is a reader of a producer in another module; a fourth
     no-test-judged kind added there and not here reads as `test_regression` and silently restores
-    the defect. Assert the producer's literals are the ones this set enumerates."""
-    src = (Path(supervisor.__file__).parent / "process_run_complete.py").read_text()
+    the defect. Assert the kinds this set enumerates are ones the producer actually writes."""
+    written = _kinds_written_by("process_run_complete.py")
     for kind in supervisor.WEDGE_KINDS_NO_TEST_JUDGED - {"deadline_kill"}:
-        assert f'kind="{kind}"' in src, (
+        assert kind in written, (
             f"`{kind}` is no longer written by the publisher -- this set is describing a "
-            "producer that has moved")
-    worker = (Path(supervisor.__file__).parent / "background_worker.py").read_text()
-    assert 'kind="deadline_kill"' in worker, "the OUTER caller's kind has moved"
+            f"producer that has moved. Kinds the publisher does write: {sorted(written)}")
+    assert "deadline_kill" in _kinds_written_by("background_worker.py"), \
+        "the OUTER caller's kind has moved"
+
+
+def test_the_kind_reader_sees_a_named_constant_and_not_only_a_literal():
+    """The control above went red for eight days because it could not see a constant. Its
+    resolver must therefore be asserted to see BOTH spellings, or the repair is one refactor from
+    reproducing the defect -- and this is the leg that fails if the AST walk is reverted to a
+    text grep.
+
+    Both halves are real bindings in the live producer, not a fixture: `deadline_kill` is passed
+    as a literal from `background_worker.py`, and `delivery_did_not_reach_origin` only ever
+    reaches `kind=` through `DELIVERY_NOT_REACHED_KIND`."""
+    import background.process_run_complete as prc
+
+    written = _kinds_written_by("process_run_complete.py")
+    # The NAMED spelling -- resolved through the module-level constant, never written literally
+    # at any `kind=` site.
+    assert prc.DELIVERY_NOT_REACHED_KIND in written
+    src = (Path(supervisor.__file__).parent / "process_run_complete.py").read_text()
+    assert f'kind="{prc.DELIVERY_NOT_REACHED_KIND}"' not in src, (
+        "this leg is only meaningful while that kind is passed by NAME; if a literal has "
+        "appeared, pick another named kind rather than deleting the assertion")
+    # ...and the LITERAL spelling still resolves too.
+    assert "deadline_kill" in _kinds_written_by("background_worker.py")
 
 
 # ───────────── EVERY TIMESTAMP GOES THROUGH ONE SCREEN (2026-09-04) ─────────────
