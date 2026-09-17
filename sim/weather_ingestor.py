@@ -29,32 +29,80 @@ class WeatherArchiveRefusal(RuntimeError):
 
 
 class WeatherQuotaExhausted(WeatherArchiveRefusal):
-    """The DAILY quota is spent, so no wait inside this run can clear it.
+    """A limit whose reset NO backoff inside this run can outlive, so the run must stop.
 
     A SUBCLASS on purpose: every existing `except WeatherArchiveRefusal` keeps catching it
     unchanged, and only a caller that wants the distinction has to know the name.
 
-    WHY THE DISTINCTION IS WORTH A TYPE, measured 2026-09-17. Open-Meteo enforces at least two
-    limits behind the SAME 429, and only its `reason` string separates them: a burst limit, which
-    `tools/build_weather_world.PAUSE_SECONDS` was measured against and which a pause does clear,
-    and this one, which resets tomorrow. `_fetch_with_backoff` asked `"429" not in str(exc)` and
-    so retried both identically -- four backoffs totalling six minutes PER CELL against a limit
-    that six minutes cannot reach. A 23-cell resume run under an exhausted daily quota spends
-    about two and a quarter hours sleeping, writes nothing, and reports 23 refusals whose shared
-    cause appears nowhere in the summary.
+    WHY THE DISTINCTION IS WORTH A TYPE, measured 2026-09-17. Open-Meteo enforces THREE limits
+    behind the SAME 429, and only its `reason` string separates them: a minutely burst limit,
+    which `tools/build_weather_world.PAUSE_SECONDS` was measured against and which a pause does
+    clear, and the hourly and daily ones, which nothing inside a per-cell backoff reaches.
+    `_fetch_with_backoff` asked `"429" not in str(exc)` and so retried all of them identically --
+    four backoffs totalling six minutes PER CELL against limits six minutes cannot reach. A
+    23-cell resume run under an exhausted daily quota spends about two and a quarter hours
+    sleeping, writes nothing, and reports 23 refusals whose shared cause appears nowhere in the
+    summary.
+
+    THE HOURLY LIMIT WAS ON THE WRONG SIDE OF THAT SPLIT UNTIL 2026-09-17, and it was found by
+    hitting it. This class and `_is_daily_quota` were written naming exactly two limits -- "a
+    burst limit" and "the daily quota" -- so the live reason "Hourly API request limit exceeded.
+    Please try again in the next hour." matched neither and fell through to the retry path. That
+    is the SAME defect one axis over: six minutes of backoff against a reset up to fifty-nine
+    minutes away. Named here because the two-limit sentence above is what made the third
+    invisible, and a reader who trusts it will reintroduce the hole.
     """
 
+    def __init__(self, message: str, reset_seconds: float | None = None):
+        super().__init__(message)
+        #: How long until the limit that refused resets, so the caller can say WHICH wait it is
+        #: rather than printing "come back tomorrow" for an hourly bucket. `None` when the reason
+        #: is one we do not recognise and the horizon is genuinely unknown.
+        self.reset_seconds = reset_seconds
 
-#: Open-Meteo's own words for the limit a wait cannot clear, lowercased for comparison. MATCHED ON
-#: THE REASON, NOT THE STATUS: the status is 429 for both limits, which is exactly the confusion
-#: this exists to end. Kept as a prefix of the live string ("... Please try again tomorrow.") so a
-#: change to the trailing advice does not silently turn every daily quota back into a burst retry.
-DAILY_QUOTA_REASON = "daily api request limit exceeded"
+
+#: Open-Meteo's own words for each limit it enforces, mapped to HOW LONG that limit takes to
+#: reset. Lowercased for comparison, and each key is a PREFIX of the live string (the daily one
+#: continues "... Please try again tomorrow.") so a change to the trailing advice does not
+#: silently reclassify the limit.
+#:
+#: MATCHED ON THE REASON, NOT THE STATUS: the status is 429 for all three, which is exactly the
+#: confusion this exists to end. ORIGIN: Open-Meteo's published free-tier limits, recorded in
+#: docs/data-sources/weather.md -- 600/minute, 5,000/hour, 10,000/day. The horizons are the
+#: bucket periods themselves and are upper bounds: a limit hit at 07:39 resets at 08:00, not
+#: 08:39, so the true wait is never longer than the figure here.
+LIMIT_RESET_SECONDS = {
+    "minutely api request limit exceeded": 60.0,
+    "hourly api request limit exceeded": 3600.0,
+    "daily api request limit exceeded": 86400.0,
+}
+
+#: The longest reset a per-cell backoff is permitted to try to sleep through. KEYED TO THE
+#: PROPERTY rather than to the list above: the question a caller actually has is "can I wait this
+#: out", and answering it by enumerating which limits are 'quotas' is what put the hourly one on
+#: the retry path. `tools/build_weather_world` spends 60+120+180 = 360s across its four attempts,
+#: so 600s is that budget with room to spare -- any limit resetting slower than this is a stop.
+#: A fourth Open-Meteo limit appearing with a minute-scale reset therefore classifies itself.
+CLEARABLE_BY_BACKOFF_SECONDS = 600.0
+
+
+def _reset_seconds(reason: str) -> float | None:
+    """How long the limit named in `reason` takes to reset, or None if it names no known limit."""
+    lowered = reason.lower()
+    return next((secs for phrase, secs in LIMIT_RESET_SECONDS.items() if phrase in lowered), None)
 
 
 def _is_daily_quota(reason: str) -> bool:
-    """Whether Open-Meteo's reason names the daily quota rather than the burst limit."""
-    return DAILY_QUOTA_REASON in reason.lower()
+    """Whether the limit named outlasts any backoff, so the caller must stop rather than retry.
+
+    THE NAME IS KEPT AND IT IS NOW WRONG ON ITS FACE -- "daily" is one of two limits this answers
+    True for. Left as-is deliberately: renaming it is a wider edit than this repair earns, and a
+    reader who takes the name literally is exactly the reader the docstring above needs to catch.
+    An unrecognised reason is retryable, which is the fail-SAFE direction here: a wrongly retried
+    refusal costs six minutes, a wrongly stopped run costs the whole pull.
+    """
+    reset = _reset_seconds(reason)
+    return reset is not None and reset > CLEARABLE_BY_BACKOFF_SECONDS
 
 
 def _existing_row_count(output_path: str) -> int | None:
@@ -118,13 +166,16 @@ def get_daily_weather(location_id: str, latitude: float, longitude: float,
         reason = _response_reason(response)
         # THE TYPE IS CHOSEN HERE, where the reason is read, and nowhere else. A caller that
         # re-sniffs the message string would be a second place to keep in step with Open-Meteo's
-        # wording, and the first one already drifted once.
-        refusal = WeatherQuotaExhausted if _is_daily_quota(reason) else WeatherArchiveRefusal
-        raise refusal(
+        # wording, and the first one already drifted once -- then drifted again, which is how the
+        # hourly limit spent a day on the retry path. See `WeatherQuotaExhausted`.
+        message = (
             f"Open-Meteo refused the archive for {location_id!r} "
             f"({latitude}, {longitude}) {start_date}..{end_date}: "
             f"HTTP {response.status_code} — {reason}"
         )
+        if _is_daily_quota(reason):
+            raise WeatherQuotaExhausted(message, reset_seconds=_reset_seconds(reason))
+        raise WeatherArchiveRefusal(message)
 
     data = response.json()
     daily_data = data["daily"]

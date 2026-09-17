@@ -11,6 +11,7 @@ Usage:
     python3 background/health_check.py --quiet  # no output, NTFY on failure only
 """
 
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -30,6 +31,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 # (token-proxy, file-api) carry health_checked:false in the manifest, so they are excluded
 # here exactly as before — plus naive-organ is now correctly included.
 from background import process_reconciler as _reconciler  # noqa: E402
+from background import tree_lock  # noqa: E402
 from background.notify import notify  # noqa: E402
 from tools import maturity_map_store as map_store  # noqa: E402
 
@@ -203,6 +205,82 @@ def stale_daemon_sessions() -> list[str]:
     return stale_sessions
 
 
+def _pixel_verification_root() -> Path:
+    """The ONE tree whose `node_modules/` the Playwright probe must resolve
+    against, identical from the main tree and from every linked worktree.
+
+    `common_git_dir()` names the single shared `.git`, so its parent is the main
+    worktree -- the only checkout where a gitignored `node_modules/` can live.
+    Reused from `background/tree_lock.py` rather than re-deriving here: there is
+    one correct answer to "which tree is the shared one" and it should have one
+    implementation.
+
+    Falls back to `PROJECT_DIR` when the resolved root carries no `package.json`
+    (a bare/absent git dir, or a layout where the parent is not a checkout), so
+    the probe degrades to its old cwd-ish behaviour rather than raising -- and a
+    genuinely missing Playwright still reports unavailable either way.
+    """
+    root = tree_lock.common_git_dir(PROJECT_DIR).parent
+    return root if (root / "package.json").is_file() else PROJECT_DIR
+
+
+# The browser binaries a pixel check on THIS machine actually launches -- not
+# the set Playwright would install if asked. `browsers.json` marks chromium,
+# chromium-headless-shell, firefox, webkit and ffmpeg `installByDefault`, and
+# only the headless shell and ffmpeg are on disk here; keying the probe to
+# `installByDefault` would red a machine whose pixel checks all pass, which is
+# the exact false-red that cost a full Lane 0 item on 2026-09-17.
+#
+# Measured that day rather than assumed, with full `chromium-1234` absent:
+#   chromium.launch(headless=True)  -> OK, rendered=42
+#   chromium.launch(headless=False) -> "Executable doesn't exist at
+#                                       .../chromium-1234/chrome-linux64/chrome"
+# Modern Playwright routes headless through the shell, and no committed door
+# asks for a headed launch (a tree-wide grep for `playwright` returns this
+# module, its test, and the egress allowlist -- nothing else). So the headed
+# binary is a LATENT gap, deliberately not required here: adding it would
+# assert a capability nothing consumes. ffmpeg is video recording, not pixel
+# verification, and is excluded despite being present -- requiring a browser
+# because it happens to be on disk today is keying the control to today's
+# answer. Add a name here when something in the tree launches it, not before.
+REQUIRED_PIXEL_BROWSERS = ("chromium-headless-shell",)
+
+# `playwright install --dry-run` prints, per browser, a header naming it and an
+# install directory:
+#   Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234)
+#     Install location:    /home/rich/.cache/ms-playwright/chromium_headless_shell-1234
+_PIXEL_BROWSER_HEADER = re.compile(r"\(playwright (\S+) v[^)]*\)")
+_PIXEL_INSTALL_LOCATION = re.compile(r"^\s*Install location:\s*(\S.*?)\s*$")
+
+
+def _playwright_install_locations(dry_run_stdout: str) -> dict[str, str]:
+    """Map Playwright's own browser name -> the directory it resolves that
+    browser to, parsed from `playwright install --dry-run` output.
+
+    Parsing Playwright's answer rather than re-deriving the path is deliberate:
+    the cache root moves with `PLAYWRIGHT_BROWSERS_PATH` and the directory name
+    is not the browser name (`chromium-headless-shell` installs to
+    `chromium_headless_shell-1234` -- underscores, and a revision that changes
+    on every version bump). A second implementation of that logic here would be
+    wrong the first time either of them changed, and wrong in the direction
+    that reports a present browser missing.
+    """
+    locations: dict[str, str] = {}
+    current: str | None = None
+    for line in dry_run_stdout.splitlines():
+        header = _PIXEL_BROWSER_HEADER.search(line)
+        if header:
+            current = header.group(1)
+            continue
+        location = _PIXEL_INSTALL_LOCATION.match(line)
+        # First location wins: a browser's own header always precedes its
+        # location line, and later lines (download fallbacks) must not
+        # overwrite it.
+        if location and current and current not in locations:
+            locations[current] = location.group(1)
+    return locations
+
+
 def _check_pixel_verification_capability() -> str | None:
     """Return warning string if real browser pixel-verification (Playwright)
     is not actually launchable right now.
@@ -220,23 +298,77 @@ def _check_pixel_verification_capability() -> str | None:
     egress blocking the download) surfaces here instead of being silently
     reasoned around again.
 
-    Deliberately lightweight: version-check only, no browser launch/page
-    navigation -- this runs on every routine health-check cycle and must stay
-    fast. A full live-site pixel check is a separate, on-demand verification
-    step, not a routine health-check concern.
+    Deliberately lightweight: no browser launch/page navigation -- this runs on
+    every routine health-check cycle and must stay fast. A full live-site pixel
+    check is a separate, on-demand verification step, not a routine
+    health-check concern.
+
+    ANCHORED TO THE SHARED TREE, NOT THE CALLER'S CWD (2026-09-17). `npx
+    --no-install` resolves `playwright` by walking up from its cwd, and
+    `node_modules/` is gitignored -- so it exists ONLY in the main worktree and
+    never in a linked one. Probing from cwd therefore answered "does THIS
+    CHECKOUT have node_modules", while the sentence it returns, the alarm it
+    raises and this function's own name all claim a property of the MACHINE.
+    Run from a worktree it reported the capability lost while the very same
+    probe returned `Version 1.62.0` from the main tree one second later -- a
+    full Lane 0 item was spent establishing that the machine had lost nothing.
+    Anchoring to `common_git_dir().parent` (the ONE tree that holds the
+    dependency, identical from every checkout) makes the answer a property of
+    the machine, which is the thing being asserted.
+
+    This cannot hide a real breakage, which is why it is a correction and not a
+    narrowing: delete `node_modules/` from the main tree and every caller, in
+    every checkout, goes red together. What it removes is the FALSE red, which
+    is the one that was costing turns.
+
+    THE NPM PACKAGE IS NOT THE BROWSER (2026-09-17). Until this date the probe
+    ran `playwright --version`, which answers from the npm package alone -- so
+    emptying `~/.cache/ms-playwright` left it reporting "available" while every
+    real pixel check failed. A fail-open in a control CLAUDE.md treats as
+    load-bearing ("done means the rendered value changed"), and the more
+    expensive direction: the previous outage showed a WRONG READING of this
+    alarm costs a whole Lane 0 item.
+
+    It now also STATS THE BROWSER BINARY, via `playwright install --dry-run`.
+    That respects the no-launch rule the paragraph above states rather than
+    working around it: the dry run opens no socket, starts no browser, and cost
+    0.6s measured -- the same order as the version check it replaces, so the
+    every-cycle speed budget is intact. It subsumes the version check, too: the
+    package must resolve before the subcommand can run at all, so a missing
+    `node_modules/` still exits non-zero here exactly as before.
     """
     try:
         result = subprocess.run(
-            ["npx", "--no-install", "playwright", "--version"],
-            capture_output=True, text=True, timeout=15,
+            ["npx", "--no-install", "playwright", "install", "--dry-run"],
+            cwd=str(_pixel_verification_root()),
+            capture_output=True, text=True, timeout=30,
         )
         if result.returncode != 0:
             return f"Pixel-verification (Playwright) unavailable: {result.stderr.strip()[:200]}"
+        locations = _playwright_install_locations(result.stdout)
+        for name in REQUIRED_PIXEL_BROWSERS:
+            location = locations.get(name)
+            if location is None:
+                # Fail closed, and name the reason. Playwright still answers,
+                # but no longer about the browser we require -- so this probe
+                # cannot tell present from missing, and "we cannot tell" is a
+                # result that belongs on the surface rather than passing as a
+                # silent green.
+                return (
+                    f"Pixel-verification (Playwright) unavailable: '{name}' is absent from "
+                    f"`playwright install --dry-run`, so this check can no longer tell whether "
+                    f"the browser it needs is installed"
+                )
+            if not Path(location).is_dir():
+                return (
+                    f"Pixel-verification (Playwright) unavailable: browser binary '{name}' is "
+                    f"not installed at {location} -- run `npx playwright install {name}`"
+                )
         return None
     except FileNotFoundError:
         return "Pixel-verification (Playwright) unavailable: npx not found"
     except subprocess.TimeoutExpired:
-        return "Pixel-verification (Playwright) unavailable: version check timed out"
+        return "Pixel-verification (Playwright) unavailable: browser-binary check timed out"
     except Exception as e:
         return f"Pixel-verification (Playwright) unavailable: {e}"
 

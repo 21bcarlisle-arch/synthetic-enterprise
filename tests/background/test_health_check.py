@@ -1,5 +1,6 @@
 """Tests for background/health_check.py."""
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -129,10 +130,153 @@ class TestCheckPixelVerificationCapability:
     alarmed health-check failure, not a silently-reasoned-around caveat."""
 
     def test_returns_none_when_playwright_available(self):
-        # Real invocation -- this environment genuinely has Playwright
-        # available (proven 2026-07-11 via a live pixel check on poesys.net),
-        # so this is a real, not mocked, positive-path assertion.
+        # Real invocation, not a mock: this machine genuinely has Playwright in
+        # the main worktree's `node_modules/` (`npx --no-install playwright
+        # --version` -> `Version 1.62.0`, re-proven 2026-09-17).
+        #
+        # The comment this replaces cited a 2026-07-11 live pixel check as the
+        # standing proof, and by 2026-09-17 that was a two-month-old claim about
+        # the world being re-asserted on every run. It went red -- truthfully,
+        # on its own terms -- the first time it was run from a linked worktree,
+        # and the red said "the machine has lost Playwright" when the machine
+        # had lost nothing. See the cwd-independence control below: THAT is the
+        # leg which grades the anchoring, and this one is now only asking
+        # whether the dependency is installed at all.
         assert health_check._check_pixel_verification_capability() is None
+
+    def test_the_answer_does_not_depend_on_the_callers_cwd(self, tmp_path, monkeypatch):
+        """R15 defect: the probe answered "does THIS CHECKOUT have node_modules"
+        while claiming a property of the MACHINE.
+
+        `npx --no-install` resolves by walking UP from its cwd, and
+        `node_modules/` is gitignored -- so it exists only in the main worktree.
+        Called from a linked worktree (or any other directory), the pre-fix
+        probe reported the capability LOST while the identical probe returned
+        `Version 1.62.0` from the main tree. A whole Lane 0 delivery item was
+        spent establishing that nothing was broken.
+
+        Keyed to the PROPERTY (the answer is the same from everywhere), not to
+        today's answer, so it stays honest if the machine really does lose
+        Playwright -- then this and the test above go red TOGETHER, which is the
+        true reading.
+
+        MUTATION-PROVEN: drop the `cwd=` argument from the `subprocess.run` call
+        in `_check_pixel_verification_capability` and this reds, because
+        `tmp_path` has no `node_modules` at or above it. The three mocked tests
+        below CANNOT catch that mutation -- they stub `subprocess.run` with
+        `lambda *a, **k`, which swallows `cwd` without grading it -- so this is
+        the only leg holding the anchoring.
+        """
+        monkeypatch.chdir(tmp_path)
+        # Teeth: prove the cwd really is a place where a cwd-relative probe
+        # would fail, so a pass here cannot be an accident of the sandbox.
+        assert not (tmp_path / "node_modules").exists()
+        assert not any((p / "node_modules").exists() for p in tmp_path.parents)
+
+        assert health_check._check_pixel_verification_capability() is None
+
+    def test_the_root_it_probes_is_the_tree_that_holds_the_dependency(self):
+        """The resolver must name the MAIN worktree -- the one checkout where a
+        gitignored `node_modules/` can live -- from whichever tree this runs in.
+
+        Separate from the control above because they fail for different reasons
+        and a reader deserves to know which: that one says "the answer moved
+        with my cwd", this one says "the anchor points at the wrong tree".
+        """
+        root = health_check._pixel_verification_root()
+        assert (root / "package.json").is_file(), f"{root} is not a checkout"
+        # The shared `.git` lives in the main tree, and `common_git_dir` is the
+        # one resolver for it -- so the anchor is the main tree by construction,
+        # not by a path string this test would have to hand-maintain.
+        assert (root / ".git").exists(), f"{root} is not the MAIN worktree"
+
+    def test_it_sees_a_missing_browser_binary_and_not_only_a_missing_package(
+        self, tmp_path, monkeypatch
+    ):
+        """R15 FAIL-OPEN: `playwright --version` answers from the npm PACKAGE.
+
+        Empty `~/.cache/ms-playwright` and the pre-fix probe still reported
+        "available" while every real pixel check failed -- in a control
+        CLAUDE.md treats as load-bearing ("done means the rendered value
+        changed"). The npm package being installed is not the browser being
+        installed, and only the second one renders a pixel.
+
+        ONE CONTROL OVER THE WHOLE PARTITION, because a guard that refuses
+        EVERYTHING passes the missing leg on its own -- and this probe's whole
+        history is false reds (a linked-worktree artefact cost a full Lane 0
+        item on 2026-09-17). The available leg is what stops the fix becoming
+        the previous defect wearing new clothes.
+
+        Both legs are driven for real, not mocked: `PLAYWRIGHT_BROWSERS_PATH`
+        relocates the cache Playwright resolves against, so leg 1 is a genuine
+        end-to-end run against a cache that genuinely lacks the binary.
+
+        MUTATION-PROVEN: revert the invocation to `["npx", "--no-install",
+        "playwright", "--version"]` and leg 1 reds -- the version check answers
+        `Version 1.62.0` no matter what the cache holds.
+        """
+        # LEG 1 -- the rare branch, asserted REACHABLE before asserting what it
+        # says. Teeth: the cache is real, empty, and not the machine's own.
+        empty_cache = tmp_path / "ms-playwright"
+        empty_cache.mkdir()
+        assert not any(empty_cache.iterdir())
+        monkeypatch.setenv("PLAYWRIGHT_BROWSERS_PATH", str(empty_cache))
+
+        missing = health_check._check_pixel_verification_capability()
+        assert missing is not None, (
+            "probe reported pixel verification available against a cache holding no "
+            "browser at all -- this is the fail-open, still open"
+        )
+        # It must fail for the RIGHT reason. These two assertions are what
+        # separate "saw the missing binary" from "npx broke and everything
+        # reds": the package still resolved, and the refusal names the browser
+        # and the path it looked in.
+        assert "not installed at" in missing, missing
+        assert "chromium-headless-shell" in missing, missing
+        assert str(empty_cache) in missing, missing
+
+        # LEG 2 -- the real cache on this machine. Keyed to the property, not to
+        # today's answer: if the machine genuinely loses the headless shell,
+        # THIS is the leg that should red, and it should red truthfully.
+        monkeypatch.delenv("PLAYWRIGHT_BROWSERS_PATH", raising=False)
+        assert health_check._check_pixel_verification_capability() is None, (
+            "probe reports unavailable on a machine where a headless chromium "
+            "launch renders (verified 2026-09-17) -- a fail-closed red on a "
+            "correct machine is the defect this probe already paid for once"
+        )
+
+    def test_the_required_browsers_are_all_names_playwright_still_uses(self):
+        """FAIL-CLOSED needs a reachability leg of its own.
+
+        `REQUIRED_PIXEL_BROWSERS` holds Playwright's own browser names, and the
+        probe refuses when one is absent from `install --dry-run`. That refusal
+        is correct when Playwright drops a browser -- and indistinguishable
+        from a TYPO, or from Playwright renaming one, either of which would
+        wedge the health check permanently red for a reason no reader could
+        act on.
+
+        So: parse the REAL dry-run output and assert every required name is a
+        name Playwright still answers about. This grades the parser against
+        Playwright's actual format too -- a format change breaks it here, where
+        the message says so, rather than as a standing alarm elsewhere.
+        """
+        result = subprocess.run(
+            ["npx", "--no-install", "playwright", "install", "--dry-run"],
+            cwd=str(health_check._pixel_verification_root()),
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, result.stderr[:400]
+
+        locations = health_check._playwright_install_locations(result.stdout)
+        assert locations, (
+            "parsed no install locations from real `playwright install --dry-run` "
+            "output -- the format changed and the probe now fails closed on every run"
+        )
+        for name in health_check.REQUIRED_PIXEL_BROWSERS:
+            assert name in locations, (
+                f"{name!r} is not a browser Playwright reports on; it knows about "
+                f"{sorted(locations)}"
+            )
 
     def test_returns_warning_on_nonzero_exit(self, monkeypatch):
         class _FakeResult:
