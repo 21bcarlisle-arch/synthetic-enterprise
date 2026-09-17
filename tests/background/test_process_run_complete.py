@@ -2803,3 +2803,76 @@ class TestTheTwoRoomsRepairRunsAtTheCommitRatherThanACycleEarlier:
         REFUSED commit, and a crashed publisher is the worse outage."""
         monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path / "does" / "not" / "exist")
         assert prc._clear_two_rooms_before_commit() == {"repaired": [], "conflicts": []}
+
+
+def test_the_hook_chain_row_STATES_how_many_chains_its_stopwatch_held(tmp_path, monkeypatch):
+    """END TO END, PRODUCER TO ROW -- and the link this pins had NO control until 2026-09-17.
+
+    `_record_commit_hook_duration` computes the chain count, divides by it, and hands it to
+    `record_gate_run`. Removing the `chains=` argument from THAT call left every control green:
+    the recorder's own tests pass `chains` directly and never exercise this caller, and the two
+    headroom controls read `duration_seconds` alone. So the one link that actually carries the
+    count to the live series was the one link nothing graded -- the shape CLAUDE.md names, a
+    mutation that fires nothing because no control sits on the path.
+
+    WHY THE COUNT AND NOT ONLY THE DIVISION. `2c89bd534` (1381.52s) and `b55667741` (666.95s)
+    were each a lost compare-and-swap that re-gated, so the stopwatch held two full chains. The
+    first was caught by the ceiling discriminator; the second was 667 < 880 and was read as ONE
+    chain, reding the headroom control at `worst <= 0.75 * 880` by seven seconds and refusing
+    every ordinary commit in the shared tree. A threshold cannot recover a unit. The producer
+    always knew it, and now says it.
+
+    MUTATION (must fire, and did not before this test existed): drop `chains=n_chains` from the
+    `record_gate_run` call in `_record_commit_hook_duration`.
+    """
+    series = tmp_path / "commit_hook_duration.jsonl"
+    monkeypatch.setattr(prc, "COMMIT_HOOK_DURATION_PATH", series)
+
+    prc._record_commit_hook_duration(666.95, "b55667741", "refused", chains=2)
+
+    rows = [json.loads(ln) for ln in series.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    assert len(rows) == 1, "one call, one row"
+    assert rows[0]["chains"] == 2, (
+        "the row must STATE the divisor -- without it a reader cannot tell this repaired row "
+        "from the nine days of totals behind it, which is how 666.95s read as one chain")
+    assert abs(rows[0]["duration_seconds"] - 333.48) < 0.01, (
+        "and the duration must be PER CHAIN, or the series holds two units at once")
+
+
+def test_a_hook_chain_row_with_no_stated_count_is_still_recorded_as_one(tmp_path, monkeypatch):
+    """THE DEFAULT PATH KEEPS ITS MEANING, AND THE BROKEN-CALLER PATH IS THE HALF WITH TEETH.
+
+    Every ordinary commit records one chain and says so -- `chains: 1` is a CLAIM, and it is the
+    claim that lets a later reader trust the row at face value rather than re-infer the unit.
+
+    THE FALLBACK IS REACHED ONLY BY A BROKEN CALLER, WHICH IS WHY THIS TEST CALLS AS ONE. The
+    signature is `chains: int = 1`, so an ordinary call never takes the `else` branch at all --
+    a defaulted parameter had made that branch unreachable, and a first draft of this test
+    asserted a mutation on it that consequently fired NOTHING. Recorded rather than quietly
+    fixed: an unreachable branch and a correct one are the same colour from the outside.
+
+    THE DIRECTION IS THE PRODUCER'S STATED FAIL-SAFE: a count that is not a positive int is
+    treated as ONE, so a broken caller OVER-reports the per-chain cost (the direction every
+    consumer of this series is already safe in) rather than silently shrinking a real one.
+
+    MUTATION (must fire, both legs): make the fallback `None` instead of 1 -- the `chains=None`
+    leg below fails on the row's claim. Divide by the raw `chains` instead of `n_chains` -- the
+    same leg dies on a TypeError, which is the crash the guard exists to prevent.
+    """
+    series = tmp_path / "commit_hook_duration.jsonl"
+    monkeypatch.setattr(prc, "COMMIT_HOOK_DURATION_PATH", series)
+
+    prc._record_commit_hook_duration(254.85, "abc1234", "pass")
+    row = json.loads(series.read_text(encoding="utf-8").splitlines()[-1])
+    assert row["chains"] == 1
+    assert abs(row["duration_seconds"] - 254.85) < 0.01, "one chain is not divided"
+
+    # A BROKEN CALLER -- the only way into the fallback. `None`, 0 and a bool each reach it.
+    for bad in (None, 0, -1, True):
+        prc._record_commit_hook_duration(254.85, "abc1234", "pass", chains=bad)
+        row = json.loads(series.read_text(encoding="utf-8").splitlines()[-1])
+        assert row["chains"] == 1, (
+            "chains={!r} is a caller bug, and the fail-safe is to claim ONE chain and "
+            "over-report -- never to divide by it or to go silent".format(bad))
+        assert abs(row["duration_seconds"] - 254.85) < 0.01, (
+            "chains={!r} must not shrink the recorded cost".format(bad))
