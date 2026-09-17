@@ -281,15 +281,34 @@ def extract_temperature(cells: dict[str, dict], progress=print) -> dict:
     return rows
 
 
+def _horizon_words(reset_seconds: float | None) -> str:
+    """The reset horizon in words a reader can act on, or an honest admission that we do not know.
+
+    NOT A FORMATTED DURATION. The caller's next decision is "resume in a few minutes" or "come
+    back tomorrow", so the horizon is reported at the granularity that decision is made at. An
+    unrecognised reason returns the `None` case rather than a plausible-looking "0s" -- the limit
+    is real and stopped the run, and only its length is unknown.
+    """
+    if reset_seconds is None:
+        return "reset horizon unknown"
+    if reset_seconds <= 60.0:
+        return "resets within the minute"
+    if reset_seconds <= 3600.0:
+        return "the HOURLY bucket; resets at the top of the hour"
+    return "the DAILY quota; resets at UTC midnight"
+
+
 def _fetch_with_backoff(fetch, key, lat, lon, start, end, progress):
-    """A BURST 429 is "come back later", not a refusal. Anything else fails on the first attempt.
+    """A MINUTELY 429 is "come back later", not a refusal. Anything else fails on the first try.
 
     Resumability is the real protection and it is structural: `build` skips cells already in the
     store, so an interrupted run is resumed by re-running the same command.
 
-    A DAILY-QUOTA 429 IS NOT A WAIT THIS FUNCTION CAN OUTLIVE, and it is raised straight through
-    rather than backed off. See `sim.weather_ingestor.WeatherQuotaExhausted` for the measurement:
-    retrying it burnt six minutes per cell against a limit that resets tomorrow.
+    AN HOURLY OR DAILY 429 IS NOT A WAIT THIS FUNCTION CAN OUTLIVE, and it is raised straight
+    through rather than backed off. See `sim.weather_ingestor.WeatherQuotaExhausted` for the
+    measurement: retrying burnt six minutes per cell against limits that reset at the top of the
+    hour and at midnight. Until 2026-09-17 only the daily one was recognised, so the hourly limit
+    -- the one that actually fires on a 23-cell pull -- took the retry path.
     """
     for attempt in range(1, RETRY_ATTEMPTS + 1):
         try:
@@ -451,6 +470,7 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
 
     refused = []
     quota_exhausted = None
+    quota_horizon = None
     for index, cell in enumerate(todo, start=1):
         key = cell["cell_id"]
         try:
@@ -458,12 +478,13 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
                 get_daily_weather, key, cell["latitude"], cell["longitude"],
                 START_DATE, END_DATE, progress)
         except WeatherQuotaExhausted as exc:
-            # STOP THE RUN, not this cell. The quota is a property of the DAY and of this
-            # machine's key, so every remaining cell would refuse for the identical reason. Going
-            # on turns one legible "come back tomorrow" into a list of N refusals whose shared
-            # cause is visible only to someone who reads all N.
+            # STOP THE RUN, not this cell. The limit is a property of the BUCKET -- the hour or
+            # the day -- and of this machine's key, so every remaining cell would refuse for the
+            # identical reason. Going on turns one legible "come back later" into a list of N
+            # refusals whose shared cause is visible only to someone who reads all N.
             quota_exhausted = str(exc)
-            progress(f"  [{index}/{len(todo)}] {key} QUOTA EXHAUSTED, stopping: {str(exc)[:110]}")
+            quota_horizon = _horizon_words(getattr(exc, "reset_seconds", None))
+            progress(f"  [{index}/{len(todo)}] {key} STOPPED ({quota_horizon}): {str(exc)[:110]}")
             break
         except Exception as exc:  # noqa: BLE001 -- recorded, not swallowed
             refused.append({"cell_id": key, "reason": str(exc)[:200]})
@@ -488,7 +509,8 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
 
     written = _write(known, held)
     return {"cells": len(cells), "held": len(held), "refused": refused,
-            "quota_exhausted": quota_exhausted, "unreachable": unreachable, **written}
+            "quota_exhausted": quota_exhausted, "quota_horizon": quota_horizon,
+            "unreachable": unreachable, **written}
 
 
 SOURCE_LINE = ("temperature: HadUK-Grid 1 km daily (CEDA). "
@@ -668,10 +690,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{len(result['unreachable'])} incomplete cell(s) are outside the book and were "
                   f"not attempted: {', '.join(result['unreachable'])}")
         if result["quota_exhausted"]:
-            # ON THE SURFACE AND IN THE EXIT CODE. "Try again tomorrow" is a RESULT, not a
-            # footnote: it tells the next session that re-running now cannot help, which is the
-            # one thing a list of per-cell refusals does not say.
-            print(f"STOPPED ON THE DAILY QUOTA — re-running before it resets cannot help.\n"
+            # ON THE SURFACE AND IN THE EXIT CODE. "Come back later" is a RESULT, not a footnote:
+            # it tells the next session that re-running now cannot help, which is the one thing a
+            # list of per-cell refusals does not say.
+            #
+            # NAMES WHICH WAIT, because the answer decides what the reader does next and the two
+            # are an hour and a day apart. Printing "DAILY QUOTA" for an hourly bucket sends a
+            # session that could have resumed at the top of the hour away until tomorrow.
+            print(f"STOPPED ON A LIMIT NO BACKOFF CAN OUTLIVE ({result['quota_horizon']}) — "
+                  f"re-running before it resets cannot help.\n"
                   f"  {result['quota_exhausted']}")
             return 1
         return 1 if result["refused"] else 0

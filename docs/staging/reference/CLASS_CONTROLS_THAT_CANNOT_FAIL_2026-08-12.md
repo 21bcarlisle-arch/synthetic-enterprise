@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 48 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
+**Instances:** 49 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 48 instances
+## The 49 instances
 
 - `SEAT_FINDING_A_LIVE_RECORD_IS_TRACKED_SO_EVERY_WORKTREE_READS_A_TWO_MONTH_OLD_PLACEHOLDER_AS_LIVE_STATE_2026-09-16.md` — BLOCKING
 - `SEAT_FINDING_A_NAMED_PATH_SEGMENT_IS_THE_ONE_DOOR_BOTH_ORACLES_WERE_BLIND_TO_2026-09-15.md` — LATENT
@@ -24,6 +24,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_SELF_CLEARING_ALARM_CENSUS_HAS_AN_UNDISPOSITIONED_HIT_AND_IT_IS_RED_AT_HEAD_NOT_IN_ANY_LANES_WORKING_TREE_2026-09-16.md` — RECORDED
 - `SEAT_FINDING_THE_TREE_KEYED_ORACLE_WAS_BLIND_TO_A_PATH_SPELLED_AS_ONE_WHOLE_STRING_2026-09-15.md` — LATENT
 - `SEAT_FINDING_THE_WITHDRAWN_HOUSEHOLD_CLAIM_IS_GUARDED_BY_ITS_WORDS_SO_A_STRONGER_CLAIM_IN_NEW_WORDS_PASSES_2026-09-10.md` — LATENT
+- `SEAT_RESULT_A_KEEP_BOTH_MERGE_DROPPED_A_RETURN_INSIDE_A_RETAINED_SYMBOL_AND_A_SUPERSET_OF_SYMBOLS_CANNOT_SEE_IT_2026-09-17.md` — LATENT
 - `SEAT_RESULT_EIGHT_OF_TEN_ROOMS_CANNOT_FAIL_FOR_THIS_SUBJECT_AND_THE_CONTROL_NAMED_FOR_ITS_CONTRACT_GRADED_ITS_OWN_FIXTURE_2026-09-05.md` — LATENT
 - `SEAT_RESULT_NOTHING_IN_THE_CALLER_POPULATION_KILLS_ANY_OF_FUEL_MIXS_ELEVEN_CONTRACTS_AND_THE_TENTH_SUITES_GREEN_CANNOT_BE_A_SWALLOW_2026-09-06.md` — LATENT
 - `SEAT_RESULT_THE_LOOSE_BOUNDARY_STAYS_UNGUARDED_ON_A_MEASURED_ZERO_AND_TWO_OF_THE_ALWAYS_RUN_EIGHTEEN_WERE_EARNED_BY_A_NAME_COLLISION_2026-09-10.md` — LATENT
@@ -61,7 +62,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**228.0 recorded episode-hours** across 4 of the 48 instances; largest single recorded episode **146h**; 8 instance(s) name a published figure in scope.
+**228.0 recorded episode-hours** across 4 of the 49 instances; largest single recorded episode **146h**; 8 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 

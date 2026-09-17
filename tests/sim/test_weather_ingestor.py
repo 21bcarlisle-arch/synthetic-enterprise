@@ -105,6 +105,55 @@ def test_the_two_429s_are_told_apart_by_reason_and_not_by_status():
         "build_weather_world.PAUSE_SECONDS was measured against")
 
 
+def test_the_hourly_limit_is_a_stop_and_not_a_retry_like_the_minutely_one():
+    """DEFECT (hit live 2026-09-17, 07:37 UTC): Open-Meteo enforces THREE limits behind the 429,
+    and the split above recognised two.
+
+    `_is_daily_quota` matched only "daily api request limit exceeded", so the live reason
+    "Hourly API request limit exceeded. Please try again in the next hour." was classified as a
+    burst limit and took the retry path -- 60+120+180 = 360s of backoff PER CELL against a bucket
+    that resets at the top of the hour, up to fifty-nine minutes away. That is the identical
+    defect `WeatherQuotaExhausted` was minted to close for the daily quota, one axis over, and it
+    is the limit that actually fires on a 23-cell pull: the daily one never does.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, all three legs in one test. The two failure modes are
+    symmetric and each is invisible to a one-sided test: a classifier that stops on NO 429 passes
+    the minutely leg alone, and one that stops on EVERY 429 passes the other two alone. Only
+    asserting that the partition SPLITS -- that both answers are reachable -- can fail both ways.
+    """
+    def _classify(reason: str):
+        body = {"error": True, "reason": reason}
+        with patch("requests.get", return_value=_mock_response(body, status=429)):
+            with pytest.raises(WeatherArchiveRefusal) as excinfo:
+                get_daily_weather("LON", 51.5, -0.1, "2016-01-01", "2025-12-31")
+        return excinfo.value
+
+    # THE LIVE STRINGS, copied from what the API actually answered rather than paraphrased. A
+    # fixture that invented its own wording would pass against a classifier that never matches
+    # Open-Meteo at all -- which is exactly the bug being fixed.
+    minutely = _classify("Minutely API request limit exceeded.")
+    hourly = _classify("Hourly API request limit exceeded. Please try again in the next hour.")
+    daily = _classify("Daily API request limit exceeded. Please try again tomorrow.")
+
+    assert not isinstance(minutely, WeatherQuotaExhausted), (
+        "a minutely 429 must stay retryable: 360s of backoff comfortably outlives a 60s bucket, "
+        "and stopping the whole pull on it wedges a run that waiting would have completed")
+    assert isinstance(hourly, WeatherQuotaExhausted), (
+        "an hourly 429 must STOP the run: the bucket resets at the top of the hour, which no "
+        "per-cell backoff reaches. This is the leg that was missing and the limit that fires")
+    assert isinstance(daily, WeatherQuotaExhausted)
+
+    # The horizon travels WITH the refusal, so the caller can say which wait it is. Without this
+    # the two stops are indistinguishable at the surface and an hourly pause is reported as
+    # "come back tomorrow" -- sending away a session that could have resumed in twenty minutes.
+    assert hourly.reset_seconds == 3600.0
+    assert daily.reset_seconds == 86400.0
+
+    # An UNRECOGNISED reason stays retryable, and the direction is deliberate: a wrongly retried
+    # refusal costs six minutes, a wrongly stopped run costs the whole pull.
+    assert not isinstance(_classify("Something we have never seen."), WeatherQuotaExhausted)
+
+
 def test_the_quota_type_is_still_caught_by_every_existing_handler():
     """The subclassing is load-bearing, not tidiness.
 

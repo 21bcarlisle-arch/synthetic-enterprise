@@ -171,7 +171,24 @@ TREND_WINDOW = 5
 #     and 2400 was SOFTER than the 200-marker observation — i.e. it broke the very rounding rule
 #     it cited. Caught by `measure_publish_cadence_seconds()` before it landed, which is the
 #     argument for the helper existing at all.
-PUBLISH_CADENCE_SECONDS = 1500
+#   2026-09-17  1500 -> 5400  (re-measured; runs slowed again, by a further ~3.6x)
+#     SAME METHOD AGAIN: median over the LAST 200 markers = 5,445s (n=189 usable gaps, p10 784s,
+#     p90 6,924s), window 2026-09-02T20:26 .. 2026-09-17T07:22, rounded DOWN to 5400 so the bound
+#     is never softer than the observation. Sliced, the drift is monotone and not one bad day:
+#       2026-08-26 .. 09-05  n=350  median 1,676s   <- the window 1500 was taken from
+#       2026-09-05 .. 09-12  n= 83  median 6,676s
+#       2026-09-12 .. 09-18  n= 25  median 6,827s
+#     THE UNCOMFORTABLE DIRECTION, AGAIN, and the paragraph above applies unchanged: this makes
+#     the alarm quieter for the second time. What makes it a re-measurement rather than a budget
+#     raise is also unchanged -- the method was fixed before the answer was known, the window is
+#     named, and `measure_publish_cadence_seconds()` reproduces it. What a reader must NOT
+#     conclude is that runs getting slower is FINE. This constant describes the world; a second
+#     ~3.6x slowdown in three weeks is a finding ABOUT THE MACHINE, and moving the number records
+#     it rather than answers it. It is written here because this is where it was noticed.
+#     NOT TAKEN FROM THE SLICE. The last two slices alone would justify ~6,600s -- which is the
+#     exact error the 2400 attempt made above: a different method from the one this constant is
+#     defined by, and softer than the 200-marker observation.
+PUBLISH_CADENCE_SECONDS = 5400
 
 
 def cadence_measurement_subject(markers_dir=None):

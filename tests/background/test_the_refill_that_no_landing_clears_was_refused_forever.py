@@ -208,9 +208,20 @@ def test_holder_work_survives_and_is_refused_by_name_with_its_reason(tree: Path)
         "the advance overwrote a working copy carrying a name nothing upstream has -- it has "
         "become `git checkout <path>`, which is the wall this mechanism exists under")
     assert "holder.py" in result["reason"]
-    assert "SUPPLIES" in result["reason"], (
+    # KEYED TO THE CONCEPT, NOT TO THE TOKEN (2026-09-17). This asserted the literal uppercase
+    # "SUPPLIES". The refusal was reworded to say "this copy supplies 1 name(s) origin/main
+    # lacks" -- the same reason, better stated, and against a NAMED ref instead of a bare HEAD.
+    # The control went red for its subject improving, and a reader following that red would
+    # reasonably have re-uppercased a word to clear it. What the test actually owes the reader is
+    # that the refusal distinguishes HOLDER WORK from a file that merely differs, so it checks
+    # the two halves of that claim -- something this copy SUPPLIES, that upstream LACKS -- and
+    # stops caring how they are capitalised or which ref is named.
+    reason = result["reason"].lower()
+    assert "supplies" in reason and "lacks" in reason, (
         "the refusal named the path but not the reason, which is the whole of what a reader needs "
-        "to know whether the refusal is the right one: {}".format(result["reason"]))
+        "to know whether the refusal is the right one. 'not byte-identical to what origin brings' "
+        "is equally true of holder work nobody may touch and of a file this tree has no reader "
+        "for, and those want opposite acts: {}".format(result["reason"]))
 
 
 def test_one_unprovable_blocker_holds_the_provable_ones_untouched(tree: Path) -> None:
