@@ -42,6 +42,7 @@ is a tautology; one that fires everything means the legs grade one thing while c
 """
 from __future__ import annotations
 
+import ast
 import json
 import subprocess
 import sys
@@ -55,10 +56,74 @@ sys.path.insert(0, str(PROJECT))
 
 from background.live_ledger_guard import LiveLedgerWriteUnderTest  # noqa: E402
 
-#: The real modules the fixture trees run. `background/` is a namespace package here as it is in
-#: the repository, so no `__init__.py` is copied or created -- a fixture that differs from its
-#: subject in how it is IMPORTED is a fixture that can disagree with it for free.
-_MODULES = ("live_ledger_guard.py", "launch_liveness.py", "seat_continuity.py")
+#: The real modules the fixture trees DRIVE -- the three whose behaviour this file grades.
+#: `background/` is a namespace package here as it is in the repository, so no `__init__.py` is
+#: copied or created -- a fixture that differs from its subject in how it is IMPORTED is a
+#: fixture that can disagree with it for free.
+_ROOTS = ("live_ledger_guard.py", "launch_liveness.py", "seat_continuity.py")
+
+
+def _background_imports(name: str) -> set[str]:
+    """The MODULE-LEVEL `background.*` imports of `background/<name>`, read by AST.
+
+    THIS LIST WAS HAND-KEPT AND WENT RED TWICE ON IT (2026-09-17 is the second). `launch_liveness`
+    gained `from background.episode_prior import ...` at module level in `5f6a4f15f`; the tuple
+    above was not updated, and from then on this control reported `ModuleNotFoundError: No module
+    named 'background.episode_prior'` -- an ImportError raised in the FIXTURE, standing in for a
+    verdict about its subject, which never ran at all. A stand-in repo whose contents are kept by
+    hand fails on the next import anyone adds, and it fails as a red that looks like the subject's.
+
+    DERIVED FROM THE SUBJECT, so there is nothing left to keep. The roots above are a real fact
+    about this file (they are what the child processes below actually call); everything else the
+    subject needs in order to IMPORT is closed over from the subject's own source.
+
+    MODULE-LEVEL ONLY, deliberately. That is precisely the failure this closes: the child
+    ImportErrors before a line of the subject runs. A lazy in-function import -- `seat_continuity`
+    has four -- fails inside the code path that reached it, on the assertion that reached it, in
+    its own words; it is a different and self-announcing shape, and pulling the whole lazy graph
+    in would copy half of `background/` into every fixture tree to close a hole nobody has.
+
+    Raises rather than degrades. A root that cannot be parsed, or an import naming a module that
+    is not on disk, is a fact about the tree the reader needs -- silently copying fewer files is
+    how this got here.
+    """
+    out: set[str] = set()
+    tree = ast.parse((PROJECT / "background" / name).read_text(encoding="utf-8"), filename=name)
+    for node in tree.body:  # module level only -- see the docstring
+        if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            if node.module == "background":  # `from background import x, y`
+                out.update(alias.name + ".py" for alias in node.names)
+            else:
+                parts = node.module.split(".")
+                if parts[0] == "background" and len(parts) > 1:
+                    out.add(parts[1] + ".py")
+        elif isinstance(node, ast.Import):  # `import background.x`
+            for alias in node.names:
+                parts = alias.name.split(".")
+                if parts[0] == "background" and len(parts) > 1:
+                    out.add(parts[1] + ".py")
+    return out
+
+
+def _module_closure(roots: tuple[str, ...]) -> tuple[str, ...]:
+    """`roots` plus everything they need at import time, transitively."""
+    seen: set[str] = set()
+    queue = list(roots)
+    while queue:
+        name = queue.pop()
+        if name in seen:
+            continue
+        if not (PROJECT / "background" / name).exists():
+            raise AssertionError(
+                "the fixture's subject imports background/{} at module level and no such module "
+                "exists -- this tree cannot import its own daemon".format(name))
+        seen.add(name)
+        queue.extend(_background_imports(name))
+    return tuple(sorted(seen))
+
+
+#: Everything a fixture tree needs on disk for the roots to IMPORT. Derived, never listed.
+_MODULES = _module_closure(_ROOTS)
 
 
 def _git(*args, cwd):
@@ -133,6 +198,30 @@ def trees(tmp_path):
     assert [r["job"] for r in stale] == ["stale-checkout-only"], \
         "the fixture is not reproducing the defect: the worktree should still hold the checkout"
     return main, linked
+
+
+def test_the_fixture_tree_holds_whatever_its_subject_imports_rather_than_a_hand_kept_list():
+    """A STAND-IN REPO KEPT BY HAND FAILS ON THE NEXT IMPORT ANYONE ADDS, and it fails as a red
+    that reads like the subject's (2026-09-17: `ModuleNotFoundError: No module named
+    'background.episode_prior'`, from a fixture whose subject never ran).
+
+    KEYED TO THE PROPERTY -- the copied set is CLOSED under its members' module-level imports --
+    and not to today's answer. Asserting "episode_prior is in the list" would go red on the day
+    that import is correctly removed, which is exactly backwards.
+    """
+    assert set(_ROOTS) <= set(_MODULES)
+    for name in _MODULES:
+        missing = _background_imports(name) - set(_MODULES)
+        assert not missing, (
+            "background/{} imports {} at module level and the fixture tree would not contain "
+            "it, so the child ImportErrors before the subject runs".format(name, sorted(missing)))
+
+
+def test_a_subject_importing_a_module_that_is_not_there_is_loud():
+    """Silently copying fewer files is how the hand-kept list got away with being wrong. The
+    fail-loud leg has to be reachable or the closure is just a quieter version of the defect."""
+    with pytest.raises(AssertionError, match="cannot import its own daemon"):
+        _module_closure(("no_such_daemon.py",))
 
 
 def _book(tree: Path) -> list:
