@@ -125,11 +125,23 @@ the single-arm evidence above. It should be read on its own, not folded.
 
 1. **Do not fold `next12` into the eighteen when it lands.** Read it as its own twelve-seed
    single-arm family. This is the one that will go wrong quietly if nobody writes it down.
-2. **Give `fold_noise_floor_family` a value-arm predicate.** It should refuse — or at minimum price —
-   a fold whose members' `simulation/`, `company/`, `saas/` and `run_value_cycle_ab.py` bytes differ,
-   and stay silent when only site/docs/tests moved. Commit identity is too coarse in both directions.
-   The control must be keyed to the property (does the value arm differ?) and not to today's
-   membership.
+2. ~~**Give `fold_noise_floor_family` a value-arm predicate.**~~ **DONE, landed with this finding.**
+   `_value_arm_pairing` now states on every folded artefact whether its members share a value arm,
+   over `simulation/`, `company/`, `saas/` and `tools/run_value_cycle_ab.py`, and the CLI prints it
+   on every branch so silence means "asked and matched" rather than "never asked". It **names the
+   code that moved** — on the published eighteen that is `company/pricing/value_based_renewal.py`
+   and `tools/run_value_cycle_ab.py`, which is the first time the cause of the £671 has been on a
+   surface a reader reaches.
+
+   It **annotates rather than refuses**, deliberately. A default refusal would red the existing
+   controls that fold this exact pair to check the fold's *arithmetic* against the producer's, and
+   whether to stop publishing a mixed family is the consumer's publishing decision, not the
+   producer's. The artefact now carries what that decision needs.
+
+   Keyed to the property and mutation-proven: both folds compared have **two** distinct producing
+   commits, so `producing_commit`'s "2 distinct code tree(s)" cannot separate them, and the coarse
+   commit-identity implementation fails the control. Two mutations were applied and both fired —
+   keying on commit identity, and letting an unstamped member read as agreement.
 3. **Decide what the page publishes.** The published -624.13 with "no sign" is a mixture of two value
    arms; the single-arm -959.78 states a negative sign. Re-pointing the page is a publishing decision
    with a live figure on the other end, so it is left to a reviewable step rather than taken inside

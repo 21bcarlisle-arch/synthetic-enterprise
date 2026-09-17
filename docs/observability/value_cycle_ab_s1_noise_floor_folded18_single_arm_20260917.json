@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-17T21:28:11Z",
+ "generated_at": "2026-09-17T21:39:28Z",
  "folded": true,
  "producing_commit": {
   "commit": null,
@@ -54,6 +54,25 @@
   "how_a_consumer_should_pair_this": "Pair on `declared` and never on `realised_across_seeds`. The declared half is the book the run was given; the realised half is what the seed's own churn did to it, so two floors of the SAME book differ there by construction. A consumer that compared the counts would refuse every honest re-run.",
   "realised_across_seeds_unavailable_because": "a fold does not reconcile the realised half: each member measured its own range over its own seeds. Read them per member in `folded_from`, and pair on `declared` -- which is the instruction this artefact's own members carry.",
   "folded_over_members": 2
+ },
+ "value_arm_pairing": {
+  "same_value_arm": true,
+  "member_commits": [
+   "4e7938f67",
+   "9f0ab066f"
+  ],
+  "members_without_a_commit": 0,
+  "value_arm_paths": [
+   "simulation/",
+   "company/",
+   "saas/",
+   "tools/run_value_cycle_ab.py"
+  ],
+  "differing_paths": [],
+  "unavailable_because": null,
+  "caveat": null,
+  "why_this_rule": "A folded family states whether its members were drawn by the same pricing code, over simulation/, company/, saas/, tools/run_value_cycle_ab.py. Two members whose value arms differ are two instruments, and their spread is the step between them published as redraw noise.",
+  "measured_cost_when_it_last_differed": "GBP671.31 paired on nine identical seeds, 20.4 sems from zero, between `c066c114` and `9f0ab066` (2026-09-17). Pooling across it moved the selection leg from 2.50 sems and a stateable NEGATIVE sign to 1.80 sems and no sign at all."
  },
  "report_end": null,
  "what_this_is": "The three-arm A/B re-run once per seed with ONLY the per-household elasticity assignment re-drawn, FOLDED across 2 runs of the same world into one family of 18 seeds. The spread below is the error bar on `selection_gbp` -- the figure the level-vs-selection split publishes.",
