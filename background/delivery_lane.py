@@ -203,6 +203,45 @@ SELF_HANDOFF_CHAIN_LIMIT = 3
 #: cannot hold an item past its own lifetime.
 CLAIM_STALE_SECONDS = 100 * 60
 
+
+def _landing_grace_seconds() -> float:
+    """How long AFTER its window closes a commit can still be the claim's OWN landing.
+
+    DERIVED, NEVER PICKED, and the derivation is the whole argument. `tools.surgical_land` is the
+    only sanctioned door and `GATE_TIMEOUT_SECONDS` is the worst cost it is permitted to charge
+    before the hook chain is killed, so a turn that starts its landing one second before the sweep
+    deadline can produce a commit that much after it — and a commit later than that cannot be the
+    invocation that held the claim, because the door it had to come through was already dead.
+
+    MEASURED, WHICH IS WHY IT EXISTS AT ALL (2026-09-17, this lane's own ledger).
+    `the-gas-tariff-type-read-becomes-the-c1b-roll-now-that-the-18-can-leave` was drawn at
+    1789538535; `dcb8c6d10` — its own work, on `simulation/run_phase2b.py`, a path its own prose
+    names — committed at 1789545141, **606 seconds after `drawn + CLAIM_STALE_SECONDS`**. The join
+    keyed to the window the claim was GIVEN therefore could not see it and the row read `not_done`
+    with an empty evidence string. That is not an edge case, it is the CENTRAL one: the claim that
+    gets swept is by construction the turn that ran long, and the turn that ran long is exactly the
+    one whose commit falls outside the given window. A credit half keyed to the given window can
+    only ever find landings that did not need finding.
+
+    IMPORTED AT THE POINT OF USE and never at module level: `surgical_land` registers an
+    `atexit` cleanup handler and pulls 124 modules on import, and `delivery_lane` is imported by
+    the supervisor, the deadman and every tick. A reader of this ledger must not acquire a
+    checkout-cleanup handler as a side effect of asking what landed.
+
+    RETURNS 0.0 WHEN THE DOOR CANNOT BE READ, which restores the pre-2026-09-17 window exactly.
+    That is the loud direction: no grace means no credit means the row keeps its unnamed miss, and
+    an unavailable check must never be the thing that marks work delivered.
+    """
+    try:
+        from tools import surgical_land
+    except Exception:
+        return 0.0
+    try:
+        return float(surgical_land.GATE_TIMEOUT_SECONDS)
+    except (AttributeError, TypeError, ValueError):
+        return 0.0
+
+
 #: How far back `drawn_without_landing` looks. A DAY, not a stretch, and that is the whole point of
 #: the horizon: a stretch is three hours, so an item drawn at 04:11 and never landed falls out of a
 #: stretch-scoped read by the 08:00 orientation and is never mentioned again by anything. Twenty-four
@@ -233,18 +272,99 @@ def held(path: Path | None = None) -> set[str]:
 
 
 def sweep_stale(now: float | None = None, path: Path | None = None) -> list[str]:
-    """Return abandoned claims to the pool. Never raises into a draw."""
+    """Return abandoned claims to the pool, ASKING THE TREE FIRST. Never raises into a draw.
+
+    THE SWEEP DECIDED LANDING FROM THE AUTHOR AND NOW DECIDES IT FROM THE TREE. Its message said,
+    of every stale claim carrying paths, *"No commit has touched its N claimed path(s) in that
+    time"* -- and nothing had asked git. That is the same un-asked claim about state as the
+    sentence it replaced in 2026-09-09, one rung further in: a lane that landed correctly and
+    never ran `--landed` was swept, alarmed, and re-offered as unstarted work, and the only thing
+    wrong was that nobody had told the ledger.
+
+    ONE CHECK, BOTH DIRECTIONS, and `tree_verdict` is where it lives:
+
+      * CREDITED -- a commit inside the claim's window touched its own paths and no other row is
+        credited with it. `credit_from_tree` binds it, so the row reads DELIVERED and NAMES THE
+        COMMIT. The claim is still released, which is right: the work landed, so the claim has
+        nothing left to hold. What changes is that the record now says so.
+      * STRANDED -- no such commit, but those paths hold uncommitted bytes on the shared tree
+        older than the window. That is the 2026-09-17 BLOCKING finding's subject, and it gets its
+        OWN alarm key: it is a different instruction to the reader from "this stalled" (the bytes
+        exist and need landing, not redoing) and keying it to the ordinary sweep alarm would hide
+        it inside a message that fires on every stale claim.
+
+    A CREDITED CLAIM IS STILL ALARMED BY `claims_mod.sweep` AS HAVING MOVED NOTHING, and that is
+    the honest reading of a turn that landed and never bound: the lane could not see it at the
+    time. Suppressing the alarm on the strength of a credit written seconds earlier would make the
+    surface agree with itself by construction -- the tautology shape -- and would remove the only
+    signal that the binding step was skipped.
+
+    NEVER RAISES, and the tree reading is wrapped separately from the sweep: an unavailable check
+    must not stop abandoned claims returning to the pool, which is this function's actual job.
+    """
+    store = path or CLAIMS_FILE
     try:
-        return claims_mod.sweep(path=path or CLAIMS_FILE, now=now,
-                                stale_after=CLAIM_STALE_SECONDS)
+        stale = [wid for wid, _rec, _idle in claims_mod.stale_claims(
+            path=store, now=now, stale_after=CLAIM_STALE_SECONDS)]
+    except Exception:
+        stale = []
+    for work_id in stale:
+        try:
+            _act_on_tree_verdict(work_id, now=now, path=store)
+        except Exception:
+            continue        # one unreadable claim must not cost the other claims their sweep
+    try:
+        return claims_mod.sweep(path=store, now=now, stale_after=CLAIM_STALE_SECONDS)
     except Exception:
         return []
 
 
-def _git(*args: str) -> str | None:
-    """`git args...` stdout, or None if git will not answer. The single subprocess seam here."""
+def _act_on_tree_verdict(work_id: str, *, now: float | None = None,
+                         path: Path | None = None) -> dict | None:
+    """Credit or alarm one stale claim from what the tree says. The verdict acted on, or `None`.
+
+    SPLIT OUT OF `sweep_stale` SO THE ACTION IS TESTABLE WITHOUT THE SWEEP, and because the claim
+    id and the DRAWN id are not always the same string -- `resolve_claim_id` exists for exactly
+    that, and a credit written under the spelling the claims store happens to hold would mint a
+    ledger row nothing ever reads again.
+    """
+    focus_id = resolve_claim_id(work_id, path=path or CLAIMS_FILE) or work_id
+    verdict = credit_from_tree(focus_id, now=now, path=path)
+    if not verdict:
+        return None
+    if verdict.get("verdict") == CREDITED and verdict.get("bound"):
+        return verdict
+    if verdict.get("verdict") == STRANDED:
+        from background import alarm_repetition
+        alarm_repetition.escalate(
+            "[SEAT] {} was claimed, landed NOTHING, and its work is SITTING IN THE SHARED TREE\n"
+            "{}\n"
+            "These are bytes, not a plan: the work exists and has never been in a commit, so "
+            "redoing it would be doing it twice. Land them by the ordinary route "
+            "(`python3 -m tools.surgical_land -m \"...\" <paths>`), then "
+            "`python3 -m background.delivery_lane --landed {}`.".format(
+                focus_id, verdict.get("evidence", ""), focus_id),
+            key=f"delivery-lane-stranded:{focus_id}", repeats=1,
+            # THE DRAW, not now: `first_ts` is when this episode began, and stamping it with the
+            # moment the sweep noticed would restart the clock on every sweep and make a strand
+            # that has stood for days read as new each time.
+            first_ts=float(verdict.get("drawn_at") or 0.0), now=now)
+        return verdict
+    return verdict
+
+
+def _git(*args: str, cwd: Path | None = None) -> str | None:
+    """`git args...` stdout, or None if git will not answer. The single subprocess seam here.
+
+    `cwd` DEFAULTS TO THIS MODULE'S OWN TREE AND THE STRAND CHECK IS WHY IT CAN BE OVERRIDDEN.
+    Every other caller here asks about COMMITS, and a linked worktree shares its object store with
+    the main one, so `PROJECT_DIR` answers identically wherever this process stands. `git status`
+    does not: it reports the working tree of the checkout it runs in, and the bytes the strand half
+    is looking for are on the SHARED disk by definition. Asking the wrong tree there returns a
+    clean status and reads as "nothing stranded", which is the flattering answer.
+    """
     try:
-        out = subprocess.run(("git",) + args, cwd=PROJECT_DIR,
+        out = subprocess.run(("git",) + args, cwd=cwd or PROJECT_DIR,
                              capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
         return None
@@ -895,6 +1015,23 @@ def _bound_instants(ledger: dict) -> frozenset:
         if isinstance(row, dict) and row.get("last_landing_at"))
 
 
+def _claim_paths(focus_id: str, row: dict) -> list[str]:
+    """The paths this claim is about — ONE set, read by both directions of the tree check.
+
+    The credit half asks whether a commit touched these; the strand half asks whether these hold
+    uncommitted bytes. THE SAME LIST OR THE CHECK IS TWO CHECKS: a claim credited against one path
+    set and alarmed against another can report both answers about itself, and the pair would
+    disagree without either side being wrong.
+
+    `named_paths` is `record_draw`'s stamp — the prose as it stood at THIS draw. `_item_text` is
+    the reach-back for rows that predate that stamp, and it goes quiet when the item leaves both
+    stores, which is why the callers below treat an empty list as "cannot answer" rather than as
+    "nothing to see".
+    """
+    named = [str(p) for p in (row.get("named_paths") or ())]
+    return named or _paths_named_in(_item_text(focus_id))
+
+
 def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset) -> dict | None:
     """Work that landed on this item's paths inside its window with nothing bound to it, or None.
 
@@ -905,10 +1042,9 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset)
     shape: a dial that reports the flattering residual by construction. Git already holds the
     fact, and `_git` already ran `rev-list`/`merge-base`/`diff` twenty lines up.
 
-    SAY WHAT IT IS. The window is `[drawn, drawn + CLAIM_STALE_SECONDS]` — the window the item was
-    actually given, not "since then" — and a commit counts when all three hold: its committer
-    instant falls inside that window, it touched a path the item's own prose named, and no row of
-    this ledger is credited with it. The disposition is named `LANDED_UNBOUND` for exactly that
+    SAY WHAT IT IS. A commit counts when all three hold: its committer instant falls inside the
+    window below, it touched a path the item's own prose named, and no row of this ledger is
+    credited with it. The disposition is named `LANDED_UNBOUND` for exactly that
     reading and NOT `DELIVERED`: it says work landed on this subject and nothing bound it, which
     is what was measured. Calling it delivered would be inferring the item was finished from the
     fact that its files moved, and the reader can tell the difference only if the label does.
@@ -916,11 +1052,28 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset)
     IT RETURNS None RATHER THAN A GUESS in every case where the join cannot run — git silent, the
     item naming no path git tracks, a row whose prose has left both stores. The residual stays
     loud, which is the direction an unavailable check has to fail in (R15).
+
+    THE WINDOW SAID `[drawn, drawn + CLAIM_STALE_SECONDS]` — "the window the item was actually
+    given, not since then" — AND THAT WAS WRONG, corrected here beside the claim rather than
+    rewritten over it. The sentence was right about what the claim was given and wrong about when
+    its landing can arrive: the landing is a gated commit and the gate takes time, so the window
+    the claim was given is not the window its evidence falls in. Measured on this ledger the day
+    this was written, the one row the whole credit half exists for missed by 606 seconds. The
+    upper edge is therefore the given window PLUS `_landing_grace_seconds()`, which is
+    `surgical_land`'s own kill deadline and not a number chosen to make this case pass — see that
+    function for why nothing later can be the invocation that held the claim.
+
+    WIDENING AN EDGE IS THE FAIL-OPEN DIRECTION AND THE OTHER TWO CLAUSES ARE WHY IT IS SAFE HERE.
+    A wider window on its own would credit this claim with whatever the busiest lane committed next.
+    It cannot, because the commit must ALSO have touched a path this item's own prose named and
+    ALSO be a commit `_bound_instants` shows no other row is credited with. The edge that moved is
+    the one of the three that was measuring the wrong thing; the two that do the discriminating are
+    untouched.
     """
-    paths = [str(p) for p in (row.get("named_paths") or ())] or _paths_named_in(_item_text(focus_id))
+    paths = _claim_paths(focus_id, row)
     if not paths:
         return None
-    window_ends = drawn + CLAIM_STALE_SECONDS
+    window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
     out = _git("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
                "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
                "--", *paths)
@@ -938,12 +1091,16 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset)
             continue
         if when in bound_at or not (drawn <= when <= window_ends):
             continue
-        hits.append((sha, subject))
+        hits.append((sha, when, subject))
     if not hits:
         return None
-    sha, subject = hits[0]
+    sha, when, subject = hits[0]
     more = " (+{} more)".format(len(hits) - 1) if len(hits) > 1 else ""
-    return {"disposition": LANDED_UNBOUND,
+    # `commit`/`at`/`paths` are ADDITIVE and exist for `tree_verdict`, which has to bind the thing
+    # this function found rather than only describe it. The two keys every existing reader of a
+    # disposition uses -- `disposition` and `evidence` -- are unchanged, so nothing downstream has
+    # to learn a new shape to keep working.
+    return {"disposition": LANDED_UNBOUND, "commit": sha, "at": when, "paths": list(paths),
             "evidence": "{} {} touched {}{}".format(
                 sha[:9], subject.strip()[:80], ", ".join(paths[:3]), more)}
 
@@ -970,6 +1127,170 @@ LANDED_UNBOUND = "landed_unbound"
 #: is the same conflation one rung up, and it is the one that would make the dial read healthy.
 DELIVERED = "delivered"
 NOT_DRAWN = "not_drawn"
+
+#: The two things asking the TREE about a closed window can find, and they are the same defect seen
+#: from its two sides: the lane cannot tell work that EXISTS from work that was merely DESCRIBED.
+#: `CREDITED` is work that exists and nobody bound; `STRANDED` is a description nobody landed.
+CREDITED = "credited"
+STRANDED = "stranded"
+
+
+def _stranded_paths(paths: list[str], window_closed: float,
+                    now: float | None = None) -> list[tuple[str, float]]:
+    """`(path, mtime)` for claim paths holding uncommitted bytes OLDER than the closed window.
+
+    THE HALF THAT ASKS THE TREE INSTEAD OF THE AUTHOR (the 2026-09-17 BLOCKING finding, whose own
+    remedy section asks for exactly this and names a one-leg check as the cheap shape). Two
+    consecutive nights, the same nine paths were left as working-tree bytes on the shared disk --
+    night one a lane that never ran the landing step, night two a lane that ran it and died inside
+    it. A rule aimed at "remember to land" only addresses the first. Asking whether uncommitted
+    bytes exist on a claim's own paths addresses both, because it is a question about the tree.
+
+    MTIME IS THE DISCRIMINATOR AND IT IS THE ONLY THING STANDING BETWEEN THIS AND A FALSE ALARM
+    EVERY SINGLE SWEEP. Several lanes edit this tree continuously, so "these paths are dirty" is
+    true almost always and means nothing. What is NOT ordinary is bytes that have sat unchanged
+    since before the window closed: a live lane's repair is being written NOW and its mtime is
+    recent, while a dead invocation's leavings stop moving at the instant it died. The comparison
+    is therefore `mtime <= window_closed` -- strictly the older side -- and a file touched since
+    counts as somebody's live work and is passed over. That direction is deliberate: a missed
+    strand costs one more sweep, and alarming on another lane's in-flight repair is how a control
+    of this kind gets ignored.
+
+    ASKED OF THE SHARED TREE, never of `PROJECT_DIR`, for the reason `_git`'s own docstring gives.
+
+    EMPTY IS NOT A FINDING HERE AND THE CALLER MUST NOT READ IT AS ONE. `[]` is returned both when
+    the tree is clean on these paths and when git would not answer at all, and `tree_verdict`
+    handles that by only ever turning a NON-empty list into a verdict -- nothing here ever produces
+    a clean bill of health, which is the one reading this could not support.
+    """
+    if not paths:
+        return []
+    try:
+        root = seat_continuation.shared_tree_dir()
+    except Exception:
+        return []
+    out = _git("status", "--porcelain", "--untracked-files=all", "--", *paths, cwd=root)
+    if not out:
+        return []
+    stamp = time.time() if now is None else float(now)
+    found = []
+    for line in out.splitlines():
+        rel = line[3:].strip()
+        # A rename prints `old -> new`; the bytes on disk are the NEW side, and asking the old
+        # side's mtime would stat a path that is gone and drop the row silently.
+        if " -> " in rel:
+            rel = rel.split(" -> ", 1)[1].strip()
+        rel = rel.strip('"')
+        if not rel:
+            continue
+        try:
+            mtime = float((root / rel).stat().st_mtime)
+        except OSError:
+            continue        # a deletion has no bytes to strand; nothing to say about it
+        if mtime <= window_closed <= stamp:
+            found.append((rel, mtime))
+    return sorted(found, key=lambda pair: pair[1])
+
+
+def tree_verdict(focus_id: str, *, now: float | None = None,
+                 path: Path | None = None) -> dict | None:
+    """What the TREE says became of `focus_id`'s last window, in both directions. `None` if silent.
+
+    ONE CHECK, NOT TWO, and the item that directed this was explicit that it is one mechanism.
+    Both halves read the same claim, the same `_claim_paths` set and the same window; they differ
+    only in which question they put to git. A claim whose paths carry an unbound commit inside its
+    window must be CREDITED. A claim whose paths hold uncommitted bytes older than that window must
+    be alarmed as STRANDED. Both are the lane failing to tell work that EXISTS from work that was
+    merely DESCRIBED, and splitting them into two registers would have been two mechanisms for one
+    defect -- which is the shape this repository has paid for repeatedly and the finding refused.
+
+    ORDER IS NOT ARBITRARY: the credit is asked FIRST because a landed claim whose leftovers are
+    still dirty is delivered, not stranded, and alarming on it would page a seat about work that
+    is already in a ref. The two verdicts are therefore mutually exclusive by construction rather
+    than by a flag somebody has to remember to set.
+
+    IT RETURNS None FOR "THE TREE DID NOT SAY", which is a THIRD answer and not a clean bill: an
+    id never drawn, an item naming no tracked path, a git that would not answer, a window still
+    open. Callers must not read `None` as "nothing landed and nothing is stranded" -- neither
+    question was answered -- and `sweep_stale` below treats it as exactly that: it does nothing,
+    and the ordinary swept-claim alarm still fires.
+    """
+    stamp = time.time() if now is None else float(now)
+    store = path or CLAIMS_FILE
+    try:
+        ledger = claims_mod._load(_ledger_path(store))
+    except Exception:
+        return None
+    row = ledger.get(focus_id) if isinstance(ledger, dict) else None
+    if not isinstance(row, dict):
+        return None
+    drawn = float(row.get("last_drawn_at") or 0.0)
+    if drawn <= 0.0 or stamp - drawn < CLAIM_STALE_SECONDS:
+        return None             # the window is still open; there is nothing yet to dispose of
+    if float(row.get("last_landing_at") or 0.0) >= drawn:
+        return None             # already credited under its own name -- nothing for git to add
+    paths = _claim_paths(focus_id, row)
+    if not paths:
+        return None
+    try:
+        landed = _landed_unbound(focus_id, row, drawn, _bound_instants(ledger))
+    except Exception:
+        landed = None
+    if landed and landed.get("commit"):
+        return {"verdict": CREDITED, "commit": str(landed["commit"]), "at": float(landed["at"]),
+                "paths": paths, "drawn_at": drawn, "evidence": landed.get("evidence", "")}
+    stranded = _stranded_paths(paths, drawn + CLAIM_STALE_SECONDS, now=stamp)
+    if stranded:
+        oldest_rel, oldest_mtime = stranded[0]
+        return {"verdict": STRANDED, "paths": [rel for rel, _ in stranded], "drawn_at": drawn,
+                "oldest_age_hours": round((stamp - oldest_mtime) / 3600.0, 1),
+                "evidence": "{} path(s) hold uncommitted bytes on the shared tree, unchanged "
+                            "since before the window closed -- oldest {} at {:.1f}h: {}".format(
+                                len(stranded), oldest_rel, (stamp - oldest_mtime) / 3600.0,
+                                ", ".join(rel for rel, _ in stranded[:5]))}
+    return None
+
+
+def credit_from_tree(focus_id: str, *, now: float | None = None,
+                     path: Path | None = None) -> dict | None:
+    """Bind the landing the tree found to `focus_id`. The verdict acted on, or `None`.
+
+    THIS IS THE STEP THAT MAKES THE READING A MECHANISM. `_landed_unbound` has been able to NAME a
+    landed-but-unbound commit since 2026-09-16 and could do nothing about it: the row kept
+    `last_landing_at: null`, so every later reader -- `drawn_without_landing`, the orientation
+    brief, `seat_executor`'s did-the-turn-move-anything verdict -- still read the claim as having
+    delivered nothing, and each of them re-derived the same miss. A disposition label that no store
+    carries is a reading, and the item asked for a sweep that CREDITS.
+
+    IT WRITES THE COMMIT'S OWN INSTANT, through `_remember_landing`, exactly as `--landed` does.
+    One writer, one meaning: a row credited here is indistinguishable from a row bound by hand
+    because there is no difference worth encoding -- git said the same thing both times. And the
+    instant is the COMMIT's, never `now`, so the credit cannot make a stale window look fresh.
+
+    THE PATHS BOUND ARE THE COMMIT'S OWN, INTERSECTED with what the claim named. Binding everything
+    the commit touched would credit this claim with whatever else rode along in it; binding
+    everything the claim named would credit paths no commit moved. The intersection is the only one
+    of the three that is a measured fact about both.
+
+    AND AN EMPTY INTERSECTION WRITES NOTHING. It cannot happen while git is answering -- the commit
+    was FOUND by `git log -- <named paths>`, so at least one is in it by construction -- which
+    means an empty one says `_commit_facts` went silent, not that the overlap is genuinely zero.
+    There is no honest fallback: binding the named paths would assert a movement nothing measured,
+    so the row keeps its unnamed miss and the next sweep asks again. The verdict is still returned
+    with `bound: []` so the caller can SAY that rather than print a credit that did not happen.
+    """
+    verdict = tree_verdict(focus_id, now=now, path=path)
+    if not verdict or verdict.get("verdict") != CREDITED:
+        return verdict
+    try:
+        _, touched = _commit_facts(str(verdict["commit"]))
+    except Exception:
+        touched = []
+    bound = sorted(set(touched) & set(verdict.get("paths") or ()))
+    if not bound:
+        return {**verdict, "bound": []}
+    _remember_landing(focus_id, float(verdict["at"]), bound, path or CLAIMS_FILE)
+    return {**verdict, "bound": bound}
 
 
 def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
