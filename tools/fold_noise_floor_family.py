@@ -55,7 +55,7 @@ from pathlib import Path
 #: implementation of one rule is this project's most expensive recurring defect, and a folded
 #: family whose mean is computed differently from the family it extends is that defect with the
 #: two copies one import apart.
-from tools.run_value_cycle_ab import _spread, distance_to_a_sign
+from tools.run_value_cycle_ab import _book_declared, _spread, distance_to_a_sign
 
 _REPO = Path(__file__).resolve().parent.parent
 
@@ -271,6 +271,27 @@ def _book_identity(sources: list) -> dict:
     them would be worse. So a member without one turns the whole block into an unknown that names
     which member could not answer, and a consumer meets a `None` it must fail closed on rather than
     a book identity that covers half the rows.
+
+    PAIRED ON `declared`, AND IT USED TO ASK FOR A `digest` NOBODY WRITES. Until 2026-09-17 the
+    agreement below was taken over `book_identity.digest`, and `floor_book_identity` -- the only
+    producer of a floor's book block -- has never emitted that key in its life. So the branch was
+    unreachable in the flattering direction: every fold of every real pair fell through to the
+    disagreement arm and published `the folded runs name 1 different books (None)`, a sentence
+    whose own count contradicts it. Measured on the two members of the served 18-seed family,
+    both of which declare `['resi', 'SME']` resolved from the curriculum: the fold returned that
+    unknown and dropped `declared` entirely -- and `declared` is the ONLY key the consumer reads
+    (`generate_value_arms_data._floor_book_admission`, which falls back to a date-ordering stamp
+    proxy when it is absent). The published page therefore admitted its own bound on a PROXY while
+    the book was sitting, agreed, in both members. That is why the drawn item read as "the family
+    states no book it can show it was drawn over"; the seeds named one all along and this join
+    threw it away.
+
+    So the comparison is `run_value_cycle_ab._book_declared` -- the producer's own comparable form,
+    imported and not re-copied, for the reason the module docstring gives -- and the success path
+    returns the producer's OWN block shape. It does not mint a digest to fill the field it just
+    stopped reading: an invented identity would be read as established, and the honest answer is
+    that a floor's book IS its declared half. `floor_book_identity.how_a_consumer_should_pair_this`
+    says so on every artefact, and this is that instruction obeyed rather than paraphrased.
     """
     missing = [str(path) for path, data in sources if not (data.get("book_identity") or {})]
     if missing:
@@ -284,16 +305,51 @@ def _book_identity(sources: list) -> dict:
                     ", ".join("`{}`".format(m) for m in missing),
                     "ies" if len(missing) == 1 else "y")),
         }
-    digests = {(data.get("book_identity") or {}).get("digest") for _, data in sources}
-    if len(digests) > 1 or None in digests:
+    # A block that EXISTS but declares nothing is the producer's own fail-closed for "some seed in
+    # that run recorded no book", and it is a different state from an absent block -- so it is
+    # named separately rather than collapsed into the branch above. Both are unknowns; only one of
+    # them is about a member that predates the field.
+    silent = [str(path) for path, data in sources
+              if _book_declared((data.get("book_identity") or {}).get("declared")) is None]
+    if silent:
         return {
             "digest": None,
             "unavailable_because": (
-                "the folded runs name {} different books ({}), so no single book identity "
-                "describes these rows.".format(
-                    len(digests), ", ".join(sorted(str(d) for d in digests)))),
+                "this family is folded from runs that carry a book block declaring no population: "
+                "{} do{} not name a served book. `floor_book_identity` writes that state when a "
+                "seed inside the run recorded no book, so the rows it contributes are not known "
+                "to be drawn over the same population as the rest and this family states "
+                "none.".format(", ".join("`{}`".format(m) for m in silent),
+                               "es" if len(silent) == 1 else "")),
+        }
+    declared = {_book_declared((data.get("book_identity") or {}).get("declared"))
+                for _, data in sources}
+    if len(declared) > 1:
+        return {
+            "digest": None,
+            "unavailable_because": (
+                "the folded runs were drawn over {} different books ({}), so no single book "
+                "identity describes these rows.".format(
+                    len(declared),
+                    ", ".join(sorted("`{}`".format(list(d)) for d in declared)))),
         }
     first = dict(sources[0][1].get("book_identity") or {})
+    # The two halves behave in OPPOSITE directions across a fold, exactly as they do across seeds
+    # (see `BOOK_DECLARED_FIELDS`): the declared half is what agreement was just proven over and
+    # carries forward unchanged, while the realised counts are per-run outcomes of different seed
+    # streams. Re-publishing the FIRST member's realised range as the family's would state a range
+    # measured over a third of the rows as though it covered all of them, so it is dropped and the
+    # members keep their own in `folded_from`.
+    first.pop("realised_across_seeds", None)
+    first["realised_across_seeds_unavailable_because"] = (
+        "a fold does not reconcile the realised half: each member measured its own range over its "
+        "own seeds. Read them per member in `folded_from`, and pair on `declared` -- which is the "
+        "instruction this artefact's own members carry.")
+    first["seeds_reconciled"] = sum(
+        (data.get("book_identity") or {}).get("seeds_reconciled") or 0 for _, data in sources)
+    first["seeds_that_recorded_no_book"] = sum(
+        (data.get("book_identity") or {}).get("seeds_that_recorded_no_book") or 0
+        for _, data in sources)
     first["folded_over_members"] = len(sources)
     return first
 
@@ -366,7 +422,11 @@ def fold(paths: list) -> dict:
                             else path),
                 "generated_at": data.get("generated_at"),
                 "producing_commit": (data.get("producing_commit") or {}).get("commit"),
-                "book_identity": (data.get("book_identity") or {}).get("digest"),
+                #: THE DECLARED HALF, for the reason `_book_identity` gives at length: this read
+                #: asked for a `digest` no producer of a floor block has ever written, so every
+                #: member of every family recorded `null` here and the per-member record could not
+                #: contradict a family-level unknown it was the evidence for.
+                "book_identity": (data.get("book_identity") or {}).get("declared"),
                 "n": len(data.get("seeds") or []),
                 "seeds": [r.get("seed") for r in (data.get("seeds") or [])],
             }
