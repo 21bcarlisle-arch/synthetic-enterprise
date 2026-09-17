@@ -258,13 +258,49 @@ def test_census_returns_empty_on_an_unreadable_directory(repo, tmp_path):
 def test_the_landing_tool_actually_brackets_its_gate(repo):
     """A control's own test is not a caller. The consumer is `surgical_land._land_once`, which
     runs on every landing on this tree -- and the bracket has to be around `run_gate`, because
-    the gate run is the window the evidence points at."""
+    the gate run is the window the evidence points at.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S CALL TEXT (rewritten 2026-09-17). This read
+    `src.index("run_gate(checkout, hook_rel)")` and compared text OFFSETS. Two defects, and the
+    second is why it was worth rewriting rather than re-pinning. (1) It went red when `run_gate`
+    gained a `gated_tree=` keyword -- the bracket was still exactly where it belonged, and the
+    control failed for the call site becoming MORE careful. (2) `bracket_at < gate_at` is not
+    enclosure: a bracket opened and CLOSED above an unwatched gate run satisfies it, which is the
+    only arrangement the test exists to refuse. Walking the `with` body answers the real question
+    and no longer cares how `run_gate` is spelled."""
+    import ast
     import inspect
+    import textwrap
 
     from tools import surgical_land
 
-    src = inspect.getsource(surgical_land._land_once)
-    assert "staging_root_resurrection_watch.bracket" in src, "the instrument has no caller"
-    bracket_at = src.index("staging_root_resurrection_watch.bracket")
-    gate_at = src.index("run_gate(checkout, hook_rel)")
-    assert bracket_at < gate_at, "the bracket must open BEFORE the gate it is watching"
+    tree = ast.parse(textwrap.dedent(inspect.getsource(surgical_land._land_once)))
+
+    def _brackets(node):
+        """`with staging_root_resurrection_watch.bracket(...)` blocks, at any nesting depth."""
+        for n in ast.walk(node):
+            if not isinstance(n, ast.With):
+                continue
+            for item in n.items:
+                call = item.context_expr
+                if (isinstance(call, ast.Call)
+                        and isinstance(call.func, ast.Attribute)
+                        and call.func.attr == "bracket"
+                        and isinstance(call.func.value, ast.Name)
+                        and call.func.value.id == "staging_root_resurrection_watch"):
+                    yield n
+
+    def _calls_gate(node):
+        return any(isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+                   and n.func.id == "run_gate"
+                   for n in ast.walk(node))
+
+    blocks = list(_brackets(tree))
+    assert blocks, "the instrument has no caller in _land_once"
+    assert _calls_gate(tree), (
+        "_land_once no longer calls `run_gate` at all -- if the gate run moved, the bracket has to "
+        "move with it, because the gate run is the window the evidence points at")
+    assert any(any(_calls_gate(stmt) for stmt in block.body) for block in blocks), (
+        "`run_gate` is called in `_land_once` but OUTSIDE every "
+        "`staging_root_resurrection_watch.bracket` block -- the gate run is unwatched, which is "
+        "exactly the arrangement this control exists to refuse")
