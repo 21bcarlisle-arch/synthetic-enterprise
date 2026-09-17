@@ -128,3 +128,17 @@ CLAUDE.md's *"when a result moves and more than one thing changed, you cannot at
   0 items produced both spellings, and the premise check passed on both because both cite commits
   that are genuine ancestors. A premise check that asks "are these commits landed" cannot ask
   "is another lane holding this same work", and `ps` is not a mechanism.
+
+  **CORRECTED BESIDE THE CLAIM, after trying it.** `background.delivery_lane --landed-under` is
+  exactly the mechanism for crediting one id with work that landed under another, so the sentence
+  above is wrong to imply none exists. Running it here was **correctly refused**:
+
+  > credited NOTHING: [the other id]'s landing is not newer than [this id]'s first draw — work
+  > that predates the draw is somebody else's, the same rule as `--landed`
+
+  That refusal is right, and it sharpens the gap rather than closing it. `--landed-under` settles
+  a *disposition* once the duplication is known; nothing detects the duplication **before** two
+  lanes both spend a turn on it. The rival drew first and landed at 07:24; I drew after and the
+  premise check still said go, because both ids cite commits that are genuine ancestors. The
+  missing mechanism is at the DRAW, not at the disposition — and the honest version of my original
+  sentence is that the disposition half is built and the detection half is not.
