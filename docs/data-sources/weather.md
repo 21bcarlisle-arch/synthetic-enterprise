@@ -51,6 +51,25 @@ rate limiter" and then, on 2026-09-17, to the daily quota; the arithmetic says t
 what a *day* of such runs exhausts, while what ends any *single* run at ~19 cells is the hourly
 bucket.
 
+**THE 19.2 CEILING IS NOT A HARD STOP, AND THE PER-CELL COST IS STILL ~260 — two separate
+findings, and the run of 2026-09-17 produced both.** Kept beside the prediction rather than over
+it, because only one of the two is a refutation:
+
+* **Refuted:** `7d9eabe49` pulled **23 cells in eleven minutes with zero 429s**, past a predicted
+  ceiling of 19.2. So 19.2 is not a wall a run hits and stops at. Do not quote it as one.
+* **NOT refuted — the per-cell call cost.** That commit proposed the suspect term was the cost,
+  "since one cell is one HTTP request". A separate measurement says otherwise: at **07:39 UTC**, a
+  bare two-day probe against the same key answered *"Hourly API request limit exceeded"* — fifteen
+  minutes after that 23-cell run finished and with no other pull in between. If a cell cost one
+  request, 23 requests could not empty a 5,000/hour bucket. The bucket being empty is direct
+  evidence the cost is of the order the +1.0-per-2-weeks weighting predicts (~261), which is what
+  the table above already assumes.
+
+The reconciliation is that the hourly limit is enforced **on the bucket, not on the request that
+overdraws it**: a run may spend past 5,000 and only the *next* caller is refused. That makes 19.2
+a rate the bucket sustains rather than a count any single run is cut off at — so a pass may finish
+more than 19 cells and still leave nothing for the next caller until the top of the hour.
+
 Three consequences for anyone planning a pull:
 
 1. **A 23-cell pass fits in a day (38.3) but not in an hour (19.2).** It needs two passes roughly
@@ -60,15 +79,29 @@ Three consequences for anyone planning a pull:
    the hourly ceiling will be recorded as ordinary refusals and must be picked up by a later run —
    which is safe, because `build` is resumable by construction, but it is not the same thing as the
    run having failed.
+
+   **CLOSED IN CODE 2026-09-17, and this paragraph is why it was found.** The sentence above
+   described the hole correctly and left it open: `_is_daily_quota` matched only *"daily api
+   request limit exceeded"*, so an hourly 429 was classified as a burst limit and took the retry
+   path — the identical defect `WeatherQuotaExhausted` was minted to close for the daily quota,
+   one axis over, on the limit that actually fires. `sim.weather_ingestor` now classifies all
+   three limits by **reset horizon** (`LIMIT_RESET_SECONDS`) rather than by enumerating which ones
+   count as quotas, so the hourly limit stops the run and names the top of the hour as the wait.
+   A fourth limit with a minute-scale reset classifies itself. Control:
+   `tests/sim/test_weather_ingestor.py::test_the_hourly_limit_is_a_stop_and_not_a_retry_like_the_minutely_one`.
 3. **`PAUSE_SECONDS = 20.0` sits just under the published minutely floor** of `60 / 2.3 = 26.1 s`
    per cell. It is left at 20.0 deliberately: 21 consecutive cells went through at that pause
    without a minutely refusal, so the measurement refutes the arithmetic here and the arithmetic
    alone is not grounds to slow every future pull down by 30%. Recorded so the next reader knows
    the gap is known rather than unnoticed.
 
-The daily quota's refusal is a distinct type — `sim.weather_ingestor.WeatherQuotaExhausted` — and
-is matched on Open-Meteo's `reason` string (*"Daily API request limit exceeded"*), never on the 429
-status, because every limit above returns the same status.
+The refusal for **any limit a backoff cannot outlive** is a distinct type —
+`sim.weather_ingestor.WeatherQuotaExhausted` — and is matched on Open-Meteo's `reason` string,
+never on the 429 status, because all three limits above return the same status. The three reasons
+and their reset horizons are `LIMIT_RESET_SECONDS`; anything resetting slower than
+`CLEARABLE_BY_BACKOFF_SECONDS` (600 s) stops the run, so the minutely limit is retried and the
+hourly and daily ones are not. An unrecognised reason stays **retryable** on purpose: a wrongly
+retried refusal costs six minutes, a wrongly stopped run costs the whole pull.
 
 ### Real Coverage of the Full Sim Window Confirmed by Direct Probe
 A direct probe confirmed that Open-Meteo's archive data is available from at least 2015-11-01 through 2025-06-07. This fully covers the simulation window (2016-01-01 to 2025-06-07) with a margin either side, satisfying the Historical Ground Truth law.
