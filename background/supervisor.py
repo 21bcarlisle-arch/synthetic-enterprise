@@ -354,6 +354,11 @@ WEDGE_KINDS_NO_TEST_JUDGED = frozenset({
     "commit_did_not_land",   # rc=77: the scoped suite was GREEN; the pre-commit hook chain refused
     "gate_timeout",          # rc=78: the publisher's own clock expired before any verdict
     "deadline_kill",         # the CALLER's deadline killed the publisher mid-gate
+    # rc=80 (2026-09-17): the commit LANDED and gated and was never delivered to origin. The
+    # suite was green and the hook chain passed, so a RUNG-1 draw sent after a red test here is
+    # the same wasted priority-zero work this set was built to stop -- one lane over. The cause
+    # is a lost merge-to-push race; `process_run_complete.DELIVERY_NOT_REACHED_KIND` declares it.
+    "delivery_did_not_reach_origin",
 })
 
 # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (director console P0, 2026-07-25): a daemon-lifecycle
