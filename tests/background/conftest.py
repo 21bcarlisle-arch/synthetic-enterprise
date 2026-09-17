@@ -54,6 +54,17 @@ _LEAKING_STATE_CONSTANTS = (
     ("background.agent_status", "SITE_STATUS_FILE"),  # written immediately after — both or neither
     ("background.reconcile_watch", "STATE_FILE"),     # the drift-transition memo
     ("background.console_sanctity", "REGISTRY_PATH"),  # live control state: which console is spared
+    # The publish/heartbeat interlock marker (c9c4339b8). EVERY test that drives the publish path
+    # end-to-end reaches `_landing_in_flight_marker` incidentally -- 14 of them, across the five
+    # files `.publish_gate_state.json` itself lists as `blocking_tests` -- and none of them is
+    # about the marker. The one file that IS about it,
+    # `test_the_liveness_heartbeat_took_the_tree_from_the_content_publish.py`, re-roots the same
+    # constant in its own body, so the admission test above ("the live file is nobody's subject")
+    # is satisfied by measurement rather than by assumption. NOT a carve-out in the ledger guard:
+    # a test-written marker makes `_landing_in_flight()` answer "live" to the real heartbeat and
+    # suppresses the liveness publish for a full throttle interval, which is Fault #1 through a
+    # new door. The guard must keep refusing this path; the destination is what moves.
+    ("background.process_run_complete", "LANDING_IN_FLIGHT_FILE"),
 )
 
 
