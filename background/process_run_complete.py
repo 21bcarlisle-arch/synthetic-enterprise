@@ -5090,11 +5090,17 @@ def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome:
         # FAIL-SAFE TOWARD THE OLD READING: a chain count that is not a positive int is treated
         # as 1, so a broken caller over-reports (the direction every consumer of this series is
         # already safe in) rather than silently shrinking a real cost.
-        per_chain = float(elapsed_seconds)
-        if isinstance(chains, int) and not isinstance(chains, bool) and chains > 1:
-            per_chain = per_chain / chains
+        # AND THE COUNT GOES ON THE ROW, not only into the division (2026-09-17). Dividing
+        # fixes the rows written from here on; recording the divisor is what lets a reader tell
+        # one of those from the nine days of totals behind it. Without it the repair above is
+        # invisible to every consumer of this series and the next reader re-infers the unit --
+        # which is the whole defect, one notch down.
+        n_chains = chains if (isinstance(chains, int) and not isinstance(chains, bool)
+                              and chains > 0) else 1
+        per_chain = float(elapsed_seconds) / n_chains
         record_gate_run(per_chain, GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
-                        str(git_hash or "unknown"), outcome, COMMIT_HOOK_DURATION_PATH)
+                        str(git_hash or "unknown"), outcome, COMMIT_HOOK_DURATION_PATH,
+                        chains=n_chains)
     except Exception:  # noqa: BLE001 - see docstring
         pass
 

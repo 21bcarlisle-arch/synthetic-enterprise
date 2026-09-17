@@ -787,3 +787,51 @@ def test_the_surface_says_the_absolute_number_is_UNMEASURED_rather_than_going_qu
     assert "killed at 304.05s" in line
     assert "not a fast one" in line
     assert "inside the" not in line, "a killed run may never render as inside the cadence"
+
+
+# ── a row STATES its unit, because the producer knew it and the reader cannot re-derive it ────
+def test_a_row_carries_the_chain_count_the_caller_divided_by(tmp_path):
+    """THE DEFECT (2026-09-17): the producer began dividing a multi-chain stopwatch down to a
+    per-chain cost, and then DISCARDED the divisor at the `record` call. `record` had no
+    parameter for it. So the repaired rows and the nine days of totals they replaced are
+    byte-identical in every field a reader can see — 0 of 195 rows in
+    `commit_hook_duration.jsonl` carry a count — and the next reader re-infers the unit, which
+    is the defect one notch down from the one the division fixed.
+
+    This is the same discipline `record` already applies to `cadence_seconds` and
+    `ceiling_seconds` in its own comment: an answer that is known at write time goes ON the row,
+    or it cannot be asked of history.
+
+    MUTATION (must fire): drop `"chains"` from the `rec` dict, or stop forwarding it through
+    `record_gate_run`, and both assertions below fail.
+    """
+    p = tmp_path / "series.jsonl"
+    rec = sdw.record(333.47, 880, "b55667741", "refused", p, chains=2)
+    assert rec["chains"] == 2, (
+        "the caller stated this row holds one of two chains and the row must say so -- without "
+        "it, 666.95s read as one chain and refused every commit in the shared tree")
+    on_disk = json.loads(p.read_text(encoding="utf-8").splitlines()[-1])
+    assert on_disk["chains"] == 2, "the count must survive to the SERIES, not only the return"
+
+
+def test_an_unstated_chain_count_is_NONE_and_never_reads_as_one(tmp_path):
+    """FAIL-OPEN, AND IT IS THE ONE THAT WEDGED THE TREE. A caller that says nothing has not
+    claimed its row is a single chain -- the publisher's scoped-gate series simply never had a
+    count to give. Writing `1` for silence would restate the exact inference that read a
+    two-chain total as one chain, and would do it with the authority of a recorded field.
+
+    A count that is not a positive int is silence too, not a claim: `True` is an `int` in
+    Python and a bool arriving here is a caller bug, not a chain count.
+
+    MUTATION (must fire): `"chains": chains or 1` -- or dropping the isinstance guard -- and
+    every assertion below fails.
+    """
+    p = tmp_path / "series.jsonl"
+    assert sdw.record(120.0, 880, "abc", "pass", p)["chains"] is None, \
+        "silence is UNSTATED; reading it as one chain is the wedge"
+    for bad in (0, -2, True, 1.5, "2", None):
+        assert sdw.record(120.0, 880, "abc", "pass", p, chains=bad)["chains"] is None, \
+            "a {!r} is not a chain count and must not be recorded as a stated unit".format(bad)
+    # ...and a real count still gets through, or the guard above is one that refuses everything.
+    assert sdw.record(120.0, 880, "abc", "pass", p, chains=1)["chains"] == 1
+    assert sdw.record(120.0, 880, "abc", "pass", p, chains=3)["chains"] == 3
