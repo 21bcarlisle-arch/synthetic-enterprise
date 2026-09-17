@@ -95,22 +95,93 @@ def in_test_process() -> bool:
     return "pytest" in sys.modules
 
 
+def _shared_record_dir() -> "Path | None":
+    """The SHARED tree's live-record directory, or None when this IS the shared tree.
+
+    Same question and same answer as `shared_tree_live_record` asks below -- `git rev-parse
+    --git-common-dir`, put to the only thing that knows -- hoisted so the WRITE guard's subject
+    can use it too. Cached because `is_live_record_path` is called per read on the orientation
+    paths, and the honest version of this check must not put a subprocess on that path.
+    """
+    global _SHARED_RECORD_DIR
+    if _SHARED_RECORD_DIR is not _UNSET:
+        return _SHARED_RECORD_DIR
+    _SHARED_RECORD_DIR = None
+    try:
+        out = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
+                             capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return _SHARED_RECORD_DIR
+    if out.returncode != 0 or not out.stdout.strip():
+        return _SHARED_RECORD_DIR
+    common = Path(out.stdout.strip())
+    if not common.is_absolute():
+        common = (PROJECT_DIR / common).resolve()
+    shared = common.parent / "docs" / "observability"
+    try:
+        if shared.resolve() != LIVE_RECORD_DIR.resolve():
+            _SHARED_RECORD_DIR = shared
+    except (OSError, RuntimeError, ValueError):
+        pass
+    return _SHARED_RECORD_DIR
+
+
+_UNSET = object()
+_SHARED_RECORD_DIR = _UNSET
+
+
 def is_live_record_path(path) -> bool:
-    """True if `path` resolves INSIDE the published-record directory.
+    """True if `path` resolves INSIDE a published-record directory -- EITHER TREE'S.
 
     Resolved on both sides before comparing, so a relative spelling, a `..`
     traversal or a symlink into the directory is the same subject as the
-    absolute one -- the FAIL-OPEN hole a string prefix test would leave."""
+    absolute one -- the FAIL-OPEN hole a string prefix test would leave.
+
+    TWO ROOMS, NOT ONE, AND THE SECOND ONE WAS THE WHOLE HOLE (measured 2026-09-17).
+    `PROJECT_DIR` comes from `__file__`, so a module imported out of a LINKED WORKTREE binds
+    `LIVE_RECORD_DIR` to that worktree's `docs/observability`. But the delivery-lane and seat
+    claim writers do not write there: they resolve their destination through
+    `seat_continuation.shared_tree_dir()`, which is the SHARED tree. So from a worktree the
+    guard was handed a shared-tree live path, found it outside its own room, and returned it
+    UNCHANGED -- the fail-open the whole module exists to prevent, reachable from five linked
+    worktrees on this machine.
+
+    THE EVIDENCE IS A ROW IN THE LIVE LEDGER. `docs/observability/.delivery_lane_claims.draws.json`
+    carries a row whose id is `some-id` -- a fixture id from
+    `tests/background/test_dispatch_is_the_claim.py` -- first written 2026-09-06 and re-drawn
+    2026-09-17 08:39. It is stamped `source: focus` with no authorship flag, and
+    `_self_issued_chain` walks newest-first and stops at the first falsy flag: the phantom row
+    took the live self-issued chain from 5 to 0, postponing the seat's own focus list by another
+    three draws. A fixture id was steering the delivery lane.
+
+    THE READ SIDE ALREADY KNEW. `shared_tree_live_record` below has resolved live reads into the
+    shared tree since 2026-09-16 and its docstring reasons about exactly this rebinding. Only the
+    WRITE guard's subject was still one room wide, so the two halves of one doctrine disagreed
+    about where the record lives. This is the same asymmetry in the other direction.
+
+    STILL FAIL-CLOSED, and the widening cannot narrow anything: a path inside EITHER room is a
+    live record, so every path refused before is refused now. In the main tree the second room
+    does not exist and this is exactly the old predicate.
+    """
     try:
         resolved = Path(path).resolve()
     except (OSError, RuntimeError, ValueError):
         # Unresolvable is not "outside". Fail closed.
         return True
-    try:
-        resolved.relative_to(LIVE_RECORD_DIR.resolve())
-    except ValueError:
-        return False
-    return True
+    rooms = [LIVE_RECORD_DIR.resolve()]
+    shared = _shared_record_dir()
+    if shared is not None:
+        try:
+            rooms.append(shared.resolve())
+        except (OSError, RuntimeError, ValueError):
+            pass
+    for room in rooms:
+        try:
+            resolved.relative_to(room)
+        except ValueError:
+            continue
+        return True
+    return False
 
 
 def shared_tree_live_record(path, *, for_write: bool = False):

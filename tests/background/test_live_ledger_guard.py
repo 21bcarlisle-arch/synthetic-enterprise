@@ -93,6 +93,76 @@ def test_a_new_ledger_nobody_enumerated_is_covered_on_the_day_it_is_created():
         guard_live_ledger_write(invented, writer="probe")
 
 
+def test_the_live_record_room_is_both_trees_when_this_one_is_a_linked_worktree(monkeypatch,
+                                                                               tmp_path):
+    """A TEST PROCESS IN A LINKED WORKTREE MAY NOT WRITE THE SHARED TREE'S LIVE RECORD.
+
+    THE DEFECT (measured 2026-09-17). `PROJECT_DIR` is derived from `__file__`, so a module
+    imported out of a linked worktree rebinds `LIVE_RECORD_DIR` to THAT worktree. The claim
+    writers do not write there -- `delivery_lane.CLAIMS_FILE` resolves through
+    `seat_continuation.shared_tree_dir()`, which is the SHARED tree -- so the guard was handed a
+    shared-tree live path, found it outside its own room, and permitted it. Measured from
+    `/var/tmp/se-seat-executor`: `is_live_record_path` returned False for the live
+    `.delivery_lane_claims.draws.json`. Five linked worktrees exist on this machine.
+
+    WHAT IT COST: a `some-id` row -- a fixture id from `test_dispatch_is_the_claim.py` -- sits in
+    the live draw ledger stamped `source: focus`, and because `_self_issued_chain` stops at the
+    first row without an authorship flag, it reset the live chain from 5 to 0 and postponed the
+    delivery seat's own focus list by three more draws.
+
+    ONE ASSERTION OVER THE WHOLE PARTITION, not a leg per branch (CLAUDE.md). A guard that
+    refuses EVERYTHING passes any single refusal leg, so the permitted case is asserted in the
+    same breath as the two refused ones.
+
+    MUTATION (must fire): drop the `shared` room from `is_live_record_path`'s `rooms` list and
+    the shared-tree leg reds -- which is the state this test was written against.
+    """
+    worktree = tmp_path / "linked-worktree"
+    local_room = worktree / "docs" / "observability"
+    shared_room = tmp_path / "shared-tree" / "docs" / "observability"
+    for d in (local_room, shared_room):
+        d.mkdir(parents=True)
+
+    # Stand where a module imported out of a linked worktree stands: the room it can see is its
+    # OWN, and the shared tree is somewhere else entirely.
+    monkeypatch.setattr(guard, "LIVE_RECORD_DIR", local_room)
+    monkeypatch.setattr(guard, "_SHARED_RECORD_DIR", shared_room)
+
+    in_this_worktree = local_room / ".delivery_lane_claims.draws.json"
+    in_the_shared_tree = shared_room / ".delivery_lane_claims.draws.json"
+    somewhere_else = tmp_path / "scratch" / "ledger.json"
+
+    refused_local = guard.is_live_record_path(in_this_worktree)
+    refused_shared = guard.is_live_record_path(in_the_shared_tree)
+    permitted_scratch = guard.is_live_record_path(somewhere_else)
+
+    assert refused_local and refused_shared and not permitted_scratch, (
+        "the live-record room is BOTH trees' docs/observability and nothing else -- got "
+        f"local={refused_local} shared={refused_shared} scratch={permitted_scratch}"
+    )
+    # And the refusal actually reaches the writer, on the leg that was open.
+    with pytest.raises(LiveLedgerWriteUnderTest):
+        guard.guard_live_ledger_write(in_the_shared_tree, writer="probe")
+
+
+def test_the_shared_room_is_absent_in_the_main_tree_so_this_is_the_old_predicate():
+    """The widening must not invent a second room where there is none. In the MAIN tree
+    `--git-common-dir` resolves back to this tree's own `.git`, so `_shared_record_dir()` returns
+    None and the subject is exactly `LIVE_RECORD_DIR` -- the behaviour every other test here
+    asserts. MUTATION: make `_shared_record_dir` return `PROJECT_DIR.parent / "docs" /
+    "observability"` unconditionally and this reds, because the main tree would then carry a
+    phantom second room.
+
+    SKIPPED, NOT ASSERTED, WHEN THIS IS ITSELF A LINKED WORKTREE -- the suite runs in both, and a
+    test that reds on where it was checked out is keyed to today's tree rather than the property.
+    """
+    guard._SHARED_RECORD_DIR = guard._UNSET  # the cache must not carry another test's monkeypatch
+    common = Path(guard.PROJECT_DIR) / ".git"
+    if not common.is_dir():
+        pytest.skip("this checkout is a linked worktree; the two-room case is the test above")
+    assert guard._shared_record_dir() is None
+
+
 # ===========================================================================
 # Test-process detection -- the OTHER half of the predicate.
 # ===========================================================================
