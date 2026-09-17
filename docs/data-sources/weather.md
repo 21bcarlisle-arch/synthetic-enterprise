@@ -51,25 +51,6 @@ rate limiter" and then, on 2026-09-17, to the daily quota; the arithmetic says t
 what a *day* of such runs exhausts, while what ends any *single* run at ~19 cells is the hourly
 bucket.
 
-**THE 19.2 CEILING IS NOT A HARD STOP, AND THE PER-CELL COST IS STILL ~260 — two separate
-findings, and the run of 2026-09-17 produced both.** Kept beside the prediction rather than over
-it, because only one of the two is a refutation:
-
-* **Refuted:** `7d9eabe49` pulled **23 cells in eleven minutes with zero 429s**, past a predicted
-  ceiling of 19.2. So 19.2 is not a wall a run hits and stops at. Do not quote it as one.
-* **NOT refuted — the per-cell call cost.** That commit proposed the suspect term was the cost,
-  "since one cell is one HTTP request". A separate measurement says otherwise: at **07:39 UTC**, a
-  bare two-day probe against the same key answered *"Hourly API request limit exceeded"* — fifteen
-  minutes after that 23-cell run finished and with no other pull in between. If a cell cost one
-  request, 23 requests could not empty a 5,000/hour bucket. The bucket being empty is direct
-  evidence the cost is of the order the +1.0-per-2-weeks weighting predicts (~261), which is what
-  the table above already assumes.
-
-The reconciliation is that the hourly limit is enforced **on the bucket, not on the request that
-overdraws it**: a run may spend past 5,000 and only the *next* caller is refused. That makes 19.2
-a rate the bucket sustains rather than a count any single run is cut off at — so a pass may finish
-more than 19 cells and still leave nothing for the next caller until the top of the hour.
-
 Three consequences for anyone planning a pull:
 
 1. **A 23-cell pass fits in a day (38.3) but not in an hour (19.2).** It needs two passes roughly
@@ -94,6 +75,43 @@ Three consequences for anyone planning a pull:
    without a minutely refusal, so the measurement refutes the arithmetic here and the arithmetic
    alone is not grounds to slow every future pull down by 30%. Recorded so the next reader knows
    the gap is known rather than unnoticed.
+
+**CONSEQUENCE 1 IS REFUTED, AND SO IS THE HOURLY ATTRIBUTION ABOVE IT. Corrected beside the claim
+rather than over it, 2026-09-17, by the pull it was written to plan.** The 23-cell pass ran
+08:07–08:18 and completed **all 23 cells in eleven minutes with zero 429s** — one pass, not two an
+hour apart. By this page's own arithmetic that is ~6,000 call-units inside eleven minutes, against
+a stated hourly ceiling of 5,000; and with the 21 cells of `f94ebb1d2` at 05:26 the same day, 44
+cells against a stated daily 38.3. Both ceilings were passed without a single refusal.
+
+So the cell ceilings in the table above are **not established**, and no plan should be built on
+19.2/hour or 38.3/day. The suspect term is the per-cell cost: one cell is **one HTTP request**
+(`sim.weather_ingestor.get_daily_weather`, no cache), and the `3653 / 14 = 260.9` weighting is the
+only part of the sum nothing here has measured. Consequence 3 already recorded the same direction
+of error at the minute scale; this is that finding at the hour and the day.
+
+What survives is what the code relies on and nothing more: the 02:38 refusal was real, it refused
+every cell alike, and it cleared with time rather than with backoff. Measurement:
+`docs/staging/records/WORKER_RESULT_THE_LAST_23_IN_BOOK_CELLS_PULLED_IN_ELEVEN_MINUTES_AND_THE_HOURLY_CEILING_DERIVED_FROM_THE_PUBLISHED_RULE_IS_REFUTED_2026-09-17.md`.
+
+**THE CEILING IS REFUTED; THE PER-CELL COST IS NOT — and the block above names the wrong suspect.**
+Written by a second lane the same hour, from a measurement the block above did not have, and kept
+beside it rather than over it because only one of its two claims moves.
+
+At **07:39 UTC**, fifteen minutes after that 23-cell pass finished and with no other pull against
+this key in between, a bare **two-day** probe was refused: *"Hourly API request limit exceeded.
+Please try again in the next hour."* If one cell cost one call, 23 calls could not empty a
+5,000/hour bucket — the bucket would have been all but untouched. **The bucket was empty, so the
+per-cell cost is of the order the `3653 / 14 = 260.9` weighting predicts, not 1.** "One cell is one
+HTTP request" is true and is not the same claim as "one cell is one *call*": Open-Meteo's published
+rule weights a request by its window, and that is the term the 07:39 refusal confirms rather than
+refutes.
+
+What is genuinely refuted is **19.2 as a cut-off**. The reconciliation is that the hourly limit is
+enforced **on the bucket, not on the request that overdraws it**: a run may spend past 5,000 and
+only the *next* caller is refused. So 19.2 is a rate the bucket sustains, not a count any single
+run is stopped at — which is exactly why a 23-cell pass finished clean and still left nothing for
+the next caller thirteen minutes later. Both observations are consistent; neither ceiling should be
+quoted as a hard stop, and neither should the per-cell cost be dropped from the arithmetic.
 
 The refusal for **any limit a backoff cannot outlive** is a distinct type —
 `sim.weather_ingestor.WeatherQuotaExhausted` — and is matched on Open-Meteo's `reason` string,
