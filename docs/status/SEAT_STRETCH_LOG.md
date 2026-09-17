@@ -8,6 +8,187 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-17 — one house had two headcounts for 102 of 134 homes, and the red that found my wrong fix was a table that made a six-person home impossible
+
+<!-- head: 2cc924ed9cf5 -->
+
+**Written 2026-09-17 ~16:20 BST**, on finishing the people layer — the last of the four pieces the
+director named this afternoon.
+
+## One house had two headcounts, for 102 of 134 homes
+
+Two functions drew the household size, and both were right:
+
+- `household_physical_layer.people_count_for` — a band-then-within-band draw from ONS TS017 on
+  substream `physical_layer_people_count_<id>`. **This is what the fabric path traces a premise on,
+  and 130 of the book's 136 electricity premises settle on the fabric path.**
+- `dwelling_records._derive_people_count` — a second TS017 draw on a different named substream, and
+  what the PROPERTY RECORD carried, so what the legacy comparison arm, the EPC multipliers and the
+  switch verdict all saw.
+
+Neither was wrong about the population — property mean 2.388, physical-layer 2.485, ONS 2.37. **The
+per-home assignment was two different answers to one question**, disagreeing for 102 of 134 homes by
+as much as five people. The fabric path would trace a house holding one family while the property
+record billed it for another.
+
+`occupancy_band_for` names this exact shape in its own docstring — *"two draws of one quantity is
+the defect this module just fixed"*. It was committed again, one module over, by the module that had
+just written the warning down.
+
+**And a third answer, which is why seven homes survived the first repair.** `build_properties`
+applied `PEOPLE_COUNT_BY_CUSTOMER.get(cid) or _derive_people_count(cid)` **inline**, so the authored
+roster outranked the draw at that one call site and nowhere else. A precedence written at a call
+site is a precedence the next caller does not inherit. The precedence — authored > output area >
+national — now lives in the function, and all three readers get it.
+
+**134 of 134 agree.**
+
+## The delegation direction was wrong first, and a red found it
+
+I pointed `people_count_for` at the leaf and a test went red: mean headcount 2.260 against the
+census 2.37. I did not touch the tolerance. Measured instead, at n=20,000:
+
+| | 1p | 2p | 3-4p | 5+p | mean |
+|---|---|---|---|---|---|
+| leaf draw, as it was | 30.8 | 33.62 | 28.44 | 7.14 | **2.3167** |
+| physical-layer draw | 30.23 | 34.48 | 28.24 | 7.04 | **2.3584** |
+| ONS TS017 | 30.1 | 34.0 | 28.9 | 7.0 | 2.37 |
+
+Both reproduce the **bands**. The gap is entirely in the tail: the leaf's table ended `(5, 0.070)`,
+collapsing the whole 5-or-more band onto exactly five people. **That is right about the band and
+wrong about the households in it — it makes a six-person home impossible**, and it costs 0.042 on
+the mean, all of it in the largest homes, which are the ones with the most demand to get wrong.
+
+So the leaf got the published split (5/6/7/8+ at 4.5/1.5/0.5/0.4%), which was already written down
+in this repository in `_WITHIN_BAND_SHARES`. Nothing was invented; the table moved so there is one
+copy, because two copies disagreeing is how the world came to hold two headcounts for one house.
+
+## A second red, and it caught a real error in my own table
+
+`test_the_household_size_anchor_agrees_across_its_copies` went red. The published within-band
+figures sum to **6.9%** while the published band is **7.0%** — a rounding gap in the source. I had
+written them in raw, so the whole table summed to 0.999 and one roll in a thousand fell off the end
+into the float-rounding fallback. Renormalised into the band, the table sums to 1.0 and the 5+ total
+is exactly the published 7.0%.
+
+That control also had to change, and the change is worth stating because it is a **loosening**.
+It asserted dict equality between the world's draw and `demand_model.HOUSEHOLD_SIZE_POPULATION_SHARE`.
+Those two copies stopped being the same shape: `demand_model`'s is the fixed reference population
+the volume normaliser divides by, held at 1/2/3/4/5+ **deliberately** — *"held here rather than
+imported so the volume normaliser cannot be silently re-levelled by an unrelated edit to the segment
+bands"*. Extending it would do exactly what that comment forbids. So the control now asserts what
+must actually hold: 1-4 shares identical, and the world's tail summing to the published 5+ band.
+Dict equality was forcing a choice between a draw that cannot make a six-person home and a
+normaliser re-levelled as a side effect.
+
+## And one tolerance I loosened, with the evidence, because it was keyed to today's answer
+
+`test_the_headcount_reproduces_the_census_marginal` compared the mean to 2.37 with a fixed ±0.06. It
+went red on a change that **altered no distribution at all** — delegation moved the draw to a
+different named substream, same shares, same estimator, different assignment. One variable, over the
+same 1,954 premises:
+
+| | mean | se | z against the census |
+|---|---|---|---|
+| old substream | 2.3777 | 0.0308 | **0.25** |
+| new substream | 2.2953 | 0.0292 | **2.56** |
+
+and over 20,000 generic ids the two agree to four decimals. **The ±0.06 was calibrated on the old
+substream landing, by luck, almost exactly on 2.37.** It is now three standard errors of the
+sample's own mean — keyed to the property, "this population is drawn from TS017", rather than to
+which substream drew it.
+
+**A loosened tolerance has to be shown still to bite, or it is just a green light.** It does:
+the truncated-tail table reads 2.2605 on that population, **4.08 standard errors out**, and the
+refusal names the tail as the first suspect.
+
+## What this does not claim
+
+The distributions were always close and the book-level means barely move — this is an **agreement**
+fix, not an accuracy one. What it buys is that no downstream figure can be computed over two
+different households for the same address, which was silently possible in every run until now and
+would never have shown up as a wrong number anywhere.
+
+I have also not measured what it does to margin. That is the same debt the census-headcount change
+left yesterday, and it still needs the money path.
+
+---
+
+## 2026-09-17 — the book is a spread and not rescaled copies -- 10.7x the legacy on the mean, zero near-identical pairs against the legacy path's 1,773
+
+<!-- head: 6371f89d11fe -->
+
+**Written 2026-09-17 ~15:30 BST**, immediately after the measurement, under the director's
+instruction to keep this log current instead of interrupting him.
+
+## The director's phase-one test, answered on the book
+
+His words setting it: *"look across the book and see a credible spread of those, not a set of
+rescaled copies of one profile."*
+
+134 of the book's 136 electricity premises, priced over 2022-01-01..28 in their **own 131 distinct
+cells**, every premise measured twice over the same window with the same household and the same
+cell — once on the shipped fabric path, once on the legacy provider it replaced. The level is
+divided out of every premise-day, so what is compared is shape alone.
+
+| over 8,911 pairs | fabric path | legacy path |
+|---|---|---|
+| mean absolute difference in half-hourly share | **0.007966** | 0.000747 |
+| median | 0.006924 | 0.000339 |
+| p10 | 0.004960 | 0.000027 |
+| identical pairs | 0 | 0 |
+| **near-identical pairs (<1e-4)** | **0** | **1,773 — 19.9%** |
+| **closest pair** | **0.0026** | **0.00000002** |
+
+**The book is a spread, by a factor of 10.7 on the mean.** And the statistic that actually tests
+"rescaled copies" is not the mean — it is the closest pair, because a healthy average can sit on top
+of a duplicate. The legacy path has two premises identical to **eight decimal places** and a fifth of
+all its pairs are near-identical. The fabric path has none, and its closest pair is a hundred times
+further apart than the legacy path's.
+
+The two premises not priced are a commercial office and a commercial warehouse, refused by name.
+
+## Two defects in my own harness, found before any number left the room
+
+**The legacy arm was a caricature and it flattered my hypothesis.** The first draft built its
+property dict inline from `customer.get("occupancy_pattern", "family")` and
+`customer.get("people_count", 3)` — **keys the live customer records do not carry.** So every premise
+got the identical dict and the legacy arm reported *all 45 pairs identical at exactly 0.0*. That is
+not the legacy provider collapsing; it is one input repeated forty-five times. It pointed the way I
+expected, which is precisely when it should have been checked. It now uses `build_properties` — what
+the runner itself feeds `build_demand_shape` — and the legacy arm's real answer is 0.000747 and
+1,773 near-identical pairs, which is a *weaker* claim than the false one and the true one.
+
+**And the refusals were reported by exception type.** `{'ValueError': 2}` names a class nobody can
+act on. They now carry their message, which says *"the premise trace generator is DOMESTIC;
+PropertyType.COMMERCIAL_OFFICE is not residential"* — a correct refusal, visibly correct. Two
+hundred and thirteen identical sentences was the exact defect the whole weather run was about; I
+reproduced it in the instrument built to report on it.
+
+## Why this is a new measurement rather than a bigger old one
+
+`book_shape_spread.measure` already existed and crosses 27 constructed households with the four
+legacy archive sites. That was the right instrument while the archive *was* four sites: it asks
+whether the fabric path **can** produce a spread, holding the population fixed and varying the
+things that should move a shape.
+
+It cannot answer the director's question. Its households are built by `make_household` to span era ×
+insulation × property type, so the spread it finds is the spread somebody designed into it. **A panel
+can prove the mechanism works and still say nothing about whether the book is a spread or a stack of
+copies.** Both are kept: the panel is the capability, `--book` is the fact.
+
+## What this does not say
+
+It is one month, January, and a winter month is where fabric differences are largest — the same
+measurement in July would be a different and probably smaller number, and I have not run it. It is
+also silent on whether the spread is *correct*: it shows the premises differ from each other, not
+that any one of them matches what that household would really do. That is the belief-vs-truth
+question `couple_fabric` owns, and it is not this.
+
+Next: the people layer.
+
+---
+
 ## 2026-09-17 — the cell store is complete for every cell the book can reach, and the book now reads its own cell -- the "no weather archive" refusal went from 213 to zero
 
 <!-- head: e18ca3ab4864 -->

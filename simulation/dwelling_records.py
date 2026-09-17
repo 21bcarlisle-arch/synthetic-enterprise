@@ -106,7 +106,37 @@ PEOPLE_COUNT_BY_CUSTOMER = {
 # builder cannot be silently re-levelled by an unrelated edit to the segment
 # bands — and `tests/simulation/test_the_dwelling_record_is_the_worlds.py`
 # asserts the copies agree.
-HOUSEHOLD_SIZE_SHARE_ONS_TS017 = [(1, 0.301), (2, 0.340), (3, 0.160), (4, 0.129), (5, 0.070)]
+#: ONS Census 2021 TS017, England and Wales, with the 5+ band SPLIT rather than collapsed.
+#:
+#: IT USED TO END `(5, 0.070)` — the whole 5-or-more band landing on exactly five people. That is
+#: right about the BAND (7.0% of households) and wrong about the households in it: it makes a
+#: six-person home impossible and caps the tail at five. Measured over 20,000 draws it costs
+#: **0.042 people on the mean** (2.3167 against 2.3584 for the split version, ONS 2.37), and every
+#: pence of that sits in the largest homes — the ones with the most demand to get wrong.
+#:
+#: The split shares are PUBLISHED and were already written down in this repository, in
+#: `household_physical_layer._WITHIN_BAND_SHARES`: 5/6/7/8+ at 4.5/1.5/0.5/0.4%. Nothing is
+#: invented here; the table moved to the leaf so there is ONE copy, because the two copies
+#: disagreeing is how the world came to hold two headcounts for one house (2026-09-17).
+#: 8 stands for "8 or more", which is how TS017 publishes its final band.
+#:
+#: THE TAIL IS RENORMALISED INTO THE BAND, and skipping that was a real error caught by
+#: `test_the_household_size_anchor_agrees_across_its_copies`. The published within-band figures
+#: sum to 6.9% while the published BAND is 7.0% -- a rounding gap in the source. Writing them in
+#: raw left the whole table summing to 0.999, so one roll in a thousand fell off the end into the
+#: float-rounding fallback, and the 5+ band was 0.1pp light against the same statistic held in
+#: `demand_model.HOUSEHOLD_SIZE_POPULATION_SHARE`. Renormalising is the operation
+#: `household_physical_layer` already described as "only the renormalisation within band is done
+#: here, so no headcount number is invented" -- the band totals stay exactly published.
+_FIVE_PLUS_BAND_SHARE = 0.070
+_FIVE_PLUS_RAW = ((5, 0.045), (6, 0.015), (7, 0.005), (8, 0.004))
+_FIVE_PLUS_RAW_TOTAL = sum(share for _, share in _FIVE_PLUS_RAW)
+
+HOUSEHOLD_SIZE_SHARE_ONS_TS017 = [
+    (1, 0.301), (2, 0.340), (3, 0.160), (4, 0.129),
+] + [(size, share * _FIVE_PLUS_BAND_SHARE / _FIVE_PLUS_RAW_TOTAL)
+     for size, share in _FIVE_PLUS_RAW]
+assert abs(sum(share for _, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017) - 1.0) < 1e-9
 
 # R10 GAP (a) — the adults/children split. NEED's consumption gradient is
 # keyed on ADULTS ONLY and no located table cross-tabulates adults against
@@ -142,6 +172,15 @@ def people_count_for_area(customer_id: str, output_area: str | None) -> int:
     silent, because a national draw wearing a local draw's name is exactly the independent-draw
     defect this replaces.
     """
+    # AN AUTHORED HEADCOUNT OUTRANKS EVERY DRAW, and it is checked HERE rather than at the one
+    # call site that used to know about it (2026-09-17). `build_properties` read
+    # `PEOPLE_COUNT_BY_CUSTOMER.get(cid) or _derive_people_count(cid)` inline, so the seven
+    # authored homes were right in the property record and drawn in every other reader -- the
+    # last seven of the 102 homes whose two paths disagreed about who lives there. A precedence
+    # written at one call site is a precedence the next caller does not inherit.
+    authored = PEOPLE_COUNT_BY_CUSTOMER.get(customer_id)
+    if authored:
+        return int(authored)
     if not output_area:
         return _derive_people_count(customer_id)
     try:
@@ -305,7 +344,10 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
             "bedrooms": phys["bedrooms"],
             "dwelling_basis": basis,
             "occupancy_pattern": OCCUPANCY_PATTERN_BY_CUSTOMER.get(cid, DEFAULT_OCCUPANCY_PATTERN),
-            "people_count": PEOPLE_COUNT_BY_CUSTOMER.get(cid) or _derive_people_count(cid),
+            # ONE FUNCTION ANSWERS THIS, for every reader. It applies authored-then-area-then-
+            # national itself, so this record cannot hold a different headcount from the one the
+            # fabric path traces the same house on.
+            "people_count": people_count_for_area(cid, phys.get("output_area")),
             "children_count": DEFAULT_CHILDREN_COUNT,
             "heating_system": GAS_HEATING_SYSTEM if cid in gas_customer_ids else DEFAULT_HEATING_SYSTEM,
             "assets": dict(ASSET_PROFILE_BY_CUSTOMER.get(cid, DEFAULT_ASSETS)),

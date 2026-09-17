@@ -205,12 +205,44 @@ _WITHIN_BAND_SHARES: dict[OccupancyBand, tuple[tuple[int, float], ...]] = {
 }
 
 
-def people_count_for(customer_id: str) -> int:
-    """The household's headcount, from the Census marginal rather than from bedrooms.
+def people_count_for(customer_id: str, output_area: str | None = None) -> int:
+    """The household's headcount. ONE draw for this home, wherever in the world it is asked.
 
-    Deterministic per customer and stable for its whole tenure -- the same
-    convention as `occupancy_for_customer`, whose band this refines. Drawn on its
-    own named substream so it does not move when any other draw changes.
+    THE DEFECT THIS CLOSES (measured 2026-09-17). This function drew its own headcount from the
+    TS017 marginal, and `dwelling_records.people_count_for_area` drew ANOTHER one for the same
+    home to build its property record. Both are correct draws from the same published
+    distribution, on different named substreams -- so the book's two paths disagreed about how
+    many people live in a house for **102 of 134 homes**, by up to five people. Neither
+    distribution was wrong: property mean 2.388, this one 2.485, ONS 2.37. The per-home
+    ASSIGNMENT was two different answers to one question.
+
+    That is the same shape `occupancy_band_for` below names in its own docstring -- *"two draws of
+    one quantity is the defect this module just fixed"* -- committed again one module over, which
+    is why the fix is delegation rather than a second copy of the right formula.
+
+    AND THE DELEGATE IS THE RICHER ONE, deliberately. `people_count_for_area` conditions on the
+    premise's output area where one exists and falls back to the national draw visibly through
+    `people_count_source`. No dwelling record in the book carries an output area today, so every
+    home takes that fallback and this change moves no distribution -- it only makes the two paths
+    agree. The day addresses carry areas, the whole world becomes area-conditioned at once instead
+    of half of it.
+
+    `output_area` is threaded rather than looked up here: this module has no address book, and a
+    lookup invented here would be a third answer to the same question.
+    """
+    from simulation.dwelling_records import people_count_for_area
+
+    return people_count_for_area(customer_id, output_area)
+
+
+def _national_headcount_draw(customer_id: str) -> int:
+    """The band-then-within-band draw this module used before it delegated.
+
+    KEPT AND STILL EXERCISED because `_WITHIN_BAND_SHARES` above is the only place the published
+    within-band split (3-person 16.0% / 4-person 12.9%, and 5/6/7/8+ at 4.5/1.5/0.5/0.4%) is
+    written down, and deleting the only caller would leave that table unreachable and unverified.
+    It is NOT the world's headcount any more -- `people_count_for` is -- and nothing outside this
+    module's own tests may call it, or the defect above comes straight back.
     """
     rng = random.Random(f"physical_layer_people_count_{customer_id}")
     roll = rng.random()
