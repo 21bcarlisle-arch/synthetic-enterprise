@@ -12,32 +12,32 @@
     "open_findings": 15
   },
   "last_verified": {
-    "generated_at": "2026-09-17T08:12:02Z",
-    "git_commit": "f620fed2c",
+    "generated_at": "2026-09-17T12:29:43Z",
+    "git_commit": "b55667741",
     "population": {
       "accounts": 226,
       "bills": 10115,
       "total_revenue_gbp": 685541.28
     },
-    "run_id": "run_output_f620fed2c_20260917T072251Z.json",
+    "run_id": "run_output_b55667741_20260917T114201Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-17T08:12:02Z"
+    "verified_at": "2026-09-17T12:29:43Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=6371f89d1; blocking tests: FAILED tests/background/test_a_recorded_red_says_how_far_its_tree_stood_from_origin.py::test_a_red_graded_on_a_forked_tree_names_the_divergence, FAILED tests/background/test_a_recorded_red_says_how_far_its_tree_stood_from_origin.py::test_being_ahead_alone_is_still_a_fork, FAILED tests/background/test_a_recorded_red_says_how_far_its_tr",
+  "paused_since": "2026-09-17T14:51:38Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-17T08:12:02Z",
-    "git_commit": "f620fed2c",
+    "generated_at": "2026-09-17T12:29:43Z",
+    "git_commit": "b55667741",
     "population": {
       "accounts": 226,
       "bills": 10115,
       "total_revenue_gbp": 685541.28
     },
-    "run_id": "run_output_f620fed2c_20260917T072251Z.json",
+    "run_id": "run_output_b55667741_20260917T114201Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-17T08:12:02Z"
+    "verified_at": "2026-09-17T12:29:43Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-17T08:12:02Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-17T15:23:05Z"
 }
