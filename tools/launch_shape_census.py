@@ -194,6 +194,20 @@ FLOOR: dict[tuple[str, str], tuple[int, str]] = {
         "one. Routing the stub through the launcher is not a thing that can be done: the launcher "
         "is the subject, and a subject that supplies its own availability answer asserts nothing.",
     ),
+    ("tests/background/test_an_unreadable_launch_register_is_never_an_empty_board.py",
+     RAW_TRANSIENT_UNIT): (
+        2,
+        "THE SAME SHAPE AS THE TWO ROWS ABOVE and for the same module, in one leg: the `which` "
+        "stub returning `/usr/bin/systemd-run` so `launch()` reaches the code under test on a box "
+        "either way, and the assertion that the argv it built STARTS with that tool -- which is "
+        "the only way to show the job was actually started. The leg is the fail-OPEN half of a "
+        "fail-CLOSED repair: an unreadable launch register now raises rather than reporting a "
+        "clean board, and the launcher must still launch over one, because refusing there would "
+        "let a damaged file stop all work. Proving that needs the launch to REACH systemd-run, so "
+        "the spelling is the assertion and not an incidental string. Every process here is a fake "
+        "runner recording an argv; nothing opens one. Routing it through the launcher is not a "
+        "thing that can be done -- the launcher is the subject.",
+    ),
 }
 
 

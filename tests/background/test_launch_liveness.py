@@ -197,7 +197,8 @@ def test_a_run_that_SUCCEEDED_is_batched_and_never_paged(monkeypatch):
     assert kw.get("kind") == "work_done" and kw.get("topic_class") == "routine_landing", (
         "a completion must go to the batched digest, not the instant route: " + repr(kw))
     assert "docs/result.md" in msg, "the batched note still has to name what is now wrong"
-    assert cleared, "no death stood, so the alarm key must be cleared rather than left armed"
+    assert dms._LAUNCH_LIVENESS_KEY in cleared, (
+        "no death stood, so the alarm key must be cleared rather than left armed")
 
 
 def test_a_death_and_a_completion_in_one_pass_both_get_their_own_route(monkeypatch):
@@ -212,7 +213,14 @@ def test_a_death_and_a_completion_in_one_pass_both_get_their_own_route(monkeypat
     kinds = {kw.get("kind") for _, kw in sent}
     assert kinds == {"real_alarm", "work_done"}, (
         "one verdict swallowed the other; got " + repr(kinds))
-    assert not cleared, "a real death stood, and its alarm key was cleared anyway"
+    # NAMED, NOT COUNTED, 2026-09-17. This was `assert not cleared` -- an assertion over EVERY key
+    # the cycle touches, which is the shape that goes red when the code becomes more honest. It
+    # did: `_LAUNCH_REGISTER_KEY` is cleared on the same pass, correctly, because a register that
+    # PARSED is the only evidence the corruption alarm can ever have that its condition ended. The
+    # property here was always about the DEATH's key, and the leg two functions down already named
+    # `_LAUNCH_LANDED_KEY` this way for the same reason.
+    assert dms._LAUNCH_LIVENESS_KEY not in cleared, (
+        "a real death stood, and its alarm key was cleared anyway")
 
 
 def test_the_deadman_is_silent_when_nothing_is_stale_and_when_it_could_not_look(monkeypatch):
@@ -225,7 +233,8 @@ def test_the_deadman_is_silent_when_nothing_is_stale_and_when_it_could_not_look(
     dms, sent, cleared = _deadman(monkeypatch)
     monkeypatch.setattr(ll, "check", lambda: (0, ["floor: RUNNING -- ActiveState=active"], []))
     dms._check_launch_liveness()
-    assert sent == [] and cleared, "a live run paged, or the settled alarm was never cleared"
+    assert sent == [] and dms._LAUNCH_LIVENESS_KEY in cleared, (
+        "a live run paged, or the settled alarm was never cleared")
 
     def _boom():
         raise OSError("systemctl is not on this box")

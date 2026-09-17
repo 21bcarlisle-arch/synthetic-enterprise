@@ -1,5 +1,47 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Discharged:** 2026-09-17, lane 0 delivery — the five flattering readers are wired, each revert fires exactly its own leg, and the one row left UNDECIDED is now decided. Falsifiers: `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_partition_is_reachable_in_both_directions`,
+`tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_supervisors_wedge_draw_sees_the_live_failures_not_the_committed_placeholder`,
+`tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_model_tier_report_sees_the_live_gate_failures_not_an_empty_list`,
+`tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_stuck_tracker_sees_the_live_episode_key_not_the_pre_rename_schema`,
+`tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_console_capture_lapse_check_sees_the_live_keystroke_not_a_fortnight_ago`,
+`tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_a_path_outside_the_live_record_room_is_never_redirected`,
+`tests/background/test_an_unreadable_launch_register_is_never_an_empty_board.py::test_BOTH_sides_of_the_register_route_through_the_resolver_and_agree`
+
+**A CORRECTION TO THIS DISCHARGE, MADE BEFORE IT LANDED AND KEPT BESIDE IT.** The first draft cited
+two nodes — `test_the_launch_record_reader_routes_through_the_resolver` and
+`test_the_stuck_episode_prior_routes_through_the_resolver` — which a `grep` of the working tree
+found and which **HEAD does not have**. The shared tree carries a copy of this control file that
+PREDATES `e9ad946cd` and contains not one of the 108 lines that commit added; its disk mtime
+(10:54) is older than the commit that landed the file (12:42), which is the tell. So the earlier
+"9 passed" in this turn measured the wrong bytes; HEAD's copy is ten legs and passes in a clean
+extract. The nodes above are HEAD's, verified against `git show HEAD:<path>` and not against disk.
+The row-11 control HEAD genuinely lacked is landed here instead, in a file no other lane holds, and
+it asserts what the row actually needed: not two routings but their AGREEMENT — a record written
+from this tree is a record read from it — with each side mutation-proven to fail alone.
+
+**What this rests on.** The prediction below was REFUTED on first run; both non-firing mutations were
+run down to missing tests rather than assumed equivalences, and the corrected fixtures are what the
+discharge rests on. The partition-reachability control over the whole room passes.
+
+**The one item this finding left UNDECIDED is now decided, which is what was holding the discharge.**
+Row 11 of the census — `.launch_records.json`, "deliberately not wired, wiring it needs the write
+side decided first" — is decided and both sides are wired: `launch_liveness._resolved_path` is the
+single function `load` and `save` both go through, so the two can never disagree about which file
+they mean, and `guard_live_ledger_write` is applied to the path the CALLER named, before the
+redirect, because a path already resolved to the shared tree is outside `is_live_record_path`'s room
+and guarding second would make the refusal unreachable for exactly the callers the redirect applies
+to. The read-modify-write hazard the row names is separately repaired and separately controlled —
+see `WORKER_FINDING_THE_LAUNCH_REGISTERS_LOADER_READS_FIVE_PRIORS_AS_NO_LAUNCHES_AND_THE_NEXT_RECORD_DESTROYS_THE_REST_2026-09-16.md`,
+discharged the same day, which found that resolving the path was never the whole hazard: the loader
+one frame below handed `check()` an emptiness it could not tell from an empty board, and that was
+invariant to which tree the path pointed at.
+
+**What is NOT discharged here and is not silently absorbed:** the last paragraph's lesser class —
+tracked-and-stale records with no decision-bearing reader, which mis-render a page rather than
+suppress a check. This finding says in its own words that it does not close them, and it still does
+not. That is a real class and it is carried, not counted.
+
 # [SEAT] the live-record resolver was not wired into the other two readers of the file it was named for
 
 `background/live_ledger_guard.shared_tree_live_record` landed in `d895d845e` to stop a reader in

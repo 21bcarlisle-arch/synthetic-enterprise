@@ -7,6 +7,7 @@ Each test names the specific way this control could be useless rather than merel
 from __future__ import annotations
 
 import ast
+import builtins
 import re
 import subprocess
 from pathlib import Path
@@ -898,3 +899,48 @@ def test_the_whole_three_way_partition_is_reachable_in_one_tree(repo: Path) -> N
     assert not holder.cuts and holder.novel and not holder.is_rival, "holder work is unreachable"
     assert rival.gains == () and not rival.cuts and rival.is_rival, "the rival verdict is unreachable"
     assert removed_at[:9] in cut.render()
+
+
+def test_a_census_that_cannot_import_its_own_siblings_ANSWERS_and_never_raises(
+        repo: Path, monkeypatch) -> None:
+    """The composition from
+    `SEAT_FINDING_THE_STALE_COPY_CENSUS_CRASHES_IN_THE_SHARED_TREE_BECAUSE_ITS_OWN_SIBLING_MODULES_NEVER_REACHED_DISK_2026-09-08.md`,
+    where `--census` raised `ImportError` for every lane in the shared tree at once.
+
+    A lane landed `landing_pair`/`refresh_to_head` to origin through `surgical_land` -- which never
+    writes the working tree, deliberately -- the shared tree could not fast-forward because three
+    unrelated lanes held live bytes, and this module was left on disk importing two siblings the
+    tree had never received. Every step is another lane's correct behaviour, which is why nothing
+    else could see it.
+
+    THE ASSERTION IS ON THE READER'S SURFACE AND NOT ON THE ABSENCE OF A RAISE. Returning `{}` also
+    does not raise, and reads as *every door is open* -- the flattering answer, and the one this
+    project's whole `fail closed, and SAY SO` rule exists to refuse.
+    """
+    real_import = builtins.__import__
+
+    def without_siblings(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "tools" and any(f in (fromlist or ()) for f in ("landing_pair", "refresh_to_head")):
+            raise ImportError("cannot import name 'landing_pair' from 'tools' (unknown location)")
+        return real_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr(builtins, "__import__", without_siblings)
+    out = scr.door_verdicts([], repo)
+
+    assert list(out) == [scr.UNGRADED_DOORS], (
+        "a census that could not ask any door reported no shut door, which is not the same thing")
+    said = out[scr.UNGRADED_DOORS]
+    assert "MISSING, not clean" in said, "the reader must be told the column is absent, not empty"
+    # The durable workaround, because a refusal that names no move is a refusal nobody can act on
+    # -- and this one needs no fast-forward and cannot touch another lane's bytes.
+    assert "--root" in said and "origin/main" in said, (
+        "the refusal names no way out: {}".format(said))
+
+
+def test_the_sentinel_key_cannot_be_mistaken_for_a_censused_path(repo: Path) -> None:
+    """The anti-collision leg for the mapping above, and it is not pedantry: `door_verdicts` is
+    keyed by path and the caller renders `verdicts[loss.path]` under each row. A sentinel a real
+    path could equal would render the caveat as one file's door verdict and hide the caveat."""
+    assert "\0" in scr.UNGRADED_DOORS, "a sentinel a filename could hold is not a sentinel"
+    losses, no_opinion = scr.census(repo)
+    assert scr.UNGRADED_DOORS not in {loss.path for loss in losses} | set(no_opinion)

@@ -764,6 +764,14 @@ def index_residue_text(paths: list[str]) -> str:
     ])
 
 
+#: The key `door_verdicts` returns its own failure under. NOT a path, and it cannot become one: a
+#: git path is relative, never absolute, and `\0` is the one byte a filename may not contain -- so
+#: no census row can ever collide with it and be silently rendered as the caveat, or vice versa.
+#: In a mapping keyed by path, the alternative was a second return value every caller must
+#: remember to check, and the caller that forgets gets today's silence back.
+UNGRADED_DOORS = "\0ungraded-doors"
+
+
 def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
     """Ask each named door whether it would actually TAKE the path this census sends it.
 
@@ -778,8 +786,38 @@ def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
     `tools/refresh_to_head.py` imports this module's `judge`, `symbols` and `READABLE` -- it is
     this control's writing half and takes its definition of a stale copy from here. The census is
     the only caller in the other direction.
+
+    AND A CENSUS THAT CANNOT IMPORT ITS OWN SIBLINGS SAYS SO RATHER THAN RAISING (2026-09-08, filed
+    as `SEAT_FINDING_THE_STALE_COPY_CENSUS_CRASHES_IN_THE_SHARED_TREE_BECAUSE_ITS_OWN_SIBLING_
+    MODULES_NEVER_REACHED_DISK`). The composition that did it: a lane landed `landing_pair` and
+    `refresh_to_head` to origin through `surgical_land`, which NEVER writes the working tree --
+    deliberately, and that is the property that makes it safe for a two-lane file; the shared tree
+    then could not fast-forward, because three unrelated lanes held live bytes; so this module sat
+    on disk importing two siblings the same tree had never received, and `--census` raised
+    `ImportError` for EVERY lane. Every step is another lane's correct behaviour and no single
+    control can see the composition -- which is exactly why the degradation has to be here, at the
+    one frame that knows the siblings are optional to the ANSWER and not to the crash.
+
+    THE PATHS ARE STILL THE ANSWER. Door grading is an enrichment of a verdict this function's
+    caller already has; losing it costs the reader a column, and raising cost every lane the whole
+    table. `fail closed, and say so on the surface`: the reason goes in the returned mapping under
+    a key no path can collide with, so it renders beside the rows rather than in a log nobody
+    reads, and the census never silently reports "no door is shut" because it could not ask.
     """
-    from tools import landing_pair, refresh_to_head  # deferred: see the docstring
+    try:
+        from tools import landing_pair, refresh_to_head  # deferred: see the docstring
+    except ImportError as e:
+        return {UNGRADED_DOORS: (
+            "      ⚠ DOORS NOT GRADED -- this census could not import its own siblings ({}). The "
+            "paths above are the answer; the door column is MISSING, not clean.\n"
+            "      The usual cause is that they landed to origin and this tree has not "
+            "fast-forwarded (`python3 -m background.origin_reconcile --check`), so they are on no "
+            "branch this checkout has.\n"
+            "      THE MOVE THAT NEEDS NO FAST-FORWARD: run origin's code against this tree --\n"
+            "      `git worktree add --detach /tmp/wt origin/main && cd /tmp/wt && python3 -m "
+            "tools.stale_copy_refusal --census --root {}`\n"
+            "      `--root` names the repository holding the rival copies and is independent of "
+            "which checkout supplies the code.".format(e, root))}
 
     out: dict[str, str] = {}
     index = None
@@ -901,6 +939,11 @@ def main(argv: list[str] | None = None) -> int:
     caveat = base_caveat(root)
     if caveat:
         print(caveat + "\n")
+    # SAME PLACE AND SAME REASON as the base caveat above: a missing door column changes how every
+    # REMEDY line below should be read, and a note printed after several hundred census lines is a
+    # note nobody reads before acting on the first one.
+    if UNGRADED_DOORS in verdicts:
+        print(verdicts[UNGRADED_DOORS] + "\n")
     print("[stale-copy] WOULD REVERT A LANDING: {}".format(len(losses)))
     for loss in losses:
         print(loss.render(), end="")

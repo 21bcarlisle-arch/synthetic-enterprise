@@ -1,5 +1,27 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Discharged:** 2026-09-17, lane 0 delivery, on item (2) of this finding's own "what is next" — the census that raises instead of answering. Falsifiers: `tests/tools/test_stale_copy_refusal.py::test_a_census_that_cannot_import_its_own_siblings_ANSWERS_and_never_raises`,
+`tests/tools/test_stale_copy_refusal.py::test_the_sentinel_key_cannot_be_mistaken_for_a_censused_path`
+
+**What was built.** `door_verdicts` now catches
+`ImportError` on its deferred sibling import and returns the reason under `UNGRADED_DOORS`, which
+`main` prints AHEAD of the rows beside the base caveat and for the same reason: a missing door
+column changes how every REMEDY line below it should be read. The text names the likely cause
+(`origin_reconcile --check`) and carries the workaround this finding established — run origin's code
+from a detached worktree with `--root` pointed at the older tree, which needs no fast-forward and
+cannot touch another lane's bytes.
+
+**The other two items, measured today rather than assumed.** (1) The fast-forward landed: this tree
+is level with `origin/main`, `tools/landing_pair.py` and `tools/refresh_to_head.py` are on disk and
+in HEAD, and `--census` runs to completion in the shared tree — so the INSTANCE is gone and only the
+mechanism needed repairing, which is why (2) was the discharge and not (1). (3) is an ask, not a
+repair, and it is carried forward on its own rather than counted here.
+
+**The refusal is asserted at the reader's surface, not at the absence of a raise**, and that is the
+whole difference between this repair and an `except ImportError: pass`. Returning `{}` also does not
+raise — and reads as *no door is shut*, which is the flattering answer. The control mutation-fires on
+both: on reverting to the bare import, and on degrading to an empty mapping.
+
 # The stale-copy census — this class's own acceptance test — crashes for every lane in the shared tree, because the modules it imports are on origin and were never written to disk
 
 **Filed 2026-09-08 by the delivery seat (lane 0). Found by running the check the previous finding

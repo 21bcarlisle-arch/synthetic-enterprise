@@ -67,6 +67,14 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background.episode_prior import (
+    UNREADABLE as PRIOR_UNREADABLE,
+)
+from background.episode_prior import (
+    load_list_prior,
+    preserve_unreadable,
+    prior_unreadable,
+)
 from background.live_ledger_guard import guard_live_ledger_write, shared_tree_live_record
 
 _HERE = Path(__file__).resolve().parent
@@ -204,15 +212,94 @@ def _read_rc(rc_path) -> int | None:
         return None
 
 
+class RegisterUnreadable(RuntimeError):
+    """The register exists and cannot be read, so no claim it held can be re-asked.
+
+    A DISTINCT EXCEPTION BECAUSE THE CALLERS NEED OPPOSITE THINGS FROM IT, and a bare
+    `RuntimeError` would be swallowed by the blanket `except` every daemon caller already has --
+    which is the silence this class exists to break. `deadmans_switch` must PAGE (every `live`
+    claim just became un-re-askable, which is an incident); `launch_long_job` must LAUNCH ANYWAY
+    (a launch that is not recorded is the state it kills a healthy job to avoid).
+    """
+
+    def __init__(self, path, preserved: str | None):
+        self.path = str(path)
+        #: Where the bytes went, or `None` when they could not be kept. Named rather than
+        #: implied: "we lost it and could not even keep the evidence" is a worse state than
+        #: "we lost it", and a reader who cannot tell them apart will assume the better one.
+        self.preserved = preserved
+        super().__init__(
+            "the launch register at {} cannot be read, so no `live` claim in it can be "
+            "re-asked and an empty board is NOT what this means. Prior bytes {}.".format(
+                self.path,
+                "preserved at `{}`".format(preserved) if preserved
+                else "COULD NOT BE PRESERVED -- they may be gone"))
+
+
+def _resolved_path(path: Path | None = None) -> Path:
+    """The copy `load` reads and `save` writes. ONE function so the two can never disagree about
+    which file they mean -- the module docstring's whole argument rests on that identity."""
+    return Path(shared_tree_live_record(path or RECORDS_PATH))
+
+
+def _resolved_path_or_named(path: Path | None = None) -> Path:
+    """`_resolved_path`, falling back to the UNRESOLVED path when the resolver cannot answer.
+
+    THIS IS A REPORTING PATH AND NEVER A WRITE TARGET. `load_register` already grades a raising
+    resolver UNREADABLE, so the two callers below are on their way to a refusal -- and a refusal
+    whose own construction raises the resolver's exception is caught by the blanket `except` every
+    daemon caller has, which is the silence `RegisterUnreadable` exists to break. The caller named
+    a path; saying which one, unresolved, is strictly better than losing the refusal to say it.
+    """
+    try:
+        return _resolved_path(path)
+    except Exception:          # noqa: BLE001 -- see docstring: never let the refusal itself raise
+        return Path(path or RECORDS_PATH)
+
+
+def load_register(path: Path | None = None) -> tuple[list, str]:
+    """The launch register AND what we actually know about it: `(records, verdict)`.
+
+    THE HONEST READER, and `load` below is the lossy one kept for the callers whose decision does
+    not turn on the difference. Five distinct priors used to collapse into one answer and it was
+    the flattering one every time -- ABSENT, a zero-byte file (the signature of an interrupted
+    write), truncated JSON, a bare `null` (which PARSES, so no `except` ever saw it), and a
+    non-list object all returned `[]`, indistinguishable from *no launches*.
+
+    `episode_prior` is the partition and this module is its sixth carrier rather than a seventh
+    hand-rolled loop; `item_type=dict` is what makes a PARTLY-right register (`[{...}, "x"]`)
+    UNREADABLE instead of readable-with-junk, because a record we cannot fully account for cannot
+    answer "what became of the run this document says is in flight".
+
+    A RESOLVER THAT RAISES IS UNREADABLE, NOT ABSENT. If we cannot even establish which file we
+    mean, we have not looked -- and "we did not look" must never be the empty board.
+
+    THE VERDICT IS `episode_prior`'s AND NOT THIS MODULE'S. Both spell the word `unreadable` and
+    they answer different questions: `launch_liveness.UNREADABLE` is what a re-ask returns when
+    `systemctl` cannot be RUN, and `PRIOR_UNREADABLE` is what the REGISTER FILE is. The import is
+    aliased so no future edit can make a probe verdict and a file verdict compare equal by
+    accident, which they would, both being the string `"unreadable"`.
+    """
+    try:
+        resolved = _resolved_path(path)
+    except Exception:
+        return [], PRIOR_UNREADABLE
+    return load_list_prior(resolved, item_type=dict)
+
+
 def load(path: Path | None = None) -> list:
     """The launch register. THE SHARED TREE'S copy when read from a linked worktree -- module
-    docstring for the measurement, and for why this could not be wired without `save` below."""
-    try:
-        resolved = Path(shared_tree_live_record(path or RECORDS_PATH))
-        data = json.loads(resolved.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    return data if isinstance(data, list) else []
+    docstring for the measurement, and for why this could not be wired without `save` below.
+
+    LOSSY BY CONSTRUCTION: this returns `[]` for an ABSENT register and for an UNREADABLE one
+    alike. That is correct for the callers that only ever FILTER what is there
+    (`pending_notices`, `clear_notices`, `landed_check`, `unregistered_live_units`) -- none of
+    them writes a rebuilt register, and `unregistered_live_units` is keyed to what systemd says
+    is running rather than to what the file says, so an emptiness here makes it report MORE, not
+    less. **Any caller whose decision differs between "nothing was launched" and "we cannot tell"
+    must call `load_register` instead**, and the two that do are `record` and `check`.
+    """
+    return load_register(path)[0]
 
 
 def save(records: list, path: Path | None = None) -> None:
@@ -258,6 +345,23 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
     row would stay `live` forever and no relaunch of that job would ever be possible again. A guard
     that refuses a legitimate relaunch every time the probe was inconclusive is a guard that
     refuses the ordinary case, which is the shape this project ships worst.
+
+    AN UNREADABLE PRIOR IS PRESERVED BEFORE IT IS REBUILT, AND THE RECORD SAYS SO. This is
+    load -> supersede -> append -> save, and on an unreadable prior the load half used to return
+    `[]` -- so the save half wrote a ONE-ELEMENT register over whatever was there. Measured on a
+    truncated register holding a `live` row for `longjob-A`: `record('longjob-B')` left the file
+    holding `['longjob-B']`, with A's bytes preserved nowhere. **A destroyed `live` record is a
+    claim that can never be contradicted**, which is the single thing this module exists to
+    abolish, arriving through its own writer -- exactly as the founding defect in the paragraph
+    above did.
+
+    ABSENT AND UNREADABLE TAKE THE SAME ACTION AND ARE DIFFERENT ANSWERS. The write still
+    happens, because the alternative is an unrecorded launch. What changes is that the bytes go
+    somewhere first and this record carries `prior_register` naming where -- a field no other row
+    has, so a reader of the register can see that everything before it was lost and can go and
+    read it. Preserving is best-effort by `episode_prior`'s own doctrine (a launcher that refuses
+    to run because it could not archive a corrupt file has turned a lost record into an outage),
+    so `preserved_as: null` is a REPORTABLE state and not an omission.
     """
     entry = {
         "job": job,
@@ -271,7 +375,22 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
         "settled_at": None,
         "evidence": None,
     }
-    records = load(path)
+    records, verdict = load_register(path)
+    if prior_unreadable(verdict):
+        # BEFORE `save` below, which is the only ordering that keeps anything: `save` writes the
+        # rebuilt list over the same resolved path, so a preserve afterwards would archive our own
+        # output. `keep_original=False` -- the corrupt file is MOVED aside, so the rebuild lands on
+        # a clean path and the next read is honestly ABSENT rather than perpetually unreadable.
+        preserved = None
+        try:
+            preserved = preserve_unreadable(_resolved_path_or_named(path))
+        except Exception:      # noqa: BLE001 -- the launch still has to be recorded; see docstring
+            preserved = None
+        entry["prior_register"] = {"verdict": verdict, "preserved_as": preserved}
+        print("[launch-liveness] the register was UNREADABLE and has been rebuilt from this "
+              "launch alone; every earlier record is gone from it. Prior bytes {}.".format(
+                  "at `{}`".format(preserved) if preserved else "COULD NOT BE PRESERVED"),
+              file=sys.stderr)
     prior = [r for r in records if r.get("job") == job]
     # Identity, not equality: two runs of one job can be equal dicts field for field, and `!=` on
     # the value would drop the row we mean to keep.
@@ -323,8 +442,33 @@ def check(path: Path | None = None, probe=systemd_probe, *,
     A RECORD NEVER RETURNS TO `live`. Settling is one-way and only ever on evidence held outside
     the job: an UNREADABLE probe settles nothing, and neither does UNKNOWN, because "we could not
     tell" is not permission to overwrite what the launch said.
+
+    AND AN UNREADABLE REGISTER RAISES, because the paragraph above was careful about the probe and
+    the loader one frame below handed this function an emptiness it could not tell from an empty
+    board. On a truncated register this returned `stale=0` -- not "we could not tell", but the
+    CLEAN one -- and `deadmans_switch._check_launch_liveness` reads `if not stale: clear_transition`.
+    So the register losing its own contents read, all the way to the alarm, as every launch
+    accounted for. `(0, [...], [])` cannot carry that refusal: a count is the field the caller
+    branches on and zero is the flattering value, so the refusal has to be a control-flow event the
+    caller cannot spend by ignoring a field. `RegisterUnreadable` is that, and both callers have an
+    explicit branch for it.
+
+    IT PRESERVES WITHOUT MOVING (`keep_original=True`), which is the opposite of `record`'s choice
+    and for a reason. This runs on the deadman's cadence: moving the file would make the next cycle
+    read ABSENT and go quiet, turning a standing condition into a single page nobody was awake for.
+    The condition stands until a `record()` rebuilds the register, and the alarm re-escalates while
+    it stands. `preserve_unreadable` never overwrites an earlier copy, so repeating this every
+    cycle keeps the FIRST loss -- the one that still held the real record -- and not the last.
     """
-    records, lines, settled = load(path), [], []
+    records, register_verdict = load_register(path)
+    if prior_unreadable(register_verdict):
+        named = _resolved_path_or_named(path)
+        try:
+            preserved = preserve_unreadable(named, keep_original=True)
+        except Exception:      # noqa: BLE001 -- best-effort; the refusal below is the real output
+            preserved = None
+        raise RegisterUnreadable(named, preserved)
+    lines, settled = [], []
     for entry in records:
         if entry.get("claim") != LIVE:
             continue
@@ -727,7 +871,15 @@ def main(argv: list | None = None) -> int:
         print("unregistered: PASS (every running longjob-* unit has a live record)")
         return 0
 
-    stale, lines, _ = check()
+    try:
+        stale, lines, _ = check()
+    except RegisterUnreadable as e:
+        # REFUSES, where the `--check` leg below deliberately does not. The comment under that leg
+        # says why it reports rather than refuses -- it cannot grade a job that was never recorded
+        # -- and this is the opposite case: the register itself is gone, so there is no reading of
+        # its silence that could be a PASS.
+        print(f"check: UNREADABLE -- {e}")
+        return 1
     for line in lines:
         print(line)
     # THE PASS BELOW USED TO CLAIM MORE THAN IT KNEW. `check()` re-asks the REGISTER, so a job that

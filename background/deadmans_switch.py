@@ -161,6 +161,11 @@ ORIGIN_RACE_EPISODE_FILE = OBSERVABILITY_DIR / ".origin_race_episode.json"
 _STATUS_STALE_KEY = "deadman_status_stale"
 _LAUNCH_LIVENESS_KEY = "deadman_launch_liveness"
 _LAUNCH_LANDED_KEY = "deadman_launch_artefact_unlanded"
+#: SEPARATE FROM `_LAUNCH_LIVENESS_KEY` because the lifetimes differ, the same way `_LAUNCH_LANDED_KEY`
+#: is separate. A settled claim is an EVENT that pages once; an unreadable register is a STANDING
+#: condition that lasts until a launch rebuilds it. Sharing a key would let a death page clear the
+#: corruption alarm, or the corruption alarm suppress a death.
+_LAUNCH_REGISTER_KEY = "deadman_launch_register_unreadable"
 
 
 def log(msg: str, path=None) -> None:
@@ -945,9 +950,22 @@ def _check_launch_liveness() -> None:
     A CHECK THAT CANNOT RUN MUST NOT CRASH THE DEADMAN CYCLE, and must not clear the alarm either:
     an exception here means we did not look, which is the one thing this module refuses to report
     as an answer.
+
+    AN UNREADABLE REGISTER IS AN INCIDENT AND NOT A MISSED LOOK, which is why it has its own
+    branch and its own key. Everything else this function cannot do means *we did not look* and
+    is correctly silent -- but a register that cannot be read has taken every `live` claim in it
+    out of reach permanently, and the documents those claims name can now never be contradicted.
+    That is the founding defect of `launch_liveness`, and until 2026-09-17 it arrived here as
+    `stale=0` and reached `clear_transition` below: the clean board. It is a STANDING condition
+    (the register stays unreadable until a launch rebuilds it), so it re-escalates rather than
+    paging once.
     """
     try:
         from background import launch_liveness
+    except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
+        log(f"launch-liveness import error: {e}")
+        return
+    try:
         stale, lines, settled = launch_liveness.check()
         # A DEATH THE RELAUNCH SETTLED NEVER PASSES THROUGH `settled` HERE. `check()` re-asks rows
         # still claiming `live`, and `launch_long_job.launch()` now settles the previous run itself
@@ -958,9 +976,28 @@ def _check_launch_liveness() -> None:
         already = {(s.get("job"), s.get("unit"), s.get("launched_at")) for s in settled}
         pending = [e for e in launch_liveness.pending_notices()
                    if (e.get("job"), e.get("unit"), e.get("launched_at")) not in already]
+    except launch_liveness.RegisterUnreadable as e:
+        # BEFORE the blanket clause, which would otherwise swallow it -- it is a RuntimeError and
+        # `except Exception` is what this whole class of defect hides behind. No `clear_transition`
+        # on any path out of here: the board is not clean, we simply cannot see it.
+        log(f"LAUNCH REGISTER UNREADABLE: {e}")
+        notify(
+            f"[LAUNCH REGISTER UNREADABLE] {e} Every document asserting a run is in flight is now "
+            "un-re-askable from this register, and nothing else in the architecture can "
+            "contradict one. It rebuilds on the next `launch_liveness.record()`, which preserves "
+            "what is left first -- so the repair is a launch, not an edit.",
+            kind="real_alarm", transition_key=_LAUNCH_REGISTER_KEY,
+            state=f"unreadable:{'kept' if e.preserved else 'lost'}",
+            re_escalate_after=RE_ESCALATE_SECONDS,
+        )
+        return
     except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
         log(f"launch-liveness check error: {e}")
         return
+    # A READABLE REGISTER CLEARS THE UNREADABLE ALARM, and it is the only thing that can. Keyed
+    # here rather than beside the page above because this is the branch that proves the condition
+    # ended -- `check()` returning at all means the file parsed.
+    clear_transition(_LAUNCH_REGISTER_KEY)
     if not stale and not pending:
         clear_transition(_LAUNCH_LIVENESS_KEY)
         return
