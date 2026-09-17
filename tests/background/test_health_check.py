@@ -1,5 +1,7 @@
 """Tests for background/health_check.py."""
 
+import ast
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -7,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from background import health_check
+from tools import python_code_text
 
 
 def _mock_panes(names: list[str]):
@@ -309,6 +312,180 @@ class TestCheckPixelVerificationCapability:
         result = health_check._check_pixel_verification_capability()
         assert result is not None
         assert "timed out" in result.lower()
+
+    def test_the_requirement_tracks_what_the_tree_launches_in_both_directions(
+        self, tmp_path
+    ):
+        """`REQUIRED_PIXEL_BROWSERS` omits `chromium` because nothing here
+        launches the full binary. That was a SENTENCE IN A COMMENT until
+        2026-09-17, which is to say nothing decided when it stopped being true.
+
+        This is that decision, and it grades BOTH directions, because both have
+        already cost this lane a Lane 0 item:
+
+        - a consumer appears and the requirement does not follow  -> the probe
+          reports a capability green while the thing that needs it fails;
+        - the requirement is asserted with no consumer             -> the false
+          red of alarming on a capability no door uses.
+
+        Keyed to the property, not to today's answer: `chromium-1234` is on
+        this machine as of 2026-09-17, and the leg below still refuses to
+        require it, because "it happens to be on disk" is not a consumer.
+        """
+        # LEG 1 -- the detector can SEE a consumer. A guard that finds nothing
+        # passes the live leg on its own, so prove the partition is reachable
+        # before asserting which side the tree is on. All four shapes in one
+        # fixture tree: two that must be found, two that must not.
+        (tmp_path / "headed.py").write_text(
+            "from playwright.sync_api import sync_playwright\n"
+            "def shot(p):\n"
+            "    return p.chromium.launch(headless=False)\n"
+        )
+        (tmp_path / "accurate.mjs").write_text(
+            'import { chromium } from "playwright";\n'
+            'const b = await chromium.launch({ channel: "chromium" });\n'
+        )
+        (tmp_path / "headless.py").write_text(
+            "def shot(p):\n"
+            "    # headless=False would need the full binary; we do not do that\n"
+            '    return p.chromium.launch(headless=True, channel="chrome")\n'
+        )
+        (tmp_path / "prose.py").write_text(
+            '"""Explains that headless=False needs chromium-1234."""\n'
+            "HEADED_IS_UNAVAILABLE = True\n"
+        )
+        found = _full_chromium_consumers(tmp_path)
+        assert found == {"accurate.mjs", "headed.py"}, (
+            f"detector must find the two real consumers and neither the headless "
+            f"launch nor the prose that merely NAMES one; it found {sorted(found)}. "
+            f"A grep would have flagged prose.py -- that is why this parses."
+        )
+
+        # LEG 2 -- the live tree, in whichever direction it is actually in.
+        repo_root = Path(__file__).resolve().parents[2]
+        live = _full_chromium_consumers(repo_root)
+        if live:
+            assert "chromium" in health_check.REQUIRED_PIXEL_BROWSERS, (
+                f"{sorted(live)} launch the full chromium binary, but "
+                f"REQUIRED_PIXEL_BROWSERS={health_check.REQUIRED_PIXEL_BROWSERS} "
+                f"does not require it -- so the health check reports pixel "
+                f"verification available on a machine where that launch fails. "
+                f"Remedy: add 'chromium' to the constant; "
+                f"`npx playwright install chromium` fixes a machine that lacks it. "
+                f"A HEADED launch needs a display as well as the binary -- see "
+                f"docs/design/PIXEL_VERIFICATION_ON_THIS_MACHINE.md."
+            )
+        else:
+            assert "chromium" not in health_check.REQUIRED_PIXEL_BROWSERS, (
+                "REQUIRED_PIXEL_BROWSERS requires 'chromium' while nothing in "
+                "the tree launches it. That is the false red this lane has paid "
+                "for twice: an alarm on a capability no door consumes. Being "
+                "installed is not a reason to require it."
+            )
+
+
+# The trigger above needs to tell a real launch from a sentence about one, so it
+# PARSES rather than greps: `background/health_check.py` and this file both
+# discuss `headless=False` at length and neither launches anything.
+_FULL_CHROMIUM_ARG = re.compile(
+    r"""(?: headless \s* [:=] \s* false            # an explicit non-headless launch
+          | channel  \s* [:=] \s* ["']chromium["'] # or Playwright's full-binary channel
+        )""",
+    re.VERBOSE | re.IGNORECASE,
+)
+_FULL_CHROMIUM_JS_CALL = re.compile(
+    r"""\.launch (?:PersistentContext)? \s* \( [^)]{0,400}?""" + _FULL_CHROMIUM_ARG.pattern,
+    re.VERBOSE | re.IGNORECASE,
+)
+# `node_modules/` is Playwright's OWN source -- it launches browsers every way
+# there is, and it is not our tree. It is gitignored, so this is the same set
+# `git ls-files` would give; the walk is used instead so the control still has a
+# subject in a clean extract, which has no `.git` to ask.
+_NOT_OUR_TREE = {".git", "node_modules", "__pycache__", ".venv", "venv", ".pytest_cache"}
+
+
+def _full_chromium_consumers(root: Path) -> set[str]:
+    """Paths under `root`, relative and posix, that launch the FULL chromium
+    binary -- headed, or `channel="chromium"` for accurate headless rendering.
+
+    BOTH of those need `chromium-<rev>`, which is why this is one detector and
+    not two: measured 2026-09-17 with the binary absent, `headless=False` AND
+    `channel="chromium", headless=True` failed with the identical
+    "Executable doesn't exist at .../chromium-1234/chrome-linux64/chrome".
+    Calling the gap "headed" was therefore wrong in the expensive direction --
+    it reads as "we only ever render headless here, so this cannot matter",
+    when what was actually unavailable was a HEADLESS mode.
+
+    The two languages are walked by SEPARATE globs rather than one walk with a
+    suffix branch, so that the text scan below provably never receives Python:
+    a `.js` read and a `.py` read are different statements here, and only the
+    Python one goes through `python_code_text`. That is the distinction
+    `tests/architecture/test_a_control_reads_python_as_code.py` grades, and a
+    branch inside one walk does not make it -- it refused the first draft.
+    """
+    found: set[str] = set()
+    for path in sorted(root.rglob("*.py")):
+        if _skip_not_our_tree(path, root):
+            continue
+        if _py_launches_full_chromium(_read(path)):
+            found.add(path.relative_to(root).as_posix())
+    for pattern in ("*.js", "*.mjs", "*.cjs"):
+        for path in sorted(root.rglob(pattern)):
+            if _skip_not_our_tree(path, root):
+                continue
+            if _FULL_CHROMIUM_JS_CALL.search(_read(path)):
+                found.add(path.relative_to(root).as_posix())
+    return found
+
+
+def _skip_not_our_tree(path: Path, root: Path) -> bool:
+    return not path.is_file() or bool(_NOT_OUR_TREE & set(path.relative_to(root).parts))
+
+
+def _read(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def _py_launches_full_chromium(source: str) -> bool:
+    """True if any `*.launch(...)` call in `source` selects the full binary.
+
+    Every read of the source here goes through `python_code_text.searchable`,
+    never the raw bytes: this module's own subject is `headless=False`, and it
+    and `background/health_check.py` say so in prose repeatedly. A control that
+    could not tell a launch from a sentence about one would fire on its own
+    documentation -- which is the class `tests/architecture/
+    test_a_control_reads_python_as_code.py` exists to refuse, and it refused
+    this function's first draft.
+
+    An unparseable file falls back to the text scan rather than being read as
+    innocent: another lane's syntax error must not be able to switch this
+    control off, and a file we cannot parse is precisely where we know least.
+    `searchable` fails closed the same way, returning the original text when it
+    cannot parse -- so the fallback's reading is today's, never narrower.
+    """
+    searchable = python_code_text.searchable(source)
+    if ".launch" not in searchable:
+        return False
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return bool(_FULL_CHROMIUM_JS_CALL.search(searchable))
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr not in ("launch", "launch_persistent_context"):
+            continue
+        for kw in node.keywords:
+            if not isinstance(kw.value, ast.Constant):
+                continue
+            if kw.arg == "headless" and kw.value.value is False:
+                return True
+            if kw.arg == "channel" and kw.value.value == "chromium":
+                return True
+    return False
 
 
 def test_all_processes_running_reports_ok(monkeypatch):

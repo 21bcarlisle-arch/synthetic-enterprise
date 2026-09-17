@@ -231,18 +231,28 @@ def _pixel_verification_root() -> Path:
 # `installByDefault` would red a machine whose pixel checks all pass, which is
 # the exact false-red that cost a full Lane 0 item on 2026-09-17.
 #
-# Measured that day rather than assumed, with full `chromium-1234` absent:
-#   chromium.launch(headless=True)  -> OK, rendered=42
-#   chromium.launch(headless=False) -> "Executable doesn't exist at
-#                                       .../chromium-1234/chrome-linux64/chrome"
-# Modern Playwright routes headless through the shell, and no committed door
-# asks for a headed launch (a tree-wide grep for `playwright` returns this
-# module, its test, and the egress allowlist -- nothing else). So the headed
-# binary is a LATENT gap, deliberately not required here: adding it would
-# assert a capability nothing consumes. ffmpeg is video recording, not pixel
-# verification, and is excluded despite being present -- requiring a browser
-# because it happens to be on disk today is keying the control to today's
-# answer. Add a name here when something in the tree launches it, not before.
+# ffmpeg is video recording, not pixel verification, and is excluded despite
+# being present -- requiring a browser because it happens to be on disk today is
+# keying the control to today's answer.
+#
+# `chromium-1234` IS on disk (installed 2026-09-17) and is still NOT required
+# here, for that same reason. What was called "the headed gap" turned out to be
+# the FULL-BINARY gap, and the difference is not pedantry -- measured with it
+# absent, BOTH of these failed on the identical missing executable:
+#   chromium.launch(headless=False)                   -> Executable doesn't exist
+#   chromium.launch(headless=True, channel="chromium")-> Executable doesn't exist
+# The second is a HEADLESS mode: Playwright's own accurate-rendering channel.
+# "We only render headless here, so it cannot matter" was therefore false, which
+# is why the binary was installed rather than the absence being written down.
+# Headed additionally needs a display -- the binary alone is not the capability:
+# docs/design/PIXEL_VERIFICATION_ON_THIS_MACHINE.md has what renders and how.
+#
+# WHEN TO ADD A NAME HERE: when something in the tree LAUNCHES it. That used to
+# be this sentence and nothing else, which is to say nothing decided when it
+# stopped being true. It is now graded in both directions --
+# `test_the_requirement_tracks_what_the_tree_launches_in_both_directions`
+# reds if a consumer appears without the requirement, AND reds if the
+# requirement is asserted with no consumer.
 REQUIRED_PIXEL_BROWSERS = ("chromium-headless-shell",)
 
 # `playwright install --dry-run` prints, per browser, a header naming it and an
