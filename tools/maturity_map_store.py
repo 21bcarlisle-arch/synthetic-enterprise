@@ -96,6 +96,57 @@ MAP_SIZE_CEILING = 400 * 1024
 # warning at all, and the only door the pressure pointed at was raising the line above.
 MAP_SIZE_WARN_HEADROOM = 8 * 1024
 
+# The room the PER-ATOM bound leaves under the ceiling, and the reason it can now bind at all.
+#
+# THE DEFECT IT ENDS (SEAT_FINDING_THE_MAPS_INFORMATIVE_SIZE_BOUND_HAS_BEEN_DEAD_SLACK_FOR_297_
+# COMMITS_2026-09-17): the per-atom budget exists so the whole-file ceiling stops arriving as a
+# wedge that names no row. It was a FIXED 1,400 B/atom against a GROWING population and a FIXED
+# total -- 1,400 x 350 atoms authorises 490,000 B against a 409,600 B ceiling, 80,400 B of
+# guaranteed silence that grew by 1,400 with every atom minted. Measured over the 297 commits
+# since the population crossed the 292.6-atom break-even: file ceiling breached 3 times, mean
+# per-atom 0, and per-atom-red-while-the-file-was-green 0 of 297. The drain that preceded this
+# reset the stock and left that dead exactly as it was.
+#
+# SO THE BUDGET IS DERIVED FROM THE CEILING AND THE LIVE POPULATION (`mean_bytes_per_atom_budget`)
+# and this is the only free number left in it: how much room the informative bound leaves the
+# uninformative one. DERIVED, not picked, from the same growth distribution
+# `MAP_SIZE_WARN_HEADROOM` was taken from -- over the 200 most recent commits touching either
+# half, 126 grew it, median +695 B, p75 +2,008, p90 +4,451, p95 +6,404, max +19,406 (re-measured
+# 2026-09-17 on this tree: every percentile above reproduces exactly, and the grew-count is 126
+# against the 127 recorded there because the window has since slid by one commit). 2 KB is p75:
+# below that much
+# headroom, more than one map commit in four would breach the ceiling outright, so "there is still
+# room to act" has stopped being true and a refusal that NAMES THE FATTEST ROWS is worth more than
+# a warning that says the commit fits.
+#
+# IT SITS STRICTLY INSIDE THE WARNING BAND, which is what makes the three surfaces one story:
+# `size_warning` speaks at 8 KB of headroom while the write still succeeds (above p95, so ~19 in
+# 20 odds the next map commit lands); the per-atom bound refuses at 2 KB and says WHICH rows to
+# drain; the whole-file ceiling at 0 is a backstop that can now only be reached by a single commit
+# adding more than 2 KB -- and even then it no longer arrives alone, because `ceiling - reserve`
+# is the weaker condition and fires with it.
+MAP_PER_ATOM_RESERVE = 2 * 1024
+
+
+def mean_bytes_per_atom_budget(atom_count: int) -> int:
+    """Bytes per atom the map can afford at this population, from the ceiling and nothing else.
+
+    `atom_count` is the LIVE count, not a snapshot: the budget tightens as atoms are minted,
+    because the ceiling does not move and the rows have to share it. That is the opposite of the
+    property the fixed 1,400 was chosen for -- scale-invariance -- and abandoning it is the whole
+    repair. A budget invariant to atom count cannot bind under a fixed total ceiling, which is
+    precisely why the old one never did. Count-invariance is the MAX leg's property and it keeps
+    it; this leg's job is to be the ceiling arriving early enough to be actionable, with names.
+
+    Zero atoms yields zero, and the caller's own vacuity guard refuses an empty map before this
+    is consulted -- returning a large budget for a map with nothing in it would make the one
+    fail-open shape this control has (an empty population reading as a pass) arithmetically true
+    instead of merely unguarded.
+    """
+    if atom_count <= 0:
+        return 0
+    return (MAP_SIZE_CEILING - MAP_PER_ATOM_RESERVE) // atom_count
+
 
 class MapStoreError(RuntimeError):
     """The map could not be read WHOLE. Never raised for an empty live half -- a map with
@@ -213,7 +264,13 @@ def size_warning(text: str | None = None, live_path: Path | str = LIVE_PATH) -> 
 
     It states the remedy DOWNWARD -- drain, rehome -- and never mentions raising the ceiling,
     because raising it is the single move the control exists to refuse and a warning is read
-    under exactly the time pressure that makes the wrong door look reasonable."""
+    under exactly the time pressure that makes the wrong door look reasonable.
+
+    THREE BANDS, NOT TWO (2026-09-17). Once the per-atom bound is derived from this same ceiling
+    it starts refusing at `MAP_PER_ATOM_RESERVE` of headroom -- inside the band this function used
+    to describe as "This commit fits". Two surfaces of one limit contradicting each other is the
+    shape that costs this project months, so the reserve band gets its own sentence here rather
+    than being discovered as a red in a file the author never opened."""
     left = size_headroom(text, live_path)
     if left >= MAP_SIZE_WARN_HEADROOM:
         return None
@@ -225,12 +282,22 @@ def size_warning(text: str | None = None, live_path: Path | str = LIVE_PATH) -> 
             "Drain a row's comments to their load-bearing sentence, or rehome a growing field "
             "to docs/design/simplifications/<atom_id>.yaml. Do not raise the ceiling."
         )
+    if left <= MAP_PER_ATOM_RESERVE:
+        return (
+            f"[map-size] {left} bytes of headroom left under the {MAP_SIZE_CEILING}-byte ratchet "
+            f"({where}), which is INSIDE the {MAP_PER_ATOM_RESERVE}-byte reserve the per-atom "
+            "bound keeps. This commit does not fit: tests/design/test_simplifications_store.py"
+            "::test_map_within_per_atom_budget refuses at this headroom, and unlike the ceiling "
+            "it names the fattest rows in its message. Drain the rows it names, or rehome a "
+            "growing field to docs/design/simplifications/<atom_id>.yaml. Never raise either line."
+        )
     return (
         f"[map-size] {left} bytes of headroom left under the {MAP_SIZE_CEILING}-byte ratchet "
-        f"({where}). This commit fits. The map's own history says the median commit that touches "
-        "it adds ~695 bytes, so budget accordingly: when it goes over, tests/design/ reds EVERY "
-        "lane's commit and names a file its author never touched. Drain comments to their "
-        "load-bearing sentence or rehome a growing field to the store; never raise the ceiling."
+        f"({where}). This commit fits, and the next line down is not the ceiling but the "
+        f"{MAP_PER_ATOM_RESERVE}-byte per-atom reserve -- {left - MAP_PER_ATOM_RESERVE} bytes "
+        "from here. The map's own history says the median commit that touches it adds ~695 "
+        "bytes, so budget accordingly. Drain comments to their load-bearing sentence or rehome a "
+        "growing field to the store; never raise either line."
     )
 
 

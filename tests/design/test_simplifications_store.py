@@ -89,7 +89,28 @@ PER_FILE_CEILING = 100 * 1024
 # B/atom over 260 atoms; largest atom SITE1_expert_doors at 10,552 B) — derived from a
 # cleaned map, never from the pressure of a wedge, which is the condition the originating
 # finding put on any re-derivation.
-MAP_MEAN_BYTES_PER_ATOM = 1400
+#
+# THE PARAGRAPH ABOVE IS KEPT AND ITS MEAN LEG IS WRONG, and the two are left together because
+# the error is the interesting part (2026-09-17,
+# SEAT_FINDING_THE_MAPS_INFORMATIVE_SIZE_BOUND_HAS_BEEN_DEAD_SLACK_FOR_297_COMMITS_...).
+# "Invariant to atom count" and "binds under a fixed total ceiling" cannot both be true. A fixed
+# 1,400 B/atom over a population that had reached 350 authorises 490,000 B against a 409,600 B
+# ceiling: 80,400 bytes of guaranteed silence, growing by 1,400 every time an atom is minted.
+# Measured over the 297 commits since the population passed the 292.6-atom break-even on
+# 2026-08-12 — both map halves reconstructed at every commit that touched either, sized with
+# `atom_byte_sizes` below so the verdict is this control's own — the file ceiling was breached 3
+# times, the mean leg 0 times, and the mean leg was never once red while the file was green. The
+# leg did not fail; it was OUTGROWN, silently, by the success of the thing it measures, which is
+# the same shape as the defect it guards.
+#
+# So the mean leg stops pretending to be scale-invariant and becomes what it can actually be: THE
+# CEILING, ARRIVING EARLY ENOUGH TO ACT ON, WITH NAMES. `map_store.mean_bytes_per_atom_budget`
+# derives it from `MAP_SIZE_CEILING` and the LIVE population, leaving `MAP_PER_ATOM_RESERVE`
+# bytes under the ceiling, and `check_per_atom_budget` now ranks the rows it refuses over. Since
+# atom blocks are ~100% of the map's bytes, `mean > budget` is arithmetically "the map is over
+# ceiling − reserve" — so this leg is a total test that can name rows, and calling it anything
+# else is how it stayed dead. Count-invariance survives where it is true: the MAX leg below, one
+# fat atom, unmoved by how many lean ones surround it.
 MAP_MAX_BYTES_PER_ATOM = 12 * 1024
 
 
@@ -366,13 +387,34 @@ def _map_bytes() -> int:
     return map_store.map_bytes(live_path=MAP_PATH)
 
 
+def fattest_rows(sizes: dict[str, int], count: int = 5) -> str:
+    """The `count` biggest atom blocks, largest first, as one line per row.
+
+    THE RANKING ALREADY EXISTED AND WAS THROWN AWAY. `atom_byte_sizes` computes every row's bytes
+    and both bounds below reduced it to a single total before refusing, so a wedge arrived saying
+    the map is N bytes over and nothing about which of 350 rows to open. Naming rows is the whole
+    reason the per-atom half of this control was built; it is cheap, it is already measured, and
+    a refusal that says WHERE is the difference between a minute's work and a bisect.
+
+    Empty input yields a plain sentence rather than an empty string: a namer that silently
+    contributes nothing to a refusal reads exactly like a map with no fat rows."""
+    if not sizes:
+        return "  (no atom blocks parsed -- the sizer found nothing to rank)"
+    top = sorted(sizes.items(), key=lambda kv: -kv[1])[:count]
+    return "\n".join(f"  {aid}: {n} B" for aid, n in top)
+
+
 def test_map_within_size_ratchet_when_store_populated():
     if not _store_is_populated():
         pytest.skip("store empty")
     size = _map_bytes()
     assert size < MAP_SIZE_CEILING, (
         f"maturity_map.yaml is {size} bytes, over the {MAP_SIZE_CEILING}-byte "
-        "spine ratchet -- the register must live in the store, not the map"
+        "spine ratchet -- the register must live in the store, not the map.\n"
+        "The fattest rows, which is where the bytes are:\n"
+        + fattest_rows(atom_byte_sizes(map_store.map_text(MAP_PATH)))
+        + "\nDrain one to its load-bearing sentence, or rehome a growing field to "
+          "docs/design/simplifications/<atom_id>.yaml. Never raise the ceiling."
     )
 
 
@@ -394,23 +436,35 @@ def atom_byte_sizes(text: str) -> dict[str, int]:
 
 def check_per_atom_budget(
     sizes: dict[str, int],
-    mean_budget: int = MAP_MEAN_BYTES_PER_ATOM,
+    mean_budget: int | None = None,
     max_budget: int = MAP_MAX_BYTES_PER_ATOM,
 ) -> list[str]:
-    """Violations of the scale-invariant budget. Empty list == within budget.
+    """Violations of the per-atom budget. Empty list == within budget.
+
+    `mean_budget=None` means DERIVE IT from the ceiling and this population, which is the live
+    behaviour and the repair; an explicit number is for the mutation tests below, which need to
+    feed a bound they chose. A default computed from the argument cannot be a constant, so it is
+    `None` here rather than an expression over `sizes` -- see `map_store.mean_bytes_per_atom_budget`
+    for why the budget must move with the population at all.
 
     VACUITY GUARD: an empty map is not a passing map. A control whose population can
     be zero passes loudest exactly when its input has gone missing, which is the
     fail-open shape R15 names -- so no atoms is itself the violation."""
     if not sizes:
         return ["no atoms measured -- an empty map is not a map within budget"]
+    if mean_budget is None:
+        mean_budget = map_store.mean_bytes_per_atom_budget(len(sizes))
     out = []
     mean = sum(sizes.values()) / len(sizes)
     if mean > mean_budget:
         out.append(
-            f"mean {mean:.0f} B/atom over {len(sizes)} atoms, above the "
-            f"{mean_budget} B/atom budget -- atoms are accreting prose; rehome the "
-            "growing FIELD to the record store rather than raising this number"
+            f"mean {mean:.0f} B/atom over {len(sizes)} atoms, above the {mean_budget} B/atom "
+            f"this population can afford under the {MAP_SIZE_CEILING}-byte ceiling "
+            f"({sum(sizes.values())} B used of the {mean_budget * len(sizes)} B authorised). "
+            "This is the ceiling arriving early, on purpose, so it can say WHERE:\n"
+            + fattest_rows(sizes)
+            + "\nDrain one of those to its load-bearing sentence, or rehome the growing FIELD to "
+              "the record store. Raising the number is the one move this bound exists to refuse."
         )
     for aid, n in sorted(sizes.items(), key=lambda kv: -kv[1]):
         if n > max_budget:
@@ -419,29 +473,74 @@ def check_per_atom_budget(
 
 
 def test_map_within_per_atom_budget():
-    """The scale-invariant companion to the whole-file ratchet: minting atoms must
-    never red this, accreting prose into one always must."""
+    """The informative companion to the whole-file ratchet: it refuses a reserve earlier,
+    and it names the rows the ceiling would have left the reader to find."""
     if not _store_is_populated():
         pytest.skip("store empty")
     violations = check_per_atom_budget(atom_byte_sizes(map_store.map_text(MAP_PATH)))
     assert not violations, "per-atom budget:\n  " + "\n  ".join(violations)
 
 
-def test_per_atom_budget_is_invariant_to_atom_COUNT():
-    """R15 both-ways, and the property that distinguishes this control from the
-    whole-file ceiling it backs up: 10x the atoms at the same size per atom is NOT a
-    violation. A control that fires on honest growth is the one that arrives as a
-    publish wedge carrying no information about what to fix."""
-    small = {f"A{i}": 1000 for i in range(10)}
-    large = {f"A{i}": 1000 for i in range(1000)}
-    assert not check_per_atom_budget(small)
-    assert not check_per_atom_budget(large)
+def test_the_per_atom_bound_CAN_bind_before_the_whole_file_ceiling():
+    """THE PROPERTY THE OLD CONSTANT DID NOT HAVE, and nothing anywhere asserted it.
+
+    A per-atom budget exists so the ceiling stops arriving as a wedge naming no row. That is only
+    worth anything if `budget x population` is BELOW the ceiling -- otherwise every breach is the
+    uninformative kind and the leg is decoration. The fixed 1,400 authorised 490,000 B against
+    409,600 at a population of 350, and was therefore unable to fire first for 297 commits while
+    passing every test in this file.
+
+    Keyed to the PROPERTY at the LIVE population, not to today's numbers: it stays green as atoms
+    are minted and drained, and goes red the moment someone reintroduces a budget the ceiling can
+    outrun. The second leg is the one that matters -- a bound that binds at TODAY's count but not
+    at tomorrow's is the same defect with a later date on it."""
+    live = len(atom_byte_sizes(map_store.map_text(MAP_PATH)))
+    assert live > 100, f"only {live} atoms parsed -- this control cannot be asked of an empty map"
+    for population in (live, live * 2, live * 10):
+        authorised = map_store.mean_bytes_per_atom_budget(population) * population
+        assert authorised < MAP_SIZE_CEILING, (
+            f"at {population} atoms the per-atom budget authorises {authorised} B against a "
+            f"{MAP_SIZE_CEILING} B ceiling -- {authorised - MAP_SIZE_CEILING} B of guaranteed "
+            "silence. Every breach at that population is the ceiling's, naming no row."
+        )
+
+
+def test_per_atom_budget_is_invariant_to_HOW_THE_SAME_BYTES_ARE_SPLIT():
+    """R15 both-ways, and this test is a CORRECTION kept beside what it replaces.
+
+    It used to assert the opposite: 1,000 atoms at 1,000 B each was NOT a violation, on the
+    reasoning that a control firing on honest growth arrives as a wedge carrying no information.
+    The reasoning was right and the property was wrong -- 1,000,000 B is over any ceiling this map
+    has ever had, so asserting it passes is asserting the bound cannot bind, which is exactly what
+    297 commits then measured.
+
+    What is genuinely invariant is the SPLIT: the same total spread over 10 rows or 1,000 rows is
+    the same map and gets the same verdict. That is falsifiable (a bound keyed to row count rather
+    than to bytes fails it) and it is true, because `mean x n` is the total.
+
+    Count-invariance in the other sense now lives one leg over, in the MAX cap, which is where it
+    was always true: one fat atom is a violation however many lean ones surround it."""
+    # Populations kept above 50 so that half a map per row stays under the MAX cap: below that
+    # the split itself creates a genuinely fat row, and the fixture would be testing the other leg.
+    total = MAP_SIZE_CEILING // 2
+    for n in (50, 350, 1000):
+        assert not check_per_atom_budget({f"A{i}": total // n for i in range(n)}), \
+            f"half a map's bytes split {n} ways read as accretion -- the bound is keyed to the " \
+            "row count, not to the bytes"
+    # And the MAX leg is genuinely count-invariant: the same fat row, 10 neighbours or 1,000.
+    for n in (10, 1000):
+        fat = {f"A{i}": 100 for i in range(n)}
+        fat["FAT"] = MAP_MAX_BYTES_PER_ATOM + 1
+        assert any("FAT" in v for v in check_per_atom_budget(fat)), \
+            f"one fat atom among {n} lean ones went unnamed"
 
 
 def test_per_atom_budget_fires_on_accretion_and_on_one_fat_atom():
     """R15: the check must FIRE on each of its own named defects."""
-    # (a) broad accretion -- every atom over the mean budget, none over the cap
-    assert check_per_atom_budget({f"A{i}": 2000 for i in range(50)})
+    # (a) broad accretion -- every atom over the derived mean budget, none over the cap
+    n = 350
+    over = map_store.mean_bytes_per_atom_budget(n) + 1
+    assert check_per_atom_budget({f"A{i}": over for i in range(n)})
     # (b) one atom over the per-atom cap, with a mean well inside budget
     fat = {f"A{i}": 100 for i in range(500)}
     fat["FAT"] = MAP_MAX_BYTES_PER_ATOM + 1
@@ -449,6 +548,40 @@ def test_per_atom_budget_fires_on_accretion_and_on_one_fat_atom():
     assert violations and "FAT" in violations[0], violations
     # (c) FAIL-OPEN guard: an empty population is a violation, not a pass
     assert check_per_atom_budget({})
+
+
+def test_a_refusal_NAMES_THE_FATTEST_ROWS_and_not_only_a_total():
+    """The other half of the repair, and the half a green suite cannot notice.
+
+    Both bounds had the whole ranking in hand -- `atom_byte_sizes` measures every row -- and
+    reduced it to one number before refusing, so a wedge said the map was N bytes over and left
+    the reader to open 350 rows. This asserts the refusal carries the ranking, IN ORDER, and that
+    it is the ranking rather than an arbitrary sample: the biggest row must appear and a row two
+    orders of magnitude smaller must not.
+
+    Written against the message rather than the exit code on purpose. Naming rows changes nothing
+    a boolean can see, which is exactly the kind of regression that survives a suite of exit-code
+    assertions."""
+    sizes = {f"LEAN{i}": 40 for i in range(400)}
+    # As many fat rows as the namer prints, so "no LEAN row appears" is a statement about the
+    # RANKING and not about how deep the cut happens to be today.
+    sizes.update({"BIGGEST": 9000, "SECOND": 8000, "THIRD": 7000,
+                  "FOURTH": 6000, "FIFTH": 5000})
+    message = "\n".join(check_per_atom_budget(sizes, mean_budget=10))
+    assert "BIGGEST" in message and "SECOND" in message and "THIRD" in message, message
+    assert message.index("BIGGEST") < message.index("SECOND") < message.index("THIRD"), \
+        "the rows are named out of order -- a ranking read top-down is the point"
+    assert "LEAN" not in message, \
+        "a 40-byte row is named beside a 9,000-byte one, so this is a sample and not a ranking"
+
+
+def test_fattest_rows_says_so_when_it_has_nothing_to_rank():
+    """R15 fail-silent: a namer that returns '' on an empty population contributes nothing to a
+    refusal and reads exactly like a map with no fat rows. The vacuity guard above refuses an
+    empty map before this is reached in production, so this leg is the only thing that can prove
+    the namer itself does not fail silent."""
+    assert "no atom blocks parsed" in fattest_rows({})
+    assert fattest_rows({"A": 1, "B": 2}, count=1) == "  B: 2 B"
 
 
 def test_atom_byte_sizes_measures_the_real_map():

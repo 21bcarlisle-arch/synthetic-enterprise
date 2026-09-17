@@ -185,16 +185,50 @@ def test_the_warning_is_SILENT_with_room_and_SPEAKS_inside_the_band():
     assert "fits" in at_the_edge, "it must say the write SUCCEEDED, or it reads as a refusal"
 
 
+def test_the_reserve_band_says_the_commit_does_NOT_fit_and_the_band_above_says_it_does():
+    """THE CONTRADICTION THIS BAND EXISTS TO PREVENT, from both sides of its edge.
+
+    Once the per-atom bound is derived from this ceiling it refuses at `MAP_PER_ATOM_RESERVE` of
+    headroom -- inside what this surface used to describe as "This commit fits". One limit with
+    two surfaces telling the reader opposite things is the VAT shape, and it is invisible to any
+    test that reads only one of them. So: one byte inside the reserve must not say it fits and
+    must name the bound that will refuse; one byte outside it must still say it fits, or the
+    reserve has quietly swallowed the warning band it was supposed to sit inside."""
+    reserve = map_store.MAP_PER_ATOM_RESERVE
+    inside = map_store.size_warning(_text_of_bytes(map_store.MAP_SIZE_CEILING - reserve))
+    assert inside and "does not fit" in inside.lower(), \
+        f"at the reserve edge the surface still promises the write succeeds: {inside}"
+    assert "per-atom" in inside.lower() and "test_map_within_per_atom_budget" in inside, \
+        f"it does not name the bound that refuses, so the reader cannot find it: {inside}"
+    outside = map_store.size_warning(_text_of_bytes(map_store.MAP_SIZE_CEILING - reserve - 1))
+    assert outside and "fits" in outside and "does not fit" not in outside.lower(), \
+        f"one byte outside the reserve already reads as a refusal: {outside}"
+
+
 def test_the_warning_NAMES_THE_NUMBER_and_points_DOWNWARD_never_at_the_ceiling():
     """The finding's own diagnosis: the pressure at a wedge points at raising the line, which is
     the one move the control exists to refuse. A warning read under that pressure must not offer
     it, and must carry the size so the reader can budget an edit instead of discovering the limit
-    by hitting it."""
-    left = 250
-    msg = map_store.size_warning(_text_of_bytes(map_store.MAP_SIZE_CEILING - left))
-    assert msg and str(left) in msg, f"the warning does not state the headroom: {msg}"
-    assert "raise" in msg and "never raise the ceiling" in msg.lower()
-    assert "drain" in msg.lower() and "rehome" in msg.lower(), "no remedy named"
+    by hitting it.
+
+    ASKED OF EVERY BAND, not of one headroom (2026-09-17). This probed 250 bytes of headroom and
+    matched the literal phrase "never raise the ceiling" -- a control keyed to today's wording,
+    which went red when a third band was added between the warning and the breach and said "never
+    raise either line" because there are now two lines. The property is what matters: whatever
+    `size_warning` says, in whichever band, it states the headroom, names a downward remedy, and
+    never offers the upward one. Keyed that way it covers a band nobody has written yet, which is
+    exactly what the old shape could not do."""
+    bands = (250,                                        # inside the per-atom reserve
+             map_store.MAP_PER_ATOM_RESERVE + 250,       # the ordinary warning band
+             map_store.MAP_SIZE_WARN_HEADROOM - 1)       # the far edge of it
+    for left in bands:
+        msg = map_store.size_warning(_text_of_bytes(map_store.MAP_SIZE_CEILING - left))
+        assert msg and str(left) in msg, \
+            f"at {left} bytes of headroom the warning does not state it: {msg}"
+        assert "never raise" in msg.lower(), \
+            f"at {left} bytes of headroom the warning does not refuse the upward move: {msg}"
+        assert "drain" in msg.lower() and "rehome" in msg.lower(), \
+            f"at {left} bytes of headroom no remedy is named: {msg}"
 
 
 def test_the_warning_reports_a_BREACH_as_a_breach_and_says_it_reds_every_lane():
