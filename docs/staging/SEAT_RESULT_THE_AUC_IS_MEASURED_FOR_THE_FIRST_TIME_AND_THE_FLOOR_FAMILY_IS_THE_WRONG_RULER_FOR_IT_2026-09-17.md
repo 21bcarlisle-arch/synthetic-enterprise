@@ -65,9 +65,30 @@ bar on the AUC, because the redraw does not reach it independently.**
 | 3456789 | 0.5793650793650794 | 63 / 42 | £6,319.59 |
 
 Two of the three seeds returned the AUC **identical to sixteen decimal places**, with identical
-populations and identical total advantage — the elasticity redraw flipped no departure at all in
-those two, so the rank statistic could not move. Only one of three draws is an independent draw of
-this quantity.
+populations and identical total advantage. Only one of three draws is an independent draw of this
+quantity.
+
+> **Correction, same turn, landed beside the claim rather than revised into it.** The sentence
+> first published here said "the elasticity redraw flipped no departure at all in those two, so
+> the rank statistic could not move". That is true of the **value arm** and false of the **run**,
+> and I had not established it when I wrote it. What the artefact's own per-seed fields say is that
+> the redraw *did* reach every seed: `elasticity_draws` is **272 / 270 / 268** across the three,
+> over 65 accounts re-drawn each time, so no two seeds drew the same elasticity assignment. The
+> correct statement is narrower and **stronger** than the one it replaces: *the redraw reached all
+> three runs and still could not move the value arm's realised book in two of them* — and the
+> value arm's realised book is the population the AUC is computed over (`belief_vs_outcome`).
+> Invariance despite a live redraw is worse for the instrument than a redraw that never fired.
+
+**And the variance the floor does show is mostly the LEVEL arm's, not the value arm's.** Over these
+three seeds `value_advantage_gbp` takes **two** distinct values (sd £2,250.65) while
+`level_advantage_gbp` takes **three** (sd £2,849.98) and `selection_gbp` three (sd £3,116.37). The
+level arm prices ONE flat uplift to every renewal the value arm priced, so it exposes the whole
+book to the elasticity threshold, where the value arm's per-customer margins apparently sit away
+from it for most households. So the selection leg's spread — the £1,964.67 sd that sets the bar
+P4 measures against — is being driven substantially by the sensitivity of the *comparison* arm.
+That is a property of the instrument worth knowing before anyone reads the selection leg's width
+as the value arm's own noise, and it is **not** resolvable from these artefacts: they carry no
+per-arm draw counts. Filed as an observation, not a diagnosis.
 
 The consequence is a number, not a worry. The family's own standard deviation is **0.00834**. The
 statistic's no-information null standard deviation on its own population is
