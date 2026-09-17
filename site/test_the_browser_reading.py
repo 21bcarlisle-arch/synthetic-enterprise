@@ -45,6 +45,7 @@ from __future__ import annotations
 
 import http.server
 import json
+import os
 import shutil
 import socketserver
 import subprocess
@@ -156,6 +157,35 @@ def published_site_server(root: Path | None = None):
                 t.join(timeout=10)
 
 
+def playwright_base() -> Path:
+    """The directory to resolve `playwright` against: the MAIN checkout, not this one.
+
+    `node_modules/` is gitignored, so it exists only in the main checkout. A linked worktree has
+    none -- and that is where every autonomous executor turn and every isolated seat invocation
+    runs, so "the environment the doors are graded in" is the case this has to get right, not an
+    edge case. `git rev-parse --git-common-dir` points at the SHARED `.git` (a worktree's own
+    `--git-dir` is `.git/worktrees/<name>`), so its parent is the main checkout in both cases.
+
+    FALLS BACK TO `PROJECT`, DELIBERATELY. A clean `git archive` extract has no `.git` at all, and
+    a base that raised there would turn "no browser here" into a collection error in every tree
+    that is not a repository. The fallback is the same answer the old code assumed unconditionally,
+    so it can only be as wrong as the code this replaces.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(PROJECT), "rev-parse", "--git-common-dir"],
+            capture_output=True, text=True, timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return PROJECT
+    if out.returncode != 0 or not out.stdout.strip():
+        return PROJECT
+    common = Path(out.stdout.strip())
+    if not common.is_absolute():
+        common = (PROJECT / common).resolve()
+    return common.parent
+
+
 def browser_available() -> str | None:
     """None if a browser reading can be taken, else the REASON it cannot, in words for a message.
 
@@ -164,32 +194,51 @@ def browser_available() -> str | None:
     skips the vm doors the same way). Playwright installed and the BROWSER refusing to launch is a
     broken door on a machine that is supposed to have one -- that is a failure, and it is raised
     by the probe rather than swallowed here.
+
+    THE REASON MUST BE TRUE OF THE MACHINE, and for one day it was not. This returned "playwright
+    is not installed" from every linked worktree while the main checkout had it installed the whole
+    time, because the check resolved against `PROJECT` -- the worktree. A skip is a stated hole and
+    a wrong statement of the hole is worse than the hole: the remedy it implies (`npx playwright
+    install`) was not the remedy, and nothing would ever have corrected it, because a skip is the
+    same colour as a pass in a run summary. Measured 2026-09-17; see
+    `docs/design/WHAT_THE_VM_DOORS_GRADE.md`.
     """
     if shutil.which("node") is None:
         return "node is not available to run the browser probe"
     if not PROBE.is_file():
         return f"the browser probe is missing at {PROBE}"
+    base = playwright_base()
     check = subprocess.run(
         ["node", "-e", "require.resolve('playwright')"],
-        cwd=str(PROJECT), capture_output=True, text=True, timeout=120,
+        cwd=str(base), capture_output=True, text=True, timeout=120,
     )
     if check.returncode != 0:
-        return "playwright is not installed, so no browser reading can be taken"
+        return (
+            f"playwright is not installed under {base} (node_modules/ is gitignored, so it lives "
+            "only in the main checkout; `npx playwright install` there), so no browser reading "
+            "can be taken"
+        )
     return None
 
 
 def read_in_browser(url: str, *element_ids: str) -> dict:
     """Load `url` in chromium and report what the reader meets in each element.
 
-    Runs with `cwd=PROJECT` DELIBERATELY. `node_modules/` is gitignored and exists only in the
-    main checkout, and node's ESM resolution walks up from the IMPORTING FILE -- so a probe copied
-    into a temp dir or a linked worktree reports "Cannot find package 'playwright'" and reads as a
-    machine without a browser. That is the artefact shape this repo has already been caught by
-    twice; the probe stays in `site/` and only the PAGE is served from elsewhere.
+    `node_modules/` is gitignored and exists only in the main checkout, and node's ESM resolution
+    walks up from the IMPORTING FILE -- so a probe in a linked worktree reports "Cannot find
+    package 'playwright'" and reads as a machine without a browser. That is the artefact shape this
+    repo has been caught by three times now.
+
+    `cwd` ALONE DOES NOT FIX IT and used to be the whole mitigation here. `cwd` is what CJS
+    resolves against; ESM is not, so the `import` inside the probe failed identically with `cwd`
+    set to the main checkout. Measured both ways 2026-09-17. The probe is therefore handed the base
+    directory explicitly and resolves against it (see `loadPlaywright` in `_browser_probe.mjs`);
+    `cwd` is still set for the benefit of anything CJS underneath it.
     """
+    env = {**os.environ, "POESYS_PLAYWRIGHT_BASE": str(playwright_base())}
     proc = subprocess.run(
         ["node", str(PROBE), url, *element_ids],
-        cwd=str(PROJECT), capture_output=True, text=True, timeout=300,
+        cwd=str(playwright_base()), capture_output=True, text=True, timeout=300, env=env,
     )
     if not proc.stdout.strip():
         pytest.fail(f"the browser probe returned nothing (rc={proc.returncode}): {proc.stderr[:400]}")
@@ -322,6 +371,48 @@ def test_an_element_the_page_does_not_have_is_caught():
         payload = read_in_browser(url, "not-on-this-page")
         with pytest.raises(AssertionError, match="does not exist on the published page"):
             assert_visible_reading(payload, "not-on-this-page")
+
+
+def test_a_machine_that_has_playwright_is_never_told_it_does_not():
+    """THE ANTI-SKIP LEG, and the only one here that does NOT skip when there is no browser.
+
+    Every other leg in this file guards itself with `browser_available()`, which is correct and is
+    also the hole: if that function starts saying "not installed" on a machine that has it, all of
+    them go quiet together and the run summary is the same colour as a pass. That is exactly what
+    happened between `7f40070a6` and this commit -- 7 of 8 legs skipped in every linked worktree,
+    which is where every executor turn runs, while the main checkout had playwright throughout.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER (CLAUDE.md). It does not assert "this machine has
+    a browser" -- that would red on a machine that legitimately has none, and this repo tolerates
+    those. It asserts the REFUSAL IS TRUE: if playwright resolves anywhere this repo would look,
+    then `browser_available()` must not claim it is absent. On a machine with no playwright at all
+    both sides are "absent" and the leg passes, having asserted a real agreement.
+
+    MUTATION-PROVED 2026-09-17: reverting `browser_available` to `cwd=PROJECT` reds this from a
+    linked worktree and leaves it green in the main checkout -- which is the asymmetry that let
+    the defect live.
+    """
+    if shutil.which("node") is None:
+        pytest.skip("node is not available, so neither side of this comparison can be taken")
+    base = playwright_base()
+    resolvable = subprocess.run(
+        ["node", "-e", "require.resolve('playwright')"],
+        cwd=str(base), capture_output=True, text=True, timeout=120,
+    ).returncode == 0
+    why = browser_available()
+    if resolvable:
+        assert why is None, (
+            f"playwright resolves from {base}, but the doors are being told {why!r}. Every browser "
+            "leg in this tree is skipping on a machine that can render, and a skip is the same "
+            "colour as a pass in a run summary"
+        )
+    elif why is not None:
+        # The refusal is honest here; assert it POINTS somewhere, because "not installed" with no
+        # location was the wording that hid the defect for a day.
+        assert str(base) in why, (
+            f"the refusal {why!r} does not name where it looked, so a reader cannot tell a machine "
+            "without playwright from a checkout that was asked the wrong question"
+        )
 
 
 def test_the_server_serves_the_index_copy_and_not_the_working_tree():

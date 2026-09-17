@@ -8,13 +8,39 @@ Pre-registration:
 This exists so the next session that wants a screenshot stops re-deriving it. Three Lane 0 items
 have now been spent on questions this page answers.
 
-## The committed doors do not use a browser at all
+## Almost every committed door still uses no browser — but no longer all of them
 
-`site/live_pixel_verify.py` and `site/harness/_render_harness.mjs` execute the page's own JavaScript
-in node's `vm`. **Every committed "done means the rendered value changed" door runs that way.** The
-only files in the tree naming `playwright` are `background/health_check.py`, its test, and the egress
-allowlist. So a browser is a session tool here, not a harness dependency — which is why
-`REQUIRED_PIXEL_BROWSERS` is deliberately smaller than what Playwright would install.
+*Corrected 2026-09-17. This section used to say "the committed doors do not use a browser at all"
+and that the only files naming `playwright` were `background/health_check.py`, its test, and the
+egress allowlist. Both sentences were true when written and were made false hours later by
+`7f40070a6`, which landed the first browser leg. Kept beside the correction rather than rewritten
+away: a page that silently updates its own facts cannot be checked.*
+
+`site/live_pixel_verify.py`, `site/harness/_render_harness.mjs` and the seven harnesses like them
+execute the page's own JavaScript in node's `vm`. **Roughly two dozen door suites run that way and
+grade "the page computed it", not "a person can read it"** — the distinction, and the three
+breakages that measured it, are in `docs/design/WHAT_THE_VM_DOORS_GRADE.md`.
+
+Since `7f40070a6` there is **one** reader-side leg: `site/_browser_probe.mjs` launches chromium via
+`site/test_the_browser_reading.py`, and `site/harness/test_the_deployment_reading_is_visible_to_a_browser.py`
+is the only door built on it. A browser is therefore now a harness dependency for exactly one
+suite, and a session tool for everything else.
+
+**`REQUIRED_PIXEL_BROWSERS` is still deliberately smaller than a full Playwright install**, and the
+reasoning at the foot of this page is unchanged: the probe calls `chromium.launch()` with no
+`channel` and `headless` defaulting true, so it consumes `chromium-headless-shell` and nothing
+selects the full `chromium-1234` binary. The health-check control that grades this in both
+directions is what will tell you the day that stops being true.
+
+### `node_modules/` is gitignored, and that is load-bearing for anyone in a worktree
+
+Playwright lives **only in the main checkout**. Node's ESM resolution walks up from the *importing
+file*, so a linked worktree resolves nothing, and setting `cwd` does not change that (it fixes CJS
+only — measured both ways). Between `7f40070a6` and the commit that added this section, 7 of the 8
+browser legs skipped in **every** linked worktree — which is where every autonomous executor turn
+runs — while reporting *"playwright is not installed"* on a machine that had it throughout. The
+probe is now handed `POESYS_PLAYWRIGHT_BASE`, derived from `git rev-parse --git-common-dir`. If you
+are writing a new browser leg, resolve through `site/test_the_browser_reading.py` and it is handled.
 
 ## What launches, measured (not assumed)
 
