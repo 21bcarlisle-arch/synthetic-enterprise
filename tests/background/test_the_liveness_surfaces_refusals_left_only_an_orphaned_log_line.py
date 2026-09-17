@@ -76,8 +76,29 @@ def _publish_record(state_file):
 
 
 def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, commit_tail="",
-           push_rc=0, remote_head="same", local_head="same", label="Liveness heartbeat"):
-    """Run `_commit_and_push_paths` to one chosen exit. Returns its boolean."""
+           push_rc=0, remote_head="same", local_head="same", is_ancestor=False,
+           label="Liveness heartbeat"):
+    """Run `_commit_and_push_paths` to one chosen exit. Returns its boolean.
+
+    THE CATCH-ALL WAS MORE PERMISSIVE THAN ITS SUBJECT, and that is why this fixture is shaped the
+    way it is now (found 2026-09-17, red at origin/main in a clean extract).
+
+    `_push_reached_origin` was re-keyed to the PROPERTY on 2026-09-16 -- "did the publish commit
+    reach origin" rather than "are the heads equal" -- which is the correct change and its
+    docstring argues it well. But the new second leg, `_commit_is_ancestor`, issues a subprocess
+    call this fixture had never seen: `git merge-base --is-ancestor`. The old catch-all answered
+    EVERY unrecognised command with `returncode=0`, and `_commit_is_ancestor` reads rc=0 as "yes,
+    an ancestor" -- so `push_never_landed` (local `new11111`, origin standing still at `old99999`)
+    came back TRUE, the anti-phantom guard the 3.5h origin-freeze bought was answered by the
+    fixture rather than by the code, and this leg graded the success path while asserting a
+    refusal. A fake that is more permissive than the thing it stands in for turns a fail-open into
+    a green suite, and it had wedged every commit in the repository.
+
+    So: ancestry is modelled explicitly and DEFAULTS TO FALSE -- the fail-closed direction, and the
+    same direction `_commit_is_ancestor` itself takes for a question git cannot answer -- and the
+    catch-all now REFUSES an unrecognised `git` call instead of blessing it, so the next predicate
+    that reaches for a new subprocess is caught by this fixture rather than absorbed by it.
+    """
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: provenance)
@@ -95,6 +116,22 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
         if argv[:2] == ["git", "ls-remote"]:
             return types.SimpleNamespace(returncode=0, stdout=remote_head + "\trefs/heads/main\n",
                                          stderr="")
+        if argv[:3] == ["git", "merge-base", "--is-ancestor"]:
+            # The REAL argv order, asserted rather than assumed: `_commit_is_ancestor(commit, tip)`
+            # asks whether OUR commit is reachable from ORIGIN's tip, so a fixture that had these
+            # reversed would answer a different question and still look plausible.
+            assert argv[3:] == [local_head, remote_head], (
+                "ancestry must be asked of (our commit, origin's tip); got {}".format(argv[3:]))
+            return types.SimpleNamespace(returncode=0 if is_ancestor else 1, stdout="", stderr="")
+        if argv[:2] == ["git", "add"]:
+            # Staging succeeds. Named rather than swept up by the catch-all, because "the add
+            # worked" is a real modelled answer and the catch-all no longer has one.
+            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+        if argv[:1] == ["git"]:
+            raise AssertionError(
+                "this fixture has no answer for `{}`, and returning rc=0 for an unknown git "
+                "command is what let `merge-base --is-ancestor` be answered by the fake instead "
+                "of the code. Model it explicitly.".format(" ".join(argv[:3])))
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
@@ -136,6 +173,36 @@ def test_every_refusing_exit_records_and_they_do_not_all_say_the_same_thing(stat
     assert set(causes.values()) <= pc.CAUSES, \
         "the shared cause vocabulary is what makes this record readable beside the content " \
         "path's; a private name here would need its own reader, got {}".format(causes)
+
+
+def test_a_behind_origin_publish_that_DID_reach_origin_is_a_success_not_a_refusal(
+        state_file, tmp_path, monkeypatch):
+    """THE PROPERTY THE 2026-09-16 WIDENING BOUGHT, and nothing in this file was asking for it.
+
+    `_push_reached_origin` stopped testing `remote_head == local_head` because a commit created
+    while behind origin can never make origin's head EQUAL ours -- origin is ahead by construction
+    -- so `05add41ab`, a full figure publish that WAS on origin, was recorded as
+    `push_did_not_reach_origin` with `last_clean_publish: null` six days into a wedge already over.
+
+    That repair had no control here. Every leg in this file asks whether a refusal refuses, and a
+    predicate that returned False for EVERYTHING would pass all of them -- which is this project's
+    most expensive recurring shape, and the reason the whole-partition test above exists. This is
+    the other side: our commit is NOT origin's head, and IS reachable from it, and that is a
+    publish.
+
+    Paired with `push_never_landed` above on purpose. The two differ in exactly one input --
+    whether our commit is an ancestor of origin's tip -- so together they prove the ancestry leg
+    is load-bearing in both directions rather than a constant.
+    """
+    assert _drive(monkeypatch, tmp_path, ahead=0, remote_head="origin99", local_head="ours11",
+                  is_ancestor=True) is True, \
+        "a publish created while behind origin, which origin's tip can reach, HAS published"
+    assert _record(state_file) is None, \
+        "a successful publish is not a refusal, and recording one here is what made " \
+        "liveness_surface_refusal a latch"
+    assert _publish_record(state_file) is not None, \
+        "the publish must be recorded, or `last_clean_publish` stays null through a publish that " \
+        "actually happened -- the exact six-day wedge this widening ended"
 
 
 def test_a_clean_no_op_banner_records_NOTHING(state_file, tmp_path, monkeypatch):
