@@ -138,11 +138,22 @@ FIGURE_SOURCES = {
 #: Matched on the NUMBER AND ITS NOUN, so rewording the sentence around a figure keeps passing and
 #: deleting the figure refuses. Each pattern is anchored on the words the header uses to say what
 #: the quantity IS -- never on its current value.
+#:
+#: THE TRAILING `+` IS PART OF THE FIGURE, not a reason to stop seeing one (Expert Hour, 2026-09-17,
+#: found by replaying the incident that produced this module through it). The header that cost a
+#: session its bearings said "2,500+ commits ... 360+ Python modules", and a pattern ending the
+#: number at `[\d,]+` read those as NO FIGURE STATED -- so the replay refused, but by the
+#: unstated-figure leg, and the OVERSTATES/UNDERSTATES machinery that is the whole substance here
+#: was never reached by the only real instance of the defect. The hedge is exactly how a person
+#: types a number they know is going stale; it is where this class LIVES. `~` and `over` already
+#: matched because they sit to the LEFT of the digits. Grading the bare number is right: "9,000+
+#: commits" against a true 9,385 is an honest claim, and "2,500+" against 9,385 is not one the `+`
+#: can rescue.
 _FIGURE_RES = {
-    "commits": re.compile(r"([\d,]+)\s+commits\b", re.I),
-    "tests": re.compile(r"([\d,]+)\s+tests\s+collected\b", re.I),
-    "lines": re.compile(r"([\d,]+)\s+lines\b", re.I),
-    "modules": re.compile(r"([\d,]+)\s+tracked\s+Python\s+modules\b", re.I),
+    "commits": re.compile(r"([\d,]+)\+?\s+commits\b", re.I),
+    "tests": re.compile(r"([\d,]+)\+?\s+tests\s+collected\b", re.I),
+    "lines": re.compile(r"([\d,]+)\+?\s+lines\b", re.I),
+    "modules": re.compile(r"([\d,]+)\+?\s+tracked\s+Python\s+modules\b", re.I),
 }
 
 
@@ -436,13 +447,12 @@ def _figures_in_working_tree() -> dict[str, int]:
     }
 
 
-def figure_band(declared: dt.date) -> dict[str, tuple[int, int]]:
-    """For each stated figure, the range its named source took across the declared date's window.
+def _band_and_ends(declared: dt.date) -> tuple[dict[str, tuple], dict[str, tuple[bool, bool]]]:
+    """The band, AND whether each figure's source was readable at each end of the window.
 
-    The window is `DECLARED_DATE_TOLERANCE_DAYS` either side of the declared date -- the same slack
-    the date sentence itself is already granted above, rather than a second tolerance minted here.
-    Tying the two means the header may be written one day and land the next without this going red,
-    and it cannot be widened without widening the date check that every publish already runs.
+    Both come off ONE pass of the two expensive revision reads. The ends are what tells the two
+    causes of a `(None, None)` band apart, and until this existed they were indistinguishable --
+    see `figure_verdicts` for why that mattered.
     """
     low_rev = _git("rev-list", "-1",
                    f"--before={declared - dt.timedelta(days=DECLARED_DATE_TOLERANCE_DAYS)} 00:00:00",
@@ -460,8 +470,21 @@ def figure_band(declared: dt.date) -> dict[str, tuple[int, int]]:
         live = _figures_in_working_tree()
         high = {k: v if (v is None or live[k] is None) else max(v, live[k])
                 for k, v in high.items()}
-    return {k: (None, None) if (low[k] is None or high[k] is None)
+    band = {k: (None, None) if (low[k] is None or high[k] is None)
             else (min(low[k], high[k]), max(low[k], high[k])) for k in low}
+    ends = {k: (low[k] is not None, high[k] is not None) for k in low}
+    return band, ends
+
+
+def figure_band(declared: dt.date) -> dict[str, tuple[int, int]]:
+    """For each stated figure, the range its named source took across the declared date's window.
+
+    The window is `DECLARED_DATE_TOLERANCE_DAYS` either side of the declared date -- the same slack
+    the date sentence itself is already granted above, rather than a second tolerance minted here.
+    Tying the two means the header may be written one day and land the next without this going red,
+    and it cannot be widened without widening the date check that every publish already runs.
+    """
+    return _band_and_ends(declared)[0]
 
 
 def figure_verdicts(overview_text: str | None = None) -> list[dict]:
@@ -474,13 +497,28 @@ def figure_verdicts(overview_text: str | None = None) -> list[dict]:
         raise AnchorRefusal(
             "the startup header states figures but no date, so there is no window to compute them "
             "over. A quantity with no as-of is unfalsifiable.")
-    band = figure_band(declared)
+    band, ends = _band_and_ends(declared)
     rows = []
     for key in sorted(stated):
         low, high = band[key]
         value = stated[key]
         if low is None:
-            verdict = "UNGRADED"
+            # TWO CAUSES, ONE BAND, AND ONLY ONE OF THEM IS HONEST (Expert Hour, 2026-09-17). A
+            # source that did not exist yet cannot grade the figure and saying so is the result.
+            # A source that WAS readable at the start of the window and is not readable at the end
+            # did not go missing by the passage of time -- something stopped it being readable, and
+            # `UNGRADED` there is the escape hatch the reviewer named: reword one line in the
+            # document the source lives in and this leg switches itself off with a green gate and a
+            # published table that says the figure merely could not be checked.
+            #
+            # That route is REAL and not hypothetical here: the test figure's source is matched on a
+            # literal `**Build:**`, the pre-2026-08-28 spelling `Build:` returns None, and a prior
+            # audit has already deleted that line once. The module's own note closes the BACK-DATING
+            # route to `UNGRADED` and points at the LIES check to do it -- but the LIES check grades
+            # the date of the header's own document and can see nothing about a source living in
+            # another one. Keyed to the property (the source was there and then was not), never to
+            # the date the source happened to appear.
+            verdict = "SOURCE_GONE" if ends[key] == (True, False) else "UNGRADED"
         elif value < low:
             verdict = "UNDERSTATES"
         elif value > high:
@@ -497,8 +535,12 @@ def figure_refusals(rows: list[dict]) -> list[dict]:
 
     `UNGRADED` is deliberately not a refusal and is deliberately not silence either: it is printed
     on the published surface, because "we cannot tell" is a result a reader is owed.
+
+    `SOURCE_GONE` IS a refusal, and it is the same figure in the same `(None, None)` band: the
+    difference is that nobody chose for the source not to exist in 2026-08, and somebody did choose
+    to stop it being readable today. An unearned "we cannot tell" is how this check gets turned off.
     """
-    return [r for r in rows if r["verdict"] in ("OVERSTATES", "UNDERSTATES")]
+    return [r for r in rows if r["verdict"] in ("OVERSTATES", "UNDERSTATES", "SOURCE_GONE")]
 
 
 def assess(today: dt.date | None = None) -> list[dict]:
@@ -594,13 +636,20 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
         "|---|---|---|---|",
     ]
     for r in rows:
-        band = ("no source existed over this window"
-                if r["band_low"] is None else f"{r['band_low']:,} – {r['band_high']:,}")
+        if r["band_low"] is not None:
+            band = f"{r['band_low']:,} – {r['band_high']:,}"
+        elif r["verdict"] == "SOURCE_GONE":
+            band = "**its source was readable at the start of this window and is not now**"
+        else:
+            band = "no source existed over this window"
         out.append("| {} | {:,} | {} ({}) | {} |".format(
             r["figure"], r["stated"], band, r["source"], r["verdict"]))
     out += ["", "`AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source "
             "never carried in that window · `UNGRADED` the source did not exist that far back, so "
-            "this figure is unchecked and the reader is told so rather than reassured.", ""]
+            "this figure is unchecked and the reader is told so rather than reassured · "
+            "`SOURCE_GONE` the source existed and stopped being readable inside this window, which "
+            "is a refusal rather than an unchecked figure -- nobody chooses for a source not to "
+            "have existed yet, and somebody chose this.", ""]
     return out
 
 
@@ -665,6 +714,14 @@ def main(argv: list[str] | None = None) -> int:
 
     bad_figures = figure_refusals(figure_rows)
     for r in bad_figures:
+        if r["verdict"] == "SOURCE_GONE":
+            print(f"[startup-anchors] REFUSED: the startup header's {r['figure']} figure says "
+                  f"{r['stated']:,} and can no longer be graded: {r['source']} was readable at the "
+                  "start of the window its own date declares and is not readable at the end. That "
+                  "is a source that was taken away, not one that never existed, and leaving it as "
+                  "an unchecked figure is how this check gets switched off. Restore the source, or "
+                  "point this figure at the one that replaced it.", file=sys.stderr)
+            continue
         print(f"[startup-anchors] REFUSED: the startup header {r['verdict'].lower()} "
               f"{r['figure']} -- it says {r['stated']:,}, and {r['source']} was never outside "
               f"{r['band_low']:,}–{r['band_high']:,} in the window its own date declares. A "

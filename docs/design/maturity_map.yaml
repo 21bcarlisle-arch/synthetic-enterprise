@@ -1597,11 +1597,12 @@
   lane: H_harness
   value_stream: price_to_bill
   epoch: 3
-  level_current: 2   # L0->L2 2026-09-17, recorded in gate_authorizations.jsonl. STOPS AT 2 ON
-  #   PURPOSE: L3 is HARDEN + an Expert Hour, `expert_hour` below is not_attempted, and a passing
-  #   control cannot certify the one rung the ladder reserves for a practitioner.
+  level_current: 2   # L0->L2 2026-09-17, recorded in gate_authorizations.jsonl. HELD AT 2 by its
+  #   OWN Expert Hour (2026-09-17, below): the Hour returned FAIL. Two of its disqualifying
+  #   questions were answered NO against the live tree and are repaired; EH-3 is open.
   level_target: 3
-  loop_stage: harden   # so the remaining L2->L3 work -- the Expert Hour itself -- is drawable.
+  loop_stage: harden   # L2->L3 now waits on EH-3 and a SECOND blind pass after it -- a verdict
+  #   cannot certify the repairs it prescribed.
   dial_inherited: 12    # presentation, not product. Ranked with H31, below the R-set: the header
   #   is now correct and gated for STALENESS, so what is left is preventing the next drift rather
   #   than repairing a live wrong page.
@@ -1615,7 +1616,8 @@
   #   as ungradable -- the subject was on disk the whole time. It names the file the control was
   #   MOVED INTO (aff4b153f) and not the freshness suite it was first appended to: the grader dates
   #   a control by its FILE's birth, so a row can only be graded by a file younger than itself.
-  expert_hour: {status: not_attempted, last: null, findings: []}
+  records_rehomed: [expert_hour_findings]
+  expert_hour: {status: attempted_finding_open, last: '2026-09-17 blind pass, persona a veteran of corporate reporting and disclosure controls, via tools/blind_review.py -- packet and 16-question battery recorded verbatim in docs/observability/blind_review_ledger.jsonl, blindfold re-derived PASS by --audit, independence false per 3c. VERDICT FAIL, level held. EH-1 (UNGRADED was an unearned escape hatch) and EH-2 (a hedged figure read as no figure, so the real incident never reached the grading legs) repaired with mutation-proven controls; EH-3 open -- one of the four figures is graded against another hand-typed number and is clearable by typing.'}
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
   title: "phase 1: the smallest set of weather cells that captures household-weighted heat-load variation across GB"
