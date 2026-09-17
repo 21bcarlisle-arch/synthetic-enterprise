@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-17T00:26:13.564330+00:00",
+  "last_updated": "2026-09-17T01:55:59.189672+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-17T00:26:13.564330+00:00",
+      "last_heartbeat": "2026-09-17T01:55:59.189672+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-16T16:06:44.590574+00:00",
       "anomaly": null,
@@ -34,11 +34,11 @@
     },
     {
       "name": "sim-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-09-17T00:12:48.312127+00:00",
-      "last_action": "Run complete in 767s \u2014 29030 KB (run_output_761daca4c_20260917T000001Z.json)",
-      "last_action_ts": "2026-09-17T00:12:48.312127+00:00",
-      "anomaly": null,
+      "status": "error",
+      "last_heartbeat": "2026-09-17T01:52:23.972841+00:00",
+      "last_action": "Run FAILED (rc=1) after 527s",
+      "last_action_ts": "2026-09-17T01:52:23.972841+00:00",
+      "anomaly": "Exit code 1: AssertionError: PROS-2017-0064 settles on the fabric provider but its settled volume is indistinguishable from the legacy provider's: the switch is labelled and textured but INERT",
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
     },
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-16T23:57:09.740903+00:00",
+      "last_heartbeat": "2026-09-17T01:27:12.536601+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-16T23:57:09.740903+00:00",
+      "last_action_ts": "2026-09-17T01:27:12.536601+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-17T00:25:20.118067+00:00",
+      "last_heartbeat": "2026-09-17T01:54:14.934286+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-16T21:56:48.109283+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-17T00:06:50.720759+00:00",
+      "last_heartbeat": "2026-09-17T01:36:51.770707+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-17T00:06:50.720759+00:00",
+      "last_action_ts": "2026-09-17T01:36:51.770707+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
