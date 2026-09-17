@@ -20,6 +20,15 @@
 // POESYS_BROWSER_CACHE_BUST: see the route handler below for why the page URL alone is not enough.
 //
 // Usage: node _browser_probe.mjs <url> <elementId> [<elementId> ...]   -> JSON on stdout.
+//    or: node _browser_probe.mjs --jobs    with [{url, ids}, ...] on stdin, ONE launch for all.
+//
+// WHY THE SECOND FORM EXISTS. A chromium launch is ~1.5s and dwarfs the page load that follows it,
+// so a control whose subject is EVERY published door pays that cost twenty-two times to ask
+// twenty-two questions. `site/test_every_door_element_a_reader_meets.py` is that control and it
+// runs in the commit path, where a minute matters; the per-page form above is a door-close tool
+// and does not. Same browser, same reading, same `elements` payload per page -- the only thing
+// shared between jobs is the process.
+import fs from "node:fs";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
@@ -65,16 +74,35 @@ async function loadPlaywright() {
 
 const { chromium } = await loadPlaywright();
 
-const url = process.argv[2];
-const ids = process.argv.slice(3);
-if (!url || ids.length === 0) {
-  console.error("usage: node _browser_probe.mjs <url> <elementId> [...]");
-  process.exit(2);
+// THE TWO CALLING FORMS RESOLVE TO ONE LIST OF JOBS, so there is exactly one reading routine below
+// and no chance of the batch form and the single form drifting into answering differently.
+let jobs;
+const batch = process.argv[2] === "--jobs";
+if (batch) {
+  jobs = JSON.parse(fs.readFileSync(0, "utf8"));
+  if (!Array.isArray(jobs) || jobs.length === 0) {
+    console.error("usage: node _browser_probe.mjs --jobs   with [{url, ids}, ...] on stdin");
+    process.exit(2);
+  }
+  for (const j of jobs) {
+    if (!j || typeof j.url !== "string" || !Array.isArray(j.ids) || j.ids.length === 0) {
+      console.error(`every job needs a url and a non-empty ids list; got ${JSON.stringify(j)}`);
+      process.exit(2);
+    }
+  }
+} else {
+  const url = process.argv[2];
+  const ids = process.argv.slice(3);
+  if (!url || ids.length === 0) {
+    console.error("usage: node _browser_probe.mjs <url> <elementId> [...]");
+    process.exit(2);
+  }
+  jobs = [{ url, ids }];
 }
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-const pageErrors = [];
+let pageErrors = [];
 page.on("pageerror", (e) => pageErrors.push(String(e.message)));
 
 // EVERY SUBRESOURCE IS CACHE-BUSTED, NOT JUST THE PAGE, and that is a property of what THIS probe
@@ -106,7 +134,11 @@ if (cacheBust) {
   });
 }
 
-try {
+const readings = [];
+for (const job of jobs) {
+  const { url, ids } = job;
+  pageErrors = [];
+  try {
   // The RESPONSE is kept: a live origin answering 404 or 503 still produces a DOM, and every
   // element would then read `exists: false` -- which describes a broken page rather than a missing
   // one. The caller gets the status and can say which it met.
@@ -171,10 +203,20 @@ try {
     return out;
   }, ids);
 
-  console.log(JSON.stringify({ ok: true, url, status, elements, pageErrors }));
-} catch (err) {
-  console.log(JSON.stringify({ ok: false, url, error: String(err && err.message), pageErrors }));
-  process.exitCode = 1;
-} finally {
-  await browser.close();
+  readings.push({ ok: true, url, status, elements, pageErrors });
+  } catch (err) {
+    // ONE UNREADABLE PAGE MUST NOT COST THE OTHERS THEIR READING, and it must not be reported as a
+    // reading either. The job gets `ok: false` with its own error and the loop carries on, so the
+    // caller sees which page could not be read AND every verdict it was going to make about the
+    // rest. `process.exitCode` is still set, so a caller that only checks the exit code fails
+    // closed rather than reading a partial list as a complete one.
+    readings.push({ ok: false, url, error: String(err && err.message), pageErrors });
+    process.exitCode = 1;
+  }
 }
+await browser.close();
+
+// The single-url form keeps the payload it has always had -- `live_pixel_verify` and the door legs
+// read `payload["elements"]` directly, and a wrapper object would break them silently.
+console.log(JSON.stringify(
+  batch ? { ok: readings.every((r) => r.ok), pages: readings } : readings[0]));
