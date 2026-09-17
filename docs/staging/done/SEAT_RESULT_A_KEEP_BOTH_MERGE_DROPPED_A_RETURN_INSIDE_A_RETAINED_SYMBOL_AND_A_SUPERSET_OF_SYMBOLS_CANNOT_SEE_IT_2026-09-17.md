@@ -140,3 +140,40 @@ is below 5400. The leg had quietly become a second *below*-cadence case and test
 written to test. Both legs are now expressed in terms of the constant, and the below-cadence leg's
 precondition is asserted rather than assumed. **Same class as §2** — a control keyed to today's
 answer rather than to its property.
+
+---
+
+## 8. THE PRE-REGISTRATION'S ANSWER, beside the prediction
+
+Measured against a clean `git archive HEAD` extract, one variable changed (this module only).
+
+- **P1 — CONFIRMED.** `.launch_records.json` recovers **13 readers** and the `eroded_dispositions`
+  leg clears. The recovered names are the ones `launch_liveness.py`'s own docstring argues about —
+  `pending_notices`, `clear_notices`, `landed_check`, `unregistered_live_units`, `load`,
+  `load_register`, `check`, `record` — plus the four `deadmans_switch` callers. Not a name match:
+  each is a real call chain into `load_list_prior`.
+- **P2 — REFUTED, and I said I would say so.** I predicted other paths would gain attribution and
+  that some would become new hits owing new rows, turning `test_every_live_hit_is_dispositioned`
+  red with new names. **Nothing of the sort happened.** Exactly **1 path of 234** changed, **13
+  attributions gained, 0 lost, 0 new hits.** The resolver-return shape is one carrier on this
+  tree, not a class. P3 anticipated this outcome and it is the one that occurred.
+- **The failure I was watching for did not occur either** — and the way I nearly recorded that it
+  *had* is worth more than the result. A first comparison said **234 paths changed and 2,879
+  attributions gained**, including `daily_self_note._run_git` "reading" `.atom_stall_tracker.json`.
+  I had already written that into a code comment as the justification for a guard.
+
+  **It was an artefact of the measurement, not a property of the change.** The "before" side was
+  this module loaded by file path from `~/.cache`, and it resolves its repo root from `__file__` —
+  so it scanned a different tree and found almost nothing. Every path read as "changed". Re-run
+  against a proper HEAD extract, **the guarded and unguarded versions are identical**: same 1 path,
+  same 13 readers. `_run_git` reads that tracker **at HEAD too**, through `_propagate`.
+
+  The guard stays, but its comment now says what is true: **an equivalence on today's tree**,
+  bounding a real-but-unrealised hazard (`resolve()` prefers a same-module definition, so a stdlib
+  `run(...)` can resolve to a repo `run()` and hand back a key from a callee never invoked).
+  Recorded as an equivalence rather than left for the next reader to assume it is load-bearing.
+
+**The method lesson, which is the general one:** a before/after built by importing the old module
+from outside the repo is not a one-variable comparison — the module's own root resolution is a
+second variable, and it moves the baseline to nearly zero. That direction is flattering: it makes
+any change look like a large recovery. The extract comparison is the honest instrument.

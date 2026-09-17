@@ -251,6 +251,18 @@ class _FunctionScan:
         self.param_aliases: dict[str, set[str]] = {p: {p} for p in params}
         self.param_reads: set[str] = set()
         self.param_writes: set[str] = set()
+        #: {local name: (callee, positional descriptors, {kwarg: descriptor})} for a local bound
+        #: from a CALL. A CANDIDATE path alias and nothing more: it is resolved only in
+        #: `_attribute_through_returns`, and only once the callee is PROVEN to return a path built
+        #: from its own parameters or a module constant. Recording it here rather than resolving
+        #: it is the same reason `callsites` gives -- resolution needs the whole repo's facts.
+        self.call_aliases: dict[str, tuple[str, list[Any], dict[str, Any]]] = {}
+        #: The keys / ORIGINAL parameters this function RETURNS as a path. `_is_path_shaped`
+        #: screens the return the same way it screens an assignment, so a function returning a
+        #: file's CONTENTS (`return load_list_prior(p)`) records nothing here -- which is the
+        #: whole distinction between a resolver and a reader.
+        self.returns_keys: set[str] = set()
+        self.returns_params: set[str] = set()
         #: (callee_name, positional descriptors, {kwarg: descriptor}). A descriptor is
         #: ("key", name) for a keyed expression, ("param", name) for one of OUR parameters, or
         #: None. Recorded rather than resolved here: resolution needs the whole repo's facts.
@@ -282,6 +294,12 @@ class _FunctionScan:
         params = self._param_names(node)
         if params:
             return ("param", sorted(params)[0])
+        if isinstance(node, ast.Name) and node.id in self.call_aliases:
+            # UNRESOLVED ON PURPOSE. We know this local came out of a call and nothing more;
+            # whether that call returned a PATH or a file's CONTENTS is a fact about the callee,
+            # which this scan cannot see. `_attribute_through_returns` decides, and drops it when
+            # the callee does not prove itself a resolver.
+            return ("via", node.id)
         return None
 
     @staticmethod
@@ -316,6 +334,27 @@ class _FunctionScan:
                     for target in node.targets:
                         if isinstance(target, ast.Name):
                             self.param_aliases[target.id] = set(roots)
+            elif isinstance(node.value, ast.Call):
+                # `resolved = _resolved_path(path)`. The screen above cannot pass this and must
+                # not: whether the call hands back a PATH or the file's CONTENTS is a fact about
+                # the CALLEE. Recorded as a candidate and resolved later against the callee's
+                # proven return shape -- see `_attribute_through_returns`.
+                fn = node.value.func
+                callee = fn.attr if isinstance(fn, ast.Attribute) else getattr(fn, "id", None)
+                if callee:
+                    descriptors = (
+                        callee,
+                        [self._descriptor(a) for a in node.value.args],
+                        {kw.arg: self._descriptor(kw.value)
+                         for kw in node.value.keywords if kw.arg},
+                    )
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            self.call_aliases[target.id] = descriptors
+        if isinstance(node, ast.Return) and node.value is not None \
+                and _is_path_shaped(node.value):
+            self.returns_keys |= self._keys(node.value)
+            self.returns_params |= self._param_names(node.value)
         if isinstance(node, ast.Call):
             self._visit_call(node, in_except)
         for child in ast.iter_child_nodes(node):
@@ -415,6 +454,9 @@ def _scan_module(path: Path, project_dir: Path) -> dict[str, dict[str, Any]]:
             "param_reads": sorted(scan.param_reads),
             "param_writes": sorted(scan.param_writes),
             "callsites": scan.callsites,
+            "call_aliases": scan.call_aliases,
+            "returns_keys": sorted(scan.returns_keys),
+            "returns_params": sorted(scan.returns_params),
             "reads": sorted(scan.reads),
             "writes": sorted(scan.writes),
             # DIRECT writes stay separate from the propagated set below. The distinction is what
@@ -495,12 +537,91 @@ def _attribute_through_parameters(facts: dict[str, dict[str, Any]]) -> int:
             return same
         return candidates if len(candidates) == 1 else []
 
+    def via(f: dict[str, Any], d: Any, seen: frozenset = frozenset()) -> Any:
+        """A `("via", local)` descriptor resolved to `("key", K)` / `("param", P)`, or None.
+
+        THE SECOND DOOR OUT OF THE CLASS, and it was open for the same reason as the first.
+        `_attribute_through_parameters` above walks an ARGUMENT into a PARAMETER, which closed the
+        2026-09-05 loader seam. It cannot see a key laundered through a RETURN, and on 2026-09-16
+        the "there is one book" repair introduced exactly that:
+
+            resolved = _resolved_path(path)          # Path(shared_tree_live_record(path or KEY))
+            return load_list_prior(resolved, item_type=dict)
+
+        `.launch_records.json` went to 10 writers and ZERO readers -- `eroded_dispositions` caught
+        it, and rightly refuses to let `declassified` excuse it. Measured one-variable against two
+        call sites of the SAME helper that pass the constant directly: `ntfy_responder` derives 2
+        readers, `staging_watcher` 3, `launch_liveness` 0. Again the more correct repair is the
+        one that leaves the census -- the property the docstring above calls getting STRONGER WITH
+        ADOPTION.
+
+        WHAT KEEPS THIS FROM TAINTING PARSED DATA, which is the failure this whole file screens
+        for. A call's return is a path ONLY when the callee PROVED it: `returns_keys` /
+        `returns_params` are populated through `_is_path_shaped`, so `return Path(p)` counts and
+        `return load_list_prior(p)` does not. An unproven callee yields None and the descriptor is
+        dropped, exactly as before this existed. The recursion is bounded by `seen` because two
+        locals can be bound from each other's calls.
+        """
+        if not (isinstance(d, tuple) and len(d) == 2 and d[0] == "via"):
+            return d
+        local = d[1]
+        if local in seen:
+            return None
+        alias = (f.get("call_aliases") or {}).get(local)
+        if alias is None:
+            return None
+        callee, positional, keyword = alias
+        named = any(isinstance(d, tuple) and d and d[0] in ("key", "param")
+                    for d in list(positional) + list(keyword.values()))
+        for target in resolve(callee, f["module"]):
+            g = facts[target]
+            if g.get("returns_keys") and (named or len(by_name.get(callee, [])) == 1):
+                # The resolver supplies the key itself (`return path or MODULE_CONSTANT`), so the
+                # caller need not have named it at all -- and THAT is the dangerous direction,
+                # because it invents a path the call site never mentions. `named` is the ordinary
+                # case: the caller passed a key or its own parameter, so the key is at least in
+                # the conversation. Failing that, the callee name must be UNIQUE REPO-WIDE.
+                #
+                # THIS GUARD IS AN EQUIVALENCE ON TODAY'S TREE, recorded as one rather than left
+                # for the next reader to assume it is load-bearing. Removing it changes the
+                # derivation by NOTHING: both versions recover the same 13 readers on the same 1
+                # path, measured against a clean HEAD extract. (An earlier draft of this comment
+                # claimed it prevented 234 paths of bogus attribution. That was wrong -- it came
+                # from comparing against a copy of this module loaded from outside the repo,
+                # which resolves its own root from `__file__` and so scanned a different tree.
+                # The 2,879 "recovered" attributions were that copy's blindness, not this rule's
+                # reach. Corrected here beside the claim.)
+                #
+                # It stays because the hazard it bounds is real even though unrealised: `resolve()`
+                # PREFERS A SAME-MODULE definition, which is right for the parameter walk and
+                # wrong here. `r = run(cmd, cwd=...)` is `subprocess.run`, but `daily_self_note`
+                # defines its own `run()` -- so an unguarded rule picks a repo function for a
+                # stdlib call and hands back a key from a callee that was never invoked. Nothing
+                # on this tree currently turns that into a wrong key; the next module to define a
+                # `run()` or `load()` that returns a path would.
+                return ("key", sorted(g["returns_keys"])[0])
+            for pname in g.get("returns_params") or ():
+                params = g["params"]
+                if pname not in params:
+                    continue
+                bound = keyword.get(pname)
+                if bound is None:
+                    i = params.index(pname)
+                    bound = positional[i] if i < len(positional) else None
+                bound = via(f, bound, seen | {local})
+                if bound is not None:
+                    return bound
+        return None
+
     recovered = 0
     changed = True
     while changed:
         changed = False
         for qual, f in facts.items():
             for callee, positional, keyword in f["callsites"]:
+                positional = [via(f, d) for d in positional]
+                keyword = {k: via(f, d) for k, d in keyword.items()}
+                keyword = {k: d for k, d in keyword.items() if d is not None}
                 for target in resolve(callee, f["module"]):
                     if target == qual:
                         continue
@@ -1093,6 +1214,13 @@ def shared_loader_answers(document: dict[str, Any] | None = None) -> list[str]:
                    "\"{}\". Either give each row its own answer, or declare the sentence in `{}` "
                    "if it is provenance rather than an answer".format(
                        len(keys), ", ".join(keys), sentence[:160], PROVENANCE_SECTION))
+    # Restored 2026-09-17. The keep-both merge in 98a9a090c dropped this line: the conflict hunk
+    # ended here and the next symbol's insertion swallowed it. That commit's own evidence -- "the
+    # result is a strict superset of both symbol sets" -- is true and cannot see this, because a
+    # symbol-set superset says nothing about statements INSIDE a retained symbol. Falling off the
+    # end returned `None` where the signature says list[str], and `if shared:` in main() read that
+    # as "no rows share an answer": the rung was fail-silent for eight days.
+    return out
 
 
 #: The fields a row makes its case in. Each is checked INDEPENDENTLY by
