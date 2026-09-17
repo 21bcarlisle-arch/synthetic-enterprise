@@ -12,32 +12,32 @@
     "open_findings": 15
   },
   "last_verified": {
-    "generated_at": "2026-09-16T17:20:44Z",
-    "git_commit": "2c89bd534",
+    "generated_at": "2026-09-17T08:12:02Z",
+    "git_commit": "f620fed2c",
     "population": {
       "accounts": 226,
-      "bills": 9996,
-      "total_revenue_gbp": 667241.42
+      "bills": 10115,
+      "total_revenue_gbp": 685541.28
     },
-    "run_id": "run_output_2c89bd534_20260916T164255Z.json",
+    "run_id": "run_output_f620fed2c_20260917T072251Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-16T17:20:44Z"
+    "verified_at": "2026-09-17T08:12:02Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=882ef8aad; blocking tests: FAILED tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py::test_a_level_tree_still_publishes, FAILED tests/background/test_a_refused_publish_commit_reaches_the_wedge_detector.py::test_a_lost_tree_lock_is_a_named_outcome_and_not_an_uncaught_traceback, FAILED tests/background/test_a_refused_publish_co",
-  "paused_since": "2026-09-16T19:37:36Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-16T17:20:44Z",
-    "git_commit": "2c89bd534",
+    "generated_at": "2026-09-17T08:12:02Z",
+    "git_commit": "f620fed2c",
     "population": {
       "accounts": 226,
-      "bills": 9996,
-      "total_revenue_gbp": 667241.42
+      "bills": 10115,
+      "total_revenue_gbp": 685541.28
     },
-    "run_id": "run_output_2c89bd534_20260916T164255Z.json",
+    "run_id": "run_output_f620fed2c_20260917T072251Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-16T17:20:44Z"
+    "verified_at": "2026-09-17T08:12:02Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-17T03:57:50Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-17T08:12:02Z"
 }

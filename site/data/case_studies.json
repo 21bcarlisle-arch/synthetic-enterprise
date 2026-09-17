@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-09-16T13:29:01Z",
-    "git_commit": "770497ddd",
+    "generated_at": "2026-09-17T07:47:42Z",
+    "git_commit": "f620fed2c",
     "household_count": 154,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
@@ -21,14 +21,14 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "69.1 percentage points apart at the 2020 renewal (sim 96.3% vs company 27.3%)",
+      "headline": "71.6 percentage points apart at the 2020 renewal (sim 87.3% vs company 15.7%)",
       "wall_side": "sim",
-      "account_id": "C5",
-      "base_account_id": "C5",
-      "segment": "SME",
+      "account_id": "PROS-2016-0046",
+      "base_account_id": "PROS-2016-0046",
+      "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C5",
+        "acc": "PROS-2016-0046",
         "tab": "timeline",
         "year": 2020
       }
