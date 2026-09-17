@@ -1124,7 +1124,102 @@
     "world_caveat": null,
     "elasticity_draws_min": 288,
     "single_run_inside_the_measured_band": true,
-    "reading": "The estimate sits 2.9 standard errors from zero -- past the 2.31 this page requires before stating a side -- so on 9 re-draws the selection leg is negative. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 9: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it."
+    "reading": "The estimate sits 2.9 standard errors from zero -- past the 2.31 this page requires before stating a side -- so on 9 re-draws the selection leg is negative. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 9: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it.",
+    "legs_on_one_bar": {
+      "available": true,
+      "seeds": 9,
+      "world_measured_in": "39a192ce04c1eda8",
+      "legs": {
+        "value_advantage_gbp": {
+          "available": true,
+          "estimate_gbp": 17645.755077888894,
+          "estimate_seeds": 9,
+          "bound_gbp": 777.0976370737088,
+          "bound_seeds": 9,
+          "bound_statistic": "sem_gbp",
+          "one_draw_moves_gbp": 2331.2929112211264,
+          "sems_from_zero": 22.707256123357855,
+          "sign_is_stateable": true,
+          "sign": "positive",
+          "sems_needed_to_state_a_sign": 2.306004135204166,
+          "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 8 degrees of freedom, which is what 9 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 9 draws as the mean, so the normal 1.96 would understate the tail. At 9 seeds the bar is 2.306; it falls towards 1.96 as the family grows.",
+          "bound_to_estimate_ratio": 0.0440387863054642,
+          "seeds_needed_to_state_a_sign": null,
+          "seeds_needed_holds_this_family_fixed": null,
+          "single_run": {
+            "gbp": 16792.23790800001,
+            "seeds": 1,
+            "clock": "settled-realised",
+            "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
+          },
+          "single_run_inside_the_family": true,
+          "single_run_on_the_other_side_of_zero": false,
+          "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 9 seed re-draws. `bound_gbp` is that same family's standard error over the same 9. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 9.",
+          "subject": "the whole advantage over flat rules",
+          "what_this_leg_is": "What the per-customer decision engine earned over flat rules, level and choosing together. It is the sum of the two legs below it and not a third measurement, so a reader who takes a direction from it has taken one from whichever leg dominates it -- which on this book is the level.",
+          "reading": "The estimate sits 22.7 standard errors from zero -- past the 2.31 this page requires before stating a side -- so on 9 re-draws the whole advantage over flat rules is positive. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 9: \u00a316,792, inside the family's own range, and every other figure on this page is drawn from it."
+        },
+        "level_advantage_gbp": {
+          "available": true,
+          "estimate_gbp": 19395.228245222224,
+          "estimate_seeds": 9,
+          "bound_gbp": 392.21353860772416,
+          "bound_seeds": 9,
+          "bound_statistic": "sem_gbp",
+          "one_draw_moves_gbp": 1176.6406158231725,
+          "sems_from_zero": 49.45068524169568,
+          "sign_is_stateable": true,
+          "sign": "positive",
+          "sems_needed_to_state_a_sign": 2.306004135204166,
+          "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 8 degrees of freedom, which is what 9 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 9 draws as the mean, so the normal 1.96 would understate the tail. At 9 seeds the bar is 2.306; it falls towards 1.96 as the family grows.",
+          "bound_to_estimate_ratio": 0.020222166692178068,
+          "seeds_needed_to_state_a_sign": null,
+          "seeds_needed_holds_this_family_fixed": null,
+          "single_run": {
+            "gbp": 17124.873629999987,
+            "seeds": 1,
+            "clock": "settled-realised",
+            "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
+          },
+          "single_run_inside_the_family": true,
+          "single_run_on_the_other_side_of_zero": false,
+          "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 9 seed re-draws. `bound_gbp` is that same family's standard error over the same 9. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 9.",
+          "subject": "the price-LEVEL leg",
+          "what_this_leg_is": "What ONE FLAT margin at the same price level earned over flat rules, with no per-customer choosing in it at all. This is value MOVED and not made -- a price charged transfers value from the household to the company rather than creating any. It is published bounded because it looks like the safe half and is not: its own re-draws in this world change its sign.",
+          "reading": "The estimate sits 49.5 standard errors from zero -- past the 2.31 this page requires before stating a side -- so on 9 re-draws the price-LEVEL leg is positive. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 9: \u00a317,125, inside the family's own range, and every other figure on this page is drawn from it."
+        },
+        "selection_gbp": {
+          "available": true,
+          "estimate_gbp": -1749.4731673333283,
+          "estimate_seeds": 9,
+          "bound_gbp": 613.4645850495316,
+          "bound_seeds": 9,
+          "bound_statistic": "sem_gbp",
+          "one_draw_moves_gbp": 1840.393755148595,
+          "sems_from_zero": 2.8517916273717328,
+          "sign_is_stateable": true,
+          "sign": "negative",
+          "sems_needed_to_state_a_sign": 2.306004135204166,
+          "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 8 degrees of freedom, which is what 9 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 9 draws as the mean, so the normal 1.96 would understate the tail. At 9 seeds the bar is 2.306; it falls towards 1.96 as the family grows.",
+          "bound_to_estimate_ratio": 0.35065675570470056,
+          "seeds_needed_to_state_a_sign": null,
+          "seeds_needed_holds_this_family_fixed": null,
+          "single_run": {
+            "gbp": -332.63572199997725,
+            "seeds": 1,
+            "clock": "settled-realised",
+            "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
+          },
+          "single_run_inside_the_family": true,
+          "single_run_on_the_other_side_of_zero": false,
+          "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 9 seed re-draws. `bound_gbp` is that same family's standard error over the same 9. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 9.",
+          "subject": "the selection leg",
+          "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved.",
+          "reading": "The estimate sits 2.9 standard errors from zero -- past the 2.31 this page requires before stating a side -- so on 9 re-draws the selection leg is negative. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 9: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it."
+        }
+      },
+      "the_verdicts": "On 9 re-draws every leg clears the bar its own family earns: the whole advantage over flat rules is positive, the price-LEVEL leg is positive, the selection leg is negative. THAT IS A FINDING AGAINST THIS COMPANY AND NOT A CAVEAT ON ONE. The level leg is what ONE FLAT MARGIN at the same price level earned, with no per-customer inference in it at all -- so on this book the flat rule beat the control by MORE than the inference arm did, and the choosing is measured below it. The enterprise value claimed here is the INFERENCE; what this family can demonstrate is the PRICE. Read the legs against each other -- the advantage the level earns is a price CHARGED and is value moved, and only the choosing could be value made."
+    }
   },
   "departure_term_rerun": {
     "available": true,

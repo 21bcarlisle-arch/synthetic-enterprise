@@ -1237,6 +1237,92 @@ def test_MUTATION_the_door_renders_the_FEEDS_reading_and_not_a_sentence_of_its_o
         "the door printed its own one-draw claim beside a feed that never made it")
 
 
+def test_every_leg_of_the_advantage_reaches_the_reader_with_its_own_verdict(live):
+    """The page summarised ONE leg of a three-leg advantage, and it was the quiet one.
+
+    `level_advantage_gbp` was in every seed row of every floor ever written and reached no
+    sentence anywhere on this site. The leg that DID render was the one that could not state a
+    side, while the level leg -- 49 standard errors from zero, unanimous across its family --
+    published nothing. A leg nobody renders reads to a reader exactly like a leg with nothing in
+    it, and the half this page was silent about is the half that reads against the company.
+
+    KEYED TO THE PARTITION, NOT TO TODAY'S VERDICTS. Every leg the feed grades has to arrive with
+    its subject and a verdict word; nothing here asserts which verdict.
+    """
+    block = (_live_feed().get("error_bar") or {}).get("legs_on_one_bar") or {}
+    assert block.get("available") is True, (
+        "the feed grades no leg at all, so this page cannot be asked about them: {}".format(
+            block.get("reason")))
+    rendered = live["arms-errorbar"]
+    for key, leg in block["legs"].items():
+        assert leg["subject"] in rendered, (
+            "{} is graded in the feed and named nowhere on the page".format(key))
+        word = "CANNOT BE CALLED" if leg["sign_is_stateable"] is not True else leg["sign"].upper()
+        assert word in rendered, (
+            "{} carries the verdict {!r} in the feed and the page does not say it".format(
+                key, word))
+
+
+def test_the_price_LEVEL_legs_stated_sign_reaches_the_reader(live):
+    """The one leg this book can call, and it is the unflattering one.
+
+    A flat margin at the same price level, with NO per-customer inference in it anywhere, is what
+    the level leg measures -- and it is value MOVED, not made. Its sign being stateable while the
+    choosing's is the whole of what this page has to say about the mission's own question, so it
+    renders as a word and not as a number a reader has to grade for themselves.
+    """
+    leg = ((_live_feed().get("error_bar") or {}).get("legs_on_one_bar") or {}).get(
+        "legs", {}).get("level_advantage_gbp") or {}
+    assert leg.get("sign_is_stateable") is True, (
+        "this floor no longer determines the level leg's sign, so the control below is moot: "
+        "{}".format(leg))
+    rendered = live["arms-errorbar"]
+    assert "the price-LEVEL leg" in rendered, rendered[-600:]
+    assert leg["sign"].upper() in rendered, rendered[-600:]
+    assert "value MOVED" in rendered, (
+        "the page states the level leg's sign and not what a level advantage IS, so a reader "
+        "meets a determined positive with nothing saying it is transfer rather than creation")
+
+
+def test_MUTATION_a_leg_that_CANNOT_be_called_still_renders_a_row(live):
+    """R15 fail-silent: a leg rendering only when it resolves makes refusal and silence identical.
+
+    The cheap version of this block renders the legs that earned a sign and drops the rest. What
+    a reader then meets is a page where every leg that appears is decided -- and the leg the
+    mission actually turns on is the one that vanished.
+    """
+    feed = _live_feed()
+    block = feed["error_bar"]["legs_on_one_bar"]
+    legs = dict(block["legs"])
+    legs["selection_gbp"] = dict(legs["selection_gbp"], sign_is_stateable=False, sign=None)
+    feed["error_bar"] = dict(feed["error_bar"],
+                             legs_on_one_bar=dict(block, legs=legs))
+    rendered = _render(feed)["arms-errorbar"]
+    assert "the selection leg &mdash; CANNOT BE CALLED" in rendered.replace("—", "&mdash;") or (
+        "CANNOT BE CALLED" in rendered), (
+        "a leg with no stateable sign rendered no row: {}".format(rendered[-500:]))
+    raw = _render(feed, raw=True)["arms-errorbar"]
+    assert "var(--amber)" in raw.split("CANNOT BE CALLED")[0][-300:], (
+        "a leg this book cannot call renders in the same colour as one it can, so the reader "
+        "skims past the refusal")
+
+
+def test_MUTATION_a_feed_that_grades_no_leg_says_so_rather_than_going_quiet():
+    """R15 fail-silent again, one level up: the whole block absent must be visible.
+
+    A floor that names no world bounds nothing, and the refusal is a result. A page that simply
+    stopped printing the legs would look to a reader like a page that had never had them.
+    """
+    feed = _live_feed()
+    feed["error_bar"] = dict(
+        feed["error_bar"],
+        legs_on_one_bar={"available": False, "reason": "NO FLOOR ADMITTED THIS FIGURE.",
+                         "why_no_leg_is_graded": "Every leg is graded off the same seed rows."})
+    rendered = _render(feed)["arms-errorbar"]
+    assert "NO FLOOR ADMITTED THIS FIGURE." in rendered, rendered[-400:]
+    assert "Every leg is graded off the same seed rows." in rendered, rendered[-400:]
+
+
 def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     """R11 on a caveat rather than a number, and the caveat is DERIVED.
 

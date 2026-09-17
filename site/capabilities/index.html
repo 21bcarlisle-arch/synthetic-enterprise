@@ -1414,6 +1414,43 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return lead + blocks + sum;
   }
 
+  /* EVERY LEG OF THE ADVANTAGE, EACH AT THE BAR ITS OWN FAMILY EARNS. One row per leg, in the
+     feed's own order, with the verdict as its own word so a reader can see at a glance which legs
+     the book can call and which it cannot. The row is rendered for a leg with NO sign as well as
+     one with a sign -- "cannot be called" is a result, and a leg that rendered only when it
+     resolved would make silence and refusal look identical, which is the whole defect this block
+     was written for one layer up. Nothing here divides one leg by another: two correct figures
+     whose ratio is not a quantity is this page's most expensive recurring shape. */
+  function legsOnOneBar(b) {
+    var order = ["value_advantage_gbp", "level_advantage_gbp", "selection_gbp"];
+    var rows = "";
+    for (var i = 0; i < order.length; i++) {
+      var leg = (b.legs || {})[order[i]];
+      if (!leg) { continue; }
+      var verdict = !leg.available
+        ? "NO FAMILY"
+        : leg.sign_is_stateable === true
+          ? leg.sign.toUpperCase()
+          : "CANNOT BE CALLED";
+      var colour = leg.sign_is_stateable === true ? "var(--muted)" : "var(--amber)";
+      rows += '<span style="display:block;margin-top:6px;color:' + colour + ';">'
+        + "<strong>" + esc(leg.subject) + " &mdash; " + esc(verdict) + "</strong>"
+        + (leg.available
+            ? ": " + esc(gbp(leg.estimate_gbp)) + " over " + esc(leg.estimate_seeds)
+              + " re-draws, give or take " + esc(gbp(leg.bound_gbp))
+              + (leg.sems_from_zero
+                  ? " &mdash; " + leg.sems_from_zero.toFixed(1)
+                    + " standard errors from zero against the "
+                    + esc(leg.sems_needed_to_state_a_sign.toFixed(2))
+                    + " this leg's own " + esc(leg.estimate_seeds) + " draws set"
+                  : "")
+              + ". " + prose(leg.what_this_leg_is)
+            : ". " + prose(leg.reason))
+        + "</span>";
+    }
+    return rows;
+  }
+
   /* THE SECOND DRAW OF THE FIGURE THIS PANEL BOUNDS, rendered INSIDE the panel and not under it.
      The choosing leg went through zero when the objective was changed, and a reader who meets that
      anywhere other than beside the ±£1,811 bar has been told the arm's choosing became worthless.
@@ -2114,6 +2151,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
              before the ones that qualify the bar. See `departureRerun`. */
           + departureRerun(d.departure_term_rerun)
           + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
+          /* THE OTHER TWO LEGS OF THE SAME ADVANTAGE (2026-09-17). Everything above this line is
+             the SELECTION leg and, until this block, so was everything a reader met here -- while
+             `level_advantage_gbp` sat in every seed row of every floor ever written, 49 standard
+             errors from zero, summarised by nothing. A leg nobody renders is indistinguishable on
+             the page from a leg with nothing in it, and the half this page was silent about is the
+             half that reads AGAINST the company: the flat rule beats the control by more than the
+             inference arm does. The verdict sentence leads, because the CONTRAST between the legs
+             is the claim and not the legs one at a time. Amber when the legs split: that is the
+             state in which the page holds a determined sign on the leg that is value MOVED and no
+             sign at all on the leg the mission turns on. */
+          + (eb.legs_on_one_bar && eb.legs_on_one_bar.available
+              ? '<span style="display:block;margin-top:10px;">'
+                + prose(eb.legs_on_one_bar.the_verdicts) + "</span>"
+                + legsOnOneBar(eb.legs_on_one_bar)
+              : eb.legs_on_one_bar
+                  ? '<span style="display:block;margin-top:10px;color:var(--amber);">'
+                    + prose(eb.legs_on_one_bar.why_no_leg_is_graded) + " "
+                    + prose(eb.legs_on_one_bar.reason) + "</span>"
+                  : "")
           /* THE OTHER RULE THAT ANSWERS THE SAME QUESTION (2026-09-11). `eb.reading` above is this
              page's answer to "can we call the side"; `eb.distinguishable_from_zero` is the run
              artefact's own answer at a different bar, and until this line it reached no sentence

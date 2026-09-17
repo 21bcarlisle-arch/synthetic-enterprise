@@ -1365,7 +1365,7 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
 
 
 def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
-               point_clock: str | None = None) -> dict:
+               point_clock: str | None = None, split: dict | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
 
     NEVER fails open to a spread of zero: a spread of zero is the one value that would make an
@@ -1549,11 +1549,27 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # the family, and it is a tri-state: True, False, and None for no run to place.
         "single_run_inside_the_measured_band": inside,
         "reading": _selection_leg_reading(leg, inside),
+        # AND THE OTHER TWO LEGS OF THE SAME ADVANTAGE, ON THE SAME ROWS AND AT THE SAME RULE
+        # (2026-09-17). Everything above this line is about `selection_gbp` and was the whole of
+        # what this block said, which made the page silent about a leg whose sign has been
+        # determined since the first floor was ever run. See `_legs_on_one_bar`.
+        "legs_on_one_bar": _legs_on_one_bar(floor, three_arm, split, point_clock),
     }
 
 
-def _selection_leg_reading(leg: dict, inside) -> str:
+def _selection_leg_reading(leg: dict, inside, subject: str = "the selection leg",
+                           effect: str = "a selection effect") -> str:
     """What a reader should take from the estimate and the bound -- DERIVED from both.
+
+    THE SUBJECT IS A PARAMETER, AND THAT IS THE 2026-09-17 REPAIR. It was the literal string "the
+    selection leg", which was right for as long as this was the only leg anything summarised --
+    and that was the defect. `level_advantage_gbp` has been in every seed row of every floor ever
+    written and no summariser read it, so a leg whose sign has been DETERMINED AND POSITIVE for
+    days published nothing, while the one leg that reached a sentence was the one that could not
+    state a side. A leg nobody summarises is indistinguishable from a leg with nothing in it.
+    Every leg is now graded by this function at the bar its own family earns, which is the point:
+    the CONTRAST between their verdicts is the claim, and a split verdict produced by two
+    different rules would read on the surface exactly like a finding. See `_legs_on_one_bar`.
 
     THE SENTENCE THIS REPLACES ANSWERED ABOUT THE WRONG NUMBER. It read "the point estimate sits
     inside that band and so does zero", where the point estimate was one run and the band was
@@ -1572,10 +1588,11 @@ def _selection_leg_reading(leg: dict, inside) -> str:
     being shown what it replaced cannot see the size of it.
     """
     if not leg.get("available"):
-        return ("No seed family is readable for the selection leg, so nothing here resolves it "
+        return ("No seed family is readable for {}, so nothing here resolves it "
                 "either way. What is published beside it is the size of this instrument's seed "
                 "sensitivity and NOT a bound on any number on this page -- pairing a spread with "
-                "a figure it was not drawn over is the mix this feed refuses everywhere else.")
+                "a figure it was not drawn over is the mix this feed refuses everywhere "
+                "else.".format(subject))
     n, sems = leg.get("estimate_seeds"), leg.get("sems_from_zero")
     # THE BAR AS THE LEG WAS ACTUALLY GRADED AT IT. Read back off the published key rather than
     # recomputed, so the sentence and the verdict it describes cannot come from two numbers.
@@ -1594,20 +1611,151 @@ def _selection_leg_reading(leg: dict, inside) -> str:
                   if leg.get("single_run_on_the_other_side_of_zero") else ""))
     if leg.get("sign_is_stateable") is True:
         return ("The estimate sits {sems:.1f} standard errors from zero -- past the {bar} this "
-                "page requires before stating a side -- so on {n} re-draws the selection leg is "
+                "page requires before stating a side -- so on {n} re-draws {subject} is "
                 "{sign}. That is a statement about this instrument's best estimate and not a "
                 "target: an arm that loses to its own baseline is a complete answer.{member}"
-                ).format(sems=sems, bar=bar_text, n=n,
+                ).format(sems=sems, bar=bar_text, n=n, subject=subject,
                          sign=leg.get("sign"), member=member)
     if sems is None:
         return ("The family pins its mean with no measurable error, so how far that mean is from "
                 "zero cannot be stated in units of its own precision and this page states no "
                 "side.{}".format(member))
     return ("The estimate sits {sems:.1f} standard errors from zero, short of the {bar} this page "
-            "requires before stating a side, so this book cannot yet resolve a selection effect "
+            "requires before stating a side, so this book cannot yet resolve {effect} "
             "of the size it is measuring -- in either direction. That is a finding about the "
             "INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed "
-            "agrees.{member}").format(sems=sems, bar=bar_text, member=member)
+            "agrees.{member}").format(sems=sems, bar=bar_text, effect=effect, member=member)
+
+
+def _legs_on_one_bar(floor: dict | None, three_arm: dict | None, split: dict | None,
+                     point_clock: str | None) -> dict:
+    """ALL THREE legs of the advantage, each graded at the bar its own family earns.
+
+    THE DEFECT THIS REMOVES, AND IT WAS NOT A MISSING RUN. `level_advantage_gbp` has been in every
+    seed row of every noise floor this project has ever written. Nothing summarised it. The block
+    above reads `selection_gbp` and only `selection_gbp`, so the one leg that reached a sentence
+    on the surface was the one that could not state a side -- while the level leg, on the very
+    same rows, sat 49 standard errors from zero with 9 of 9 draws positive and published nothing
+    at all. A leg nobody summarises is indistinguishable on the page from a leg with nothing in
+    it, and the half this page was silent about is the half that reads AGAINST the company: a flat
+    rule charging one median margin, with no per-customer inference in it anywhere, beats the
+    control by MORE than the inference arm does.
+
+    ONE GRADER FOR ALL THREE, WHICH IS THE POINT AND NOT A TIDINESS. The claim this block makes is
+    the CONTRAST between the legs' verdicts -- one determined, one not -- and a split verdict
+    produced by two different rules would render on the surface exactly like a finding. So every
+    leg goes through `_leg_over_its_own_family` and `_selection_leg_reading`, at `t(n-1)` on its
+    own family's size, and the only thing that differs between them is the rows.
+
+    THE ROWS COME FROM `_seed_spreads` AND ARE NOT RE-DERIVED HERE. That function already reads
+    every contrast out of the floor's own seed rows, already reconciles its selection reading
+    against the spread the producer publishes, and already refuses ALL THREE when the two
+    disagree, when the floor names no world, when its world is not the figure's, when it predates
+    the book, or when nothing admits it. Computing the level and value families here would be a
+    second implementation of the one thing this file's CLAUDE.md names by its cost -- and it would
+    be the permissive one, because none of those five refusals would come with it.
+
+    SO A REFUSAL HERE IS `_seed_spreads`' REFUSAL, VERBATIM. No leg, no verdict, no direction:
+    "we have not measured it" is a result and it is published as one.
+    """
+    spreads = _seed_spreads(floor, three_arm)
+    if not spreads.get("available"):
+        return {"available": False, "reason": spreads.get("reason"),
+                "what_this_costs": spreads.get("what_this_costs"),
+                "why_no_leg_is_graded": (
+                    "Every leg on this page is graded off the same seed rows, so a floor that "
+                    "cannot bound one of them cannot bound any of them. The refusal above is the "
+                    "one the bounds block itself makes, republished here rather than softened "
+                    "into a narrower reason about one leg.")}
+    legs, stateable, unstateable = {}, [], []
+    for key in _BOUNDED_CONTRASTS:
+        family = _spread_for(spreads, key)
+        subject, what_it_is = _LEG_SUBJECTS[key]
+        if family is None:
+            legs[key] = {"available": False, "subject": subject, "what_this_leg_is": what_it_is,
+                         "reason": ("the floor's seed rows do not all carry `{}`, so this leg has "
+                                    "no family to be graded over".format(key))}
+            continue
+        # THE ONE PUBLISHED RUN FOR THIS LEG -- ITS OWN, never the selection leg's. The member
+        # clause in the reading names the figure the rest of the page is drawn from, and three
+        # legs sharing one run's number is the mispairing every other block here refuses.
+        run = (split or {}).get(key) if (split or {}).get("available") else None
+        leg = _leg_over_its_own_family(family, run, point_clock)
+        # THE EFFECT NOUN, so the unstateable branch reads about THIS leg. `a selection effect` is
+        # the selection leg's and stays its exact words -- a door control is keyed to them.
+        effect = ("a selection effect" if key == SELECTION_CONTRAST else
+                  "a price-level effect" if key == LEVEL_CONTRAST else "an advantage")
+        legs[key] = dict(
+            leg, subject=subject, what_this_leg_is=what_it_is,
+            reading=_selection_leg_reading(leg, leg.get("single_run_inside_the_family"),
+                                           subject, effect))
+        if leg.get("sign_is_stateable") is True:
+            stateable.append((key, subject, leg.get("sign")))
+        elif leg.get("available"):
+            unstateable.append(subject)
+    return {
+        "available": True,
+        "seeds": spreads.get("seeds"),
+        "world_measured_in": spreads.get("world_measured_in"),
+        "legs": legs,
+        # THE TWO VERDICTS SIDE BY SIDE, DERIVED. Not a sentence about today's answer: it names
+        # whichever legs cleared their own bar and whichever did not, so a publish where the
+        # selection leg earns its sign says so, and one where the level leg loses its sign says
+        # that, with nobody editing a string.
+        "the_verdicts": _the_verdicts_clause(stateable, unstateable, spreads.get("seeds")),
+    }
+
+
+def _the_verdicts_clause(stateable: list, unstateable: list, seeds) -> str:
+    """Which legs this family can state a side for and which it cannot -- the contrast itself.
+
+    WHY THE CONTRAST IS THE CLAIM. The director's thesis turns on the advantage coming from
+    INFERENCE and never from ACCESS, and the flat-rule baseline is the only thing that tells them
+    apart. "The level leg is positive" and "the selection leg cannot be called" are each half an
+    answer; together they are the finding, and it reads against us. So the page states them in one
+    sentence rather than leaving a reader to pair two verdicts from different paragraphs.
+
+    NO ARITHMETIC BETWEEN THE LEGS, on purpose. A ratio of a determined leg to an undetermined one
+    is two correct figures whose quotient is not a quantity -- this file's own most expensive
+    recurring shape. The legs are named and their verdicts stated; nothing here divides them.
+    """
+    if not stateable and not unstateable:
+        return ("No leg of the advantage has a readable seed family on this floor, so this page "
+                "states no side for any of them.")
+    said = ", ".join("{} is {}".format(subject, sign) for _, subject, sign in stateable)
+    # WHAT THE TWO LEGS SAY ABOUT EACH OTHER, DERIVED FROM THEIR OWN VERDICTS AND NOT ASSERTED.
+    # A level leg stated POSITIVE beside a choosing leg that is stated NEGATIVE is not two
+    # results, it is one: the flat rule, with no per-customer inference in it anywhere, beat the
+    # control by more than the inference arm did. That reads against the company, which is
+    # precisely why it may not be left for a reader to assemble from two sentences. It composes
+    # itself out of the signs, so a publish where the choosing turns positive drops it.
+    signs = {key: sign for key, _, sign in stateable}
+    against_us = (signs.get(LEVEL_CONTRAST) == "positive"
+                  and signs.get(SELECTION_CONTRAST) == "negative")
+    the_finding = (
+        " THAT IS A FINDING AGAINST THIS COMPANY AND NOT A CAVEAT ON ONE. The level leg is what "
+        "ONE FLAT MARGIN at the same price level earned, with no per-customer inference in it at "
+        "all -- so on this book the flat rule beat the control by MORE than the inference arm "
+        "did, and the choosing is measured below it. The enterprise value claimed here is the "
+        "INFERENCE; what this family can demonstrate is the PRICE." if against_us else "")
+    if not unstateable:
+        return ("On {n} re-draws every leg clears the bar its own family earns: {said}.{finding} "
+                "Read the legs against each other -- the advantage the level earns is a price "
+                "CHARGED and is value moved, and only the choosing could be value made."
+                ).format(n=seeds, said=said, finding=the_finding)
+    cannot = " and ".join(unstateable)
+    if not stateable:
+        return ("On {n} re-draws no leg clears the bar its own family earns: {cannot} "
+                "{verb} a measured bound and still no direction. This page states no side for "
+                "any of them.").format(n=seeds, cannot=cannot,
+                                       verb="carries" if len(unstateable) == 1 else "carry")
+    return ("On {n} re-draws the legs split, and the split is the finding rather than a gap in "
+            "it: {said}, while {cannot} still {verb} no direction at this sample. The leg that "
+            "CAN be called is the price LEVEL -- a flat margin with no per-customer inference in "
+            "it anywhere -- and the level is value MOVED, not made. The leg the mission turns on "
+            "is the one this book cannot yet call."
+            ).format(n=seeds, said=said, cannot=cannot,
+                     verb="has" if len(unstateable) == 1 else "have")
 
 
 #: The name the objective's departure term arrives under, and the ONLY thing this feed will accept
@@ -2211,6 +2359,38 @@ SELECTION_CONTRAST = "selection_gbp"
 #: across the live world's three re-draws this figure runs -£882 to +£9,085 and CHANGES SIGN, so
 #: the leg the page implicitly treats as the solid one is the least determined of the three.
 LEVEL_CONTRAST = "level_advantage_gbp"
+
+#: WHAT EACH BOUNDED CONTRAST IS CALLED IN A SENTENCE. Hoisted out of `_current_world_contrast` on
+#: 2026-09-17 because a second block now states a verdict about the same three legs, and the two
+#: describing them in their own words is how the page ends up with one quantity under two
+#: descriptions -- the shape this file's own `_distinguishable_reconciliation` exists to handle
+#: one layer along. One home, read by both.
+_WHAT_THE_SELECTION_LEG_IS = (
+    "What the per-customer CHOOSING was worth once one flat margin at the same price "
+    "LEVEL is credited with everything a level alone would have earned. The other leg "
+    "of the advantage is the level itself, which is a price charged rather than a "
+    "value made -- so this is the only figure on this page that could be value "
+    "created instead of value moved.")
+_WHAT_THE_LEVEL_LEG_IS = (
+    "What ONE FLAT margin at the same price level earned over flat rules, with no "
+    "per-customer choosing in it at all. This is value MOVED and not made -- a price "
+    "charged transfers value from the household to the company rather than creating "
+    "any. It is published bounded because it looks like the safe half and is not: "
+    "its own re-draws in this world change its sign.")
+_WHAT_THE_WHOLE_ADVANTAGE_IS = (
+    "What the per-customer decision engine earned over flat rules, level and choosing "
+    "together. It is the sum of the two legs below it and not a third measurement, so a "
+    "reader who takes a direction from it has taken one from whichever leg dominates it "
+    "-- which on this book is the level.")
+
+#: THE NOUN EACH LEG ANSWERS TO, and the prose that says what it is. Keyed by the same contrast
+#: keys `_BOUNDED_CONTRASTS` and `_seed_spreads.contrasts` use, so a leg cannot be described here
+#: and bounded somewhere else.
+_LEG_SUBJECTS = {
+    PAGE_FIGURE_CONTRAST: ("the whole advantage over flat rules", _WHAT_THE_WHOLE_ADVANTAGE_IS),
+    LEVEL_CONTRAST: ("the price-LEVEL leg", _WHAT_THE_LEVEL_LEG_IS),
+    SELECTION_CONTRAST: ("the selection leg", _WHAT_THE_SELECTION_LEG_IS),
+}
 
 
 def _decomposition_contrast(decomposition: dict | None) -> str | None:
@@ -8644,12 +8824,9 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             # THE CONFOUND IS IN THE ESTIMAND, NOT THE SAMPLE, which is why it sits HERE and not
             # in a caveat block. See `_bind_asymmetry`.
             bind_asymmetry=_bind_asymmetry(current),
-            what_this_leg_is=(
-                "What the per-customer CHOOSING was worth once one flat margin at the same price "
-                "LEVEL is credited with everything a level alone would have earned. The other leg "
-                "of the advantage is the level itself, which is a price charged rather than a "
-                "value made -- so this is the only figure on this page that could be value "
-                "created instead of value moved.")),
+            # THE SAME SENTENCE THE ERROR-BAR BLOCK'S OWN SELECTION LEG CARRIES, from the one
+            # place it is written. See `_LEG_SUBJECTS`.
+            what_this_leg_is=_WHAT_THE_SELECTION_LEG_IS),
         # THE THIRD LEG, NESTED FOR THE SAME REASON -- three legs now share these key names, and
         # flattening any over another is how a page bounds one figure with another's spread. The
         # three are deliberately the same shape: same function, same grammar, same gate, so a
@@ -8657,12 +8834,7 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "level_leg": dict(
             level,
             figure_gbp=contrast.get("level_advantage_gbp"),
-            what_this_leg_is=(
-                "What ONE FLAT margin at the same price level earned over flat rules, with no "
-                "per-customer choosing in it at all. This is value MOVED and not made -- a price "
-                "charged transfers value from the household to the company rather than creating "
-                "any. It is published bounded because it looks like the safe half and is not: "
-                "its own re-draws in this world change its sign.")),
+            what_this_leg_is=_WHAT_THE_LEVEL_LEG_IS),
         "composition": _composition_in_this_world(
             contrast, floor_current,
             _f((superseded_split or {}).get("level_share_of_advantage")), live,
@@ -9575,7 +9747,10 @@ def build(three_arm: dict | None, floor: dict | None,
         book=_book(three_arm, provenance),
         realised=realised,
         provisioned=provisioned,
-        error_bar=_error_bar(floor, point, three_arm, point_clock),
+        # THE WHOLE SPLIT IS HANDED OVER, NOT JUST THE SELECTION FIGURE. Each leg's own published
+        # run is what its reading names as a member of its own family; three legs sharing one
+        # run's number would be the mispairing every other block in this file refuses.
+        error_bar=_error_bar(floor, point, three_arm, point_clock, split),
         # THE SECOND DRAW OF THE FIGURE THE BAR ABOVE IS A BAR ON, in the same payload as both, so
         # the surface cannot render the move without the bar it moved inside of. Passed the SAME
         # floor `_error_bar` gets -- not re-read -- because a move placed against a different
