@@ -35,6 +35,17 @@ no disposition is owed and this claim carries on.
 `longjob-floor-auc-20260917` to free ~6.6 GB), has run 3.67 h, and has started 17 arm-legs at
 13.0 min each. At three legs per seed that is 5.7 of 12 seeds and an **ETA near 03:58**.
 
+> **WRONG, corrected 2026-09-18 00:20 — the ETA is `2026-09-18 11:31`, not 03:58; short by 7h33m.**
+> The "17 arm-legs" were 17 `Starting treasury` lines, and that marker fires **twice** per arm-leg,
+> one per commodity pass — so it was 8.5 legs, and 219.7 min / 17 gave the 13.0 that should have
+> been **25.54**. The completed `floor_auc_20260917.log` (3 seeds, 3:49:54, and by this prereg's own
+> Finding 2 the *same* value-arm code) was the available ruler and settles it: 9 `Phase 2b` / 9
+> `SURVIVED` / 18 `Starting treasury` for 3 seeds. Left standing above rather than edited away,
+> because a prediction revised in place is not a prediction. Full working, and the disposition of a
+> second claim minted from this same wrong ETA, in
+> `SEAT_RESULT_THE_FLOOR_RUNS_ETA_WAS_WRONG_BY_SEVEN_HOURS_BECAUSE_A_TWICE_PER_LEG_MARKER_WAS_COUNTED_AS_ONCE_2026-09-18.md`.
+> **Findings 1 and 2 and all four predictions below are unaffected** — none of them depends on the clock.
+
 ---
 
 ## Finding 1 — the artefact will name a commit this item does not mention, and that is not a defect
@@ -147,7 +158,7 @@ So, fixed in advance:
 
 ## What this turn does not settle
 
-Part 1 itself. The twelve seeds are ~4 h from readable and no amount of judgement substitutes for
-them. What is banked is that when they land, their provenance is already established, their stamp
+Part 1 itself. The twelve seeds are ~4 h from readable [**corrected: ~11.5 h — see the ETA note
+above**] and no amount of judgement substitutes for them. What is banked is that when they land, their provenance is already established, their stamp
 already explained, and their eligibility to join a fifteen already fixed — none of which could
 honestly be established afterwards.
