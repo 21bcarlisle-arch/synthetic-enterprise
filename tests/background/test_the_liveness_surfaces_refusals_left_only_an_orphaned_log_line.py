@@ -95,6 +95,14 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
         if argv[:2] == ["git", "ls-remote"]:
             return types.SimpleNamespace(returncode=0, stdout=remote_head + "\trefs/heads/main\n",
                                          stderr="")
+        if argv[:3] == ["git", "merge-base", "--is-ancestor"]:
+            # AS PERMISSIVE AS ITS SUBJECT AND NO MORE (2026-09-16). The push verdict now asks
+            # REACHABILITY, so this fake acquired a new subject; the rc=0 fall-through below
+            # answered "yes, reachable" to every question and graded the `push_never_landed` exit
+            # as a success. There is no commit graph in a stub, so identity is the only ancestry
+            # it can honestly claim.
+            return types.SimpleNamespace(returncode=0 if argv[3] == argv[4] else 1,
+                                         stdout="", stderr="")
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
