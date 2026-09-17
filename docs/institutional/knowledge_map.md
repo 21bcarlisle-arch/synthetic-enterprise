@@ -45,8 +45,11 @@ value. Nothing here may be quoted as a cell count yet.
 | Elevation to house height | **Not pulled.** Ordnance Survey open terrain data | — | Whole step | — |
 | Household weights by postcode | **Not pulled.** E&W 2021 and Scotland 2022 censuses | — | Whole step | — |
 | Independent validation | **Not done.** DESNZ sub-national gas consumption at small-area level — the check that cells explain real heat demand, not merely weather | — | Whole step | Do the derived cells beat LDZ at explaining small-area gas use? |
+| ERA5 retrieval budget (Open-Meteo) | Free tier 600/min, 5,000/hour, 10,000/day, 300,000/month, and **a request is not one call**: +1.0 per 2-week period. One cell (3,653 days × 6 vars) costs **260.9 calls**, so the ceilings are 2.3 cells/min, **19.2/hour**, **38.3/day**. Our own 21-cells-then-stop run matches the HOURLY bound, not the daily | M | Published 2026-09-17; the 260.9 is arithmetic from their stated rule, cross-checked against a single 21-cell observation | Does the weighting round per-request or per-day, i.e. is 19.2 really 19 or 20? |
 
-**Sources:** Met Office HadUK-Grid v1.3.2.ceda (CEDA Archive, OGL v3.0)
+**Sources:** Met Office HadUK-Grid v1.3.2.ceda (CEDA Archive, OGL v3.0); Open-Meteo pricing and
+terms pages (rate limits and the call-weighting rule, read 2026-09-17) —
+`docs/data-sources/weather.md` holds the figures and the per-cell arithmetic derived from them
 **Files:** `docs/market_research/haduk_grid_weather_cells_phase1_source.md` (the working doc, with
 the four choices the data forces), `docs/market_research/haduk_grid_pull_receipt.json` (per-file
 provenance and sha256), `tools/fetch_haduk_grid.py` (the puller)

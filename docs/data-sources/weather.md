@@ -11,8 +11,64 @@ Phase 1b requires daily historical weather data (2016-2025) for four customer lo
 ### Free, No API Key Required
 Open-Meteo's Historical Weather Archive API ("Archive API") provides free access without the need for an API key. This significantly reduces operational costs and simplifies integration.
 
-### Programmatically Reliable
-The API has been tested and found to be reliable during probing. There were no rate-limit issues encountered, ensuring smooth data retrieval.
+### Rate Limits — and Why the Sentence That Used To Be Here Was Wrong
+
+This section previously read *"There were no rate-limit issues encountered, ensuring smooth data
+retrieval."* That was true of the probe it described — **four** locations — and it stopped being
+true the moment the per-cell store made this a **221-cell** pull. It was still here on 2026-09-17,
+when the limits had already cost two sessions a combined ~2h20m. Corrected rather than deleted,
+because the sentence is why nobody looked.
+
+**Published free-tier limits** (open-meteo.com [pricing](https://open-meteo.com/en/pricing) and
+[terms](https://open-meteo.com/en/terms), both read 2026-09-17, figures agreeing):
+
+| window | limit |
+|---|---|
+| minute | 600 calls |
+| hour | 5,000 calls |
+| day | 10,000 calls |
+| month | 300,000 calls |
+
+**A request is NOT one call.** Per the pricing page: *"Requests for data covering more than 10
+weather variables or extending over a period of more than 2 weeks for a single location are
+considered multiple API calls"* — each further 2-week period adds 1.0, each variable beyond 10 adds
+0.1. Their worked example: 2 weeks × 15 variables = 1.5 calls; 4 weeks = 3.0 calls.
+
+**What that makes one cell of this project's pull cost.** One cell is 2016-01-01..2025-12-31 =
+3,653 days at 6 daily variables. Six is under ten, so there is no variable surcharge, and the cost
+is the window: `3653 / 14 = 260.9 calls per cell`. The ceilings that follow:
+
+| window | cells |
+|---|---|
+| minute | **2.3** |
+| hour | **19.2** |
+| day | **38.3** |
+
+**Cross-checked against our own record, and it is the HOURLY limit that has been biting.** The
+resume in `f94ebb1d2` completed **21 cells and then stopped** — against a predicted hourly ceiling
+of 19.2, a ~9% miss, and nowhere near the daily 38.3. The stop was attributed at the time to "the
+rate limiter" and then, on 2026-09-17, to the daily quota; the arithmetic says the daily quota is
+what a *day* of such runs exhausts, while what ends any *single* run at ~19 cells is the hourly
+bucket.
+
+Three consequences for anyone planning a pull:
+
+1. **A 23-cell pass fits in a day (38.3) but not in an hour (19.2).** It needs two passes roughly
+   an hour apart, not two days.
+2. **`tools/build_weather_world.RETRY_BACKOFF_SECONDS` cannot clear an hourly limit.** Four
+   attempts at 60/120/180 s is six minutes against a bucket that refills over sixty. The cells past
+   the hourly ceiling will be recorded as ordinary refusals and must be picked up by a later run —
+   which is safe, because `build` is resumable by construction, but it is not the same thing as the
+   run having failed.
+3. **`PAUSE_SECONDS = 20.0` sits just under the published minutely floor** of `60 / 2.3 = 26.1 s`
+   per cell. It is left at 20.0 deliberately: 21 consecutive cells went through at that pause
+   without a minutely refusal, so the measurement refutes the arithmetic here and the arithmetic
+   alone is not grounds to slow every future pull down by 30%. Recorded so the next reader knows
+   the gap is known rather than unnoticed.
+
+The daily quota's refusal is a distinct type — `sim.weather_ingestor.WeatherQuotaExhausted` — and
+is matched on Open-Meteo's `reason` string (*"Daily API request limit exceeded"*), never on the 429
+status, because every limit above returns the same status.
 
 ### Real Coverage of the Full Sim Window Confirmed by Direct Probe
 A direct probe confirmed that Open-Meteo's archive data is available from at least 2015-11-01 through 2025-06-07. This fully covers the simulation window (2016-01-01 to 2025-06-07) with a margin either side, satisfying the Historical Ground Truth law.

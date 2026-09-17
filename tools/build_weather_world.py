@@ -121,6 +121,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import io
 import json
 import sys
 import time
@@ -513,6 +514,19 @@ def level_of(rows: list[dict]) -> float:
     return round(sum(values) / len(values), 3)
 
 
+def _series_text() -> str | None:
+    """The series file's DECOMPRESSED text, or None when there is nothing there yet.
+
+    Decompressed, because the compressed bytes cannot answer the question. gzip stamps the wall
+    clock into its header, so two writes of identical data differ as files and agree as data --
+    which is exactly why the unconditional rewrite above went unnoticed for as long as it did.
+    """
+    if not SERIES_PATH.exists():
+        return None
+    with gzip.open(SERIES_PATH, "rt", newline="", encoding="utf-8") as handle:
+        return handle.read()
+
+
 def _write(cells: dict[str, dict], rows: dict[str, list[dict]]) -> dict:
     """Write the three artefacts that make up the store, from RAW rows.
 
@@ -552,38 +566,63 @@ def _write(cells: dict[str, dict], rows: dict[str, list[dict]]) -> dict:
                     "regime_of_cell": regime_of_cell},
                    indent=1) + "\n",
         encoding="utf-8")
-    with gzip.open(SERIES_PATH, "wt", newline="", encoding="utf-8") as handle:
-        writer = _csv.DictWriter(handle, fieldnames=("cell_id", "date", *FIELDS))
-        writer.writeheader()
-        # BY REGIME ID, LEXICOGRAPHICALLY -- R00, R01, ... R10, R100, R101, ... R11. Not the
-        # numeric order and not the cell order, which both read more naturally and neither of
-        # which is what the store on disk holds. The file is keyed by regime, so the natural
-        # `sorted()` over that key is what produced it; writing cell order instead moves 529,685
-        # of the 569,868 rows and makes a byte-comparison against the existing artefact useless.
-        for cell in sorted(held, key=lambda c: regime_of_cell[c]):
-            level = levels[cell]
-            for row in sorted(rows[cell], key=lambda r: r["date"]):
-                out = {"cell_id": regime_of_cell[cell], "date": row["date"]}
-                for field in FIELDS:
-                    value = row.get(field, "")
-                    if value in ("", None):
-                        out[field] = ""
-                    elif field in LEVELLED:
-                        # `+ 0.0` NORMALISES THE SIGNED ZERO, and the 55 values it touches are
-                        # measured rather than guessed. The store built 2026-09-09 holds the text
-                        # `-0.0` at 55 of its 569,868 rows; re-deriving those cell-days from the
-                        # HadUK grids and differencing at 3 dp yields `0.0`, so the producer
-                        # reached the zero from below by an arithmetic route this one does not
-                        # take. `-0.0 == 0.0` is True and `float()` erases the distinction before
-                        # any consumer sees it, so this is a difference in TEXT and not in the
-                        # world -- but it is the whole of what stops the rebuilt series being
-                        # byte-identical, and a reader comparing files deserves to be told which
-                        # of the two forms this writer emits.
-                        out[field] = round(float(value) - level, 3) + 0.0
-                    else:
-                        out[field] = value
-                writer.writerow(out)
-    return {"cells": len(held), "regimes": len(regime_of_cell), "orphans": orphans}
+    # RENDERED FIRST, WRITTEN ONLY IF IT DIFFERS -- see `_series_text` for why the file cannot be
+    # its own comparison. `newline=""` matches the `gzip.open(..., "wt", newline="")` this replaces,
+    # so the `\r\n` the csv writer emits reaches the buffer untranslated and the bytes are the same
+    # bytes the old unconditional write produced.
+    payload = io.StringIO(newline="")
+    writer = _csv.DictWriter(payload, fieldnames=("cell_id", "date", *FIELDS))
+    writer.writeheader()
+    # BY REGIME ID, LEXICOGRAPHICALLY -- R00, R01, ... R10, R100, R101, ... R11. Not the
+    # numeric order and not the cell order, which both read more naturally and neither of
+    # which is what the store on disk holds. The file is keyed by regime, so the natural
+    # `sorted()` over that key is what produced it; writing cell order instead moves 529,685
+    # of the 569,868 rows and makes a byte-comparison against the existing artefact useless.
+    for cell in sorted(held, key=lambda c: regime_of_cell[c]):
+        level = levels[cell]
+        for row in sorted(rows[cell], key=lambda r: r["date"]):
+            out = {"cell_id": regime_of_cell[cell], "date": row["date"]}
+            for field in FIELDS:
+                value = row.get(field, "")
+                if value in ("", None):
+                    out[field] = ""
+                elif field in LEVELLED:
+                    # `+ 0.0` NORMALISES THE SIGNED ZERO, and the 55 values it touches are
+                    # measured rather than guessed. The store built 2026-09-09 holds the text
+                    # `-0.0` at 55 of its 569,868 rows; re-deriving those cell-days from the
+                    # HadUK grids and differencing at 3 dp yields `0.0`, so the producer
+                    # reached the zero from below by an arithmetic route this one does not
+                    # take. `-0.0 == 0.0` is True and `float()` erases the distinction before
+                    # any consumer sees it, so this is a difference in TEXT and not in the
+                    # world -- but it is the whole of what stops the rebuilt series being
+                    # byte-identical, and a reader comparing files deserves to be told which
+                    # of the two forms this writer emits.
+                    out[field] = round(float(value) - level, 3) + 0.0
+                else:
+                    out[field] = value
+            writer.writerow(out)
+
+    # A BUILD THAT PULLED NOTHING MUST NOT TOUCH THE SERIES FILE, measured 2026-09-17 against a
+    # live exhausted quota. `build` calls this unconditionally at the end, so a run that fetched
+    # zero cells still rewrote all 11 MB -- and gzip stamps the wall clock into its header, so the
+    # DECOMPRESSED bytes were identical and `git status` reported the store modified anyway. That
+    # is the worst shape available: the next step in this lane is a pathspec commit of exactly this
+    # path, so a quota refusal handed the committer an 11 MB diff carrying no data, and no reader
+    # of that diff could tell it from a real pull.
+    #
+    # KEYED TO THE CONTENT, not to "did we fetch": the same silent no-op rewrite happens when the
+    # book is already complete (`todo` empty) and when a re-pull returns what the store already
+    # held, and a `completed == 0` guard would miss both.
+    rendered = payload.getvalue()
+    rewritten = _series_text() != rendered
+    if rewritten:
+        # STILL `gzip.open`, not `gzip.compress`: the two differ in the header's FNAME field, and
+        # switching would move every byte of a file whose byte-comparability against the artefact
+        # on disk the block above is at pains to preserve.
+        with gzip.open(SERIES_PATH, "wt", newline="", encoding="utf-8") as handle:
+            handle.write(rendered)
+    return {"cells": len(held), "regimes": len(regime_of_cell), "orphans": orphans,
+            "series_rewritten": rewritten}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -619,6 +658,12 @@ def main(argv: list[str] | None = None) -> int:
                        temperature=not args.no_temperature)
         print(f"cells held {result['held']}/{result['cells']}, "
               f"regimes {result['regimes']}, refused {len(result['refused'])}")
+        # SAY WHICH IT WAS. The next step in this lane is a pathspec commit of the series file, and
+        # "the store is unchanged" is the one thing `git status` alone cannot tell the committer --
+        # before this line it reported a modification either way.
+        print(f"{SERIES_PATH.name}: "
+              + ("REWRITTEN" if result["series_rewritten"]
+                 else "unchanged, not rewritten (no new data)"))
         if result["unreachable"]:
             print(f"{len(result['unreachable'])} incomplete cell(s) are outside the book and were "
                   f"not attempted: {', '.join(result['unreachable'])}")
