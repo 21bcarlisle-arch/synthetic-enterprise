@@ -214,3 +214,166 @@ def test_writing_the_fold_over_one_of_its_own_sources_is_refused(tmp_path):
     assert rc == 2
     # And the source is untouched: a refusal that had already written is not a refusal.
     assert json.loads(sources[0].read_text(encoding="utf-8"))["seeds"] == _live()["seeds"]
+
+
+# ---------------------------------------------------------------------------
+# THE LEVEL LEG -- the half of the split nothing summarised until 2026-09-17
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THESE EXIST TO CATCH, and it is not a missing feature. `level_advantage_gbp` has been
+# in every seed row of every floor ever written, and `summarise` read `selection_gbp` alone. So the
+# surface published "the level-versus-selection split cannot be read" while one of its two legs had
+# a determined sign sitting in the rows. A leg nobody summarises is indistinguishable, from every
+# consumer's side, from a leg with nothing in it -- and the reading it was hiding is the
+# UNFLATTERING one, which is the direction an omission is least likely to be noticed in.
+
+#: The two nine-seed floors with DISJOINT seed values. The pair matters: `_20260910.json` re-runs
+#: `_20260909b.json`'s own seeds under a different tree, so folding those two is one family counted
+#: twice and the fold refuses it. See `test_the_two_floors_that_share_seed_values_are_refused`.
+_FLOOR_A = _REPO / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260909b.json"
+_FLOOR_B = _REPO / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260910b.json"
+_SAME_SEEDS_AS_A = _REPO / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260910.json"
+
+
+def _eighteen() -> dict:
+    for path in (_FLOOR_A, _FLOOR_B):
+        if not path.exists():
+            pytest.skip("no floor artefact on disk at {}".format(path))
+    return fold([_FLOOR_A, _FLOOR_B])
+
+
+def test_both_legs_are_summarised_and_neither_verdict_is_hardcoded():
+    """THE DEFECT: a summary that reports one leg and silently drops the other.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the level leg is
+    positive or that the selection leg is not -- those are results, and pinning them would make
+    this control go red on the day the book changes and the page becomes MORE honest. What is
+    asserted is that both legs are asked, that each carries the fields a reader needs to re-judge
+    it, and that the two were judged by the same rule.
+    """
+    got = summarise(_eighteen()["seeds"])
+
+    for leg in ("selection_leg", "level_leg", "value_leg"):
+        block = got[leg]
+        assert block["spread"]["n"] == 18, leg
+        assert block["distinguishable_from_zero"] in (True, False), leg
+        assert block["sem_gbp"] is not None and block["sem_gbp"] > 0, leg
+        # The distribution-free count must partition the family, so a reader can check the
+        # estimator's verdict against a reading that assumes nothing about the distribution.
+        assert (block["positive_seeds"] + block["negative_or_zero_seeds"]
+                == block["seeds_with_a_figure"] == 18), leg
+        assert block["distance_to_a_sign"]["available"] is True, leg
+
+    # THE ARITHMETIC TIE BETWEEN THE THREE LEGS, which is what makes them one decomposition rather
+    # than three separate measurements: selection is value minus level, seed by seed.
+    for row in _eighteen()["seeds"]:
+        assert row["selection_gbp"] == pytest.approx(
+            row["value_advantage_gbp"] - row["level_advantage_gbp"], abs=1e-6)
+
+
+def test_the_two_legs_are_judged_at_the_same_bar_so_a_split_verdict_is_about_the_data():
+    """THE DEFECT: the level leg judged at a looser bar than the selection leg.
+
+    The whole use of these two legs is the CONTRAST between their verdicts. If the bars differ,
+    "one leg's sign is stateable and the other's is not" is a property of the RULE and not of the
+    book -- and it would read on the surface exactly like a finding. Mutation: give `_leg` a
+    leg-specific bar and this fires.
+    """
+    rows = copy.deepcopy(_eighteen()["seeds"])
+    # Put both legs at the SAME numbers, so any difference in verdict can only come from the rule.
+    for row in rows:
+        row["level_advantage_gbp"] = row["selection_gbp"]
+        row["value_advantage_gbp"] = row["selection_gbp"] * 2
+    got = summarise(rows)
+    assert (got["level_leg"]["distinguishable_from_zero"]
+            == got["selection_leg"]["distinguishable_from_zero"])
+    assert got["level_leg"]["sem_gbp"] == pytest.approx(got["selection_leg"]["sem_gbp"])
+
+
+def test_the_level_legs_verdict_can_go_both_ways_on_this_summariser():
+    """THE POISON ROUND, and the R15 trap this repo has walked into three times in one afternoon.
+
+    Every assertion above is satisfied by a `distinguishable_from_zero` that is hardcoded, or by
+    one that can only ever return one answer. A verdict function whose every branch returns the
+    same value passes every per-branch test written against it. So the partition is asserted
+    REACHABLE here, over the real summariser, before any test is allowed to mean anything by it.
+    """
+    rows = copy.deepcopy(_eighteen()["seeds"])
+    determined = summarise(rows)["level_leg"]["distinguishable_from_zero"]
+
+    # Drive the same leg to the other verdict by centring it on zero and spreading it wide.
+    for i, row in enumerate(rows):
+        row["level_advantage_gbp"] = 50_000.0 if i % 2 else -50_000.0
+    undetermined = summarise(rows)["level_leg"]["distinguishable_from_zero"]
+
+    assert {determined, undetermined} == {True, False}, (
+        "the level leg's verdict returned {!r} and {!r} on a family centred away from zero and one "
+        "centred on it -- the partition is not reachable, so no test of this verdict means "
+        "anything".format(determined, undetermined))
+
+
+def test_a_family_whose_seeds_carry_no_auc_states_an_unknown_and_never_a_spread():
+    """THE DEFECT: an AUC spread computed over whichever rows happened to answer.
+
+    Every floor on disk as of 2026-09-17 predates the producer recording the AUC, so this is the
+    LIVE case and not a hypothetical. The flattering move is a spread over the subset that has a
+    reading -- which bounds a different family from the one whose advantage is published beside it.
+    """
+    got = summarise(_eighteen()["seeds"])
+    auc = got["discrimination_auc_across_seeds"]
+    assert auc["available"] is False
+    assert "spread" not in auc
+    assert auc["seeds_carrying_an_auc"] == 0
+    assert auc["seeds_in_family"] == 18
+    assert "no discrimination reading beside them" in auc["unavailable_because"]
+
+
+def test_one_seed_missing_an_auc_is_enough_to_withhold_the_whole_families_bound():
+    """THE DEFECT: a partial family bounded as if it were whole -- the fail-open twin of the above.
+
+    Mutation: relax the producer's `len(present) != len(rows)` to `not present` and this fires,
+    because eighteen-minus-one rows would then publish a spread under the family's own name.
+    """
+    rows = copy.deepcopy(_eighteen()["seeds"])
+    for i, row in enumerate(rows):
+        row["discrimination_auc"] = 0.62
+        row["auc_population"] = {"retained": 85, "left": 39}
+    whole = summarise(rows)["discrimination_auc_across_seeds"]
+    assert whole["available"] is True
+    assert whole["spread"]["n"] == 18
+    # 0.5 is the no-information point, so the reading is the distance from it and not from zero.
+    assert whole["distance_from_no_information"]["mean"] == pytest.approx(0.12)
+
+    rows[7].pop("discrimination_auc")
+    holed = summarise(rows)["discrimination_auc_across_seeds"]
+    assert holed["available"] is False
+    assert holed["seeds_carrying_an_auc"] == 17
+    assert holed["seeds_in_family"] == 18
+
+
+def test_an_unmeasured_auc_is_never_written_as_the_no_information_value():
+    """THE DEFECT: `None` coerced to 0.5. That is a REAL reading -- it means the belief carries no
+    information about who stays -- so a run that was never scored would be published as a run that
+    was scored and found to know nothing. Those license opposite decisions about the thesis."""
+    rows = copy.deepcopy(_eighteen()["seeds"])
+    for row in rows:
+        row["discrimination_auc"] = None
+    auc = summarise(rows)["discrimination_auc_across_seeds"]
+    assert auc["available"] is False
+    assert auc["seeds_carrying_an_auc"] == 0
+
+
+def test_the_two_floors_that_share_seed_values_are_refused():
+    """THE DEFECT, AND IT IS THE ONE THIS SESSION WALKED INTO. Three nine-seed floors sit in
+    `docs/observability/`, and 27 rows look like 27 draws. Two of them re-run the SAME nine seed
+    values under different trees, so the honest family is 18 and not 27. This pins that the refusal
+    covers the real pair on disk and not only a synthetic one."""
+    for path in (_FLOOR_A, _SAME_SEEDS_AS_A):
+        if not path.exists():
+            pytest.skip("no floor artefact on disk at {}".format(path))
+    with pytest.raises(FoldRefused) as refusal:
+        fold([_FLOOR_A, _SAME_SEEDS_AS_A])
+    assert "appears in both" in str(refusal.value)
+    # And the pair that does NOT share seeds folds, so the refusal above is about the seeds and
+    # not about these two files being unfoldable for some other reason.
+    assert len(fold([_FLOOR_A, _FLOOR_B])["seeds"]) == 18

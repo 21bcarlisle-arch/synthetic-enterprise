@@ -4002,14 +4002,25 @@ def fork_state_verdict(behind, ahead):
     `None` IN EITHER SLOT IS NOT ZERO. `origin_reconcile.commits_behind` returns `None` when it
     cannot reach the remote, and that module's own contract treats it as "do not act" precisely
     because reading it as `0` publishes LEVEL -- an affirmative claim that the citation is safe
-    to quote -- on the strength of a failed fetch."""
+    to quote -- on the strength of a failed fetch.
+
+    A NEGATIVE COUNT IS NOT A FORK. `git rev-list --count` cannot return one, so a negative here
+    means something upstream wrote a sentinel or a subtraction where a count belongs. Rendering
+    it reaches the reader as "-1 commit(s) behind origin/main", which INVENTS a divergence --
+    the same fail-open direction as the bool leg below, through a narrower door.
+
+    THE TWO REFUSALS ARE SEPARATE AND MUST STAY SO -- see `fork_state_no_red_refusal`. This one
+    means "the question was put and could not be answered"; that one means "there was no
+    question to put". Collapsing them makes the record blame a fetch that never failed."""
     if not isinstance(behind, int) or not isinstance(ahead, int) \
-            or isinstance(behind, bool) or isinstance(ahead, bool):
+            or isinstance(behind, bool) or isinstance(ahead, bool) \
+            or behind < 0 or ahead < 0:
         return {"verdict": FORK_NOT_ESTABLISHED,
-                "reason": "the fork with origin/main could not be counted when this red was "
-                          "graded, so whether the graded tree is the shared branch is unknown. "
-                          "Confirm with `git rev-list --count HEAD..origin/main` before "
-                          "quoting the citation below."}
+                "reason": "how far the graded tree stood from origin/main was not recorded (the "
+                          "record predates the field, or origin could not be read when this red "
+                          "was measured), so whether the graded tree is the shared branch is "
+                          "unknown -- not settled either way. Confirm with `git rev-list "
+                          "--count HEAD..origin/main` before quoting the citation below."}
     if behind == 0 and ahead == 0:
         return {"verdict": FORK_LEVEL,
                 "reason": "the graded tree was LEVEL with origin/main, so the citation names "
@@ -4021,6 +4032,28 @@ def fork_state_verdict(behind, ahead):
                       "this tree lacks) or red only because of the {} unpushed commit(s) this "
                       "tree carries. Re-grade in a clean extract of origin/main before sending "
                       "anyone at it.".format(behind, ahead, behind, ahead)}
+
+
+def fork_state_no_red_refusal():
+    """The OTHER refusal: this failure named no red, so there is no graded tree to place.
+
+    SEPARATE FROM `fork_state_verdict`'s refusal ON PURPOSE, and this is a repair rather than a
+    decoration (2026-09-17). The two causes were collapsed when this field was renamed from
+    `red_tree_fork`: the call site suppresses the fork read when nothing is blocking and passes
+    `(None, None)`, which came back as "the fork with origin/main could not be counted when this
+    red was graded" -- a sentence about a red that does not exist, blaming a fetch that never
+    ran. A reader arguing with that refusal would have gone looking at the remote.
+
+    Kept PURE and out of `fork_state_verdict` so that function stays a function of the two counts
+    only. Re-adding a `node_ids` parameter would put the suppression back inside the verdict,
+    which is the shape the rename correctly removed.
+
+    "This is not evidence the tree was level" is load-bearing, not tone. Both refusals carry it
+    because the flattering reading of a refusal's own silence -- divergence RULED OUT because
+    nobody could measure it -- is the direction that sends a reader back at innocent tests."""
+    return {"verdict": FORK_NOT_ESTABLISHED,
+            "reason": "no red is named on this failure, so there is no graded tree to place "
+                      "against origin/main. This is not evidence the tree was level."}
 
 
 def _fork_state_for_record(project=None):
@@ -8798,9 +8831,11 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # moment, so the fork claim can never describe a different tree from the node ids beside
         # it -- and suppressed by the SAME condition, because a fork reading attached to a red
         # this cycle did not name is a caveat about somebody else's citation.
-        fork_behind, fork_ahead = ((None, None) if not blocking
-                                   else last_fork_state(now=now))
-        fork = fork_state_verdict(fork_behind, fork_ahead)
+        # ...and the suppression says WHICH refusal it is. Routing the no-red case through
+        # `(None, None)` made the record blame an unreadable origin for a question nobody put;
+        # `fork_state_no_red_refusal` names the real cause. See its docstring.
+        fork = (fork_state_no_red_refusal() if not blocking
+                else fork_state_verdict(*last_fork_state(now=now)))
         entry["fork_state"] = fork["verdict"]
         entry["fork_state_reason"] = fork["reason"]
         log("Publish gate: the graded tree is `{}` against origin/main -- {}".format(
