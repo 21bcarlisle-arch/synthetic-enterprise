@@ -30,6 +30,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 # (token-proxy, file-api) carry health_checked:false in the manifest, so they are excluded
 # here exactly as before — plus naive-organ is now correctly included.
 from background import process_reconciler as _reconciler  # noqa: E402
+from background import tree_lock  # noqa: E402
 from background.notify import notify  # noqa: E402
 from tools import maturity_map_store as map_store  # noqa: E402
 
@@ -203,6 +204,25 @@ def stale_daemon_sessions() -> list[str]:
     return stale_sessions
 
 
+def _pixel_verification_root() -> Path:
+    """The ONE tree whose `node_modules/` the Playwright probe must resolve
+    against, identical from the main tree and from every linked worktree.
+
+    `common_git_dir()` names the single shared `.git`, so its parent is the main
+    worktree -- the only checkout where a gitignored `node_modules/` can live.
+    Reused from `background/tree_lock.py` rather than re-deriving here: there is
+    one correct answer to "which tree is the shared one" and it should have one
+    implementation.
+
+    Falls back to `PROJECT_DIR` when the resolved root carries no `package.json`
+    (a bare/absent git dir, or a layout where the parent is not a checkout), so
+    the probe degrades to its old cwd-ish behaviour rather than raising -- and a
+    genuinely missing Playwright still reports unavailable either way.
+    """
+    root = tree_lock.common_git_dir(PROJECT_DIR).parent
+    return root if (root / "package.json").is_file() else PROJECT_DIR
+
+
 def _check_pixel_verification_capability() -> str | None:
     """Return warning string if real browser pixel-verification (Playwright)
     is not actually launchable right now.
@@ -224,10 +244,29 @@ def _check_pixel_verification_capability() -> str | None:
     navigation -- this runs on every routine health-check cycle and must stay
     fast. A full live-site pixel check is a separate, on-demand verification
     step, not a routine health-check concern.
+
+    ANCHORED TO THE SHARED TREE, NOT THE CALLER'S CWD (2026-09-17). `npx
+    --no-install` resolves `playwright` by walking up from its cwd, and
+    `node_modules/` is gitignored -- so it exists ONLY in the main worktree and
+    never in a linked one. Probing from cwd therefore answered "does THIS
+    CHECKOUT have node_modules", while the sentence it returns, the alarm it
+    raises and this function's own name all claim a property of the MACHINE.
+    Run from a worktree it reported the capability lost while the very same
+    probe returned `Version 1.62.0` from the main tree one second later -- a
+    full Lane 0 item was spent establishing that the machine had lost nothing.
+    Anchoring to `common_git_dir().parent` (the ONE tree that holds the
+    dependency, identical from every checkout) makes the answer a property of
+    the machine, which is the thing being asserted.
+
+    This cannot hide a real breakage, which is why it is a correction and not a
+    narrowing: delete `node_modules/` from the main tree and every caller, in
+    every checkout, goes red together. What it removes is the FALSE red, which
+    is the one that was costing turns.
     """
     try:
         result = subprocess.run(
             ["npx", "--no-install", "playwright", "--version"],
+            cwd=str(_pixel_verification_root()),
             capture_output=True, text=True, timeout=15,
         )
         if result.returncode != 0:

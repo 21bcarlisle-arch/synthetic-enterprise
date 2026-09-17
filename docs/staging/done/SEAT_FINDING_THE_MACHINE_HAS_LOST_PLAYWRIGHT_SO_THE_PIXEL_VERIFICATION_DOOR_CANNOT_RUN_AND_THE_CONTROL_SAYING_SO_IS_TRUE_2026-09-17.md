@@ -2,6 +2,28 @@
 
 # The machine has lost Playwright, so pixel verification cannot run — and the red control saying so is TRUE, which is why I have not touched it
 
+> ## ⚠ REFUTED 2026-09-17, same day, by the next hand — the title is FALSE
+>
+> **The machine had lost nothing.** The main worktree had Playwright 1.62.0 throughout, and a real
+> `chromium.launch()` renders. The red was measured from a LINKED WORKTREE, where `node_modules/` is
+> gitignored and so never exists; `npx --no-install` resolves by walking up from cwd, so it found
+> nothing. The truncated `["play....0"]` quoted in §1 below is `["playwright@1.63.0"]`, and it
+> reproduces on demand by running the identical probe from a worktree.
+>
+> **§2's feared expensive outcome did not occur and could not have.** The door suites never used
+> Playwright — they drive a Node/`vm` harness needing nothing from `node_modules/`. Measured before
+> any restore attempt: **807 passed, 38 skipped, 0 failed, and not one skip browser-related.** No
+> close in the window inherits doubt from this cause.
+>
+> **What §2 got right:** relaxing the control to a skip, or mocking the probe, would have been the
+> narrowing move. The repair was neither — the probe is now anchored to the tree that holds the
+> dependency, so a genuine loss still reds everywhere.
+>
+> Full working, mutation proof and the one gap left open:
+> `SEAT_RESULT_THE_MACHINE_NEVER_LOST_PLAYWRIGHT_AND_THE_PROBE_WAS_ASKING_WHICH_CHECKOUT_IT_STOOD_IN_2026-09-17.md`.
+> Kept beside the claim rather than revised: this is the evidence the question was framed before its
+> answer was known.
+
 **Filed 2026-09-17, delivery seat.** Found by the full `tests/background/` run behind the Lane 0
 thirteen-reds item. **No pre-registration: this was an observation from a run whose purpose was to
 enumerate reds, not to test a hypothesis about the environment.**

@@ -129,10 +129,65 @@ class TestCheckPixelVerificationCapability:
     alarmed health-check failure, not a silently-reasoned-around caveat."""
 
     def test_returns_none_when_playwright_available(self):
-        # Real invocation -- this environment genuinely has Playwright
-        # available (proven 2026-07-11 via a live pixel check on poesys.net),
-        # so this is a real, not mocked, positive-path assertion.
+        # Real invocation, not a mock: this machine genuinely has Playwright in
+        # the main worktree's `node_modules/` (`npx --no-install playwright
+        # --version` -> `Version 1.62.0`, re-proven 2026-09-17).
+        #
+        # The comment this replaces cited a 2026-07-11 live pixel check as the
+        # standing proof, and by 2026-09-17 that was a two-month-old claim about
+        # the world being re-asserted on every run. It went red -- truthfully,
+        # on its own terms -- the first time it was run from a linked worktree,
+        # and the red said "the machine has lost Playwright" when the machine
+        # had lost nothing. See the cwd-independence control below: THAT is the
+        # leg which grades the anchoring, and this one is now only asking
+        # whether the dependency is installed at all.
         assert health_check._check_pixel_verification_capability() is None
+
+    def test_the_answer_does_not_depend_on_the_callers_cwd(self, tmp_path, monkeypatch):
+        """R15 defect: the probe answered "does THIS CHECKOUT have node_modules"
+        while claiming a property of the MACHINE.
+
+        `npx --no-install` resolves by walking UP from its cwd, and
+        `node_modules/` is gitignored -- so it exists only in the main worktree.
+        Called from a linked worktree (or any other directory), the pre-fix
+        probe reported the capability LOST while the identical probe returned
+        `Version 1.62.0` from the main tree. A whole Lane 0 delivery item was
+        spent establishing that nothing was broken.
+
+        Keyed to the PROPERTY (the answer is the same from everywhere), not to
+        today's answer, so it stays honest if the machine really does lose
+        Playwright -- then this and the test above go red TOGETHER, which is the
+        true reading.
+
+        MUTATION-PROVEN: drop the `cwd=` argument from the `subprocess.run` call
+        in `_check_pixel_verification_capability` and this reds, because
+        `tmp_path` has no `node_modules` at or above it. The three mocked tests
+        below CANNOT catch that mutation -- they stub `subprocess.run` with
+        `lambda *a, **k`, which swallows `cwd` without grading it -- so this is
+        the only leg holding the anchoring.
+        """
+        monkeypatch.chdir(tmp_path)
+        # Teeth: prove the cwd really is a place where a cwd-relative probe
+        # would fail, so a pass here cannot be an accident of the sandbox.
+        assert not (tmp_path / "node_modules").exists()
+        assert not any((p / "node_modules").exists() for p in tmp_path.parents)
+
+        assert health_check._check_pixel_verification_capability() is None
+
+    def test_the_root_it_probes_is_the_tree_that_holds_the_dependency(self):
+        """The resolver must name the MAIN worktree -- the one checkout where a
+        gitignored `node_modules/` can live -- from whichever tree this runs in.
+
+        Separate from the control above because they fail for different reasons
+        and a reader deserves to know which: that one says "the answer moved
+        with my cwd", this one says "the anchor points at the wrong tree".
+        """
+        root = health_check._pixel_verification_root()
+        assert (root / "package.json").is_file(), f"{root} is not a checkout"
+        # The shared `.git` lives in the main tree, and `common_git_dir` is the
+        # one resolver for it -- so the anchor is the main tree by construction,
+        # not by a path string this test would have to hand-maintain.
+        assert (root / ".git").exists(), f"{root} is not the MAIN worktree"
 
     def test_returns_warning_on_nonzero_exit(self, monkeypatch):
         class _FakeResult:
