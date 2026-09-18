@@ -28,6 +28,7 @@ shrinks as rows are routed through the remedy.
 from __future__ import annotations
 
 import functools
+import json
 from pathlib import Path
 
 from tools import substring_source_scan_census as census
@@ -267,8 +268,17 @@ def test_the_taint_answer_does_not_depend_on_STATEMENT_ORDER(tmp_path):
 
 
 def test_the_floor_holds_and_no_row_is_stale():
-    """The real tree, against the frozen baseline. Shrink-only in both directions."""
-    new, stale = census.check(REPO)
+    """The real tree, against the frozen baseline. Shrink-only in both directions.
+
+    GRADED ON THE WALK `_real_tree` ALREADY TOOK. This file used to walk the whole committed
+    `tests/`, `tools/` and `background/` tree twice per run -- once here through `check`, once for
+    the vacuity guard below -- over the same tree at the same commit, so the two could not
+    disagree. It is the dearest single file in the pre-commit chain's always-run control set
+    (40.1s of 155.2s, measured 2026-09-18) and the chain is close enough to its ceiling that the
+    duplicate walk is worth deleting. The rows compared are unchanged, which is what
+    `test_a_handed_in_census_is_what_the_floor_is_graded_against` is for.
+    """
+    new, stale = census.check(REPO, scans=_real_tree())
     assert not new, (
         f"a control reads Python source as text: {sorted(new)} -- route it through "
         f"tools/python_code_text.py, or freeze the row with a stated reason"
@@ -276,6 +286,40 @@ def test_the_floor_holds_and_no_row_is_stale():
     assert not stale, (
         f"the baseline claims rows the tree no longer has: {sorted(stale)} -- delete them; "
         f"a dead exemption is a pre-authorised re-entry"
+    )
+
+
+def test_a_handed_in_census_is_what_the_floor_is_graded_against(tmp_path):
+    """`check(..., scans=...)` compares the ROWS IT WAS HANDED, and takes no walk behind them.
+
+    THE DEFECT THE PARAMETER COULD HAVE BEEN. An implementation that accepted `scans` and quietly
+    censused anyway would leave the floor test above green, byte-identical and exactly as slow --
+    a cut that reads as landed and delivers nothing. Every leg here is over a synthetic row set
+    that shares no member with the real tree, so a hidden walk of `REPO` reddens all three.
+
+    Both DIRECTIONS of the comparison are asserted from the handed-in set, because a `scans` used
+    for `new` and ignored for `stale` is half a parameter, and the floor is shrink-only in both.
+
+    MUTATION: `census(root)` unconditionally, ignoring `scans`, and this fires.
+    """
+    rows = (census.Scan("a.py", "f", 1, census.PYTHON, ()),
+            census.Scan("b.py", "g", 2, census.PYTHON, ()))
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(json.dumps({"rows": [{"path": s.path, "function": s.function}
+                                             for s in rows]}), encoding="utf-8")
+
+    assert census.check(REPO, baseline, scans=rows) == (set(), set()), (
+        "a census handed in whole did not match the baseline frozen from it"
+    )
+    assert census.check(REPO, baseline, scans=rows[:1]) == (set(), {("b.py", "g")}), (
+        "a row the handed-in census does not carry was not reported stale -- the `stale` half "
+        "was computed from something other than `scans`"
+    )
+    assert census.check(REPO, baseline,
+                        scans=[*rows, census.Scan("c.py", "h", 3, census.PYTHON, ())]) == (
+        {("c.py", "h")}, set()), (
+        "a row only the handed-in census carries was not reported new -- the `new` half was "
+        "computed from something other than `scans`"
     )
 
 

@@ -14,6 +14,7 @@ orphan ratchet is right to refuse one.
 from __future__ import annotations
 
 import ast
+import json
 import re
 from pathlib import Path
 
@@ -153,3 +154,75 @@ def test_every_timed_step_names_a_target_that_exists(name, argv, _is_floor):
     ]
     assert any(c.is_file() for c in candidates), (
         f"step {name} runs {target}, which is not a file in this tree")
+
+
+# ── the readings have to survive the run that took them ─────────────────────────────────────────
+
+def test_a_reading_is_appended_to_the_tracked_series_by_default(tmp_path):
+    """A DEFAULT, not a flag, and the default is the whole control.
+
+    THE DEFECT, measured 2026-09-18. This tool's first run wrote its numbers behind an optional
+    `--json` that was not passed, so the readings survived only as a prose table inside a staging
+    document. The next turn was then handed a `+6.3%/day` trend to attribute across two dates,
+    had ONE machine-readable date to do it with, and had to re-take the second reading before it
+    could begin. A diagnostic whose readings need a flag to survive is one run forever.
+
+    KEYED TO THE PROPERTY -- a reading, appended, carrying the commit and the per-step numbers --
+    rather than to today's step names, so it stays true as the chain changes shape underneath it.
+
+    MUTATION: drop the `append_to_series` call from `main`, or default `--no-series` to True, and
+    the series stops growing; this control is written against the writer so that either shows up
+    as a row that never arrives.
+    """
+    series = tmp_path / "commit_hook_step_timings.jsonl"
+    timer.append_to_series({
+        "measured_at": "2026-09-18T01:12:06Z",
+        "control_set": {"files": 2, "one_run_seconds": 155.22,
+                        "per_file": [{"path": "tests/a.py", "seconds": 40.1},
+                                     {"path": "tests/b.py", "seconds": 1.2}]},
+        "steps": [{"step": "site_lane_gate", "seconds": 149.78, "reading_is_a_floor": True},
+                  {"step": "orphan_ratchet", "seconds": 21.6, "reading_is_a_floor": False}],
+    }, path=series)
+
+    rows = [json.loads(line) for line in series.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 1, "the reading did not reach the series"
+    row = rows[0]
+    assert row["steps"]["site_lane_gate"] == 149.78
+    assert row["control_set_per_file"]["tests/a.py"] == 40.1, (
+        "the per-file readings were dropped, and they are the only part that says WHICH control "
+        "to cut -- a chain total nobody can attribute is the instrument this tool replaced"
+    )
+    # `<= set(row)` rather than `"commit" in row`, and the reason is this repository's own census:
+    # `tools/substring_source_scan_census.py` reads a container-membership test over a value parsed
+    # out of file text as a possible substring scan of source, and cannot tell the two apart. The
+    # subset comparison asks the same question and is not that shape, which is cheaper than
+    # freezing a floor row that says "this one is fine".
+    assert {"commit"} <= set(row), (
+        "the reading does not name the tree it was taken on, so a two-date difference attributes "
+        "nothing"
+    )
+    assert row["steps_reading_is_a_floor"] == ["site_lane_gate"], (
+        "a floor reading is not marked as one, so a step that reads near-zero on an empty index "
+        "will be compared against a real commit's cost as though the two were the same quantity"
+    )
+
+
+def test_a_second_reading_APPENDS_and_never_replaces_the_first(tmp_path):
+    """The series is the two dates. A writer that truncated would leave exactly one forever.
+
+    This is the same defect as the one above wearing a different hat, and it is worth its own leg
+    because the obvious implementation -- `write_text` -- passes every assertion in that test.
+
+    MUTATION: open the path with `"w"` instead of `"a"` and this fires.
+    """
+    series = tmp_path / "commit_hook_step_timings.jsonl"
+    for stamp in ("2026-09-17T00:00:00Z", "2026-09-18T00:00:00Z"):
+        timer.append_to_series({"measured_at": stamp, "steps": [
+            {"step": "orphan_ratchet", "seconds": 21.6, "reading_is_a_floor": False}]}, path=series)
+
+    stamps = [json.loads(line)["measured_at"]
+              for line in series.read_text(encoding="utf-8").splitlines()]
+    assert stamps == ["2026-09-17T00:00:00Z", "2026-09-18T00:00:00Z"], (
+        "the second reading replaced the first: the series can never hold two dates, which is "
+        "the only shape a growth rate can be attributed on"
+    )

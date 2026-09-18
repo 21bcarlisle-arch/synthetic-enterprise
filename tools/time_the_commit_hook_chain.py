@@ -33,6 +33,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+#: WHERE A READING GOES BY DEFAULT, and the reason it is a tracked series rather than a flag.
+#: The first run of this tool (2026-09-17) wrote its numbers to a prose table in a staging
+#: document behind an optional `--json` nobody passed. The next turn was then asked to attribute a
+#: +6.3%/day trend across two dates and had ONE machine-readable date to do it with -- the second
+#: reading had to be re-taken before any comparison could begin, and the first had to be read out
+#: of a paragraph. A diagnostic whose readings need a flag to survive is one run forever, so this
+#: one appends unless told not to.
+SERIES_PATH = ROOT / "docs" / "observability" / "commit_hook_step_timings.jsonl"
+
 #: The chain, in hook order. `staged_subject` marks a step whose cost depends on what is staged,
 #: so its reading on an empty index is a LOWER BOUND rather than a measurement.
 STEPS: tuple[tuple[str, list[str], bool], ...] = (
@@ -97,6 +106,10 @@ def main() -> int:
                         help="time the always-run control set as ONE pytest run and each file "
                              "separately, which is what attributes the test gate")
     parser.add_argument("--json", type=Path, help="write the readings here as JSON")
+    parser.add_argument("--no-series", action="store_true",
+                        help="do NOT append this reading to the tracked series -- for a run "
+                             "taken under known contention, or in a scratch extract, where the "
+                             "number would pollute the trend rather than extend it")
     args = parser.parse_args()
 
     readings: dict[str, object] = {"measured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ",
@@ -144,7 +157,43 @@ def main() -> int:
     if args.json:
         args.json.write_text(json.dumps(readings, indent=2) + "\n", encoding="utf-8")
         print(f"[chain] readings -> {args.json}")
+    if not args.no_series:
+        append_to_series(readings)
+        print(f"[chain] appended to the series -> {SERIES_PATH.relative_to(ROOT)}")
     return 0
+
+
+def append_to_series(readings: dict, path: Path = SERIES_PATH) -> None:
+    """Append one reading to the tracked series, flattened to one line per run.
+
+    THE COMMIT IS CARRIED, because a per-step timing is meaningless without the tree it was taken
+    on: the whole use of this series is a two-date difference, and a difference between two runs
+    that cannot name their commits attributes nothing. It is read from git rather than passed in,
+    so a caller cannot get it wrong, and it is `None` with the field still present when git will
+    not answer -- an absent commit is a fact about the reading and must not look like an absent
+    field.
+    """
+    commit = None
+    try:
+        proc = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+                              capture_output=True, text=True, timeout=30, check=False)
+        if proc.returncode == 0:
+            commit = proc.stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        commit = None
+    row = {"measured_at": readings.get("measured_at"), "commit": commit}
+    control = readings.get("control_set")
+    if control:
+        row["control_set_one_run_seconds"] = control.get("one_run_seconds")
+        row["control_set_files"] = control.get("files")
+        row["control_set_per_file"] = {r["path"]: r["seconds"] for r in control.get("per_file", [])}
+    if readings.get("steps"):
+        row["steps"] = {s["step"]: s["seconds"] for s in readings["steps"]}
+        row["steps_reading_is_a_floor"] = sorted(
+            s["step"] for s in readings["steps"] if s["reading_is_a_floor"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
 
 
 if __name__ == "__main__":

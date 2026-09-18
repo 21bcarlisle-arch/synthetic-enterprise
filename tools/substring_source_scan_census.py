@@ -76,6 +76,7 @@ import functools
 import json
 import subprocess
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -778,14 +779,30 @@ def freeze(root: Path = _REPO, path: Path = BASELINE_PATH) -> int:
     return len(scans)
 
 
-def check(root: Path = _REPO, path: Path = BASELINE_PATH) -> tuple[set, set]:
+def check(root: Path = _REPO, path: Path = BASELINE_PATH,
+          scans: Iterable[Scan] | None = None) -> tuple[set, set]:
     """`(new, stale)` -- rows the tree grew, and rows the baseline still claims and the tree lost.
 
     SHRINK-ONLY IN BOTH DIRECTIONS. A new row is the eleventh instance and refuses. A stale row is
     a fixed control whose exemption outlived it, and this repo's own evidence is that a dead
     exemption is a pre-authorised re-entry: it is deleted, not left behind.
+
+    `scans` LETS A CALLER THAT HAS ALREADY WALKED THE TREE SAY SO, and it is here for a cost
+    rather than for a feature. `tests/architecture/test_a_control_reads_python_as_code.py` walks
+    the real tree twice per run -- once for its vacuity guard, once through this function -- and
+    that file is the dearest single member of the pre-commit chain's always-run control set
+    (40.1s of 155.2s, measured 2026-09-18). The two walks are over the same tree at the same
+    commit and cannot disagree; the second is pure duplication, and the chain is close enough to
+    its ceiling that pure duplication is worth deleting.
+
+    `None` STILL WALKS, so no caller has to know this parameter exists and the gate's own entry
+    point is unchanged. What the caller must not do is hand in a census of a DIFFERENT tree, and
+    a row carries a repo-relative path so nothing here could detect that -- which is why the
+    parameter is reserved to a caller holding a census it took over this same `root`, and why
+    `test_a_handed_in_census_is_what_the_floor_is_graded_against` pins that the rows handed in
+    are the rows compared rather than a walk taken behind the caller's back.
     """
-    live = {s.row for s in census(root)}
+    live = {s.row for s in (census(root) if scans is None else scans)}
     frozen = load_baseline(path)
     return live - frozen, frozen - live
 
