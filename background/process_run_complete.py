@@ -2638,9 +2638,50 @@ def _record_gate_green_clock(git_hash: str, now: float | None = None) -> bool:
         return False
 
 
+def graded_sha_of(checkout: Path) -> str | None:
+    """The commit the gate is ACTUALLY grading: the checkout's own statement of what it is.
+
+    THE DEFECT THIS CLOSES (measured 2026-09-18 on the live record, not inferred). The publish
+    path carries ONE sha, `git_hash`, read off the run MARKER -- the commit the SIMULATION was
+    produced at. The gate's subject is a different commit: `_head_checkout` extracts `_head_sha()`
+    and `_make_checkout_a_repo` writes THAT into the checkout's `.git/HEAD`. A sim run takes ~26
+    minutes and other lanes land throughout, so the two agree only when nothing landed meanwhile.
+
+    On 2026-09-18 21:57:27Z `.last_gate_blocking_tests.json` recorded `git_hash: ec14df3c7` while
+    this module's own log line, at that same instant, read "HEAD is now git=d16c77ea9". The census
+    ran in a checkout of d16c77ea9 and was filed against an ancestor 24 commits behind it.
+
+    WHAT THAT COSTS, and it is the whole episode: `red_at_head_verdict` answers "was this red at
+    HEAD?" by comparing the recorded sha against HEAD. Fed the marker's, it can only ever answer
+    `not_established` -- which it did for all 13 failures of this wedge. The RUNG-1 draw then
+    tells the seat the red may already be repaired, and the seat spends an invocation establishing
+    what the record was built to state. `test_a_recorded_red_says_which_tree_it_was_measured_on.py`
+    is green throughout, because it passes HEAD in as `blocking_hash` itself -- the caller is the
+    half nobody put on trial.
+
+    READ FROM THE CHECKOUT, never re-derived with a second `_head_sha()` call: the point is to
+    name the tree that was GRADED, and a fresh call can answer about a HEAD that has since moved.
+    `None` means the checkout would not say, and every caller keeps the marker's sha with that
+    fact recorded beside it -- an unavailable answer is never a flattering one (R15)."""
+    try:
+        sha = (Path(checkout) / ".git" / "HEAD").read_text().strip()
+    except (OSError, ValueError):
+        return None
+    if sha.startswith("ref:"):
+        # A symbolic HEAD is a checkout somebody else built, not `_make_checkout_a_repo`'s, and
+        # resolving it would be guessing at which ref that somebody meant.
+        return None
+    return sha if _sha_is_usable(sha) else None
+
+
 def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     """Run the publish-gate argv in `cwd` and record the outcome. Split out so the checkout
-    lifecycle above stays readable and the run itself stays testable."""
+    lifecycle above stays readable and the run itself stays testable.
+
+    `git_hash` is the MARKER's commit and stays that way for the three consumers documented to
+    want it (LAST_TESTED_HASH_CONTRACT, and `record_publish_gate_outcome`'s deliberate
+    marker-keying). The GRADED sha is recorded alongside it, never instead of it -- see
+    `graded_sha_of`."""
     # Blocking scope = publish-SURFACE tests only (see publish_gate_pytest_argv:
     # heavy ignores for speed, operational ignores for R10 class closure).
     #
@@ -2722,7 +2763,8 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
         # doorbell names every red rather than the first. See GATE_RED_CENSUS_* above.
         census = run_red_census(gate_argv, cwd, full_env, _parse_failed_node_ids(
             "{}\n{}".format(result.stdout or "", result.stderr or "")))
-        _log_gate_failure_payload(result, git_hash, census=census)
+        _log_gate_failure_payload(result, git_hash, census=census,
+                                  graded_sha=graded_sha_of(cwd))
     return result.returncode == 0, False
 
 
@@ -3421,7 +3463,7 @@ def _parse_refusing_gate(text):
     return None
 
 
-def _log_gate_failure_payload(result, git_hash="unknown", census=None):
+def _log_gate_failure_payload(result, git_hash="unknown", census=None, graded_sha=None):
     """Log WHICH tests blocked the publish, not just THAT they did.
 
     Called only on a red gate. Emits the failing node IDs (pytest's own
@@ -3442,7 +3484,7 @@ def _log_gate_failure_payload(result, git_hash="unknown", census=None):
     # `run_red_census` to be a superset of it -- so this can only ever add node ids, never lose
     # the one the verdict itself named.
     census_ids, census_status = (census if census else (node_ids, CENSUS_FAIL_FAST_ONLY))
-    _write_blocking_tests(census_ids, git_hash, census=census_status)
+    _write_blocking_tests(census_ids, git_hash, census=census_status, graded_sha=graded_sha)
     tail = out.strip()[-GATE_FAILURE_TAIL_CHARS:]
     if tail:
         log("Publish gate RED output tail:\n{}".format(tail))
@@ -3670,8 +3712,17 @@ def run_red_census(gate_argv, cwd, full_env, fail_fast_ids, *, runner=None, budg
     return merged, status
 
 
-def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY):
+def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY, graded_sha=None):
     """Publish the red gate's blocking node IDs for the alarm process. Never raises.
+
+    TWO SHAS, BECAUSE THERE ARE TWO QUESTIONS (2026-09-18, and the 13-failure wedge that could
+    not be attributed). `git_hash` is the MARKER's commit -- what `record_publish_gate_outcome`
+    is documented to key on, and it stays. `graded_sha` is the commit the suite actually ran
+    against, read from the checkout by `graded_sha_of`, and it is the one `red_at_head_verdict`
+    needs: that function compares its sha against HEAD, and the marker's is a different commit
+    by construction on any tree where a lane landed during the sim run. Recorded ADDITIVELY --
+    an older record with no `graded_sha` reads as "the graded tree was not recorded", which is
+    exactly what it was, and never as agreement.
 
     `total_red` is the size of the set BEFORE the citation cap, so a reader can tell a cap that
     bound from one that did not -- the cap must never be able to look like the answer.
@@ -3687,6 +3738,7 @@ def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY):
         GATE_BLOCKING_TESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
         guard_live_ledger_write(GATE_BLOCKING_TESTS_FILE, writer="process_run_complete._write_blocking_tests").write_text(json.dumps(
             {"ts": time.time(), "git_hash": str(git_hash),
+             "graded_sha": str(graded_sha) if graded_sha else None,
              "census": str(census), "total_red": len(node_ids),
              "fork_behind": fork_behind, "fork_ahead": fork_ahead,
              "node_ids": [str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]]},
@@ -3903,6 +3955,33 @@ def last_fork_state(now=None, path=None):
         return pair[0], pair[1]
     except (json.JSONDecodeError, OSError, ValueError, TypeError):
         return None, None
+
+
+def last_graded_sha(now=None, path=None):
+    """The commit the red `last_blocking_tests` just read was actually GRADED on, or None.
+
+    A FOURTH SEPARATE READER, for the reason `last_red_census` gives about being the second: only
+    the attribution builder wants this, and widening either existing tuple would have every other
+    call site unpacking a field it ignores.
+
+    EVERY UNREADABLE SHAPE ANSWERS `None`, including a record written before this field existed --
+    which is precisely what those records were: a red filed with no statement of which tree
+    produced it. `None` sends the caller back to the marker's sha WITH that fact in the reason,
+    never to a silent substitution. Stale reads as unknown for the reason `last_fork_state` gives:
+    the tree this describes has moved."""
+    p = Path(path) if path is not None else GATE_BLOCKING_TESTS_FILE
+    now = time.time() if now is None else float(now)
+    try:
+        rec = json.loads(p.read_text())
+        if not isinstance(rec, dict):
+            return None
+        ts = rec.get("ts")
+        if not isinstance(ts, (int, float)) or now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
+            return None
+        sha = rec.get("graded_sha")
+        return str(sha) if _sha_is_usable(sha) else None
+    except (json.JSONDecodeError, OSError, ValueError, TypeError):
+        return None
 
 
 # ── WHOSE RED IS IT: HEAD'S, OR THE ONE THIS PUBLISH WOULD HAVE CREATED? (2026-09-16) ─────────
@@ -8879,7 +8958,17 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # next to `last_blocking_tests` for. Written to the ENTRY and to the top level: the entry
         # is what survives into the history a later episode reads back, the top level is what the
         # RUNG-1 draw and the seat brief quote.
-        red_at_head = red_at_head_verdict(blocking, blocking_hash, census,
+        # ...AND ON WHICH TREE, asked of the record rather than of the marker (2026-09-18).
+        # `blocking_hash` is the MARKER's commit -- the commit the SIMULATION ran at, which the
+        # gate never grades: `_head_checkout` extracts HEAD. Feeding it here made this verdict
+        # structurally unable to answer anything but `not_established` on any tree where a lane
+        # landed during the ~26-minute sim run, which is every busy tree. All 13 failures of the
+        # 2026-09-18 wedge read `not_established` for exactly this reason, and the RUNG-1 draw
+        # quoted it as "a fix may ALREADY have landed" about a red nobody had graded at HEAD.
+        # Read from the SAME record as `blocking` and `census`, at the same moment, so the
+        # attribution can never name a different tree from the node ids beside it.
+        graded_sha = last_graded_sha(now=now) if blocking else None
+        red_at_head = red_at_head_verdict(blocking, graded_sha or blocking_hash, census,
                                           _head_sha_for_attribution())
         entry["red_at_head"] = red_at_head["verdict"]
         entry["red_at_head_reason"] = red_at_head["reason"]
