@@ -7674,19 +7674,38 @@ def test_an_unreadable_canonical_run_leaves_the_sameness_UNKNOWN_not_comfortable
 
 # ---------------------------------------------------------------------------------------------
 # ONE QUESTION, TWO RULES, AND THE READER WAS GETTING ONE OF THEM (2026-09-11)
+# ONE QUESTION, ONE RULE, AND A CONTROL THAT REDS IF A SECOND KEY ANSWERS IT (2026-09-18)
 #
 # THE DEFECT THESE EXIST FOR. `error_bar.distinguishable_from_zero` is the run artefact's own
-# answer to "can we tell which side of zero the choosing falls on", at a 2-SEM bar.
-# `error_bar.selection_leg.sign_is_stateable` is this page's answer to the identical question at
-# 1.96. Both were in the payload; only the page's reached a sentence; nothing compared them. At
-# `origin/main` on 2026-09-11 the feed carried `distinguishable_from_zero: true` under rendered
-# prose reading "this instrument cannot yet resolve a selection effect ... in either direction".
+# answer to "can we tell which side of zero the choosing falls on", at a fixed 2-SEM bar.
+# `error_bar.selection_leg` is this page's answer to the identical question at a bar derived from
+# the family's own size. Both were in the payload; only the page's reached a sentence; nothing
+# compared them. At `origin/main` on 2026-09-11 the feed carried `distinguishable_from_zero: true`
+# under rendered prose reading "this instrument cannot yet resolve a selection effect ... in
+# either direction".
+#
+# WHAT CHANGED ON 2026-09-18 AND WHY IT IS NOT A HARMONISATION FOR TIDINESS. The fixed bar was
+# WRONG, not merely different: the standard error it grades is estimated from the same draws as
+# the mean it bounds, so no constant is right at more than one family size, and it is short by
+# MORE as the family shrinks -- worst exactly where a marginal family lands. The producer now
+# derives its bar from `sems_to_state_a_sign` like the page, so the two homes run one rule.
+#
+# AND THE COMPARISON MOVED TO `clears_its_own_bar`. `sign_is_stateable` answers a BIGGER question
+# -- it also withdraws the sign when the family and the published run are different books, which
+# the producer's rule cannot see. Reconciling the two was comparing a statistic against a
+# statistic-plus-a-publishing-rule, and on the 2026-09-18 feed that reported `agree: false` with
+# prose blaming the BARS on a family that cleared its bar comfortably. See
+# `test_the_book_refusal_is_NOT_reported_as_a_disagreement_about_the_bar`.
 #
 # R15 -- the mutations, each run and reverted:
 #   * coerce a `None` from either rule to False -> `test_an_INAPPLICABLE_rule...` reds.
 #   * return `agree: True` whenever both are falsy -> `test_the_two_rules_DISAGREEING...` reds.
-#   * read `_DISTINGUISHABLE_SEMS` as a literal `1.96` here -> `test_the_two_bars_are_READ_from...`
-#     reds (this is the mutation that makes the whole block tautological).
+#   * retype either bar as a literal here -> `test_the_two_bars_are_READ_from...` reds (this is
+#     the mutation that makes the whole block tautological).
+#   * re-freeze either home's bar to a constant -> `test_NO_TWO_KEYS_in_the_payload...` reds on
+#     the family sizes where the constant and the t point straddle.
+#   * reconcile against `sign_is_stateable` again -> `test_the_book_refusal_is_NOT_reported...`
+#     reds.
 # ---------------------------------------------------------------------------------------------
 
 
@@ -7696,45 +7715,98 @@ _FIXTURE_SEEDS = 9
 
 
 def _reconciliation(floor=None, leg=None) -> dict:
-    """The block, with the leg carrying the bar it was GRADED at.
+    """The block, with BOTH sides carrying the bar they were GRADED at.
 
-    THE BAR MOVED INTO THE LEG ON 2026-09-11. It used to be a module constant, so a fixture could
-    name a verdict and say nothing about the bar. It is now derived from the family's own size and
-    published on the leg, which means a fixture that omits it is a leg whose verdict came from
-    nowhere -- and the reconciliation would read `null` for a rule it is asserting about. The
-    default is filled in here rather than in each test so no test can quietly reconcile a bar
-    against an absent one; a test that wants the missing-bar case passes it explicitly as `None`.
+    THE BAR MOVED INTO THE LEG ON 2026-09-11 AND ONTO THE FLOOR ON 2026-09-18. Both used to be
+    module constants, so a fixture could name a verdict and say nothing about the bar. Both are
+    now derived from the family's own size and published beside the verdict they produced, which
+    means a fixture that omits either is a rule whose verdict came from nowhere -- and the
+    reconciliation would read `null` for a rule it is asserting about. The defaults are filled in
+    here rather than in each test so no test can quietly reconcile a bar against an absent one; a
+    test that wants the missing-bar case passes it explicitly as `None`.
     """
+    bar = gva.sems_to_state_a_sign(_FIXTURE_SEEDS)
     if isinstance(leg, dict) and "sems_needed_to_state_a_sign" not in leg:
-        leg = dict(leg, sems_needed_to_state_a_sign=gva.sems_to_state_a_sign(_FIXTURE_SEEDS))
+        leg = dict(leg, sems_needed_to_state_a_sign=bar)
+    if isinstance(floor, dict) and "selection_sems_needed_to_state_a_sign" not in floor:
+        floor = dict(floor, selection_sems_needed_to_state_a_sign=bar)
     return gva._distinguishable_reconciliation(floor, leg)
 
 
 def test_the_two_bars_are_READ_from_their_own_modules_and_not_retyped_here():
     """A reconciliation of two rules that quotes one bar twice agrees with itself by construction.
 
-    Fires on: replacing either `bar_sems` with a literal. The two bars differ today (2 vs t(8) =
-    2.306), which is the only reason this block is worth having -- and the day someone harmonises
-    them the assertion below says so rather than going quietly tautological.
+    Fires on: replacing either `bar_sems` with a literal, or reading either from a module constant
+    instead of from the artefact that was graded at it. Both bars are now taken off the payloads
+    themselves -- the leg's `sems_needed_to_state_a_sign` and the floor's
+    `selection_sems_needed_to_state_a_sign` -- which is the only spelling that cannot drift from
+    the verdict beside it.
 
-    THE PAGE'S SIDE IS KEYED TO THE DERIVATION, NOT TO 2.306 (2026-09-11). Pinning the number the
-    page happens to publish today would go red the moment a tenth seed is drawn -- when the page
-    has become MORE correct, not less -- and stay green if the bar were re-frozen at a constant,
-    which is the defect this whole change removes. So the assertion is that the published bar is
-    what this family's own size earns, whatever that is.
+    KEYED TO THE DERIVATION, NOT TO 2.306. Pinning the number the page happens to publish today
+    would go red the moment a tenth seed is drawn -- when the page has become MORE correct, not
+    less -- and stay green if either bar were re-frozen at a constant, which is the defect this
+    whole change removes. So the assertion is that each published bar is what this family's own
+    size earns, whatever that is.
+
+    AND THE TWO ARE NOW ASSERTED EQUAL, WHICH IS THE OPPOSITE OF WHAT THIS ASSERTED BEFORE. The
+    2026-09-11 version ended `bar_sems != bar_sems` with a note saying that the day someone
+    harmonised the two bars this assertion would say so rather than going quietly tautological.
+    That day was 2026-09-18 and it said so. The prediction is kept here beside the result rather
+    than quietly revised: it was right that harmonising would red this control, and wrong that
+    two bars were worth keeping -- one of them was simply the wrong number.
     """
-    from tools.fold_noise_floor_family import _DISTINGUISHABLE_SEMS as producer_bar
     block = _reconciliation({"selection_distinguishable_from_zero": True},
-                            {"sign_is_stateable": True})
-    assert block["the_floors_rule"]["bar_sems"] == producer_bar, (
-        "the floor's bar on this page is not the bar the producer actually applies")
-    assert block["the_pages_rule"]["bar_sems"] == gva.sems_to_state_a_sign(_FIXTURE_SEEDS), (
+                            {"clears_its_own_bar": True})
+    earned = gva.sems_to_state_a_sign(_FIXTURE_SEEDS)
+    assert block["the_floors_rule"]["bar_sems"] == earned, (
+        "the floor's bar on this page is not the one its own family size earns, so the verdict "
+        "the artefact published was graded by a rule this page cannot re-derive")
+    assert block["the_pages_rule"]["bar_sems"] == earned, (
         "the page's bar is not the one its own family size earns, so the bar the reader is shown "
         "is not the bar the verdict beside it was computed at")
-    assert block["the_floors_rule"]["bar_sems"] != block["the_pages_rule"]["bar_sems"], (
-        "the two rules now share a bar, so this reconciliation can no longer disagree with "
-        "itself and the disagreement branch below is unreachable -- delete it or restate why "
-        "two rules are still kept")
+    assert block["the_two_rules_are_one_rule"] is True, (
+        "the two homes are not applying one rule, which is the state this whole section exists "
+        "to make visible")
+    # AND THE BAR IS NOT RETYPED IN THE BLOCK. If either side were a literal it would survive a
+    # change of family size; both must move together when the family does.
+    bigger = gva._distinguishable_reconciliation(
+        {"selection_distinguishable_from_zero": True,
+         "selection_sems_needed_to_state_a_sign": gva.sems_to_state_a_sign(_FIXTURE_SEEDS + 20)},
+        {"clears_its_own_bar": True,
+         "sems_needed_to_state_a_sign": gva.sems_to_state_a_sign(_FIXTURE_SEEDS + 20)})
+    assert bigger["the_floors_rule"]["bar_sems"] != block["the_floors_rule"]["bar_sems"], (
+        "the floor's bar did not move when the family grew, so it is a constant wearing a "
+        "derivation's name")
+    assert bigger["the_pages_rule"]["bar_sems"] != block["the_pages_rule"]["bar_sems"], (
+        "the page's bar did not move when the family grew, so it is a constant wearing a "
+        "derivation's name")
+
+
+def test_a_floor_that_never_stamped_its_bar_is_an_UNKNOWN_and_never_an_agreement():
+    """FAIL CLOSED on the artefacts that predate the stamp.
+
+    THE DEFECT THIS NAMES. Every family folded before 2026-09-18 carries its verdict without the
+    threshold that produced it, and the live feed is drawn from one of them. Two answers matching
+    is not evidence two rules match, so `the_two_rules_are_one_rule` must be `null` -- not `True`
+    because the answers happen to agree, which is the flattering reading and the one a tidy
+    implementation falls into.
+
+    THE ANSWERS STILL RECONCILE. `agree` is about the two ANSWERS and stays readable; only the
+    claim about the two RULES is withdrawn. Blanking both would hide the comparison we can make
+    because of one we cannot.
+    """
+    block = gva._distinguishable_reconciliation(
+        {"selection_distinguishable_from_zero": True},
+        {"clears_its_own_bar": True,
+         "sems_needed_to_state_a_sign": gva.sems_to_state_a_sign(_FIXTURE_SEEDS)})
+    assert block["the_two_rules_are_one_rule"] is None, (
+        "an artefact that never stated its bar was read as applying the same rule as this page")
+    assert block["agree"] is True, "the two answers stopped being compared at all"
+    assert "DOES NOT SAY WHICH BAR IT WAS GRADED AT" in block["why_the_bars_differ"], (
+        "the unreadable bar is reported as a DRIFT between two implementations, which would page "
+        "a reader about a defect that is really an artefact predating the field")
+    assert "same bar" not in block["reading"], (
+        "the agreement sentence claims a shared bar the artefact never stated")
 
 
 def test_the_sign_bar_is_a_function_of_the_seed_count_and_not_a_constant():
@@ -7802,7 +7874,7 @@ def test_the_seeds_needed_count_is_solved_at_the_bar_that_family_would_face():
 def test_the_two_rules_AGREEING_reads_as_one_answer_with_both_bars_on_it():
     for says in (True, False):
         block = _reconciliation({"selection_distinguishable_from_zero": says},
-                                {"sign_is_stateable": says})
+                                {"clears_its_own_bar": says})
         assert block["agree"] is True
         assert block["sign_stated_despite_disagreement"] is False
         assert "Both say" in block["reading"], (
@@ -7815,9 +7887,9 @@ def test_the_two_rules_DISAGREEING_withholds_the_side_and_says_which_said_what()
     `origin/main` was actually in. Both directions of the disagreement, because a check that only
     catches "the floor is bolder" is half a control."""
     bolder_floor = _reconciliation({"selection_distinguishable_from_zero": True},
-                                   {"sign_is_stateable": False})
+                                   {"clears_its_own_bar": False})
     bolder_page = _reconciliation({"selection_distinguishable_from_zero": False},
-                                  {"sign_is_stateable": True})
+                                  {"clears_its_own_bar": True})
     for block in (bolder_floor, bolder_page):
         assert block["agree"] is False, "a disagreement read as agreement"
         assert "DISAGREE" in block["reading"], (
@@ -7836,7 +7908,7 @@ def test_an_INAPPLICABLE_rule_is_unknown_and_never_reads_as_no():
     reconciliation exists to expose."""
     for floor_says, page_says in ((None, False), (False, None), (None, None)):
         block = _reconciliation({"selection_distinguishable_from_zero": floor_says},
-                                {"sign_is_stateable": page_says})
+                                {"clears_its_own_bar": page_says})
         assert block["agree"] is None, (
             "an unanswerable rule agreed with an answered one ({} vs {})".format(
                 floor_says, page_says))
@@ -7857,6 +7929,319 @@ def test_the_real_artefacts_reconcile_and_the_block_reaches_the_feed():
         data["error_bar"]["distinguishable_from_zero"]), (
         "the reconciliation reports a different answer from the key it is reconciling, so the "
         "feed now holds THREE answers to one question")
+
+
+# ---------------------------------------------------------------------------------------------
+# THE PAYLOAD-WIDE CONTROL: one question, one answer
+# ---------------------------------------------------------------------------------------------
+
+#: EVERY KEY IN `error_bar` THAT BEARS ON "does the selection family's mean clear zero", and what
+#: kind of answer each one is. This is the registry the scan below holds the payload to, and its
+#: completeness is the point: a fourth home for this question must land in `DISTINGUISHABILITY_
+#: VOCABULARY` and therefore be missing from here, which reds rather than passing unnoticed.
+#:
+#: STATISTICAL keys answer the question itself and must never differ from each other.
+#: CONSERVATIVE keys may WITHHOLD where the statistics allow -- `sign_is_stateable` also demands
+#: the family and the published run be one book -- but may never be BOLDER. The asymmetry is the
+#: whole design: a page is always entitled to say less than its evidence and never more.
+#: META keys are about the comparison rather than about the mean, and are excluded from it.
+_CLEARS_ZERO_KEYS = {
+    ("distinguishable_from_zero",): "STATISTICAL",
+    ("selection_leg", "clears_its_own_bar"): "STATISTICAL",
+    ("distinguishable_reconciliation", "the_floors_rule", "says"): "STATISTICAL",
+    ("distinguishable_reconciliation", "the_pages_rule", "says"): "STATISTICAL",
+    ("selection_leg", "sign_is_stateable"): "CONSERVATIVE",
+    # DERIVED keys are downstream of the answer rather than a second copy of it, and each is
+    # asserted against the key it must follow -- a direction that appears without a stateable
+    # sign, or a seed price quoted against a refusal seeds cannot buy off, is the same class of
+    # defect one level along. `seeds_needed_to_state_a_sign` was keyed to `sign_is_stateable`
+    # until 2026-09-18, which quoted a machine-hour price against a BOOK refusal.
+    ("selection_leg", "sign"): "DERIVED",
+    ("selection_leg", "seeds_needed_to_state_a_sign"): "DERIVED",
+    # A REASON, NOT A VERDICT -- it holds the caveat text when the page withheld a sign its own
+    # statistics allow. Declared rather than filtered out by name because it is `null` whenever
+    # nothing was withheld, and a `null` under a `sign`-shaped name is exactly what the wide net
+    # is meant to pick up. Classifying it says "we looked at this one"; excluding it by pattern
+    # would silently widen the hole to every future key that ends the same way.
+    ("selection_leg", "sign_withheld_despite_clearing_the_bar_because"): "REASON",
+    ("distinguishable_reconciliation", "agree"): "META",
+    ("distinguishable_reconciliation", "the_two_rules_are_one_rule"): "META",
+    ("distinguishable_reconciliation", "sign_stated_despite_disagreement"): "META",
+}
+
+#: THE NET, CAST WIDER THAN THE REGISTRY ON PURPOSE. Any boolean leaf under `error_bar` whose name
+#: carries one of these is a candidate answer to this question and must be classified above. A
+#: narrow net would let a fifth spelling in silently, which is exactly how this question came to
+#: have two homes in the first place.
+_DISTINGUISHABILITY_VOCABULARY = ("distinguishable", "clears", "stateable", "sign", "agree")
+
+
+def _boolean_leaves(node, path=()):
+    """Every (path, value) under `node` whose value is a bool or None. Lists are walked too: a
+    home that moves into an array is still a home."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield from _boolean_leaves(value, path + (key,))
+    elif isinstance(node, list):
+        for item in node:
+            yield from _boolean_leaves(item, path)
+    elif isinstance(node, bool) or node is None:
+        yield path, node
+
+
+_ABSENT = object()
+
+
+def _at(node, path):
+    """The value at `path`, or `_ABSENT`. Distinguished from a published `None` on purpose: a key
+    that is missing and a key that answered "I could not tell" are different findings."""
+    for part in path:
+        if not isinstance(node, dict) or part not in node:
+            return _ABSENT
+        node = node[part]
+    return node
+
+
+def _clears_zero_answers(error_bar: dict) -> tuple:
+    """(what the registry's declared paths actually hold, what the wide net found beside them).
+
+    TWO READINGS AND NOT ONE, because they answer different questions. The registry is read BY
+    PATH -- a declared key is graded wherever it lives, whatever it is called. The net is a NAME
+    scan whose only job is to catch a home nobody declared. Reading the registry through the net
+    would make the net's blind spots the registry's, and a row the scan cannot see would report as
+    a row the payload no longer publishes -- a false alarm that teaches a reader to widen the net
+    rather than classify the key.
+    """
+    declared = {path: _at(error_bar, path) for path in _CLEARS_ZERO_KEYS}
+    found = {path: value for path, value in _boolean_leaves(error_bar)
+             if any(word in path[-1] for word in _DISTINGUISHABILITY_VOCABULARY)}
+    return declared, found
+
+
+def clears_zero_complaints(error_bar: dict) -> list:
+    """Every way this payload answers "does the mean clear zero" more than once, as sentences.
+
+    A FUNCTION AND NOT A RUN OF `assert`s, so the control can be pointed at a payload that IS
+    defective and shown to complain. A whole-payload check that only ever meets the real feed is
+    the shape this project has paid for repeatedly: it passes, and nobody can say whether it
+    passed because the payload is sound or because the check cannot fire. See
+    `test_the_control_FIRES_on_a_payload_whose_two_homes_disagree`.
+    """
+    declared, found = _clears_zero_answers(error_bar)
+    out = []
+    unclassified = sorted(set(found) - set(_CLEARS_ZERO_KEYS))
+    if unclassified:
+        out.append(
+            "the payload has {} key(s) answering whether the mean clears zero that nothing has "
+            "classified: {}. A new home for this question is exactly the defect this section "
+            "exists for -- classify it STATISTICAL, CONSERVATIVE, DERIVED or META and say "
+            "which".format(len(unclassified), unclassified))
+    missing = sorted(path for path, value in declared.items() if value is _ABSENT)
+    if missing:
+        out.append(
+            "the registry names key(s) the payload no longer publishes: {}. Either the key was "
+            "renamed -- in which case the scan is now blind to its replacement -- or it was "
+            "deleted and this row is dead".format(missing))
+    if out:
+        return out
+
+    statistical = {path: declared[path] for path, kind in _CLEARS_ZERO_KEYS.items()
+                   if kind == "STATISTICAL"}
+    # REACHABILITY BEFORE THE VERDICT. One statistical key agrees with itself; this is only a
+    # control while there are at least two of them, and at least two that actually answered.
+    answered = {path: value for path, value in statistical.items() if value is not None}
+    if len(answered) < 2:
+        return ["fewer than two keys in the payload actually answered this question ({}), so any "
+                "agreement is between one answer and itself".format(sorted(statistical))]
+    if len(set(answered.values())) != 1:
+        out.append(
+            "one question, two answers, in one payload: {}. A reader takes whichever key renders "
+            "and gets a direction the other key refuses".format(
+                {"/".join(k): v for k, v in sorted(answered.items())}))
+        return out
+    the_answer = next(iter(answered.values()))
+
+    # THE CONSERVATIVE KEYS MAY WITHHOLD, NEVER OVERSTATE -- and when they withhold they must say
+    # why, or a reader meeting `false` beside a statistical `true` has to guess at the reason.
+    for path, kind in _CLEARS_ZERO_KEYS.items():
+        if kind != "CONSERVATIVE" or declared[path] is None:
+            continue
+        if declared[path] and not the_answer:
+            out.append("`{}` states the sign where the statistics do not, which is a page "
+                       "claiming more than its evidence".format("/".join(path)))
+        if the_answer and not declared[path] and not (error_bar.get("selection_leg") or {}).get(
+                "sign_withheld_despite_clearing_the_bar_because"):
+            out.append("the page withheld a sign its own statistics allow and named no reason, "
+                       "so the refusal cannot be checked and reads as a disagreement about the bar")
+
+    # THE DERIVED KEYS FOLLOW THE ANSWER THEY ARE DOWNSTREAM OF, or the payload states a direction
+    # nothing licenses and prices a remedy for a refusal the remedy does not touch.
+    leg = error_bar.get("selection_leg") or {}
+    if (leg.get("sign") is not None) is not (leg.get("sign_is_stateable") is True):
+        out.append("the page publishes a direction ({!r}) that does not follow its own "
+                   "`sign_is_stateable` ({!r})".format(leg.get("sign"),
+                                                       leg.get("sign_is_stateable")))
+    if leg.get("seeds_needed_to_state_a_sign") is not None and (
+            leg.get("clears_its_own_bar") is not False):
+        out.append("a seed count is quoted at a family that already clears its own bar, so the "
+                   "page prices machine-hours against a refusal more seeds cannot buy off")
+    return out
+
+
+def test_NO_TWO_KEYS_in_the_payload_answer_the_clears_zero_question_oppositely():
+    """THE PROPERTY: one question, one answer, on the surface a reader actually gets.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-18). `error_bar.distinguishable_from_zero` said `true`
+    under a fixed 2.0 bar while `error_bar.selection_leg.sign_is_stateable` said `false` under the
+    page's 2.110, and `distinguishable_reconciliation.agree` said the two did not agree. Any
+    downstream reader taking the first got "yes" where the page itself said "we cannot tell", and
+    publishing a direction under the wrong rule is the one failure that would make this page worse
+    than silence.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S TWO NUMBERS. Nothing here asserts 2.110, or 18 seeds,
+    or which way the answer comes out. What it asserts is that no two keys answering this question
+    may answer it oppositely -- which stays the control when the family grows, when the mean moves,
+    and when the answer flips. A control pinned to today's answer would go red the day the page
+    becomes more honest and stay green while the claim rots.
+
+    AND THE REGISTRY'S COMPLETENESS IS ASSERTED, NOT ASSUMED. A hand-kept list of keys is a list
+    that goes stale the first time someone adds a fifth spelling, so the boolean leaves of the
+    real payload are scanned for the vocabulary and every hit must be classified. Adding a new
+    home for this question reds this test by name.
+    """
+    data = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), None, None, None,
+                     _load(DEPARTURE_RERUN), _load(DEPARTURE_BASELINE))
+    error_bar = data["error_bar"] or {}
+    assert error_bar.get("available") is True, (
+        "the real feed publishes no error bar at all, so this control graded nothing")
+
+    complaints = clears_zero_complaints(error_bar)
+    assert not complaints, "; ".join(complaints)
+
+
+def test_the_control_FIRES_on_a_payload_whose_two_homes_disagree():
+    """R15: the whole-payload control above must be able to REFUSE, on each defect it names.
+
+    THE TRAP THIS AVOIDS. A check run only against the real feed passes, and nobody can say
+    whether it passed because the payload is sound or because the check cannot fire. This
+    repository has entered that trap three times in one afternoon through three different doors,
+    so the partition is asserted as a whole: every branch of `clears_zero_complaints` is entered
+    here, and a green feed plus a red on each constructed defect is the evidence.
+
+    THE DEFECTS, ONE PER CASE, each the real shape it is named for:
+      * OPPOSITE ANSWERS -- what `origin/main` actually published on 2026-09-18.
+      * A BOLDER PAGE -- the page states a sign the artefact refuses.
+      * AN UNEXPLAINED WITHDRAWAL -- the page withholds a sign its own statistics allow and gives
+        no reason, which is how a book refusal came to read as a quarrel about the bar.
+      * A PRICED REMEDY FOR THE WRONG REFUSAL -- a seed count quoted at a family that clears.
+      * AN UNCLASSIFIED FIFTH HOME -- a new key answering this question that nothing declared.
+    """
+    def payload(**leg):
+        base = {"available": True, "distinguishable_from_zero": True,
+                "selection_leg": dict({"clears_its_own_bar": True, "sign_is_stateable": True,
+                                       "sign": "negative", "seeds_needed_to_state_a_sign": None,
+                                       "sign_withheld_despite_clearing_the_bar_because": None},
+                                      **leg),
+                "distinguishable_reconciliation": {
+                    "the_floors_rule": {"says": True}, "the_pages_rule": {"says": True},
+                    "agree": True, "the_two_rules_are_one_rule": True,
+                    "sign_stated_despite_disagreement": False}}
+        return base
+
+    assert not clears_zero_complaints(payload()), (
+        "the control complains about a payload with nothing wrong in it, so every red below is "
+        "uninformative")
+
+    opposite = payload(clears_its_own_bar=False, sign_is_stateable=False, sign=None)
+    assert any("two answers" in c for c in clears_zero_complaints(opposite)), (
+        "the two statistical keys answered oppositely and the control said nothing -- this is "
+        "the exact state the live feed was in on 2026-09-18")
+
+    bolder = payload()
+    bolder["distinguishable_from_zero"] = False
+    bolder["distinguishable_reconciliation"]["the_floors_rule"]["says"] = False
+    bolder["distinguishable_reconciliation"]["the_pages_rule"]["says"] = False
+    bolder["selection_leg"]["clears_its_own_bar"] = False
+    assert any("claiming more than its evidence" in c or "two answers" in c
+               for c in clears_zero_complaints(bolder)), (
+        "the page stated a sign every statistical key refuses and nothing objected")
+
+    silent = payload(sign_is_stateable=False, sign=None)
+    assert any("named no reason" in c for c in clears_zero_complaints(silent)), (
+        "a sign was withheld against the page's own statistics with no reason given, and the "
+        "control read the withdrawal as ordinary conservatism")
+
+    mispriced = payload(seeds_needed_to_state_a_sign=14)
+    assert any("already clears its own bar" in c for c in clears_zero_complaints(mispriced)), (
+        "a seed price was quoted at a family that clears, so the page sends a reader to spend "
+        "machine-hours on a refusal that is not the one it has")
+
+    fifth = payload()
+    fifth["selection_leg"]["is_distinguishable_after_all"] = False
+    assert any("nothing has classified" in c for c in clears_zero_complaints(fifth)), (
+        "a fifth home for this question appeared in the payload and the registry did not notice, "
+        "which is the defect that made this question have two homes in the first place")
+
+
+def test_the_two_homes_WOULD_disagree_if_either_re_froze_its_bar():
+    """R15 REACHABILITY for the control above: the defect it names must be constructible.
+
+    A green "no two keys disagree" is worth nothing if no arrangement of this code could ever make
+    them disagree. So the retired rule is re-applied by hand here -- a fixed 2.0, which is what
+    both homes used to run -- and swept across family sizes against the bar each family earns. The
+    two must straddle somewhere, or re-freezing the bar would be harmless and the whole change was
+    ceremony.
+
+    NOT A TEST OF `scipy`. What it establishes is that the CHANGE HAD CONSEQUENCES: there exist
+    real family sizes and real means at which the fixed rule and the derived rule return opposite
+    verdicts, so a reader taking the wrong key would have been told the wrong thing.
+    """
+    import math
+    retired_fixed_bar = 2.0
+    straddled = []
+    for n in range(3, 40):
+        earned = gva.sems_to_state_a_sign(n)
+        # A mean sitting exactly between the two bars in standard-error units: the family the
+        # fixed rule calls stateable and the honest rule does not.
+        sd = 1000.0
+        sem = sd / math.sqrt(n)
+        mean = 0.5 * (retired_fixed_bar + earned) * sem
+        under_fixed = abs(mean) > retired_fixed_bar * sem
+        under_earned = abs(mean) > earned * sem
+        if under_fixed != under_earned:
+            straddled.append((n, round(earned, 4)))
+    assert straddled, (
+        "no family size exists at which the retired fixed bar and the derived bar disagree, so "
+        "the payload-wide control above cannot fire and neither rule change had any consequence")
+    assert len(straddled) > 20, (
+        "the two rules straddle at only {} family sizes, which is too few to be the general "
+        "property claimed: {}".format(len(straddled), straddled))
+
+
+def test_the_book_refusal_is_NOT_reported_as_a_disagreement_about_the_bar():
+    """THE DEFECT: a true refusal published under a false cause.
+
+    On the 2026-09-18 feed the family sat 2.495 standard errors from zero against a bar of 2.110 --
+    it cleared, comfortably -- and `sign_is_stateable` was `false` because the family and the
+    published run were measured over different BOOKS. The reconciliation compared the producer's
+    statistical key against that composite one, reported `agree: false`, and explained the
+    disagreement as a difference of BARS. The headline refusal was right and its stated cause was
+    invented, which is the failure that survives longest.
+
+    Fires on: reconciling against `sign_is_stateable` again. The fixture below clears its bar and
+    withholds its sign, which is precisely the state that used to read as two rules disagreeing.
+    """
+    leg = {"clears_its_own_bar": True,
+           "sign_is_stateable": False,
+           "sign_withheld_despite_clearing_the_bar_because": "the family is from another book",
+           "sems_needed_to_state_a_sign": gva.sems_to_state_a_sign(_FIXTURE_SEEDS)}
+    block = _reconciliation({"selection_distinguishable_from_zero": True}, leg)
+    assert block["agree"] is True, (
+        "a book refusal was reported as the two rules disagreeing about whether the mean clears "
+        "its own bar, which is a cause the payload's own numbers refute")
+    assert block["sign_stated_despite_disagreement"] is False
+    assert "DISAGREE" not in block["reading"], (
+        "the prose tells a reader the two rules disagree when they agree exactly")
 # ---------------------------------------------------------------------------
 # A SPLIT WHOSE TWO HALVES RE-DREW DIFFERENT QUANTITIES
 # ---------------------------------------------------------------------------

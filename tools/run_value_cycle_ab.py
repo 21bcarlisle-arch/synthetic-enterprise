@@ -5413,25 +5413,26 @@ def priced_accounts_from(artefact: Path) -> list[str]:
     return sorted(set(accounts))
 
 
-#: HOW MANY STANDARD ERRORS FROM ZERO BEFORE THIS PROJECT WILL STATE A SIGN.
-#:
-#: 2.0, and it is 2.0 because that is the rule `noise_floor` has always applied
-#: (`abs(mean) > 2 * sem`, written as a bare literal until 2026-09-10). It is named here rather
-#: than repeated because the moment the DISTANCE to a sign is published beside the VERDICT, the
-#: two are one legal question with two implementations -- this project's most expensive recurring
-#: shape, and the VAT rule is the standing evidence for it. A page saying "1.79 sems, and 1.96 is
-#: what it takes" beside a verdict computed at 2.0 is wrong in the gap between them, and the gap
-#: is exactly where a marginal family lands.
-#:
-#: NOT 1.96. The normal two-sided 95% critical value is 1.96 and this is deliberately not that:
-#: the sem here is estimated from the same handful of seeds as the mean, so the normal quantile
-#: understates the tail, and 2.0 is the coarser number this instrument has always been read at.
-#: Moving it is a decision about how much evidence a published sign needs, and it belongs in one
-#: place where that decision is visible.
-SEMS_TO_STATE_A_SIGN = 2.0
+# `SEMS_TO_STATE_A_SIGN = 2.0` LIVED HERE AND IS DELETED (2026-09-18). It was the LAST written-down
+# spelling of this bar, and naming it in one place fixed the wrong half of the problem: a constant
+# applied to every family size is one implementation of a rule that is not constant. The sem it
+# grades is `stdev / sqrt(n)` where the stdev is estimated from the same `n` draws as the mean, so
+# the honest bar is the two-sided t point on `n - 1` degrees of freedom -- 2.306 at nine seeds,
+# 2.201 at twelve, 2.110 at eighteen. A fixed 2.0 is short at every family this instrument has ever
+# drawn and short by MORE as the family shrinks, which is exactly backwards.
+#
+# WHY THE DELETION AND NOT A NEW VALUE. While the name existed it was reachable as a default
+# parameter, and a retired constant alive through a defaulted parameter is a home nobody greps for.
+# The bar now has ONE home, `sems_to_state_a_sign` below, and every caller reaches it through `n`.
+#
+# NOTHING ON DISK FLIPPED. Every floor artefact in `docs/observability/` was re-graded at both bars
+# before this landed: twelve families, and the verdict is identical under 2.0 and under t(n-1) on
+# all twelve -- so this change is a repair to the RULE and not a restatement of any published
+# figure. Said here because a bar move that silently re-graded a live claim would be the more
+# expensive thing, and the only way a reader can know it did not is to be told it was checked.
 
 
-def distance_to_a_sign(mean, stdev, n, sems_needed: float = SEMS_TO_STATE_A_SIGN) -> dict:
+def distance_to_a_sign(mean, stdev, n, sems_needed: float | None = None) -> dict:
     """HOW FAR THIS FAMILY IS FROM STATING A SIGN, and how many seeds would close the gap.
 
     THE DEFECT THIS SERVES (2026-09-10). The floor published `selection_distinguishable_from_zero:
@@ -5463,10 +5464,28 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float = SEMS_TO_STATE_A_SIGN
     different expressions here on purpose: an agreement between two spellings of one inequality is
     evidence, an agreement between one spelling and itself is not.
 
+    `sems_needed` DEFAULTS TO THE FAMILY'S OWN BAR AND NO LONGER TO A CONSTANT (2026-09-18). It was
+    `SEMS_TO_STATE_A_SIGN = 2.0`, which made this function a second home for a rule that is not a
+    constant at all -- and a home reachable only through a defaulted parameter, which is the
+    hardest kind to find. `None` now means "the bar this family's own size earns", which is the
+    only answer any caller here has ever wanted. An explicit float is still honoured, for the one
+    legitimate use: asking what a DIFFERENT bar would have said, which is what a control comparing
+    two rules does.
+
+    AND THE COUNT IS SOLVED SELF-CONSISTENTLY WHEN THE BAR IS DERIVED. Inverting in closed form
+    holds the multiplier at today's `n` while solving for a larger family -- charging the bigger
+    family the smaller one's tail, which overstates the answer (15 where 14 is honest on this
+    book's selection leg). `seeds_to_state_a_sign` scans instead, because `t(m-1)` has no algebraic
+    inverse in `m`. The closed form is kept for an explicitly-passed fixed bar, where it is exact.
+
     FAILS CLOSED. A mean of exactly zero needs infinitely many seeds and yields `None` with a
     named reason, never a large integer that reads like a plan.
     """
-    mean_f, stdev_f, sems = _num(mean), _num(stdev), _num(sems_needed)
+    mean_f, stdev_f = _num(mean), _num(stdev)
+    # THE BAR IS RESOLVED BEFORE THE GUARD, so an unreadable `n` refuses through the same door as
+    # an unreadable mean rather than through a `None` bar that reads like a different fault.
+    derived = sems_needed is None
+    sems = _num(sems_to_state_a_sign(n) if derived else sems_needed)
     if mean_f is None or stdev_f is None or not isinstance(n, int) or n < 2 or sems is None:
         return {
             "available": False,
@@ -5480,8 +5499,16 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float = SEMS_TO_STATE_A_SIGN
         seeds_needed = None
         why = ("this family's mean is exactly zero, so no number of seeds separates it from zero "
                "and the count is undefined rather than large")
+    elif derived:
+        # Solved against the bar the PROJECTED family would face, not this one's. See the docstring.
+        seeds_needed = seeds_to_state_a_sign(mean_f, stdev_f)
+        why = (None if seeds_needed is not None else
+               "no family below {} seeds states a sign at its own bar, which is the instrument "
+               "saying it cannot settle this rather than a count a reader could act on".format(
+                   _SEEDS_SEARCH_CEILING))
     else:
-        # The smallest integer STRICTLY greater than the threshold -- see the docstring.
+        # The smallest integer STRICTLY greater than the threshold -- see the docstring. Exact only
+        # because the caller pinned the bar: at a FIXED `k` the inequality inverts in closed form.
         threshold = (sems * stdev_f / abs(mean_f)) ** 2
         seeds_needed = int(math.floor(threshold)) + 1
         why = None
@@ -5489,6 +5516,10 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float = SEMS_TO_STATE_A_SIGN
         "available": True,
         "sems_from_zero": sems_from_zero,
         "sems_needed_to_state_a_sign": sems,
+        # WHERE THE BAR CAME FROM, on the artefact rather than in this file. A bar that moves with
+        # the sample is only honest if a reader holding the JSON can tell it moved and why; a
+        # caller that pinned it says so here, so a fixed bar can never be mistaken for the rule.
+        "sems_needed_is_derived_from_the_family_size": derived,
         "seeds_needed_to_state_a_sign": seeds_needed,
         "seeds_in_hand": n,
         "sign_if_it_were_stateable": (
@@ -5662,9 +5693,13 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
     share = _spread([r.get("level_share_of_advantage") for r in rows])
     sem = None
     distinguishable = None
-    if selection["stdev"] is not None and selection["n"] > 1:
+    # THE FAMILY'S OWN BAR, not a constant, and resolved OUTSIDE the guard so it is published even
+    # when the family is too small to grade. See `sems_to_state_a_sign`: the sem below is estimated
+    # from the same `n` draws as the mean, so the bar is t(n-1) and moves with n.
+    bar = sems_to_state_a_sign(selection["n"])
+    if selection["stdev"] is not None and selection["n"] > 1 and bar is not None:
         sem = selection["stdev"] / math.sqrt(selection["n"])
-        distinguishable = abs(selection["mean"]) > SEMS_TO_STATE_A_SIGN * sem
+        distinguishable = abs(selection["mean"]) > bar * sem
 
     first = members[0]
     return {
@@ -5730,6 +5765,10 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
         "level_share_spread": share,
         "selection_sem_gbp": sem,
         "selection_distinguishable_from_zero": distinguishable,
+        # THE BAR THAT VERDICT WAS TAKEN AT (2026-09-18), beside it rather than in this file. It
+        # moves with `n` now, so a consumer holding the artefact can re-run the comparison; a bare
+        # boolean whose threshold lives in the producer is a verdict the reader must take on trust.
+        "selection_sems_needed_to_state_a_sign": bar,
         "distance_to_a_sign": distance_to_a_sign(
             selection["mean"], selection["stdev"], selection["n"]),
         "how_to_read_this": (
@@ -5960,15 +5999,21 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
 
     selection = _spread([r["selection_gbp"] for r in rows])
     share = _spread([r["level_share_of_advantage"] for r in rows])
-    # DISTINGUISHABLE FROM ZERO? The standard error of the mean over `n` seeds, against
-    # `SEMS_TO_STATE_A_SIGN`. Stated as a question the reader can re-answer, not as a pass/fail:
-    # nothing here gates anything (R12), and a selection leg that is NOT distinguishable is a
-    # complete result rather than a defect.
+    # DISTINGUISHABLE FROM ZERO? The standard error of the mean over `n` seeds, against the bar
+    # `n` draws earn -- `sems_to_state_a_sign`, the two-sided t point on `n - 1` degrees of
+    # freedom. It was a fixed 2.0 until 2026-09-18 and the fixity was the defect: the sem it
+    # grades is estimated from the same draws as the mean, so a constant is wrong at every family
+    # size and wrong by more as the family shrinks. Stated as a question the reader can re-answer,
+    # not as a pass/fail: nothing here gates anything (R12), and a selection leg that is NOT
+    # distinguishable is a complete result rather than a defect.
     sem = None
     distinguishable = None
-    if selection["stdev"] is not None and selection["n"] > 1:
+    # Resolved OUTSIDE the guard so the artefact carries the bar even when the family is too small
+    # to be graded at it -- a missing threshold beside a `null` verdict reads like a missing rule.
+    bar = sems_to_state_a_sign(selection["n"])
+    if selection["stdev"] is not None and selection["n"] > 1 and bar is not None:
         sem = selection["stdev"] / math.sqrt(selection["n"])
-        distinguishable = abs(selection["mean"]) > SEMS_TO_STATE_A_SIGN * sem
+        distinguishable = abs(selection["mean"]) > bar * sem
     # ONE CLOCK, OR NO CLOCK -- never the first seed's. A spread taken across rows on different
     # clocks is not a spread of one quantity, and the GBP 39,962.17 bad-debt gap between this
     # run's two clocks is larger than every contrast the spread bounds, so a mixed floor would
@@ -6068,6 +6113,10 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         "level_share_spread": share,
         "selection_sem_gbp": sem,
         "selection_distinguishable_from_zero": distinguishable,
+        #: THE BAR THAT VERDICT WAS TAKEN AT (2026-09-18), beside it rather than in this file. It
+        #: moves with `n` now, so a consumer holding the artefact can re-run the comparison; a bare
+        #: boolean whose threshold lives in the producer is a verdict the reader must take on trust.
+        "selection_sems_needed_to_state_a_sign": bar,
         #: HOW FAR FROM A SIGN, AND WHAT IT WOULD TAKE. Published beside the verdict because
         #: `false` on its own cannot tell "by a hair" from "hopeless", and those buy opposite
         #: decisions about whether to spend the machine-hours. See `distance_to_a_sign`.

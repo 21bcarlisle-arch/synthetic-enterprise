@@ -15,6 +15,7 @@ from pathlib import Path
 import pytest
 
 from tools.fold_noise_floor_family import FoldRefused, fold, main, summarise
+from tools.run_value_cycle_ab import sems_to_state_a_sign
 
 _REPO = Path(__file__).resolve().parent.parent.parent
 #: The real nine-seed family the Lane 0 selection leg is published from. Read, never rebuilt: a
@@ -32,12 +33,18 @@ def _live() -> dict:
 def test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_disk():
     """THE DEFECT: the fold computes a mean the producer would not have computed.
 
-    `summarise` restates one line of `run_value_cycle_ab.noise_floor` (`abs(mean) > 2 * sem`) and
-    imports the rest. A second implementation of one rule is this project's most expensive
+    `summarise` used to restate one line of `run_value_cycle_ab.noise_floor` (`abs(mean) > 2 * sem`)
+    and import the rest. A second implementation of one rule is this project's most expensive
     recurring shape -- the VAT rule had five, and a defect fixed in one of them in July was still
     live in another in August. This is the control that makes the two copies unable to drift
     silently: the fold's arithmetic, run over the real artefact's real rows, must return the
     figures that artefact already publishes.
+
+    THE RESTATEMENT IS GONE SINCE 2026-09-18 and this control did not become redundant with it.
+    Both homes now call `sems_to_state_a_sign`, so the BAR cannot drift -- but `summarise` still
+    computes the mean, the standard error and the comparison itself, and every one of those is a
+    place the two can part company. What changed is that one class of drift is now impossible by
+    construction instead of being caught here after the fact.
 
     IT IS KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER: nothing here names -1078.17 or n=9, so
     the day the family grows this control still asks the same question of the bigger one.
@@ -50,6 +57,46 @@ def test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_
     assert got["selection_sem_gbp"] == live["selection_sem_gbp"]
     assert (got["selection_distinguishable_from_zero"]
             == live["selection_distinguishable_from_zero"])
+
+
+def test_the_folds_bar_is_the_one_the_family_size_earns_and_is_published_beside_the_verdict():
+    """THE DEFECT: a verdict graded at a bar nobody can re-derive from the artefact.
+
+    Fires on: re-freezing this fold's bar to any constant -- 2, 1.96, anything. A constant returns
+    the same value at every family size, so the assertion below that the published bar IS
+    `sems_to_state_a_sign(n)` is exactly the property a literal cannot have.
+
+    WHY IT IS ASSERTED HERE AND NOT ONLY THROUGH THE VERDICT. Re-freezing the bar to 2.0 is an
+    EQUIVALENCE on every floor artefact currently on disk: all twelve were re-graded under both
+    rules on 2026-09-18 and not one verdict flips, so a control that only watched the boolean
+    would stay green through the exact mutation this change exists to prevent. Establishing which
+    of "missing test" and "equivalence" a silent mutation is, is this repository's rule; this is
+    the missing test, and it is keyed to the bar rather than to the answer for that reason.
+
+    ONE BAR FOR EVERY LEG, which is the other half. The contrast between the level leg's verdict
+    and the selection leg's is only a claim about the legs if both were asked the same question.
+    """
+    rows = _eighteen()["seeds"]
+    got = summarise(rows)
+    n = got["selection_gbp_spread"]["n"]
+    earned = sems_to_state_a_sign(n)
+    assert earned is not None, "the family on disk has no degrees of freedom to spend"
+    assert got["selection_sems_needed_to_state_a_sign"] == earned, (
+        "the fold published a bar that is not the one its own {} draws earn, so the verdict "
+        "beside it was graded by a rule a reader holding the artefact cannot re-derive".format(n))
+    bars = {leg: got[leg]["sems_needed_to_state_a_sign"]
+            for leg in ("selection_leg", "level_leg", "value_leg")}
+    assert set(bars.values()) == {earned}, (
+        "the three legs were graded at different bars, so the contrast between their verdicts is "
+        "an artefact of the rule rather than of the data: " + str(bars))
+    # AND IT MOVES WITH THE FAMILY. A constant survives every assertion above at one n.
+    half = summarise(rows[:len(rows) // 2])
+    assert half["selection_sems_needed_to_state_a_sign"] != earned, (
+        "the bar did not move when the family halved, so it is a written-down number wearing a "
+        "derivation's name")
+    assert half["selection_sems_needed_to_state_a_sign"] > earned, (
+        "a smaller family was given a LOOSER bar, which is backwards: fewer draws buy less "
+        "certainty about the standard error, so the tail is wider")
 
 
 def test_summarise_moves_at_all_so_the_agreement_above_is_not_an_artefact_of_a_dead_function():

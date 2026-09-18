@@ -6699,9 +6699,35 @@ def test_the_runs_own_answer_to_which_side_of_zero_reaches_the_reader(live):
     rendered = live["arms-errorbar"]
     assert _door_prose(block["reading"]) in rendered, (
         "the run artefact's own answer reaches no sentence on the page")
-    assert str(block["the_floors_rule"]["bar_sems"]) in rendered, (
-        "the floor's bar does not reach the reader, so the two answers cannot be told apart "
-        "even when both are printed")
+    # THE BAR REACHES THE READER, OR THE PAGE SAYS THE ARTEFACT NEVER STATED ONE (2026-09-18).
+    #
+    # THIS USED TO BE `str(bar_sems) in rendered` AND IT WAS KEYED TO TODAY'S ANSWER TWICE OVER.
+    # It passed only while the bar was the integer `2`: the page prints the bar to three decimal
+    # places, so `str(2.1098155778333156)` is in no sentence the reader ever sees, and the
+    # assertion would have gone red on the day the producer adopted the honest bar -- when the
+    # page became MORE correct, not less. It would also have gone red as `"None"` on every family
+    # folded before the producer began stamping the bar it graded at, which is a real and honest
+    # state rather than a defect.
+    #
+    # THE PROPERTY IT MEANT TO ASSERT: a reader can tell which rule produced the verdict. Either
+    # the threshold is on the page, or the page says plainly that the artefact did not record one.
+    # An unstated bar rendered silently is the fail-open reading -- the reader assumes the two
+    # rules matched because nothing said otherwise.
+    floor_bar = block["the_floors_rule"]["bar_sems"]
+    if floor_bar is None:
+        assert "does not state the bar" in block["reading"], (
+            "the artefact never said which bar it was graded at and the page does not say so, so "
+            "a reader takes the agreement below as an agreement between two RULES when it is only "
+            "between two answers")
+    else:
+        # ACCEPTED IN EITHER SPELLING THE BLOCK CAN PRODUCE, because the page prints the sentence
+        # the block composes and the block formats an integer bar and a derived one differently.
+        # Pinning one spelling is what made the previous version of this assertion a control on
+        # today's artefact rather than on the property.
+        spellings = {"{:g}".format(floor_bar), "{:.3f}".format(floor_bar)}
+        assert any(text in rendered for text in spellings), (
+            "the floor's bar ({}) does not reach the reader in any spelling, so the two answers "
+            "cannot be told apart even when both are printed".format(sorted(spellings)))
 
 
 def test_MUTATION_the_two_rules_disagreeing_renders_LOUDLY_and_states_no_side():

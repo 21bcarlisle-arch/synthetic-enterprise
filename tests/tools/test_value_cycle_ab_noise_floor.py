@@ -1360,11 +1360,29 @@ def test_the_seed_count_and_the_published_verdict_are_the_same_inequality():
         for mean in (-3000.0, -1078.1657011111156, -50.0, 50.0, 1078.0, 3000.0):
             for sd in (1810.5007782810442, 250.0, 9000.0):
                 block = rvca.distance_to_a_sign(mean, sd, n)
-                verdict = abs(mean) > rvca.SEMS_TO_STATE_A_SIGN * (sd / math.sqrt(n))
-                assert (n >= block["seeds_needed_to_state_a_sign"]) is verdict, (
-                    f"n={n} mean={mean} sd={sd}: the seed count says "
-                    f"{n >= block['seeds_needed_to_state_a_sign']} and the verdict the artefact "
-                    f"publishes says {verdict} -- two implementations of one question")
+                # THE BAR IS THE FAMILY'S OWN AND IS READ BACK OFF THE BLOCK, not retyped. It was
+                # `rvca.SEMS_TO_STATE_A_SIGN` -- a constant, deleted 2026-09-18 -- and retyping
+                # whatever replaced it here would make this a comparison of one spelling with
+                # itself. The two sides stay different EXPRESSIONS: one inverts the inequality for
+                # `n`, the other evaluates it at the bar the block says it used.
+                verdict = abs(mean) > block["sems_needed_to_state_a_sign"] * (sd / math.sqrt(n))
+                count = block["seeds_needed_to_state_a_sign"]
+                if count is None:
+                    # THE SEARCH GAVE UP, which it may only do on a family that does not state a
+                    # sign. An unavailable count beside a stateable verdict would be the two
+                    # implementations disagreeing in the one direction that reads as caution.
+                    assert not verdict, (
+                        f"n={n} mean={mean} sd={sd}: the verdict says the sign IS stateable while "
+                        "the seed count is unavailable, so the family that states it is one no "
+                        "search can find")
+                    assert block["seeds_needed_unavailable_because"], (
+                        "the count is missing and names no reason, so a reader cannot tell "
+                        "'no family settles this' from 'nobody computed it'")
+                else:
+                    assert (n >= count) is verdict, (
+                        f"n={n} mean={mean} sd={sd}: the seed count says {n >= count} and the "
+                        f"verdict the artefact publishes says {verdict} -- two implementations of "
+                        "one question")
                 stateable += verdict
                 unstateable += not verdict
     # BOTH BRANCHES REACHED. A sweep that only ever met one verdict would pass while agreeing
@@ -1512,8 +1530,15 @@ def test_the_folded_family_reports_the_same_distance_arithmetic_as_a_run():
     spread = folded["selection_gbp_spread"]
     assert folded["distance_to_a_sign"] == rvca.distance_to_a_sign(
         spread["mean"], spread["stdev"], spread["n"])
+    # The bar comes off the artefact the verdict was published on -- see
+    # `test_the_seed_count_and_the_published_verdict_are_the_same_inequality` for why it is never
+    # retyped here. It must also BE the family's own, which the leg below asserts separately.
+    bar = folded["selection_sems_needed_to_state_a_sign"]
+    assert bar == rvca.sems_to_state_a_sign(spread["n"]), (
+        "the fold published a bar that is not the one its own family size earns, so the verdict "
+        "beside it was graded by a rule the reader cannot re-derive")
     assert folded["selection_distinguishable_from_zero"] is (
-        abs(spread["mean"]) > rvca.SEMS_TO_STATE_A_SIGN * folded["selection_sem_gbp"])
+        abs(spread["mean"]) > bar * folded["selection_sem_gbp"])
 
 
 # ---------------------------------------------------------------------------

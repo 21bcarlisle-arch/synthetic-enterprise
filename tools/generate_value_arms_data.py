@@ -133,7 +133,6 @@ from tools.decisions_that_existed import decisions_that_existed
 # one place this file derives instead of reading, and it derives by calling the same function the
 # run stores -- so the page and the artefact cannot carry two answers to one question. See that
 # function for why the "never recomputed here" rule does not reach a pair-count identity.
-from tools.fold_noise_floor_family import _DISTINGUISHABLE_SEMS
 from tools.inference_claim import (
     CANNOT_TELL,
     cannot_tell_sentence,
@@ -1689,32 +1688,52 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
     """The floor's own "can we call the sign" against this page's, on one surface.
 
     THE DEFECT THIS EXISTS FOR (2026-09-11). Two keys in one payload answer the identical
-    question. `selection_distinguishable_from_zero` is written by the run/fold producer at a
-    2-standard-error bar; `selection_leg.sign_is_stateable` is written here at 1.96. The producer's
-    reached NO sentence on the page -- a grep over `site/` returned the payload key and one door
-    test, no HTML and no JS -- so for as long as the two agreed nothing was wrong and nothing could
-    have noticed when they stopped. At `origin/main` on 2026-09-11 they had already stopped: the
-    feed carried `distinguishable_from_zero: true` (mean -£1,749 at a £613 standard error, 2.85
-    errors from zero) under rendered prose reading "this instrument cannot yet resolve a selection
-    effect ... in either direction". The page told the reader the opposite of what its own payload
+    question. `selection_distinguishable_from_zero` is written by the run/fold producer;
+    `selection_leg` answers the same thing here. The producer's reached NO sentence on the page --
+    a grep over `site/` returned the payload key and one door test, no HTML and no JS -- so for as
+    long as the two agreed nothing was wrong and nothing could have noticed when they stopped. At
+    `origin/main` on 2026-09-11 they had already stopped: the feed carried
+    `distinguishable_from_zero: true` (mean -£1,749 at a £613 standard error, 2.85 errors from
+    zero) under rendered prose reading "this instrument cannot yet resolve a selection effect ...
+    in either direction". The page told the reader the opposite of what its own payload
     established.
 
-    WHY BOTH BARS ARE PUBLISHED RATHER THAN ONE OF THEM DELETED. Deleting the producer's key would
-    make this page the only witness to its own rule, and the disagreement it is currently having
-    with the producer would become unobservable instead of resolved. Deleting the page's would put
-    a threshold nobody on this page can see in charge of a sentence on it. So both are stated with
-    their bars beside them, and `agree` is the thing a reader and a control can key to.
+    ONE BAR SINCE 2026-09-18, AND THIS BLOCK IS NOW THE RECORD OF WHY IT CHANGED. The two rules ran
+    at a fixed 2.0 and at the family's own t(n-1) respectively, and the fixed one was simply wrong:
+    the standard error it grades is estimated from the same draws as the mean, so no constant can
+    be right at more than one family size, and it is wrong by MORE as the family shrinks -- exactly
+    when a marginal family needs it most. That is not a matter of taste a reconciliation can leave
+    open, so the producer adopted the derived bar and this block stopped being a standing
+    disagreement. It is kept, and kept fail-closed, because two homes still COMPUTE the answer:
+    what it now witnesses is that they agree, which is a claim that can go false.
+
+    AND THE COMPARISON IS AGAINST `clears_its_own_bar`, NOT `sign_is_stateable` (2026-09-18). Those
+    are two different questions -- see `_leg_over_its_own_family` -- and this block was asking the
+    producer's purely-statistical key against the page's composite one. On the 2026-09-18 feed that
+    produced `agree: false` with prose blaming a difference of bars, on a family 2.495 errors from
+    zero against a 2.110 bar: it cleared, and the page withheld for an unrelated reason (the family
+    and the published run were different books). A true refusal published under a false cause is
+    the failure that survives longest, because the headline answer looks right.
+
+    WHY BOTH KEYS ARE PUBLISHED RATHER THAN ONE OF THEM DELETED. Deleting the producer's would make
+    this page the only witness to a rule it also applies, and a disagreement with the producer
+    would become unobservable instead of resolved. Deleting the page's would put a threshold nobody
+    on this page can see in charge of a sentence on it. So both are stated with their bars beside
+    them, and `agree` is the thing a reader and a control can key to.
 
     FAIL-CLOSED ON DISAGREEMENT. `sign_stated_despite_disagreement` is the leg that matters: when
     the two rules differ, the page has two answers and is entitled to neither, so a stated sign is
     a defect and this block says so in the prose rather than picking the flattering rule.
 
-    KEYED TO THE PROPERTY. Nothing here pins today's answer. The day a larger family pins its mean
-    past both bars, `agree` stays true and the note changes by itself; the day the two bars
-    straddle the family, `agree` goes false and the page says so with nobody editing a string.
+    KEYED TO THE PROPERTY. Nothing here pins today's answer, and nothing here pins today's BARS
+    either. The day the two homes drift apart again, `agree` goes false and the page says so with
+    nobody editing a string; the day a larger family pins its mean past the bar, `agree` stays true
+    and the note changes by itself.
     """
     floors_says = (floor or {}).get("selection_distinguishable_from_zero")
-    pages_says = (leg or {}).get("sign_is_stateable")
+    # THE STATISTICAL KEY AGAINST THE STATISTICAL KEY. `sign_is_stateable` also carries the page's
+    # book refusal, which the producer's rule cannot see and was never asked about.
+    pages_says = (leg or {}).get("clears_its_own_bar")
     # NEITHER IS COERCED TO A BOOLEAN. `None` means that rule could not be applied at all -- a
     # family too small to have a standard error -- and "could not tell" agreeing with "no" is the
     # fail-open reading of exactly the state where the reconciliation is worth having.
@@ -1722,55 +1741,95 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
     pages_says = pages_says if isinstance(pages_says, bool) else None
     agree = None if floors_says is None or pages_says is None else bool(
         floors_says == pages_says)
-    # THE PAGE'S BAR IS NOW THE FAMILY'S, so it is read from the leg that was graded at it rather
-    # than from a module constant. Reading it back off the published key is also the only spelling
-    # that cannot drift from the verdict beside it.
+    # BOTH BARS ARE READ OFF THE ARTEFACTS THAT WERE GRADED AT THEM, never retyped here. That is
+    # the only spelling neither can drift from, and retyping either is what makes this block agree
+    # with itself by construction. The floor's bar arrived on the artefact on 2026-09-18, with the
+    # verdict it produced; before that this function named the producer's constant itself, which is
+    # how a page came to publish a threshold its own artefact had never been graded at.
     page_bar = (leg or {}).get("sems_needed_to_state_a_sign")
+    floor_bar = (floor or {}).get("selection_sems_needed_to_state_a_sign")
     page_bar_text = "an unreadable" if page_bar is None else "a {:.3f}".format(page_bar)
+    floor_bar_text = "unreadable" if floor_bar is None else "{:.3f}".format(floor_bar)
+    # ONE RULE OR TWO -- ASKED OF THE BARS THEMSELVES, and this is the key the control is keyed to.
+    # `None` on either side is NOT agreement: a bar that could not be read is not a bar that
+    # matches, and treating it as one is the fail-open reading of the exact state this block exists
+    # to expose.
+    one_rule = (None if page_bar is None or floor_bar is None
+                else bool(abs(float(page_bar) - float(floor_bar)) < 1e-9))
     return {
         "question": ("Can this book tell which side of zero the value of the choosing falls on? "
-                     "Two rules in this payload answer it and they are stated together here."),
+                     "Two homes in this payload compute it and they are stated together here."),
         "the_floors_rule": {
-            "bar_sems": _DISTINGUISHABLE_SEMS,
+            "bar_sems": floor_bar,
             "says": floors_says,
             "written_by": "tools/fold_noise_floor_family.py, on the run artefact itself",
             "key": "error_bar.distinguishable_from_zero",
-            "bar_is": "a written-down constant, the same for every family size",
+            "bar_is": ("derived from this family's own size -- the two-sided t point on its "
+                       "degrees of freedom. It was a fixed 2.0 until 2026-09-18"),
         },
         "the_pages_rule": {
             "bar_sems": page_bar,
             "says": pages_says,
             "written_by": "tools/generate_value_arms_data.py, at publish time",
-            "key": "error_bar.selection_leg.sign_is_stateable",
+            "key": "error_bar.selection_leg.clears_its_own_bar",
             "bar_is": ("derived from this family's own size -- the two-sided t point on its "
                        "degrees of freedom, so it moves when the seed count moves"),
         },
         "agree": agree,
+        "the_two_rules_are_one_rule": one_rule,
         "sign_stated_despite_disagreement": bool(agree is False and pages_says is True),
-        # WHY THE TWO BARS DIFFER, stated rather than left as an unexplained gap. Until 2026-09-11
-        # the page's bar was 1.96 and its own comment claimed it equalled the floor's 2 -- an
-        # asserted identity between two numbers that were never equal. They still differ, by more
-        # than before, and the difference is now a consequence of something rather than an oversight.
+        # WHY THE BARS ARE NOW ONE, and what they were. Kept as the record of the change rather
+        # than deleted with it: a reader meeting a single bar cannot otherwise tell whether the two
+        # were reconciled or whether one of them was quietly dropped, and those are different.
         "why_the_bars_differ": (
-            "The floor's rule applies a fixed {floor_bar} standard errors whatever the family "
-            "size. The page's is {page_bar_text} bar taken from this family's own degrees of "
-            "freedom, because the standard error it grades is estimated from the same draws as "
-            "the mean. On a small family the derived bar is the STRICTER of the two and the page "
-            "is the more conservative reader; the two converge as seeds are added. Neither is "
-            "promoted to the answer."
-            .format(floor_bar=_DISTINGUISHABLE_SEMS, page_bar_text=page_bar_text)),
+            "They no longer do. Both rules take the bar from this family's own degrees of freedom "
+            "-- {page_bar_text} bar here, {floor_bar_text} on the artefact -- because the standard "
+            "error being graded is estimated from the same draws as the mean it bounds. Until "
+            "2026-09-18 the artefact's rule applied a fixed 2.0 at every family size, which is "
+            "short of the honest bar at every family this instrument has drawn and short by more "
+            "as the family shrinks. The fixed rule was not a second opinion worth keeping: it was "
+            "wrong, and the two answering oppositely was the evidence."
+            if one_rule else
+            # THE UNREADABLE CASE IS NOT THE DRIFT CASE, and collapsing them would page a reader
+            # about an implementation gap that is really an artefact predating the field. The
+            # producer began stamping the bar it graded at on 2026-09-18; every family folded
+            # before that carries the verdict without it, so its rule cannot be checked from the
+            # artefact at all. That is an unknown and it is stated as one -- but it is NOT the
+            # flattering branch either: `the_two_rules_are_one_rule` stays null, so nothing
+            # downstream may read this state as the two agreeing.
+            "THE ARTEFACT DOES NOT SAY WHICH BAR IT WAS GRADED AT, so the two rules cannot be "
+            "shown to be one. This page used {page_bar_text} bar, the one this family's own size "
+            "earns. A floor folded before 2026-09-18 carries its verdict without the threshold "
+            "that produced it -- which is not evidence the thresholds differ and not evidence they "
+            "agree. Re-folding the family stamps it and settles this."
+            if floor_bar is None or page_bar is None else
+            "THE TWO HOMES ARE NO LONGER APPLYING ONE RULE. The artefact was graded at "
+            "{floor_bar_text} and this page at {page_bar_text} bar. Both are meant to be this "
+            "family's own t point on its own degrees of freedom, so a gap between them is a drift "
+            "between two implementations of one rule and not a difference of opinion."
+        ).format(page_bar_text=page_bar_text, floor_bar_text=floor_bar_text),
         "reading": (
-            "The run's own floor artefact asks this at a {floor_bar}-standard-error bar and the "
-            "page asks it at {page_bar}. Both say {answer}."
-            .format(floor_bar=_DISTINGUISHABLE_SEMS, page_bar=page_bar_text.split()[-1],
+            # THE AGREEMENT SENTENCE MAY ONLY CLAIM A SHARED BAR WHEN THE SHARING IS DEMONSTRATED.
+            # Two rules reaching the same answer is not evidence they applied the same rule, and
+            # saying so on an artefact that never stamped its threshold would be the page asserting
+            # an identity it cannot see -- the exact defect the comment above `sems_to_state_a_sign`
+            # records, committed again one level up.
+            ("The run's own floor artefact and this page ask this at the same {bar} bar, the one "
+             "this family's own size earns. Both say {answer}."
+             if one_rule else
+             "The run's own floor artefact and this page reach one answer. Both say {answer} -- "
+             "but they are meant to ask it at one bar and this artefact does not state the bar it "
+             "was graded at, so the agreement is between two answers rather than between two "
+             "rules.")
+            .format(bar=page_bar_text.split()[-1],
                     answer=("the side CAN be stated" if pages_says else "it cannot"))
             if agree else
-            "THESE TWO RULES DISAGREE, so no side is stated. The run's own floor artefact asks "
+            "THESE TWO HOMES DISAGREE, so no side is stated. The run's own floor artefact asks "
             "whether the mean clears {floor_bar} standard errors from zero and says {floor_says}; "
             "this page asks whether it clears {page_bar} and says {page_says}. A question with two "
             "answers in one payload is not a result, and the narrower bar is not promoted to the "
             "answer because it is the encouraging one."
-            .format(floor_bar=_DISTINGUISHABLE_SEMS, floor_says=floors_says,
+            .format(floor_bar=floor_bar_text, floor_says=floors_says,
                     page_bar=page_bar_text.split()[-1], page_says=pages_says)
             if agree is False else
             "One of the two rules could not be applied to this family at all, so the page states "
@@ -1860,14 +1919,17 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         "distinguishable_from_zero": bool(floor.get("selection_distinguishable_from_zero")),
         # THE SAME QUESTION, ANSWERED IN TWO HOMES, AND THE READER WAS GETTING ONLY ONE
         # (2026-09-11). `distinguishable_from_zero` is the FLOOR ARTEFACT'S own answer to "can we
-        # tell which side of zero this is on", computed by the producer at a 2-standard-error bar
-        # (`fold_noise_floor_family._DISTINGUISHABLE_SEMS`). `selection_leg.sign_is_stateable` is
-        # THIS page's answer to the identical question at a bar DERIVED from the family's own
-        # size (`sems_to_state_a_sign`, t(n-1) -- 2.306 at the nine seeds in hand). Both
-        # sat in the payload; only the page's reached a sentence, and nothing anywhere compared
-        # them. A concept with two homes where the reader gets whichever one happens to render is
-        # this project's most expensive recurring shape -- so the two are reconciled here, on the
-        # surface, rather than one of them being deleted for tidiness.
+        # tell which side of zero this is on"; `selection_leg.clears_its_own_bar` is THIS page's
+        # answer to the identical question. Both sat in the payload; only the page's reached a
+        # sentence, and nothing anywhere compared them. A concept with two homes where the reader
+        # gets whichever one happens to render is this project's most expensive recurring shape --
+        # so the two are reconciled here, on the surface, rather than one of them being deleted
+        # for tidiness.
+        #
+        # THEY NOW RUN THE SAME RULE (2026-09-18). The producer graded at a fixed 2.0 and this page
+        # at t(n-1); the producer now derives too, from the one home (`sems_to_state_a_sign`). The
+        # reconciliation is kept because two homes still COMPUTE it, and what it witnesses is that
+        # they agree -- a claim that can go false, which is the only kind worth publishing.
         "distinguishable_reconciliation": _distinguishable_reconciliation(floor, leg),
         # THE WHOLE PAIRING, and the only place on this page a selection estimate now comes from.
         "selection_leg": leg,
@@ -3970,14 +4032,23 @@ def _spread_for(spreads: dict | None, key: str):
 #
 # THE DOCSTRING, WHICH WAS THE MORE EXPENSIVE HALF. It claimed 1.96 was "the same one the noise
 # floor's producer uses for `selection_distinguishable_from_zero` -- so the page's gate and the
-# artefact's own verdict cannot disagree". That producer uses `_DISTINGUISHABLE_SEMS = 2`. The
-# two bars had never been equal, `_distinguishable_reconciliation` below exists precisely because
-# they disagree, and the constant's own comment asserted the identity that function refutes. A
-# claim of agreement sitting beside the machinery built to handle the disagreement is how a reader
-# learns to stop checking.
+# artefact's own verdict cannot disagree". That producer used a fixed `2`. The two bars had never
+# been equal, `_distinguishable_reconciliation` below exists precisely because they disagreed, and
+# the constant's own comment asserted the identity that function refutes. A claim of agreement
+# sitting beside the machinery built to handle the disagreement is how a reader learns to stop
+# checking.
 #
 # So the bar is no longer written down anywhere on this page. It comes from the family's own size
 # via `sems_to_state_a_sign`, which is the single home shared with the run producer.
+#
+# AND THE PRODUCER CAME TO IT ON 2026-09-18, which is what finally made that claimed identity true.
+# Deriving it here and leaving a constant there left one question with two answers in one payload,
+# and on the live feed they answered it oppositely: `distinguishable_from_zero: true` beside a page
+# that would state no direction. A reader taking either key got a real answer; a reader taking both
+# got a contradiction; and publishing a direction under the wrong one of them is the single failure
+# that would make this page worse than silence. The fixed bar was not the other side of a judgement
+# call -- a standard error estimated from the same draws as the mean cannot be graded by a constant
+# at more than one family size -- so it was retired rather than reconciled.
 
 
 def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
@@ -4081,15 +4152,38 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
     sems_from_zero = None if sem == 0 else abs(mean) / sem
     # THE BAR IS THIS FAMILY'S OWN, computed from the same n that produced the sem it grades.
     bar = sems_to_state_a_sign(n)
-    stateable = None if sems_from_zero is None or bar is None else bool(
+    # TWO QUESTIONS, ANSWERED SEPARATELY, AND THEY USED TO BE ONE BOOLEAN (2026-09-18).
+    #
+    #   `clears_its_own_bar` is the STATISTICAL question: does this family's mean sit further from
+    #   zero than its own size earns? It is a property of the family alone and nothing else on this
+    #   page can move it.
+    #
+    #   `sign_is_stateable` is the PUBLISHING question: may the page state a direction about the
+    #   run it is drawn from? That needs the statistics AND the family and the run to be one book.
+    #
+    # Collapsing them cost a whole class of confusion. On 2026-09-18 the feed carried a family
+    # 2.495 errors from zero against a bar of 2.110 -- it cleared, comfortably -- with
+    # `sign_is_stateable: false` beside it and a reconciliation block explaining the disagreement
+    # as a difference of BARS. The bars were not the disagreement; the books were. A reader, and
+    # every control keyed to that block, was given the wrong cause for a true refusal, which is
+    # the failure that survives longest because the headline answer is right.
+    #
+    # Said out loud before it was measured, per this repository's rule: these are different
+    # experiences of "can we tell", so they are measured separately rather than differenced.
+    clears_bar = None if sems_from_zero is None or bar is None else bool(
         sems_from_zero > bar)
     # AND A FAMILY FROM ANOTHER BOOK STATES NO SIGN, however many errors from zero its own mean
     # sits. This is the same refusal `_seed_spreads` already makes upstream, made here as well
     # because `_error_bar` reaches this function without passing through it. `False` and not
     # `None`: we DID measure, and what we measured does not license a direction about the
     # published run -- which is a different thing from having nothing to say.
+    stateable = clears_bar
     if stateable and not one_book:
         stateable = False
+    # WHY THE PAGE WITHHELD, WHEN THE STATISTICS DID NOT. `None` when nothing was withheld, so the
+    # key is empty exactly when there is nothing to explain and never carries a reassuring string.
+    withheld_because = (
+        staleness_caveat if (clears_bar is True and stateable is False) else None)
     lo, hi = _f((spread or {}).get("min_gbp")), _f((spread or {}).get("max_gbp"))
     stdev = _f((spread or {}).get("stdev_gbp"))
     # WHAT IT WOULD TAKE, PRICED IN THE ONE UNIT THAT ACTUALLY BUYS IT DOWN. The page's remedy
@@ -4110,8 +4204,14 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
     # the right-hand side falls monotonically in m, so any m at or below n fails too and the first
     # m the search returns is already greater than n. The clamp is not tightened, it is
     # unreachable -- which is why it is deleted rather than kept as insurance.
+    #
+    # KEYED TO `clears_bar`, NOT TO `stateable` (2026-09-18). Seeds are the remedy for a mean too
+    # near zero for its family's size. They are NOT the remedy for a family measured on a different
+    # book from the run it is printed beside -- drawing more of them buys a wider family of the
+    # WRONG book, and quoting a seed price against that refusal would send a reader to spend
+    # machine-hours on a thing no number of hours fixes.
     needed = None
-    if stateable is False:
+    if clears_bar is False:
         needed = seeds_to_state_a_sign(mean, stdev)
     return {
         "available": True,
@@ -4122,7 +4222,16 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
         "bound_statistic": "sem_gbp",
         "one_draw_moves_gbp": _f((spread or {}).get("stdev_gbp")),
         "sems_from_zero": sems_from_zero,
+        # THE STATISTICAL HALF, ON ITS OWN. This is the key the run artefact's
+        # `selection_distinguishable_from_zero` is the same question as, and the ONLY key on this
+        # page that may be reconciled against it -- both ask "does the mean clear its own bar" and
+        # neither knows anything about which book the published run came from.
+        "clears_its_own_bar": clears_bar,
         "sign_is_stateable": stateable,
+        # WHAT THE PUBLISHING HALF ADDED TO THE STATISTICAL ONE, named. Non-null only when the two
+        # differ, which is the one state where a reader who saw `clears_its_own_bar: true` beside
+        # `sign_is_stateable: false` would otherwise have to guess at the reason.
+        "sign_withheld_despite_clearing_the_bar_because": withheld_because,
         "sign": None if not stateable else ("negative" if mean < 0 else "positive"),
         "sems_needed_to_state_a_sign": bar,
         # WHERE THE BAR CAME FROM, published so the reader can re-derive it rather than take it.

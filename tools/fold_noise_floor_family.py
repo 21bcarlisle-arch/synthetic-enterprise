@@ -55,16 +55,28 @@ from pathlib import Path
 #: implementation of one rule is this project's most expensive recurring defect, and a folded
 #: family whose mean is computed differently from the family it extends is that defect with the
 #: two copies one import apart.
-from tools.run_value_cycle_ab import _book_declared, _spread, distance_to_a_sign
+from tools.run_value_cycle_ab import (
+    _book_declared,
+    _spread,
+    distance_to_a_sign,
+    sems_to_state_a_sign,
+)
 
 _REPO = Path(__file__).resolve().parent.parent
 
-#: `noise_floor` computes this inline as `abs(mean) > 2 * sem`. It is restated here rather than
-#: imported because it is one line inside a three-hundred-line run function with no seam to import
-#: -- and it is pinned to the producer's answer on the real artefact by
-#: `test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_disk`, so the two
-#: cannot drift silently. If that test ever goes red, the producer moved and this must follow it.
-_DISTINGUISHABLE_SEMS = 2
+# `_DISTINGUISHABLE_SEMS = 2` LIVED HERE AND IS DELETED (2026-09-18). Its own comment said it was
+# "restated here rather than imported" because the producer's copy was one line inside a
+# three-hundred-line run function with no seam -- and a restatement pinned by a test is still a
+# second implementation, which is the shape this project pays for most. The producer now derives
+# its bar from the family size too, so there is a seam and the bar has one home:
+# `run_value_cycle_ab.sems_to_state_a_sign`, imported above and never re-spelled.
+#
+# THE VALUE WAS ALSO WRONG, AND THAT IS THE HALF THAT REACHED A READER. A fixed 2 grades a standard
+# error that was estimated from the same `n` draws as the mean it bounds, so it is short of the
+# honest t(n-1) at every family this instrument has drawn -- 2.306 at nine seeds, 2.201 at twelve,
+# 2.110 at eighteen -- and short by MORE as the family shrinks. On 2026-09-18 the live feed carried
+# `distinguishable_from_zero: true` under a page saying "we cannot tell", and the gap between the
+# two bars is where that disagreement lived.
 
 
 class FoldRefused(RuntimeError):
@@ -137,19 +149,26 @@ def _seed_rows(sources: list) -> list:
 def _leg(rows: list, key: str) -> dict:
     """One leg's spread, standard error and sign verdict, under the bar BOTH legs are judged at.
 
-    THE BAR IS `_DISTINGUISHABLE_SEMS` AND NOT A SECOND ONE. The whole use of a level leg beside a
-    selection leg is the CONTRAST between their verdicts -- "one leg's sign is stateable and the
+    THE BAR IS `sems_to_state_a_sign(n)` AND NOT A SECOND ONE. The whole use of a level leg beside
+    a selection leg is the CONTRAST between their verdicts -- "one leg's sign is stateable and the
     other's is not" is a claim about the two legs, and it is only a claim about the legs if both
     were asked the same question. Judging the level leg at a different bar would make the contrast
     an artefact of the rule rather than of the data, which is this project's most expensive shape
-    wearing a statistic's clothes.
+    wearing a statistic's clothes. Every leg here shares one `n`, so they share one bar by
+    construction rather than by anyone remembering to pass the same number twice.
+
+    IT IS PUBLISHED BESIDE THE VERDICT, which is what makes the bar checkable from the artefact
+    instead of from this docstring. A verdict whose threshold is not on the surface is a verdict
+    the reader has to take on trust, and this bar moves with the family -- so the day it moves, the
+    number that moved it is on the page next to the answer it changed.
     """
     spread = _spread([r.get(key) for r in rows])
     sem = None
     distinguishable = None
-    if spread["stdev"] is not None and spread["n"] > 1:
+    bar = sems_to_state_a_sign(spread["n"])
+    if spread["stdev"] is not None and spread["n"] > 1 and bar is not None:
         sem = spread["stdev"] / math.sqrt(spread["n"])
-        distinguishable = abs(spread["mean"]) > _DISTINGUISHABLE_SEMS * sem
+        distinguishable = abs(spread["mean"]) > bar * sem
     values = [r.get(key) for r in rows if isinstance(r.get(key), (int, float))
               and not isinstance(r.get(key), bool)]
     positive = sum(1 for v in values if v > 0)
@@ -157,6 +176,12 @@ def _leg(rows: list, key: str) -> dict:
         "spread": spread,
         "sem_gbp": sem,
         "distinguishable_from_zero": distinguishable,
+        #: THE BAR THE VERDICT ABOVE WAS TAKEN AT, on the artefact. Derived from this family's own
+        #: size and written down nowhere, so a consumer can re-run the comparison rather than
+        #: assume which rule produced the boolean beside it. This is the key that makes
+        #: `generate_value_arms_data`'s reconciliation a comparison of two ANSWERS rather than of
+        #: one answer and a guess at the threshold that produced it.
+        "sems_needed_to_state_a_sign": bar,
         #: THE SAME QUESTION ASKED WITHOUT AN ESTIMATOR, because the two can disagree and a reader
         #: who can see both learns something a reader given only one cannot. The count is
         #: distribution-free: it does not care whether the leg is normal, and on a leg whose values
@@ -243,6 +268,12 @@ def summarise(rows: list) -> dict:
         "level_share_spread": share,
         "selection_sem_gbp": selection["sem_gbp"],
         "selection_distinguishable_from_zero": selection["distinguishable_from_zero"],
+        # THE BAR THAT VERDICT WAS TAKEN AT, hoisted beside it (2026-09-18). The key above is the
+        # one every consumer outside this file reads, and until now it arrived bare -- so
+        # `generate_value_arms_data` had to name the producer's threshold itself to reconcile it,
+        # which is how a page came to publish a bar the artefact was never graded at. A verdict and
+        # its threshold travel together or the reader is reconciling one of them against a memory.
+        "selection_sems_needed_to_state_a_sign": selection["sems_needed_to_state_a_sign"],
         # The legs, each carrying its own verdict under the same bar. `selection_leg` restates the
         # four above rather than replacing them -- a consumer reading either gets one answer.
         "selection_leg": selection,
@@ -623,8 +654,12 @@ def main(argv: list | None = None) -> int:
         len(folded["folded_from"]), sel["n"], out))
     print("  selection_gbp: mean {:.2f}  stdev {:.2f}  sem {:.2f}  sems from zero {:.3f}".format(
         sel["mean"], sel["stdev"], sem, abs(sel["mean"]) / sem))
-    print("  distinguishable from zero at {} sems: {}".format(
-        _DISTINGUISHABLE_SEMS, folded["selection_distinguishable_from_zero"]))
+    # THE BAR IS READ BACK OFF THE ARTEFACT THIS CALL JUST WROTE, never recomputed for the print.
+    # An operator deciding whether to publish reads this line, not the JSON, and a bar computed a
+    # second time here could differ from the one the verdict beside it was actually taken at.
+    print("  distinguishable from zero at {} sems (this family's own bar, t on {} df): {}".format(
+        folded["selection_sems_needed_to_state_a_sign"], sel["n"] - 1,
+        folded["selection_distinguishable_from_zero"]))
     #: ON THE SURFACE, NOT ONLY IN THE FILE. The operator who runs this is the one deciding whether
     #: to publish the family, and a caveat they have to open the JSON to find is a caveat they will
     #: publish without. Printed on every branch, so silence here means "asked and matched" and
