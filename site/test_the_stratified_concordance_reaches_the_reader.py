@@ -497,16 +497,55 @@ def test_the_reading_a_reader_meets_is_the_one_the_producer_DECLARES(live, live_
     Residual, stated rather than hidden: editing the constant itself still passes here. That is the
     intended remaining surface -- deliberate, reviewable, and beside the reason -- not a gap this
     leg pretends to close.
+
+    THE MISSING PRECONDITION, AND IT IS THE 2026-09-18 REPAIR. `earned` below is derived here from
+    the stratified block and NOT asked of the producer -- that independence is the whole grip, and
+    a first draft of this repair gave it away by reading back which constant the producer's own
+    reading contained, which agrees with the producer by construction and cannot catch a household
+    claim its bound does not support. What the old version was missing is upstream of `earned`:
+    NEITHER constant is written unless the UNSTRATIFIED figure first clears its own null upward.
+    `_auc_reading` reaches them only from its final `else`, past an unavailable bound, a withheld
+    direction, a figure inside the null, and a figure below it. So on a run inside its null the
+    producer declares neither sentence, and this control demanded the presence of a sentence
+    nothing had written -- passing only while whichever book was canonical happened to clear that
+    null. The same inheritance `test_a_run_whose_belief_DOES_rank_within_the_year_keeps_its
+    _household_reading` carried, from the other end: half a precondition built and half borrowed
+    from the promoted run. Three states now, because the producer has three, and the two-constant
+    pinning stays reachable on every promotion because that null control drives it on a run built
+    to earn the claim.
     """
     gv = _producer()
     within = live["decisions"]["discrimination_auc_within_year"]
-    earned = bool(within.get("available")
-                  and not within.get("inside_the_null")
-                  and (within.get("auc") or 0.0) >= 0.5)
+    bound = (live["decisions"]["auc_attribution"] or {}).get("null_bound") or {}
+    observed = live["decisions"].get("discrimination_auc")
 
     assert gv._EARNED_CLAIM_SENTENCE != gv._UNEARNED_CLAIM_SENTENCE, (
         "the two readings collapsed to one string, so this control can no longer tell an earned "
         "household claim from an unearned one -- and neither could a reader")
+
+    # THE GATE ABOVE THE GATE. Composed from the same three refusals the producer makes and in the
+    # same order, so a run whose figure is unbounded, withheld, inside its null or below it is
+    # known here to make no claim at all -- rather than inherited from whichever book is canonical.
+    claim_is_reachable = bool(bound.get("available")
+                              and bound.get("inside_the_null") is False
+                              and (observed is None or observed >= 0.5))
+
+    if not claim_is_reachable:
+        # THE THIRD STATE, which the producer has and this control did not. No claim about what the
+        # belief did is earned in EITHER direction, so the page must make none. A sentence that
+        # reaches a reader for a claim the producer withheld is the same defect as a reword,
+        # arriving through the other surface.
+        for sentence in (gv._EARNED_CLAIM_SENTENCE, gv._UNEARNED_CLAIM_SENTENCE):
+            assert sentence not in live_decisions, (
+                "this run's unstratified figure does not clear its null (available {}, AUC {}, "
+                "inside {}), so NEITHER claim is earned and the producer writes neither -- and a "
+                "reader meets one anyway: {!r}".format(
+                    bound.get("available"), observed, bound.get("inside_the_null"), sentence))
+        return
+
+    earned = bool(within.get("available")
+                  and not within.get("inside_the_null")
+                  and (within.get("auc") or 0.0) >= 0.5)
 
     expected = gv._EARNED_CLAIM_SENTENCE if earned else gv._UNEARNED_CLAIM_SENTENCE
     forbidden = gv._UNEARNED_CLAIM_SENTENCE if earned else gv._EARNED_CLAIM_SENTENCE
@@ -620,17 +659,48 @@ def test_a_run_whose_belief_DOES_rank_within_the_year_keeps_its_household_readin
     the day a run earns a household reading -- which is the outcome this work aims at. The
     fixture makes the belief rank perfectly WITHIN each year, so the stratified figure clears its
     null on the page's own arithmetic rather than on a number typed here.
+
+    AND IT CONSTRUCTS THE OTHER FIGURE TOO, because the assertion needs both and until 2026-09-18
+    it built one and INHERITED the other. `_auc_reading` gates the household sentence on the
+    UNSTRATIFIED bound first and only then on the stratified twin, and the unstratified figure is
+    read straight off `belief_vs_outcome.discrimination_auc` -- which mutating `scored_decisions`
+    does not touch. So this control passed only while whichever run happened to be canonical had
+    an unstratified figure outside its own null, and reported "the gate is refusing everything"
+    about a gate refusing exactly one thing, correctly, the day a smaller book was promoted.
+    Measured on the 09-18 book: within-year 1.0 and clear, unstratified 0.5566 and INSIDE
+    0.3871-0.6129. The page was right and this control was wrong.
     """
+    gv = _producer()
+
     def rank_within_year(three: dict) -> dict:
-        rows = three["belief_vs_outcome"]["scored_decisions"]
+        belief = three["belief_vs_outcome"]
+        rows = belief["scored_decisions"]
         for row in rows:
             # Perfect within-year separation: retained households believed above every departed
             # one in the same year, with the LEVEL held flat across years so the between-year
             # component contributes nothing. This is the mirror of the live run.
             row["believed_p_retain"] = 0.9 if row["retained"] else 0.1
+        # THE SECOND FIGURE, DERIVED AND NOT TYPED. A flat level held across years means these
+        # rows separate the whole population as well as each year of it, so the run's own
+        # unstratified concordance moves with them -- it is simply not RECOMPUTED, because the
+        # artefact carries it as a stored number. Recomputing it here through the producer's own
+        # pooled call (whose docstring records that this call over the whole population returns
+        # `discrimination_auc` to full precision) keeps the artefact internally consistent and
+        # keys the fixture to the property: whatever book is canonical next, both figures are
+        # built from the same rows rather than one of them borrowed from the book.
+        belief["discrimination_auc"] = gv._pooled_within_year_auc({"whole_population": rows})[0]
         return three
 
     feed = _feed(mutate=rank_within_year)
+    bound = (feed["decisions"]["auc_attribution"] or {}).get("null_bound") or {}
+    assert bound.get("inside_the_null") is False, (
+        "the fixture was supposed to construct BOTH figures and the UNSTRATIFIED one did not "
+        "clear its null, so the producer never reaches the branch that can make a household "
+        "claim and this control would be asserting the presence of a sentence nothing wrote "
+        "(available {}, AUC {}, null {}-{}, inside {})".format(
+            bound.get("available"), feed["decisions"].get("discrimination_auc"),
+            bound.get("null_95_low"), bound.get("null_95_high"),
+            bound.get("inside_the_null")))
     within = feed["decisions"]["discrimination_auc_within_year"]
     assert within["available"] is True
     assert within["inside_the_null"] is False, (
@@ -647,6 +717,18 @@ def test_a_run_whose_belief_DOES_rank_within_the_year_keeps_its_household_readin
         "test of a guard and guards nothing.")
     assert "are WITHDRAWN" not in page, (
         "the page withdrew a claim the stratified figure supports")
+
+    # AND THE PINNING LEG IS DRIVEN HERE, so it does not go unreachable on a book whose figure sits
+    # inside its null. `test_the_reading_a_reader_meets_is_the_one_the_producer_DECLARES` asks the
+    # producer which claim it declares and checks the reader meets that one; on a run that earns
+    # nothing there is no claim to pin and that leg correctly asserts absence instead. This run
+    # earns one, so the constant-vs-page comparison happens on every promotion.
+    assert gv._EARNED_CLAIM_SENTENCE in page, (
+        "the page makes the household claim in words that are no longer the producer's constant, "
+        "so a reword could reach a reader without reaching `_EARNED_CLAIM_SENTENCE`")
+    assert gv._UNEARNED_CLAIM_SENTENCE not in page, (
+        "a run that EARNED the household reading carries the unearned fallback beside it, so a "
+        "reader meets both claims at once")
 
 
 def test_a_run_whose_cap_binds_BOTH_arms_carries_no_bind_caveat():

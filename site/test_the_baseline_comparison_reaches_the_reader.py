@@ -874,6 +874,34 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
         assert "states no side" in rendered, (
             "the seed family pins its mean with no measurable error, so its distance from zero "
             "cannot be stated in units of its own precision -- and the page does not say so")
+    elif leg.get("sign_withheld_because"):
+        # THE SECOND REASON A SIDE IS WITHHELD, AND THE PRODUCER GREW IT WITHOUT THIS CONTROL
+        # FOLLOWING (2026-09-18). `_error_bar` splits the refusal two ways -- too few errors from
+        # zero, and a family measured over a DIFFERENT BOOK from the figure it bounds -- and says
+        # so in its own comment: "every assertion in the suite was about the verdict, and the
+        # verdict was right". This branch was that suite. It had one `else` for both reasons and
+        # demanded the precision sentence, so on a stale family it asserted a sentence the
+        # producer no longer writes -- and printed "short of the 2.11" over a figure sitting 2.50
+        # errors from zero, which is the tell: a message whose own numbers refute it.
+        #
+        # PINNED TO THE PAYLOAD, NOT TO A SENTENCE TYPED HERE, and lower-cased at the seam exactly
+        # as `_reading` embeds it, so a reason the producer states and the door drops is caught
+        # rather than a reason this file happens to know the words of today.
+        reason = leg["sign_withheld_because"]
+        assert isinstance(reason, str) and reason.strip(), (
+            "the sign is withheld for a reason the producer recorded as empty, so a reader meets "
+            "a band with no side and no account of why -- 'we cannot tell' belongs on the page")
+        assert reason[0].lower() + reason[1:] in rendered, (
+            "the producer withheld the side for a reason it published, and that reason reaches no "
+            "reader: {!r}".format(reason[:160]))
+        assert "cannot yet resolve a selection effect" not in rendered, (
+            "the side was withheld because this family bounds a different book, and the page tells "
+            "the reader it was withheld for want of PRECISION -- which is a different finding with "
+            "a different remedy, and the numbers beside it say the precision was sufficient "
+            "({:.2f} errors against a bar of {})".format(
+                leg["sems_from_zero"], leg["sems_needed_to_state_a_sign"]))
+        assert leg["sign"] is None, (
+            "the feed withheld the sign and then published one anyway")
     else:
         assert "cannot yet resolve a selection effect" in rendered, (
             "the estimate sits {:.2f} standard errors from zero, short of the {} this page "
