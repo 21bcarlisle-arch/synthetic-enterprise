@@ -38,8 +38,28 @@ this item's own claim row has `paths: []`:
     repair-the-stratified-fixture-…  →  (none)
 
 So this is not two pieces of work on one subject — it is one piece of work drawn under two names, and
-the one that did it is the one holding the paths. Taking `--landed-under` rather than `--release`,
-because the work exists and is on `origin/main`; a release would put a finished repair back in the pool.
+the one that did it is the one holding the paths.
+
+**I said here that the disposition was `--landed-under` rather than `--release`, and the tool refused
+it. Corrected beside the claim rather than rewritten.** The refusal names its own reason:
+
+    credited NOTHING to repair-the-stratified-fixture-…: republish-…-one-priced-book's landing is
+    not newer than repair-the-stratified-fixture-…'s first draw -- work that predates the draw is
+    somebody else's, the same rule as `--landed`
+
+My reasoning was that the work exists and is on `origin/main`, so crediting it was the honest move and
+a release would put a finished repair back in the pool. Both halves of that were wrong about what the
+two verbs mean. `--landed-under` is not "this subject is already done elsewhere" — it credits a
+**landing made after the draw**, and its rule is a defence against exactly the move I was making:
+banking a sibling lane's finished work against an id that did none of it. The rival landed before I
+drew. The work is not mine to credit, and `--release` is the disposition — it does not return a
+finished repair to the pool, because the pool is keyed to the paths, and the rival still holds every
+one of them.
+
+**The general shape, because the item's own instruction contains it:** the drawn text offered
+`--landed-under` *"when it has already landed"*, and "already landed" reads naturally as a fact about
+the tree. It is not — it is a fact about the tree **relative to the draw instant**. A disposition
+sentence that omits its clock sends you to the verb that refuses.
 
 **The note that made this cheap was in the item itself.** The duplicate-work check named the rival
 claim and named two of the exact paths. Reading the rival's bound path list before building is what
