@@ -8652,3 +8652,149 @@ def test_a_selection_SIGN_may_not_be_published_over_a_floor_that_pools_two_instr
     # The live floor is one case in that partition, asserted rather than skipped past.
     assert _a_sign_published_over_this_floor_is_unearned(
         gva._read(gva.NOISE_FLOOR_PATH) or {}) is None
+
+
+def _a_population_claim_the_run_cannot_support(arm: dict) -> str | None:
+    """The complaint when the level arm's rendered words outrun what its run measured.
+
+    Returns None when the words and the run agree. Keyed to the PROPERTY -- "does the sentence a
+    reader meets say more than the artefact answered" -- and not to today's artefact, so it goes
+    red when a future run rots the claim and stays green when the page becomes more honest.
+    """
+    what = arm.get("what") or ""
+    says_same_renewals = "priced ONE BOOK" in what
+    says_cannot_tell = "CANNOT SAY" in what
+    says_different = "did NOT price one book" in what
+    answered = (arm.get("one_book") or {}).get("answer")
+
+    if sum((says_same_renewals, says_cannot_tell, says_different)) != 1:
+        return ("the level arm's words state none of the three answers, or more than one, so a "
+                "reader cannot tell which population the split below is taken over")
+    if says_same_renewals and answered is not True:
+        return ("the page tells a reader the two arms priced ONE BOOK while the run answered "
+                "{!r} -- the flattering branch, published off a run that did not earn "
+                "it".format(answered))
+    if says_different and answered is not False:
+        return "the page asserts the arms priced different books on a run that did not say so"
+    if says_cannot_tell and answered is not None:
+        return ("the page says it cannot tell while the run in fact answered {!r}, so a measured "
+                "result is being withheld".format(answered))
+    return None
+
+
+def test_the_level_arm_may_not_say_it_priced_the_same_renewals_unless_the_run_says_so():
+    """The page's population claim must come from the run, and absence must not read as yes.
+
+    THE DEFECT THIS GUARDS, AND IT WAS LIVE FOR MONTHS. `ARM_MEANING["level"]["what"]` asserted
+    "It prices the same renewals through the same guards under the same lawful ceiling" as a
+    module CONSTANT. The guards half is true. The renewals half was a claim about a run that no
+    code had ever asked a run, and it was false on every artefact this page has published: on the
+    2026-09-10 run the level arm priced 281 renewals against the per-customer arm's 215, and 65 of
+    that gap was the per-customer arm refusing renewals the level arm priced. `selection_gbp` --
+    the one figure here that speaks to what CHOOSING is worth -- was therefore a difference across
+    two populations while the page told the reader it was one.
+
+    THE THIRD ANSWER IS THE POINT, AND IT IS WHERE THE FLATTERING COLLAPSE LIVES. Every run older
+    than 2026-09-18 carries no `same_priced_population` at all. A two-valued reading has to send
+    that absence somewhere, and sending it to True republishes the false sentence -- a declared
+    None and a silent None collapsing into the encouraging branch, which is this project's most
+    expensive recurring shape. So the adverse leg below is asserted directly: an artefact with the
+    field missing must render "CANNOT SAY", and the live published artefact is one case in that
+    partition rather than the whole of it.
+
+    R15 -- the mutations, each applied in-process, run, and reverted. WHICH LEG CAUGHT EACH ONE
+    IS RECORDED AS OBSERVED, not as predicted: I expected the fail-open to be caught by the
+    unknown leg and it was caught one line earlier, by the reachability assertion, because
+    collapsing absence onto True does not merely mislabel that run -- it removes an answer from
+    the partition entirely. That is a stronger catch than the one designed for, and recording the
+    prediction beside the result is the only evidence the legs were chosen before the answers.
+      * in `_one_book`, return `{"answer": True, ...}` when `same_priced_population` is absent ->
+        REDS at reachability, answers collapse to {True, False}. The fail-open this exists for.
+      * restore the constant sentence to `ARM_MEANING["level"]["what"]` (drop the `{one_book}`
+        placeholder) -> REDS BOTH TESTS: no branch's words appear at all, and the withdrawal test
+        catches the page withdrawing a claim it simultaneously republishes.
+      * drop `"one_book"` from `_arm`'s returned dict -> REDS at the complaint function on the
+        corrected run: words claiming ONE BOOK with no answer behind them for a reader to check.
+      * read `priced_by_arm` counts instead of the renewal-by-renewal join (level == value means
+        one book) -> REDS at reachability, answers collapse to {False}. Both real artefacts have
+        denominators that differ through churn, so a counts test can never return True and the
+        page would refuse forever -- the honest-looking failure that says nothing.
+    """
+    published = gva._read(gva.THREE_ARM_PATH) or {}
+    corrected = gva._read(
+        gva.PROJECT / "docs" / "observability"
+        / "value_cycle_ab_s1_three_arm_20260918.json") or {}
+
+    # ALL THREE BRANCHES ARE REACHABLE -- asserted over the partition, not one leg per answer,
+    # because a composer that returned the unknown sentence for everything would pass a
+    # per-branch suite and publish "we cannot tell" over a run that answered.
+    answers = {gva._one_book(published)["answer"],
+               gva._one_book(corrected)["answer"],
+               gva._one_book({"decision_population": {
+                   "same_priced_population": {"answer": False,
+                                              "net_refusals_of_renewals_the_other_arm_priced": 65},
+                   "priced_by_arm": {"level_arm": 281, "value_arm": 215}}})["answer"]}
+    assert answers == {None, True, False}, (
+        "the three answers are not all reachable ({!r}), so this control cannot fail on at least "
+        "one of them".format(answers))
+
+    # THE ADVERSE CASE: absence must reach the reader as absence.
+    assert gva._one_book(published)["answer"] is None, (
+        "the run this page publishes carries no `same_priced_population`, so anything but None "
+        "here is the generator answering a question the artefact was never asked")
+    assert "CANNOT SAY" in gva._arm("level", 1.0, one_book=gva._one_book(published))["what"], (
+        "the run cannot say whether the arms priced one book and the page does not tell the "
+        "reader so -- the sentence a reader meets is the whole deliverable here")
+
+    # ...AND THE RULE IS NOT "ALWAYS REFUSE", which the adverse leg alone would pass.
+    assert "priced ONE BOOK" in gva._arm(
+        "level", 1.0, one_book=gva._one_book(corrected))["what"], (
+        "the corrected run DID price one book and the page will not say so, so the composer "
+        "refuses everything and is not reading the run at all")
+
+    # The complaint function over the same partition, and the live feed's own rendered arms.
+    for label, artefact in (("published", published), ("corrected", corrected)):
+        arm = gva._arm("level", 1.0, one_book=gva._one_book(artefact))
+        assert _a_population_claim_the_run_cannot_support(arm) is None, (
+            "{}: {}".format(label, _a_population_claim_the_run_cannot_support(arm)))
+
+    # The fail-open, constructed: words that claim one book over a run that answered None.
+    forged = dict(gva._arm("level", 1.0, one_book=gva._one_book(corrected)),
+                  one_book=gva._one_book(published))
+    assert _a_population_claim_the_run_cannot_support(forged), (
+        "words claiming ONE BOOK over a run that could not say raise no complaint, so this "
+        "control would not have caught the defect it was written for")
+
+
+def test_the_withdrawn_population_claim_reaches_the_reader_in_the_readers_words():
+    """The withdrawn sentence is on the surface, not only in the code that stopped emitting it.
+
+    THE DEFECT THIS GUARDS. Deleting a false sentence makes the page silently correct, and a
+    reader who read it last week has no way to learn it was wrong. This project's rule is that a
+    correction is kept BESIDE the claim; the page already has the register for that, and a
+    withdrawal that never reaches `note` is a withdrawal the surface does not carry.
+    """
+    block = gva._withdrawn()
+    newest = gva.WITHDRAWN_CLAIMS[0]
+    assert newest["withdrawn_on"] == "2026-09-18", (
+        "the population withdrawal is not the newest entry, so the page's own newest-correction "
+        "surface renders something else")
+    assert "prices the same renewals" in newest["the_words"], (
+        "the register does not quote the sentence being withdrawn, so a reader cannot tell what "
+        "was corrected")
+    # THE WORDS MUST NOT SURVIVE AS A LIVE CLAIM ANYWHERE THE COMPOSER CAN EMIT THEM.
+    assert "{one_book}" in gva.ARM_MEANING["level"]["what"], (
+        "the level arm's description has gone back to asserting its population instead of "
+        "composing it from the run")
+    assert "prices the same renewals" not in gva.ARM_MEANING["level"]["what"], (
+        "the withdrawn sentence is still a live constant, so the page withdraws a claim it is "
+        "simultaneously republishing")
+    # ...and the rendered register carries it, which is what a reader actually meets.
+    assert "WITHDRAWN 2026-09-18" in block["note"], (
+        "the newest withdrawal does not reach the rendered note, so the correction exists only "
+        "in the feed's structure and not on the page")
+    for owed in ("281", "215", "65"):
+        assert owed in block["note"], (
+            "the note withholds {!r} -- the reader is told a claim was withdrawn without the "
+            "numbers that make it checkable".format(owed))
+    assert block["withdrawals"] == len(gva.WITHDRAWN_CLAIMS) >= 6

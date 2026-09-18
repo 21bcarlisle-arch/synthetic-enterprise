@@ -487,10 +487,18 @@ ARM_MEANING = {
     "level": {
         "name": "Flat at the same level",
         "role": "the control that splits the answer",
+        #: NO POPULATION CLAIM LIVES HERE ANY MORE, and that is the repair (2026-09-18). This
+        #: string used to carry "It prices the same renewals through the same guards under the
+        #: same lawful ceiling" as a CONSTANT -- a claim about a run, asserted by a module that
+        #: never read one. It was false for every run this page has ever published: on the
+        #: 2026-09-10 artefact the level arm priced 281 renewals and the per-customer arm 215,
+        #: and 65 of that gap was the per-customer arm refusing renewals the level arm priced.
+        #: The middle sentence is now `_one_book`, derived from the artefact's own answer, and
+        #: it is three-valued because "this run cannot say" is the honest reading of every run
+        #: that predates the check -- including the one on the page today.
         "what": "One margin for every household again, but set at the level the per-customer arm "
-                "actually charged. It prices the same renewals through the same guards under the "
-                "same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from "
-                "choosing per customer.",
+                "actually charged. {one_book} Anything it earns came from the PRICE LEVEL and "
+                "not from choosing per customer.",
     },
 }
 
@@ -542,13 +550,118 @@ def _gbp(value) -> str:
     return "{}£{:,.0f}".format("-" if v < 0 else "", abs(v))
 
 
-def _arm(key: str, net_gbp, advantage_gbp=None, absent_reason: str | None = None) -> dict:
+#: What the page says about the two arms' populations when the run itself will not say. FAIL
+#: CLOSED: an artefact with no answer is not an artefact that answered yes, and the flattering
+#: branch is the one this project has paid for repeatedly (a declared `None` and a silent `None`
+#: collapsing into the encouraging reading). A reader meeting this sentence is being told the
+#: split below is taken across two populations, on the surface and not in a footnote.
+#: The counts clause is OPTIONAL because a run that carries no priced counts must not be made to
+#: state "0 and 0" -- that reads as a measurement of an empty book rather than as the absence of
+#: one, which is the same fail-open this whole function exists to refuse.
+_ONE_BOOK_UNKNOWN = (
+    "THIS RUN CANNOT SAY whether it priced the same renewals as the per-customer arm: it predates "
+    "the check.{counts} So the split below is taken across two populations that were never "
+    "reconciled, and the part of it that is the arms disagreeing about WHO to price cannot be "
+    "told from the part that is the price level.")
+_ONE_BOOK_UNKNOWN_COUNTS = " The two arms priced {level:,} and {value:,} renewals here."
+_ONE_BOOK_YES = (
+    "On this run it priced ONE BOOK with the per-customer arm: no renewal was priced by one arm "
+    "and refused by the other, and the {gap:,}-renewal difference in their denominators is churn "
+    "moving who still existed to renew.")
+_ONE_BOOK_NO = (
+    "On this run it did NOT price one book with the per-customer arm: {crossed:,} renewal(s) were "
+    "priced by one arm and refused by the other. The split below is therefore taken across two "
+    "populations and part of it is the arms disagreeing about WHO to price.")
+
+
+def _one_book(three_arm: dict | None) -> dict:
+    """Whether the level arm priced the same renewals as the per-customer arm, from the RUN.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-18). `ARM_MEANING["level"]["what"]` asserted that the
+    level arm "prices the same renewals through the same guards under the same lawful ceiling"
+    as a module constant. The guards claim is true -- `renewal_margin_uplift` passes
+    `flat_at_level` through every guard the value arm passes -- and the RENEWALS claim was a
+    different question nobody had asked the artefact. On the run this page publishes today the
+    level arm priced 281 renewals and the per-customer arm 215, and the 2026-09-18 re-run exists
+    precisely because 65 of that 66-renewal gap was the per-customer arm refusing renewals the
+    level arm went ahead and priced. A constant cannot notice that; it stayed green while the
+    claim rotted, which is the shape CLAUDE.md names by its cost.
+
+    THREE-VALUED, AND THE THIRD VALUE IS THE ONE THAT MATTERS. `same_priced_population` is a
+    field the producer only started writing when the frontier was shared, so every artefact older
+    than 2026-09-18 answers by absence. Mapping absence onto either verdict would be this module
+    inventing an answer: onto `True` it republishes the false claim, onto `False` it asserts a
+    defect in runs where it was never measured. It returns `None` and the page says so in words.
+
+    NOT A JOIN ON COUNTS. `priced_by_arm` differing is NOT evidence the arms disagreed about whom
+    to price -- churn moves who is left to renew, so the denominators diverge in a run where every
+    shared renewal got the same treatment. The answer is the artefact's own renewal-by-renewal
+    join (`declined_renewals.level_arm_priced_the_same_renewal`) and its net summary; the counts
+    are carried only so the unknown branch can state the size of what it cannot resolve.
+    """
+    dp = (three_arm or {}).get("decision_population") or {}
+    priced = dp.get("priced_by_arm") or {}
+    level, value = priced.get("level_arm"), priced.get("value_arm")
+    spp = dp.get("same_priced_population")
+    declined = (three_arm or {}).get("declined_renewals") or {}
+    crossed = declined.get("level_arm_priced_the_same_renewal")
+
+    if not isinstance(spp, dict) or spp.get("answer") is None:
+        return {
+            "answer": None,
+            "unavailable_because": (
+                "this run carries no `decision_population.same_priced_population`, so it was "
+                "never asked whether the two arms priced the same renewals. The field is written "
+                "by runs from 2026-09-18 onward, when the level arm was given the per-customer "
+                "arm's own refusal frontier."),
+            "level_arm_priced": level,
+            "value_arm_priced": value,
+            "sentence": _ONE_BOOK_UNKNOWN.format(
+                counts=(_ONE_BOOK_UNKNOWN_COUNTS.format(level=level, value=value)
+                        if isinstance(level, int) and isinstance(value, int) else "")),
+        }
+    if spp.get("answer") is True:
+        gap = dp.get("largest_denominator_difference")
+        return {
+            "answer": True,
+            "unavailable_because": None,
+            "level_arm_priced": level,
+            "value_arm_priced": value,
+            "net_refusals_of_renewals_the_other_arm_priced": spp.get(
+                "net_refusals_of_renewals_the_other_arm_priced"),
+            "why": spp.get("why"),
+            "sentence": _ONE_BOOK_YES.format(gap=gap or 0),
+        }
+    return {
+        "answer": False,
+        "unavailable_because": None,
+        "level_arm_priced": level,
+        "value_arm_priced": value,
+        "net_refusals_of_renewals_the_other_arm_priced": spp.get(
+            "net_refusals_of_renewals_the_other_arm_priced"),
+        "why": spp.get("why"),
+        "sentence": _ONE_BOOK_NO.format(
+            crossed=crossed if isinstance(crossed, int) else (
+                spp.get("net_refusals_of_renewals_the_other_arm_priced") or 0)),
+    }
+
+
+def _arm(key: str, net_gbp, advantage_gbp=None, absent_reason: str | None = None,
+         one_book: dict | None = None) -> dict:
     meaning = ARM_MEANING[key]
+    what = meaning["what"]
+    if "{one_book}" in what:
+        # Composed, never asserted -- see `_one_book`. A caller that has no artefact to hand gets
+        # the unknown sentence, which is the same fail-closed answer an artefact without the
+        # field gets, and not a quietly dropped clause.
+        what = what.format(
+            one_book=(one_book or _one_book(None))["sentence"])
     return {
         "key": key,
         "name": meaning["name"],
         "role": meaning["role"],
-        "what": meaning["what"],
+        "what": what,
+        "one_book": one_book if "{one_book}" in meaning["what"] else None,
         "net_gbp": net_gbp,
         "advantage_gbp": advantage_gbp,
         "absent_reason": absent_reason,
@@ -913,7 +1026,8 @@ def _realised(three_arm: dict) -> dict:
         "arms": [
             _arm("control", control),
             _arm("value", value, advantage_gbp=delta),
-            _arm("level", level_net, advantage_gbp=level_adv, absent_reason=level_absent),
+            _arm("level", level_net, advantage_gbp=level_adv, absent_reason=level_absent,
+                 one_book=_one_book(three_arm)),
         ],
         "split": _split_on_the_realised_clock(three_arm),
         "is_the_published_supplier": _is_the_published_supplier(control),
@@ -1041,7 +1155,7 @@ def _provisioned(three_arm: dict) -> dict:
         "arms": [
             _arm("control", control),
             _arm("value", value, advantage_gbp=value_adv),
-            _arm("level", level, advantage_gbp=level_adv),
+            _arm("level", level, advantage_gbp=level_adv, one_book=_one_book(three_arm)),
         ],
         "selection_gbp": selection,
         "level_share_of_advantage": share,
@@ -3317,6 +3431,49 @@ def _what_would_resolve_it(decomposition: dict | None,
 #: that quietly overwrites the first correction with the second and leaves a page claiming to keep
 #: its record while keeping one entry of it.
 WITHDRAWN_CLAIMS = [{
+    "withdrawn_on": "2026-09-18",
+    "the_words": ("One margin for every household again, but set at the level the per-customer "
+                  "arm actually charged. It prices the same renewals through the same guards "
+                  "under the same lawful ceiling. Anything it earns came from the PRICE LEVEL "
+                  "and not from choosing per customer."),
+    "why": ("The middle sentence was a claim about a RUN, written as a module constant, and no "
+            "run this page has ever published made it true. \"The same guards\" is correct and "
+            "stands: `renewal_margin_uplift` puts `flat_at_level` through every guard the "
+            "per-customer arm passes, so neither arm can see a renewal the other cannot. \"The "
+            "same renewals\" is a different question, and on the run these figures come from the "
+            "answer is no -- the level arm priced 281 renewals, the per-customer arm priced 215, "
+            "and 65 of that 66-renewal gap was the per-customer arm REFUSING renewals the level "
+            "arm went ahead and priced. It refused them because it could not name a margin it "
+            "was willing to stand behind; the level arm had no such frontier and simply charged. "
+            "So the level arm was being credited with the margin it earned on 65 households the "
+            "arm under test had declined to price at all, and `selection_gbp` -- this page's one "
+            "measure of what the CHOOSING is worth -- is a difference taken across two "
+            "populations. That is not a small correction to a sign: it is the discovery that the "
+            "quantity was not the quantity. WHAT REPLACES IT IS NOT THE OPPOSITE CLAIM. The "
+            "sentence is now derived from each run's own `same_priced_population`, and the run "
+            "on this page predates that field, so where the claim used to be the page now says "
+            "the run cannot tell. A 2026-09-18 re-run in which the level arm carries the "
+            "per-customer arm's own refusal frontier DOES price one book -- zero net crossed "
+            "refusals across a 3-renewal denominator gap that is entirely churn -- and it is not "
+            "published here yet. NO BOUNDED SIGN SURVIVES THE CORRECTION EITHER. Every seed "
+            "family this page has used to bound the selection leg was drawn against the arm as "
+            "it was BEFORE the frontier was shared, so the moment the corrected run reaches this "
+            "page its own staleness check refuses to pair the two and the bounded readings go "
+            "unavailable together. That is the check working, not a regression: the floor has to "
+            "be re-drawn against the corrected arm before any sign here is bounded again. "
+            "`docs/staging/SEAT_RESULT_THE_ARMS_NOW_PRICE_ONE_BOOK_SIX_CONTROLS_REFUSE_THE_"
+            "REPUBLISH_AND_THREE_WERE_ALREADY_RED_2026-09-18.md`."),
+    "note": ("WITHDRAWN 2026-09-18: this page previously said the flat-at-the-same-level arm "
+             "“prices the same renewals” as the per-customer arm. It did not. On the run "
+             "these figures come from it priced 281 renewals against the per-customer arm's 215, "
+             "and 65 of that gap was the per-customer arm refusing renewals the level arm "
+             "priced — so the choosing figure below is a difference taken across two "
+             "populations. The claim is withdrawn and not reversed: the sentence is now derived "
+             "from each run's own answer, and this run predates the question, so the page says "
+             "it cannot tell. A corrected re-run in which the two arms do price one book exists "
+             "and is not published here yet; when it arrives, the bounded signs go with it, "
+             "because the seed family that bounds them was drawn against the old arm."),
+}, {
     "withdrawn_on": "2026-09-10",
     "the_words": ("A signal carrying no information at all scores between 0.39 and 0.61 on a "
                   "population this size (exact null, two-sided 95%). The observed value is "
