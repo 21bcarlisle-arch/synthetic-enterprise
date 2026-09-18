@@ -2026,6 +2026,150 @@ def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
                 prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17))
 
 
+def _publisher_runs_since_the_last_timed_chain(hook_series=None, gate_series=None):
+    """How many times the publisher RAN without any chain being timed. `None` = not applicable.
+
+    THE TWO LEDGERS ARE WRITTEN BY THE SAME PUBLISH CYCLE AND ONLY ONE OF THEM IS CONDITIONAL.
+    `publish_gate_duration.jsonl` gets a row every time the publisher's scoped gate runs, whatever
+    it returns. `commit_hook_duration.jsonl` gets a row only from `_land_publish_commit`, which a
+    cycle reaches only after its gate has PASSED. So a publisher that keeps running and keeps
+    failing its gate writes to one series and not the other, and the difference between them is
+    not noise -- it is the count of publish cycles whose chain cost is unobserved.
+
+    WHY A COUNT AND NOT AN AGE. An age cannot tell a quiet machine from a blind one, and redding
+    the tree because nobody committed overnight is the "control keyed to today's answer" failure
+    this file already carries two scars from. A count of SIBLING RUNS is silent on an idle machine
+    by construction: no publisher runs, no count, no complaint. It rises only when the publisher is
+    demonstrably alive and demonstrably not completing -- which is the one condition under which
+    the live half's window is stale AND the staleness is telling us something.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    # THE REAL REPO, for the same reason `_recent_hook_chain_seconds` reads it: this directory's
+    # conftest isolates `prc.PROJECT_DIR` to a tmp tree, and `suite_duration_watch.SERIES_PATH` is
+    # built from that isolated value, so reading the module constant here would grade an empty
+    # fixture on every run and never be able to fail.
+    def _default(name):
+        return _Path(__file__).resolve().parents[2] / "docs" / "observability" / name
+
+    hook = _Path(hook_series) if hook_series is not None else _default(
+        "commit_hook_duration.jsonl")
+    gate = _Path(gate_series) if gate_series is not None else _default(
+        "publish_gate_duration.jsonl")
+    if not hook.is_file() or not gate.is_file():
+        return None
+
+    def _stamps(path):
+        out = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                stamp = _json.loads(line).get("timestamp")
+            except ValueError:
+                continue
+            if isinstance(stamp, str):
+                out.append(stamp)
+        return out
+
+    hook_stamps = _stamps(hook)
+    gate_stamps = _stamps(gate)
+    if not hook_stamps or not gate_stamps:
+        return None
+    # ISO-8601 UTC stamps from one writer, so string order IS time order and no parse is needed.
+    newest_timed = max(hook_stamps)
+    return sum(1 for s in gate_stamps if s > newest_timed)
+
+
+def test_the_live_headroom_half_cannot_grade_a_machine_that_STOPPED_RECORDING():
+    """A WINDOW THAT CANNOT REFRESH IS NOT EVIDENCE ABOUT TODAY, AND ITS ERROR HAS A DIRECTION.
+
+    `_recent_hook_chain_seconds` bounds its window by ROW COUNT alone. Its only escapes are "no
+    file" and "no readable duration" -- so a series that stops growing keeps the same last twenty
+    rows forever, and the live half goes on grading them with no way to say that it is doing so.
+    Measured 2026-09-18: the newest row was 2026-09-17T12:40 while the publisher had run 13 more
+    times and the shared tree had gone on committing for 27 hours.
+
+    THE BLINDNESS ARRIVES EXACTLY WHEN THE THING IT WATCHES GOES WRONG, which is what makes it
+    worth a control rather than a note. The chain is only ever timed on a publish cycle that got
+    PAST its gate. A wedged publish path therefore freezes this series at its pre-wedge readings
+    -- the instrument goes dark at the start of the incident it exists to detect, and every reading
+    it offers afterwards is from before.
+
+    AND THE STALE READING IS THE FAIL-OPEN ONE, which is why a skip would not do here. Fitted over
+    the 89 real chains since the 2026-08-31 regime step, the chain is GROWING at +6.3%/day (95% CI
+    [+5.2, +7.4], log-linear, and it beats a best-breakpoint step model by dAIC 19 -- the fit is in
+    `docs/staging/SEAT_RESULT_*_2026-09-18.md`). A window frozen in the past therefore reports a
+    SMALLER worst chain than the machine now costs, and the live half's job is to demand headroom
+    OVER the worst. Staleness here does not withhold a judgement; it invents room. A skip is the
+    same colour as a pass and would hide it, so this refuses instead.
+
+    IT CANNOT FIRE ON A QUIET MACHINE, and that is the whole design of the counter it uses -- see
+    `_publisher_runs_since_the_last_timed_chain`. Nobody publishing means nothing counted.
+
+    IT IS SELF-CLEARING, which is what separates it from the shape this file warns about two
+    controls up ("a return to the old regime would red the whole tree to report that a comment
+    needs re-dating"). That red needed a human to re-date a constant. This one is discharged by
+    ONE timed chain: the moment a publish cycle lands, a row lands with it, the count returns to
+    zero and the refusal goes away on its own. It asks for the publish path to work, not for
+    paperwork.
+
+    THE BOUND IS THE CONTROL'S OWN WINDOW, not a picked number. At `HOOK_CHAIN_WINDOW_ROWS`
+    unrecorded cycles, a full window's worth of this machine's behaviour has happened with none of
+    it observed -- so by the live half's own sampling rule there is no current evidence left in the
+    sample it grades. Picking 5, or 50, would be picking a number; this one is the size of the
+    thing being invalidated.
+    """
+    unrecorded = _publisher_runs_since_the_last_timed_chain()
+    if unrecorded is None:
+        pytest.skip("one of the two publish ledgers is absent on this tree -- the comparison is "
+                    "inapplicable here, not failing; the committed half still applies")
+    assert unrecorded < HOOK_CHAIN_WINDOW_ROWS, (
+        "the publisher has run {} times since the last hook chain was timed, against a live "
+        "window of {} rows -- so the live headroom half is grading a machine it has no current "
+        "evidence about, and because the chain is growing the stale reading UNDER-states it. The "
+        "publish path is not completing: fix that and this clears itself on the next landed "
+        "cycle, because the cycle that lands writes the row.".format(
+            unrecorded, HOOK_CHAIN_WINDOW_ROWS))
+
+
+def test_the_blindness_control_ACTUALLY_REDS_and_is_silent_on_a_quiet_machine(tmp_path):
+    """R15 ON THE CONTROL ABOVE. Two ways for it to be worthless and both are shown to be closed.
+
+    MUTATION 1 (must fire): a publisher that has run a full window of cycles with nothing timed.
+    MUTATION 2 (must NOT fire): an idle machine -- no publisher rows after the last timed chain.
+    The second leg is the one that matters, because a control that reds on quiet would be
+    withdrawn within a day and the first leg alone cannot tell me it does not.
+    """
+    def _write(name, stamps, extra=None):
+        path = tmp_path / name
+        path.write_text("".join(
+            json.dumps({"timestamp": s, "duration_seconds": 100.0, **(extra or {})}) + "\n"
+            for s in stamps), encoding="utf-8")
+        return path
+
+    timed = _write("hook.jsonl", ["2026-09-17T12:40:51+00:00"])
+
+    # BLIND: a full window of publisher runs after the newest timed chain.
+    busy = _write("gate_busy.jsonl", ["2026-09-17T1{}:00:00+00:00".format(i % 10)
+                                      for i in range(3, 3 + HOOK_CHAIN_WINDOW_ROWS)]
+                  + ["2026-09-18T{:02d}:00:00+00:00".format(h) for h in range(6)])
+    assert _publisher_runs_since_the_last_timed_chain(timed, busy) >= HOOK_CHAIN_WINDOW_ROWS
+
+    # QUIET: the publisher's own newest row PREDATES the newest timed chain, so nothing counts.
+    quiet = _write("gate_quiet.jsonl", ["2026-09-17T0{}:00:00+00:00".format(i) for i in range(1, 8)])
+    assert _publisher_runs_since_the_last_timed_chain(timed, quiet) == 0, (
+        "an idle machine must not be counted as a blind one")
+
+    # A MALFORMED LEDGER IS NOT A GREEN ONE: unreadable input returns the inapplicable value, which
+    # the control turns into a skip, rather than a zero that would read as health.
+    broken = tmp_path / "gate_broken.jsonl"
+    broken.write_text("{not json\n\n", encoding="utf-8")
+    assert _publisher_runs_since_the_last_timed_chain(timed, broken) is None
+
+
 # --- R10 class closure for the ~4.5h publish wedge: the stub-contract guard -------------------
 # (see the fake_completed note at the top of this file for the incident)
 

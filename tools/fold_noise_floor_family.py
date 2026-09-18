@@ -354,6 +354,145 @@ def _book_identity(sources: list) -> dict:
     return first
 
 
+#: THE BYTES THAT CAN MOVE A FLOOR'S NUMBERS. `simulation/` draws the world and the households,
+#: `company/` and `saas/` price the two arms, and `run_value_cycle_ab.py` is the harness that sets
+#: the level arm from the value arm's own realised median margin. A member drawn with any of these
+#: different is a member drawn by a different instrument. Everything else a commit can touch --
+#: site, docs, tests, tooling -- cannot reach a seed row, which is the whole reason this asks about
+#: a PATH SET and not about the commit: the two members of the single-arm fold landed on 2026-09-17
+#: are two distinct commits three minutes apart whose value arms are byte-identical, and pooling
+#: them is correct.
+_VALUE_ARM_PATHS = ("simulation/", "company/", "saas/", "tools/run_value_cycle_ab.py")
+
+
+def _value_arm_pairing(sources: list) -> dict:
+    """WHETHER THE MEMBERS OF THIS FOLD WERE DRAWN BY THE SAME PRICING CODE.
+
+    THE DEFECT (2026-09-17, measured). `value_cycle_ab_s1_noise_floor_folded18_20260917.json` --
+    the eighteen-seed family the level-vs-selection split publishes -- pools nine seeds drawn on
+    `c066c114` with nine drawn on `9f0ab066`. Those two trees do not price the value arm the same
+    way. The tree holds the artefact that proves it: `..._20260910.json` re-runs A's OWN nine seeds
+    on a tree whose value arm is byte-identical to B's, and every one of the nine returns a
+    `selection_gbp` between GBP588.63 and GBP855.45 LOWER -- paired mean -671.31, stdev 98.87,
+    sem 32.96, 20.4 sems from zero. That is not noise and the family publishes it as noise.
+
+    WHAT IT COSTS THE FIGURE. Folded across the two arms the family reads mean -624.13, sem 347.16,
+    1.80 sems -- no stateable sign, and a price of 23 seeds to get one. Folded so every member sits
+    on ONE value arm it reads mean -959.78, sem 384.62, 2.50 sems: the sign IS stateable, it is
+    NEGATIVE, and the price is 12 seeds against 18 in hand. The pool is what was standing between
+    the page and a sign it had already earned.
+
+    WHY THE EXISTING REASONING SAILS PAST IT. `c21d9209e` refused the AUC fold for this same class
+    -- "it would average two operating points and publish the step between them as redraw noise" --
+    keyed on `level_gbp_per_mwh`, 38.50/36.25 against 20.00, visible in one column. Here the level
+    arm agrees to GBP4.27 across the same paired comparison while the value arm moves GBP671.31.
+    The column that caught the AUC fold reads identical on both sides of this one.
+
+    IT ASKS ABOUT A PATH SET, NOT A COMMIT, AND COMMIT IDENTITY IS TOO COARSE IN BOTH DIRECTIONS.
+    `producing_commit` already says "N distinct code tree(s)" and has said so on every fold ever
+    written, including the good ones -- so that sentence cannot separate the benign case from the
+    defect, and a reader who has seen it be harmless learns to skip it. Two commits with identical
+    value arms are poolable; two commits one `simulation/` byte apart are not. See
+    `_VALUE_ARM_PATHS`.
+
+    STATED UNCONDITIONALLY, ON EVERY BRANCH, for the reason `_floor_tree_pairing` gives at length:
+    a reader told nothing when the arms match cannot tell that silence from the tool never having
+    asked. So `why_this_rule` is always a sentence and `caveat` carries the amber only when there is
+    something to be amber about.
+
+    FAIL-CLOSED WHEN IT CANNOT ASK. No `.git` (a clean `git archive` extract has none), a commit
+    that is not in this repository, an unstamped member -- each returns `same_value_arm: None` with
+    a named reason, never `True`. A missing answer is not evidence the arms agree, which is exactly
+    the error `_floor_tree_pairing` was written to stop making one field earlier.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S MEMBERS. Nothing here asserts that today's fold is mixed.
+    It asserts that a folded family states whether its members share a value arm -- so the day the
+    eighteen are re-drawn on one tree this goes quiet with nobody editing a string, and the day a
+    batch arrives from a moved tree it speaks up on its own.
+    """
+    import subprocess
+
+    stamped, unstamped = [], 0
+    for _, data in sources:
+        commit = (data.get("producing_commit") or {}).get("commit")
+        if isinstance(commit, str) and commit.strip():
+            if commit not in stamped:
+                stamped.append(commit)
+        else:
+            unstamped += 1
+
+    rule = (
+        "A folded family states whether its members were drawn by the same pricing code, over {}. "
+        "Two members whose value arms differ are two instruments, and their spread is the step "
+        "between them published as redraw noise.".format(", ".join(_VALUE_ARM_PATHS)))
+    out = {
+        "same_value_arm": None,
+        "member_commits": [c[:9] for c in stamped],
+        "members_without_a_commit": unstamped,
+        "value_arm_paths": list(_VALUE_ARM_PATHS),
+        "differing_paths": None,
+        "unavailable_because": None,
+        "caveat": None,
+        "why_this_rule": rule,
+        "measured_cost_when_it_last_differed": (
+            "GBP671.31 paired on nine identical seeds, 20.4 sems from zero, between `c066c114` and "
+            "`9f0ab066` (2026-09-17). Pooling across it moved the selection leg from 2.50 sems and "
+            "a stateable NEGATIVE sign to 1.80 sems and no sign at all."),
+    }
+
+    if unstamped:
+        out["unavailable_because"] = (
+            "{} of this fold's {} members carry no producing commit, so the question cannot be "
+            "asked of them. An unstamped member was drawn by a tree nobody wrote down -- that is "
+            "an unknown and never evidence the arms agree.".format(unstamped, len(sources)))
+        out["caveat"] = (
+            "This family may pool two pricing instruments and there is no way to tell from disk.")
+        return out
+
+    if len(stamped) < 2:
+        out["same_value_arm"] = True
+        out["differing_paths"] = []
+        out["why_this_rule"] = (
+            rule + " Every member of this fold names the same commit, so there is one value arm by "
+            "construction and no diff to take.")
+        return out
+
+    diffs, failed = set(), None
+    for other in stamped[1:]:
+        try:
+            done = subprocess.run(
+                ["git", "-C", str(_REPO), "diff", "--name-only", stamped[0], other, "--",
+                 *_VALUE_ARM_PATHS],
+                capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError) as exc:
+            failed = "git could not be run here ({})".format(exc)
+            break
+        if done.returncode != 0:
+            failed = "git refused the diff {}..{} ({})".format(
+                stamped[0][:9], other[:9], (done.stderr or "").strip()[:200])
+            break
+        diffs.update(p for p in done.stdout.splitlines() if p.strip())
+
+    if failed:
+        out["unavailable_because"] = (
+            "{}. This repository may be a clean extract with no `.git`, or a member's commit may "
+            "not be present here. The arms are NOT assumed to agree: a fold whose provenance "
+            "cannot be checked carries an unknown.".format(failed))
+        out["caveat"] = (
+            "This family may pool two pricing instruments and the check could not be run.")
+        return out
+
+    out["same_value_arm"] = not diffs
+    out["differing_paths"] = sorted(diffs)
+    if diffs:
+        out["caveat"] = (
+            "THIS FAMILY POOLS {} DISTINCT VALUE ARMS. {} path(s) under {} differ between its "
+            "members, so its spread carries the step between two instruments as well as the "
+            "redraw. Read `measured_cost_when_it_last_differed` before publishing any bound from "
+            "it.".format(len(stamped), len(diffs), ", ".join(_VALUE_ARM_PATHS)))
+    return out
+
+
 def fold(paths: list) -> dict:
     """One floor artefact over the union of several, or a refusal naming the failed question."""
     if len(paths) < 2:
@@ -402,6 +541,10 @@ def fold(paths: list) -> dict:
         },
         "world_identity": dict(sources[0][1].get("world_identity") or {}),
         "book_identity": _book_identity(sources),
+        #: THE PAIRING QUESTION `producing_commit` ABOVE CANNOT ANSWER. It says how many trees
+        #: drew these rows; this says whether those trees priced the arms the same way, which is
+        #: the only half of the provenance that can reach a seed row. See `_value_arm_pairing`.
+        "value_arm_pairing": _value_arm_pairing(sources),
         "report_end": sources[0][1].get("report_end"),
         "what_this_is": (
             "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
@@ -482,6 +625,18 @@ def main(argv: list | None = None) -> int:
         sel["mean"], sel["stdev"], sem, abs(sel["mean"]) / sem))
     print("  distinguishable from zero at {} sems: {}".format(
         _DISTINGUISHABLE_SEMS, folded["selection_distinguishable_from_zero"]))
+    #: ON THE SURFACE, NOT ONLY IN THE FILE. The operator who runs this is the one deciding whether
+    #: to publish the family, and a caveat they have to open the JSON to find is a caveat they will
+    #: publish without. Printed on every branch, so silence here means "asked and matched" and
+    #: never "never asked".
+    pairing = folded["value_arm_pairing"]
+    if pairing["caveat"]:
+        print("  VALUE ARM: {}".format(pairing["caveat"]))
+        for path in (pairing["differing_paths"] or [])[:10]:
+            print("    differs: {}".format(path))
+    else:
+        print("  value arm: one instrument across all {} member(s)".format(
+            len(folded["folded_from"])))
     return 0
 
 
