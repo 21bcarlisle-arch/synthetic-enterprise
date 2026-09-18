@@ -363,6 +363,13 @@ def _git(*args: str, cwd: Path | None = None) -> str | None:
     does not: it reports the working tree of the checkout it runs in, and the bytes the strand half
     is looking for are on the SHARED disk by definition. Asking the wrong tree there returns a
     clean status and reads as "nothing stranded", which is the flattering answer.
+
+    `None` AND `""` ARE DIFFERENT ANSWERS AND THIS FUNCTION HAS ALWAYS KEPT THEM APART: rc==0
+    returns stdout, which is `""` when git ran and matched nothing, and every other outcome --
+    rc!=0, a timeout, git missing -- returns `None`. What loses the distinction is the CALLER, and
+    `or ""` / `if not out` are how: both collapse "the tree said no" into "the tree was never
+    asked" at the point of use. `_git_or_raise` below exists so the collapse cannot be written
+    silently, and the residual's third voice (see `_window_hits`) is what it cost when it was.
     """
     try:
         out = subprocess.run(("git",) + args, cwd=cwd or PROJECT_DIR,
@@ -370,6 +377,46 @@ def _git(*args: str, cwd: Path | None = None) -> str | None:
     except (OSError, subprocess.SubprocessError):
         return None
     return out.stdout if out.returncode == 0 else None
+
+
+class GitUnavailable(RuntimeError):
+    """git could not be ASKED, as distinct from git answering nothing.
+
+    A distinct type rather than a bare `RuntimeError` so the readers in `_disposition` can say
+    which of their two silences they hit, and so a caller cannot catch this by catching its own
+    bugs.
+    """
+
+
+def _git_or_raise(*args: str) -> str:
+    """`_git`, with the unavailable case raised instead of returned. `""` is an ANSWER and is kept.
+
+    THE THIRD VOICE OF THE RESIDUAL, and it is the same conflation `_nothing_answered` was split to
+    end, one layer lower (measured 2026-09-18). `_git` reports a failed git as `None` and a git that
+    matched nothing as `""`, and every caller that wrote `if not out` threw that apart away — so a
+    `git log` that could not run reached the reader as *"asked git ... none. ... this is a genuine
+    miss and the work may still be undone"*, the ANSWERED voice, for a question nobody managed to
+    ask. The two want opposite actions: a genuine miss says draw it again, a failed join says a
+    louder disposition may be TRUE and was lost, so acting on it redoes work that already exists.
+
+    THE DRAWN ITEM SAID THE TWO WERE INDISTINGUISHABLE AT THE WRAPPER — so did the leg that measured
+    it — AND THAT WAS WRONG, corrected here beside the claim rather than quietly. `_git` has kept
+    them apart since it was written; nothing downstream read the difference. That is why the fix is
+    a wrapper that RAISES rather than a new return value: a return value can be dropped by the next
+    caller in one falsy test, and this one cannot be ignored without writing the `except` that says
+    so. The three `except`s in `_disposition` already turn exactly that into `could_not_ask`.
+
+    NO `cwd`, DELIBERATELY, and it is not an oversight to be tidied up later. `_git`'s override
+    exists for exactly one caller, `_stranded_paths`, which asks `git status` of the SHARED tree --
+    and there empty is never a finding at all (that function's own docstring says so, and
+    `tree_verdict` only ever turns a NON-empty list into a verdict). This distinction is for the
+    COMMIT queries, which answer identically from any linked worktree. A knob with no caller is a
+    knob whose first caller finds out it was never exercised.
+    """
+    out = _git(*args)
+    if out is None:
+        raise GitUnavailable("`git {}` would not answer".format(" ".join(args[:2])))
+    return out
 
 
 def _merge_base_side(commit: str, parents: list[str]) -> tuple[str | None, str]:
@@ -1062,16 +1109,26 @@ def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], lis
     same second is worse than either one being absent.
 
     `hits` IS UNFILTERED BY OWNERSHIP ON PURPOSE. Each caller applies its own side of that test, so
-    neither can be made to agree with the other by accident — and an empty list here means git said
-    nothing, which both callers must read as "cannot answer" rather than as "nothing happened".
+    neither can be made to agree with the other by accident.
+
+    AND AN EMPTY `hits` NOW MEANS ONE THING, WHICH IS THE 2026-09-18 REPAIR. The sentence that stood
+    here said an empty list "means git said nothing, which both callers must read as 'cannot
+    answer'" — it was right about the danger and wrong about who could act on it, and it is
+    corrected beside the claim rather than rewritten over. Both callers read empty as `None`, which
+    `_disposition` then reads as the residual, which `_nothing_answered` published in its ANSWERED
+    voice: *asked git ... none, a genuine miss*. No caller can recover a distinction this function
+    has already thrown away, so it is not thrown away: a git that could not run raises
+    `GitUnavailable` (see `_git_or_raise`) and only a git that ANSWERED with no commits returns
+    `(paths, [])`. The raise lands in the `except`s `_disposition` already had, and comes out as
+    `could_not_ask`.
     """
     paths = _claim_paths(focus_id, row)
     if not paths:
         return [], []
     window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
-    out = _git("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
-               "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
-               "--", *paths)
+    out = _git_or_raise("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
+                        "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
+                        "--", *paths)
     if not out:
         return paths, []
     hits = []
@@ -1614,6 +1671,20 @@ def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
     return _disposition(row, drawn, focus_id=focus_id, bound_at=_bound_by(ledger))
 
 
+def _raised(what: str, exc: BaseException) -> str:
+    """`what` plus the exception's type AND its own sentence, for the `unanswered` list below.
+
+    The three readers used to append the type alone, which told a reader that something broke and
+    not what. `GitUnavailable` carries the command git would not run, and that is the actionable
+    half: "the unbound-commit join raised GitUnavailable" is one rung above the empty string this
+    all started as, and `: \\`git log --all\\` would not answer` is the rung that says where to look.
+    Truncated to one line so a stray traceback-shaped message cannot take over the brief.
+    """
+    detail = str(exc).strip().splitlines()
+    first = detail[0][:120] if detail else ""
+    return "{} raised {}{}".format(what, type(exc).__name__, ": " + first if first else "")
+
+
 def _nothing_answered(focus_id: str, row: dict, drawn: float,
                       unanswered: list[str]) -> dict:
     """`NOT_DONE` carrying WHAT WAS ASKED and what came back. The residual, never silent.
@@ -1652,6 +1723,15 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         "we looked and found nothing", and it says which paths and over what window so the reader
         can check whether the paths were the right ones.
 
+    THE FOURTH BRANCH HAD A THIRD VOICE HIDING IN IT UNTIL 2026-09-18, and it is named here because
+    this is where it was published rather than where it was caused. `_window_hits` read a git that
+    FAILED and a git that answered NO COMMITS through one falsy test, so a `git log` that never ran
+    arrived at the last branch and was published as "a genuine miss and the work may still be
+    undone" — the split this function exists to make, undone one layer below it. The fix is at the
+    seam (`_git_or_raise`): the unavailable case now raises, lands in `_disposition`'s `except`s,
+    and reaches here as `unanswered`, the FIRST branch. Nothing about this function's four branches
+    changed; what changed is that the last one can only be reached by a question git answered.
+
     IT NEVER RAISES, for the reason every reader in this module never raises: `drawn_without_landing`
     feeds the orientation brief and a residual that could throw would cost the brief its other
     twenty keys. A failure to compose the reason falls back to naming THAT, which is still a
@@ -1666,8 +1746,8 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         paths, hits = _window_hits(focus_id, row, drawn)
     except Exception as exc:
         return {"disposition": NOT_DONE,
-                "evidence": "CANNOT ANSWER, not 'nothing landed': composing the commit query "
-                            "raised {}".format(type(exc).__name__)}
+                "evidence": "CANNOT ANSWER, not 'nothing landed': {}".format(
+                    _raised("composing the commit query", exc))}
     if not paths:
         return {"disposition": NOT_DONE,
                 "evidence": "CANNOT ANSWER, not 'nothing landed': this item's prose names no "
@@ -1753,7 +1833,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         unbound = _landed_unbound(focus_id, row, drawn, bound_at)
     except Exception as exc:    # a join that cannot run leaves the residual loud. Never raises
         unbound = None          # into `drawn_without_landing`, which the orientation brief reads.
-        unanswered.append("the unbound-commit join raised {}".format(type(exc).__name__))
+        unanswered.append(_raised("the unbound-commit join", exc))
     if unbound:
         return unbound
     # AND THEN THE WEAKER OF THE TWO DERIVED READINGS. Asked only once the loud one has declined,
@@ -1764,7 +1844,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         sibling = _landed_by_sibling(focus_id, row, drawn, bound_at)
     except Exception as exc:
         sibling = None
-        unanswered.append("the sibling-owner join raised {}".format(type(exc).__name__))
+        unanswered.append(_raised("the sibling-owner join", exc))
     if sibling:
         return sibling
     # AND LAST OF ALL, THE CAUSE THAT IS NOT ABOUT A COMMIT. The three readings above all ask
@@ -1775,7 +1855,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         early = _drawn_before_stated_start(focus_id, row, drawn)
     except Exception as exc:
         early = None            # same direction as the two above: the residual stays loud
-        unanswered.append("the stated-start reading raised {}".format(type(exc).__name__))
+        unanswered.append(_raised("the stated-start reading", exc))
     if early:
         return early
     return _nothing_answered(focus_id, row, drawn, unanswered)

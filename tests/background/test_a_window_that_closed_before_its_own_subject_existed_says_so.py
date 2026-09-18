@@ -135,6 +135,12 @@ def _fake_git(commits):
 
     Applying it here is what makes the pathspec load-bearing: a subject that stopped passing the
     paths to `git log` would still get an empty answer from this fake for the off-subject rows.
+
+    `""`, NOT `None`, FOR "NO MATCHES" (corrected 2026-09-18, same correction as the copy of this
+    helper in `test_every_disposition_names_what_was_checked.py`). Real `git log` exits 0 and prints
+    nothing when the pathspec matches nothing; `None` is reserved for a git that could not run at
+    all. The fake said `None` to both, which is the conflation `_git_or_raise` was written to end,
+    and it went unnoticed for as long as the subject collapsed the two anyway.
     """
     def run(*args, **kwargs):
         if not args or args[0] != "log":
@@ -145,7 +151,7 @@ def _fake_git(commits):
             if wanted and not (set(paths) & wanted):
                 continue
             lines.append("{}\x1f{:.0f}\x1f{}".format(sha, when, subject))
-        return "\n".join(lines) or None
+        return "\n".join(lines)
     return run
 
 

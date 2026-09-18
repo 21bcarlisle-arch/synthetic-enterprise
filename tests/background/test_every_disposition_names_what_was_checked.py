@@ -103,6 +103,14 @@ def _fake_git(commits):
     Applying it here is what keeps the pathspec load-bearing: a subject that stopped passing paths
     to `git log` would still get an empty answer from this fake for the off-subject rows, so the
     "asked about these paths" clause in the evidence cannot be satisfied by a fake that ignores it.
+
+    IT ANSWERED `None` FOR "NO MATCHES" UNTIL 2026-09-18, AND THAT IS THE DEFECT IT WAS TESTING,
+    COPIED. Real `git log -- paths` with nothing to show exits 0 and prints nothing, so `_git`
+    returns `""`; only a git that could not RUN returns `None`. A fake that says `None` to both is
+    wrong about its subject in exactly the direction that hid the residual's third voice -- and
+    while `_window_hits` read the two through one falsy test the error was invisible, because both
+    sides of the lie produced the same branch. Now that the subject tells them apart, the fake has
+    to as well: `""` here is "asked, nothing found", which is what these legs mean to set up.
     """
     def run(*args, **kwargs):
         if not args or args[0] != "log":
@@ -113,7 +121,7 @@ def _fake_git(commits):
             if wanted and not (set(paths) & wanted):
                 continue
             lines.append("{}\x1f{:.0f}\x1f{}".format(sha, when, subject))
-        return "\n".join(lines) or None
+        return "\n".join(lines)
     return run
 
 

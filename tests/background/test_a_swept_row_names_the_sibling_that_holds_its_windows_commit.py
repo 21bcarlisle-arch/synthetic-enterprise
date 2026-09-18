@@ -34,7 +34,12 @@ MUTATIONS (each must fire, and which test catches it):
   (d) let `_bound_by` key by id instead of by instant, or drop a row -- `test_BOUND_BY_IS_BOUND
       _INSTANTS_PLUS_THE_HOLDER` reds, and the credit half it shares a key with cannot drift;
   (e) let a silent git read as a hit -- `test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD` reds, and so
-      does the partition.
+      does the partition;
+  (f) collapse `_git_or_raise` back into `if not out` inside `_window_hits`, so a git that FAILED
+      and a git that answered NO COMMITS come back as one voice -- the same leg reds on its failed
+      half, and `test_THE_FAILED_GITS_EVIDENCE_NAMES_THE_COMMAND_IT_COULD_NOT_RUN` reds too;
+  (g) drop the exception's own sentence from `_raised`, keeping only its type -- (f)'s second leg
+      reds on `git log`, and nothing else in this file notices, which is why it is its own leg.
 
 TWO MUTATIONS DO NOT FIRE THROUGH THE READER AND BOTH ARE EQUIVALENCES, established by running them
 rather than assumed to be the flattering answer. Both guards inside `_landed_by_sibling` --
@@ -58,7 +63,7 @@ import json
 import pytest
 
 from background import delivery_lane as dl
-from tests.background.residual_voices import looked_and_found_nothing
+from tests.background.residual_voices import could_not_ask, looked_and_found_nothing
 
 #: Synthetic ids. NOT the live ledger's -- a control pinned to today's rows goes green the moment
 #: the sweep merely gets quieter, which is the failure being fixed wearing a better name.
@@ -274,22 +279,54 @@ def test_BOUND_BY_IS_BOUND_INSTANTS_PLUS_THE_HOLDER(tmp_path):
 
 
 def test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD(tmp_path, monkeypatch):
-    """A join that cannot run must not settle a window. The unavailable check fails loud (R15).
+    """A git that FAILED and a git that answered NO COMMITS are different answers, in one statement.
 
-    A git that answers nothing is indistinguishable from a git that answers "no commits", and both
-    must leave the row on the missed list. The tempting alternative -- treat silence as "the
-    sibling explanation does not apply, so say something reassuring" -- is how an unavailable
-    check becomes a clean bill of health.
+    THE HONEST LIMIT THIS LEG RECORDED IS GONE, AND SAYING SO IS THE POINT. It stood here until
+    2026-09-18: *"`_git` returning None is a git that failed and a git that matched nothing, and
+    the two are indistinguishable AT THE WRAPPER"*. It was false, and it was believed because
+    nobody asked the wrapper -- `_git` has returned `""` on rc==0 and `None` on everything else
+    since it was written, and it was `_window_hits`'s `if not out` that threw the difference away
+    one line later. So this leg asserted the FLATTERING voice and called it a limit.
+
+    BOTH INPUTS IN ONE ASSERT, because that is what a single voice cannot survive. A reader that
+    collapses them back -- reading a failed git as "we looked and found nothing", or over-reacting
+    and calling a genuinely empty answer unavailable -- reds on one half whatever it does to the
+    other. Asserting only the silent half would be green under a reader that says CANNOT ANSWER to
+    everything, which is the mirror fail-closed and just as useless to the seat reading the brief.
+
+    The voices want opposite actions: `looked_and_found_nothing` means draw it again, `could_not_ask`
+    means a louder disposition may be true and was lost. Neither is `DELIVERED`, which is the
+    property the old leg did guarantee and this one keeps: silence never becomes a clean bill of
+    health.
+    """
+    store = _three_shapes(tmp_path)
+
+    monkeypatch.setattr(dl, "_git", lambda *a: None)
+    failed = dl.disposition_of(SIBLING_OWNED_ID, path=store)
+
+    # A git that RAN and matched nothing, on the same row, over the same window. `_fake_git` with no
+    # log lines answers `""` for the pathspec query, which is exactly what real git does here.
+    monkeypatch.setattr(dl, "_git", _fake_git([]))
+    empty = dl.disposition_of(SIBLING_OWNED_ID, path=store)
+
+    assert failed["disposition"] == dl.NOT_DONE and empty["disposition"] == dl.NOT_DONE, \
+        (failed, empty)
+    assert could_not_ask(failed) and looked_and_found_nothing(empty), (failed, empty)
+
+
+def test_THE_FAILED_GITS_EVIDENCE_NAMES_THE_COMMAND_IT_COULD_NOT_RUN(tmp_path, monkeypatch):
+    """`could_not_ask` is not enough on its own: the reader has to know WHICH check went dark.
+
+    The residual used to publish an empty string; the first repair gave it a voice; this asserts
+    the voice carries the actionable half. `_raised` puts the exception's own sentence beside its
+    type, so a failed `git log` says so rather than leaving the reader "something broke" one rung
+    up from nothing. Keyed to the command name and the exception type -- both properties of the
+    seam -- and not to the surrounding wording, which is free to change.
     """
     store = _three_shapes(tmp_path)
     monkeypatch.setattr(dl, "_git", lambda *a: None)
 
     got = dl.disposition_of(SIBLING_OWNED_ID, path=store)
-    assert got["disposition"] == dl.NOT_DONE, got
-    # LOUD now means it SAYS the window is unexplained, which is what this leg's name always
-    # claimed and `== ""` denied in the same breath. HONEST LIMIT, recorded rather than asserted
-    # away: `_git` returning None is a git that failed and a git that matched nothing, and the two
-    # are indistinguishable AT THE WRAPPER -- this leg's own docstring says so. So the voice here
-    # is LOOKED-AND-FOUND-NOTHING, not CANNOT-ANSWER. What the leg guarantees is the part that
-    # matters: silence does not settle the window and does not become a clean bill of health.
-    assert looked_and_found_nothing(got), got
+
+    assert could_not_ask(got), got
+    assert "GitUnavailable" in got["evidence"] and "git log" in got["evidence"], got
