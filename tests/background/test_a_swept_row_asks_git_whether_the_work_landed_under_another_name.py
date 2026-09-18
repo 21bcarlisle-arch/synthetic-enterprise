@@ -222,16 +222,39 @@ def test_A_COMMIT_OUTSIDE_THE_WINDOW_IS_NOT_IN_IT_whichever_side_it_falls(tmp_pa
     Both sides are asserted in one statement for the same reason the partition is: a reader that
     lost the lower bound would credit this row with work done before it was ever handed out, and
     one that lost the upper bound would credit it with everything that has happened since.
+
+    THE UPPER EDGE WAS PINNED AT `WINDOW_ENDS + 60` AND WENT RED WHEN THE SUBJECT BECAME MORE
+    HONEST -- repaired 2026-09-18, beside the claim. On 2026-09-17 `_landing_grace_seconds` was
+    added because the one row the credit half exists for landed 606 seconds after the given window:
+    a gated landing takes time, so the window a claim's EVIDENCE falls in is not the window the
+    claim was GIVEN. This fixture had pinned the pre-grace edge, so a commit that is now correctly
+    inside the window read as a failure of the test rather than a change in the subject -- the
+    keyed-to-today's-answer shape, one file away from where it was just corrected.
+
+    THE REPAIR IS NOT "WIDEN UNTIL GREEN", and the third leg is what makes that checkable. The
+    edges are derived from the same two quantities the subject derives them from, and the middle
+    leg asserts that a commit INSIDE the grace is credited -- so a subject that dropped the grace
+    entirely, or one that widened the window to everything since, both red here.
     """
     store = _ledger(tmp_path, {UNBOUND_ID: _row(named_paths=[SUBJECT_PATH])})
+    grace = dl._landing_grace_seconds()
+    outer_edge = WINDOW_ENDS + grace
     monkeypatch.setattr(dl, "_git", _fake_git([
         ("1111111111111111111111111111111111111111", DRAWN_AT - 60, "before the draw",
          [SUBJECT_PATH]),
-        ("2222222222222222222222222222222222222222", WINDOW_ENDS + 60, "after the sweep",
+        ("2222222222222222222222222222222222222222", outer_edge + 60, "after the gate could run",
          [SUBJECT_PATH]),
     ]))
-
     assert dl.disposition_of(UNBOUND_ID, path=store)["disposition"] == dl.NOT_DONE
+
+    # AND THE GRACE IS LOAD-BEARING, not a widening that made a red go away. A commit past the
+    # given window but inside the cost of the gate that produced it is this claim's own landing.
+    monkeypatch.setattr(dl, "_git", _fake_git([
+        (UNBOUND_SHA, WINDOW_ENDS + grace / 2.0, "landed late through a gate that took its time",
+         [SUBJECT_PATH]),
+    ]))
+    inside = dl.disposition_of(UNBOUND_ID, path=store)
+    assert grace > 0.0 and inside["disposition"] == dl.LANDED_UNBOUND, (grace, inside)
 
 
 def test_A_COMMIT_ON_OTHER_PATHS_IS_NOT_THIS_ITEMS_however_busy_the_window_was(
@@ -256,6 +279,15 @@ def test_A_COMMIT_ANOTHER_ROW_IS_CREDITED_WITH_IS_NOT_THIS_ONES_unbound_is_the_w
     Lanes share files constantly here. Without this leg the busiest module in the repo would read
     as delivered work for every row that ever named it, which is the flattering direction and the
     one that would make the new value worthless within a week.
+
+    THE FIRST LEG ASSERTED `== NOT_DONE` AND THAT WAS KEYED TO THE ANSWER, NOT THE PROPERTY --
+    corrected 2026-09-18 beside the claim rather than rewritten over it. The property this test is
+    named for is that `landed_unbound` MEANS nothing bound it; `not_done` was merely what the
+    module happened to fall to next while `LANDED_ELSEWHERE` had no derived writer. It has one now
+    (`_landed_by_sibling`), a bound commit is reported as the sibling's, and the old assertion went
+    red on a module that had become MORE honest -- exactly the shape this project keeps paying for.
+    The leg now says what it always meant: whatever this row is called, it is NOT credited with a
+    commit somebody else holds.
     """
     store = _ledger(tmp_path, {
         UNBOUND_ID: _row(named_paths=[SUBJECT_PATH]),
@@ -266,7 +298,8 @@ def test_A_COMMIT_ANOTHER_ROW_IS_CREDITED_WITH_IS_NOT_THIS_ONES_unbound_is_the_w
         (BOUND_SHA, IN_WINDOW, "landed and bound, by another row", [SUBJECT_PATH]),
     ]))
 
-    assert dl.disposition_of(UNBOUND_ID, path=store)["disposition"] == dl.NOT_DONE
+    bound_only = dl.disposition_of(UNBOUND_ID, path=store)
+    assert bound_only["disposition"] != dl.LANDED_UNBOUND, bound_only
 
     # THE POISON ROUND: the same ledger, the same window, the same fake -- with a SECOND commit
     # nothing is credited with. If the leg above passed because the fake declined to speak rather

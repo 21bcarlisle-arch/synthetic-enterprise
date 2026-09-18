@@ -803,7 +803,7 @@ def drawn_without_landing(cutoff: float | None = None, now: float | None = None,
         out.append({"id": str(fid), "drawn_at": drawn,
                     "hours_since_draw": round((stamp - drawn) / 3600.0, 1),
                     **_disposition(row, drawn, focus_id=str(fid),
-                                   bound_at=_bound_instants(ledger))})
+                                   bound_at=_bound_by(ledger))})
     return sorted(out, key=lambda r: r["drawn_at"], reverse=True)
 
 
@@ -1010,9 +1010,26 @@ def _bound_instants(ledger: dict) -> frozenset:
     the commit's fact, never `now`). A collision between two commits in the same second reads as
     bound and so falls to the residual — the loud direction, not the flattering one.
     """
-    return frozenset(
-        float(row["last_landing_at"]) for row in ledger.values()
-        if isinstance(row, dict) and row.get("last_landing_at"))
+    return frozenset(_bound_by(ledger))
+
+
+def _bound_by(ledger: dict) -> dict:
+    """The same instants as `_bound_instants`, each mapped to the id that HOLDS it.
+
+    THE NAME WAS ALREADY IN HAND AND WAS BEING THROWN AWAY (measured 2026-09-18 on this ledger).
+    `_bound_instants` reduced the ledger to a set of instants, which is all the credit half needs
+    -- it only has to know that somebody else owns a commit, not who. But the disposition reader
+    needs exactly the discarded half: a commit on this item's own paths, inside its own window,
+    owned by ANOTHER ROW, is `LANDED_ELSEWHERE`, and the sibling's id is the whole evidence. The
+    residual `not_done` was being printed over a fact one dict comprehension away.
+
+    Keyed to the commit's own instant, exactly as `_bound_instants` is, and for the same reason.
+    A collision between two rows credited with the same second resolves to whichever the ledger
+    yields last; the ONLY use of the value is naming a sibling in prose, so a tie names one of two
+    true holders rather than inventing a third.
+    """
+    return {float(row["last_landing_at"]): str(fid) for fid, row in ledger.items()
+            if isinstance(row, dict) and row.get("last_landing_at")}
 
 
 def _claim_paths(focus_id: str, row: dict) -> list[str]:
@@ -1032,7 +1049,84 @@ def _claim_paths(focus_id: str, row: dict) -> list[str]:
     return named or _paths_named_in(_item_text(focus_id))
 
 
-def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset) -> dict | None:
+def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], list[tuple]]:
+    """`(paths, hits)` — every commit on this claim's own paths inside its own window.
+
+    ONE QUERY, TWO READINGS, and it is one mechanism because the discriminating clauses are shared:
+    the paths the item's own prose named, and the window the claim was given plus the grace a gated
+    landing costs. What the two readings differ on is only which commits they KEEP. `_landed_unbound`
+    keeps the ones no row owns, which is creditable work. `_landed_by_sibling` keeps the ones another
+    row owns, which is the explanation for why this row has nothing. Splitting the query would let
+    the two answers drift apart on a window edge, and a pair of dispositions that disagree about the
+    same second is worse than either one being absent.
+
+    `hits` IS UNFILTERED BY OWNERSHIP ON PURPOSE. Each caller applies its own side of that test, so
+    neither can be made to agree with the other by accident — and an empty list here means git said
+    nothing, which both callers must read as "cannot answer" rather than as "nothing happened".
+    """
+    paths = _claim_paths(focus_id, row)
+    if not paths:
+        return [], []
+    window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
+    out = _git("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
+               "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
+               "--", *paths)
+    if not out:
+        return paths, []
+    hits = []
+    for line in out.splitlines():
+        parts = line.split("\x1f")
+        if len(parts) != 3:
+            continue
+        sha, stamp, subject = parts
+        try:
+            when = float(stamp)
+        except ValueError:
+            continue
+        if not (drawn <= when <= window_ends):
+            continue
+        hits.append((sha, when, subject))
+    return paths, hits
+
+
+def _landed_by_sibling(focus_id: str, row: dict, drawn: float, bound_by: dict) -> dict | None:
+    """The sibling row that holds the commit this claim's window produced, or None.
+
+    THE FIFTH READING, AND THE FIRST TIME `LANDED_ELSEWHERE` CAN BE REACHED WITHOUT BEING TOLD.
+    Measured 2026-09-18: `the-commit-hook-chain-has-grown-five-fold-and-that-is-what-the-publisher-
+    keeps-losing-to` was drawn at 20:40 naming `background/process_run_complete.py`; `bfbc2b4e9`
+    touched exactly that path 57 minutes later, inside the window; and the row read `not_done` with
+    an empty evidence string, because the commit is credited to `decouple-the-early-exit-floor-from-
+    the-regime-constant-then-re-date-the-stale-hook-chain-measurement`. `_landed_unbound` is right to
+    decline it -- that work is not unbound -- but declining is not the same as having nothing to say,
+    and the lane had the sibling's name in the same dict it was testing membership against.
+
+    IT IS THE WEAKER CLAIM OF THE TWO AND IS ASKED SECOND. "A commit on your paths in your window
+    belongs to another row" says the SUBJECT was worked, not that THIS item's done-condition was
+    met; `--landed-under` run by hand says a person joined the two and outranks it, which is why
+    `_disposition` reads the stated fact first and this only when nothing was stated.
+
+    WHY IT CANNOT QUIETLY SWALLOW A REAL MISS. A row reaches here only when no unbound commit
+    exists on its paths in its window, so the loud reading has already been offered and refused.
+    The sibling must be a DIFFERENT id -- self-credit is `--landed`'s job and would turn this into
+    a way for a row to explain itself -- and the commit must still have touched a path the item's
+    own prose named. What it replaces is an empty string, never a `not_done` that was carrying
+    evidence, so the worst case of a wrong sibling is a named lead the reader can check in one
+    `git show`, against a residual that sent them to `git status` with nothing.
+    """
+    paths, hits = _window_hits(focus_id, row, drawn)
+    owned = [(sha, when, subject, bound_by[when]) for sha, when, subject in hits
+             if bound_by.get(when) and bound_by[when] != focus_id]
+    if not owned:
+        return None
+    sha, _when, subject, holder = owned[0]
+    more = " (+{} more)".format(len(owned) - 1) if len(owned) > 1 else ""
+    return {"disposition": LANDED_ELSEWHERE,
+            "evidence": "landed under {} -- {} {} touched {}{}".format(
+                holder, sha[:9], subject.strip()[:80], ", ".join(paths[:3]), more)}
+
+
+def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | None:
     """Work that landed on this item's paths inside its window with nothing bound to it, or None.
 
     THE JOIN THE THREE-WAY READING DID NOT HAVE (director, 2026-09-16). Both of the non-residual
@@ -1070,28 +1164,8 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset)
     the one of the three that was measuring the wrong thing; the two that do the discriminating are
     untouched.
     """
-    paths = _claim_paths(focus_id, row)
-    if not paths:
-        return None
-    window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
-    out = _git("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
-               "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
-               "--", *paths)
-    if not out:
-        return None
-    hits = []
-    for line in out.splitlines():
-        parts = line.split("\x1f")
-        if len(parts) != 3:
-            continue
-        sha, stamp, subject = parts
-        try:
-            when = float(stamp)
-        except ValueError:
-            continue
-        if when in bound_at or not (drawn <= when <= window_ends):
-            continue
-        hits.append((sha, when, subject))
+    paths, hits = _window_hits(focus_id, row, drawn)
+    hits = [(sha, when, subject) for sha, when, subject in hits if when not in bound_at]
     if not hits:
         return None
     sha, when, subject = hits[0]
@@ -1116,6 +1190,13 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at: frozenset)
 #: so in eleven weeks the reading produced `not_done` and an empty string for every swept row
 #: alive. `LANDED_UNBOUND` is the fourth and the first that asks git instead of waiting to be
 #: told — see `_landed_unbound` for what it means and, more to the point, what it does not.
+#:
+#: AND "`LANDED_ELSEWHERE` IS `note_landing_under`'S" IS NOW HALF TRUE, corrected here for the same
+#: reason. Since 2026-09-18 it has a second writer, `_landed_by_sibling`, which derives it from the
+#: join `_bound_by` already computes; the hand-run command still outranks it. The count in the first
+#: line is deliberately still FOUR — a fifth *reading* was added, not a fifth *value*, and inflating
+#: the vocabulary because a new route reaches an old label is how a partition control stops covering
+#: its partition.
 NOT_DONE = "not_done"
 LANDED_ELSEWHERE = "landed_elsewhere"
 PREMISE_SPENT = "premise_spent"
@@ -1325,11 +1406,11 @@ def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
     # THE WHOLE LEDGER, not just this row, because `_bound_instants` is what separates "landed and
     # nobody bound it" from "another lane's landing on a file we happen to share". Reading one row
     # here and the whole store in `drawn_without_landing` would be two definitions again.
-    return _disposition(row, drawn, focus_id=focus_id, bound_at=_bound_instants(ledger))
+    return _disposition(row, drawn, focus_id=focus_id, bound_at=_bound_by(ledger))
 
 
 def _disposition(row: dict, drawn: float, *, focus_id: str = "",
-                 bound_at: frozenset = frozenset()) -> dict:
+                 bound_at: dict | frozenset = frozenset()) -> dict:
     """WHICH of the three a row whose window closed without a landing of its own is.
 
     THE DEFECT THIS ENDS (director, 2026-09-09, on this lane's own ledger): 61 of 224 rows read
@@ -1355,6 +1436,13 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
     it runs the git-side join this module already had the machinery for, and it still returns
     None rather than a guess whenever the join cannot be made, so the residual stays loud.
 
+    ONE DERIVED ANSWER WAS NOT ENOUGH, AND THE SECOND WAS ONE DICT COMPREHENSION AWAY (measured
+    2026-09-18, on the three rows a seat drew this subject over). `_landed_unbound` declines the
+    exact case where another row already owns the commit — correctly, that work is not unbound —
+    and the reading fell straight back to the empty string, over a ledger that was holding the
+    sibling's name at the moment it tested membership against it. `_landed_by_sibling` asks that
+    second question and is asked SECOND, so the creditable reading always gets first refusal.
+
     ORDER IS DELIBERATE: the two hand-written facts outrank the derived one. Somebody who said in
     so many words that this window's premise was spent knows something git cannot be asked, and a
     derived reading that overrode a stated one would make the stating pointless.
@@ -1378,6 +1466,16 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         unbound = None          # a join that cannot run leaves the residual loud. Never raises
     if unbound:                 # into `drawn_without_landing`, which the orientation brief reads.
         return unbound
+    # AND THEN THE WEAKER OF THE TWO DERIVED READINGS. Asked only once the loud one has declined,
+    # for the reason `_landed_by_sibling` gives: "somebody else owns the commit your window
+    # produced" explains a miss, it does not report creditable work, and reading it first would let
+    # a sibling's landing hide an unbound one on the same paths.
+    try:
+        sibling = _landed_by_sibling(focus_id, row, drawn, bound_at)
+    except Exception:
+        sibling = None
+    if sibling:
+        return sibling
     return {"disposition": NOT_DONE, "evidence": ""}
 
 
