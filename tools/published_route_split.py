@@ -1379,6 +1379,115 @@ def whether_the_survey_split_identifies_phi() -> dict:
     }
 
 
+#: The rate at which a default/SVT household moves onto a fixed deal WITH ITS EXISTING SUPPLIER --
+#: `J_svt` in the identity above. NOT ESTABLISHED, and the reason is the one
+#: `whether_the_survey_split_identifies_phi` gives: the survey's internal row arrives carrying this
+#: unknown, so two equations in three unknowns identify no more than one did. A `None` here rather
+#: than the floor below, because the floor is a BOUND and a bound written into a slot named for a
+#: point estimate is read as one within a week.
+SVT_INTERNAL_CONVERSION_RATE = None
+SVT_INTERNAL_CONVERSION_RATE_GAP = (
+    "J_svt -- the rate at which a default/SVT household takes a fixed deal with its existing "
+    "supplier -- is published nowhere. Ofgem CIM question C4 measures internal switching over ALL "
+    "households, which mixes this route with fixed-term active renewal, and no published series "
+    "cuts the internal row by the tariff the respondent was on BEFORE the move. What the record "
+    "does establish is a floor: `svt_internal_conversion_floor()`."
+)
+
+
+def svt_internal_conversion_floor() -> dict:
+    """The LEAST SVT-to-fixed internal conversion the published record can bear, per wave.
+
+    A BOUND, DERIVED, AND NOT A VALUE ANYONE PICKED. It falls out of the same identity
+    `whether_the_survey_split_identifies_phi` states and needs no assumption that function does not
+    already make:
+
+        I  =  s * J_svt  +  (1 - s) * 0.35 * (1 - phi)        <- internal switching, all households
+
+    The renewal route's contribution is at most `(1 - s) * 0.35` (its value at `phi = 0`, which is
+    `_renewal_route_internal_ceiling`), so whatever internal switching exceeds that ceiling must
+    have come through the SVT route:
+
+        J_svt  >=  (I - ceiling) / s
+
+    THREE CHOICES, ALL PUSHING THE FLOOR DOWN, so a world that clears it cannot be argued to have
+    cleared it by the arithmetic:
+
+      * `s` is taken at the LARGEST published default share across the recall window. Dividing by a
+        bigger SVT population spreads the same excess over more households and lowers the per-
+        household rate.
+      * the ceiling is already taken at the most generous published fixed share (see
+        `_renewal_route_internal_ceiling`), which subtracts as much as the record allows.
+      * `I` is the survey's SIX-MONTH rate and is NOT annualised, while the ceiling it is netted
+        against is annual. An annual `J_svt` is at least its own six-month rate, so the six-month
+        floor is a valid annual floor and a conservative one.
+
+    Driven at the published inputs, before anything was written against it:
+
+        wave  fieldwork          I(6mo)   ceiling   s_max    floor
+        W1    March 2022         0.1318   0.070     0.90     0.0687
+        W2    July 2022          0.1248   0.070     0.90     0.0609
+        W3    Nov/Dec 2022       0.1449   0.070     0.90     0.0832
+        W4    July 2023          0.1104   0.070     0.90     0.0449   <- binding
+        W5    January 2024       0.1159   0.070     0.90     0.0510
+        W6    Jan/Feb 2025       0.1702   0.126     0.86     0.0514
+
+    `binding_floor` is the MINIMUM across waves -- the rate every wave independently establishes,
+    rather than the largest one some wave permits. A wave with no established default share
+    contributes nothing and is named rather than dropped.
+
+    WHAT THIS IS FOR, AND WHAT IT IS NOT FOR. It is a CHECK on a rate the world produces from its
+    own mechanism, in the direction the check can actually fail: a world whose SVT households
+    convert less often than this cannot be reproducing the published internal-switching record at
+    any `phi`. It is NOT a parameter to set the world to. Setting the world to a floor would mint
+    exactly the constant `SVT_INTERNAL_CONVERSION_RATE` refuses to be, with a bound's name washed
+    off it.
+    """
+    waves, floors = [], []
+    for obs in SWITCHER_SPLIT_OBSERVATIONS:
+        ceiling = _renewal_route_internal_ceiling(obs.recall_window_years)["ceiling"]
+        rate = obs.internal_rate_of_all_households
+        s_max, missing = None, []
+        for year in obs.recall_window_years:
+            band = default_tariff_share(year, "all_domestic")
+            if band is None:
+                missing.append(year)
+                continue
+            s_max = band[1] if s_max is None else max(s_max, band[1])
+        floor = (
+            None if (ceiling is None or not s_max) else round((rate - ceiling) / s_max, 6)
+        )
+        if floor is not None:
+            floors.append(floor)
+        waves.append({
+            "wave": obs.wave,
+            "fieldwork": obs.fieldwork,
+            "internal_rate_of_all_households_6mo": round(rate, 6),
+            "renewal_route_internal_ceiling": ceiling,
+            "largest_published_default_share": s_max,
+            "years_with_no_established_default_share": missing,
+            "floor_on_j_svt": floor,
+        })
+    return {
+        "what_this_is": (
+            "the least SVT-to-fixed internal conversion the published record can bear, per CIM "
+            "wave. A derived BOUND on J_svt, not an estimate of it: the point estimate is "
+            "`SVT_INTERNAL_CONVERSION_RATE`, which is None."
+        ),
+        "source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+        "identity": "I = s*J_svt + (1-s)*0.35*(1-phi)  =>  J_svt >= (I - (1-s)*0.35) / s",
+        "per_wave": waves,
+        "binding_floor": min(floors) if floors else None,
+        "binding_floor_unit": (
+            "conversions per SVT household per SIX MONTHS, un-annualised, and therefore also a "
+            "valid floor per SVT household-year"
+        ),
+        "waves_with_a_floor": len(floors),
+        "the_point_estimate_is": SVT_INTERNAL_CONVERSION_RATE,
+        "why_there_is_no_point_estimate": SVT_INTERNAL_CONVERSION_RATE_GAP,
+    }
+
+
 def published_route_split() -> dict:
     """The whole reading, as the committed artefact carries it."""
     svt = svt_segment_churn_band()
