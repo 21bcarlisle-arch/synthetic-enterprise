@@ -4,7 +4,7 @@
 
 **Filed:** 2026-09-18 · **Claim id:**
 `the-two-arms-have-never-priced-the-same-population-and-the-page-says-they-have`
-**Pre-registration:** `docs/staging/PREREG_GIVING_THE_LEVEL_ARM_THE_SUPPORT_BOUND_AND_WHAT_IT_MOVES_2026-09-18.md`
+**Pre-registration:** `docs/staging/records/PREREG_GIVING_THE_LEVEL_ARM_THE_SUPPORT_BOUND_AND_WHAT_IT_MOVES_2026-09-18.md`
 
 ---
 
