@@ -972,15 +972,37 @@ def test_the_sign_BAR_the_page_holds_the_leg_to_is_the_one_its_own_SIZE_earns(li
     # that mutation. Every stated bar is collected instead, and all of them must be the earned
     # one, so a single stale home reds on its own.
     spelled = "{:.2f}".format(earned)
+    # A PANEL THAT STATES NO BAR MUST BE STATING A WITHHOLDING INSTEAD (2026-09-18, Lane 0). This
+    # required a bar on BOTH panels unconditionally, which is a control keyed to today's answer:
+    # when the level arm gained the churn-support frontier (`b329e702b`) the published floor became
+    # older than the figure it bounds, `_seed_spreads` correctly refused the pairing, and
+    # `arms-headline` correctly stopped quoting a bar it no longer grades a direction from -- so
+    # this reddened on a page that had become MORE honest. Requiring a bar behind a refusal the
+    # page is not making from that family is requiring a number with nothing to be a number about.
+    #
+    # NEITHER LEG IS WEAKENED AND NOTHING IS SKIPPED. Every bar the page DOES state must still be
+    # the earned one, collected across both panels exactly as before -- so a single stale home
+    # still reds, which is the mutation that bought this control. What changes is that a panel
+    # stating none must carry the withholding reason, so silence is refused in the other
+    # direction too; and at least one panel must still state the bar, which is what stops the
+    # whole render leg going vacuous the day both panels fall quiet.
+    everywhere = []
     for panel in ("arms-errorbar", "arms-headline"):
         stated = re.findall(r"the (\d+(?:\.\d+)?) this page requires", live[panel])
-        assert stated, (
-            "the page's {} states how far this mean is from zero and never says how far it would "
-            "have to be, so the reader meets a refusal with no bar behind it".format(panel))
+        if not stated:
+            assert "DIRECTION is not stated here" in live[panel], (
+                "the page's {} states neither the bar this leg is held to nor any reason for "
+                "withholding a direction, so the reader meets silence where one or the other "
+                "belongs".format(panel))
+            continue
+        everywhere.extend(stated)
         assert set(stated) == {spelled}, (
             "the page's {} states the sign bar as {} where this family's {} draws earn {}, so the "
             "reader is told how much evidence was required and it is the wrong amount".format(
                 panel, " and ".join(sorted(set(stated))), n, spelled))
+    assert everywhere, (
+        "neither panel states the bar this leg is held to, so the assertion above is satisfied by "
+        "an empty page and this render leg cannot fail")
 
 
 def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
@@ -1237,6 +1259,43 @@ def test_MUTATION_the_door_renders_the_FEEDS_reading_and_not_a_sentence_of_its_o
         "the door printed its own one-draw claim beside a feed that never made it")
 
 
+def _graded_legs_or_the_refusal_reached_the_reader(live, panel: str = "arms-errorbar"):
+    """The graded legs block, or `None` after asserting the reader met the refusal instead.
+
+    WHY THIS EXISTS, AND IT IS NOT A CONVENIENCE (2026-09-18, Lane 0). The three controls below
+    opened with a bare `assert block["available"] is True`, whose message called itself a
+    precondition -- "the feed grades no leg at all, so this page cannot be asked about them". That
+    is a control keyed to TODAY'S ANSWER, and this file's own CLAUDE.md names the failure it
+    produces: it goes RED when the code becomes MORE honest and stays GREEN when the claim rots.
+    It did exactly that. Giving the level arm the churn-support frontier (`b329e702b`) made the
+    published floor older than the figure it bounds, `_seed_spreads` correctly refused the pairing,
+    and FOUR controls in this file went red on a page that had become strictly more truthful --
+    while none of them could have noticed the far worse state where a pre-fix seed family silently
+    bounds a post-fix point estimate.
+
+    AND IT IS NOT A SKIP, WHICH IS THE WHOLE POINT. `pytest.skip` on the unavailable branch is this
+    project's most expensive recurring shape: one shared availability guard silences every leg at
+    once and a skip renders the same colour as a pass, so a page that had gone quiet about its own
+    legs would report green. The refusal is a RESULT and the reader has to meet it, so the
+    unavailable branch ASSERTS -- the feed's own reason, on the panel, materially rendered.
+
+    So each caller asserts something real on both sides of the partition, and the day the floor is
+    re-run on the figure's tree they all go back to grading legs with nobody editing a string.
+    """
+    block = (_live_feed().get("error_bar") or {}).get("legs_on_one_bar") or {}
+    if block.get("available") is True:
+        return block
+    reason = block.get("reason")
+    assert reason, (
+        "the feed grades no leg and gives no reason either, so a reader cannot tell a refused "
+        "pairing from a page that never had legs: {!r}".format(block))
+    rendered = live[panel]
+    assert reason in rendered, (
+        "the feed refuses to grade any leg and the page does not carry that refusal, so the "
+        "reader meets silence where a result belongs. Reason withheld: {!r}".format(reason))
+    return None
+
+
 def test_every_leg_of_the_advantage_reaches_the_reader_with_its_own_verdict(live):
     """The page summarised ONE leg of a three-leg advantage, and it was the quiet one.
 
@@ -1249,10 +1308,9 @@ def test_every_leg_of_the_advantage_reaches_the_reader_with_its_own_verdict(live
     KEYED TO THE PARTITION, NOT TO TODAY'S VERDICTS. Every leg the feed grades has to arrive with
     its subject and a verdict word; nothing here asserts which verdict.
     """
-    block = (_live_feed().get("error_bar") or {}).get("legs_on_one_bar") or {}
-    assert block.get("available") is True, (
-        "the feed grades no leg at all, so this page cannot be asked about them: {}".format(
-            block.get("reason")))
+    block = _graded_legs_or_the_refusal_reached_the_reader(live)
+    if block is None:
+        return
     rendered = live["arms-errorbar"]
     for key, leg in block["legs"].items():
         assert leg["subject"] in rendered, (
@@ -1271,17 +1329,28 @@ def test_the_price_LEVEL_legs_stated_sign_reaches_the_reader(live):
     choosing's is the whole of what this page has to say about the mission's own question, so it
     renders as a word and not as a number a reader has to grade for themselves.
     """
-    leg = ((_live_feed().get("error_bar") or {}).get("legs_on_one_bar") or {}).get(
-        "legs", {}).get("level_advantage_gbp") or {}
-    assert leg.get("sign_is_stateable") is True, (
-        "this floor no longer determines the level leg's sign, so the control below is moot: "
-        "{}".format(leg))
+    block = _graded_legs_or_the_refusal_reached_the_reader(live)
+    if block is None:
+        return
+    leg = (block.get("legs") or {}).get("level_advantage_gbp") or {}
     rendered = live["arms-errorbar"]
+    # THE SUBJECT AND WHAT THE LEG *IS* ARE OWED ON BOTH BRANCHES, and only the verdict word
+    # differs. A reader who meets an undetermined level leg still has to be told that a level
+    # advantage is value MOVED rather than made -- otherwise the one sentence on this page that
+    # speaks to the mission's own question disappears exactly when the sign does.
     assert "the price-LEVEL leg" in rendered, rendered[-600:]
-    assert leg["sign"].upper() in rendered, rendered[-600:]
     assert "value MOVED" in rendered, (
-        "the page states the level leg's sign and not what a level advantage IS, so a reader "
-        "meets a determined positive with nothing saying it is transfer rather than creation")
+        "the page renders the level leg and not what a level advantage IS, so a reader meets it "
+        "with nothing saying it is transfer rather than creation")
+    if leg.get("sign_is_stateable") is True:
+        assert leg["sign"].upper() in rendered, rendered[-600:]
+    else:
+        # NOT A SKIP -- see `_graded_legs_or_the_refusal_reached_the_reader`. A leg this book
+        # cannot call must say so in words, which is the branch
+        # `test_MUTATION_a_leg_that_CANNOT_be_called_still_renders_a_row` owns at the renderer.
+        assert "CANNOT BE CALLED" in rendered, (
+            "this floor does not determine the level leg's sign and the page neither states one "
+            "nor says it cannot: {}".format(rendered[-600:]))
 
 
 def test_MUTATION_a_leg_that_CANNOT_be_called_still_renders_a_row(live):
@@ -1290,13 +1359,31 @@ def test_MUTATION_a_leg_that_CANNOT_be_called_still_renders_a_row(live):
     The cheap version of this block renders the legs that earned a sign and drops the rest. What
     a reader then meets is a page where every leg that appears is decided -- and the leg the
     mission actually turns on is the one that vanished.
+
+    THE SUBJECT IS THE RENDERER, SO IT NO LONGER BORROWS THE LIVE FEED'S LEGS (2026-09-18, Lane 0).
+    This read `feed["error_bar"]["legs_on_one_bar"]["legs"]` and mutated one of them, which made a
+    control about the DOOR depend on today's floor admitting today's figure: when `_seed_spreads`
+    correctly refused that pairing the block lost its `legs` key and this raised `KeyError` -- a
+    renderer control failing because of a producer refusal it has nothing to do with. The leg is
+    constructed here instead, from the two fields the door switches on, and the control that grades
+    the LIVE legs against the page is
+    `test_every_leg_of_the_advantage_reaches_the_reader_with_its_own_verdict`. The pair covers both
+    questions and neither now stands on the other's precondition.
     """
     feed = _live_feed()
-    block = feed["error_bar"]["legs_on_one_bar"]
-    legs = dict(block["legs"])
-    legs["selection_gbp"] = dict(legs["selection_gbp"], sign_is_stateable=False, sign=None)
-    feed["error_bar"] = dict(feed["error_bar"],
-                             legs_on_one_bar=dict(block, legs=legs))
+    uncallable = {
+        "available": True, "subject": "the selection leg",
+        "what_this_leg_is": "what the per-customer CHOOSING was worth.",
+        "sign_is_stateable": False, "sign": None,
+        "estimate_gbp": -959.78, "estimate_seeds": 18, "bound_gbp": 384.62,
+        "bound_statistic": "sem_gbp", "sems_from_zero": 2.4954,
+        "sems_needed_to_state_a_sign": 2.1098,
+        "reading": "This leg cannot be called on this family.",
+    }
+    feed["error_bar"] = dict(
+        feed["error_bar"],
+        legs_on_one_bar={"available": True, "seeds": 18,
+                         "legs": {"selection_gbp": uncallable}})
     rendered = _render(feed)["arms-errorbar"]
     assert "the selection leg &mdash; CANNOT BE CALLED" in rendered.replace("—", "&mdash;") or (
         "CANNOT BE CALLED" in rendered), (

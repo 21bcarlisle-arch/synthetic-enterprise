@@ -105,6 +105,15 @@ level arm priced 65 renewals the value arm refused, and the new figure is drawn 
 `what_each_number_is_over` says *"`single_run.gbp` is one member of the 18"*, which would have gone
 false the moment the new run landed. The guard refuses before that sentence can be published.
 
+> **CORRECTION, filed beside the claim (2026-09-18, same day).** Two numbers above name the wrong
+> floor artefact. The live `NOISE_FLOOR_PATH` is
+> `value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json`, stamped **2026-09-17T21:39:28Z**
+> — not `..._folded18_20260917.json` at 15:14:19Z, which is a *different* folded-18 family (the
+> pooled-arm one) and is not what the page reads. The refusal fires identically either way, because
+> both predate the re-run, so **the result is unaffected**; the citation was wrong and is corrected
+> here rather than silently edited above. Found by reading `NOISE_FLOOR_PATH` at line 316 while
+> repairing the doors, not by anything going red — nothing checks a finding's citations.
+
 **The floor's own admission was never strong enough to see this.** `_floor_admission` pairs on the
 floor's *declared* book identity — and the folded-18 floor's `book_identity.declared` is **`null`**,
 so it was only ever admitted on the stamp proxy. A declared book would not have caught this either:
