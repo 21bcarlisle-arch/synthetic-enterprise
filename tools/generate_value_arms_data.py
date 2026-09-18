@@ -126,6 +126,7 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
+from tools.decisions_by_account_class import decisions_by_account_class
 from tools.decisions_that_existed import decisions_that_existed
 
 # THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
@@ -5662,6 +5663,16 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
     sentence is unreachable and the page says the gate is passable instead. A conclusion that
     cannot change when the evidence changes is not a reading of the evidence, which is the defect
     `_headline_reading` was repaired for on this same page.
+
+    THE `reached` BRANCH USED TO CLOSE "so what limits this experiment now is book size, not
+    eligibility", AND THAT CLAUSE WAS FALSE ON EVERY RUN IT WAS PUBLISHED UNDER (repaired
+    2026-09-18). It was inferred from a non-empty priced list, which establishes only that the
+    gate is PASSABLE -- never that it is not the binding constraint. On the run carrying it, 1,475
+    of the 1,975 renewals the world offered found accounts stopped at the product gate. The
+    eligibility question is a ratio over TERMS and is now read off
+    `decisions_by_account_class`, which divides the decisions that existed by the boundaries
+    offered: a larger book scales both and cannot move it, so book size is refuted as the binding
+    limit by arithmetic rather than by a sentence anybody wrote.
     """
     priced_accounts = [str(a) for a in (funnel.get("accounts_the_arm_priced") or [])]
     offered = funnel.get("accounts_the_world_offered_a_renewal")
@@ -5706,10 +5717,19 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
     # reading alone rather than silently upgrading it -- it is the state of every artefact
     # produced before this block existed.
     census = funnel.get("product_label_by_account_class") or {}
-    gate_reachable = census.get("a_found_account_can_reach_the_product_gate")
-    measured = census.get("available") is True and isinstance(gate_reachable, bool)
+    # THE RECORD-UNIT READ, AND IT IS NAMED FOR THAT UNIT SINCE 2026-09-18. The old spelling
+    # `a_found_account_can_reach_the_product_gate` is deliberately NOT accepted as a fallback: an
+    # artefact carrying it was written by a producer that had not yet separated the two units, and
+    # reading it here would restore exactly the silent wrong-unit read this repair closed. Such an
+    # artefact falls through to `measured is False`, which leaves the older reading alone.
+    opening_upliftable = census.get("a_found_accounts_opening_product_is_upliftable")
+    measured = census.get("available") is True and isinstance(opening_upliftable, bool)
+    # THE GUARD'S OWN UNIT -- the TERM -- derived here rather than read, so an artefact written
+    # before the producer published it still gets one. This is what any claim about eligibility
+    # versus book size must divide by.
+    per_term = decisions_by_account_class(funnel)
 
-    if measured and gate_reachable and not won_priced:
+    if measured and opening_upliftable and not won_priced:
         return {
             "available": True,
             "verdict": "unresolved",
@@ -5718,15 +5738,19 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
             "accounts_never_reached_by_the_arm": never_reached,
             "won_or_drawn_accounts_priced": 0,
             "classification_basis": basis,
-            "premise_basis": "measured on the roster this run bound",
+            "premise_basis": "measured on the roster this run bound, on the RECORD's unit",
+            "per_term": per_term,
             "sentence": (
                 "The method has priced none of the {rest} accounts the company won or drew, and "
                 "this run cannot call that a gate: the world DOES label some of the products it "
-                "found ({names}), so a household the arm could price exists and none was. What "
-                "limits this reading is the book, or something upstream of the product gate, and "
-                "this surface will not name which without measuring it."
+                "found ({names}) -- on their OPENING term, which is the only unit this census "
+                "counts -- so a household whose opening product the arm admits exists and none "
+                "was priced. What limits this reading is the book, the product its LATER terms "
+                "were settled onto, or something upstream of the product gate, and this surface "
+                "will not name which without measuring it."
             ).format(rest=never_reached,
-                     names=", ".join(census.get("found_accounts_the_guard_would_admit") or [])
+                     names=", ".join(
+                         census.get("found_accounts_whose_opening_product_the_guard_admits") or [])
                      or "count not published"),
             "what_is_owed": (
                 "A funnel decomposition on the accounts the guard WOULD admit, to find which "
@@ -5737,10 +5761,10 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
         verdict = "reached"
         sentence = (
             "The method has priced {n} account{s} the company found rather than started with "
-            "({names}). The gate that used to refuse every won household is passable, so what "
-            "limits this experiment now is book size, not eligibility."
+            "({names}). The gate that used to refuse every won household is PASSABLE. WHAT NOW "
+            "LIMITS THIS EXPERIMENT IS NOT READ OFF THAT: {limit}"
         ).format(n=len(won_priced), s="" if len(won_priced) == 1 else "s",
-                 names=", ".join(won_priced))
+                 names=", ".join(won_priced), limit=_what_limits_the_found_book(per_term))
     elif isinstance(unlabelled, int) and unlabelled > 0 and len(labels) == 1:
         verdict = "structural"
         sentence = (
@@ -5802,12 +5826,22 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
         # deciding whether to spend a curriculum change on it needs to know which one they have.
         "premise_basis": (
             "measured on the roster this run bound: {n} of the accounts it won or drew carry an "
-            "electricity product the guard would admit"
-            .format(n=len(census.get("found_accounts_the_guard_would_admit") or []))
+            "electricity product the guard would admit ON THEIR OPENING TERM, which is that "
+            "census's unit and not the guard's"
+            .format(n=len(census.get(
+                "found_accounts_whose_opening_product_the_guard_admits") or []))
             if measured else
-            "argued from the code path, not measured -- this artefact predates "
-            "`renewal_funnel.product_label_by_account_class`"),
+            "NOT measured on the record: this artefact carries no "
+            "`renewal_funnel.product_label_by_account_class` naming its own unit. An artefact "
+            "whose census still spells the verdict `a_found_account_can_reach_the_product_gate` "
+            "lands here deliberately -- that field is a RECORD-unit count under a TERM-unit name "
+            "and is not read (repaired 2026-09-18)"),
         "sentence": sentence,
+        # THE GUARD'S OWN UNIT, PUBLISHED BESIDE THE SENTENCE IT COMPOSES. A reader who wants to
+        # check the eligibility-versus-book-size claim needs the two ratios it is made of, not
+        # just the clause; and a reader of an artefact too old to carry the per-class stage counts
+        # gets `available: False` with the reason rather than a missing key.
+        "per_term": per_term,
         # WHAT IS OWED DEPENDS ON WHICH PRODUCTS WERE REFUSED, so it is branched on the same
         # measurement as the verdict rather than typed once. Until 2026-09-04 this said "the world
         # has no standard-variable product ... the repair is that product" -- it stayed on the
@@ -5816,6 +5850,26 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
         # rots exactly like a figure and nothing was watching this one.
         "what_is_owed": _what_is_owed_at_the_product_gate(refusals),
     }
+
+
+def _what_limits_the_found_book(per_term: dict) -> str:
+    """What bounds the arm's reach over the found book, on the TERM -- or an honest refusal.
+
+    THE CLAUSE THIS REPLACES was "so what limits this experiment now is book size, not
+    eligibility", concluded from a non-empty priced list. A non-empty priced list establishes that
+    the gate is passable and nothing else: on the run that published the clause, 74.7% of the
+    renewals the world offered found accounts stopped at that same gate. The eligibility question
+    is a ratio over terms and the priced list is not a term count.
+
+    FAIL CLOSED. An artefact with no per-class stage counts gets "this surface cannot say", not
+    the older confident clause -- the same posture `product_gate_refusal` takes for a run that
+    recorded no breakdown, and for the same reason: a reader who is told nothing can go and
+    measure, and a reader who is told the wrong thing stops.
+    """
+    if not per_term.get("available"):
+        return ("this surface CANNOT SAY on this run, and specifically does not claim book size: "
+                "{reason}".format(reason=per_term.get("reason") or "no reason recorded"))
+    return per_term["reading"]
 
 
 def _what_is_owed_at_the_product_gate(refusals: dict) -> str:

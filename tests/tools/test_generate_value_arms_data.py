@@ -2198,6 +2198,16 @@ def test_pricing_one_won_account_makes_the_structural_sentence_unreachable():
     a won account, so the mutation stopped reaching the branch it was written to test. It was
     the FIXTURE that went stale, not the property: this test still says the verdict follows the
     priced set, and it now says it through whichever basis the artefact declares.
+
+    AND THE LAST LEG WAS PINNED TO A CLAUSE THAT TURNED OUT TO BE FALSE (2026-09-18). It asserted
+    the `reached` sentence closes "so what limits this experiment now is book size, not
+    eligibility" -- which the page inferred from a non-empty priced list, and which was wrong on
+    every run it was published under: 74.7% of the renewals offered to found accounts stopped at
+    the product gate. So this control was holding a defect in place, which is the
+    keyed-to-today's-answer shape. What the leg asserts now is the PROPERTY it always meant: the
+    `reached` verdict follows the priced set, and it does NOT conclude anything about book size
+    from it. `test_the_reached_verdict_never_concludes_book_size_from_a_priced_account_list` below
+    owns the replacement claim.
     """
     art = _load(THREE_ARM_20260829)
     funnel = art["renewal_funnel"]["value_arm"]
@@ -2213,7 +2223,8 @@ def test_pricing_one_won_account_makes_the_structural_sentence_unreachable():
     assert who["verdict"] == "reached"
     assert who["won_or_drawn_accounts_priced"] == 1
     assert "NEVER PRICED" not in who["sentence"]
-    assert "book size, not eligibility" in who["sentence"]
+    assert "is PASSABLE" in who["sentence"]
+    assert "book size, not eligibility" not in who["sentence"]
 
 
 def test_a_mixed_product_gate_does_not_get_the_single_cause_sentence():
@@ -2284,8 +2295,8 @@ def test_a_roster_census_agreeing_with_the_gate_says_the_premise_was_measured():
     know which one they have. Without this field the page reads at the higher strength always.
     """
     who = _with_census(_load(THREE_ARM_20260829),
-                       a_found_account_can_reach_the_product_gate=False,
-                       found_accounts_the_guard_would_admit=[])
+                       a_found_accounts_opening_product_is_upliftable=False,
+                       found_accounts_whose_opening_product_the_guard_admits=[])
     assert who["verdict"] == "structural"
     assert who["premise_basis"].startswith("measured on the roster")
 
@@ -2299,8 +2310,8 @@ def test_MUTATION_a_census_that_finds_a_labelled_won_account_withdraws_the_gate_
     must move with it. R15: a control whose PASS branch is unreachable reports a constant.
     """
     who = _with_census(_load(THREE_ARM_20260829),
-                       a_found_account_can_reach_the_product_gate=True,
-                       found_accounts_the_guard_would_admit=["PROS-2019-0015"])
+                       a_found_accounts_opening_product_is_upliftable=True,
+                       found_accounts_whose_opening_product_the_guard_admits=["PROS-2019-0015"])
     assert who["verdict"] == "unresolved"
     assert "GATE, not a book size" not in who["sentence"]
     assert "PROS-2019-0015" in who["sentence"]
@@ -2324,11 +2335,57 @@ def test_an_artefact_with_no_census_keeps_the_older_reading_rather_than_upgradin
     who = gva.build(art, _load(NOISE_FLOOR))[
         "decisions"]["who_the_method_has_priced"]
     assert who["verdict"] == "structural"
-    assert who["premise_basis"].startswith("argued from the code path")
+    assert who["premise_basis"].startswith("NOT measured on the record")
+
+
+def test_the_reached_verdict_never_concludes_book_size_from_a_priced_account_list():
+    """MUTATION: restore "so what limits this experiment now is book size, not eligibility".
+
+    THE DEFECT (live until 2026-09-18). That clause was inferred from a non-empty priced-account
+    list, which establishes only that the gate is PASSABLE. On the run publishing it, 1,475 of the
+    1,975 renewals the world offered found accounts stopped at that same product gate, and the
+    artefact said so two keys away. A priced-account list is not a term count, and eligibility is
+    a ratio over terms.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the product mix binds.
+    What is asserted is that the clause is DERIVED from the per-term ratios and that the ratios
+    are published beside it, so a run in which the method becomes the binding constraint says so
+    instead and this control stays green.
+    """
+    art = _load(THREE_ARM)
+    who = gva.build(art, _load(NOISE_FLOOR))["decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] == "reached"
+    assert "book size, not eligibility" not in who["sentence"]
+    per_term = who["per_term"]
+    assert per_term["available"] is True, per_term.get("reason")
+    # The two ratios the clause is made of, so a reader can check it rather than take it.
+    assert per_term["found"]["priced_share_of_the_decisions_that_existed"] is not None
+    assert per_term["found"]["decisions_share_of_the_renewals_offered"] is not None
+    assert per_term["reading"] in who["sentence"]
+
+
+def test_an_artefact_with_no_per_class_split_refuses_the_limit_claim_rather_than_asserting_one():
+    """FAIL-CLOSED on the eligibility clause, in the direction that does NOT flatter the page.
+
+    MUTATION: fall back to the old "book size, not eligibility" wording when `per_term` is
+    unavailable, or drop the `available` check and read `reading` off an absent block.
+
+    An artefact predating `by_account_class` cannot support any claim about what bounds the found
+    book. "This surface cannot say" is a result and belongs in the sentence; the older confident
+    clause is the fail-open shape a missing field takes when it is read as agreement.
+    """
+    art = _load(THREE_ARM)
+    art["renewal_funnel"]["value_arm"].pop("by_account_class", None)
+    who = gva.build(art, _load(NOISE_FLOOR))["decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] == "reached"
+    assert "CANNOT SAY on this run" in who["sentence"]
+    assert "does not claim book size" in who["sentence"]
+    assert who["per_term"]["available"] is False
+    assert "no per-class stage counts" in who["per_term"]["reason"]
 
 
 def test_a_census_present_but_unavailable_is_not_read_as_agreement():
-    """MUTATION: test `census.get("a_found_account_can_reach_the_product_gate")` alone.
+    """MUTATION: test `census.get("a_found_accounts_opening_product_is_upliftable")` alone.
 
     A census block that failed to build renders `available: False` and carries no verdict field;
     reading the absent flag as `False` would report the roster as having AGREED with the gate
@@ -2340,7 +2397,7 @@ def test_a_census_present_but_unavailable_is_not_read_as_agreement():
         "available": False, "reason": "the roster would not import"}
     who = gva.build(art, _load(NOISE_FLOOR))[
         "decisions"]["who_the_method_has_priced"]
-    assert who["premise_basis"].startswith("argued from the code path")
+    assert who["premise_basis"].startswith("NOT measured on the record")
 
 
 # ── the AUC's own bound: the figure that went out for four days with no interval ─────────────
