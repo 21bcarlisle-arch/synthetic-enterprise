@@ -902,7 +902,11 @@ def _prompt(brief: dict) -> str:
             "its own window with nothing bound to it, which is evidence the work MOVED and not "
             "that it finished -- read the commit it names, then `--landed <id> --commit <sha>` "
             "if it is the work, and carry on from there rather than from "
-            "scratch:\n\n".format(len(undisposed), len(rows))
+            "scratch. A `premise_not_yet_ripe` row is the OPPOSITE instruction and the only one "
+            "here that is about the FUTURE: its window closed before the instant its own prose "
+            "names, so there was never anything to find -- do not go looking in the tree, and do "
+            "not draw it again until the instant the evidence names has "
+            "passed:\n\n".format(len(undisposed), len(rows))
             + "\n".join("- {} (drawn {}h ago, {}{})".format(
                 r.get("id"), r.get("hours_since_draw"),
                 r.get("disposition", delivery_lane_NOT_DONE),

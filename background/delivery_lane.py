@@ -1198,10 +1198,22 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
 #: line is deliberately still FOUR — a fifth *reading* was added, not a fifth *value*, and inflating
 #: the vocabulary because a new route reaches an old label is how a partition control stops covering
 #: its partition.
+#:
+#: AND NOW THERE IS A FIFTH VALUE, which is a different thing from that fifth reading and is why the
+#: count above moves. `PREMISE_NOT_YET_RIPE` is a CAUSE none of the four can express: a window that
+#: closed before the item's own prose said its subject would exist. It is the MIRROR of
+#: `PREMISE_SPENT` — spent says the premise had already been consumed, ripe-not-yet says it had not
+#: arrived — and collapsing the two would say the opposite of what was measured. Measured on this
+#: ledger 2026-09-18: `read-the-next12-twelve-alone-once-the-0358-run-settles` was written at 23:52
+#: naming an ETA of 03:58, drawn at 00:07, and its whole 100-minute window plus the landing grace
+#: closed at 02:47 — an hour and eleven minutes before the file it exists to read could exist. It
+#: read `not_done` with an empty string, which sends a reader to `git status` for a window in which
+#: no correct turn could have committed anything.
 NOT_DONE = "not_done"
 LANDED_ELSEWHERE = "landed_elsewhere"
 PREMISE_SPENT = "premise_spent"
 LANDED_UNBOUND = "landed_unbound"
+PREMISE_NOT_YET_RIPE = "premise_not_yet_ripe"
 
 #: The two answers `disposition_of` can give that are NOT one of the four, because they are not
 #: windows that closed with nothing: the id delivered under its own name, or was never handed out.
@@ -1215,6 +1227,135 @@ NOT_DRAWN = "not_drawn"
 #: `CREDITED` is work that exists and nobody bound; `STRANDED` is a description nobody landed.
 CREDITED = "credited"
 STRANDED = "stranded"
+
+
+def _drawn_before_stated_start(focus_id: str, row: dict, drawn: float) -> dict | None:
+    """The stated instant this row's whole window closed before, or None. `PREMISE_NOT_YET_RIPE`.
+
+    THE CAUSE THE OTHER FOUR CANNOT SAY, and it is the loudest thing on this lane's own ledger.
+    An item that sends a tick to read a long-running run's artefact carries the instant that
+    artefact begins to exist, written as prose. When the draw hands it out hours early, the turn
+    can do nothing — the file is not there — and the window closes with no commit, no sibling and
+    no spent premise. All four existing readings decline, correctly, and the row falls to the
+    residual: `not_done`, empty string, and a brief telling its reader to go and check `git status`
+    for a window in which no correct turn could have committed anything. That is the fail-SILENT
+    direction wearing the residual's clothes, and it is the shape `_landed_unbound` was written to
+    end one rung up.
+
+    THE WHOLE WINDOW, INCLUDING THE LANDING GRACE, AND THAT IS THE CLAUSE THAT KEEPS IT HONEST.
+    A row drawn five minutes before its subject appears had ninety-five usable minutes and missing
+    is an ordinary miss; the stated instant explains nothing there and this must not say it does.
+    So the test is `drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds() <= until` — not one
+    minute of the window, nor of the grace a gated landing costs, fell on the usable side. Using
+    the grace here makes the condition STRICTER, which is the direction a reading that excuses a
+    miss has to err in.
+
+    IT IS ASKED LAST, AFTER ALL FOUR, and the order is the argument for why it is safe. A row
+    reaches here only when nothing was stated by hand, no unbound commit exists on its paths, and
+    no sibling owns one — every louder reading has been offered and has declined. What it replaces
+    is therefore an empty string and never a populated one, so the worst case of a misparsed stamp
+    is a named instant a reader can check against the item's own prose in one line, against a
+    residual that named nothing.
+
+    AND IT NEVER WITHHOLDS WORK, WHICH IS WHY IT MAY READ A SPELLING THE DRAW MAY NOT. `_embargoed`
+    asks the same question of the same prose to decide whether to hand an item out, and there a
+    stamp invented from a loose grammar costs every invocation in the window — the empty lane that
+    is visible to nobody, and the failure `draw`'s six-day walkover already paid for. This reading
+    can only ever explain a window that has already closed. The asymmetry is the whole reason the
+    back-referenced spelling below is resolvable here and is deliberately NOT wired into the draw:
+    same regex, same resolver, different anchor, and only one of the two can cost the lane a tick.
+    """
+    text = _item_text(focus_id) or ""
+    if not text:
+        return None
+    until = embargoed_until({"prose": text})
+    if until is None:
+        until = _back_referenced_start(text, drawn)
+    if until is None:
+        return None
+    window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
+    if window_ends > until:
+        return None
+    return {"disposition": PREMISE_NOT_YET_RIPE,
+            "evidence": "the item's own prose puts its subject at {} -- {:.1f}h after this "
+                        "window closed, so no turn under this claim could read it".format(
+                            datetime.datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M"),
+                            (until - window_ends) / 3600.0)}
+
+
+#: A start instant named once and then REFERRED BACK TO, which is the third live spelling of the
+#: same instruction and the one `_EMBARGO` cannot see. The seat writes `ETA near 03:58; do not draw
+#: this before then` as readily as `DO NOT DRAW BEFORE 10:45 on 2026-09-18`, and the dated grammar
+#: above was built from the two spellings that happened to be in front of it. A grammar that only
+#: accepts the phrasings used on the day it was written is a guard with a silent off-switch — its
+#: own docstring says so, and this is that off-switch found in the wild.
+#:
+#: THE GAP IS BOUNDED AND THE NEAREST ANTECEDENT WINS, because "then" means the last instant named
+#: and not the largest one. `max()` is right for two dated stamps that disagree — an author
+#: restating a deadline that moved — and wrong here, where several times in one sentence are one
+#: referent and several distractors. The live instance proves it: *"The run exec'd 20:11:48, 13.0
+#: min per arm-leg, ETA near 03:58; do not draw this before then"* — taking the largest would read
+#: the run's own START as its embargo.
+#:
+#: IT IS TWO PATTERNS AND NOT ONE, and the first draft's single combined pattern is why. A regex
+#: reading left to right anchors on the EARLIEST clock time that can reach the instruction and
+#: consumes everything between, so `Ignore the 22:30 checkpoint. ETA near 03:58; do not draw this
+#: before then` matched once, at 22:30, and the real antecedent was never offered as a candidate at
+#: all. Scanning for the INSTRUCTION and then looking backward is the only order in which "the last
+#: instant named before `then`" is a question that can be asked.
+_BACKREF_INSTRUCTION = re.compile(
+    r"do\s+not\s+(?:draw|start)\b[^\n]{0,24}?before\s+then\b", re.IGNORECASE)
+
+#: `(?<![:\d])` AND `(?![:\d])` ARE WHAT KEEP A DURATION OUT. Without them `20:11:48` offers `11:48`
+#: — a well-formed clock time inside a timestamp — which in that same sentence resolves eight hours
+#: past the real stamp. Both edges are needed because only one of them rejects it: the leading guard
+#: refuses `11:48` for the colon before it, the trailing guard refuses `20:11` for the colon after.
+_CLOCK_TIME = re.compile(r"(?<![:\d])(?P<h>\d{1,2}):(?P<m>\d{2})(?![:\d])")
+
+#: How far back of `then` its antecedent may be. A referent is in the same breath as the reference;
+#: widening this would start reaching into the previous sentence for any number shaped like a time,
+#: and the failure direction of a too-WIDE reach is a stated instant that was never stated.
+_BACKREF_REACH = 60
+
+
+def _back_referenced_start(text: str, anchor: float) -> float | None:
+    """A date-less stated start resolved against `anchor`, or None. NEVER RAISES.
+
+    THE DATE IS NOT GUESSED, IT IS DERIVED FROM WHAT AN ETA IS: the first occurrence of that clock
+    time at or after the instant the claim was handed out. An ETA written into an item is in that
+    item's future by construction — an author does not tell a tick to wait for a moment that has
+    been and gone — so "the next 03:58 from here" is the only reading consistent with the sentence,
+    and it is bounded by one day without needing a horizon constant to say so.
+
+    ANCHORED ON THE DRAW AND NOT ON `now`, which is what makes this a statement about a closed
+    window rather than about this afternoon. Anchoring on `now` would re-resolve the same prose to
+    a different day on every sweep, so a row's disposition would change while the row did not.
+
+    THE NEAREST ANTECEDENT WINS WITHIN ONE `then`, AND THE LATEST WINS ACROSS SEVERAL. They are
+    different questions and the two rules are not in tension: "then" refers to the last instant
+    named before it, so inside one reach the nearest is the only candidate that means anything;
+    while two separate instructions that disagree are an author restating a deadline that moved,
+    which is exactly the case `embargoed_until` takes `max()` for, and taking the earlier would
+    read a stamp that was superseded.
+    """
+    try:
+        stamps = []
+        for instruction in _BACKREF_INSTRUCTION.finditer(text or ""):
+            start = max(0, instruction.start() - _BACKREF_REACH)
+            candidates = _CLOCK_TIME.findall(text[start:instruction.start()])
+            if not candidates:
+                continue
+            hour, minute = int(candidates[-1][0]), int(candidates[-1][1])
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                continue
+            base = datetime.datetime.fromtimestamp(anchor)
+            stated = base.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if stated.timestamp() < anchor:
+                stated += datetime.timedelta(days=1)
+            stamps.append(stated.timestamp())
+        return max(stamps) if stamps else None
+    except Exception:
+        return None
 
 
 def _stranded_paths(paths: list[str], window_closed: float,
@@ -1477,6 +1618,16 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         sibling = None
     if sibling:
         return sibling
+    # AND LAST OF ALL, THE CAUSE THAT IS NOT ABOUT A COMMIT. The three readings above all ask
+    # "where did the work go"; this one asks whether there was any work to be had, and it is asked
+    # only once all three have said no. A window that closed before its own subject existed is not
+    # a miss, and the residual cannot tell a reader that -- see `_drawn_before_stated_start`.
+    try:
+        early = _drawn_before_stated_start(focus_id, row, drawn)
+    except Exception:
+        early = None            # same direction as the two above: the residual stays loud
+    if early:
+        return early
     return {"disposition": NOT_DONE, "evidence": ""}
 
 
