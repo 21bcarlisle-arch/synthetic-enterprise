@@ -12,32 +12,32 @@
     "open_findings": 15
   },
   "last_verified": {
-    "generated_at": "2026-09-17T12:29:43Z",
-    "git_commit": "b55667741",
+    "generated_at": "2026-09-18T07:48:16Z",
+    "git_commit": "d63c7961e",
     "population": {
       "accounts": 226,
-      "bills": 10115,
-      "total_revenue_gbp": 685541.28
+      "bills": 10131,
+      "total_revenue_gbp": 683074.19
     },
-    "run_id": "run_output_b55667741_20260917T114201Z.json",
+    "run_id": "run_output_d63c7961e_20260918T065902Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-17T12:29:43Z"
+    "verified_at": "2026-09-18T07:48:16Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=55e9861d1; blocking tests: FAILED tests/background/test_a_multi_chain_landing_is_not_recorded_as_one_chain.py::test_a_landing_that_lost_two_races_records_one_chain_not_three, FAILED tests/background/test_a_multi_chain_landing_is_not_recorded_as_one_chain.py::test_the_ordinary_single_chain_landing_is_unchanged, FAILED tests/background/test_a_multi_chain_landing_",
-  "paused_since": "2026-09-17T14:51:38Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-17T12:29:43Z",
-    "git_commit": "b55667741",
+    "generated_at": "2026-09-18T07:48:16Z",
+    "git_commit": "d63c7961e",
     "population": {
       "accounts": 226,
-      "bills": 10115,
-      "total_revenue_gbp": 685541.28
+      "bills": 10131,
+      "total_revenue_gbp": 683074.19
     },
-    "run_id": "run_output_b55667741_20260917T114201Z.json",
+    "run_id": "run_output_d63c7961e_20260918T065902Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-17T12:29:43Z"
+    "verified_at": "2026-09-18T07:48:16Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-18T07:15:33Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-18T07:48:16Z"
 }
