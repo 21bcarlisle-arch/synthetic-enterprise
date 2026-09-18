@@ -526,8 +526,13 @@ def test_the_census_counts_what_the_guard_reads_not_whether_the_key_is_there(ros
     assert {r["the_guard_admits_it"] for r in present_key} == {True, False}
 
 
-def test_MUTATION_a_labelled_won_record_makes_the_gate_reachable(roster):
-    """NULL RUNG on the verdict the live page's sentence turns on.
+def test_MUTATION_a_labelled_won_record_makes_its_OPENING_product_upliftable(roster):
+    """NULL RUNG on this census's own verdict, which is about the RECORD's opening product.
+
+    RENAMED 2026-09-18, from `..._makes_the_gate_reachable`. The old name was a claim about the
+    GATE over a census counted on the RECORD, and the field it asserted carried the same mismatch
+    (`a_found_account_can_reach_the_product_gate`). Both now name their unit. The gate's own unit
+    is the term and `tools/decisions_by_account_class` answers it.
 
     A boolean only ever observed one way cannot be told from one that is structurally unable to
     leave it -- R15's unreachable-branch shape -- and this is the field that decides whether the
@@ -547,24 +552,25 @@ def test_MUTATION_a_labelled_won_record_makes_the_gate_reachable(roster):
     and why 2,490 of the 09-18 run's 2,824 offered renewals stop at the product gate. A repair can
     no longer take this leg's subject away without deleting that product.
 
-    WHAT THIS LEG DOES NOT SAY, and the finding beside it says instead: no LIVE record carries
-    `svt`, because the world decides svt per TERM off the engagement roll and this census reads the
-    record's OPENING product. That is a real defect in the census -- see
-    `SEAT_FINDING_THE_PRODUCT_GATE_CENSUS_ANSWERS_ON_THE_OPENING_TERM_...2026-09-18.md` -- and it
-    is the census's to fix, not this control's to paper over. What is asserted here is that the
-    census's own verdict CAN come back both ways, which is the null rung.
+    WHAT THIS LEG DOES NOT SAY, AND THE DEFECT IS NOW CLOSED RATHER THAN FLAGGED: no LIVE record
+    carries `svt`, because the world decides svt per TERM off the engagement roll and this census
+    reads the record's OPENING product. That was published under a gate-shaped verdict name until
+    2026-09-18 (`SEAT_FINDING_THE_PRODUCT_GATE_CENSUS_ANSWERS_ON_THE_OPENING_TERM_...md`); the
+    verdict now carries its unit and the gate's unit has its own block. What is asserted here is
+    unchanged and is the null rung: this census's own verdict CAN come back both ways.
     """
     unpriceable = roster([
         {"customer_id": "PROS-2019-0015g", "commodity": "gas",
          "acquisition_type": "net_new_won", "tariff_type": SVT_TARIFF_TYPE}])
-    assert unpriceable["a_found_account_can_reach_the_product_gate"] is False
-    assert unpriceable["found_accounts_the_guard_would_admit"] == []
+    assert unpriceable["a_found_accounts_opening_product_is_upliftable"] is False
+    assert unpriceable["found_accounts_whose_opening_product_the_guard_admits"] == []
 
     labelled = roster([
         {"customer_id": "PROS-2019-0015g", "commodity": "gas",
          "acquisition_type": "net_new_won", "tariff_type": "fixed"}])
-    assert labelled["a_found_account_can_reach_the_product_gate"] is True
-    assert labelled["found_accounts_the_guard_would_admit"] == ["PROS-2019-0015"]
+    assert labelled["a_found_accounts_opening_product_is_upliftable"] is True
+    assert labelled["found_accounts_whose_opening_product_the_guard_admits"] == [
+        "PROS-2019-0015"]
 
 
 def test_a_founder_account_passing_the_gate_is_not_a_found_account_reaching_it(roster):
@@ -585,7 +591,7 @@ def test_a_founder_account_passing_the_gate_is_not_a_found_account_reaching_it(r
          "acquisition_type": "net_new_won", "tariff_type": SVT_TARIFF_TYPE}])
     founder = [r for r in census["legs"] if r["account_class"] == "founder_hand_authored"]
     assert [r["the_guard_admits_it"] for r in founder] == [True]
-    assert census["a_found_account_can_reach_the_product_gate"] is False
+    assert census["a_found_accounts_opening_product_is_upliftable"] is False
 
 
 def test_a_gas_leg_that_omits_the_key_is_named_as_disagreeing_with_its_own_electricity_leg(
