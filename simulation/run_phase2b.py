@@ -3695,6 +3695,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # why a premise is not fabric-driven -- recorded so an unexplained
         # population change is visible in the run, not inferred from its numbers.
         "demand_provider_by_customer": dict(demand_provider_by_customer),
+        # W2_30, THE GAS HALF OF THE SAME QUESTION (2026-09-18). These were computed, used at the
+        # gas term below, and PRINTED -- reaching no artefact, so no reader could tell whether the
+        # per-household seasonal shape had reached the gas book at all, or how many households were
+        # quietly settling on the population 70/30 split instead. That is the state the electricity
+        # side was in until `demand_provider_by_customer` was published beside it, and
+        # `SeasonalGasRefusal`'s own docstring already claimed the opposite: the reason is carried
+        # "so a customer silently keeping the population constant is visible in the run instead of
+        # inferred from its numbers". It was visible only on a terminal nobody keeps.
+        "gas_shape_provider_by_customer": {
+            **{cid: "fabric_seasonal_split" for cid in gas_heating_fraction_by_customer},
+            **{r.customer_id: "population_70_30_split" for r in gas_shape_refusals},
+        },
+        "gas_shape_refusals": [
+            {"customer_id": r.customer_id, "reason": r.reason} for r in gas_shape_refusals
+        ],
         "fabric_eligibility": [
             {"customer_id": v.customer_id, "is_eligible": v.is_eligible, "reason": v.reason}
             for v in fabric_eligibility_verdicts
