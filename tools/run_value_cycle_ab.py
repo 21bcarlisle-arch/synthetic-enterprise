@@ -117,6 +117,7 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c
 # SVT series before it) is argued at length where it is defined; a second copy here would be a
 # second thing to keep in step, and the household leg and the ladder's must be one reference or
 # their figures cannot be read against each other.
+from tools.decisions_by_account_class import decisions_by_account_class
 from tools.decisions_that_existed import decisions_that_existed
 from tools.run_price_ladder import household_side, published_default_tariff
 
@@ -3468,7 +3469,21 @@ def account_class_map() -> dict[str, str]:
 
 
 def product_label_by_account_class() -> dict:
-    """What the arm's product gate READS off each class's records, measured on the roster.
+    """What the arm's product gate READS off each class's RECORDS, measured on the roster.
+
+    THE UNIT IS THE RECORD AND THE GUARD'S IS THE TERM, and that is stated first because it was
+    discovered by publishing the other way round. `resolved_tariff_type` returns the product a
+    record's own schedule builder stamps on its OPENING term; every boundary after it is settled
+    by the household's engagement roll, and a passive roll settles `svt`, which the guard refuses.
+    So this block cannot see the gate that stopped 2,490 of the 09-18 run's 2,824 offered
+    renewals, and until 2026-09-18 its derived verdict was named as though it could
+    (`docs/staging/SEAT_FINDING_THE_PRODUCT_GATE_CENSUS_ANSWERS_ON_THE_OPENING_TERM_...md`).
+    `decisions_by_account_class` answers the gate's own unit; the two do not share a verdict field.
+
+    WHAT THIS BLOCK IS STILL FOR, and it earns its place: the DEFEATED DEFAULT. A drawn or won
+    record carries `tariff_type` present-and-`None`, so a census keyed on "is the key missing"
+    reports it as labelled. Only a census over records can see that, and only this block can see
+    two legs of one billing account answering it differently.
 
     `funnel_by_account_class` says whose renewals stopped where. It cannot say whether that is a
     fact about THIS RUN or about the world's record shapes, and the difference is the whole
@@ -3494,10 +3509,11 @@ def product_label_by_account_class() -> dict:
     because the last copy of a sentence about the world went stale the same way.
 
     KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the found book is
-    unlabelled. `a_found_account_can_reach_the_product_gate` is DERIVED, and it turns True the
+    unlabelled. `a_found_accounts_opening_product_is_upliftable` is DERIVED, and it turns True the
     moment one won or drawn electricity record resolves to an upliftable type -- which is the
     only shape in which this block can report that the world got better rather than going red
-    for it.
+    for it. What it does NOT license is the converse: True says the opening product is admitted,
+    never that the account's later terms reach the arm.
 
     R12: diagnostic. The counts are not a target and this is not a cue to relax
     `UPLIFTABLE_TARIFF_TYPES` so the found book gets counted.
@@ -3552,13 +3568,31 @@ def product_label_by_account_class() -> dict:
         ],
         # THE DERIVED VERDICT, and the reason this block is not a control that asserts the model
         # stays bad: it is a reading of the roster that can come back either way.
-        "a_found_account_can_reach_the_product_gate": bool(reachable),
-        "found_accounts_the_guard_would_admit": sorted(reachable),
+        #
+        # ITS NAME CARRIES ITS UNIT SINCE 2026-09-18, and the rename is the repair. It was
+        # `a_found_account_can_reach_the_product_gate` -- a name about the GATE, on a census
+        # counted over the RECORD -- and the page's only reader of it concluded from `true` that
+        # the gate was not what stood between the found book and being priced, while the same
+        # artefact recorded the gate refusing 2,490 of 2,824 TERMS. Renamed rather than deleted so
+        # that a reader still on the old spelling fails closed instead of reading the wrong unit
+        # in silence; the gate's own unit is answered by `decisions_by_account_class` beside this.
+        "a_found_accounts_opening_product_is_upliftable": bool(reachable),
+        "found_accounts_whose_opening_product_the_guard_admits": sorted(reachable),
         "billing_accounts_whose_legs_disagree_about_labelling": disagreeing,
+        "the_unit_of_this_block": (
+            "the RECORD, and specifically the product its own schedule builder stamps on its "
+            "OPENING term. NOT the term: every boundary after the opening one is settled by the "
+            "household's engagement roll, and a passive roll settles `svt`, which the guard "
+            "refuses. Nothing here may be read as what the gate does to the book -- "
+            "`decisions_by_account_class` counts that, on the term."),
         "reading": (
-            "If `a_found_account_can_reach_the_product_gate` is false, no book size prices a "
+            "If `a_found_accounts_opening_product_is_upliftable` is false, no book size prices a "
             "found household: every renewal it offers is refused on the record's shape, which no "
-            "number of further households changes. The accounts whose legs DISAGREE are a "
+            "number of further households changes. IF IT IS TRUE THAT IS NOT THE CONVERSE -- a "
+            "record whose opening product the guard admits can still have every later term "
+            "settled onto a product it refuses, which is what this run shows, so read "
+            "`decisions_by_account_class` before concluding anything about the gate. The accounts "
+            "whose legs DISAGREE are a "
             "separate fact and it stopped being a latent one on 2026-09-07, when gas began "
             "reaching the product gate: a gas leg that CARRIES the key unset now resolves to "
             "`None` where its own electricity leg resolves to `fixed`, so one account is priced "
@@ -3664,6 +3698,10 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
                 "is NOT reconstructed here -- see this function's docstring."),
         }
     counts = collections.Counter(row.get("stage") for row in log)
+    # Bound once: the per-class stage counts are read twice below -- published as themselves, and
+    # again as the input to the per-TERM decision population. A second call would be a second
+    # `account_class_map()` and therefore a second roster read.
+    by_class = funnel_by_account_class(log)
     unknown = sorted(str(s) for s in counts if s not in FUNNEL_STAGES)
     # The one stage whose count is a finding rather than a fact, so it is broken out by the value
     # that caused it. "Six accounts on a variable tariff" and "213 accounts whose product was
@@ -3727,9 +3765,22 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         # WHOSE renewals these are. A stage total is true of the book as a whole and cannot
         # distinguish "the method reaches a small share of every customer" from "the method
         # reaches the founding customers and none of the ones the company won".
-        "by_account_class": funnel_by_account_class(log),
-        # WHY, and it is the roster rather than the run. `by_account_class` above can only say
-        # that no found account was priced in THIS run; this says whether one could have been.
+        "by_account_class": by_class,
+        # WHAT THAT MEANS, ON THE GUARD'S OWN UNIT -- the TERM. Derived from the per-class stage
+        # counts above rather than asserted, and DERIVED AGAIN at publication time by the same
+        # function, for the reason `decisions_that_existed` above records. Until 2026-09-18 the
+        # only per-class reading of the product gate on this block was the RECORD-unit census
+        # below, and a reader who took its verdict for the gate's was told the gate is not what
+        # stands between the found book and being priced -- while this same artefact recorded the
+        # gate stopping 88% of the terms the world offered.
+        "decisions_by_account_class": decisions_by_account_class({
+            "by_account_class": by_class,
+            "product_not_upliftable_by_tariff_type": dict(sorted(product_values.items())),
+        }),
+        # WHY, and it is the roster rather than the run -- ON THE RECORD'S UNIT, which is NOT the
+        # guard's. `by_account_class` above can only say that no found account was priced in THIS
+        # run; this says what product the world stamped on each record's OPENING term. Its verdict
+        # field is named for that unit and must not be read as the gate's: see the block above.
         "product_label_by_account_class": product_label_by_account_class(),
         # A stage this module does not know about means the adapter grew a guard and this block
         # did not follow it. Named rather than folded into an "other" bucket.
