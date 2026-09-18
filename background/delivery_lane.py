@@ -1266,18 +1266,26 @@ def _drawn_before_stated_start(focus_id: str, row: dict, drawn: float) -> dict |
     is a named instant a reader can check against the item's own prose in one line, against a
     residual that named nothing.
 
-    AND IT NEVER WITHHOLDS WORK, WHICH IS WHY IT MAY READ A SPELLING THE DRAW MAY NOT. `_embargoed`
-    asks the same question of the same prose to decide whether to hand an item out, and there a
-    stamp invented from a loose grammar costs every invocation in the window — the empty lane that
-    is visible to nobody, and the failure `draw`'s six-day walkover already paid for. This reading
-    can only ever explain a window that has already closed. The asymmetry is the whole reason the
-    back-referenced spelling below is resolvable here and is deliberately NOT wired into the draw:
-    same regex, same resolver, different anchor, and only one of the two can cost the lane a tick.
+    AND IT NEVER WITHHOLDS WORK, WHICH IS WHY IT READ A SPELLING THE DRAW COULD NOT — until
+    2026-09-18, when the draw was given the same reading and this paragraph stopped being true.
+    It is kept, corrected in place, because the caution was right and is what the wire had to
+    answer: a stamp invented from a loose grammar costs `_embargoed` every invocation in the
+    window, while this reading can only ever explain a window that has already closed. What made
+    the spelling safe to hand to the draw was not confidence, it was two additions — an anchor that
+    is a fixed instant in the past rather than `now`, and `_without_quoted_spans`, without which
+    an item DESCRIBING the grammar embargoes itself. The asymmetry survives in the anchor: same
+    regex, same resolver, and the draw's copy must earn a stricter reading than this one.
+
+    THIS CALL STAYS `dated_only`. `embargoed_until` now resolves the back-referenced spelling too,
+    against the item's own `written_at` — but a disposition explaining a closed window must anchor
+    on the DRAW, and the two lines below are that anchor. Letting the shared reader do it here
+    would silently swap in the other anchor and make a row's stamp depend on which store it came
+    from rather than on its prose.
     """
     text = _item_text(focus_id) or ""
     if not text:
         return None
-    until = embargoed_until({"prose": text})
+    until = embargoed_until({"prose": text}, dated_only=True)
     if until is None:
         until = _back_referenced_start(text, drawn)
     if until is None:
@@ -1326,6 +1334,30 @@ _CLOCK_TIME = re.compile(r"(?<![:\d])(?P<h>\d{1,2}):(?P<m>\d{2})(?![:\d])")
 #: and the failure direction of a too-WIDE reach is a stated instant that was never stated.
 _BACKREF_REACH = 60
 
+#: AN INSTRUCTION INSIDE QUOTES IS BEING MENTIONED, NOT GIVEN — and without this the very item that
+#: asked for the draw to read this spelling embargoes ITSELF. `embargoed_until` says the dated
+#: grammar "cannot manufacture a false embargo from rhetoric about the past", and the reason is that
+#: a quoted date is absolute and has been and gone. A quoted date-LESS clock has no such protection:
+#: it re-resolves into the future against whatever anchor it meets, so a sentence ABOUT the grammar
+#: is indistinguishable from the grammar itself. Measured on the live continuation store 2026-09-18
+#: — two of 282 entries carry the spelling, and they are the discriminating pair: the burning one
+#: (`... ETA near 03:58; do not draw this before then, the file will not exist`) has no quote mark
+#: anywhere in its text, while the one quoting it wraps the phrase in `"` and means nothing by it.
+#:
+#: THE BLANKING PRESERVES OFFSETS because `_back_referenced_start` looks BACKWARD from the
+#: instruction by character count; substituting spaces of equal length keeps that reach measuring
+#: the same prose it would have measured. A quoted span that swallows the antecedent rather than the
+#: instruction leaves no candidate and resolves to None, which is the fail-OPEN side.
+#:
+#: ONLY BALANCED, SINGLE-LINE SPANS MATCH. An unterminated quote pairs with nothing and blanks
+#: nothing, so a stray `"` earlier in an item cannot silently disarm a real instruction later in it.
+_QUOTED_SPAN = re.compile(r'"[^"\n]*"|`[^`\n]*`')
+
+
+def _without_quoted_spans(text: str) -> str:
+    """`text` with every quoted or backticked span replaced by spaces of the same length."""
+    return _QUOTED_SPAN.sub(lambda m: " " * len(m.group(0)), text or "")
+
 
 def _back_referenced_start(text: str, anchor: float) -> float | None:
     """A date-less stated start resolved against `anchor`, or None. NEVER RAISES.
@@ -1336,9 +1368,14 @@ def _back_referenced_start(text: str, anchor: float) -> float | None:
     been and gone — so "the next 03:58 from here" is the only reading consistent with the sentence,
     and it is bounded by one day without needing a horizon constant to say so.
 
-    ANCHORED ON THE DRAW AND NOT ON `now`, which is what makes this a statement about a closed
-    window rather than about this afternoon. Anchoring on `now` would re-resolve the same prose to
-    a different day on every sweep, so a row's disposition would change while the row did not.
+    THE ANCHOR MUST BE A FIXED INSTANT IN THE PAST, AND `now` IS NOT ONE. The disposition passes
+    the draw; `embargoed_until` passes when the prose was WRITTEN. Both are fixed, so the same text
+    resolves to the same instant every time it is read. Anchoring on `now` — which is what the
+    instruction that asked for this wiring proposed — cannot work in the draw at all: the rule is
+    "the first occurrence at or after the anchor", so at 04:30 a stamp of 03:58 re-resolves to
+    03:58 TOMORROW, the item is withheld again, and it is withheld again at every draw for ever.
+    That is not a missed stamp costing one invocation; it is the silent, permanent withholding of
+    work this function's own caller calls the worse failure. Measured before writing the wire.
 
     THE NEAREST ANTECEDENT WINS WITHIN ONE `then`, AND THE LATEST WINS ACROSS SEVERAL. They are
     different questions and the two rules are not in tension: "then" refers to the last instant
@@ -1349,7 +1386,8 @@ def _back_referenced_start(text: str, anchor: float) -> float | None:
     """
     try:
         stamps = []
-        for instruction in _BACKREF_INSTRUCTION.finditer(text or ""):
+        text = _without_quoted_spans(text)
+        for instruction in _BACKREF_INSTRUCTION.finditer(text):
             start = max(0, instruction.start() - _BACKREF_REACH)
             candidates = _CLOCK_TIME.findall(text[start:instruction.start()])
             if not candidates:
@@ -2774,7 +2812,33 @@ _EMBARGO = re.compile(
     re.IGNORECASE)
 
 
-def embargoed_until(item: dict) -> float | None:
+def _prose_anchor(item: dict) -> float | None:
+    """When this item's prose was WRITTEN, for resolving a date-less stated instant. Or None.
+
+    A date-less clock time is unresolvable without a reference instant, and the only honest one is
+    when the author typed it: an ETA written into an item is in that item's future by construction.
+    Both stores the draw reads can answer. A continuation entry carries `written_at` outright; a
+    focus row does not, but it is re-derived wholesale at each orientation, so the direction
+    record's own `oriented_at` is when its prose was written — and `unreachable_focus` already
+    returns nothing once that record goes stale, so an anchor read here is never older than the row.
+
+    NEVER RAISES, AND NO ANCHOR MEANS NO BACK-REFERENCED EMBARGO. That is the fail-OPEN direction
+    `embargoed_until` chose and the argument is the same: a stamp this cannot resolve costs one
+    invocation and is visible to the tick that reads it; an empty lane is visible to nobody.
+    """
+    written = item.get("written_at")
+    if isinstance(written, (int, float)) and not isinstance(written, bool) and written > 0:
+        return float(written)
+    try:
+        direction = direction_mod.read_direction()
+        if direction is None or not direction.is_live():
+            return None
+        return direction.oriented_at.timestamp()
+    except Exception:
+        return None
+
+
+def embargoed_until(item: dict, *, dated_only: bool = False) -> float | None:
     """The instant before which this item must not be handed to a tick, or None.
 
     WHY THIS EXISTS, AND IT IS FOUR INVOCATIONS OF EVIDENCE, NOT A HYPOTHETICAL. A focus item that
@@ -2802,10 +2866,29 @@ def embargoed_until(item: dict) -> float | None:
     this misses costs ONE invocation, which is the status quo and is visible to the tick that reads
     it; a stamp this invents withholds work silently, and a lane that quietly stops delivering is
     the six-day walkover `draw` was written around. An empty lane is visible to nobody.
+
+    AND THE DATED GRAMMAR WAS ONLY TWO OF THE THREE LIVE SPELLINGS, WHICH COST A WHOLE WINDOW
+    (2026-09-18). `_back_referenced_start` — an instant named once and then referred back to, as in
+    *"ETA near 03:58; do not draw this before then"* — existed, was tested, and was wired only to
+    the disposition that explains the loss AFTER the window closes. So the lane could say precisely
+    why `read-the-next12-twelve-alone-once-the-0358-run-settles` was hopeless from the moment it was
+    handed out, and could not decline to hand it out. Both spellings are read here now; the list
+    they share is why the LATEST STAMP rule above holds across them and not merely within one.
+
+    IT IS THE SAME RESOLVER AND DELIBERATELY NOT THE SAME ANCHOR. `_prose_anchor` gives when the
+    prose was written, never `now` — see `_back_referenced_start` for why anchoring the draw on
+    `now` withholds the item for ever rather than until its subject exists. `dated_only` is the
+    opt-out for the one caller that must anchor on the draw instead, and there is exactly one.
     """
     try:
         text = " ".join(v for v in item.values() if isinstance(v, str))
         stamps = []
+        if not dated_only:
+            anchor = _prose_anchor(item)
+            back_referenced = (None if anchor is None
+                               else _back_referenced_start(text, anchor))
+            if back_referenced is not None:
+                stamps.append(back_referenced)
         for m in _EMBARGO.finditer(text):
             g = m.groupdict()
             suffix = "1" if g["h1"] is not None else "2"
@@ -3137,8 +3220,13 @@ def main(argv=None) -> int:
             if until is not None:
                 rows.append((item.get("id"), until))
         if not rows:
-            print("no live focus item states a draw-time embargo "
-                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`)")
+            # BOTH SPELLINGS ARE NAMED, because this line is where a seat whose stamp went unread
+            # finds out which grammars are actually honoured. Printing only the dated one told a
+            # reader that the back-referenced form was not a stamp at all, which is how it went
+            # unwired for as long as it did.
+            print("no live item states a draw-time embargo "
+                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`, or `... <HH:MM>; "
+                  "do not draw this before then`)")
             return 0
         for focus_id, until in rows:
             when = datetime.datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M")
