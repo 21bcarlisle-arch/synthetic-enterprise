@@ -3766,13 +3766,28 @@ def decision_population(funnels: dict[str, dict]) -> dict:
     `FLAT_AT_LEVEL`, so it passes every guard the value arm passes). A reader taking a per-decision
     figure from one arm and comparing it with the other is then dividing two different books.
 
-    THE MECHANISM IS SEQUENTIAL-A/B ROSTER DIVERGENCE, and it is legitimate: different prices cause
-    different churn, a churned account's remaining terms are skipped by the world before the chain
-    is ever called, and so an account that leaves in year two removes every renewal it would have
-    presented in years three onward. The eligible pool is small enough that one early departure
-    moves the denominator by several decisions. That is not a defect to fix -- suppressing it would
-    mean pricing renewals for customers who left -- but it MUST be stated, because it is the reason
-    two arms can differ in n without differing in eligibility.
+    THERE ARE TWO MECHANISMS AND THIS DOCSTRING NAMED ONLY THE FLATTERING ONE UNTIL 2026-09-18.
+
+    The one it named is SEQUENTIAL-A/B ROSTER DIVERGENCE, and it is legitimate: different prices
+    cause different churn, a churned account's remaining terms are skipped by the world before the
+    chain is ever called, and so an account that leaves in year two removes every renewal it would
+    have presented in years three onward. The eligible pool is small enough that one early
+    departure moves the denominator by several decisions. That is not a defect to fix -- suppressing
+    it would mean pricing renewals for customers who left.
+
+    The one it did not name owned 65 of the 66-renewal gap on the last published run: THE VALUE
+    ARM'S OWN REFUSALS. `decide_margin` filtered its candidates through the churn model's support
+    bound and could return nothing, while `FLAT_AT_LEVEL` applied no support bound at all and could
+    never decline -- so the level arm priced every renewal the value arm walked away from, and the
+    level-arm margin on those renewals landed inside `level_vs_selection.selection_gbp` with a
+    negative sign. That was a defect in the ARM and it was fixed there, not described here: since
+    2026-09-18 both arms refuse at one frontier (`value_based_renewal._no_lawful_predictable_offer`,
+    raised from both branches), so a gap this block still reports is the roster half alone and
+    `reconciliation` is the arithmetic that says so rather than the sentence asserting it.
+
+    A RUN PREDATING THAT FIX STILL READS CORRECTLY HERE, which is why the split is derived per run
+    and not written down: `the_mechanism` below reads `reconciliation` and names whichever half
+    actually owns the gap on the run in hand.
 
     R12: a diagnostic. The denominators are not to be equalised.
     """
@@ -3813,16 +3828,28 @@ def decision_population(funnels: dict[str, dict]) -> dict:
         # and is the arm's own refusal rather than the world's churn. The sentences are now
         # DERIVED from this split instead of asserting one of its two terms.
         "reconciliation": reconciliation,
+        # THE PROPERTY THE RESIDUAL NEEDS, AS A BOOLEAN, so a reader does not have to infer it
+        # from three integers and a paragraph. Keyed to the property and NOT to today's counts:
+        # it does not ask whether the denominators are EQUAL -- across a sequential A/B they
+        # cannot be, because a different price makes a different roster and that difference is
+        # the effect being measured -- it asks whether either arm REFUSED a renewal the other
+        # priced, which is the only half of the gap that puts one arm's margin in the residual
+        # with no counterpart. Fail-closed: `None` when the split could not be formed at all.
+        "same_priced_population": _same_priced_population(reconciliation, deciding),
         "the_mechanism": (
             (
                 "THE SMALLER ARM'S OWN REFUSALS, not roster divergence. {declines} of the "
                 "{gap}-renewal gap are renewals `{small}` SAW and DECLINED while `{large}` "
                 "priced them -- those customers had not left, the arm met them and refused. "
-                "`decide_margin` filters candidate margins through the lawful ceiling AND the "
-                "churn model's support bound and raises `MarginDecisionUnavailable` when none "
-                "survives; `FLAT_AT_LEVEL` CLAMPS to the lawful ceiling and applies no support "
-                "bound at all, so it can never decline. A clamp always yields a price and a "
-                "filter can yield nothing. `declined_renewals` names them."
+                "That is the pre-2026-09-18 arm: `decide_margin` filtered candidate margins "
+                "through the lawful ceiling AND the churn model's support bound and raised "
+                "`MarginDecisionUnavailable` when none survived, while `FLAT_AT_LEVEL` clamped to "
+                "the lawful ceiling and applied no support bound at all, so it could never "
+                "decline. A clamp always yields a price and a filter can yield nothing. Both arms "
+                "now refuse at one frontier, so a run showing this split is either a run made "
+                "before that landed or evidence the fix did not take -- check "
+                "`declined_renewals.level_arm_priced_the_same_renewal`, which is the roster of "
+                "exactly these renewals and must be 0 on a current tree."
             ).format(declines=reconciliation.get("explained_by_declines"),
                      gap=spread,
                      small=reconciliation.get("smaller_denominator_arm"),
@@ -3854,7 +3881,11 @@ def decision_population(funnels: dict[str, dict]) -> dict:
                 if declines_own_it else
                 "Arm-level totals (net margin, treasury, enterprise value) ARE comparable -- "
                 "they are sums over the whole run and carry the roster difference inside them, "
-                "which is the effect being measured.")),
+                "which is the effect being measured. THAT LICENCE RESTS ON "
+                "`same_priced_population` ABOVE AND ON NOTHING ELSE. It did not hold before "
+                "2026-09-18, when only the value arm was bounded by the churn model's support "
+                "frontier and the level arm priced every renewal the value arm refused; read "
+                "that field before taking this sentence.")),
         "why_this_is_not_a_defect": (
             (
                 "IT MAY WELL BE ONE, and this block no longer says otherwise. It used to read "
@@ -3869,7 +3900,69 @@ def decision_population(funnels: dict[str, dict]) -> dict:
             if declines_own_it else
             "Equalising the denominators would mean pricing renewals for customers who had "
             "already left, which is not a world any supplier operates in. The difference is the "
-            "measurement, not noise in it. R12: diagnostic, never a target."),
+            "measurement, not noise in it. AND THAT DEFENCE IS ONLY AVAILABLE BECAUSE THE OTHER "
+            "HALF WAS FIXED RATHER THAN ARGUED AWAY: until 2026-09-18 it was also made of "
+            "renewals one arm refused and the other priced, which are not departed customers at "
+            "all. Both arms refuse at one frontier now, so what is left is the roster and this "
+            "sentence is true of it. R12: diagnostic, never a target."),
+    }
+
+
+def _same_priced_population(reconciliation: dict, deciding: dict) -> dict:
+    """Did either arm REFUSE a renewal the other priced? The residual's one precondition.
+
+    WHY NOT `value.priced == level.priced`, which is the obvious form and the wrong one. Two arms
+    of a sequential A/B run two different worlds: a different price causes a different churn, and
+    an account that leaves early takes every later renewal it would have presented with it. The
+    denominators are therefore expected to differ and MUST be allowed to -- that difference is the
+    effect under measurement. A control pinned to integer equality would go red on a correct run
+    and could only be satisfied by suppressing the thing being measured.
+
+    What breaks `level_vs_selection.selection_gbp` is narrower and is entirely inside the arms'
+    own behaviour: a renewal BOTH arms reached, one priced and the other refused. That margin has
+    no counterpart on the other side, so it lands in the residual with a sign nobody intended.
+    `explained_by_declines` counts exactly those, net, and this reads it.
+
+    FAIL-CLOSED. No split (one arm, or no gap to split) is reported as `None` with the reason,
+    never as a quiet `True` -- an absent denominator gap is not evidence the frontier is shared.
+    """
+    if not reconciliation.get("available"):
+        # THE TWO UNAVAILABLE CASES ARE OPPOSITE ANSWERS and `_denominator_reconciliation` returns
+        # one string for both, so they are re-derived here rather than read off that sentence. A
+        # substring match on it would have answered "yes, same population" for a run with only one
+        # arm -- R15 fail-open, in the guard's own reading of its input.
+        if len(deciding) < 2:
+            return {"answer": None,
+                    "why": ("fewer than two arms priced anything, so there are no two populations "
+                            "to compare. Unanswered, not answered yes.")}
+        return {
+            "answer": True,
+            "net_refusals_of_renewals_the_other_arm_priced": 0,
+            "why": ("the arms' priced denominators agree exactly, so no net renewal was refused "
+                    "by one and priced by the other."),
+        }
+    declines = reconciliation.get("explained_by_declines")
+    if not isinstance(declines, int):
+        return {"answer": None,
+                "why": "`explained_by_declines` is not a count on this run, so the split is unread."}
+    return {
+        "answer": declines == 0,
+        "net_refusals_of_renewals_the_other_arm_priced": declines,
+        # A NET COUNT, AND IT SAYS SO. Five refusals each way net to zero, so this is the cheap
+        # reading and not the last word; the roster-level answer is
+        # `declined_renewals.level_arm_priced_the_same_renewal`, which joins renewal by renewal.
+        "why": (
+            "no net renewal was refused by one arm and priced by the other; the whole of the "
+            "{gap}-renewal gap is roster divergence, which is the effect being measured and not "
+            "a population the residual is taken over twice. This is a NET count -- the "
+            "renewal-by-renewal answer is `declined_renewals.level_arm_priced_the_same_renewal`."
+            if declines == 0 else
+            "`{small}` refused {declines} renewals `{large}` priced. The residual "
+            "`level_vs_selection.selection_gbp` is taken over two different books and carries "
+            "`{large}`'s whole margin on those renewals with a sign nobody chose."
+        ).format(gap=reconciliation.get("gap"), declines=declines,
+                 small=reconciliation.get("smaller_denominator_arm"),
+                 large=reconciliation.get("larger_denominator_arm")),
     }
 
 
@@ -3936,12 +4029,20 @@ def declined_renewals(value: dict, level: dict | None) -> dict:
 
     WHY IT IS JOINED TO THE LEVEL ARM AND NOT PUBLISHED ALONE. `selection_gbp` differences an
     advantage earned over the renewals the value arm priced against one earned over the renewals
-    the LEVEL arm priced, and those populations are not the same: `decide_margin` FILTERS through
-    the lawful ceiling and the churn model's support bound and can return nothing, while
-    `FLAT_AT_LEVEL` CLAMPS to the ceiling and prices everything it reaches. The level arm's margin
-    on a renewal the value arm declined therefore sits inside `level_advantage_gbp`, is absent
-    from `value_advantage_gbp`, and lands in the published residual with a negative sign. This
-    block is the roster of exactly those renewals, with what the level arm charged on each.
+    the LEVEL arm priced, and until 2026-09-18 those populations were not the same:
+    `decide_margin` FILTERED through the lawful ceiling and the churn model's support bound and
+    could return nothing, while `FLAT_AT_LEVEL` CLAMPED to the ceiling and priced everything it
+    reached. The level arm's margin on a renewal the value arm declined therefore sat inside
+    `level_advantage_gbp`, was absent from `value_advantage_gbp`, and landed in the published
+    residual with a negative sign. This block is the roster of exactly those renewals, with what
+    the level arm charged on each.
+
+    IT IS NOW A CONTROL AND NOT ONLY A ROSTER. Both arms refuse at one frontier
+    (`value_based_renewal._no_lawful_predictable_offer`, raised from both branches), so on a
+    current tree `level_arm_priced_the_same_renewal` must be **0**: a renewal the value arm
+    declined is one the level arm declined too, and the join finds no match. Non-zero is either a
+    run made before that landed or evidence the shared frontier does not hold, and
+    `decision_population.same_priced_population` is the same finding as a boolean.
 
     THERE IS NO POUNDS FIGURE HERE AND THAT IS NOT AN OMISSION. The entry carries
     `chosen_margin_gbp_per_mwh` -- a RATE -- and no term volume. Money needs both. A pounds total
@@ -3982,6 +4083,14 @@ def declined_renewals(value: dict, level: dict | None) -> dict:
         for e in (level_log or [])
         if isinstance(e, dict) and not e.get("declined")
     } if isinstance(level_log, list) else None
+    # AND THE LEVEL ARM'S OWN REFUSALS, which did not exist as a category before 2026-09-18.
+    # Without this set a renewal the level arm REFUSED and one it never SAW are the same `False`,
+    # and the two are opposite readings of whether the shared frontier holds.
+    level_declined = {
+        (e.get("customer_id"), e.get("commodity"), e.get("term_start"))
+        for e in (level_log or [])
+        if isinstance(e, dict) and e.get("declined")
+    } if isinstance(level_log, list) else None
     rows = []
     for entry in declined:
         key = (entry.get("customer_id"), entry.get("commodity"), entry.get("term_start"))
@@ -4003,11 +4112,16 @@ def declined_renewals(value: dict, level: dict | None) -> dict:
             row["level_arm_rate_increase_pct"] = match.get("rate_increase_pct")
         elif level_priced is None:
             row["level_arm_priced_this_renewal"] = None
+            row["level_arm_declined_this_renewal"] = None
         else:
-            # NOT THE SAME FACT AS "the level arm declined it" -- the level arm declines nothing.
-            # A miss means this renewal did not exist on the level arm's book at all, which is
-            # the roster half of the gap showing up inside the decline roster.
+            # TWO DIFFERENT FACTS WEAR THIS `False` and the difference is the whole point of
+            # the block. Before 2026-09-18 the level arm could not decline at all, so a miss could
+            # only mean the renewal did not exist on its book -- the roster half of the gap
+            # showing up inside the decline roster. It can now also mean the level arm refused the
+            # same renewal at the same frontier, which is the fix working. `level_arm_declined`
+            # below separates them rather than leaving the reader to guess.
             row["level_arm_priced_this_renewal"] = False
+            row["level_arm_declined_this_renewal"] = key in level_declined
         rows.append(row)
     matched = [r for r in rows if r.get("level_arm_priced_this_renewal") is True]
     reasons = collections.Counter(
@@ -4019,6 +4133,13 @@ def declined_renewals(value: dict, level: dict | None) -> dict:
         "by_reason": dict(sorted(reasons.items())),
         "level_arm_priced_the_same_renewal": (
             len(matched) if level_priced is not None else None),
+        # THE FIX, COUNTED. Renewals the value arm declined that the level arm ALSO declined --
+        # the two arms meeting the same renewal and giving the same answer. The complement of
+        # this and `level_arm_priced_the_same_renewal` inside `declined` is the roster half:
+        # renewals that never existed on the level arm's book.
+        "level_arm_declined_the_same_renewal": (
+            sum(1 for r in rows if r.get("level_arm_declined_this_renewal") is True)
+            if level_declined is not None else None),
         "level_arm_join_unavailable_because": (
             None if level_priced is not None else
             "this run has no level arm, so there is nothing to join against. Run with "
@@ -4036,9 +4157,10 @@ def declined_renewals(value: dict, level: dict | None) -> dict:
             "NOT a list of customers the arm priced badly. These are renewals it refused to "
             "price at all, because no candidate margin survived both the lawful ceiling and the "
             "churn model's support bound. Whether refusing was RIGHT is not answered here and "
-            "cannot be: the counterfactual margin does not exist on this arm. What it answers is "
-            "which renewals the two arms do not share, so that a reader knows the residual is "
-            "taken over different books."),
+            "cannot be: the counterfactual margin does not exist on this arm. What it answers "
+            "is whether the two arms still fail to share these renewals -- since 2026-09-18 both "
+            "refuse at one frontier, so `level_arm_priced_the_same_renewal` is 0 on a current "
+            "tree and this roster names renewals BOTH arms walked away from."),
     }
 
 
@@ -4387,9 +4509,19 @@ def level_vs_selection(control_m: dict, value_m: dict, level_m: dict | None,
     THE QUESTION THIS ANSWERS. The value arm beat flat rules while `discrimination_auc` sat at
     0.4653 -- below a coin flip. An advantage that cannot be attributed to inference has to be
     attributed to something, and what the arm demonstrably did was price HIGH. `flat_at_level`
-    applies ONE uplift to EXACTLY the renewals the value arm priced, through the same guards and
-    under the same lawful ceiling, so the two arms differ by the CHOOSING and by nothing else.
-    The residual `value - level` is what the choosing was worth.
+    applies ONE uplift to the renewals the value arm priced, through the same guards and under the
+    same lawful ceiling, so the two arms differ by the CHOOSING and by nothing else.
+
+    "EXACTLY the renewals the value arm priced" IS WHAT THIS SAID, AND IT WAS FALSE FOR THREE
+    WEEKS. The value arm also filters its candidates through the churn model's support bound and
+    refuses when none survives; the level arm had no such bound and priced every one of those
+    renewals -- 65 of them on the last published run, against a residual of GBP 333. Both arms
+    have refused at one frontier since 2026-09-18 and the claim is now enforced rather than
+    asserted: `decision_population.same_priced_population` and
+    `declined_renewals.level_arm_priced_the_same_renewal` are the run's own evidence for it, and
+    `tests/company/pricing/test_the_flat_at_level_arm.py` section 6 is the unit-level control.
+    READ THOSE FIELDS BEFORE READING THE RESIDUAL: on a run predating the fix the residual is the
+    worth of the choosing MINUS the level arm's margin on a book the value arm never priced.
 
     THE LEVEL IS THE VALUE ARM'S OWN REALISED MEDIAN, READ OFF THE SAME RUN -- never a constant.
     A hardcoded 44.50 would silently answer a question about the book that produced it: the whole

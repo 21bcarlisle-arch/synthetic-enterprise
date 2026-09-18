@@ -3687,6 +3687,35 @@ def test_the_block_RETRACTS_its_own_departed_customers_defence_when_the_declines
         declines_block["what_a_reader_must_not_do"]
 
 
+def test_same_priced_population_ANSWERS_THE_RESIDUALS_PRECONDITION_over_the_whole_partition():
+    """THE PROPERTY THE RESIDUAL NEEDS, published as a boolean, and reachable both ways.
+
+    `level_vs_selection.selection_gbp` differences two advantages, and it is the worth of the
+    choosing ONLY if neither arm refused a renewal the other priced. That is a narrower claim
+    than "the denominators are equal", which a sequential A/B can never satisfy -- different
+    prices make different rosters and that difference IS the effect. Keyed to the property: no
+    count below is pinned, and a run whose declines legitimately differ passes.
+    """
+    crossing = rvca.decision_population(_funnels(215, 65, 281, 0))["same_priced_population"]
+    roster_only = rvca.decision_population(_funnels(215, 65, 281, 65))["same_priced_population"]
+    equal = rvca.decision_population(_funnels(215, 65, 215, 65))["same_priced_population"]
+    one_arm = rvca.decision_population({
+        "value_arm": {"available": True, "priced": 215, "declined": 65,
+                      "renewals_the_world_offered": 2037, "accounts_the_arm_priced": ["A"]},
+    })
+    # THE PARTITION IS REACHED BEFORE ANY LEG IS GRADED. A field that answered False always, or
+    # True always, would satisfy any single leg of this and mean nothing.
+    assert crossing["answer"] is False, crossing
+    assert roster_only["answer"] is True, roster_only
+    assert equal["answer"] is True, equal
+    # ...AND THE UNANSWERABLE CASE IS NOT A YES. One arm cannot agree with nobody.
+    assert one_arm.get("available") is False or one_arm["same_priced_population"]["answer"] is None
+    # The sentence follows the answer rather than being pinned beside it.
+    assert "selection_gbp" in crossing["why"], crossing["why"]
+    assert crossing["net_refusals_of_renewals_the_other_arm_priced"] == 65, crossing
+    assert roster_only["net_refusals_of_renewals_the_other_arm_priced"] == 0, roster_only
+
+
 def _arm_log(log):
     return {"phase2b": {"value_arm_log": log}}
 
@@ -3718,6 +3747,34 @@ def test_the_declined_renewals_are_NAMED_and_joined_to_the_level_arms_own_decisi
     assert [r["account"] for r in joined] == ["PROS-2019-0024"], block["renewals"]
     assert joined[0]["level_arm_margin_gbp_per_mwh"] == 19.52, joined[0]
     assert block["level_arm_priced_the_same_renewal"] == 1, block
+
+
+def test_a_level_arm_DECLINE_and_a_renewal_the_level_arm_never_saw_are_not_the_same_MISS():
+    """THE FIX'S OWN READING. Since both arms refuse at one frontier the level arm CAN decline,
+    and `level_arm_priced_this_renewal is False` stopped having one meaning. A miss that is the
+    level arm agreeing (it refused too) and a miss that is the roster (the renewal was not on its
+    book) are opposite evidence about whether the frontier is shared, and collapsing them would
+    republish the old defect as a clean run."""
+    value = _arm_log([
+        {"customer_id": "C8", "commodity": "power", "term_start": "2022-01-01",
+         "declined": True, "reason": "no lawful margin survived the support bound"},
+        {"customer_id": "C9", "commodity": "power", "term_start": "2022-01-01",
+         "declined": True, "reason": "no lawful margin survived the support bound"},
+    ])
+    level = _arm_log([
+        # C8: the level arm met the same renewal and refused it too -- the frontier held.
+        {"customer_id": "C8", "commodity": "power", "term_start": "2022-01-01",
+         "declined": True, "reason": "no lawful margin survived the support bound"},
+        # C9 is absent from the level arm's book entirely -- roster divergence.
+    ])
+    block = rvca.declined_renewals(value, level)
+    by_account = {r["account"]: r for r in block["renewals"]}
+    assert by_account["C8"]["level_arm_priced_this_renewal"] is False
+    assert by_account["C8"]["level_arm_declined_this_renewal"] is True, by_account["C8"]
+    assert by_account["C9"]["level_arm_declined_this_renewal"] is False, by_account["C9"]
+    assert block["level_arm_declined_the_same_renewal"] == 1, block
+    # ...and the crossing count -- the one the residual depends on -- stays zero here.
+    assert block["level_arm_priced_the_same_renewal"] == 0, block
     # A MISS IS NOT A DECLINE BY THE LEVEL ARM. The level arm declines nothing; C8's renewal did
     # not exist on its book. Collapsing the two would publish the roster half as a refusal.
     missed = [r for r in block["renewals"] if r["account"] == "C8"][0]

@@ -681,6 +681,39 @@ def _refine(
     return snapped, scanned
 
 
+def _no_candidate_margins(customer_id: str) -> MarginDecisionUnavailable:
+    """The refusal both searching arms give when there is no grid to search at all."""
+    return MarginDecisionUnavailable(
+        f"{customer_id}: this arm was given no candidate margins, so its 'choice' would be an "
+        "empty search reported as a decision"
+    )
+
+
+def _no_lawful_predictable_offer(
+    *,
+    customer_id: str,
+    max_offered_rate_gbp_per_mwh: float | None,
+    ceiling_from_support: float,
+    support_pct: float,
+    base_rate_gbp_per_mwh: float,
+) -> MarginDecisionUnavailable:
+    """ONE REFUSAL, RAISED BY BOTH ARMS, and that is the whole point of it being a function.
+
+    `value_based` and `flat_at_level` must price the same renewals or the residual between them is
+    a population difference wearing a decision's clothes. Two copies of this sentence would drift
+    -- one of them did, for three weeks, by not existing on the level arm at all -- so the refusal
+    is written once and the two call sites pass the same four numbers into it. A reader who finds
+    this reason on a level-arm decline is reading the same frontier the value arm refused at.
+    """
+    return MarginDecisionUnavailable(
+        f"{customer_id}: no candidate margin survives both the ceiling "
+        f"({max_offered_rate_gbp_per_mwh} GBP/MWh) and the model's support bound "
+        f"({ceiling_from_support:.1f} GBP/MWh, {support_pct:.1f}% above the current rate) at "
+        f"a base rate of {base_rate_gbp_per_mwh}. That is a real answer -- there is no offer "
+        "here this company can both lawfully make and honestly predict -- and not a default."
+    )
+
+
 def decide_margin(
     *,
     customer_id: str,
@@ -803,6 +836,13 @@ def decide_margin(
             departure_cost_unsourced=departure_cost_unsourced,
         )
 
+    # BOTH BOUNDS ARE COMPUTED ONCE, ABOVE BOTH ARMS THAT ANSWER TO THEM (2026-09-18). The
+    # support ceiling used to be computed inside the value arm's search alone, and the level arm
+    # -- the control whose whole job is to price the SAME renewals -- was never held to it. Two
+    # arms cannot be shown to share a frontier by two copies of it, so there is now one.
+    support_pct = max_supported_rate_increase_pct()
+    ceiling_from_support = current_rate_gbp_per_mwh * (1.0 + support_pct / 100.0)
+
     if arm == FLAT_AT_LEVEL:
         # THE LEVEL WITHOUT THE SELECTION. One margin for every renewal this arm prices, scored
         # by the same `_score` as the other two so any difference is the DECISION and never the
@@ -831,18 +871,70 @@ def decide_margin(
         # `"ceiling"` is the exact word for this and not a borrowed one -- see the field's own
         # docstring: it "means the arm wanted to charge more than it was allowed to", which is
         # what `min(level, headroom)` does when it bites.
-        clamped = False
+        clamped_by_ceiling = False
         if max_offered_rate_gbp_per_mwh is not None:
             headroom = float(max_offered_rate_gbp_per_mwh) - float(base_rate_gbp_per_mwh)
             if headroom < level:
                 level = headroom
-                clamped = True
+                clamped_by_ceiling = True
+
+        # AND THE SAME EVIDENCE FRONTIER THE VALUE ARM SEARCHES UNDER (2026-09-18). Until this
+        # landed, the value arm filtered its candidates through `ceiling_from_support` and could
+        # return NOTHING, while this arm applied no support bound at all and could never decline
+        # -- so on every three-arm run ever recorded the value arm refused 63-65 renewals and this
+        # one priced them. Those renewals carry level-arm margin into `level_advantage_gbp` with
+        # no value-arm counterpart, and the whole of it lands inside the published residual
+        # `selection_gbp` with a negative sign: about £3,900 of it against a residual whose own
+        # magnitude was £333. The two arms were never the same book and every docstring in this
+        # tree said they were.
+        #
+        # THE FRONTIER IS SHARED, NOT THE THRESHOLD, and the difference decides whether this
+        # works. Refusing whenever `base + level` exceeds the support ceiling would make this
+        # arm's priced set a strict SUBSET of the value arm's -- the value arm still prices every
+        # renewal whose headroom is at least `min(candidates)`, which this arm at a £20 level
+        # would have walked away from -- and that is the same defect with the sign reversed. So
+        # the level is CLAMPED into the supported region exactly as it is clamped into the lawful
+        # one, and the arm refuses only where the value arm's search also comes back empty: when
+        # no margin at or above the grid's own floor survives both bounds. Both arms then price
+        # iff `base + min(candidates) <= min(lawful ceiling, support ceiling)`, which is one
+        # predicate and not two agreeing ones.
+        #
+        # WHY THIS IS NOT THE LADDER'S ANSWER, which deliberately prices ABOVE the frontier and
+        # reports it (`ladder_above_support_bound`, below). A rung is an experiment: it asks the
+        # world to answer at a price the experimenter set, and finding out whether the company's
+        # extrapolation holds is the point of running one. This arm is a COMPARATOR, and its only
+        # product is a difference against the value arm. A comparator that prices where its
+        # subject may not is not measuring the subject.
+        clamped_by_support = False
+        support_headroom = float(ceiling_from_support) - float(base_rate_gbp_per_mwh)
+        if support_headroom < level:
+            level = support_headroom
+            clamped_by_support = True
+        if not candidates:
+            raise _no_candidate_margins(customer_id)
+        if level < min(candidates) - 1e-9:
+            raise _no_lawful_predictable_offer(
+                customer_id=customer_id,
+                max_offered_rate_gbp_per_mwh=max_offered_rate_gbp_per_mwh,
+                ceiling_from_support=ceiling_from_support,
+                support_pct=support_pct,
+                base_rate_gbp_per_mwh=base_rate_gbp_per_mwh,
+            )
+
+        clamped = clamped_by_ceiling or clamped_by_support
         p_stay, value, costs = _score(level)
         return MarginDecision(
             customer_id=customer_id, arm=FLAT_AT_LEVEL,
             margin_gbp_per_mwh=level,
             endpoint_bound=clamped,
-            endpoint_side="ceiling" if clamped else None,
+            # WHICH WALL, named apart, because they are opposite findings -- an external law the
+            # supplier really has, against the edge of this company's own evidence. The support
+            # clamp reported as `"ceiling"` would have published the company's ignorance as the
+            # regulator's cap.
+            endpoint_side=(
+                "support" if clamped_by_support else "ceiling" if clamped_by_ceiling else None),
+            ceiling_bound=clamped_by_ceiling,
+            extrapolation_bound=clamped_by_support,
             expected_value_gbp=value, p_retain=p_stay, expected_periods=periods,
             cost_to_serve_gbp_per_year=costs.total_gbp, eac_mwh=eac_mwh, costs=costs,
             considered=((level, value),),
@@ -853,10 +945,7 @@ def decide_margin(
         )
 
     if not candidates:
-        raise MarginDecisionUnavailable(
-            f"{customer_id}: the value arm was given no candidate margins, so its 'choice' would "
-            "be an empty search reported as a decision"
-        )
+        raise _no_candidate_margins(customer_id)
     # THE CEILING IS APPLIED BEFORE THE SEARCH, not after it. Scoring a candidate the company
     # may not lawfully offer and then clamping the winner would report an expected value nobody
     # can earn, and would make the arm look better than the supplier it describes.
@@ -868,17 +957,16 @@ def decide_margin(
 
     # AND THE MODEL'S OWN EVIDENCE BOUNDS IT TOO. See `max_supported_rate_increase_pct`: the
     # churn cap at 0.95 leaves a floor of customers who never leave, so an unbounded maximiser
-    # prices to infinity, and on the real book it very nearly did.
-    support_pct = max_supported_rate_increase_pct()
-    ceiling_from_support = current_rate_gbp_per_mwh * (1.0 + support_pct / 100.0)
+    # prices to infinity, and on the real book it very nearly did. `ceiling_from_support` is
+    # computed above both arms, because the level arm answers to the same frontier.
     allowed = tuple(m for m in lawful if base_rate_gbp_per_mwh + m <= ceiling_from_support + 1e-9)
     if not allowed:
-        raise MarginDecisionUnavailable(
-            f"{customer_id}: no candidate margin survives both the ceiling "
-            f"({max_offered_rate_gbp_per_mwh} GBP/MWh) and the model's support bound "
-            f"({ceiling_from_support:.1f} GBP/MWh, {support_pct:.1f}% above the current rate) at "
-            f"a base rate of {base_rate_gbp_per_mwh}. That is a real answer -- there is no offer "
-            "here this company can both lawfully make and honestly predict -- and not a default."
+        raise _no_lawful_predictable_offer(
+            customer_id=customer_id,
+            max_offered_rate_gbp_per_mwh=max_offered_rate_gbp_per_mwh,
+            ceiling_from_support=ceiling_from_support,
+            support_pct=support_pct,
+            base_rate_gbp_per_mwh=base_rate_gbp_per_mwh,
         )
     scored = {margin: _score(margin) for margin in allowed}
     # TIES GO TO THE LOWER MARGIN, and it is not a rounding convention. On a flat stretch of the

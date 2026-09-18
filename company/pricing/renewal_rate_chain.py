@@ -417,7 +417,11 @@ def decide_renewal_rate(
             "customer_id": billing_account,
             "commodity": commodity,
             "term_start": term_start,
-            "arm": "value_based",
+            # THE ARM THAT DECLINED, not a constant. This read `"value_based"` while that was the
+            # only arm that COULD decline; since 2026-09-18 `flat_at_level` refuses at the same
+            # frontier, and a level-arm decline published under the value arm's name would put
+            # the wrong arm's name on every row of `declined_renewals`.
+            "arm": active_policy().renewal_margin_arm,
             "declined": True,
             "reason": arm_uplift.not_run_reason,
             "unit_rate_unchanged": None if unit_rate is None else round(unit_rate, 4),
