@@ -305,7 +305,7 @@ def test_THE_DISPATCH_CARRIES_THE_CHECK_AHEAD_OF_THE_WORK(monkeypatch, stores):
     # REAL WALL CLOCK, because `doorbell` takes no `now` and the staleness read inside will use
     # `time.time()`. A fixed epoch here would make the rival stale and the control vacuous.
     _hold(delivery, rival, claimed_at=time.time() - 60)
-    monkeypatch.setattr(dl, "_rival_stores", lambda: stores)
+    monkeypatch.setattr(dl, "claim_stores", lambda: stores)
 
     text = dl.doorbell({"id": mine, "what": "pull the last 23 cells", "why": "coverage"})
 

@@ -2430,10 +2430,20 @@ def _item_prose(item: dict) -> str:
                     for k in ("id", "what", "why", "done_means", "note"))
 
 
-def _rival_stores() -> list[tuple[Path, float]]:
+def claim_stores() -> list[tuple[Path, float]]:
     """Every claim store with its own deadline. BOTH, for `overlapping_claims`' reason: the two
     writers claim in different files, and the pair that collided on 2026-08-31 was one item held by
-    a tick and the other by a session."""
+    a tick and the other by a session.
+
+    THIS LANE'S OWN STORE IS FIRST and two readers depend on the order -- `rival_claims` takes its
+    rarity vocabulary from it, and takes it as the store the draw claimed in.
+
+    PUBLIC SINCE 2026-09-18, because the pairing gained a second module's caller. It was private
+    while only `rival_claims` read it, and in that time `seat_work_in_hand.overlapping_claims` read
+    the same two stores with ONE deadline -- this lane's claims released on the interactive seat's
+    clock. Two copies of "which stores exist", one of them carrying the deadlines and one not, is
+    how a constant gets to be decorative; there is now one copy and it carries them.
+    """
     return [(CLAIMS_FILE, float(CLAIM_STALE_SECONDS)),
             (claims_mod.CLAIMS_FILE, float(claims_mod.STALE_AFTER_SECONDS))]
 
@@ -2461,6 +2471,17 @@ def rival_claims(item: dict, *, now: float | None = None,
     THE ITEM'S OWN CLAIM IS NOT A RIVAL, and both spellings of it are excluded — `draw()` claims
     before it composes, so by the time this runs the item is already in the store, and an id
     carrying a decimal still has a truncated twin in the store from before 2026-09-16.
+
+    BUT ONLY IN THE STORE THE DRAW CLAIMED IN, which is the first (2026-09-18). `draw()` writes its
+    claim into THIS lane's store and nowhere else, so a row under the same id in the OTHER store
+    was put there by somebody else — and "somebody else is holding this exact piece of work" is the
+    strongest rival statement this function can make, not the one case it should stay quiet about.
+    It was the one case it stayed quiet about. The hole is not symmetric with `next_item`'s: that
+    filters `held()` on this lane's store ALONE, so an interactive seat or a live `seat_executor`
+    turn holding the id in `seat_work_in_hand`'s store is invisible to the draw, and this was the
+    only instrument left that could have said so. Excluding by id across every store made the
+    check blind exactly where the draw already was, which is the one place a second opinion is
+    worth composing.
     """
     focus_id = str(item.get("id") or "")
     mine = {focus_id}
@@ -2469,7 +2490,10 @@ def rival_claims(item: dict, *, now: float | None = None,
         mine.add(truncated.group(0))
 
     others: dict[str, set[str]] = {}
-    for store, deadline in (stores if stores is not None else _rival_stores()):
+    held_elsewhere: dict[str, list[str]] = {}
+    paired = stores if stores is not None else claim_stores()
+    own_store = paired[0][0] if paired else None
+    for store, deadline in paired:
         try:
             rows = claims_mod._load(store)
             stale = {w for w, _rec, _idle in
@@ -2480,7 +2504,18 @@ def rival_claims(item: dict, *, now: float | None = None,
         if not isinstance(rows, dict):
             continue
         for work_id, rec in rows.items():
-            if work_id in mine or work_id in stale or not isinstance(rec, dict):
+            if work_id in stale or not isinstance(rec, dict):
+                continue
+            if work_id in mine:
+                # THE SAME ID, IN A STORE THIS DRAW DID NOT WRITE. Reported by NAME and not by the
+                # word/path legs below: those two ask "might these be the same work", and this one
+                # already knows they are. It carries the STORE rather than a pid because a claim
+                # record has no holder field -- what is established is that the row exists and is
+                # not stale, and the store says which writer puts rows there.
+                if own_store is not None and store != own_store:
+                    held_elsewhere.setdefault(work_id, []).append(
+                        f"is ALREADY HELD under this very id in {store.name}, which this draw "
+                        "does not write -- another writer has it in hand right now")
                 continue
             known = set(rec.get("paths") or ())
             row = ledger.get(work_id) if isinstance(ledger, dict) else None
@@ -2491,17 +2526,22 @@ def rival_claims(item: dict, *, now: float | None = None,
         # THE SHORT CIRCUIT IS LOAD-BEARING, not a micro-optimisation: `_paths_named_in` shells out
         # to `git ls-files`, and `doorbell` is composed two or three times per draw. Nothing to
         # compare against means nothing to pay for, which is the ordinary case.
-        return {}
+        #
+        # `held_elsewhere` is returned THROUGH it: a same-id holder needs no vocabulary and no
+        # `git ls-files`, and the commonest way to have one is to have nothing else to compare
+        # against. Short-circuiting past it would have made the new leg unreachable in its own
+        # ordinary case, which is this file's own R15 shape.
+        return {k: sorted(v) for k, v in held_elsewhere.items()}
 
     # THE VOCABULARY COMES FROM THE FIRST STORE'S LEDGER, which is this lane's own. It is the
     # population the rarity ceiling was measured against, and passing `stores` has to move it too:
     # a check whose evidence store is swappable but whose vocabulary is not would grade synthetic
     # ids against the live ledger and call every one of them distinctive.
-    vocabulary_store = (stores if stores is not None else _rival_stores())[0][0]
+    vocabulary_store = paired[0][0]
     counts, population = _ledger_vocabulary(vocabulary_store)
     my_paths = {p for p in _paths_named_in(_item_prose(item)) if claims_mod._informative(p)}
 
-    found: dict[str, list[str]] = {}
+    found: dict[str, list[str]] = {k: sorted(v) for k, v in held_elsewhere.items()}
     for work_id, their_paths in sorted(others.items()):
         reasons = []
         shared_words = _distinctive_shared(focus_id, work_id, counts, population)
@@ -2513,7 +2553,7 @@ def rival_claims(item: dict, *, now: float | None = None,
             reasons.append("already holds " + ", ".join(shared_paths)
                            + ", which this item names")
         if reasons:
-            found[work_id] = reasons
+            found.setdefault(work_id, []).extend(reasons)
     return found
 
 

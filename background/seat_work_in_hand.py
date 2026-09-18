@@ -140,13 +140,36 @@ def claims_file(project_dir: Path | None = None) -> Path:
 
 #: How long a claim may sit with nothing landing before it goes back to the draw.
 #:
-#: 45 minutes, set from the two real numbers this repo has. A commit through the full gate
-#: takes ~15 minutes and several of today's took two or three attempts, so anything under
-#: about 40 would fire on an honest fight with the gate. The stall it must catch was 263
-#: minutes. Between those the exact value hardly matters, which is the sign it is a threshold
-#: rather than a tuned parameter -- so it is set at the low end of the safe range, because a
-#: released claim costs one re-claim and a held one costs hours.
-STALE_AFTER_SECONDS = 45 * 60
+#: THE ORIGINAL DERIVATION, which is still the SAFE RANGE and not the value. A commit through the
+#: full gate takes ~15 minutes and several of 2026-08-26's took two or three attempts, so anything
+#: under about 40 minutes would fire on an honest fight with the gate. The stall it must catch was
+#: 263 minutes. Between those the exact value hardly matters -- the sign that this is a threshold
+#: rather than a tuned parameter -- and it was set at 45 minutes, the low end, because a released
+#: claim costs one re-claim and a held one costs hours.
+#:
+#: THE LOW END WAS INSIDE A LIVE WRITER'S OWN LIFETIME, and that is what moved it (2026-09-18).
+#: `seat_executor.SESSION_TIMEOUT_SECONDS` is 90 minutes and systemd enforces it, so a bounded turn
+#: may legitimately run to 5,400 seconds. The executor claims its work id in THIS store at turn
+#: start with `paths=[]`, and `delivery_lane.record_landing` binds paths into the DELIVERY store
+#: only -- so this claim's `last_progress` is its `claimed_at` for the whole turn, whatever the turn
+#: lands, and at 2,700 seconds the next writer to call `refuse_if_duplicated` swept it. TWICE
+#: MEASURED: a writer that started 08:36 had its finished work re-handed to a second writer at
+#: 09:47 (4,260s), and pid 2436269 was alive at 4,182s of its 5,400s bound with its claim already
+#: swept and its completed repair reported as undone. Both ages sit in the 2,700..6,000 band, which
+#: is the band this constant opened and `delivery_lane.CLAIM_STALE_SECONDS` did not.
+#:
+#: SO IT IS THE BOUND, NOT A NUMBER PICKED NEAR IT. A deadline shorter than the writer's own
+#: lifetime cannot be measuring a stall: at 45 minutes the claim it releases is, by construction,
+#: held by a process that is still running and cannot be told about it. 263 minutes is still caught
+#: with 173 to spare. The ORDERING is the property and it is enforced, not restated, by
+#: `tests/background/test_a_sweep_cannot_fire_inside_a_live_writers_bound.py`:
+#:
+#:     seat_executor.SESSION_TIMEOUT_SECONDS <= STALE_AFTER_SECONDS < delivery_lane.CLAIM_STALE_SECONDS
+#:
+#: The literal stays a literal here because importing `seat_executor` at this module's import time
+#: is a cycle (`seat_executor` -> `delivery_lane` -> here); the control is what binds the two, and
+#: it reds if either is moved across the other rather than if either changes.
+STALE_AFTER_SECONDS = 90 * 60
 
 
 def _load_classified(path: Path) -> tuple[dict, str]:
@@ -513,6 +536,17 @@ def overlapping_claims(
     Stale claims are swept first, so a dead writer cannot hold a path forever. `exclude` is the
     caller's own work id, so re-checking your own claim is not an overlap with yourself.
 
+    EACH STORE IS SWEPT ON ITS OWN DEADLINE, and it was swept on THIS module's for both until
+    2026-09-18. The delivery lane's claims are the multi-hour class by design and it says so in
+    `CLAIM_STALE_SECONDS`; this sweep read that store and applied the interactive seat's number,
+    so every delivery claim was in fact released at the shorter of the two and the constant
+    promising otherwise was decorative. It was not unknown -- `tests/tools/
+    test_a_promotion_binds_its_landing_to_the_claim.py` builds its fixture claim "TWO MINUTES AND
+    NOT AN HOUR" to dodge exactly this -- it was written down as an obstacle and never as a defect.
+    `delivery_lane.claim_stores()` is the one place the pairing lives; a store this caller names
+    that the pairing does not know is graded on this module's own deadline, which is the store's
+    own if it is one of ours and the conservative reading if it is a test's.
+
     Returns `{}` when there is nothing informative — a shared-by-design directory is traffic, not
     duplication, and reporting it would train every reader to ignore this.
     """
@@ -521,13 +555,14 @@ def overlapping_claims(
     wanted = {p for p in paths if _informative(p)}
     if not wanted:
         return {}
-    if stores is None:
-        stores = [CLAIMS_FILE, delivery_lane.CLAIMS_FILE]
+    known = dict(delivery_lane.claim_stores())
+    paired = ([(p, d) for p, d in known.items()] if stores is None
+              else [(p, known.get(p, float(STALE_AFTER_SECONDS))) for p in stores])
 
     found: dict[str, list[str]] = {}
-    for store in stores:
+    for store, deadline in paired:
         try:
-            sweep(path=store, now=now)
+            sweep(path=store, now=now, stale_after=deadline)
             claims = _load(store)
         except Exception:  # noqa: BLE001 - an unreadable store must not block a writer
             continue

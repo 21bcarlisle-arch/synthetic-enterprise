@@ -465,7 +465,8 @@ def _claim_stores() -> tuple[Path, ...]:
     restart -- no matter what the turn landed.
 
     WHAT THAT COST, measured on the live record rather than reasoned about. Forty-five minutes
-    after each turn (`seat_work_in_hand.STALE_AFTER_SECONDS`) the next unattended writer to call
+    after each turn -- `seat_work_in_hand.STALE_AFTER_SECONDS`, which was 45 minutes then and is
+    the bounded turn now -- the next unattended writer to call
     `refuse_if_duplicated` swept the orphan and escalated `[SEAT] <id> was claimed and has not
     moved`. Three consecutive executor turns of 2026-09-02 are appended to
     `docs/staging/WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-08-26.md` by that route, and the
@@ -473,6 +474,14 @@ def _claim_stores() -> tuple[Path, ...]:
     path(s) moved on the shared tree` for the same turn. Two instruments on one turn disagreeing,
     and the alarm was the one with no way to be right: it reads the only store the turn's paths
     never reach.
+
+    AND IT WAS NOT "AFTER EACH TURN" -- IT WAS DURING ONE, which this paragraph did not see and is
+    the larger half of the same defect (2026-09-18). A bounded turn may run to 5,400 seconds, so a
+    45-minute deadline on a `paths=[]` claim fires at half-time with the writer still working. The
+    08:36 turn had its finished work re-handed to a second writer at 09:47. The deadline is now the
+    bound, and the ORDERING of the three clocks is controlled in
+    `tests/background/test_a_sweep_cannot_fire_inside_a_live_writers_bound.py` -- keyed to the
+    relation, because each constant lives in a different module and each was defensible alone.
 
     THERE WERE THREE UNTIL 2026-09-05 AND THE THIRD IS GONE WITH THE DEFECT THAT NEEDED IT. The
     third was `WORKTREE / "docs/observability" / <lane store name>`, on the stated ground that a
