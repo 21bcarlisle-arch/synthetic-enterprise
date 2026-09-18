@@ -73,6 +73,7 @@ import math
 import os
 import random
 import statistics
+import time
 from dataclasses import replace
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -190,6 +191,15 @@ OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
 #: split with no reading beside it.
 NOISE_FLOOR_OUTPUT_PATH = (
     PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_noise_floor.json")
+#: THE BYTES A READER COUNTS TO KNOW HOW FAR A FLOOR RUN HAS GOT, named here so the control and
+#: the human tailing the log divide the same thing. `noise_floor` printed NOTHING per seed until
+#: 2026-09-18, so every reader who needed the progress of a 15-hour run counted a marker the
+#: simulation emits for its own reasons -- and the one they picked, "Starting treasury", is printed
+#: at BOTH run_phase2b.py:1258 and :3436, so it fires twice per arm-leg. The ETA built on it was
+#: wrong by 7h33m and two invocations were spent waiting on a file that was not coming. A marker
+#: nobody defined per unit of work cannot be divided by anything: `grep -c` on THIS one is the
+#: completed-seed count by construction, not by an inferred divisor.
+NOISE_FLOOR_PROGRESS_MARKER = "[noise_floor] seed "
 #: The floor cut in two. A THIRD file, again on purpose: it is the answer to "what would resolve
 #: this", it is composed from three floors rather than measured by one, and the site feed reads it
 #: to decide whether the remedy sentence beside its refusal is true.
@@ -5403,7 +5413,12 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     run = runner or (lambda: run_value_cycle_ab(report_end=report_end, level_arm=True))
     rows = []
     seed_books: list[dict | None] = []
+    #: MONOTONIC, not wall-clock: this is a DURATION and the only consumer is a reader dividing
+    #: elapsed by completed seeds to get a rate. A clock that can step backwards would hand them a
+    #: negative one.
+    floor_started = time.monotonic()
     for seed in seeds:
+        seed_started = time.monotonic()
         calls = {"n": 0, "redrawn": 0, "held": 0, "ids": set()}
         patched = patch_factory(real, int(seed), _in_redraw_scope, calls)
 
@@ -5514,6 +5529,28 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 else (bvo.get("why_not")
                       or "this seed's run produced no `belief_vs_outcome` block")),
         })
+        # ON COMPLETION, NEVER ON ENTRY, AND EXACTLY ONCE. Three decisions, each load-bearing:
+        #
+        # AFTER `rows.append` AND AFTER EVERY PER-SEED REFUSAL ABOVE, so `grep -c` on the marker
+        # equals `len(rows)` -- and a seed that RAISED leaves no line claiming it finished. An
+        # entry-side line would count seeds STARTED, which is the count a reader wants least: it
+        # reads one seed ahead for the whole run and exactly one ahead at the end.
+        #
+        # EXACTLY ONE PER SEED. Also announcing each seed as it begins would rebuild the very
+        # defect this exists to abolish -- two lines per seed restores the "which marker do I
+        # divide by, and by what" question that cost 7h33m of ETA.
+        #
+        # `flush=True`, which none of this file's other prints are. A floor run's stdout is a
+        # redirected FILE, and Python block-buffers those at 8KB: the marker for a seed that
+        # finished an hour ago would still be in userspace when the reader greps. The live run's
+        # `python3 -u` is the CALLER's accident and not something this line may lean on.
+        print(
+            "{}{}/{} done seed={} draws={} redrawn={} held={} seed_elapsed_s={:.1f} "
+            "total_elapsed_s={:.1f}".format(
+                NOISE_FLOOR_PROGRESS_MARKER, len(rows), len(seeds), int(seed),
+                calls["n"], calls["redrawn"], calls["held"],
+                time.monotonic() - seed_started, time.monotonic() - floor_started),
+            flush=True)
 
     selection = _spread([r["selection_gbp"] for r in rows])
     share = _spread([r["level_share_of_advantage"] for r in rows])

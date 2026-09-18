@@ -1857,3 +1857,91 @@ def test_the_probe_refuses_rather_than_silently_skipping_a_key_it_cannot_find():
             partition_probe(_PRICED, runner=_two_key_runner)
     finally:
         setattr(ce, CHURN_ROLL_SYMBOL, real)
+
+
+# ---------------------------------------------------------------------------
+# S13. THE RUN COUNTS ITS OWN SEEDS, so no reader has to pick a marker and a divisor
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT. `noise_floor` printed nothing per seed, so every reader who needed to know how far a
+# 15-hour run had got counted a marker the simulation emits for its own reasons. The one they
+# picked -- "Starting treasury" -- is printed at BOTH run_phase2b.py:1258 and :3436, so it fires
+# twice per arm-leg; the ETA built on it was wrong by 7h33m and two invocations were spent waiting
+# on a file that was not coming. A marker nobody defined per unit of work cannot be divided by
+# anything.
+#
+# THE CONTROL IS KEYED TO THE PROPERTY, NOT TO THE FORMAT STRING: the marker count IS the
+# completed-seed count. A leg pinned to today's wording would go red when the line got clearer and
+# stay green when the count started lying, which is exactly backwards.
+
+def _counted_markers(captured: str) -> int:
+    return sum(1 for line in captured.splitlines()
+               if line.startswith(rvca.NOISE_FLOOR_PROGRESS_MARKER))
+
+
+def test_the_progress_marker_count_IS_the_completed_seed_count(capsys):
+    """Fires on: no line at all, a line per arm-leg, or any second line per seed.
+
+    `== len(rows)`, not `== len(seeds)`: the property a reader divides by is how many seeds are
+    DONE, and those two numbers part company the moment a seed refuses -- which is the sibling leg
+    below. Asserting against the requested count here would make this leg green in exactly the
+    state the marker is supposed to expose.
+    """
+    capsys.readouterr()
+    result = noise_floor([11111, 22222, 33333], runner=_fake_runner)
+    out = capsys.readouterr().out
+
+    assert _counted_markers(out) == len(result["seeds"]) == 3, (
+        "the log carries {} marker line(s) for {} completed seed(s) -- a reader dividing by this "
+        "marker would be off by a factor of {}".format(
+            _counted_markers(out), len(result["seeds"]),
+            _counted_markers(out) / max(len(result["seeds"]), 1)))
+
+    # AND THE LINE CARRIES WHAT A READER NEEDS TO PROJECT AN ETA. A bare "a seed finished" would
+    # satisfy the count above and still leave the rate to be inferred from file mtimes.
+    for index, line in enumerate(
+            [ln for ln in out.splitlines()
+             if ln.startswith(rvca.NOISE_FLOOR_PROGRESS_MARKER)], start=1):
+        assert "{}/3 done".format(index) in line, (
+            "line {} does not name its own position in the family: {!r}".format(index, line))
+        assert "seed_elapsed_s=" in line and "total_elapsed_s=" in line, line
+
+
+def test_a_seed_that_REFUSED_leaves_no_line_claiming_it_finished(capsys):
+    """THE ENTRY-SIDE DEFECT, which the counting leg alone cannot see.
+
+    Moving the line to the top of the loop preserves the 1:1 ratio on a run where every seed
+    succeeds -- so the leg above stays green -- and starts over-reporting by exactly one the moment
+    a seed raises. A count that reads one ahead at the end of a 15-hour run is the shape that sent
+    two invocations to wait on a file that was not coming.
+
+    IT ASSERTS THE RUNNER REALLY DID RAISE before asserting what the log looks like. Without that
+    first assertion a runner that quietly never raised would print two lines for two seeds and pass
+    this leg silently, which is R15's fail-silent shape rebuilt inside its own control.
+    """
+    seen = {"n": 0}
+
+    def _runner_that_stops_drawing():
+        seen["n"] += 1
+        if seen["n"] == 3:
+            # THE THIRD SEED NEVER TOUCHES THE DRAW, so `calls["n"] == 0` and the loop refuses it
+            # -- the real fail-silent shape this module's section 1 exists for, borrowed here
+            # because it is the cheapest way to make a seed raise AFTER two have succeeded.
+            return {
+                "level_vs_selection": {
+                    "available": True, "level_gbp_per_mwh": 44.5,
+                    "value_advantage_gbp": 8_000.0, "level_advantage_gbp": 8_000.0,
+                    "selection_gbp": 0.0, "level_share_of_advantage": 1.0,
+                }
+            }
+        return _fake_runner()
+
+    capsys.readouterr()
+    with pytest.raises(AssertionError, match="never called"):
+        noise_floor([11111, 22222, 33333], runner=_runner_that_stops_drawing)
+    out = capsys.readouterr().out
+
+    assert seen["n"] == 3, "the fixture never reached the refusing seed; this leg proved nothing"
+    assert _counted_markers(out) == 2, (
+        "{} marker line(s) survived a family where seed 3 of 3 REFUSED -- the log claims a seed "
+        "finished that raised".format(_counted_markers(out)))
