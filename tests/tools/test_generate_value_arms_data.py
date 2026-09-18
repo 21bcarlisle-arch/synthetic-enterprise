@@ -182,7 +182,11 @@ def bounded_pair() -> dict:
     `_floor_without_a_book` was written for one file over.
     """
     run = _load(THREE_ARM)
-    pair = gva.build(run, _stamped_after(_load(NOISE_FLOOR), run))
+    # BOUND ON BOTH PROPERTIES SINCE 2026-09-18: contemporaneous AND over the run's own book. The
+    # second was free while the floor on disk happened to share a book with whatever was promoted;
+    # the 09-18 promotion made it a 164-versus-154 mismatch and `_realised_book_pairing` -- which
+    # is a guard none of these controls names -- began refusing the pair instead.
+    pair = gva.build(run, _booked_like(_stamped_after(_load(NOISE_FLOOR), run), run))
     assert pair["error_bar"]["available"], (
         "the constructed contemporaneous pair has no bar, so every control keyed to this fixture "
         "measures the fixture instead of the reconciliation: {}".format(
@@ -591,7 +595,12 @@ def _floor_declaring(segments, realised=None):
     it without changing. What did NOT survive was a control that had quietly borrowed the absence
     as a witness -- see `_floor_without_a_book` below.
     """
-    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    # THE REALISED HALF IS BOUND TO THE RUN TOO, SINCE 2026-09-18, and leaving it unbound was the
+    # same defect one field over: this deep-copies the live floor, so its seed rows carried that
+    # floor's 164-account book while `THREE_ARM` moved onto a 154/155 one. Every control below
+    # names the DECLARED rule as its subject, and the realised leg -- which none of them names --
+    # was what refused them. `realised` still overrides, for the controls whose subject IS a count.
+    floor = _booked_like(copy.deepcopy(_load(NOISE_FLOOR)))
     floor["book_identity"] = {
         "declared": _declared(segments),
         "seeds_reconciled": len(floor.get("seeds") or []),
@@ -667,23 +676,97 @@ def test_a_floor_drawn_over_a_DIFFERENT_book_is_refused_however_recent_it_is():
     assert out["error_bar"]["floor_admission"]["refusal"] == admission["refusal"]
 
 
-def test_the_pairing_is_on_the_DECLARED_half_and_never_on_the_realised_counts():
-    """The producer's own instruction, and a consumer that got it wrong would refuse every re-run.
+def test_the_realised_counts_ADMIT_an_honest_re_run_and_REFUSE_a_different_book():
+    """BOTH LEGS OF THE PARTITION, because a rule that refuses everything passes either alone.
 
-    Two floors of the SAME book differ in their realised counts by construction: moving the
-    price-sensitivity draw moves who churns and therefore who settles. A consumer pairing on those
-    would be a control that goes red when the world behaves normally.
+    THIS CONTROL ASSERTED THE OPPOSITE UNTIL 2026-09-18, and the correction is kept beside it
+    because the claim it rested on was never measured. It was
+    `test_the_pairing_is_on_the_DECLARED_half_and_never_on_the_realised_counts`, and its reason was
+    the producer's own: *"two floors of the SAME book differ in their realised counts by
+    construction, because moving the price-sensitivity draw moves who churns and therefore who
+    settles."* Measured across the two real families this page has:
+
+        field                               next12, 12 seeds   folded eighteen, 18 seeds, 2 trees
+        billing_accounts_settled_in_window  154 .. 154         164 .. 164
+        accounts_at_end_of_window            54 ..  55         (not carried per seed)
+
+    The reason is true of `accounts_at_end_of_window` and of nothing else. Re-drawing elasticity
+    moves who is still on supply at the window's edge; it does not move who appeared in the window
+    at all, so four of the five realised fields did not move by one account across twelve seeds, or
+    across eighteen drawn by two different trees. One field's behaviour had been generalised to
+    five, and the cost was live: the published floor is over a 164-account book, the promoted 09-18
+    arms are over a 154/155 one, and the page reported that bound ADMITTED under the DECLARED-book
+    rule -- the strong one, the one that says the book decided. The declared half could not have
+    caught it and never will: `["resi", "SME"]` is a curriculum setting every run this company has
+    ever made declares, so as a discriminator it is a constant.
+
+    KEYED TO THE PROPERTY. The rule is DISJOINT RANGES, so it names no field as stable and no count
+    as correct: a field that moves within either side widens its own range and stops being able to
+    prove anything, which is the fail-closed direction. What the old control feared -- refusing an
+    honest re-run -- is therefore the first leg asserted here, on the real magnitudes rather than
+    on invented ones.
     """
-    segments = _the_runs_own_segments()
-    lean = _floor_declaring(segments, realised={"billing_accounts_settled_in_window":
-                                                {"min": 180, "max": 181, "n": 9}})
-    fat = _floor_declaring(segments, realised={"billing_accounts_settled_in_window":
-                                               {"min": 900, "max": 1100, "n": 9}})
     three_arm = _load(THREE_ARM)
-    assert (gva._floor_admission(lean, three_arm)["admitted"]
-            is gva._floor_admission(fat, three_arm)["admitted"] is True), (
-        "the realised account counts moved the verdict, so an honest re-run of the same book "
-        "would be refused as a different one")
+    settled = [block["billing_accounts_settled_in_window"]
+               for block in three_arm["book_identity"].values()
+               if isinstance(block, dict) and "served_segments" in block]
+    segments = _the_runs_own_segments()
+
+    # LEG ONE -- the honest re-run. Straddles the arms' own spread, which is what a floor drawn
+    # over this book looks like: the arms themselves differ by one account, because pricing a
+    # renewal moves who renews and therefore who settles.
+    honest = _floor_declaring(segments, realised={"billing_accounts_settled_in_window": {
+        "min": min(settled), "max": max(settled), "n": 12}})
+    assert gva._floor_admission(honest, three_arm)["admitted"] is True, (
+        "a floor drawn over this run's own book was refused as a different one, which is the "
+        "failure the declared-only rule existed to avoid")
+
+    # LEG TWO -- a book that is provably not this one. The gap is the live 164-vs-154 one and it
+    # is DERIVED from the run, so this stays a different book at every future promotion.
+    elsewhere = _floor_declaring(segments, realised={"billing_accounts_settled_in_window": {
+        "min": max(settled) + 9, "max": max(settled) + 9, "n": 12}})
+    refused = gva._floor_admission(elsewhere, three_arm)
+    assert refused["admitted"] is False and refused["refusal"], (
+        "a spread over a book with nine more settled accounts was published as the error bar on "
+        "this figure, and the page said the BOOK admitted it")
+    assert "DIFFERENT BOOK" in refused["refusal"] and str(max(settled) + 9) in refused["refusal"], (
+        "the refusal does not name the counts it refused on, so a reader cannot check it")
+
+    # AND THE DECLARED LEG IS NOT NARROWED BY ANY OF IT: a declared mismatch still refuses even
+    # when the realised counts agree perfectly.
+    assert gva._floor_admission(_floor_declaring(["resi"], realised={
+        "billing_accounts_settled_in_window": {"min": min(settled), "max": max(settled), "n": 12}},
+    ), three_arm)["admitted"] is False, (
+        "adding the realised leg removed the declared refusal instead of adding to it")
+
+
+def test_the_realised_leg_is_read_from_SEED_ROWS_when_the_fold_declares_it_unavailable():
+    """THE LIVE FLOOR IS A FOLD, and a fold's summary says the realised half is unavailable.
+
+    `fold_noise_floor_family` refuses to reconcile realised counts across members -- each measured
+    its own range over its own seeds -- so `realised_across_seeds` is absent from the artefact this
+    page actually stands on. Its eighteen seed rows each carry the count anyway, and all eighteen
+    say 164. A guard that read only the summary would report "not askable" on the one pair where
+    the answer was sitting in front of it eighteen times, which is the shape that kept this
+    question unasked for nine days.
+    """
+    floor = _load(NOISE_FLOOR)
+    assert not ((floor.get("book_identity") or {}).get("realised_across_seeds")), (
+        "the live floor grew a realised summary, so this control no longer exercises the seed-row "
+        "fallback it was written for -- point it at a fold that still declares it unavailable")
+
+    ranges, why_not = gva._floor_realised_book(floor)
+    assert why_not is None and "billing_accounts_settled_in_window" in ranges, (
+        "the fold's seed rows carry a settled count on every row and the pairing read none of "
+        "it: {!r}".format(why_not))
+
+    # AND IT FAILS CLOSED when a single row stops answering -- a range over the rows that did
+    # record one is a range over a different family.
+    holed = copy.deepcopy(floor)
+    holed["seeds"][0].pop("billing_accounts_settled_in_window")
+    assert gva._floor_realised_book(holed)[0] == {}, (
+        "one seed row with no count still produced a range, so the floor is paired on a book "
+        "part of it never recorded")
 
 
 def test_a_run_whose_arms_disagree_about_their_book_falls_CLOSED_to_the_stamp():
@@ -5022,6 +5105,38 @@ def _stamped_after(floor: dict, run: dict | None = None) -> dict:
     return dict(floor, generated_at=later.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
 
+def _booked_like(floor: dict, run: dict | None = None) -> dict:
+    """The same floor, with its realised book counts moved onto the run's -- the TWELFTH instance.
+
+    `_stamped_after` binds the STAMP because ten controls whose subject was another guard were
+    refused by the staleness one. `_realised_book_pairing` landed on 2026-09-18 and is the same
+    shape one field over: the floor on disk is over a 164-account book and `THREE_ARM` is a moving
+    pointer now aimed at a 154/155 one, so every reconciliation subject in this file would report
+    the failure of the guard it names while the BOOK guard is what fired. That is the class this
+    file has named eleven times, and a twelfth helper beats a twelfth diagnosis.
+
+    DERIVED FROM THE RUN, NEVER WRITTEN DOWN, for `_stamped_after`'s reason: what these subjects
+    need is the property "this floor was drawn over the book the figure is made of", and a literal
+    154 has that property only against the runs that happen to settle 154.
+    """
+    counts = [block for block in ((run if isinstance(run, dict) else _load(THREE_ARM)) or {}).get(
+        "book_identity", {}).values() if isinstance(block, dict) and "served_segments" in block]
+    if not counts:
+        return dict(floor)
+    onto = counts[0]
+    seeds = [dict(seed, **{f: onto[f] for f in gva.BOOK_REALISED_FIELDS
+                           if isinstance(seed, dict) and f in seed and f in onto})
+             for seed in (floor.get("seeds") or [])]
+    identity = floor.get("book_identity")
+    if isinstance(identity, dict) and isinstance(identity.get("realised_across_seeds"), dict):
+        identity = dict(identity, realised_across_seeds={
+            f: {"min": onto[f], "max": onto[f], "n": block.get("n")}
+            for f, block in identity["realised_across_seeds"].items()
+            if isinstance(block, dict) and f in onto})
+        return dict(floor, seeds=seeds, book_identity=identity)
+    return dict(floor, seeds=seeds)
+
+
 def _admitted_live_floor(run: dict | None = None) -> dict:
     """The live-world floor relabelled to the bounding leg -- the subject the world/leg guards pass.
 
@@ -6985,7 +7100,10 @@ def test_a_spread_from_another_world_bounds_nothing_however_it_is_stamped():
     # BOUND PAIR, for the reason `_stamped_after` was written: the subject is the WORLD guard, and
     # a floor read off disk is refused by the STALENESS guard the moment a newer run is promoted,
     # leaving this control reporting the failure of a guard that never fired.
-    floor = _stamped_after(_load(NOISE_FLOOR), three_arm)
+    # BOUND ON THE BOOK AS WELL AS THE STAMP (2026-09-18): the live floor is over a
+    # 164-account book and `THREE_ARM` is a moving pointer now aimed at a 154/155 one, so
+    # the BOOK guard -- which this control does not name -- is what refused the pair.
+    floor = _booked_like(_stamped_after(_load(NOISE_FLOOR), three_arm), three_arm)
     same_world = gva._seed_spreads(floor, three_arm)
     assert same_world.get("available") is True, (
         "the constructed contemporaneous pair lost its bound, so every leg below measures that "
@@ -9138,7 +9256,10 @@ def test_seed_spreads_does_not_let_NEVER_ASKED_pass_as_measured_contemporaneous(
     # BOUND PAIR: the subject is the difference between "asked and cleared" and "never asked", so
     # the floor postdates the run by construction and the staleness guard cannot be what answers.
     three_arm = _load(THREE_ARM)
-    floor = _stamped_after(_load(NOISE_FLOOR), three_arm)
+    # BOUND ON THE BOOK AS WELL AS THE STAMP (2026-09-18): the live floor is over a
+    # 164-account book and `THREE_ARM` is a moving pointer now aimed at a 154/155 one, so
+    # the BOOK guard -- which this control does not name -- is what refused the pair.
+    floor = _booked_like(_stamped_after(_load(NOISE_FLOOR), three_arm), three_arm)
 
     asked = gva._seed_spreads(floor, three_arm)
     assert asked.get("available") is True, (

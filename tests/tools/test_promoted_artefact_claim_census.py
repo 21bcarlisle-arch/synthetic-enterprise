@@ -279,3 +279,180 @@ def test_the_feed_leg_fails_open_and_the_module_says_so():
     assert 'if args.check and result["stale"]:' in text, (
         "--check must refuse on the source leg ONLY; consulting the feed leg would make a "
         "fail-open measure into a gate that reds on legitimate dated records")
+
+
+# --- THE RETRACTION CLASS ------------------------------------------------------------------
+#
+# A past-tense account of a WITHDRAWN wording cannot be falsified by a promote-by-copy: it says
+# what the text used to say over an interval that has already closed. The census graded one as a
+# live claim and refused the whole tree for it, which put a price on the one habit CLAUDE.md
+# requires -- "correct yourself plainly, in the record, beside the claim" -- and made DELETING the
+# account of a defect the cheapest way to go green.
+
+
+def _retraction_tree(tmp_path, current="2026-09-18T05:43:40Z"):
+    """A tree with one promote target whose canonical copy carries `current`.
+
+    Named for this block rather than reusing a bare `run`/`tree` helper on purpose: a helper
+    appended to a large suite can shadow an existing one and redden controls that have nothing to
+    do with the change, and the reds then read as pre-existing.
+    """
+    import json
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True, exist_ok=True)
+    (obs / "thing_20260908.json").write_text(json.dumps(
+        {"generated_at": "2026-09-08T04:00:00Z", "run_identity_fields": ["generated_at"]}))
+    (obs / "thing.json").write_text(json.dumps(
+        {"generated_at": current, "run_identity_fields": ["generated_at"]}))
+    (tmp_path / "tools").mkdir(exist_ok=True)
+
+    def run(body: str) -> dict:
+        return census_mod.census(root=tmp_path, sources={"tools/m.py": body})
+    return run
+
+
+def test_every_branch_of_the_retraction_grading_is_reachable_in_one_tree(tmp_path):
+    """THE PARTITION CONTROL, and it comes first because the rest are worthless without it.
+
+    A classifier that answered "retraction" to everything would pass every "does it stand down
+    correctly" test below, and one that answered "live claim" to everything would pass every "does
+    it still refuse" test. Neither could be caught by a leg-per-branch suite. So this asserts that
+    ONE tree drives all three outcomes at once -- a live claim that refuses, an accurate retraction
+    that stands down, and a false retraction that refuses again -- which is the only shape that
+    proves the branches are distinguishable rather than merely present.
+    """
+    run = _retraction_tree(tmp_path)
+    result = run(
+        'X = "thing.json"\n'
+        '# `thing.json` carries the 2026-08-31 run.\n'
+        'A = 1\n'
+        '# This sentence read "the 2017-01-01 run" until 2026-09-09 and became false.\n'
+        'B = 2\n'
+        '# `thing.json` previously said the 2026-09-18 run, and that is no longer so.\n'
+        'C = 3\n')
+    assert result["stale"], "the live-claim branch is unreachable"
+    assert result["retractions"], "the retraction branch is unreachable"
+    assert result["false_retractions"], "the false-retraction branch is unreachable"
+
+
+def test_a_past_tense_account_of_a_withdrawn_wording_is_not_read_as_a_live_claim(tmp_path):
+    """The defect: the census refused the tree for a comment RECORDING A CORRECTION.
+
+    `tools/generate_value_arms_data.py:9882` said its sentence `read "published beside the
+    2026-08-31 run" until 2026-09-09` and had been repaired -- the live expression beside it is a
+    `{when}` placeholder resolved from the payload. The code was right and the census was wrong,
+    and the cheap way to clear the red was to delete the account of the defect.
+    """
+    run = _retraction_tree(tmp_path)
+    result = run('X = "thing.json"\n'
+                 '# `thing.json` read "the 2026-08-31 run" until 2026-09-09, and that became\n'
+                 '# false when the newer run was promoted onto the canonical name.\n')
+    assert not result["stale"], "a recorded correction still refuses the tree"
+    assert [r for r in result["retractions"] if r["token"] == "2026-08-31"]
+
+
+def test_a_retraction_that_is_not_yet_true_refuses(tmp_path):
+    """The leg that stops the class being an escape hatch, and the reason it can fail.
+
+    A retraction ASSERTS that a wording stopped standing. This census already knows whether it
+    did. So the claim is graded, not excused: if the run at the path still answers to the literal
+    being retracted, the correction is a second wrong claim stacked on the first.
+    """
+    run = _retraction_tree(tmp_path, current="2026-09-18T05:43:40Z")
+    result = run('X = "thing.json"\n'
+                 '# `thing.json` previously said the 2026-09-18 run, and that is no longer so.\n')
+    assert result["false_retractions"], (
+        "a retraction of a literal that still matches the run at the path must refuse -- "
+        "otherwise `previously` is a password that turns any stale claim green")
+    assert not result["stale"], "it belongs in its own class, not silently among the stale"
+
+
+def test_the_date_a_retraction_closes_at_is_not_graded_as_a_claim_about_the_run(tmp_path):
+    """`until 2026-09-18` names WHEN the wording ended. It is not a claim that a run sits anywhere.
+
+    Grading it as one would red a correct retraction for the accident of being written on the day
+    of the promotion it records -- the control keyed to today's answer from the far end, which is
+    exactly the shape this project keeps paying for.
+    """
+    run = _retraction_tree(tmp_path, current="2026-09-18T05:43:40Z")
+    result = run('X = "thing.json"\n'
+                 '# `thing.json` read "the 2017-01-01 run" until 2026-09-18, when it went false.\n')
+    assert not result["false_retractions"], (
+        "the closure date was graded as if it asserted which run sits at the path")
+    assert not result["stale"]
+    closing = [r for r in result["retractions"] if r["token"] == "2026-09-18"]
+    assert closing and closing[0]["is_closure"]
+
+
+def test_half_a_retraction_buys_no_silence(tmp_path):
+    """BOTH halves or none, and this is the control that keeps the predicate from being a password.
+
+    `read`/`said`/`previously` appear in every other line about an artefact; `until` appears in
+    every deferral. Either alone would let a stale claim go quiet by accident of wording. A writer
+    has to say what it read AND when that stopped -- which is the attribution the control exists to
+    protect, so the cost of standing it down is paying the thing it wants.
+    """
+    run = _retraction_tree(tmp_path)
+    verb_only = run('X = "thing.json"\n'
+                    '# `thing.json` previously carried the 2026-08-31 run.\n')
+    assert verb_only["stale"] and not verb_only["retractions"], (
+        "a saying-verb with no stated ending stood the census down")
+    closure_only = run('X = "thing.json"\n'
+                       '# `thing.json` holds the 2026-08-31 run until 2026-09-09.\n')
+    assert closure_only["stale"] and not closure_only["retractions"], (
+        "a bare `until` stood the census down")
+
+
+def test_a_dated_measurement_is_still_a_live_claim(tmp_path):
+    """The population `feed_claims` provably cannot separate, and which this leg must not blur.
+
+    A record of what was measured on a date and a claim about which run is at a path look identical
+    from the date alone -- that is why the feed leg fails open. The retraction predicate does not
+    rest on a date: it needs a report of a former WORDING plus a stated ending. So a sentence that
+    merely carries a measurement date stays gradable, and this is the control that says so.
+    """
+    run = _retraction_tree(tmp_path)
+    result = run('X = "thing.json"\n'
+                 '# Measured 2026-09-17: the folded family is stamped against `thing.json`\n'
+                 "# at 2026-08-31, so the staleness caveat is satisfied rather than bypassed.\n")
+    assert result["stale"], "a dated measurement was mistaken for a retraction"
+    assert not result["retractions"]
+
+
+# --- THE CLAIM UNIT ------------------------------------------------------------------------
+
+
+def test_a_wrapped_comment_is_one_claim_because_the_line_break_is_the_rulers_not_the_writers(
+        tmp_path):
+    """THE WIDENING, and the evidence that the retraction class was not bought with blindness.
+
+    `tokenize` hands back one row per `#` line, so `_CLAIM_NEEDS_BOTH_HALVES` was asked of a unit
+    the writer never chose: the reference to the target landed on one line and the run-identity
+    token on the next, and the census saw neither half beside the other. Measured on this tree on
+    2026-09-18, joining the block first took the row count 16 -> 23 and raised THREE stale claims
+    that had been invisible, one of them live and current
+    (`generate_value_arms_data.py:230`, `the arms' 2026-09-10T14:04:08Z` against an artefact
+    stamped 2026-09-18). A change that only ever hides cannot do that.
+    """
+    run = _retraction_tree(tmp_path)
+    wrapped = run('X = "thing.json"\n'
+                  '# The bound is taken over the run sitting at `thing.json`, which this\n'
+                  '# tree promoted on 2026-08-31 and has not re-taken since.\n')
+    assert [r for r in wrapped["stale"] if r["token"] == "2026-08-31"], (
+        "a claim split across a line wrap is invisible to the census")
+    assert wrapped["stale"][0]["line"] == 2, "a row must point at where the prose STARTS"
+
+
+def test_two_trailing_comments_are_not_joined_into_a_sentence_nobody_wrote(tmp_path):
+    """The block boundary, and the false claim the naive version would manufacture.
+
+    `x = 1  # names thing.json` and `y = 2  # the 2026-08-31 run` are two remarks about two
+    statements. Running them together would mint a sentence carrying both halves that no writer
+    ever put in one breath -- a fabricated claim, which is worse than a missed one because it is
+    unfalsifiable at the source.
+    """
+    run = _retraction_tree(tmp_path)
+    result = run('X = "thing.json"  # the bound is taken over `thing.json`\n'
+                 'Y = 2  # the 2026-08-31 run is the one that matters\n')
+    assert not result["stale"], (
+        "two trailing comments were joined into a claim neither of them makes")
