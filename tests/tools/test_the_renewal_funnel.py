@@ -28,6 +28,7 @@ from company.policy.decision_policy import (
 )
 from company.pricing import value_based_renewal as vbr
 from company.pricing.renewal_rate_chain import decide_renewal_rate
+from simulation.svt_product import SVT_TARIFF_TYPE
 from tools.run_value_cycle_ab import (
     FUNNEL_STAGE_MEANINGS,
     account_class_map,
@@ -466,34 +467,62 @@ def roster(monkeypatch):
     return _bind
 
 
-def test_the_census_counts_what_the_guard_reads_not_whether_the_key_is_there():
-    """MUTATION: census on `"tariff_type" in record` instead of the world's own read.
+def test_the_census_counts_what_the_guard_reads_not_whether_the_key_is_there(roster):
+    """MUTATION: census on `"tariff_type" in record`, OR on `record.get("tariff_type", "fixed")`,
+    instead of the world's own read. Either reversion reds one of the two legs below.
 
-    The two are DIFFERENT CENSUSES and only the second is what the arm sees. A drawn or won
-    record carries the key PRESENT with value `None`, and what that resolves to depends on which
-    commodity's schedule builder reads it -- so a census keyed on key-presence would report every
-    such leg as labelled, and be wrong about the ones that are not.
+    The three are DIFFERENT CENSUSES and only the last is what the arm sees. A drawn or won record
+    carries the key PRESENT with value `None`, so a census keyed on key-presence reports it as
+    labelled and a census keyed on `.get(..., "fixed")` reports it as `None` -- and the world's own
+    read resolves it to `"fixed"`.
 
-    KEYED TO THE PROPERTY. This asserts that key-presence and the resolved value COME APART, and
-    names on which leg. It does not assert which value either one takes: this control was
-    previously pinned to `resolved_tariff_type is None` for won electricity, which was the
-    then-current answer, and it went red on 2026-09-07 when the census stopped restating a
-    spelling `run_phase2b` had repaired on 2026-08-30 -- i.e. it went red because the reader got
-    more honest, which is exactly backwards. See
-    `SEAT_FINDING_THE_158_UNLABELLED_REFUSALS_ARE_THE_DRAWN_GAS_BOOK_...`.
+    WHY LEG 1 IS BOUND AND NOT LOOKED FOR, WHICH IS THE WHOLE REPAIR OF 2026-09-18. This control
+    asserted the discriminating pair on the LIVE roster, and so it depended on the world happening
+    to contain a record of each kind. It lost that subject THREE TIMES -- to the electricity repair
+    of 2026-08-30, to the census's own de-restatement on 2026-09-07, and to the gas repair of
+    2026-09-16, after which every live record resolves to `"fixed"` and the pair no longer exists.
+    Each of those made the world MORE honest and reddened the control for it, which is exactly
+    backwards. The subject of this control is the CENSUS's behaviour, not the roster's contents, so
+    the pair belongs on a roster this control owns. Moving it to a fourth live shape was the option
+    refused: there is no fourth.
     """
-    census = product_label_by_account_class()
-    present_key = [r for r in census["legs"] if r["tariff_type_key_present"] is True]
-    assert present_key, "no leg on the roster carries the key, so this control has no subject"
+    # LEG 1 -- THE LIVE ROSTER, and the only property of it that survives a world that labels
+    # everything. 145 live records carry the key PRESENT and unset; not one may be reported with
+    # a product the world cannot settle. `None` is not a product: no branch of
+    # `build_renewal_schedule` prices it, and for eight days in 2026 this block published it for
+    # 137 electricity legs the builder labels `fixed`. Green today, red for the whole of that
+    # window, and a world that stamps real products only makes it MORE true.
+    from simulation.run_phase2b import CUSTOMERS, SUCCESSOR_CUSTOMERS
+    live = product_label_by_account_class()
+    key_present_unset = [r for r in list(CUSTOMERS) + list(SUCCESSOR_CUSTOMERS)
+                         if "tariff_type" in r and r["tariff_type"] is None]
+    assert key_present_unset, (
+        "no live record carries `tariff_type` present-and-unset, so the defeated-default this leg "
+        "exists to catch cannot occur and the leg has no subject")
+    assert None not in {r["resolved_tariff_type"] for r in live["legs"]}, (
+        f"{len(key_present_unset)} live records carry the key present and unset and the census "
+        "reports a leg resolving to None -- it has gone back to restating `.get(..., 'fixed')`, "
+        "which the world's own read has not spelled since 2026-08-30")
 
-    # The whole point: legs that are identical on key-presence are NOT identical on what the
-    # guard reads. Both sides of that must be on the live roster or the two fields are the same
-    # field and one of them is dead weight.
+    # LEG 2 -- THE PROPERTY, on a roster this control owns. Two legs IDENTICAL on key-presence and
+    # DIFFERENT on what the guard reads. `svt` is the world's own constant for a product
+    # `build_renewal_schedule` settles and `UPLIFTABLE_TARIFF_TYPES` refuses, so this pair cannot
+    # be abolished by a labelling repair the way its three predecessors were -- abolishing it means
+    # deleting the standard-variable product, which `DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION`
+    # ruled the world owed and which landed on 2026-09-16.
+    census = roster([
+        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+         "acquisition_type": "net_new_won", "tariff_type": None},
+        {"customer_id": "SYN-2016-003", "commodity": "electricity",
+         "acquisition_type": "synthetic_draw", "tariff_type": SVT_TARIFF_TYPE}])
+    present_key = [r for r in census["legs"] if r["tariff_type_key_present"] is True]
+    assert len(present_key) == 2, (
+        f"both bound records carry the key, so both legs must be key-present: got {present_key}")
     resolutions = {r["resolved_tariff_type"] for r in present_key}
-    assert len(resolutions) > 1, (
-        f"every leg carrying the key resolves to {resolutions} -- key-presence and the resolved "
-        "value no longer come apart, so this census has collapsed into the one it exists to "
-        "differ from")
+    assert resolutions == {"fixed", SVT_TARIFF_TYPE}, (
+        f"both legs carry the key and they resolve to {resolutions} -- key-presence and the "
+        "resolved value no longer come apart, so this census has collapsed into the one it exists "
+        "to differ from")
     assert {r["the_guard_admits_it"] for r in present_key} == {True, False}
 
 
@@ -504,17 +533,32 @@ def test_MUTATION_a_labelled_won_record_makes_the_gate_reachable(roster):
     leave it -- R15's unreachable-branch shape -- and this is the field that decides whether the
     page says "a GATE" or "book size". So BOTH legs are exercised here.
 
-    THE SUBJECT IS A GAS LEG since 2026-09-07. The unlabelled leg has to be one the world's own
-    read still resolves to `None`, and after the electricity call site was repaired on 2026-08-30
-    that is only true of gas (`simulation.run_phase2b.resolved_tariff_type`). This control used a
-    won ELECTRICITY leg, which is why it went red when the census stopped restating the
-    pre-repair spelling: the record it called unlabelled had been labelled for eight days.
+    THE UNPRICEABLE LEG IS AN SVT ONE since 2026-09-18, AND THIS IS THE LAST MOVE IT NEEDS. It was
+    a won ELECTRICITY leg until 2026-08-30 and a GAS one until 2026-09-16, and both times the leg
+    stopped being unpriceable because a repair gave it a label -- `resolved_tariff_type` now has
+    one answer for every record and no branch of it can return `None`
+    (`SEAT_FINDING_THE_UNLABELLED_TARIFF_BRANCH_IS_DEAD_...2026-09-18.md`). A third move to a
+    fourth commodity was impossible; there is no fourth.
+
+    So the subject is no longer a MISSING product but a REAL one the guard refuses. `svt` is what
+    `DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION` ruled the world owed in place of the silence,
+    and it landed on 2026-09-16 (`simulation/svt_product.py`): a household on a standard variable
+    tariff has no renewal decision to price, which is why it is outside `UPLIFTABLE_TARIFF_TYPES`
+    and why 2,490 of the 09-18 run's 2,824 offered renewals stop at the product gate. A repair can
+    no longer take this leg's subject away without deleting that product.
+
+    WHAT THIS LEG DOES NOT SAY, and the finding beside it says instead: no LIVE record carries
+    `svt`, because the world decides svt per TERM off the engagement roll and this census reads the
+    record's OPENING product. That is a real defect in the census -- see
+    `SEAT_FINDING_THE_PRODUCT_GATE_CENSUS_ANSWERS_ON_THE_OPENING_TERM_...2026-09-18.md` -- and it
+    is the census's to fix, not this control's to paper over. What is asserted here is that the
+    census's own verdict CAN come back both ways, which is the null rung.
     """
-    unlabelled = roster([
+    unpriceable = roster([
         {"customer_id": "PROS-2019-0015g", "commodity": "gas",
-         "acquisition_type": "net_new_won", "tariff_type": None}])
-    assert unlabelled["a_found_account_can_reach_the_product_gate"] is False
-    assert unlabelled["found_accounts_the_guard_would_admit"] == []
+         "acquisition_type": "net_new_won", "tariff_type": SVT_TARIFF_TYPE}])
+    assert unpriceable["a_found_account_can_reach_the_product_gate"] is False
+    assert unpriceable["found_accounts_the_guard_would_admit"] == []
 
     labelled = roster([
         {"customer_id": "PROS-2019-0015g", "commodity": "gas",
@@ -531,13 +575,14 @@ def test_a_founder_account_passing_the_gate_is_not_a_found_account_reaching_it(r
     would say the gate is passable while no found household on it had passed. The flattering
     answer, produced by deleting one condition.
 
-    The found leg is GAS for the reason given in the null-rung control above: it has to be a leg
-    the world's own read still resolves to `None`, and since 2026-08-30 that is not electricity.
+    The found leg carries `svt` for the reason given in the null-rung control above: it has to be a
+    leg the guard REFUSES, and since 2026-09-16 no record's read resolves to `None` -- the refusing
+    product is a real one rather than a missing label.
     """
     census = roster([
         {"customer_id": "C1", "commodity": "electricity"},
         {"customer_id": "PROS-2019-0015g", "commodity": "gas",
-         "acquisition_type": "net_new_won", "tariff_type": None}])
+         "acquisition_type": "net_new_won", "tariff_type": SVT_TARIFF_TYPE}])
     founder = [r for r in census["legs"] if r["account_class"] == "founder_hand_authored"]
     assert [r["the_guard_admits_it"] for r in founder] == [True]
     assert census["a_found_account_can_reach_the_product_gate"] is False
