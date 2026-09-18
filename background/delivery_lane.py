@@ -1181,8 +1181,17 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
 
 
 #: The FOUR things a window that closed with no landing of its own can mean.
-#: `NOT_DONE` is the residual and carries no evidence by construction — it is what is left when
-#: no join holds, which is why it is named here rather than left as the absence of the others.
+#: `NOT_DONE` is the residual — it is what is left when no join holds, which is why it is named
+#: here rather than left as the absence of the others.
+#:
+#: "AND CARRIES NO EVIDENCE BY CONSTRUCTION" WAS THE SENTENCE THAT STOOD HERE, and it is now
+#: false, corrected beside the claim rather than rewritten over it. It was a description of the
+#: code mistaken for a property of the thing: being the residual says nothing about whether a
+#: reason exists, and in fact the residual is the ONE disposition every failed route arrives at,
+#: so it is where "the tree said no" and "the tree was never asked" most need telling apart.
+#: `_nothing_answered` names which of the two it is; nothing here carries an empty reason now,
+#: and `tests/background/test_every_disposition_names_what_was_checked.py` asserts that over the
+#: WHOLE partition rather than per branch, so a sixth value cannot be added without one.
 #: `LANDED_ELSEWHERE` is `note_landing_under`'s; `PREMISE_SPENT` is `note_premise_spent`'s.
 #:
 #: THIS BLOCK SAID "AND THE ONLY THREE" AND THAT IS NOW FALSE, corrected beside the claim rather
@@ -1540,15 +1549,110 @@ def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
         ledger = {}
     row = ledger.get(focus_id) if isinstance(ledger, dict) else None
     if not isinstance(row, dict):
-        return {"disposition": NOT_DRAWN, "evidence": ""}
+        # THE TWO NON-WINDOW ANSWERS CARRY REASONS TOO, and they did not until 2026-09-18. The
+        # partition this control is keyed to is EVERY disposition this function can return, not
+        # just the five that describe a closed window: a caller holding `not_drawn` with an empty
+        # string cannot tell "this id was never handed out" from "the ledger would not open",
+        # and the `except` five lines up makes both of those reachable through the same return.
+        return {"disposition": NOT_DRAWN,
+                "evidence": "no row under this id in the draw ledger ({}) -- it was never handed "
+                            "out, or the store did not open".format(
+                                _ledger_path(path or CLAIMS_FILE).name)}
     drawn = float(row.get("last_drawn_at") or 0.0)
     if float(row.get("last_landing_at") or 0.0) >= drawn and not row.get("landed_under"):
+        landed = [str(p) for p in (row.get("last_landing_paths") or [])]
+        # A DELIVERED ROW WITH NO PATHS IS NOT A ROW WITH NOTHING TO SAY. `--landed` binds the
+        # paths git gives it and can legitimately bind none (a commit whose every path another
+        # row already holds), and that case published the identical empty string as `not_done`.
         return {"disposition": DELIVERED,
-                "evidence": ", ".join(str(p) for p in (row.get("last_landing_paths") or [])[:4])}
+                "evidence": ", ".join(landed[:4]) if landed else
+                            "landed at {} with no paths bound to the claim".format(
+                                datetime.datetime.fromtimestamp(
+                                    float(row.get("last_landing_at") or 0.0)
+                                ).strftime("%Y-%m-%d %H:%M"))}
     # THE WHOLE LEDGER, not just this row, because `_bound_instants` is what separates "landed and
     # nobody bound it" from "another lane's landing on a file we happen to share". Reading one row
     # here and the whole store in `drawn_without_landing` would be two definitions again.
     return _disposition(row, drawn, focus_id=focus_id, bound_at=_bound_by(ledger))
+
+
+def _nothing_answered(focus_id: str, row: dict, drawn: float,
+                      unanswered: list[str]) -> dict:
+    """`NOT_DONE` carrying WHAT WAS ASKED and what came back. The residual, never silent.
+
+    THE DEFECT THIS ENDS, and it is this module's own (measured 2026-09-18 on the live ledger).
+    Every reading above learned to name its reason and the one left over still ended
+    `{"disposition": NOT_DONE, "evidence": ""}` — a literal computed at read time, not a field
+    anything stored, so no backfill could have touched it. Two of the three rows the lane was
+    holding that morning read `not_done` with that empty string, and one of them was
+    `read-next12-alone-...`, whose clauses two and three DID land as mechanisms and whose first
+    clause was waiting on a run. The reader was told nothing and sent to `git status`.
+
+    SILENCE AND "WE LOOKED AND FOUND NOTHING" ARE DIFFERENT ANSWERS AND THE EMPTY STRING WAS
+    BOTH. That is the whole repair: the residual is the one disposition reached by every route
+    that failed to conclude, so it is the one place where "the tree said no" and "the tree was
+    never asked" arrive wearing the same clothes. Each branch below names which of the two it is,
+    in the reader's own terms — the paths it queried, the window it queried them over, and the
+    count git returned.
+
+    FOUR BRANCHES, AND THE ORDER IS FROM LEAST TO MOST TRUSTWORTHY ANSWER:
+
+      * a join RAISED — `unanswered` is non-empty, so the tree was asked and the asking broke.
+        This must be said first and loudest: it is the only branch where a louder disposition may
+        have been TRUE and was lost, and a reader who acts on "nothing landed" here may redo work
+        that exists. `_disposition` swallows those exceptions on purpose (the residual must stay
+        loud rather than take the whole brief down with it) and this is where that swallow stops
+        being silent.
+      * NO PATHS — the item's prose named no tracked path, in `named_paths` or in either store
+        that holds its text. `_claim_paths` returning empty means the query could not be BUILT,
+        so git was never asked at all, and calling that "nothing landed" is the fail-open reading
+        of an unavailable check.
+      * paths, and git returned commits — every one of them already bound, or `_landed_unbound`
+        would have taken the row. Naming the count is what lets a reader tell this from the empty
+        case in one glance.
+      * paths, and git returned nothing — the only branch that has actually earned the sentence
+        "we looked and found nothing", and it says which paths and over what window so the reader
+        can check whether the paths were the right ones.
+
+    IT NEVER RAISES, for the reason every reader in this module never raises: `drawn_without_landing`
+    feeds the orientation brief and a residual that could throw would cost the brief its other
+    twenty keys. A failure to compose the reason falls back to naming THAT, which is still a
+    sentence and still not an empty string.
+    """
+    if unanswered:
+        return {"disposition": NOT_DONE,
+                "evidence": "CANNOT ANSWER, not 'nothing landed': {} -- a louder disposition may "
+                            "be true and was lost, so check the tree before redoing this".format(
+                                "; ".join(unanswered))}
+    try:
+        paths, hits = _window_hits(focus_id, row, drawn)
+    except Exception as exc:
+        return {"disposition": NOT_DONE,
+                "evidence": "CANNOT ANSWER, not 'nothing landed': composing the commit query "
+                            "raised {}".format(type(exc).__name__)}
+    if not paths:
+        return {"disposition": NOT_DONE,
+                "evidence": "CANNOT ANSWER, not 'nothing landed': this item's prose names no "
+                            "tracked path (in `named_paths` or either store holding its text), "
+                            "so no commit query could be built and git was never asked"}
+    window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
+    named = ", ".join(paths[:3]) + (" (+{} more)".format(len(paths) - 3) if len(paths) > 3 else "")
+    asked = "asked git for any commit touching {} between {} and {} (the window plus its landing "
+    asked = asked.format(named,
+                         datetime.datetime.fromtimestamp(drawn).strftime("%Y-%m-%d %H:%M"),
+                         datetime.datetime.fromtimestamp(window_ends).strftime("%H:%M"))
+    if hits:
+        # Every hit here is already bound to some row, and to THIS row -- an unbound one would have
+        # been taken by `_landed_unbound` and another row's by `_landed_by_sibling`, both of which
+        # have already declined by the time this is reached. Saying so beats saying nothing: it
+        # tells the reader the paths were right and the window was right, which the empty branch
+        # below deliberately does not.
+        return {"disposition": NOT_DONE,
+                "evidence": asked + "grace): {} found, each already bound in this ledger, so none "
+                                    "was creditable to this window".format(len(hits))}
+    return {"disposition": NOT_DONE,
+            "evidence": asked + "grace): none. Nothing was stated by hand either, so this is a "
+                                "genuine miss and the work may still be undone"}
 
 
 def _disposition(row: dict, drawn: float, *, focus_id: str = "",
@@ -1602,11 +1706,17 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
     other = row.get("landed_under")
     if other and float(row.get("last_landing_at") or 0.0) >= drawn:
         return {"disposition": LANDED_ELSEWHERE, "evidence": f"landed under {other}"}
+    # EACH SWALLOWED EXCEPTION IS NOW A SENTENCE THE RESIDUAL CARRIES. The three `except`s below
+    # are right to leave the residual loud, but "the join declined" and "the join crashed" were
+    # both reaching the reader as the same empty string -- a DECLARED None and a SILENT None
+    # collapsed into the flattering branch. `unanswered` is what tells them apart downstream.
+    unanswered: list[str] = []
     try:
         unbound = _landed_unbound(focus_id, row, drawn, bound_at)
-    except Exception:
-        unbound = None          # a join that cannot run leaves the residual loud. Never raises
-    if unbound:                 # into `drawn_without_landing`, which the orientation brief reads.
+    except Exception as exc:    # a join that cannot run leaves the residual loud. Never raises
+        unbound = None          # into `drawn_without_landing`, which the orientation brief reads.
+        unanswered.append("the unbound-commit join raised {}".format(type(exc).__name__))
+    if unbound:
         return unbound
     # AND THEN THE WEAKER OF THE TWO DERIVED READINGS. Asked only once the loud one has declined,
     # for the reason `_landed_by_sibling` gives: "somebody else owns the commit your window
@@ -1614,8 +1724,9 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
     # a sibling's landing hide an unbound one on the same paths.
     try:
         sibling = _landed_by_sibling(focus_id, row, drawn, bound_at)
-    except Exception:
+    except Exception as exc:
         sibling = None
+        unanswered.append("the sibling-owner join raised {}".format(type(exc).__name__))
     if sibling:
         return sibling
     # AND LAST OF ALL, THE CAUSE THAT IS NOT ABOUT A COMMIT. The three readings above all ask
@@ -1624,11 +1735,12 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
     # a miss, and the residual cannot tell a reader that -- see `_drawn_before_stated_start`.
     try:
         early = _drawn_before_stated_start(focus_id, row, drawn)
-    except Exception:
+    except Exception as exc:
         early = None            # same direction as the two above: the residual stays loud
+        unanswered.append("the stated-start reading raised {}".format(type(exc).__name__))
     if early:
         return early
-    return {"disposition": NOT_DONE, "evidence": ""}
+    return _nothing_answered(focus_id, row, drawn, unanswered)
 
 
 def note_premise_spent(focus_id: str, commit: str, reason: str, *,
