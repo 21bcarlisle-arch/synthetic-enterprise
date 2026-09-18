@@ -8,6 +8,108 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-18 — the log fired on completion so a day of drift owed nothing -- now it fires on a clock; and P2 says one headcount per house moved net -0.51%
+
+<!-- head: 26c10f997770 -->
+
+**Written 2026-09-18 ~11:20 BST — the first entry written because the CLOCK said so, not because a
+piece finished.** That change is the first half of this entry; P2's result is the second.
+
+## The log fired on completion, so a day of drift owed nothing
+
+The director's diagnosis, and he named the mechanism before I found it:
+
+> *"The stretch log writes when a stretch completes. A day of machinery — reds, merges, publisher
+> fixes — never completes a stretch, so nothing gets written, so you never have to state what the
+> stretch achieved. A machine that never says what it achieved can't notice when it achieved
+> nothing. That's the self-correction loop broken exactly where reflection would happen, and it's
+> why the log records the wins and misses the drift."*
+
+It was two lines in `owed()`:
+
+```python
+if n == 0:
+    return {"owed": False, ..., "reason": "up to date"}
+```
+
+**A stretch that landed nothing was reported as up to date.** The one state most worth reading was
+the one state that could never be reported.
+
+And the constants directly above those lines had *already written the intent down*: *"OR, not AND: a
+machine that lands nothing for three days owes a report as much as one that lands three hundred
+commits in an afternoon."* That sentence has been false for as long as it has existed, because the
+code one screen below contradicted it. **A comment stating a property is not the property** — the
+same shape as the two controls named as "the failable control" that did not exist, found two days
+ago in `fabric_demand_path`.
+
+**The repair.** `CADENCE_HOURS = 3` is the entry condition; the commit count is a second reason,
+never the gate. Escalation is the clock alone — past the cadence, whatever landed, including
+nothing.
+
+**What I got wrong doing it, twice, and both were caught by tests rather than by me.** First I
+collapsed `owed` into `escalate`, which would have paged every publish cycle and earned the alarm
+exactly the reader the run log had — the existing suite's own reachability test caught it, and its
+reasoning was right even though its framing ("a report is written when a piece of work FINISHES")
+was the thing being abolished. Second, my new control asserted the clock was the *only* trigger,
+which is stronger than the design says; asserting more than the design is how a control ends up
+arguing with its subject. Also a crash: my "nothing landed" message formatted `hours` as a float in
+the one branch where it can be `None`.
+
+Controls: `tests/tools/test_the_stretch_log_fires_on_a_clock_not_on_completion.py`, 7 legs.
+Mutation-proven by restoring the exact two lines above — three legs red, naming the defect.
+
+## P2: what one headcount per house did to the money
+
+Owed since 2026-09-16, pre-registered in `b2f83bc2d` **before either arm reported**. Two arms of
+`run_phase2b.main()`, same tree, same book, same weather, differing only in whether the physical
+layer keeps its own second headcount draw.
+
+| | control (two draws) | treated (one draw) | move |
+|---|---|---|---|
+| revenue | £685,541.28 | £683,074.19 | **−0.36%** |
+| net margin | £143,853.25 | £143,125.42 | **−0.51%** |
+| bad debt | £30,396.91 | £30,611.68 | +0.71% |
+| fabric premises | 130 of 136 | 130 of 136 | — |
+
+**P1 (volume < 1%) — NOT GRADED.** `total_volume_kwh` came back 0.0 in both arms: the settlement
+records do not carry a `volume_kwh` key. **That is the fourth time this week I have read a working
+instrument as a broken one by asking it the wrong question**, and I wrote the memory about exactly
+this yesterday. It is not graded rather than graded as zero, because zero is what a missing key
+looks like.
+
+**P2 (revenue and net each < 1%) — HOLDS on the first half, REFUTED on the second.** Both moved
+under 1%. But I predicted net would move *proportionally less* than revenue, because the standing
+charge is per-account and cannot move when no account is gained or lost. It moved **more**: −0.51%
+against −0.36%. Bad debt rose 0.71%, and that is the direction to look — a reassignment that moves
+demand between homes moves bills, and bills that move move arrears. The standing-charge argument was
+right about the standing charge and wrong about everything downstream of a bill changing.
+
+**P3 (direction) — I refused to predict it, and both moved down.** Recording that I declined is what
+stops me now claiming I expected it.
+
+**P4 (fabric population unchanged) — HOLDS.** 130 of 136 in both arms.
+
+**The second kill line tripped as written, and its purpose held.** I required both arms to report the
+same record count; they differ by 489 of ~301,500 (0.16%). But record count is customer-periods, and
+a headcount change moves demand → bills → arrears → departures, so a different record count is a
+*consequence* of the variable, not evidence of a second one. The invariant I actually needed was the
+**customer population** — 136 customers, 130 fabric-driven, identical in both arms. **The kill line
+was mis-specified**, and saying so is better than quietly reinterpreting it: what I wrote down was
+not the thing I meant, and the thing I meant held.
+
+**What this does not say.** −0.51% on net is one book, one window, one seed. It is not a claim that
+the correction is worth £728; it is a measurement that aligning the headcount did not move the money
+much, which is what a fidelity fix with no distributional change should do. The change was justified
+on fidelity alone and this number was neither the reason nor a check on the reason.
+
+## Next
+
+Stage 1 only, on the director's budget instruction: the people layer, the half-hourly shape reaching
+the book, the sample earning its place on settlement selection. More of what the book-wide spread
+was.
+
+---
+
 ## 2026-09-17 — one house had two headcounts for 102 of 134 homes, and the red that found my wrong fix was a table that made a six-person home impossible
 
 <!-- head: 2cc924ed9cf5 -->

@@ -7,6 +7,7 @@ names what it was about rather than assuming the reader has the conversation."*
 from __future__ import annotations
 
 import subprocess
+import time
 
 import pytest
 
@@ -81,9 +82,17 @@ def test_work_landed_with_no_report_is_a_FINDING_and_names_the_commits(log, monk
 
 def test_a_stretch_with_nothing_landed_since_its_report_is_quiet(log, monkeypatch):
     """REACHABILITY OF THE QUIET BRANCH. Without it a check that always fired would satisfy the
-    test above while making the finding meaningless."""
+    test above while making the finding meaningless.
+
+    IT MUST NOW HOLD THE CLOCK STILL (2026-09-18). The cadence, not the commit count, is what
+    decides an entry is owed -- so "nothing landed" is quiet only INSIDE the window, and this test
+    became time-dependent the moment that changed. Pinning the epoch is the point rather than a
+    workaround: the quiet branch it proves reachable is now "nothing landed AND recently", which is
+    a narrower and truer claim than the one it made before.
+    """
     sl.append("A stretch about the closed atoms and whether their code actually runs", "body")
     monkeypatch.setattr(sl, "_git", lambda *a: "")
+    monkeypatch.setattr(sl, "_entry_epoch", lambda _h: time.time())
 
     assert sl.check()[0] == 0
 

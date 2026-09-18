@@ -32,10 +32,17 @@ to the console at the end of a piece of work -- entered none of it.
 
 THE TWO PROPERTIES HE ASKED FOR
 -------------------------------
-**A stretch that lands work without a report is a FINDING, not a refusal.** `--check` compares the
-commits landed since the newest entry's recorded head against zero. A gate here would be wrong: a
-report is written when a piece of work FINISHES, and refusing every commit in between would stop the
-work it is meant to describe. A finding is visible and costs nothing when the machine is mid-piece.
+**Silence past the cadence is a FINDING, not a refusal.** A gate here would be wrong -- refusing
+commits would stop the work the report describes -- and a finding costs nothing mid-piece.
+
+**AND THE CADENCE IS A CLOCK, NOT A COMPLETION** (director, 2026-09-18). This used to compare the
+commits landed since the newest entry against ZERO, and return "up to date" when that was zero. So
+a day of machinery -- reds, merges, publisher fixes -- completed no stretch, owed no report, and
+asked nothing of anyone: *"a machine that never says what it achieved can't notice when it achieved
+nothing"*. The log kept the wins and missed the drift, which is the self-correction loop broken at
+exactly the point where reflection would have happened. `CADENCE_HOURS` is the entry condition now
+and `n` is only a second reason to escalate. **The entry reporting that nothing landed is the one
+that matters most.**
 
 **Each entry must be readable on its own months later.** So `append` requires a SUBJECT LINE that
 names what the stretch was about, and refuses an entry that only points at conversation -- "as
@@ -59,8 +66,12 @@ _HEADER = """# Delivery-seat stretch log
 *What each stretch of work was about, what it got wrong, and the reasoning behind the calls made in
 it. The commits record what changed; this records why. Newest first.*
 
-*Written by `tools/stretch_log.py` as part of finishing a piece of work, not as a separate step.
-A stretch that lands commits without an entry here is a finding, raised by `--check`.*
+*Written by `tools/stretch_log.py` ON A CLOCK -- every few hours, whatever state the work is in.
+NOT on finishing a piece: a day of machinery never finishes one, so gating on completion meant a
+day of drift asked nothing of anyone and this log kept only the wins. An entry saying what was
+worked on, what landed and what it was for -- **including that nothing landed** -- is the one that
+matters most, because it is the only way a run of machinery becomes visible as a run of machinery.
+Silence past the cadence is a finding, raised by `--check`.*
 
 ---
 """
@@ -187,7 +198,26 @@ def append(subject: str, body: str, at_head: str | None = None) -> Path:
 #: prompted this was 253 commits over 68h -- 3.6x the largest count and 4x the longest silence.
 #: OR, not AND: a machine that lands nothing for three days owes a report as much as one that
 #: lands three hundred commits in an afternoon.
-ESCALATE_AFTER_HOURS = 24.0
+#:
+#: THAT LAST SENTENCE WAS FALSE FOR AS LONG AS IT HAS BEEN WRITTEN (director, 2026-09-18), and the
+#: code one screen down is why: `if n == 0: owed = False`. A stretch that landed NOTHING was never
+#: owed a report, so the one state most worth reading could not be reported. His words:
+#:
+#:   "The stretch log writes when a stretch completes. A day of machinery -- reds, merges,
+#:    publisher fixes -- never completes a stretch, so nothing gets written, so you never have to
+#:    state what the stretch achieved. A machine that never says what it achieved can't notice
+#:    when it achieved nothing. That's the self-correction loop broken exactly where reflection
+#:    would happen, and it's why the log records the wins and misses the drift."
+#:
+#: So the clock is now the SUBJECT and the commit count is a second reason, never the entry
+#: condition. `CADENCE_HOURS` replaces the 24h escalation: the log is owed every few hours whatever
+#: state the work is in, and **an entry reporting that nothing landed is the entry that matters
+#: most** -- it is the only way a run of machinery becomes visible as a run of machinery.
+CADENCE_HOURS = 3.0
+
+#: KEPT, and no longer the entry condition: a burst of 200 commits inside one cadence window is
+#: still worth naming in the alarm, because "nothing to report" and "too much to report" need
+#: different entries.
 ESCALATE_AFTER_COMMITS = 80
 
 
@@ -230,22 +260,41 @@ def owed(now: float | None = None) -> dict:
 
     epoch = _entry_epoch(head)
     hours = None if epoch is None else max(0.0, (now - epoch) / 3600.0)
-    if n == 0:
-        return {"owed": False, "escalate": False, "commits": 0, "hours": hours,
-                "reason": "up to date"}
 
+    # THE CLOCK IS THE SUBJECT, and `n` is not consulted to decide whether an entry is owed. The
+    # line that used to stand here -- `if n == 0: owed = False` -- is the whole defect: a stretch
+    # that landed nothing was reported as "up to date", so a day of machinery, reds and merges
+    # asked nothing of anyone and the log kept only the wins.
     legs = []
     if hours is None:
         legs.append("the age of the last report is unreadable")
-    elif hours > ESCALATE_AFTER_HOURS:
-        legs.append(f"{hours:.0f}h since the last report (escalates above "
-                    f"{ESCALATE_AFTER_HOURS:.0f}h; longest gap this log has ever had is 16.7h)")
+    elif hours > CADENCE_HOURS:
+        legs.append(f"{hours:.1f}h since the last report (the cadence is {CADENCE_HOURS:.0f}h, "
+                    "whatever state the work is in)")
     if n > ESCALATE_AFTER_COMMITS:
         legs.append(f"{n} commits since the last report (escalates above {ESCALATE_AFTER_COMMITS}; "
                     "largest gap this log has ever had is 70)")
-    return {"owed": True, "escalate": bool(legs), "commits": n, "hours": hours,
+
+    # OWED AND ESCALATE ARE DIFFERENT QUESTIONS, and collapsing them was a real cost the existing
+    # suite caught. `owed` is "there is something to write" -- true the moment anything lands.
+    # `escalate` is "this has gone on too long to stay unwritten", and it is what PAGES. If
+    # escalate were simply owed, the alarm would fire on every publish cycle and earn itself
+    # exactly the reader the run log had.
+    #
+    # What the 2026-09-18 repair changes is the ESCALATE side: the clock now carries it alone, so a
+    # stretch that landed nothing is escalated past the cadence instead of being exempt forever.
+    escalate = bool(legs)
+    owed_now = escalate or n > 0
+    if not owed_now:
+        return {"owed": False, "escalate": False, "commits": n, "hours": hours,
+                "nothing_landed": True,
+                "reason": f"inside the {CADENCE_HOURS:.0f}h cadence, nothing landed"}
+    return {"owed": True, "escalate": escalate, "commits": n, "hours": hours,
+            # NAMED SO THE WRITER KNOWS WHICH ENTRY TO WRITE. "Nothing landed" and "two hundred
+            # commits landed" are different reports, and the second is not more owed than the first.
+            "nothing_landed": n == 0,
             "reason": "; and ".join(legs) if legs
-                      else f"{n} commit(s) owed, inside the ordinary range for this log"}
+                      else f"{n} commit(s) since the last report, inside the cadence"}
 
 
 def alarm_message(verdict: dict | None = None) -> str:
@@ -275,8 +324,22 @@ def check() -> tuple[int, str]:
         n, subjects = commits_since_last_entry()
     except StampUnreachable as exc:
         return 1, f"[stretch-log] {exc}"
+    verdict = owed()
+    if not verdict["owed"]:
+        return 0, f"[stretch-log] {verdict['reason']}."
     if n == 0:
-        return 0, "[stretch-log] up to date."
+        # THE ENTRY THE DIRECTOR ASKED FOR BY NAME. No commits and past the cadence is not "up to
+        # date" -- it is the state that most needs saying, and saying it is what lets a run of
+        # machinery be seen as one.
+        # `hours` is None when the entry's own commit is unreadable -- formatting it as a float is
+        # a crash in the branch that exists to report a problem, which the existing suite caught.
+        elapsed = ("an unreadable time" if verdict.get("hours") is None
+                   else f"{verdict['hours']:.1f}h")
+        return 1, (
+            f"[stretch-log] {elapsed} since the last report and NOTHING HAS LANDED.\n"
+            "That is an entry, not an exemption: what was worked on, what it was for, and why it "
+            "produced nothing.\n"
+            "Write it: `python3 tools/stretch_log.py --append '<subject>' --body-file <path>`")
     listing = "\n".join(f"    {s}" for s in subjects[:12])
     more = f"\n    ... and {n - 12} more" if n > 12 else ""
     return 1, (
