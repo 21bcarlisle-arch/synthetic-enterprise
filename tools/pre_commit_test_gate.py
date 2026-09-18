@@ -1007,6 +1007,116 @@ def _staging_severity_check(staged: list[str]) -> tuple[bool, str]:
     return True, f"{checked} staging document(s) carry a parseable severity header"
 
 
+def _staging_room_check(staged: list[str]) -> tuple[bool, str]:
+    """THE MISSING CALLER for `finding_classes.self_refuelling_root_documents`.
+
+    THE PREDICATE IS NOT NEW AND IS DELIBERATELY NOT REWRITTEN HERE. It was written on
+    2026-09-04, it has a reachability-proven unit test, and until this function existed it had
+    NO PRODUCTION CALLER — the `no_caller_and_never_runs` class, on the one control built for
+    the loop that has wedged this tree repeatedly since. Its own docstring names the loop:
+
+      1. a channel COMMITS a pre-registration into `docs/staging/`, which is the WORK QUEUE;
+      2. a disposition moves it into `records/` where its kind belongs;
+      3. the root path is still tracked, so the next operation that restores a
+         tracked-but-deleted path brings it straight back (this file does exactly that,
+         deliberately, to judge the tree a commit would create);
+      4. `finding_classes.room_collisions` then sees both rooms and refuses EVERY commit in the
+         tree — every lane's, and the publisher's;
+      5. `staging_two_rooms_repair` clears it with `git rm`, which is a STAGED deletion, so
+         step 3 undoes it and the cadence is minutes.
+
+    Measured live on 2026-09-18 before this landed: five pre-registrations in both rooms
+    refusing the whole tree, cleared by the repair at 17:21, and back on disk with a single
+    shared mtime at 17:23:15.
+
+    THE ONE CONTROL THAT DID READ THE PREDICATE CANNOT SEE THAT STATE, and that is the hole this
+    fills rather than duplicates. `test_no_document_is_TRACKED_in_the_staging_root_that_a_
+    disposition_will_move_out` asks `git ls-files` — the INDEX — which is green precisely while
+    the deletion is staged and uncommitted, i.e. throughout the loop. And it is a TEST, so the
+    pre-commit gate reaches it only by subject-module selection: a commit touching nothing but
+    `docs/staging/**` selects no targets at all, which is exactly the commit that files a
+    pre-registration. The predicate was therefore unreachable from the write that arms it.
+
+    SO THIS FIRES ON STEP 1, WHERE THE CLASS IS CREATED. Refuse the commit that puts a
+    room-kinded document into the tracked root and no later step can happen: nothing for a gate
+    run to restore, no second room for the collision walk to find. A tick that swept the root
+    would be a control watching a control; the write is the event.
+
+    THE REFUSAL NAMES A DOCUMENT AND REFUSES ONE AUTHOR. That is the difference from what it
+    prevents. `finding_classes --check` is right to refuse the whole tree once the duplicate
+    exists — by then the tree really is in a state no lane can commit out of. This fires one
+    step earlier, when the only party who can fix it in one move is the one being refused, and a
+    lane committing a document already in its room never notices it.
+
+    SCOPE IS THIS COMMIT'S OWN DOCUMENTS, for the reason `_staging_severity_check` states above:
+    a whole-room scope bills this committer for other authors' rot, and a fail-closed control
+    with no reachable discharge is how this project has wedged its own publishing before.
+
+    THE SUBJECT IS THE TREE THIS COMMIT WOULD CREATE, never the working tree, and here that is
+    load-bearing rather than tidy: during the disposal the root copies are ON DISK and staged for
+    DELETION, so a working-tree reading would refuse the very commit that ends the loop — one
+    rung worse than the state it was built to fix. A deletion is not a filing.
+
+    FAIL-CLOSED (R15 killer pattern 3): an unimportable predicate or an unreadable index is a
+    FAILED check, not a skipped one.
+    """
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from background.finding_classes import self_refuelling_root_documents
+        from background.staging_rooms import kind_of, room_for
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"staging-room predicate UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the module is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+
+    # The queue is the FLAT root: a path with another `/` in it is already in a room. Same
+    # segment-count rule as `_staging_severity_check`, and for the same reason -- `done/` and
+    # `in_progress/` are outside the queue by construction, not by a second glob.
+    in_root = [
+        p for p in staged
+        if p.startswith(STAGING_ROOM_PREFIX)
+        and p.endswith(".md")
+        and "/" not in p[len(STAGING_ROOM_PREFIX):]
+    ]
+    if not in_root:
+        return True, ""
+
+    flagged = self_refuelling_root_documents([p[len(STAGING_ROOM_PREFIX):] for p in in_root])
+    if not flagged:
+        return True, ""
+
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+
+    failures: list[str] = []
+    for name in flagged:
+        path = f"{STAGING_ROOM_PREFIX}{name}"
+        try:
+            present = subprocess.run(
+                ["git", "cat-file", "-e", f"{tree}:{path}"],
+                cwd=ROOT, capture_output=True, text=True, timeout=30,
+            )
+        except Exception as e:  # noqa: BLE001
+            return False, f"could not read {path} out of tree {tree[:9]}: {e}"
+        if present.returncode != 0:
+            continue  # not in the tree this commit creates -- a deletion, which is the remedy
+        room = room_for(kind_of(name))
+        failures.append(
+            f"{path}\n"
+            f"      its room is `{STAGING_ROOM_PREFIX}{room}/`, and the root is the WORK QUEUE.\n"
+            f"      Remedy:  git mv {path} {STAGING_ROOM_PREFIX}{room}/{name}"
+        )
+
+    if failures:
+        return False, "\n".join(f"  - {f}" for f in failures)
+    return True, f"{len(flagged)} room-kinded document(s) leave the queue root in this commit"
+
+
 WALL_REGISTER_PATH = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
 WALL_CENSUS_BASELINE = "docs/design/wall_channel_census_baseline.json"
 
@@ -1672,6 +1782,30 @@ def main() -> int:
                 "first `## `):\n"
                 "[test-gate]   **Severity:** BLOCKING|LATENT|RECORDED · **Lane:** <lane>\n"
                 "[test-gate] Reproduce: `python3 -m background.finding_severity`\n"
+            )
+            return 1
+        if detail:
+            print(f"[test-gate] ✓ {detail}")
+
+        # THE DOCUMENT'S OWN ROOM. Fourth member of this staging branch, and it runs LAST of
+        # the four on purpose: the three above judge a document's CONTENT, and this one judges
+        # where it was put, which is the cheaper question and the one whose refusal is a single
+        # `git mv`. It closes the loop the other three sit inside -- see the docstring: the
+        # two-rooms refusal that wedges every lane cannot be armed at all if no pre-registration
+        # is ever committed into the queue.
+        ok, detail = _staging_room_check(staged)
+        if not ok:
+            sys.stderr.write(
+                "\n[test-gate] ❌ A DOCUMENT THIS COMMIT FILES BELONGS IN A ROOM, NOT IN THE "
+                "WORK QUEUE -- COMMIT REFUSED.\n"
+                f"{detail}\n"
+                "[test-gate] This refusal names YOUR document and refuses YOUR commit. The one "
+                "it prevents does neither: once the same document exists in both rooms, "
+                "`finding_classes --check` refuses EVERY lane's commit and the publisher's, the "
+                "repair that clears it can only STAGE the deletion, and the next gate run "
+                "restores the root copy from HEAD -- so it recurs at the rate of filing until a "
+                "seat commits the deletion by hand.\n"
+                "[test-gate] Reproduce: `python3 -m background.staging_rooms --check`\n"
             )
             return 1
         if detail:
