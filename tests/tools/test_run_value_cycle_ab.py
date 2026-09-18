@@ -3596,3 +3596,178 @@ def test_the_cross_stratums_number_is_never_stated_without_the_interval_it_is_re
     assert "withheld" in bounded_without_an_interval, (
         "a spread that says it is available and carries no interval let the figure through: "
         + bounded_without_an_interval)
+
+
+# ── `decision_population` and `declined_renewals` ────────────────────────────────────────────
+#
+# WHY THESE EXIST (2026-09-18). `decision_population` published, on every three-arm run ever
+# recorded, that the priced-denominator gap was "Sequential A/B roster divergence" and that
+# equalising it "would mean pricing renewals for customers who had already left". On those same
+# runs the value arm declined 63-65 renewals and the level arm declined ZERO -- 96%+ of the gap
+# was the arm's own refusal of renewals both arms reached, and the block carried no number that
+# could contradict its own prose. `level_vs_selection` then took the licence that prose granted
+# and differenced two advantages over two different populations.
+#
+# THE CONTROLS ARE KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing below pins 64, 65 or 67.
+# They assert that the split is ARITHMETIC (the two terms sum to the gap), that the composed
+# sentence FOLLOWS the split in both directions, and that a decline roster is never silently
+# empty. A run whose declines legitimately fall to zero passes them; a run that goes back to
+# asserting one mechanism regardless of the numbers does not.
+
+
+def _funnels(value_priced, value_declined, level_priced, level_declined):
+    return {
+        "value_arm": {"available": True, "priced": value_priced, "declined": value_declined,
+                      "renewals_the_world_offered": 2037,
+                      "accounts_the_arm_priced": ["A", "B"]},
+        "level_arm": {"available": True, "priced": level_priced, "declined": level_declined,
+                      "renewals_the_world_offered": 2050,
+                      "accounts_the_arm_priced": ["A", "B", "C"]},
+    }
+
+
+def test_the_denominator_gaps_two_causes_SUM_to_the_gap_and_neither_is_asserted():
+    """The split is arithmetic, and it closes. A share that does not reconcile is a story."""
+    block = rvca.decision_population(_funnels(215, 65, 281, 0))
+    rec = block["reconciliation"]
+    assert rec["available"] is True, rec
+    assert rec["explained_by_declines"] + rec["explained_by_roster_or_stage_divergence"] \
+        == block["largest_denominator_difference"], (
+            "the two causes do not sum to the gap they are splitting, so at least one of them is "
+            "a number with no population behind it: " + json.dumps(rec))
+    # The arm that REFUSED is the one whose denominator is smaller -- getting this backwards
+    # would charge the declines to the wrong arm and still reconcile.
+    assert rec["smaller_denominator_arm"] == "value_arm" \
+        and rec["larger_denominator_arm"] == "level_arm", rec
+
+
+def test_BOTH_mechanisms_are_reachable_before_either_sentence_is_graded():
+    """A composer that said one thing on every input would pass every leg below it.
+
+    THE PARTITION, OVER ONE CONTROL. R15: a guard that refuses everything passes every test of
+    what it refuses. `declines_are_the_larger_half` is the branch both prose fields key on, so
+    it is asserted True-and-False over the whole partition here, once, rather than a leg each.
+    """
+    declines_own_it = rvca.decision_population(_funnels(215, 65, 281, 0))
+    roster_owns_it = rvca.decision_population(_funnels(215, 2, 281, 0))
+    assert declines_own_it["reconciliation"]["declines_are_the_larger_half"] is True
+    assert roster_owns_it["reconciliation"]["declines_are_the_larger_half"] is False
+    # ...and the sentence FOLLOWS the split rather than being pinned to one of its values.
+    assert "REFUSALS" in declines_own_it["the_mechanism"], declines_own_it["the_mechanism"]
+    assert "roster divergence" in roster_owns_it["the_mechanism"].lower(), \
+        roster_owns_it["the_mechanism"]
+    assert declines_own_it["the_mechanism"] != roster_owns_it["the_mechanism"]
+
+
+def test_the_block_RETRACTS_its_own_departed_customers_defence_when_the_declines_own_the_gap():
+    """The exact false sentence, and it must not survive the input that falsifies it.
+
+    "Equalising the denominators would mean pricing renewals for customers who had already left"
+    is TRUE of the roster half and FALSE of the declines -- renewals both arms reached. Keyed to
+    the claim, so this reds if the sentence comes back on a run the declines own.
+    """
+    declines_block = rvca.decision_population(_funnels(215, 65, 281, 0))
+    declines_own_it = declines_block["why_this_is_not_a_defect"]
+    roster_owns_it = rvca.decision_population(_funnels(215, 2, 281, 0))["why_this_is_not_a_defect"]
+    # KEYED TO THE CLAIM, NOT TO THE PHRASE. The retraction deliberately QUOTES the sentence it
+    # withdraws -- a wrong claim kept beside its correction is the evidence the correction
+    # happened -- so a substring ban on "already left" would red the honest version and pass a
+    # block that simply reworded the defence. What must differ is whether the gap is DEFENDED.
+    assert declines_own_it.startswith("IT MAY WELL BE ONE"), (
+        "the block still opens by defending the gap on a run where the arm's own refusals are "
+        "the majority of it: " + declines_own_it)
+    assert "no longer says otherwise" in declines_own_it, declines_own_it
+    # ...and the defence is still MADE where it is TRUE, or this control is just a ban.
+    assert roster_owns_it.startswith("Equalising the denominators would mean"), roster_owns_it
+    assert "IT MAY WELL BE ONE" not in roster_owns_it, (
+        "the block retracts a defence that is correct on a run the roster genuinely owns: "
+        + roster_owns_it)
+    # THE READER'S WARNING travels with it: the residual is what takes the licence.
+    assert "selection_gbp" in declines_block["what_a_reader_must_not_do"], \
+        declines_block["what_a_reader_must_not_do"]
+
+
+def _arm_log(log):
+    return {"phase2b": {"value_arm_log": log}}
+
+
+def test_the_declined_renewals_are_NAMED_and_joined_to_the_level_arms_own_decision():
+    value = _arm_log([
+        {"customer_id": "PROS-2019-0024", "commodity": "power", "term_start": "2021-04-01",
+         "declined": True, "reason": "no lawful margin survived the support bound",
+         "unit_rate_unchanged": 210.0},
+        {"customer_id": "C8", "commodity": "power", "term_start": "2022-01-01",
+         "declined": True, "reason": "no lawful margin survived the support bound",
+         "unit_rate_unchanged": 240.0},
+        {"customer_id": "C9", "commodity": "power", "term_start": "2021-04-01",
+         "chosen_margin_gbp_per_mwh": 30.0},
+    ])
+    level = _arm_log([
+        {"customer_id": "PROS-2019-0024", "commodity": "power", "term_start": "2021-04-01",
+         "chosen_margin_gbp_per_mwh": 19.52, "uplift_gbp_per_mwh": 17.52,
+         "company_current_rate_gbp_per_mwh": 180.0, "offered_rate_gbp_per_mwh": 197.5,
+         "rate_increase_pct": 9.7},
+    ])
+    block = rvca.declined_renewals(value, level)
+    assert block["available"] is True and block["declined"] == 2, block
+    named = {r["account"] for r in block["renewals"]}
+    assert named == {"PROS-2019-0024", "C8"}, (
+        "the roster is not the declines -- a priced renewal leaked in or a decline was dropped: "
+        + json.dumps(sorted(named)))
+    joined = [r for r in block["renewals"] if r["level_arm_priced_this_renewal"] is True]
+    assert [r["account"] for r in joined] == ["PROS-2019-0024"], block["renewals"]
+    assert joined[0]["level_arm_margin_gbp_per_mwh"] == 19.52, joined[0]
+    assert block["level_arm_priced_the_same_renewal"] == 1, block
+    # A MISS IS NOT A DECLINE BY THE LEVEL ARM. The level arm declines nothing; C8's renewal did
+    # not exist on its book. Collapsing the two would publish the roster half as a refusal.
+    missed = [r for r in block["renewals"] if r["account"] == "C8"][0]
+    assert missed["level_arm_priced_this_renewal"] is False, missed
+
+
+def test_the_join_is_keyed_to_the_RENEWAL_and_never_to_the_account_alone():
+    """One account presents several terms; the arms can differ on one and agree on the next."""
+    value = _arm_log([{"customer_id": "C8", "commodity": "power", "term_start": "2022-01-01",
+                   "declined": True, "reason": "r", "unit_rate_unchanged": 240.0}])
+    level = _arm_log([{"customer_id": "C8", "commodity": "power", "term_start": "2023-01-01",
+                   "chosen_margin_gbp_per_mwh": 19.52}])
+    block = rvca.declined_renewals(value, level)
+    assert block["renewals"][0]["level_arm_priced_this_renewal"] is False, (
+        "a decline in one term matched a price struck in a DIFFERENT term, so the roster claims "
+        "the level arm priced a renewal it never saw: " + json.dumps(block["renewals"][0]))
+
+
+def test_no_POUNDS_figure_is_formed_from_a_rate_the_block_has_no_volume_for():
+    """The defect this block is most likely to grow, named before it does.
+
+    `chosen_margin_gbp_per_mwh` x a per-renewal average from the OTHER population is exactly the
+    divide-two-different-things shape. The honest answer is an absence with its reason.
+    """
+    value = _arm_log([{"customer_id": "C8", "commodity": "power", "term_start": "2022-01-01",
+                   "declined": True, "reason": "r", "unit_rate_unchanged": 240.0}])
+    block = rvca.declined_renewals(value, _arm_log([]))
+    assert block["money_unavailable_because"], block
+    assert "volume" in block["money_unavailable_because"], block["money_unavailable_because"]
+    money_keys = [k for k in block if k.endswith("_gbp") or k.endswith("_gbp_total")]
+    assert not money_keys, (
+        "a pounds total appeared on a block holding only rates and no volume: " + str(money_keys))
+
+
+def test_a_run_with_no_log_REFUSES_rather_than_reporting_an_empty_roster():
+    """FAIL-OPEN is the killer here: "no declines" and "never recorded" must not read the same."""
+    absent = rvca.declined_renewals({"phase2b": {}}, None)
+    none_declined = rvca.declined_renewals(_arm_log([{"customer_id": "C8", "declined": False}]), None)
+    assert absent["available"] is False and "never recorded" in absent["reason"], absent
+    # ...and the genuinely-empty case is AVAILABLE with a zero, or the refusal above is a ban on
+    # the honest answer too.
+    assert none_declined["available"] is True and none_declined["declined"] == 0, none_declined
+
+
+def test_a_run_without_a_level_arm_says_so_rather_than_reporting_zero_joins():
+    value = _arm_log([{"customer_id": "C8", "commodity": "power", "term_start": "2022-01-01",
+                   "declined": True, "reason": "r", "unit_rate_unchanged": 240.0}])
+    block = rvca.declined_renewals(value, None)
+    assert block["level_arm_priced_the_same_renewal"] is None, (
+        "a run with no level arm reported 0 joins, which is indistinguishable from a level arm "
+        "that priced none of them: " + json.dumps(block["level_arm_priced_the_same_renewal"]))
+    assert block["level_arm_join_unavailable_because"], block
+    assert block["renewals"][0]["level_arm_priced_this_renewal"] is None, block["renewals"][0]
