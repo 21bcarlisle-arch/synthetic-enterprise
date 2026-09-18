@@ -4107,6 +4107,16 @@ def test_a_reading_that_CLEARS_its_null_does_not_say_it():
     sentence. Rendering it UNCONDITIONALLY does NOT fire and that is an equivalence, not a gap:
     `prose(null)` is the empty string, so an always-true branch emits an empty paragraph and no
     phrase. Established rather than assumed.
+
+    SCOPED TO THE SURVIVOR CUT'S OWN REGION (2026-09-18), for the same reason and by the same
+    partition as the sibling above -- and found the same way, by a run actually landing rather
+    than by reasoning. This leg drives ONE reading and then read the WHOLE panel for the phrase,
+    so it was green only while `method_skill` was the panel's sole source of it. Promoting the
+    support-bounded three-arm run made the estimand's cut -- a DIFFERENT population, 0.440 on 85
+    decisions -- sit inside its own null and honestly say so, and this went red on a page that had
+    become MORE truthful. That is the shape CLAUDE.md prices: keyed to today's answer, red when
+    the code gets honest, green when the claim rots. The absence being asserted is the SURVIVOR
+    cut's, so the region is everything above the estimand's own heading.
     """
     feed = copy.deepcopy(_live_feed())
     msk = feed.get("method_skill") or {}
@@ -4116,11 +4126,24 @@ def test_a_reading_that_CLEARS_its_null_does_not_say_it():
                 "inside_the_null": True, "cannot_tell": None})
 
     rendered = _render(feed)["arms-method"]
+    #: The estimand's block opens with this heading, so what precedes it is the survivor cut's.
+    below = "And the same question over every decision the arm priced?"
+    survivor_region = rendered.split(below)[0]
 
-    assert "0.940" in rendered, "the driven reading did not reach the page at all"
-    assert "we cannot tell" not in rendered.lower(), (
+    assert "0.940" in survivor_region, "the driven reading did not reach the page at all"
+    assert "we cannot tell" not in survivor_region.lower(), (
         "the page says we cannot tell about a reading that clears its own null, which makes the "
         "phrase a constant rather than a verdict")
+    #: THE SPLIT HAS TO BE LOAD-BEARING, or the scoping is furniture that happens to pass -- the
+    #: whole-panel read is what this leg used to do, and it is what went red. When the estimand's
+    #: cut cannot tell either, its sentence IS on the page, so the phrase is present in the panel
+    #: and absent from this region, and only the partition can tell "the block I blanked came
+    #: back" from "a second subject appeared". When that cut clears its null there is no second
+    #: subject, and then the two reads agree and there is nothing for the partition to do.
+    if below in rendered and "we cannot tell" in rendered.lower():
+        assert "0.940" not in rendered.split(below, 1)[1], (
+            "the estimand's region cites the SURVIVOR cut's driven reading, so the split is not "
+            "the partition this scoping claims it is")
 
 
 # ── the OTHER leg: independence, and whether it reaches anyone ────────────────────────────────
