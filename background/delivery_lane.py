@@ -118,6 +118,7 @@ the heartbeat again:
 from __future__ import annotations
 
 import argparse
+import datetime
 import re
 import subprocess
 import sys
@@ -2404,6 +2405,78 @@ def claim_dispatched(reason: str, *, now: float | None = None,
         return None
 
 
+#: A draw-time embargo, as the seat actually writes it. Both verbs are live: the SAME item has
+#: been written `DO NOT START BEFORE 12:45 on 2026-09-18` and `DO NOT DRAW BEFORE 10:45 on
+#: 2026-09-18` across successive re-drawings, so anchoring on one spelling would have honoured the
+#: stamp on some turns and not others -- which is worse than honouring none, because it is
+#: unpredictable. Both orderings of instant and date are accepted for the same reason: the author
+#: is writing prose for a reader, and a grammar that only accepts the phrasing used on the day it
+#: was written is a guard with a silent off-switch.
+_EMBARGO = re.compile(
+    r"do\s+not\s+(?:draw|start)\s+before\s+\*{0,2}(?:"
+    r"(?P<h1>\d{1,2}):(?P<m1>\d{2})\*{0,2}\s+on\s+\*{0,2}(?P<y1>\d{4})-(?P<mo1>\d{2})-(?P<d1>\d{2})"
+    r"|"
+    r"(?P<y2>\d{4})-(?P<mo2>\d{2})-(?P<d2>\d{2})\*{0,2}[T\s]+\*{0,2}(?P<h2>\d{1,2}):(?P<m2>\d{2})"
+    r")",
+    re.IGNORECASE)
+
+
+def embargoed_until(item: dict) -> float | None:
+    """The instant before which this item must not be handed to a tick, or None.
+
+    WHY THIS EXISTS, AND IT IS FOUR INVOCATIONS OF EVIDENCE, NOT A HYPOTHETICAL. A focus item that
+    sends a tick to read a long-running run's artefact carries the instant that artefact starts
+    existing. That instant was written as prose inside the work description, **nothing read it**,
+    and the draw handed the item out at 00:37, 02:35 and 03:12 on 2026-09-18 -- each time hours
+    before the file could exist, each time costing a whole invocation that could do nothing but
+    re-measure the ETA and hand the item straight back. Three of those turns filed a finding saying
+    so. A precondition that has failed every time it mattered is worse than no precondition,
+    because each failure reads as a seat error rather than as the missing wire it is.
+
+    THE LATEST STAMP WINS when an item carries several. Two stamps that disagree are an author
+    restating a deadline that moved, and the conservative reading of "not before X" and "not before
+    Y" is `max(X, Y)` -- honouring the earlier one would draw into exactly the window the later one
+    was written to close.
+
+    EVERY STRING FIELD IS SCANNED, not the one field today's instance happens to use. An embargo is
+    an instruction wherever it is written, and keying to `what` would mean a seat that put the line
+    in `done_means` got no guard and no warning. This cannot manufacture a false embargo from
+    rhetoric about the past: only a stamp whose instant is still in the FUTURE defers anything, so
+    a sentence quoting a date that has been and gone is inert by construction.
+
+    NEVER RAISES, and an unparseable or absent stamp means NOT EMBARGOED. That is the fail-OPEN
+    direction, it is the same one `_retired_ids` takes, and the asymmetry is the argument: a stamp
+    this misses costs ONE invocation, which is the status quo and is visible to the tick that reads
+    it; a stamp this invents withholds work silently, and a lane that quietly stops delivering is
+    the six-day walkover `draw` was written around. An empty lane is visible to nobody.
+    """
+    try:
+        text = " ".join(v for v in item.values() if isinstance(v, str))
+        stamps = []
+        for m in _EMBARGO.finditer(text):
+            g = m.groupdict()
+            suffix = "1" if g["h1"] is not None else "2"
+            stamps.append(datetime.datetime(
+                int(g["y" + suffix]), int(g["mo" + suffix]), int(g["d" + suffix]),
+                int(g["h" + suffix]), int(g["m" + suffix])).timestamp())
+        return max(stamps) if stamps else None
+    except Exception:
+        return None
+
+
+def _embargoed(item: dict, now: float | None) -> bool:
+    """True while `item` is inside its own stated embargo.
+
+    Split out from `embargoed_until` so the draw asks a QUESTION rather than repeating a
+    comparison, and so the instant itself stays readable by `--embargoed` for a human asking why
+    an item was not offered. A skip nothing can interrogate is the same shape as no skip at all.
+    """
+    until = embargoed_until(item)
+    if until is None:
+        return False
+    return (time.time() if now is None else now) < until
+
+
 def _retired_ids() -> set[str]:
     """Ids some continuation declares it replaced, for filtering the OTHER store that holds them.
 
@@ -2507,12 +2580,18 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     # continuation source permanently second, which is the mechanism the director named as the
     # biggest single drag on the project -- and the tests could not see it because their fixture
     # writes focus rows the promoter has not touched. `_named_by_live_direction` is the repair.
+    # AN EMBARGO SKIPS THE ITEM AND NEVER STOPS THE WALK (2026-09-18). Both loops `continue` past
+    # an embargoed row rather than returning None, and the distinction is the whole mechanism: an
+    # item that cannot be started for nine hours must not hold the lane shut for nine hours behind
+    # it. Returning None here would convert a stale instruction into an IDLE MACHINE, trading one
+    # wasted invocation for every invocation in the window -- strictly worse than the defect being
+    # repaired, and the failure `draw`'s own six-day walkover already paid for once.
     def _continuation():
         # Wrapped because `draw` documents that a lane which can throw takes every other lane
         # down with it, and a handoff store must never cost the machine a tick.
         try:
             for item in seat_continuation.live(now=now):
-                if item.get("id") and item["id"] not in taken:
+                if item.get("id") and item["id"] not in taken and not _embargoed(item, now):
                     return item
         except Exception:
             return None
@@ -2520,7 +2599,8 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
 
     def _focus():
         for item in direction_mod.unreachable_focus(_atom_ids()):
-            if item.get("id") and item["id"] not in taken and item["id"] not in retired:
+            if (item.get("id") and item["id"] not in taken
+                    and item["id"] not in retired and not _embargoed(item, now)):
                 return item
         return None
 
@@ -2677,7 +2757,41 @@ def main(argv=None) -> int:
                          "origin/main, so nothing can say which side this lane added")
     ap.add_argument("--sweep", action="store_true",
                     help="return abandoned claims to the pool")
+    ap.add_argument("--embargoed", action="store_true",
+                    help="which live items state a draw-time embargo, and until when")
     args = ap.parse_args(argv)
+    if args.embargoed:
+        # THE SKIP HAS TO BE INTERROGABLE, or it is the same shape as no skip. `next_item` walks
+        # past an embargoed row in silence -- correctly, since it has work to hand out -- so this
+        # is the only place a human asking "why was that not offered?" gets an answer, and it
+        # prints BOTH sides of the partition so an empty list reads as "nothing embargoed" rather
+        # than as "the reader is broken".
+        #
+        # BOTH STORES, AND THE FIRST DRAFT READ ONLY ONE -- caught by running it against the live
+        # record rather than against the fixture. `next_item` filters two sources, and on
+        # 2026-09-18 the only embargoed item in the machine was a CONTINUATION: the focus-only
+        # version printed "nothing embargoed" while the stamp it was written for sat in the other
+        # store, held until 12:45. A reader that answers confidently about the store it happens to
+        # know is worse than one that refuses, and it is the same fail-silent shape as the missing
+        # guard itself.
+        rows = []
+        try:
+            live_items = list(seat_continuation.live())
+        except Exception:
+            live_items = []
+        for item in list(direction_mod.unreachable_focus(_atom_ids())) + live_items:
+            until = embargoed_until(item)
+            if until is not None:
+                rows.append((item.get("id"), until))
+        if not rows:
+            print("no live focus item states a draw-time embargo "
+                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`)")
+            return 0
+        for focus_id, until in rows:
+            when = datetime.datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M")
+            state = "HELD" if time.time() < until else "expired, drawable"
+            print(f"{focus_id}: not before {when} -- {state}")
+        return 0
     if args.release:
         # BOTH STORES, AND THE OFFER FIRST. `retire_continuation` explains why one discharge was
         # never enough; it runs BEFORE the claim check because the commonest finished-continuation
