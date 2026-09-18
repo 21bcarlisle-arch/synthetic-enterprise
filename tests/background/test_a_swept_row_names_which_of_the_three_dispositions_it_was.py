@@ -59,6 +59,7 @@ import subprocess
 import pytest
 
 from background import delivery_lane as dl
+from tests.background.residual_voices import could_not_ask
 
 #: The live instance, read from the draw ledger on 2026-09-09.
 SPENT_ID = "make-the-pages-two-selection-spreads-legible-now-that-they-sit-at-different-n"
@@ -131,9 +132,13 @@ def test_THE_PARTITION_of_the_reader_all_three_dispositions_come_back_from_one_l
     assert spent["disposition"] == dl.PREMISE_SPENT
     assert missed["disposition"] == dl.NOT_DONE
     assert credited["disposition"] == dl.LANDED_ELSEWHERE
-    # The residual is the shape with NO evidence, and the other two must carry theirs -- otherwise
-    # "names its disposition" is satisfied by a label nobody can follow back to a fact on disk.
-    assert missed["evidence"] == ""
+    # The residual carries evidence TOO now, and the question is which of its two voices -- the
+    # other two must still carry theirs, or "names its disposition" is satisfied by a label nobody
+    # can follow back to a fact on disk. This row names no tracked path, so the query could not be
+    # BUILT and git was never asked: CANNOT-ANSWER, not "we looked and found nothing". Calling that
+    # a clean miss is the fail-open reading of an unavailable check, and `== ""` could not tell the
+    # two apart at all -- which is the conflation this file's own next comment names.
+    assert could_not_ask(missed), missed
     assert _published_sha()[:9] in spent["evidence"]
     assert LENDER_ID in credited["evidence"]
     # The two answers that are NOT one of the three, kept distinct so "nobody did it" cannot
@@ -235,7 +240,11 @@ def test_A_REDRAWN_ROW_IS_NOT_DONE_AGAIN_and_the_old_credit_does_not_settle_the_
     })
     got = {r["id"]: r for r in dl.drawn_without_landing(now=NOW, path=store)}
     assert got[CREDITED_ID]["disposition"] == dl.NOT_DONE
-    assert got[CREDITED_ID]["evidence"] == ""
+    # The OLD credit must not settle the new window, and the residual must not borrow its evidence
+    # either -- a second draw whose reason still read `landed under ...` would be the same
+    # fail-open wearing a sentence. This row names no tracked path for the NEW window, so the
+    # honest answer is CANNOT-ANSWER rather than a clean miss.
+    assert could_not_ask(got[CREDITED_ID]), got[CREDITED_ID]
 
 
 def test_THE_RECORD_TAKES_NO_CLAIM_AND_MOVES_NO_DRAW(tmp_path):

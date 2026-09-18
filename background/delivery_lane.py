@@ -363,6 +363,13 @@ def _git(*args: str, cwd: Path | None = None) -> str | None:
     does not: it reports the working tree of the checkout it runs in, and the bytes the strand half
     is looking for are on the SHARED disk by definition. Asking the wrong tree there returns a
     clean status and reads as "nothing stranded", which is the flattering answer.
+
+    `None` AND `""` ARE DIFFERENT ANSWERS AND THIS FUNCTION HAS ALWAYS KEPT THEM APART: rc==0
+    returns stdout, which is `""` when git ran and matched nothing, and every other outcome --
+    rc!=0, a timeout, git missing -- returns `None`. What loses the distinction is the CALLER, and
+    `or ""` / `if not out` are how: both collapse "the tree said no" into "the tree was never
+    asked" at the point of use. `_git_or_raise` below exists so the collapse cannot be written
+    silently, and the residual's third voice (see `_window_hits`) is what it cost when it was.
     """
     try:
         out = subprocess.run(("git",) + args, cwd=cwd or PROJECT_DIR,
@@ -370,6 +377,46 @@ def _git(*args: str, cwd: Path | None = None) -> str | None:
     except (OSError, subprocess.SubprocessError):
         return None
     return out.stdout if out.returncode == 0 else None
+
+
+class GitUnavailable(RuntimeError):
+    """git could not be ASKED, as distinct from git answering nothing.
+
+    A distinct type rather than a bare `RuntimeError` so the readers in `_disposition` can say
+    which of their two silences they hit, and so a caller cannot catch this by catching its own
+    bugs.
+    """
+
+
+def _git_or_raise(*args: str) -> str:
+    """`_git`, with the unavailable case raised instead of returned. `""` is an ANSWER and is kept.
+
+    THE THIRD VOICE OF THE RESIDUAL, and it is the same conflation `_nothing_answered` was split to
+    end, one layer lower (measured 2026-09-18). `_git` reports a failed git as `None` and a git that
+    matched nothing as `""`, and every caller that wrote `if not out` threw that apart away — so a
+    `git log` that could not run reached the reader as *"asked git ... none. ... this is a genuine
+    miss and the work may still be undone"*, the ANSWERED voice, for a question nobody managed to
+    ask. The two want opposite actions: a genuine miss says draw it again, a failed join says a
+    louder disposition may be TRUE and was lost, so acting on it redoes work that already exists.
+
+    THE DRAWN ITEM SAID THE TWO WERE INDISTINGUISHABLE AT THE WRAPPER — so did the leg that measured
+    it — AND THAT WAS WRONG, corrected here beside the claim rather than quietly. `_git` has kept
+    them apart since it was written; nothing downstream read the difference. That is why the fix is
+    a wrapper that RAISES rather than a new return value: a return value can be dropped by the next
+    caller in one falsy test, and this one cannot be ignored without writing the `except` that says
+    so. The three `except`s in `_disposition` already turn exactly that into `could_not_ask`.
+
+    NO `cwd`, DELIBERATELY, and it is not an oversight to be tidied up later. `_git`'s override
+    exists for exactly one caller, `_stranded_paths`, which asks `git status` of the SHARED tree --
+    and there empty is never a finding at all (that function's own docstring says so, and
+    `tree_verdict` only ever turns a NON-empty list into a verdict). This distinction is for the
+    COMMIT queries, which answer identically from any linked worktree. A knob with no caller is a
+    knob whose first caller finds out it was never exercised.
+    """
+    out = _git(*args)
+    if out is None:
+        raise GitUnavailable("`git {}` would not answer".format(" ".join(args[:2])))
+    return out
 
 
 def _merge_base_side(commit: str, parents: list[str]) -> tuple[str | None, str]:
@@ -1062,16 +1109,26 @@ def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], lis
     same second is worse than either one being absent.
 
     `hits` IS UNFILTERED BY OWNERSHIP ON PURPOSE. Each caller applies its own side of that test, so
-    neither can be made to agree with the other by accident — and an empty list here means git said
-    nothing, which both callers must read as "cannot answer" rather than as "nothing happened".
+    neither can be made to agree with the other by accident.
+
+    AND AN EMPTY `hits` NOW MEANS ONE THING, WHICH IS THE 2026-09-18 REPAIR. The sentence that stood
+    here said an empty list "means git said nothing, which both callers must read as 'cannot
+    answer'" — it was right about the danger and wrong about who could act on it, and it is
+    corrected beside the claim rather than rewritten over. Both callers read empty as `None`, which
+    `_disposition` then reads as the residual, which `_nothing_answered` published in its ANSWERED
+    voice: *asked git ... none, a genuine miss*. No caller can recover a distinction this function
+    has already thrown away, so it is not thrown away: a git that could not run raises
+    `GitUnavailable` (see `_git_or_raise`) and only a git that ANSWERED with no commits returns
+    `(paths, [])`. The raise lands in the `except`s `_disposition` already had, and comes out as
+    `could_not_ask`.
     """
     paths = _claim_paths(focus_id, row)
     if not paths:
         return [], []
     window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
-    out = _git("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
-               "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
-               "--", *paths)
+    out = _git_or_raise("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
+                        "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
+                        "--", *paths)
     if not out:
         return paths, []
     hits = []
@@ -1266,18 +1323,26 @@ def _drawn_before_stated_start(focus_id: str, row: dict, drawn: float) -> dict |
     is a named instant a reader can check against the item's own prose in one line, against a
     residual that named nothing.
 
-    AND IT NEVER WITHHOLDS WORK, WHICH IS WHY IT MAY READ A SPELLING THE DRAW MAY NOT. `_embargoed`
-    asks the same question of the same prose to decide whether to hand an item out, and there a
-    stamp invented from a loose grammar costs every invocation in the window — the empty lane that
-    is visible to nobody, and the failure `draw`'s six-day walkover already paid for. This reading
-    can only ever explain a window that has already closed. The asymmetry is the whole reason the
-    back-referenced spelling below is resolvable here and is deliberately NOT wired into the draw:
-    same regex, same resolver, different anchor, and only one of the two can cost the lane a tick.
+    AND IT NEVER WITHHOLDS WORK, WHICH IS WHY IT READ A SPELLING THE DRAW COULD NOT — until
+    2026-09-18, when the draw was given the same reading and this paragraph stopped being true.
+    It is kept, corrected in place, because the caution was right and is what the wire had to
+    answer: a stamp invented from a loose grammar costs `_embargoed` every invocation in the
+    window, while this reading can only ever explain a window that has already closed. What made
+    the spelling safe to hand to the draw was not confidence, it was two additions — an anchor that
+    is a fixed instant in the past rather than `now`, and `_without_quoted_spans`, without which
+    an item DESCRIBING the grammar embargoes itself. The asymmetry survives in the anchor: same
+    regex, same resolver, and the draw's copy must earn a stricter reading than this one.
+
+    THIS CALL STAYS `dated_only`. `embargoed_until` now resolves the back-referenced spelling too,
+    against the item's own `written_at` — but a disposition explaining a closed window must anchor
+    on the DRAW, and the two lines below are that anchor. Letting the shared reader do it here
+    would silently swap in the other anchor and make a row's stamp depend on which store it came
+    from rather than on its prose.
     """
     text = _item_text(focus_id) or ""
     if not text:
         return None
-    until = embargoed_until({"prose": text})
+    until = embargoed_until({"prose": text}, dated_only=True)
     if until is None:
         until = _back_referenced_start(text, drawn)
     if until is None:
@@ -1326,6 +1391,30 @@ _CLOCK_TIME = re.compile(r"(?<![:\d])(?P<h>\d{1,2}):(?P<m>\d{2})(?![:\d])")
 #: and the failure direction of a too-WIDE reach is a stated instant that was never stated.
 _BACKREF_REACH = 60
 
+#: AN INSTRUCTION INSIDE QUOTES IS BEING MENTIONED, NOT GIVEN — and without this the very item that
+#: asked for the draw to read this spelling embargoes ITSELF. `embargoed_until` says the dated
+#: grammar "cannot manufacture a false embargo from rhetoric about the past", and the reason is that
+#: a quoted date is absolute and has been and gone. A quoted date-LESS clock has no such protection:
+#: it re-resolves into the future against whatever anchor it meets, so a sentence ABOUT the grammar
+#: is indistinguishable from the grammar itself. Measured on the live continuation store 2026-09-18
+#: — two of 282 entries carry the spelling, and they are the discriminating pair: the burning one
+#: (`... ETA near 03:58; do not draw this before then, the file will not exist`) has no quote mark
+#: anywhere in its text, while the one quoting it wraps the phrase in `"` and means nothing by it.
+#:
+#: THE BLANKING PRESERVES OFFSETS because `_back_referenced_start` looks BACKWARD from the
+#: instruction by character count; substituting spaces of equal length keeps that reach measuring
+#: the same prose it would have measured. A quoted span that swallows the antecedent rather than the
+#: instruction leaves no candidate and resolves to None, which is the fail-OPEN side.
+#:
+#: ONLY BALANCED, SINGLE-LINE SPANS MATCH. An unterminated quote pairs with nothing and blanks
+#: nothing, so a stray `"` earlier in an item cannot silently disarm a real instruction later in it.
+_QUOTED_SPAN = re.compile(r'"[^"\n]*"|`[^`\n]*`')
+
+
+def _without_quoted_spans(text: str) -> str:
+    """`text` with every quoted or backticked span replaced by spaces of the same length."""
+    return _QUOTED_SPAN.sub(lambda m: " " * len(m.group(0)), text or "")
+
 
 def _back_referenced_start(text: str, anchor: float) -> float | None:
     """A date-less stated start resolved against `anchor`, or None. NEVER RAISES.
@@ -1336,9 +1425,14 @@ def _back_referenced_start(text: str, anchor: float) -> float | None:
     been and gone — so "the next 03:58 from here" is the only reading consistent with the sentence,
     and it is bounded by one day without needing a horizon constant to say so.
 
-    ANCHORED ON THE DRAW AND NOT ON `now`, which is what makes this a statement about a closed
-    window rather than about this afternoon. Anchoring on `now` would re-resolve the same prose to
-    a different day on every sweep, so a row's disposition would change while the row did not.
+    THE ANCHOR MUST BE A FIXED INSTANT IN THE PAST, AND `now` IS NOT ONE. The disposition passes
+    the draw; `embargoed_until` passes when the prose was WRITTEN. Both are fixed, so the same text
+    resolves to the same instant every time it is read. Anchoring on `now` — which is what the
+    instruction that asked for this wiring proposed — cannot work in the draw at all: the rule is
+    "the first occurrence at or after the anchor", so at 04:30 a stamp of 03:58 re-resolves to
+    03:58 TOMORROW, the item is withheld again, and it is withheld again at every draw for ever.
+    That is not a missed stamp costing one invocation; it is the silent, permanent withholding of
+    work this function's own caller calls the worse failure. Measured before writing the wire.
 
     THE NEAREST ANTECEDENT WINS WITHIN ONE `then`, AND THE LATEST WINS ACROSS SEVERAL. They are
     different questions and the two rules are not in tension: "then" refers to the last instant
@@ -1349,7 +1443,8 @@ def _back_referenced_start(text: str, anchor: float) -> float | None:
     """
     try:
         stamps = []
-        for instruction in _BACKREF_INSTRUCTION.finditer(text or ""):
+        text = _without_quoted_spans(text)
+        for instruction in _BACKREF_INSTRUCTION.finditer(text):
             start = max(0, instruction.start() - _BACKREF_REACH)
             candidates = _CLOCK_TIME.findall(text[start:instruction.start()])
             if not candidates:
@@ -1576,6 +1671,20 @@ def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
     return _disposition(row, drawn, focus_id=focus_id, bound_at=_bound_by(ledger))
 
 
+def _raised(what: str, exc: BaseException) -> str:
+    """`what` plus the exception's type AND its own sentence, for the `unanswered` list below.
+
+    The three readers used to append the type alone, which told a reader that something broke and
+    not what. `GitUnavailable` carries the command git would not run, and that is the actionable
+    half: "the unbound-commit join raised GitUnavailable" is one rung above the empty string this
+    all started as, and `: \\`git log --all\\` would not answer` is the rung that says where to look.
+    Truncated to one line so a stray traceback-shaped message cannot take over the brief.
+    """
+    detail = str(exc).strip().splitlines()
+    first = detail[0][:120] if detail else ""
+    return "{} raised {}{}".format(what, type(exc).__name__, ": " + first if first else "")
+
+
 def _nothing_answered(focus_id: str, row: dict, drawn: float,
                       unanswered: list[str]) -> dict:
     """`NOT_DONE` carrying WHAT WAS ASKED and what came back. The residual, never silent.
@@ -1614,6 +1723,15 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         "we looked and found nothing", and it says which paths and over what window so the reader
         can check whether the paths were the right ones.
 
+    THE FOURTH BRANCH HAD A THIRD VOICE HIDING IN IT UNTIL 2026-09-18, and it is named here because
+    this is where it was published rather than where it was caused. `_window_hits` read a git that
+    FAILED and a git that answered NO COMMITS through one falsy test, so a `git log` that never ran
+    arrived at the last branch and was published as "a genuine miss and the work may still be
+    undone" — the split this function exists to make, undone one layer below it. The fix is at the
+    seam (`_git_or_raise`): the unavailable case now raises, lands in `_disposition`'s `except`s,
+    and reaches here as `unanswered`, the FIRST branch. Nothing about this function's four branches
+    changed; what changed is that the last one can only be reached by a question git answered.
+
     IT NEVER RAISES, for the reason every reader in this module never raises: `drawn_without_landing`
     feeds the orientation brief and a residual that could throw would cost the brief its other
     twenty keys. A failure to compose the reason falls back to naming THAT, which is still a
@@ -1628,8 +1746,8 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         paths, hits = _window_hits(focus_id, row, drawn)
     except Exception as exc:
         return {"disposition": NOT_DONE,
-                "evidence": "CANNOT ANSWER, not 'nothing landed': composing the commit query "
-                            "raised {}".format(type(exc).__name__)}
+                "evidence": "CANNOT ANSWER, not 'nothing landed': {}".format(
+                    _raised("composing the commit query", exc))}
     if not paths:
         return {"disposition": NOT_DONE,
                 "evidence": "CANNOT ANSWER, not 'nothing landed': this item's prose names no "
@@ -1715,7 +1833,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         unbound = _landed_unbound(focus_id, row, drawn, bound_at)
     except Exception as exc:    # a join that cannot run leaves the residual loud. Never raises
         unbound = None          # into `drawn_without_landing`, which the orientation brief reads.
-        unanswered.append("the unbound-commit join raised {}".format(type(exc).__name__))
+        unanswered.append(_raised("the unbound-commit join", exc))
     if unbound:
         return unbound
     # AND THEN THE WEAKER OF THE TWO DERIVED READINGS. Asked only once the loud one has declined,
@@ -1726,7 +1844,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         sibling = _landed_by_sibling(focus_id, row, drawn, bound_at)
     except Exception as exc:
         sibling = None
-        unanswered.append("the sibling-owner join raised {}".format(type(exc).__name__))
+        unanswered.append(_raised("the sibling-owner join", exc))
     if sibling:
         return sibling
     # AND LAST OF ALL, THE CAUSE THAT IS NOT ABOUT A COMMIT. The three readings above all ask
@@ -1737,7 +1855,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         early = _drawn_before_stated_start(focus_id, row, drawn)
     except Exception as exc:
         early = None            # same direction as the two above: the residual stays loud
-        unanswered.append("the stated-start reading raised {}".format(type(exc).__name__))
+        unanswered.append(_raised("the stated-start reading", exc))
     if early:
         return early
     return _nothing_answered(focus_id, row, drawn, unanswered)
@@ -2602,15 +2720,65 @@ def rival_note(item: dict, *, now: float | None = None,
         return ""
 
 
+def successor_note(item: dict) -> str:
+    """A line for the doorbell when THIS ITEM'S OWN TICK already wrote its continuation, else "".
+
+    THE THIRD STORE, AND THE ONE THE OTHER TWO CANNOT SEE. `premise_note` asks git whether the
+    work is already landed; `rival_note` asks the claims file whether somebody ELSE is doing it.
+    Neither can answer the question that cost 2026-09-18's 16:43 draw: whether the tick that held
+    this item has already done the part that mattered and written down what remains. That fact
+    lives only in the continuation store, as `written_while_holding` -- see
+    `seat_continuation.undeclared_successors` for the measurement and the near-miss.
+
+    WHY THE PREDECESSOR IS THE DANGEROUS ONE. A continuation that launches a long detached job
+    splits into two texts: the launcher ("re-run the floor NOW") and the reader ("the run is in
+    flight; read it when it lands"). The reader gets the `DO NOT DRAW BEFORE` stamp, because the
+    author is thinking about when the artefact exists. The LAUNCHER gets nothing -- and drawing the
+    launcher a second time relaunches the job. `claim_dispatched` names two earlier instances of a
+    detached multi-hour runner re-drawn inside its own shadow; this is the third, and the first
+    where the claim machinery worked and the continuation store leaked instead.
+
+    IT ANNOTATES AND NEVER REFUSES, for `rival_note`'s reason exactly: a tick may hand off
+    genuinely new work while its own item stays worth doing, and only the two texts side by side
+    can tell that from a continuation. The note carries both dispositions because the honest answer
+    is usually `--release`, and a note that names no action gets read as commentary.
+
+    NEVER RAISES, and an unanswerable store yields "" -- the behaviour before this existed. Same
+    direction and same argument as its two siblings.
+    """
+    try:
+        successors = seat_continuation.undeclared_successors(item.get("id"))
+        if not successors:
+            return ""
+        named = "; ".join(
+            "`{}` (\"{}\")".format(s.get("id"), str(s.get("what") or "").strip()[:220])
+            for s in successors
+        )
+        return (
+            "CONTINUATION CHECK (this item's own store, run at draw time): {n} live "
+            "continuation(s) were written BY A TICK HOLDING THIS ITEM and do not declare they "
+            "replace it -- {named}. READ THE SUCCESSOR BEFORE YOU BUILD. If it describes the rest "
+            "of THIS work, the part you are being asked for is already done and its remainder is "
+            "under that other id: take the disposition, not the work -- `--release {key}` -- and "
+            "record in docs/staging/ that the successor now carries it. THIS MATTERS MOST WHEN "
+            "THE WORK IS A LONG JOB: a successor saying a run is IN FLIGHT means re-running it "
+            "launches a second copy over the same seeds. If it is genuinely separate work, carry "
+            "on: this is a note, not a refusal. "
+        ).format(n=len(successors), named=named, key=item.get("id"))
+    except Exception:
+        return ""
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
 
-    `premise_note` and `rival_note` go FIRST, ahead of the standing preamble, because a tick that
-    reads the work before it reads the checks has already started. They are the same shape asked of
-    two different stores: has this item's premise already been spent, and is somebody else spending
-    it right now."""
-    return premise_note(item) + rival_note(item) + (
+    `premise_note`, `rival_note` and `successor_note` go FIRST, ahead of the standing preamble,
+    because a tick that reads the work before it reads the checks has already started. They are the
+    same shape asked of three different stores: has this item's premise already been spent, is
+    somebody else spending it right now, and did THIS ITEM'S OWN TICK already spend it and write
+    down what was left."""
+    return premise_note(item) + rival_note(item) + successor_note(item) + (
         "LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
         "lanes because a judgement about what matters beats a weighted coin over a map whose "
         "idle atoms are all over their pass ceiling. WORK: {what} WHY: {why} "
@@ -2724,7 +2892,33 @@ _EMBARGO = re.compile(
     re.IGNORECASE)
 
 
-def embargoed_until(item: dict) -> float | None:
+def _prose_anchor(item: dict) -> float | None:
+    """When this item's prose was WRITTEN, for resolving a date-less stated instant. Or None.
+
+    A date-less clock time is unresolvable without a reference instant, and the only honest one is
+    when the author typed it: an ETA written into an item is in that item's future by construction.
+    Both stores the draw reads can answer. A continuation entry carries `written_at` outright; a
+    focus row does not, but it is re-derived wholesale at each orientation, so the direction
+    record's own `oriented_at` is when its prose was written — and `unreachable_focus` already
+    returns nothing once that record goes stale, so an anchor read here is never older than the row.
+
+    NEVER RAISES, AND NO ANCHOR MEANS NO BACK-REFERENCED EMBARGO. That is the fail-OPEN direction
+    `embargoed_until` chose and the argument is the same: a stamp this cannot resolve costs one
+    invocation and is visible to the tick that reads it; an empty lane is visible to nobody.
+    """
+    written = item.get("written_at")
+    if isinstance(written, (int, float)) and not isinstance(written, bool) and written > 0:
+        return float(written)
+    try:
+        direction = direction_mod.read_direction()
+        if direction is None or not direction.is_live():
+            return None
+        return direction.oriented_at.timestamp()
+    except Exception:
+        return None
+
+
+def embargoed_until(item: dict, *, dated_only: bool = False) -> float | None:
     """The instant before which this item must not be handed to a tick, or None.
 
     WHY THIS EXISTS, AND IT IS FOUR INVOCATIONS OF EVIDENCE, NOT A HYPOTHETICAL. A focus item that
@@ -2752,10 +2946,29 @@ def embargoed_until(item: dict) -> float | None:
     this misses costs ONE invocation, which is the status quo and is visible to the tick that reads
     it; a stamp this invents withholds work silently, and a lane that quietly stops delivering is
     the six-day walkover `draw` was written around. An empty lane is visible to nobody.
+
+    AND THE DATED GRAMMAR WAS ONLY TWO OF THE THREE LIVE SPELLINGS, WHICH COST A WHOLE WINDOW
+    (2026-09-18). `_back_referenced_start` — an instant named once and then referred back to, as in
+    *"ETA near 03:58; do not draw this before then"* — existed, was tested, and was wired only to
+    the disposition that explains the loss AFTER the window closes. So the lane could say precisely
+    why `read-the-next12-twelve-alone-once-the-0358-run-settles` was hopeless from the moment it was
+    handed out, and could not decline to hand it out. Both spellings are read here now; the list
+    they share is why the LATEST STAMP rule above holds across them and not merely within one.
+
+    IT IS THE SAME RESOLVER AND DELIBERATELY NOT THE SAME ANCHOR. `_prose_anchor` gives when the
+    prose was written, never `now` — see `_back_referenced_start` for why anchoring the draw on
+    `now` withholds the item for ever rather than until its subject exists. `dated_only` is the
+    opt-out for the one caller that must anchor on the draw instead, and there is exactly one.
     """
     try:
         text = " ".join(v for v in item.values() if isinstance(v, str))
         stamps = []
+        if not dated_only:
+            anchor = _prose_anchor(item)
+            back_referenced = (None if anchor is None
+                               else _back_referenced_start(text, anchor))
+            if back_referenced is not None:
+                stamps.append(back_referenced)
         for m in _EMBARGO.finditer(text):
             g = m.groupdict()
             suffix = "1" if g["h1"] is not None else "2"
@@ -3087,8 +3300,13 @@ def main(argv=None) -> int:
             if until is not None:
                 rows.append((item.get("id"), until))
         if not rows:
-            print("no live focus item states a draw-time embargo "
-                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`)")
+            # BOTH SPELLINGS ARE NAMED, because this line is where a seat whose stamp went unread
+            # finds out which grammars are actually honoured. Printing only the dated one told a
+            # reader that the back-referenced form was not a stamp at all, which is how it went
+            # unwired for as long as it did.
+            print("no live item states a draw-time embargo "
+                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`, or `... <HH:MM>; "
+                  "do not draw this before then`)")
             return 0
         for focus_id, until in rows:
             when = datetime.datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M")

@@ -48,6 +48,7 @@ import json
 import pytest
 
 from background import delivery_lane as dl
+from tests.background.residual_voices import looked_and_found_nothing
 
 #: Synthetic ids. NOT the live ledger's: a control pinned to today's rows goes green the moment the
 #: sweep merely gets quieter, which is the failure being fixed wearing a better name.
@@ -190,9 +191,14 @@ def test_THE_PARTITION_all_five_readings_come_back_from_one_ledger_in_one_statem
 
     assert (saw_not_done and saw_landed_elsewhere and saw_premise_spent
             and saw_landed_unbound and saw_delivered), seen
-    # The residual is still the shape with NO evidence, and the new value must NAME ITS COMMIT --
-    # a fourth label nobody can follow back to a fact on disk would be a fourth guess.
-    assert seen[MISSED_ID]["evidence"] == ""
+    # The residual still SAYS WHAT IT ASKED -- keyed to the LOOKED-AND-FOUND-NOTHING voice, since
+    # this row's paths were queried and came back empty, which is the one residual meaning
+    # "workable, draw again". `== ""` stood here until 2026-09-18 and graded nothing once
+    # `_nothing_answered` learned to speak: a residual that had quietly become the CANNOT-ANSWER
+    # voice satisfies a bare `!= ""` while telling the reader the opposite. And the new value must
+    # NAME ITS COMMIT -- a fourth label nobody can follow back to a fact on disk would be a fourth
+    # guess.
+    assert looked_and_found_nothing(seen[MISSED_ID]), seen[MISSED_ID]
     assert UNBOUND_SHA[:9] in seen[UNBOUND_ID]["evidence"]
     assert SUBJECT_PATH in seen[UNBOUND_ID]["evidence"]
 

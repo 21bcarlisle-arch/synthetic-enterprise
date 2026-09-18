@@ -164,6 +164,20 @@ def _module_strings(path: Path, source: str | None = None) -> list[tuple[int, st
     the AST and there is no reason to grade a claim differently for sitting at the head of a body.
     Comments are recovered by tokenising because they are not in the AST at all, and a path in a
     comment is a reachability edge here.
+
+    THE COMMENT UNIT IS THE CONTIGUOUS BLOCK, NOT THE PHYSICAL LINE, and that is a WIDENING rather
+    than a convenience. `tokenize` hands back one row per `#` line because that is how the file is
+    stored; a wrapped comment is ONE piece of prose, and the place it wraps is set by the column
+    ruler, not by the writer. Cutting the claim unit there splits sentences at an arbitrary point:
+    the reference to the target lands on one row and the run-identity token on the next, and
+    `_CLAIM_NEEDS_BOTH_HALVES` then sees neither half beside the other and raises nothing. So the
+    block is joined first and `_sentences` cuts it afterwards -- the same order a docstring already
+    gets, and for the same reason.
+
+    A TRAILING COMMENT IS NOT PART OF A BLOCK. `x = 1  # foo` on one line and `y = 2  # bar` on the
+    next are two remarks about two statements, not one wrapped sentence, and joining them would
+    manufacture a sentence nobody wrote. Only own-line comments -- nothing but whitespace before
+    the `#` -- run together, and only when the line numbers are consecutive.
     """
     text = path.read_text(encoding="utf-8") if source is None else source
     out: list[tuple[int, str, str]] = []
@@ -174,13 +188,57 @@ def _module_strings(path: Path, source: str | None = None) -> list[tuple[int, st
     for node in ast.walk(tree):
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             out.append((node.lineno, "code", node.value))
+    lines = text.splitlines()
+    comments: list[tuple[int, bool, str]] = []
     try:
         for tok in tokenize.generate_tokens(io.StringIO(text).readline):
             if tok.type == tokenize.COMMENT:
-                out.append((tok.start[0], "comment", tok.string))
+                line = lines[tok.start[0] - 1] if tok.start[0] <= len(lines) else ""
+                own_line = not line[:tok.start[1]].strip()
+                comments.append((tok.start[0], own_line, tok.string))
     except (tokenize.TokenError, IndentationError):
         pass
+    out += _comment_blocks(comments)
     return sorted(out)
+
+
+#: The marker a comment line opens with, including the `#:` documentation form. Stripped before the
+#: block is joined so the result reads as the prose it is: leaving the markers in would drop a `#`
+#: into the middle of every joined sentence, and `_sentences` would then cut at it.
+_COMMENT_MARKER = re.compile(r"^#+:?[ \t]?")
+
+
+def _comment_blocks(comments: list[tuple[int, bool, str]]) -> list[tuple[int, str, str]]:
+    """Runs of consecutive own-line comments, joined into one text keyed to the run's FIRST line.
+
+    The first line is the key because that is where a reader's eye enters the prose, and because a
+    row pointing at the wrapped tail of a sentence tells them to look at the wrong place.
+    """
+    out: list[tuple[int, str, str]] = []
+    block: list[str] = []
+    start = 0
+    prev = -2
+
+    def flush() -> None:
+        if block:
+            out.append((start, "comment", " ".join(block)))
+
+    for lineno, own_line, raw in comments:
+        body = _COMMENT_MARKER.sub("", raw)
+        if not own_line:
+            flush()
+            block.clear()
+            prev = -2
+            out.append((lineno, "comment", body))
+            continue
+        if lineno != prev + 1:
+            flush()
+            block.clear()
+            start = lineno
+        block.append(body)
+        prev = lineno
+    flush()
+    return out
 
 
 #: THE KEY BY WHICH A PROMOTE TARGET SAYS WHICH OF ITS OWN FIELDS ARE ITS RUN IDENTITY. A list of
@@ -399,6 +457,70 @@ def _references(text: str, name: str, aliases: set[str]) -> bool:
 #: has to be small enough that "the artefact and the claim are in the same breath" means something.
 _SENTENCE_SPLIT = re.compile(r"(?<=[.?!:;])\s+|\n|\s--\s|\s—\s")
 
+#: HALF ONE OF A RETRACTION: a verb about what the TEXT ITSELF said, in the past tense. Not any
+#: past tense and not any date -- specifically a report of a former wording. `read`, `said`,
+#: `stated`, `called` cover the shapes this project's corrections are actually written in; the
+#: whole-claim adverbs (`previously`, `used to`, `no longer`, `withdrawn`) carry the same meaning
+#: without a saying-verb and are accepted for it.
+#:
+#: WHY THIS MUST NOT WIDEN TO "A DATED RECORD". `feed_claims` below hit the same fork and could not
+#: take it: a record of what was true on 2026-08-29 and a claim about which run is on the page are
+#: indistinguishable from a date alone, so that leg fails open and says so. The difference here is
+#: that a retraction does not merely CARRY a date -- it reports a former WORDING and says when the
+#: wording stopped standing. Measuring `_staleness_caveat` on 2026-09-17 and writing the stamps
+#: down is a dated record and stays gradable; saying "this sentence READ x UNTIL y" is not.
+_RETRACTION_VERB = re.compile(
+    r"\b(?:read|said|says|stated|called|claimed|wrongly)\b"
+    r"|\bpreviously\b|\bused to\b|\bno longer\b|\bwithdrawn\b",
+    re.IGNORECASE,
+)
+
+#: HALF TWO: the claim is said to have ENDED. `until <run-identity token>` names when; the rest
+#: name the ending itself. A bare `previously` buys nothing without one of these, and that is the
+#: point -- a writer who wants the census to stand down has to state when the sentence stopped
+#: being true, which is the attribution this control exists to protect rather than to punish.
+_RETRACTION_CLOSURE = re.compile(
+    r"\buntil\b[^.;]{0,24}?(?:20\d{2}-\d{2}-\d{2}|20\d{6}|[0-9a-f]{16})"
+    r"|\b(?:became|went|read|was)\s+false\b|\bno longer\b|\bstopped being\b"
+    r"|\bhas since\b|\bwas repaired\b|\bwas withdrawn\b",
+    re.IGNORECASE,
+)
+
+#: The `until <token>` span, whose token is WHEN THE CLAIM ENDED and not a claim about which run
+#: sits anywhere. Grading it as one would red a correct retraction for the accident of the
+#: promotion happening on the day the correction was written, which is keying the control to
+#: today's answer from the far end.
+_CLOSURE_SPAN = re.compile(r"\buntil\b[^.;]{0,24}", re.IGNORECASE)
+
+
+def _is_retraction(text: str) -> bool:
+    """Does this sentence report a FORMER wording and say that the wording ended?
+
+    A past-tense account of a withdrawn claim cannot be falsified by a promote-by-copy: it states
+    what the text used to say over an interval that has already closed, and no bytes copied onto a
+    canonical path today can reach inside it. That is why it is a different population from the
+    live claims this census refuses on, and not an exemption granted to one comment.
+
+    BOTH HALVES, IN ONE SENTENCE. Either alone is far too common to mean anything -- `read` appears
+    in every other line about an artefact, and `until` appears in every deferral.
+
+    WHAT THIS CANNOT DO, said on the surface rather than in a footnote: it cannot detect prose that
+    lies. A writer who invents "this read x until y" about a claim that is still live IS caught --
+    that is `false_retractions` -- but one who invents it about a claim that is genuinely dead is
+    not, and no rule over English could be. The protection against that is that retractions are
+    COUNTED AND PRINTED with their line and text, never silently dropped: the quiet a retraction
+    buys is visible quiet.
+    """
+    return bool(_RETRACTION_VERB.search(text) and _RETRACTION_CLOSURE.search(text))
+
+
+def _closure_tokens(text: str) -> set[str]:
+    """Run-identity tokens sitting in an `until ...` span -- the END of the interval, not a claim."""
+    out: set[str] = set()
+    for span in _CLOSURE_SPAN.finditer(text):
+        out.update(m.group(0) for m in _RUN_IDENTITY.finditer(span.group(0)))
+    return out
+
 
 def _sentences(text: str) -> list[str]:
     """THE CLAIM UNIT, and the second narrowing this census needed.
@@ -466,6 +588,8 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
             orderings = [m.group(0) for m in _ORDERING_CLAIM.finditer(bare)]
             if not ids and not orderings:
                 continue
+            retraction = _is_retraction(text)
+            closures = _closure_tokens(text) if retraction else set()
             for name in sorted(named):
                 tgt = by_name[name]
                 aliases = {a for a, v in aliases_by_name.items() if v == name}
@@ -488,6 +612,8 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
                         "mixed": bool(same_stem_pins),
                         "matches_current_run": bool(forms & live_tokens[name]),
                         "matches_a_pinned_sibling": bool(forms & pin_forms),
+                        "retraction": retraction,
+                        "is_closure": bool(token) and token in closures,
                         "text": " ".join(text.split())[:200],
                     })
     # A target that publishes NO run identity cannot grade any claim about which run it is. That
@@ -506,7 +632,22 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
         except (OSError, ValueError):
             payload = None
         declared[t["name"]] = declared_run_identity_fields(payload)
-    stale = [r for r in rows if r["token"]
+    # A RETRACTION IS ITS OWN POPULATION AND IT IS GRADED, NOT EXCUSED. It asserts that a wording
+    # STOPPED standing, and this census already knows whether it did. So the class splits two ways
+    # and BOTH are reachable, which is what keeps the leg able to fail:
+    #
+    #   * the retracted literal no longer matches the artefact -> the retraction is ACCURATE. It is
+    #     listed under its own heading with its line and text, and kept out of STALE.
+    #   * the retracted literal STILL matches the run at the path -> FALSE RETRACTION, and `--check`
+    #     refuses. The sentence says this ended; the bytes say it did not.
+    #
+    # The `until <token>` half is exempt from that grading: it names WHEN the claim ended, so a
+    # correction written on the day of the promotion it records would otherwise red itself.
+    retractions = [r for r in rows if r["token"] and r["retraction"]
+                   and r["target"].rsplit("/", 1)[-1] not in ungradable]
+    false_retractions = [r for r in retractions
+                         if r["matches_current_run"] and not r["is_closure"]]
+    stale = [r for r in rows if r["token"] and not r["retraction"]
              and not r["matches_current_run"] and not r["matches_a_pinned_sibling"]
              and r["target"].rsplit("/", 1)[-1] not in ungradable]
     cannot_tell = [r for r in rows if r["token"]
@@ -518,6 +659,8 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
         "rows": rows,
         "ordering_only": ordering_only,
         "stale": stale,
+        "retractions": retractions,
+        "false_retractions": false_retractions,
         "ungradable_targets": ungradable,
         "declared_run_identity": declared,
         "cannot_tell": cannot_tell,
@@ -630,7 +773,7 @@ def main(argv: list[str] | None = None) -> int:
     result["feed"] = feed_claims()
     if args.json:
         print(json.dumps(result, indent=2))
-        return 1 if (args.check and (result["stale"] or result["feed"])) else 0
+        return 1 if (args.check and (result["stale"] or result["false_retractions"])) else 0
 
     print(f"PROMOTE-BY-COPY TARGETS  {len(result['targets'])}")
     for t in result["targets"]:
@@ -641,10 +784,26 @@ def main(argv: list[str] | None = None) -> int:
     for m in result["readers"]:
         print(f"  {m}")
     print(f"\nCLAIMS ABOUT WHICH RUN IS THERE  {len(result['rows'])}"
-          f"   ordering-only {len(result['ordering_only'])}   STALE {len(result['stale'])}")
+          f"   ordering-only {len(result['ordering_only'])}   STALE {len(result['stale'])}"
+          f"   retractions {len(result['retractions'])}")
     for r in result["stale"]:
         print(f"  STALE {r['module']}:{r['line']} ({r['kind']}) token={r['token']!r} "
               f"vs {r['target']}\n        {r['text']}")
+    if result["retractions"]:
+        print(f"\nRECORDED CORRECTIONS  {len(result['retractions'])}   (a past-tense account of a "
+              "wording that STOPPED standing. A promotion cannot falsify one, so these do not "
+              "refuse -- but they are PRINTED, because the cheap way to clear this census has "
+              "always been to delete the account of the defect, and quiet you can see is the only "
+              "protection against that. This leg cannot detect prose that LIES about a dead claim; "
+              "it can and does catch one that lies about a live one.)")
+        for r in result["retractions"]:
+            mark = "CLOSES" if r["is_closure"] else "RETRACTED"
+            print(f"  {mark} {r['module']}:{r['line']} ({r['kind']}) token={r['token']!r} "
+                  f"vs {r['target']}\n        {r['text']}")
+    for r in result["false_retractions"]:
+        print(f"\n  FALSE RETRACTION {r['module']}:{r['line']} ({r['kind']}) token={r['token']!r} "
+              f"vs {r['target']}\n        this sentence says the wording stopped standing, and the "
+              f"run at that path still answers to it\n        {r['text']}")
     if result["ungradable_targets"]:
         print(f"\nWE CANNOT TELL  {len(result['cannot_tell'])} claim(s) against "
               f"{len(result['ungradable_targets'])} target(s) that publish NO run identity:")
@@ -666,7 +825,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.check and result["stale"]:
         print("\nREFUSED: a sentence keyed to which run sits at a promoted path is false as the "
-              "tree stands. Derive it from the artefact's payload, or pin the dated sibling.")
+              "tree stands. Derive it from the artefact's payload, or pin the dated sibling. "
+              "If the sentence is a RECORD of a wording that has already been corrected, do not "
+              "delete it -- say what it read and until when, and this census will grade it as a "
+              "correction instead of a claim.")
+        return 1
+    if args.check and result["false_retractions"]:
+        print("\nREFUSED: a sentence says a wording STOPPED standing, and the run at that path "
+              "still answers to the literal it retracts. A correction that is not yet true is a "
+              "second wrong claim on top of the first.")
         return 1
     return 0
 

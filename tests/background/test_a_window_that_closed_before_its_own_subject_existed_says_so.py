@@ -45,10 +45,30 @@ MUTATIONS (each must fire, and which test catches it):
       `..._THE_ANCHOR_IS_THE_DRAW_SO_A_ROWS_DISPOSITION_DOES_NOT_DRIFT` goes red;
   (i) let an unreadable item text raise rather than decline -- `..._PROSE_THAT_STATES_NOTHING_READS
       _AS_THE_RESIDUAL` goes red;
-  (j)-(n) the RESIDUAL's own branches going silent or constant -- `..._THE_RESIDUAL_PARTITION_every
-      _reachable_branch_names_what_it_asked_or_what_it_broke_on` goes red, and that test carries
-      the five with the leg each was measured to fire on. They are listed there rather than here
-      because (n) exists only to separate two legs this index would have shown as one.
+  (j) collapse the residual's two voices back into one -- return the genuine-miss sentence from the
+      branch where the asking RAISED, or the CANNOT-ANSWER sentence from the branch where git was
+      asked and answered -- and the legs re-keyed 2026-09-18 go red, one per voice.
+  (k)-(n) the RESIDUAL's own branches going silent, constant, or reciting a query they never
+      ran -- carried by `..._THE_RESIDUAL_PARTITION_every_reachable_branch_names_what_it_asked
+      _or_what_it_broke_on` at the foot of this file, which keeps its own mutation list because
+      (n) exists only to separate two legs this index would have shown as one. That test is the
+      reachability-before-behaviour half: it asserts the three branches are DISTINCT before it
+      examines any wording, so a residual answering one constant dies before the silence leg.
+
+AND THREE OF THOSE LEGS WERE THEMSELVES KEYED TO THE DAY'S ANSWER (repaired 2026-09-18, beside the
+claim rather than quietly). They asserted `evidence == ""`, which the opening paragraph above names
+as HALF THE DEFECT -- silence is what made a genuine miss and an unanswerable one the same row. When
+`_nothing_answered` was given a reason per branch (commit 2984864c7) the code became more honest and
+these three went RED, the exact backwards direction CLAUDE.md warns of. The prediction they encoded
+is left standing here: the leg that said the residual "stays LOUD" in its docstring asserted it was
+silent in its body, and the body was wrong. They are now keyed to WHICH VOICE the residual used,
+which the empty string could not express at all.
+
+THE CLASS WAS EIGHT LEGS ACROSS FOUR SUITES, not the three here, and the other five were found by
+running the neighbours rather than by grepping for the sentence. `tests/background/residual_voices.py`
+is the one home the predicate lives in, because four private copies of it is how the next widening
+drifts in three files and nobody notices -- and the point of `2984864c7` was that ONE function
+decides which voice the residual used.
 
 THE PARTITION CONTROL IS FIRST AND IT IS ONE STATEMENT OVER SIX READINGS, for the reason the two
 sibling files give: a `_disposition` that answers one constant passes every per-branch test ever
@@ -62,6 +82,7 @@ import json
 import pytest
 
 from background import delivery_lane as dl
+from tests.background.residual_voices import could_not_ask, looked_and_found_nothing
 
 #: Synthetic ids. A control pinned to the live ledger's rows goes green when the sweep merely gets
 #: quieter, which is the failure being fixed wearing a better name.
@@ -120,6 +141,12 @@ def _fake_git(commits):
 
     Applying it here is what makes the pathspec load-bearing: a subject that stopped passing the
     paths to `git log` would still get an empty answer from this fake for the off-subject rows.
+
+    `""`, NOT `None`, FOR "NO MATCHES" (corrected 2026-09-18, same correction as the copy of this
+    helper in `test_every_disposition_names_what_was_checked.py`). Real `git log` exits 0 and prints
+    nothing when the pathspec matches nothing; `None` is reserved for a git that could not run at
+    all. The fake said `None` to both, which is the conflation `_git_or_raise` was written to end,
+    and it went unnoticed for as long as the subject collapsed the two anyway.
     """
     def run(*args, **kwargs):
         if not args or args[0] != "log":
@@ -130,7 +157,7 @@ def _fake_git(commits):
             if wanted and not (set(paths) & wanted):
                 continue
             lines.append("{}\x1f{:.0f}\x1f{}".format(sha, when, subject))
-        return "\n".join(lines) or None
+        return "\n".join(lines)
     return run
 
 
@@ -189,14 +216,14 @@ def test_THE_PARTITION_all_six_readings_come_back_from_one_ledger_in_one_stateme
             and seen[CREDITED_ID]["disposition"] == dl.LANDED_ELSEWHERE
             and seen[DELIVERED_ID]["disposition"] == dl.DELIVERED), seen
 
-    # "THE RESIDUAL IS STILL THE SHAPE WITH NO EVIDENCE -- THAT IS WHAT MAKES IT THE RESIDUAL"
-    # STOOD HERE, and it was wrong about what a residual is, corrected 2026-09-18 beside the claim.
-    # What makes it the residual is being the answer left when no join holds; carrying no reason
-    # was a property of the code, not of the concept, and it was the defect. The clause that was
-    # doing real work -- the new value must NAME THE INSTANT it claims, or a reader cannot check it
-    # against the item's own prose -- is kept, and the residual is now held to the same standard
-    # from the other side: it must not be claiming that instant.
-    assert _hhmm(WINDOW_ENDS + 3600) not in seen[MISSED_ID]["evidence"], seen[MISSED_ID]
+    # The residual is STILL what is left when no join holds -- that is what makes it the residual
+    # and not a sixth guess -- but what makes it CHECKABLE is that it says what it asked. Keyed to
+    # the LOOKED-AND-FOUND-NOTHING voice specifically: this row's paths were queried and came back
+    # empty, so it is the one residual that means "workable, draw again". A partition whose residual
+    # quietly became the CANNOT-ANSWER voice would still satisfy a bare `!= ""` and would be telling
+    # the reader the opposite. And the new value must NAME THE INSTANT it is claiming, or it is a
+    # label a reader cannot check against the item's own prose.
+    assert looked_and_found_nothing(seen[MISSED_ID]), seen[MISSED_ID]
     assert _hhmm(WINDOW_ENDS + 3600) in seen[EARLY_ID]["evidence"]
 
     # AND THE NEW VALUE IS THE MIRROR OF `PREMISE_SPENT`, NEVER THE SAME VALUE. Both rows are in
@@ -221,11 +248,10 @@ def test_A_WINDOW_WITH_USABLE_TIME_IS_AN_ORDINARY_MISS_however_it_was_stamped(
     # INSIDE: the subject arrived while the claim was still live, so the turn had time to work.
     prose[EARLY_ID] = _states_start_at(WINDOW_ENDS - 1800)
     usable = dl.disposition_of(EARLY_ID, path=store)
-    # The evidence clause asserted the empty string until 2026-09-18. What it is for is that this
-    # reading did NOT fire, and the residual now says what it asked instead of saying nothing --
-    # so the check is that the stated instant is absent from the reason, not that there is none.
-    assert usable["disposition"] == dl.NOT_DONE, usable
-    assert _hhmm(WINDOW_ENDS - 1800) not in usable["evidence"], usable
+    # ORDINARY MISS means the LOOKED-AND-FOUND-NOTHING voice, not merely "not the ripe one": the
+    # whole point of the edge is that this row is workable and should be drawn again, which is the
+    # single thing that voice says and the CANNOT-ANSWER one denies.
+    assert looked_and_found_nothing(usable), usable
 
     # OUTSIDE: not one minute of the window, nor of the grace a gated landing costs, was usable.
     prose[EARLY_ID] = _states_start_at(WINDOW_ENDS + 1800)
@@ -356,23 +382,24 @@ def test_PROSE_THAT_STATES_NOTHING_READS_AS_THE_RESIDUAL_and_an_unreadable_item_
     store = _ledger(tmp_path, {EARLY_ID: _row(named_paths=[SUBJECT_PATH])})
     monkeypatch.setattr(dl, "_git", _fake_git([]))
 
+    # PROSE THAT PARSES BUT NAMES NOTHING, and an item store that has forgotten the row: the reading
+    # declined, git WAS asked on this row's paths, and nothing came back. Workable, draw again.
     monkeypatch.setattr(dl, "_item_text", lambda fid: "Read the artefact and report the sign.")
-    assert dl.disposition_of(EARLY_ID, path=store)["disposition"] == dl.NOT_DONE
+    assert looked_and_found_nothing(dl.disposition_of(EARLY_ID, path=store))
 
     monkeypatch.setattr(dl, "_item_text", lambda fid: "")
-    assert dl.disposition_of(EARLY_ID, path=store)["disposition"] == dl.NOT_DONE
+    assert looked_and_found_nothing(dl.disposition_of(EARLY_ID, path=store))
 
     def _boom(fid):
         raise RuntimeError("both item stores are unreadable")
 
+    # AND THE RAISING ONE IS THE DIFFERENT ANSWER, which is what "stays LOUD" above means and what
+    # `evidence == ""` used to deny in the same breath as asserting it. The asking BROKE here, so a
+    # louder disposition may have been true and been lost; a reader told "genuine miss" redoes work
+    # that may exist. This leg is the only one of the three that must NOT read as the other two.
     monkeypatch.setattr(dl, "_item_text", _boom)
     raised = dl.disposition_of(EARLY_ID, path=store)
-    assert raised["disposition"] == dl.NOT_DONE, raised
-    # AND IT SAYS THE READING CRASHED RATHER THAN SAYING NOTHING. This asserted the empty string
-    # until 2026-09-18, which made a raised reader indistinguishable from a quiet tree -- the
-    # declared `None` and the silent `None` collapsing into the flattering branch, one layer under
-    # the fail-open this test exists to refuse.
-    assert "RuntimeError" in raised["evidence"], raised
+    assert could_not_ask(raised), raised
 
 
 def test_THE_DATED_SPELLING_IS_READ_BY_THE_SAME_VALUE_so_the_two_grammars_do_not_split(

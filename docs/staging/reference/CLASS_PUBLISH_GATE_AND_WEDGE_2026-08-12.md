@@ -97,7 +97,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**518.9 recorded episode-hours** across 22 of the 83 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
+**524.9 recorded episode-hours** across 23 of the 84 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -117,6 +117,7 @@ This document supersedes the individual findings listed below, which are **archi
 - **10 hours** — `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md`: …) **Severity:** LATENT · **Lane:** H_harness **Found during:** the ~10h publish-wedge unwedge, while running the gate's own argv without `-x`…
 - **7 hours** — `SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md`: …`-1.0` | `now` (restamped) | | `None` | `now` (cold start) | | `now - 7h` | `now - 7h` — **remembered** | ## What mutation found that no reas…
 - **7 hours** — `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md`: …he episode* (23:17 UTC). So: * it is **not** a cause of the observed 7-hour episode (inferred-free: the timestamps do not overlap), and * it **…
+- **6 hours** — `WORKER_RESULT_THE_GATES_RED_HAD_A_REPAIR_ON_ORIGIN_AND_THE_RECONCILER_THAT_CARRIES_IT_LOST_95_RACES_TO_THE_GATES_OWN_LOCK_TODAY_2026-09-18.md`: …ocument does not claim them. - **The repair is ~45 minutes old, not 6 hours.** For most of the wedge there was nothing to fetch. The reconciler…
 - **4 hours** — `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`: …HEAD, independently found by both lanes within the hour: it pinned a 4h outage against `PRODUCER_STARVED_MIN_AGE_SECONDS`, which is `_publish…
 - **4 hours** — `WORKER_FINDING_THE_CONTROL_ON_THE_REPAIRERS_ROOM_SET_FROZE_THE_ANSWER_AND_A_NEW_ROOM_WEDGED_EVERY_COMMIT_2026-09-04.md`: …worker, while draining the publish wedge that had held the site for ~4 hours with ten `run_complete_*` markers queued. Reproduced and mutation-pro…
 - **4 hours** — `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`: …ed 2026-09-05 by the autonomous worker, on the tick that cleared the ~4h publish-gate wedge (cause: `1ca38912d`, the startup-anchor banner row…
@@ -126,7 +127,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-9 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+10 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md`
 - `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`
@@ -137,6 +138,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_TWO_ROOMS_REPAIRS_RECORDED_CAUSE_IS_REFUTED_AND_THE_ROOT_COPY_COMES_BACK_FROM_ORIGIN_2026-09-09.md`
 - `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
+- `WORKER_RESULT_THE_GATES_RED_HAD_A_REPAIR_ON_ORIGIN_AND_THE_RECONCILER_THAT_CARRIES_IT_LOST_95_RACES_TO_THE_GATES_OWN_LOCK_TODAY_2026-09-18.md`
 
 ## Disposition
 
