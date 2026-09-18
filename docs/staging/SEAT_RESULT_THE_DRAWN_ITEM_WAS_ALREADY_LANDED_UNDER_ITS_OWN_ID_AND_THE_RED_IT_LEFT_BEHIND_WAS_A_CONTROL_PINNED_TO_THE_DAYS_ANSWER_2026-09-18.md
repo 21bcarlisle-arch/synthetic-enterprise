@@ -103,7 +103,60 @@ cause and wrong as to ownership**: they are not unrelated: they are the downstre
 quietly folded in, and the header of the repaired file now carries the same correction beside the
 mutation list.
 
-## 5. Still owed — NOT claimed by this turn
+## 5. The class was EIGHT legs across FOUR suites, not three — found by running the neighbours
+
+The three legs above were landed as `c2f1fb822`. Running the rest of `tests/background/` then showed
+the same defect live in **three more files** — five more legs, all `assert ...["evidence"] == ""`:
+
+| File | Leg | Voice it should assert |
+|---|---|---|
+| `test_a_swept_row_asks_git_...another_name.py` | `test_THE_PARTITION_all_five_readings...` | looked-and-found-nothing |
+| `test_a_swept_row_names_the_sibling...commit.py` | `test_THE_PARTITION_owned_unowned_and_untouched...` | looked-and-found-nothing |
+| `test_a_swept_row_names_the_sibling...commit.py` | `test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD` | looked-and-found-nothing |
+| `test_a_swept_row_names_which_of_the_three....py` | `test_THE_PARTITION_of_the_reader_all_three...` | could-not-ask |
+| `test_a_swept_row_names_which_of_the_three....py` | `test_A_REDRAWN_ROW_IS_NOT_DONE_AGAIN...` | could-not-ask |
+
+**Each voice was measured, not inferred** — every one of the five was run and its actual evidence
+string printed before the leg was re-keyed. Two of the five are the CANNOT-ANSWER voice and three are
+the answered one, which a blanket replacement would have got wrong in two places.
+
+`test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD` is the same self-contradiction as before in a second
+file: its **name** says LOUD and its body asserted silence.
+
+The predicate now has one home, `tests/background/residual_voices.py`, because four private copies is
+how the next widening drifts in three files and nobody notices — and the point of `2984864c7` was
+that ONE function decides which voice the residual used.
+
+**Class mutation, run in both directions over all four suites plus the owner:**
+
+| Mutation | Reds |
+|---|---|
+| strip `CANNOT ANSWER, not 'nothing landed': ` from all three unanswerable branches | 5 — the 3 re-keyed could-not-ask legs **+ the owner suite's 2** |
+| prefix the answered branch with it | 6 — the re-keyed looked-and-found-nothing legs; **owner suite stays GREEN** |
+
+The second row is the one that matters: the owner suite cannot see that collapse, so these re-keyed
+legs are **not redundant with it**. Restored byte-exactly from an out-of-repo copy after each run.
+
+### An honest limit, recorded rather than asserted away
+
+In `test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD` the `_git` wrapper returns `None` both for a git that
+FAILED and for a git that matched nothing — indistinguishable at the wrapper, as that leg's own
+docstring says. So a silent git reads as the *answered* voice, not CANNOT-ANSWER. That is a real
+residual conflation one layer below this repair. It is **not fixed here** and is not claimed to be;
+what the leg does guarantee is that silence neither settles the window nor becomes a clean bill of
+health. Filed as the next thing to look at, not as a passing check.
+
+## 6. A mistake I made, recorded because the record is the point
+
+Mid-measurement I put `git stash` into a scratch snippet as a careless "no-op guard". It was not a
+no-op: it stashed the whole uncommitted second increment. Nothing was lost — the work came back with
+`git stash pop stash@{0}`, and `residual_voices.py` was untracked so the stash never held it — and
+the already-landed `c2f1fb822` was never at risk. But the standing rule here is *never `git stash`*,
+for exactly this reason, and the near-miss belongs beside the work rather than in a cleaner story.
+The mutation runs after it used an out-of-repo copy to restore from, which is what should have been
+used throughout.
+
+## 7. Still owed — NOT claimed by this turn
 
 `docs/staging/SEAT_RESULT_THE_DRAW_NOW_READS_THE_BACK_REFERENCED_INSTANT_...md` sits in the staging
 root and is the prior turn's result for a claim now discharged. Its archival to `done/` is a

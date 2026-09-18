@@ -58,6 +58,7 @@ import json
 import pytest
 
 from background import delivery_lane as dl
+from tests.background.residual_voices import looked_and_found_nothing
 
 #: Synthetic ids. NOT the live ledger's -- a control pinned to today's rows goes green the moment
 #: the sweep merely gets quieter, which is the failure being fixed wearing a better name.
@@ -177,9 +178,10 @@ def test_THE_PARTITION_owned_unowned_and_untouched_come_back_differently_from_on
     saw_not_done = seen[MISSED_ID]["disposition"] == dl.NOT_DONE
 
     assert saw_elsewhere and saw_unbound and saw_not_done, seen
-    # The residual is STILL the only shape with no evidence. If the new reading had widened into
-    # it, this line is what says so.
-    assert seen[MISSED_ID]["evidence"] == ""
+    # The residual is STILL the only shape the sibling reading has not widened into, and this line
+    # is what says so -- now by the VOICE it answered in rather than by its silence. Keyed to
+    # LOOKED-AND-FOUND-NOTHING: this row's paths were asked and came back empty.
+    assert looked_and_found_nothing(seen[MISSED_ID]), seen[MISSED_ID]
     assert seen[SIBLING_OWNED_ID]["evidence"] != ""
 
 
@@ -284,4 +286,10 @@ def test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD(tmp_path, monkeypatch):
 
     got = dl.disposition_of(SIBLING_OWNED_ID, path=store)
     assert got["disposition"] == dl.NOT_DONE, got
-    assert got["evidence"] == ""
+    # LOUD now means it SAYS the window is unexplained, which is what this leg's name always
+    # claimed and `== ""` denied in the same breath. HONEST LIMIT, recorded rather than asserted
+    # away: `_git` returning None is a git that failed and a git that matched nothing, and the two
+    # are indistinguishable AT THE WRAPPER -- this leg's own docstring says so. So the voice here
+    # is LOOKED-AND-FOUND-NOTHING, not CANNOT-ANSWER. What the leg guarantees is the part that
+    # matters: silence does not settle the window and does not become a clean bill of health.
+    assert looked_and_found_nothing(got), got
