@@ -149,6 +149,7 @@ from tools.product_gate_refusal import refusal_breakdown
 # this project's most expensive recurring shape is one question with several implementations. The
 # bar is imported rather than re-spelled so the two cannot drift apart again.
 from tools.run_value_cycle_ab import (
+    BOOK_REALISED_FIELDS,
     FLOOR_RUN_PEAK_MB,
     SIGN_TAIL_PROBABILITY_EACH_SIDE,
     _concordance,
@@ -1294,12 +1295,38 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
         # digest rules out a move in the departure surface and rules out nothing else -- the
         # book can change without the anchors moving, which is precisely the 2026-08-31 defect
         # this guard was extended for.
+        # AND THE BOOK IS NOW ASKED RATHER THAN DECLARED UNANSWERABLE (2026-09-18). The sentence
+        # this branch carried -- "the noise floor names no book identity of its own, so nothing
+        # here can show that this spread was drawn over the decisions the figure is made of" --
+        # was true when it was typed and FALSE on the live pair by the time it was read: the
+        # published floor names its book on all eighteen seed rows, and what it names is not the
+        # figure's. A refusal whose stated reason is false is worse than no refusal, because the
+        # reason is the part a reader acts on -- the same defect this function's own 2026-09-09
+        # repair was for, one field over.
+        book = _realised_book_pairing(floor or {}, three_arm or {})
+        if book["refusal"]:
+            asked = (
+                "They also did NOT measure the same BOOK, and that is the graver half: {detail}. "
+                "Re-stamping this floor would not fix it."
+            ).format(detail=book["refusal"].split(", and both artefacts say so in their own "
+                                                  "counts: ")[-1].split(" These ranges")[0].rstrip(". "))
+        elif book["fields_compared"]:
+            asked = (
+                "They DID measure the same book -- {fields} agree between the floor's seeds and "
+                "this run's arms -- so the objection here is the ORDER alone, and it is enough: a "
+                "spread taken before a figure cannot have been taken over the decisions that "
+                "figure is made of."
+            ).format(fields=", ".join(book["fields_compared"]))
+        else:
+            asked = (
+                "What that does NOT establish is that they measured the same BOOK: {why}, so "
+                "nothing here can show that this spread was drawn over the decisions the figure "
+                "is made of."
+            ).format(why=book["unavailable_because"])
         between = (
             "Both runs carry the same world digest {digest}, so the departure surface did not "
-            "move between them. What that does NOT establish is that they measured the same "
-            "BOOK: the noise floor names no book identity of its own, so nothing here can show "
-            "that this spread was drawn over the decisions the figure is made of."
-        ).format(digest=floor_world)
+            "move between them. {asked}"
+        ).format(digest=floor_world, asked=asked)
     else:
         between = (
             "The two runs name DIFFERENT WORLDS -- {floor_world} for the spread against "
@@ -1368,13 +1395,21 @@ def _admitted_on_a_stamp_proxy(floor: dict, three_arm: dict, why_not: str,
     stamp is not a weaker form of the book test, it is a different test: it can refuse a pair
     proven to be the same population and admit one drawn over a different one, and both have been
     measured on this feed's own artefacts.
+
+    THE REALISED COUNTS ARE STILL ASKED HERE, AND THIS IS WHERE THAT MATTERS MOST (2026-09-18). A
+    floor reaching this branch has no DECLARED book -- and it can still carry a settled-account
+    count on every seed row, because the two halves were added to the producer at different times.
+    Falling all the way back to the date when the artefact can prove the populations differ is the
+    fail-open in its strongest form: nothing else on the page is even looking.
     """
+    realised = _realised_book_pairing(floor, three_arm)
     return {
         "rule": ADMITTED_ON_A_STAMP_PROXY,
-        "admitted": _staleness_caveat(floor, three_arm) is None,
+        "admitted": _staleness_caveat(floor, three_arm) is None and not realised["refusal"],
         "floor_declared_book": floor_book,
         "figure_declared_book": None,
-        "refusal": None,
+        "realised_book_pairing": realised,
+        "refusal": realised["refusal"],
         "why_this_rule": (
             "THE BOUND ON THIS FIGURE WAS ADMITTED BY ITS DATE, NOT BY THE BOOK IT WAS DRAWN "
             "OVER: {why_not}. A date is a proxy for that question and it is wrong in BOTH "
@@ -1385,6 +1420,153 @@ def _admitted_on_a_stamp_proxy(floor: dict, three_arm: dict, why_not: str,
             "floor_book_identity` landed declares its own population, and this page pairs on that "
             "instead the moment one reaches it.".format(why_not=why_not)),
     }
+
+
+def _span(values) -> tuple | None:
+    """[min, max] over whatever in `values` is a real number, or None if nothing was."""
+    numbers = [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    return (min(numbers), max(numbers)) if numbers else None
+
+
+def _floor_realised_book(floor: dict) -> tuple[dict, str | None]:
+    """The floor's realised book counts as a RANGE per field, from whichever half carries them.
+
+    A FOLD DECLARES `realised_across_seeds` UNAVAILABLE AND ITS SEED ROWS CARRY THE COUNT ANYWAY,
+    which is why this reads two places rather than one. `fold_noise_floor_family` refuses to
+    reconcile the realised half across members -- each measured its own range over its own seeds --
+    so the folded eighteen this page stands on has no `realised_across_seeds` block at all. Its
+    eighteen seed rows each carry `billing_accounts_settled_in_window`, and on the live family all
+    eighteen say 164. An "unavailable" summary above a field every row answers is the shape that
+    kept this question unasked, so the seed rows are the fallback and not an afterthought.
+
+    FAILS CLOSED PER FIELD: a field only becomes comparable when EVERY seed row carries it. A
+    range taken over the subset that recorded one is a range over a different family.
+    """
+    identity = (floor or {}).get("book_identity")
+    across = (identity or {}).get("realised_across_seeds") if isinstance(identity, dict) else None
+    ranges: dict = {}
+    if isinstance(across, dict):
+        for field, block in across.items():
+            span = _span([block.get("min"), block.get("max")]) if isinstance(block, dict) else None
+            if span:
+                ranges[field] = span
+    if ranges:
+        return ranges, None
+    seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
+    for field in BOOK_REALISED_FIELDS:
+        # COUNTED, NOT LENGTH-CHECKED. The first draft compared `len([s.get(f) for s in seeds])`
+        # against `len(seeds)` -- vacuously equal, because `.get` returns `None` for a row that
+        # never recorded the field, so a floor with one silent seed paired on the other
+        # seventeen's book. The control written beside this found it on its first run.
+        values = [s.get(field) for s in seeds]
+        numeric = [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]
+        if seeds and len(numeric) == len(seeds):
+            ranges[field] = (min(numeric), max(numeric))
+    if ranges:
+        return ranges, None
+    return {}, ("this noise floor states no realised book counts -- neither a "
+                "`realised_across_seeds` block nor a count on every seed row")
+
+
+def _the_runs_realised_book(three_arm: dict) -> tuple[dict, str | None]:
+    """The same counts for the run a floor would bound, as a range ACROSS ITS ARMS.
+
+    ACROSS THE ARMS AND NOT OFF ONE OF THEM, because they legitimately differ: on the 09-18 run
+    the value arm settled 155 billing accounts against the control's 154, since pricing a renewal
+    moves who renews and therefore who settles. A rule keyed to one arm's number would refuse its
+    own run. The range is the honest statement of what "this figure's book" is.
+    """
+    identity = (three_arm or {}).get("book_identity") or {}
+    arms = [block for block in identity.values()
+            if isinstance(block, dict) and "served_segments" in block]
+    if not arms:
+        return {}, "the run this floor would bound records no per-arm book counts"
+    ranges = {}
+    for field in BOOK_REALISED_FIELDS:
+        if all(isinstance(block.get(field), (int, float)) for block in arms):
+            span = _span([block.get(field) for block in arms])
+            if span:
+                ranges[field] = span
+    return ranges, (None if ranges else
+                    "no realised count is carried by every arm of the run this floor would bound")
+
+
+def _realised_book_pairing(floor: dict, three_arm: dict) -> dict:
+    """Whether the floor's book and the figure's book are provably DIFFERENT populations.
+
+    THE DEFECT (2026-09-18). `_floor_admission` below pairs on the DECLARED half only and says so,
+    and its stated reason is the producer's own: *"the realised account counts differ between two
+    floors of the same book by construction, because moving the price-sensitivity draw moves who
+    churns and therefore who settles."* That is true of exactly ONE of the five realised fields.
+    Measured on the two families this page has:
+
+        field                               next12 (12 seeds)   folded eighteen (18 seeds, 2 trees)
+        billing_accounts_settled_in_window  154 .. 154          164 .. 164
+        with_an_electricity_leg             136 .. 136          (seed rows carry only the first)
+        with_a_gas_leg                       90 ..  90
+        dual_fuel                            72 ..  72
+        accounts_at_end_of_window            54 ..  55
+
+    Four of the five do not move across seeds at all; `accounts_at_end_of_window` is the one that
+    does, and it is the one the reason describes. So the blanket instruction threw away a working
+    discriminator along with the broken one, and the cost was live: the published floor is over a
+    164-account book, the 09-18 arms are over a 154/155 one, and the page reported that bound
+    ADMITTED under `declared_book` -- the STRONG rule, the one that says the book decided.
+
+    The declared half could not have caught it. `served_segments: ["resi", "SME"]` is a curriculum
+    setting; every run this company has ever done declares it, so on this feed the "strong" rule is
+    a constant and cannot separate any two runs.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. The test is DISJOINT RANGES, not equality, so
+    it needs no list of which fields are stable: a field that moves within either side simply
+    widens its own range and stops being able to prove anything, which is the fail-closed
+    direction. The honest re-run the producer's sentence was protecting -- a floor over this same
+    book -- lands at 154, overlaps [154, 155], and is admitted. This refuses the 164 one.
+
+    IT ADDS A REFUSAL AND NEVER REMOVES ONE. Nothing admitted before is admitted on fewer grounds
+    now; a pair must clear the declared half AND fail to be proven different on the realised one.
+    """
+    floor_ranges, why_floor = _floor_realised_book(floor)
+    run_ranges, why_run = _the_runs_realised_book(three_arm)
+    compared = sorted(set(floor_ranges) & set(run_ranges))
+    if not compared:
+        return {
+            "fields_compared": [],
+            "disjoint_on": {},
+            "refusal": None,
+            # FAIL-SILENT IS THE FAILURE MODE HERE, so the reason is carried rather than left as
+            # an empty dict a consumer reads as agreement.
+            "unavailable_because": why_floor or why_run or (
+                "the two artefacts state realised counts on no field in common"),
+        }
+    disjoint = {
+        field: {"floor": list(floor_ranges[field]), "figure": list(run_ranges[field])}
+        for field in compared
+        if floor_ranges[field][1] < run_ranges[field][0]
+        or run_ranges[field][1] < floor_ranges[field][0]
+    }
+    return {
+        "fields_compared": compared,
+        "disjoint_on": disjoint,
+        "unavailable_because": None,
+        "refusal": (None if not disjoint else (
+            "THE ERROR BAR WAS DRAWN OVER A DIFFERENT BOOK FROM THE FIGURE IT WOULD BOUND, and "
+            "both artefacts say so in their own counts: {detail}. These ranges do not overlap, so "
+            "this is not two draws of one population -- it is a spread over one book published as "
+            "the error bar on a figure from another, which it is not at any width.").format(
+                detail="; ".join(
+                    "{field} is {fl} across the floor's seeds against {fg} across this run's arms"
+                    .format(field=field,
+                            fl=_range_text(disjoint[field]["floor"]),
+                            fg=_range_text(disjoint[field]["figure"]))
+                    for field in sorted(disjoint)))),
+    }
+
+
+def _range_text(span: list) -> str:
+    """A [min, max] pair as a reader reads it -- one number when it did not move."""
+    low, high = span[0], span[-1]
+    return "{:g}".format(low) if low == high else "{:g}-{:g}".format(low, high)
 
 
 def _floor_admission(floor: dict, three_arm: dict) -> dict:
@@ -1423,28 +1605,38 @@ def _floor_admission(floor: dict, three_arm: dict) -> dict:
         return _admitted_on_a_stamp_proxy(floor or {}, three_arm or {}, why_not, declared)
 
     same = all(_comparable(declared.get(f)) == _comparable(run_book.get(f)) for f in fields)
+    # AND THE REALISED HALF, WHERE IT CAN PROVE A DIFFERENCE -- see `_realised_book_pairing` for
+    # why the blanket "never pair on realised" this block used to carry was one field's reason
+    # applied to five. Ordered after the declared test and ANDed with it: a pair must clear both.
+    realised = _realised_book_pairing(floor or {}, three_arm or {})
     return {
         "rule": ADMITTED_ON_THE_DECLARED_BOOK,
-        "admitted": same,
+        "admitted": same and not realised["refusal"],
         "floor_declared_book": declared,
         "figure_declared_book": run_book,
+        "realised_book_pairing": realised,
         # REFUSES rather than caveats, because this is not a shading of confidence: a spread over
         # one population is not an interval on a figure over another at any width.
-        "refusal": (None if same else (
+        "refusal": ((None if same else (
             "THE ERROR BAR WAS DRAWN OVER A DIFFERENT BOOK FROM THE FIGURE IT WOULD BOUND. The "
             "seeds behind this spread declare {floor}; the run it would bound declares {run}. A "
             "spread measured over one population is not a confidence interval on a figure "
             "measured over another, however recently it was taken -- so no contrast on this page "
             "takes its direction from it.").format(
-                floor=declared.get("served_segments"), run=run_book.get("served_segments"))),
+                floor=declared.get("served_segments"), run=run_book.get("served_segments")))
+            or realised["refusal"]),
         "why_this_rule": (
             "The bound on this figure was admitted on the BOOK it was drawn over rather than on "
-            "its date: the floor's seeds and this run's arms {verdict} declare {floor}. Pairing "
-            "is on the declared half of the book identity only -- the realised account counts "
-            "differ between two floors of the same book by construction, because moving the "
-            "price-sensitivity draw moves who churns and therefore who settles.").format(
+            "its date: the floor's seeds and this run's arms {verdict} declare {floor}. The "
+            "declared half is what the run was GIVEN, and it is a curriculum setting every run "
+            "this company has done declares, so on its own it separates almost nothing; the "
+            "realised counts are asked beside it wherever their ranges can prove a difference "
+            "({realised}).").format(
                 verdict="both" if same else "do NOT both",
-                floor=declared.get("served_segments")),
+                floor=declared.get("served_segments"),
+                realised=(", ".join(realised["fields_compared"])
+                          if realised["fields_compared"]
+                          else "not askable here: " + str(realised["unavailable_because"]))),
     }
 
 
