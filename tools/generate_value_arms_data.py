@@ -251,9 +251,31 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: WHY THIS IS NOT THE PAIRING DEFECT THE CONSTANT BELOW WARNS ABOUT. "The bound alone bounds the
 #: wrong run" means a floor drawn over a DIFFERENT WORLD from the arms it bounds. Both floors and
 #: `THREE_ARM_PATH` carry world digest `39a192ce04c1eda8`, so the bound is over the right world
-#: before and after, and the folded family is stamped 2026-09-17T15:14:19Z against the arms'
-#: 2026-09-10T14:04:08Z, so `_staleness_caveat` is satisfied rather than bypassed. What changes is
-#: only how many draws of that world there are: 9 -> 18.
+#: before and after. What changes is only how many draws of that world there are: 9 -> 18.
+#:
+#: THE STAMP PAIR THIS PARAGRAPH ARGUED FROM IS RETRACTED, AND ITS TWO HALVES DIED SEPARATELY AND
+#: FOR UNRELATED REASONS, which is why one correction naming one date would have been a second
+#: false sentence. This paragraph stated that the floor was the folded family stamped
+#: 2026-09-17T15:14:19Z, and that wording stood only until 2026-09-17, when `5ce5c3c31` moved
+#: `NOISE_FLOOR_PATH` on again to the single-arm eighteen recorded two paragraphs below. It also
+#: stated that the arms read 2026-09-10T14:04:08Z, and that wording stood until 2026-09-18, when
+#: `756a86272` promoted the 09-18 book onto `THREE_ARM_PATH`. Neither falsification touched a
+#: constant, an import or a source line: one was a constant moved inside this same block, the
+#: other a promote-by-copy at a path this file only reads. Found by
+#: `tools/promoted_artefact_claim_census.py`, which could only see it once the comment block was
+#: joined into one claim unit, because the path and the stamp sit on different physical lines.
+#:
+#: SO THE ORDERING IS NOT ASSERTED HERE AT ALL, AND THAT IS THE REPAIR RATHER THAN A TIDY-UP. It is
+#: `_staleness_caveat`'s to answer, from the two artefacts' own payloads, every time this module
+#: runs. A prose pair of stamps beside it can only ever be a second copy of that answer, drifting
+#: out of date at whichever end moves first, and both ends moved within a day of being written.
+#:
+#: WHAT THE DERIVED ANSWER IS NOW, SAID PLAINLY BECAUSE A READER OF THE RETRACTED SENTENCE WOULD
+#: BELIEVE THE OPPOSITE: the guard FIRES. The floor is older than the figure it bounds, and
+#: `error_bar.staleness_caveat` carries that refusal to the reader in words, together with the
+#: remedy it names -- re-running the noise floor over the published book. That re-run is owed and
+#: it is not this comment's to do: the artefact is held by the republish lane, and a floor drawn to
+#: quiet a sentence in a file that only reads it would be the tail wagging the dog.
 #:
 #: WHAT IT IS NOT INNOCENT OF, AND THE PAGE NOW SAYS IT. The folded family has no single producing
 #: commit -- it pools two trees, `c066c114b` and `9f0ab066f`. That is a REAL cost and it is wider
