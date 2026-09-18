@@ -146,6 +146,54 @@ red they sit beside; both clear on the merge and neither wants a code change.
 Left red deliberately. A control keyed to the day's answer is the failure this repo has paid for
 most often, and the remedy the message recommends would install one.
 
+## CORRECTION, same turn: the prediction above rested on a false premise
+
+**The publish gate does not grade the working tree.** It builds a throwaway checkout of HEAD
+(`/var/tmp/publish-gate-head-2tsni52o/`, and the log says so: *"the reused HEAD checkout is
+DISABLED ... using a throwaway checkout for this cycle"*). Everything above about the worktree's
+`ModuleNotFoundError` is true and was worth fixing, but **it was never the gate's red.** The
+pre-registration is refuted, and it is refuted at the premise rather than the outcome — the worst
+kind, because the measurement was sound and pointed at the wrong tree.
+
+The gate's actual red, reproduced in a clean HEAD extract where the gate sees it, is an ordinary
+assertion failure and not an import error at all:
+
+    assert got[CREDITED_ID]["evidence"] == ""
+    E  AssertionError: assert 'CANNOT ANSWE...s never asked' == ''
+
+At HEAD, `delivery_lane` already emitted the CANNOT-ANSWER voice while this suite still asserted
+`evidence == ""`. **A half-landed pair**: the module side was in, the test side was on origin. So
+the prior turn's one-line conclusion — *the repair is on origin* — was right, and the only fix was
+ever the merge. My worktree repair fixed a real but different red.
+
+## The fork is closed
+
+`origin_reconcile` cleared a window and refused with `REFUSED_CONFLICT` on exactly one path, which
+the publish path itself calls *"a judgement for the seat"*. Resolved and landed as **`d1cb676ad`**
+via `surgical_land --merge origin/main --resolve`; the tree went from 15 behind to **7 ahead, 0
+behind**, adopting 23 paths from origin including `background/delivery_lane.py`.
+
+**Both lanes made the same repair at different depths, and either side taken whole destroys work.**
+Ours (`a5244376c`) re-keyed the three `evidence == ""` legs inline; theirs keyed them to the shared
+predicate home `residual_voices.py`, which is the better design. Theirs won every executable
+assertion — the test must match the module the merged tree has. But ours was not only a rewrite: it
+**added** `test_THE_RESIDUAL_PARTITION_every_reachable_branch_names_what_it_asked_or_what_it_broke_on`,
+which theirs does not contain, and a merge adopting one side's rewrite deletes the other's purely
+additive work. It was carried over intact.
+
+**A control preserved across a merge must be shown to still fire against the new module, or it is
+cover.** Injecting mutation (k) — one constant from every branch of origin's `_nothing_answered` —
+reds the carried test on its distinctness leg (`assert 1 == 3 where 1 = len({'MUTANT'})`), exactly
+as its own docstring predicts. Restored: 9 passed.
+
+Verified at the new HEAD in a clean extract: the named blocking test **passes**. One apparent new
+red, `..._THE_PROSE_SPELLING_OF_A_MODULE_RESOLVES_against_the_real_repo`, is extract locality — a
+`git archive` extract has no `.git` — and is green in the real repo (15 passed).
+
+**Not yet pushed.** `origin_reconcile` was refused `GATE_RUNNING` again on the very next attempt.
+The gate grades local HEAD, so the wedge should clear without the push; the push is the
+reconciler's to make when a window opens, and it is the owner.
+
 ## Owed
 
 1. **The deadlock is the standing defect, not this instance.** The reconciler cannot be starved by
