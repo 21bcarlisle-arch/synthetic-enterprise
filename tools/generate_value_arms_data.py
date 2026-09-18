@@ -1803,10 +1803,16 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
     # below that a reader meets as "the value of the choosing" comes out of this block, so the
     # two can no longer be picked up from different places -- which is exactly how a one-run
     # `+£319` came to be printed under a nine-seed `±£1,810`. See `_leg_over_its_own_family`.
+    # THE ONE CALL SITE THAT BUILDS ITS FAMILY INLINE, and therefore the one that has to ask the
+    # staleness question itself (2026-09-18). The other two take their family through
+    # `_seed_spreads`, which refuses a stale floor before a leg is ever composed; this block reads
+    # the floor's seed rows directly, so it met no such refusal and published an 18-seed sign over
+    # a run from another book. It is the same answer this function's own `staleness_caveat` key
+    # is built from, ten lines below -- now passed to the leg instead of only printed beside it.
     leg = _leg_over_its_own_family(
         {"n": n, "mean_gbp": _f(spread.get("mean")), "stdev_gbp": stdev,
          "min_gbp": lo, "max_gbp": hi, "sem_gbp": _f(floor.get("selection_sem_gbp"))},
-        point_estimate, point_clock)
+        point_estimate, point_clock, _staleness_caveat(floor, three_arm or {}))
     # Whether the ONE published run is even inside the range the family was drawn over. `None`
     # when either end is missing -- an unknown relationship must not read as a comfortable one.
     inside = leg.get("single_run_inside_the_family")
@@ -2350,7 +2356,19 @@ def _selection_leg_reading(leg: dict, inside, subject: str = "the selection leg"
     bar_text = "bar" if bar is None else "{:.2f}".format(bar)
     single_run = (leg.get("single_run") or {}).get("gbp")
     member = ""
-    if single_run is not None:
+    # THE MEMBERSHIP CLAUSE IS READ BACK OFF THE PUBLISHED KEY, never assumed from the fact that
+    # a run and a family both exist (2026-09-18). This sentence asserted membership on every
+    # firing, so on the 09-18 feed it called a 09-18 run "a single member of those 18" when the
+    # 18 were drawn on the 09-17 book -- the same false claim `_leg_over_its_own_family` was
+    # withdrawing two keys away. A summariser that re-decides a question its own block already
+    # answered is how one artefact comes to say both things.
+    is_member = (leg.get("single_run") or {}).get("is_a_member_of_the_family")
+    if single_run is not None and is_member is False:
+        member = (" The one published run -- {run}, which every other figure on this page is "
+                  "drawn from -- is NOT one of those {n}: it and the family were measured over "
+                  "different books, so nothing above bounds it and no direction is stated about "
+                  "it here.").format(n=n, run=_gbp(single_run))
+    elif single_run is not None:
         member = (" The one published run is a single member of those {n}: {run}, {where} "
                   "the family's own range{flip}, and every other figure on this page is drawn "
                   "from it.").format(
@@ -2370,6 +2388,25 @@ def _selection_leg_reading(leg: dict, inside, subject: str = "the selection leg"
         return ("The family pins its mean with no measurable error, so how far that mean is from "
                 "zero cannot be stated in units of its own precision and this page states no "
                 "side.{}".format(member))
+    # TWO REASONS A SIDE IS WITHHELD, AND THEY READ NOTHING ALIKE (2026-09-18). This branch was
+    # written when the only way to be unstateable was to sit too few errors from zero, so it said
+    # "short of the bar" on every firing. A family from ANOTHER BOOK is now also unstateable --
+    # and the 18-seed family that provoked this sits 5.1 errors from zero against a bar of 2.11,
+    # so the sentence would have told a reader 5.1 was short of 2.11. Caught by printing the
+    # block at real inputs before the test was written, which is the only thing that would have
+    # caught it: every assertion in the suite was about the verdict, and the verdict was right.
+    withheld = leg.get("sign_withheld_because")
+    if withheld:
+        # THE COMPARISON IS NOT ASSERTED IN EITHER DIRECTION. A family from another book can be
+        # on either side of its own bar, and this sentence has no business saying which: the
+        # reason the side is withheld has nothing to do with the bar. Both numbers are printed so
+        # the reader can make the comparison the page declines to lean on.
+        return ("The estimate sits {sems:.1f} standard errors from zero against this family's own "
+                "bar of {bar}, but no side is stated for {effect}, because {why} So what is "
+                "published here bounds the seed family and nothing else on this page; the figure "
+                "the rest of the page is drawn from is not graded by it.{member}").format(
+                    sems=sems, bar=bar_text, effect=effect, member=member,
+                    why=withheld[0].lower() + withheld[1:])
     return ("The estimate sits {sems:.1f} standard errors from zero, short of the {bar} this page "
             "requires before stating a side, so this book cannot yet resolve {effect} "
             "of the size it is measuring -- in either direction. That is a finding about the "
@@ -2430,7 +2467,13 @@ def _legs_on_one_bar(floor: dict | None, three_arm: dict | None, split: dict | N
         # clause in the reading names the figure the rest of the page is drawn from, and three
         # legs sharing one run's number is the mispairing every other block here refuses.
         run = (split or {}).get(key) if (split or {}).get("available") else None
-        leg = _leg_over_its_own_family(family, run, point_clock)
+        # `_seed_spreads` HAS ALREADY REFUSED EVERY STALE FLOOR above, so this is not a second
+        # guard -- it is the same answer stated rather than assumed. Passing the derived caveat
+        # (rather than a literal `None`) is what keeps it true if that upstream refusal is ever
+        # narrowed: this leg would then withdraw its own membership claim instead of inheriting a
+        # permission nobody re-checked.
+        leg = _leg_over_its_own_family(family, run, point_clock,
+                                       _staleness_caveat(floor, three_arm or {}))
         # THE EFFECT NOUN, so the unstateable branch reads about THIS leg. `a selection effect` is
         # the selection leg's and stays its exact words -- a door control is keyed to them.
         effect = ("a selection effect" if key == SELECTION_CONTRAST else
@@ -3855,6 +3898,21 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
         # is: a bound that was let through by a date is checkable as such from the artefact rather
         # than only from the page's prose.
         "admitted_by": (admission or {}).get("rule"),
+        # THE STALENESS ANSWER THIS BLOCK ACTUALLY REACHED, carried forward so a consumer states
+        # it rather than assuming it (2026-09-18). `_leg_over_its_own_family` requires this answer
+        # to decide whether the published run is a member of the family, and `_selection_sentence`
+        # -- which holds no floor of its own -- can only get it from here.
+        #
+        # "CLEAN" AND "NEVER ASKED" ARE NOT THE SAME `None`, and collapsing them would be the
+        # flattering direction. The refusal above runs `if three_arm is not None`, so a caller
+        # with no point estimate in hand reaches this return having tested NOTHING -- and a
+        # membership claim resting on an untaken test is the shape that put an 18-seed sign on a
+        # run from another book. Unasked says so in words and withdraws the claim exactly as a
+        # failed test would.
+        "staleness_at_admission": (
+            None if three_arm is not None else
+            "no point estimate was handed to this block, so whether the floor and the published "
+            "run were measured over the same book was never asked"),
         "what_was_re_drawn": (
             "The same three arms re-run on the same world once per seed, with only the "
             "per-household price-sensitivity draw changed. Nothing about the company moved."),
@@ -3893,7 +3951,8 @@ def _spread_for(spreads: dict | None, key: str):
 # via `sems_to_state_a_sign`, which is the single home shared with the run producer.
 
 
-def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=None) -> dict:
+def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
+                             staleness_caveat: str | None) -> dict:
     """ONE contrast's estimate and ONE contrast's bound, both over the SAME population.
 
     THE DEFECT IT SERVES, and it is the thesis of the page rather than a detail of it. Until
@@ -3927,16 +3986,55 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
     pins its mean more errors from zero than its own size earns (`sems_to_state_a_sign`, the
     two-sided t point on `n - 1` degrees of freedom), `sign_is_stateable`
     goes true and the prose states the sign, with nobody editing a string.
+
+    `staleness_caveat` IS REQUIRED, AND IT IS THE MEMBERSHIP CLAIM'S ONLY WARRANT (2026-09-18).
+    Every sentence above that calls the published run "one member of the {n}" is a claim that the
+    family and the run were drawn over the SAME BOOK, and until this date nothing here was asked
+    whether they were. On 2026-09-18 they were not: an 18-seed family measured on the 09-17 book
+    was printed as the bound on a 09-18 run whose value arm priced a different population, and
+    `error_bar.reading` told a reader "on 18 re-draws the selection leg is negative" eleven lines
+    above `legs_on_one_bar.why_no_leg_is_graded` saying no direction on this page could be stated
+    at all. One artefact said both, and the half a reader acts on was the false one.
+
+    THE CALLERS THAT WERE ALREADY SAFE DID NOT MAKE THIS SAFE. `_legs_on_one_bar` and
+    `_selection_sentence` both take their family through `_seed_spreads`, which refuses a stale
+    floor outright -- so the defect could only ever surface through `_error_bar`, which builds its
+    spread dict inline from the floor's own seed rows and so never met that refusal. A guard two
+    of three callers happen to pass through is not a guard; the question has to be asked HERE,
+    where the sentence is composed, which is why the answer is a parameter of this function.
+
+    IT IS REQUIRED AND NOT DEFAULTED, deliberately. A defaulted `None` would mean every call site
+    that forgot it would silently assert one book -- the unreachable-mutation shape this project
+    has already paid for, and the flattering direction on the one sentence this block exists to
+    get right. `None` here means a caller LOOKED and found the two contemporaneous; a string is
+    that caller's own reason they are not.
+
+    WHAT IS WITHDRAWN WHEN IT FIRES, and what is not. The family's own statistics stay -- they are
+    true OF THE FAMILY, and blanking them would hide the only measurement in hand. What goes is
+    every claim that relates the family to the published run: membership, the run's position
+    inside the range, and the SIGN. The sign goes because a reader meets `reading` as a statement
+    about the figure the rest of the page is drawn from, and this page's own rule -- already
+    enforced in `_seed_spreads` -- is that a bound may only grade an estimate from its own book.
     """
     single_run = _f(single_run)
+    # ONE BOOK OR TWO, ANSWERED BEFORE ANY SENTENCE IS COMPOSED. Everything below that relates
+    # the run to the family is gated on this, and the gate is the caller's stated answer rather
+    # than anything re-derived here -- so the block and the caveat published beside it cannot
+    # disagree, which is precisely how the 2026-09-18 feed came to say both.
+    one_book = staleness_caveat is None
     single_run_block = {
         "gbp": single_run,
         "seeds": None if single_run is None else 1,
         "clock": single_run_clock,
+        "is_a_member_of_the_family": None if single_run is None else one_book,
         "what_it_is_over": (
-            "ONE run of the three arms -- one member of the seed family above, published because "
-            "it is the run every other figure on this page is drawn from, and NOT because it is "
-            "the best estimate of this contrast. The family's mean is."),
+            ("ONE run of the three arms -- one member of the seed family above, published because "
+             "it is the run every other figure on this page is drawn from, and NOT because it is "
+             "the best estimate of this contrast. The family's mean is.") if one_book else
+            ("ONE run of the three arms, published because it is the run every other figure on "
+             "this page is drawn from. It is NOT a member of the seed family above and the family "
+             "does not bound it: the two were measured over different books. {}").format(
+                 staleness_caveat)),
     }
     mean, sem = _f((spread or {}).get("mean_gbp")), _f((spread or {}).get("sem_gbp"))
     n = (spread or {}).get("n")
@@ -3956,6 +4054,13 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
     bar = sems_to_state_a_sign(n)
     stateable = None if sems_from_zero is None or bar is None else bool(
         sems_from_zero > bar)
+    # AND A FAMILY FROM ANOTHER BOOK STATES NO SIGN, however many errors from zero its own mean
+    # sits. This is the same refusal `_seed_spreads` already makes upstream, made here as well
+    # because `_error_bar` reaches this function without passing through it. `False` and not
+    # `None`: we DID measure, and what we measured does not license a direction about the
+    # published run -- which is a different thing from having nothing to say.
+    if stateable and not one_book:
+        stateable = False
     lo, hi = _f((spread or {}).get("min_gbp")), _f((spread or {}).get("max_gbp"))
     stdev = _f((spread or {}).get("stdev_gbp"))
     # WHAT IT WOULD TAKE, PRICED IN THE ONE UNIT THAT ACTUALLY BUYS IT DOWN. The page's remedy
@@ -4019,17 +4124,32 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
                  naive=math.floor((bar * stdev / abs(mean)) ** 2) + 1)),
         "single_run": single_run_block,
         "single_run_inside_the_family": (
-            None if single_run is None or lo is None or hi is None
+            # POSITION INSIDE A RANGE IS ONLY A FACT ABOUT THIS RUN IF THE RANGE IS THIS RUN'S
+            # BOOK. Across two books the comparison still evaluates -- `lo <= x <= hi` is
+            # arithmetic on four floats and never raises -- and that is exactly the trap: it
+            # returns a comfortable `True` that means nothing. `None` is the honest answer and
+            # every consumer already reads it as "of unknown position".
+            None if single_run is None or lo is None or hi is None or not one_book
             else bool(lo <= single_run <= hi)),
         "single_run_on_the_other_side_of_zero": (
-            None if single_run is None or single_run == 0 or mean == 0
+            None if single_run is None or single_run == 0 or mean == 0 or not one_book
             else bool((single_run > 0) != (mean > 0))),
+        "sign_withheld_because": (
+            None if one_book else
+            ("this family was measured over a different book from the run published above, so it "
+             "bounds the family and not the figure. " + staleness_caveat)),
         "what_each_number_is_over": (
-            "`estimate_gbp` is the MEAN of this contrast across {n} seed re-draws. `bound_gbp` is "
-            "that same family's standard error over the same {n}. They are one population, which "
-            "is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is "
-            "the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never "
-            "divided into the mean. `single_run.gbp` is one member of the {n}.").format(n=n),
+            ("`estimate_gbp` is the MEAN of this contrast across {n} seed re-draws. `bound_gbp` is "
+             "that same family's standard error over the same {n}. They are one population, which "
+             "is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is "
+             "the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never "
+             "divided into the mean. `single_run.gbp` is one member of the {n}.") if one_book else
+            ("`estimate_gbp` is the MEAN of this contrast across {n} seed re-draws and `bound_gbp` "
+             "is that same family's standard error over the same {n}: those two ARE one population "
+             "and bound each other. `single_run.gbp` is NOT among them -- it comes from a "
+             "different book -- so this family states no direction about it and no figure here "
+             "qualifies it. `one_draw_moves_gbp` is the family's standard deviation and is never "
+             "divided into the mean.")).format(n=n),
     }
 
 
@@ -10828,7 +10948,13 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # best estimate this project holds for that identical contrast was -£1,078. The estimate is
     # now the family's mean, the bound is that family's own standard error, and the one run is
     # named as one member of it. See `_leg_over_its_own_family`.
-    leg = _leg_over_its_own_family(selection_spread, selection)
+    # THE STALENESS ANSWER IS READ, NOT TYPED. This function holds no floor, so it cannot re-run
+    # the test -- but `_seed_spreads` already ran it and now says what it found, including the
+    # case where it was never able to ask. Writing a literal `None` here would assert one book on
+    # the strength of an upstream refusal nobody re-checks, which is the defaulted-permission
+    # shape the required parameter exists to prevent.
+    leg = _leg_over_its_own_family(selection_spread, selection, None,
+                                   (spreads or {}).get("staleness_at_admission"))
 
     # NO DIRECTION WITHOUT A CONTRAST THAT EARNED ONE. Unknown is treated exactly as "cannot
     # tell": a missing family is not evidence that the sign is safe to state.

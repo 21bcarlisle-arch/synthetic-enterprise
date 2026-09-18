@@ -157,6 +157,39 @@ def real() -> dict:
     return gva.build(_load(THREE_ARM), _load(NOISE_FLOOR))
 
 
+@pytest.fixture(scope="module")
+def bounded_pair() -> dict:
+    """The page built from a floor CONSTRUCTED contemporaneous with the run, not the live pair.
+
+    WHY THIS EXISTS, AND IT IS THE ELEVENTH INSTANCE OF A CLASS THIS FILE ALREADY NAMES
+    (2026-09-18). `_stamped_after` was written on 2026-09-09 because ten controls whose subject is
+    the WORLD guard, the LEG guard or the STABILITY guard were refused by the STALENESS guard
+    instead, and each reported the failure of the guard it names rather than the one that fired.
+    The reconciliation controls below were never given that treatment: they read `real`, whose
+    floor is whatever is on disk, and asserted `error_bar.available` as a PRECONDITION. Promoting
+    the 2026-09-18 run -- whose value arm at last prices the book the level arm prices, the whole
+    point of the exercise -- put the floor of 2026-09-17T21:39 BEHIND the figure it bounds. The
+    bar correctly withdrew, and eight controls went red because the page had become MORE honest.
+
+    A CONTROL THAT LOOKS FOR ITS DISCRIMINATING PAIR ON THE LIVE ROSTER LOSES ITS SUBJECT TO EVERY
+    REPAIR. So the pair is BOUND here: the floor postdates the run by construction, which is the
+    one property the reconciliation is about, and no promotion can take it away. What is asserted
+    against the LIVE pair stays on `real`, and only in the direction that can get MORE true -- a
+    withdrawn bar must name its reason and publish no operands.
+
+    THE FIXTURE ASSERTS ITS OWN PRECONDITION rather than assuming it, because a constructed
+    witness that silently stops standing for the branch it was built for is the exact failure
+    `_floor_without_a_book` was written for one file over.
+    """
+    run = _load(THREE_ARM)
+    pair = gva.build(run, _stamped_after(_load(NOISE_FLOOR), run))
+    assert pair["error_bar"]["available"], (
+        "the constructed contemporaneous pair has no bar, so every control keyed to this fixture "
+        "measures the fixture instead of the reconciliation: {}".format(
+            str(pair["error_bar"].get("reason"))[:300]))
+    return pair
+
+
 @pytest.fixture
 def real_20260829() -> dict:
     """The page as built from the run whose BELIEF RANKED BACKWARDS -- see `THREE_ARM_20260829`.
@@ -249,7 +282,57 @@ def test_a_split_that_disagrees_with_the_bridge_withholds_the_level_arm(real):
         "the disagreement is reported without its size: {}".format(level["absent_reason"]))
 
 
-def test_the_selection_leg_and_its_error_bar_are_published_together(real):
+def test_the_LIVE_pair_states_no_sign_for_the_RUN_while_its_family_is_another_book(real):
+    """THE LIVE LEG, in the one direction it can only get MORE true.
+
+    The controls below reconcile the bar against the figure it bounds on a pair CONSTRUCTED to
+    have a bar, which is what keeps them from going red every time a newer run is promoted. That
+    would leave the live artefacts unasserted, and the failure hiding there is the one this whole
+    page exists to prevent -- and it is not hypothetical today. On the 2026-09-18 book the
+    selection family sits 2.50 standard errors from zero against its own bar of 2.11: absent the
+    one-book gate the page WOULD state a direction, off a family measured over a different book
+    from the run every other figure on the page is drawn from.
+
+    SO THE PROPERTY IS A BICONDITIONAL AND NOT TODAY'S ANSWER. Membership, the run's position
+    inside its family's range, and the SIGN all stand or fall together with "one book", whichever
+    way the live pair happens to answer. Re-run the floor on the published book and this control
+    passes through the other branch without an edit; publish a sign over two books and it reds.
+    """
+    leg = real["error_bar"]["selection_leg"]
+    if not leg.get("available"):
+        assert str(leg.get("reason") or "").strip(), (
+            "the live leg is withdrawn and names no reason, so a reader meets an absence with "
+            "nothing telling them it was measured and refused")
+        return
+
+    one_book = leg["single_run"]["is_a_member_of_the_family"]
+    assert one_book in (True, False), (
+        "the feed will not say whether the run is a member of the family bounding it, and an "
+        "unknown relationship must not be published as a comfortable one: {!r}".format(one_book))
+    if one_book:
+        return
+
+    # THE RUN AND THE FAMILY ARE TWO BOOKS. Everything relating one to the other must be withdrawn
+    # -- and the family's own statistics must NOT be, because they are true of the family and
+    # blanking them would hide the only measurement in hand.
+    assert leg["sign"] is None and leg["sign_is_stateable"] is False, (
+        "the page states a {!r} direction for the published run off a family measured over a "
+        "different book -- {} errors from zero against a bar of {}".format(
+            leg["sign"], leg.get("sems_from_zero"), leg.get("sems_needed_to_state_a_sign")))
+    assert leg["single_run_inside_the_family"] is None and \
+        leg["single_run_on_the_other_side_of_zero"] is None, (
+        "the run's position inside a range drawn over another population was published as though "
+        "the two were comparable")
+    assert "different book" in str(leg.get("sign_withheld_because") or ""), (
+        "the sign is withheld and the published reason does not say the two are different books, "
+        "so a reader cannot tell this refusal from 'we have not measured enough seeds': "
+        + str(leg.get("sign_withheld_because"))[:300])
+    assert leg["estimate_gbp"] is not None and leg["bound_gbp"] is not None, (
+        "the family's own statistics were blanked along with the claims about the run -- they are "
+        "true OF THE FAMILY and dropping them hides the only measurement in hand")
+
+
+def test_the_selection_leg_and_its_error_bar_are_published_together(bounded_pair):
     """The point estimate is never published without its measured spread.
 
     THE RELATIONSHIP BETWEEN THEM IS NO LONGER PINNED, AND THAT IS THE REPAIR. This test used to
@@ -272,7 +355,7 @@ def test_the_selection_leg_and_its_error_bar_are_published_together(real):
     over one population -- and the tri-state that used to be about the estimate is now about the
     single run, which is the only figure left that can sit outside the family's range.
     """
-    sp, eb = real["realised"]["split"], real["error_bar"]
+    sp, eb = bounded_pair["realised"]["split"], bounded_pair["error_bar"]
     assert sp["selection_gbp"] is not None
     assert eb["available"], "the point estimate is published with no measured spread"
     leg = eb["selection_leg"]
@@ -307,7 +390,7 @@ def test_the_selection_leg_and_its_error_bar_are_published_together(real):
         "with the nets in the table below: {}".format(eb["reading"]))
 
 
-def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(real):
+def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(bounded_pair):
     """THE ERROR BAR AND THE FIGURE IT BOUNDS MUST BE ONE QUANTITY ON ONE CLOCK.
 
     THE DEFECT. Until 2026-08-29 `build` handed `_error_bar` the PROVISIONED selection leg while
@@ -335,10 +418,10 @@ def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(real):
     reconciliation is against the family, and the single run is reconciled separately as one
     member of it. Same property, correct subject.
     """
-    eb, split = real["error_bar"], real["realised"]["split"]
+    eb, split = bounded_pair["error_bar"], bounded_pair["realised"]["split"]
     assert eb["available"] and split["available"]
     leg, bounded = eb["selection_leg"], gva._spread_for(
-        real["contrast_bounds"], gva.SELECTION_CONTRAST)
+        bounded_pair["contrast_bounds"], gva.SELECTION_CONTRAST)
 
     assert eb["bounds_figure_gbp"] == leg["estimate_gbp"] == bounded["mean_gbp"], (
         "the error bar is a bar on £{!r}, the leg states £{!r} and the seed family's own mean is "
@@ -363,7 +446,7 @@ def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(real):
     # THE ONE FIGURE IT MUST NOT BE. Named explicitly because it is the figure the defect used,
     # it sits in the same payload under a near-identical key, and on this run the two differ by
     # £1,362 -- so an assertion that only checked "is a float" would have passed throughout.
-    prov = real["provisioned"]["selection_gbp"]
+    prov = bounded_pair["provisioned"]["selection_gbp"]
     if abs(prov - split["selection_gbp"]) > gva.SAME_SUPPLIER_TOLERANCE_GBP:
         assert eb["single_run_gbp"] != prov, (
             "the error bar is bounding the SUPERSEDED clock's selection leg (£{:,.2f}) -- the "
@@ -558,8 +641,13 @@ def test_a_floor_drawn_over_a_DIFFERENT_book_is_refused_however_recent_it_is():
     This floor is NEWER than the run it would bound, so `_staleness_caveat` admits it in silence
     and every directional claim on the page rests on a spread measured over another population.
     """
-    floor = _floor_declaring(["resi"])
     three_arm = _load(THREE_ARM)
+    # THE PAIR IS BOUND, NOT FOUND (2026-09-18). The subject here is the BOOK rule, so the floor
+    # is stamped after the run it would bound BY CONSTRUCTION and the stamp rule cannot be what
+    # refuses it. Read off the live artefact instead, this precondition inverts the moment a
+    # newer run is promoted -- which is exactly what happened when the 09-18 run landed, and the
+    # control then reported the book rule failing when the staleness guard had fired.
+    floor = _stamped_after(_floor_declaring(["resi"]), three_arm)
     assert gva._staleness_caveat(floor, three_arm) is None, (
         "this control's whole subject is a floor the STAMP rule admits -- if the stamp already "
         "refused it, the book rule is not what is being measured here")
@@ -4157,12 +4245,24 @@ def test_a_leg_whose_own_redraws_straddle_zero_states_no_direction_however_stabl
         .format(draw, centre, "due" if opposite_sides else "not due"))
 
     # WITNESS A2 -- THE CENTRE CLAUSE FIRING, kept reachable by construction rather than by which
-    # run is canonical today. The same leg with only the published draw reflected across zero, so
-    # the draw and the family's centre must disagree whichever side the live run put them on. This
-    # is the rung the biconditional above would otherwise let go vacuous: a producer that never
-    # composes the clause satisfies the biconditional whenever the live numbers happen to agree.
+    # run is canonical today. This is the rung the biconditional above would otherwise let go
+    # vacuous: a producer that never composes the clause satisfies the biconditional whenever the
+    # live numbers happen to agree.
+    #
+    # REFLECTING THE DRAW WAS NOT CONSTRUCTION, IT WAS A COIN (2026-09-18). This built the witness
+    # as `-draw`, on the reasoning that flipping the published figure must put it opposite its own
+    # family's centre. That holds only while the draw and the centre AGREE to begin with. On the
+    # 09-18 book -- the first whose arms price one book -- they already disagree, so reflecting
+    # moved the draw onto the SAME side as the centre, the clause correctly fell silent, and this
+    # rung reported the clause unreachable when it had in fact just fired one assertion above. The
+    # side is now set from the CENTRE, which is the property the clause is about, so the witness
+    # disagrees with its family whichever side the live run put either of them on.
+    against_the_centre = -abs(draw or 1.0) if centre > 0 else abs(draw or 1.0)
+    assert (centre > 0) != (against_the_centre > 0) and centre != 0, (
+        "the constructed draw GBP {:.2f} is not opposite the family centre GBP {:.2f}, so this "
+        "witness cannot reach the clause it exists for".format(against_the_centre, centre))
     reflected = dict(current, level_vs_selection=dict(
-        current["level_vs_selection"], selection_gbp=-draw))
+        current["level_vs_selection"], selection_gbp=against_the_centre))
     across = gva._current_world_contrast(reflected, superseded, admitted, later_runs=[])["selection_leg"]
     assert across["verdict_stability"]["sign_determined"] is False, (
         "reflecting the published draw changed the FAMILY's sign verdict, so this witness moved "
@@ -5679,17 +5779,33 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
     published_share = current["level_vs_selection"]["level_share_of_advantage"]
-    assert gva._which_leg(published_share) == "level", (
-        "this subject no longer publishes a level-dominant share, so the disagreeing witness "
-        "below is no longer on the other side and proves nothing")
+    published_leg = gva._which_leg(published_share)
+    # THE WITNESSES ARE DERIVED FROM THE PUBLISHED SIDE, NOT WRITTEN DOWN (2026-09-18). The
+    # assertion below was always keyed to the property; its FIXTURE was not. `flips` was pinned at
+    # 0.10 and `agrees` at 0.80, which are the right way round only while the subject publishes a
+    # level-dominant share -- and the docstring above asserted exactly that as a precondition. The
+    # 09-18 run, the first in which both arms price one book, publishes 5.5%: selection-dominant.
+    # The two witnesses swapped roles, and a control whose own docstring says "NEVER TO TODAY'S
+    # 6.8%" went red for the page changing its answer. Deriving them keeps both directions right
+    # whichever side the run lands on, which is what the docstring was always claiming.
+    assert published_leg in ("level", "selection"), (
+        "the subject publishes no readable side ({!r}), so neither witness below can be placed "
+        "opposite it and the whole control is vacuous".format(published_leg))
+    flip_share, agree_share = (0.10, 0.80) if published_leg == "level" else (0.80, 0.10)
+    assert gva._which_leg(flip_share) != published_leg, (
+        "the flipping witness is on the SAME side as the published share, so a refusal here "
+        "could not have been caused by a disagreement")
+    assert gva._which_leg(agree_share) == published_leg, (
+        "the agreeing witness is not on the published side, so WITNESS B cannot show the refusal "
+        "is a judgement rather than an unconditional red")
     superseded, stable = _load(NOISE_FLOOR), _floor_with_level_legs(
-        _admitted_live_floor(), [1_000.0, 1_733.378959, 9_085.082015])
+        _admitted_live_floor(current), [1_000.0, 1_733.378959, 9_085.082015])
 
     # WITNESS A -- a later run in THIS world on the other side of which-leg-is-bigger. The floor is
     # the sign-STABLE one on purpose: it is the subject on which the other refusal does not fire,
     # so a red here can only be this one.
-    flips = _a_later_run("2099-01-01T00:00:00Z", live, 0.10)
-    agrees = _a_later_run("2099-01-02T00:00:00Z", live, 0.80)
+    flips = _a_later_run("2099-01-01T00:00:00Z", live, flip_share)
+    agrees = _a_later_run("2099-01-02T00:00:00Z", live, agree_share)
     # THROUGH THE CENSUS AND NOT AROUND IT. The rows are built by the same scan production uses, so
     # a census that stopped admitting rows would take these legs red with it rather than leaving
     # them green on hand-built input.
@@ -5706,7 +5822,8 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
         "the refusal does not carry the words the director asked for: " + said[:300])
     # EVERY LATER RUN IS NAMED, NOT ONLY THE ONE THAT FLIPS. A reader handed the flipping run alone
     # has been shown a two-figure disagreement with the third figure withheld.
-    assert "10.0%" in said and "80.0%" in said, (
+    assert "{:.1f}%".format(flip_share * 100) in said and \
+        "{:.1f}%".format(agree_share * 100) in said, (
         "a later run in this world is missing from the sentence: " + said[:400])
     assert "2099-01-01T00:00:00Z" in said and "2099-01-02T00:00:00Z" in said, (
         "a figure is published without the run date it was measured on")
@@ -6864,12 +6981,15 @@ def test_a_spread_from_another_world_bounds_nothing_however_it_is_stamped():
         this tree will reach the next time the world moves and the pair is re-run together. With
         that leg the mutation reds.
     """
-    floor = _load(NOISE_FLOOR)
     three_arm = _load(THREE_ARM)
+    # BOUND PAIR, for the reason `_stamped_after` was written: the subject is the WORLD guard, and
+    # a floor read off disk is refused by the STALENESS guard the moment a newer run is promoted,
+    # leaving this control reporting the failure of a guard that never fired.
+    floor = _stamped_after(_load(NOISE_FLOOR), three_arm)
     same_world = gva._seed_spreads(floor, three_arm)
     assert same_world.get("available") is True, (
-        "the live pair lost its bound, so every leg below measures that instead: {}".format(
-            str(same_world.get("reason"))[:300]))
+        "the constructed contemporaneous pair lost its bound, so every leg below measures that "
+        "instead: {}".format(str(same_world.get("reason"))[:300]))
 
     elsewhere = dict(floor,
                      generated_at="2999-01-01T00:00:00Z",
@@ -7815,7 +7935,8 @@ def test_a_sentence_the_page_withdrew_is_refused_however_the_arithmetic_comes_ou
     reached = set()
     for mean in (-1749.0, 1749.0):
         spreads = _a_family_that_states_a_sign(mean)
-        leg = gva._leg_over_its_own_family(spreads["contrasts"]["selection_gbp"], -333.0)
+        leg = gva._leg_over_its_own_family(
+            spreads["contrasts"]["selection_gbp"], -333.0, None, None)
         assert leg["sign_is_stateable"] is True, (
             "the witness does not open the sign gate at all, so nothing below is tested")
         reached.add(leg["sign"])
@@ -7833,7 +7954,7 @@ def test_the_refusal_fires_on_the_run_the_fork_close_produced():
     the guard replaces it -- so this control is not asserting over an input that could never
     reach the branch it guards (`CONTROLS_THAT_CANNOT_FAIL`)."""
     leg = gva._leg_over_its_own_family(
-        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0)
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, None)
     unguarded = ("Running it through ONE flat margin at the same price LEVEL earned £1,749 more "
                  "than the per-customer engine did, on average across the 9 seed re-draws. On "
                  "this evidence the advantage is the price level, and the per-customer choosing "
@@ -7852,7 +7973,7 @@ def test_the_refusal_does_not_fall_silent_and_states_the_bar_and_the_error_count
     mean stands from zero. A guard that silenced the leg would have traded one defect for its
     mirror image."""
     leg = gva._leg_over_its_own_family(
-        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0)
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, None)
     fresh = gva._the_level_leg_in_fresh_words(leg, gva.WITHDRAWN_CLAIMS[-1])
     assert "2.31" in fresh, "the derived bar is not on the surface"
     assert "2.9 standard errors" in fresh, "the standard-error count is not on the surface"
@@ -8782,10 +8903,23 @@ def test_the_level_arm_may_not_say_it_priced_the_same_renewals_unless_the_run_sa
         gva.PROJECT / "docs" / "observability"
         / "value_cycle_ab_s1_three_arm_20260918.json") or {}
 
+    # THE ABSENCE IS CONSTRUCTED, NOT BORROWED FROM THE LIVE ARTEFACT (2026-09-18). Every leg
+    # below used to take its `None` witness from whatever sits on `THREE_ARM_PATH`, which worked
+    # only while no run on disk answered the question. Promoting the 09-18 run -- the first whose
+    # arms price one book, which is the entire point of promoting it -- removed the `None` from
+    # the partition, and this control reported "the three answers are not all reachable" for the
+    # artefact getting BETTER. That is the same borrowed-absence defect `_floor_without_a_book`
+    # was written for, one subject over. A witness a promotion can take away is not a witness.
+    never_asked = copy.deepcopy(corrected)
+    never_asked.get("decision_population", {}).pop("same_priced_population", None)
+    assert (never_asked.get("decision_population") or {}).get("same_priced_population") is None, (
+        "the constructed absence still carries the field, so the `None` branch below is not "
+        "actually being reached")
+
     # ALL THREE BRANCHES ARE REACHABLE -- asserted over the partition, not one leg per answer,
     # because a composer that returned the unknown sentence for everything would pass a
     # per-branch suite and publish "we cannot tell" over a run that answered.
-    answers = {gva._one_book(published)["answer"],
+    answers = {gva._one_book(never_asked)["answer"],
                gva._one_book(corrected)["answer"],
                gva._one_book({"decision_population": {
                    "same_priced_population": {"answer": False,
@@ -8796,10 +8930,10 @@ def test_the_level_arm_may_not_say_it_priced_the_same_renewals_unless_the_run_sa
         "one of them".format(answers))
 
     # THE ADVERSE CASE: absence must reach the reader as absence.
-    assert gva._one_book(published)["answer"] is None, (
-        "the run this page publishes carries no `same_priced_population`, so anything but None "
-        "here is the generator answering a question the artefact was never asked")
-    assert "CANNOT SAY" in gva._arm("level", 1.0, one_book=gva._one_book(published))["what"], (
+    assert gva._one_book(never_asked)["answer"] is None, (
+        "a run carrying no `same_priced_population` got an answer anyway, so the generator is "
+        "answering a question the artefact was never asked")
+    assert "CANNOT SAY" in gva._arm("level", 1.0, one_book=gva._one_book(never_asked))["what"], (
         "the run cannot say whether the arms priced one book and the page does not tell the "
         "reader so -- the sentence a reader meets is the whole deliverable here")
 
@@ -8810,14 +8944,18 @@ def test_the_level_arm_may_not_say_it_priced_the_same_renewals_unless_the_run_sa
         "refuses everything and is not reading the run at all")
 
     # The complaint function over the same partition, and the live feed's own rendered arms.
-    for label, artefact in (("published", published), ("corrected", corrected)):
+    # THE LIVE RUN IS ONE CASE IN THE PARTITION AND NOT THE WHOLE OF IT, and it is asserted only
+    # in the direction that can get MORE true: whatever it answers, the words composed from it may
+    # not outrun that answer.
+    for label, artefact in (("never asked", never_asked), ("published", published),
+                            ("corrected", corrected)):
         arm = gva._arm("level", 1.0, one_book=gva._one_book(artefact))
         assert _a_population_claim_the_run_cannot_support(arm) is None, (
             "{}: {}".format(label, _a_population_claim_the_run_cannot_support(arm)))
 
     # The fail-open, constructed: words that claim one book over a run that answered None.
     forged = dict(gva._arm("level", 1.0, one_book=gva._one_book(corrected)),
-                  one_book=gva._one_book(published))
+                  one_book=gva._one_book(never_asked))
     assert _a_population_claim_the_run_cannot_support(forged), (
         "words claiming ONE BOOK over a run that could not say raise no complaint, so this "
         "control would not have caught the defect it was written for")
@@ -8855,3 +8993,173 @@ def test_the_withdrawn_population_claim_reaches_the_reader_in_the_readers_words(
             "the note withholds {!r} -- the reader is told a claim was withdrawn without the "
             "numbers that make it checkable".format(owed))
     assert block["withdrawals"] == len(gva.WITHDRAWN_CLAIMS) >= 6
+
+
+# --------------------------------------------------------------------------------------------
+# THE FAMILY AND THE RUN ARE TWO BOOKS (2026-09-18). `_leg_over_its_own_family` composed three
+# sentences calling the published run "one member of the {n}" and never asked whether the family
+# and the run were drawn over the same book. On the 09-18 feed they were not, and the page told a
+# reader "on 18 re-draws the selection leg is negative" eleven lines above its own block saying no
+# direction could be stated at all.
+
+
+def _a_stale_pair_caveat():
+    """The real refusal text, from the two artefacts' own stamps -- not a hand-typed stand-in.
+
+    A FABRICATED CAVEAT WOULD MAKE THIS CONTROL UNFALSIFIABLE. The thing under test is that the
+    leg withdraws its membership claim when `_staleness_caveat` FIRES, so the witness has to be
+    what that function actually returns on a pair it refuses; a literal string would pass just as
+    well against a leg that keyed off nothing at all.
+    """
+    caveat = gva._staleness_caveat(
+        {"generated_at": "2026-09-17T02:11:00Z"}, {"generated_at": "2026-09-18T05:43:40Z"})
+    assert caveat, "the staleness guard does not refuse this pair, so there is no witness at all"
+    return caveat
+
+
+def test_a_family_from_ANOTHER_BOOK_withdraws_its_membership_claim_and_states_no_sign():
+    """THE DEFECT: an 18-seed family on the 09-17 book graded a 09-18 run and called it a member.
+
+    ONE VARIABLE. The family, the run and the clock are byte-identical across the two calls and
+    only the staleness answer differs, so anything that moves below is that answer's doing and
+    not a second fixture's.
+
+    BOTH SIDES ASSERTED, which is the shape this repository pays for omitting. A leg that
+    withdrew the claim unconditionally would satisfy every assertion about the stale branch and
+    be badly wrong; the clean branch is therefore asserted to still state its sign and still
+    claim membership, over the same inputs.
+    """
+    family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
+    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None)
+    stale = gva._leg_over_its_own_family(family, -333.0, "settled", _a_stale_pair_caveat())
+
+    assert clean["sign_is_stateable"] is True and clean["sign"] == "negative", (
+        "the clean branch does not state a sign on this witness, so the stale branch below "
+        "withdraws something that was never there and this control proves nothing")
+    assert clean["single_run"]["is_a_member_of_the_family"] is True
+    assert clean["sign_withheld_because"] is None
+
+    assert stale["sign_is_stateable"] is False, (
+        "a family measured over a different book still states a side about the published run")
+    assert stale["sign"] is None
+    assert stale["single_run"]["is_a_member_of_the_family"] is False, (
+        "the run is still published as a member of a family drawn over another book")
+    assert stale["sign_withheld_because"], "the withheld sign does not name its reason"
+
+    # THE ARITHMETIC IS UNTOUCHED. What is withdrawn is the RELATION between the family and the
+    # run, never the family's own measurement -- blanking that would hide the only thing actually
+    # measured and trade this defect for the silence R12 refuses.
+    for key in ("estimate_gbp", "bound_gbp", "estimate_seeds", "bound_seeds", "sems_from_zero"):
+        assert stale[key] == clean[key], (
+            "{} moved with the staleness answer -- the family's own statistics are true of the "
+            "family whichever book the run came from".format(key))
+
+    # AND THE POSITION CLAIMS GO WITH IT. `lo <= x <= hi` still evaluates across two books and
+    # returns a comfortable answer that means nothing, which is the trap.
+    assert stale["single_run_inside_the_family"] is None
+    assert stale["single_run_on_the_other_side_of_zero"] is None
+    assert clean["single_run_inside_the_family"] is not None, (
+        "the position claim is None on the clean branch too, so the assertion above is not "
+        "measuring the staleness answer")
+
+
+def test_the_membership_SENTENCES_stop_claiming_membership_and_do_not_merely_go_quiet():
+    """The keys are not what a reader meets -- the prose is. Every sentence that asserted
+    membership has to stop, and the reader has to be TOLD why rather than left with a gap."""
+    family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
+    stale = gva._leg_over_its_own_family(family, -333.0, "settled", _a_stale_pair_caveat())
+    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None)
+
+    assert "one member of the 9" in clean["what_each_number_is_over"], (
+        "the clean branch does not make the membership claim, so its withdrawal below is vacuous")
+    assert "one member of" in clean["single_run"]["what_it_is_over"]
+
+    for field in (stale["what_each_number_is_over"], stale["single_run"]["what_it_is_over"]):
+        assert "one member of" not in field, "a sentence still calls the run a member"
+        assert "different book" in field, (
+            "the claim is withdrawn without telling the reader why, which reads as the page "
+            "having nothing to say rather than having measured two books")
+
+    reading = gva._selection_leg_reading(stale, stale.get("single_run_inside_the_family"))
+    assert "single member of those" not in reading, (
+        "the summariser re-decides membership for itself and re-publishes the false claim the "
+        "block two keys away has already withdrawn")
+    assert "is NOT one of those 9" in reading and "different books" in reading
+
+
+def test_the_withheld_sentence_never_tells_a_reader_a_CLEARED_bar_was_short_of_it():
+    """THE DEFECT THIS NAMES, caught by printing the block at real inputs before writing a test.
+
+    The unstateable sentence was written when the only way to be unstateable was to sit too FEW
+    errors from zero, so it said "short of the bar" unconditionally. A stale family is now also
+    unstateable -- and the 18-seed family that provoked all this sits 5.1 errors from zero
+    against a bar of 2.11, so the page would have told a reader 5.1 was short of 2.11. Every
+    assertion in this suite was about the VERDICT, and the verdict was right, so none of them
+    would have fired.
+    """
+    caveat = _a_stale_pair_caveat()
+    clears = gva._leg_over_its_own_family(
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, caveat)
+    assert clears["sems_from_zero"] > clears["sems_needed_to_state_a_sign"], (
+        "this witness does not clear its own bar, so it cannot catch a sentence that says it "
+        "fell short of it")
+    reading = gva._selection_leg_reading(clears, None)
+    assert "short of" not in reading, (
+        "the page tells a reader {:.1f} standard errors is short of a bar of {:.2f}".format(
+            clears["sems_from_zero"], clears["sems_needed_to_state_a_sign"]))
+
+    # THE OTHER SIDE OF THE PARTITION. A family that genuinely IS short of its bar must still say
+    # so -- a control that only checked the words were absent would pass on a page that had
+    # stopped explaining itself entirely.
+    short = gva._leg_over_its_own_family(
+        _a_family_that_states_a_sign(-120.0)["contrasts"]["selection_gbp"], -333.0, None, None)
+    assert short["sign_is_stateable"] is False
+    assert "short of" in gva._selection_leg_reading(short, None), (
+        "the genuine too-few-errors reading lost its explanation")
+
+
+def test_the_staleness_answer_is_REQUIRED_of_every_call_site():
+    """A DEFAULTED PARAMETER WOULD BE THE WHOLE DEFECT BACK. Every call site that forgot it would
+    silently assert one book, in the flattering direction, and the mutation proving otherwise
+    would be unreachable -- the shape this project has already paid for. The guard is that the
+    signature refuses to be called without it."""
+    family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
+    with pytest.raises(TypeError):
+        gva._leg_over_its_own_family(family, -333.0)
+    with pytest.raises(TypeError):
+        gva._leg_over_its_own_family(family, -333.0, "settled")
+
+
+def test_seed_spreads_does_not_let_NEVER_ASKED_pass_as_measured_contemporaneous():
+    """A DECLARED `None` AND A SILENT `None` MUST NOT COLLAPSE. `_seed_spreads` only runs the
+    staleness test `if three_arm is not None`, so a caller with no point estimate in hand reaches
+    the admitting return having tested nothing -- and `_selection_sentence`, which holds no floor
+    and can only read the answer from here, would take that silence for a clean bill."""
+    # BOUND PAIR: the subject is the difference between "asked and cleared" and "never asked", so
+    # the floor postdates the run by construction and the staleness guard cannot be what answers.
+    three_arm = _load(THREE_ARM)
+    floor = _stamped_after(_load(NOISE_FLOOR), three_arm)
+
+    asked = gva._seed_spreads(floor, three_arm)
+    assert asked.get("available") is True, (
+        "the constructed contemporaneous pair lost its bound, so this control measures that "
+        "instead: {}".format(str(asked.get("reason"))[:200]))
+    assert asked.get("staleness_at_admission") is None, (
+        "a pair the staleness guard cleared does not report a clean answer")
+
+    never_asked = gva._seed_spreads(floor, None)
+    assert never_asked.get("available") is True, (
+        "the no-point-estimate call is refused for some other reason, so the silence this "
+        "control exists to catch is not reachable and it proves nothing")
+    assert never_asked.get("staleness_at_admission"), (
+        "`_seed_spreads` admitted a family WITHOUT ever running the staleness test and reported "
+        "the same empty answer as a pair it actually checked -- so `_selection_sentence` cannot "
+        "tell 'measured contemporaneous' from 'never asked' and claims membership on both")
+    assert "never asked" in never_asked["staleness_at_admission"]
+
+    # AND IT REACHES THE LEG, which is the only place the distinction does any work.
+    leg = gva._leg_over_its_own_family(
+        gva._spread_for(never_asked, "selection_gbp"), -333.0, None,
+        never_asked.get("staleness_at_admission"))
+    assert leg["single_run"]["is_a_member_of_the_family"] is False, (
+        "an unasked question still buys the run its membership in the family")

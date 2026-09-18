@@ -111,21 +111,45 @@ def test_replicating_the_rows_moves_the_null_and_not_the_answer(rows):
     and pooling seeds would be a real route -- so this is the refusal's own falsifier.
 
     It is also the demonstration the page publishes: an unchanged figure walking outside its own
-    null as the rows are copied is what "more rows is not more evidence" looks like."""
+    null as the rows are copied is what "more rows is not more evidence" looks like.
+
+    THE LADDER IS SEARCHED, NOT WRITTEN DOWN (2026-09-18). This ran a fixed ladder topping out at
+    6 copies and then asserted `escaped_at <= 8` -- a bound that could never bind, because no rung
+    above 6 existed to produce a value between 7 and 8. What it was really asserting is "the escape
+    happens by the sixth copy", and HOW MANY copies that takes is a property of the RUN: it is set
+    by how far the observed statistic sits from a half. Promoting the 2026-09-18 three-arm run --
+    whose book is smaller and whose concordance is nearer chance, 0.4574 against 0.5 -- moved the
+    escape to the tenth copy, and the control reddened for a change in the world rather than a
+    defect in the refusal it falsifies. That is the same keyed-to-today's-answer shape this
+    promotion turned up eight times over in the arms page's own suite.
+
+    SO THE PROPERTY IS "AT SOME FINITE REPLICATION", which is the whole content of "more rows is
+    not more evidence", and the ladder now searches for it up to a generous cap instead of
+    asserting where it lands. The cap is a runtime bound, not a claim: a run that genuinely never
+    escapes reds here with its own distance from a half reported, which is a finding and not a
+    stale constant."""
     observed, _pairs = _pooled_within_year_auc(_by_year(rows, 1))
     widths = []
     escaped_at = None
-    for copies in (1, 2, 4, 5, 6):
+    ladder = (1, 2, 4, 5, 6, 8, 10, 12, 16, 24, 32)
+    for copies in ladder:
         replicated, _p = _pooled_within_year_auc(_by_year(rows, copies))
         assert replicated == pytest.approx(observed, abs=1e-12), (copies, replicated, observed)
         low, high = _null(_by_year(rows, copies))
         widths.append(high - low)
         if escaped_at is None and not low <= observed <= high:
             escaped_at = copies
+            break
+    # THE NULL NARROWS ALL THE WAY DOWN THE RUNGS WALKED -- the half of the finding that says the
+    # null is indexed on DECISIONS, and it is asserted over every rung rather than at the end.
     assert widths == sorted(widths, reverse=True), widths
     # ...AND THE ESCAPE ACTUALLY HAPPENS. Without this the test passes on a null that never closes
     # far enough to matter, which is the flattering half of the same finding.
-    assert escaped_at is not None and escaped_at <= 8, escaped_at
+    assert escaped_at is not None, (
+        "the figure never left its own null within {} copies (observed {:.4f}, {:.4f} from a "
+        "half), so on this book replication cannot demonstrate that more rows is not more "
+        "evidence -- which is a finding about the run, not a licence to lower the bar".format(
+            ladder[-1], observed, abs(observed - 0.5)))
 
 
 def test_the_requirement_is_stated_in_both_units_and_they_are_not_the_same_number(block):
