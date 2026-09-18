@@ -147,8 +147,19 @@ def _fake_git(commits):
     nothing when the pathspec matches nothing; `None` is reserved for a git that could not run at
     all. The fake said `None` to both, which is the conflation `_git_or_raise` was written to end,
     and it went unnoticed for as long as the subject collapsed the two anyway.
+
+    AND IT ANSWERS `ls-files` (corrected 2026-09-18, later the same day, when `_tracked_files` was
+    given the same treatment). This fake said `None` to everything that was not `log`, so the tracked
+    set came back EMPTY and `_paths_named_in` could confirm no spelling of anything -- which meant
+    the no-paths branch below was reached by GIT'S SILENCE rather than by the road its own comment
+    claims, an item whose prose names nothing we track. The leg was green and grading the wrong
+    thing: a fake more permissive than its subject, holding open exactly the conflation the subject
+    was being repaired to close. It now lists the two real paths this file already uses, so the
+    no-paths branch is reached only by prose that genuinely names none of them.
     """
     def run(*args, **kwargs):
+        if args and args[0] == "ls-files":
+            return "\n".join((SUBJECT_PATH, QUIET_PATH))
         if not args or args[0] != "log":
             return None
         wanted = set(args[args.index("--"):][1:]) if "--" in args else set()

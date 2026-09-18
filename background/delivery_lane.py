@@ -697,7 +697,18 @@ def record_draw(focus_id: str, when: float, *, path: Path | None = None,
         if not isinstance(row, dict):
             row = {"first_drawn_at": float(when)}
         row["last_drawn_at"] = float(when)
-        named = _paths_named_in(text) if text else []
+        # THE STAMP IS CAUGHT SEPARATELY FROM THE ROW, and it is the one place `_tracked_files`'
+        # raise had to be stopped rather than let run to the enclosing `except`. That `except`
+        # returns, so a git that would not answer `ls-files` would have cost this row its
+        # `last_drawn_at` -- the draw would not be REMEMBERED AT ALL, and every window, sweep and
+        # disposition downstream keys off that instant. Losing the optional stamp is the whole of
+        # what an unavailable git may cost here: the docstring above already says an empty
+        # extraction leaves the key absent so the reach-back still runs, so this is a state the
+        # design supports rather than a new one invented to swallow the exception.
+        try:
+            named = _paths_named_in(text) if text else []
+        except GitUnavailable:
+            named = []
         if named:
             row["named_paths"] = named
         # WHERE THIS ROW CAME FROM, stamped ONCE beside `first_drawn_at` and for the same
@@ -866,13 +877,30 @@ _PATH_TOKEN = re.compile(
 
 
 def _tracked_files() -> set[str]:
-    """Every path git tracks here, or an EMPTY set if git will not answer.
+    """Every path git tracks here. RAISES `GitUnavailable` if git will not answer.
 
-    Empty means `_paths_named_in` keeps nothing, which means the git join below cannot run and the
-    row falls to the residual. That is the fail-closed direction and it is the one this whole
-    repair needs: an unavailable check must not manufacture the flattering answer.
+    THE FOURTH VOICE, the same conflation as the third one layer further down, and the last of them
+    (measured 2026-09-18, the turn after `_git_or_raise` landed in `38a8241f3`). The sentence that
+    stood here said an empty set was "the fail-closed direction ... an unavailable check must not
+    manufacture the flattering answer". The DIRECTION was right and the READING was wrong, and it
+    is corrected beside the claim rather than rewritten over: falling to the residual IS fail-closed
+    on the DISPOSITION -- `NOT_DONE` arrives either way -- but the residual then publishes a REASON,
+    and the reason this route reached was *"this item's prose names no tracked path (in
+    `named_paths` or either store holding its text)"*. That sentence names the ITEM when the fault
+    is GIT. A reader who acts on it goes hunting for prose that was never missing, and the one thing
+    they are not told is the only thing that was actually wrong.
+
+    A RIGHT VOICE WITH A LYING REASON IS NOT A FAIL-CLOSED CHECK, and that is the whole of why `or
+    ""` is a defect here even though the label it produced was the correct label. `could_not_ask`
+    was already being published. What was fabricated is the CAUSE. The residual's four branches
+    exist precisely so that each one NAMES which silence it is, so a branch reachable by a silence
+    other than the one it names undoes the split it was built to make.
+
+    `""` IS STILL AN ANSWER AND IS STILL KEPT: a git that RAN and tracks nothing returns the empty
+    set, `_paths_named_in` keeps nothing, and the row falls to the residual's NO-PATHS branch --
+    which, after this, is the only way to reach that branch and so is finally true when it speaks.
     """
-    return {ln.strip() for ln in (_git("ls-files") or "").splitlines() if ln.strip()}
+    return {ln.strip() for ln in _git_or_raise("ls-files").splitlines() if ln.strip()}
 
 
 def _paths_named_in(text: str) -> list[str]:
@@ -893,6 +921,17 @@ def _paths_named_in(text: str) -> list[str]:
     lane writes in — the prose that produced it said "file it in docs/design", which names a place
     and not a subject. A pathspec that matches whatever anyone did in a shared room is evidence in
     the flattering direction, which is the exact failure this repair exists to end. Files only.
+
+    IT RAISES `GitUnavailable` RATHER THAN RETURNING `[]` WHEN GIT WILL NOT ANSWER, through
+    `_tracked_files`, and the raise belongs at THIS layer rather than in each caller: this is the
+    one function every route to a claim's path set passes through, so closing it here closes the
+    `_direction_history_text` route in the same stroke. That reach-back reads git too, and an
+    unavailable git empties it to `{}` — which would arrive here as empty TEXT and read as prose
+    that named nothing. `_tracked_files` is asked BEFORE the text is looked at, so the raise fires
+    on that route as well instead of the emptied reach-back being mistaken for a quiet item.
+
+    AN EMPTY `tracked` NOW MEANS ONE THING: git RAN and tracks nothing. That is an answer, it keeps
+    the `[]` it always returned, and the row falls to the residual's NO-PATHS branch honestly.
     """
     tracked = _tracked_files()
     if not tracked:
@@ -1092,6 +1131,15 @@ def _claim_paths(focus_id: str, row: dict) -> list[str]:
     the reach-back for rows that predate that stamp, and it goes quiet when the item leaves both
     stores, which is why the callers below treat an empty list as "cannot answer" rather than as
     "nothing to see".
+
+    IT PROPAGATES `GitUnavailable` FROM `_paths_named_in`, and every caller needs an answer for it.
+    An empty list and a raise are now DIFFERENT FACTS — "the prose named nothing git tracks" against
+    "git could not be asked" — and the whole of the 2026-09-18 repair is that the second stopped
+    being published as the first. A caller that swallows this into `Exception` and then reports
+    "names no tracked path" has put the conflation back one layer up.
+
+    `named_paths` NEVER ASKS GIT: a row carrying the draw-time stamp is answered from the ledger,
+    which is the ordinary path and stays both free and unraisable.
     """
     named = [str(p) for p in (row.get("named_paths") or ())]
     return named or _paths_named_in(_item_text(focus_id))
@@ -1121,6 +1169,14 @@ def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], lis
     `GitUnavailable` (see `_git_or_raise`) and only a git that ANSWERED with no commits returns
     `(paths, [])`. The raise lands in the `except`s `_disposition` already had, and comes out as
     `could_not_ask`.
+
+    AND SO DOES AN EMPTY `paths`, WHICH IS THE 2026-09-18 FOLLOW-ON. The early `return [], []` below
+    was the SAME conflation one layer up: `_claim_paths` reached `git ls-files` through
+    `_paths_named_in`, and a git that would not answer it emptied the path set exactly as an item
+    naming nothing does. Both arrived here as no-paths, both left as `([], [])`, and the residual
+    published the one reason it has for that state — *the item's prose names no tracked path* — for
+    a question git was never able to be asked. `_tracked_files` now raises, so the early return
+    below is reached only when git ANSWERED and the prose genuinely named nothing it tracks.
     """
     paths = _claim_paths(focus_id, row)
     if not paths:
@@ -1556,7 +1612,17 @@ def tree_verdict(focus_id: str, *, now: float | None = None,
         return None             # the window is still open; there is nothing yet to dispose of
     if float(row.get("last_landing_at") or 0.0) >= drawn:
         return None             # already credited under its own name -- nothing for git to add
-    paths = _claim_paths(focus_id, row)
+    # `_claim_paths` CAN NOW RAISE, and the docstring above has always promised `None` covers "a
+    # git that would not answer" -- before this the promise was kept by accident, because the
+    # unavailable case arrived as an empty list. It is kept on purpose here. `None` is right for
+    # THIS reader in a way it is not for the residual: `tree_verdict` has no voice of its own, it
+    # returns a verdict or nothing, and `sweep_stale` already treats `None` as "neither question
+    # was answered" and leaves the ordinary swept-claim alarm to fire. The residual is where the
+    # distinction has to be SPOKEN, and that is where the raise is caught and named.
+    try:
+        paths = _claim_paths(focus_id, row)
+    except GitUnavailable:
+        return None
     if not paths:
         return None
     try:
@@ -1715,7 +1781,11 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
       * NO PATHS — the item's prose named no tracked path, in `named_paths` or in either store
         that holds its text. `_claim_paths` returning empty means the query could not be BUILT,
         so git was never asked at all, and calling that "nothing landed" is the fail-open reading
-        of an unavailable check.
+        of an unavailable check. THIS BRANCH'S REASON BECAME TRUE ON 2026-09-18 AND WAS NOT BEFORE:
+        `_tracked_files` collapsed an unanswerable `git ls-files` into an empty tracked set, so a
+        broken git emptied the path set too and arrived HERE — right voice, `could_not_ask`, and a
+        reason that blamed the item's prose for git's silence. It now raises and arrives at the
+        FIRST branch instead. The sentence below could not be believed until that landed.
       * paths, and git returned commits — every one of them already bound, or `_landed_unbound`
         would have taken the row. Naming the count is what lets a reader tell this from the empty
         case in one glance.

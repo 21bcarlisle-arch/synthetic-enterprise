@@ -111,8 +111,21 @@ def _fake_git(commits):
     while `_window_hits` read the two through one falsy test the error was invisible, because both
     sides of the lie produced the same branch. Now that the subject tells them apart, the fake has
     to as well: `""` here is "asked, nothing found", which is what these legs mean to set up.
+
+    AND IT ANSWERS `ls-files` FOR THE SAME REASON, added 2026-09-18 when `_tracked_files` stopped
+    collapsing an unanswerable git into an empty tracked set. INERT IN THIS FILE TODAY and put in
+    anyway: every row here carries `named_paths`, so `_claim_paths` is answered from the ledger and
+    never asks git for the tracked set at all. That is an EQUIVALENCE rather than a leg that happens
+    to be green -- established, not assumed, by reading the rows. It is corrected here because the
+    twin copy in `test_a_window_that_closed_before_its_own_subject_existed_says_so.py` was NOT inert:
+    there a row without the stamp reached the no-paths branch through git's silence instead of
+    through its own prose, and the leg graded the wrong road while reading green. A fake more
+    permissive than its subject is the class, and the first row added here without a stamp is where
+    this copy would have inherited it.
     """
     def run(*args, **kwargs):
+        if args and args[0] == "ls-files":
+            return "\n".join((SUBJECT_PATH, QUIET_PATH, SIBLING_PATH))
         if not args or args[0] != "log":
             return None
         wanted = set(args[args.index("--"):][1:]) if "--" in args else set()
