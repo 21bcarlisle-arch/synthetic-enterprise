@@ -44,7 +44,11 @@ MUTATIONS (each must fire, and which test catches it):
   (h) anchor `_back_referenced_start` on `now` instead of the DRAW instant --
       `..._THE_ANCHOR_IS_THE_DRAW_SO_A_ROWS_DISPOSITION_DOES_NOT_DRIFT` goes red;
   (i) let an unreadable item text raise rather than decline -- `..._PROSE_THAT_STATES_NOTHING_READS
-      _AS_THE_RESIDUAL` goes red.
+      _AS_THE_RESIDUAL` goes red;
+  (j)-(n) the RESIDUAL's own branches going silent or constant -- `..._THE_RESIDUAL_PARTITION_every
+      _reachable_branch_names_what_it_asked_or_what_it_broke_on` goes red, and that test carries
+      the five with the leg each was measured to fire on. They are listed there rather than here
+      because (n) exists only to separate two legs this index would have shown as one.
 
 THE PARTITION CONTROL IS FIRST AND IT IS ONE STATEMENT OVER SIX READINGS, for the reason the two
 sibling files give: a `_disposition` that answers one constant passes every per-branch test ever
@@ -185,10 +189,14 @@ def test_THE_PARTITION_all_six_readings_come_back_from_one_ledger_in_one_stateme
             and seen[CREDITED_ID]["disposition"] == dl.LANDED_ELSEWHERE
             and seen[DELIVERED_ID]["disposition"] == dl.DELIVERED), seen
 
-    # The residual is STILL the shape with no evidence -- that is what makes it the residual and
-    # not a sixth guess -- and the new value must NAME THE INSTANT it is claiming, or it is a label
-    # a reader cannot check against the item's own prose.
-    assert seen[MISSED_ID]["evidence"] == ""
+    # "THE RESIDUAL IS STILL THE SHAPE WITH NO EVIDENCE -- THAT IS WHAT MAKES IT THE RESIDUAL"
+    # STOOD HERE, and it was wrong about what a residual is, corrected 2026-09-18 beside the claim.
+    # What makes it the residual is being the answer left when no join holds; carrying no reason
+    # was a property of the code, not of the concept, and it was the defect. The clause that was
+    # doing real work -- the new value must NAME THE INSTANT it claims, or a reader cannot check it
+    # against the item's own prose -- is kept, and the residual is now held to the same standard
+    # from the other side: it must not be claiming that instant.
+    assert _hhmm(WINDOW_ENDS + 3600) not in seen[MISSED_ID]["evidence"], seen[MISSED_ID]
     assert _hhmm(WINDOW_ENDS + 3600) in seen[EARLY_ID]["evidence"]
 
     # AND THE NEW VALUE IS THE MIRROR OF `PREMISE_SPENT`, NEVER THE SAME VALUE. Both rows are in
@@ -213,7 +221,11 @@ def test_A_WINDOW_WITH_USABLE_TIME_IS_AN_ORDINARY_MISS_however_it_was_stamped(
     # INSIDE: the subject arrived while the claim was still live, so the turn had time to work.
     prose[EARLY_ID] = _states_start_at(WINDOW_ENDS - 1800)
     usable = dl.disposition_of(EARLY_ID, path=store)
-    assert usable["disposition"] == dl.NOT_DONE and usable["evidence"] == "", usable
+    # The evidence clause asserted the empty string until 2026-09-18. What it is for is that this
+    # reading did NOT fire, and the residual now says what it asked instead of saying nothing --
+    # so the check is that the stated instant is absent from the reason, not that there is none.
+    assert usable["disposition"] == dl.NOT_DONE, usable
+    assert _hhmm(WINDOW_ENDS - 1800) not in usable["evidence"], usable
 
     # OUTSIDE: not one minute of the window, nor of the grace a gated landing costs, was usable.
     prose[EARLY_ID] = _states_start_at(WINDOW_ENDS + 1800)
@@ -355,7 +367,12 @@ def test_PROSE_THAT_STATES_NOTHING_READS_AS_THE_RESIDUAL_and_an_unreadable_item_
 
     monkeypatch.setattr(dl, "_item_text", _boom)
     raised = dl.disposition_of(EARLY_ID, path=store)
-    assert raised["disposition"] == dl.NOT_DONE and raised["evidence"] == "", raised
+    assert raised["disposition"] == dl.NOT_DONE, raised
+    # AND IT SAYS THE READING CRASHED RATHER THAN SAYING NOTHING. This asserted the empty string
+    # until 2026-09-18, which made a raised reader indistinguishable from a quiet tree -- the
+    # declared `None` and the silent `None` collapsing into the flattering branch, one layer under
+    # the fail-open this test exists to refuse.
+    assert "RuntimeError" in raised["evidence"], raised
 
 
 def test_THE_DATED_SPELLING_IS_READ_BY_THE_SAME_VALUE_so_the_two_grammars_do_not_split(
@@ -379,3 +396,109 @@ def test_THE_DATED_SPELLING_IS_READ_BY_THE_SAME_VALUE_so_the_two_grammars_do_not
 
     assert got["disposition"] == dl.PREMISE_NOT_YET_RIPE, got
     assert when.strftime("%H:%M") in got["evidence"]
+
+
+def test_THE_RESIDUAL_PARTITION_every_reachable_branch_names_what_it_asked_or_what_it_broke_on(
+        tmp_path, monkeypatch, prose):
+    """The residual's OWN partition, in one statement: no branch of it is ever silent.
+
+    WHY THIS EXISTS, and it is the other half of a repair that landed with only one half. The
+    three legs above asserted `evidence == ""` for the residual. When `_nothing_answered` learned
+    to say WHY it could not conclude, those legs went red -- for the code becoming more honest,
+    which is this project's named backwards shape -- and they were re-keyed off the empty string
+    to `the premise-spent instant is absent from the reason`. That removed the pin correctly and
+    installed nothing in its place: `x not in ""` is true, so two of the three re-keyed legs pass
+    against a residual that has gone back to saying nothing at all. Measured, not reasoned --
+    replacing `_nothing_answered`'s whole body with `{"disposition": NOT_DONE, "evidence": ""}`
+    leaves seven of the eight tests in this file green. A control that cannot fail on the
+    regression it was rewritten for is worse than the pin it replaced, because it reads as cover.
+
+    THE PROPERTY, and it is deliberately not a wording. Every residual a reader can actually be
+    handed either NAMES THE QUERY IT MADE -- the paths and the window, so the reader can check
+    whether they were the right ones -- or NAMES WHAT STOPPED IT, and never a bare sentence about
+    the tree that a reader cannot tell apart from either. Silence is the one answer forbidden
+    outright, because silence is what "we looked and found nothing" and "we never looked" were
+    both wearing, and those two want opposite actions from the reader.
+
+    REACHABILITY IS ASSERTED BEFORE BEHAVIOUR, because a partition control over branches that
+    cannot be taken grades nothing -- the trap this file's header records walking into through
+    three doors in one afternoon. The three branches below are distinct answers from one reader,
+    so a `_nothing_answered` that returned any single constant fails on the distinctness leg
+    before any wording is examined.
+
+    TWO OF THE DOCSTRING'S FOUR BRANCHES ARE NOT REACHABLE THROUGH `disposition_of`, established
+    by probe on 2026-09-18 and recorded here rather than left for the next reader to re-derive:
+      * "paths, and git returned commits, every one already bound" needs a hit whose instant is
+        this row's own `last_landing_at`, and such a row is answered `DELIVERED` (or, with
+        `landed_under` set, `LANDED_ELSEWHERE`) by guards that run before `_disposition` does;
+      * "composing the commit query raised" cannot be reached because `_landed_unbound` and
+        `_landed_by_sibling` both call `_window_hits` first, so the same exception populates
+        `unanswered` and the raised branch answers instead.
+    Both are fallbacks in the fail-closed direction, so neither is a defect -- but they are
+    EQUIVALENCES, not missing tests, and this file says which rather than leaving the flattering
+    reading available. They are not asserted below for exactly that reason.
+
+    MUTATIONS, each RUN and each recorded against the leg that ACTUALLY caught it, because the
+    first draft of this list guessed and guessed flatteringly:
+      (j) return `{"disposition": NOT_DONE, "evidence": ""}` from every branch -- written for the
+          no-branch-is-silent leg and CAUGHT BY THE DISTINCTNESS LEG instead, one line earlier.
+          Left in the list as a caught mutation, but it does NOT prove the silence leg fires;
+      (k) return one constant sentence from every branch -- the distinctness leg reds. Same leg as
+          (j), which is why (j) alone could not have graded silence;
+      (n) silence ONE branch only -- the no-paths branch returns `""` while the other two keep
+          their sentences, so three distinct values survive and (j)'s catcher stays green. THIS is
+          the mutation that proves the no-branch-is-silent leg, and it is the whole reason the leg
+          is written separately from the distinctness one. It is also the only mutation in this
+          file that NO OTHER TEST catches -- eight green, this one red;
+      (l) drop the paths or the window bounds from the looked-and-found-nothing branch, so it
+          claims a miss the reader cannot check -- the names-its-query leg reds, alone;
+      (m) let the no-paths branch print the query it never ran -- the did-not-look leg reds, alone.
+    """
+    store = _ledger(tmp_path, {EARLY_ID: _row(named_paths=[SUBJECT_PATH])})
+    monkeypatch.setattr(dl, "_git", _fake_git([]))
+
+    # BRANCH 1 -- git was asked, over real paths, and answered nothing. The only branch entitled
+    # to the sentence "we looked and found nothing", and the only one that must show its working.
+    prose[EARLY_ID] = "Read the artefact and report the sign."
+    looked = dl.disposition_of(EARLY_ID, path=store)
+
+    # BRANCH 2 -- the item's prose named no tracked path, so no query could be BUILT and git was
+    # never asked. Calling this "nothing landed" is the fail-open reading of an unavailable check.
+    unasked = _ledger(tmp_path / "unasked", {EARLY_ID: _row()})
+    prose[EARLY_ID] = "Report the sign."
+    no_paths = dl.disposition_of(EARLY_ID, path=unasked)
+
+    # BRANCH 3 -- a reader raised, so the tree WAS asked and the asking broke. The loudest of the
+    # three: a louder disposition may have been true and was lost.
+    def _boom(fid):
+        raise RuntimeError("both item stores are unreadable")
+
+    monkeypatch.setattr(dl, "_item_text", _boom)
+    broke = dl.disposition_of(EARLY_ID, path=store)
+
+    every = (looked, no_paths, broke)
+    assert all(r["disposition"] == dl.NOT_DONE for r in every), every
+
+    # REACHABLE AND DISTINCT, asserted before anything about wording: one reader, three inputs,
+    # three different answers. A constant residual -- the shape the empty string WAS -- dies here.
+    assert len({r["evidence"] for r in every}) == 3, every
+
+    # NO BRANCH IS SILENT. The whole repair in one line, and the leg the re-keying left out.
+    assert all(r["evidence"].strip() for r in every), every
+
+    # THE BRANCH THAT LOOKED NAMES ITS QUERY -- which paths, and both edges of the window -- so a
+    # reader can check whether the paths were the right ones instead of being sent to `git status`.
+    assert SUBJECT_PATH in looked["evidence"], looked
+    assert _hhmm(DRAWN_AT) in looked["evidence"], looked
+    assert _hhmm(WINDOW_ENDS) in looked["evidence"], looked
+
+    # AND THE TWO THAT DID NOT LOOK DO NOT CLAIM A QUERY THEY NEVER RAN. This is the fail-open
+    # that would survive every leg above: a branch that could not ask, reciting the sentence of a
+    # branch that did, is exactly the collapse -- a declared `None` wearing a silent one's clothes.
+    assert SUBJECT_PATH not in no_paths["evidence"], no_paths
+    assert _hhmm(DRAWN_AT) not in no_paths["evidence"], no_paths
+
+    # EACH NAMES WHAT STOPPED IT, in the reader's own terms: the one that could not build a query
+    # says so, and the one that crashed names the exception the fixture actually raised.
+    assert "no tracked path" in no_paths["evidence"], no_paths
+    assert "RuntimeError" in broke["evidence"], broke
