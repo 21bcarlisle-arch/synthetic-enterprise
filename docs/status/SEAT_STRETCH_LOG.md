@@ -8,6 +8,81 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-18 — the sample earns its place on the average a book is summed over, not just on a KS -- and the cull settles a book 3.2% leakier than the population
+
+<!-- head: 1d38d1d811ca -->
+
+**Written 2026-09-18 ~11:50 BST.** Stage 1, on the director's budget instruction to spend what is
+left on the people layer, the half-hourly shape, and the sample earning its place — and *"more of
+that and less of the rest"*, that being the book-wide spread.
+
+## The sample earns its place on the thing a book is actually summed over
+
+`grade()` already answered *"is the settled sample's DISTRIBUTION closer to the population's"*, and
+§A's P1b holds on it at 1.66x on the worst axis. **That is not the claim the sample has to earn.**
+
+The settled book is the population every published figure sums over — margin, carbon, the
+intervention ranking — and what those figures inherit is the sample's **error on the mean**, not its
+distributional distance. The two can disagree: KS is driven by the worst point of the CDF, a mean is
+driven by the tails' mass, so a sample can be distributionally closer and estimate the average
+worse. A book summed over it would then be more wrong while the headline statistic improved.
+
+Measured on the live campaign — 502 candidates, cull settling 90, chosen-and-weighted settling 83:
+
+| axis | cull error | chosen error | shrink |
+|---|---|---|---|
+| `floor_area_m2` | −1.188% | −0.660% | 1.8x |
+| `fabric_w_per_k` | +0.795% | −0.107% | **7.4x** |
+| `raw_infiltration_ach` | **+3.165%** | +0.075% | **42.2x** |
+| `customer_years` | −0.890% | −0.367% | 2.4x |
+
+**Choosing estimates the book better on all four axes.** Not a split, and the verdict is reported as
+a count of axes rather than a mean of ratios, because averaging per-axis ratios lets one near-zero
+denominator carry the answer — the "two true numbers whose ratio is not a quantity" shape.
+
+**The error is reported SIGNED, and the sign is the finding.** The cull does not merely mis-estimate
+infiltration, it **overstates** it by 3.2%: the count rule settles a book leakier than the population
+it is drawn from, and on a gas-heated book that overstates space heat. A book 3% too leaky and one
+3% too tight are different errors with different consequences, and an absolute value would have
+reported them as the same.
+
+## And it answers the question I left open on 2026-09-16
+
+That result recorded, as the thing it could not explain:
+
+> *"The 4.54x on infiltration against 1.37x on `fabric_w_per_k` is not explained. The chooser is
+> spanning the axis the population is most spread on, which is the expected behaviour of a
+> space-filling criterion, but expected is not measured — and `fabric_w_per_k` is the axis the demand
+> model is most sensitive to. Whether choosing harder on the axis that matters most beats choosing
+> on the axis that spreads most is a real question and it is unasked."*
+
+It is asked now, and the premise was wrong. The chooser is not spending its effort on a merely
+spread-out axis: **infiltration is where the count rule is most biased** (+3.165%, four times any
+other axis's error), and choosing collapses that to +0.075%. The KS profile and the estimator profile
+agree about which axis the old rule hurts most, which is the opposite of the "wasted on the spread-y
+axis" reading I had in hand and did not test.
+
+## Controls
+
+`tests/tools/test_the_settled_sample_is_graded_on_the_average_it_would_have_you_report.py`, 7 legs,
+about the INSTRUMENT rather than today's result — so a future run that disagrees is read as a
+disagreement and not as a bug. All three verdict states are asserted reachable, including SPLIT,
+which is the one a real deterioration would land in. A split is **never resolved by majority**: three
+axes better and one worse is a split, because the book is summed over all four at once.
+
+Mutation-proven: dropping the weights from the arm's mean leaves a working function that returns the
+*unweighted* membership mean — a plausible, silent, wrong answer — and the weighting leg reds on it.
+
+## What this does not claim
+
+One campaign, one seed, one window. It says the shipped chooser estimates these four inputs better
+than the rule it replaced; it does not say the estimates are good enough for any particular figure,
+and it is not a demand measurement — turning each candidate into annual kWh would need a trace
+apiece, and the axes ARE the demand model's inputs, so estimating them badly is what makes the
+outputs wrong.
+
+---
+
 ## 2026-09-18 — the log fired on completion so a day of drift owed nothing -- now it fires on a clock; and P2 says one headcount per house moved net -0.51%
 
 <!-- head: 26c10f997770 -->

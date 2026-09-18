@@ -29,7 +29,7 @@ move unattributable. Both arms then call the **shipped** `settle_within_budget` 
     ARM A   `choose_settled_sample` patched to return `None` -- exactly the refusal the shipped
             fallback exists for, so the systematic `int((i+1)*r) > int(i*r)` cull runs
     ARM B   unpatched: the shipped path, `fit_weights(groups=candidate_years)`
-    ARM B0  `fit_weights` forced to `groups=None` -- the PRE-REPAIR fit, before §B's P3 made the
+    ARM B0  `fit_weights` forced to `groups=None` -- the PRE-REPAIR fit, before P3 made the
             year marginal a constraint rather than an axis
 
 **Nothing here re-implements the cull or the chooser.** Settled positions are recovered from the
@@ -285,6 +285,88 @@ def _ks_by_axis(vectors, arm) -> dict:
                                reference)
     return {axis: float(verdict[axis]["d"]) for axis in CHOICE_AXES} | {
         "JOINT": float(verdict["JOINT"]["d"])}
+
+
+def estimator_error(vectors, arm) -> dict:
+    """How wrong the BOOK'S OWN AVERAGE is, per axis, when estimated from this arm.
+
+    WHY THIS EXISTS BESIDE THE KS (2026-09-18). KS answers "is the settled sample's DISTRIBUTION
+    closer to the population's", and P1b holds on it at 1.66x. That is not the claim the sample has
+    to earn. The settled book is the population every published figure is summed over -- margin,
+    carbon, the intervention ranking -- and what those figures inherit is the sample's ERROR ON THE
+    MEAN, not its distributional distance. A sample can be distributionally closer and still
+    estimate the average worse, because KS is driven by the worst point of the CDF and a mean is
+    driven by the tails' mass.
+
+    So this reports, per axis, the weighted mean the arm would have you believe against the
+    population's own, as a signed percentage. Signed on purpose: a book that is 3% too leaky and one
+    that is 3% too tight are different errors with different consequences for a gas-heated book, and
+    an absolute value would report them as the same.
+
+    It is deliberately NOT a demand figure. Turning each candidate into annual kWh means a trace per
+    candidate, and the axes ARE the demand model's inputs -- `fabric_w_per_k` and
+    `raw_infiltration_ach` are what the heat loss is computed from. Estimating the inputs badly is
+    what makes the outputs wrong, and this measures the inputs without inventing a demand model
+    beside the one that ships.
+    """
+    import numpy as np
+
+    from simulation.settlement_choice import CHOICE_AXES
+
+    values = np.asarray(vectors, dtype=float)
+    weights = np.asarray(arm["weights"], dtype=float)
+    settled = values[arm["positions"]]
+    if weights.sum() <= 0:
+        raise ValueError("this arm carries no weight at all; nothing can be estimated from it")
+
+    out = {}
+    for index, axis in enumerate(CHOICE_AXES):
+        population_mean = float(values[:, index].mean())
+        arm_mean = float(np.average(settled[:, index], weights=weights))
+        out[axis] = {
+            "population_mean": round(population_mean, 4),
+            "arm_mean": round(arm_mean, 4),
+            "signed_error_pct": (None if population_mean == 0 else
+                                 round((arm_mean - population_mean) / population_mean * 100.0, 3)),
+        }
+    return out
+
+
+def estimator_verdict(err_cull: dict, err_chosen: dict) -> dict:
+    """Does choosing estimate the book's own averages better than counting does, axis by axis?
+
+    STATED AS A COUNT OF AXES, not as a mean of ratios. Averaging per-axis ratios would let one
+    axis with a near-zero denominator carry the verdict, which is the "two true numbers whose ratio
+    is not a quantity" shape this project keeps finding.
+    """
+    from simulation.settlement_choice import CHOICE_AXES
+
+    per_axis = {}
+    for axis in CHOICE_AXES:
+        cull = err_cull[axis]["signed_error_pct"]
+        chosen = err_chosen[axis]["signed_error_pct"]
+        if cull is None or chosen is None:
+            per_axis[axis] = {"verdict": "NOT GRADED: the population mean is zero on this axis"}
+            continue
+        per_axis[axis] = {
+            "cull_error_pct": cull,
+            "chosen_error_pct": chosen,
+            "closer": "chosen" if abs(chosen) < abs(cull) else "cull",
+            "shrink_factor": (round(abs(cull) / abs(chosen), 3) if chosen != 0 else float("inf")),
+        }
+    graded = [a for a in CHOICE_AXES if "closer" in per_axis[a]]
+    won = [a for a in graded if per_axis[a]["closer"] == "chosen"]
+    return {
+        "per_axis": per_axis,
+        "axes_graded": len(graded),
+        "axes_where_choosing_estimates_better": len(won),
+        "axes_won": won,
+        # THE HONEST HEADLINE. "Better on most axes" is not "better", and a book is summed over all
+        # of them at once, so a split is reported as a split rather than resolved by majority.
+        "verdict": ("CHOOSING ESTIMATES THE BOOK BETTER" if len(won) == len(graded) and graded else
+                    "COUNTING ESTIMATES THE BOOK BETTER" if not won and graded else
+                    f"SPLIT -- choosing wins {len(won)} of {len(graded)} axes"),
+    }
 
 
 def grade(ks_cull: dict, ks_chosen: dict) -> dict:
