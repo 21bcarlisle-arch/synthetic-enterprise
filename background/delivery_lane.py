@@ -2562,15 +2562,65 @@ def rival_note(item: dict, *, now: float | None = None,
         return ""
 
 
+def successor_note(item: dict) -> str:
+    """A line for the doorbell when THIS ITEM'S OWN TICK already wrote its continuation, else "".
+
+    THE THIRD STORE, AND THE ONE THE OTHER TWO CANNOT SEE. `premise_note` asks git whether the
+    work is already landed; `rival_note` asks the claims file whether somebody ELSE is doing it.
+    Neither can answer the question that cost 2026-09-18's 16:43 draw: whether the tick that held
+    this item has already done the part that mattered and written down what remains. That fact
+    lives only in the continuation store, as `written_while_holding` -- see
+    `seat_continuation.undeclared_successors` for the measurement and the near-miss.
+
+    WHY THE PREDECESSOR IS THE DANGEROUS ONE. A continuation that launches a long detached job
+    splits into two texts: the launcher ("re-run the floor NOW") and the reader ("the run is in
+    flight; read it when it lands"). The reader gets the `DO NOT DRAW BEFORE` stamp, because the
+    author is thinking about when the artefact exists. The LAUNCHER gets nothing -- and drawing the
+    launcher a second time relaunches the job. `claim_dispatched` names two earlier instances of a
+    detached multi-hour runner re-drawn inside its own shadow; this is the third, and the first
+    where the claim machinery worked and the continuation store leaked instead.
+
+    IT ANNOTATES AND NEVER REFUSES, for `rival_note`'s reason exactly: a tick may hand off
+    genuinely new work while its own item stays worth doing, and only the two texts side by side
+    can tell that from a continuation. The note carries both dispositions because the honest answer
+    is usually `--release`, and a note that names no action gets read as commentary.
+
+    NEVER RAISES, and an unanswerable store yields "" -- the behaviour before this existed. Same
+    direction and same argument as its two siblings.
+    """
+    try:
+        successors = seat_continuation.undeclared_successors(item.get("id"))
+        if not successors:
+            return ""
+        named = "; ".join(
+            "`{}` (\"{}\")".format(s.get("id"), str(s.get("what") or "").strip()[:220])
+            for s in successors
+        )
+        return (
+            "CONTINUATION CHECK (this item's own store, run at draw time): {n} live "
+            "continuation(s) were written BY A TICK HOLDING THIS ITEM and do not declare they "
+            "replace it -- {named}. READ THE SUCCESSOR BEFORE YOU BUILD. If it describes the rest "
+            "of THIS work, the part you are being asked for is already done and its remainder is "
+            "under that other id: take the disposition, not the work -- `--release {key}` -- and "
+            "record in docs/staging/ that the successor now carries it. THIS MATTERS MOST WHEN "
+            "THE WORK IS A LONG JOB: a successor saying a run is IN FLIGHT means re-running it "
+            "launches a second copy over the same seeds. If it is genuinely separate work, carry "
+            "on: this is a note, not a refusal. "
+        ).format(n=len(successors), named=named, key=item.get("id"))
+    except Exception:
+        return ""
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
 
-    `premise_note` and `rival_note` go FIRST, ahead of the standing preamble, because a tick that
-    reads the work before it reads the checks has already started. They are the same shape asked of
-    two different stores: has this item's premise already been spent, and is somebody else spending
-    it right now."""
-    return premise_note(item) + rival_note(item) + (
+    `premise_note`, `rival_note` and `successor_note` go FIRST, ahead of the standing preamble,
+    because a tick that reads the work before it reads the checks has already started. They are the
+    same shape asked of three different stores: has this item's premise already been spent, is
+    somebody else spending it right now, and did THIS ITEM'S OWN TICK already spend it and write
+    down what was left."""
+    return premise_note(item) + rival_note(item) + successor_note(item) + (
         "LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
         "lanes because a judgement about what matters beats a weighted coin over a map whose "
         "idle atoms are all over their pass ceiling. WORK: {what} WHY: {why} "
