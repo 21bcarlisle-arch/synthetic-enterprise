@@ -314,15 +314,44 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: positive, or its own sign is not negative, this constant is the first thing to re-open. Filed
 #: before those seeds were readable, in `docs/staging/PREREG_THE_PUBLISHED_FLOOR_POOLS_TWO_VALUE`
 #: `_ARMS_AND_THE_SINGLE_ARM_FAMILY_STATES_A_SIGN_2026-09-17.md`.
+#:
+#: THEY LANDED 2026-09-18T11:07:45Z, AND THE SECOND CLAUSE FIRED. Kept beside the prediction rather
+#: than edited into it. `value_cycle_ab_s1_noise_floor_next12_20260917.json`, twelve seeds, same
+#: world, same redraw key and mode: mean -1069.48, sd 5398.31, sem 1558.36, 0.69 sems from zero,
+#: `selection_distinguishable_from_zero: false`. Its mean did NOT land positive -- clause one is
+#: clean, and at 109.69 GBP from this family's -959.78 (0.07 of its own sem) it is the SAME LEVEL.
+#: But it states NO SIGN, so "its own sign is not negative" is satisfied and the re-open is owed.
+#:
+#: WHAT THE RE-OPEN FOUND, AND WHY THIS CONSTANT DOES NOT MOVE. The twelve replicate this family's
+#: LEVEL and refute its WIDTH: sd 5398.31 against 1631.80 is 3.31x, F = 10.94 on df (11,17), two-
+#: sided p = 2.3e-05. The NEGATIVE this constant publishes rests entirely on the width (2.50 sems),
+#: so the honest statement is that the sign is a property of a dispersion one instrument measures
+#: and another does not reproduce -- NOT that the selection residual is a different number. The
+#: constant stays because the twelve may not be folded in (third instrument, and the same defect
+#: this block exists to name) and because swapping to a family that states no sign on the strength
+#: of a width disagreement would be choosing between two instruments by their answers. What is
+#: owed instead is the one-variable run -- these twelve seeds at `4e7938f673` -- which separates
+#: the instrument from the seed set; until it exists I cannot say which width is the right one.
+#: THE SIGN PUBLISHED HERE IS NOW CONTESTED BY A SAME-WORLD FAMILY AND THE PAGE SHOULD SAY SO.
+#: `docs/staging/SEAT_RESULT_THE_TWELVE_REPLICATE_THE_LEVEL_AND_REFUTE_THE_WIDTH_AND_THE_SIGN_WAS`
+#: `_A_PROPERTY_OF_THE_WIDTH_2026-09-18.md`.
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
     "value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json")
-#: THE ONLY FAMILY IN THIS REPOSITORY THAT CARRIES THE DISCRIMINATION AUC PER SEED, and it is a
+#: THE ONLY FAMILY ON THIS PAGE THAT CARRIES THE DISCRIMINATION AUC PER SEED, and it is a
 #: DIFFERENT family from `NOISE_FLOOR_PATH` above. Three seeds, world `39a192ce04c1eda8` -- the
 #: same world the folded 18 ran in -- drawn 2026-09-17 under commit `c9bd2eae7`.
 #:
+#: IT SAID "IN THIS REPOSITORY" UNTIL 2026-09-18 AND THAT WENT FALSE IN THE COMMIT THAT LANDED
+#: `value_cycle_ab_s1_noise_floor_next12_20260917.json`, which carries `discrimination_auc` on all
+#: twelve of its seeds. Narrowed to "on this page", which is the claim this constant actually needs
+#: and which the next artefact cannot falsify. The two are the SAME instrument -- `git diff
+#: c9bd2eae7 a178b56d6` over the four value-arm paths is empty -- so a 15-seed AUC family is
+#: arithmetically available; it is NOT taken here, and the reason is below.
+#:
 #: WHY IT IS A SECOND CONSTANT AND NOT FOLDED INTO THE ONE ABOVE. Folding is one command and it
 #: was deliberately not done: it would move the ADVANTAGE family from 18 draws to 21, which is the
-#: sibling lane's subject and has twelve more seeds in flight, and it would LOSE the served book
+#: sibling lane's subject -- those twelve seeds have since landed, unfolded, for the reason the
+#: `NOISE_FLOOR_PATH` block above records -- and it would LOSE the served book
 #: (`folded18` declares none, so the folded 21 states no book at all). Nothing about the
 #: discrimination reading needs that fold -- the AUC's null comes from its own outcome counts, not
 #: from the advantage family -- so the two families stay separate and the block that reads this
