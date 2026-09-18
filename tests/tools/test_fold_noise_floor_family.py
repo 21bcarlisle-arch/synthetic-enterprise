@@ -469,3 +469,106 @@ def test_the_two_floors_that_share_seed_values_are_refused():
     # And the pair that does NOT share seeds folds, so the refusal above is about the seeds and
     # not about these two files being unfoldable for some other reason.
     assert len(fold([_FLOOR_A, _FLOOR_B])["seeds"]) == 18
+
+
+def test_the_value_arm_pairing_separates_two_instruments_from_two_commits():
+    """THE DEFECT (measured 2026-09-17): the published eighteen pools two PRICING arms and
+    publishes the step between them as redraw noise.
+
+    `_FLOOR_A` was drawn on `c066c114`, `_FLOOR_B` on `9f0ab066`, and those two trees differ in
+    `company/pricing/value_based_renewal.py`. Re-running A's OWN nine seeds on B's value arm
+    (`_SAME_SEEDS_AS_A`) moves `selection_gbp` by a paired -671.31 on all nine, 20.4 sems from
+    zero. Pooled the family reads 1.80 sems and states no sign; on one arm it reads 2.50 and states
+    a negative one. Nothing caught it because the refusal that stopped the AUC fold keys on
+    `level_gbp_per_mwh`, which agrees to GBP4.27 across this pair.
+
+    KEYED TO THE PROPERTY, NOT TO COMMIT IDENTITY, AND THAT IS THE WHOLE CONTROL. Both folds below
+    have TWO distinct producing commits, so `producing_commit`'s "2 distinct code tree(s)" cannot
+    tell them apart -- and the coarse implementation, comparing commits, passes the first
+    assertion and FAILS the second. `_SAME_SEEDS_AS_A` and `_FLOOR_B` are three minutes apart with
+    byte-identical value arms and are correctly poolable.
+    """
+    for path in (_FLOOR_A, _FLOOR_B, _SAME_SEEDS_AS_A):
+        if not path.exists():
+            pytest.skip("no floor artefact on disk at {}".format(path))
+
+    mixed = fold([_FLOOR_A, _FLOOR_B])["value_arm_pairing"]
+    single = fold([_SAME_SEEDS_AS_A, _FLOOR_B])["value_arm_pairing"]
+
+    if mixed["unavailable_because"] or single["unavailable_because"]:
+        # A clean `git archive` extract has no `.git`, so the diff cannot be taken there. That is
+        # the fail-closed branch and it is asserted by its own control below -- skipping here keeps
+        # THIS control about the distinction, rather than passing for the wrong reason.
+        pytest.skip("value-arm provenance not checkable here: {}".format(
+            mixed["unavailable_because"] or single["unavailable_because"]))
+
+    # BOTH have two commits. The coarse implementation cannot reach this pair of verdicts.
+    assert len(mixed["member_commits"]) == 2 and len(single["member_commits"]) == 2
+
+    assert mixed["same_value_arm"] is False, (
+        "the fold that pools c066c114 with 9f0ab066 must say so; those trees price the value arm "
+        "differently by GBP671.31 paired on nine identical seeds")
+    assert "company/pricing/value_based_renewal.py" in mixed["differing_paths"], (
+        "the caveat must NAME the code that moved, or a reader cannot judge whether it could reach "
+        "a seed row: got {}".format(mixed["differing_paths"]))
+    assert mixed["caveat"] and "POOLS" in mixed["caveat"]
+
+    assert single["same_value_arm"] is True, (
+        "two commits with byte-identical value arms are one instrument and must NOT be flagged; "
+        "flagging them is the commit-identity implementation this control exists to refuse")
+    assert single["differing_paths"] == [] and single["caveat"] is None
+
+    # STATED ON BOTH BRANCHES: silence must mean "asked and matched", never "never asked".
+    assert mixed["why_this_rule"] and single["why_this_rule"]
+
+
+def test_the_value_arm_pairing_fails_closed_and_every_branch_is_reachable():
+    """THE DEFECT: a provenance check that cannot ask its question returning the FLATTERING answer.
+
+    An unstamped member was drawn by a tree nobody wrote down. That is an unknown, and a `True`
+    here would license pooling on no evidence -- the same error `_floor_tree_pairing` was written
+    to stop making one field earlier. Both a missing stamp and a commit this repository does not
+    have must land on `None` with a named reason.
+
+    ONE CONTROL OVER THE WHOLE PARTITION. A guard that refuses everything passes every per-branch
+    test, so this asserts all three verdicts are REACHABLE rather than checking each in isolation.
+    """
+    for path in (_FLOOR_A, _FLOOR_B, _SAME_SEEDS_AS_A):
+        if not path.exists():
+            pytest.skip("no floor artefact on disk at {}".format(path))
+
+    from tools.fold_noise_floor_family import _value_arm_pairing
+
+    def _src(path, commit="keep"):
+        data = copy.deepcopy(json.loads(Path(path).read_text(encoding="utf-8")))
+        if commit != "keep":
+            data.setdefault("producing_commit", {})["commit"] = commit
+            data["producing_commit"]["resolved_at"] = None
+        return (path, data)
+
+    unstamped = _value_arm_pairing([_src(_FLOOR_A, None), _src(_FLOOR_B)])
+    assert unstamped["same_value_arm"] is None, "a missing stamp must not read as agreement"
+    assert unstamped["members_without_a_commit"] == 1
+    assert "never evidence the arms agree" in unstamped["unavailable_because"]
+    assert unstamped["caveat"], "an unknown provenance owes the reader a caveat"
+
+    # A syntactically valid commit this repository does not contain. Not a fabricated probe: the
+    # branch it exercises is literally "a member's commit is not present here".
+    absent = _value_arm_pairing(
+        [_src(_FLOOR_A, "0" * 40), _src(_FLOOR_B, "1" * 40)])
+    assert absent["same_value_arm"] is None
+    assert absent["unavailable_because"] and "NOT assumed to agree" in absent["unavailable_because"]
+
+    # One commit named by every member: one arm by construction, no diff to take.
+    one = _value_arm_pairing([_src(_FLOOR_A, "abc1234"), _src(_FLOOR_B, "abc1234")])
+    assert one["same_value_arm"] is True and one["differing_paths"] == []
+
+    mixed = fold([_FLOOR_A, _FLOOR_B])["value_arm_pairing"]
+    single = fold([_SAME_SEEDS_AS_A, _FLOOR_B])["value_arm_pairing"]
+    if mixed["unavailable_because"] or single["unavailable_because"]:
+        pytest.skip("value-arm provenance not checkable in this tree")
+
+    # THE PARTITION: every verdict this predicate can return is reached by some real input, so it
+    # is not a guard that only ever says one thing.
+    assert {mixed["same_value_arm"], single["same_value_arm"], unstamped["same_value_arm"]} == {
+        False, True, None}

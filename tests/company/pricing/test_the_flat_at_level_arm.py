@@ -238,3 +238,96 @@ def test_the_clamp_is_what_makes_a_FLAT_arm_show_several_margins():
     assert len(margins) > 1, (
         "the clamp produced one margin across two base rates, so it cannot explain the four "
         "distinct margins the decade run reported")
+
+
+# ---------------------------------------------------------------------------
+# 6. the two arms PRICE THE SAME RENEWALS — the property this arm exists for
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THESE CONTROL, FOUND 2026-09-18 AND MEASURED, NOT SUSPECTED. Property 1 in this
+# file's header — "it prices the SAME POPULATION as the value arm" — was tested only as "it does
+# not return early from the adapter's guards". It never was true past that point: `decide_margin`
+# filtered the value arm's candidates through the churn model's support bound and could return
+# NOTHING, while this arm applied no support bound at all and could never decline. On every
+# three-arm run ever recorded the value arm declined 63–65 renewals and this arm priced every one
+# of them. That is ~£3,900 of level-arm margin with no value-arm counterpart, inside a published
+# residual (`level_vs_selection.selection_gbp`) whose own magnitude was £333.
+#
+# KEYED TO THE PROPERTY AND NOT TO TODAY'S BOOK. Nothing here counts renewals, names a run or
+# pins a margin: the claim is that the two arms' REFUSAL PREDICATE is one predicate, over a grid
+# that reaches both of its answers. A book where no renewal is near the frontier would pass a
+# count-based version of this test while the defect sat there waiting for 2022.
+
+# Each row is (current_rate, base_rate, ceiling, what regime it is in). The support ceiling is
+# `current × 1.831`, so the base rate's distance from it is what decides.
+_FRONTIER_SWEEP = [
+    (100.0, 100.0, None, "headroom 83.1 — far inside the frontier, nothing binds"),
+    (100.0, 150.0, None, "headroom 33.1 — the level is clamped, both arms still price"),
+    (100.0, 180.0, None, "headroom 3.1 — INSIDE the level, above the grid floor"),
+    (100.0, 183.0, None, "headroom 0.1 — below the grid's own floor, no offer exists"),
+    (105.0, 251.45, None, "the C_IC3 incident: the base rate is above the support ceiling"),
+    (100.0, 100.0, 105.0, "the lawful cap bites first and the support bound does not"),
+    (100.0, 100.0, 100.2, "the lawful cap leaves less than the grid floor"),
+]
+
+
+def _prices(arm: str, current: float, base: float, ceiling: float | None) -> bool:
+    """Did this arm return an offer at all? The one question both arms must answer alike."""
+    try:
+        decide_margin(customer_id="C1", arm=arm, flat_level_gbp_per_mwh=20.0,
+                      max_offered_rate_gbp_per_mwh=ceiling,
+                      **{**BASE, "current_rate_gbp_per_mwh": current,
+                         "base_rate_gbp_per_mwh": base})
+    except MarginDecisionUnavailable:
+        return False
+    return True
+
+
+def test_the_two_arms_price_and_refuse_TOGETHER_across_the_whole_frontier():
+    """THE CONTROL FOR PROPERTY 1. A residual between two arms is only the choosing if the two
+    arms chose over the same renewals; where one prices and the other refuses, the absent arm's
+    margin lands in the residual with a sign nobody intended."""
+    answers = {
+        why: (_prices(VALUE_BASED, current, base, ceiling),
+              _prices(FLAT_AT_LEVEL, current, base, ceiling))
+        for current, base, ceiling, why in _FRONTIER_SWEEP
+    }
+    # THE PARTITION IS REACHED BEFORE IT IS JUDGED. A `decide_margin` that refused everything, or
+    # priced everything, would satisfy "the two agree" on every row and prove nothing — which is
+    # exactly how this arm passed a same-population claim for three weeks.
+    assert any(v for v, _ in answers.values()), "no row priced; the sweep cannot see agreement"
+    assert not all(v for v, _ in answers.values()), (
+        "no row refused; the sweep never reaches the frontier and the control is vacuous")
+    disagreed = {why: pair for why, pair in answers.items() if pair[0] != pair[1]}
+    assert not disagreed, (
+        "the arms do not price the same population: {} — the renewals one arm prices and the "
+        "other refuses carry margin into `level_vs_selection.selection_gbp` with no counterpart"
+        .format(disagreed))
+
+
+def test_the_level_arms_refusal_is_the_VALUE_ARMS_OWN_REASON():
+    """NOT A SECOND SENTENCE THAT MEANS THE SAME THING. Two refusals written twice drift, and the
+    reader of a decline roster has no way to tell a shared frontier from two nearby ones."""
+    kw = {**BASE, "current_rate_gbp_per_mwh": 105.0, "base_rate_gbp_per_mwh": 251.45}
+    reasons = []
+    for arm in (VALUE_BASED, FLAT_AT_LEVEL):
+        with pytest.raises(MarginDecisionUnavailable) as exc:
+            decide_margin(customer_id="C_IC3", arm=arm, flat_level_gbp_per_mwh=20.0, **kw)
+        reasons.append(str(exc.value))
+    assert reasons[0] == reasons[1], (
+        "the two arms refuse the same renewal for reasons a reader cannot match up:\n{}\n{}"
+        .format(*reasons))
+    assert "support bound" in reasons[1]
+
+
+def test_the_support_clamp_is_NOT_reported_as_the_lawful_CEILING():
+    """R15 FAIL-SILENT, the same shape as section 5 and one wall along. A price held down by the
+    edge of the company's own evidence, published as the regulator's cap, would read as an
+    external constraint on a book where the company simply did not know enough to charge more."""
+    d = decide_margin(customer_id="C1", arm=FLAT_AT_LEVEL, flat_level_gbp_per_mwh=20.0,
+                      max_offered_rate_gbp_per_mwh=None,
+                      **{**BASE, "base_rate_gbp_per_mwh": 180.0})
+    assert d.margin_gbp_per_mwh == pytest.approx(3.098, abs=0.01), "the support clamp did not bite"
+    assert d.endpoint_side == "support"
+    assert d.extrapolation_bound is True
+    assert d.ceiling_bound is False, "no lawful cap was passed, so none can have bound"

@@ -8522,3 +8522,133 @@ def test_a_row_carrying_an_AUC_with_NO_population_is_counted_out_not_defaulted()
     assert [r["seed"] for r in usable] == [1], (
         "a row with no population, no AUC or an empty outcome class was read as usable, so the "
         "null published beside a figure did not come from that figure's own population")
+
+
+def test_a_folds_several_trees_are_told_apart_from_several_INSTRUMENTS():
+    """Two commits that price alike and two that do not must not render the same sentence.
+
+    THE DEFECT (2026-09-17). `_floor_tree_pairing` reports `same_tree: False` for every fold --
+    two members, two commits, always. That is true and it was the wrong SIZE: it is the same
+    `False` whether the members differ in a docstring or in `value_based_renewal.py`. On the day
+    this was found the published floor pooled `c066c114b` with `9f0ab066f`, which differ over the
+    pricing paths by GBP671.31 on nine identical seeds at 20.4 sems from zero -- a step between two
+    instruments, sitting inside a width labelled redraw noise, and the thing holding the selection
+    leg at 1.80 sems and NO SIGN. The single-arm fold of the same width states a NEGATIVE. So the
+    two readings of "2 code trees" are the difference between a published sign and a published
+    refusal, and the page had no field for it.
+
+    Fires on: dropping `value_arm_pairing` from the rendered block, or collapsing any two of the
+    three branches into one sentence.
+    """
+    def _pairing(value_arm_pairing):
+        floor = {
+            "producing_commit": {"commit": None, "unavailable_because": "folded from 2 trees"},
+            "folded_from": [{"producing_commit": "a" * 40}, {"producing_commit": "b" * 40}],
+            "value_arm_pairing": value_arm_pairing,
+        }
+        return gva._floor_tree_pairing(floor, {"producing_commit": {"commit": "c" * 40}})
+
+    watched = ["simulation/", "company/"]
+    same = _pairing({"same_value_arm": True, "differing_paths": [], "value_arm_paths": watched})
+    mixed = _pairing({"same_value_arm": False,
+                      "differing_paths": ["company/pricing/value_based_renewal.py"],
+                      "value_arm_paths": watched})
+    absent = _pairing(None)
+
+    # THE WHOLE PARTITION IS REACHABLE, asserted before any branch's content. A helper that
+    # returned one verdict for every input would satisfy each leg below taken alone.
+    assert {block["value_arm_pairing"]["rule"] for block in (same, mixed, absent)} == {
+        "same_value_arm", "mixed_value_arms", "not_asked"}, (
+        "the three states of the pairing question do not produce three distinct rules, so one of "
+        "them is unreachable and the block cannot be telling a reader which one it is in")
+
+    assert same["value_arm_pairing"]["same_value_arm"] is True
+    assert mixed["value_arm_pairing"]["same_value_arm"] is False
+    # THE UNKNOWN IS NEVER THE FLATTERING ONE. A floor predating the field must not read as
+    # agreement -- that is the fail-open direction and it would make the OLDEST folds on this page
+    # render as the cleanest pairings on it.
+    assert absent["value_arm_pairing"]["same_value_arm"] is None, (
+        "a floor that never recorded whether its members price alike reads as agreement, so a "
+        "width pooling two instruments is published as though it had been checked"
+    )
+
+    # AND IT REACHES THE READER, on the sentence and not only in a field. The caveat is the line a
+    # reader of the page actually meets.
+    assert "NOT IN THE PRICING CODE" in same["caveat"], (
+        "the single-arm case does not say so on the surface, so a reader cannot tell it from the "
+        "mixed case and the sign published above it looks unearned")
+    assert "value_based_renewal.py" in mixed["caveat"] and "two" in mixed["caveat"], (
+        "the mixed case does not name what differs, so the reader is told the trees differ and "
+        "cannot check which of them is the pricing code")
+    assert "not known" in absent["caveat"].lower(), (
+        "the unrecorded case states something other than its own ignorance")
+
+    # THE REFINEMENT MAY NOT SILENCE THE SENTENCE IT REFINES. `same_tree` is still False on all
+    # three: the trees DO differ, and a single-arm fold is not a single-tree one.
+    assert all(block["same_tree"] is False for block in (same, mixed, absent)), (
+        "knowing the members price alike was allowed to answer the DIFFERENT question of whether "
+        "one tree drew them, which is how a fold starts rendering as a single-tree bound")
+
+
+def _a_sign_published_over_this_floor_is_unearned(floor: dict) -> str | None:
+    """The rule: state a SELECTION SIGN only off a floor recorded as one pricing instrument.
+
+    A floor that states NO sign owes no pairing answer, so it is clean here -- which is the
+    property, not a hole. Returns the complaint, or None.
+    """
+    if not ((floor or {}).get("selection_leg") or {}).get("distinguishable_from_zero"):
+        return None
+    pairing = (floor or {}).get("value_arm_pairing")
+    if not isinstance(pairing, dict) or pairing.get("same_value_arm") is not True:
+        return ("a SELECTION SIGN is published off a floor that does not record its members as "
+                "sharing a pricing tree, so the sign may be an artefact of pooling two "
+                "instruments")
+    if [p for p in (pairing.get("differing_paths") or []) if isinstance(p, str)]:
+        return "the floor calls itself single-arm while naming paths its members differ over"
+    return None
+
+
+def test_a_selection_SIGN_may_not_be_published_over_a_floor_that_pools_two_instruments():
+    """A published sign whose floor mixes pricing trees may be the pooling, not the effect.
+
+    THE DEFECT: `folded18` pools two instruments differing by GBP671.31 on identical seeds. Had
+    that step pointed the other way it would have MANUFACTURED a sign rather than suppressing one,
+    and nothing on this page asked the question.
+
+    THE MUTATION THAT DID NOT FIRE, AND WHY THIS IS NOT A SKIP. The first draft of this control
+    read the live floor and skipped when it stated no sign -- so pointing `NOISE_FLOOR_PATH` back
+    at `folded18` turned it GREEN-BY-SKIP, which is the same colour as a pass. The rule is correct
+    (no sign, nothing owed); asserting it only against whichever artefact is wired made it
+    unable to fail. The partition is now asserted directly and the live floor is one case in it.
+
+    THAT MUTATION STILL DOES NOT FIRE, AND IT IS AN EQUIVALENCE RATHER THAN A HOLE -- established,
+    not assumed. `folded18` pools two instruments AND states no sign (1.80 sems, under the 2.11
+    bar), so no unearned sign exists to catch and the rule is right to stay quiet. The defect this
+    guards is the OTHER combination -- a mixed floor whose pooling pushes a leg PAST the bar -- and
+    that is the first adverse leg below, which no artefact on disk currently exhibits. Two
+    mutations do fire: making the unknown read as agreement, and dropping the field from the
+    rendered block.
+    """
+    signed = {"selection_leg": {"distinguishable_from_zero": True}}
+    unsigned = {"selection_leg": {"distinguishable_from_zero": False}}
+    single = {"same_value_arm": True, "differing_paths": []}
+
+    # THE ADVERSE CASE IS REACHABLE AND IT COMPLAINS -- this is the leg the first draft lacked.
+    assert _a_sign_published_over_this_floor_is_unearned({**signed, "value_arm_pairing": None}), (
+        "a sign published over a floor with no pairing record raises nothing, so this control "
+        "cannot fail on the artefact that was live when it was written")
+    assert _a_sign_published_over_this_floor_is_unearned(
+        {**signed, "value_arm_pairing": {"same_value_arm": False}}), (
+        "a sign published over a floor that KNOWS its members price differently raises nothing")
+    # ...AND THE RULE IS NOT MERELY "COMPLAIN ALWAYS", which the adverse legs alone would pass.
+    assert _a_sign_published_over_this_floor_is_unearned(
+        {**signed, "value_arm_pairing": single}) is None, (
+        "a sign over a single-arm floor is refused, so the rule is not about pairing at all")
+    assert _a_sign_published_over_this_floor_is_unearned(
+        {**unsigned, "value_arm_pairing": None}) is None, (
+        "a floor stating NO sign is asked to prove its pairing, which is a demand the page's own "
+        "rule does not make and would block the honest refusing family")
+
+    # The live floor is one case in that partition, asserted rather than skipped past.
+    assert _a_sign_published_over_this_floor_is_unearned(
+        gva._read(gva.NOISE_FLOOR_PATH) or {}) is None

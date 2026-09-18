@@ -7,7 +7,7 @@ computed onto the surface beside the figure it qualifies.
 # The advantage was published with no discrimination beside it, and the refusal that existed reached no reader
 
 Delivery seat, 2026-09-17. Scores
-`docs/staging/SEAT_PREREG_DOES_THE_FAMILYS_DISCRIMINATION_READING_REACH_THE_PAGE_BESIDE_THE_ADVANTAGE_2026-09-17.md`,
+`docs/staging/records/SEAT_PREREG_DOES_THE_FAMILYS_DISCRIMINATION_READING_REACH_THE_PAGE_BESIDE_THE_ADVANTAGE_2026-09-17.md`,
 written before any measurement below and unedited. Continues today's
 `SEAT_RESULT_THE_LEVEL_LEGS_SIGN_IS_DETERMINED_AND_POSITIVE...` and the two worker results that
 carried the three legs onto the page. All three stand.

@@ -40,6 +40,7 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_RESULT_THE_CENSUS_HEADCOUNT_REACHED_EVERY_CALLER_EXCEPT_THE_ONE_THE_BOOK_IS_SETTLED_ON_2026-09-16.md` — lane `W2_customer_generator`
+- `WORKER_FINDING_THE_ROSTER_RUN_WOULD_HAVE_BEEN_INERT_BECAUSE_THE_WORKING_COPY_OF_THE_RUNNER_IS_BEHIND_THE_COMMIT_CARRYING_IT_2026-09-18.md` — lane `A_strategy_governance`
 
 ## Disposition
 
