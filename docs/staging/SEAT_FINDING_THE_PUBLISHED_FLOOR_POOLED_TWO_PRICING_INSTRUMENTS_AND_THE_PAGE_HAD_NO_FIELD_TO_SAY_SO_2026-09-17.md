@@ -4,7 +4,7 @@
 
 **Filed:** 2026-09-17.
 **Claim id:** read-next12-alone-it-cannot-be-folded-into-the-eighteen
-**Pre-registration:** `docs/staging/PREREG_THE_PUBLISHED_FLOOR_POOLS_TWO_VALUE_ARMS_AND_THE_SINGLE_ARM_FAMILY_STATES_A_SIGN_2026-09-17.md`
+**Pre-registration:** `docs/staging/records/PREREG_THE_PUBLISHED_FLOOR_POOLS_TWO_VALUE_ARMS_AND_THE_SINGLE_ARM_FAMILY_STATES_A_SIGN_2026-09-17.md`
 
 ## The finding
 
