@@ -14,14 +14,14 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | Anchor | What it is for | Last really changed | Age (days) | Verdict |
 |---|---|---|---|---|
 | `docs/PROJECT_OVERVIEW.md` | This document | 2026-09-17 | 1 | FRESH |
-| `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-09-17 | 1 | UNDATED |
+| `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-09-18 | 0 | UNDATED |
 | `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-09-06 | 12 | FRESH |
-| `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-09-17 | 1 | FRESH |
-| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-09-17 | 1 | FRESH |
+| `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-09-18 | 0 | FRESH |
+| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-09-18 | 0 | FRESH |
 | `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-09-17 | 1 | UNDATED |
 | `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-09-18 | 0 | UNDATED |
 | `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-09-18 | 0 | UNDATED |
-| `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-09-17 | 1 | FRESH |
+| `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-09-18 | 0 | FRESH |
 | `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-09-17 | 1 | UNDATED |
 | `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 74 | UNDATED |
 
@@ -37,8 +37,8 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 10,474 | 10,144 – 10,565 (`git rev-list --count`) | AGREES |
-| lines | 960,622 | 925,703 – 970,844 (newlines across every `*.py` in the git index) | AGREES |
+| commits | 10,474 | 10,144 – 10,569 (`git rev-list --count`) | AGREES |
+| lines | 960,622 | 925,703 – 971,192 (newlines across every `*.py` in the git index) | AGREES |
 | modules | 2,948 | 2,898 – 2,963 (the count of `*.py` in the git index) | AGREES |
 | tests | 36,838 | 26,731 – 36,838 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES |
 

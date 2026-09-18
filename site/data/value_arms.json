@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-18T07:29:39.509422Z",
+  "generated_at": "2026-09-18T09:41:46.533430Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
   "not_a_target": "A selection leg worth nothing is a complete answer, not a cue to tune the arm until it wins. The margin is a diagnostic here and never a target: an arm that loses to its own baseline is the result this comparison was built to be able to return.",
   "sources": [
     "docs/observability/value_cycle_ab_s1_three_arm.json",
-    "docs/observability/value_cycle_ab_s1_noise_floor_folded18_20260917.json",
+    "docs/observability/value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
     "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
     "docs/observability/value_cycle_ab_floor_decomposition.json",
@@ -129,33 +129,34 @@
     "available": true,
     "seeds": 18,
     "world_measured_in": "39a192ce04c1eda8",
-    "admitted_by": "stamp_proxy",
+    "admitted_by": "declared_book",
+    "staleness_at_admission": null,
     "what_was_re_drawn": "The same three arms re-run on the same world once per seed, with only the per-household price-sensitivity draw changed. Nothing about the company moved.",
     "rule": "A contrast smaller than the spread the SAME contrast shows across those seeds cannot have its DIRECTION stated on this page. The rule is the floor artefact's own: if the spread is wider than the figure, the instrument cannot resolve the question being asked of it.",
     "contrasts": {
       "value_advantage_gbp": {
         "n": 18,
-        "stdev_gbp": 1964.4066797230535,
-        "mean_gbp": 18655.02344438889,
-        "min_gbp": 14329.175675999984,
-        "max_gbp": 21546.838982000016,
-        "sem_gbp": 463.01509474677385
+        "stdev_gbp": 2080.0087095701,
+        "mean_gbp": 18317.247112333334,
+        "min_gbp": 13499.385997000005,
+        "max_gbp": 21464.161724000005,
+        "sem_gbp": 490.26275448803267
       },
       "level_advantage_gbp": {
         "n": 18,
-        "stdev_gbp": 1297.5958754389328,
-        "mean_gbp": 19279.150881222224,
-        "min_gbp": 16811.754979999998,
+        "stdev_gbp": 1297.3832174630345,
+        "mean_gbp": 19277.028282277777,
+        "min_gbp": 16807.540395999997,
         "max_gbp": 20843.236716000014,
-        "sem_gbp": 305.8462809208547
+        "sem_gbp": 305.7961569552443
       },
       "selection_gbp": {
         "n": 18,
-        "stdev_gbp": 1472.887988125315,
-        "mean_gbp": -624.1274368333366,
-        "min_gbp": -3036.2544110000017,
-        "max_gbp": 1260.9261999999871,
-        "sem_gbp": 347.16302811054044
+        "stdev_gbp": 1631.8016203113864,
+        "mean_gbp": -959.7811699444428,
+        "min_gbp": -3650.5389499999874,
+        "max_gbp": 623.5683870000066,
+        "sem_gbp": 384.6193304244591
       }
     }
   },
@@ -453,11 +454,17 @@
     }
   },
   "withdrawn_claim": {
-    "withdrawn_on": "2026-09-10",
-    "the_words": "A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief carried real information about who stays.",
-    "why": "The figure is real and the word \"who\" is not. `discrimination_auc` counts every ordered pair of a retained decision against a departed one, and only 402 of the 3,320 pairs behind 0.627 -- 12% -- compare two households in the SAME YEAR. The other 88% rank a decision in one era against a decision in another, and the book's realised retention runs from 0.476 in 2017 to 0.929 in 2025 while the median `believed_p_retain` runs from 0.45 to 0.82 across the same span. So the belief tracks the calendar, and ranking a 2017 renewal against a 2024 one is what earns the 0.627. Counted within the year only, the concordance is 0.444 on 402 pairs against a permutation null of 0.376-0.619 (two-sided p 0.375) -- INSIDE it. This is not a stylistic re-cut: this artefact's estimand is `level_vs_selection`, and a signal that moves with the era and not within it contributes to the LEVEL by construction and to the selection not at all. \"Who stays\" is a household claim and the stratified figure does not carry one. NOTHING REPLACES IT IN THE OPPOSITE DIRECTION: at 402 same-year pairs the sample cannot tell either way, and reading 0.444 as \"the belief is uninformative\" would be the same overclaim mirrored. What the page gains is the stratified figure, its pair count and its null, published beside the unstratified one. This was the single measured number on the artefact arguing that households differ in a way the arm can see, so the flat-world reading of the selection leg is now unopposed on this artefact rather than refuted by it. `docs/staging/SEAT_RESULT_THE_SELECTION_LEG_CANNOT_BE_SPLIT_ON_THIS_ARTEFACT_AND_THE_ONE_FIGURE_ARGUING_AGAINST_A_FLAT_WORLD_IS_A_BETWEEN_YEAR_EFFECT_2026-09-10.md`.",
-    "note": "WITHDRAWN 2026-09-10: this page previously read `discrimination_auc` of 0.627 as the belief carrying \u201creal information about who stays\u201d. Only 12% of that figure's pairs compare two households in the same year; within a year the concordance is 0.444 and sits inside its own null. The between-year part is this page's LEVEL, not its selection, so the household reading is withdrawn \u2014 and the opposite is not claimed either, because 402 same-year pairs cannot tell. WITHDRAWN 2026-08-31: this page previously called the company's distance from the published band \u201cindependence and inaccuracy at once\u201d. It is not an accuracy reading \u2014 the company's belief is this book's departure hazard and the band is the market's switching rate, and a supplier that retains better than average sits far outside the band without being wrong. The distance still publishes, as a distance; no accuracy reading replaces it, and none is available on this side of the wall. WITHDRAWN 2026-08-30: this page previously said the belief result and the selection result \u201ccorroborate each other rather than merely coexisting\u201d. They are not independent \u2014 five of the ten accounts the arm priced were driven out by the arm's own price rise, so both results have one cause \u2014 and the figure was published with no interval on a population of ten departures. What stands in its place carries the sample, the exact null, and what the figure is actually a belief about. WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
+    "withdrawn_on": "2026-09-18",
+    "the_words": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+    "why": "The middle sentence was a claim about a RUN, written as a module constant, and no run this page has ever published made it true. \"The same guards\" is correct and stands: `renewal_margin_uplift` puts `flat_at_level` through every guard the per-customer arm passes, so neither arm can see a renewal the other cannot. \"The same renewals\" is a different question, and on the run these figures come from the answer is no -- the level arm priced 281 renewals, the per-customer arm priced 215, and 65 of that 66-renewal gap was the per-customer arm REFUSING renewals the level arm went ahead and priced. It refused them because it could not name a margin it was willing to stand behind; the level arm had no such frontier and simply charged. So the level arm was being credited with the margin it earned on 65 households the arm under test had declined to price at all, and `selection_gbp` -- this page's one measure of what the CHOOSING is worth -- is a difference taken across two populations. That is not a small correction to a sign: it is the discovery that the quantity was not the quantity. WHAT REPLACES IT IS NOT THE OPPOSITE CLAIM. The sentence is now derived from each run's own `same_priced_population`, and the run on this page predates that field, so where the claim used to be the page now says the run cannot tell. A 2026-09-18 re-run in which the level arm carries the per-customer arm's own refusal frontier DOES price one book -- zero net crossed refusals across a 3-renewal denominator gap that is entirely churn -- and it is not published here yet. NO BOUNDED SIGN SURVIVES THE CORRECTION EITHER. Every seed family this page has used to bound the selection leg was drawn against the arm as it was BEFORE the frontier was shared, so the moment the corrected run reaches this page its own staleness check refuses to pair the two and the bounded readings go unavailable together. That is the check working, not a regression: the floor has to be re-drawn against the corrected arm before any sign here is bounded again. `docs/staging/SEAT_RESULT_THE_ARMS_NOW_PRICE_ONE_BOOK_SIX_CONTROLS_REFUSE_THE_REPUBLISH_AND_THREE_WERE_ALREADY_RED_2026-09-18.md`.",
+    "note": "WITHDRAWN 2026-09-18: this page previously said the flat-at-the-same-level arm \u201cprices the same renewals\u201d as the per-customer arm. It did not. On the run these figures come from it priced 281 renewals against the per-customer arm's 215, and 65 of that gap was the per-customer arm refusing renewals the level arm priced \u2014 so the choosing figure below is a difference taken across two populations. The claim is withdrawn and not reversed: the sentence is now derived from each run's own answer, and this run predates the question, so the page says it cannot tell. A corrected re-run in which the two arms do price one book exists and is not published here yet; when it arrives, the bounded signs go with it, because the seed family that bounds them was drawn against the old arm. WITHDRAWN 2026-09-10: this page previously read `discrimination_auc` of 0.627 as the belief carrying \u201creal information about who stays\u201d. Only 12% of that figure's pairs compare two households in the same year; within a year the concordance is 0.444 and sits inside its own null. The between-year part is this page's LEVEL, not its selection, so the household reading is withdrawn \u2014 and the opposite is not claimed either, because 402 same-year pairs cannot tell. WITHDRAWN 2026-08-31: this page previously called the company's distance from the published band \u201cindependence and inaccuracy at once\u201d. It is not an accuracy reading \u2014 the company's belief is this book's departure hazard and the band is the market's switching rate, and a supplier that retains better than average sits far outside the band without being wrong. The distance still publishes, as a distance; no accuracy reading replaces it, and none is available on this side of the wall. WITHDRAWN 2026-08-30: this page previously said the belief result and the selection result \u201ccorroborate each other rather than merely coexisting\u201d. They are not independent \u2014 five of the ten accounts the arm priced were driven out by the arm's own price rise, so both results have one cause \u2014 and the figure was published with no interval on a population of ten departures. What stands in its place carries the sample, the exact null, and what the figure is actually a belief about. WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
     "also_withdrawn": [
+      {
+        "withdrawn_on": "2026-09-10",
+        "the_words": "A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief carried real information about who stays.",
+        "why": "The figure is real and the word \"who\" is not. `discrimination_auc` counts every ordered pair of a retained decision against a departed one, and only 402 of the 3,320 pairs behind 0.627 -- 12% -- compare two households in the SAME YEAR. The other 88% rank a decision in one era against a decision in another, and the book's realised retention runs from 0.476 in 2017 to 0.929 in 2025 while the median `believed_p_retain` runs from 0.45 to 0.82 across the same span. So the belief tracks the calendar, and ranking a 2017 renewal against a 2024 one is what earns the 0.627. Counted within the year only, the concordance is 0.444 on 402 pairs against a permutation null of 0.376-0.619 (two-sided p 0.375) -- INSIDE it. This is not a stylistic re-cut: this artefact's estimand is `level_vs_selection`, and a signal that moves with the era and not within it contributes to the LEVEL by construction and to the selection not at all. \"Who stays\" is a household claim and the stratified figure does not carry one. NOTHING REPLACES IT IN THE OPPOSITE DIRECTION: at 402 same-year pairs the sample cannot tell either way, and reading 0.444 as \"the belief is uninformative\" would be the same overclaim mirrored. What the page gains is the stratified figure, its pair count and its null, published beside the unstratified one. This was the single measured number on the artefact arguing that households differ in a way the arm can see, so the flat-world reading of the selection leg is now unopposed on this artefact rather than refuted by it. `docs/staging/SEAT_RESULT_THE_SELECTION_LEG_CANNOT_BE_SPLIT_ON_THIS_ARTEFACT_AND_THE_ONE_FIGURE_ARGUING_AGAINST_A_FLAT_WORLD_IS_A_BETWEEN_YEAR_EFFECT_2026-09-10.md`.",
+        "note": "WITHDRAWN 2026-09-10: this page previously read `discrimination_auc` of 0.627 as the belief carrying \u201creal information about who stays\u201d. Only 12% of that figure's pairs compare two households in the same year; within a year the concordance is 0.444 and sits inside its own null. The between-year part is this page's LEVEL, not its selection, so the household reading is withdrawn \u2014 and the opposite is not claimed either, because 402 same-year pairs cannot tell."
+      },
       {
         "withdrawn_on": "2026-08-31",
         "the_words": "The company's estimator is outside the published band in 4 of 6 years, by up to 16.5pp -- so this is independence and inaccuracy at once. A gap that size is as likely to be the company being wrong as the company knowing something, and the two produce the same number.",
@@ -487,7 +494,7 @@
         "retraction_refused_because": "The 2026-09-11 fork close opens the sign gate on this leg -- the nine-seed family's mean sits 2.9 standard errors from zero against a derived bar of 2.31 -- and the composer's negative branch emits these words verbatim. That is NOT this claim re-passing its own test. What was withdrawn was a direction measured on a different seed family against a different bar: the 2026-08-29 sentence was a one-run -\u00a39,627 against an \u00a38,781 range with no bar derived at all, and the figure now clearing 2.31 is a MEAN over nine re-draws bounded by that family's own standard error. Two figures agreeing on a sign is evidence of identity and is not identity, and the population, the statistic and the bar are all different. So the words stay withdrawn and the page says the same finding in fresh words that name the bar and the standard-error count it actually cleared. Re-publishing the withdrawn sentence belongs to whoever can show it is the SAME claim -- which is a measurement nobody has made -- and not to a fork close."
       }
     ],
-    "withdrawals": 5
+    "withdrawals": 6
   },
   "run_generated_at": "2026-09-10T14:04:08Z",
   "producing_commit": {
@@ -495,7 +502,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "fdbd7c362fb92ff66eb0787c6ea941f61b5869f0",
+    "publishing_tree_commit": "a877493402ef72959029c8998f8c01ee26159ad8",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -507,7 +514,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from fdbd7c362 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from a87749340 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -522,7 +529,7 @@
       "the current-world noise floor (2026-09-09T15:17:31Z)",
       "the current-world three-arm run (2026-09-08T00:19:54Z)",
       "the floor decomposition",
-      "the noise floor (2026-09-17T15:14:19Z)",
+      "the noise floor (2026-09-17T21:39:28Z)",
       "the three-arm run (2026-09-10T14:04:08Z)"
     ],
     "reason": null,
@@ -1011,7 +1018,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "fdbd7c362fb92ff66eb0787c6ea941f61b5869f0",
+      "publishing_tree_commit": "a877493402ef72959029c8998f8c01ee26159ad8",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1023,7 +1030,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from fdbd7c362 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from a87749340 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1036,6 +1043,7 @@
         "name": "Flat rules",
         "role": "the baseline",
         "what": "One margin for every household, \u00a32.00/MWh, set without looking at the customer. This is the supplier whose figures the rest of this site publishes.",
+        "one_book": null,
         "net_gbp": 147954.25566100073,
         "advantage_gbp": null,
         "absent_reason": null
@@ -1045,6 +1053,7 @@
         "name": "Per-customer",
         "role": "the arm under test",
         "what": "A margin chosen household by household from what the company can infer about each one -- the decision engine the whole thesis rests on.",
+        "one_book": null,
         "net_gbp": 164746.49356900144,
         "advantage_gbp": 16792.23790800071,
         "absent_reason": null
@@ -1053,7 +1062,14 @@
         "key": "level",
         "name": "Flat at the same level",
         "role": "the control that splits the answer",
-        "what": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+        "what": "One margin for every household again, but set at the level the per-customer arm actually charged. THIS RUN CANNOT SAY whether it priced the same renewals as the per-customer arm: it predates the check. The two arms priced 281 and 215 renewals here. So the split below is taken across two populations that were never reconciled, and the part of it that is the arms disagreeing about WHO to price cannot be told from the part that is the price level. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+        "one_book": {
+          "answer": null,
+          "unavailable_because": "this run carries no `decision_population.same_priced_population`, so it was never asked whether the two arms priced the same renewals. The field is written by runs from 2026-09-18 onward, when the level arm was given the per-customer arm's own refusal frontier.",
+          "level_arm_priced": 281,
+          "value_arm_priced": 215,
+          "sentence": "THIS RUN CANNOT SAY whether it priced the same renewals as the per-customer arm: it predates the check. The two arms priced 281 and 215 renewals here. So the split below is taken across two populations that were never reconciled, and the part of it that is the arms disagreeing about WHO to price cannot be told from the part that is the price level."
+        },
         "net_gbp": 165079.129291,
         "advantage_gbp": 17124.873629999987,
         "absent_reason": null
@@ -1076,11 +1092,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 157806.88,
       "run_identity": {
-        "dashboard_run_id": "run_output_d63c7961e_20260918T065902Z.json",
-        "dashboard_commit": "d63c7961e",
+        "dashboard_run_id": "run_output_a87749340_20260918T091235Z.json",
+        "dashboard_commit": "a87749340",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_b55667741_20260917T114201Z.json",
-        "last_verified_commit": "b55667741",
+        "last_verified_run_id": "run_output_d63c7961e_20260918T065902Z.json",
+        "last_verified_commit": "d63c7961e",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1101,6 +1117,7 @@
         "name": "Flat rules",
         "role": "the baseline",
         "what": "One margin for every household, \u00a32.00/MWh, set without looking at the customer. This is the supplier whose figures the rest of this site publishes.",
+        "one_book": null,
         "net_gbp": 128576.389238,
         "advantage_gbp": null,
         "absent_reason": null
@@ -1110,6 +1127,7 @@
         "name": "Per-customer",
         "role": "the arm under test",
         "what": "A margin chosen household by household from what the company can infer about each one -- the decision engine the whole thesis rests on.",
+        "one_book": null,
         "net_gbp": 143698.783019,
         "advantage_gbp": 15122.393780999992,
         "absent_reason": null
@@ -1118,7 +1136,14 @@
         "key": "level",
         "name": "Flat at the same level",
         "role": "the control that splits the answer",
-        "what": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+        "what": "One margin for every household again, but set at the level the per-customer arm actually charged. THIS RUN CANNOT SAY whether it priced the same renewals as the per-customer arm: it predates the check. The two arms priced 281 and 215 renewals here. So the split below is taken across two populations that were never reconciled, and the part of it that is the arms disagreeing about WHO to price cannot be told from the part that is the price level. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+        "one_book": {
+          "answer": null,
+          "unavailable_because": "this run carries no `decision_population.same_priced_population`, so it was never asked whether the two arms priced the same renewals. The field is written by runs from 2026-09-18 onward, when the level arm was given the per-customer arm's own refusal frontier.",
+          "level_arm_priced": 281,
+          "value_arm_priced": 215,
+          "sentence": "THIS RUN CANNOT SAY whether it priced the same renewals as the per-customer arm: it predates the check. The two arms priced 281 and 215 renewals here. So the split below is taken across two populations that were never reconciled, and the part of it that is the arms disagreeing about WHO to price cannot be told from the part that is the price level."
+        },
         "net_gbp": 143684.631662,
         "advantage_gbp": 15108.242423999996,
         "absent_reason": null
@@ -1137,24 +1162,24 @@
     "seeds": 18,
     "passes": 54,
     "what_was_re_drawn": "The same three arms re-run on the same world once per seed, with only the per-household price-sensitivity draw changed. Nothing about the company moved.",
-    "mean_gbp": -624.1274368333366,
-    "stdev_gbp": 1472.887988125315,
-    "min_gbp": -3036.2544110000017,
-    "max_gbp": 1260.9261999999871,
-    "sem_gbp": 347.16302811054044,
-    "distinguishable_from_zero": false,
+    "mean_gbp": -959.7811699444428,
+    "stdev_gbp": 1631.8016203113864,
+    "min_gbp": -3650.5389499999874,
+    "max_gbp": 623.5683870000066,
+    "sem_gbp": 384.6193304244591,
+    "distinguishable_from_zero": true,
     "distinguishable_reconciliation": {
       "question": "Can this book tell which side of zero the value of the choosing falls on? Two rules in this payload answer it and they are stated together here.",
       "the_floors_rule": {
         "bar_sems": 2,
-        "says": false,
+        "says": true,
         "written_by": "tools/fold_noise_floor_family.py, on the run artefact itself",
         "key": "error_bar.distinguishable_from_zero",
         "bar_is": "a written-down constant, the same for every family size"
       },
       "the_pages_rule": {
         "bar_sems": 2.1098155778333156,
-        "says": false,
+        "says": true,
         "written_by": "tools/generate_value_arms_data.py, at publish time",
         "key": "error_bar.selection_leg.sign_is_stateable",
         "bar_is": "derived from this family's own size -- the two-sided t point on its degrees of freedom, so it moves when the seed count moves"
@@ -1162,35 +1187,37 @@
       "agree": true,
       "sign_stated_despite_disagreement": false,
       "why_the_bars_differ": "The floor's rule applies a fixed 2 standard errors whatever the family size. The page's is a 2.110 bar taken from this family's own degrees of freedom, because the standard error it grades is estimated from the same draws as the mean. On a small family the derived bar is the STRICTER of the two and the page is the more conservative reader; the two converge as seeds are added. Neither is promoted to the answer.",
-      "reading": "The run's own floor artefact asks this at a 2-standard-error bar and the page asks it at 2.110. Both say it cannot."
+      "reading": "The run's own floor artefact asks this at a 2-standard-error bar and the page asks it at 2.110. Both say the side CAN be stated."
     },
     "selection_leg": {
       "available": true,
-      "estimate_gbp": -624.1274368333366,
+      "estimate_gbp": -959.7811699444428,
       "estimate_seeds": 18,
-      "bound_gbp": 347.16302811054044,
+      "bound_gbp": 384.6193304244591,
       "bound_seeds": 18,
       "bound_statistic": "sem_gbp",
-      "one_draw_moves_gbp": 1472.887988125315,
-      "sems_from_zero": 1.7977935041936772,
-      "sign_is_stateable": false,
-      "sign": null,
+      "one_draw_moves_gbp": 1631.8016203113864,
+      "sems_from_zero": 2.4954054412326214,
+      "sign_is_stateable": true,
+      "sign": "negative",
       "sems_needed_to_state_a_sign": 2.1098155778333156,
       "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 17 degrees of freedom, which is what 18 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 18 draws as the mean, so the normal 1.96 would understate the tail. At 18 seeds the bar is 2.110; it falls towards 1.96 as the family grows.",
-      "bound_to_estimate_ratio": 0.5562374086163511,
-      "seeds_needed_to_state_a_sign": 24,
-      "seeds_needed_holds_this_family_fixed": "arithmetic on THIS family's mean and deviation, not a forecast: at 18 seeds the standard error is \u00a3347 and the mean is 1.80 errors from zero against a bar of 2.110. TWO things move as the family grows and both are carried here: the error falls as 1/sqrt(seeds), and the bar itself tightens from 2.110 to 2.069 because a larger sample estimates its own spread better. So 24 draws of the same width around the same mean would state a side. Holding the bar at today's 2.110 and solving would have said 25, which charges the larger family the smaller one's tail. A wider family or a mean nearer zero needs more, and nothing here claims the next seeds will look like these.",
+      "bound_to_estimate_ratio": 0.4007364829284189,
+      "seeds_needed_to_state_a_sign": null,
+      "seeds_needed_holds_this_family_fixed": null,
       "single_run": {
         "gbp": -332.63572199997725,
         "seeds": 1,
         "clock": "settled-realised",
+        "is_a_member_of_the_family": true,
         "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
       },
       "single_run_inside_the_family": true,
       "single_run_on_the_other_side_of_zero": false,
+      "sign_withheld_because": null,
       "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 18 seed re-draws. `bound_gbp` is that same family's standard error over the same 18. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 18."
     },
-    "bounds_figure_gbp": -624.1274368333366,
+    "bounds_figure_gbp": -959.7811699444428,
     "bounds_figure_seeds": 18,
     "bound_seeds": 18,
     "bounds_figure_clock": "settled-realised",
@@ -1201,38 +1228,59 @@
     "clock_caveat": null,
     "staleness_caveat": null,
     "floor_admission": {
-      "rule": "stamp_proxy",
+      "rule": "declared_book",
       "admitted": true,
-      "floor_declared_book": null,
-      "figure_declared_book": null,
+      "floor_declared_book": {
+        "served_segments": [
+          "resi",
+          "SME"
+        ],
+        "served_segments_resolved_from": "curriculum",
+        "served_segments_override_env": null
+      },
+      "figure_declared_book": {
+        "served_segments": [
+          "resi",
+          "SME"
+        ],
+        "served_segments_resolved_from": "curriculum",
+        "served_segments_override_env": null
+      },
       "refusal": null,
-      "why_this_rule": "THE BOUND ON THIS FIGURE WAS ADMITTED BY ITS DATE, NOT BY THE BOOK IT WAS DRAWN OVER: this family is folded from runs that do not all name their book: `docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json` carries none. The book identity of the members that do have one does not cover the rows of the members that do not, so this family states no book rather than one it cannot show it was drawn over.. A date is a proxy for that question and it is wrong in BOTH directions -- measured on this page's own artefacts, it has refused a pair proven to be the same world, and admitted a floor drawn over a different one on a single second of stamp order. Read this bound as paired by when it was taken and not by whom it was taken over. A noise floor produced since `run_value_cycle_ab.floor_book_identity` landed declares its own population, and this page pairs on that instead the moment one reaches it."
+      "why_this_rule": "The bound on this figure was admitted on the BOOK it was drawn over rather than on its date: the floor's seeds and this run's arms both declare ['resi', 'SME']. Pairing is on the declared half of the book identity only -- the realised account counts differ between two floors of the same book by construction, because moving the price-sensitivity draw moves who churns and therefore who settles."
     },
     "floor_tree_pairing": {
       "rule": "declared_unavailable",
       "same_tree": false,
       "floor_producing_commit": null,
       "floor_producing_commits": [
-        "c066c114b",
+        "4e7938f67",
         "9f0ab066f"
       ],
       "figure_producing_commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "figure_tree_is_one_of_the_floors": false,
       "floor_says_why": "this family is FOLDED from 2 runs drawn by 2 distinct code tree(s); no single commit produced these rows. Each member's own producing commit is in `folded_from`. A bound reading this field gets an unknown rather than the newest member's commit, because that value would be read as the tree that drew the whole family and it drew part of it.",
-      "why_this_rule": "THIS SPREAD WAS NOT DRAWN BY ONE CODE TREE, AND ITS OWN ARTEFACT SAYS SO rather than leaving the stamp blank: \"this family is FOLDED from 2 runs drawn by 2 distinct code tree(s); no single commit produced these rows. Each member's own producing commit is in `folded_from`. A bound reading this field gets an unknown rather than the newest member's commit, because that value would be read as the tree that drew the whole family and it drew part of it.\" So this is not a bound whose provenance was never recorded -- it is a bound whose provenance is several, and the figure beside it is one tree's.",
-      "caveat": "THE WIDTH BELOW IS POOLED ACROSS 2 CODE TREES (c066c114b, 9f0ab066f) and the figure it bounds is a single tree's, 9cf9d16ed. Read it as a bound that carries a tree difference inside it, which is wider than the world's own dispersion by an amount this page does not size -- not as 2 readings of one tree."
-    },
-    "arm_population_instrument": {
-      "instrument": null,
-      "seeds_measured": null,
-      "means": null,
-      "caveat": "This family was drawn before its producer recorded which renewal populations the two arms met, so whether `selection_gbp` here is the worth of the choosing alone is UNMEASURED -- not established either way. The next noise-floor run empties this."
+      "value_arm_pairing": {
+        "rule": "same_value_arm",
+        "same_value_arm": true,
+        "differing_paths": [],
+        "value_arm_paths": [
+          "simulation/",
+          "company/",
+          "saas/",
+          "tools/run_value_cycle_ab.py"
+        ],
+        "why_this_rule": "THOSE TREES ARE THE SAME PRICING CODE: the fold diffed its members over simulation/, company/, saas/, tools/run_value_cycle_ab.py and found no difference, so the several trees above are several commits and NOT several instruments.",
+        "caveat": "The trees do differ, but NOT IN THE PRICING CODE (simulation/, company/, saas/, tools/run_value_cycle_ab.py are identical across them), so the width carries incidental drift rather than a step between two instruments."
+      },
+      "why_this_rule": "THIS SPREAD WAS NOT DRAWN BY ONE CODE TREE, AND ITS OWN ARTEFACT SAYS SO rather than leaving the stamp blank: \"this family is FOLDED from 2 runs drawn by 2 distinct code tree(s); no single commit produced these rows. Each member's own producing commit is in `folded_from`. A bound reading this field gets an unknown rather than the newest member's commit, because that value would be read as the tree that drew the whole family and it drew part of it.\" So this is not a bound whose provenance was never recorded -- it is a bound whose provenance is several, and the figure beside it is one tree's. THOSE TREES ARE THE SAME PRICING CODE: the fold diffed its members over simulation/, company/, saas/, tools/run_value_cycle_ab.py and found no difference, so the several trees above are several commits and NOT several instruments.",
+      "caveat": "THE WIDTH BELOW IS POOLED ACROSS 2 CODE TREES (4e7938f67, 9f0ab066f) and the figure it bounds is a single tree's, 9cf9d16ed. Read it as a bound that carries a tree difference inside it, which is wider than the world's own dispersion by an amount this page does not size -- not as 2 readings of one tree. The trees do differ, but NOT IN THE PRICING CODE (simulation/, company/, saas/, tools/run_value_cycle_ab.py are identical across them), so the width carries incidental drift rather than a step between two instruments."
     },
     "world_measured_in": "39a192ce04c1eda8",
     "world_caveat": null,
     "elasticity_draws_min": 288,
     "single_run_inside_the_measured_band": true,
-    "reading": "The estimate sits 1.8 standard errors from zero, short of the 2.11 this page requires before stating a side, so this book cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees. The one published run is a single member of those 18: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it.",
+    "reading": "The estimate sits 2.5 standard errors from zero -- past the 2.11 this page requires before stating a side -- so on 18 re-draws the selection leg is negative. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 18: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it.",
     "legs_on_one_bar": {
       "available": true,
       "seeds": 18,
@@ -1240,57 +1288,61 @@
       "legs": {
         "value_advantage_gbp": {
           "available": true,
-          "estimate_gbp": 18655.02344438889,
+          "estimate_gbp": 18317.247112333334,
           "estimate_seeds": 18,
-          "bound_gbp": 463.01509474677385,
+          "bound_gbp": 490.26275448803267,
           "bound_seeds": 18,
           "bound_statistic": "sem_gbp",
-          "one_draw_moves_gbp": 1964.4066797230535,
-          "sems_from_zero": 40.29031376307818,
+          "one_draw_moves_gbp": 2080.0087095701,
+          "sems_from_zero": 37.362102147574944,
           "sign_is_stateable": true,
           "sign": "positive",
           "sems_needed_to_state_a_sign": 2.1098155778333156,
           "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 17 degrees of freedom, which is what 18 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 18 draws as the mean, so the normal 1.96 would understate the tail. At 18 seeds the bar is 2.110; it falls towards 1.96 as the family grows.",
-          "bound_to_estimate_ratio": 0.024819861316552824,
+          "bound_to_estimate_ratio": 0.02676508928887736,
           "seeds_needed_to_state_a_sign": null,
           "seeds_needed_holds_this_family_fixed": null,
           "single_run": {
             "gbp": 16792.23790800001,
             "seeds": 1,
             "clock": "settled-realised",
+            "is_a_member_of_the_family": true,
             "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
           },
           "single_run_inside_the_family": true,
           "single_run_on_the_other_side_of_zero": false,
+          "sign_withheld_because": null,
           "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 18 seed re-draws. `bound_gbp` is that same family's standard error over the same 18. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 18.",
           "subject": "the whole advantage over flat rules",
           "what_this_leg_is": "What the per-customer decision engine earned over flat rules, level and choosing together. It is the sum of the two legs below it and not a third measurement, so a reader who takes a direction from it has taken one from whichever leg dominates it -- which on this book is the level.",
-          "reading": "The estimate sits 40.3 standard errors from zero -- past the 2.11 this page requires before stating a side -- so on 18 re-draws the whole advantage over flat rules is positive. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 18: \u00a316,792, inside the family's own range, and every other figure on this page is drawn from it."
+          "reading": "The estimate sits 37.4 standard errors from zero -- past the 2.11 this page requires before stating a side -- so on 18 re-draws the whole advantage over flat rules is positive. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 18: \u00a316,792, inside the family's own range, and every other figure on this page is drawn from it."
         },
         "level_advantage_gbp": {
           "available": true,
-          "estimate_gbp": 19279.150881222224,
+          "estimate_gbp": 19277.028282277777,
           "estimate_seeds": 18,
-          "bound_gbp": 305.8462809208547,
+          "bound_gbp": 305.7961569552443,
           "bound_seeds": 18,
           "bound_statistic": "sem_gbp",
-          "one_draw_moves_gbp": 1297.5958754389328,
-          "sems_from_zero": 63.03542689214907,
+          "one_draw_moves_gbp": 1297.3832174630345,
+          "sems_from_zero": 63.03881799632662,
           "sign_is_stateable": true,
           "sign": "positive",
           "sems_needed_to_state_a_sign": 2.1098155778333156,
           "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 17 degrees of freedom, which is what 18 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 18 draws as the mean, so the normal 1.96 would understate the tail. At 18 seeds the bar is 2.110; it falls towards 1.96 as the family grows.",
-          "bound_to_estimate_ratio": 0.015864094990757457,
+          "bound_to_estimate_ratio": 0.015863241599140893,
           "seeds_needed_to_state_a_sign": null,
           "seeds_needed_holds_this_family_fixed": null,
           "single_run": {
             "gbp": 17124.873629999987,
             "seeds": 1,
             "clock": "settled-realised",
+            "is_a_member_of_the_family": true,
             "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
           },
           "single_run_inside_the_family": true,
           "single_run_on_the_other_side_of_zero": false,
+          "sign_withheld_because": null,
           "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 18 seed re-draws. `bound_gbp` is that same family's standard error over the same 18. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 18.",
           "subject": "the price-LEVEL leg",
           "what_this_leg_is": "What ONE FLAT margin at the same price level earned over flat rules, with no per-customer choosing in it at all. This is value MOVED and not made -- a price charged transfers value from the household to the company rather than creating any. It is published bounded because it looks like the safe half and is not: its own re-draws in this world change its sign.",
@@ -1298,35 +1350,37 @@
         },
         "selection_gbp": {
           "available": true,
-          "estimate_gbp": -624.1274368333366,
+          "estimate_gbp": -959.7811699444428,
           "estimate_seeds": 18,
-          "bound_gbp": 347.16302811054044,
+          "bound_gbp": 384.6193304244591,
           "bound_seeds": 18,
           "bound_statistic": "sem_gbp",
-          "one_draw_moves_gbp": 1472.887988125315,
-          "sems_from_zero": 1.7977935041936772,
-          "sign_is_stateable": false,
-          "sign": null,
+          "one_draw_moves_gbp": 1631.8016203113864,
+          "sems_from_zero": 2.4954054412326214,
+          "sign_is_stateable": true,
+          "sign": "negative",
           "sems_needed_to_state_a_sign": 2.1098155778333156,
           "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 17 degrees of freedom, which is what 18 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 18 draws as the mean, so the normal 1.96 would understate the tail. At 18 seeds the bar is 2.110; it falls towards 1.96 as the family grows.",
-          "bound_to_estimate_ratio": 0.5562374086163511,
-          "seeds_needed_to_state_a_sign": 24,
-          "seeds_needed_holds_this_family_fixed": "arithmetic on THIS family's mean and deviation, not a forecast: at 18 seeds the standard error is \u00a3347 and the mean is 1.80 errors from zero against a bar of 2.110. TWO things move as the family grows and both are carried here: the error falls as 1/sqrt(seeds), and the bar itself tightens from 2.110 to 2.069 because a larger sample estimates its own spread better. So 24 draws of the same width around the same mean would state a side. Holding the bar at today's 2.110 and solving would have said 25, which charges the larger family the smaller one's tail. A wider family or a mean nearer zero needs more, and nothing here claims the next seeds will look like these.",
+          "bound_to_estimate_ratio": 0.4007364829284189,
+          "seeds_needed_to_state_a_sign": null,
+          "seeds_needed_holds_this_family_fixed": null,
           "single_run": {
             "gbp": -332.63572199997725,
             "seeds": 1,
             "clock": "settled-realised",
+            "is_a_member_of_the_family": true,
             "what_it_is_over": "ONE run of the three arms -- one member of the seed family above, published because it is the run every other figure on this page is drawn from, and NOT because it is the best estimate of this contrast. The family's mean is."
           },
           "single_run_inside_the_family": true,
           "single_run_on_the_other_side_of_zero": false,
+          "sign_withheld_because": null,
           "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 18 seed re-draws. `bound_gbp` is that same family's standard error over the same 18. They are one population, which is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never divided into the mean. `single_run.gbp` is one member of the 18.",
           "subject": "the selection leg",
           "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved.",
-          "reading": "The estimate sits 1.8 standard errors from zero, short of the 2.11 this page requires before stating a side, so this book cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees. The one published run is a single member of those 18: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it."
+          "reading": "The estimate sits 2.5 standard errors from zero -- past the 2.11 this page requires before stating a side -- so on 18 re-draws the selection leg is negative. That is a statement about this instrument's best estimate and not a target: an arm that loses to its own baseline is a complete answer. The one published run is a single member of those 18: -\u00a3333, inside the family's own range, and every other figure on this page is drawn from it."
         }
       },
-      "the_verdicts": "On 18 re-draws the legs split, and the split is the finding rather than a gap in it: the whole advantage over flat rules is positive, the price-LEVEL leg is positive, while the selection leg still has no direction at this sample. The leg that CAN be called is the price LEVEL -- a flat margin with no per-customer inference in it anywhere -- and the level is value MOVED, not made. The leg the mission turns on is the one this book cannot yet call."
+      "the_verdicts": "On 18 re-draws every leg clears the bar its own family earns: the whole advantage over flat rules is positive, the price-LEVEL leg is positive, the selection leg is negative. THAT IS A FINDING AGAINST THIS COMPANY AND NOT A CAVEAT ON ONE. The level leg is what ONE FLAT MARGIN at the same price level earned, with no per-customer inference in it at all -- so on this book the flat rule beat the control by MORE than the inference arm did, and the choosing is measured below it. The enterprise value claimed here is the INFERENCE; what this family can demonstrate is the PRICE. Read the legs against each other -- the advantage the level earns is a price CHARGED and is value moved, and only the choosing could be value made."
     },
     "discrimination_across_the_family": {
       "against_the_statistics_own_null": {
@@ -1455,16 +1509,16 @@
     "level_share_of_advantage_after": 1.019971827652637,
     "spread": {
       "seeds": 18,
-      "stdev_gbp": 1472.887988125315,
-      "min_gbp": -3036.2544110000017,
-      "max_gbp": 1260.9261999999871,
-      "mean_gbp": -624.1274368333366
+      "stdev_gbp": 1631.8016203113864,
+      "min_gbp": -3650.5389499999874,
+      "max_gbp": 623.5683870000066,
+      "mean_gbp": -959.7811699444428
     },
     "move_is_inside_one_spread": true,
     "both_draws_inside_the_redraw_family": true,
     "family_straddles_zero": true,
     "changes_no_sign": true,
-    "sentence": "A SECOND DRAW, WITH THE OBJECTIVE CHANGED. The same book, the same world and the same seed, re-run once after the renewal objective was made to pay for the departures it causes, puts the choosing leg at -\u00a3335 instead of \u00a3319 -- the price level explaining 102% of the arm's advantage instead of 98%. That move is \u00a3655 on a quantity whose own 18-seed spread in this same world is \u00a31,473, so it is ONE DRAW inside the bar above and not a change in the answer. It changes no sign, because there is no sign to change: the same figure re-drawn across those seeds falls on BOTH sides of zero, and both of these draws sit inside that family. This page stated no direction for the choosing leg before the re-run and states none after it.",
+    "sentence": "A SECOND DRAW, WITH THE OBJECTIVE CHANGED. The same book, the same world and the same seed, re-run once after the renewal objective was made to pay for the departures it causes, puts the choosing leg at -\u00a3335 instead of \u00a3319 -- the price level explaining 102% of the arm's advantage instead of 98%. That move is \u00a3655 on a quantity whose own 18-seed spread in this same world is \u00a31,632, so it is ONE DRAW inside the bar above and not a change in the answer. It changes no sign, because there is no sign to change: the same figure re-drawn across those seeds falls on BOTH sides of zero, and both of these draws sit inside that family. This page stated no direction for the choosing leg before the re-run and states none after it.",
     "bound_attribution": {
       "priced_before": 214,
       "priced_after": 215,
@@ -3951,5 +4005,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "Running the same book through the per-customer decision engine earned \u00a316,792 MORE than flat rules, clearing the \u00b1\u00a31,964 this figure moves across 18 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, the choosing is worth -\u00a3624 on average across the 18 seed re-draws -- and that mean sits 1.8 standard errors from zero against the \u00b1\u00a3347 standard error those same 18 pin it to, short of the 2.11 this page requires before stating a side. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The single run every other figure on this page is drawn from is one member of those 18 and came out at -\u00a3333. The price level accounts for 102% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 215 of 2,037. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from -- the error bar below prices how many the family on disk would need. Read all of it against its size: the per-customer arm priced 215 of the 2,037 renewals the world offered, 10.55% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "Running the same book through the per-customer decision engine earned \u00a316,792 MORE than flat rules, clearing the \u00b1\u00a32,080 this figure moves across 18 seed re-draws. Running it through ONE flat margin at the same price LEVEL earned \u00a3960 more than the per-customer engine did, on average across the 18 seed re-draws, clearing the \u00b1\u00a3385 standard error those same 18 re-draws pin that mean to by 2.5 of them. That mean stands 2.5 standard errors from zero against the 2.11 this page requires before stating a side, which is derived from those 18 draws and is written down nowhere. So on this family the LEVEL is where the measured advantage sits, and the per-customer choosing is measured below it. This page withdrew a sentence of its own on 2026-08-29 that read on the same direction; it is NOT retracted and these are not those words, because that one was a single run against a range and this is a mean against a bar derived from its own family. Whether they are the same claim is a measurement nobody has made. The single run every other figure on this page is drawn from is one member of those 18 and came out at -\u00a3333. The price level accounts for 102% of the per-customer arm's advantage. Read all of it against its size: the per-customer arm priced 215 of the 2,037 renewals the world offered, 10.55% of them, so every figure here is those decisions and what they cascade into."
 }

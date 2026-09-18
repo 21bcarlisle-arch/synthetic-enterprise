@@ -8,6 +8,80 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-18 — the gas half of the shape switch settled money and reached no reader -- it was carried into a print, and its own docstring said otherwise
+
+<!-- head: 531d869285f2 -->
+
+**Written 2026-09-18 ~12:20 BST.** Stage 1, the half-hourly shape reaching the book — the GAS half,
+which turned out not to reach a reader at all.
+
+## The electricity half is published; the gas half was printed
+
+The electricity side settles 130 of 136 premises on fabric physics and publishes
+`demand_provider_by_customer` and `fabric_eligibility` into every run artefact, so anyone can see
+who is fabric-driven and why the rest are not. That is how the 213-to-0 weather refusal result was
+readable at all.
+
+The gas side does the same work: `seasonal_gas_splits_for_book` decides, once for the whole book,
+which households settle on **their own** seasonal gas shape and which keep the population 70/30
+split, and `run_phase2b` settles the gas term on that decision at line ~3012.
+
+**And then prints it.** `gas_heating_fraction_by_customer` and `gas_shape_refusals` reached no
+artefact. A reader of a run could not tell whether the per-household seasonal shape had arrived in
+the gas book at all, or how many households were quietly on the population constant — which is the
+electricity side's exact state before its provider split was published beside it.
+
+## The code already claimed otherwise, and that is the third instance this week
+
+`SeasonalGasRefusal`'s own docstring:
+
+> *"Why this household has NO per-household seasonal shape, carried rather than discarded so a
+> customer silently keeping the population constant is visible in the run instead of inferred from
+> its numbers."*
+
+It was visible on a terminal nobody keeps. The reason was genuinely carried — into a `print`.
+
+That is the same shape as the two controls `fabric_demand_path` names as *"the failable control"*
+and which did not exist (2026-09-17), and as the stretch-log constants whose comment promised *"a
+machine that lands nothing for three days owes a report"* while the code one screen below made that
+entry impossible (2026-09-18, the director's own diagnosis). **A docstring stating a property is not
+the property.** Three in three days, all found by reading the prose beside the code rather than the
+code — which is the cheapest place I have found defects all week.
+
+## The repair
+
+`gas_shape_provider_by_customer` and `gas_shape_refusals` now go into the run's returned mapping,
+where the publisher writes them, beside the electricity split. The provider key is named to mirror
+`demand_provider_by_customer` deliberately: one question, two fuels, and a reader who has to learn
+two differently-shaped keys for the same question is a reader who will read one and assume the
+other — which is how the gas half stayed unread while the electricity half was being quoted daily.
+
+## The control, and why it is AST
+
+`tests/simulation/test_the_gas_half_of_the_shape_switch_reaches_a_reader.py`, 3 legs, keyed to what
+the module **returns** rather than to the names appearing in it. That distinction is the whole
+defect: these names existed in the module — computed, printed, used to settle money — and did not
+reach the caller. **A grep would have been satisfied by the print statement that was the problem.**
+
+It carries a population floor (no returned dict with string keys at all is a refusal, not a pass),
+and a second leg asserting the electricity half is still published — otherwise the gas key could
+pass while the run as a whole went back to publishing no provider split, and the reader would be no
+better off for the half that survived.
+
+Mutation-proven: renaming the published key reds it with the sentence a reader would need.
+
+What this does NOT do is restate the partition — every customer in exactly one of the two states is
+`seasonal_gas_splits_for_book`'s own guarantee and `tests/simulation/test_household_demand_shape.py`
+already covers it, along with every refusal reason. This file is only about reaching a reader.
+
+## What is still unmeasured
+
+**How many gas households actually settle on their own shape.** The keys are published now; the next
+run will carry the counts, and until one completes I do not have them and will not guess. The
+electricity half's answer took a run artefact to state, and so will this.
+
+---
+
 ## 2026-09-18 — the sample earns its place on the average a book is summed over, not just on a KS -- and the cull settles a book 3.2% leakier than the population
 
 <!-- head: 1d38d1d811ca -->
