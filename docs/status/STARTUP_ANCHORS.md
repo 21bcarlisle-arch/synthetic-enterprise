@@ -18,7 +18,7 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-09-06 | 12 | FRESH |
 | `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-09-18 | 0 | FRESH |
 | `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-09-18 | 0 | FRESH |
-| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-09-17 | 1 | UNDATED |
+| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-09-18 | 0 | UNDATED |
 | `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-09-18 | 0 | UNDATED |
 | `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-09-18 | 0 | UNDATED |
 | `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-09-18 | 0 | FRESH |
@@ -37,9 +37,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 10,474 | 10,144 – 10,569 (`git rev-list --count`) | AGREES |
-| lines | 960,622 | 925,703 – 971,192 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 2,948 | 2,898 – 2,963 (the count of `*.py` in the git index) | AGREES |
+| commits | 10,474 | 10,144 – 10,587 (`git rev-list --count`) | AGREES |
+| lines | 960,622 | 925,703 – 973,074 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 2,948 | 2,898 – 2,969 (the count of `*.py` in the git index) | AGREES |
 | tests | 36,838 | 26,731 – 36,838 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.
