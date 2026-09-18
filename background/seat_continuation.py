@@ -439,6 +439,62 @@ def superseded(path: Path | None = None) -> list[dict]:
     ]
 
 
+def undeclared_successors(work_id: str, now: float | None = None,
+                          path: Path | None = None) -> list[dict]:
+    """Live continuations written while `work_id` was in hand that do NOT declare they replace it.
+
+    THE DEFECT, measured on this store on 2026-09-18 and costing a whole invocation plus very
+    nearly sixteen CPU-hours. `re-run-the-noise-floor-over-the-09-18-book-...` was written at
+    15:53. The tick that took it launched the twelve-seed floor as a detached systemd job at
+    16:13, and at 16:41 handed the REMAINDER off as `publish-the-floor-at-18327d977-...`, with a
+    correct `DO NOT DRAW BEFORE 2026-09-19 09:30` stamp on the successor. Two minutes later the
+    draw handed out the PREDECESSOR, whose text still reads "Re-run the noise floor over the 09-18
+    book NOW" -- an instruction to launch a second copy of the run that was already running, into
+    the same output filename.
+
+    NOTHING WAS BROKEN; THE DECLARATION WAS SIMPLY NEVER MADE. `hand_off(supersedes=...)` exists
+    for exactly this and its own help text predicts the consequence of omitting it -- *"live()
+    offers oldest first, so the refuted entry is drawn FIRST"*. The embargo went on the successor,
+    which is the item that READS the artefact and is harmless early; the predecessor, which is the
+    item that CREATES it and is the expensive one, carried no stamp and no retirement. Guarding the
+    reader and leaving the writer drawable is the wrong way round.
+
+    THE JOIN IS ALREADY IN THE STORE, which is why this is a reader and not a new field.
+    `written_while_holding` is stamped at write time by `hand_off` and records the delivery-lane
+    claims the authoring tick held. A successor that names `work_id` there was, by construction,
+    written by the tick doing `work_id`. That is not proof it replaces it -- see below -- but it is
+    the only evidence in the record that the two are one thread, and nothing had ever read it.
+
+    THIS IS A NOTE'S EVIDENCE, NOT A REFUSAL'S, and the asymmetry is deliberate. A tick holding A
+    may legitimately hand off B as genuinely NEW work while A remains worth doing, and that shape
+    is indistinguishable here from a continuation. So this answers "was a successor written by the
+    tick that held this, without saying it replaces it" and leaves "is it the same thread" to the
+    reader who can see both texts. Auto-superseding on this evidence would withhold live work
+    silently, which is the failure `embargoed_until` chose its own fail-open direction to avoid.
+
+    NEVER RAISES is NOT claimed here and must not be: this is a pure read over `live()`, and its
+    caller `delivery_lane.successor_note` is the layer that swallows. Burying an unreadable store
+    twice would make the note's silence mean both "nothing to say" and "could not tell".
+    """
+    wanted = str(work_id)
+    out = []
+    for item in live(now=now, path=path):
+        if str(item.get("id")) == wanted:
+            continue
+        held = item.get("written_while_holding") or ()
+        if isinstance(held, str):
+            held = [held]
+        if wanted not in {str(h) for h in held}:
+            continue
+        declared = item.get("supersedes") or ()
+        if isinstance(declared, str):
+            declared = [declared]
+        if wanted in {str(d) for d in declared}:
+            continue
+        out.append(item)
+    return out
+
+
 def _first_drawn(work_id) -> float | None:
     """When a tick first drew this id, or None. Never raises: an unreadable ledger reads as
     NOT DRAWN, which is the conservative direction -- it reports the drag rather than hiding it
