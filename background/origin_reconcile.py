@@ -703,6 +703,90 @@ def _orphan_probe(local: bytes, theirs: bytes) -> str | None:
     return max(unique, key=len) if unique else None
 
 
+def generated_output_verdicts(project: Path | None = None,
+                              paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
+    """For each TRACKED blocker, `(is_producer_output, why)`. `None` if the oracles would not answer.
+
+    THE FIFTH CLASS, AND IT IS THE ONE THE PUBLISHER MINTS AGAINST ITSELF EVERY TICK. The four
+    classes beside this one each prove the local bytes are safe by reading them: hash-equal to
+    origin (the two twin sweeps), strictly superseded by origin (`stale_copy_verdicts`), or carried
+    onto a ref first (`untracked_orphan_verdicts`). A producer's output defeats all four at once. It
+    is never hash-equal, because the producer rewrote it after the last landing and will rewrite it
+    again on the next tick. And `stale_copy_verdicts` cannot reach it either, for a reason that has
+    nothing to do with its content: `refresh_to_head` reads Python, so every `.json` feed and every
+    `.md` document it is asked about comes back *"this control has no reader for .json files, so it
+    CANNOT establish that the copy has nothing to lose"* -- fail-closed, correctly, on a question
+    that was never answerable in that language.
+
+    SO THE PATH IS PERMANENTLY UNRESOLVABLE AND THE ALL-OR-NOTHING RULE MAKES IT FATAL TO EVERY
+    OTHER CLASS. Measured on the live shared tree 2026-09-18, 7.8 days into the seventh publish
+    stretch with `last_clean_publish: null` and 74 episode failures: eleven paths held the advance,
+    six of them untracked twins the sweep had already proven lossless, and `site/data/value_arms.json`
+    -- the arms producer's own feed, rewritten 01:24 that morning -- was one of the four that held
+    them hostage. The reconciler had merged and pushed from its isolated worktree on the cadence all
+    week, so origin kept moving while the shared tree could not follow, and each cadence re-opened
+    the fork the last one closed. That is the loop, and the exhaust is inside it.
+
+    THE MODULE ALREADY ASSERTED THIS, IN PROSE, AND NEVER ACTED ON IT. `_split_generated` asks the
+    same two oracles a few hundred lines above and `_landing_clause` prints the answer to a human:
+    *"the GENERATED path(s) are a PRODUCER'S OUTPUT, not work -- do NOT land them"*. The refusal
+    that then holds the tree says it cannot establish whether that same path is one lane's work.
+    Both sentences are in the same refusal, about the same path, and only one of them is acted on.
+    This closes that gap rather than adding a reader: the oracle that knows is the one already
+    imported.
+
+    THE SAFETY ARGUMENT IS THE TWIN'S, ON DIFFERENT GROUND. For a twin the claim is *these bytes are
+    already on origin*; here it is *these bytes are not authored at all*. A generated artefact is a
+    photograph of a run, re-derivable by running its producer, and the very next tick rewrites it
+    regardless of what this does. Restoring it to HEAD therefore costs no lane anything the tick
+    would not have destroyed anyway -- and the act is the twin's own `restore_tracked_twin`, so the
+    fast-forward writes origin's bytes over it a moment later.
+
+    BOTH ORACLES MUST ANSWER, AND UNAVAILABLE IS A REFUSAL -- WHICH IS THE OPPOSITE OF
+    `_split_generated`'S RULE AND DELIBERATELY SO. There the output is remedy prose and failing soft
+    costs a reader a hand-check; here the output decides whether a file is written over, so an
+    unasked oracle must never read as "not generated" (which is merely a refusal) NOR as "generated"
+    (which is a deletion bought on an unread state). `None` is returned for the whole batch, and
+    `advance_shared_tree` turns that into the same refusal every other unreadable comparison gets.
+
+    A PATH THE ORACLES DO NOT KNOW IS AUTHORED WORK AND STAYS REFUSED, which is what
+    `tests/background/test_process_run_complete.py` and `tests/tools/test_fold_noise_floor_family.py`
+    correctly did on that same tree -- both carried test functions origin has never seen, and
+    neither is this cadence's judgement to make.
+    """
+    project = project or PROJECT_DIR
+    if not paths:
+        return {}
+    import tools.file_scope_generated_paths as oracle  # module, so a test can patch either half
+
+    known: set[str] = set()
+    for name in ("generated_artefacts", "written_artefacts"):
+        try:
+            known |= {str(p) for p in getattr(oracle, name)()}
+        except Exception:  # noqa: BLE001 - an unasked oracle never decides a write; see docstring
+            return None
+    verdicts: dict[str, tuple[bool, str]] = {}
+    for path in paths:
+        if path not in known:
+            verdicts[path] = (False, (
+                "neither generated-path oracle knows this path, so it is this tree's own authored "
+                "work and no producer can be asked to re-derive it"))
+            continue
+        # THE BLOB IS ASKED FOR, NOT ASSUMED. `restore_tracked_twin` writes HEAD's bytes, so a path
+        # HEAD does not hold would be un-restorable and the advance would refuse a second time on a
+        # file this had already reported as cleared.
+        if _blob_in_head(project, path) is None:
+            verdicts[path] = (False, (
+                "a producer's output, but HEAD holds no blob at this path, so there are no bytes "
+                "to restore it to and clearing it here would refuse again at the advance"))
+            continue
+        verdicts[path] = (True, (
+            "a PRODUCER'S OUTPUT, not any lane's work -- re-derivable by running its producer, and "
+            "rewritten by the next tick whatever happens here, so restoring it to HEAD for the "
+            "fast-forward to overwrite costs nothing that was authored"))
+    return verdicts
+
+
 def untracked_orphan_verdicts(project: Path | None = None,
                               paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
     """For each UNTRACKED blocker, `(is_preservable, why)`. `None` if git would not answer.
@@ -866,7 +950,7 @@ def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | N
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
                         locker=None, ahead_fn=None, stale_fn=None, refresher=None,
-                        orphans_fn=None, preserver=None) -> dict:
+                        orphans_fn=None, preserver=None, generated_fn=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -880,7 +964,11 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     of a document origin ADDS at the same path, which has no HEAD blob for either of those proofs to
     stand on and was subtracted out of the candidate set entirely until 2026-09-17; it is cleared
     only after its bytes reach a ref whose recovery route has been RUN -- see
-    `untracked_orphan_verdicts`. All four are resolvable; a blocker in none of them refuses
+    `untracked_orphan_verdicts`. The fifth, added 2026-09-18, is a PRODUCER'S OWN OUTPUT: never
+    hash-equal because its producer rewrites it every tick, and invisible to the stale judgement
+    because `refresh_to_head` reads Python and a `.json` feed is not Python -- so it was permanently
+    unresolvable and, under the all-or-nothing rule below, fatal to every other class beside it. See
+    `generated_output_verdicts`. All five are resolvable; a blocker in none of them refuses
     everything, by name and with its reason attached.
 
     THE THREE THAT PROVE AND THE ONE THAT MANUFACTURES. Classes one to three each rest on an
@@ -1029,6 +1117,20 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "supersedes could not be established, so nothing was touched -- a file "
                           "is never written over on an unread comparison"}
     stale = sorted(p for p, (ok, _) in verdicts.items() if ok)
+    # THE FIFTH CLASS, ASKED ONLY OF THE TRACKED BLOCKERS THE STALE JUDGEMENT COULD NOT TAKE --
+    # which, for a `.json` feed or a `.md` document, is EVERY one of them, because
+    # `refresh_to_head` reads Python and returns "no reader for this file type" rather than a
+    # verdict. That refusal is right and is not what changes; what changes is that a path it cannot
+    # read is no longer the end of the enquiry when a producer's output is what it is.
+    gen_verdicts = (generated_fn or generated_output_verdicts)(
+        project, sorted(p for p in candidates if p not in set(stale)))
+    if gen_verdicts is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "whether the remaining blocking paths are a producer's own output could "
+                          "not be established (a generated-path oracle would not answer), so "
+                          "nothing was touched -- a file is never written over on an unread "
+                          "classification"}
+    generated = sorted(p for p, (ok, _) in gen_verdicts.items() if ok)
     # THE FOURTH CLASS, ASKED ONLY OF WHAT THE OTHER THREE LEFT. An untracked path origin ADDS has
     # no HEAD blob, so neither hash proof nor `refresh_to_head`'s judgement can reach it, and until
     # 2026-09-17 it was subtracted out of the candidate set and held the tree indefinitely. Its
@@ -1042,7 +1144,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "established, so nothing was touched -- a file is never removed on an "
                           "unread comparison"}
     orphans = sorted(p for p, (ok, _) in orphan_verdicts.items() if ok)
-    resolvable = sorted(set(resolvable) | set(stale) | set(orphans))
+    resolvable = sorted(set(resolvable) | set(stale) | set(generated) | set(orphans))
     held = sorted(blocked_paths - set(resolvable))
     if held:
         # KEYED TO THE PROPERTY AND NOT TO TODAY'S PATHS: what reaches this list is a blocker NO
@@ -1052,7 +1154,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
         # nobody may touch and of a file this tree has no reader for, and those want opposite acts.
         named = []
         for path in held[:12]:
-            why = (verdicts.get(path) or orphan_verdicts.get(path)
+            why = (verdicts.get(path) or gen_verdicts.get(path) or orphan_verdicts.get(path)
                    or (False, "not byte-identical to what origin brings"))[1]
             named.append("{} -- {}".format(path, " ".join(str(why).split())[:220]))
         return {"advanced": False, "cleared": [],
@@ -1077,7 +1179,13 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     slug = refresh_slug(project)
     _refresh = refresher or (lambda p: refresh_stale_copies(project, p, slug))
     _preserve = preserver or (lambda p: preserve_untracked_orphans(project, p, slug))
-    tracked_set, stale_set, orphan_set = set(tracked), set(stale), set(orphans)
+    # A GENERATED BLOCKER IS CLEARED BY THE TRACKED TWIN'S ACT, because the act is what the two
+    # share and the PROOF is what differs: both are tracked paths restored to HEAD's bytes for the
+    # fast-forward to overwrite, one proven lossless by hashing against origin and the other by
+    # being nobody's work. Folding it into `tracked_set` here, rather than giving it a fourth
+    # branch in the loop below, keeps the acts at three and the grounds at five.
+    tracked_set, stale_set, orphan_set = (
+        set(tracked) | set(generated), set(stale), set(orphans))
     orphan_commit = ""
     try:
         with _lock():
