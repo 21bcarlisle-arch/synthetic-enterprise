@@ -9635,6 +9635,62 @@ def _bind_asymmetry(artefact: dict | None) -> dict:
     }
 
 
+def _withdraw_a_verdict_stated_from_a_superseded_run(
+        leg: dict, is_the_later_run, current_at, superseded_at) -> dict:
+    """A run this page marks superseded may publish its measurement and may not publish a VERDICT.
+
+    THE DEFECT (2026-09-18, Lane 0, the director's reading of the live feed). `is_the_later_run`
+    landed on 2026-09-09 and it is honest: the block says, in the payload and in words, that the
+    run beside it is newer. What it did NOT withdraw is the block's own `resolved`. So the page
+    published `current_world.resolved: true` at 24.09 SEMs from zero and `level_leg.resolved:
+    true` at 49.46 -- both drawn from the 2026-09-08 run -- under a headline whose own later run
+    states no direction at all, because its error bar is older than the figure it bounds. The
+    page's MOST CONFIDENT sentence was its OLDEST, and `legVerdict` renders that as "A direction
+    IS stated for this leg" with nothing beside it saying which run said so. A reader taking the
+    one that resolves is not misreading the page; they are reading it.
+
+    THE MEASUREMENT STAYS AND ONLY THE CLAIM GOES, which is the same cut `_current_world_clause`
+    makes one layer up and for the same reason: these figures were honestly measured, they name
+    this world, and their spread, their re-draw family and their composition are as readable as
+    they ever were. Withdrawing the block was tried in 2026-09-09's landing and reverted in the
+    same turn -- `composition` lives in this payload and an unavailable block takes the mission's
+    own question off the page with it. So `bound`, `verdict_stability`, `distance_to_a_sign` and
+    `redraw_band` are untouched here; `resolved` alone becomes `None`, with the reason beside it.
+
+    `resolved is None` IS LEFT EXACTLY AS IT IS, on purpose. A leg that already states no verdict
+    has none to withdraw, and writing this reason over its own would replace "we measured it and
+    one draw of nine reverses it" with an ordering complaint -- a reason deleted from the page,
+    which is the failure `_leg_in_this_world` appends rather than substitutes to avoid. `False`
+    is NOT that state: "we measured it and it did not clear" is a direction stated from this run,
+    so it is withdrawn like `True`.
+
+    KEYED TO THE ORDERING AND NOT TO TODAY'S PAIR. The subject is `is_the_later_run`, computed
+    from the two artefacts' own stamps, so this goes quiet of its own accord the moment a genuinely
+    later run lands on `CURRENT_WORLD_THREE_ARM_PATH` -- and it fires again, with nobody editing
+    it, the next time a promote-by-copy inverts them. BOTH BRANCHES ARE REACHABLE FROM ARTEFACTS
+    ON DISK, which is what
+    `test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_currency` drives.
+    """
+    if is_the_later_run is not False or not isinstance(leg, dict):
+        return leg
+    if leg.get("resolved") is None:
+        return leg
+    withdrawn = (
+        "AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at {cur} "
+        "and the run published beside it at {sup}, so it is not the later of the two this page "
+        "carries. Every figure here was honestly measured and none of them is withdrawn -- the "
+        "spread, the seed family and the composition stand exactly as they were taken. What may "
+        "not stand is a DIRECTION read off them, because a direction stated here would be this "
+        "page's most confident sentence resting on its oldest run, and that is the sentence a "
+        "reader takes. The evidence below is what a direction would have rested on and what a "
+        "re-run of this contrast against the later run would be compared with."
+    ).format(cur=current_at or "an unstated date", sup=superseded_at or "a later stamp")
+    existing = leg.get("verdict_withheld_because")
+    return dict(leg, resolved=None,
+                verdict_withheld_because=(
+                    existing + " " + withdrawn if existing else withdrawn))
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
@@ -9780,6 +9836,19 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # sounds like something a company controls.
     level = _leg_in_this_world(contrast.get("level_advantage_gbp"), floor_current, current, live,
                                LEVEL_CONTRAST)
+    # AND NO LEG OF A SUPERSEDED RUN MAY STATE A DIRECTION. Applied here, over all three legs at
+    # once, rather than inside `_leg_in_this_world`: which of two runs is the later one is a
+    # property of the PANEL, and a per-contrast function that had to be told it would be told it
+    # three times. See `_withdraw_a_verdict_stated_from_a_superseded_run` for why the figures and
+    # their families survive the withdrawal and only `resolved` does not.
+
+    def _withdrawn(leg: dict) -> dict:
+        return _withdraw_a_verdict_stated_from_a_superseded_run(
+            leg, is_the_later_run, current_at, superseded_at)
+
+    bound = _withdrawn(bound)
+    selection = _withdrawn(selection)
+    level = _withdrawn(level)
     return {
         "available": True,
         "live_world": live,

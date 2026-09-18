@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-18T13:32:09.666573Z",
+  "generated_at": "2026-09-18T17:36:22.963933Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "756a86272cd80c11015d09df5eb8bc636438f9c0",
+    "publishing_tree_commit": "ac2c9ac4f87c4148d454b004c9479f6b6af14da2",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 756a86272 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from ac2c9ac4f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -534,8 +534,8 @@
     "why_the_headline_omits_it": "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at 2026-09-08T00:19:54Z; the run below it was taken at 2026-09-18T05:43:40Z. Both name this world, so nothing here is stale and every figure in this block was honestly measured -- but 'the world as it is now' is a claim about which run is more recent, and on these two it is false. So the headline states no sentence from this block, and what is published here is a SECOND reading of the same world at a different hour and a different commit. Read the two as two draws, not as a revision.",
     "superseded_floor_ran_in_world": "39a192ce04c1eda8",
     "superseded_value_advantage_gbp": 4579.228659000015,
-    "resolved": true,
-    "verdict_withheld_because": null,
+    "resolved": null,
+    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
     "verdict_stability": {
       "checked": true,
       "n": 9,
@@ -705,8 +705,8 @@
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved."
     },
     "level_leg": {
-      "resolved": true,
-      "verdict_withheld_because": null,
+      "resolved": null,
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
       "verdict_stability": {
         "checked": true,
         "n": 9,
@@ -991,7 +991,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "756a86272cd80c11015d09df5eb8bc636438f9c0",
+      "publishing_tree_commit": "ac2c9ac4f87c4148d454b004c9479f6b6af14da2",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1003,7 +1003,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 756a86272 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from ac2c9ac4f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1067,8 +1067,8 @@
       "same_supplier": true,
       "dashboard_net_gbp": 157806.88,
       "run_identity": {
-        "dashboard_run_id": "run_output_938ec2b05_20260918T113945Z.json",
-        "dashboard_commit": "938ec2b05",
+        "dashboard_run_id": "run_output_a6e3a67fe_20260918T160738Z.json",
+        "dashboard_commit": "a6e3a67fe",
         "dashboard_commit_source": "run_stamp",
         "last_verified_run_id": "run_output_938ec2b05_20260918T113945Z.json",
         "last_verified_commit": "938ec2b05",

@@ -6745,9 +6745,18 @@ def test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_cur
     first and `available` goes False -- so the negative leg would pass for the wrong reason and
     nothing would say so. The positive leg fails loudly instead.
 
+    AND SINCE 2026-09-18 IT DRIVES THE VERDICT AS WELL AS THE SENTENCE. Withdrawing the headline
+    clause was only half of it: the block went on publishing `resolved: true` at 24.09 SEMs, and
+    the level leg at 49.46, from the older of the two runs -- so the page's most confident number
+    was its oldest, under a headline whose later run states no direction at all. The verdicts are
+    now withdrawn on the same flag, and the measurements are asserted UNCHANGED across the two
+    legs below, because withdrawing the figures with the claim is the reversion this control has
+    already caught once.
+
     Fires on: hard-coding `is_the_later_run`; comparing the stamps the wrong way round; letting
     `_current_world_clause` compose "IN THE WORLD AS IT IS NOW" over the older of the two runs;
-    withdrawing the block's figures instead of only its currency claim.
+    withdrawing the block's figures instead of only its currency claim; letting a leg of the
+    superseded run keep a direction; withdrawing a verdict on the leg that IS the later run.
     """
     obs = PROJECT / "docs" / "observability"
     current = _load(obs / "value_cycle_ab_s1_three_arm_20260908.json")
@@ -6784,11 +6793,52 @@ def test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_cur
     assert gva._current_world_clause(against_later) == "", (
         "the headline still composes a currency claim over the older of the two runs")
 
+    # AND THE VERDICTS GO WITH THE CURRENCY CLAIM, on every leg that had one. Which legs those
+    # are is read off the POSITIVE leg's own answer rather than asserted as a literal `True`: if
+    # a future floor stops resolving these contrasts, the positive leg goes `None`, this pairing
+    # has nothing left to withdraw, and it says so -- instead of passing because both sides are
+    # `None` for reasons that have nothing to do with the ordering.
+    stated = ["resolved"] if against_earlier.get("resolved") is not None else []
+    stated += [leg for leg in ("level_leg", "selection_leg")
+               if against_earlier[leg].get("resolved") is not None]
+    assert stated, (
+        "the later-run leg states no direction on the panel or on either leg, so the withdrawal "
+        "below has nothing to withdraw and this half of the control is vacuous")
+    for where in stated:
+        later_block = against_later if where == "resolved" else against_later[where]
+        assert later_block.get("resolved") is None, (
+            "{}: a direction is stated from a run this page marks superseded, and it is the most "
+            "confident number on a page whose later run states none".format(where))
+        why = later_block.get("verdict_withheld_because") or ""
+        assert "WITHDRAWN FOR WHICH RUN THIS IS" in why, (
+            "{}: the verdict is gone and no reason names the ordering that removed it, so a "
+            "reader cannot tell it from a leg nobody measured".format(where))
+        assert current["generated_at"] in why and later["generated_at"] in why, (
+            "{}: the withdrawal does not name both stamps, so a reader cannot check which run "
+            "lost to which".format(where))
+
+    # A LEG ALREADY WITHHELD KEEPS ITS OWN REASON, never has it replaced. The selection leg
+    # withholds for its own re-draws on BOTH sides of this pairing; an ordering complaint written
+    # over that sentence would trade "its own re-draws straddle zero" -- the stronger reason and
+    # the one with a remedy -- for "it is the older run".
+    kept = against_earlier["selection_leg"]["verdict_withheld_because"]
+    assert kept and kept in (against_later["selection_leg"]["verdict_withheld_because"] or ""), (
+        "the superseded-run withdrawal overwrote a leg's own reason for withholding")
+
     # ...and the two legs are the SAME MEASUREMENTS either way. The figures were honestly taken
     # and the ordering does not touch them -- only what may be said about them.
     for key in ("value_advantage_gbp", "selection_gbp", "level_advantage_gbp", "generated_at"):
         assert against_earlier[key] == against_later[key], (
             "the ordering changed {}, so it is doing more than withdrawing a claim".format(key))
+    # INCLUDING THE EVIDENCE A DIRECTION WOULD HAVE RESTED ON. The bound, the seed family and the
+    # distance to a sign are what makes the block worth keeping at all; a withdrawal that took
+    # them would leave a figure on the page with nothing beside it -- which is the deletion the
+    # `available` assertion above already refuses one level up.
+    for where in ("level_leg", "selection_leg"):
+        for key in ("bound", "verdict_stability", "distance_to_a_sign", "redraw_band"):
+            assert against_earlier[where].get(key) == against_later[where].get(key), (
+                "{}.{} moved with the withdrawal, so the measurement went with the claim".format(
+                    where, key))
 
 
 def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens():

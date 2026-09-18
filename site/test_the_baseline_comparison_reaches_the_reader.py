@@ -6249,18 +6249,33 @@ def test_the_selection_legs_withheld_verdict_reaches_the_reader(live):
         "the reader, which reads as a page being coy rather than a run being unable to say")
 
 
-def test_the_resolved_leg_is_not_given_the_withheld_legs_sentence(live):
+def test_the_resolved_leg_is_not_given_the_withheld_legs_sentence():
     """The two verdicts must not be interchangeable, or one sentence renders for both states.
+
+    ITS SUBJECT MOVED OFF THE LIVE FEED ON 2026-09-18, and the move is the repair rather than a
+    convenience. This rung read `_live_feed()` and failed loudly unless the PUBLISHED level leg
+    resolved -- a control keyed to today's answer, and it went red the day the page became more
+    honest: the current-world block is not the later of the two runs the page carries, so no leg
+    of it may state a direction any more and there is no resolved sentence on that screen to find.
+    The property this rung is actually about is that the resolved branch and the withheld branch
+    are DIFFERENT sentences, which needs a feed carrying both states -- and
+    `_feed_whose_current_world_block_speaks` is the one the producer composes a verdict for, built
+    from runs on disk, for exactly this reason one directory of rungs down.
+
+    THE PUBLISHED FEED IS STILL ASSERTED, in
+    `test_no_leg_of_a_superseded_run_states_a_direction_to_the_reader`, which is the other side of
+    the same partition: this rung owns "a stated direction looks nothing like a withheld one",
+    that one owns "the superseded run states none".
 
     Fires on: ambering both legs; giving the resolved leg a refusal; swapping the two branches.
     """
-    feed = _live_feed()
+    feed = _feed_whose_current_world_block_speaks()
     level = feed["current_world"]["level_leg"]
     if level.get("resolved") is not True:
-        pytest.fail("the live feed does not resolve the level leg, so the two-state claim this "
+        pytest.fail("the paired runs no longer resolve the level leg, so the two-state claim this "
                     "control makes has only one state on screen")
 
-    rendered = live["arms-legs-first"]
+    rendered = _render(feed)["arms-legs-first"]
     assert "A direction IS stated for this leg" in rendered
     # Both states on one screen at once is the whole assertion: one withheld, one stated.
     assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered, (
@@ -6269,6 +6284,92 @@ def test_the_resolved_leg_is_not_given_the_withheld_legs_sentence(live):
     # ...and the resolved leg's own band sentence is what carries its bound.
     assert _door_prose(level["redraw_band"])[:80] in rendered, (
         "the resolved leg states a direction and never says across what spread")
+
+
+def test_no_leg_of_a_superseded_run_states_a_direction_to_the_reader(live):
+    """The published block's verdicts, against the published block's own ordering flag.
+
+    THE DEFECT (2026-09-18, Lane 0). `is_the_later_run: false` reached the feed on 2026-09-09 and
+    the headline went quiet, correctly. The VERDICTS did not: the block published `resolved: true`
+    on the whole advantage and on the price-level leg, drawn from the 2026-09-08 run, and
+    `legVerdict` rendered "A direction IS stated for this leg" -- on a page whose later run states
+    no direction anywhere, because its error bar is older than the figure it bounds. The most
+    confident sentence a reader could find was the one from the oldest run, with nothing beside it
+    saying so.
+
+    KEYED TO THE FEED'S OWN FLAG AND ASSERTED IN BOTH DIRECTIONS, so this follows the page the day
+    a genuinely later run lands on the current-world path: the withdrawal must then be ABSENT and
+    a stated direction is allowed again. A rung that only checked for the refusal would stay green
+    on a producer that had started printing it unconditionally -- the asymmetry this file has been
+    repaired for twice already.
+
+    AND THE FIGURES MUST SURVIVE IT. The withdrawal is of the claim, never of the measurement, so
+    both legs' own figures are asserted still on the reader's screen: a block whose numbers went
+    with its verdict takes the composition -- value made or value moved -- off the page with them.
+
+    Fires on: restoring a verdict on the superseded panel; withdrawing the figures with it;
+    withdrawing a verdict on a block that IS the later run; dropping the reason so the refusal
+    reads as a leg nobody measured.
+    """
+    cw = _live_feed()["current_world"]
+    if not cw.get("available"):
+        pytest.fail("the published current-world block is unavailable ({}), so this rung has no "
+                    "verdict to grade -- reported as a failure, never skipped".format(
+                        cw.get("why_not")))
+    rendered = live["arms-legs-first"]
+    superseded = cw.get("is_the_later_run") is False
+
+    for name in ("selection_leg", "level_leg"):
+        leg = cw[name] or {}
+        if superseded:
+            assert leg.get("resolved") is None, (
+                "{}: the published feed states a direction from a run it marks superseded, and "
+                "that is the number a reader takes".format(name))
+            # A REASON, ALWAYS -- but NOT NECESSARILY THE ORDERING'S, and that distinction is
+            # the producer's design rather than a gap here. A leg already withholding for its own
+            # re-draws keeps its own sentence: the ordering is the weaker reason and overwriting
+            # the stronger one with it deletes a remedy from the page. What must never happen is
+            # a verdict removed in silence, which reads exactly like a leg nobody measured.
+            assert leg.get("verdict_withheld_because"), (
+                "{}: the leg states no direction and gives no reason at all".format(name))
+        # BOTH BRANCHES MEET THE SAME TWO ASSERTIONS: the page must attribute the leg's verdict
+        # to the leg, and the leg's own figure must be on the screen either way.
+        #
+        # THE MISSING-FIGURE STATE IS NAMED HERE RATHER THAN CRASHED THROUGH. `_gbp(None)` raises
+        # a TypeError, which is still a red but is a red about this file's formatter instead of
+        # about the page -- and the next reader spends the cost working out which. A leg the feed
+        # drops has its own rung (`test_MUTATION_a_dropped_leg_renders_as_a_named_absence...`);
+        # what this one owes is the statement that a WITHDRAWAL did not take the number with it.
+        assert isinstance(leg.get("figure_gbp"), (int, float)), (
+            "{}: the published block carries no figure for this leg at all, so there is no "
+            "measurement left for the withdrawal to have spared".format(name))
+        assert _gbp(leg["figure_gbp"]) in rendered, (
+            "{}: the leg's figure left the reader's screen, so the withdrawal took the "
+            "measurement with the claim".format(name))
+        states_a_direction = leg.get("resolved") is True and not leg.get(
+            "verdict_withheld_because")
+        if not states_a_direction:
+            assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered, (
+                "{}: the feed states no direction for this leg and the page says so nowhere "
+                "on the screen the reader meets it".format(name))
+
+    if superseded:
+        assert "A direction IS stated for this leg" not in rendered, (
+            "every leg of the published block is withheld and the page still states a direction "
+            "somewhere in the split, so a reader attributes it to one of them")
+        # AND THE ORDERING REACHES THE READER ON THIS SCREEN, once, from the feed's own bytes.
+        # Asserted over the block rather than per leg for the reason above -- but asserted, because
+        # a block where every leg withholds for its own private reason never tells a reader that
+        # the RUN is why, and "these figures cannot be called" is a different sentence from "these
+        # figures are the older run's". The panel's own withdrawal is the sentence being looked
+        # for, so a producer that withdrew the verdicts and said nothing about why reds here.
+        ordering = cw.get("verdict_withheld_because") or ""
+        assert "WITHDRAWN FOR WHICH RUN THIS IS" in ordering, (
+            "the block's verdicts are gone and the block itself names no ordering as the cause, "
+            "so a reader cannot tell a superseded panel from an unmeasurable one")
+        assert _door_prose(ordering)[:100] in rendered, (
+            "the withdrawal's reason is in the feed and never reaches the screen the reader meets "
+            "these figures on, which is the footnote this page's own rule refuses")
 
 
 def test_MUTATION_a_dropped_leg_renders_as_a_named_absence_and_the_sum_is_withheld():
