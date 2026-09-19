@@ -132,7 +132,12 @@ def _fake_git(log_lines, *, tracked=(SUBJECT_PATH, OTHER_PATH)):
     subject is how a fail-open becomes a green suite here. Applying the pathspec in the fake is
     what lets the path leg discriminate rather than restate the fixture.
     """
-    def fake(*args):
+    # `cwd` IS THE SEAM'S OWN KWARG, not arbitrary junk. `_git` has taken it since the strand
+    # half landed (`_dirty_with_mtimes` asks the SHARED tree, never `PROJECT_DIR`), so a fake
+    # that refuses it raises TypeError where real git would answer -- a stand-in drifted from
+    # its subject, which is this file's own worry one level down. Named rather than `**k`:
+    # any OTHER kwarg still fails loudly, which is the strictness this fake is for.
+    def fake(*args, cwd=None):
         if args and args[0] == "ls-files":
             return "\n".join(tracked) + "\n"
         if args and args[0] == "log":
@@ -301,7 +306,7 @@ def test_A_SILENT_GIT_LEAVES_THE_RESIDUAL_LOUD(tmp_path, monkeypatch):
     """
     store = _three_shapes(tmp_path)
 
-    monkeypatch.setattr(dl, "_git", lambda *a: None)
+    monkeypatch.setattr(dl, "_git", lambda *a, **k: None)
     failed = dl.disposition_of(SIBLING_OWNED_ID, path=store)
 
     # A git that RAN and matched nothing, on the same row, over the same window. `_fake_git` with no
@@ -324,7 +329,7 @@ def test_THE_FAILED_GITS_EVIDENCE_NAMES_THE_COMMAND_IT_COULD_NOT_RUN(tmp_path, m
     seam -- and not to the surrounding wording, which is free to change.
     """
     store = _three_shapes(tmp_path)
-    monkeypatch.setattr(dl, "_git", lambda *a: None)
+    monkeypatch.setattr(dl, "_git", lambda *a, **k: None)
 
     got = dl.disposition_of(SIBLING_OWNED_ID, path=store)
 

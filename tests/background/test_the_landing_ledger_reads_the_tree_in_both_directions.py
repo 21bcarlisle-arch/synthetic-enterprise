@@ -38,6 +38,7 @@ import pytest
 from background import delivery_lane as dl
 from background import seat_continuation
 from background import seat_work_in_hand as claims_mod
+from tests.background.residual_voices import could_not_ask
 
 
 def _git(repo, *args):
@@ -110,8 +111,8 @@ def _now():
 # THE PARTITION. Read this one first.
 # -------------------------------------------------------------------------------------------
 
-def test_ALL_THREE_VERDICTS_ARE_REACHABLE_FROM_ONE_FIXTURE(lane):
-    """CREDITED, STRANDED and silence are each taken. One control over the whole partition.
+def test_ALL_FOUR_VERDICTS_ARE_REACHABLE_FROM_ONE_FIXTURE(lane):
+    """CREDITED, STRANDED, STRAND_CANDIDATE and silence are each taken. One control, whole partition.
 
     THIS IS THE LEG THE OTHERS CANNOT SUBSTITUTE FOR, and it is written first because this project
     has walked into the trap it guards three times in one afternoon: every test of a check asks
@@ -119,6 +120,14 @@ def test_ALL_THREE_VERDICTS_ARE_REACHABLE_FROM_ONE_FIXTURE(lane):
     returns `None` on six separate routes -- no row, no paths, window still open, already credited,
     git silent, nothing found -- so `None` is overwhelmingly the easy answer, and a regression that
     made it the ONLY answer would leave every other assertion in this file green.
+
+    IT GREW A FOURTH VALUE ON 2026-09-19 RATHER THAN A SECOND CONTROL, and that is the point of
+    asserting the partition in one dict: the new disposition has to be reachable, AND every older
+    one has to still be reachable beside it, and a leg-per-branch file cannot say the second thing.
+    `silent-id` is the one that had to be re-cut -- it used to be silent because nothing matched its
+    NAMES, and the whole-tree question would now answer it from another row's bytes. It is silent
+    here because its WINDOW is somewhere else in time, which is the only honest way left to be
+    silent and is exactly the property the new reading rests on.
 
     MUTATION: make `tree_verdict` return `None` unconditionally. Every other test in this file
     still passes on its refusal legs; this one fires on the first assertion.
@@ -130,25 +139,34 @@ def test_ALL_THREE_VERDICTS_ARE_REACHABLE_FROM_ONE_FIXTURE(lane):
     _commit_at(repo, "tools/credited.py", "x = 1\n", DRAWN + 60)
     _row(claims, "credited-id", ["tools/credited.py"])
 
-    # STRANDED: uncommitted bytes, last touched before the window closed.
+    # STRANDED: uncommitted bytes on a path the claim NAMED, last touched before the window closed.
     (repo / "tools" / "stranded.py").write_text("never landed\n")
     old = DRAWN + 10
     os.utime(repo / "tools" / "stranded.py", (old, old))
     _row(claims, "stranded-id", ["tools/stranded.py"])
 
-    # SILENT: a path git has never heard of and no bytes on disk.
-    _row(claims, "silent-id", ["tools/nothing_here.py"])
+    # STRAND_CANDIDATE: named path git has never heard of and no bytes of its own -- but its window
+    # is the same window `stranded-id`'s bytes were written in. This is the 2026-09-18 geometry:
+    # the prose predicted one place and the work went somewhere else in the same hours.
+    _row(claims, "candidate-id", ["tools/the-prose-guessed-this.py"])
+
+    # SILENT: same absent path, and a window that holds no uncommitted bytes ANYWHERE in the tree.
+    _row(claims, "silent-id", ["tools/nothing_here.py"], drawn=DRAWN + 50_000)
 
     verdicts = {fid: (dl.tree_verdict(fid, now=now, path=claims) or {}).get("verdict")
-                for fid in ("credited-id", "stranded-id", "silent-id")}
+                for fid in ("credited-id", "stranded-id", "candidate-id", "silent-id")}
 
     assert verdicts == {"credited-id": dl.CREDITED,
                         "stranded-id": dl.STRANDED,
+                        "candidate-id": dl.STRAND_CANDIDATE,
                         "silent-id": None}, (
-        "all three answers must be reachable. If every value is None the check has gone "
+        "all four answers must be reachable. If every value is None the check has gone "
         "fail-silent and says nothing about any tree; if STRANDED is missing the half the "
         "BLOCKING finding asked for is dead; if CREDITED is missing the 27 landed-but-unbound "
-        "rows stay invisible. Got: {}".format(verdicts))
+        "rows stay invisible; if STRAND_CANDIDATE is missing the lane is blind again to work that "
+        "finished somewhere the item's prose did not predict; and if SILENT is missing the second "
+        "question has stopped discriminating and every swept claim now carries a candidate list. "
+        "Got: {}".format(verdicts))
 
 
 # -------------------------------------------------------------------------------------------
@@ -385,6 +403,258 @@ def test_the_strand_check_asks_the_SHARED_tree_and_not_the_checkout_it_runs_in(l
     assert verdict and verdict["verdict"] == dl.STRANDED, (
         "asking the wrong tree returns a clean status and reads as nothing stranded, which is "
         "the flattering answer")
+
+
+# -------------------------------------------------------------------------------------------
+# THE SECOND QUESTION. The named set is a PREDICTION, and this is what is asked when it is wrong.
+# -------------------------------------------------------------------------------------------
+
+def test_the_SVT_geometry_the_named_set_could_not_see_is_published_as_a_CANDIDATE(lane):
+    """The measured case, reproduced at its own offsets. `the-svt-household-has-no-route-back-to-a-
+    fixed-term` was drawn 2026-09-18 19:04:59 naming three DOCUMENTS, its window closed 20:44:59,
+    and the turn's work sat at `simulation/renewals.py` with an mtime of 19:30:21 -- 25.4 minutes
+    into the window, and in none of the three names. `_stranded_paths` asked git about the three
+    documents, git answered correctly, and the lane published `not_done`.
+
+    (The item that directed this repair put the window at 21:00-22:40. The ledger instants above
+    are the measured ones and the prose was wrong by about two hours; what it was right about, and
+    what this grades, is the RELATION -- mtime strictly inside the window, path outside every name.)
+
+    MUTATION: delete the `_window_attributable_paths` call from `tree_verdict` and this fires. That
+    is the code that was live on the night, so the mutation is not hypothetical: it is what the
+    lane did, and the work was re-derived by a later turn.
+    """
+    repo, claims = lane
+    named = ["docs/market_research/switcher_split.md", "docs/staging/WORKER_FINDING_SVT.md",
+             "docs/staging/done/SEAT_DECISION_SVT.md"]
+    for rel in named:                                   # named, tracked, and CLEAN
+        _commit_at(repo, rel, "prose\n", DRAWN - 5_000)
+
+    (repo / "simulation").mkdir(parents=True, exist_ok=True)
+    (repo / "simulation" / "renewals.py").write_text("the work, never landed\n")
+    written = DRAWN + 25.4 * 60                         # 25.4 minutes into a 100-minute window
+    os.utime(repo / "simulation" / "renewals.py", (written, written))
+    _row(claims, "svt-row", named)
+
+    verdict = dl.tree_verdict("svt-row", now=_now(), path=claims)
+
+    assert verdict and verdict["verdict"] == dl.STRAND_CANDIDATE
+    assert verdict["paths"] == ["simulation/renewals.py"]
+    assert verdict["named_paths"] == named, (
+        "the candidate must carry BOTH sets: a reader cannot judge a time attribution without "
+        "seeing the names it is standing in for")
+
+
+def test_the_candidate_says_IN_ITS_OWN_PROSE_that_the_attribution_is_BY_TIME(lane):
+    """The caveat is the load-bearing half, and it has to be in the published sentence rather than
+    in this module's docstrings. Bytes written during a claim's window by ANOTHER lane satisfy the
+    query exactly as well as its own do, and a reader who takes the list for a proof will land
+    somebody else's work under this claim's name -- which is worse than the silence it replaces.
+
+    MUTATION: drop the caveat clause from `_attributed_by_time` and this fires. The verdict is
+    still correct, the paths are still right, and the sentence has become a claim about authorship
+    that nothing measured.
+    """
+    repo, claims = lane
+    (repo / "docs" / "somebody_elses_repair.md").write_text("not this claim's work\n")
+    written = DRAWN + 600
+    os.utime(repo / "docs" / "somebody_elses_repair.md", (written, written))
+    _row(claims, "coincidence", ["tools/predicted_nothing.py"])
+
+    evidence = dl.tree_verdict("coincidence", now=_now(), path=claims)["evidence"]
+
+    assert "BY TIME AND NOT BY NAME" in evidence
+    assert "another lane's" in evidence, "the alternative explanation must be named, not implied"
+    assert "docs/somebody_elses_repair.md@" in evidence, (
+        "each candidate carries its own mtime -- a path without one cannot be triaged against a "
+        "live lane by the seat reading it")
+
+
+def test_the_candidate_list_DECLARES_ITS_OWN_TRUNCATION_and_the_count_it_came_from(lane):
+    """The silent-cap shape, and the reason it matters HERE more than usual.
+
+    MEASURED on the live ledger the hour this landed: the settled 2026-09-18 SVT window yields 4
+    candidates, and two just-closed windows on the same tree yield 28 and 57, because three lanes
+    were writing through them. The count IS the strength of the attribution -- four is a list to
+    open, fifty-seven is a statement that the window was too busy for a clock to single anything
+    out -- so a sentence that prints five paths and not the number they were drawn from has hidden
+    the one figure that tells the reader how much to believe it.
+
+    MUTATION: print `found[:5]` without the count, or drop the "oldest N of M" clause, and this
+    fires. The verdict is still right and every path in it is still real; what is gone is the
+    reader's ability to tell a proof from a coincidence.
+    """
+    repo, claims = lane
+    (repo / "docs" / "busy").mkdir(parents=True)
+    for i in range(9):
+        p = repo / "docs" / "busy" / f"lane_{i}.md"
+        p.write_text("someone was writing\n")
+        os.utime(p, (DRAWN + 60 + i, DRAWN + 60 + i))
+    _row(claims, "busy-window", ["tools/predicted_nothing.py"])
+
+    evidence = dl.tree_verdict("busy-window", now=_now(), path=claims)["evidence"]
+
+    assert "9 path(s)" in evidence, "the total is the figure that says how much to believe this"
+    assert "oldest 5 of 9" in evidence, (
+        "five paths printed out of nine, with no sign of the other four, reads as a complete list")
+    assert evidence.count("docs/busy/lane_") == 5, (
+        "and the cap itself must still hold -- a brief that prints every dirty path in a busy "
+        "window is the 347-path wall this reading was cut down from")
+
+
+def test_bytes_written_BEFORE_THE_DRAW_are_not_attributable_and_this_is_what_makes_it_readable(lane):
+    """The lower bound, which is the whole difference from `_stranded_paths` and the only reason
+    dropping the pathspec is publishable at all.
+
+    MEASURED on the live tree over that same SVT window, 2026-09-19: 537 dirty entries; **347** of
+    them satisfy `mtime <= window_closed` when that discriminator is asked of the whole tree, and
+    **4** satisfy `drawn <= mtime <= window_closed`. A 347-path candidate list is a wall of noise
+    that would be ignored inside a week, and a control nobody reads is not a control.
+
+    MUTATION: reuse `_stranded_paths`' own `mtime <= window_closed` for the whole-tree question --
+    i.e. drop the `drawn <=` half -- and this fires. Note the direction: the mutation makes the
+    check report MORE, which is the shape that passes a "does it detect the strand" leg and still
+    destroys the reading.
+    """
+    repo, claims = lane
+    (repo / "docs" / "long_before.md").write_text("another lane, hours earlier\n")
+    old = DRAWN - 3_600
+    os.utime(repo / "docs" / "long_before.md", (old, old))
+    _row(claims, "clean-window", ["tools/predicted_nothing.py"])
+
+    assert dl.tree_verdict("clean-window", now=_now(), path=claims) is None, (
+        "bytes that had already stopped moving when the claim was handed out cannot be its work; "
+        "counting them turns every swept claim into a candidate and the reading into noise")
+
+
+def test_the_SECOND_question_is_asked_only_when_the_NAMED_set_comes_back_clean(lane):
+    """Order, and it is what keeps the strong claim strong. A row whose own named paths are dirty
+    is a STRAND -- said with the item's own prose behind it -- and must never be downgraded to a
+    coincidence because a louder-looking file happens to share its hours.
+
+    MUTATION: ask the whole-tree question first and this fires. Every genuine strand would be
+    published under the candidate's hedged verb ("LOOK") instead of its own ("LAND THESE"), and
+    the BLOCKING finding's own remedy would stop being actionable.
+    """
+    repo, claims = lane
+    (repo / "docs" / "mine.md").write_text("this claim's work\n")
+    (repo / "docs" / "theirs.md").write_text("somebody else's, same hour\n")
+    for rel in ("docs/mine.md", "docs/theirs.md"):
+        os.utime(repo / rel, (DRAWN + 30, DRAWN + 30))
+    _row(claims, "named-and-dirty", ["docs/mine.md"])
+
+    verdict = dl.tree_verdict("named-and-dirty", now=_now(), path=claims)
+
+    assert verdict["verdict"] == dl.STRANDED
+    assert verdict["paths"] == ["docs/mine.md"], (
+        "the strand names what the claim named; sweeping the sibling in would attach a coincidence "
+        "to a claim that had earned a proof")
+
+
+def test_a_swept_claim_is_NEVER_published_as_a_GENUINE_MISS_over_a_window_holding_dirty_bytes(lane):
+    """THE PROPERTY, and this is the control keyed to it rather than to today's answer.
+
+    "This is a genuine miss and the work may still be undone" is the sentence the orientation brief
+    prints and the one that sends a reader off to do the work again. Every clause it rested on was
+    about COMMITS on the paths the item's prose NAMED -- so it was being published, unhedged, over
+    windows whose own hours held the finished work as uncommitted bytes somewhere else in the tree.
+    Work finishing and not leaving the tree is this project's most expensive recurring loss, and
+    this is the sentence that made it invisible.
+
+    KEYED TO THE PROPERTY: it does not assert which words replace it, only that the flattering
+    verdict cannot be reached while the window has attributable bytes. A leg pinned to today's
+    phrasing would go red the day the sentence is improved and stay green the day the reading rots.
+
+    MUTATION: delete the `_window_attributable_paths` call from `_nothing_answered` and this fires
+    while `tree_verdict` stays perfectly correct -- the two readers are separate doors to the same
+    defect, and the brief's is the one a seat actually reads.
+    """
+    repo, claims = lane
+    (repo / "tools").mkdir(parents=True, exist_ok=True)
+    (repo / "tools" / "finished_and_sitting_there.py").write_text("done, never committed\n")
+    written = DRAWN + 900
+    os.utime(repo / "tools" / "finished_and_sitting_there.py", (written, written))
+    _row(claims, "brief-row", ["docs/the_prose_guessed_this.md"])
+
+    evidence = dl.disposition_of("brief-row", path=claims)["evidence"]
+
+    assert "genuine miss" not in evidence, (
+        "the brief may not tell a reader to redo work that may be sitting finished in the window "
+        "it is describing. Got: {}".format(evidence))
+    assert "tools/finished_and_sitting_there.py@" in evidence, (
+        "and withholding the sentence is not enough -- the reader needs the path to go and look at")
+
+
+def test_a_window_with_NOTHING_dirty_in_it_still_earns_the_genuine_miss_sentence(lane):
+    """The mirror, and without it the leg above is satisfied by a reading that never says anything.
+
+    A residual that can no longer reach its own conclusion is the fail-silent direction of the same
+    defect: every swept claim would carry a hedge, the seat would learn to skip the field, and a
+    real miss would be indistinguishable from a maybe.
+
+    MUTATION: make `_nothing_answered` always take the candidate branch -- or make
+    `_window_attributable_paths` return the whole dirty tree -- and this fires.
+    """
+    repo, claims = lane
+    _commit_at(repo, "docs/all_clean.md", "nothing outstanding\n", DRAWN - 5_000)
+    _row(claims, "a-real-miss", ["docs/all_clean.md"])
+
+    evidence = dl.disposition_of("a-real-miss", path=claims)["evidence"]
+
+    assert "genuine miss" in evidence, (
+        "a window with a clean tree behind it IS a miss and the brief must be able to say so. "
+        "Got: {}".format(evidence))
+
+
+def test_a_BROKEN_scan_is_published_as_CANNOT_ANSWER_and_not_as_a_genuine_miss(lane, monkeypatch):
+    """The could-not-ask split, one question later. `_git` reports a failed git as `None` and a git
+    that matched nothing as `""`, and this module has paid twice for callers that collapsed the two.
+    The second question is a new place to make that exact mistake.
+
+    MUTATION: let the `except` fall through to the genuine-miss sentence and this fires -- a scan
+    that never ran would license the most expensive reading the brief can publish.
+    """
+    repo, claims = lane
+    _commit_at(repo, "docs/quiet.md", "x\n", DRAWN - 5_000)
+    _row(claims, "scan-broke", ["docs/quiet.md"])
+
+    def _boom(*a, **k):
+        raise RuntimeError("git status fell over")
+
+    monkeypatch.setattr(dl, "_window_attributable_paths", _boom)
+    got = dl.disposition_of("scan-broke", path=claims)
+
+    assert "genuine miss" not in got["evidence"]
+    assert could_not_ask(got), (
+        "and it must speak the voice this module ALREADY has. `residual_voices` keys "
+        "`could_not_ask` on the CANNOT ANSWER marker; a third voice saying the same thing in its "
+        "own words is invisible to every consumer of that split, which is the conflation this "
+        "residual exists to end. Got: {}".format(got))
+    assert "RuntimeError" in got["evidence"], "and it names what went dark"
+
+
+def test_the_candidate_alarm_says_LOOK_and_the_strand_alarm_says_LAND(lane, monkeypatch):
+    """The two verdicts want opposite actions from the reader, and an alarm that told a seat to
+    land bytes it had only a coincidence for would make this reading worse than the silence it
+    replaces. Separate keys too: one message that fired for both would suppress the other.
+
+    MUTATION: route STRAND_CANDIDATE through the STRANDED alarm and this fires on both assertions.
+    """
+    repo, claims = lane
+    (repo / "docs" / "in_the_window.md").write_text("bytes\n")
+    os.utime(repo / "docs" / "in_the_window.md", (DRAWN + 60, DRAWN + 60))
+    _row(claims, "paged", ["tools/predicted_nothing.py"])
+
+    sent = {}
+    from background import alarm_repetition
+    monkeypatch.setattr(alarm_repetition, "escalate",
+                        lambda msg, **kw: sent.update(msg=msg, key=kw.get("key")))
+
+    dl._act_on_tree_verdict("paged", now=_now(), path=claims)
+
+    assert sent.get("key") == "delivery-lane-strand-candidate:paged", (
+        "sharing the strand's key would let one suppress the other")
+    assert "CANDIDATE, not a strand" in sent["msg"] and "not yours to commit" in sent["msg"]
 
 
 # -------------------------------------------------------------------------------------------

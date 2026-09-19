@@ -119,7 +119,12 @@ def _fake_git(log_lines, *, tracked=(SUBJECT_PATH, OTHER_PATH), revisions=()):
     """
     blobs = dict(revisions)
 
-    def fake(*args):
+    # `cwd` IS THE SEAM'S OWN KWARG, not arbitrary junk. `_git` has taken it since the strand
+    # half landed (`_dirty_with_mtimes` asks the SHARED tree, never `PROJECT_DIR`), so a fake
+    # that refuses it raises TypeError where real git would answer -- a stand-in drifted from
+    # its subject, which is this file's own worry one level down. Named rather than `**k`:
+    # any OTHER kwarg still fails loudly, which is the strictness this fake is for.
+    def fake(*args, cwd=None):
         if args and args[0] == "ls-files":
             return "\n".join(tracked) + "\n"
         if args and args[0] == "show":
@@ -390,7 +395,7 @@ def test_GIT_SILENT_READS_AS_THE_RESIDUAL_and_never_raises_into_the_brief(tmp_pa
     """
     store = _ledger(tmp_path, {UNBOUND_ID: _row(named_paths=[SUBJECT_PATH])})
 
-    monkeypatch.setattr(dl, "_git", lambda *a: None)
+    monkeypatch.setattr(dl, "_git", lambda *a, **k: None)
     silent = dl.disposition_of(UNBOUND_ID, path=store)
 
     def boom(*_a):
