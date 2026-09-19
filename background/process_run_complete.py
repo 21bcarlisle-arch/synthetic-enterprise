@@ -6175,6 +6175,52 @@ def _land_publish_commit(pathspec, msg, git_hash):
             "waited_seconds": round(waited_between[0], 1)}
 
 
+#: Where `tools/generate_insights.py` puts what it writes. Declared here only so the enumeration
+#: below has something to filter ON -- the paths themselves are the writer's, never this module's.
+INSIGHTS_ARTEFACT_DIR = PROJECT_DIR / "docs" / "observability"
+
+
+def insights_artefact_paths():
+    """Every file `tools.generate_insights` DECLARES it writes, read off the writer's own constants.
+
+    A list of two names here would be the instance fix and would rot on the third output. Asking
+    the writing module which paths it names is the class: `RUN_INSIGHTS_PATH` and
+    `RUN_HISTORY_PATH` are found because they are `Path`s under `docs/observability/`, and a
+    fourth constant added to that module tomorrow is found by the same rule.
+
+    NO GLOB, DELIBERATELY, and that is the difference from the `site/state` block's tracked-file
+    census. `docs/observability/` is also where ~40 gitignored lock files, claim registers and
+    47MB logs live; a directory sweep here would try to stage every one of them, and `git add` is
+    all-or-nothing, so one ignored path would stage NOTHING and the publish would commit no
+    content at all. The set is exactly what one named module says it writes."""
+    import tools.generate_insights as _generate_insights
+
+    root = INSIGHTS_ARTEFACT_DIR.resolve()
+    found = []
+    for name, value in sorted(vars(_generate_insights).items()):
+        if name.startswith("_") or not isinstance(value, Path):
+            continue
+        resolved = value.resolve()
+        if resolved == root or root not in resolved.parents:
+            continue
+        found.append(value)
+    return found
+
+
+def _publish_insights_artefacts(files):
+    """Append the insights artefacts to a publish commit's path list, in place.
+
+    Non-fatal by the same rule as every other path-list block in `git_commit_push`: a publish
+    that loses one input path is worse than today, a publish that does not happen at all is worse
+    than that."""
+    try:
+        for path in insights_artefact_paths():
+            if path.exists():
+                files.append(str(path))
+    except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
+        log("Insights artefact paths not added to the commit (non-fatal): {}".format(_exc))
+
+
 def git_commit_push(git_hash, net_margin, outcome=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
@@ -6420,6 +6466,28 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                 files.append(str(_rendered))
     except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
         log("Derived-artefact paths not added to the commit (non-fatal): {}".format(_exc))
+    # THE SAME CLASS AGAIN, ON THE INPUTS INSTEAD OF THE OUTPUTS (2026-09-19). Every block above
+    # closes "regenerated every cycle, committed by none" for a file the site RENDERS. The
+    # insights step 700 lines up writes two files the site is BUILT FROM -- run_insights.json
+    # (the exec summary `generate_dashboard_data` reads straight off disk) and run_history.json
+    # (`extract_run_history` / `count_run_history_total`, and the comparator `detect_t6` names as
+    # its own raw data) -- and neither was ever on this list. Measured: their committed copies
+    # were last written 2026-07-17 while the dashboard.json BUILT FROM THEM was committed fresh
+    # every cycle. So HEAD carried a published artefact none of its own inputs could reproduce,
+    # and every isolated worktree -- which is where this seat and every fork reads -- got July's
+    # book. Nothing red on it for 64 days and nothing could: the file is present, it parses, and
+    # it returns a number.
+    #
+    # THE OTHER SHAPE WAS CONSIDERED AND LOST. Untracked machine-local state, with HEAD's stale
+    # copy deleted, is the only way to make "tracked and never committed" stop being both -- but
+    # `count_run_history_total` would then publish 0 from any fresh checkout, which its own
+    # docstring correctly calls honest, and honest-and-wrong is still wrong on a published
+    # surface. A published figure's source belongs in the commit that publishes it.
+    #
+    # DRIVEN OFF THE WRITER'S OWN CONSTANTS, not a path list here: `tools/generate_insights.py`
+    # declares where it writes, so a third output added there is committed without editing this
+    # function. That is the class closure; naming the two files here would be the instance fix.
+    _publish_insights_artefacts(files)
     # THE FIXTURE TOOK THE GREEN CYCLE, AND THE GUARD WAS ONLY ON THE RED ONE (2026-08-12).
     # `_provenance_is_publishable` was wired into `_commit_and_push_paths` alone -- the liveness
     # heartbeat and the red-cycle banner. But this function is the path that commits
