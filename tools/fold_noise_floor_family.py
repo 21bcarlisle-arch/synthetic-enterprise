@@ -126,6 +126,24 @@ def _seed_rows(sources: list) -> list:
     standard error falls by sqrt of a lie, and every field downstream reads as a better-resolved
     measurement. The artefact is well-formed and internally consistent, so nothing further down can
     tell -- which is precisely why the refusal has to be here.
+
+    BUT THE REFUSAL USED TO NAME A CAUSE IT HAD NOT ESTABLISHED (2026-09-19, measured). It said
+    "folding it would count one draw twice" on EVERY duplicate. That sentence is true only when
+    both rows came off the same pricing code. Seeds 3100001-3100012 have now been drawn TWICE --
+    once at `a178b56d6` and once at `18327d977` -- and those trees differ on
+    `company/pricing/value_based_renewal.py`, a `_VALUE_ARM_PATHS` member and the very file the
+    splice finding named. Those rows are not one draw twice. They are two instruments drawing the
+    same seed, and the remedy the old sentence implies -- drop the duplicate, keep either -- would
+    silently discard a whole family and publish the survivor as if the choice had not been made.
+
+    SO THE REFUSAL ASKS WHICH IT IS, AND SAYS ONLY WHAT IT ESTABLISHED. Same value arm: the
+    original sentence, which is then earned. Different value arm: a different defect, named, with
+    "fold each family alone" as the remedy instead of de-duplication. Cannot tell: fail closed and
+    say BOTH are open, because an unasked diff is not evidence the arms agree -- the error
+    `_value_arm_pairing` exists to stop making, one field earlier.
+
+    IT STILL REFUSES ON EVERY BRANCH. Which defect it is changes the remedy, never the verdict: no
+    fold that double-counts a seed id is well-defined, whichever tree drew it.
     """
     rows, where = [], {}
     for path, data in sources:
@@ -136,14 +154,62 @@ def _seed_rows(sources: list) -> list:
         for row in got:
             seed = row.get("seed")
             if seed in where:
-                raise FoldRefused(
-                    "seed {} appears in both `{}` and `{}`. Folding it would count one draw "
-                    "twice: `n` rises and the standard error shrinks by a factor that measures "
-                    "nothing, and the artefact that comes out is well-formed, so no consumer "
-                    "could tell.".format(seed, where[seed], path))
+                raise FoldRefused("seed {} appears in both `{}` and `{}`. {}".format(
+                    seed, where[seed], path, _why_a_duplicated_seed_refuses(
+                        where[seed], str(path), sources)))
             where[seed] = str(path)
             rows.append(row)
     return rows
+
+
+def _why_a_duplicated_seed_refuses(first: str, second: str, sources: list) -> str:
+    """The half of the duplicate-seed refusal that depends on WHICH tree drew each row.
+
+    Split out so the three branches are separately reachable and separately testable: a refusal
+    that can only be provoked through one door gets its other doors pinned by nothing.
+    """
+    by_path = {str(p): d for p, d in sources}
+    commits = []
+    for path in (first, second):
+        commit = ((by_path.get(path) or {}).get("producing_commit") or {}).get("commit")
+        commits.append(commit.strip() if isinstance(commit, str) and commit.strip() else None)
+
+    if None in commits:
+        return (
+            "One of those two runs carries no producing commit, so this cannot tell whether they "
+            "are the same draw recorded twice or two instruments that drew the same seed. BOTH "
+            "are open and they need opposite remedies -- de-duplicate, or fold each family alone "
+            "-- so neither is applied here. Stamp the unstamped run and ask again.")
+
+    if commits[0] == commits[1]:
+        return (
+            "Both runs name `{}`, so this is one draw recorded twice: `n` rises and the standard "
+            "error shrinks by a factor that measures nothing, and the artefact that comes out is "
+            "well-formed, so no consumer could tell. Drop one copy.".format(commits[0][:9]))
+
+    diffs, failed = _value_arm_diff(commits)
+    if failed:
+        return (
+            "They name different commits (`{}`, `{}`) and the value-arm diff could not be taken "
+            "({}). This may be one draw twice or two instruments drawing one seed; those need "
+            "opposite remedies, so neither is applied here. A diff that could not be run is not "
+            "evidence the arms agree.".format(commits[0][:9], commits[1][:9], failed))
+
+    if diffs:
+        return (
+            "They were drawn by DIFFERENT PRICING CODE -- `{}` and `{}` differ on {}, under {}. "
+            "These are not one draw twice; they are two instruments that drew the same seed id, "
+            "and their rows are different measurements that happen to share a label. Do NOT "
+            "de-duplicate: dropping either silently discards a whole instrument's family and "
+            "publishes the survivor as though no choice was made. Fold each family alone and "
+            "report them side by side.".format(
+                commits[0][:9], commits[1][:9], ", ".join(sorted(diffs)),
+                ", ".join(_VALUE_ARM_PATHS)))
+
+    return (
+        "They name different commits (`{}`, `{}`) but no path under {} differs between them, so "
+        "the same pricing code drew both and this is one draw recorded twice. Drop one copy."
+        .format(commits[0][:9], commits[1][:9], ", ".join(_VALUE_ARM_PATHS)))
 
 
 def _leg(rows: list, key: str) -> dict:
@@ -396,6 +462,32 @@ def _book_identity(sources: list) -> dict:
 _VALUE_ARM_PATHS = ("simulation/", "company/", "saas/", "tools/run_value_cycle_ab.py")
 
 
+def _value_arm_diff(commits: list) -> tuple:
+    """Paths under `_VALUE_ARM_PATHS` that differ across `commits`, or why it could not be asked.
+
+    Returns `(differing_paths:set, failed:str|None)`. Exactly one of the two is meaningful: on
+    failure the path set is empty and MEANS NOTHING, because an empty diff and an unasked diff are
+    the same bytes here and only one of them is evidence the arms agree. Every caller must branch
+    on `failed` BEFORE reading the set -- collapsing them is the flattering reading.
+    """
+    import subprocess
+
+    diffs = set()
+    for other in commits[1:]:
+        try:
+            done = subprocess.run(
+                ["git", "-C", str(_REPO), "diff", "--name-only", commits[0], other, "--",
+                 *_VALUE_ARM_PATHS],
+                capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return set(), "git could not be run here ({})".format(exc)
+        if done.returncode != 0:
+            return set(), "git refused the diff {}..{} ({})".format(
+                commits[0][:9], other[:9], (done.stderr or "").strip()[:200])
+        diffs.update(p for p in done.stdout.splitlines() if p.strip())
+    return diffs, None
+
+
 def _value_arm_pairing(sources: list) -> dict:
     """WHETHER THE MEMBERS OF THIS FOLD WERE DRAWN BY THE SAME PRICING CODE.
 
@@ -441,8 +533,6 @@ def _value_arm_pairing(sources: list) -> dict:
     eighteen are re-drawn on one tree this goes quiet with nobody editing a string, and the day a
     batch arrives from a moved tree it speaks up on its own.
     """
-    import subprocess
-
     stamped, unstamped = [], 0
     for _, data in sources:
         commit = (data.get("producing_commit") or {}).get("commit")
@@ -488,21 +578,7 @@ def _value_arm_pairing(sources: list) -> dict:
             "construction and no diff to take.")
         return out
 
-    diffs, failed = set(), None
-    for other in stamped[1:]:
-        try:
-            done = subprocess.run(
-                ["git", "-C", str(_REPO), "diff", "--name-only", stamped[0], other, "--",
-                 *_VALUE_ARM_PATHS],
-                capture_output=True, text=True, timeout=60)
-        except (OSError, subprocess.SubprocessError) as exc:
-            failed = "git could not be run here ({})".format(exc)
-            break
-        if done.returncode != 0:
-            failed = "git refused the diff {}..{} ({})".format(
-                stamped[0][:9], other[:9], (done.stderr or "").strip()[:200])
-            break
-        diffs.update(p for p in done.stdout.splitlines() if p.strip())
+    diffs, failed = _value_arm_diff(stamped)
 
     if failed:
         out["unavailable_because"] = (
