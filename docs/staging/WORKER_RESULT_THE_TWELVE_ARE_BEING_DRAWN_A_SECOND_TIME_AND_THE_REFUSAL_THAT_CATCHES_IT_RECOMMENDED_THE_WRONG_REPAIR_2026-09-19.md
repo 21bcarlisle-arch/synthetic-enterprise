@@ -138,9 +138,15 @@ repo will write again.
 4. The item's instruction stands: **do not launch a top-up run.** The fold now refuses to pool
    these two families, so a top-up would buy an artefact nothing can join.
 
-**What would still prove the separation insufficient:** the fold refuses, but nothing yet stops a
-*page generator* reading both artefacts and averaging them without going through `fold`. That path
-was not measured this turn and is the next place to look — a refusal in one tool is not a wall.
+**What would still prove the separation insufficient:** the fold refuses, but a *page generator*
+reading both artefacts and averaging them would never go through `fold` at all.
+
+> **Measured after writing that, and it is milder than I said.** `tools/generate_value_arms_data.py`
+> reads floor artefacts by NAMED CONSTANT, not by glob, so a new file appearing in
+> `docs/observability/` is picked up by nothing and cannot be auto-pooled. The exposure is a
+> future lane *wiring* the new twelve into `NOISE_FLOOR_PATH`'s fold by hand — and the block
+> above that constant already argues at length against exactly that. Downgraded from a hole to
+> a thing to watch.
 
 ---
 
@@ -148,3 +154,69 @@ was not measured this turn and is the next place to look — a refusal in one to
 (29 passed). The two ruff-ratchet reds on the shared tree (`I001` 1308→1307) are **not from this
 work** — both changed files pass `I001` at HEAD and now — and were left alone rather than absorbed
 into this commit, where they would have buried another lane's attribution.
+
+---
+
+## 7. THE SECOND FINDING: the live run is not the run the page says is owed — but it is a better one
+
+Measured this turn, after the repair, by asking every pair of trees how far apart their value arms
+are. Cell = count of differing paths under `simulation/`, `company/`, `saas/`,
+`tools/run_value_cycle_ab.py`:
+
+| | c066c114b | 4e7938f673 | 9f0ab066f | a178b56d6 | 18327d977 |
+|---|---|---|---|---|---|
+| **c066c114b** | 0 | 2 | 2 | 19 | 20 |
+| **4e7938f673** | 2 | **0** | **0** | 18 | 20 |
+| **9f0ab066f** | 2 | **0** | **0** | 18 | 20 |
+| **a178b56d6** | 19 | 18 | 18 | 0 | **4** |
+| **18327d977** | 20 | 20 | 20 | **4** | 0 |
+
+**`4e7938f673` and `9f0ab066f` are byte-identical on the value arm.** They are the two members of
+`NOISE_FLOOR_PATH` — the published eighteen — so that fold is sound: it is one instrument, call it
+**I1**, and the single-arm family the page publishes its NEGATIVE from is genuinely single-armed.
+
+Three consequences, and the third is the one that matters.
+
+**(a) The live run does NOT answer the question the page says is owed.**
+`generate_value_arms_data.py` states the re-open plainly: the published sign *"rests entirely on
+the width"*, the twelve at `a178b56d6` refute that width (sd 5398 vs 1632, F = 10.94, p = 2.3e-05),
+and what is owed is *"the one-variable run — these twelve seeds at `4e7938f673`"*, which would hold
+the instrument at I1 and vary only the seed set. **The run in flight is at `18327d977`, twenty
+paths from I1.** It is a third instrument and cannot separate instrument from seed set for the
+published eighteen. That question remains open after 09:10Z, and no run now in flight will close
+it.
+
+**(b) So the item's "pool with nothing" is right, and for a stronger reason than it gives.** The
+item argues against pooling because the trees differ. The geometry says more: there is no tree
+here of which the live twelve are a larger sample. Every candidate is 20 paths away.
+
+**(c) But the live twelve ARE the tightest contrast this project has ever had — with the FIRST
+twelve, not with the eighteen.** `a178b56d6` → `18327d977` is **four paths, and the twelve seed
+ids are identical**. That is a *paired* design: same seeds, same labels, one bounded change to the
+objective (`value_based_renewal.py`, `renewal_rate_chain.py`). A paired contrast on twelve matched
+seeds prices what the current objective change does to `selection_gbp` with the seed variance
+differenced out — and seed variance is precisely what has defeated every reading so far (sd £5,398
+against a £270 quantity).
+
+**Pairing is not pooling, and the fold's refusal does not forbid it.** The refusal repaired above
+says exactly this in its own words now: *"fold each family alone and report them side by side."*
+Two families, twelve paired differences, one number.
+
+### The precondition, and it must be checked before any pairing is published
+
+`simulation/run_phase2b.py` differs between the two trees. **If the world digest moved, the seed
+ids no longer label the same households and the pairing is void** — it would be differencing two
+populations and calling it an objective effect, which is this project's most expensive recurring
+shape. The first twelve ran in world `39a192ce04c1eda8`.
+
+**So the order of operations at 09:10Z is: read `world_identity` FIRST.**
+- Digests match → pair seed-by-seed against `..._next12_20260917.json` and publish the paired mean,
+  sd and sems from zero alongside the standalone reading.
+- Digests differ → the standalone reading only, and say plainly that the pairing was refused and
+  why. Do not difference across a world change.
+
+This is written before the artefact is readable so that it can refute me: **I expect the digests to
+match** (the item's own framing assumes one world across all thirty seeds, and `run_phase2b.py` is
+the harness rather than the world's content), **and I expect the paired sd to be far below £5,398**
+because the seed draw is held fixed. If the paired sd comes back near the unpaired sd, pairing
+buys nothing here and that is the finding.
