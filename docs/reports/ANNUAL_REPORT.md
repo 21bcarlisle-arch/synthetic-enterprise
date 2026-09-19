@@ -2749,13 +2749,13 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 |------|-----------------|-----------|-------|---------------|-----------|-------|
 | 2016 | 4.06% | 6% | OK | 22.9% | 8% | ! |
 | 2017 | 3.24% | 6% | OK | 30.8% | 8% | ! |
-| 2018 | 3.48% | 6% | OK | 43.9% | 8% | ! |
+| 2018 | 3.48% | 6% | OK | 44.9% | 8% | ! |
 | 2019 | 3.53% | 6% | OK | 31.7% | 8% | ! |
-| 2020 | 3.27% | 6% | OK | 38.5% | 8% | ! |
-| 2021 | 3.52% | 8% | OK | 33.3% | 12% | ! |
-| 2022 | 4.44% | 8% | OK | 40.2% | 12% | ! |
-| 2023 | 3.52% | 8% | OK | 39.0% | 12% | ! |
-| 2024 | 3.64% | 6% | OK | 33.9% | 8% | ! |
+| 2020 | 3.27% | 6% | OK | 39.6% | 8% | ! |
+| 2021 | 3.52% | 8% | OK | 30.2% | 12% | ! |
+| 2022 | 4.44% | 8% | OK | 39.1% | 12% | ! |
+| 2023 | 3.52% | 8% | OK | 40.0% | 12% | ! |
+| 2024 | 3.64% | 6% | OK | 32.2% | 8% | ! |
 | 2025 | 3.00% | 6% | OK | 28.7% | 8% | ! |
 
 **Complaints:** 10 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
@@ -2978,17 +2978,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (116 active customers) under 12-month forward scenarios.
-Generated: 2026-09-19T09:02:35Z
+Live portfolio (115 active customers) under 12-month forward scenarios.
+Generated: 2026-09-19T17:16:00Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-5,852 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£11,704 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£19,591 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-5,624 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£11,249 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£18,645 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
