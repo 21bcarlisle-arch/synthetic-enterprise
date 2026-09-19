@@ -22,7 +22,7 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-09-19 | 0 | UNDATED |
 | `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-09-19 | 0 | UNDATED |
 | `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-09-19 | 0 | FRESH |
-| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-09-18 | 1 | UNDATED |
+| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-09-19 | 0 | UNDATED |
 | `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 75 | UNDATED |
 
 `FRESH` recent · `OLD` genuinely old and honest about it (not a defect) · `UNDATED` states
@@ -37,9 +37,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 10,474 | 10,144 – 10,650 (`git rev-list --count`) | AGREES |
-| lines | 960,622 | 925,703 – 977,888 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 2,948 | 2,898 – 2,978 (the count of `*.py` in the git index) | AGREES |
+| commits | 10,474 | 10,144 – 10,682 (`git rev-list --count`) | AGREES |
+| lines | 960,622 | 925,703 – 980,854 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 2,948 | 2,898 – 2,983 (the count of `*.py` in the git index) | AGREES |
 | tests | 36,838 | 26,731 – 36,838 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.
