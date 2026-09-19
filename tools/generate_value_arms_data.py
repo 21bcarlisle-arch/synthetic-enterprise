@@ -1357,11 +1357,15 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
     return (
         "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run "
         "of {floor_at} and the point estimate on the run of {point_at}. {between} Read it as the "
-        # NAMES THE SUBJECT WITHOUT RE-QUOTING ITS STAMP. "the run published above" was the
-        # here-relative wording; the obvious repair -- "the run of {point_at}" -- names it
-        # correctly and puts that stamp in the sentence a THIRD time, which reds
-        # `test_an_error_bar_older_than_its_figure_says_so_on_the_page`: a reader told a bound is
-        # stale needs exactly the two runs the ordering is between, and a third stamp makes the
+        # THIS SENTENCE HAD TWO HOMES, which is the parent defect and not merely an unjudged
+        # pointer: "the run published above" rendered in BOTH `/capabilities/#arms-errorbar` AND
+        # `#arms-headline`, so the reader meeting it in the headline was sent somewhere the reader
+        # meeting it in the error-bar block was not. Invisible until `published` joined the
+        # participle branch of `_HERE_RELATIVE` on 2026-09-19.
+        # AND IT NAMES THE SUBJECT WITHOUT RE-QUOTING ITS STAMP. The obvious repair -- "the run of
+        # {point_at}" -- is correct English and puts that stamp in the sentence a THIRD time, which
+        # reds `test_an_error_bar_older_than_its_figure_says_so_on_the_page`: a reader told a bound
+        # is stale needs exactly the two runs the ordering is between, and a third stamp makes the
         # pair unreadable. "the point estimate's own run" is true from anywhere and adds no stamp.
         "size of this instrument's seed sensitivity; re-running the noise floor on the point "
         "estimate's own run is owed work."
@@ -3246,8 +3250,8 @@ def _legs_on_one_bar(floor: dict | None, three_arm: dict | None, split: dict | N
                 "what_this_costs": spreads.get("what_this_costs"),
                 "why_no_leg_is_graded": (
                     "Every leg on this page is graded off the same seed rows, so a floor that "
-                    "cannot bound one of them cannot bound any of them. The refusal above is the "
-                    "one the bounds block itself makes, republished here rather than softened "
+                    "cannot bound one of them cannot bound any of them. This refusal is the "
+                    "bounds block's own, republished rather than softened "
                     "into a narrower reason about one leg.")}
     legs, stateable, unstateable = {}, [], []
     for key in _BOUNDED_CONTRASTS:
@@ -10522,13 +10526,6 @@ _POPULATION_REPAIR_BIAS_SOURCE = (
 # second -- a reader meeting the clause in the re-draw block is told to look up at a figure
 # standing beside it. A pointer whose subject has homes on two sides of it has no here-relative
 # word that holds, so the subject is named.
-#
-# AND THAT REPAIR MISSED A SECOND POINTER IN THE SAME SENTENCE, repaired 2026-09-19 in the turn
-# after it. `clause` also said "{paths} paths of pricing code away from THE RUN ABOVE". The lane
-# above was working from a census `_here_relative_phrase` built, and `run` was not a noun in that
-# vocabulary -- so the string was certified clean by a detector that could not see half of what it
-# was certifying. The lesson is not about this sentence: a repair verified by a detector inherits
-# that detector's blind spot silently, and the flattering reading is that the string is now clean.
 _POPULATION_REPAIR_BIAS_NOT_A_GAIN = (
     "THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those "
     "{seeds} seeds the WHOLE advantage moved by £0.00 -- not a penny, not a rounding -- because "
@@ -10636,8 +10633,8 @@ def _population_repair_bias(artefact: dict | None) -> dict:
               "t = {t} on {seeds} paired seeds). "
             + _POPULATION_REPAIR_BIAS_NOT_A_GAIN + " "
               "AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `{inst}` against "
-              "`{against}`, {paths} paths of pricing code away from the run this figure comes "
-              "from, so it is the "
+              "`{against}`, {paths} paths of pricing code away from the run that produced the "
+              "choosing figure, so it is the "
               "size of the CLASS and not this figure's own error. Subtracting it here would be "
               "arithmetic across two instruments. The choosing figure stands as published."
         ).format(
@@ -10895,8 +10892,9 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         # sentence, and a sentence is not something a control can compare.
         "superseded_generated_at": superseded_at,
         "why_the_headline_omits_it": (None if is_the_later_run else (
-            "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the OTHER "
-            "of the two was taken at {sup}. Both name this world, so nothing here is stale and "
+            "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the run "
+            "this page marks superseded was taken at {sup}. Both name this world, so nothing "
+            "here is stale and "
             "every figure in this block was honestly measured -- but 'the world as it is now' is "
             "a claim about which run is more recent, and on these two it is false. So the "
             "headline states no sentence from this block, and what is published here is a SECOND "

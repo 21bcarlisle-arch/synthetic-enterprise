@@ -79,31 +79,44 @@ _LONG_ENOUGH = 40
 #: over prose and it is honest about being one -- a pointer worded past this vocabulary is not
 #: caught, which is why `test_the_here_relative_detector_is_aimed_at_prose_this_site_actually
 #: _publishes` requires it to still be finding live sentences.
-#
-# `run` AND `published` WERE ADDED 2026-09-19, AND HOW THEY WERE MISSED IS THE POINT. The live
-# `_population_repair_bias` clause says "20 paths of pricing code away from THE RUN ABOVE". It was
-# repaired the same day (`dc92d2d65`) by a lane reading a census THIS vocabulary built -- and that
-# repair named the FIGURE and left the RUN pointing, because `run` was not a noun here. A control
-# certified a repair to this defect class while blind to a live instance of the class inside the
-# same sentence. `published above` is the same shape on the other axis: nine participles were
-# registered and `published` was not, so six live pointers in one producer were invisible.
-#
-# DO NOT READ THE LIST AS CLOSED, AND DO NOT TRY TO CLOSE IT. Measured against the producers on
-# 2026-09-19: a deictic `the <noun> above|below` census over `site/data/*.json` returns 70+
-# distinct nouns, 8 of them registered here. Enumerating the rest is a losing game, and the
-# obvious inversion -- match any noun, deny-list the comparators -- was BUILT AND MEASURED and is
-# refused: it re-admits `generate_value_arms_data.py:5371`, "whether a larger settled book moves
-# the interval above", where `above` is the direction a NUMBER moves. Grammar does not separate
-# them either; that string's `above` is followed by a finite verb ("is NOT ESTABLISHED"), so the
-# noun-phrase test a reader would reach for passes it through. The reason is not that the regex is
-# weak: "the interval above" is genuinely ambiguous out of context, and this file only ever sees it
-# out of context. The remedy that would work is a partition -- every live `the <noun> above` in a
-# producer either recognised here or on an argued exempt list -- so a new one lands as a red naming
-# its string rather than as silence. Filed, not built:
-# `docs/staging/SEAT_FINDING_THE_HERE_RELATIVE_VOCABULARY_IS_AN_UNBOUNDED_ALLOW_LIST_2026-09-19.md`.
+#:
+#: THE NOUN LIST WAS AUDITED BY MEASUREMENT, 2026-09-19, not by asking what a page is made of.
+#: It had been the layout furniture a page is drawn with, and the site does not point that way.
+#: `value_arms.json` publishes "20 paths of pricing code away from the RUN above" -- a pointer by
+#: any reading, matching nothing here, and so invisible to this sweep and the three that import
+#: it. Sweeping every `<noun> above|below` in the published feeds and the producers' own literals
+#: (16,083 strings) says the nouns this site actually points with are UNITS OF ITS OWN RECORD --
+#: a run, an entry, a finding, a mutation, a refusal -- and the furniture is the minority. Half
+#: of what was here (`chart`, `list`, `box`, `card`) matches nothing published at all.
+#:
+#: AND THREE MEASURED CANDIDATES ARE DELIBERATELY NOT HERE, which is the half of the audit worth
+#: keeping, because each reads like an obvious omission to whoever comes next:
+#:   * `reading` -- "the highest READING BELOW the ceiling is 447" (`simplified.json`) is a
+#:     threshold, not a place.
+#:   * `line` -- "at least one LINE BELOW zero" (`knowledge_non_commodity_costs.json`) is a cost
+#:     stack component going negative.
+#:   * `range`/`interval` -- refused before, with its own measurement: see the docstring of
+#:     `tests/tools/test_the_proof_pages_undriven_pointers.py`, which found "moves the INTERVAL
+#:     ABOVE" and kept the phrase page-scoped in `_EXTRA_PHRASES` rather than widening this.
+#: That is the standing rule for this list: a site-wide vocabulary that admits arithmetic starts
+#: refusing arithmetic, so a noun earns its place by having NO comparison sense in the live
+#: corpus -- measured, not assumed. A noun that only points on one page belongs in that page's
+#: own `_EXTRA_PHRASES`.
+#:
+#: AND THE PARTICIPLE BRANCH HAD THE SAME HOLE, found the same day by a second lane and added
+#: here in the merge. `published` was missing from the nine beside it while "published above|
+#: below" was live SEVEN times in `generate_value_arms_data.py` alone -- one of them,
+#: `_staleness_caveat`, a genuine TWO-HOME pointer rendering in `/capabilities/#arms-errorbar`
+#: AND `#arms-headline`, i.e. a live instance of the parent defect that all four sweeps passed.
+#: THE AUDIT ABOVE COULD NOT HAVE FOUND IT: it censused `<noun> above|below`, and no census of
+#: that shape can return a participle. That is the lesson worth more than either word -- an audit
+#: is blind along the axis it was cut on, so the next one to run here should ask what SHAPE is
+#: unexamined before asking which words are missing from the shapes already known.
 _HERE_RELATIVE = re.compile(
     r"(higher up|further up|further down|lower down|above this|below this|"
-    r"(?:table|panel|chart|figure|row|block|section|list|column|note|box|card|band|run)s? "
+    r"(?:table|panel|chart|figure|row|block|section|list|column|note|box|card|band|"
+    r"run|entry|item|record|claim|finding|mutation|refusal|check|measurement|"
+    r"sentence|paragraph|summary)s? "
     r"(?:above|below)|"
     r"(?:shown|listed|set out|stated|named|given|described|printed|quoted|published) "
     r"(?:above|below)|"
@@ -413,39 +426,39 @@ def test_MUTATION_a_here_relative_pointer_given_a_second_home_is_CAUGHT():
 
 
 def test_MUTATION_the_2026_09_19_widening_can_still_FIRE_on_the_wordings_it_was_added_for():
-    """The two vocabulary entries added on 2026-09-19 must stay able to catch something.
+    """The vocabulary added on 2026-09-19 must stay able to catch something.
 
-    WHY THIS LEG IS NOT PARANOIA. `run` and `published` were added because eight live pointers in
-    `generate_value_arms_data.py` were invisible to this vocabulary -- and the same turn REPAIRED
-    all eight. So the day they were added, the words they were added for matched nothing anywhere
-    on the site, and every other leg in this file stayed green whether the widening was there or
-    not. Delete `run` from `_HERE_RELATIVE` right now and nothing else here notices. That is the
-    exact shape this project keeps paying for: a control extended to cover a class, with the
-    extension unreachable the moment the instances are fixed.
+    WHY THIS LEG IS NOT PARANOIA. Two lanes widened `_HERE_RELATIVE` that day -- fourteen nouns
+    from the furniture audit, and `published` on the participle branch -- and BOTH lanes repaired
+    every live instance they had just exposed. So on the day the widening landed, the words it was
+    added for matched nothing anywhere on the site, and every other leg in this file stayed green
+    whether the widening was present or not. Delete `run` from the noun branch, or `published` from
+    the participle branch, right now: nothing else here notices. That is the exact shape this
+    project keeps paying for -- a control extended to cover a class, with the extension made
+    unreachable by the very repairs that motivated it.
 
     KEYED TO THE VOCABULARY, NOT TO THE PAGE, and deliberately so. Asserting these wordings are
-    ABSENT from the live site would pin the control to today's answer and go red the day someone
-    legitimately writes one and repairs it. What is asserted is the thing that must not rot: the
-    detector can still RECOGNISE the wordings, so a regression that reintroduces one is caught
-    rather than waved through.
+    ABSENT from the live site would pin this to today's answer and go red the day someone writes
+    one legitimately and repairs it. What is asserted is the thing that must not rot: the detector
+    can still RECOGNISE the wordings, so a regression that reintroduces one is caught rather than
+    waved through.
 
     THE SPECIMENS ARE THE RETIRED STRINGS THEMSELVES, quoted from the producer as they stood
-    before the repair, for the same reason the leg above quotes the parent finding's: a wording
+    before their repairs, for the same reason the leg above quotes the parent finding's: a wording
     that was live and false is the only specimen that proves the vocabulary would have caught the
     real thing rather than a convenient paraphrase.
 
-    Fires on: either word being dropped from `_HERE_RELATIVE`; the participle or noun branch being
-    reordered into something that no longer reaches them; `_LANDMARK` widening far enough to
-    exempt them.
+    Fires on: any of these words being dropped from `_HERE_RELATIVE`; either branch being rewritten
+    into something that no longer reaches them; `_LANDMARK` widening far enough to exempt them.
     """
     retired = {
-        # `_population_repair_bias`, the instance the item was drawn for -- live in
-        # `site/data/value_arms.json` until 2026-09-19 and certified clean by this very file.
+        # `_population_repair_bias` -- the instance both lanes' items were filed for, live in
+        # `site/data/value_arms.json` and certified clean by this very file.
         "20 paths of pricing code away from the run above, so it is the size of the CLASS":
             "run above",
         # `_staleness_caveat`, and this one was a TWO-HOME pointer on the deployed page --
-        # `/capabilities/#arms-errorbar` and `#arms-headline` -- so it was a live instance of the
-        # parent defect, not merely an unjudged one.
+        # `/capabilities/#arms-errorbar` and `#arms-headline` -- so a live instance of the parent
+        # defect, not merely an unjudged one. It is the participle branch's witness.
         "re-running the noise floor on the run published above is owed work":
             "published above",
         # `_current_world_contrast`: the noun branch has to reach `below` as well as `above`, or
@@ -457,8 +470,8 @@ def test_MUTATION_the_2026_09_19_widening_can_still_FIRE_on_the_wordings_it_was_
         found = _here_relative_phrase(_norm(sentence))
         assert found is not None, (
             "{!r} was a LIVE published pointer until 2026-09-19 and this vocabulary no longer "
-            "recognises it, so the widening that was landed to catch it has been undone and its "
-            "return would be silent".format(sentence))
+            "recognises it, so the widening landed to catch it has been undone and its return "
+            "would be silent".format(sentence))
         assert found.lower() == expected, (
             "{!r} is recognised, but as {!r} rather than {!r} -- a different branch of the "
             "vocabulary is matching it, so the branch this leg exists to hold open is untested "
