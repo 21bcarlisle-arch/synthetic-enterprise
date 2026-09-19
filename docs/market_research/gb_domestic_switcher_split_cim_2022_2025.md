@@ -209,6 +209,84 @@ where a conversion *lands*, never what the banner's base is a share of — but *
 these columns as a population share has to settle it first**, and this paragraph is here so the next
 session does not discover the disagreement after building on it.
 
+## 4c. Annualisation, added 2026-09-19: it moves the FLOOR, and it cannot move the ceiling at all
+
+**Added by claim `svt-internal-conversion-ceiling-needs-annualisation-to-bite`. Pre-registration:
+`docs/staging/records/SEAT_PREREGISTRATION_WHETHER_A_PUBLISHED_INSTRUMENT_ANNUALISES_THE_CIM_INTERNAL_ROW_AND_WHICH_SIDE_OF_THE_BAND_IT_WOULD_MOVE_2026-09-19.md`,
+filed before the fetch.** §4a closes by saying a six-month rate is not a valid annual ceiling and
+that bounding one *"needs the repeat-switching assumption this file has declined to make twice"*.
+That sentence is true and it invites a repair that does not exist. **The question was asked and the
+answer is that no evidence could ever tighten the ceiling**, so the invitation is withdrawn here.
+
+Write `p` for a six-month incidence, `P12` for the twelve-month one, `q` for the share switching in
+both half-years, `r` for the share of annual switchers switching more than once:
+
+```
+P12 = 2p − q        (inclusion–exclusion, exact)      0 ≤ q ≤ p        q ≤ r·P12
+⟹  a = P12/p ∈ [1, 2] for every population           ⟹  P12 ≥ 2p/(1+r)
+```
+
+**A repeat-switching figure bounds `q` from ABOVE. A tighter ceiling needs it bounded from BELOW.**
+So the fact the claim asked for floors the annual incidence and therefore raises the *floor*; the
+ceiling moves up or not at all. Since `a ≥ 1`, **the six-month bar already in force is the `a = 1`
+endpoint — the tightest annual ceiling the published record can ever support**, and the world's
+four above-ceiling years are *further* from a breach in annual units, never closer.
+
+| | six-month bar in force | annual, `a = 1` | annual, `a = 2` |
+|---|---|---|---|
+| **ceiling** | 0.2659 | **0.2659** ← the bar in force is this corner | 0.5319 |
+
+The floor is the one-parameter family the same algebra gives, and **the floor in force is its
+`r = 1` corner** — not un-annualised, but annualised at the most conservative repetition there is:
+
+| `r` (share repeating within the year) | 0.00 | 0.25 | 0.50 | 0.75 | 1.00 |
+|---|---|---|---|---|---|
+| **binding floor on `J_svt`** | **0.1676** | 0.1185 | 0.0858 | 0.0624 | **0.0449** ← in force |
+
+**Which inverts §4a's closing claim.** Against a six-month bar the ceiling looked like the live
+side — the world at 0.70 of it, four years above. In annual units the world sits at **0.35–0.70 of
+the ceiling and at 1.11–4.14× the floor**, so *the floor is the side of this band that can refuse*,
+and it is where any future repeat-switching evidence lands. §4a's sentence is left as written and
+this corrects it beside it. One home in code:
+`tools.published_route_split.svt_internal_conversion_annualisation`.
+
+### What the search found, and why none of it is usable
+
+**A twelve-month reading of the very same event exists.** Ofgem's annual RMR / Consumer Engagement
+survey (TNS BMRB, face-to-face) asks *"whether changed tariff with existing supplier in last 12
+months"*: **16% (2014), 17% (2015), 15% (2018)** — the 2018 report adds that 2017 was *"similar"*
+and that levels *"have not changed significantly since 2014"*, which is not a published figure and
+so 2016–17 are not entered.
+
+It does not annualise the CIM row, **for comparability and not for absence**: not one of its years
+overlaps a CIM wave (it ends 2018, CIM begins 2022), its mode is face-to-face against CIM's online
+panel, and `household_switching_response_amplitude.md` §2.2 has already measured this survey
+family's self-report at about 1.5× the record's level. Dividing 0.15 by a CIM six-month rate yields
+a number that is part annualisation, part instrument and part market regime, with nothing in it to
+say which part is which. **It is held in code anyway** — `TWELVE_MONTH_INTERNAL_SWITCHING_
+OBSERVATIONS` — because *"we looked and found nothing"* sends the next session back to the same
+fetch and *"we found a series that cannot be used, and here is why"* does not.
+
+**The one frequency question located is the wrong event on the wrong window.** Ofgem RMR 2015
+Q21/Q22 — *"How many times have you ever switched your gas/electricity supplier"* — is **external**
+rather than internal and **lifetime** rather than annual. `r` stays `None`
+(`REPEAT_INTERNAL_SWITCH_SHARE_WITHIN_A_YEAR`), **a fourth refusal of the same fact**, and it is
+now refused on direction as well as on availability.
+
+**What would still supply it:** an instrument following the SAME households across two consecutive
+half-years, reporting how many switched internally in both. Nothing located this pass does.
+
+**Sources fetched and `pdftotext`-parsed 2026-09-19:**
+`https://www.ofgem.gov.uk/sites/default/files/docs/ofgem_rmr_survey_2015_report_published.pdf`
+(§1.2.3, Figures 1.4–1.5);
+`https://www.ofgem.gov.uk/system/files/docs/2018/10/consumer_engagement_survey_2018_report_0.pdf`
+(§3.2–3.3). Also checked and carrying no household-level repeat measure:
+`sim/cache/desnz_switching/table_271__2_.xlsx` (DESNZ/Ofgem transfer counts — meter points, external
+only, no household in the series, as `household_switching_response_amplitude.md` §1 already
+records).
+
+---
+
 ## 5. Why that matters to the thing the finding is actually repairing
 
 §9 of the finding put the world's departure shortfall onto one quantity — the hazard per

@@ -1690,6 +1690,272 @@ def svt_internal_conversion_ceiling() -> dict:
     }
 
 
+@dataclass(frozen=True)
+class TwelveMonthInternalSwitchingObservation:
+    """One year's published TWELVE-MONTH internal-switching incidence, from the annual instrument.
+
+    Held because the search for an annualisation of the CIM row FOUND this series, and a located
+    source that turned out not to answer the question is worth more on the shelf than the phrase
+    "nothing published" -- the next session would otherwise re-run the same fetch to rediscover it.
+    `why_this_does_not_annualise_the_cim_row` in `svt_internal_conversion_annualisation` is the
+    reason it is not used, and the reason is comparability rather than absence.
+    """
+
+    year: int
+    #: "changed tariff with their existing supplier" / "switched tariff", past 12 months, all GB
+    #: consumers. The same EVENT as CIM C4's internal row, on a twelve-month window instead of six.
+    internal_rate_of_all_households_12mo: float
+    instrument: str
+
+
+#: Ofgem's annual Retail Market Review / Consumer Engagement survey (TNS BMRB, face-to-face),
+#: question *"whether changed tariff with existing supplier in last 12 months"*. CITED -- fetched
+#: and `pdftotext`-parsed 2026-09-19 from `ofgem_rmr_survey_2015_report_published.pdf` (2014 and
+#: 2015 figures, §1.2.3) and `consumer_engagement_survey_2018_report_0.pdf` (2018, §3.3, which also
+#: states 2017 was "similar" and that levels "have not changed significantly since 2014" -- so
+#: 2016 and 2017 are NOT entered here, because "similar" is not a published figure).
+#:
+#: THIS SERIES IS A TWELVE-MONTH READING OF THE SAME EVENT AND IT STILL DOES NOT ANNUALISE THE CIM
+#: ROW. Not one of its years overlaps a CIM wave -- it ends in 2018 and CIM begins in 2022 -- so
+#: the ratio of any figure here to any CIM figure is a ratio across two instruments, two modes and
+#: two market regimes, and only one of those three differences is the annualisation.
+TWELVE_MONTH_INTERNAL_SWITCHING_OBSERVATIONS = (
+    TwelveMonthInternalSwitchingObservation(2014, 0.16, "Ofgem RMR survey 2015 (TNS BMRB)"),
+    TwelveMonthInternalSwitchingObservation(2015, 0.17, "Ofgem RMR survey 2015 (TNS BMRB)"),
+    TwelveMonthInternalSwitchingObservation(
+        2018, 0.15, "Ofgem Consumer Engagement survey 2018 (TNS BMRB)"
+    ),
+)
+
+#: The share of a year's internal switchers who switch internally MORE THAN ONCE in that year --
+#: `r` in `svt_internal_conversion_annualisation`. **NOT ESTABLISHED, AND THIS IS THE FOURTH
+#: REFUSAL OF THE SAME FACT**, after `svt_internal_conversion_floor`, `_internal_return_vs_record`
+#: and `_internal_return_vs_the_published_ceiling` each declined to assume it.
+#:
+#: It is refused on the same terms as the first three and it is now refused for a SECOND, stronger
+#: reason that the first three did not have: even supplied, it moves the ceiling the WRONG WAY.
+#: See `svt_internal_conversion_annualisation`, which is where the direction is worked out rather
+#: than asserted.
+REPEAT_INTERNAL_SWITCH_SHARE_WITHIN_A_YEAR = None
+REPEAT_INTERNAL_SWITCH_SHARE_WITHIN_A_YEAR_GAP = (
+    "r -- the share of a year's internal switchers who switch internally more than once in that "
+    "year -- is published nowhere located. The one frequency question found in the GB domestic "
+    "instruments asks how many times a household has EVER switched SUPPLIER (Ofgem RMR 2015 Q21/"
+    "Q22), which is the wrong event on the wrong window: external rather than internal, lifetime "
+    "rather than annual. The twelve-month internal series that does exist "
+    "(`TWELVE_MONTH_INTERNAL_SWITCHING_OBSERVATIONS`) shares no year with any CIM wave, so it "
+    "cannot be divided by a CIM six-month rate to recover r."
+)
+
+#: The endpoints of the annualisation factor `a = P12 / p`, where `p` is a six-month incidence and
+#: `P12` the twelve-month one. NOT A MEASUREMENT AND NOT A BELIEF: inclusion-exclusion over two
+#: half-years gives `P12 = 2p - q` with `0 <= q <= p`, so `a` lies in [1, 2] for every population
+#: and every behaviour. `a = 1` is total repetition (everyone who switches in one half switches in
+#: the other), `a = 2` is none.
+ANNUALISATION_FACTOR_BAND = (1.0, 2.0)
+
+
+def svt_internal_conversion_annualisation() -> dict:
+    """What annualising the CIM internal row can and cannot do to each side of the `J_svt` band.
+
+    THE QUESTION THIS WAS ASKED, VERBATIM FROM THE CLAIM THAT DREW IT: *"establish whether a
+    published GB domestic instrument supports ANNUALISING the CIM six-month internal-switching
+    rate -- i.e. how much repeat internal switching a household does within one year"*, the stated
+    motive being that *"a repeat-switching figure is the single published fact that turns this
+    bound from live into firing"*.
+
+    **THE MOTIVE IS REFUTED, ON DIRECTION, AND THE REFUTATION NEEDED NO FETCH.** It is registered
+    in `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_A_PUBLISHED_INSTRUMENT_ANNUALISES_THE_
+    CIM_INTERNAL_ROW_AND_WHICH_SIDE_OF_THE_BAND_IT_WOULD_MOVE_2026-09-19.md`, filed before it,
+    because a direction established after the evidence arrives cannot be told from one fitted to it.
+
+    THE ARITHMETIC, ONCE. Write `p` for a six-month incidence, `P12` for the twelve-month one, `q`
+    for the share switching in BOTH half-years, and `r` for the share of annual switchers who
+    switch more than once -- the figure the claim asks for::
+
+        P12 = 2p - q            inclusion-exclusion over two half-years, exact
+        0 <= q <= p             a subset of either half's switchers
+        q <= r * P12            switching in both halves implies more than once, NOT conversely
+
+    From the second line, `a = P12/p` lies in **[1, 2]** always. From the third::
+
+        P12 = 2p - q >= 2p - r*P12      =>      P12 >= 2p / (1 + r)
+
+    **A published `r` bounds the annual incidence from BELOW. The ceiling needs it bounded from
+    ABOVE, and `r` never does that.** That asymmetry is the whole result and it is not close: `q`
+    is what a tighter ceiling requires, and every repeat-switching figure of the published shape
+    caps `q` rather than flooring it.
+
+    WHAT THAT MEANS FOR EACH SIDE, and the two sides move in opposite directions:
+
+      * **THE CEILING CANNOT BE TIGHTENED BY ANY EVIDENCE.** The true annual ceiling is `a * I/s`
+        with `a >= 1`, so it is at least the six-month figure and at most twice it. The six-month
+        bar already in force IS the `a = 1` endpoint -- **the tightest annual ceiling the published
+        record could ever support, whatever anyone measures.** It was landed as an un-annualised
+        stand-in with a warning attached; it turns out to be the binding corner of the annualised
+        family, which is a stronger claim than the warning made.
+      * **THE FLOOR IS THE SIDE A REPEAT FIGURE MOVES**, through `P12 >= 2p/(1+r)`. The floor now
+        in force is the `r = 1` corner -- it is not merely "un-annualised", it is annualised at the
+        most conservative possible repetition -- and `r = 0` would nearly quadruple it, from 0.0449
+        to 0.1676. Every wave's floor rises monotonically as `r` falls, so ANY published upper
+        bound on `r` below 1 buys a strictly tighter floor.
+
+    **SO THE CLAIM'S PREMISE IS BACKWARDS IN BOTH HALVES**: the fact it names cannot make the
+    ceiling bite, and the side it would help is the floor, which the claim treats as settled. The
+    third consequence follows and is the one that changes how the band should be read: once both
+    sides are stated in annual units, a world sits at **0.35 to 0.70** of the ceiling and at **1.00
+    to 4.14** times the floor, so **the FLOOR is the live side of this band and the ceiling is not**
+    -- the exact inverse of the reading `svt_internal_conversion_ceiling` landed under. That
+    function's own text, *"the ceiling is the side that can refuse"*, is left standing where it is
+    written; this is what corrects it, beside it and not over it.
+
+    WHAT THE SEARCH FOUND, so the next session does not repeat the fetch. A twelve-month reading of
+    the very same event exists -- `TWELVE_MONTH_INTERNAL_SWITCHING_OBSERVATIONS`, 15-17% across
+    2014-2018 -- and **it is not usable here, for comparability rather than for absence**: not one
+    of its years overlaps a CIM wave, its mode is face-to-face against CIM's online panel, and
+    `household_switching_response_amplitude.md` §2.2 has already measured this survey family's
+    self-report running about 1.5x the record's level. Dividing 0.15 by a CIM six-month rate would
+    produce a number that is part annualisation, part instrument and part market regime, and
+    nothing in it would say which part is which. It is entered here because "we looked and found
+    nothing" and "we found a series that cannot be used, and here is why" are different findings
+    and only the second one survives contact with the next reader.
+
+    FAILS CLOSED. `r` is `None` and every figure that would need it is returned as a FAMILY indexed
+    by `r` rather than as a value, so no caller can read an annualised floor without choosing the
+    repetition it rests on and seeing that it chose.
+    """
+    ceiling_reading = svt_internal_conversion_ceiling()
+    floor_reading = svt_internal_conversion_floor()
+    six_month_ceiling = ceiling_reading["binding_ceiling"]
+    a_lo, a_hi = ANNUALISATION_FACTOR_BAND
+
+    # The floor as the one-parameter family it actually is. `r = 1` must reproduce the landed
+    # floor exactly -- that is what ties this family to the bound already in force, and the test
+    # keyed to it fails if either side moves.
+    family = []
+    for repeat_share in (0.0, 0.25, 0.5, 0.75, 1.0):
+        per_wave, floors = {}, []
+        for wave in floor_reading["per_wave"]:
+            rate = wave["internal_rate_of_all_households_6mo"]
+            renewal_ceiling = wave["renewal_route_internal_ceiling"]
+            share = wave["largest_published_default_share"]
+            if renewal_ceiling is None or not share:
+                per_wave[f"W{wave['wave']}"] = None
+                continue
+            annual_low = 2.0 * rate / (1.0 + repeat_share)
+            floor = round((annual_low - renewal_ceiling) / share, 6)
+            per_wave[f"W{wave['wave']}"] = floor
+            floors.append(floor)
+        family.append({
+            "repeat_share": repeat_share,
+            "annual_incidence_is_at_least": f"2 * I / {1.0 + repeat_share}",
+            "per_wave": per_wave,
+            "binding_floor": min(floors) if floors else None,
+        })
+    binding_by_repeat_share = [row["binding_floor"] for row in family]
+    at_total_repetition = family[-1]["binding_floor"]
+    at_no_repetition = family[0]["binding_floor"]
+
+    annual_ceilings = {
+        "a_1_every_switcher_repeats": (
+            None if six_month_ceiling is None else round(a_lo * six_month_ceiling, 6)
+        ),
+        "a_2_no_switcher_repeats": (
+            None if six_month_ceiling is None else round(a_hi * six_month_ceiling, 6)
+        ),
+    }
+    return {
+        "what_this_is": (
+            "what annualising Ofgem's CIM six-month internal row can do to each side of the "
+            "`J_svt` band. A DIRECTION result: it can loosen the ceiling and it can tighten the "
+            "floor, and it can never do the reverse of either."
+        ),
+        "the_question_asked": (
+            "whether a published GB domestic instrument supports annualising the CIM six-month "
+            "internal-switching rate -- how much repeat internal switching a household does in a "
+            "year -- so that the ceiling bites."
+        ),
+        "the_answer": (
+            "NO INSTRUMENT SUPPLIES IT, AND IT WOULD NOT DO THAT IF IT DID. The ceiling cannot be "
+            "tightened by any evidence whatever, because the annualisation factor is at least 1 "
+            "and the bar in force is already the factor-of-1 endpoint. The floor is the side such "
+            "a figure moves, and the floor is the side of this band that is live."
+        ),
+        "source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+        "annualisation_factor_band": list(ANNUALISATION_FACTOR_BAND),
+        "why_the_band_is_structural_and_not_measured": (
+            "P12 = 2p - q with 0 <= q <= p, by inclusion-exclusion over two half-years. It holds "
+            "for every population and every behaviour, so no fetch can narrow it from outside; "
+            "only a measurement of q itself narrows it, and q is what nothing published carries."
+        ),
+        # ---- the ceiling side ----
+        "six_month_ceiling": six_month_ceiling,
+        "annual_ceiling_at_each_endpoint": annual_ceilings,
+        # DERIVED, NEVER DECLARED. Mutating either endpoint of the band, or the ceiling this is
+        # taken against, flips this -- which is the point: a hand-written True here would stay
+        # green if the band were widened downward and the claim became false.
+        "the_six_month_bar_is_already_the_tightest_annual_ceiling": (
+            None if six_month_ceiling is None
+            else min(v for v in annual_ceilings.values() if v is not None) == six_month_ceiling
+        ),
+        "no_published_fact_can_tighten_the_ceiling": (
+            "a tighter annual ceiling needs q -- the both-halves overlap -- bounded from BELOW. A "
+            "repeat-switching figure bounds q from ABOVE (switching in both halves implies more "
+            "than once, and not conversely), so it moves the ceiling up or leaves it, never down. "
+            "The only instrument that could tighten it is one that follows the SAME households "
+            "across two consecutive half-years and reports how many switched in both."
+        ),
+        # ---- the floor side ----
+        "six_month_floor": floor_reading["binding_floor"],
+        "floor_by_repeat_share": family,
+        "the_floor_in_force_is_the_total_repetition_corner": at_total_repetition,
+        "the_floor_if_nobody_repeats": at_no_repetition,
+        # DERIVED. The family must be monotone decreasing in r, and the r = 1 corner must BE the
+        # landed floor; either failing means the family and the bound have come apart.
+        "the_family_is_monotone_in_the_repeat_share": all(
+            binding_by_repeat_share[i] >= binding_by_repeat_share[i + 1]
+            for i in range(len(binding_by_repeat_share) - 1)
+        ),
+        "the_r_1_corner_reproduces_the_landed_floor": (
+            at_total_repetition == floor_reading["binding_floor"]
+        ),
+        "which_side_of_the_band_annualising_moves": (
+            "THE FLOOR, AND ONLY THE FLOOR. The claim that drew this work had it the other way "
+            "round -- it asked for the fact in order to make the CEILING bite. The floor in force "
+            "is the r = 1 corner of the family above, so it is not un-annualised so much as "
+            "annualised at the most conservative repetition there is, and any published upper "
+            "bound on r below 1 raises it."
+        ),
+        # ---- what was searched ----
+        "the_repeat_share_is": REPEAT_INTERNAL_SWITCH_SHARE_WITHIN_A_YEAR,
+        "why_there_is_no_repeat_share": REPEAT_INTERNAL_SWITCH_SHARE_WITHIN_A_YEAR_GAP,
+        "a_twelve_month_reading_of_the_same_event_exists": [
+            {
+                "year": obs.year,
+                "internal_rate_of_all_households_12mo": obs.internal_rate_of_all_households_12mo,
+                "instrument": obs.instrument,
+            }
+            for obs in TWELVE_MONTH_INTERNAL_SWITCHING_OBSERVATIONS
+        ],
+        # DERIVED. If a CIM wave ever shared a year with this series the comparability objection
+        # would weaken, and this would say so without anyone editing the prose.
+        "any_year_overlaps_a_cim_wave": bool(
+            {obs.year for obs in TWELVE_MONTH_INTERNAL_SWITCHING_OBSERVATIONS}
+            & {year for obs in SWITCHER_SPLIT_OBSERVATIONS for year in obs.recall_window_years}
+        ),
+        "why_that_series_does_not_annualise_the_cim_row": (
+            "no year of it overlaps a CIM wave (it ends 2018, CIM begins 2022), its mode is "
+            "face-to-face against CIM's online panel, and this survey family's self-report already "
+            "measures about 1.5x the record's level "
+            "(`household_switching_response_amplitude.md` §2.2). A ratio of one of its figures to "
+            "a CIM six-month rate mixes annualisation with instrument and with market regime, and "
+            "carries nothing that says which part is which."
+        ),
+        "the_point_estimate_is": SVT_INTERNAL_CONVERSION_RATE,
+        "why_there_is_no_point_estimate": SVT_INTERNAL_CONVERSION_RATE_GAP,
+    }
+
+
 def published_route_split() -> dict:
     """The whole reading, as the committed artefact carries it."""
     svt = svt_segment_churn_band()

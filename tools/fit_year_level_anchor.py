@@ -1516,6 +1516,10 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
             round(totals[STINT_RETURNED] / account_years_total, 6)
             if account_years_total else None,
         ),
+        "against_the_band_in_annual_units": _internal_return_vs_the_annualised_band(
+            round(totals[STINT_RETURNED] / account_years_total, 6)
+            if account_years_total else None,
+        ),
         "tenure_mix_vs_the_published_observations": {
             "what_this_is": (
                 "section 14 put two published observations of the SVT segment's within-segment "
@@ -2020,6 +2024,113 @@ def _internal_return_vs_the_published_ceiling(
     }
 
 
+def _internal_return_vs_the_annualised_band(
+    world_rate_per_svt_account_year: float | None,
+) -> dict:
+    """The world against BOTH bounds restated in the world's own units, which are annual.
+
+    WHY THIS IS NOT A THIRD BOUND. `against_the_floor_for_this_route` and `against_the_ceiling_for_
+    this_route` both judge an ANNUAL world figure against a SIX-MONTH bar, and each carries a
+    sentence saying which direction that makes safe. This asks the question those two sentences
+    leave open: what happens to the verdicts when the bars are put into the world's units instead.
+    The answer is not symmetric, and the asymmetry is the reading.
+
+    `published_route_split.svt_internal_conversion_annualisation` does the arithmetic and owns the
+    evidence; this function does nothing but stand the world beside it, because the check may not
+    reach the world it judges and the record may not know about the world at all.
+
+    THE TWO VERDICTS MOVE IN OPPOSITE DIRECTIONS, and a reader who expects annualising to sharpen
+    both has the thing exactly backwards:
+
+      * THE CEILING ONLY LOOSENS. The annual ceiling is between 1x and 2x the six-month bar, so
+        the world's share of it falls from 0.70 to somewhere in [0.35, 0.70]. **Every one of the
+        four above-ceiling years is further from a breach in annual units than in six-month ones,
+        not closer** -- so no amount of evidence about repeat switching can turn them into one.
+      * THE FLOOR ONLY TIGHTENS, and it tightens a long way: from 0.0449 at total repetition to
+        0.1676 at none. The world clears even the tightest corner, but by 1.1x rather than 4.1x,
+        and a multiple that close is a bound that could plausibly refuse the next change to the
+        SVT-side decision. **That makes the floor the live side of this band.**
+
+    FAILS CLOSED. A missing bound at either end is reported with its reason and never as a pass,
+    and `the_world_clears_the_tightest_floor` is `None` rather than `True` when the floor is `None`.
+    """
+    reading = published_route_split.svt_internal_conversion_annualisation()
+    ceilings = reading["annual_ceiling_at_each_endpoint"]
+    loosest_ceiling = ceilings["a_2_no_switcher_repeats"]
+    tightest_ceiling = ceilings["a_1_every_switcher_repeats"]
+    tightest_floor = reading["the_floor_if_nobody_repeats"]
+    floor_in_force = reading["the_floor_in_force_is_the_total_repetition_corner"]
+    world = world_rate_per_svt_account_year
+    return {
+        "what_this_is": (
+            "both published bounds on `J_svt` restated in the world's own ANNUAL units, and the "
+            "world beside them. Not a new bound -- the same two, with the six-month convention "
+            "that both of them carry taken off."
+        ),
+        "refused": (
+            None if (world is not None and tightest_ceiling is not None
+                     and tightest_floor is not None) else
+            "one of the world rate, the ceiling or the floor is absent, so there is no annual "
+            "comparison to make. Reported rather than passed."
+        ),
+        "world_per_svt_account_year": world,
+        "annualisation_factor_band": reading["annualisation_factor_band"],
+        "why_the_factor_is_a_band_and_not_a_number": reading["why_there_is_no_repeat_share"],
+        # ---- ceiling: loosens, in every case ----
+        "annual_ceiling_span": [tightest_ceiling, loosest_ceiling],
+        "share_of_the_tightest_annual_ceiling": (
+            None if (not tightest_ceiling or world is None)
+            else round(world / tightest_ceiling, 4)
+        ),
+        "share_of_the_loosest_annual_ceiling": (
+            None if (not loosest_ceiling or world is None)
+            else round(world / loosest_ceiling, 4)
+        ),
+        "the_ceiling_can_only_loosen": reading["no_published_fact_can_tighten_the_ceiling"],
+        # ---- floor: tightens, and this is where the evidence would land ----
+        "annual_floor_span": [floor_in_force, tightest_floor],
+        "multiple_of_the_floor_in_force": (
+            None if (not floor_in_force or world is None)
+            else round(world / floor_in_force, 4)
+        ),
+        "multiple_of_the_tightest_annual_floor": (
+            None if (not tightest_floor or world is None)
+            else round(world / tightest_floor, 4)
+        ),
+        "the_world_clears_the_tightest_floor": (
+            None if (tightest_floor is None or world is None) else world >= tightest_floor
+        ),
+        # DERIVED, NEVER DECLARED, and it is the whole point of the function. The live side is
+        # whichever bound the world sits closest to once both are in annual units; writing the
+        # answer down as a literal would survive the world moving past either bound.
+        "the_live_side_of_the_band": (
+            None if (world is None or tightest_floor is None or loosest_ceiling is None)
+            else (
+                "FLOOR" if (world - tightest_floor) < (loosest_ceiling - world) else "CEILING"
+            )
+        ),
+        "why_that_inverts_what_the_ceiling_landed_under": (
+            "`svt_internal_conversion_ceiling` landed as *the side that can refuse*, and against a "
+            "six-month bar it looked like it: the world sat at 0.70 of it with four years above. "
+            "In annual units the world sits at 0.35-0.70 of the ceiling and at 1.11-4.14x the "
+            "floor, so the floor is the closer bound and the one a change to the SVT-side "
+            "decision could actually trip. The ceiling's own sentence is left standing where it "
+            "is written and this is what corrects it."
+        ),
+        "what_this_cannot_say": (
+            "that the world's rate is right, and not that any year breaches anything. Annualising "
+            "moves both bars AWAY from every above-ceiling year, so those four years are further "
+            "from a breach here than they were before -- the opposite of what the claim that drew "
+            "this work expected, and the reason it is written down rather than left implied. It "
+            "also compares an EVENT count (the world's returned stints over exposure) against two "
+            "bounds built from an INCIDENCE (households reporting at least one switch), and those "
+            "coincide only where nobody repeats: at the r = 0 corner they are the same quantity "
+            "and away from it the world's numerator is the larger, which flatters the floor "
+            "verdict and harshens the ceiling one."
+        ),
+    }
+
+
 def _internal_return_main(table_path: Path) -> int:
     """`--internal-return`: measure the world's internal re-contract route, print it, and WRITE it.
 
@@ -2138,6 +2249,31 @@ def _internal_return_main(table_path: Path) -> int:
         print("  ceiling read as an annual bar is LOWER than the true annual ceiling, so CLEARS "
               "is the")
         print("  established verdict and a year ABOVE it has established nothing.")
+    annual = reading["against_the_band_in_annual_units"]
+    print()
+    print("── AND BOTH BOUNDS IN THE WORLD'S OWN UNITS, WHICH ARE ANNUAL ──")
+    print()
+    if annual["refused"] is not None:
+        print(f"  REFUSED — {annual['refused']}")
+    else:
+        lo_c, hi_c = annual["annual_ceiling_span"]
+        lo_f, hi_f = annual["annual_floor_span"]
+        print(f"  annualisation factor is in {annual['annualisation_factor_band']} for every "
+              f"population — structural, not measured")
+        print(f"  annual ceiling [{lo_c:.6f}, {hi_c:.6f}]  world is at "
+              f"{annual['share_of_the_loosest_annual_ceiling']:.2f}–"
+              f"{annual['share_of_the_tightest_annual_ceiling']:.2f} of it")
+        print(f"  annual floor   [{lo_f:.6f}, {hi_f:.6f}]  world is at "
+              f"{annual['multiple_of_the_tightest_annual_floor']:.2f}–"
+              f"{annual['multiple_of_the_floor_in_force']:.2f}x it "
+              f"(clears the tightest: {annual['the_world_clears_the_tightest_floor']})")
+        print(f"  THE LIVE SIDE OF THIS BAND IS THE {annual['the_live_side_of_the_band']}, and "
+              "the ceiling's own landing note said")
+        print("  the opposite. Annualising moves the ceiling only UPWARD, so the four "
+              "above-ceiling years")
+        print("  are further from a breach here than in six-month units, and no evidence about "
+              "repeat")
+        print("  switching can bring them closer. The floor is where such evidence would land.")
     mix = reading["tenure_mix_vs_the_published_observations"]
     print()
     print("── THE TENURE MIX §14 SOURCED, AGAINST THE WORLD'S ──")
