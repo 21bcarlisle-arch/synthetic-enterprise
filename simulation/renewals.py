@@ -100,20 +100,72 @@ def build_renewal_schedule(
     # branched, because a fourth `tariff_type` inside this loop would put a no-renewal product
     # in a loop every line of which is about a renewal. See simulation/svt_product.py, and
     # `docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` for why the world owed one.
+    #
+    # AND IT IS NOT ABSORBING, FOR A RESI HOUSEHOLD (2026-09-18). This branch used to `return` the
+    # whole window of cap segments, so a household that ARRIVED on the default tariff could never
+    # reach a fixed term for its entire tenure. That is the absorbing first draft this same
+    # builder's passive branch below already refuses in writing -- a household that ROLLS onto SVT
+    # mid-tenure gets its anniversary back and can take a deal again, and only a household that
+    # STARTED there could not. Two routes onto one product, one of them with an exit.
+    #
+    # The published record is what refuses it, and it refuses it in the direction that matters:
+    # Ofgem CIM question C4 reports internal switching -- taking a deal with your existing
+    # supplier -- above what the entire fixed-term renewal population can produce, in all six
+    # waves, so most of it must be default-tariff households converting
+    # (`tools.published_route_split.svt_internal_conversion_floor`, binding floor 0.0449 per SVT
+    # household per six months). A household with no exit from the default tariff contributes
+    # exactly zero to that, forever, on every seed.
+    #
+    # NO NEW RULE, NO NEW CONSTANT, NO SECOND MECHANISM. The exit is the one below: the household
+    # looks at the market on its own annual cadence and `rolls_active_renewal` decides, at the same
+    # anchored 35% population rate, with the same per-household engagement archetype, forced
+    # passive across the same `FTC_WITHDRAWAL_WINDOW`. What this branch adds is only the FIRST
+    # stint -- the household arrives on the cap and stays there until its first anniversary,
+    # because arriving on the default tariff is not a decision it gets to revisit on day one.
+    #
+    # DOMESTIC ONLY, and the branch below still returns for everything else, because the exit is
+    # domestic: `simulation/svt_rates.py` is the Ofgem DOMESTIC default-tariff cap, an SME or I&C
+    # site has no default tariff to convert away from, and its renewals are broker-driven. That is
+    # the published scope of the anchor and it is the same carve-out the roll below already makes.
+    svt_origin_terms: list[dict] = []
     if tariff_type == SVT_TARIFF_TYPE:
-        return build_svt_schedule(
-            customer_id, original_acquisition_date, report_end_date, price_records,
-            lookback_temps_fn=lookback_temps_fn,
-            # THIS BUILDER IS ELECTRICITY'S AND NAMES IT (2026-09-16). `build_svt_schedule` took
-            # no `fuel` until gas needed one, and it now refuses to guess -- gas terms are built
-            # by `run_phase2b._build_gas_renewal_schedule`, which names its own.
-            fuel="electricity",
+        _svt_origin_window_end = (
+            date.fromisoformat(original_acquisition_date) + timedelta(days=CONTRACT_LENGTH_DAYS)
         )
+        if segment != "resi" or _svt_origin_window_end > date.fromisoformat(report_end_date):
+            # Nothing to convert INTO within the window, or a segment the domestic cap does not
+            # cover. Either way the whole window is one uninterrupted stint on the published cap,
+            # which is what this branch has always built.
+            return build_svt_schedule(
+                customer_id, original_acquisition_date, report_end_date, price_records,
+                lookback_temps_fn=lookback_temps_fn,
+                # THIS BUILDER IS ELECTRICITY'S AND NAMES IT (2026-09-16).
+                # `build_svt_schedule` took no `fuel` until gas needed one, and it now refuses
+                # to guess -- gas terms are built
+                # by `run_phase2b._build_gas_renewal_schedule`, which names its own.
+                fuel="electricity",
+            )
+        svt_origin_terms = build_svt_schedule(
+            customer_id, original_acquisition_date,
+            (_svt_origin_window_end - timedelta(days=1)).isoformat(), price_records,
+            lookback_temps_fn=lookback_temps_fn, fuel="electricity",
+        )
+        # From the first anniversary this household is decided boundary by boundary, exactly like
+        # one that rolled here -- so it FALLS THROUGH into the loop below rather than recursing
+        # into a fresh call. A recursive call would arrive with `first_term = True`, which is the
+        # one condition that SKIPS the roll, and every SVT-origin household would have taken a
+        # fixed term at its first anniversary with probability 1. `tariff_type` is set to the value
+        # the loop can read; it is not a claim about the product, which the terms decide.
+        original_acquisition_date = _svt_origin_window_end.isoformat()
+        tariff_type = "fixed"
 
     term_start = date.fromisoformat(original_acquisition_date)
     report_end = date.fromisoformat(report_end_date)
-    terms = []
-    first_term = True
+    terms = list(svt_origin_terms)
+    # NOT `True` WHEN THE HOUSEHOLD ARRIVED ON THE CAP. `first_term` gates the roll, and this
+    # household's first boundary is a real one: it has lived a year on the default tariff and is
+    # now looking at the market for the first time.
+    first_term = not svt_origin_terms
     # The rate this customer is on today — a fact of the contract the world holds,
     # handed back to the company with each renewal request. The company uses it to
     # classify the move as routine or not; that classification is not made here and

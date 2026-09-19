@@ -136,6 +136,42 @@ cost one wasted gate run and would have cost a reverted commit. The item's own t
 lanes were writing to this tree; it did not say one of them was writing the same file for the same
 reason.
 
+## 7a. CORRECTION, same turn: the rival never landed, and its work is gone
+
+**§2, §3 and §6 above say the rival "is landing the world-side edge". It did not, and I am leaving
+the sentences where they are rather than revising them, because the prediction and its refutation
+are worth more together.**
+
+What actually happened, checked after my own commit `b721b6acf` reached `origin/main`:
+
+- the rival's `surgical_land` (PID 824851) exited without a commit. It was gating from
+  `/var/tmp/se-seat-executor` at base `57e2e50e6` — **fourteen commits behind** — and its executor
+  (`background.seat_executor --once`, PID 676389) ended before it could re-gate on a newer base;
+- the worktree was then moved to `f10e6c643`, and the work did not survive it. Its new test
+  `tests/simulation/test_an_svt_arrival_can_reach_a_fixed_term.py` — an untracked file — **no
+  longer exists**; `simulation/svt_product.py` is back to HEAD's bytes, the 68-line declared-borrow
+  docstring gone; `simulation/renewals.py` still shows 60 insertions but **no longer contains the
+  `ARRIVAL PRODUCT IS A STINT` block** that was its actual repair;
+- its claim `the-svt-household-has-no-route-back-to-a-fixed-term` has **zero bound paths**.
+
+So the better implementation of §2 is not recoverable from anything I can read, and the only
+surviving build of this edge is the one in the shared working tree — mine. **I landed it.** The
+`product`/`tariff_type` split the rival had and mine does not is recorded in §2 above and is the
+first thing to fix on this branch; it is a real improvement and it is not a reason to leave the
+edge unbuilt for a second night.
+
+Re-run on the current tree before landing, now that `published_route_split` is in a commit and the
+world-rate leg has a ruler: **39 passed** across
+`test_the_svt_origin_household_can_reach_a_fixed_term.py`, `test_svt_product.py`,
+`test_svt_assignment.py`, `test_the_gas_leg_rolls_onto_the_cap_like_the_electricity_one.py` and
+`test_the_svt_conversion_floor_is_a_bound_and_not_a_number.py`.
+
+**The lesson is not the duplicate, it is the base.** Two lanes doing the same work cost one gate
+run. A nine-and-a-half-minute gate run from a worktree fourteen commits behind, inside a `--once`
+executor with no time left to re-gate, cost the whole build. *Owed #1 in §6 is therefore discharged
+by this same landing, and owed #2 no longer describes a hazard — the superseded bytes were the
+surviving ones.*
+
 ## 8. Not a target
 
 R12. Neither the floor nor the rate the world produces against it is a number to move. Both are

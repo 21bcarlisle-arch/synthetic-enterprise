@@ -705,13 +705,36 @@ def _build_gas_renewal_schedule(
     # `request_fixed_unit_rate`, a renewal decision at each boundary -- and an SVT has none of
     # them. Reached by a record that arrives already ON the product; the mid-tenure route is the
     # C1b roll below.
+    #
+    # AND IT IS NOT ABSORBING, FOR A RESI HOUSEHOLD (2026-09-18) -- the same repair as
+    # `renewals.build_renewal_schedule`'s, landed with it and for the reason stated there: a
+    # household that ARRIVED on the default tariff could not reach a fixed term for its whole
+    # tenure, while one that ROLLED there got its anniversary back. The exit is the C1b roll below,
+    # unchanged; all this branch adds is the first stint, because arriving on the cap is not a
+    # decision the household revisits on day one. Published refusal:
+    # `tools.published_route_split.svt_internal_conversion_floor`.
+    svt_origin_terms: list[dict] = []
     if tariff_type == SVT_TARIFF_TYPE:
-        return build_svt_schedule(
-            customer["customer_id"], acq_date, report_end, gas_records,
+        _svt_origin_window_end = (
+            date.fromisoformat(acq_date) + timedelta(days=CONTRACT_LENGTH_DAYS)
+        )
+        if cust_segment != "resi" or _svt_origin_window_end > date.fromisoformat(report_end):
+            return build_svt_schedule(
+                customer["customer_id"], acq_date, report_end, gas_records,
+                lookback_temps_fn=lookback_temps_fn, fuel="gas",
+            )
+        svt_origin_terms = build_svt_schedule(
+            customer["customer_id"], acq_date,
+            (_svt_origin_window_end - timedelta(days=1)).isoformat(), gas_records,
             lookback_temps_fn=lookback_temps_fn, fuel="gas",
         )
+        # Falls through into the loop rather than recursing. The roll below is gated on `schedule`
+        # being non-empty, so the prefix is exactly what makes the first anniversary a real
+        # boundary this household's own engagement decides -- rather than a fixed term it is handed.
+        acq_date = _svt_origin_window_end.isoformat()
+        tariff_type = "fixed"
 
-    schedule = []
+    schedule = list(svt_origin_terms)
     term_start = acq_date
 
     while term_start <= report_end:

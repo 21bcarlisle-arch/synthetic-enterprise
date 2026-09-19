@@ -42,13 +42,14 @@ than the intended one:
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
 
 from simulation.renewal_engagement import PASSIVE_CHURN_CAP
 from simulation.renewals import build_renewal_schedule
+from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.svt_product import (
     CAP_PERIOD_START_MONTHS,
     SVT_TARIFF_TYPE,
@@ -131,18 +132,52 @@ def test_there_is_no_notice_because_nothing_ends(schedule):
 
 
 def test_the_builder_delegates_rather_than_growing_a_fourth_branch():
-    """`build_renewal_schedule(tariff_type='svt')` returns SVT segments, not contract terms."""
+    """`build_renewal_schedule(tariff_type='svt')` returns the SVT BUILDER's segments, not terms.
+
+    RE-KEYED 2026-09-18, AND THE OLD KEY WAS THE ABSORBING WORLD. It asserted
+    `{s["tariff_type"] for s in out} == {SVT_TARIFF_TYPE}` over a TEN-YEAR window, which is the
+    claim that a household arriving on the default tariff never reaches a fixed term for its whole
+    tenure. So it went red on the change that gave that household the same exit the ROLLED
+    household has had since C1b -- and it would have stayed green while the domestic fixed share
+    decayed to nothing, which is the outcome `renewals.build_renewal_schedule` already refuses in
+    writing. A control keyed to today's answer reds when the code becomes more honest; that is
+    exactly backwards and this is the repair.
+
+    The property was always DELEGATION -- these are the SVT builder's cap segments and not terms
+    struck in a renewal loop -- so it is now asserted against that builder's own output, over each
+    window on which the delegation covers the whole span:
+
+      * a window inside the first year, where a resi household has not yet reached a boundary;
+      * the full ten years for a NON-DOMESTIC site, which has no domestic cap to convert away from
+        and is therefore still one uninterrupted stint. This leg keeps the original `len == 40`,
+        where it is still the truth rather than the absorbing claim.
+    """
     import simulation.svt_product as sp
     original = sp.generate_forward_price
     sp.generate_forward_price = lambda *a, **k: 50.0
     try:
-        out = build_renewal_schedule(
-            "C-SVT", START, END, [], eac_kwh=3000, tariff_type=SVT_TARIFF_TYPE)
+        # Inside the first year: no anniversary, so the delegation covers the whole window and the
+        # two calls must agree segment for segment.
+        within_first_year = (
+            date.fromisoformat(START) + timedelta(days=CONTRACT_LENGTH_DAYS - 1)
+        ).isoformat()
+        early = build_renewal_schedule(
+            "C-SVT", START, within_first_year, [], eac_kwh=3000,
+            tariff_type=SVT_TARIFF_TYPE)
+        direct = sp.build_svt_schedule(
+            "C-SVT", START, within_first_year, [], fuel="electricity")
+        non_domestic = build_renewal_schedule(
+            "C-SVT", START, END, [], eac_kwh=3000, tariff_type=SVT_TARIFF_TYPE,
+            segment="sme")
     finally:
         sp.generate_forward_price = original
-    assert out, "delegation returned nothing"
-    assert {s["tariff_type"] for s in out} == {SVT_TARIFF_TYPE}
-    assert len(out) == 40, "delegation did not reach the SVT builder"
+
+    assert early, "delegation returned nothing"
+    assert early == direct, (
+        "the arrival stint is not the SVT builder's own output, so the renewal loop has grown a "
+        "branch that mints cap segments of its own")
+    assert {s["tariff_type"] for s in non_domestic} == {SVT_TARIFF_TYPE}
+    assert len(non_domestic) == 40, "delegation did not reach the SVT builder"
 
 
 def test_svt_is_gated_out_of_the_renewal_decision():
