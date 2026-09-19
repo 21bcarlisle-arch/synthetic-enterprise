@@ -682,6 +682,322 @@
     "what_this_changes_about_the_published_reading": "`against_the_band_in_annual_units` reports the world at 1.11x the tightest annual floor and concludes the floor is the live side. The first half is the band's UPPER endpoint: the lower endpoint is at 0.77x the same bar, so the band straddles it and the clearing verdict was never established. The conclusion that the FLOOR is the live side is not weakened by this -- it is sharpened, because the bar the world cannot be shown to clear is on that side. The bound actually in force, the r = 1 corner at 0.0449, is cleared by both endpoints and is untouched.",
     "what_this_cannot_say": "that the world's rate is wrong, or that it breaches anything. The tightest annual floor is the r = 0 corner of a family whose `r` is a declared None -- it is the tightest bar the record COULD support, not a bar the record makes -- so failing to establish clearance of it refutes nothing. It also cannot repair the remaining mismatch between an account base and a survey's respondent base; it can only measure which way that runs, which is the direction already stated."
   },
+  "the_base_the_lower_endpoint_divides_by": {
+    "what_this_is": "the band's LOWER endpoint measured rather than assumed. Its denominator -- every account that touched the product at any point in the year -- is not a survey's point-in-time default-tariff base, and this is how far apart the two are, swept over the restriction that carries one into the other.",
+    "refused": null,
+    "the_directed_restriction_is_conditioned_on_the_outcome": {
+      "what_this_says": "restricting the base by EXPOSURE removes converters faster than it removes anybody else, because converting is what ends a stint. The two means below are the size of that, and they are why the directed sweep cannot be read as a measurement of the world.",
+      "mean_exposure_of_converting_account_years": 0.369692,
+      "mean_exposure_of_every_other_account_year": 0.745049,
+      "ratio": 0.496198,
+      "converters_are_the_shorter_exposed": true,
+      "and_it_reaches_zero_at_a_full_year": true
+    },
+    "restricted_by_exposure": [
+      {
+        "at_least_this_much_of_the_year": 0.0,
+        "accounts_in_the_base": 378,
+        "accounts_that_converted": 48,
+        "incidence": 0.126984,
+        "interval_95": [
+          0.095132,
+          0.164817
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.7576,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.1,
+        "accounts_in_the_base": 359,
+        "accounts_that_converted": 40,
+        "incidence": 0.111421,
+        "interval_95": [
+          0.080803,
+          0.148623
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.6647,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.2,
+        "accounts_in_the_base": 345,
+        "accounts_that_converted": 32,
+        "incidence": 0.092754,
+        "interval_95": [
+          0.06431,
+          0.128416
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.5534,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.3,
+        "accounts_in_the_base": 318,
+        "accounts_that_converted": 24,
+        "incidence": 0.075472,
+        "interval_95": [
+          0.048952,
+          0.110216
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.4503,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.4,
+        "accounts_in_the_base": 304,
+        "accounts_that_converted": 19,
+        "incidence": 0.0625,
+        "interval_95": [
+          0.038045,
+          0.095883
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.3729,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.5,
+        "accounts_in_the_base": 245,
+        "accounts_that_converted": 14,
+        "incidence": 0.057143,
+        "interval_95": [
+          0.031589,
+          0.094018
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.3409,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.6,
+        "accounts_in_the_base": 227,
+        "accounts_that_converted": 10,
+        "incidence": 0.044053,
+        "interval_95": [
+          0.021324,
+          0.079521
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.2628,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.7,
+        "accounts_in_the_base": 210,
+        "accounts_that_converted": 7,
+        "incidence": 0.033333,
+        "interval_95": [
+          0.013505,
+          0.067471
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.1989,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.8,
+        "accounts_in_the_base": 192,
+        "accounts_that_converted": 6,
+        "incidence": 0.03125,
+        "interval_95": [
+          0.011553,
+          0.066774
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.1864,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.9,
+        "accounts_in_the_base": 172,
+        "accounts_that_converted": 2,
+        "incidence": 0.011628,
+        "interval_95": [
+          0.001411,
+          0.041371
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.0694,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 1.0,
+        "accounts_in_the_base": 154,
+        "accounts_that_converted": 0,
+        "incidence": 0.0,
+        "interval_95": [
+          0.0,
+          0.023669
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.0,
+        "the_interval_decides_the_floor": false
+      }
+    ],
+    "restricted_by_opportunity": [
+      {
+        "at_least_this_much_of_the_year": 0.0,
+        "accounts_in_the_base": 378,
+        "accounts_that_converted": 48,
+        "incidence": 0.126984,
+        "interval_95": [
+          0.095132,
+          0.164817
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.7576,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.1,
+        "accounts_in_the_base": 373,
+        "accounts_that_converted": 48,
+        "incidence": 0.128686,
+        "interval_95": [
+          0.096429,
+          0.166977
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.7677,
+        "the_interval_decides_the_floor": false
+      },
+      {
+        "at_least_this_much_of_the_year": 0.2,
+        "accounts_in_the_base": 368,
+        "accounts_that_converted": 48,
+        "incidence": 0.130435,
+        "interval_95": [
+          0.097761,
+          0.169194
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.7782,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.3,
+        "accounts_in_the_base": 362,
+        "accounts_that_converted": 48,
+        "incidence": 0.132597,
+        "interval_95": [
+          0.09941,
+          0.171934
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.7911,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.4,
+        "accounts_in_the_base": 353,
+        "accounts_that_converted": 48,
+        "incidence": 0.135977,
+        "interval_95": [
+          0.101989,
+          0.176215
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.8112,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.5,
+        "accounts_in_the_base": 340,
+        "accounts_that_converted": 48,
+        "incidence": 0.141176,
+        "interval_95": [
+          0.105961,
+          0.182787
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.8423,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.6,
+        "accounts_in_the_base": 325,
+        "accounts_that_converted": 48,
+        "incidence": 0.147692,
+        "interval_95": [
+          0.110947,
+          0.191007
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.8811,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.7,
+        "accounts_in_the_base": 309,
+        "accounts_that_converted": 48,
+        "incidence": 0.15534,
+        "interval_95": [
+          0.11681,
+          0.200629
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.9268,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.8,
+        "accounts_in_the_base": 290,
+        "accounts_that_converted": 48,
+        "incidence": 0.165517,
+        "interval_95": [
+          0.124632,
+          0.213392
+        ],
+        "multiple_of_the_tightest_annual_floor": 0.9875,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 0.9,
+        "accounts_in_the_base": 271,
+        "accounts_that_converted": 48,
+        "incidence": 0.177122,
+        "interval_95": [
+          0.133578,
+          0.227885
+        ],
+        "multiple_of_the_tightest_annual_floor": 1.0567,
+        "the_interval_decides_the_floor": null
+      },
+      {
+        "at_least_this_much_of_the_year": 1.0,
+        "accounts_in_the_base": 254,
+        "accounts_that_converted": 48,
+        "incidence": 0.188976,
+        "interval_95": [
+          0.142747,
+          0.242626
+        ],
+        "multiple_of_the_tightest_annual_floor": 1.1274,
+        "the_interval_decides_the_floor": null
+      }
+    ],
+    "what_opportunity_means": "the fraction of the calendar year between the account's FIRST day on the SVT product that year and 31 December. Fixed by arrival, which no conversion can move, so restricting on it removes late joiners without removing converters for converting.",
+    "the_numerator_survives_the_restriction_whole": true,
+    "the_survey_matched_base": {
+      "at_least_this_much_of_the_year": 1.0,
+      "accounts_in_the_base": 254,
+      "accounts_that_converted": 48,
+      "incidence": 0.188976,
+      "interval_95": [
+        0.142747,
+        0.242626
+      ],
+      "multiple_of_the_tightest_annual_floor": 1.1274,
+      "the_interval_decides_the_floor": null
+    },
+    "the_worlds_event_rate": 0.185887,
+    "the_two_are_still_ordered": false,
+    "so_they_are_not_the_endpoints_of_one_band": "the survey-matched incidence is ABOVE the world's published event rate. `E` is taken over every account that touched the product and the restricted incidence over a sub-population with a higher rate, so the pair is not a band and must not be read as one. The kind-matched band in `as_an_incidence_which_is_what_the_record_bounds` is left standing unchanged: this does not replace its lower endpoint, it measures how much of the distance to a survey's base that endpoint was leaving on the table.",
+    "the_tightest_annual_floor": 0.167616,
+    "the_point_estimate_clears_the_tightest_annual_floor": true,
+    "the_interval_decides_the_tightest_annual_floor": null,
+    "the_smallest_base_that_would_decide_it": {
+      "accounts": 1215,
+      "multiple_of_the_base_we_have": 4.78,
+      "refused": null
+    },
+    "converter_cells_absent_from_the_denominator": {
+      "what_this_is": "converting account-years the headcount denominator does not contain, because the numerator is binned on the year a STINT ends and the denominator on the year a SEGMENT falls in.",
+      "stint_end_years_with_no_segment_of_their_own": [
+        "SYN-2016-001@2019"
+      ],
+      "converters_inside_the_base": 48,
+      "aligned_incidence_on_the_touched_base": 0.126984,
+      "the_published_endpoint_is_not_overwritten": "`incidence_per_svt_account_touched` keeps its published value. The aligned figure sits beside it because a correction of this size, applied silently, would be indistinguishable from the figure having always been this and the mechanism never named."
+    },
+    "what_this_changes_about_the_published_lower_endpoint": "nothing arithmetic and one thing epistemic. `incidence_per_svt_account_touched` stays the band's lower endpoint and stays a valid LOWER bound. What changes is why it is wide: the gap to a survey-matched base is measurable and large, the survey-matched point estimate is on the OTHER side of the tightest annual floor from the published endpoint, and the thing preventing a verdict is now a named sample size rather than an unmeasured assumption.",
+    "what_this_cannot_say": "that the world clears the tightest annual floor. The interval straddles it and fails closed. It also cannot repair the last mismatch, which is a DIRECTION this measurement does not reach: CIM's base is households on the default tariff at FIELDWORK asked to recall the past six months, so a household that switched internally during the window may be outside the base that is asked about it, while this base contains every account on the product on 1 January whether it stayed or not. That runs the opposite way to the dilution measured here and nothing in this capture bounds it."
+  },
   "tenure_mix_vs_the_published_observations": {
     "what_this_is": "section 14 put two published observations of the SVT segment's within-segment long-stayer share into the tree -- to compose the published churn band for the phi question -- and nothing has compared them with the world's own mix. This is that comparison, and it bears on section 9's headline because section 9's 1.67x-1.71x was taken against the published RECENT endpoint at a mix of 0.000 and 0.202.",
     "observed_long_stayer_share": [
