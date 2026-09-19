@@ -79,11 +79,34 @@ _LONG_ENOUGH = 40
 #: over prose and it is honest about being one -- a pointer worded past this vocabulary is not
 #: caught, which is why `test_the_here_relative_detector_is_aimed_at_prose_this_site_actually
 #: _publishes` requires it to still be finding live sentences.
+#
+# `run` AND `published` WERE ADDED 2026-09-19, AND HOW THEY WERE MISSED IS THE POINT. The live
+# `_population_repair_bias` clause says "20 paths of pricing code away from THE RUN ABOVE". It was
+# repaired the same day (`dc92d2d65`) by a lane reading a census THIS vocabulary built -- and that
+# repair named the FIGURE and left the RUN pointing, because `run` was not a noun here. A control
+# certified a repair to this defect class while blind to a live instance of the class inside the
+# same sentence. `published above` is the same shape on the other axis: nine participles were
+# registered and `published` was not, so six live pointers in one producer were invisible.
+#
+# DO NOT READ THE LIST AS CLOSED, AND DO NOT TRY TO CLOSE IT. Measured against the producers on
+# 2026-09-19: a deictic `the <noun> above|below` census over `site/data/*.json` returns 70+
+# distinct nouns, 8 of them registered here. Enumerating the rest is a losing game, and the
+# obvious inversion -- match any noun, deny-list the comparators -- was BUILT AND MEASURED and is
+# refused: it re-admits `generate_value_arms_data.py:5371`, "whether a larger settled book moves
+# the interval above", where `above` is the direction a NUMBER moves. Grammar does not separate
+# them either; that string's `above` is followed by a finite verb ("is NOT ESTABLISHED"), so the
+# noun-phrase test a reader would reach for passes it through. The reason is not that the regex is
+# weak: "the interval above" is genuinely ambiguous out of context, and this file only ever sees it
+# out of context. The remedy that would work is a partition -- every live `the <noun> above` in a
+# producer either recognised here or on an argued exempt list -- so a new one lands as a red naming
+# its string rather than as silence. Filed, not built:
+# `docs/staging/SEAT_FINDING_THE_HERE_RELATIVE_VOCABULARY_IS_AN_UNBOUNDED_ALLOW_LIST_2026-09-19.md`.
 _HERE_RELATIVE = re.compile(
     r"(higher up|further up|further down|lower down|above this|below this|"
-    r"(?:table|panel|chart|figure|row|block|section|list|column|note|box|card|band)s? "
+    r"(?:table|panel|chart|figure|row|block|section|list|column|note|box|card|band|run)s? "
     r"(?:above|below)|"
-    r"(?:shown|listed|set out|stated|named|given|described|printed|quoted) (?:above|below)|"
+    r"(?:shown|listed|set out|stated|named|given|described|printed|quoted|published) "
+    r"(?:above|below)|"
     r"immediately (?:above|below)|directly (?:above|below)|earlier (?:in|on) this|"
     r"later (?:in|on) this|(?:top|foot|bottom|head) of this (?:page|section)|opposite this|"
     r"beside this|to the (?:left|right) of this|(?:above|below) on this page|"
@@ -387,3 +410,56 @@ def test_MUTATION_a_here_relative_pointer_given_a_second_home_is_CAUGHT():
     assert _here_relative_phrase(_norm(landmark)) is None, (
         "the LANDMARK wording the parent finding shipped is reported as a here-relative claim, so "
         "this control reds on the repair and would get it reverted")
+
+
+def test_MUTATION_the_2026_09_19_widening_can_still_FIRE_on_the_wordings_it_was_added_for():
+    """The two vocabulary entries added on 2026-09-19 must stay able to catch something.
+
+    WHY THIS LEG IS NOT PARANOIA. `run` and `published` were added because eight live pointers in
+    `generate_value_arms_data.py` were invisible to this vocabulary -- and the same turn REPAIRED
+    all eight. So the day they were added, the words they were added for matched nothing anywhere
+    on the site, and every other leg in this file stayed green whether the widening was there or
+    not. Delete `run` from `_HERE_RELATIVE` right now and nothing else here notices. That is the
+    exact shape this project keeps paying for: a control extended to cover a class, with the
+    extension unreachable the moment the instances are fixed.
+
+    KEYED TO THE VOCABULARY, NOT TO THE PAGE, and deliberately so. Asserting these wordings are
+    ABSENT from the live site would pin the control to today's answer and go red the day someone
+    legitimately writes one and repairs it. What is asserted is the thing that must not rot: the
+    detector can still RECOGNISE the wordings, so a regression that reintroduces one is caught
+    rather than waved through.
+
+    THE SPECIMENS ARE THE RETIRED STRINGS THEMSELVES, quoted from the producer as they stood
+    before the repair, for the same reason the leg above quotes the parent finding's: a wording
+    that was live and false is the only specimen that proves the vocabulary would have caught the
+    real thing rather than a convenient paraphrase.
+
+    Fires on: either word being dropped from `_HERE_RELATIVE`; the participle or noun branch being
+    reordered into something that no longer reaches them; `_LANDMARK` widening far enough to
+    exempt them.
+    """
+    retired = {
+        # `_population_repair_bias`, the instance the item was drawn for -- live in
+        # `site/data/value_arms.json` until 2026-09-19 and certified clean by this very file.
+        "20 paths of pricing code away from the run above, so it is the size of the CLASS":
+            "run above",
+        # `_staleness_caveat`, and this one was a TWO-HOME pointer on the deployed page --
+        # `/capabilities/#arms-errorbar` and `#arms-headline` -- so it was a live instance of the
+        # parent defect, not merely an unjudged one.
+        "re-running the noise floor on the run published above is owed work":
+            "published above",
+        # `_current_world_contrast`: the noun branch has to reach `below` as well as `above`, or
+        # half the vocabulary is decorative.
+        "It was taken at then; the run below it was taken at now":
+            "run below",
+    }
+    for sentence, expected in retired.items():
+        found = _here_relative_phrase(_norm(sentence))
+        assert found is not None, (
+            "{!r} was a LIVE published pointer until 2026-09-19 and this vocabulary no longer "
+            "recognises it, so the widening that was landed to catch it has been undone and its "
+            "return would be silent".format(sentence))
+        assert found.lower() == expected, (
+            "{!r} is recognised, but as {!r} rather than {!r} -- a different branch of the "
+            "vocabulary is matching it, so the branch this leg exists to hold open is untested "
+            "and may already be gone".format(sentence, found.lower(), expected))

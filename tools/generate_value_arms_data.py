@@ -1357,8 +1357,14 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
     return (
         "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run "
         "of {floor_at} and the point estimate on the run of {point_at}. {between} Read it as the "
-        "size of this instrument's seed sensitivity; re-running the noise floor on the run "
-        "published above is owed work."
+        # NAMES THE SUBJECT WITHOUT RE-QUOTING ITS STAMP. "the run published above" was the
+        # here-relative wording; the obvious repair -- "the run of {point_at}" -- names it
+        # correctly and puts that stamp in the sentence a THIRD time, which reds
+        # `test_an_error_bar_older_than_its_figure_says_so_on_the_page`: a reader told a bound is
+        # stale needs exactly the two runs the ordering is between, and a third stamp makes the
+        # pair unreadable. "the point estimate's own run" is true from anywhere and adds no stamp.
+        "size of this instrument's seed sensitivity; re-running the noise floor on the point "
+        "estimate's own run is owed work."
     ).format(floor_at=floor_at, point_at=point_at, between=between)
 
 
@@ -3893,7 +3899,7 @@ def _decomposition_is_the_same_book(decomposition: dict | None,
     theirs, ours = _decomposition_book(decomposition), _three_arm_book(three_arm)
     if any(not isinstance(v, int) for v in theirs + ours):
         return ("The floor decomposition does not say which book it was measured on, so this page "
-                "cannot show that its remedy describes the run published above. No remedy is "
+                "cannot show that its remedy describes the run this page publishes. No remedy is "
                 "stated from it.")
     if theirs == ours:
         return None
@@ -3912,8 +3918,8 @@ def _decomposition_is_the_same_book(decomposition: dict | None,
                 "is a floor keyed to something the rest of the book has.")
     return (
         "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor "
-        "decomposition was measured where the arm priced {tp:,} of {tr:,} renewals; the run "
-        "published above priced {op:,} of {or_:,}. A split of the variance measured on one book is "
+        "decomposition was measured where the arm priced {tp:,} of {tr:,} renewals; the run this "
+        "page publishes priced {op:,} of {or_:,}. A split of the variance measured on one book is "
         "not a price for resolving another, and the priced count is the very quantity the remedy "
         "is denominated in -- so quoting it here would state a remedy in units this page no longer "
         "has. {owed}"
@@ -4635,7 +4641,8 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
     if stale:
         return {"available": False, "reason": stale,
                 "what_this_costs": ("no contrast on this page can have its direction stated until "
-                                    "the noise floor is re-run on the book published above")}
+                                    "the noise floor is re-run on the book the figure was "
+                                    "measured on")}
     # AND WHETHER IT WAS DRAWN OVER THIS FIGURE'S BOOK AT ALL -- see `_floor_admission`. Ordered
     # AFTER the staleness leg on purpose: this adds a refusal and removes none, so the weaker
     # question keeps its own answer and a floor has to pass both. When the book cannot be asked
@@ -4647,7 +4654,7 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
         return {"available": False, "reason": admission["refusal"],
                 "admitted_by": admission["rule"],
                 "what_this_costs": ("no contrast on this page can have its direction stated until "
-                                    "a floor drawn over the book published above is measured")}
+                                    "a floor drawn over the figure's own book is measured")}
     seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
     if len(seeds) < 2:
         return {"available": False,
@@ -4978,8 +4985,8 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
             else bool((single_run > 0) != (mean > 0))),
         "sign_withheld_because": (
             None if one_book else
-            ("this family was measured over a different book from the run published above, so it "
-             "bounds the family and not the figure. " + staleness_caveat)),
+            ("this family was measured over a different book from the run this page publishes, so "
+             "it bounds the family and not the figure. " + staleness_caveat)),
         "what_each_number_is_over": (
             ("`estimate_gbp` is the MEAN of this contrast across {n} seed re-draws. `bound_gbp` is "
              "that same family's standard error over the same {n}. They are one population, which "
@@ -9736,7 +9743,8 @@ def _the_later_runs_disagree(share, published_at, published_from, rows: list,
         "statement": (
             "{words}. This page publishes {pub_pct} -- the LEVEL leg's share of the advantage, so "
             "mostly the {pub_leg} -- from {pub_run} measured {pub_when}. {n} later run{s} over the "
-            "SAME world ({world}) exist and are not published above: {rows}. {flip}. THE SPLIT IS "
+            "SAME world ({world}) exist and are not published on this page: {rows}. {flip}. THE "
+            "SPLIT IS "
             "THEREFORE STATED AS UNRESOLVED AND NOT AS A COMPOSITION. These runs are NOT "
             "differenced into a trend and none of them supersedes the others: the level arm takes "
             "its level from each run's own realised median margin and the priced population moved "
@@ -10514,6 +10522,13 @@ _POPULATION_REPAIR_BIAS_SOURCE = (
 # second -- a reader meeting the clause in the re-draw block is told to look up at a figure
 # standing beside it. A pointer whose subject has homes on two sides of it has no here-relative
 # word that holds, so the subject is named.
+#
+# AND THAT REPAIR MISSED A SECOND POINTER IN THE SAME SENTENCE, repaired 2026-09-19 in the turn
+# after it. `clause` also said "{paths} paths of pricing code away from THE RUN ABOVE". The lane
+# above was working from a census `_here_relative_phrase` built, and `run` was not a noun in that
+# vocabulary -- so the string was certified clean by a detector that could not see half of what it
+# was certifying. The lesson is not about this sentence: a repair verified by a detector inherits
+# that detector's blind spot silently, and the flattering reading is that the string is now clean.
 _POPULATION_REPAIR_BIAS_NOT_A_GAIN = (
     "THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those "
     "{seeds} seeds the WHOLE advantage moved by £0.00 -- not a penny, not a rounding -- because "
@@ -10621,7 +10636,8 @@ def _population_repair_bias(artefact: dict | None) -> dict:
               "t = {t} on {seeds} paired seeds). "
             + _POPULATION_REPAIR_BIAS_NOT_A_GAIN + " "
               "AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `{inst}` against "
-              "`{against}`, {paths} paths of pricing code away from the run above, so it is the "
+              "`{against}`, {paths} paths of pricing code away from the run this figure comes "
+              "from, so it is the "
               "size of the CLASS and not this figure's own error. Subtracting it here would be "
               "arithmetic across two instruments. The choosing figure stands as published."
         ).format(
@@ -10879,8 +10895,8 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         # sentence, and a sentence is not something a control can compare.
         "superseded_generated_at": superseded_at,
         "why_the_headline_omits_it": (None if is_the_later_run else (
-            "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the run "
-            "below it was taken at {sup}. Both name this world, so nothing here is stale and "
+            "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the OTHER "
+            "of the two was taken at {sup}. Both name this world, so nothing here is stale and "
             "every figure in this block was honestly measured -- but 'the world as it is now' is "
             "a claim about which run is more recent, and on these two it is false. So the "
             "headline states no sentence from this block, and what is published here is a SECOND "
@@ -12064,8 +12080,8 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
         body = _cannot_resolve(
             selection, selection_spread,
             ("Once one flat margin at the same price LEVEL is given credit for what a level "
-             "alone would have earned, £{:,.0f} separates the two on the one run published "
-             "below").format(abs(selection)),
+             "alone would have earned, £{:,.0f} separates the two on the single run this page "
+             "publishes").format(abs(selection)),
             "whether the per-customer choosing is worth anything at all, in either direction",
             spreads)
     elif leg.get("sign_is_stateable") is not True:
