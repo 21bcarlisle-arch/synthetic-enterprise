@@ -79,9 +79,34 @@ _LONG_ENOUGH = 40
 #: over prose and it is honest about being one -- a pointer worded past this vocabulary is not
 #: caught, which is why `test_the_here_relative_detector_is_aimed_at_prose_this_site_actually
 #: _publishes` requires it to still be finding live sentences.
+#:
+#: THE NOUN LIST WAS AUDITED BY MEASUREMENT, 2026-09-19, not by asking what a page is made of.
+#: It had been the layout furniture a page is drawn with, and the site does not point that way.
+#: `value_arms.json` publishes "20 paths of pricing code away from the RUN above" -- a pointer by
+#: any reading, matching nothing here, and so invisible to this sweep and the three that import
+#: it. Sweeping every `<noun> above|below` in the published feeds and the producers' own literals
+#: (16,083 strings) says the nouns this site actually points with are UNITS OF ITS OWN RECORD --
+#: a run, an entry, a finding, a mutation, a refusal -- and the furniture is the minority. Half
+#: of what was here (`chart`, `list`, `box`, `card`) matches nothing published at all.
+#:
+#: AND THREE MEASURED CANDIDATES ARE DELIBERATELY NOT HERE, which is the half of the audit worth
+#: keeping, because each reads like an obvious omission to whoever comes next:
+#:   * `reading` -- "the highest READING BELOW the ceiling is 447" (`simplified.json`) is a
+#:     threshold, not a place.
+#:   * `line` -- "at least one LINE BELOW zero" (`knowledge_non_commodity_costs.json`) is a cost
+#:     stack component going negative.
+#:   * `range`/`interval` -- refused before, with its own measurement: see the docstring of
+#:     `tests/tools/test_the_proof_pages_undriven_pointers.py`, which found "moves the INTERVAL
+#:     ABOVE" and kept the phrase page-scoped in `_EXTRA_PHRASES` rather than widening this.
+#: That is the standing rule for this list: a site-wide vocabulary that admits arithmetic starts
+#: refusing arithmetic, so a noun earns its place by having NO comparison sense in the live
+#: corpus -- measured, not assumed. A noun that only points on one page belongs in that page's
+#: own `_EXTRA_PHRASES`.
 _HERE_RELATIVE = re.compile(
     r"(higher up|further up|further down|lower down|above this|below this|"
-    r"(?:table|panel|chart|figure|row|block|section|list|column|note|box|card|band)s? "
+    r"(?:table|panel|chart|figure|row|block|section|list|column|note|box|card|band|"
+    r"run|entry|item|record|claim|finding|mutation|refusal|check|measurement|"
+    r"sentence|paragraph|summary)s? "
     r"(?:above|below)|"
     r"(?:shown|listed|set out|stated|named|given|described|printed|quoted) (?:above|below)|"
     r"immediately (?:above|below)|directly (?:above|below)|earlier (?:in|on) this|"

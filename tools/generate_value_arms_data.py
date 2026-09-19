@@ -3240,8 +3240,8 @@ def _legs_on_one_bar(floor: dict | None, three_arm: dict | None, split: dict | N
                 "what_this_costs": spreads.get("what_this_costs"),
                 "why_no_leg_is_graded": (
                     "Every leg on this page is graded off the same seed rows, so a floor that "
-                    "cannot bound one of them cannot bound any of them. The refusal above is the "
-                    "one the bounds block itself makes, republished here rather than softened "
+                    "cannot bound one of them cannot bound any of them. This refusal is the "
+                    "bounds block's own, republished rather than softened "
                     "into a narrower reason about one leg.")}
     legs, stateable, unstateable = {}, [], []
     for key in _BOUNDED_CONTRASTS:
@@ -10621,7 +10621,8 @@ def _population_repair_bias(artefact: dict | None) -> dict:
               "t = {t} on {seeds} paired seeds). "
             + _POPULATION_REPAIR_BIAS_NOT_A_GAIN + " "
               "AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `{inst}` against "
-              "`{against}`, {paths} paths of pricing code away from the run above, so it is the "
+              "`{against}`, {paths} paths of pricing code away from the run that produced the "
+              "choosing figure, so it is the "
               "size of the CLASS and not this figure's own error. Subtracting it here would be "
               "arithmetic across two instruments. The choosing figure stands as published."
         ).format(
@@ -10880,7 +10881,8 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "superseded_generated_at": superseded_at,
         "why_the_headline_omits_it": (None if is_the_later_run else (
             "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the run "
-            "below it was taken at {sup}. Both name this world, so nothing here is stale and "
+            "this page marks superseded was taken at {sup}. Both name this world, so nothing "
+            "here is stale and "
             "every figure in this block was honestly measured -- but 'the world as it is now' is "
             "a claim about which run is more recent, and on these two it is false. So the "
             "headline states no sentence from this block, and what is published here is a SECOND "
