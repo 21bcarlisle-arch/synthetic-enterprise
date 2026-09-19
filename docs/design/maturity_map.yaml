@@ -1954,6 +1954,7 @@
 - id: C29_decisions_stop_being_lookup_tables
   title: "P6: acquisition budget takes no customer id, dunning keys on segment and days overdue, retention is a fixed offer and fixed tiers"
   notes_rehomed: [gain]
+  records_rehomed: [evidence]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
@@ -1966,9 +1967,26 @@
   blocked_on: null
   depends_on: [B10_competitor_switching_response, PB4_engagement_separated_from_elasticity, PB5_pounds_or_percent_resolved]
   couples_with: [B8_discovered_price_sensitivity_holdout]
-  file_scope: ['company/customer_ops/', 'company/pricing/', 'tests/company/']
+  file_scope: ['company/crm/', 'company/billing/', 'company/pricing/', 'tests/company/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
+- id: C33_collections_reads_the_registers_it_already_has
+  title: "C29 Half B: the dunning path can enforce through a statutory moratorium, and 'expected retention value' carries no probability -- neither is selection work, so neither is epoch-gated"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 45
+  provenance: proposal
+  block_reason: "NOT epoch-gated -- authorship-gated. C29's block_reason defers a WIDER decision surface because widening against a flat world buys a better-instrumented null; that argument is about selection and says nothing about arithmetic that is mis-named or an enforcement step that cannot see the law. Split out by the C29 FRAME pass (docs/design/frame/C29_decisions_stop_being_lookup_tables_FRAME.md §5) so the ungated half stops sitting behind the gated one. Agent-authored: needs the director's ranking before BUILD (rule 8), NOT B10/PB4/PB5."
+  blocked_on: null
+  depends_on: []
+  couples_with: [C29_decisions_stop_being_lookup_tables, C32_one_obligation_one_vulnerability_scorer]
+  file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'company/billing/capacity_to_pay.py', 'company/crm/customer_retention.py', 'company/crm/portfolio_churn_risk.py', 'tests/company/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a collections desk that sends a final notice to a customer whose debt adviser filed a Breathing Space moratorium three weeks ago, because the moratorium register and the dunning calendar are different systems that have never been introduced -- and a retention desk reporting the value of saves it was never at risk of losing"
 - id: SITE14_the_front_door_schematic_carries_the_corrected_model
   title: "The published schematic still tells a reader the traits are coupled and the company can die; the canon page says neither"
   notes_rehomed: [gain]
