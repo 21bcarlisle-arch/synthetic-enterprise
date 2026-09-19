@@ -5778,10 +5778,19 @@ def _skill_sample_size_explanation(method_skill: dict) -> dict:
             "explanation for both. This run does not refute it and does not confirm it.")
     return {
         "available": True,
+        # IT NAMES THE CONCORDANCE FIGURE RATHER THAN "the figure above", and the reason is NOT
+        # the one the sentence above it was repaired for on 2026-09-19. That one lands in
+        # `#arms-method` and so does what it names, so "beside this" was true and was enough.
+        # THIS field lands in NO REGION AT ALL, measured against the real door: the block's
+        # renderer reads `.sentence` and `.reason` and never `what_this_is`
+        # (`site/capabilities/index.html`, the `the_sample_size_explanation` branch). A direction
+        # claimed from a place no reader stands is a claim nothing can check -- the state
+        # `_population_repair_bias`'s cleared branch was in, and this takes its repair: name the
+        # subject, which is true from anywhere and leaves the here-relative vocabulary entirely.
         "what_this_is": (
-            "whether 'there are too few decisions' survives as the explanation for the figure "
-            "above being unreadable. The test is a power comparison against this run's own "
-            "unconditioned cut, not a re-reading of either figure."),
+            "whether 'there are too few decisions' survives as the explanation for the "
+            "concordance figure's own 'we cannot tell'. The test is a power comparison against "
+            "this run's own unconditioned cut, not a re-reading of either figure."),
         "verdict": verdict,
         "too_few_decisions_survives_as_the_explanation": verdict != "refuted_by_this_run",
         "headline_decisions": head_n,
