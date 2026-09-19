@@ -1690,34 +1690,29 @@
   # STATIC `weather_cell_siting.ARCHIVE_SITES` dict -- hence "the two pulls must land WITH two
   # entries there", plus an instruction not to add those entries before the CSVs exist.
   #
-  # Both halves of that are now mechanical instead of remembered. `_weather_source_customer_id`
-  # steps 1 and 2 both check `_has_archive` -- the CSV on disk -- rather than inferring the archive
-  # from `commodity`/`segment` or trusting the static dict. So: (a) C_IC2 and C_IC3g settle on the
-  # SAME-COORDINATE archive holder via step 1 (proved reachable against a witness archive, not
-  # assumed), and no ARCHIVE_SITES entry is needed for them; (b) an entry added before its CSV lands
-  # can no longer return an unreadable id, so pull and entry may land in EITHER order. The old
-  # predicate was also admitting C7/C8/C9, which hold no CSV -- today's answers were correct only
-  # because C1/C2/C3 precede them in book ORDER. Every live premise resolves exactly as before
-  # (18/18 unchanged); three mutations of the new guards are killed by the two controls added.
-  # THE PULL IS THEREFORE THE WHOLE GAP AGAIN, which is what block_reason says.
-  block_reason: "ARCHIVE BREADTH, and for the first time nothing is in front of it. This field is
-    REPLACED 2026-09-07 (later tick) and the version it replaces is kept below, because it named a
-    precondition that was already spent when it was read and it sent a draw at work HEAD had done.
-    It read: 210/210 drawn households SITED and 0/210 RESOLVE, `locations` is a 7-entry table keyed
-    to ~11 m, so the move is to cut the artefact over the looked-up population.
-    THAT IS DONE, at HEAD, by the OTHER of two lanes that each built it: `3ea2bd641` cuts over
-    `occupied_land_cells.csv`, all 175,188 occupied 1 km GB land cells. RE-MEASURED at clean HEAD
-    against committed data, seed 7, draw_region=True: 210/210 sited AND 210/210 resolve, including
-    17/17 Scottish -- so the curriculum's eleventh region needed nothing from this atom. The
-    competing frame-cut build (139,938 `frame_locations`) was uncommitted, could not collect, and is
-    preserved in salvage `16a127b74`; the shared tree is restored to HEAD's design and green at 14.
-    WHAT REMAINS IS A DATA PULL, NOT CODE HERE: four real archive sites against 21 cells per driver
-    cover 2.0% of GB households on all three drivers at once, and 203 of 175,188 land cells reach a
-    site. THE OPEN-METEO 429 HAS CLEARED -- re-probed by hand 2026-09-07, 2 records returned at
-    Birmingham, against 'try again tomorrow' on 2026-09-06. Sequence: re-land `_has_archive` from
-    `16a127b74` FIRST (HEAD's resi-electricity predicate cannot resolve the second premise of each
-    I&C coordinate pair, and admits C7/C8/C9 which hold no CSV -- correct today only by book ORDER),
-    then pull. Staged SEAT_FINDING_TWO_LANES_BUILT_W1_14S_ARTEFACT_CUT_TWICE 2026-09-07."
+  # THAT PARAGRAPH CLAIMED A REPAIR THAT WAS NEVER LANDED, and the claim stood 13 days. It said
+  # `_weather_source_customer_id` checks `_has_archive`; `git log --all -S` finds that name in NO
+  # commit's code -- only in this map's prose and in one test call site in salvage `8730d1b96`.
+  # fork_salvage caught two of the three files the dying worktree held and never weather_inputs.py.
+  # `_has_archive` IS LANDED 2026-09-20, written fresh (nothing to recover). 18/18 unchanged.
+  # The proxy was unmutatable on the live book -- archived ids precede un-archived ones at every
+  # shared coordinate -- so the discriminating pair is BOUND in the test.
+  block_reason: "NOT WIRED TO THE WORLD'S WEATHER. REPLACED 2026-09-20; the 09-07 version is in
+    git history and its correction is staged (WORKER_RESULT_W1_14S_NAMED_NEXT_ACTION_IS_THE_DESIGN
+    _THE_DIRECTOR_REFUSED..._2026-09-20). It said ARCHIVE BREADTH and ordered `then pull` -- four
+    more per-property Open-Meteo sites. THAT IS THE DESIGN THE DIRECTOR REFUSED IN WRITING on
+    2026-09-16 (`sim/weather_world.py`); `fabric_demand_path.ADD_THE_CELL_REMEDY` replaced the same
+    sentence on 09-17 precisely because naming a per-property pull recruits the reader into
+    rebuilding it. This field was that recruiting text, nine days out of date.
+    MEASURED 2026-09-20 against the per-cell store (221 cells, MAX_SNAP_KM 5.0): it serves 78/210
+    = 37.1% of drawn households (seed 7, draw_region=True, 210/210 sited) against these four
+    sites' 2.0% -- 18x -- and 16/18 of the supply book. BOTH MISSES ARE BIRMINGHAM, 7.35 km from
+    the nearest held cell, so the store's build set and the book have DIVERGED and nothing watched.
+    (Both pre-registered predictions were refuted: I said 18/18 on the book and 50-90% on the draw.)
+    THE REMAINING WORK, none of it a pull: (1) migrate `weather_inputs` onto `sim.weather_world` --
+    the seam must resolve to a CELL, not to a customer_id with a CSV; this is what makes L2 true,
+    and until it lands the 37.1% is coverage of a store this seam does not read. (2) add
+    Birmingham's cell. (3) then judge what the drawn frame needs (median household 7.2 km out)."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
