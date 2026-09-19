@@ -293,6 +293,11 @@ def sweep_stale(now: float | None = None, path: Path | None = None) -> list[str]
         OWN alarm key: it is a different instruction to the reader from "this stalled" (the bytes
         exist and need landing, not redoing) and keying it to the ordinary sweep alarm would hide
         it inside a message that fires on every stale claim.
+      * STRAND_CANDIDATE -- no commit and the claim's OWN paths are clean, but somewhere in the
+        tree uncommitted bytes were written inside its window. Asked only when the named set comes
+        back clean, because the named set is a prediction the item made before doing the work and
+        it has been wrong by four paths out of four (`_window_attributable_paths`). Its own key and
+        its own verb again: LOOK, not land -- the attribution is the clock's, not the item's.
 
     A CREDITED CLAIM IS STILL ALARMED BY `claims_mod.sweep` AS HAVING MOVED NOTHING, and that is
     the honest reading of a turn that landed and never bound: the lane could not see it at the
@@ -349,6 +354,24 @@ def _act_on_tree_verdict(work_id: str, *, now: float | None = None,
             # THE DRAW, not now: `first_ts` is when this episode began, and stamping it with the
             # moment the sweep noticed would restart the clock on every sweep and make a strand
             # that has stood for days read as new each time.
+            first_ts=float(verdict.get("drawn_at") or 0.0), now=now)
+        return verdict
+    if verdict.get("verdict") == STRAND_CANDIDATE:
+        from background import alarm_repetition
+        # ITS OWN KEY AND ITS OWN INSTRUCTION, and the two differ in the verb. The strand alarm
+        # above says LAND THESE, which is only safe because the paths are ones this claim's own
+        # prose predicted. Here they are not, so the same sentence would be telling a reader to
+        # commit another lane's in-flight bytes under this claim's name -- the failure that would
+        # make this reading worse than the silence it replaces. It says LOOK.
+        alarm_repetition.escalate(
+            "[SEAT] {} was claimed and landed NOTHING, and bytes were written in its window\n"
+            "{}\n"
+            "This is a CANDIDATE, not a strand: the attribution is the clock's, not the item's. "
+            "Open those paths before redoing this work -- if they are this claim's, land them by "
+            "the ordinary route and run `python3 -m background.delivery_lane --landed {}`; if they "
+            "are another lane's, they are not yours to commit and there is nothing to do.".format(
+                focus_id, verdict.get("evidence", ""), focus_id),
+            key=f"delivery-lane-strand-candidate:{focus_id}", repeats=1,
             first_ts=float(verdict.get("drawn_at") or 0.0), now=now)
         return verdict
     return verdict
@@ -1350,6 +1373,13 @@ NOT_DRAWN = "not_drawn"
 CREDITED = "credited"
 STRANDED = "stranded"
 
+#: The same question as `STRANDED` asked of the TREE'S OWN CLOCK instead of the item's prose, and
+#: kept a separate value because it is a WEAKER claim and the difference is the whole of its worth.
+#: `STRANDED` names bytes on paths this claim itself predicted; this names bytes that merely fell
+#: inside its window. Collapsing the two would let a coincidence be read with a strand's authority,
+#: and the reader's action differs: land those, but only LOOK at these.
+STRAND_CANDIDATE = "strand_candidate"
+
 
 def _drawn_before_stated_start(focus_id: str, row: dict, drawn: float) -> dict | None:
     """The stated instant this row's whole window closed before, or None. `PREMISE_NOT_YET_RIPE`.
@@ -1518,6 +1548,53 @@ def _back_referenced_start(text: str, anchor: float) -> float | None:
         return None
 
 
+def _dirty_with_mtimes(paths: list[str] | None) -> list[tuple[str, float]]:
+    """`(path, mtime)` for every uncommitted entry on the SHARED tree. NO time filter, on purpose.
+
+    ONE SCAN, TWO DISCRIMINATORS, and they are split here because the two callers below disagree
+    about which instants are interesting and must NOT be allowed to disagree about what counts as a
+    dirty path. A rename prints its new side, a deletion has no bytes, an untracked file counts:
+    those are facts about `git status`, not about either question, and a second copy of this loop
+    would be a second chance to get one of them wrong on only one of the two readings.
+
+    `paths=None` MEANS THE WHOLE TREE, and it is a different question rather than a wider one --
+    see `_window_attributable_paths`. `paths=[]` would be `git status --` with no pathspec, which
+    git reads as the whole tree too, so the empty case is refused at the caller instead of being
+    silently promoted here.
+
+    ASKED OF THE SHARED TREE, never of `PROJECT_DIR`, for the reason `_git`'s own docstring gives.
+
+    EMPTY IS NOT A FINDING AND NO CALLER MAY READ IT AS ONE: `[]` comes back both from a clean tree
+    and from a git that would not answer, and nothing here can tell them apart. Every caller turns
+    only a NON-empty list into a verdict.
+    """
+    try:
+        root = seat_continuation.shared_tree_dir()
+    except Exception:
+        return []
+    args = ["status", "--porcelain", "--untracked-files=all"]
+    if paths is not None:
+        args += ["--", *paths]
+    out = _git(*args, cwd=root)
+    if not out:
+        return []
+    found = []
+    for line in out.splitlines():
+        rel = line[3:].strip()
+        # A rename prints `old -> new`; the bytes on disk are the NEW side, and asking the old
+        # side's mtime would stat a path that is gone and drop the row silently.
+        if " -> " in rel:
+            rel = rel.split(" -> ", 1)[1].strip()
+        rel = rel.strip('"')
+        if not rel:
+            continue
+        try:
+            found.append((rel, float((root / rel).stat().st_mtime)))
+        except OSError:
+            continue        # a deletion has no bytes to strand; nothing to say about it
+    return found
+
+
 def _stranded_paths(paths: list[str], window_closed: float,
                     now: float | None = None) -> list[tuple[str, float]]:
     """`(path, mtime)` for claim paths holding uncommitted bytes OLDER than the closed window.
@@ -1548,31 +1625,81 @@ def _stranded_paths(paths: list[str], window_closed: float,
     """
     if not paths:
         return []
-    try:
-        root = seat_continuation.shared_tree_dir()
-    except Exception:
-        return []
-    out = _git("status", "--porcelain", "--untracked-files=all", "--", *paths, cwd=root)
-    if not out:
-        return []
     stamp = time.time() if now is None else float(now)
-    found = []
-    for line in out.splitlines():
-        rel = line[3:].strip()
-        # A rename prints `old -> new`; the bytes on disk are the NEW side, and asking the old
-        # side's mtime would stat a path that is gone and drop the row silently.
-        if " -> " in rel:
-            rel = rel.split(" -> ", 1)[1].strip()
-        rel = rel.strip('"')
-        if not rel:
-            continue
-        try:
-            mtime = float((root / rel).stat().st_mtime)
-        except OSError:
-            continue        # a deletion has no bytes to strand; nothing to say about it
-        if mtime <= window_closed <= stamp:
-            found.append((rel, mtime))
-    return sorted(found, key=lambda pair: pair[1])
+    return sorted((pair for pair in _dirty_with_mtimes(paths)
+                   if pair[1] <= window_closed <= stamp), key=lambda pair: pair[1])
+
+
+def _window_attributable_paths(drawn: float, window_closed: float,
+                               now: float | None = None) -> list[tuple[str, float]]:
+    """`(path, mtime)` for uncommitted bytes ANYWHERE in the tree, WRITTEN INSIDE `[drawn, close]`.
+
+    THE SECOND QUESTION, AND IT IS ASKED OF THE TREE BECAUSE THE CLAIM'S PATH LIST IS A PREDICTION.
+    `_claim_paths` returns `named_paths` -- the paths a draw stamped from the ITEM'S PROSE, before
+    any work was done. Measured on this lane's own ledger, 2026-09-19: the row
+    `the-svt-household-has-no-route-back-to-a-fixed-term` was drawn 2026-09-18 19:04:59 naming
+    three DOCUMENTS, its window closed 20:44:59, and the work of that turn was sitting at
+    `simulation/renewals.py` with an mtime of 19:30:21 -- inside the window, and in none of the
+    three names. `_stranded_paths` asked git about the three documents and git answered correctly.
+    The strand half was blind to four paths out of four, and "it is built and it is sitting there"
+    was structurally unsayable.
+
+    (The item that directed this put that window at 21:00-22:40 and is wrong by about two hours;
+    the ledger instants above are the measured ones. The RELATION it rests on -- the mtime falling
+    strictly inside the window, and outside every named path -- is what held, and is what this
+    function keys on. Corrected here beside the claim rather than over it.)
+
+    THE LOWER BOUND IS THE WHOLE DIFFERENCE FROM `_stranded_paths` AND IT IS WHAT MAKES THIS
+    PUBLISHABLE. Dropping the pathspec buys reach at the cost of every other lane's ordinary work,
+    so the time band has to do all the discriminating that the names were doing. Measured on the
+    live tree over that same window, 2026-09-19: 537 dirty entries, 347 of them satisfy
+    `_stranded_paths`' own `mtime <= window_closed` when it is asked of the whole tree, and **4**
+    satisfy `drawn <= mtime <= window_closed`. 347 is a wall of noise that would be ignored inside
+    a week; 4 is a list a reader can check.
+
+    IT IS A COINCIDENCE UNTIL SOMEBODY LOOKS, and the caller's prose must say so. Bytes written
+    during this claim's window by ANOTHER lane satisfy this exactly as well as the claim's own do
+    -- nothing here can tell them apart, and this returns candidates, never strands.
+
+    `min(window_closed, stamp)` SO AN OPEN WINDOW CANNOT CLAIM BYTES FROM ITS OWN FUTURE, which is
+    the same direction `_stranded_paths` guards with `<= stamp`. `disposition_of` can be asked
+    about a row whose window is still running, and a future upper edge there would read every live
+    edit in the tree as attributable.
+    """
+    stamp = time.time() if now is None else float(now)
+    upper = min(float(window_closed), stamp)
+    return sorted((pair for pair in _dirty_with_mtimes(None)
+                   if drawn <= pair[1] <= upper), key=lambda pair: pair[1])
+
+
+def _attributed_by_time(found: list[tuple[str, float]], drawn: float, window_closed: float) -> str:
+    """The one sentence `_window_attributable_paths`' answer is allowed to be published in.
+
+    ONE WRITER, TWO READERS (`tree_verdict`'s alarm and the residual the orientation brief prints),
+    because the caveat is the load-bearing half and a second copy of it is a second chance to drop
+    it. A reader who takes the list below for a proof will go and land another lane's bytes under
+    this claim's name, which is worse than the silence this replaces.
+
+    THE COUNT IS THE STRENGTH OF THE ATTRIBUTION AND THE SENTENCE SAYS SO, measured on the live
+    ledger the hour this landed: the settled 2026-09-18 SVT window yields 4 candidates, and two
+    just-closed windows on the same tree yield 28 and 57, because three lanes were writing through
+    them. Four is a list to open; fifty-seven is a statement that the window was too busy for a
+    clock to single anything out. There is no threshold here and no published source for one --
+    the reader is given the number and what it means, which is the honest shape when the
+    discriminating power is a continuum rather than a test.
+
+    AND THE TRUNCATION IS DECLARED. Printing five of fifty-seven without saying so reads as a
+    complete list, and the reader acts on five paths believing they are all of them.
+    """
+    when = lambda t: datetime.datetime.fromtimestamp(t).strftime("%H:%M")   # noqa: E731
+    shown = found[:5]
+    return ("{} path(s) elsewhere in the tree hold uncommitted bytes written INSIDE this window "
+            "({}-{}) -- ATTRIBUTED BY TIME AND NOT BY NAME: this claim's own named paths are "
+            "clean, and nothing here says these bytes are its work rather than another lane's. "
+            "The longer this list, the busier the window and the weaker the attribution. "
+            "LOOK before redoing anything -- oldest {} of {}: {}".format(
+                len(found), when(drawn), when(window_closed), len(shown), len(found),
+                ", ".join("{}@{}".format(rel, when(mtime)) for rel, mtime in shown)))
 
 
 def tree_verdict(focus_id: str, *, now: float | None = None,
@@ -1632,7 +1759,8 @@ def tree_verdict(focus_id: str, *, now: float | None = None,
     if landed and landed.get("commit"):
         return {"verdict": CREDITED, "commit": str(landed["commit"]), "at": float(landed["at"]),
                 "paths": paths, "drawn_at": drawn, "evidence": landed.get("evidence", "")}
-    stranded = _stranded_paths(paths, drawn + CLAIM_STALE_SECONDS, now=stamp)
+    closed = drawn + CLAIM_STALE_SECONDS
+    stranded = _stranded_paths(paths, closed, now=stamp)
     if stranded:
         oldest_rel, oldest_mtime = stranded[0]
         return {"verdict": STRANDED, "paths": [rel for rel, _ in stranded], "drawn_at": drawn,
@@ -1641,6 +1769,18 @@ def tree_verdict(focus_id: str, *, now: float | None = None,
                             "since before the window closed -- oldest {} at {:.1f}h: {}".format(
                                 len(stranded), oldest_rel, (stamp - oldest_mtime) / 3600.0,
                                 ", ".join(rel for rel, _ in stranded[:5]))}
+    # AND ONLY THEN THE SECOND QUESTION. The order is what keeps the strong claim strong: a row
+    # whose OWN named paths are dirty is a strand and is said so, and the weaker time-attributed
+    # reading is never reached for it. What this adds is the case the named set cannot express --
+    # a prose prediction that was wrong about where the work would go -- and by construction it
+    # can only ever replace the SILENCE below, never a louder verdict. See
+    # `_window_attributable_paths` for the measured case it was built from.
+    candidates = _window_attributable_paths(drawn, closed, now=stamp)
+    if candidates:
+        return {"verdict": STRAND_CANDIDATE, "paths": [rel for rel, _ in candidates],
+                "drawn_at": drawn, "named_paths": paths,
+                "oldest_age_hours": round((stamp - candidates[0][1]) / 3600.0, 1),
+                "evidence": _attributed_by_time(candidates, drawn, closed)}
     return None
 
 
@@ -1793,6 +1933,16 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         "we looked and found nothing", and it says which paths and over what window so the reader
         can check whether the paths were the right ones.
 
+    THAT LAST BRANCH SPLIT IN THREE ON 2026-09-19, AND THE REASON IS THAT IT WAS ASKING ONLY ABOUT
+    THE PATHS THE ITEM PREDICTED. "Genuine miss" is the sentence that sends a reader off to redo
+    the work, and it was being published over a window whose hours could perfectly well hold that
+    work as uncommitted bytes somewhere the prose never named — which is measured, once, at four
+    paths out of four (`_window_attributable_paths`). So it asks the tree a second question first
+    and has three ends: bytes found inside the window (the work may be sitting there, attributed
+    BY TIME and said so), the scan itself broke (the could-not-ask split again, one question
+    later), and nothing found anywhere — which is the only one that still says "genuine miss", and
+    now says it having earned the whole of it.
+
     THE FOURTH BRANCH HAD A THIRD VOICE HIDING IN IT UNTIL 2026-09-18, and it is named here because
     this is where it was published rather than where it was caused. `_window_hits` read a git that
     FAILED and a git that answered NO COMMITS through one falsy test, so a `git log` that never ran
@@ -1838,9 +1988,43 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         return {"disposition": NOT_DONE,
                 "evidence": asked + "grace): {} found, each already bound in this ledger, so none "
                                     "was creditable to this window".format(len(hits))}
+    # AND THE LAST BRANCH IS NOT ALLOWED TO SAY "GENUINE MISS" UNTIL THE TREE HAS BEEN ASKED THE
+    # SECOND QUESTION. This is the sentence the whole reading is for -- it is what the orientation
+    # brief prints and what sends a reader off to do the work again -- and every one of its clauses
+    # is about COMMITS on the paths the item's prose NAMED. A window whose named paths are clean
+    # and whose own hours hold uncommitted bytes elsewhere in the tree is precisely the case where
+    # "the work may still be undone" is the expensive answer to be wrong about, because the work
+    # may instead be sitting there finished. The candidate replaces the sentence rather than being
+    # appended to it: a reader who is told both will act on the louder one.
+    closed = drawn + CLAIM_STALE_SECONDS
+    try:
+        candidates = _window_attributable_paths(drawn, closed)
+    except Exception as exc:    # never raises into the brief; see this function's last paragraph
+        # A SCAN THAT BROKE MUST NOT LEAVE THE FLATTERING SENTENCE STANDING. "Genuine miss" now
+        # rests on the second question having been ASKED, so a failure to ask it is the same
+        # could-not-ask/answered split as the first branch of this function, one question later.
+        #
+        # AND IT SPEAKS THE VOICE THIS MODULE ALREADY HAS, which is the whole of the correction
+        # made here on 2026-09-19 before this landed. The first draft wrote its own sentence --
+        # accurate, and a THIRD voice: `tests/background/residual_voices.py` keys `could_not_ask`
+        # on the `CANNOT ANSWER` marker and `looked_and_found_nothing` on "asked git ... none.",
+        # and a reading that is neither is invisible to every consumer of that split. Minting a
+        # third voice to express the same distinction is the defect this function exists to end,
+        # arriving one question later and wearing a correct sentence.
+        return {"disposition": NOT_DONE,
+                "evidence": "CANNOT ANSWER, not 'nothing landed': no commit touched {} in this "
+                            "window, but {} -- so whether the work is SITTING UNCOMMITTED in this "
+                            "window was never established, and a louder disposition may be true "
+                            "and was lost. Check the tree before redoing this".format(
+                                named, _raised("the window-attribution scan", exc))}
+    if candidates:
+        return {"disposition": NOT_DONE,
+                "evidence": asked + "grace): none on those paths -- BUT THE WORK MAY BE SITTING "
+                                    "THERE. " + _attributed_by_time(candidates, drawn, closed)}
     return {"disposition": NOT_DONE,
-            "evidence": asked + "grace): none. Nothing was stated by hand either, so this is a "
-                                "genuine miss and the work may still be undone"}
+            "evidence": asked + "grace): none. Nothing was stated by hand either, and no "
+                                "uncommitted bytes anywhere in the tree were written inside this "
+                                "window, so this is a genuine miss and the work may still be undone"}
 
 
 def _disposition(row: dict, drawn: float, *, focus_id: str = "",
