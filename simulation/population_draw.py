@@ -438,6 +438,12 @@ def _draw_one(
         # the company's book HARDER to serve cheaply, not easier, because a smart meter means the
         # supplier can no longer bill an estimate and hope.
         smart_meter=_draw_smart_meter(customer_id, base_seed, acquisition_date.year, segment),
+        # C6 (CHOICE_AND_CHANNEL_ROADMAP.md): the route the account OPENED by, which decides the
+        # product it opens on. `None` for every arrival the published record cannot speak for,
+        # which is still most of them -- see `_draw_tariff_type`, and note that `None` here is a
+        # declared silence and NOT the `"fixed"` label the 2026-08-28 determination refused.
+        # Own RNG substream, so every attribute drawn above is byte-identical to before it existed.
+        tariff_type=_draw_tariff_type(customer_id, base_seed, acquisition_date.year, segment),
         **_coordinate_fields(customer_id, base_seed, region),
     )
 
@@ -836,6 +842,39 @@ def _draw_smart_meter(customer_id: str, base_seed: int, year: int, segment: str)
 
     roll = _cohort_substream(customer_id, base_seed, "smart_meter").random()
     return roll < smart_meter_penetration(int(year))
+
+
+def _draw_tariff_type(
+    customer_id: str, base_seed: int, year: int, segment: str
+) -> Optional[str]:
+    """Which product this acquisition OPENS on — C6, `simulation/arrival_route.py`.
+
+    An account opens by a switch (the household chose a deal, so a fixed term) or by a move-in (a
+    deemed contract arises automatically with the incumbent, at default-tariff rates). The second
+    route did not exist in this world at all, which
+    `docs/market_research/gb_domestic_default_tariff_share_2016_2025.md` §4 named as the cause of
+    the world's generated SVT share sitting below the published one in every comparable year.
+
+    RETURNS `None` FOR EVERYTHING IT CANNOT ESTABLISH, and `None` is not `"fixed"`.
+    `DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` refused labelling the unlabelled remainder
+    and this does not overturn that -- it labels ONLY the arrivals whose product is settled by the
+    licence's deemed-contract scheme, and leaves the rest exactly as silent as it found them.
+
+    DOMESTIC ONLY. `simulation/svt_rates.py` is the Ofgem DOMESTIC default tariff cap and an SME or
+    I&C site has no default tariff to arrive on; `renewals.build_renewal_schedule` makes the same
+    carve-out at its own SVT branch. The anchor is an England HOUSING survey, so the scope of the
+    source and the scope of the branch are the same scope rather than two that happen to agree.
+
+    Its own named substream (C-S2), so adding it leaves every other drawn attribute byte-identical
+    -- the same isolation `_draw_smart_meter` above uses and for the same reason.
+    """
+    if normalise_segment(segment, default=None) != "resi":
+        return None
+    from simulation.arrival_route import arrival_tariff_type
+    from simulation.household_segments import tenure_for_customer
+
+    roll = _cohort_substream(customer_id, base_seed, "arrival_route").random()
+    return arrival_tariff_type(roll, int(year), tenure_for_customer(customer_id))
 
 
 def _cohort_substream(customer_id: str, base_seed: int, axis: str) -> random.Random:

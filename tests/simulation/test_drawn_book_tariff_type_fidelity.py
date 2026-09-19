@@ -148,26 +148,112 @@ def test_the_drawn_book_is_not_given_a_BLANKET_upliftable_product():
     )
 
 
-def test_the_world_still_has_NO_standard_variable_product_to_assign_the_rest_to():
-    """Why the honest repair is an atom and not a label assignment.
+def test_the_world_settles_the_standard_variable_product_the_determination_registered_as_owed():
+    """DISCHARGED 2026-09-19, and the way it had to be rewritten is the finding.
 
-    Two thirds of a real domestic book sits on SVT with no renewal decision at all,
-    and the world cannot settle that: `build_renewal_schedule` knows `fixed`,
-    `flex`, `deemed` and `pass_through` only. `deemed` is out-of-contract spot+20%
-    -- a GAP between contracts, not a variable tariff. Until an SVT product exists,
-    any label assigned to the drawn book is a choice between products that all
-    carry an annual renewal decision, which is the fidelity defect itself.
+    This test used to assert the OPPOSITE -- that no standard-variable product existed -- and its
+    docstring said: *"When the SVT product lands, this test is the one that should be updated --
+    by adding it to the set, not by deleting the assertion."* That is the update.
 
-    When the SVT product lands, this test is the one that should be updated -- by
-    adding it to the set, not by deleting the assertion.
+    **IT NEVER FIRED, AND IT SHOULD HAVE FIRED THREE WEEKS AGO.** The old assertion was
+    `'"svt"' not in src.lower()` over `simulation/renewals.py`. C1a landed the product on
+    2026-08-30 and `renewals.py` branches on it at line 131 -- but through the imported constant
+    `SVT_TARIFF_TYPE`, so the literal three characters in quotes never appear in that file and the
+    grep stayed green across the exact event it was written to catch. A grep for a NAME is blind
+    to the MECHANISM implemented without it. The replacement below asks the builder, not the
+    bytes.
+
+    So the assertion is now the positive one: the world settles `svt`, `deemed` and `flex`, and
+    the drawn book's label has been revisited against the published record -- which is what
+    `simulation/arrival_route.py` and `population_draw._draw_tariff_type` did, on the arrival
+    route rather than on the stock share.
+
+    TWO DRAFTS OF THE REPLACEMENT WERE ALSO WRONG AND BOTH ARE KEPT HERE, because each was caught
+    by running the mutation rather than by thinking harder, and the second one is the more
+    instructive.
+
+    Draft 1 asserted `SVT_TARIFF_TYPE in {t["tariff_type"] for t in schedule}`. It passes with the
+    SVT-origin branch dead, because the C1b passive ROLL further down the same builder also emits
+    SVT segments. The observable was satisfied by a different mechanism than the one under test.
+
+    Draft 2 asserted `schedule[0]["tariff_type"] == SVT_TARIFF_TYPE`, on the stated reasoning that
+    *"the roll cannot reach index 0 because a roll needs a term to roll off"*. That reasoning is
+    FALSE: a household that is passive at its very first boundary rolls onto SVT at index 0, so
+    with the branch neutered this household's schedule came back all-SVT and the control passed
+    again. Same defect as draft 1, one layer deeper.
+
+    Draft 3 used a BOUND PAIR -- the same household built as a switcher and as a mover -- and
+    asserted they differ at index 0. It ALSO passed under the mutation, and the reason is the
+    useful one: **"opens on SVT" is over-determined by the label.** Two mechanisms produce it. The
+    arrival branch is one; the other is `rolls_active_renewal`, which reads `tariff_type` and
+    returns False for an SVT household, so the main loop's own passive branch opens the account on
+    SVT anyway. Neuter either one and the observable survives on the other.
+
+    So the observable that belongs to the arrival branch ALONE is not the opening -- it is the
+    EXIT. Without the branch the household stays on the default tariff for the whole window; with
+    it, the stint is bounded by the first anniversary and a non-SVT term follows. The pair is kept
+    because it is what establishes the household is not a passive roller, and the exit clause is
+    what makes the whole thing falsifiable.
+
+    R15 MUTATION (must fire): neuter the SVT-origin branch in `renewals.build_renewal_schedule`
+    (`if tariff_type == SVT_TARIFF_TYPE:` -> `if False:`). RUN 2026-09-19 -- it did NOT fire
+    against drafts 1, 2 or 3, which is how each was caught, and DOES fire against the exit clause
+    below. The grep this all replaces could not be mutated to fire at all, which is the definition
+    of a control that cannot fail.
     """
+    import datetime as _dt
+
+    from simulation.renewals import build_renewal_schedule
+    from simulation.svt_product import SVT_TARIFF_TYPE
+
+    start, end = "2017-01-01", "2020-01-01"
+    records = [
+        {
+            "settlementDate": (_dt.date(2016, 1, 1) + _dt.timedelta(days=i)).isoformat(),
+            "systemSellPrice": 60.0,
+        }
+        for i in range((_dt.date.fromisoformat(end) - _dt.date(2016, 1, 1)).days + 1)
+    ]
+    def _open(tariff_type):
+        return build_renewal_schedule(
+            "FIDELITY-SVT-1", start, end, records, 3100,
+            segment="resi", tariff_type=tariff_type,
+        )
+
+    as_switcher, as_mover = _open("fixed"), _open(SVT_TARIFF_TYPE)
+    assert as_switcher and as_mover, "the builder returned an empty schedule for one leg"
+
+    # LEG 1 -- the pair can discriminate. If this household were passive at its first boundary it
+    # would open on SVT whichever way it was built, and leg 2 would be true for a reason that has
+    # nothing to do with the arrival branch.
+    assert as_switcher[0].get("tariff_type") != SVT_TARIFF_TYPE, (
+        "the control's own subject has stopped discriminating: this household now opens on SVT "
+        "even when built as a switcher, so it is a passive first-boundary roller and leg 2 below "
+        "would pass without the arrival branch existing. Pick a household that opens on a fixed "
+        "term as a switcher -- do not delete leg 2."
+    )
+    # LEG 2 -- built as a move-in, the same household opens on the default tariff instead.
+    assert as_mover[0].get("tariff_type") == SVT_TARIFF_TYPE, (
+        f"built as a move-in this household still opened on "
+        f"{as_mover[0].get('tariff_type')!r}. The standard variable product the 2026-08-28 "
+        "determination registered as owed is not reachable AS AN ARRIVAL, so the drawn book has "
+        "nothing honest to be labelled with again."
+    )
+    # LEG 3 -- THE ONE THE MUTATION FIRES ON. An SVT arrival is a stint, not an absorbing state:
+    # it is bounded by the first anniversary and the household can leave. Legs 1 and 2 are both
+    # satisfied by `rolls_active_renewal` reading the label, with the arrival branch dead; only
+    # this one requires the branch itself.
+    mover_kinds = [t.get("tariff_type") for t in as_mover]
+    assert any(k != SVT_TARIFF_TYPE for k in mover_kinds), (
+        f"a move-in arrival never leaves the default tariff: {mover_kinds}. The arrival is an "
+        "absorbing state, so the priced boundary the arm was shown to admit is unreachable and "
+        "the producer mints a label with no path behind it -- the drawn item's own stated test "
+        "for insufficient work."
+    )
+    # And the three products it displaced nothing from are still settleable, or "the world gained
+    # SVT" would be indistinguishable from "the world lost everything else".
     import simulation.renewals as renewals
 
-    src = (renewals.__file__, open(renewals.__file__, encoding="utf-8").read())[1]
+    src = open(renewals.__file__, encoding="utf-8").read()
     for product in ("deemed", "flex"):
         assert f'"{product}"' in src, f"{product} is no longer a product this world settles"
-    assert "standard_variable" not in src and '"svt"' not in src.lower(), (
-        "a standard-variable product now exists in the world -- the owed repair in "
-        "docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md has landed, "
-        "so revisit the drawn book's label against the Ofgem year-by-year split"
-    )

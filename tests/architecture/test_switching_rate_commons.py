@@ -1497,6 +1497,51 @@ def discover_switching_level_candidates(root: Path = _REPO_ROOT, scope=_SCOPE) -
 #: from here and from every register above makes the census leg fire -- which is the whole point:
 #: "absent" and "checked" look identical to a register, so absence is made load-bearing.
 _NOT_A_LEVEL_READING: dict[str, str] = {
+    # --- simulation/arrival_route: the switching rate as a DENOMINATOR TERM, not as a level ---
+    "simulation.arrival_route:default_tariff_arrival_share":
+        "reads the published switching band as ONE TERM of a ratio, and the ratio is over a "
+        "different population in a different direction. The band counts DEPARTURES over all GB "
+        "domestic electricity accounts; this returns the share of the accounts a supplier OPENS "
+        "in a year that open on the incumbent's default tariff -- `m / (m + s)`, move-ins over "
+        "move-ins plus switches. Registering it would hold an arrival share to a departure band, "
+        "which is the before-you-divide defect this file exists over. What IS held is that it "
+        "moves with the series: `tests/simulation/test_the_default_tariff_arrival_producer.py::"
+        "test_the_arrival_share_MOVES_WITH_the_published_switching_record` keys it to the 2022 "
+        "switching collapse rather than to any value it returns.",
+    "simulation.arrival_route:arrival_tariff_type":
+        "the caller of the share above -- turns it into a product label for one drawn arrival. It "
+        "carries no series of its own and holds no level; it compares a caller-supplied roll "
+        "against the share and returns a string or `None`.",
+    # --- tools/fit_year_level_anchor: a SWEEP GRID, not a series ---
+    # Not authored here. It landed with the exposure-restricted incidence measurement on
+    # 2026-09-19 and left this census leg red for every lane, which is why it is classified in
+    # the same pass rather than routed around.
+    "tools.fit_year_level_anchor:_BASE_RESTRICTION_THRESHOLDS":
+        "`tuple(i / 10.0 for i in range(11))` -- the 0.0-to-1.0 grid two restrictions are SWEPT "
+        "at, and its own comment says why it is a grid and not a chosen point. It reads no "
+        "published series, carries no year, and holding eleven evenly spaced tenths to the "
+        "switching band would be holding the x-axis to the y-axis.",
+    # --- tools/couple_value_based_pricing: RUN IDENTITY, not a reading of anything ---
+    # Not authored here either, and the same shape as the row above: the provenance-stamping lane
+    # landed these at c4809c5fc/79f7484f3 and left this census leg red for EVERY lane, so they are
+    # classified in the same pass rather than routed around. The discoverer matches them because
+    # they are module-level values from a call, which is the right net to cast -- a run identity
+    # and a departure level look identical to it, and that is exactly why the reason is written
+    # down instead of the shape being excluded.
+    "tools.couple_value_based_pricing:PRODUCING_COMMIT":
+        "`_git_head()` -- WHICH CODE priced the arms, resolved at import. A commit sha, not a "
+        "rate: there is no published band a sha could be held to, and its own comment says a run "
+        "that cannot resolve one publishes `None` and the reason rather than a wrong sha.",
+    "tools.couple_value_based_pricing:PRODUCING_COMMIT_RESOLVED_AT":
+        "the UTC instant the sha above was resolved at. A timestamp carries no level; it exists "
+        "so a reader can tell that the commit was bound at process start and not at artefact "
+        "assembly, which is a later tree.",
+    "tools.couple_value_based_pricing:WORLD_IDENTITY":
+        "WHICH WORLD the arms were priced in -- a dict of anchors, not a rate over the book. It "
+        "is the thing that makes a departure-level re-fit visible to a later reader, so holding "
+        "it to the switching band would hold the LABEL of a world to a quantity measured inside "
+        "it. The levels it names are held where they are defined, in "
+        "`simulation.departure_level_anchor`.",
     # --- tools/published_route_split: a WITHIN-SEGMENT hazard, not a book level ---
     "tools.published_route_split:admissible_svt_churn":
         "external changes of supplier per SVT-ACCOUNT-year -- a hazard inside one segment of the "
