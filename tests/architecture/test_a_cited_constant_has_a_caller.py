@@ -165,13 +165,35 @@ def _comment_block(lines: list[str], node: ast.stmt) -> str:
         else:
             break
         i -= 1
+    # Reversed because the walk above goes UPWARD. Invisible while the caller took one match
+    # from this text; now that it takes every match, the order is published in the refusal and
+    # a comment block quoted back to a reader bottom-up is a small lie.
+    block.reverse()
     block.extend(lines[node.lineno - 1: getattr(node, "end_lineno", node.lineno)])
     return "\n".join(block)
 
 
-def _money_constants(root: Path) -> list[tuple[str, str, str | None]]:
-    """Every module-level money constant in subject scope, as (relpath, name, citation|None)."""
-    found: list[tuple[str, str, str | None]] = []
+def _money_constants(root: Path) -> list[tuple[str, str, tuple[str, ...]]]:
+    """Every module-level money constant in subject scope, as (relpath, name, citations).
+
+    EVERY citation the comment block carries, and the third field is a TUPLE with no singular
+    beside it (2026-09-19, the `087e3ad58` class). This read `_CITATION.search(...)` and
+    registered ONE, so a constant citing two artefacts had its second source checked by nothing
+    -- neither for existing nor for being reached. That is not a wrong answer anywhere: it is an
+    absent question, which is why every leg in this file stayed green over it and no mutation of
+    the read could fire.
+
+    There was one live instance at `406276afc`:
+    `company/crm/customer_profitability.py::NET_NEGATIVE_UPLIFT_GBP_PER_MWH` cites both
+    `price_cap_ebit_allowance.md` and `pricing_differentiation_permissions.md`, and only the
+    first was ever asked about. Both exist today, so the dangling-citation leg was not WRONG --
+    it was unasked, and it would have stayed unasked had the second gone missing.
+
+    The field is a tuple rather than "first citation, plus the rest" on purpose: a consumer that
+    was not widened raises on `ROOT / cites` instead of quietly grading the first citation and
+    reporting a clean answer.
+    """
+    found: list[tuple[str, str, tuple[str, ...]]] = []
     for path in _py_files(root, SUBJECT_SCOPE):
         try:
             src = path.read_text(encoding="utf-8")
@@ -197,9 +219,9 @@ def _money_constants(root: Path) -> list[tuple[str, str, str | None]]:
             for name in names:
                 if not name.isupper() or not _MONEY_NAME.search(name):
                     continue
-                cite = _CITATION.search(_comment_block(lines, node))
+                cites = _CITATION.findall(_comment_block(lines, node))
                 found.append((
-                    str(path.relative_to(root)), name, cite.group(0) if cite else None,
+                    str(path.relative_to(root)), name, tuple(dict.fromkeys(cites)),
                 ))
     return found
 
@@ -300,12 +322,14 @@ def unreached_cited_constants(root: Path) -> list[tuple[str, str, str]]:
     """The finding, computed: (relpath, name, citation) for every sourced-and-unwired constant."""
     live = live_symbols(root)
     out: list[tuple[str, str, str]] = []
-    for rel, name, cite in _money_constants(root):
-        if cite is None:
-            continue
+    for rel, name, cites in _money_constants(root):
         mod = rel[:-3].replace("/", ".")
-        if name not in live.get(mod, set()):
-            out.append((rel, name, cite))
+        if name in live.get(mod, set()):
+            continue
+        # One row PER citation. A constant citing two unwired sources is two pieces of
+        # published evidence going unspent, and the refusal below is what a repairer acts on --
+        # naming one of them is how a constant gets half-repaired.
+        out.extend((rel, name, cite) for cite in cites)
     return out
 
 
@@ -330,8 +354,8 @@ def test_the_walker_still_sees_the_repo():
 def test_every_citation_resolves_to_a_file_that_exists():
     """A citation to a file that is not there is worse than no citation: it reads as evidence."""
     dangling = [
-        (rel, name, cite) for rel, name, cite in _money_constants(ROOT)
-        if cite and not (ROOT / cite).exists()
+        (rel, name, cite) for rel, name, cites in _money_constants(ROOT)
+        for cite in cites if not (ROOT / cite).exists()
     ]
     assert dangling == [], (
         "money constants cite source files that do not exist:\n" +
@@ -540,7 +564,52 @@ def test_a_dangling_citation_is_caught(tmp_path, citation):
         "saas/thing.py": f"# Sourced to {citation}.\nTHING_COST_GBP = 1.0\n",
     })
     dangling = [
-        (rel, name, cite) for rel, name, cite in _money_constants(tmp_path)
-        if cite and not (tmp_path / cite).exists()
+        (rel, name, cite) for rel, name, cites in _money_constants(tmp_path)
+        for cite in cites if not (tmp_path / cite).exists()
     ]
     assert dangling == [("saas/thing.py", "THING_COST_GBP", citation)]
+
+
+def test_a_constant_citing_two_sources_has_BOTH_of_them_asked_about(tmp_path):
+    """MUTATION: `_CITATION.findall` -> `.search` in `_money_constants` fires this.
+
+    The `087e3ad58` class, and the leg that holds the widening open. A comment block naming two
+    artefacts registered one, so the second was checked neither for existing nor for being
+    reached -- and because that is an ABSENT question rather than a wrong answer, no leg written
+    before this one could go red over it.
+
+    Synthetic, and deliberately so. There IS a live two-citation constant
+    (`NET_NEGATIVE_UPLIFT_GBP_PER_MWH`), but a control keyed to it would pass for the wrong
+    reason the day someone splits that comment, and both of its sources exist so it cannot
+    exercise the dangling leg at all. The property is: however many sources a constant cites,
+    every one of them is a subject.
+    """
+    _write_tree(tmp_path, {
+        "saas/__init__.py": "",
+        "saas/two.py": (
+            "# Ceiling from docs/market_research/real_one.md and the permission to apply it\n"
+            "# from docs/domain_artefact_library/regulatory/GONE.md.\n"
+            "TWO_SOURCE_COST_GBP = 3.0\n"
+        ),
+        "docs/market_research/real_one.md": "x",
+    })
+    assert [cites for _r, _n, cites in _money_constants(tmp_path)] == [(
+        "docs/market_research/real_one.md",
+        "docs/domain_artefact_library/regulatory/GONE.md",
+    )], "the census registered fewer citations than the comment block states"
+
+    dangling = [
+        (name, cite) for _rel, name, cites in _money_constants(tmp_path)
+        for cite in cites if not (tmp_path / cite).exists()
+    ]
+    assert dangling == [("TWO_SOURCE_COST_GBP", "docs/domain_artefact_library/regulatory/GONE.md")], (
+        "the SECOND source a constant cites does not exist and nothing asked. The first one "
+        "does, so a narrow read reports the constant properly sourced."
+    )
+
+    # AND THE REACHABILITY REFUSAL NAMES BOTH, because a repairer acts on what it names: one
+    # row per unspent source, not one row per constant.
+    assert unreached_cited_constants(tmp_path) == [
+        ("saas/two.py", "TWO_SOURCE_COST_GBP", "docs/market_research/real_one.md"),
+        ("saas/two.py", "TWO_SOURCE_COST_GBP", "docs/domain_artefact_library/regulatory/GONE.md"),
+    ]

@@ -116,6 +116,19 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-19  I001 1308 -> 1307, F841 125 -> 124  (T6 is given its first coverage, and the
+#     `087e3ad58` class census). ONE FILE, `tests/background/test_naive_organ.py`, and both are
+#     side effects rather than a tidying pass. That file had NO test of `detect_t6` at all, which
+#     is how the detector stayed silent on the live status page; adding three legs to it opened
+#     the import block (unsorted at HEAD — a stray third blank line after it) and put
+#     `test_seed_replay_rediscovers_at_least_three_weekend_catches` under the eye, where
+#     `fired_ids` is bound, never read, and shadowed one line later by the `kinds` set that the
+#     assertion actually uses. Deleted rather than left, because an unread binding beside a leg
+#     about detectors going unasked is the same shape in miniature.
+#     MEASURED ON THE TREE THIS COMMIT WOULD CREATE, per this log's standing rule and NOT off the
+#     working tree: `git archive HEAD` extract with this commit's files copied in reads I001
+#     1307, F841 124, total 2283.
+#     NOTHING ELSE IS BANKED. No other file in this commit moved a ruff count.
 #   2026-09-16  I001 1309 -> 1308  (the gas leg rolls onto the cap: repair 2 of the tariff-type
 #     determination). ONE FILE, `tests/simulation/test_run_phase2b.py`, and it is a side effect
 #     rather than a tidying pass: that file's import block was unsorted AT HEAD, this commit had
@@ -732,7 +745,8 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1308,  # lowered 2026-09-16 (see the SHRINK LOG head). Previously 1309,
+    "I001": 1307,  # lowered 2026-09-19 (see the SHRINK LOG head). Previously 1308,
+    #             lowered 2026-09-16 (see the SHRINK LOG head). Previously 1309,
     #             lowered 2026-09-08 (the substring-control residue: five source-scanning
     #             controls re-read through `tools/python_code_text`): -1, in
     #             `tests/background/test_process_reconciler.py`, whose block was unsorted AT HEAD
@@ -835,7 +849,10 @@ RUFF_BASELINE: dict[str, int] = {
     # with the same `makefile_lint_scope()` the ratchet uses, so the improvement is inside this
     # commit rather than banked from a dirty tree.
     "E402": 172,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
-    "F841": 125,  # lowered 2026-09-07 (the Capacity Market price leg): -1, and it is this
+    "F841": 124,  # lowered 2026-09-19 (see the SHRINK LOG head): -1, `fired_ids` in
+    #             `tests/background/test_naive_organ.py`, bound and never read, in the file
+    #             that T6's first coverage was added to. Previously 125,
+    #             lowered 2026-09-07 (the Capacity Market price leg): -1, and it is this
     #             commit's. `test_ashp_only_cm_revenue` bound `result = book.compute_year(...)`
     #             and never read it; the rewrite that turned that test from asserting a CM price
     #             into asserting the CM refusal dropped the binding with it.  SHRINK-ONLY.
@@ -858,7 +875,9 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2285  # 2286 -> 2285 on 2026-09-16: the I001 above, same attribution --
+RUFF_BASELINE_TOTAL = 2283  # 2285 -> 2283 on 2026-09-19: the I001 and the F841 above, both
+# `tests/background/test_naive_organ.py`, the one file T6's first coverage opened.
+# 2286 -> 2285 on 2026-09-16: the I001 above, same attribution --
 # `tests/simulation/test_run_phase2b.py`, whose block this commit had open anyway.
 # 2287 -> 2286 on 2026-09-08: the earlier I001, same attribution --
 # this commit's own `tests/background/test_process_reconciler.py`, and NOT the neighbouring

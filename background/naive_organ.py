@@ -562,35 +562,60 @@ def _t6_rows(state: dict) -> list[tuple]:
     return [
         (r"(\d[\d,]*)\s+atoms?\s+below\s+target", lambda m: int(m.group(1).replace(",", "")), open_ct, "atoms_below_target"),
         (r"no drawable atoms|nothing to draw", lambda m: 0, open_ct, "drawable_atoms_zero"),
-        (r"net(?:\s+margin)?[^\d]{0,8}£?([\d,]+)", lambda m: int(m.group(1).replace(",", "")), latest_net_val, "net_margin"),
+        # `net margin` AND a `£`, both required, and it is the widened read below that made the
+        # tightening necessary rather than optional. The old pattern was `net(?:\s+margin)?` with
+        # the currency optional, so on the live LATEST.md it landed first on the word "network"
+        # followed by a number — four of its six matches were "network,", "net margin ÷ N=19",
+        # "skynet-1" and "…net` → `127". Measured across the four candidate tightenings on the
+        # real surface before choosing: this one leaves exactly the two claims that ARE net
+        # margins and nothing else. A net margin on this surface is money and is written with a
+        # currency sign; a claim written without one is now knowingly out of scope, which is a
+        # stated narrowing rather than the accidental one it replaces.
+        # The capture ends on a DIGIT: `[\d,]+` swallowed the sentence comma after
+        # "net margin £1,521,070," and put it in `claim_text`, which is the string the debounce
+        # keys on and the string the director reads back.
+        (r"\bnet\s+margin\b[^\d£]{0,8}£(\d[\d,]*\d|\d)", lambda m: int(m.group(1).replace(",", "")), latest_net_val, "net_margin"),
     ]
 
 
 def detect_t6(state: dict) -> list[Trigger]:
     """Claim-vs-data contradiction on any observable surface (real catch: 'no
-    drawable atoms' vs 30 idle atoms — the tautology)."""
+    drawable atoms' vs 30 idle atoms — the tautology).
+
+    EVERY claim a row's pattern finds is asked, not the first (2026-09-19). This read `search()`
+    and judged one claim per row per surface, which is the `087e3ad58` class: a dropped match is
+    an ABSENT QUESTION, so T6 reported no contradiction because it had asked none, and nothing
+    downstream of a detector that returns `[]` can tell that apart from agreement.
+
+    It was live. On `docs/status/LATEST.md` at `406276afc` the net-margin row's first match was
+    the word "network" followed by a number; `extract` raised on it, the row-level guard below
+    swallowed the exception and moved to the next row, and the page's two actual net-margin
+    claims — £1,521,070 and £158,278, which contradict each other before anything is recomputed —
+    were never compared with the data. `detect_t6` returned `[]` against a computed £42.
+    """
     fires = []
     claims = state.get("claims_text", "")
     for pattern, extract, computed, name in _t6_rows(state):
         if computed is None:
             continue
-        m = re.search(pattern, claims, re.IGNORECASE)
-        if not m:
-            continue
-        try:
-            claimed = extract(m)
-        except Exception:
-            continue
-        mismatch = (abs(claimed - computed) > 1) if name == "net_margin" else (claimed != computed)
-        if mismatch:
-            fires.append(Trigger(
-                trigger_id=f"T6_claim_vs_data_{name}",
-                mode=MODE_INTERROGATE,
-                claim_text=m.group(0),
-                evidence_refs=("LATEST.md", "maturity_map.yaml/run_history.json"),
-                observed_value={"claimed": claimed, "computed": computed, "field": name},
-                fire_reason=f"{name}: claim says {claimed}, raw data says {computed}",
-            ))
+        for m in re.finditer(pattern, claims, re.IGNORECASE):
+            try:
+                claimed = extract(m)
+            except Exception:
+                # Scoped to the MATCH, not the row. A row-level skip is precisely how the live
+                # surface went unjudged: one unreadable false positive at the top of the page
+                # retired the whole row for that tick.
+                continue
+            mismatch = (abs(claimed - computed) > 1) if name == "net_margin" else (claimed != computed)
+            if mismatch:
+                fires.append(Trigger(
+                    trigger_id=f"T6_claim_vs_data_{name}",
+                    mode=MODE_INTERROGATE,
+                    claim_text=m.group(0),
+                    evidence_refs=("LATEST.md", "maturity_map.yaml/run_history.json"),
+                    observed_value={"claimed": claimed, "computed": computed, "field": name},
+                    fire_reason=f"{name}: claim says {claimed}, raw data says {computed}",
+                ))
     return fires
 
 

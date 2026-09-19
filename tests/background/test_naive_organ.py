@@ -15,7 +15,6 @@ import yaml
 
 from background import naive_organ as organ
 
-
 CANARY = "NAIVE_ORGAN_CANARY_7Q3"
 
 # The frozen weekend fixture (design §4.1) — the real observable surfaces AS THEY
@@ -164,7 +163,6 @@ def test_seed_replay_rediscovers_at_least_three_weekend_catches():
         "idle_count": 9,
     }
     fired = organ.run_detectors(state)
-    fired_ids = {t.trigger_id.split("_", 1)[0] + "_" + t.trigger_id.split("_")[1] for t in fired}
     kinds = {tid[:2] for tid in (t.trigger_id for t in fired)}
     assert len(kinds) >= 3, f"expected >=3 distinct trigger families, got {kinds}"
     # the three named canonical catches: T2 (exhausted+open), T3 (inherence), T7 (fix-class)
@@ -586,3 +584,99 @@ def test_shared_failure_domain_findings_are_only_historical_post_fix():
     assert names == {"naive_organ (pre-2026-07-14)", "deadmans_switch (pre-2026-07-14)"}
     for f in findings:
         assert "pre-2026-07-14" in f["name"], "a LIVE shared-failure-domain row is a defect"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# T6 READS EVERY CLAIM ON THE SURFACE, NOT THE FIRST ONE ITS PATTERN LANDS ON
+#
+# The `087e3ad58` class, found by the tree-wide census of `.search()` reads whose match is
+# registered as the subject of a downstream judgement. T6 had NO coverage at all before this
+# block, which is how it stayed silent: a detector returning `[]` because it asked nothing looks
+# exactly like a detector returning `[]` because it agreed, and no other rung can tell them
+# apart. Each leg below names the defect it fires on, and each was proven to fail separately.
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def test_t6_asks_every_claim_a_surface_states_and_not_just_the_first():
+    """MUTATION: `finditer` -> `search` in `detect_t6` fires this leg.
+
+    A page stating a figure twice, differently, is the case T6 exists for -- one of the two
+    must contradict the data. Read narrowly, only the first is ever compared, so a page whose
+    SECOND figure is the false one is passed as honest.
+
+    Synthetic, not the live surface: keyed to the property (every stated claim is asked) rather
+    than to today's LATEST.md, which would go green the moment the page is rewritten.
+    """
+    state = {
+        "atoms": [], "runhist": [{"net_margin_gbp": 1_000_000.0}],
+        "claims_text": "net margin £1,000,000 in the summary, and net margin £42 in the table.",
+    }
+    fires = organ.detect_t6(state)
+    claimed = sorted(f.observed_value["claimed"] for f in fires)
+    assert claimed == [42], (
+        "T6 saw a surface stating TWO net margins, one of which contradicts the computed "
+        f"£1,000,000, and registered {claimed}. The agreeing claim comes FIRST, so a narrow "
+        "read asks only that one and reports the page honest."
+    )
+
+
+def test_t6_keeps_asking_the_other_claims_when_one_is_unreadable(monkeypatch):
+    """MUTATION: move the `except Exception: continue` back out to row scope and this fires.
+
+    This is the half that made the live failure total rather than partial. The guard sat around
+    the whole row, so ONE unreadable match retired the net-margin check for that tick -- and on
+    the real page the unreadable match was the first one.
+
+    THE ROW IS INJECTED, and the first draft of this leg was vacuously green for not injecting
+    it. No row in the live `_t6_rows` table can produce an unreadable match any more: every
+    capture is digits-only by construction once the net-margin pattern was tightened, so the
+    row-scope mutation is an EQUIVALENCE against today's table rather than something no test
+    covers. Established by measurement, not assumed -- and the flattering reading would have
+    been to call it covered. The guard's SCOPE is still load-bearing because `_t6_rows` says in
+    its own comment that adding a row is the supported way to widen T6, and the next row's
+    extractor has no obligation to be total. So the property is driven directly.
+    """
+    def _one_bad_then_one_good(_state):
+        def extract(m):
+            return int(m.group(1))       # raises on the first match, reads the second
+        return [(r"claimed=(\w+)", extract, 42, "injected_row")]
+
+    monkeypatch.setattr(organ, "_t6_rows", _one_bad_then_one_good)
+    fires = organ.detect_t6({"claims_text": "claimed=unreadable, then claimed=7"})
+    assert [f.observed_value["claimed"] for f in fires] == [7], (
+        "an unreadable match retired the whole row: the readable contradiction after it was "
+        "never compared with the data"
+    )
+
+
+def test_the_net_margin_pattern_does_not_read_a_number_out_of_an_unrelated_word():
+    """MUTATION: restore `net(?:\\s+margin)?[^\\d]{0,8}£?([\\d,]+)` and this fires.
+
+    Each string below is a real fragment of `docs/status/LATEST.md` at `406276afc`, and each was
+    a match under the old pattern. Held as literals rather than by re-reading the page, because
+    a control that reads the live page goes green when the page is edited -- and the defect is
+    in the pattern, which the edit does not touch.
+    """
+    import re as _re
+    pattern = next(p for p, _x, _c, name in organ._t6_rows(
+        {"atoms": [], "runhist": [{"net_margin_gbp": 1.0}]}) if name == "net_margin")
+    not_a_net_margin = [
+        "usage, standing, network, VAT — which was the",          # "network," + a later digit
+        "**£80,056/customer** (net margin ÷ N=19), total",        # a divisor, not a margin
+        "active on the file-api (`https://skynet-1.taila062fa",   # a hostname
+        "(`https://skynet-1.taila062fa.ts.net` → `127.0.0.1`)",   # an IP address
+    ]
+    for fragment in not_a_net_margin:
+        assert _re.search(pattern, fragment, _re.IGNORECASE) is None, (
+            f"the net-margin pattern reads a figure out of {fragment!r}. On the real page this "
+            "put an unreadable false positive AHEAD of both true claims."
+        )
+    # AND IT STILL READS THE TWO THAT ARE NET MARGINS -- a pattern that matched nothing would
+    # pass every assertion above, which is the vacuous-green shape this block exists to refuse.
+    for fragment, expected in (
+        ("outcome metrics lead (net margin £1,521,070, treasury £3,898,729", "1,521,070"),
+        ("auto-processed (1475s / 25 min): - Net margin: £158,278.48 | Gross", "158,278"),
+    ):
+        m = _re.search(pattern, fragment, _re.IGNORECASE)
+        assert m is not None and m.group(1) == expected, (
+            f"the net-margin pattern no longer reads the net margin in {fragment!r}"
+        )
