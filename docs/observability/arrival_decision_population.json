@@ -1,0 +1,93 @@
+{
+  "what_this_is": "Two value-arm passes at ONE commit over ONE seed and ONE roster, differing in exactly one rebound symbol (`simulation.population_draw._draw_tariff_type`). The counts are the value arm's own decision population; the widths are each leg's OWN Mann-Whitney null, tie-corrected off its own scored roster.",
+  "legs": {
+    "arrivals_off": {
+      "svt_records_on_the_roster": 0,
+      "renewals_the_world_offered": 2824,
+      "stages": {
+        "control_arm_no_writer": 0,
+        "no_locked_rate": 0,
+        "acquisition_term": 227,
+        "not_the_arms_commodity": 0,
+        "product_not_upliftable": 2490,
+        "no_observed_history": 0,
+        "declined": 3,
+        "priced": 104
+      },
+      "product_not_upliftable_by_tariff_type": {
+        "'svt'": 2490
+      },
+      "decisions_that_existed": 107,
+      "priced": 104,
+      "declined": 3,
+      "scored_decisions": 104,
+      "retained": 60,
+      "left": 44,
+      "discrimination_auc": 0.5566287878787879,
+      "null": {
+        "available": true,
+        "retained": 60,
+        "left": 44,
+        "decisions": 104,
+        "auc_recomputed_from_the_roster": 0.5566287878787879,
+        "distinct_believed_scores": 83,
+        "tied_pairs_in_the_signal": 55,
+        "null_sd": 0.0575517293614433,
+        "null_sd_untied": 0.057570773308979785,
+        "tie_correction_shrinks_the_null_variance_by": 0.0006614744478820045
+      },
+      "pass_seconds": 1482.0
+    },
+    "arrivals_on": {
+      "svt_records_on_the_roster": 35,
+      "renewals_the_world_offered": 2943,
+      "stages": {
+        "control_arm_no_writer": 0,
+        "no_locked_rate": 0,
+        "acquisition_term": 227,
+        "not_the_arms_commodity": 0,
+        "product_not_upliftable": 2602,
+        "no_observed_history": 0,
+        "declined": 3,
+        "priced": 111
+      },
+      "product_not_upliftable_by_tariff_type": {
+        "'svt'": 2602
+      },
+      "decisions_that_existed": 114,
+      "priced": 111,
+      "declined": 3,
+      "scored_decisions": 107,
+      "retained": 63,
+      "left": 44,
+      "discrimination_auc": 0.5321067821067821,
+      "null": {
+        "available": true,
+        "retained": 63,
+        "left": 44,
+        "decisions": 107,
+        "auc_recomputed_from_the_roster": 0.5321067821067821,
+        "distinct_believed_scores": 84,
+        "tied_pairs_in_the_signal": 65,
+        "null_sd": 0.056958653740342986,
+        "null_sd_untied": 0.05698028822981897,
+        "tie_correction_shrinks_the_null_variance_by": 0.0007592233390152359
+      },
+      "pass_seconds": 1491.4
+    }
+  },
+  "decisions_that_existed_delta": 7,
+  "scored_decisions_delta": 3,
+  "null_half_width_95": {
+    "arrivals_off": 0.11279931679642523,
+    "arrivals_on": 0.11163690993895989
+  },
+  "null_half_width_ratio_on_over_off": 0.9896949122523215,
+  "auc_distance_from_half_in_its_own_null_sd": {
+    "arrivals_off": 0.9839632710798482,
+    "arrivals_on": 0.5636857614849369
+  },
+  "scored_decisions_needed_to_halve_the_off_legs_half_width": 414,
+  "did_the_rank_leg_get_cheaper": "the same, within 5%: the arrivals-on null is 99.0% of the arrivals-off null, so this route does not move the rank leg's cost",
+  "reading": "A decision count is a count of OPPORTUNITIES TO BE GRADED. It is not a result about the selection leg's sign and may not travel as one. Each AUC above is graded against the null of the roster it was scored on and against no other family's ruler."
+}
