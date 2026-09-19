@@ -1,7 +1,8 @@
 """The publish commit must carry the ledger its published series was built from.
 
 THE DEFECT THESE CONTROL, measured 2026-09-19. `docs/observability/run_history.json` is tracked,
-is read by `tools.generate_dashboard_data.extract_run_history` / `count_run_history_total` and is
+is read by `tools.generate_dashboard_data.extract_run_history` (and, until 2026-09-20, by
+`count_run_history_total`, deleted with the `run_history_total` field it fed) and is
 named by `background.naive_organ.detect_t6` as its own raw data -- and it was in no commit's
 pathspec. So `site/data/dashboard.json` was committed fresh on every publish cycle while the
 ledger it was built from stayed at its 2026-07-17 bytes for 64 days. Every fresh checkout, which

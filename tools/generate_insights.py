@@ -500,7 +500,8 @@ def append_run_history(insights: RunInsights, history_path: Optional[Path] = Non
     # ABSENT AND PRESENT-BUT-UNREADABLE ARE OPPOSITE FACTS, AND THIS IS A READ-MODIFY-WRITE
     # (2026-09-05 census sweep). No file means no run was ever recorded, so starting a fresh list
     # is right. A truncated one means 100 runs WERE recorded -- and `history = []` then wrote a
-    # ONE-entry list over them, which `generate_dashboard_data.count_run_history_total` reads --
+    # ONE-entry list over them, which the dashboard build reads through
+    # `generate_dashboard_data.extract_run_history` --
     # measured, 100 -> 1, a figure destroyed by a corrupt read with nothing anywhere able to
     # notice. (That comment said "publishes as the Project tab's 'Sim runs' KPI" until
     # 2026-09-19. `site/project/` was deleted on 2026-08-20 and nothing under `site/` has read
@@ -525,11 +526,16 @@ def append_run_history(insights: RunInsights, history_path: Optional[Path] = Non
     }
     history = [h for h in history if h.get("git_hash") != insights.git_hash]
     history.append(entry)
-    # THE CAP IS WHY `count_run_history_total` IS A FLOOR AND NOT A TOTAL (measured 2026-09-19:
-    # the ledger reached 100 on 2026-06-30 and that function has returned exactly 100 on every
-    # build since). Left at 100 deliberately -- the file is a read-modify-write on every publish
-    # cycle and an unbounded one grows without limit -- but the truncation is stated HERE, beside
-    # the line that does it, because the reader two modules away could not see it.
+    # THE CAP IS WHY NO COUNT OF THIS FILE IS A TOTAL. `count_run_history_total` published one
+    # as `dashboard.json`'s `run_history_total` until 2026-09-20; measured 2026-09-19, the ledger
+    # reached 100 on 2026-06-30 and that function had returned exactly 100 on every build for 81
+    # days. It was DELETED rather than relabelled, because no untruncated source of the true count
+    # exists: `docs/reports/run_output_*.json` are whole-run outputs, and the union of `git_hash`
+    # over all 86 committed revisions of this file is 1041 and still provably a floor (858f38dd7's
+    # revision holds 100 entries of which 100 are new, so the buffer turned over completely
+    # between commits). Left at 100 deliberately -- the file is a read-modify-write on every
+    # publish cycle and an unbounded one grows without limit -- but the truncation is stated HERE,
+    # beside the line that does it, because the reader two modules away could not see it.
     history = history[-100:]  # keep most recent 100 runs
     hp.write_text(json.dumps(history, indent=2))
 

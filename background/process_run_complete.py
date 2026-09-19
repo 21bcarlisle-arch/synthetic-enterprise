@@ -6470,8 +6470,10 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # closes "regenerated every cycle, committed by none" for a file the site RENDERS. The
     # insights step 700 lines up writes two files the site is BUILT FROM -- run_insights.json
     # (the exec summary `generate_dashboard_data` reads straight off disk) and run_history.json
-    # (`extract_run_history` / `count_run_history_total`, and the comparator `detect_t6` names as
-    # its own raw data) -- and neither was ever on this list. Measured: their committed copies
+    # (`extract_run_history`, and the comparator `detect_t6` names it as its own raw data; a
+    # second reader `count_run_history_total` was deleted on 2026-09-20 with the capped
+    # `run_history_total` field it fed) -- and neither was ever on this list. Measured: their
+    # committed copies
     # were last written 2026-07-17 while the dashboard.json BUILT FROM THEM was committed fresh
     # every cycle. So HEAD carried a published artefact none of its own inputs could reproduce,
     # and every isolated worktree -- which is where this seat and every fork reads -- got July's
@@ -6480,9 +6482,11 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     #
     # THE OTHER SHAPE WAS CONSIDERED AND LOST. Untracked machine-local state, with HEAD's stale
     # copy deleted, is the only way to make "tracked and never committed" stop being both -- but
-    # `count_run_history_total` would then publish 0 from any fresh checkout, which its own
-    # docstring correctly calls honest, and honest-and-wrong is still wrong on a published
-    # surface. A published figure's source belongs in the commit that publishes it.
+    # the dashboard's run-history series would then be EMPTY from any fresh checkout -- honest,
+    # and still wrong on a published surface, which is what the non-vacuity leg of
+    # `tests/background/test_the_published_series_and_the_ledger_it_came_from_are_committed_
+    # together.py` now refuses. A published figure's source belongs in the commit that publishes
+    # it.
     #
     # DRIVEN OFF THE WRITER'S OWN CONSTANTS, not a path list here: `tools/generate_insights.py`
     # declares where it writes, so a third output added there is committed without editing this
