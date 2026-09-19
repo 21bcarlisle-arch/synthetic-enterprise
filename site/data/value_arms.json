@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T04:39:20.905050Z",
+  "generated_at": "2026-09-19T09:19:53.464094Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "3d5fc9a605be990ad03bb647bf70060f6141b22c",
+    "publishing_tree_commit": "0b2ba65c7e9a144224ca484dcead101c5b4cf8e7",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 3d5fc9a60 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 0b2ba65c7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -994,7 +994,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "3d5fc9a605be990ad03bb647bf70060f6141b22c",
+      "publishing_tree_commit": "0b2ba65c7e9a144224ca484dcead101c5b4cf8e7",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1006,7 +1006,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 3d5fc9a60 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 0b2ba65c7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1070,11 +1070,11 @@
       "same_supplier": true,
       "dashboard_net_gbp": 157806.88,
       "run_identity": {
-        "dashboard_run_id": "run_output_579969f14_20260919T040724Z.json",
-        "dashboard_commit": "579969f14",
+        "dashboard_run_id": "run_output_9a1d6591e_20260919T083130Z.json",
+        "dashboard_commit": "9a1d6591e",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_20d594ac1_20260919T015105Z.json",
-        "last_verified_commit": "20d594ac1",
+        "last_verified_run_id": "run_output_3d82f9f68_20260919T062301Z.json",
+        "last_verified_commit": "3d82f9f68",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1292,61 +1292,193 @@
     "discrimination_across_the_family": {
       "against_the_statistics_own_null": {
         "available": true,
-        "source": "the 3-seed AUC-carrying floor of 2026-09-17",
+        "source": "the 12-seed AUC-carrying floor of 2026-09-17",
         "is_the_family_the_advantage_is_bounded_over": false,
-        "seeds_read": 3,
-        "mean_auc": 0.5697337962962963,
+        "seeds_read": 12,
+        "mean_auc": 0.5628958676569616,
         "auc_by_seed": [
           {
-            "seed": 1234567,
+            "seed": 3100001,
             "auc": 0.5649181547619048,
             "retained": 64,
-            "left": 42
+            "left": 42,
+            "null_sd": 0.057595245477272704,
+            "null_sds_above_no_information": 1.127144336723449,
+            "clears_its_own_null": false
           },
           {
-            "seed": 2345678,
-            "auc": 0.5649181547619048,
-            "retained": 64,
-            "left": 42
+            "seed": 3100002,
+            "auc": 0.5852229780801209,
+            "retained": 63,
+            "left": 42,
+            "null_sd": 0.05777864991492475,
+            "null_sds_above_no_information": 1.4749908176394937,
+            "clears_its_own_null": false
           },
           {
-            "seed": 3456789,
+            "seed": 3100003,
+            "auc": 0.5536226685796269,
+            "retained": 68,
+            "left": 41,
+            "null_sd": 0.057340217352780276,
+            "null_sds_above_no_information": 0.935166817553525,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100004,
+            "auc": 0.587173579109063,
+            "retained": 62,
+            "left": 42,
+            "null_sd": 0.05796736197002104,
+            "null_sds_above_no_information": 1.5038389905365457,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100005,
             "auc": 0.5793650793650794,
             "retained": 63,
-            "left": 42
+            "left": 42,
+            "null_sd": 0.05777864991492475,
+            "null_sds_above_no_information": 1.3736056394868912,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100006,
+            "auc": 0.5356589147286822,
+            "retained": 60,
+            "left": 43,
+            "null_sd": 0.05795837408532944,
+            "null_sds_above_no_information": 0.6152504325981132,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100007,
+            "auc": 0.5649181547619048,
+            "retained": 64,
+            "left": 42,
+            "null_sd": 0.057595245477272704,
+            "null_sds_above_no_information": 1.127144336723449,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100008,
+            "auc": 0.5520198170731707,
+            "retained": 64,
+            "left": 41,
+            "null_sd": 0.05802035667434221,
+            "null_sds_above_no_information": 0.8965787191752123,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100009,
+            "auc": 0.5520198170731707,
+            "retained": 64,
+            "left": 41,
+            "null_sd": 0.05802035667434221,
+            "null_sds_above_no_information": 0.8965787191752123,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100010,
+            "auc": 0.5714285714285714,
+            "retained": 64,
+            "left": 42,
+            "null_sd": 0.057595245477272704,
+            "null_sds_above_no_information": 1.2401817343891237,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100011,
+            "auc": 0.5592469545957918,
+            "retained": 63,
+            "left": 43,
+            "null_sd": 0.057371573776078245,
+            "null_sds_above_no_information": 1.032688327969408,
+            "clears_its_own_null": false
+          },
+          {
+            "seed": 3100012,
+            "auc": 0.549155722326454,
+            "retained": 65,
+            "left": 41,
+            "null_sd": 0.05784324637085301,
+            "null_sds_above_no_information": 0.849809189672719,
+            "clears_its_own_null": false
           }
         ],
+        "seeds_clearing_their_own_null": 0,
+        "widest_single_seed_distance": 1.5038389905365457,
+        "sds_needed_to_state_a_sign": 1.959963984540054,
         "null_point": 0.5,
-        "null_sd": 0.05777864991492475,
+        "null_sd": 0.05802035667434221,
         "null_sd_population": {
-          "retained": 63,
-          "left": 42
+          "retained": 64,
+          "left": 41
         },
         "null_sd_formula": "sqrt((retained + left + 1) / (12 * retained * left))",
-        "null_sds_above_no_information": 1.2069128717783246,
+        "null_sds_above_no_information": 1.0840310412082572,
         "exact_null": {
           "available": true,
-          "retained": 63,
-          "left": 42,
-          "ordered_pairs": 2646,
+          "retained": 64,
+          "left": 41,
+          "ordered_pairs": 2624,
           "null_point": 0.5,
-          "null_95_low": 0.3869992441421013,
-          "null_95_high": 0.6130007558578987,
-          "p_two_sided": 0.2311468669201442,
+          "null_95_low": 0.3864329268292683,
+          "null_95_high": 0.6135670731707317,
+          "p_two_sided": 0.2812845747953088,
           "inside_the_null": true,
           "measured_in_world": "39a192ce04c1eda8",
           "verdict_withheld_because": null,
-          "basis": "exact Mann-Whitney null over all 388212866177054207116394767200 arrangements of 63 retained and 42 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
+          "basis": "exact Mann-Whitney null over all 254764693428691823420134065975 arrangements of 64 retained and 41 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
         },
-        "exact_null_half_width": 0.1130007558578987,
+        "exact_null_half_width": 0.1135670731707317,
         "closed_form_agrees_with_the_exact_null": true,
         "family_spread_is_not_the_interval": {
-          "family_sd": 0.00834093580860511,
-          "times_narrower_than_the_null": 6.92711840022988,
+          "family_sd": 0.015686286223058662,
+          "times_narrower_than_the_null": 3.6987949760251695,
           "why": "A seed family measures how far this instrument moves when its SEED moves. The null measures how far a rank statistic moves when there is NOTHING TO FIND on a population this size. They are different questions and their answers differ by an order of magnitude here, so the family's spread is published as a property of the instrument and never as this figure's interval."
         },
+        "pooled_bound": {
+          "seeds": 12,
+          "distinct_auc_values": 10,
+          "seeds_returning_an_identical_auc": [
+            [
+              3100008,
+              3100009
+            ],
+            [
+              3100001,
+              3100007
+            ]
+          ],
+          "published_null_sd": 0.05802035667434221,
+          "published_sds_from_chance": 1.0840310412082572,
+          "refused_null_sd_if_the_seeds_were_independent": 0.01666786091318956,
+          "refused_sds_from_chance_if_the_seeds_were_independent": 3.7734816713757846,
+          "family_sd": 0.015686286223058662,
+          "family_sd_over_the_single_draw_null_sd": 0.27035832115102215,
+          "which_end_is_published": "the single-draw null, which claims no independence at all",
+          "why": "A `sqrt(n)` credit is earned by n independent draws of the statistic, and these are re-draws of ONE elasticity assignment over ONE book: the scored roster moves by a handful of renewals across the family and two pairs of seeds return the same AUC to sixteen figures. The sampling unit for a rank statistic is the ROSTER, and a seed is a re-draw inside it, so the independent end is not an optimistic reading of this family -- it is credit for the wrong unit. It is printed because the gap between the two ends is the whole question, and a reader shown one end cannot see that."
+        },
+        "rosters_to_state_a_sign": {
+          "available": true,
+          "sds_from_chance": 1.0840310412082572,
+          "sds_needed_to_state_a_sign": 1.959963984540054,
+          "rosters_needed_to_state_a_sign": 4,
+          "rosters_in_hand": 1,
+          "the_unit_is_a_roster_not_a_seed": "a roster is one independently drawn book of scored renewals. Re-drawing the elasticity assignment over the SAME book is a seed and not a roster, and it does not enter this count: the null's width comes from the two outcome counts, which a re-draw barely moves.",
+          "what_this_count_is": "the independent rosters this reading would need IF its distance from chance stayed exactly where it is. A new roster re-draws the statistic as well as adding to it."
+        },
+        "against_the_money_legs_price": {
+          "available": true,
+          "money_leg_seeds_needed_to_state_a_sign": 102,
+          "money_leg_sems_from_zero": 0.6862828358525476,
+          "money_leg_sign_if_it_were_stateable": "negative",
+          "both_counts_come_from": "the 12-seed AUC-carrying floor of 2026-09-17",
+          "the_units_differ": "the money leg's count is in SEEDS -- re-draws of the elasticity assignment over this book -- and the rank leg's is in ROSTERS, independently drawn books. They are not interchangeable and the smaller number is not therefore the cheaper question until the cost of a roster has been priced."
+        },
         "demonstrated": false,
-        "reading": "Discrimination reads 0.5697 across 3 draw(s), measured over a DIFFERENT family from the one the advantage above is bounded over (the 3-seed AUC-carrying floor of 2026-09-17), so it bounds nothing on this page and is not offered as an interval on anything: it is this book's only measured answer to whether the arm knows anything. 0.5 is the no-information point, and on 63 retained against 42 departed renewals a signal carrying nothing at all scatters with a standard deviation of 0.0578. This figure sits 1.21 of those above 0.5. That is INSIDE its own exact 95% null (0.3870-0.6130, two-sided p=0.231), so DISCRIMINATION IS NOT DEMONSTRATED HERE -- in either direction. An arm that beat the control while scoring at chance won by charging and not by knowing, and this book cannot yet tell those apart. That is a finding about the instrument's sample size and not a cue to re-run until a seed agrees."
+        "reading": "Discrimination reads 0.5629 across 12 draw(s), measured over a DIFFERENT family from the one the advantage above is bounded over (the 12-seed AUC-carrying floor of 2026-09-17), so it bounds nothing on this page and is not offered as an interval on anything: it is this book's only measured answer to whether the arm knows anything. 0.5 is the no-information point, and on 64 retained against 41 departed renewals a signal carrying nothing at all scatters with a standard deviation of 0.0580. This figure sits 1.08 of those above 0.5. That is INSIDE its own exact 95% null (0.3864-0.6136, two-sided p=0.281), so DISCRIMINATION IS NOT DEMONSTRATED HERE -- in either direction. An arm that beat the control while scoring at chance won by charging and not by knowing, and this book cannot yet tell those apart. That is a finding about the instrument's sample size and not a cue to re-run until a seed agrees. NO SINGLE DRAW CLEARS IT EITHER: 0 of 12 carry a distance past the 1.96 null SDs a direction needs, and the widest of them reads 1.50. Pooling the draws as though they were independent would read 3.77 null SDs instead of 1.08 and would state the advantage; it is REFUSED, because these re-draw one elasticity assignment over one book -- 10 distinct AUC values across 12 rows, and the family's own spread is 0.27 of a single draw's null. The replication unit for a rank statistic is the roster, and a seed is a re-draw inside it. At this distance, and only if it stayed exactly where it is, a sign would need about 4 independent ROSTERS -- against the 102 SEEDS the money leg beside it prices out of this same artefact. Different units, and the rank question is the one nobody has costed."
       },
       "available": false,
       "state": "asked_and_unanswerable",
