@@ -37,8 +37,8 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 10,474 | 10,144 – 10,736 (`git rev-list --count`) | AGREES |
-| lines | 960,622 | 925,703 – 987,935 (newlines across every `*.py` in the git index) | AGREES |
+| commits | 10,474 | 10,144 – 10,742 (`git rev-list --count`) | AGREES |
+| lines | 960,622 | 925,703 – 988,205 (newlines across every `*.py` in the git index) | AGREES |
 | modules | 2,948 | 2,898 – 2,995 (the count of `*.py` in the git index) | AGREES |
 | tests | 36,838 | 26,731 – 36,838 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES |
 
