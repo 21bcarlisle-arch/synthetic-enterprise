@@ -117,7 +117,8 @@ def _real_inputs() -> list:
     """
     paths = (gva.THREE_ARM_PATH, gva.NOISE_FLOOR_PATH, gva.DECOMPOSITION_PATH,
              gva.CURRENT_WORLD_THREE_ARM_PATH, gva.CURRENT_WORLD_NOISE_FLOOR_PATH,
-             gva.DEPARTURE_TERM_RERUN_PATH)
+             gva.DEPARTURE_TERM_RERUN_PATH, gva.DEPARTURE_TERM_BASELINE_PATH,
+             gva.BLIND_ENVELOPE_ARMS_PATH, gva.AUC_FAMILY_FLOOR_PATH)
     wanted = gva.build.__code__.co_argcount
     assert len(paths) == wanted, (
         "`build` reads {} artefacts and this fixture supplies {}, so every recipe below would be "
@@ -187,6 +188,115 @@ def _how_to_read_this(sentence, real):
     return lambda *a, **k: dict(real(*a, **k), how_to_read_this=sentence)
 
 
+def _family_never_asked(sentence, real):
+    """FORCED THROUGH THE PRODUCER'S OWN TRIGGER, and that is the difference from the merges above.
+
+    `_family_discrimination` returns a dict on all four of its states, so neither `_returns_string`
+    nor a plain merge onto today's result drives it: today's floor carries `FAMILY_AUC_KEY` and the
+    live branch is `asked_and_unanswerable`, whose dict has a `reading` of its own. Merging the
+    marked sentence onto THAT would report a home for a branch that was never taken -- the
+    flattering reading, and the one a hand-built dict gives silently.
+
+    So the recipe strips the key the function's own four-state ladder keys on and calls the REAL
+    function, which composes `never_asked` itself: the state, the cost sentence and the null block
+    are all the producer's. Only the here-relative sentence is replaced, for `_polarity_reason`'s
+    reason.
+
+    THE ASSERT IS THE POINT, not defensive noise. A drive that stops taking its branch is this
+    rung's own fail-open -- the sentence reaches a field, some home comes back, and every direction
+    below is judged over a page the producer never composed. `state` is the branch's own label, so
+    the day the ladder is re-shaped this names itself rather than measuring the wrong branch.
+    """
+    def driven(floor, *rest, **kwargs):
+        stripped = {key: value for key, value in (floor or {}).items()
+                    if key != gva.FAMILY_AUC_KEY}
+        out = real(stripped, *rest, **kwargs)
+        assert out.get("state") == "never_asked", (
+            "stripping `{}` no longer reaches the `never_asked` branch -- it reached {!r} -- so "
+            "this recipe is driving some other state and its sentence is judged over a page the "
+            "producer never composed".format(gva.FAMILY_AUC_KEY, out.get("state")))
+        return dict(out, reading=sentence)
+
+    return driven
+
+
+def _skill_size_refuted(sentence, real):
+    """The `refuted_by_this_run` branch, forced through the two intervals the comparison reads.
+
+    SAME SHAPE AS `_family_never_asked` AND FOR THE SAME REASON -- a dict on every branch, and the
+    live one is `still_live` (measured 2026-09-19: the unconditioned cut is scored on 85 decisions
+    against the headline's 54 and lands INSIDE its own null, so neither leg of the refutation
+    holds). The marked sentence merged onto that result would sit beside `verdict: still_live`,
+    which is a payload no publish can produce.
+
+    EVERY PRECONDITION IS FORCED, not just the two that happen to fail today. The headline's own
+    `available` and `observed_inside_the_null_interval` are set as well as the leg's -- otherwise
+    this recipe would red on the day the headline clears its null and the page stops saying "we
+    cannot tell", which is the page getting BETTER. A rung that goes red when its subject improves
+    is keyed to today's answer, and this file's own `_world_clause` row is the precedent for
+    refusing that.
+
+    THE CORNER THE BRANCH ALLOWS, deliberately: the leg is given the headline's own decision count
+    and its own interval, so `leg_n <= head_n` and `leg_half >= head_half` hold with equality. That
+    is the weakest state the branch admits, so the drive cannot be passing on a margin the real
+    comparison would not have.
+    """
+    def driven(method_skill, *rest, **kwargs):
+        forced = copy.deepcopy(method_skill or {})
+        head = forced.setdefault("null_spread", {})
+        head["available"] = True
+        head["observed_inside_the_null_interval"] = True
+        leg = (forced.setdefault("fixed_horizon", {})
+                     .setdefault("legs", {})
+                     .setdefault(gva.UNCONDITIONED_LEG, {}))
+        leg["decisions"] = forced.get("decisions_scored")
+        leg["null_spread"] = {"available": True,
+                              "observed_inside_the_null_interval": False,
+                              "null_95_interval": head.get("null_95_interval")}
+        out = real(forced, *rest, **kwargs)
+        assert out.get("verdict") == "refuted_by_this_run", (
+            "the forced run no longer reaches the `refuted_by_this_run` branch -- it reached {!r}, "
+            "{} -- so this recipe drives some other verdict and judges its sentence over a page "
+            "the producer never composed".format(out.get("verdict"), out.get("reason")))
+        return dict(out, sentence=sentence)
+
+    return driven
+
+
+def _repair_already_made(sentence, real):
+    """`_population_repair_bias`'s cleared branch, forced through the field its docstring names.
+
+    THIS FUNCTION IS THE SUBJECT OF A LIVE LANE 0 ITEM (2026-09-19, the director's own, on which
+    way the published `selection_gbp` is wrong), and the row is written here rather than exempted
+    because an exemption is the hole this rung exists to refuse -- and because the file cannot land
+    at all while any symbol is unrecipe'd: `pre_commit_test_gate.tests_for` maps a changed test file
+    to ITSELF, so the arity fix above is unlandable beside a red.
+
+    WHAT KEEPS IT OUT OF THAT ITEM'S WAY is that it is keyed to the same property the producer is:
+    `decision_population.same_priced_population.answer` is the trigger the function's own docstring
+    names as its retirement path -- "the day the page publishes a run taken after the level arm was
+    given the per-customer arm's refusal frontier, that field answers `True`, this block goes
+    unavailable and the clause comes off the page with nobody editing it". On that day the sentence
+    is PUBLISHED, leaves the untied census, and this row simply stops being reached. What it is NOT
+    keyed to is the £810 magnitude, the paired-twelve source, or anything else that item may move.
+
+    WHAT THAT ITEM MUST RE-CHECK: if it changes which field the availability ladder reads, the
+    assert below names itself rather than letting the drive measure the bias branch.
+    """
+    def driven(artefact, *rest, **kwargs):
+        forced = copy.deepcopy(artefact or {})
+        forced.setdefault("decision_population", {})["same_priced_population"] = {"answer": True}
+        out = real(forced, *rest, **kwargs)
+        assert out.get("run_carries_the_repair") is True, (
+            "an artefact answering `True` to `same_priced_population` no longer clears this block "
+            "-- it returned run_carries_the_repair={!r} -- so this recipe is driving the bias "
+            "branch and judging the cleared branch's sentence over it".format(
+                out.get("run_carries_the_repair")))
+        return dict(out, reason=sentence)
+
+    return driven
+
+
 def _departure_unavailable_constant(sentence, _real):
     """`_DEPARTURE_UNAVAILABLE` is a constant, and patching it does NOT drive its branch.
 
@@ -231,6 +341,16 @@ _RECIPES = {
     # arriving as a fresh red for whichever lane happens to be in the file.
     "_publisher_bound_statement": _returns_string,
     "_current_world_contrast": _how_to_read_this,
+    # THE THREE THAT ARRIVED WHILE THIS FILE WAS ERRORING AT SETUP. The fixture above supplied six
+    # paths to a `build` that had grown to nine, so all four tests ERRORED and nothing here judged
+    # anything from the day the seventh artefact landed -- and no lane could see it, because
+    # `tests_for` maps a changed producer to `test_generate_value_arms_data.py` and this filename
+    # matches neither of its globs. Each of the three returns a DICT on every branch, so none takes
+    # the generic recipe and each gets one that forces its own branch through the producer's own
+    # trigger.
+    "_family_discrimination": _family_never_asked,
+    "_skill_sample_size_explanation": _skill_size_refuted,
+    "_population_repair_bias": _repair_already_made,
 }
 
 #: The symbols whose branch needs something OUTSIDE the producer made to fail. Keyed to the module
@@ -254,8 +374,25 @@ _ALSO_BREAK = {
 #: FORCED ON THE UPSTREAM PRODUCER, never on the artefact, so the drive still runs the code the
 #: publish runs. A fixture that edited `is_the_later_run` in the input would also move the
 #: superseded figure the sentence compares against, and the comparison is the thing being judged.
+#: ONE FACT CAN NEED TWO PATCHES, which is why the value is a LIST and why `None` is a legal
+#: forcing. `is_the_later_run` is read in two places one call apart: `_current_world_clause` gates
+#: on the FIELD, and `_withdraw_a_verdict_stated_from_a_superseded_run` has already consumed the
+#: same fact INSIDE `_current_world_contrast` by the time the field is patched on its way out. So
+#: forcing the field alone left `verdict_withheld_because` set, `_leg_clause` took its withheld
+#: branch, and `resolved_tail` -- which is the only thing that composes this sentence -- was
+#: discarded. The recipe went on "driving" a branch that reached no field at all, and nothing said
+#: so, because this file was erroring at setup from the day `build` grew its seventh artefact.
+#:
+#: `None` MEANS PASS THE LEG THROUGH, and it is not an exemption: that is verbatim what the
+#: withdrawal does on its own first line when the run IS the later one (`if is_the_later_run is
+#: not False: return leg`). Clearing `verdict_withheld_because` by hand would have been the
+#: exemption -- the withdrawal APPENDS to any reason already there, so a hand-cleared field would
+#: also erase an unrelated cause and force a state the producer cannot compose.
 _ALSO_ADMIT = {
-    "_against_the_panels_figure": ("_current_world_contrast", {"is_the_later_run": True}),
+    "_against_the_panels_figure": [
+        ("_current_world_contrast", {"is_the_later_run": True}),
+        ("_withdraw_a_verdict_stated_from_a_superseded_run", None),
+    ],
 }
 
 
@@ -264,16 +401,16 @@ def _drive(symbol: str, sentence: str) -> dict:
     recipe = _RECIPES[symbol]
     real = getattr(gva, symbol)
     broken = _ALSO_BREAK.get(symbol)
-    admit = _ALSO_ADMIT.get(symbol)
-    saved_admit = None
-    if admit:
-        upstream, forced = admit
-        saved_admit = getattr(gva, upstream)
-
-        def _open(_real=saved_admit, _forced=forced):
-            return lambda *a, **k: dict(_real(*a, **k), **_forced)
-
-        setattr(gva, upstream, _open())
+    saved_admit = []
+    for upstream, forced in _ALSO_ADMIT.get(symbol) or ():
+        was = getattr(gva, upstream)
+        saved_admit.append((upstream, was))
+        if forced is None:
+            setattr(gva, upstream, lambda leg, *a, **k: leg)
+        else:
+            setattr(gva, upstream,
+                    (lambda _real, _forced: lambda *a, **k: dict(_real(*a, **k), **_forced))(
+                        was, forced))
     saved = None
     if broken:
         module = __import__(broken[0], fromlist=["_"])
@@ -290,8 +427,8 @@ def _drive(symbol: str, sentence: str) -> dict:
         setattr(gva, symbol, real)
         if broken:
             setattr(__import__(broken[0], fromlist=["_"]), broken[1], saved)
-        if admit:
-            setattr(gva, admit[0], saved_admit)
+        for upstream, was in saved_admit:
+            setattr(gva, upstream, was)
 
 
 # ── the census ───────────────────────────────────────────────────────────────────────────────
@@ -391,6 +528,17 @@ _REFERENTS = {
     ("_departures", "beside this"): (
         ".decisions.auc_attribution.priced_accounts_the_arm_itself_drove_out", "same"),
     ("_polarity_check", "beside this"): (".decisions.auc_attribution.reading", "same"),
+    # THE ADVANTAGE THE FAMILY IS A BOUND ON. `_family_discrimination`'s whole subject is the
+    # advantage published BESIDE it -- its docstring says so in the first line -- so the referent
+    # is the error bar's own reading and not the discrimination figure, which is the thing the
+    # sentence says is missing. Registered 2026-09-19, the first time this branch could be driven.
+    ("_family_discrimination", "beside this"): (".error_bar.reading", "same"),
+    # ...AND THE FIGURE THE SAMPLE-SIZE BLOCK EXPLAINS. `cannot_tell` is the figure's own statement
+    # of the "we cannot tell" whose cause this block checks, so it is what "beside this" names.
+    # The producer said "the figure above" until this rung was first able to drive the branch:
+    # both render in `#arms-method`, so the word was corrected in the producer rather than the
+    # claim weakened here.
+    ("_skill_sample_size_explanation", "beside this"): (".method_skill.cannot_tell", "same"),
 }
 
 

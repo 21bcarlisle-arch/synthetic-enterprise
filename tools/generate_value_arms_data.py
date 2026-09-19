@@ -5745,12 +5745,19 @@ def _skill_sample_size_explanation(method_skill: dict) -> dict:
     on_less_power = leg_n <= head_n and leg_half >= head_half
     if leg_distinguishes and on_less_power:
         verdict = "refuted_by_this_run"
+        # "BESIDE THIS" RATHER THAN "ABOVE", and it was "above" until 2026-09-19. Driven for the
+        # first time by `tests/tools/test_the_value_arms_pages_undriven_pointers.py` -- which had
+        # been erroring at setup since this branch was written, so nothing had ever rendered it --
+        # the sentence lands in `#arms-method` and the concordance figure it names renders in
+        # `#arms-method` too. A reader sent upwards leaves the block the figure is in. Same defect
+        # and same repair as `_departures`' "named above", which is where this vocabulary comes
+        # from: the claim is region-relative, and the region is the same one.
         sentence = (
             "AND TOO FEW DECISIONS IS NOT WHY. The cut below that scores every priced decision, "
             "departures included, distinguishes itself from chance on {ln} decisions against this "
             "figure's {hn}, against an interval that is WIDER ({lw:.3f} either side, against "
             "{hw:.3f}). A cut with less power to find anything found something here, so however "
-            "few decisions this book has earned is not what stops the figure above saying "
+            "few decisions this book has earned is not what stops the figure beside this saying "
             "anything. What the two cuts differ in is the population and the unit -- and the "
             "population above is the households that STAYED."
         ).format(ln=leg_n, hn=head_n, lw=leg_half, hw=head_half)
@@ -10517,10 +10524,18 @@ def _population_repair_bias(artefact: dict | None) -> dict:
         return {
             "available": False,
             "run_carries_the_repair": True,
+            # IT NAMES `selection_gbp` RATHER THAN "the figure above", and the difference is not
+            # style. This branch is the one the door is built to go QUIET on -- `caveats` reaches
+            # for `.clause` and only when `available` -- so `reason` reaches a field NO door
+            # renders, and a direction claimed from a place no reader stands is a claim nothing
+            # can check. Naming the contrast is true from anywhere, which is the repair
+            # `_decomposition_is_the_same_contrast` already made for the same shape. Found
+            # 2026-09-19 by the undriven-pointer rung, on the first run in which it could drive
+            # this branch at all.
             "reason": (
                 "this run was taken after the level arm was given the per-customer arm's own "
                 "refusal frontier, so both arms priced one book and the downward bias this block "
-                "sizes does not apply to the figure above."),
+                "sizes does not apply to the `selection_gbp` figure it qualifies."),
         }
 
     # THE COUNTS ARE CARRIED, NEVER DIFFERENCED INTO A SECOND ESTIMATE. `priced_by_arm` diverging
