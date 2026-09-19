@@ -614,7 +614,15 @@ def test_every_published_growth_metric_is_registered(tmp_path, monkeypatch):
     guarded |= {c for _k, _kind, cs in g._GROWTH_METRICS for c in cs}
     guarded |= {"total_commits", "commits_by_day", "commits_source", "metrics_source"}
     # Scalars that are NOT growth metrics: a label, not a count.
-    non_growth = {"latest_phase"}
+    #
+    # `published_from` is provenance, not a metric, and registering it as a growth metric would be
+    # actively wrong: `_retain_growth_metrics` holds a metric at its LAST PUBLISHED VALUE when this
+    # run cannot measure it, which is right for a monotonic count and is the exact defect the stamp
+    # exists to end for a provenance field. A retained stamp would describe the previous run's tree
+    # while sitting in this run's feed. When it cannot be measured it says so itself — `commit:
+    # null` with a named reason — and that must reach the feed rather than be replaced by the last
+    # answer that looked good.
+    non_growth = {"latest_phase", "published_from"}
     unguarded = published - guarded - non_growth
     assert not unguarded, (
         "unguarded published metric(s) %s -- add to _GROWTH_METRICS (guarded) or "

@@ -22,9 +22,35 @@ import sys
 import json
 from pathlib import Path as _P
 
+if str(_P(__file__).resolve().parent.parent) not in sys.path:
+    sys.path.insert(0, str(_P(__file__).resolve().parent.parent))
+
+from tools import provenance_stamp  # noqa: E402
+
 PROJECT = _P(__file__).resolve().parent.parent
 PROJECT_OVERVIEW = PROJECT / "docs" / "PROJECT_OVERVIEW.md"
 OUT_PATH = PROJECT / "site" / "data" / "phases.json"
+
+#: The files this generator reads off the working tree. The LIVE GIT LOG is its other input and is
+#: deliberately not here: `total_commits` and `commits_by_day` are a function of the commit itself,
+#: so they reproduce at the recorded standpoint by construction and there is no path to compare.
+#: `OUT_PATH` IS an input — `_previously_published()` reads the last publication to hold monotonic
+#: metrics at their last value rather than publish a collapse — and leaving it out would be the
+#: exact defect this stamp exists for, one feed over.
+#:
+#: SO THIS FEED'S STAMP IS SELF-REFERENTIAL, AND THE FLIP IS HONEST, NOT A BUG. Measured
+#: 2026-09-19 in a clean `--shared` clone: run 1 stamps `tree_was_clean: true`,
+#: `inputs_are_the_committed_bytes: true`; run 2 in the same tree stamps BOTH false and names
+#: `site/data/phases.json` as `modified` — because run 1's output is one of run 2's inputs, and it
+#: is now uncommitted. Both readings are true of their own run. It matters to the CHECKER and not
+#: to the feed: `published_feed_regeneration_check` regenerates in a fresh clone at the recorded
+#: commit, where `phases.json` is the committed one again — the same bytes the publishing run
+#: read. Measured in that clone, everything else in the feed is byte-identical across two runs, so
+#: this is the cheapest of the four to promote. A session regenerating twice by hand in a dirty
+#: tree will see the flip and must not read it as the stamp misbehaving.
+READS = (PROJECT_OVERVIEW,
+         PROJECT / "docs" / "observability" / "test_execution_log.jsonl",
+         OUT_PATH)
 
 
 def _total_commits():
@@ -584,6 +610,12 @@ def generate():
         timeline=timeline,
         cumulative_tests_executed=test_executions["cumulative_total"],
         cumulative_tests_executed_since=test_executions["since"],
+        # This feed recorded a commit COUNT and no sha, which made it the one of the four that was
+        # HONEST AND UNCHECKABLE: it never asserted a provenance it could not support, and there
+        # was correspondingly nothing to stand at. The stamp gives it a standpoint without
+        # inventing one — and because the git-log half of this feed IS a function of the commit,
+        # it is the cheapest of the four to promote once published from a clean tree.
+        **{provenance_stamp.STAMP_KEY: provenance_stamp.stamp(READS, PROJECT)},
     )
     # Class guard: hold every registered monotonic metric at its last published
     # value rather than publish a collapse, and label what is fresh vs retained.

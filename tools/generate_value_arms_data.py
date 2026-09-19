@@ -126,6 +126,7 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
+from tools import provenance_stamp
 from tools.decisions_by_account_class import decisions_by_account_class
 from tools.decisions_that_existed import decisions_that_existed
 
@@ -12325,29 +12326,41 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              departure_baseline_path: Path | None = None,
              blind_envelope_arms_path: Path | None = None,
              auc_family_path: Path | None = None) -> dict:
-    data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
-                 _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
-                 _read(DECOMPOSITION_PATH if decomposition_path is None
-                       else decomposition_path),
-                 _read(CURRENT_WORLD_THREE_ARM_PATH if current_three_arm_path is None
-                       else current_three_arm_path),
-                 # THE STEP WHOSE OMISSION IS THE WHOLE FINDING. `_current_world_bound` can refuse
-                 # perfectly and the printed page still fails open if the artefact never reaches
-                 # it -- which is exactly the state this module was in: a contrast path moved to
-                 # the re-run, the floor path beside it left behind.
-                 _read(CURRENT_WORLD_NOISE_FLOOR_PATH if current_noise_floor_path is None
-                       else current_noise_floor_path),
-                 _read(DEPARTURE_TERM_RERUN_PATH if departure_rerun_path is None
-                       else departure_rerun_path),
-                 _read(DEPARTURE_TERM_BASELINE_PATH if departure_baseline_path is None
-                       else departure_baseline_path),
-                 _read(BLIND_ENVELOPE_ARMS_PATH if blind_envelope_arms_path is None
-                       else blind_envelope_arms_path),
-                 # THE STEP WITHOUT WHICH THE WHOLE READING IS INERT, and the reason it is spelled
-                 # out here rather than defaulted inside the block: `_family_discrimination` can
-                 # compute the null perfectly and the page still says only "0 of 18 draws carry a
-                 # figure" if the artefact never reaches it. That was the state on 2026-09-17.
-                 _read(AUC_FAMILY_FLOOR_PATH if auc_family_path is None else auc_family_path))
+    # THE NINE SOURCES ARE RESOLVED ONCE, then read AND stamped from the same list. Resolving them
+    # twice -- once for `build` and once for the provenance block -- is the defect this stamp
+    # exists to end, one level up: a stamp describing the module globals while a caller had
+    # redirected a source would name files this run never opened.
+    sources = [
+        THREE_ARM_PATH if three_arm_path is None else three_arm_path,
+        NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path,
+        DECOMPOSITION_PATH if decomposition_path is None else decomposition_path,
+        CURRENT_WORLD_THREE_ARM_PATH if current_three_arm_path is None else current_three_arm_path,
+        # THE STEP WHOSE OMISSION IS THE WHOLE FINDING. `_current_world_bound` can refuse
+        # perfectly and the printed page still fails open if the artefact never reaches
+        # it -- which is exactly the state this module was in: a contrast path moved to
+        # the re-run, the floor path beside it left behind.
+        CURRENT_WORLD_NOISE_FLOOR_PATH if current_noise_floor_path is None
+        else current_noise_floor_path,
+        DEPARTURE_TERM_RERUN_PATH if departure_rerun_path is None else departure_rerun_path,
+        DEPARTURE_TERM_BASELINE_PATH if departure_baseline_path is None
+        else departure_baseline_path,
+        BLIND_ENVELOPE_ARMS_PATH if blind_envelope_arms_path is None else blind_envelope_arms_path,
+        # THE STEP WITHOUT WHICH THE WHOLE READING IS INERT, and the reason it is spelled
+        # out here rather than defaulted inside the block: `_family_discrimination` can
+        # compute the null perfectly and the page still says only "0 of 18 draws carry a
+        # figure" if the artefact never reaches it. That was the state on 2026-09-17.
+        AUC_FAMILY_FLOOR_PATH if auc_family_path is None else auc_family_path,
+    ]
+    data = build(*[_read(p) for p in sources])
+    # THE ONE RESERVED KEY THIS FEED HAS NEVER HAD. Measured 2026-09-19: `value_arms.json` records
+    # FIFTEEN commits of this repository -- which tree each floor leg ran on, which commit a bias
+    # was measured against, which commit a pre-registration was written at. Every one of those is
+    # its SUBJECT, so `published_feed_regeneration_check.recorded_publication_commit` refused it
+    # outright: which sha is the standpoint and which is content cannot be told apart from the
+    # bytes. Picking one of the fifteen would have been choosing arbitrarily among content while
+    # looking like provenance. This says which one is the standpoint, in the one place reserved for
+    # saying it, and leaves the other fifteen exactly where they are as the subject they are.
+    data[provenance_stamp.STAMP_KEY] = provenance_stamp.stamp(sources, PROJECT)
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
