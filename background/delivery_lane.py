@@ -288,11 +288,14 @@ def sweep_stale(now: float | None = None, path: Path | None = None) -> list[str]
         credited with it. `credit_from_tree` binds it, so the row reads DELIVERED and NAMES THE
         COMMIT. The claim is still released, which is right: the work landed, so the claim has
         nothing left to hold. What changes is that the record now says so.
-      * STRANDED -- no such commit, but those paths hold uncommitted bytes on the shared tree
-        older than the window. That is the 2026-09-17 BLOCKING finding's subject, and it gets its
-        OWN alarm key: it is a different instruction to the reader from "this stalled" (the bytes
-        exist and need landing, not redoing) and keying it to the ordinary sweep alarm would hide
-        it inside a message that fires on every stale claim.
+      * STRANDED -- no such commit, but the bytes are sitting there. Reached two ways and they are
+        one verdict because the reader's action is identical: the claim's own named paths hold
+        uncommitted bytes older than the window (the 2026-09-17 BLOCKING finding's subject), OR a
+        dirty artefact carries this claim's id in its own `Claim id` field, which is the turn
+        saying whose work it is and needs no clock at all. It gets its OWN alarm key: it is a
+        different instruction to the reader from "this stalled" (the bytes exist and need landing,
+        not redoing) and keying it to the ordinary sweep alarm would hide it inside a message that
+        fires on every stale claim.
       * STRAND_CANDIDATE -- no commit and the claim's OWN paths are clean, but somewhere in the
         tree uncommitted bytes were written inside its window. Asked only when the named set comes
         back clean, because the named set is a prediction the item made before doing the work and
@@ -1702,13 +1705,138 @@ def _attributed_by_time(found: list[tuple[str, float]], drawn: float, window_clo
                 ", ".join("{}@{}".format(rel, when(mtime)) for rel, mtime in shown)))
 
 
+#: The two roots a finished turn's artefacts land under, and the only two this leg reads. Narrow
+#: on purpose: the question is "did this claim file something", and every other root in the tree
+#: answers it with another lane's noise. `tools/` is here because a turn's deliverable is as often
+#: a module as a document, and both carry the same field.
+_ARTEFACT_ROOTS = ("docs/staging", "tools")
+
+#: How far into a dirty artefact the `Claim id` field is looked for, in characters. A filed finding
+#: writes it in the first six lines and a `tools/` module in its docstring, so this is generous;
+#: what it buys is a BOUNDED sweep when several hundred entries are dirty under those two roots
+#: (320 on the shared tree the hour this landed). Characters rather than lines because the field
+#: WRAPS -- the id routinely sits on the line after its own marker.
+#:
+#: TRUNCATION FAILS TOWARDS SILENCE, which is the safe direction and the reason a cap is allowed
+#: here at all: a field past this point is missed, the row falls through to the weaker
+#: time-attributed reading below, and the reader is told less rather than told something false.
+_ARTEFACT_HEADER_CHARS = 8192
+
+
+def _names_claim_in_field(text: str, focus_id: str) -> bool:
+    """Is `focus_id` the VALUE of a `Claim id` field in `text`, rather than merely mentioned in it?
+
+    THE WHOLE WORTH OF THIS LEG IS THE DIFFERENCE BETWEEN THOSE TWO, and a bare substring scan
+    collapses them into the flattering one. Measured on the shared tree 2026-09-19, on the very id
+    this repair was directed under:
+    `docs/staging/WORKER_FINDING_REPEATING_ALARM_DELIVERY_LANE_STRANDED_2026-09-18.md` names
+    `reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch` four times -- in its
+    title, inside a quoted alarm body, and in a signature line -- and it is an ALARM ABOUT that
+    claim, written by `background/alarm_repetition.py` because the claim delivered NOTHING. A
+    substring reader would have published it as evidence the work had moved, which is the exact
+    opposite of what the document says. The field form cannot be written by accident: it is what a
+    turn puts at the top of the finding it filed.
+
+    THE FIELD WRAPS, so the text is flattened before it is matched. `**Filed:** 2026-09-18 ·
+    **Claim id:**` ending a line with its id alone on the next is the commonest shape in
+    `docs/staging/` today, and a line-by-line reader is blind to every one of them.
+
+    THE TRAILING BOUNDARY IS NOT DECORATION. Ids here share prefixes by construction -- the
+    spelling classes `_dispatch_spelling` exists for are literally ids truncated at different
+    points -- so `...-the-branch` must not match a field holding `...-the-branch-again`. Without
+    it this leg would credit one claim with another's artefact, silently, and only ever in the
+    direction of claiming MORE than happened.
+    """
+    if not focus_id:
+        return False
+    flat = " ".join(text.split())
+    pattern = r"Claim id[*:\s]*`?" + re.escape(focus_id) + r"(?![\w-])"
+    return re.search(pattern, flat, re.IGNORECASE) is not None
+
+
+def _artefacts_naming_claim(focus_id: str) -> list[tuple[str, float]]:
+    """`(path, mtime)` for dirty artefacts under `_ARTEFACT_ROOTS` whose `Claim id` field is this.
+
+    THE DISCRIMINATOR THE ARTEFACTS ALREADY CARRIED AND NOTHING READ (director, 2026-09-19). Every
+    other reading of a closed window here joins on a PATH or on a CLOCK, and both are inferences:
+    `_claim_paths` returns the paths the item's own prose predicted before the work was done, and
+    `_window_attributable_paths` returns whatever anybody wrote during the same hours. The id
+    written inside the document is neither -- it is the turn saying, in the artefact, which claim
+    it was working. Exact, and free, and eleven weeks of swept rows went out with *attributed by
+    time and not by name* while it sat in the header.
+
+    NO TIME CLAUSE, AND THAT IS THE POINT RATHER THAN AN OVERSIGHT. `_stranded_paths` needs
+    `mtime <= window_closed` because "these paths are dirty" is true of this tree almost always and
+    the clock is the only thing standing between it and a false alarm every sweep. Here the name
+    does that work: a file whose field names THIS claim is this claim's, whenever it was written.
+    Adding an mtime filter would throw away the one property that makes this stronger than the
+    reading it sits above.
+
+    IT READS ONLY A BOUNDED PREFIX of each file, and only files `git status` already called dirty.
+    Deletions drop out in `_dirty_with_mtimes` (nothing to stat) and unreadable bytes drop out
+    here; both leave the row to the weaker reading below, never to a louder one.
+
+    EMPTY IS NOT A FINDING, for the reason `_dirty_with_mtimes`' own docstring gives: `[]` comes
+    back from a clean tree and from a git that would not answer alike. The single caller turns only
+    a NON-empty list into a verdict.
+    """
+    if not focus_id:
+        return []
+    try:
+        root = seat_continuation.shared_tree_dir()
+    except Exception:
+        return []
+    found = []
+    for rel, mtime in _dirty_with_mtimes(list(_ARTEFACT_ROOTS)):
+        try:
+            with open(root / rel, encoding="utf-8", errors="ignore") as handle:
+                head = handle.read(_ARTEFACT_HEADER_CHARS)
+        except OSError:
+            continue
+        if _names_claim_in_field(head, focus_id):
+            found.append((rel, float(mtime)))
+    return sorted(found, key=lambda pair: pair[1])
+
+
+def _attributed_by_name(found: list[tuple[str, float]], focus_id: str) -> str:
+    """The one sentence `_artefacts_naming_claim`'s answer is published in.
+
+    IT HAS TO READ AS THE OPPOSITE OF `_attributed_by_time`, because a reader who has spent weeks
+    being told *ATTRIBUTED BY TIME AND NOT BY NAME -- LOOK before redoing anything* will skim this
+    one the same way and do nothing. The instruction here is different: the artefact says whose
+    work it is, so these are bytes to LAND, not candidates to check.
+
+    THE COUNT IS NOT A STRENGTH SIGNAL HERE, and the sentence must not borrow the shape that says
+    it is. In the time-attributed reading a longer list means a busier window and a weaker claim;
+    here every entry names this id in its own header, so ten hits are ten pieces of this claim's
+    work rather than ten guesses. The truncation is still declared for the same reason it is there.
+    """
+    when = lambda t: datetime.datetime.fromtimestamp(t).strftime("%H:%M")   # noqa: E731
+    shown = found[:5]
+    return ("{} dirty artefact(s) carry `Claim id: {}` in their own header -- ATTRIBUTED BY NAME: "
+            "this is the turn saying which claim it was working, not a path or a clock guessing. "
+            "The work MOVED and was never committed. Land these, then bind them -- showing {} of "
+            "{}: {}".format(len(found), focus_id, len(shown), len(found),
+                            ", ".join("{}@{}".format(rel, when(mtime)) for rel, mtime in shown)))
+
+
 def tree_verdict(focus_id: str, *, now: float | None = None,
                  path: Path | None = None) -> dict | None:
     """What the TREE says became of `focus_id`'s last window, in both directions. `None` if silent.
 
     ONE CHECK, NOT TWO, and the item that directed this was explicit that it is one mechanism.
     Both halves read the same claim, the same `_claim_paths` set and the same window; they differ
-    only in which question they put to git. A claim whose paths carry an unbound commit inside its
+    only in which question they put to git.
+
+    "THE SAME `_claim_paths` SET AND THE SAME WINDOW" IS NOW FALSE OF ONE OF THE READINGS, and it
+    is corrected here beside the claim rather than rewritten over it. `_artefacts_naming_claim`
+    (2026-09-19) joins on neither: it asks which dirty artefact carries this claim's id in its own
+    `Claim id` field. That is what makes it worth having -- a path set is the item's prediction and
+    a window is a clock, and both had been publishing *attributed by time and not by name* over a
+    name the artefacts were already carrying. It is still one mechanism and still one function,
+    because what it answers is the same question in the same vocabulary: did the work EXIST.
+
+    A claim whose paths carry an unbound commit inside its
     window must be CREDITED. A claim whose paths hold uncommitted bytes older than that window must
     be alarmed as STRANDED. Both are the lane failing to tell work that EXISTS from work that was
     merely DESCRIBED, and splitting them into two registers would have been two mechanisms for one
@@ -1769,6 +1897,25 @@ def tree_verdict(focus_id: str, *, now: float | None = None,
                             "since before the window closed -- oldest {} at {:.1f}h: {}".format(
                                 len(stranded), oldest_rel, (stamp - oldest_mtime) / 3600.0,
                                 ", ".join(rel for rel, _ in stranded[:5]))}
+    # THEN THE NAME, BEFORE THE CLOCK. `_stranded_paths` has just answered the by-prose question
+    # and found nothing, and the only two readings left are "an artefact says this claim did it"
+    # and "something moved in the same hours". The first is a fact the turn wrote down and the
+    # second is a coincidence until somebody looks, so asking them in the other order would let the
+    # weaker one answer first and the stronger one never be reached. It takes the SAME verdict --
+    # STRANDED is already "no commit, and the bytes are sitting there", and the attribution route
+    # is not a different thing that became of the window. A sixth value for a second route to an
+    # existing label is how a partition control stops covering its partition.
+    #
+    # LIMIT, STATED RATHER THAN HIDDEN: a row whose prose named no tracked path returns `None`
+    # above and never reaches this, so the claims most likely to need a by-name answer are still
+    # the ones that cannot get one. That is a second change to the early returns, not a second leg,
+    # and it is filed rather than smuggled in here.
+    by_name = _artefacts_naming_claim(focus_id)
+    if by_name:
+        return {"verdict": STRANDED, "paths": [rel for rel, _ in by_name], "drawn_at": drawn,
+                "named_paths": paths,
+                "oldest_age_hours": round((stamp - by_name[0][1]) / 3600.0, 1),
+                "evidence": _attributed_by_name(by_name, focus_id)}
     # AND ONLY THEN THE SECOND QUESTION. The order is what keeps the strong claim strong: a row
     # whose OWN named paths are dirty is a strand and is said so, and the weaker time-attributed
     # reading is never reached for it. What this adds is the case the named set cannot express --
@@ -2027,6 +2174,23 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
                                 "window, so this is a genuine miss and the work may still be undone"}
 
 
+def _stated_at(stated: dict) -> float:
+    """WHEN a hand-written disposition was stated, as a float. 0.0 when it will not say.
+
+    THE DIRECTION ON A MISSING `at` IS THE LOUD ONE, and it is the whole reason this is a function
+    rather than a `float(... or 0.0)` inline. `note_premise_spent` and `note_landing_under` are the
+    only writers and both have stamped `at` since the day the field existed, so every row a producer
+    made can answer this. A row that CANNOT is hand-edited or truncated, and for one of those the
+    question "which window does this sentence explain?" has no answer -- so it explains NONE of
+    them, the credit is refused, and the residual stays loud. Returning `inf` for silence would be
+    the fail-open in its purest form: one unparseable field, and the id is excused for ever.
+    """
+    try:
+        return float(stated.get("at") or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _disposition(row: dict, drawn: float, *, focus_id: str = "",
                  bound_at: dict | frozenset = frozenset()) -> dict:
     """WHICH of the three a row whose window closed without a landing of its own is.
@@ -2070,9 +2234,25 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
     miss. Reading the old credit as an explanation would let one join silence every future draw
     of the same id -- the across-windows fail-open. The instant is therefore compared against THIS
     draw, exactly as `drawn_without_landing`'s own third clause does.
+
+    AND THAT PARAGRAPH WAS TRUE OF ONE OF THE TWO HAND-WRITTEN DISPOSITIONS, not both (corrected
+    2026-09-19, measured on this lane's own ledger). It argued the across-windows fail-open in
+    general and then guarded only `landed_under`; `premise_spent`, tested one branch ABOVE it,
+    returned on the presence of a commit alone and compared no instant at all. So the fail-open the
+    paragraph names existed, in the branch the paragraph sits under, for as long as the paragraph
+    has. `measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach` is the
+    instance that surfaced it: premise spent and stated at 04:37:43Z, re-drawn 216 SECONDS later at
+    04:41:19Z, and the new window inherited the old window's excuse. It is left as a corrected
+    sentence rather than a rewritten one because the ORDER of the two branches is the evidence --
+    the guard was written once, put on the second of the two, and read ever after as covering both.
+
+    THE COST OF THE GUARD IS THAT A DISPOSITION IS NOW PER-WINDOW, which is the point and not a
+    side effect: an id drawn again needs its premise restated against the new window, and a
+    sentence nobody was willing to restate was never an explanation of that window in the first
+    place.
     """
     spent = row.get("premise_spent")
-    if isinstance(spent, dict) and spent.get("commit"):
+    if isinstance(spent, dict) and spent.get("commit") and _stated_at(spent) >= drawn:
         return {"disposition": PREMISE_SPENT,
                 "evidence": f"{str(spent['commit'])[:9]}: {spent.get('reason') or ''}".strip()}
     other = row.get("landed_under")
