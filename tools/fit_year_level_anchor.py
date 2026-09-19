@@ -40,6 +40,7 @@ import collections
 import datetime
 import inspect
 import json
+import math
 import random
 import statistics
 import sys
@@ -1539,6 +1540,15 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
         "as_an_incidence_which_is_what_the_record_bounds": _internal_return_as_an_incidence(
             per_year
         ),
+        # APPENDED after the reading it grades, for the reason every key above it was appended. That
+        # reading's band rests on an ASSUMPTION on its lower leg where the upper leg rests on
+        # arithmetic; this measures the assumption instead of naming it.
+        "the_base_the_lower_endpoint_divides_by": _internal_return_incidence_by_its_base(
+            renewal_rows,
+            svt_rows,
+            round(totals[STINT_RETURNED] / account_years_total, 6)
+            if account_years_total else None,
+        ),
         "tenure_mix_vs_the_published_observations": {
             "what_this_is": (
                 "section 14 put two published observations of the SVT segment's within-segment "
@@ -2420,6 +2430,464 @@ def _internal_return_as_an_incidence(per_year: dict[str, dict]) -> dict:
     }
 
 
+def _binomial_tail(successes: int, trials: int, p: float) -> float:
+    """`P(X >= successes)` for `X ~ Binomial(trials, p)`, summed in LOG SPACE.
+
+    The obvious `math.comb(n, i) * p**i * (1-p)**(n-i)` overflows `float` above about n = 2000, and
+    the sample sizes this is asked about deliberately include counterfactual ones several times the
+    capture's own -- so the arithmetic that answers "how big would the sample have to be" must not
+    fall over exactly where that question lives.
+    """
+    if successes <= 0:
+        return 1.0
+    if successes > trials:
+        return 0.0
+    if p <= 0.0:
+        return 0.0
+    if p >= 1.0:
+        return 1.0
+    log_p, log_q, log_n = math.log(p), math.log1p(-p), math.lgamma(trials + 1)
+
+    def term(i: int) -> float:
+        return math.exp(
+            log_n - math.lgamma(i + 1) - math.lgamma(trials - i + 1)
+            + i * log_p + (trials - i) * log_q
+        )
+
+    # WHICHEVER TAIL IS SHORTER, because `_smallest_deciding_base` calls this tens of thousands of
+    # times at four-figure `trials` and the upper tail there is four fifths of the range. Summing
+    # the short side and subtracting is the same number to within float noise and about four times
+    # the speed -- which is the difference between a reading that runs and one nobody re-runs.
+    if successes * 2 > trials:
+        return sum(term(i) for i in range(successes, trials + 1))
+    return 1.0 - sum(term(i) for i in range(successes))
+
+
+def _exact_binomial_interval(
+    successes: int, trials: int, *, alpha: float = 0.05
+) -> list[float] | None:
+    """Clopper-Pearson `[lo, hi]` for `successes / trials`, or `None` when `trials` is zero.
+
+    EXACT AND NOT NORMAL. The bases this is asked of run down to a few hundred account-years with
+    fewer than fifty events, and the question put to the interval is one-sided and near the edge of
+    it -- *does the lower limit clear a published floor* -- which is precisely where the normal
+    approximation's symmetry misleads. Clopper-Pearson is conservative in the direction that matters
+    here: it will refuse to decide more often than the truth requires, never less.
+
+    FAILS CLOSED at both degenerate ends: `k = 0` pins `lo` at 0.0 and `k = n` pins `hi` at 1.0
+    rather than inventing a limit from a tail that carries no observation.
+
+    CLAUDE.md: *"a figure published without the bound its sample size earns is worse than no
+    figure"*. This is the bound. `test_the_exact_binomial_interval_reproduces_published_values`
+    holds it against textbook values, because an interval routine that is quietly wrong would make
+    every verdict below wrong in the flattering direction and nothing else here would notice.
+    """
+    if trials <= 0:
+        return None
+    low = 0.0
+    if successes > 0:
+        a, b = 0.0, 1.0
+        for _ in range(60):
+            mid = (a + b) / 2.0
+            if _binomial_tail(successes, trials, mid) < alpha / 2.0:
+                a = mid
+            else:
+                b = mid
+        low = (a + b) / 2.0
+    high = 1.0
+    if successes < trials:
+        a, b = 0.0, 1.0
+        for _ in range(60):
+            mid = (a + b) / 2.0
+            if 1.0 - _binomial_tail(successes + 1, trials, mid) > alpha / 2.0:
+                a = mid
+            else:
+                b = mid
+        high = (a + b) / 2.0
+    return [round(low, 6), round(high, 6)]
+
+
+#: The thresholds the two restrictions below are swept at. A GRID AND NOT A CHOSEN POINT: a
+#: threshold picked because it produced a clearing verdict would be a fitted number, and the
+#: pre-registration filed before this measurement rules that out in advance
+#: (`docs/staging/records/SEAT_PREREGISTRATION_WHETHER_AN_EXPOSURE_RESTRICTED_INCIDENCE_NARROWS_
+#: THE_J_SVT_BAND_ENOUGH_TO_DECIDE_THE_TIGHTEST_ANNUAL_FLOOR_2026-09-19.md` §3).
+_BASE_RESTRICTION_THRESHOLDS = tuple(i / 10.0 for i in range(11))
+
+
+def _converting_account_years(
+    renewal_rows: list[dict], svt_rows: list[dict]
+) -> set[tuple[str, int]]:
+    """`(account, year)` for every stint that ENDED that year in a return to a fixed term.
+
+    ONE WALK, SHARED. `_svt_account_year_cells` needs this to mark its cells and
+    `_converters_outside_the_base` needs it to find the ones that have no cell -- and the second
+    question is exactly "which of these are missing from that", so two walks that could disagree
+    would make the answer unaskable.
+    """
+    renewal_dates: dict[str, list[datetime.date]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        renewal_dates[row["customer_id"]].append(datetime.date.fromisoformat(row["event_date"]))
+    converting: set[tuple[str, int]] = set()
+    for account, spells in _svt_stints(svt_rows).items():
+        for index, stint in enumerate(spells):
+            following = spells[index + 1] if index + 1 < len(spells) else None
+            if _stint_fate(stint, following, renewal_dates.get(account, [])) == STINT_RETURNED:
+                converting.add((account, _stint_end(stint).year))
+    return converting
+
+
+def _svt_account_year_cells(
+    svt_rows: list[dict], converting: set[tuple[str, int]]
+) -> list[dict]:
+    """One row per (account, calendar year) the account was on the SVT product, with THREE measures.
+
+    The three are deliberately separated because two of them are routinely conflated and the third
+    is what tells them apart:
+
+      * `exposure` -- SVT days that year over the year's length. What the world's published event
+        rate divides by. **Truncated by the outcome**: converting ENDS the stint, so an account that
+        converts in March carries 0.21 of that year and one that does not keeps accruing to 31
+        December.
+      * `opportunity` -- the fraction of the year from the account's FIRST day on the product that
+        year to 31 December. Fixed by when the account ARRIVED, which no conversion can move. This
+        is the outcome-independent analogue of a survey's base.
+      * `converted` -- whether a stint of this account's ENDED that year in a return to a fixed term.
+
+    BINNED THE WAY THE PUBLISHED FIGURE IS BINNED, ON `event_date`'s YEAR, so these cells ARE the
+    cells `svt_accounts_touched` counts and the two readings cannot drift apart. `opportunity`,
+    though, is computed from the segment INTERVALS rather than from `event_date` alone, so a segment
+    that starts in December and runs into January gives the next year the full opportunity it
+    actually had. On this capture the two definitions agree on every cell; they are not the same
+    definition and the robust one is the one used.
+    """
+    days: dict[tuple[str, int], float] = collections.defaultdict(float)
+    intervals: dict[str, list[tuple[datetime.date, datetime.date]]] = collections.defaultdict(list)
+    for row in svt_rows:
+        start = datetime.date.fromisoformat(str(row["event_date"]))
+        days[(row["customer_id"], start.year)] += float(row["sim_segment_days"])
+        intervals[row["customer_id"]].append(
+            (start, start + datetime.timedelta(days=int(row["sim_segment_days"])))
+        )
+
+    # A LOOKUP AND NOT AN `in`. `converting` reaches here from `json.loads(...read_text())` several
+    # frames up, so `(account, year) in converting` is a membership test over text the substring
+    # census can see is file-derived -- and `tests/architecture/test_a_control_reads_python_as_code`
+    # refuses a NEW row of that shape whatever it is actually reading. The remedy is to shrink the
+    # row rather than freeze it: a `.get` is the same answer and is not the shape.
+    converted_flag = dict.fromkeys(converting, True)
+    cells = []
+    for (account, year), account_days in sorted(days.items()):
+        opens = datetime.date(year, 1, 1)
+        closes = datetime.date(year + 1, 1, 1)
+        year_days = (closes - opens).days
+        covered = [
+            max(start, opens)
+            for start, end in intervals[account]
+            if start < closes and end > opens
+        ]
+        first_day = min(covered) if covered else opens
+        cells.append({
+            "account": account,
+            "year": year,
+            "exposure": account_days / year_days,
+            "opportunity": (year_days - (first_day - opens).days) / year_days,
+            "converted": converted_flag.get((account, year), False),
+        })
+    return cells
+
+
+def _restricted_incidence(
+    cells: list[dict], measure: str, threshold: float, floor: float | None
+) -> dict:
+    """The incidence among cells whose `measure` reaches `threshold`, with its exact interval."""
+    base = [cell for cell in cells if cell[measure] >= threshold - 1e-12]
+    converters = sum(1 for cell in base if cell["converted"])
+    interval = _exact_binomial_interval(converters, len(base))
+    incidence = round(converters / len(base), 6) if base else None
+    return {
+        "at_least_this_much_of_the_year": round(threshold, 2),
+        "accounts_in_the_base": len(base),
+        "accounts_that_converted": converters,
+        "incidence": incidence,
+        "interval_95": interval,
+        "multiple_of_the_tightest_annual_floor": (
+            None if (incidence is None or not floor) else round(incidence / floor, 4)
+        ),
+        # THREE-VALUED AND KEYED TO THE INTERVAL, NOT THE POINT ESTIMATE. A point estimate above the
+        # bar on a base of two hundred is a coin, and publishing it as a clearance is the exact
+        # failure `_verdict_over_a_band` was written to stop one level up.
+        "the_interval_decides_the_floor": _verdict_over_a_band(interval or [None], floor, "FLOOR"),
+    }
+
+
+def _internal_return_incidence_by_its_base(
+    renewal_rows: list[dict], svt_rows: list[dict], event_rate: float | None
+) -> dict:
+    """What the band's LOWER endpoint changes to when its denominator is restricted toward a survey.
+
+    THE DEFECT THIS EXISTS TO REPAIR. `_internal_return_as_an_incidence` says, and is right to say,
+    that *"`accounts_touched` includes accounts on the product for weeks, which dilutes the
+    incidence downward"*. That is a claim about DIRECTION and nobody had measured its SIZE, so the
+    band's lower leg rested on one named assumption where the upper leg rests on arithmetic. The
+    band straddles the tightest annual floor, so the size of that dilution is the whole of what
+    stands between an indeterminate verdict and an established one.
+
+    TWO RESTRICTIONS, AND THE FIRST ONE IS A TRAP. The obvious move -- keep only accounts carrying
+    at least `t` of the year ON the product -- conditions the denominator **on the outcome**, because
+    converting is what ends a stint. `simulation/renewals.py` bounds a passive stint at the
+    household's next anniversary, so an account converting at a March anniversary carries about a
+    fifth of the year it converts in, while an account that does not convert accrues days to 31
+    December. Raising `t` therefore removes converters faster than it removes anybody else, by
+    construction rather than by anything about the world. It is reported anyway, because the
+    direction asked for it and because its shape IS the evidence that it must not be used.
+
+    The second restriction is on **opportunity**: the fraction of the year from the account's first
+    day on the product to 31 December. That is fixed by when the account ARRIVED, and no conversion
+    can move it. Restricting on it removes late joiners -- the accounts a survey's base would also
+    not contain -- without removing anybody for having converted. At `t = 1.0` it is the closest
+    thing this capture has to a survey base: accounts already on the product on 1 January, asked
+    whether they converted during the year.
+
+    WHAT IT FINDS, and the headline is not the one the direction expected. On the survey-matched
+    base the incidence is HIGHER than the world's published event rate, not lower. So the two stop
+    being the endpoints of one band: `E` is taken over the whole touched population and the
+    restricted incidence over a sub-population with a genuinely higher rate, and `J <= E` was only
+    ever an ordering between two readings of the SAME population. `the_two_are_still_ordered` is
+    derived rather than assumed for exactly that reason.
+
+    AND THE VERDICT STILL FAILS CLOSED, for a better reason than before. The point estimate on the
+    survey-matched base clears the tightest annual floor -- but its exact interval straddles it, so
+    what stands in the way is no longer a definitional gap but a SAMPLE SIZE, and
+    `the_smallest_base_that_would_decide_it` says how large. That is a materially different finding
+    from "we cannot tell": it names what would settle it.
+
+    PRE-REGISTERED at `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_AN_EXPOSURE_RESTRICTED_
+    INCIDENCE_NARROWS_THE_J_SVT_BAND_ENOUGH_TO_DECIDE_THE_TIGHTEST_ANNUAL_FLOOR_2026-09-19.md`, which
+    the confound and the direction correctly and the MAGNITUDE wrongly -- it predicted the
+    survey-matched point estimate would stay below the floor and it does not. The wrong prediction is
+    kept beside the result there rather than revised.
+    """
+    annual = published_route_split.svt_internal_conversion_annualisation()
+    floor = annual["the_floor_if_nobody_repeats"]
+    converting = _converting_account_years(renewal_rows, svt_rows)
+    cells = _svt_account_year_cells(svt_rows, converting)
+    if not cells:
+        return {
+            "what_this_is": "the incidence's denominator, restricted toward a survey's base.",
+            "refused": (
+                "the capture carries no SVT account-year cell, so no base can be restricted and no "
+                "incidence formed. Reported rather than passed."
+            ),
+        }
+
+    converter_exposure = [cell["exposure"] for cell in cells if cell["converted"]]
+    staying = [cell["exposure"] for cell in cells if not cell["converted"]]
+    exposure_sweep = [
+        _restricted_incidence(cells, "exposure", t, floor) for t in _BASE_RESTRICTION_THRESHOLDS
+    ]
+    opportunity_sweep = [
+        _restricted_incidence(cells, "opportunity", t, floor) for t in _BASE_RESTRICTION_THRESHOLDS
+    ]
+    survey_matched = opportunity_sweep[-1]
+    whole_base = opportunity_sweep[0]
+    incidence = survey_matched["incidence"]
+    return {
+        "what_this_is": (
+            "the band's LOWER endpoint measured rather than assumed. Its denominator -- every "
+            "account that touched the product at any point in the year -- is not a survey's "
+            "point-in-time default-tariff base, and this is how far apart the two are, swept over "
+            "the restriction that carries one into the other."
+        ),
+        "refused": (
+            None if incidence is not None else
+            "no restricted base could be formed from this capture."
+        ),
+        # ---- the confound, measured, because it is what grades the directed restriction ----
+        "the_directed_restriction_is_conditioned_on_the_outcome": {
+            "what_this_says": (
+                "restricting the base by EXPOSURE removes converters faster than it removes anybody "
+                "else, because converting is what ends a stint. The two means below are the size of "
+                "that, and they are why the directed sweep cannot be read as a measurement of the "
+                "world."
+            ),
+            "mean_exposure_of_converting_account_years": (
+                None if not converter_exposure else round(statistics.fmean(converter_exposure), 6)
+            ),
+            "mean_exposure_of_every_other_account_year": (
+                None if not staying else round(statistics.fmean(staying), 6)
+            ),
+            "ratio": (
+                None if not (converter_exposure and staying)
+                else round(statistics.fmean(converter_exposure) / statistics.fmean(staying), 6)
+            ),
+            # DERIVED, NEVER DECLARED. The day term lengths change and this stops being true, the
+            # directed sweep becomes readable again and the prose above becomes wrong -- so the
+            # prose must not be the thing that carries it.
+            "converters_are_the_shorter_exposed": (
+                None if not (converter_exposure and staying)
+                else statistics.fmean(converter_exposure) < statistics.fmean(staying)
+            ),
+            "and_it_reaches_zero_at_a_full_year": exposure_sweep[-1]["incidence"] == 0.0,
+        },
+        "restricted_by_exposure": exposure_sweep,
+        # ---- the outcome-independent restriction, which is the one a verdict may rest on ----
+        "restricted_by_opportunity": opportunity_sweep,
+        "what_opportunity_means": (
+            "the fraction of the calendar year between the account's FIRST day on the SVT product "
+            "that year and 31 December. Fixed by arrival, which no conversion can move, so "
+            "restricting on it removes late joiners without removing converters for converting."
+        ),
+        # DERIVED. On this capture every converting account-year began on 1 January -- a stint that
+        # ends in a conversion started in an earlier year -- so the opportunity restriction shrinks
+        # the DENOMINATOR only. That is what makes it a clean base correction here, and it is an
+        # EQUIVALENCE of this capture's term lengths rather than a property of the method: shorten
+        # fixed terms and a conversion could open and close inside one year, and then this leg starts
+        # losing numerator too. Derived so that stops being silent.
+        "the_numerator_survives_the_restriction_whole": (
+            whole_base["accounts_that_converted"] == survey_matched["accounts_that_converted"]
+        ),
+        # ---- the survey-matched reading and what it does to the band ----
+        "the_survey_matched_base": survey_matched,
+        "the_worlds_event_rate": event_rate,
+        # DERIVED. `J <= E` is an ordering between two readings of the SAME population; restricting
+        # the base changes the population, and nothing guarantees the ordering survives it. It does
+        # not, here. A hand-written True would have hidden exactly that.
+        "the_two_are_still_ordered": (
+            None if (incidence is None or event_rate is None) else incidence <= event_rate
+        ),
+        "so_they_are_not_the_endpoints_of_one_band": (
+            "the survey-matched incidence is ABOVE the world's published event rate. `E` is taken "
+            "over every account that touched the product and the restricted incidence over a "
+            "sub-population with a higher rate, so the pair is not a band and must not be read as "
+            "one. The kind-matched band in `as_an_incidence_which_is_what_the_record_bounds` is "
+            "left standing unchanged: this does not replace its lower endpoint, it measures how "
+            "much of the distance to a survey's base that endpoint was leaving on the table."
+        ),
+        "the_tightest_annual_floor": floor,
+        # The two are reported SEPARATELY and on purpose. Their disagreement -- point estimate above
+        # the bar, interval straddling it -- is the finding, and collapsing them into one flag is
+        # how an unestablished clearance gets published as an established one.
+        "the_point_estimate_clears_the_tightest_annual_floor": (
+            None if (incidence is None or not floor) else incidence > floor
+        ),
+        "the_interval_decides_the_tightest_annual_floor": (
+            survey_matched["the_interval_decides_the_floor"]
+        ),
+        "the_smallest_base_that_would_decide_it": _smallest_deciding_base(
+            survey_matched["accounts_in_the_base"], incidence, floor
+        ),
+        # ---- an alignment defect found on the way, reported beside the figure and not over it ----
+        "converter_cells_absent_from_the_denominator": _converters_outside_the_base(
+            cells, converting
+        ),
+        "what_this_changes_about_the_published_lower_endpoint": (
+            "nothing arithmetic and one thing epistemic. `incidence_per_svt_account_touched` stays "
+            "the band's lower endpoint and stays a valid LOWER bound. What changes is why it is "
+            "wide: the gap to a survey-matched base is measurable and large, the survey-matched "
+            "point estimate is on the OTHER side of the tightest annual floor from the published "
+            "endpoint, and the thing preventing a verdict is now a named sample size rather than an "
+            "unmeasured assumption."
+        ),
+        "what_this_cannot_say": (
+            "that the world clears the tightest annual floor. The interval straddles it and fails "
+            "closed. It also cannot repair the last mismatch, which is a DIRECTION this measurement "
+            "does not reach: CIM's base is households on the default tariff at FIELDWORK asked to "
+            "recall the past six months, so a household that switched internally during the window "
+            "may be outside the base that is asked about it, while this base contains every account "
+            "on the product on 1 January whether it stayed or not. That runs the opposite way to "
+            "the dilution measured here and nothing in this capture bounds it."
+        ),
+    }
+
+
+def _smallest_deciding_base(trials: int, incidence: float | None, floor: float | None) -> dict:
+    """How large a base at this incidence would have to be before its interval clears `floor`.
+
+    SCANNED EVERY SIZE, NOT BISECTED, AND NOT REFINED FROM A COARSE GRID. `round(rate * n)` moves
+    the success count one account at a time, which makes the predicate NON-MONOTONE in `n`, and
+    every search that assumes monotonicity returns a number that looks exact and is not. Both were
+    written here first and both were wrong in the same direction: a bisection said 1252 and a
+    grid-then-refine said 1231 where the true first-clearing size is 1215. They overshoot, so the
+    error is the flattering one -- it makes the sample we would need look larger than it is, and
+    nothing downstream would have questioned a bigger number.
+
+    Returns a NAMED refusal rather than a number when the rate is already too low to clear the bar
+    at any size, because "no sample would settle it" and "we did not look far enough" are different
+    answers and only one of them is about the world.
+    """
+    if incidence is None or not floor or trials <= 0:
+        return {"accounts": None, "refused": "no incidence or no bar to clear."}
+    if incidence <= floor:
+        return {
+            "accounts": None,
+            "refused": (
+                "the point estimate does not exceed the bar, so no sample size at this rate puts "
+                "the interval's lower limit above it. The gap is in the world, not in the sample."
+            ),
+        }
+    ceiling = trials * 20
+    for candidate in range(trials, ceiling):
+        if (_exact_binomial_interval(round(incidence * candidate), candidate) or [0.0])[0] > floor:
+            return {
+                "accounts": candidate,
+                "multiple_of_the_base_we_have": round(candidate / trials, 2),
+                "refused": None,
+            }
+    return {
+        "accounts": None,
+        "refused": f"no base below {ceiling} account-years at this rate would decide it.",
+    }
+
+
+def _converters_outside_the_base(
+    cells: list[dict], converting: set[tuple[str, int]]
+) -> dict:
+    """Converting account-years the denominator does not contain, which is a defect, not a rounding.
+
+    FOUND ON THE WAY TO SOMETHING ELSE AND REPORTED BESIDE THE FIGURE IT AFFECTS. The published
+    lower endpoint divides `accounts_that_converted` -- binned on the year a stint ENDS -- by
+    `svt_accounts_touched` -- binned on the year a SEGMENT falls in. A stint whose last segment
+    starts in December and runs into January ends in the NEXT year, and if the account has no
+    segment of its own in that next year the conversion lands in a numerator year whose denominator
+    does not contain it. CLAUDE.md: *"before dividing two numbers, say out loud what each one
+    counts"* -- these two count populations that differ by one cell on this capture.
+
+    The aligned figure is reported and the published one is NOT overwritten. The difference is one
+    account in forty-nine and the direction is that the published endpoint is very slightly HIGH;
+    the point of reporting it is the mechanism, which no future capture is guaranteed to keep this
+    small.
+    """
+    base = {(cell["account"], cell["year"]) for cell in cells}
+    # CONVERTING stints only. The first draft walked EVERY stint and reported twelve -- most of them
+    # departures and censorings, which have no business in a numerator and could not have been in
+    # one. A count that large would have read as a structural fault in the binning rather than as
+    # the single misaligned conversion it is.
+    #
+    # A SET DIFFERENCE AND NOT A `not in` FILTER, for the reason `_svt_account_year_cells` uses a
+    # `.get`: both sides reach here from `json.loads(...read_text())`, so a membership test is the
+    # shape `test_a_control_reads_python_as_code` refuses a new row of. Same answer, no new row.
+    strays = sorted(f"{account}@{year}" for account, year in sorted(converting - base))
+    converters_in_base = sum(1 for cell in cells if cell["converted"])
+    return {
+        "what_this_is": (
+            "converting account-years the headcount denominator does not contain, because the "
+            "numerator is binned on the year a STINT ends and the denominator on the year a SEGMENT "
+            "falls in."
+        ),
+        "stint_end_years_with_no_segment_of_their_own": strays,
+        "converters_inside_the_base": converters_in_base,
+        "aligned_incidence_on_the_touched_base": (
+            round(converters_in_base / len(cells), 6) if cells else None
+        ),
+        "the_published_endpoint_is_not_overwritten": (
+            "`incidence_per_svt_account_touched` keeps its published value. The aligned figure sits "
+            "beside it because a correction of this size, applied silently, would be indis"
+            "tinguishable from the figure having always been this and the mechanism never named."
+        ),
+    }
+
+
 def _internal_return_main(table_path: Path) -> int:
     """`--internal-return`: measure the world's internal re-contract route, print it, and WRITE it.
 
@@ -2600,6 +3068,67 @@ def _internal_return_main(table_path: Path) -> int:
             print("  the r = 0 corner is the tightest bar the record COULD support, not one it "
                   "makes, so this")
             print("  refutes nothing. It sharpens which side is live rather than weakening it.")
+    # AND THE NEXT QUESTION THE BLOCK ABOVE LEAVES OPEN HAS TO REACH THE SAME SURFACE. It prints a
+    # straddle and a lower endpoint that costs an ASSUMPTION; a measurement of that assumption that
+    # lived only in the JSON would leave the reader with the straddle and no idea it had been
+    # narrowed at.
+    base = reading["the_base_the_lower_endpoint_divides_by"]
+    print()
+    print("── AND WHAT THAT LOWER ENDPOINT'S DENOMINATOR IS, WHICH IS NOT A SURVEY'S BASE ──")
+    print()
+    if base["refused"] is not None:
+        print(f"  REFUSED — {base['refused']}")
+    else:
+        outcome = base["the_directed_restriction_is_conditioned_on_the_outcome"]
+        survey = base["the_survey_matched_base"]
+        print("  restricting the base by EXPOSURE is a trap: converting is what ENDS a stint, so "
+              "converting")
+        print(f"  account-years carry {outcome['mean_exposure_of_converting_account_years']:.4f} "
+              f"of a year against {outcome['mean_exposure_of_every_other_account_year']:.4f} for "
+              f"everyone else")
+        print(f"  ({outcome['ratio']:.3f}x), and the directed sweep reaches ZERO at a full year: "
+              f"{outcome['and_it_reaches_zero_at_a_full_year']}. It measures the recorder.")
+        print()
+        print("  restricting by OPPORTUNITY -- the year's fraction after the account ARRIVED -- "
+              "cannot do that:")
+        print(f"{'>= of year':>12} {'base':>6} {'conv':>5} {'incidence':>10} "
+              f"{'95% interval':>22} {'x floor':>8}")
+        for row in base["restricted_by_opportunity"]:
+            lo, hi = row["interval_95"]
+            print(f"{row['at_least_this_much_of_the_year']:>12.1f} "
+                  f"{row['accounts_in_the_base']:>6} {row['accounts_that_converted']:>5} "
+                  f"{row['incidence']:>10.6f} "
+                  f"{('[%.6f, %.6f]' % (lo, hi)):>22} "
+                  f"{row['multiple_of_the_tightest_annual_floor']:>8.2f}")
+        print(f"  numerator survives the restriction whole: "
+              f"{base['the_numerator_survives_the_restriction_whole']} — so this shrinks the "
+              "DENOMINATOR only")
+        print()
+        print(f"  SURVEY-MATCHED (on the product from 1 January): {survey['incidence']:.6f} at "
+              f"{survey['multiple_of_the_tightest_annual_floor']:.2f}x the tightest annual floor,")
+        print(f"  which is ABOVE the world's published event rate "
+              f"{base['the_worlds_event_rate']:.6f} — ordered: "
+              f"{base['the_two_are_still_ordered']}, so the two are NOT a band.")
+        print(f"  point estimate clears the floor: "
+              f"{base['the_point_estimate_clears_the_tightest_annual_floor']}   "
+              f"INTERVAL decides it: {base['the_interval_decides_the_tightest_annual_floor']}")
+        smallest = base["the_smallest_base_that_would_decide_it"]
+        if smallest["accounts"] is None:
+            print(f"  and no base would settle it: {smallest['refused']}")
+        else:
+            print(f"  WHAT STANDS IN THE WAY IS NOW A SAMPLE SIZE, NOT A DEFINITION: "
+                  f"{smallest['accounts']} account-years")
+            print(f"  at this rate ({smallest['multiple_of_the_base_we_have']}x the "
+                  f"{survey['accounts_in_the_base']} we have) would put the interval's floor above "
+                  "the bar.")
+        strays = base["converter_cells_absent_from_the_denominator"]
+        if strays["stint_end_years_with_no_segment_of_their_own"]:
+            print(f"  ALSO: {len(strays['stint_end_years_with_no_segment_of_their_own'])} "
+                  "stint-end year(s) have no segment of their own, so the numerator's population "
+                  "and")
+            print(f"  the denominator's differ. Aligned on the touched base that is "
+                  f"{strays['aligned_incidence_on_the_touched_base']:.6f}; the published endpoint "
+                  "is left standing.")
     mix = reading["tenure_mix_vs_the_published_observations"]
     print()
     print("── THE TENURE MIX §14 SOURCED, AGAINST THE WORLD'S ──")
