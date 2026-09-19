@@ -62,16 +62,29 @@ checked the moment a reader could meet it -- this rung scoped itself to untied l
 construction, and the published-feed sweep that sees the tied ones asks only whether a sentence has
 ONE home, never which way it points or whether it has one at all.
 
-WHAT THE TIED HALF JUDGES TODAY, and what it does NOT. It judges that a published here-relative
-sentence RENDERS SOMEWHERE, because a direction claimed from a place no reader stands is a claim
-nothing can check -- which is what the live instance turned out to be, against the filing that
-brought it here. It does NOT yet judge the tied half's DIRECTIONS. Eleven tied literals, four of
-them already carrying a `_REFERENTS` row that has never been consulted because the census filtered
-them out before the table was reached; the seven unregistered ones need a referent each, and FIVE
-of those name a NUMBER (`current_world.selection_gbp`) rather than a sentence. The marker probe
-both halves use is a string prefix, and prefixing a float changes what the door does with it, so
-the numeric referent needs a probe of its own -- perturb the value and look for its FORMATTED
-forms. That is the next increment and it is written down rather than half-built.
+WHAT THE TIED HALF JUDGES, and it is now both questions. It judges that a published here-relative
+sentence RENDERS SOMEWHERE -- a direction claimed from a place no reader stands is a claim nothing
+can check, which is what the first live instance turned out to be -- and since 2026-09-19 it judges
+the DIRECTION too, region against region, both sides measured, exactly as the undriven half does.
+
+DIRECTION NEEDED AN INSTRUMENT FIRST, which is why it landed one increment later. Ten tied
+literals, four carrying a `_REFERENTS` row the census had filtered out before the table was
+reached and SIX unregistered -- and five of those six named a NUMBER rather than a sentence. The
+marker probe both halves use is a string PREFIX, and a door that puts a float through `gbp()` or
+`signed()` returns null on a string: measured, prefixing a marker onto the choosing figure finds it
+in ZERO regions while moving the number finds it in two. So the existing probe would not merely
+have measured a different page; it would have reported five referents as rendering NOWHERE, a red
+with the wrong cause. `_numeric_referent_homes` asks the door instead -- two values of the same
+sign and magnitude, one render each, and a region is a home when its text differs between them.
+
+AND ON ITS FIRST RUN ALL SIX UNREGISTERED POINTERS WERE FALSE, which is the largest count this
+rung has raised in one pass. Three were suspicious on arithmetic before anything was probed and
+three were not: `_population_repair_bias`'s pair and `_POPULATION_REPAIR_BIAS_NOT_A_GAIN` say "the
+figure above" from `#arms-redraw`, and the figure renders in `#arms-legs-first` AND `#arms-redraw`
+-- true of the first home, false of the second. That is the parent defect's own shape, a referent
+with homes on two sides of the sentence, and reading the prose cannot find it. Four of the six had
+no here-relative word that held from every home and were repaired to NAME their subject, which
+takes them out of this vocabulary; two were repaired to the word that is true and stay in it.
 
 R15 -- the mutations, each run against the real tree and reverted:
   * restore "ARE named above" to `_departures` -> `test_every_undriven_pointer_is_true_from_the_
@@ -93,12 +106,31 @@ R15 -- the mutations, each run against the real tree and reverted:
   * drop a recipe -> the census leg reds naming the symbol it can no longer drive.
   * give `_departure_statement` a recipe that does not drive its branch -> the fidelity leg reds
     before any direction is judged.
+
+R15 for the TIED DIRECTION leg and the numeric probe, each run against the real tree and reverted.
+The last two restore a real defect in the PRODUCER and republish the feed, because tied-ness is
+read off `site/data/` and a producer-only revert would leave the sentence untied instead of wrong:
+  * `_numeric_referent_homes` returns the empty set -> the direction leg reds ("points at
+    something that renders nowhere") AND the probe's own mutation leg reds on the
+    figure-the-door-renders assertion. A probe that goes blind cannot report a clean page.
+  * `_numeric_referent_homes` returns every region of both renders -> the same two legs red. This
+    is the fail-open direction, because a home for everything waves the misdirection through.
+  * delete the TYPE DISPATCH in `_referent_homes`, so numbers go to the string probe -> the
+    direction leg reds naming the FLOAT and the probe that cannot mark it, not the page. The
+    refusal names itself, which is the point: silently marking a float reports "renders nowhere".
+  * restore `WITHDRAWN_CLAIMS`' "the choosing figure below" and republish -> two reds, one per home
+    of the figure, both saying `#arms-note` was told "below" about something above it.
+  * restore `_population_repair_bias`' "THE FIGURE ABOVE IS BIASED DOWNWARD" and republish -> ONE
+    red, naming `#arms-redraw` alone. The figure's `#arms-legs-first` home really is above the
+    clause and is not reported; its `#arms-redraw` home is the same region and is. That is the
+    second-home shape the parent defect had, and the leg tells the two homes apart.
 """
 from __future__ import annotations
 
 import ast
 import copy
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -601,11 +633,120 @@ _REFERENTS = {
     # both render in `#arms-method`, so the word was corrected in the producer rather than the
     # claim weakened here.
     ("_skill_sample_size_explanation", "beside this"): (".method_skill.cannot_tell", "same"),
+    # THE TWO TIED POINTERS WHOSE DIRECTION SURVIVED BEING PROBED, registered 2026-09-19 with the
+    # numeric probe below -- which is what made registering them possible at all. Four more tied
+    # pointers were probed in the same pass and NONE of them had a here-relative word that held,
+    # so they were repaired in the producer to name their subject and left this vocabulary; they
+    # have no row here because they are no longer pointers.
+    #
+    # THE CHOOSING FIGURE IS A NUMBER AND `current_world.selection_gbp` IS NOT THE FIELD. The feed
+    # carries the same value twice and only `selection_leg.figure_gbp` is read by a door, so the
+    # duplicate would have answered "renders nowhere" -- a red naming the wrong cause. Measured,
+    # not read off the producer: the number was perturbed and the door asked which regions moved.
+    ("WITHDRAWN_CLAIMS", "figure above"): (
+        ".current_world.selection_leg.figure_gbp", "above"),
+    # THE BRIDGE TABLE'S CONTROL ROW, named by its own concordance -- the figure the row IS. The
+    # row's `what_it_is` prose renders nowhere (measured), so marking that would have reported a
+    # row the reader can plainly see as having no home; its interval bounds and its decision count
+    # render in the same single region the concordance does, so the direction below does not turn
+    # on which of the row's figures stands for the row.
+    ("_control_leg_agreement", "beside this"): (
+        ".method_skill.fixed_horizon.legs." + gva.CONTROL_LEG + ".concordance", "same"),
 }
 
 
+def _field_slot(payload: dict, field: str) -> tuple:
+    """`(container, key)` for a dotted feed path, so a probe can read AND replace one value."""
+    node = payload
+    parts = field.lstrip(".").split(".")
+    for part in parts[:-1]:
+        node = node[part]
+    return node, parts[-1]
+
+
+def _two_distinctive_values(value: float) -> tuple[float, float]:
+    """Two values a door cannot render identically, both on the same side of any nearby threshold.
+
+    SAME SIGN AND SAME ORDER OF MAGNITUDE, which is the whole design. A number that gates a BRANCH
+    changes prose that never renders it, so a perturbed-against-real comparison cannot tell a
+    home from a branch. Two values this close in magnitude take the SAME branch of any test the
+    producer or the door applies near the original, so a branch flip cancels between them and only
+    a region that renders the DIGITS survives the difference.
+
+    AND FAR ENOUGH APART TO SURVIVE ROUNDING. 8.1 and 9.2 against a shared magnitude differ by
+    more than a tenth, so they stay distinct through `toFixed(0)`, through a thousands separator
+    and through rounding to one significant figure. Only a rendering that keeps the ORDER OF
+    MAGNITUDE and nothing else would collapse them -- and a region showing only that is not
+    showing the figure.
+    """
+    assert value, (
+        "a referent of exactly zero has no digits to move, so perturbing it cannot tell a region "
+        "that renders it from one that does not and this probe would report no homes at all")
+    magnitude = 10.0 ** math.floor(math.log10(abs(value)))
+    sign = -1.0 if value < 0 else 1.0
+    return sign * 8.111111 * magnitude, sign * 9.222222 * magnitude
+
+
+def _numeric_referent_homes(field: str, built: dict) -> set[str]:
+    """The regions a NUMBER renders in, found by moving it rather than by marking it.
+
+    WHY THE MARKER PROBE CANNOT DO THIS, and it is measured rather than argued. Prefixing
+    `Zq...Zx` onto `current_world.selection_leg.figure_gbp` and re-rendering finds the figure in
+    ZERO regions -- the door puts it through `gbp()` and `signed()`, which return null on a string
+    -- while moving the same number finds it in two. So the existing probe does not merely measure
+    a different page; applied to a number it reports "this renders nowhere", which is a red with
+    the wrong cause and the wrong remedy. `test_MUTATION_the_numeric_referent_probe_marks_a_number
+    _the_string_probe_cannot` holds both halves of that side by side.
+
+    AND IT ASKS THE DOOR RATHER THAN THE FORMATTER. Searching the rendered text for a value's
+    formatted forms would make this rung hold an opinion about how the page formats money --
+    exactly the opinion `_REFERENTS` refuses to hold about anchors, and one that goes stale
+    silently. A difference of two renders needs to know nothing about the format.
+
+    THE OVER-REPORT THIS ACCEPTS, said here rather than discovered later: a region rendering a
+    figure DERIVED from this one also moves, and is counted a home. That is the conservative
+    direction for a direction check -- it can only add regions a pointer has to be true from.
+    """
+    container, key = _field_slot(built, field)
+    low, high = _two_distinctive_values(container[key])
+    rendered = []
+    for perturbed in (low, high):
+        moved = copy.deepcopy(built)
+        container, key = _field_slot(moved, field)
+        container[key] = perturbed
+        regions, _, meta = published._render(DOOR_URL, overrides={FEED_URL: moved})
+        assert not meta.get("scriptError"), (
+            "the door raised {!r} with {} moved to {}, so the regions below are a render that did "
+            "not finish and the difference would be read as homes".format(
+                meta.get("scriptError"), field, perturbed))
+        rendered.append(regions)
+    return {element for element in set(rendered[0]) | set(rendered[1])
+            if rendered[0].get(element) != rendered[1].get(element)}
+
+
 def _referent_homes(field: str, built: dict) -> set[str]:
-    """The regions the field a pointer names renders in, probed the same way the pointer is."""
+    """The regions the field a pointer names renders in, probed the way its TYPE allows.
+
+    THE TYPE IS READ OFF THE BUILD, never declared beside the referent. A field that changes from
+    prose to a figure changes which probe is honest about it, and a declaration in `_REFERENTS`
+    would go on naming the old one while the build had moved. Anything that is neither is refused
+    rather than pushed through the string probe, because that is the shape that reports zero homes
+    and reads as a page defect.
+    """
+    container, key = _field_slot(built, field)
+    subject = container[key]
+    if isinstance(subject, (int, float)) and not isinstance(subject, bool):
+        return _numeric_referent_homes(field, built)
+    assert isinstance(subject, (str, list)), (
+        "{} is a {} on this build, and neither probe here can mark one -- the string probe would "
+        "stringify it and the numeric probe cannot move it, so its homes would come back empty "
+        "and the pointer would read as naming something the page does not render".format(
+            field, type(subject).__name__))
+    return _marked_referent_homes(field, built)
+
+
+def _marked_referent_homes(field: str, built: dict) -> set[str]:
+    """The regions PROSE renders in, found by prefixing a marker the door carries through."""
     marked = copy.deepcopy(built)
     node = marked
     parts = field.lstrip(".").split(".")
@@ -829,7 +970,12 @@ def tied() -> list[dict]:
             "finish and zero homes would be the flattering answer".format(meta.get("scriptError")))
         homes = {field: {element for element, body in regions.items() if marker in body}
                  for field, marker in marker_for.items()}
-    return [dict(row, homes={home for field in row["fields"] for home in homes[field]})
+    # THE BUILD TRAVELS WITH THE ROWS, one shared object and not a copy per row: the direction leg
+    # probes each referent against the SAME build the homes above were read from, and a referent
+    # measured against a second build is a referent measured on a different page.
+    order = _reading_order()
+    return [dict(row, built=built, order=order,
+                 homes={home for field in row["fields"] for home in homes[field]})
             for row in rows]
 
 
@@ -927,6 +1073,120 @@ def test_no_tied_here_relative_pointer_is_published_into_a_field_no_door_renders
         "nothing can check it: {}. Either name the subject -- which is true from anywhere and "
         "leaves the here-relative vocabulary -- or give the field a door that renders "
         "it".format(sorted(homeless)))
+
+
+def test_every_tied_here_relative_pointer_is_true_from_the_region_it_lands_in(tied):
+    """THE OTHER SIDE OF THE PUBLISHED HALF'S RULE. A sentence a reader can fetch today must point
+    the way it says, judged region against region with both sides measured.
+
+    WHAT THIS CLOSED, and it is the reason the leg exists rather than an illustration of it. The
+    tied half landed 2026-09-19 judging HOMES only -- a published here-relative sentence must
+    render somewhere -- with direction deliberately left out because FIVE of the six unregistered
+    referents are NUMBERS and the marker probe both halves use cannot mark one honestly. Probed
+    for the first time with `_numeric_referent_homes`, **all six were false**:
+
+      * `_leg_in_this_world` said "the figure above" from `#arms-legs-first`, the FIRST region the
+        door declares, about a figure rendering in `#arms-legs-first` and `#arms-redraw`.
+      * `WITHDRAWN_CLAIMS` said "the choosing figure below" from `#arms-note`, the LAST.
+      * `_control_leg_agreement` said "the control row above" from `#arms-method`, where the
+        control row is published inside that same block.
+      * `_population_repair_bias`'s two sentences and `_POPULATION_REPAIR_BIAS_NOT_A_GAIN`'s one
+        said "the figure above" from `#arms-redraw` -- true of the figure's `#arms-legs-first`
+        home and FALSE of its `#arms-redraw` one, which is the second-home shape the parent defect
+        had and which no amount of reading the prose reveals.
+
+    FOUR OF THE SIX HAD NO TRUE HERE-RELATIVE WORD AT ALL, because their referent renders on BOTH
+    sides of them, so they were repaired in the producer to name their subject and are no longer in
+    this vocabulary. The other two were repaired to the word that IS true and stay here, so the
+    claim goes on being re-asked -- the same choice `_departures` got, and for the same reason.
+
+    KEYED TO BOTH SIDES BEING MEASURED, exactly like its undriven twin: neither the sentence's home
+    nor its referent's is written down, and moving either one reds this.
+
+    Fires on: a published pointer landing on the wrong side of what it names; a published pointer
+    gaining a second home the direction does not hold from; its referent gaining one; a pointer
+    reworded past `_REFERENTS`, which is refused as unjudgeable rather than passed on silence.
+    """
+    defects: list[str] = []
+    referents: dict[str, set] = {}
+    for row in tied:
+        subject = (row["symbol"], row["phrase"].lower())
+        field = _REFERENTS.get(subject, (None, None))[0]
+        if field is not None and field not in referents:
+            # ONE PROBE PER FIELD, not per literal. A numeric referent costs TWO renders of the
+            # real door, and two sentences naming one figure ask the same question twice.
+            referents[field] = _referent_homes(field, row["built"])
+        for defect in _direction_defects(subject, row["homes"],
+                                         referents.get(field, set()), row["order"]):
+            defects.append("{}:{} {}".format(row["symbol"], row["line"], defect))
+    assert not defects, (
+        "the page misdirects a reader on prose it PUBLISHES today:\n  " + "\n  ".join(defects))
+
+
+def test_MUTATION_the_numeric_referent_probe_marks_a_number_the_string_probe_cannot(tied):
+    """The instrument the leg above needed, shown to do the thing it was built for and to fail.
+
+    WHY A SECOND PROBE EXISTS AT ALL, held as an assertion rather than as a claim in a docstring.
+    Both halves of this file locate a referent by PREFIXING a marker onto its value. Applied to
+    `current_world.selection_leg.figure_gbp` that finds the figure in ZERO regions -- the door
+    passes it through `gbp()` and `signed()`, which return null on a string -- so the direction
+    leg above would have reported five of its referents as rendering NOWHERE. That is a red whose
+    stated cause is "the page names something it does not publish" when the truth is "this rung
+    cannot see numbers", and a red naming the wrong cause is how a correct page gets edited.
+
+    BOTH DIRECTIONS, side by side on one build, because the dangerous one is not the loud one. A
+    probe that finds NOTHING reds the whole partition and gets looked at. A probe that finds a home
+    for EVERY number waves through exactly the misdirection this leg exists for while reporting a
+    clean page -- so the poison is a real published number no door's source reads.
+
+    AND THE DIFFERENCE HAS TO BE THE NUMBER'S. The probe calls two renders a home when their text
+    differs; if the door were not deterministic, that difference would be noise and every region
+    would be a home for everything. Measured here rather than assumed.
+    """
+    built = gva.build(*_real_inputs())
+    rendered_number = ".current_world.selection_leg.figure_gbp"
+    # A PUBLISHED DUPLICATE OF THE SAME VALUE THAT NO DOOR READS. `current_world.selection_gbp`
+    # carries the choosing figure a second time and the door renders the leg's copy, so this is a
+    # number the page publishes and the reader never meets -- the numeric twin of the unread
+    # `what_this_is` field the tied probe's own poison uses.
+    unread_number = ".current_world.selection_gbp"
+    assert (_field_slot(built, rendered_number)[0][_field_slot(built, rendered_number)[1]]
+            == _field_slot(built, unread_number)[0][_field_slot(built, unread_number)[1]]), (
+        "the two fields no longer carry the same value, so a difference between their homes could "
+        "be about the numbers rather than about which of them a door reads, and this poison has "
+        "stopped isolating the thing it names")
+
+    assert not _marked_referent_homes(rendered_number, built), (
+        "prefixing a string marker onto a float found it a home, so the string probe can see "
+        "numbers after all and `_numeric_referent_homes` is answering a question the page does "
+        "not ask -- the two probes may now disagree for reasons nobody has looked at")
+    assert _numeric_referent_homes(rendered_number, built), (
+        "a figure the door demonstrably renders came back with NO home under the numeric probe, "
+        "so every numeric referent reads as 'renders nowhere' and the direction leg above reds on "
+        "its own instrument while naming the page")
+    assert not _numeric_referent_homes(unread_number, built), (
+        "a published number no door's source reads came back WITH a home, so this probe cannot "
+        "tell a rendered figure from an unrendered one and every direction it judges is judged "
+        "over regions the number never reaches")
+
+    first, _, meta = published._render(DOOR_URL, overrides={FEED_URL: built})
+    assert not meta.get("scriptError"), meta.get("scriptError")
+    second, _, meta = published._render(DOOR_URL, overrides={FEED_URL: built})
+    assert not meta.get("scriptError"), meta.get("scriptError")
+    unstable = sorted(element for element in set(first) | set(second)
+                      if first.get(element) != second.get(element))
+    assert not unstable, (
+        "the door renders ONE payload differently twice in {}, so the numeric probe's 'these "
+        "regions differ' is reading the door's own noise as a home".format(unstable))
+
+    # AND THE LEG ABOVE MUST HAVE HAD A NUMERIC REFERENT TO JUDGE. Everything here is about two
+    # hand-picked fields; this is what says the census really reached one.
+    assert any(isinstance(_field_slot(row["built"], _REFERENTS[key][0])[0][
+                              _field_slot(row["built"], _REFERENTS[key][0])[1]], float)
+               for row in tied
+               for key in [(row["symbol"], row["phrase"].lower())] if key in _REFERENTS), (
+        "not one TIED pointer names a NUMBER, so the probe this test is about is wired to nothing "
+        "the direction leg actually runs and its green says nothing about the page")
 
 
 def test_MUTATION_the_tied_probe_tells_a_rendered_field_from_an_unrendered_one(tied):

@@ -4300,7 +4300,13 @@ WITHDRAWN_CLAIMS = [{
              "“prices the same renewals” as the per-customer arm. It did not. On the run "
              "these figures come from it priced 281 renewals against the per-customer arm's 215, "
              "and 65 of that gap was the per-customer arm refusing renewals the level arm "
-             "priced — so the choosing figure below is a difference taken across two "
+             # "below" UNTIL 2026-09-19, when the tied direction leg probed the referent for the
+             # first time. This note renders in `#arms-note`, the LAST region the door declares,
+             # and the choosing figure renders in `#arms-legs-first` and `#arms-redraw` -- both
+             # above it. "above" is kept rather than the figure being named, because it is TRUE
+             # and stays inside the here-relative vocabulary, so the claim goes on being re-asked
+             # every time either the note or the figure moves.
+             "priced — so the choosing figure above is a difference taken across two "
              "populations. The claim is withdrawn and not reversed: the sentence is now derived "
              "from each run's own answer, and this run predates the question, so the page says "
              "it cannot tell. A corrected re-run in which the two arms do price one book exists "
@@ -5584,9 +5590,15 @@ def _control_leg_agreement(method_skill: dict) -> dict:
         draws=head_spread.get("draws") or 0, seed=head_spread.get("seed"),
         n=ms.get("decisions_scored"))
     if one_computation and identical:
+        # "the control row ABOVE" until 2026-09-19. Probed for the first time by the tied
+        # direction leg: this sentence renders in `#arms-method` and so does the control leg's own
+        # row, so a reader sent upwards leaves the block the row is in. "beside this" is the true
+        # word and it stays in the here-relative vocabulary, so the day the bridge table moves out
+        # of this block the claim reds rather than quietly becoming right again.
         reading, sentence = "one_computation_twice", (
-            "The control row above and the headline figure agree to the last bit, and that is NOT "
-            "corroboration. Both intervals are the same permutation -- " + how + " -- performed "
+            "The control row beside this and the headline figure agree to the last bit, and that "
+            "is NOT corroboration. Both intervals are the same permutation -- " + how + " -- "
+            "performed "
             "twice. Two independent samples agreeing would be evidence about the method; one "
             "computation agreeing with itself is arithmetic, and the only thing it establishes is "
             "that the two code paths meet.")
@@ -9441,8 +9453,15 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
         # comparison rather than hard-coded, because the next run's draw may be the low one and a
         # sentence that only knows how to say "above" would then be false on the page.
         verdict_withheld_because = (
-            "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the "
-            "bound beside it is how far that same quantity moves across {n} re-draws of it. "
+            # NAMES ITS SUBJECT rather than pointing at it (2026-09-19, when the tied half of
+            # `test_the_value_arms_pages_undriven_pointers.py` first probed this referent). It
+            # said "the figure above". This sentence renders in `#arms-legs-first` and the figure
+            # it named renders in `#arms-legs-first` AND `#arms-redraw` -- same region and below,
+            # and never above. No here-relative word is true from both, so the repair is the one
+            # `_decomposition_is_the_same_contrast` took: name the subject, which is true from
+            # anywhere and cannot rot into a lie when the leg gains a third home.
+            "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and "
+            "the bound stated with it is how far that same quantity moves across {n} re-draws. "
             "{res} of those {n} re-draws clear the bound and the rest do not, so whether this "
             "page could state a direction depends on which draw the run happened to make. It "
             "states none. {band}"
@@ -10488,8 +10507,15 @@ _POPULATION_REPAIR_BIAS_SOURCE = (
 
 #: THE ONE SENTENCE THE MAGNITUDE MAY NEVER TRAVEL WITHOUT. Composed INTO `clause` rather than
 #: offered as a sibling key, for the reason `_population_repair_bias` gives at length.
+# NAMES THE CHOOSING FIGURE rather than pointing up at it, and the same repair is made to the two
+# sentences `_population_repair_bias` composes around this one. Probed 2026-09-19 by the tied
+# direction leg: this clause renders in `#arms-redraw`, and the figure it was pointing at renders
+# in `#arms-legs-first` AND `#arms-redraw`. "above" is true of the first home and FALSE of the
+# second -- a reader meeting the clause in the re-draw block is told to look up at a figure
+# standing beside it. A pointer whose subject has homes on two sides of it has no here-relative
+# word that holds, so the subject is named.
 _POPULATION_REPAIR_BIAS_NOT_A_GAIN = (
-    "THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE FIGURE ABOVE. On every one of those "
+    "THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those "
     "{seeds} seeds the WHOLE advantage moved by £0.00 -- not a penny, not a rounding -- because "
     "the £{gbp:,.2f} came OFF the price-level leg and went ONTO the choosing leg by exactly equal "
     "and opposite amounts. Nothing was created; one side of the decomposition was handed to the "
@@ -10578,7 +10604,8 @@ def _population_repair_bias(artefact: dict | None) -> dict:
         "level_arm_priced": level,
         "value_arm_priced": value,
         "clause": (
-            "THE FIGURE ABOVE IS BIASED DOWNWARD, and here is one measured size for that bias. "
+            "THE CHOOSING FIGURE IS BIASED DOWNWARD, and here is one measured size for that "
+            "bias. "
             + ("This run never asked whether the two arms priced the same renewals -- the field "
                "is written only by runs taken after the level arm was given the per-customer "
                "arm's refusal frontier. "
@@ -10596,7 +10623,7 @@ def _population_repair_bias(artefact: dict | None) -> dict:
               "AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `{inst}` against "
               "`{against}`, {paths} paths of pricing code away from the run above, so it is the "
               "size of the CLASS and not this figure's own error. Subtracting it here would be "
-              "arithmetic across two instruments. The figure above stands as published."
+              "arithmetic across two instruments. The choosing figure stands as published."
         ).format(
             gbp=_POPULATION_REPAIR_BIAS_GBP, lo=_POPULATION_REPAIR_BIAS_CI_LOW_GBP,
             hi=_POPULATION_REPAIR_BIAS_CI_HIGH_GBP, t=_POPULATION_REPAIR_BIAS_T,
