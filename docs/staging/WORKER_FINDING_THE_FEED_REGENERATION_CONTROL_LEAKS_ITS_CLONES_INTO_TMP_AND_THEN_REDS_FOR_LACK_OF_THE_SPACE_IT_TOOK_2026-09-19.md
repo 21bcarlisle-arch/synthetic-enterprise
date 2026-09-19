@@ -96,3 +96,37 @@ is already a repeating alarm.
 The lane that owns the control: give it a `finally` that removes its clone, point its scratch at
 `/var/tmp` rather than the tmpfs, and make the checkout failure name the disk. Then sweep the eight
 stale directories. That is one change and it retires all three shapes above.
+
+---
+
+## Disposition — 2026-09-19, delivery seat, claim `twenty-three-published-feeds-cannot-be-checked-against-their-generator`
+
+All three shapes are repaired in `tools/published_feed_regeneration_check.py`, in the commit that
+extends the same module with `check_at_its_own_commit`. Taken in the order the finding names them:
+
+**2 (the tmpfs) — fixed, and keyed to the property.** `scratch_root()` picks the root by asking each
+candidate how much room it has and refusing when none has enough. Nothing asserts that `/tmp` is
+small or `/var/tmp` large: the day `/tmp` is a real disk it is eligible again with nobody editing a
+list. The recommendation said "point its scratch at `/var/tmp`"; that instance is today's answer and
+would go green while the claim rotted, so the measured version was built instead.
+
+**3 (the misattributed refusal) — fixed on both halves.** `scratch_root()` refuses with `THE DISK,
+NOT THE FEEDS: ... Nothing has been measured about any published feed`, and `_why_the_clone_failed()`
+re-measures free space at the moment git fails and puts it in front of git's text. Proven by
+`test_the_scratch_tree_is_not_built_where_there_is_no_room_for_it` and
+`test_a_failed_checkout_for_want_of_space_names_the_space`, and the second of those also asserts an
+ORDINARY clone failure does NOT claim the disk — a guard that blamed space for everything would
+carry no information and would pass the first leg.
+
+**1 (it does not clean up) — NOT fixed, and deliberately.** `check()` and `check_at_its_own_commit()`
+both already remove their scratch in a `finally`; what survives a run is what was SIGKILLed, and no
+`finally` reaches that. A sweeper for leaked directories would be a control guarding this control's
+own leavings, and with the root moved off the 12 GB tmpfs onto a filesystem with ~705 GB the leak
+costs abundant disk instead of the binding memory figure. **This is a judgement that the leak stopped
+mattering, not that it stopped happening** — if `feed-regen-*` directories are ever found filling a
+real disk, that judgement is what was wrong.
+
+**The instance was already clear when this was read**: `/tmp` was at 48% with 6.2 GB free and eight
+of the eleven directories gone, so the two reds the finding cites no longer reproduce. The mechanism
+was repaired anyway — an empty instance list is never evidence a rule-class finding is safe to
+leave, and this one had already blocked the merge to origin once.
