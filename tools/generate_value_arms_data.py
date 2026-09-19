@@ -2317,6 +2317,127 @@ def _auc_null_sd(retained, left):
     return math.sqrt((retained + left + 1) / (12.0 * retained * left))
 
 
+def _auc_from_a_roster(roster) -> dict:
+    """This seed's OWN null, tie-corrected, computed from the decisions the AUC was scored over.
+
+    THE BORROWED RULER THIS RETIRES. Until 2026-09-19 the floor seed-row writer recorded
+    `discrimination_auc`, `auc_population` and `auc_scored_share_of_priced` and DROPPED
+    `scored_decisions`, so no floor artefact on disk carried a roster for any seed at any commit.
+    The only roster this repository held was in a THREE-ARM file at a different instrument, and
+    `_auc_against_its_own_null`'s docstring records the closed form being validated against it --
+    a ruler taken from one run and applied to another, which is the two-artefact mispairing this
+    file refuses everywhere else. With the producer carrying the field, each row grades itself.
+
+    WHAT THE CORRECTION IS AND WHICH WAY IT MOVES. The Mann-Whitney null variance with ties is
+    `[(N+1) - sum(t^3 - t)/(N(N-1))] / (12 n1 n2)`, the tie sum taken over groups of EQUAL
+    `believed_p_retain`. The tie term is subtracted, so the corrected null is always the NARROWER
+    of the two and the untied closed form is the conservative one. That is why the fallback below
+    is safe in the direction it fails: a row whose roster cannot be read keeps the wider ruler and
+    the reading it supports is harder to clear, not easier.
+
+    IT REFUSES A ROSTER THAT DOES NOT REPRODUCE THE ROW'S OWN AUC, and that refusal is the whole
+    warrant for using it. The roster is only this figure's null if it is the population this
+    figure was scored on; a roster written by one code path and an AUC by another could drift with
+    nothing able to see it. So the AUC is recomputed here -- signal ties counting a half, exactly
+    as the producer's `belief_vs_outcome` does -- and the correction is taken ONLY when the
+    recomputation matches the published figure and the two counts match `auc_population`. A
+    mismatch returns the disagreement by name rather than a quietly untied number.
+
+    Returns `available: False` with a reason in every branch it cannot answer. A roster that is
+    absent (every artefact written before today) and a roster that disagrees are DIFFERENT states
+    and must not render identically -- the first is a producer that predates the field, the second
+    is two implementations that have come apart.
+    """
+    if not isinstance(roster, list) or not roster:
+        return {"available": False,
+                "why_not": ("this row carries no `scored_decisions`, so the only null available "
+                            "to it is the untied closed form over its two outcome counts")}
+    stayed, left_scores = [], []
+    for decision in roster:
+        if not isinstance(decision, dict):
+            return {"available": False,
+                    "why_not": "this row's `scored_decisions` holds a non-object entry"}
+        believed = decision.get("believed_p_retain")
+        retained = decision.get("retained")
+        if isinstance(believed, bool) or not isinstance(believed, (int, float)):
+            return {"available": False,
+                    "why_not": ("a decision in this row's roster carries no numeric "
+                                "`believed_p_retain`")}
+        if not isinstance(retained, bool):
+            return {"available": False,
+                    "why_not": ("a decision in this row's roster carries no retained/left "
+                                "label, so it cannot be placed on either side of the rank")}
+        (stayed if retained else left_scores).append(float(believed))
+    if not stayed or not left_scores:
+        return {"available": False,
+                "why_not": ("one outcome class is empty in this row's roster, so it carries no "
+                            "rank statistic and no null")}
+    n1, n2 = len(stayed), len(left_scores)
+    total = n1 + n2
+    wins = sum((s > lo) + 0.5 * (s == lo) for s in stayed for lo in left_scores)
+    auc = wins / (n1 * n2)
+    groups: dict = {}
+    for score in stayed + left_scores:
+        groups[score] = groups.get(score, 0) + 1
+    tie_sum = sum(t ** 3 - t for t in groups.values())
+    tie_term = tie_sum / (total * (total - 1)) if total > 1 else 0.0
+    variance = ((total + 1) - tie_term) / (12.0 * n1 * n2)
+    if variance <= 0:
+        return {"available": False,
+                "why_not": ("the tie correction consumed the whole null variance on this roster "
+                            "-- every score is tied, so there is no ranking to bound")}
+    untied = _auc_null_sd(n1, n2)
+    return {
+        "available": True,
+        "retained": n1,
+        "left": n2,
+        "decisions": total,
+        "auc_recomputed_from_the_roster": auc,
+        "distinct_believed_scores": len(groups),
+        "tied_pairs_in_the_signal": sum(c * (c - 1) // 2 for c in groups.values()),
+        "null_sd": math.sqrt(variance),
+        "null_sd_untied": untied,
+        "tie_correction_shrinks_the_null_variance_by": (
+            None if not untied else 1.0 - (variance / (untied ** 2))),
+    }
+
+
+def _auc_roster_null(row: dict, auc: float, retained, left) -> dict:
+    """Which ruler this row gets, and WHY -- three states, never two.
+
+    `own_roster` is the tie-corrected null from this row's own decisions. `no_roster` is a row
+    written before the producer carried the field, which keeps the wider untied form. `disagrees`
+    is a roster that does not reproduce the row's own published AUC or its own published counts --
+    also the untied form, and named as a disagreement rather than collapsed into "no roster",
+    because one is a producer that predates the field and the other is two implementations that
+    have come apart and nothing else would notice.
+    """
+    from_roster = _auc_from_a_roster(row.get("scored_decisions"))
+    untied = _auc_null_sd(retained, left)
+    if not from_roster.get("available"):
+        return {"basis": "no_roster", "null_sd": untied,
+                "why": from_roster.get("why_not"), "roster": from_roster}
+    disagreement = None
+    if (from_roster["retained"], from_roster["left"]) != (retained, left):
+        disagreement = (
+            "this row's roster splits {}/{} where its `auc_population` says {}/{}".format(
+                from_roster["retained"], from_roster["left"], retained, left))
+    elif abs(from_roster["auc_recomputed_from_the_roster"] - auc) > 1e-9:
+        disagreement = (
+            "this row's roster scores {!r} where its `discrimination_auc` says {!r}".format(
+                from_roster["auc_recomputed_from_the_roster"], auc))
+    if disagreement:
+        return {"basis": "disagrees", "null_sd": untied,
+                "why": (disagreement + ", so the roster is not the population this figure was "
+                        "scored on and the untied closed form -- the WIDER of the two -- is kept"),
+                "roster": from_roster}
+    return {"basis": "own_roster", "null_sd": from_roster["null_sd"],
+            "why": ("the tie-corrected Mann-Whitney null over this row's own {} scored "
+                    "decisions, which reproduce its published AUC exactly".format(
+                        from_roster["decisions"])),
+            "roster": from_roster}
+
+
 def _auc_rows(rows) -> list:
     """Every seed row carrying BOTH an AUC and the population it was scored on.
 
@@ -2334,12 +2455,26 @@ def _auc_rows(rows) -> list:
         population = row.get("auc_population")
         if not isinstance(population, dict):
             continue
-        sd = _auc_null_sd(population.get("retained"), population.get("left"))
-        if sd is None:
+        untied = _auc_null_sd(population.get("retained"), population.get("left"))
+        if untied is None:
             continue
+        # THE ROW'S OWN RULER WHERE THE ROW CARRIES ONE. Added 2026-09-19 with the producer field
+        # that makes it possible. `sd` is what every distance on this row is stated in, and it is
+        # the tie-corrected null over this seed's own scored decisions when they are present and
+        # reproduce the row's published AUC -- otherwise the untied closed form, which is the
+        # WIDER of the two, with the reason on the row. `null_sd_untied` stays beside it because
+        # `_auc_null`'s exact enumeration models no ties, so the agreement leg downstream must
+        # compare the enumeration against the form it actually approximates and not against this.
+        ruler = _auc_roster_null(row, float(auc), population.get("retained"),
+                                 population.get("left"))
+        sd = ruler["null_sd"]
         out.append({"seed": row.get("seed"), "auc": float(auc),
                     "retained": population.get("retained"), "left": population.get("left"),
                     "null_sd": sd,
+                    "null_sd_untied": untied,
+                    "null_sd_basis": ruler["basis"],
+                    "null_sd_basis_why": ruler["why"],
+                    "roster": ruler["roster"],
                     # THE PER-SEED BOUND, on the row rather than left to the family mean.
                     # Added 2026-09-19 on the director's direction, which asked for the per-seed
                     # bound AND the pooled one. A family mean placed against a null says nothing
@@ -2507,6 +2642,47 @@ def _auc_against_the_money_legs_price(money_leg: dict | None, source: str) -> di
     }
 
 
+def _rosters_behind_the_nulls(usable: list) -> dict:
+    """How many of these nulls came from the row's own roster, and what the others fell back to.
+
+    THE FIELD THAT SAYS WHETHER THE BORROWED-RULER DEFECT IS ACTUALLY CLOSED. The producer change
+    of 2026-09-19 is prospective: every floor artefact written before it carries no roster, so a
+    page reading one of them gets the untied closed form on every row and is entitled to say so.
+    Landing the field and then reading a page that still says nothing about which ruler it used is
+    the same defect wearing a new key -- so the count is published, in all three states, and a
+    family with zero rosters reads as zero rather than as silence.
+
+    THE THREE STATES ARE NOT COLLAPSED. `own_roster` is graded by its own decisions; `no_roster`
+    predates the field; `disagrees` is a roster that does not reproduce its own row's AUC, which
+    is a defect and not an absence. A single `disagrees` is worth more attention than a hundred
+    `no_roster`, and a two-state summary would hide it in the larger count.
+    """
+    by_basis: dict = {}
+    for row in usable:
+        by_basis.setdefault(row["null_sd_basis"], []).append(row["seed"])
+    disagreeing = [row for row in usable if row["null_sd_basis"] == "disagrees"]
+    own = [row for row in usable if row["null_sd_basis"] == "own_roster"]
+    shrink = [row["roster"].get("tie_correction_shrinks_the_null_variance_by")
+              for row in own
+              if row["roster"].get("tie_correction_shrinks_the_null_variance_by") is not None]
+    return {
+        "seeds_read": len(usable),
+        "graded_by_their_own_roster": len(own),
+        "seeds_by_basis": {basis: sorted(seeds, key=lambda s: (s is None, s))
+                           for basis, seeds in sorted(by_basis.items())},
+        "every_null_is_from_its_own_roster": bool(usable) and len(own) == len(usable),
+        "largest_tie_correction_to_the_null_variance": max(shrink) if shrink else None,
+        "rosters_that_disagree_with_their_own_row": [
+            {"seed": row["seed"], "why": row["null_sd_basis_why"]} for row in disagreeing],
+        "what_a_fallback_costs": (
+            "a row with no usable roster keeps `sqrt((n1+n2+1)/(12*n1*n2))`, the UNTIED form. "
+            "Ties can only shrink the null variance, so the fallback is the WIDER ruler and the "
+            "reading it supports is harder to clear, never easier. The direction is stated "
+            "because a fallback whose direction is not stated is a fallback a reader has to "
+            "assume went the flattering way."),
+    }
+
+
 def _auc_against_its_own_null(rows, *, world: str | None, source: str,
                               is_the_advantages_family: bool,
                               money_leg: dict | None = None) -> dict:
@@ -2541,6 +2717,24 @@ def _auc_against_its_own_null(rows, *, world: str | None, source: str,
     THE POPULATION USED IS THE ONE WITH THE WIDEST NULL, when the rows disagree. Rows here run
     64x42, 64x42 and 63x42; the widest null is the smallest population's, and taking it is the
     direction that makes the reading harder to clear rather than easier.
+
+    SINCE 2026-09-19 THE NULL IS THE ROW'S OWN AND NO LONGER A BORROWED ONE, and the correction
+    belongs beside the claim it corrects. Every ruler above was `sqrt((n1+n2+1)/(12*n1*n2))`, the
+    UNTIED closed form, because a floor row carried an AUC and two counts and nothing else -- the
+    seed-row writer in `run_value_cycle_ab.noise_floor` dropped `scored_decisions`. So the tie
+    structure of the belief was unavailable at every commit for every seed, and this module's own
+    validation of the closed form had to be run against a roster from a THREE-ARM file at a
+    DIFFERENT instrument: the two-artefact mispairing refused everywhere else in this file,
+    arriving through the one door nobody had looked at. The producer now carries the field, and
+    `_auc_roster_null` grades each row by the tie-corrected null over that row's own decisions --
+    taken only where the roster reproduces the row's published AUC, and falling back to the wider
+    untied form, by name, where it does not. `nulls_from_their_own_rosters` counts which.
+
+    NOTHING ON DISK MOVED WHEN THAT LANDED, and that is the check rather than the disappointment.
+    Every artefact written before the field falls back on every row, so the twelve-seed next12
+    family still reads 0.56290 at 1.084 null SDs with 0 of 12 clearing. A ruler repair that
+    silently moved a published verdict on an artefact it cannot have re-measured would be a
+    defect; the reading changes when a run carrying rosters lands, which is the correct time.
     """
     usable = _auc_rows(rows)
     if not usable:
@@ -2566,7 +2760,14 @@ def _auc_against_its_own_null(rows, *, world: str | None, source: str,
     agrees = None
     if exact.get("available"):
         half_width = (exact["null_95_high"] - exact["null_95_low"]) / 2.0
-        agrees = abs(half_width - 1.959963984540054 * null_sd) < 0.005
+        # AGAINST THE UNTIED FORM, WHICH IS WHAT THE ENUMERATION APPROXIMATES -- never against
+        # `null_sd`, which since 2026-09-19 may be the TIE-CORRECTED null from the row's own
+        # roster. `_auc_null` states in its own docstring that it does not model ties, so grading
+        # it against a tie-corrected sd would be this leg quietly changing what it compares while
+        # still passing: the tie term moves the sd by ~0.03% on this belief, far inside the 0.005
+        # tolerance, so the leg would have gone on printing `true` about a comparison it was no
+        # longer making. Two rulers, each checked against the thing it is a ruler for.
+        agrees = abs(half_width - 1.959963984540054 * widest["null_sd_untied"]) < 0.005
     family_sd = statistics.stdev(aucs) if len(aucs) > 1 else None
     demonstrated = None if exact.get("inside_the_null") is None else (
         not exact["inside_the_null"])
@@ -2585,8 +2786,17 @@ def _auc_against_its_own_null(rows, *, world: str | None, source: str,
         "auc_by_seed": [{"seed": r["seed"], "auc": r["auc"],
                          "retained": r["retained"], "left": r["left"],
                          "null_sd": r["null_sd"],
+                         # WHICH RULER GRADED THIS ROW, on the row. A family where some rows are
+                         # tie-corrected from their own roster and some fall back to the untied
+                         # form is a family whose distances are not all in the same unit, and a
+                         # reader cannot see that from the distances.
+                         "null_sd_untied": r["null_sd_untied"],
+                         "null_sd_basis": r["null_sd_basis"],
+                         "null_sd_basis_why": r["null_sd_basis_why"],
                          "null_sds_above_no_information": r["null_sds_above_no_information"],
                          "clears_its_own_null": r["clears_its_own_null"]} for r in usable],
+        # WHETHER THIS READING IS STILL ON A BORROWED RULER, counted rather than asserted.
+        "nulls_from_their_own_rosters": _rosters_behind_the_nulls(usable),
         "seeds_clearing_their_own_null": sum(1 for r in usable if r["clears_its_own_null"]),
         "widest_single_seed_distance": max(
             (abs(r["null_sds_above_no_information"]) for r in usable), default=None),

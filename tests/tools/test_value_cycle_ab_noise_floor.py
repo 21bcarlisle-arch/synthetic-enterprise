@@ -1970,3 +1970,115 @@ def test_a_seed_that_REFUSED_leaves_no_line_claiming_it_finished(capsys):
     assert _counted_markers(out) == 2, (
         "{} marker line(s) survived a family where seed 3 of 3 REFUSED -- the log claims a seed "
         "finished that raised".format(_counted_markers(out)))
+
+
+# ---------------------------------------------------------------------------
+# 13. THE FLOOR ROW CARRIES THE ROSTER ITS AUC WAS SCORED OVER
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THIS SECTION EXISTS FOR. Until 2026-09-19 this writer recorded
+# `discrimination_auc`, `auc_population` and `auc_scored_share_of_priced` off each seed's
+# `belief_vs_outcome` and DROPPED `scored_decisions`. Those three keys are enough to compute the
+# UNTIED closed-form null and nothing else -- so no floor artefact on disk carried a roster, for
+# any seed, at any commit, and every reading stronger than `sqrt((n1+n2+1)/(12*n1*n2))` was
+# unavailable to the page. `generate_value_arms_data._auc_against_its_own_null` had to validate
+# its closed form against a roster from a THREE-ARM file at a different instrument, which is the
+# borrowed ruler this field retires. The floor family is six days of the only box; a run that
+# measures a rank statistic twelve times and keeps none of the rankings cannot be re-read.
+
+
+def _runner_believing(scored: list[dict]):
+    """A three-arm result whose `belief_vs_outcome` carries a roster, shaped as the real one is."""
+    stayed = [d["believed_p_retain"] for d in scored if d["retained"]]
+    left = [d["believed_p_retain"] for d in scored if not d["retained"]]
+    wins = sum((s > lo) + 0.5 * (s == lo) for s in stayed for lo in left)
+
+    def runner() -> dict:
+        result = _fake_runner()
+        result["belief_vs_outcome"] = {
+            "available": True,
+            "scored_decisions": [dict(d) for d in scored],
+            "discrimination_auc": wins / (len(stayed) * len(left)),
+            "auc_population": {"retained": len(stayed), "left": len(left)},
+            "scored_share_of_priced": 0.75,
+        }
+        return result
+
+    return runner
+
+
+_ROSTER = [
+    {"account": "ACC-0001", "term_start": "2021-06-01", "believed_p_retain": 0.91,
+     "retained": True, "chosen_margin_gbp_per_mwh": 12.0},
+    {"account": "ACC-0001", "term_start": "2022-06-01", "believed_p_retain": 0.62,
+     "retained": True, "chosen_margin_gbp_per_mwh": 11.0},
+    {"account": "ACC-0002", "term_start": "2021-06-01", "believed_p_retain": 0.62,
+     "retained": False, "chosen_margin_gbp_per_mwh": 18.0},
+    {"account": "ACC-0003", "term_start": "2021-06-01", "believed_p_retain": 0.40,
+     "retained": False, "chosen_margin_gbp_per_mwh": 21.0},
+]
+
+
+def test_a_floor_row_carries_the_roster_its_auc_was_scored_over():
+    """The field, per seed, and it is the run block's own list rather than a re-derivation.
+
+    THE ASSERTION IS AGAINST THE RUNNER'S OWN DECISIONS, not against a second construction here.
+    A row whose roster is rebuilt by the writer could drift from the AUC beside it with nothing
+    able to see it -- which is exactly the state the consumer's `disagrees` branch fails closed
+    on, and the reason that branch has to be unreachable on a correctly written row.
+    """
+    result = noise_floor([11111, 22222], runner=_runner_believing(_ROSTER))
+
+    for row in result["seeds"]:
+        roster = row.get("scored_decisions")
+        assert roster is not None, (
+            f"seed {row['seed']} carries no roster beside its AUC, so the only null available to it "
+            f"is the untied closed form: {sorted(row)}")
+        assert len(roster) == len(_ROSTER)
+        assert [d["account"] for d in roster] == [d["account"] for d in _ROSTER]
+        assert [d["term_start"] for d in roster] == [d["term_start"] for d in _ROSTER]
+        assert [d["believed_p_retain"] for d in roster] == [
+            d["believed_p_retain"] for d in _ROSTER]
+        assert [d["retained"] for d in roster] == [d["retained"] for d in _ROSTER]
+        # THE ROSTER AND THE COUNTS BESIDE IT ARE THE SAME POPULATION. Two retained and two
+        # departed in the fixture; a writer that filtered one side would leave the AUC on the row
+        # describing a population the roster no longer is.
+        assert row["auc_population"] == {"retained": 2, "left": 2}
+        # THE ARM'S PRICE IS NOT CARRIED. It is neither the belief nor the outcome and no null
+        # needs it; naming the drop keeps a later widening deliberate rather than incidental.
+        assert "chosen_margin_gbp_per_mwh" not in roster[0]
+
+
+def test_the_term_half_of_the_key_survives_so_two_renewals_of_one_account_stay_distinct():
+    """WHY `term_start` IS ON THE ROW AND NOT DROPPED AS DECORATION.
+
+    The roster is keyed by (account, term_start): `ACC-0001` renews twice in the fixture at
+    different beliefs and both are scored. An account-only row makes those two decisions
+    indistinguishable, and a reader counting rows per account reads a duplicate where there is a
+    second renewal. This is the leg that reds if the four keys are narrowed to the three the
+    drawn direction literally named.
+    """
+    row = noise_floor([11111, 22222], runner=_runner_believing(_ROSTER))["seeds"][0]
+
+    same_account = [d for d in row["scored_decisions"] if d["account"] == "ACC-0001"]
+    assert len(same_account) == 2
+    assert len({d["term_start"] for d in same_account}) == 2, (
+        "both renewals of one account collapsed onto one key, so the roster cannot say which "
+        "decision each belief belongs to")
+
+
+def test_a_seed_whose_run_measured_no_belief_writes_no_roster_and_says_why():
+    """FAILS CLOSED, on the same footing as the AUC beside it.
+
+    An empty list would be a roster of no decisions -- which is a real reading, meaning the arm
+    priced nothing that could be scored -- and it must not be how "this run has no
+    `belief_vs_outcome` at all" renders. `_fake_runner` carries no belief block, which is the
+    state every floor run before 2026-08-30 was in.
+    """
+    row = noise_floor([11111, 22222], runner=_fake_runner)["seeds"][0]
+
+    assert row.get("scored_decisions", "missing") is None, (
+        "the row wrote a roster of no decisions where it measured no belief at all; an empty "
+        "list is a real reading and must not be how 'not measured' renders")
+    assert row["discrimination_auc"] is None
+    assert row["auc_unavailable_because"], "the row went silent about why it carries no AUC"

@@ -5969,6 +5969,39 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             "auc_population": bvo.get("auc_population") if bvo.get("available") else None,
             "auc_scored_share_of_priced": (bvo.get("scored_share_of_priced")
                                            if bvo.get("available") else None),
+            # THE ROSTER THE AUC ON THIS ROW WAS SCORED OVER. Added 2026-09-19, and it is the
+            # field whose absence made the null on the page a BORROWED one. The three keys above
+            # are the statistic and its two counts; they are enough to compute the UNTIED closed
+            # form and not enough to compute anything else. A tie-corrected null needs the tie
+            # structure of `believed_p_retain`, and a permutation null needs the scores
+            # themselves -- so every reading stronger than `sqrt((n1+n2+1)/(12*n1*n2))` was
+            # unavailable at every commit, for every seed, on every floor artefact ever written.
+            # `_auc_against_its_own_null` had to validate its closed form against a roster from a
+            # THREE-ARM file at a different instrument, because that was the only roster on disk.
+            #
+            # IT IS THE RUN BLOCK'S OWN LIST AND NOT A RE-DERIVATION. `belief_vs_outcome` already
+            # builds it; this row dropped it. A second construction here would be the permissive
+            # second implementation -- the row's roster and the row's AUC would be free to drift
+            # apart with nothing able to notice, which is exactly what a consumer checking one
+            # against the other needs to be impossible.
+            #
+            # FOUR KEYS, AND `term_start` IS NOT DECORATION. The roster is keyed by
+            # (account, term_start): one account renews many times, so an account-only row makes
+            # two distinct decisions indistinguishable and a reader counting rows per account
+            # reads duplicates where there are none. `chosen_margin_gbp_per_mwh` is dropped --
+            # it is the arm's price, not the belief or the outcome, and no null needs it.
+            #
+            # THE COST IS ~100 ROWS PER SEED. On the twelve-seed next12 family that is ~1,270
+            # decisions, which is the size of the evidence the rank leg turns on. A family that
+            # measures a rank statistic twelve times and keeps none of the rankings cannot be
+            # re-read, and re-running it is six days of the only box.
+            "scored_decisions": (
+                [{"account": d.get("account"), "term_start": d.get("term_start"),
+                  "believed_p_retain": d.get("believed_p_retain"),
+                  "retained": d.get("retained")}
+                 for d in (bvo.get("scored_decisions") or [])
+                 if isinstance(d, dict)]
+                if bvo.get("available") else None),
             "auc_unavailable_because": (
                 None if bvo.get("available")
                 else (bvo.get("why_not")

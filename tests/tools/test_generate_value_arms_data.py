@@ -42,6 +42,7 @@ import ast
 import copy
 import datetime
 import json
+import math
 import re
 from pathlib import Path
 
@@ -9868,3 +9869,167 @@ def test_seed_spreads_does_not_let_NEVER_ASKED_pass_as_measured_contemporaneous(
         never_asked.get("staleness_at_admission"))
     assert leg["single_run"]["is_a_member_of_the_family"] is False, (
         "an unasked question still buys the run its membership in the family")
+
+
+# ---------------------------------------------------------------------------
+# THE AUC'S NULL IS COMPUTED FROM THE ROW'S OWN ROSTER, NOT BORROWED
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THIS SECTION EXISTS FOR (2026-09-19). `_auc_against_its_own_null` graded every seed
+# with `sqrt((n1+n2+1)/(12*n1*n2))` -- the UNTIED closed form over the row's two outcome counts,
+# which is all a floor row carried. The tie structure of the belief was unavailable to it at every
+# commit, because `tools/run_value_cycle_ab.noise_floor` dropped `scored_decisions` from the row it
+# wrote. So the closed form could only be validated against a roster taken from a THREE-ARM file at
+# a different instrument -- the two-artefact mispairing this module refuses everywhere else,
+# arriving through the one door nobody had looked at. With the producer carrying the field, each
+# row now grades itself, and a row that cannot keeps the WIDER ruler and says which it used.
+
+
+def _roster_row(seed, scores_by_outcome, *, auc=None, population=None):
+    """A seed row shaped as the floor writer now writes it. `scores_by_outcome` is (stayed, left)."""
+    stayed, left = scores_by_outcome
+    roster = ([{"account": f"A{i}", "term_start": "2021-06-01",
+                "believed_p_retain": s, "retained": True} for i, s in enumerate(stayed)]
+              + [{"account": f"B{i}", "term_start": "2021-06-01",
+                  "believed_p_retain": s, "retained": False} for i, s in enumerate(left)])
+    wins = sum((s > lo) + 0.5 * (s == lo) for s in stayed for lo in left)
+    return {"seed": seed,
+            "discrimination_auc": wins / (len(stayed) * len(left)) if auc is None else auc,
+            "auc_population": ({"retained": len(stayed), "left": len(left)}
+                               if population is None else population),
+            "scored_decisions": roster}
+
+
+#: Heavy ties on purpose, and SIZED so both rulers are readable on it. Two distinct beliefs across
+#: eighty decisions: the tie term is large enough that a leg reading the wrong sd cannot pass by
+#: rounding (1.96 sd moves from 0.1273 to 0.1103, against a 0.005 tolerance), and the population is
+#: large enough that the exact enumeration still agrees with the untied closed form it
+#: approximates. A twelve-decision version of this fixture was tried first and the enumeration
+#: disagreed with BOTH forms -- at 36 ordered pairs the discreteness of the null is itself larger
+#: than the tolerance, so the leg would have red for a reason that is not the one it tests.
+#: Real rosters tie far less (83 distinct scores in 104 on the 09-18 three-arm run, a 0.07%
+#: correction), and a control sized to the real correction would be a control that cannot fail.
+_TIED = ([0.9] * 30 + [0.5] * 10, [0.9] * 10 + [0.5] * 30)
+
+
+def test_a_row_carrying_its_roster_is_graded_by_the_tie_corrected_null_from_that_roster():
+    """And the correction goes DOWN, which is why the fallback below is the conservative one."""
+    row = _roster_row(1, _TIED)
+    graded = gva._auc_rows([row])[0]
+
+    assert graded["null_sd_basis"] == "own_roster", graded["null_sd_basis_why"]
+    assert graded["null_sd"] < graded["null_sd_untied"], (
+        "the tie correction did not narrow the null on a roster with 12 decisions at 2 distinct "
+        "beliefs, so the tie term is not reaching the variance")
+    # THE ARITHMETIC, AT THE REAL INPUTS, not merely 'smaller'. Var = [(N+1) - sum(t^3-t)/(N(N-1))]
+    # / (12*n1*n2): N=80 in two tie groups of 40, so the tie term is 2*(40**3 - 40)/(80*79).
+    expected = math.sqrt((81.0 - 2 * (40 ** 3 - 40) / (80.0 * 79.0)) / (12.0 * 40 * 40))
+    assert graded["null_sd"] == pytest.approx(expected, rel=1e-12)
+    assert graded["roster"]["distinct_believed_scores"] == 2
+    # THE WARRANT FOR USING IT: the roster reproduces the row's own published figure.
+    assert graded["roster"]["auc_recomputed_from_the_roster"] == pytest.approx(row[
+        "discrimination_auc"])
+
+
+def test_the_untied_form_stays_on_the_row_so_the_enumeration_is_graded_against_what_it_approximates():
+    """`_auc_null` models NO ties and says so. Its agreement leg must compare it to the untied sd.
+
+    THE SILENT FAILURE THIS CATCHES. On a real belief the tie term moves the sd by ~0.03%, far
+    inside the 0.005 tolerance the agreement leg uses -- so pointing that leg at the tie-corrected
+    `null_sd` would go on printing `true` about a comparison it was no longer making, for ever, on
+    every real family. The leg is therefore exercised on a roster whose correction is large enough
+    to break it: agreement must hold against the untied form and NOT against the corrected one.
+    """
+    row = _roster_row(1, _TIED)
+    out = gva._auc_against_its_own_null([row], world="w", source="fixture",
+                                        is_the_advantages_family=True)
+
+    assert out["closed_form_agrees_with_the_exact_null"] is True, (
+        "the exact enumeration no longer agrees with the untied closed form it approximates")
+    half_width = out["exact_null_half_width"]
+    assert abs(half_width - 1.959963984540054 * out["null_sd"]) > 0.005, (
+        "this roster's tie correction is too small to tell the two rulers apart, so the leg "
+        "above would pass whichever sd it was pointed at and proves nothing")
+
+
+def test_a_row_with_no_roster_keeps_the_wider_untied_ruler_and_names_the_absence():
+    """Every floor artefact written before 2026-09-19, and the fallback must not read as a grade."""
+    row = {"seed": 7, "discrimination_auc": 0.5649,
+           "auc_population": {"retained": 64, "left": 42}}
+    graded = gva._auc_rows([row])[0]
+
+    assert graded["null_sd_basis"] == "no_roster"
+    assert graded["null_sd"] == graded["null_sd_untied"]
+    assert "no `scored_decisions`" in graded["null_sd_basis_why"]
+
+
+def test_a_roster_that_does_not_reproduce_its_own_rows_auc_is_refused_by_name():
+    """The warrant, and it is not the flattering branch.
+
+    A roster written by one code path and an AUC by another are free to drift with nothing able to
+    notice. So the correction is taken ONLY where the roster reproduces the published figure --
+    and a mismatch is reported as a DISAGREEMENT rather than collapsed into "no roster", because
+    one is a producer that predates the field and the other is two implementations that have come
+    apart. The fallback in both cases is the wider ruler.
+    """
+    disagreeing = _roster_row(1, _TIED, auc=0.77)
+    graded = gva._auc_rows([disagreeing])[0]
+
+    assert graded["null_sd_basis"] == "disagrees"
+    assert graded["null_sd"] == graded["null_sd_untied"], (
+        "a roster that contradicts its own row was still used to narrow that row's null")
+    assert "0.77" in graded["null_sd_basis_why"], graded["null_sd_basis_why"]
+
+    # THE OTHER HALF OF THE SAME WARRANT: counts that do not match `auc_population`.
+    miscounted = _roster_row(2, _TIED, population={"retained": 60, "left": 44})
+    assert gva._auc_rows([miscounted])[0]["null_sd_basis"] == "disagrees"
+
+
+def test_the_page_counts_which_nulls_came_from_their_own_rosters():
+    """Landing the field and then saying nothing about which ruler was used is the same defect.
+
+    A three-state count, never two: one `disagrees` is worth more attention than a hundred
+    `no_roster`, and a two-state summary would bury it in the larger number.
+    """
+    rows = [_roster_row(1, _TIED),
+            {"seed": 2, "discrimination_auc": 0.56, "auc_population": {"retained": 6, "left": 6}},
+            _roster_row(3, _TIED, auc=0.77)]
+    out = gva._auc_against_its_own_null(rows, world="w", source="fixture",
+                                        is_the_advantages_family=True)
+    counted = out["nulls_from_their_own_rosters"]
+
+    assert counted["seeds_read"] == 3
+    assert counted["graded_by_their_own_roster"] == 1
+    assert counted["every_null_is_from_its_own_roster"] is False
+    assert counted["seeds_by_basis"] == {"disagrees": [3], "no_roster": [2], "own_roster": [1]}
+    assert [d["seed"] for d in counted["rosters_that_disagree_with_their_own_row"]] == [3]
+    assert counted["largest_tie_correction_to_the_null_variance"] > 0
+
+    whole = gva._auc_against_its_own_null([_roster_row(1, _TIED), _roster_row(2, _TIED)],
+                                          world="w", source="fixture",
+                                          is_the_advantages_family=True)
+    assert whole["nulls_from_their_own_rosters"]["every_null_is_from_its_own_roster"] is True, (
+        "a family every one of whose rows carried a usable roster still reports that some null "
+        "was borrowed, so the field cannot ever say the defect is closed")
+
+
+def test_the_published_family_on_disk_is_unmoved_by_the_roster_repair():
+    """THE PREDICTION, WRITTEN BEFORE IT WAS RUN: the next12 reading does not move.
+
+    Every row of the twelve-seed floor on disk predates the producer field, so all twelve fall
+    back to the untied form and the published figures must be byte-for-byte what they were --
+    0.56290 at 1.084 null SDs, 0 of 12 clearing. A repair to a ruler that silently moved a
+    published verdict on an artefact it cannot have re-measured would be the defect, not the fix.
+    """
+    floor = gva._read(gva.AUC_FAMILY_FLOOR_PATH)
+    out = gva._auc_against_its_own_null(
+        floor["seeds"], world=(floor.get("world_identity") or {}).get("digest"),
+        source="on disk", is_the_advantages_family=True,
+        money_leg=floor.get("distance_to_a_sign"))
+
+    assert out["mean_auc"] == pytest.approx(0.5628958676569616, rel=1e-12)
+    assert out["null_sds_above_no_information"] == pytest.approx(1.0840310412082572, rel=1e-9)
+    assert out["seeds_clearing_their_own_null"] == 0
+    assert out["nulls_from_their_own_rosters"]["graded_by_their_own_roster"] == 0, (
+        "a row of the on-disk twelve claims a roster it cannot have, so the fixture and the "
+        "artefact have come apart")
