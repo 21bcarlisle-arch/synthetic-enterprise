@@ -118,11 +118,38 @@ the 82-control suite.
 **52 of 221 cells carry temperature only.** Open-Meteo rate-limited the ERA5 pass. `available()`
 REFUSES those cells rather than answering with a NaN, so no premise settles on a sky with three
 missing columns — it costs coverage, not correctness, and the validator prints the FAIL on its face.
-The resume was launched in this turn and its outcome is recorded in §8 below rather than predicted
-here.
+The resume was launched in this turn and its outcome is §8, written after it returned.
 
 The per-property pull the director refused — tools/pull\_book\_weather.py, written here without
 backticks because a backticked path in a findings document is read by `landed_manifest_check` as a
 claim that the path is in the tree, and the whole point of this sentence is that it is not — **is
 already gone from the shared disk**. Only a stale `__pycache__` .pyc remains, which imports nothing.
 The item's note that it is "still untracked on the shared disk" was true when written and is spent.
+
+## 8. THE RESUME: P4 CONFIRMED, P5 CONFIRMED, AND 21 CELLS
+
+Landed as f94ebb1d2. `validate_weather_world` moved from **52 of 221 cells temperature-only
+(189,956 rows)** to **31 of 221 (113,243 rows)** — 21 cells and 76,713 rows gained the three ERA5
+variables. The other three legs are unchanged and green.
+
+**P4 confirmed — the resume resumes.** It pulled only the missing cells rather than re-fetching all
+221: 169 complete cells were skipped and 21 new ones fetched. This was the prediction worth making,
+because the `_existing_rows` repair of 2026-09-16 is what makes it true, and had that still been
+broken the run would have re-pulled everything and written a store carrying two keyings at once. It
+is now demonstrated rather than argued.
+
+**P5 confirmed — and for the reason given in advance.** Open-Meteo rate-limited the pass, as it had
+rate-limited the lane before mine. I predicted this at 04:06 because the limit is per source
+address, not per process, so inheriting another lane's exhausted budget was the expected case rather
+than bad luck. The process sat in a retry backoff with its socket in `CLOSE-WAIT` and no CPU
+movement for 25 minutes; I stopped it at a consistent checkpoint rather than leave an orphaned
+writer running past the turn.
+
+**The one-variable check that makes this attributable.** Temperature is byte-identical to
+6e02d6442 — all 807,313 cell-day keys are the same set and **0 of them changed value** — measured
+against the committed object rather than assumed from the extractor being deterministic. So the
+diff is the ERA5 columns and nothing else.
+
+**What remains owed is one more resume, not a repair.** 31 cells; re-running the identical command
+continues from here. The bound is a rate limiter, not the machinery, and that distinction is the
+result: before this turn the store's incompleteness could have been either.

@@ -151,3 +151,62 @@ genuinely broken — just not in the direction the item said.
 2. **Make the eligibility verdict name the site it could not find.** 213 identical refusals cannot
    tell anyone which archives to pull. Cheapest remaining lever, and it makes (1) targetable
    instead of guessed.
+
+---
+
+## Found while landing this: `refresh_to_head` has no reader for `.json` or `.csv`
+
+Recorded here rather than as its own finding. It is a live gap, not a discharged one — it is in this
+document because a standalone LATENT finding for it loops `finding_classes` UNCONSOLIDATED ↔
+RESURRECTED, and downgrading a real gap to RECORDED purely to clear a gate is the move this project
+punishes. Recording it in full, attached to the work that found it, keeps it readable and keeps it
+honest.
+
+**What happened.** `surgical_land` never touches the shared disk, so `1bf4821b6` does not clear the
+shared tree's own uncommitted copies of the two artefacts (written 2026-09-07 17:32, now nine days
+stale and strictly superseded by `origin/main`). `tools/refresh_to_head.py` is the named repair for
+exactly that, and it refuses:
+
+```
+sim/weather_cells/site_cells.json  [refused_no_reader]
+    this control has no reader for .json files, so it CANNOT establish that the copy has
+    nothing to lose. An unavailable check is a failed check.
+sim/weather_cells/occupied_land_cells.csv  [refused_no_reader]
+```
+
+**The refusal is correct and fail-closed and I did not route around it.** What is worth filing is
+what it implies.
+
+**The hole.** `refresh_to_head` clears a stale rival copy that HEAD supersedes. The copies most
+likely to go stale are **generated artefacts** — rewritten wholesale by a `--derive` or `--build`
+run, where "has this anything to lose" is decidable *by regenerating and comparing*, and where
+nobody is hand-editing a line that could be lost. Those are, essentially always, `.json` or `.csv`:
+`sim/weather_cells/*`, `sim/household_siting/region_household_frame.csv`, `sim/weather_world/*`,
+`site/data/*.json`. **The control has readers for the file types where refreshing is dangerous and
+no reader for the types where it is safe** — the mirror of what it needs — so a stale generated
+artefact in the shared tree is unclearable by the sanctioned route and stays. Nine days for these
+two; eight for `sim/weather_world/` beside them.
+
+**The live consequence.** The shared tree's `simulation/weather_cell_siting.py` still carries the
+pre-re-cut witness `(50.4689, -4.1492)`, which under its own artefact copy's partition is
+`(6, 10, 12)` against London's `(16, 10, 12)`. So
+`test_the_accept_branch_is_reachable_and_it_matches_climate_not_proximity` **is red in the shared
+tree and has been since 2026-09-07 17:32**, and this landing does not clear it because a landing
+does not write the shared disk. Any lane running the pre-commit test gate there meets that red with
+the cause in nobody's diff — the catalogued "working-tree-only wedge is not cleared by landing the
+fix", with the turn that the named repair refuses on these exact file types.
+
+**What I deliberately did NOT refresh.** `simulation/weather_cell_siting.py` in the shared tree
+holds ~32 uncommitted lines of another lane's work — a `REDUCES_OVER` block using
+`tools.reduction_dimension.declare`, mtime 2026-09-07 16:21, declaring the per-driver and joint
+coverage reductions and that both are blind to the fabric. **HEAD does not supersede that**, so
+refreshing would delete it. It is stranded work that deserves landing on its own merits, and it is
+named here so it is not lost a second time.
+
+**The remedy.** Give `refresh_to_head` the reader it is missing: a path declared as a generated
+artefact with its producer named, where "nothing to lose" is established by REGENERATING and
+comparing rather than by parsing. For `sim/weather_cells/*` the producer is
+`python3 -m simulation.weather_cell_siting --derive` and the comparison is exact — verified this
+turn to reproduce byte-for-byte across nine days and two worktrees. That is a *stronger* check than
+the source readers get, and it inverts the current shape, where the safest paths are the only ones
+the control cannot clear.
