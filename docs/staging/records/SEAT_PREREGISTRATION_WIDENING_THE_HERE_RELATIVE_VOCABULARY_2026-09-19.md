@@ -143,6 +143,33 @@ separate axes, one of them a live two-home defect.
 * What could not be finished is filed with its instances named — **yes**,
   `SEAT_FINDING_THE_HERE_RELATIVE_VOCABULARY_IS_AN_UNBOUNDED_ALLOW_LIST_2026-09-19.md`.
 
+## AND A RIVAL LANE LANDED THE SAME ITEM WHILE THIS WAS GATING — appended after promotion refused
+
+`2957c2cc9` landed the same drawn item independently, between this turn's `surgical_land` and its
+`promote_worktree_landing`. **This does not retract the results above** — every one was measured
+before the collision was known — but two of them must be read differently now:
+
+* **P1 stands as measured and is no longer the useful framing.** The other lane censused 16,083
+  strings and produced a *curation rule* — a noun earns its place by having no comparison sense in
+  the live corpus — plus three refused candidates with counter-examples. That is a better answer
+  to "the list cannot be closed" than my partition proposal, which is withdrawn in the finding.
+* **P2's refutation of my grammatical fix stands and is now doubly evidenced.** Their independent
+  measurement refused `reading` and `line` for exactly the comparison-sense reason my grammatical
+  lookahead failed to capture.
+
+**What the collision does NOT touch is the participle axis.** Their census was `<noun>
+above|below`; no run of it could return a participle. All eight `published above|below` pointers
+were still live on `origin/main` after their landing — verified by grep against their landed file,
+not assumed — including `_staleness_caveat`'s live TWO-HOME pointer. The merge keeps their nouns
+whole and adds the participle branch, the eight repairs and the mutation leg.
+
+**The seat's judgement on the duplicate-work check.** The draw warned of two rival claims and I
+cleared both — correctly on the evidence available, since the rival was a *worker* lane whose claim
+was not in `.delivery_lane_claims.json` at draw time. The check reads the claim store; a
+concurrent lane not holding a claim there is invisible to it. Filed as a note on the mechanism, not
+as a defect in this turn: the honest cost was one duplicated noun-audit, and the merge recovered
+the non-duplicated half rather than discarding either side.
+
 ## One thing I had to add that the item did not ask for
 
 Widening the vocabulary and then repairing every instance of it leaves the two new entries matching
