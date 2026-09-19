@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-18T22:47:00.115125Z",
+  "generated_at": "2026-09-19T00:05:54.256426Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "a2a76004e46ec909ce67bb64e0c2ca6e4c2ea57c",
+    "publishing_tree_commit": "f75e2271d5e6284690bfb085a1584221e4125a8a",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from a2a76004e -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from f75e2271d -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -994,7 +994,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "a2a76004e46ec909ce67bb64e0c2ca6e4c2ea57c",
+      "publishing_tree_commit": "f75e2271d5e6284690bfb085a1584221e4125a8a",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1006,7 +1006,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from a2a76004e -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from f75e2271d -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1070,11 +1070,11 @@
       "same_supplier": true,
       "dashboard_net_gbp": 157806.88,
       "run_identity": {
-        "dashboard_run_id": "run_output_95250345d_20260918T214907Z.json",
-        "dashboard_commit": "95250345d",
-        "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_938ec2b05_20260918T113945Z.json",
-        "last_verified_commit": "938ec2b05",
+        "dashboard_run_id": "run_output_f10e6c643_20260918T233431Z.json",
+        "dashboard_commit": "f10e6c643",
+        "dashboard_commit_source": "run_filename_over_contradicting_stamp",
+        "last_verified_run_id": "run_output_95250345d_20260918T214907Z.json",
+        "last_verified_commit": "95250345d",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",

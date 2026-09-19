@@ -1,9 +1,87 @@
 {
- "generated_at": "2026-09-18T20:30:51.678987+00:00",
+ "generated_at": "2026-09-18T23:29:23.092801+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "f10e6c643",
+    "at": "2026-09-19T00:17:32+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=95250345d, net=\u00a3157,807)",
+    "substantive": false
+   },
+   {
+    "sha": "79e7963e5",
+    "at": "2026-09-19T00:10:50+01:00",
+    "subject": "fix(delivery-lane): the fourth voice -- an unanswerable ls-files is git's fault, not the item's",
+    "substantive": true
+   },
+   {
+    "sha": "a2a76004e",
+    "at": "2026-09-18T23:44:43+01:00",
+    "subject": "fix(publish-gate): the red is filed against the tree the gate RAN IN, not the marker's commit",
+    "substantive": true
+   },
+   {
+    "sha": "57e2e50e6",
+    "at": "2026-09-18T23:33:39+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=cb9f7aeeac7960b99ea13fbefdbbceb6f70f16c7) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "cb9f7aeea",
+    "at": "2026-09-18T23:30:18+01:00",
+    "subject": "chore(provenance): verification paused banner (git=ec14df3c7) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "377989af5",
+    "at": "2026-09-18T23:15:29+01:00",
+    "subject": "correction + result: the gate grades a HEAD checkout, not the worktree, and the fork is now closed",
+    "substantive": false
+   },
+   {
+    "sha": "d1cb676ad",
+    "at": "2026-09-18T23:12:34+01:00",
+    "subject": "merge origin/main: the residual's two lanes kept both halves, and the additive partition test survived",
+    "substantive": false
+   },
+   {
+    "sha": "d16c77ea9",
+    "at": "2026-09-18T22:55:05+01:00",
+    "subject": "result: the wedging red was one file in no local ref, and the tree had lost eighty-eight more",
+    "substantive": false
+   },
+   {
+    "sha": "38a8241f3",
+    "at": "2026-09-18T22:32:33+01:00",
+    "subject": "fix(lane0): the residual's third voice \u2014 a git that never ran was published as a genuine miss",
+    "substantive": true
+   },
+   {
+    "sha": "95250345d",
+    "at": "2026-09-18T22:11:01+01:00",
+    "subject": "result: the gate's red had a repair on origin, and the reconciler that carries it lost 95 races to the gate's own lock today",
+    "substantive": false
+   },
+   {
+    "sha": "1cbf684ed",
+    "at": "2026-09-18T21:48:25+01:00",
+    "subject": "fix(lane0): the residual's two voices get one home, and the other five legs that asserted its silence",
+    "substantive": true
+   },
+   {
+    "sha": "7fe96413d",
+    "at": "2026-09-18T21:30:53+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "c2f1fb822",
+    "at": "2026-09-18T21:19:25+01:00",
+    "subject": "fix(lane0): the residual's two voices reach the legs that asserted its silence",
+    "substantive": true
+   },
    {
     "sha": "83ca5edf9",
     "at": "2026-09-18T21:01:33+01:00",
@@ -23,10 +101,22 @@
     "substantive": true
    },
    {
+    "sha": "1c9ff21cc",
+    "at": "2026-09-18T20:36:12+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
     "sha": "ec14df3c7",
     "at": "2026-09-18T20:24:51+01:00",
     "subject": "result: the fixed bar was the wrong number rather than a second opinion, and the live feed's disagreement was about books",
     "substantive": false
+   },
+   {
+    "sha": "896a286d8",
+    "at": "2026-09-18T20:21:46+01:00",
+    "subject": "fix(lane0): the draw reads the back-referenced instant, anchored on when the prose was written",
+    "substantive": true
    },
    {
     "sha": "376499319",
@@ -35,9 +125,21 @@
     "substantive": true
    },
    {
+    "sha": "38f9ff0cb",
+    "at": "2026-09-18T19:54:49+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
     "sha": "71b664105",
     "at": "2026-09-18T19:38:15+01:00",
     "subject": "chore(provenance): verification paused banner (git=a6e3a67fe) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "ee62b338b",
+    "at": "2026-09-18T19:10:07+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
     "substantive": false
    },
    {
@@ -65,9 +167,27 @@
     "substantive": true
    },
    {
+    "sha": "8cad08bcc",
+    "at": "2026-09-18T18:35:04+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
     "sha": "ac2c9ac4f",
     "at": "2026-09-18T18:19:26+01:00",
     "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=0f975710fdb1ba3199d60ca3535880dd59e40ac1) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "c322f3cb4",
+    "at": "2026-09-18T17:54:43+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "5479d2e32",
+    "at": "2026-09-18T17:43:34+01:00",
+    "subject": "move the five self-refuelling pre-registrations out of the work queue, authored where the deletion can be expressed",
     "substantive": false
    },
    {
@@ -83,10 +203,28 @@
     "substantive": true
    },
    {
+    "sha": "c024c7d8d",
+    "at": "2026-09-18T16:59:44+01:00",
+    "subject": "the embargo went on the item that reads the run, and the item that launches it stayed drawable",
+    "substantive": true
+   },
+   {
     "sha": "a6e3a67fe",
     "at": "2026-09-18T16:55:06+01:00",
     "subject": "a writer is given ninety minutes and its claim was given forty-five",
     "substantive": true
+   },
+   {
+    "sha": "4edfee275",
+    "at": "2026-09-18T16:41:47+01:00",
+    "subject": "the error bar was paired on a curriculum setting the whole company declares, and the book it could have asked said 164 against 154",
+    "substantive": true
+   },
+   {
+    "sha": "56466bdd7",
+    "at": "2026-09-18T16:14:14+01:00",
+    "subject": "the floor re-run over the 09-18 book is launched, and the published floor is over a different book than the figure it bounds",
+    "substantive": false
    },
    {
     "sha": "ac4f097d4",
@@ -95,209 +233,71 @@
     "substantive": false
    },
    {
+    "sha": "18327d977",
+    "at": "2026-09-18T15:52:30+01:00",
+    "subject": "the arms producer's stamp pair was retracted, and the sentence it argued had inverted rather than merely gone stale",
+    "substantive": true
+   },
+   {
     "sha": "71e8421b2",
     "at": "2026-09-18T15:43:01+01:00",
     "subject": "the run is six and a half hours ahead of its own ETA, and the arm-leg is now a measured unit",
     "substantive": false
-   },
-   {
-    "sha": "71e336843",
-    "at": "2026-09-18T15:15:31+01:00",
-    "subject": "merge origin/main: carry the residual-disposition result doc onto the moved base",
-    "substantive": false
-   },
-   {
-    "sha": "0d3ebb6fc",
-    "at": "2026-09-18T15:14:00+01:00",
-    "subject": "the residual was the last silent disposition, and the file held no rival bytes after all",
-    "substantive": false
-   },
-   {
-    "sha": "2373224d2",
-    "at": "2026-09-18T15:11:27+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "2984864c7",
-    "at": "2026-09-18T15:10:19+01:00",
-    "subject": "the residual disposition was the one answer that carried no reason, and silence read as \"we looked and found nothing\"",
-    "substantive": true
-   },
-   {
-    "sha": "ffec96a0a",
-    "at": "2026-09-18T15:09:08+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "f4b3dd1d7",
-    "at": "2026-09-18T15:05:12+01:00",
-    "subject": "the disposition verb was wrong and the refusal named why: landed-under credits a landing NEWER than the draw, not a subject already done",
-    "substantive": false
-   },
-   {
-    "sha": "b405d058e",
-    "at": "2026-09-18T15:01:23+01:00",
-    "subject": "the drawn stratified repair was already landed under the rival claim, and the census red it filed survived the merge with its line number stale",
-    "substantive": false
-   },
-   {
-    "sha": "7bbf247ad",
-    "at": "2026-09-18T14:53:19+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "69ee9acc6",
-    "at": "2026-09-18T14:52:45+01:00",
-    "subject": "merge origin/main: carry the refuted-step-2 measurement onto the moved base",
-    "substantive": false
-   },
-   {
-    "sha": "2d76cc156",
-    "at": "2026-09-18T14:43:50+01:00",
-    "subject": "merge origin/main: re-gate the 09-18 republish and the three control repairs on the moved base; the conflicted feed is a GENERATED file and is resolved by REGENERATING it from the merged tree rather than by picking a side",
-    "substantive": false
-   },
-   {
-    "sha": "e1cc912b1",
-    "at": "2026-09-18T14:42:49+01:00",
-    "subject": "the two established controls are green on the 09-18 book, and the four reds I found were my extract's missing .git",
-    "substantive": false
-   },
-   {
-    "sha": "756a86272",
-    "at": "2026-09-18T14:10:20+01:00",
-    "subject": "the tenth control of the class is repaired at both its ends, and the 09-18 book is published over it",
-    "substantive": true
-   },
-   {
-    "sha": "3d10dc197",
-    "at": "2026-09-18T13:59:33+01:00",
-    "subject": "the setsid relaunch was in the tick's own cgroup, and the launcher that would have saved it has existed since 08-29",
-    "substantive": false
-   },
-   {
-    "sha": "a42a0076d",
-    "at": "2026-09-18T13:44:30+01:00",
-    "subject": "the one-variable width run died with the tick that launched it, and its recorded command cannot parse at the instrument it names",
-    "substantive": false
-   },
-   {
-    "sha": "b842ec327",
-    "at": "2026-09-18T13:37:08+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=938ec2b05, net=\u00a3157,807)",
-    "substantive": false
-   },
-   {
-    "sha": "845289190",
-    "at": "2026-09-18T13:28:53+01:00",
-    "subject": "the drawn remedy would have deleted the sibling lane's landed work, and the one-variable width run is launched against the only family that is single-valued at its instrument",
-    "substantive": false
-   },
-   {
-    "sha": "8809d3779",
-    "at": "2026-09-18T13:27:41+01:00",
-    "subject": "merge origin/main: carry the AUC family comment repair onto the moved base",
-    "substantive": false
-   },
-   {
-    "sha": "5d4e422bb",
-    "at": "2026-09-18T13:24:46+01:00",
-    "subject": "the republish is built and green on three suites, and the gate refuses it on a tenth control of the same class",
-    "substantive": false
-   },
-   {
-    "sha": "343b06097",
-    "at": "2026-09-18T13:13:28+01:00",
-    "subject": "the AUC family's \"only family in this repository\" is narrowed to \"on this page\", which the next artefact cannot falsify",
-    "substantive": true
-   },
-   {
-    "sha": "5167f1281",
-    "at": "2026-09-18T13:00:13+01:00",
-    "subject": "nine controls keyed to today's answer are re-keyed to their property, ahead of the promotion they block",
-    "substantive": true
-   },
-   {
-    "sha": "8abbe4f2d",
-    "at": "2026-09-18T12:36:46+01:00",
-    "subject": "merge origin/main: re-gate the next12 landing on the moved base",
-    "substantive": false
-   },
-   {
-    "sha": "23b575bf3",
-    "at": "2026-09-18T12:31:47+01:00",
-    "subject": "the twelve replicate the published level and refute its width, and the sign was a property of the width",
-    "substantive": false
-   },
-   {
-    "sha": "938ec2b05",
-    "at": "2026-09-18T12:11:14+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "2a2fc3b75",
-    "at": "2026-09-18T12:09:56+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
    }
   ],
-  "substantive": 9,
-  "mechanical": 31,
+  "substantive": 14,
+  "mechanical": 26,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-18T20:24:55+00:00",
+  "oriented_at": "2026-09-18T23:21:23+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three of last stretch's four focus items landed and the fourth is correctly waiting on a clock \u2014 but the headline of this orientation is that MY OWN FIRST ITEM WAS FACTUALLY WRONG ABOUT THE TREE, and the correction inverts what I published last stretch. I wrote \"SVT is absorbing; `tariff_type` is resolved once per customer and there is no reverse edge\", and concluded that the company was short of DECISIONS because the world could not express the outcome. Measured through the world's own builder on the real SSP feed \u2014 120 real-grammar households, 2016-06-01 to 2023-12-31, BEFORE anything was written \u2014 the edge was already there: `svt->fixed` 61 transitions over 590.28 SVT-account-years, 0.1033 per SVT-account-year, where that quantity counts transitions from a cap segment to a fixed term per year an account spent on the cap, and counts neither households nor offers nor decisions. It landed on 2026-08-30 with C1b and `simulation/renewals.py` argues against the absorbing draft in its own comment. So the wall I said I had located and placed on the world side of the seam was not there, and the sentence I published \u2014 \"no seeds, no arms and no publishing repair can move a verdict limited by how many decisions the world creates\" \u2014 rests on a premise the tree refutes. What IS absorbing is narrower and real: a household that ARRIVES on the default tariff rather than rolling onto it, via early returns at `renewals.py:103` and `run_phase2b._build_gas_renewal_schedule`. Two routes onto one product and only the mid-tenure one had an exit. No caller reaches that branch today \u2014 nothing in `simulation/`, `tools/` or `company/` sets a record's `tariff_type` to `\"svt\"` \u2014 so it is dead code with an absorbing state in it, inert on every live run, and the day a SoLR intake or an acquired default book mints one it absorbs that household for its whole tenure silently. That repair is built and IS SITTING UNLANDED IN THIS TREE right now: `simulation/renewals.py` (+70 lines), `simulation/run_phase2b.py` (+29), `tools/published_route_split.py`, a modified `tests/simulation/test_svt_product.py`, and an untracked reachability control `test_the_svt_origin_household_can_reach_a_fixed_term.py`, with its result document untracked beside them and nothing bound to the claim in the lane ledger. It is good work \u2014 the exit is the existing C1b roll with no new rule and no new constant, the warrant is DERIVED not picked (Ofgem CIM C4 internal switching above the entire fixed-term population's ceiling in six waves of six, giving a binding lower bound of 0.0449 conversions per SVT household per six months, which is a bound and is carried as one, with `SVT_INTERNAL_CONVERSION_RATE = None` and a named gap because no published series cuts internal switching by the tariff the respondent was on before the move), and the first draft was caught by PRINTING it: recursing into `build_renewal_schedule` arrives with `first_term = True`, the one condition that skips the roll, so every SVT-origin household would have converted at probability 1. After the change, 79 of 120 SVT-origin households reach a fixed term and 41 never do, at 0.1671 per SVT-account-year against the 0.0449 floor. None of that is worth anything until it is committed, and finished work that never leaves the tree is worse than work not started, because the ledger says the item was drawn. The machine's two carried errors are both closed with evidence. `_back_referenced_start` now has a caller inside the DRAW: `background/delivery_lane.py:2889`, in `embargoed_until`, anchored on when the prose was written (896a286d8) \u2014 so the draw can now withhold an item naming a future instant instead of only explaining the burned window afterwards. And the error bar answers one question once: `error_bar.distinguishable_reconciliation.agree` is `true` on the live feed, the fixed 2.0 is gone from all three homes in favour of the family's own two-sided t on n-1 degrees of freedom (376499319), and the two keys that remain \u2014 `distinguishable_from_zero: true` and `selection_leg.sign_is_stateable: false` \u2014 are now DIFFERENT questions rather than opposite answers to one, the second adding the publishing conditions the first does not carry. What that publishing condition turned out to be is the sharpest thing found this stretch and it was found by re-measuring a drawn item's premise: `_floor_admission` paired the floor to the figure on `served_segments: [\"resi\",\"SME\"]` with `served_segments_resolved_from: \"curriculum\"` \u2014 a constant every run this company has ever done declares \u2014 so the rule NAMED for the book could not separate any two runs, and it admitted an 18-seed spread drawn over a 164-account book as the error bar on a figure from a 154-account one, where `billing_accounts_settled_in_window` counts accounts that appeared in the settlement window and is distinct from `accounts_at_end_of_window` (54..55), the only one of five realised fields that elasticity re-draws actually move. The producer's own instruction not to pair on realised counts was true of one field and had been generalised to all five, throwing out the working discriminator with the broken one \u2014 this project's recurring shape exactly. The disjoint-range guard is landed and both legs are reachable from the feed's own artefacts. The measurement that closes it is in flight: twelve seeds at `18327d977` over the 09-18 book, launched 16:12:55 BST, ETA 2026-09-19 08:20Z, writing to a `/var/tmp` extract and not to this repo \u2014 and my own focus item for reading it named 02:00 and the repo path, both wrong, which is the same habit as the SVT claim and is recorded below. Against the thesis: this stretch did not go backwards, but it did not go where I said it went. The honest reading is that the constraint on the method's reach is still unlocated \u2014 I published a world-side answer that is refuted, and the company-side candidate (`UPLIFTABLE_TARIFF_TYPES = {\"fixed\", \"pass_through\"}`, applied at `company/crm/customer_profitability.py:381` and `company/pricing/value_based_renewal.py:1317`, under which 2,490 of 2,824 term boundaries class `product_not_upliftable`, all SVT) has never been measured against a world in which those households DO reach annual decision points. Definitions beside the remaining quantities, which my oldest open error owes: staging flow is documents filed into the tracked root over 7 days against documents dispositioned out of it, 183 against 160, net +23, on a work queue of 115 with 9 BLOCKING findings; H41's headroom is map bytes remaining under a 409,600-byte ceiling, 401,318 used and 8,282 free, the ELEVENTH consecutive orientation at a figure I once estimated would be gone inside a day; and this checkout stands 3 ahead and 14 behind origin/main, which is not a quantity about the book but about the machine reading it.",
+  "thesis_read": "This stretch the machine spent all of itself on the machine. Three of the four substantive commits repaired the prose of the delivery lane's swept-row disposition \u2014 the second, third and fourth \"voices\" \u2014 and the fourth repaired which tree a publish-gate red is filed against. All four are the system describing itself more accurately, none of them moved a figure, a level or a finding on the company, and none of the four focus items I named finished. That is not a wasted stretch \u2014 the residual voice really was publishing \"genuine miss\" over facts one dict comprehension away \u2014 but it is a drift, and it is the second stretch running in which the thesis-facing item was written down and never drawn. So the thesis item goes first this time. Where things actually stand, each figure re-measured on the live tree between 00:20 and 00:30 BST on 2026-09-19 and each said with what it counts. THE SVT WORK IS STILL NOT IN A REF, and it survived a focus item written expressly to land it. `git diff --stat` over its tracked paths is 435 insertions and 75 deletions across nine files; the reachability control and the result document \u2014 now archived by a daemon to `docs/staging/records/WORKER_RESULT_THE_ROLLED_HOUSEHOLD_ALREADY_HAD_ITS_EXIT_AND_ONLY_THE_ONE_THAT_ARRIVED_ON_THE_CAP_WAS_ABSORBED_2026-09-18.md`, mtime 21:38 BST \u2014 are untracked. A landing IS in flight as I write: `python3 -m tools.surgical_land` as PID 824851, started about 00:19 BST, carrying the message \"world: an SVT household can reach a fixed term from BOTH entrances, and the finding's decisive reason is refuted\", with a second runner at `/var/tmp/svt_land_runner.py` naming six paths and an empty log, which for this tool means still running and not rc=0. So focus two is verify-and-bind, not build, and a worker must establish which of those it is before doing anything. WHY THE LANE COULD NOT SEE IT is the sharpest thing in this orientation and it corrects me. I told a worker last stretch to add a disposition that would catch work built and left in the tree. That reading already existed and had landed the day before I wrote it: `tree_verdict`, `_stranded_paths` and the `STRANDED` verdict came in at 118374229 on 2026-09-17, and `_stranded_paths` is well built \u2014 its mtime discriminator, `mtime <= window_closed`, is exactly right, and `simulation/renewals.py` at 2026-09-18 19:30:21 BST against a window that opened at 21:00 and closed 100 minutes later at 22:40 satisfies it comfortably. It did not fire because `_claim_paths` returns `named_paths` \u2014 the paths the ITEM'S OWN PROSE named at draw time \u2014 and the SVT row's prose named three documents (`docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md` and two staging files). Git was asked, git answered honestly about those three, and the 435 insertions sat on four code paths nobody had mentioned. A claim's path set is a prediction of where the work will go, and the swept row published its clean answer as \"a genuine miss and the work may still be undone\" while the work was on disk. That is one hole, it is nameable, and it is focus three. On the thesis itself nothing moved, and the constraint on the method's reach is still unlocated, which is the honest carry-forward from last stretch's refuted claim. Re-measured on the live arms feed (`site/data/value_arms.json`, generated 2026-09-18T22:47:00Z): the world offered 2,824 renewals, 2,490 of them stop at `product_not_upliftable` and every one is `'svt'`, 227 stop at `acquisition_term` because they are a household's first term with us, and 107 decisions existed of which 104 were priced and 3 declined. `method_skill.concordance` is 0.48236 over 54 scored decisions against an exact two-sided null of 0.40685 to 0.59139 at p 0.7125, inside the null \u2014 where a scored decision counts a priced renewal that the world then billed something under, so there is an outcome to rank the price against, and it counts neither households nor offers. The company is therefore deciding on 3.8% of what the world puts in front of it and cannot yet tell whether its method carries information, and nobody has established whether the 88% refusal is correct or is the ceiling. That measurement is focus one and it has been deferred a whole stretch already. The floor re-run is genuinely in flight and its ETA was optimistic: PID 3432960, cwd `/var/tmp/se-floorrun-head-20260918`, 8h09m elapsed at 00:21 BST, and progress read two independent ways \u2014 33 of the 72 \"Starting treasury\" markers the COMPLETED twelve-seed sibling (`/var/tmp/longjob-floor-next12-20260917.log`) prints, which is six per seed and not one, so 45.8%; and 149,390,426 log bytes against that sibling's final 336,023,325, which is 44.5%. At the realised rate it finishes about 10:00 BST, not the 08:20Z I published, and a SECOND twelve-seed family is alive on the same machine (PID 2977626, `--redraw-mode all` with no `--redraw-key`, 10h26m elapsed) so the two are in CPU contention. What is discharged: the fork is closed, HEAD and origin/main are level, and last stretch's second `not_now` no longer exists. What has not moved: H41's headroom is 8,282 bytes free of a 409,600-byte ceiling for the TWELFTH consecutive orientation at the identical figure; `docs/staging/` holds 111 `.md` files at its root and 162 files git does not track at all beneath it, where that second number counts files including the `done/` and `records/` archives and is not a count of documents awaiting disposition; and \"OLDER THAN THE FIGURE IT BOUNDS\" still appears eight times in `site/data/value_arms.json` and once in `site/data/delivery.json`.",
   "focus": [
    {
-    "id": "land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree",
-    "what": "LAND THE WORK THAT IS ALREADY DONE. The SVT-origin exit is built and uncommitted in the shared tree: `simulation/renewals.py`, `simulation/run_phase2b.py`, `tools/published_route_split.py`, `tests/simulation/test_svt_product.py`, `tests/simulation/test_the_tariff_type_read_has_one_home.py`, plus two UNTRACKED files \u2014 `tests/simulation/test_the_svt_origin_household_can_reach_a_fixed_term.py` and `docs/staging/WORKER_RESULT_THE_ROLLED_HOUSEHOLD_ALREADY_HAD_ITS_EXIT_AND_ONLY_THE_ONE_THAT_ARRIVED_ON_THE_CAP_WAS_ABSORBED_2026-09-18.md`. Read that result document first; it is the design record and it contains the derivation. DO NOT `git add -A` and DO NOT `git merge` to fix the fork first. This checkout is 3 ahead and 14 behind origin/main and several other lanes have edits in the same working tree \u2014 including a DELETED `tests/simulation/test_the_gas_leg_rolls_onto_the_cap_like_the_electricity_one.py` (392 lines) and modifications to `test_phase40a_pass_through.py`, `test_policy_cost_values_vs_source.py`, `test_home_move_undeliverable_win.py` and `test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py` that you must ESTABLISH the ownership of rather than assume. Use `tools/isolate_hunks.py` to build HEAD-plus-these-hunks-only and `python3 -m tools.surgical_land --content`; a deliberate deletion, if one of them turns out to be yours, needs `--drops`. The commit message needs the REUSE block. Then bind it and archive the result document.",
-    "why": "This is 99 changed lines of correct, derived, mutation-aware work with a reachability control that refuses both the absorbing draft AND the converts-at-probability-1 draft in one assertion over the partition \u2014 and none of it exists anywhere but one dirty working tree that three lanes and a merge are writing to. It is the second instance today of finished work stranded in this tree and the class has cost this project whole days before. The change is inert on every live run (no caller mints a default-tariff arrival), so it moves no published figure and carries no risk to the arms page; the value is entirely that the landmine stops being armed and the derivation stops being one `rm` away from gone. DONE is: the commit is on origin/main, it carries the reachability control and `SVT_INTERNAL_CONVERSION_RATE = None` with its named gap, the result document is archived out of the staging root, and the delivery claim is bound with `--landed <id> --commit <sha>`."
-   },
-   {
     "id": "measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach",
-    "what": "ANSWER THE QUESTION MY LAST THESIS READ GOT WRONG, BY MEASURING, NOT BY RELAXING ANYTHING. `UPLIFTABLE_TARIFF_TYPES = frozenset({\"fixed\", \"pass_through\"})` (`company/crm/customer_profitability.py:316`) is applied at that file's line 381 and at `company/pricing/value_based_renewal.py:1317`, and under it 2,490 of the 2,824 term boundaries the world puts in front of the value arm class `product_not_upliftable`, all of them SVT. Establish, on the current world and stating separately what each number counts: (a) how many of those 2,490 boundaries are annual decision points at which `rolls_active_renewal` actually decides \u2014 i.e. a household that ROLLED onto SVT mid-tenure and gets its anniversary back \u2014 versus stints with no decision in them; (b) whether the arm has any observable at such a boundary that a real supplier could act on, or whether the decline is correct because no rate is being struck; (c) what the decision count would be if the gate admitted only class (a), against the 107 decisions and 54 scored decisions the arm has today. File the answer as a finding with the three counts and their definitions. DO NOT change `UPLIFTABLE_TARIFF_TYPES`, do not build a conversion or targeting desk, and do not touch the arms page under this item \u2014 `docs/staging/done/SEAT_DECISION_AN_SVT_HOUSEHOLD_IS_NOT_A_DECISION_THIS_ARM_DECLINES_2026-09-07.md` \u00a73 stands until a measurement refutes it, and this item is that measurement, not its verdict.",
-    "why": "The thesis needs a population of decisions large enough for inference to be distinguishable from noise, and `method_skill` at a concordance of 0.482 over 54 scored decisions against an exact two-sided null of 0.407-0.591 says we cannot yet tell whether the method carries any information. I told the director last stretch that the constraint was world-side and the tree refutes me, so the constraint is now UNLOCATED and this is the only remaining candidate that can be checked without building anything. It is also the honest order: last stretch's mistake was writing a company-side instruction before establishing whether the world could express the outcome, and the symmetric mistake available now is relaxing a company-side gate before establishing whether there is a decision behind it. DONE is: a filed finding that states which of (a) or the \u00a73 decision is right, with the counts and what each one counts, and either refutes the product gate as the ceiling or names it as the ceiling with evidence. A measurement that says \"the decline is correct\" is a complete and valuable answer."
+    "what": "THE THESIS ITEM, PROMOTED TO FIRST BECAUSE IT WAS NAMED LAST STRETCH AND NEVER DRAWN. MEASURE, DO NOT RELAX ANYTHING. `UPLIFTABLE_TARIFF_TYPES = frozenset({\"fixed\", \"pass_through\"})` lives at `company/crm/customer_profitability.py:316` and is applied at that file's line 381 and at `company/pricing/value_based_renewal.py:1317`. On the live feed the world offered 2,824 renewals, 2,490 stop at `product_not_upliftable` (all `'svt'`), 227 at `acquisition_term`, and 107 decisions existed. Re-establish those counts before you use them, and check FIRST that the census answers in the guard's own unit \u2014 the TERM \u2014 because `docs/staging/done/SEAT_FINDING_THE_PRODUCT_GATE_CENSUS_ANSWERS_ON_THE_OPENING_TERM_WHILE_THE_GUARD_REFUSES_PER_TERM_AND_ONE_ARTEFACT_SAYS_BOTH_2026-09-18.md` is the record that it once did not, and 2f436602b is the repair. Then establish, stating separately what each number counts. (a) Of the 2,490 refused term boundaries, how many are boundaries where a household that ROLLED onto the cap mid-tenure gets its anniversary back and `rolls_active_renewal` actually decides, against cap stints with no decision in them at all. (b) At a boundary of class (a), is there any observable a real UK supplier could act on, or is the refusal correct because no per-household rate is being struck. (c) What the decision count would be if the gate admitted only class (a), against the 107 that existed and the 54 that were scored. File the answer as a finding carrying the three counts and their definitions. DO NOT change `UPLIFTABLE_TARIFF_TYPES`, do not build a conversion or targeting desk, and do not touch the arms page under this item.",
+    "why": "The thesis needs the advantage to come from inference, and inference cannot be distinguished from noise on 54 scored decisions \u2014 0.48236 sits inside a 0.40685 to 0.59139 null at p 0.7125, and the page says so. The company is deciding on 3.8% of what the world offers it and the single largest reason is this one gate, which no one has ever measured against a world where those households reach annual decision points. Last stretch I told the director the constraint was world-side and the tree refuted me, so it is now unlocated and this is the only remaining candidate that can be settled without building anything. The symmetric error available now is relaxing a company-side gate before establishing there is a decision behind it, which is why this item measures and rules nothing: `docs/staging/done/SEAT_DECISION_AN_SVT_HOUSEHOLD_IS_NOT_A_DECISION_THIS_ARM_DECLINES_2026-09-07.md` \u00a73 stands until a measurement refutes it. DONE is a filed finding that either names the product gate as the ceiling with evidence or refutes it, with the three counts and what each counts. \"The decline is correct and here is the count that shows it\" is a complete and valuable answer."
    },
    {
-    "id": "a-swept-claim-whose-paths-carry-uncommitted-work-is-built-unlanded-not-not-done",
-    "what": "Give the delivery lane's sweep one more disposition. When a claim's window expires, `background/delivery_lane.py` already grades it `landed_unbound`, `premise_not_yet_ripe`, `premise_spent` or `not_done`. Add the reading that would have caught today's loss: if the claim's own paths carry UNCOMMITTED modifications or untracked files in the shared working tree at sweep time, the row is `built_unlanded` and its evidence names the paths and their mtimes, so the next orientation is told to land rather than to rebuild. Key the control to the PROPERTY \u2014 a swept claim with dirty subject paths can never be graded `not_done` \u2014 not to today's file list, and assert over the whole partition in one control that every disposition including this one is reachable, rather than one leg per branch. Prove it with the SVT claim's own paths.",
-    "why": "This is the cheapest mechanism on the board and it recovers work rather than watching work. The brief's own warning says finished work that never left the tree is worse than work not started because the ledger says the item was drawn; it happened twice on 2026-09-07 and it happened again today with 99 lines of derived simulation work. Every other disposition here exists because someone paid for its absence once, and this one has now been paid for three times. The reading is a `git status` over paths the row already holds \u2014 no new register, no new document class, one disposition and one control. DONE is: a swept claim with dirty subject paths is graded `built_unlanded` with the paths in its evidence, the orientation brief prints it, and a mutation that removes the new branch reds a control written for that branch."
+    "id": "verify-and-bind-the-svt-landing-that-was-in-flight-at-0023",
+    "what": "ESTABLISH WHAT HAPPENED BEFORE YOU DO ANYTHING. At 2026-09-19 00:23 BST a rival lane was four minutes into `python3 -m tools.surgical_land` (PID 824851) carrying the SVT work, and `/var/tmp/svt_land_runner.py` names the six paths it intends \u2014 `simulation/renewals.py`, `simulation/run_phase2b.py`, `tools/published_route_split.py`, `tests/simulation/test_svt_product.py`, `tests/simulation/test_the_svt_origin_household_can_reach_a_fixed_term.py` and the result document at `docs/staging/records/WORKER_RESULT_THE_ROLLED_HOUSEHOLD_ALREADY_HAD_ITS_EXIT_AND_ONLY_THE_ONE_THAT_ARRIVED_ON_THE_CAP_WAS_ABSORBED_2026-09-18.md` \u2014 with its drafted message at `/var/tmp/svt_origin_exit_commit_msg.txt`. Ask `git log --oneline -- simulation/renewals.py` and `git status --porcelain -- simulation/renewals.py`, and check for a live `surgical_land` before starting: an empty log with no rc line means still running, not failed. IF IT LANDED: bind it \u2014 the claim id is `the-svt-household-has-no-route-back-to-a-fixed-term`, it was drawn 2026-09-18 21:00 BST and already swept `not_done`, and the landing is newer than the draw so `--landed <id> --commit <sha>` binds it. IF IT DID NOT: land it yourself from that message and that path list, and obey \u00a79 of the result document, which did the ownership work already \u2014 `tests/simulation/test_the_tariff_type_read_has_one_home.py` is NOT this change and its working copy runs backwards over `dcb8c6d10`, and the missing `tests/simulation/test_the_gas_leg_rolls_onto_the_cap_like_the_electricity_one.py` is a stale checkout and takes NO `--drops`.",
+    "why": "This is minutes of work and it closes the stretch's standing loss. The work is 435 insertions and 75 deletions of derived, printed, mutation-aware simulation code, inert on every live run because no caller mints a default-tariff arrival, whose whole value is that a landmine stops being armed and the derivation stops being one `rm` away from gone. It has now failed to leave the tree across two draws and one focus item. The binding is not bookkeeping: landed work that is not bound to its claim gets swept and redrawn, which is how this item comes back a fourth time. DONE is the commit on origin/main, the delivery claim bound to it, and the result document tracked in a ref rather than sitting untracked in `records/`."
+   },
+   {
+    "id": "the-strand-check-asks-the-prose-for-its-paths-and-the-work-landed-somewhere-else",
+    "what": "Give the strand half a path set that can see work the item's prose did not predict. DO NOT build a new disposition \u2014 `tree_verdict`, `_stranded_paths` and `STRANDED` landed at 118374229 on 2026-09-17 and are correct, and my own last-stretch item asking for them was a stretch late. The hole is `_claim_paths` at `background/delivery_lane.py`, which returns `named_paths`, the paths stamped from the item's prose at draw time. On 2026-09-18 that prose named three documents while the delivery went to four code paths, so git was asked the wrong question and answered it correctly. When and only when the named set comes back clean, ask a second question of the shared tree \u2014 which paths hold uncommitted bytes whose mtime falls between the draw and the window close \u2014 and report those as strand candidates ATTRIBUTED BY TIME AND NOT BY NAME, in evidence prose that says exactly that, so no reader takes a coincidence for a proof. Leave `_stranded_paths`' `mtime <= window_closed` discriminator and its fail-open direction alone; both are deliberate and documented. Key the control to the property \u2014 a swept claim cannot be published as \"a genuine miss\" while the window it names has attributable uncommitted bytes anywhere in the tree \u2014 and assert the whole partition in one control so every disposition including the new candidate stays reachable, rather than a leg per branch. Prove it against the SVT row's own window (drawn 21:00 BST, closed 22:40, `simulation/renewals.py` at 19:30).",
+    "why": "Work finishing and not leaving the tree is this project's most expensive recurring loss and it is the error I have carried open across two stretches. The lane now has four articulate voices and each one was paid for, but the voice it needed on 2026-09-18 \u2014 \"it is built and it is sitting there\" \u2014 was structurally unavailable, because a claim's path list is an un-re-asked prediction and this one was wrong by four paths out of four. The repair is one query and one sentence of evidence on a mechanism that already exists; it recovers work rather than watching work, which is the only kind of control worth adding here. DONE is a swept claim whose named paths are clean but whose window has attributable dirty bytes being published as a candidate strand naming those paths and their mtimes and saying the attribution is by time, the orientation brief printing it, and a mutation that removes the second question reddening a control written for it."
    },
    {
     "id": "read-the-twelve-at-18327d977-and-pair-the-bar-to-the-book-it-bounds",
-    "what": "DO NOT DRAW BEFORE 09:00 on 2026-09-19 (local time, BST). The floor re-run is `longjob-floor-next12-at-head-20260918`, twelve seeds, started 2026-09-18 16:12:55 BST, ETA 2026-09-19 08:20Z. ITS ARTEFACT IS NOT IN THIS REPO: it writes to `/var/tmp/se-floorrun-head-20260918/docs/observability/value_cycle_ab_s1_noise_floor_next12_at_18327d977.json`, an extract with no `.git`, so a repository-subject control run there will fail for locality reasons and not for its subject. First ask the user manager whether `longjob-floor-next12-at-head-20260918` is still active \u2014 a verdict from outside the job's own cgroup \u2014 and if the run is incomplete, say so with the leg count and stop. If it is complete, bring the artefact into `docs/observability/`, re-pair the arms page's error bar to it, and republish. Grade it against the PRE-REGISTRATION at `docs/staging/records/PREREG_THE_TWELVE_AT_HEAD_OVER_THE_09_18_BOOK_AND_WHAT_WOULD_MAKE_ME_NOT_PUBLISH_THEM_2026-09-18.md` and record where the predictions were refuted BESIDE the result. Do NOT fold these twelve into the existing eighteen: they were drawn over different books \u2014 154 settled accounts against 164 \u2014 and that splice is the whole defect being closed. State the selection leg's direction if the family supports it under the single derived rule, and state plainly that it does not if it does not.",
-    "why": "Both headline figures on the one page carrying the thesis claim are published today with no direction, and until this run lands the stated reason is still that the bar is older than the figure it bounds \u2014 a refusal nobody re-examines reads as a settled finding. The disjoint-range guard landed this stretch means the new floor will be graded on the BOOK rather than waved through on a curriculum setting, which is the first time that grading has been possible: had the guard not landed first, this very run would have been admitted under `declared_book` whether or not its pre-registration held, and the guard meant to check my own run could not have checked it. That is why this is last in order and not dropped. DONE is: no figure on that page withholds its direction for staleness, whatever it does withhold names a reason measured on the book it was drawn over, and the pre-registration's refuted predictions are recorded next to the result rather than quietly revised."
+    "what": "DO NOT DRAW BEFORE 11:00 on 2026-09-19, local time, BST. The run is alive and behind its own first estimate. Measured at 00:21 BST on 2026-09-19 it was 8h09m in and 45.8% done by marker count (33 of the 72 \"Starting treasury\" markers the completed twelve-seed sibling `/var/tmp/longjob-floor-next12-20260917.log` printed \u2014 six per seed, not one) and 44.5% by log bytes, which puts the finish near 10:00 BST and not the 08:20Z originally published; a second twelve-seed family (PID 2977626) is contending for the same CPU. ITS ARTEFACT IS NOT IN THIS REPO: PID 3432960 runs with cwd `/var/tmp/se-floorrun-head-20260918` and writes `docs/observability/value_cycle_ab_s1_noise_floor_next12_at_18327d977.json` RELATIVE TO THAT CWD, an extract with no `.git`, so any repository-subject control run there fails for locality and not for its subject. Check liveness from outside the job's own cgroup before concluding anything, and if it is incomplete say so with the marker count and stop. If it is complete, bring the artefact into `docs/observability/`, re-pair the arms page's error bar to it, and republish. Grade it against the pre-registration at `docs/staging/records/PREREG_THE_TWELVE_AT_HEAD_OVER_THE_09_18_BOOK_AND_WHAT_WOULD_MAKE_ME_NOT_PUBLISH_THEM_2026-09-18.md` and record where its predictions were refuted BESIDE the result. Do NOT fold these twelve into the existing eighteen: different books, 154 settled accounts against 164, and that splice is the defect being closed. State the selection leg's direction if the family supports it under the single derived rule, and state plainly that it does not if it does not.",
+    "why": "Both headline figures on the one page carrying the thesis claim publish with no direction, and the stated reason is still that the bar is older than the figure it bounds \u2014 a refusal nobody re-examines reads as a settled finding. The disjoint-range guard that landed earlier means this floor will be graded on the BOOK rather than waved through on a curriculum setting, which is the first time that grading has been possible and is why this stays on the list rather than being dropped. It is last only because it cannot start for another ten hours. DONE is no figure on that page withholding its direction for staleness, whatever it does withhold naming a reason measured on the book it was drawn over, and the pre-registration's refuted predictions recorded next to the result rather than quietly revised."
    }
   ],
   "not_now": [
    {
-    "what": "Build the SVT conversion desk in `company/` \u2014 the arm that decides which default-tariff or rolled-SVT households to approach \u2014 now, on the strength of the world edge existing.",
-    "why": "I said last stretch this would be the next stretch's first item once the world edge landed. I am not doing it, and the reason is that my premise for promising it was wrong: the edge was already there and had been since 2026-08-30, so \"the world can now express the outcome\" is not new information and cannot be what licenses the desk. What would license it is a measurement showing there is a decision at those boundaries, and that is focus two. Building the desk first would repeat exactly the error focus two exists to correct, one seam over."
+    "what": "Build the SVT conversion desk in `company/` \u2014 the arm that decides which default-tariff or rolled-SVT households to approach.",
+    "why": "Second stretch declining it, and the reason has hardened. The world edge exists and has since 2026-08-30, so \"the world can now express the outcome\" is not new information and cannot license the desk. What would license it is evidence there is a decision at those boundaries, which is focus one. Building the desk first would repeat, one seam over, the exact error focus one exists to correct."
    },
    {
-    "what": "Reconcile the fork: this checkout is 3 ahead and 14 behind origin/main, so the daemons running from it execute code the branch has moved past, and `WORKER_FINDING_THE_ROSTER_RUN_WOULD_HAVE_BEEN_INERT_BECAUSE_THE_WORKING_COPY_OF_THE_RUNNER_IS_BEHIND_THE_COMMIT_CARRYING_IT_2026-09-18.md` is a BLOCKING finding recording a run that would have measured nothing because of it.",
-    "why": "Stronger evidence than last stretch and it still loses, for a reason that changed: the working tree now holds 99 lines of unlanded SVT work, and a merge run to close the fork is the most likely way to lose it \u2014 this project has a recorded instance of a merge adopting one side's rewrite and deleting the other side's purely additive work. Focus one lands through `isolate_hunks` and `surgical_land --content`, which never writes the shared worktree and fast-forwards the branch as a side effect. Reconciling first inverts the risk for no gain. If focus one lands and the fork is still open, any lane closes it in one gated command."
+    "what": "Work the staging sediment as a class \u2014 111 `.md` files at the root of `docs/staging/` and 162 files beneath it that git does not track at all \u2014 and clear the 10 BLOCKING findings as a batch.",
+    "why": "Fourth deferral and I am recording it as such, with a number that is worse than last stretch's because I am counting a different thing and saying so: 162 counts untracked FILES including the `done/` and `records/` archives, not documents awaiting disposition. The half that wedged commits was repaired two stretches ago, so growth now costs reading time rather than blocking the tree, and focus one, two and four each discharge BLOCKING rows individually. The general remedy is \"fewer channels that file\", which changes how every lane records its work and is not one worker's window. It becomes first the moment filing wedges anything again, or the moment the queue stops being readable in one orientation."
    },
    {
-    "what": "Attack the staging sediment as a class \u2014 183 documents filed into the tracked root against 160 dispositioned out over 7 days, net +23, on a queue of 115 \u2014 and work down the 9 BLOCKING findings as a batch.",
-    "why": "Third deferral and I am recording it as such. The half that actually wedged commits got its repair two stretches ago, so growth now costs reading time rather than blocking the tree, and two of the nine BLOCKING rows are discharged by focus one and focus four individually. The general remedy is \"fewer channels that file\", which changes how every lane records its work and cannot be done by one worker in one window. It becomes first the moment filing wedges anything again, or the moment the queue stops being readable in one orientation."
-   },
-   {
-    "what": "Repair the arms feed's staleness prose, which now carries the sentence \"THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS\" nine times across the published payload.",
-    "why": "Third deferral, worse than I described it last stretch \u2014 I called it a paragraph appended twice inside one string and it is nine occurrences across the feed. It is still reader-facing prose on the thesis page and it is still the case that focus four rewrites the generator that emits it and that `_staleness_caveat` was already recomposed this stretch into three distinguishable sentences. If focus four lands and the duplication survives, it is first next stretch with no further deferral available to it."
+    "what": "Repair the arms feed's staleness prose \u2014 \"OLDER THAN THE FIGURE IT BOUNDS\" appears eight times in `site/data/value_arms.json` and once in `site/data/delivery.json`.",
+    "why": "Fourth deferral. I said last stretch it goes first if focus four landed and the duplication survived; focus four did not land, because the run it waits on is still nine hours out, so the condition I set has not triggered and I am not entitled to promote it on a technicality. Focus four rewrites the generator that emits this prose. If focus four completes and nine occurrences are still there, it is first next stretch with no deferral left to it."
    },
    {
     "what": "Drain the maturity-map ratchet (H41), 8,282 bytes of headroom under a 409,600-byte ceiling.",
-    "why": "Eleventh consecutive orientation at the identical figure. My estimate that it would cross inside a day has now been refuted eleven times by its own series, and spending a focus slot on it would be paying for that estimate a twelfth time rather than acting on a measurement."
+    "why": "Twelfth consecutive orientation at the identical figure. My estimate that it would cross inside a day has been refuted twelve times by its own series; spending a focus slot on it now would be paying for that estimate a thirteenth time rather than acting on a measurement. Nothing has been blocked by it."
+   },
+   {
+    "what": "Chase the second live twelve-seed family (PID 2977626, `..._next12_at_4e7938f673.json` under `/var/tmp/se-floorrun-20260910`), 10h26m elapsed and contending with focus four's run for the same CPU.",
+    "why": "It is a different question \u2014 a floor at a different commit under `--redraw-mode all` with no `--redraw-key` \u2014 and killing it to speed focus four up would destroy ten hours of compute to buy perhaps two. Both finish on their own. The contention is worth knowing, which is why it is in the thesis read and in focus four's estimate, and worth nothing to act on."
    }
   ],
   "for_the_director": [],
@@ -307,6 +307,26 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-18T23:21:23.799535+00:00",
+    "what": "MINE, NEW, AND THE THIRD INSTANCE OF MY OLDEST HABIT IN TWO CONSECUTIVE FILES. Last stretch's focus three told a worker to \"add the reading that would have caught today's loss\" to the delivery lane's sweep. That reading already existed. `tree_verdict`, `_stranded_paths` and the `STRANDED` verdict landed at 118374229 on 2026-09-17, the day BEFORE I wrote the instruction, and `_stranded_paths` even carries the mtime discriminator I asked for. I described a mechanism from the shape of the failure instead of grepping for it, and a worker drawing that item would have found the thing it was told to build. Corrected in this file: focus three names the actual hole \u2014 `_claim_paths` returns the paths the item's PROSE named, so git was asked about three documents while 435 insertions sat on four code paths \u2014 and explicitly forbids building a new disposition.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-18T23:21:23.799535+00:00",
+    "what": "THE MACHINE'S, CARRIED, STILL OPEN, AND WORSE THAN WHEN I FILED IT. Work is finishing and not leaving the tree. The SVT delivery \u2014 435 insertions and 75 deletions across nine tracked files, plus an untracked reachability control and an untracked result document \u2014 is STILL uncommitted, having now survived a drawn claim swept `not_done` at 22:40 BST and a focus item written expressly to land it. A landing was finally in flight at 00:19 BST on 2026-09-19 as PID 824851 and I could not see its outcome inside this orientation, so focus two verifies rather than assumes. It stays open until a commit carrying `simulation/renewals.py` is on origin/main and bound to its claim.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-18T23:21:23.799535+00:00",
+    "what": "THE MACHINE'S, NEW, AND OPEN. Three of the stretch's four substantive commits repaired the same subsystem \u2014 the second, third and fourth \"voices\" of the delivery lane's swept-row disposition \u2014 and the fourth repaired which tree a publish-gate red is filed against. All four make the system describe itself more accurately; none moved a figure, a level or a finding on the company; and none of the four focus items finished. The repairs were real, but a stretch whose entire substantive output lands in its own reporting layer is the machine turning inward, and it is the second stretch running in which the thesis-facing item was named and never drawn. Focus one is the correction and it is first for that reason; the error is not corrected until a stretch's substantive commits include work on the company or the world.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-18T23:21:23.799535+00:00",
+    "what": "MINE, CARRIED FROM TWELVE STRETCHES BACK, STILL OPEN, AND IT FAILED THIS STRETCH ON THE WIDENED TEST I SET LAST TIME. The parent habit is a claim used with confidence before anyone asked what it counts or re-asked whether it is true. The widened closing test is a whole stretch in which no factual claim I write into a focus item or a thesis read \u2014 quantity, state of the tree, or instant \u2014 went un-re-measured against the thing it describes. This stretch fails it on the row above: I asserted the sweep could not tell built-from-missing when the reading had landed a day earlier. The test is right and stays as written; what changes is that this orientation re-ran every figure it publishes against the live tree before writing it, including the ones I could have copied forward, and the floor-run ETA moved from 08:20Z to about 10:00 BST as a direct result. H41's headroom read 8,282 bytes again today, the twelfth consecutive orientation at the figure I once said would be gone inside a day, which is the same habit standing still in public.",
+    "corrected": false
+   },
    {
     "at": "2026-09-18T20:24:55.775000+00:00",
     "what": "MINE, NEW, AND THE WORST OF THIS STRETCH. Focus one's central factual claim about the tree was REFUTED on the live tree by the worker who drew it. I wrote \"`tariff_type` is resolved once per customer at schedule-build time and SVT is absorbing\", quoting a worker finding's \u00a71(b) as established without re-measuring it. Measured before anything was written: `svt->fixed` 61 transitions over 590.28 SVT-account-years, 0.1033 per SVT-account-year, an edge that landed on 2026-08-30 with C1b and whose own comment in `simulation/renewals.py` argues against the absorbing draft. Worse than the instruction being wrong is that last stretch's `thesis_read` built a conclusion on it \u2014 that the wall was world-side and the company was short of decisions \u2014 and told the director so. Corrected in this `thesis_read`: the wall is unlocated, the company-side candidate is named, and focus two goes and measures it. The instruction cost no work because the worker established the premise before building, which is the habit working, not the instruction working.",
@@ -1421,47 +1441,49 @@
     "at": "2026-09-10T05:21:42.696589+00:00",
     "what": "MINE, superseded by a sharper statement rather than corrected. Last orientation I wrote the shape finding as \"seeing has outrun repairing\" on eleven commits, three substantive, and a staging net of +205. The ratio half held \u2014 six commits, three substantive, and the three substantive ones are real work \u2014 but the causal half was wrong, and I should have suspected it then, because the two defects I cited as evidence were both already fixed on disk when I wrote that they had been \"left live\". Repairing is not the bottleneck. Landing is: three finished repairs unlanded, two lane rows swept `not_done` with their work sitting in the tree, 490 changed files and 1.4M inserted lines in no commit, and every control that could have noticed reading the working-tree copy and reporting green. It stays listed as open because the sharper version has had no stretch to be tested against, and because I want the next orientation to grade the landing count, not the commit count.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-10T02:22:54.706522+00:00",
-    "what": "MINE, and NOW CORRECTED, in both halves. `36e3ee8c4` declared the departure term's three-arm run \"in flight\" and made a result document \"its address\" with no route by which anyone would return to it, and the 175 KB answer sat untracked for a day. The instance is closed: `dd9dc9451` landed the artefact and graded it, and it REFUTED my prediction \u2014 the departure term did not soften the inversion. The route is closed too, by a mechanism rather than by my next steer: `258720283` armed `deadman_launch_artefact_unlanded` over the launch register that already existed, so a completed job whose named artefact is present-on-disk-and-untracked now refuses. The limit is recorded rather than hidden: `71a63bd43` found the generated-path oracle behind the wedge remedy has no row for a terminal output nobody re-spells, so the check's coverage is not total and the first file it caught was a 247MB log git is told to ignore.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-10T02:22:54.706522+00:00",
-    "what": "STILL OPEN, MINE, and it recurred TWICE more this stretch. The class is treating a figure as carrying a property it has not earned. Last orientation I let \"the objective changed eight of nine answers\" stand in for \"the book moved\" when ranking the departure term. This stretch I wrote focus item two \u2014 \"separate a flat world from an unfree arm\" \u2014 as a question about which cause explains the \u2212\u00a3335.40, and the leg has NO SIGN to explain: the item's own result document says the question contains a false premise and I directed a worker to attribute a cause to noise. In the same document the worker's pre-registered P3b compared the belief's distance from chance with the PRICE's distance from chance as though they were one quantity, when one predicts churn and the other causes it. Two instances, both caught by prereg-then-grade discipline and NEITHER by a control. It stays open until a stretch passes with no new instance; item two above is written with its non-prediction stated explicitly for exactly this reason.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-10T02:22:54.706522+00:00",
-    "what": "NEW, the machine's, and the most serious thing in this stretch. `site/data/value_arms.json` has been publishing `discrimination_auc` 0.6270 with the reading \"the belief carried real information about who stays\", rendered verbatim at `site/capabilities/index.html:1874`, while 88% of the pairs behind it compare two calendar eras and the within-year figure is 0.4440 inside its own null. It is our only published claim that the advantage is inferential, it is the claim the thesis rests on, and it was found POST-HOC by a worker looking for something else \u2014 no control asks whether a concordance figure's pairs are commensurable. It is still live at this orientation. Item one is its repair.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-10T02:22:54.706522+00:00",
-    "what": "NEW, the machine's. `site/data/value_arms.json` publishes a whole book \u2014 realised net, the level/selection split, the decision shape, the funnel \u2014 priced by `8b846013e`, an arm that charged exactly nothing for a departure, while HEAD's arm charges the sourced \u00a327.50 replacement cost. Nothing on the page says so. It was filed LATENT with a recommendation and no repair, which is the correct severity and still leaves a page attributing figures to an arm the company stopped running. Both facts needed to fix it are already on disk \u2014 the artefact carries `producing_commit` and the comparison is one merge-base.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-10T02:22:54.706522+00:00",
-    "what": "NEW, the machine's, and it is a shape not a number. Eleven commits, three substantive, eight of them documents about documents; 469 filings into staging in seven days against 264 dispositions; 21 BLOCKING findings standing, three of them naming the same value-arms cluster. Seeing has outrun repairing, and the two defects above are both instances: each was correctly found, correctly written up, and left live. A finding filed is not a defect fixed, and this stretch's ratio says the machine is currently paying for the first and not the second.",
-    "corrected": false
    }
   ],
   "refused_own_records": [],
-  "outstanding": 157,
+  "outstanding": 156,
   "corrected": 71,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree",
    "measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach",
-   "a-swept-claim-whose-paths-carry-uncommitted-work-is-built-unlanded-not-not-done",
+   "verify-and-bind-the-svt-landing-that-was-in-flight-at-0023",
+   "the-strand-check-asks-the-prose-for-its-paths-and-the-work-landed-somewhere-else",
    "read-the-twelve-at-18327d977-and-pair-the-bar-to-the-book-it-bounds"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree"
+      ],
+      "focus": [
+       "land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree",
+       "measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach",
+       "a-swept-claim-whose-paths-carry-uncommitted-work-is-built-unlanded-not-not-done",
+       "read-the-twelve-at-18327d977-and-pair-the-bar-to-the-book-it-bounds"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree"
+    ],
+    "focus": [
+     "land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree",
+     "measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach",
+     "a-swept-claim-whose-paths-carry-uncommitted-work-is-built-unlanded-not-not-done",
+     "read-the-twelve-at-18327d977-and-pair-the-bar-to-the-book-it-bounds"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1580,35 +1602,6 @@
      "the-ordinary-not-done-sweep-still-returns-an-empty-reason",
      "read-next12-alone-as-the-last-family-on-the-old-instrument-and-label-it-so",
      "launch-the-post-fix-floor-family-on-one-tree"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch",
-       "land-the-arms-rerun-and-publish-the-withdrawal-in-the-readers-words"
-      ],
-      "focus": [
-       "reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch",
-       "land-the-arms-rerun-and-publish-the-withdrawal-in-the-readers-words",
-       "rerun-the-folded-eighteen-floor-on-the-reconciled-post-fix-tree",
-       "the-ordinary-not-done-sweep-still-returns-an-empty-reason"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch",
-     "land-the-arms-rerun-and-publish-the-withdrawal-in-the-readers-words"
-    ],
-    "focus": [
-     "reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch",
-     "land-the-arms-rerun-and-publish-the-withdrawal-in-the-readers-words",
-     "rerun-the-folded-eighteen-floor-on-the-reconciled-post-fix-tree",
-     "the-ordinary-not-done-sweep-still-returns-an-empty-reason"
     ],
     "note": "the previous direction named work the draw then took",
     "steered": true
