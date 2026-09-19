@@ -7219,6 +7219,67 @@ def test_the_AUC_reaches_the_reader_AGAINST_ITS_OWN_NULL_and_not_as_a_count(live
         "figure this page already retracted once")
 
 
+def test_the_PER_DRAW_verdict_the_REFUSED_pooling_and_the_PRICE_reach_the_reader(live):
+    """THE DEFECT: a family mean against a null, and nothing a reader can act on.
+
+    Three things the feed has carried since 2026-09-19 and the page did not render. Each answers a
+    question the mean cannot: whether any SINGLE draw cleared its own null; what the sqrt(n) this
+    block refuses would have read had it been taken; and what a sign COSTS, in rosters, beside the
+    money leg's own price in seeds. The third is the one that changes a decision -- read without
+    its unit, the smaller number says the rank question is the cheap one.
+
+    KEYED TO THE PROPERTY. It asserts the reader meets a per-draw count, the refused arithmetic
+    labelled as refused, and a price with its unit on it -- never today's zero-of-twelve, 3.77 or
+    four rosters. A family that starts clearing its null keeps every leg of this green.
+    """
+    rendered = live["arms-errorbar"]
+    assert "clear their own null" in rendered, (
+        "the page states the family mean's distance and never says how many single draws cleared "
+        "the bar, so twelve draws each 1.1 SDs out and twelve straddling chance render alike: "
+        + rendered[-600:])
+    assert "as independent would read" in rendered and "It is refused" in rendered, (
+        "the sqrt(n) that would state this advantage is refused only in the producer's docstring, "
+        "so a reader cannot tell it was rejected on evidence rather than never considered")
+    assert "independent rosters" in rendered, (
+        "the price of a sign does not reach the reader in the unit the statistic replicates in, "
+        "which is the half of this reading that tells anyone what compute to buy")
+
+
+def test_the_two_prices_NEVER_render_without_the_unit_that_makes_them_comparable():
+    """4 against 102 is a decision a reader would get backwards.
+
+    Fires on: printing the roster count and the money leg's seed count side by side with no
+    sentence saying they are different units. Driven through a constructed feed rather than the
+    live one so the leg keeps firing on the day the live counts change.
+    """
+    feed = _feed_with_discrimination({
+        "available": False, "state": "asked_and_unanswerable", "seeds_in_family": 18,
+        "seeds_carrying_an_auc": 0, "reading": "This family was asked and cannot answer.",
+        "what_this_costs": "The advantage beside it cannot be attributed.",
+        "against_the_statistics_own_null": {
+            "available": True, "mean_auc": 0.5629, "demonstrated": False, "seeds_read": 12,
+            "null_sds_above_no_information": 1.08, "null_point": 0.5,
+            "seeds_clearing_their_own_null": 0, "widest_single_seed_distance": 1.5,
+            "sds_needed_to_state_a_sign": 1.959963984540054,
+            "reading": "Inside its own exact 95% null.",
+            "rosters_to_state_a_sign": {
+                "available": True, "rosters_needed_to_state_a_sign": 4,
+                "the_unit_is_a_roster_not_a_seed": "A roster is one independently drawn book.",
+                "what_this_count_is": "the rosters this reading would need at this distance."},
+            "against_the_money_legs_price": {
+                "available": True, "money_leg_seeds_needed_to_state_a_sign": 102,
+                "the_units_differ": (
+                    "the money leg's count is in SEEDS and the rank leg's is in ROSTERS.")},
+        }})
+    text = _render(feed)["arms-errorbar"]
+    assert "4 independent rosters" in text and "102 seeds" in text, (
+        "the two prices stopped rendering together, so this control is asserting against a block "
+        "that is not on the page (R15)")
+    assert "SEEDS" in text and "ROSTERS" in text, (
+        "the page prints 4 beside 102 with no unit on either, so a reader takes the rank question "
+        "for the cheaper one when they are not counted in the same thing")
+
+
 def test_the_seed_familys_spread_NEVER_renders_as_the_AUCs_interval():
     """The tempting wrong repair, refused where a reader would actually meet it.
 

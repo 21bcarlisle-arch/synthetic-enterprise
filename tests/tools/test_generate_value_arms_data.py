@@ -9255,6 +9255,155 @@ def test_a_row_carrying_an_AUC_with_NO_population_is_counted_out_not_defaulted()
         "null published beside a figure did not come from that figure's own population")
 
 
+# ---------------------------------------------------------------------------
+# THE PER-SEED BOUND, THE REFUSED POOLING AND THE PRICE OF A SIGN (2026-09-19)
+#
+# The block above stated ONE distance -- the family mean's -- and the director's direction asked
+# for three things it could not answer: what each seed reads against its OWN null, what pooling
+# the twelve is worth given they share one roster, and what a sign would cost in the unit this
+# statistic actually replicates in, beside the money leg's own 102 seeds.
+#
+# R15 -- the mutations, each run and reverted:
+#   * grade every row against the family's widest null instead of its own -> the per-seed leg
+#     reds, because two populations an order of magnitude apart then read the same distance.
+#   * publish `refused_sds_from_chance_if_the_seeds_were_independent` as the headline distance ->
+#     the pooling leg reds; this is the sqrt(n) that turns 1.08 into 3.77 with no new evidence.
+#   * fall back to another artefact's `distance_to_a_sign` when the AUC family carries none ->
+#     the one-artefact leg reds, which is the two-artefact mispairing in its cheapest disguise.
+#
+# ONE OF THOSE MUTATIONS DID NOT FIRE AT FIRST AND IT WAS AN EQUIVALENCE, NOT A MISSING LEG --
+# recorded because the flattering reading of a silent mutation is the other one. Falling back to
+# `NOISE_FLOOR_PATH` specifically changes nothing: that artefact carries `distance_to_a_sign:
+# null`, so the mutated code refuses for the same reason the real code does. Re-run against a
+# fallback that DOES carry one (`..._next12_...`, 102 seeds) the leg fires. The defect the control
+# guards is "reach for whichever artefact has the figure", and that is what it is proven against.
+# ---------------------------------------------------------------------------
+
+
+def test_MUTATION_each_seed_is_graded_against_ITS_OWN_null_and_not_the_familys():
+    """A per-seed verdict computed from the family's ruler is the family's verdict, twelve times.
+
+    THE DEFECT: the block published one distance -- the mean's, against the widest population's
+    null -- and a reader could not tell twelve draws that each sit 1.1 SDs out from twelve that
+    straddle the null. Those have the same mean and license opposite next actions.
+
+    KEYED TO THE PROPERTY, on populations chosen so the two rulers cannot agree: at 10x10 the null
+    sd is 0.132 and at 64x42 it is 0.058, so a row graded by the wrong one is off by more than
+    two-fold. Nothing here pins today's zero-of-twelve.
+    """
+    usable = gva._auc_rows([
+        {"seed": "small", "discrimination_auc": 0.75,
+         "auc_population": {"retained": 10, "left": 10}},
+        {"seed": "large", "discrimination_auc": 0.75,
+         "auc_population": {"retained": 64, "left": 42}},
+    ])
+    assert len(usable) == 2, "both synthetic rows must survive or this control is vacuous (R15)"
+    small, large = usable
+    assert small["null_sd"] > large["null_sd"] * 1.5, (
+        "the two populations produced near-identical null widths, so a row graded by the wrong "
+        "one would still pass and this control cannot fire (R15)")
+    assert small["null_sds_above_no_information"] < large["null_sds_above_no_information"], (
+        "the SAME AUC on ten departures and on forty-two reads the same distance from chance, so "
+        "each row is being graded by one shared ruler rather than by its own population")
+    assert small["clears_its_own_null"] is False and large["clears_its_own_null"] is True, (
+        "the per-row verdict does not follow the per-row ruler: 0.75 on 10x10 is 1.89 null SDs "
+        "and on 64x42 it is 4.31, and a bar that grades them alike is not a bar")
+
+
+def test_MUTATION_the_sqrt_n_pooling_is_REFUSED_and_PUBLISHED_as_refused():
+    """The arithmetic that would state this advantage, printed beside the one that does not.
+
+    THE DEFECT: refusing the sqrt(n) in a docstring. A reader who meets only the conservative end
+    cannot tell whether the other was rejected on evidence or never considered -- and the gap
+    between the two ends IS the finding here, because one of them states the advantage.
+
+    KEYED TO THE PROPERTY IN BOTH DIRECTIONS. The independent end must be the NARROWER ruler (so
+    the mutation that publishes it is a real move and not a relabelling), and the published
+    distance must be the single-draw one. A family whose mean moves keeps this green.
+    """
+    rows = _auc_family_rows()["seeds"]
+    out = gva._auc_against_its_own_null(
+        rows, world=None, source="a control", is_the_advantages_family=False)
+    pooled = out["pooled_bound"]
+    assert pooled["seeds"] > 1, (
+        "a one-row family cannot be pooled, so no mutation here could move a number (R15)")
+    assert (pooled["refused_null_sd_if_the_seeds_were_independent"]
+            < pooled["published_null_sd"]), (
+        "the refused pooling is not actually the narrower ruler, so publishing it would change "
+        "nothing and this control is asserting against a distinction that does not exist")
+    assert abs(pooled["published_sds_from_chance"]
+               - out["null_sds_above_no_information"]) < 1e-12, (
+        "the headline distance is not the single-draw one, so the sqrt(n) this block refuses in "
+        "prose is the ruler it actually published")
+    assert (abs(pooled["refused_sds_from_chance_if_the_seeds_were_independent"])
+            > abs(pooled["published_sds_from_chance"])), (
+        "pooling as independent does not move the reading further from chance, so the refusal "
+        "costs nothing and a reader cannot see why it was worth making")
+
+
+def test_the_dependence_between_the_draws_is_MEASURED_and_not_asserted():
+    """Two seeds returning the identical AUC is evidence on disk, not an argument in a docstring.
+
+    Fires on: a `distinct_auc_values` that counts rows rather than values -- which would report
+    twelve independent draws for a family in which two pairs are the same labelling scored twice,
+    and hand the sqrt(n) back the justification this block took off it.
+
+    Driven through a SYNTHETIC family with a deliberate duplicate, because a control that only
+    ever saw today's rows would go quiet the day a family has none.
+    """
+    rows = [
+        {"seed": 1, "discrimination_auc": 0.56, "auc_population": {"retained": 64, "left": 42}},
+        {"seed": 2, "discrimination_auc": 0.56, "auc_population": {"retained": 64, "left": 42}},
+        {"seed": 3, "discrimination_auc": 0.58, "auc_population": {"retained": 64, "left": 42}},
+    ]
+    out = gva._auc_against_its_own_null(
+        rows, world=None, source="a control", is_the_advantages_family=False)
+    pooled = out["pooled_bound"]
+    assert pooled["seeds"] == 3 and pooled["distinct_auc_values"] == 2, (
+        "three rows carrying two distinct AUCs were counted as three distinct draws, so the "
+        "dependence this family's pooling refusal rests on is invisible in the feed")
+    assert pooled["seeds_returning_an_identical_auc"] == [[1, 2]], (
+        "the duplicate pair is not named, so a reader is told the draws repeat and cannot check "
+        "which ones")
+
+
+def test_MUTATION_the_price_of_a_sign_is_in_ROSTERS_and_never_reaches_a_SECOND_artefact():
+    """Two counts, one artefact, and the units carried with them.
+
+    THE DEFECT the refusal prevents: filling the money leg from whichever floor happens to carry
+    a `distance_to_a_sign`. The rank reading and the price of a sign would then describe different
+    runs -- the mispairing this page has already retracted once.
+
+    THE SECOND DEFECT, keyed as a property: the two counts are in DIFFERENT UNITS. Rosters are
+    independent books; the money leg's seeds are re-draws inside one. Printed bare, the smaller
+    number reads as the cheaper question.
+    """
+    refused = gva._auc_against_the_money_legs_price(None, "a control")
+    assert refused["available"] is False and "another artefact" in refused[
+        "unavailable_because"], (
+        "an AUC family carrying no money leg still produced one, so the figure beside the rank "
+        "reading came from a run the rank reading was not measured on")
+    live = gva._auc_against_the_money_legs_price(
+        {"available": True, "seeds_needed_to_state_a_sign": 102, "sems_from_zero": 0.686},
+        "a control")
+    assert live["money_leg_seeds_needed_to_state_a_sign"] == 102, (
+        "the money leg's own count is re-derived rather than republished, which is how two "
+        "implementations of one figure drift apart")
+    assert "SEEDS" in live["the_units_differ"] and "ROSTERS" in live["the_units_differ"], (
+        "the two counts are published with no unit on either, so a reader compares 4 against 102 "
+        "as though they were the same thing")
+    # MONOTONE IN THE DISTANCE, not pinned to today's four. A reading twice as far from chance
+    # needs fewer rosters; one at chance names no finite count at all.
+    near = gva._rosters_to_state_a_sign(1.0)
+    far = gva._rosters_to_state_a_sign(2.5)
+    assert near["rosters_needed_to_state_a_sign"] > far["rosters_needed_to_state_a_sign"], (
+        "the price of a sign does not fall as the reading moves away from chance, so it is not a "
+        "function of the distance it claims to price")
+    assert gva._rosters_to_state_a_sign(0.0)["available"] is False, (
+        "a reading sitting exactly on the no-information point was given a finite price, which "
+        "is a number a reader would act on and no evidence supports")
+
+
 def test_a_folds_several_trees_are_told_apart_from_several_INSTRUMENTS():
     """Two commits that price alike and two that do not must not render the same sentence.
 

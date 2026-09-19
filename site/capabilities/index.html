@@ -1533,7 +1533,61 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             + "&times; narrower than this null and is NOT the interval on this figure. "
             + prose(f.why) + "</span>"
           : "")
+      + pooledAndPrice(n)
       + "</span>";
+  }
+
+  /* THE PER-DRAW VERDICT, THE REFUSED POOLING AND THE PRICE OF A SIGN, as figures and not only
+     inside the paragraph above.
+
+     WHY ALL THREE RENDER AND NOT JUST THE HEADLINE. A family mean against a null cannot say
+     whether any SINGLE draw cleared it, and those license opposite next actions. The refused
+     `sqrt(n)` is printed BESIDE the published distance because it is the arithmetic that would
+     state this advantage, and a reader shown only the conservative end cannot tell whether the
+     other was rejected on evidence or never considered. And the price is in ROSTERS while the
+     money leg two paragraphs up is in SEEDS: printed without its unit the smaller number reads as
+     the cheaper question, which is the comparison this block exists to make correctly.
+
+     EACH CLAUSE IS OMITTED RATHER THAN DEFAULTED when its field is absent, for the reason the
+     whole panel is built this way: a zero assembled out of a missing field reads as a measured
+     answer, and silence does not. */
+  function pooledAndPrice(n) {
+    var p = n.pooled_bound || {};
+    var r = n.rosters_to_state_a_sign || {};
+    var m = n.against_the_money_legs_price || {};
+    var out = "";
+    if (typeof n.seeds_clearing_their_own_null === "number"
+        && typeof n.widest_single_seed_distance === "number") {
+      out += '<span style="display:block;margin-top:4px;color:'
+        + (n.seeds_clearing_their_own_null > 0 ? "var(--muted)" : "var(--amber)") + ';">'
+        + "<strong>Per draw &mdash; " + esc(n.seeds_clearing_their_own_null) + " of "
+        + esc(n.seeds_read) + " clear their own null</strong> (widest "
+        + n.widest_single_seed_distance.toFixed(2) + " null SDs against the "
+        + (typeof n.sds_needed_to_state_a_sign === "number"
+            ? n.sds_needed_to_state_a_sign.toFixed(2) : "?")
+        + " a direction needs).</span>";
+    }
+    if (typeof p.refused_sds_from_chance_if_the_seeds_were_independent === "number") {
+      out += '<span style="display:block;margin-top:4px;color:var(--muted);">'
+        + "Pooling these " + esc(p.seeds) + " draws as independent would read "
+        + p.refused_sds_from_chance_if_the_seeds_were_independent.toFixed(2)
+        + " null SDs instead of " + p.published_sds_from_chance.toFixed(2)
+        + " and would state the advantage. <strong>It is refused</strong> &mdash; "
+        + esc(p.distinct_auc_values) + " distinct AUC values across " + esc(p.seeds)
+        + " rows. " + prose(p.why) + "</span>";
+    }
+    if (r.available) {
+      out += '<span style="display:block;margin-top:4px;color:var(--amber);">'
+        + "<strong>Price of a sign &mdash; about "
+        + esc(r.rosters_needed_to_state_a_sign) + " independent rosters</strong>"
+        + (m.available && m.money_leg_seeds_needed_to_state_a_sign !== null
+            && m.money_leg_seeds_needed_to_state_a_sign !== undefined
+            ? ", against " + esc(m.money_leg_seeds_needed_to_state_a_sign)
+              + " seeds for the money leg from this same artefact. " + prose(m.the_units_differ)
+            : ". " + prose(r.the_unit_is_a_roster_not_a_seed))
+        + " " + prose(r.what_this_count_is) + "</span>";
+    }
+    return out;
   }
 
   /* THE SECOND DRAW OF THE FIGURE THIS PANEL BOUNDS, rendered INSIDE the panel and not under it.

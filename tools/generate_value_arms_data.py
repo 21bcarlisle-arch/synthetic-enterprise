@@ -382,12 +382,30 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
 #: WHAT IT MAY NEVER BE USED FOR. It bounds nothing else on this page. Its seeds' `selection_gbp`
 #: must not join the error bar's family, and its spread must not become any figure's interval:
 #: `_auc_against_its_own_null` publishes the family's own sd explicitly as REFUTED for that use.
+#:
+#: MOVED 2026-09-19 FROM THE THREE TO THE TWELVE, and the paragraph above is why it was allowed:
+#: this constant bounds nothing but itself, so it may be chosen on DRAWS and never on answers. The
+#: two families are the same instrument by this block's own stated test (`git diff c9bd2eae7
+#: a178b56d6` over the four value-arm paths is empty), the same world `39a192ce04c1eda8`, the same
+#: redraw key and mode -- and `next12` carries `discrimination_auc` and `auc_population` on twelve
+#: of twelve rows against the auc3 family's three.
+#:
+#: THE MOVE IS IN THE UNFLATTERING DIRECTION AND THAT IS RECORDED HERE BECAUSE IT IS THE EVIDENCE
+#: THE FAMILY WAS NOT PICKED BY ITS ANSWER. auc3 read mean 0.5697 at 1.21 null SDs; next12 reads
+#: mean 0.5629 at 1.09. Both are inside; the larger family is further in. A swap that moved the
+#: reading toward its claim would need a different defence and does not have one here.
+#:
+#: AND IT BUYS THE ONE PAIRING THIS BLOCK COULD NEVER MAKE. `next12` is the only artefact on disk
+#: carrying BOTH the rank statistic and the money leg's own `distance_to_a_sign` -- 102 seeds --
+#: so `rosters_needed_to_state_a_sign` can be published beside it out of ONE artefact rather than
+#: mispaired across two. The auc3 family carries no such block, and a comparison assembled from
+#: two artefacts is the mispairing every other block in this file refuses.
 AUC_FAMILY_FLOOR_PATH = PROJECT / "docs" / "observability" / (
-    "value_cycle_ab_s1_noise_floor_auc3_20260917.json")
+    "value_cycle_ab_s1_noise_floor_next12_20260917.json")
 #: How the AUC family names itself wherever its reading renders. One spelling, because the block
 #: states in prose which family a figure came from and a second wording is how that label drifts
 #: away from the constant it describes.
-AUC_FAMILY_SOURCE = "the 3-seed AUC-carrying floor of 2026-09-17"
+AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: The floor re-run over the world the contrast above was measured in. WITHOUT THIS CONSTANT THE
 #: PAGE CANNOT BE BOUND AT ALL: `CURRENT_WORLD_THREE_ARM_PATH` was moved to the re-run when the
 #: arms were re-taken and the floor beside it was not, so `_current_world_contrast` read a floor
@@ -2321,12 +2339,177 @@ def _auc_rows(rows) -> list:
             continue
         out.append({"seed": row.get("seed"), "auc": float(auc),
                     "retained": population.get("retained"), "left": population.get("left"),
-                    "null_sd": sd})
+                    "null_sd": sd,
+                    # THE PER-SEED BOUND, on the row rather than left to the family mean.
+                    # Added 2026-09-19 on the director's direction, which asked for the per-seed
+                    # bound AND the pooled one. A family mean placed against a null says nothing
+                    # about whether ANY single draw cleared it, and those are different claims:
+                    # twelve draws that each read 1.1 SDs out and twelve that straddle the null
+                    # have the same mean and license opposite next actions.
+                    "null_sds_above_no_information": (float(auc) - 0.5) / sd,
+                    "clears_its_own_null": abs(float(auc) - 0.5) > _AUC_SDS_TO_STATE_A_SIGN * sd})
     return out
 
 
+#: The bar a distance from chance must clear before this page states a direction on it, in units
+#: of the AUC's OWN null standard deviation.
+#:
+#: IT IS THE NORMAL POINT AND NOT THE MONEY LEG'S t POINT, AND THE DIFFERENCE IS NOT A ROUNDING
+#: CHOICE. `sems_to_state_a_sign(n)` widens with small `n` because the standard error it grades is
+#: ESTIMATED FROM THE SAME DRAWS as the mean, so a fixed 2.0 is wrong at every family size. This
+#: null sd is not estimated from anything: it is `sqrt((n1+n2+1)/(12*n1*n2))`, a function of the
+#: two outcome counts, enumerated exactly by `_auc_null` and agreeing with it to three places. A
+#: t correction here would be charging the reading for an estimation error it does not carry.
+_AUC_SDS_TO_STATE_A_SIGN = 1.959963984540054
+
+
+def _rosters_to_state_a_sign(sds_from_chance) -> dict:
+    """How many INDEPENDENT ROSTERS this reading would need, at the distance it currently reads.
+
+    THE MIRROR OF `distance_to_a_sign`, AND THE UNIT IS THE POINT. The money leg's own block says
+    102 seeds, and a seed there is a re-draw of the elasticity assignment over one book. For a
+    rank statistic the sampling unit is not the seed: it is the ROSTER of scored renewals, because
+    the null's width is set by the two outcome counts and by nothing else. Twelve elasticity
+    re-draws over one book of ~106 scored renewals do not make 106 into 1,272, so no number of
+    seeds can shrink this bound -- only more independent books can.
+
+    That is the actionable half of the reading and the reason it is published beside the 102: the
+    two counts are in DIFFERENT units and a reader who compares them as though they were not has
+    been told the cheaper question is the expensive one.
+
+    CARRIES THE MONEY LEG'S OWN CAVEAT VERBATIM IN SUBSTANCE: this is the count IF the observed
+    distance stayed exactly where it is. A new roster is a new draw of the statistic and moves the
+    distance as well as the count, so this is a price for a decision about compute and never a
+    prediction of when a sign will arrive.
+    """
+    if sds_from_chance is None or not math.isfinite(sds_from_chance) or sds_from_chance == 0:
+        return {
+            "available": False,
+            "unavailable_because": (
+                "the reading sits exactly at the no-information point, or no distance could be "
+                "computed, so no finite number of rosters is implied by it"),
+        }
+    needed = math.ceil((_AUC_SDS_TO_STATE_A_SIGN / abs(sds_from_chance)) ** 2)
+    return {
+        "available": True,
+        "sds_from_chance": sds_from_chance,
+        "sds_needed_to_state_a_sign": _AUC_SDS_TO_STATE_A_SIGN,
+        "rosters_needed_to_state_a_sign": needed,
+        "rosters_in_hand": 1,
+        "the_unit_is_a_roster_not_a_seed": (
+            "a roster is one independently drawn book of scored renewals. Re-drawing the "
+            "elasticity assignment over the SAME book is a seed and not a roster, and it does not "
+            "enter this count: the null's width comes from the two outcome counts, which a "
+            "re-draw barely moves."),
+        "what_this_count_is": (
+            "the independent rosters this reading would need IF its distance from chance stayed "
+            "exactly where it is. A new roster re-draws the statistic as well as adding to it."),
+    }
+
+
+def _auc_pooled_bound(usable: list, mean: float, null_sd: float) -> dict:
+    """What pooling the family's draws is and is not worth, with the dependence MEASURED.
+
+    THE ONE ARITHMETIC THAT WOULD FLATTER THIS READING, priced rather than merely refused. Dividing
+    the single-draw null sd by `sqrt(n)` moves twelve draws at 1.09 null SDs to 3.77 and turns "we
+    cannot tell" into a stated advantage. `_auc_against_its_own_null` has always refused it in
+    prose; this block puts the refused number on the page beside the published one, because a
+    reader who is shown only the conservative end cannot tell whether the other end was considered
+    or overlooked -- and because the gap between them IS the finding.
+
+    AND THE REFUSAL IS NOW EVIDENCE AND NOT AN ARGUMENT. `sqrt(n)` is earned by n INDEPENDENT
+    draws of the statistic. These are not: the family re-draws the per-household elasticity over
+    ONE book, so the scored roster barely moves (60-68 retained against 41-43 departed across the
+    twelve) and two PAIRS of seeds return the identical AUC to sixteen significant figures --
+    literally the same labelling scored twice. Twelve rows carrying ten distinct values is a
+    measurement of the dependence, on disk, and it is what `distinct_auc_values` publishes.
+
+    A SECOND READING POINTS THE SAME WAY AND IS PUBLISHED WITH IT. Under the null with independent
+    rosters the family's own spread would scatter by about the single-draw null sd. It scatters by
+    a quarter of it. That is what one roster re-labelled twelve times looks like and not what
+    twelve rosters look like.
+
+    THE PUBLISHED END IS THE CONSERVATIVE ONE, ALWAYS, AND NOT BECAUSE IT IS SAFER. The replication
+    unit for a rank statistic is the roster; a seed is a re-draw WITHIN the roster. So the
+    independent end is not merely optimistic, it is credit for the wrong unit -- and R12 applies in
+    the usual direction: this is a diagnostic of what the instrument can support, never a target.
+    """
+    aucs = [r["auc"] for r in usable]
+    n = len(aucs)
+    independent_sd = math.sqrt(sum(r["null_sd"] ** 2 for r in usable)) / n
+    family_sd = statistics.stdev(aucs) if n > 1 else None
+    by_value: dict = {}
+    for r in usable:
+        by_value.setdefault(r["auc"], []).append(r["seed"])
+    return {
+        "seeds": n,
+        # THE DEPENDENCE, MEASURED. Ten distinct values across twelve rows.
+        "distinct_auc_values": len(by_value),
+        "seeds_returning_an_identical_auc": [
+            sorted(seeds, key=lambda s: (s is None, s))
+            for value, seeds in sorted(by_value.items()) if len(seeds) > 1],
+        "published_null_sd": null_sd,
+        "published_sds_from_chance": (mean - 0.5) / null_sd,
+        "refused_null_sd_if_the_seeds_were_independent": independent_sd,
+        "refused_sds_from_chance_if_the_seeds_were_independent": (mean - 0.5) / independent_sd,
+        "family_sd": family_sd,
+        "family_sd_over_the_single_draw_null_sd": (
+            None if not family_sd else family_sd / null_sd),
+        "which_end_is_published": "the single-draw null, which claims no independence at all",
+        "why": (
+            "A `sqrt(n)` credit is earned by n independent draws of the statistic, and these are "
+            "re-draws of ONE elasticity assignment over ONE book: the scored roster moves by a "
+            "handful of renewals across the family and two pairs of seeds return the same AUC to "
+            "sixteen figures. The sampling unit for a rank statistic is the ROSTER, and a seed is "
+            "a re-draw inside it, so the independent end is not an optimistic reading of this "
+            "family -- it is credit for the wrong unit. It is printed because the gap between the "
+            "two ends is the whole question, and a reader shown one end cannot see that."),
+    }
+
+
+def _auc_against_the_money_legs_price(money_leg: dict | None, source: str) -> dict:
+    """The money leg's own `seeds_needed_to_state_a_sign`, republished and NEVER re-derived.
+
+    THE COMPARISON THE DIRECTION ASKED FOR, AND THE ONLY PAIRING THAT MAKES IT HONEST. Both counts
+    come out of ONE artefact -- the family whose AUC rows are read above is the family whose
+    selection leg is priced here -- so this cannot become the mispairing of a rank reading from one
+    run against a money reading from another. When the AUC family and the artefact carrying the
+    money leg are not the same file, this refuses by name rather than reaching for the other one.
+
+    IT REPUBLISHES AND DOES NOT RECOMPUTE. `run_value_cycle_ab.distance_to_a_sign` wrote that
+    figure; a second implementation here is how the two would drift apart, and this file's own
+    `_family_discrimination` docstring names re-derivation as the permissive second implementation.
+
+    THE TWO COUNTS ARE IN DIFFERENT UNITS AND THE BLOCK SAYS SO IN THE SAME BREATH AS PRINTING
+    THEM. Seeds for the money leg, rosters for the rank leg. Read as the same unit they say the
+    rank question is thirty times cheaper; read correctly they say it is a different question
+    bought with different compute, and the comparison is worth making only with the unit attached.
+    """
+    if not isinstance(money_leg, dict) or not money_leg.get("available"):
+        return {
+            "available": False,
+            "unavailable_because": (
+                "{} carries no available `distance_to_a_sign`, so the rank leg's price has "
+                "nothing to stand beside. No money-leg figure is fetched from another artefact "
+                "to fill the gap: the two would then describe different runs.".format(source)),
+        }
+    return {
+        "available": True,
+        "money_leg_seeds_needed_to_state_a_sign": money_leg.get("seeds_needed_to_state_a_sign"),
+        "money_leg_sems_from_zero": money_leg.get("sems_from_zero"),
+        "money_leg_sign_if_it_were_stateable": money_leg.get("sign_if_it_were_stateable"),
+        "both_counts_come_from": source,
+        "the_units_differ": (
+            "the money leg's count is in SEEDS -- re-draws of the elasticity assignment over this "
+            "book -- and the rank leg's is in ROSTERS, independently drawn books. They are not "
+            "interchangeable and the smaller number is not therefore the cheaper question until "
+            "the cost of a roster has been priced."),
+    }
+
+
 def _auc_against_its_own_null(rows, *, world: str | None, source: str,
-                              is_the_advantages_family: bool) -> dict:
+                              is_the_advantages_family: bool,
+                              money_leg: dict | None = None) -> dict:
     """What the AUC reads against the null of the statistic ITSELF, not against a redraw family.
 
     THE DEFECT THIS CLOSES. `_family_discrimination` could say only "0 of 18 draws carry a figure"
@@ -2387,14 +2570,27 @@ def _auc_against_its_own_null(rows, *, world: str | None, source: str,
     family_sd = statistics.stdev(aucs) if len(aucs) > 1 else None
     demonstrated = None if exact.get("inside_the_null") is None else (
         not exact["inside_the_null"])
+    pooled = _auc_pooled_bound(usable, mean, null_sd)
+    rosters = _rosters_to_state_a_sign(distance)
+    money = _auc_against_the_money_legs_price(money_leg, source)
     return {
         "available": True,
         "source": source,
         "is_the_family_the_advantage_is_bounded_over": is_the_advantages_family,
         "seeds_read": len(usable),
         "mean_auc": mean,
+        # EVERY SEED WITH ITS OWN BOUND ON THE SAME ROW, not the family mean alone. A mean placed
+        # against a null cannot say whether any single draw cleared it, and on this family the
+        # answer is none of them: the widest reads 1.50 null SDs against a bar of 1.96.
         "auc_by_seed": [{"seed": r["seed"], "auc": r["auc"],
-                         "retained": r["retained"], "left": r["left"]} for r in usable],
+                         "retained": r["retained"], "left": r["left"],
+                         "null_sd": r["null_sd"],
+                         "null_sds_above_no_information": r["null_sds_above_no_information"],
+                         "clears_its_own_null": r["clears_its_own_null"]} for r in usable],
+        "seeds_clearing_their_own_null": sum(1 for r in usable if r["clears_its_own_null"]),
+        "widest_single_seed_distance": max(
+            (abs(r["null_sds_above_no_information"]) for r in usable), default=None),
+        "sds_needed_to_state_a_sign": _AUC_SDS_TO_STATE_A_SIGN,
         "null_point": 0.5,
         "null_sd": null_sd,
         "null_sd_population": {"retained": widest["retained"], "left": widest["left"]},
@@ -2416,17 +2612,30 @@ def _auc_against_its_own_null(rows, *, world: str | None, source: str,
                 "an order of magnitude here, so the family's spread is published as a property of "
                 "the instrument and never as this figure's interval."),
         },
+        # WHAT POOLING THE FAMILY IS WORTH, with the refused arithmetic printed beside the
+        # published one and the dependence between the draws measured rather than asserted.
+        "pooled_bound": pooled,
+        # THE PRICE OF A SIGN, IN THE UNIT THE STATISTIC ACTUALLY REPLICATES IN, published beside
+        # the money leg's own price out of the SAME artefact.
+        "rosters_to_state_a_sign": rosters,
+        "against_the_money_legs_price": money,
         "demonstrated": demonstrated,
         "reading": _auc_null_reading(
             mean=mean, distance=distance, null_sd=null_sd, seeds=len(usable),
             retained=widest["retained"], left=widest["left"], exact=exact,
             demonstrated=demonstrated, source=source,
-            is_the_advantages_family=is_the_advantages_family),
+            is_the_advantages_family=is_the_advantages_family,
+            clearing=sum(1 for r in usable if r["clears_its_own_null"]),
+            widest_distance=max(
+                (abs(r["null_sds_above_no_information"]) for r in usable), default=None),
+            pooled=pooled, rosters=rosters, money=money),
     }
 
 
 def _auc_null_reading(*, mean, distance, null_sd, seeds, retained, left, exact, demonstrated,
-                      source, is_the_advantages_family) -> str:
+                      source, is_the_advantages_family,
+                      clearing=None, widest_distance=None, pooled=None, rosters=None,
+                      money=None) -> str:
     """The sentence, DERIVED from the verdict rather than written beside it.
 
     THREE BRANCHES BECAUSE `demonstrated` IS A TRI-STATE. `None` is "the exact null could not be
@@ -2437,6 +2646,14 @@ def _auc_null_reading(*, mean, distance, null_sd, seeds, retained, left, exact, 
     IT NAMES WHICH FAMILY IT CAME FROM IN EVERY BRANCH. When these rows are NOT the family the
     advantage above is bounded over, a reader who is not told that will read this as a bound on
     that advantage -- the mispairing every other block in this file refuses.
+
+    SINCE 2026-09-19 THE THREE SENTENCES THE DIRECTION ASKED FOR RIDE IN EVERY BRANCH, including
+    the withheld one. Whether any SINGLE draw cleared its own null; what pooling was refused and
+    what it would have bought; and the price of a sign in rosters beside the money leg's price in
+    seeds. They are appended to all three verdicts rather than only to the refusal, because a
+    family that DID clear its null still owes a reader the pooling it did not take -- and a
+    sentence that appears only when the answer is "no" is a sentence a reader learns to read as
+    the answer rather than as the method.
     """
     where = ("measured over the same draws the advantage above is bounded over"
              if is_the_advantages_family else
@@ -2449,23 +2666,73 @@ def _auc_null_reading(*, mean, distance, null_sd, seeds, retained, left, exact, 
             "signal carrying nothing at all scatters with a standard deviation of {sd:.4f}. This "
             "figure sits {d:.2f} of those above 0.5.").format(
         mean=mean, seeds=seeds, where=where, ret=retained, left=left, sd=null_sd, d=distance)
+    tail = _auc_null_reading_tail(clearing=clearing, seeds=seeds, widest_distance=widest_distance,
+                                  pooled=pooled, rosters=rosters, money=money)
     if demonstrated is None:
         return head + (" WHETHER THAT CLEARS ITS NULL IS WITHHELD: {}".format(
             exact.get("verdict_withheld_because") or exact.get("reason")
-            or "the exact null could not be enumerated on this population."))
+            or "the exact null could not be enumerated on this population.")) + tail
     if demonstrated:
         return head + (" That is OUTSIDE its own exact 95% null ({lo:.4f}-{hi:.4f}, two-sided "
                        "p={p:.3f}), so on this population the arm is discriminating rather than "
                        "scoring at chance. It is a statement about this instrument and not a "
                        "target.").format(lo=exact["null_95_low"], hi=exact["null_95_high"],
-                                         p=exact["p_two_sided"])
+                                         p=exact["p_two_sided"]) + tail
     return head + (" That is INSIDE its own exact 95% null ({lo:.4f}-{hi:.4f}, two-sided "
                    "p={p:.3f}), so DISCRIMINATION IS NOT DEMONSTRATED HERE -- in either "
                    "direction. An arm that beat the control while scoring at chance won by "
                    "charging and not by knowing, and this book cannot yet tell those apart. That "
                    "is a finding about the instrument's sample size and not a cue to re-run until "
                    "a seed agrees.").format(
-        lo=exact["null_95_low"], hi=exact["null_95_high"], p=exact["p_two_sided"])
+        lo=exact["null_95_low"], hi=exact["null_95_high"],
+        p=exact["p_two_sided"]) + tail
+
+
+def _auc_null_reading_tail(*, clearing, seeds, widest_distance, pooled, rosters, money) -> str:
+    """The per-seed verdict, the refused pooling and the price, as prose a reader gets for free.
+
+    WHY IT IS PROSE AND NOT ONLY FIELDS. The fields beside it are what a re-derivation needs; this
+    is what a reader gets. The page renders `reading` on every branch of this block and has since
+    the block was built, so a sentence added here reaches a reader on the next publish without a
+    renderer change -- which is the difference between a figure that exists in a feed and one that
+    exists on a page, and this project has shipped the first kind believing it shipped the second.
+
+    EACH CLAUSE IS OMITTED RATHER THAN DEFAULTED when its input is missing. A "0 of 0 draws clear"
+    or a "needs 1 roster" assembled out of a `None` is the fail-open shape: it reads as a measured
+    answer. Silence reads as silence.
+    """
+    out = ""
+    if clearing is not None and seeds and widest_distance is not None:
+        out += (" NO SINGLE DRAW CLEARS IT EITHER: {c} of {n} carry a distance past the "
+                "{bar:.2f} null SDs a direction needs, and the widest of them reads {w:.2f}."
+                .format(c=clearing, n=seeds, bar=_AUC_SDS_TO_STATE_A_SIGN, w=widest_distance)
+                if clearing == 0 else
+                " Per draw, {c} of {n} clear the {bar:.2f} null SDs a direction needs, the "
+                "widest reading {w:.2f}.".format(
+                    c=clearing, n=seeds, bar=_AUC_SDS_TO_STATE_A_SIGN, w=widest_distance))
+    if pooled and pooled.get("refused_sds_from_chance_if_the_seeds_were_independent") is not None:
+        out += (" Pooling the draws as though they were independent would read {ind:.2f} null SDs "
+                "instead of {pub:.2f} and would state the advantage; it is REFUSED, because these "
+                "re-draw one elasticity assignment over one book -- {d} distinct AUC values across "
+                "{n} rows, and the family's own spread is {r:.2f} of a single draw's null. The "
+                "replication unit for a rank statistic is the roster, and a seed is a re-draw "
+                "inside it.").format(
+            ind=pooled["refused_sds_from_chance_if_the_seeds_were_independent"],
+            pub=pooled["published_sds_from_chance"], d=pooled["distinct_auc_values"],
+            n=pooled["seeds"],
+            r=(pooled.get("family_sd_over_the_single_draw_null_sd") or float("nan")))
+    if rosters and rosters.get("available"):
+        out += (" At this distance, and only if it stayed exactly where it is, a sign would need "
+                "about {k} independent ROSTERS".format(
+                    k=rosters["rosters_needed_to_state_a_sign"]))
+        if money and money.get("available") and money.get(
+                "money_leg_seeds_needed_to_state_a_sign") is not None:
+            out += (" -- against the {s} SEEDS the money leg beside it prices out of this same "
+                    "artefact. Different units, and the rank question is the one nobody has "
+                    "costed.".format(s=money["money_leg_seeds_needed_to_state_a_sign"]))
+        else:
+            out += "."
+    return out
 
 
 def _family_discrimination(floor: dict | None, auc_family: dict | None = None) -> dict:
@@ -2521,12 +2788,18 @@ def _family_discrimination(floor: dict | None, auc_family: dict | None = None) -
         against_the_null = _auc_against_its_own_null(
             (floor or {}).get("seeds"),
             world=((floor or {}).get("world_identity") or {}).get("digest"),
-            source="this family", is_the_advantages_family=True)
+            source="this family", is_the_advantages_family=True,
+            # THE MONEY LEG FROM THE SAME ARTEFACT AS THE AUC ROWS, in both branches, and never
+            # from the other one. `floor` and `auc_family` are different runs; taking the rank
+            # reading from one and the price of a sign from the other is exactly the two-artefact
+            # mispairing this file refuses everywhere else.
+            money_leg=(floor or {}).get("distance_to_a_sign"))
     elif auc_family:
         against_the_null = _auc_against_its_own_null(
             auc_family.get("seeds"),
             world=((auc_family.get("world_identity") or {}).get("digest")),
-            source=AUC_FAMILY_SOURCE, is_the_advantages_family=False)
+            source=AUC_FAMILY_SOURCE, is_the_advantages_family=False,
+            money_leg=auc_family.get("distance_to_a_sign"))
     else:
         against_the_null = {
             "available": False,
