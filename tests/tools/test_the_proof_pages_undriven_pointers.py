@@ -107,7 +107,7 @@ from tests.tools.test_the_value_arms_pages_undriven_pointers import (  # noqa: E
     _untied_literals,
 )
 
-_here_relative_phrase = published._here_relative_phrase
+_here_relative_phrases = published._here_relative_phrases
 
 PRODUCER = PROJECT / "tools" / "generate_proof_data.py"
 DOOR_URL = "/harness/"
@@ -124,11 +124,13 @@ _EXTRA_PHRASES = ("ranges above",)
 
 
 def _phrases(text: str) -> list[str]:
-    """Every direction this sentence claims: the registered one, plus this page's own."""
-    found = []
-    shared = _here_relative_phrase(text)
-    if shared:
-        found.append(shared.lower())
+    """Every direction this sentence claims: the registered ones, plus this page's own.
+
+    REGISTERED ONES, PLURAL, since 2026-09-19. This helper returned a list from the day it was
+    written and read the shared vocabulary with `search`, so a sentence claiming two REGISTERED
+    directions still arrived here as one -- the list shape was carrying only the page-scoped axis.
+    """
+    found = [shared.lower() for shared in _here_relative_phrases(text)]
     lowered = text.lower()
     found.extend(extra for extra in _EXTRA_PHRASES
                  if extra in lowered and extra not in found)

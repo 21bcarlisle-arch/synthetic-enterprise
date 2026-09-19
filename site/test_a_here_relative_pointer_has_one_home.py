@@ -181,17 +181,47 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def _here_relative_phrase(sentence: str) -> str | None:
-    """The registered `here`-relative phrase this sentence claims, or None if it claims none.
+def _here_relative_phrases(sentence: str) -> list[str]:
+    """EVERY registered `here`-relative phrase this sentence claims, in the order it claims them.
 
-    A landmark anywhere in the sentence takes it out: "the band table directly below this
-    headline" matches `directly below` and names the headline it is below, which is the whole
-    difference between a claim that can be checked once and one that must be re-asked per home.
+    `finditer`, NOT `search`, and the difference is a defect this vocabulary grew into. One
+    sentence can point twice -- `_current_world_contrast` says "the figures above" and then "the
+    run above it" in the same literal -- and a first-match reader registers the first, judges it,
+    and reports a clean sentence while the second direction has never been asked about. That was
+    survivable while the vocabulary was a handful of fixed phrases; with fourteen nouns and a
+    participle branch, a second direction in one sentence is ordinary rather than exotic, so the
+    narrow read is now the binding constraint on every rung that imports this census.
+
+    A landmark anywhere in the sentence takes ALL of them out, which is the same rule as before and
+    is deliberately not per-match: "the band table directly below this headline" names the headline
+    it is below, and that makes the whole sentence a claim checkable once rather than per home.
+
+    DE-DUPLICATED CASE-INSENSITIVELY, because the consumers key `_REFERENTS` on the lowered phrase.
+    A sentence saying "the figures above" twice claims one direction, not two, and registering it
+    twice would ask the same question twice and print the same defect twice.
     """
     if _LANDMARK.search(sentence):
-        return None
-    found = _HERE_RELATIVE.search(sentence)
-    return found.group(0) if found else None
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in _HERE_RELATIVE.finditer(sentence):
+        phrase = match.group(0)
+        if phrase.lower() not in seen:
+            seen.add(phrase.lower())
+            found.append(phrase)
+    return found
+
+
+def _here_relative_phrase(sentence: str) -> str | None:
+    """The FIRST registered `here`-relative phrase this sentence claims, or None if it claims none.
+
+    DEFINED FROM THE PLURAL rather than beside it, so there is one landmark rule and one
+    vocabulary. Kept because several callers ask a BOOLEAN of a sentence -- does this claim a
+    direction at all -- and the answer to that does not change with how many it claims. A caller
+    that judges the direction wants `_here_relative_phrases`; this one cannot see a second.
+    """
+    phrases = _here_relative_phrases(sentence)
+    return phrases[0] if phrases else None
 
 
 def _payload_strings(path: Path) -> list[tuple[str, str]]:
@@ -329,12 +359,16 @@ def test_no_here_relative_pointer_is_composed_into_more_than_one_region(swept):
     for key, row in sorted(swept["pointers"].items()):
         if len(row["homes"]) < 2:
             continue
-        phrase = _here_relative_phrase(key)
-        if phrase:
+        # ALL OF THEM IN THE MESSAGE, not the first. The rule fires either way -- one direction is
+        # enough to refuse -- but a repairer acts on what the refusal NAMES, and naming only the
+        # first is how a sentence gets half-repaired and stays false the other way.
+        phrases = _here_relative_phrases(key)
+        if phrases:
             defects.append(
-                "{!r} claims a direction from wherever it renders, and it renders in {}: {} -- "
+                "{} claims a direction from wherever it renders, and it renders in {}: {} -- "
                 "written at {}. Name the landmark the direction is FROM, which is true from all "
-                "of them.".format(phrase, len(row["homes"]), sorted(row["homes"]),
+                "of them.".format(", ".join(repr(p) for p in phrases),
+                                  len(row["homes"]), sorted(row["homes"]),
                                   sorted(row["fields"])))
     assert not defects, (
         "a payload sentence points a reader somewhere relative to itself and has more than one "

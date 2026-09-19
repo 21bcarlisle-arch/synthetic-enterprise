@@ -147,7 +147,7 @@ import test_a_producers_here_relative_pointer_has_one_home as producers  # noqa:
 
 #: REUSED BY IMPORT, never copied. The vocabulary IS the rule, and a second copy of it would drift
 #: into this rung quietly judging a different set of sentences than the two sweeps beside it.
-_here_relative_phrase = published._here_relative_phrase
+_here_relative_phrases = published._here_relative_phrases
 
 PRODUCER = PROJECT / "tools" / "generate_value_arms_data.py"
 DOOR_URL = "/capabilities/"
@@ -619,6 +619,15 @@ _REFERENTS = {
     # gave the sentence a home at all: it had reached a field NO door rendered since the
     # current-world block was written, so its direction was unjudged rather than wrong.
     ("_current_world_contrast", "figures above"): (".headline", "above"),
+    # ...AND THE SECOND DIRECTION IN THE SAME SENTENCE, which nothing in this tree could see until
+    # the census learned `finditer` on 2026-09-19. The not-the-later-run branch says "the figures
+    # above" and then, a clause later, "the run above it was taken at {when}" -- one literal, two
+    # claims a reader can follow, and only the first was ever registered or judged. Both name the
+    # canonical run, so the referent is the same `.headline` the row above points at rather than a
+    # second field; what differs is that this one went unasked for as long as the rung read the
+    # first match. Probed, the direction HOLDS: this is the census going blind, not the page
+    # misdirecting -- and it stays in the vocabulary so it goes on being re-asked.
+    ("_current_world_contrast", "run above"): (".headline", "above"),
     ("_departures", "beside this"): (
         ".decisions.auc_attribution.priced_accounts_the_arm_itself_drove_out", "same"),
     ("_polarity_check", "beside this"): (".decisions.auc_attribution.reading", "same"),
@@ -897,11 +906,15 @@ def test_every_undriven_pointer_is_true_from_the_region_it_lands_in(driven):
         if not row.get("recipe") or not row.get("fields"):
             continue
         for literal in row["literals"]:
-            subject = (row["symbol"], literal["phrase"].lower())
-            field = _REFERENTS.get(subject, (None, None))[0]
-            referent = _referent_homes(field, row["built"]) if field else set()
-            for defect in _direction_defects(subject, row["homes"], referent, row["order"]):
-                defects.append("{}:{} {}".format(row["symbol"], literal["line"], defect))
+            # ONE SUBJECT PER DIRECTION THE LITERAL CLAIMS, not per literal. A sentence that points
+            # twice is two claims a reader can follow, and the second is where the census used to
+            # go blind -- see `_here_relative_phrases`.
+            for phrase in literal["phrases"]:
+                subject = (row["symbol"], phrase.lower())
+                field = _REFERENTS.get(subject, (None, None))[0]
+                referent = _referent_homes(field, row["built"]) if field else set()
+                for defect in _direction_defects(subject, row["homes"], referent, row["order"]):
+                    defects.append("{}:{} {}".format(row["symbol"], literal["line"], defect))
     assert not defects, (
         "the page misdirects a reader on a branch it can take:\n  " + "\n  ".join(defects))
 
@@ -1028,7 +1041,8 @@ def test_every_tied_here_relative_literal_is_found_in_the_build_that_publishes_i
     Fires on: a published feed left un-regenerated after a producer's prose changed; a branch that
     stopped being taken on today's artefacts while its sentence is still in the feed.
     """
-    lost = ["{}:{} {!r}".format(row["symbol"], row["line"], row["phrase"])
+    lost = ["{}:{} {}".format(row["symbol"], row["line"],
+                              ", ".join(repr(p) for p in row["phrases"]))
             for row in tied if not row["fields"]]
     assert not lost, (
         "these sentences are in a published feed and in NO field of a build over today's "
@@ -1065,7 +1079,8 @@ def test_no_tied_here_relative_pointer_is_published_into_a_field_no_door_renders
     Fires on: a producer writing a here-relative sentence into a published field no door reads; a
     door dropping the region that used to render one.
     """
-    homeless = ["{}:{} {!r}".format(row["symbol"], row["line"], row["phrase"])
+    homeless = ["{}:{} {}".format(row["symbol"], row["line"],
+                                  ", ".join(repr(p) for p in row["phrases"]))
                 for row in tied if not row["homes"]]
     assert not homeless, (
         "these sentences are PUBLISHED, claim a direction, and render in no region of the door "
@@ -1110,15 +1125,20 @@ def test_every_tied_here_relative_pointer_is_true_from_the_region_it_lands_in(ti
     defects: list[str] = []
     referents: dict[str, set] = {}
     for row in tied:
-        subject = (row["symbol"], row["phrase"].lower())
-        field = _REFERENTS.get(subject, (None, None))[0]
-        if field is not None and field not in referents:
-            # ONE PROBE PER FIELD, not per literal. A numeric referent costs TWO renders of the
-            # real door, and two sentences naming one figure ask the same question twice.
-            referents[field] = _referent_homes(field, row["built"])
-        for defect in _direction_defects(subject, row["homes"],
-                                         referents.get(field, set()), row["order"]):
-            defects.append("{}:{} {}".format(row["symbol"], row["line"], defect))
+        # ONE SUBJECT PER DIRECTION, not per literal, and this half is where it bites: a tied
+        # sentence is a byte a reader can fetch today, so a second direction nobody asked about is
+        # live prose rather than a branch. `_current_world_contrast`'s `how_to_read_this` says
+        # "the figures above" and then "the run above it"; only the first was ever registered.
+        for phrase in row["phrases"]:
+            subject = (row["symbol"], phrase.lower())
+            field = _REFERENTS.get(subject, (None, None))[0]
+            if field is not None and field not in referents:
+                # ONE PROBE PER FIELD, not per literal. A numeric referent costs TWO renders of the
+                # real door, and two sentences naming one figure ask the same question twice.
+                referents[field] = _referent_homes(field, row["built"])
+            for defect in _direction_defects(subject, row["homes"],
+                                             referents.get(field, set()), row["order"]):
+                defects.append("{}:{} {}".format(row["symbol"], row["line"], defect))
     assert not defects, (
         "the page misdirects a reader on prose it PUBLISHES today:\n  " + "\n  ".join(defects))
 
@@ -1184,7 +1204,8 @@ def test_MUTATION_the_numeric_referent_probe_marks_a_number_the_string_probe_can
     assert any(isinstance(_field_slot(row["built"], _REFERENTS[key][0])[0][
                               _field_slot(row["built"], _REFERENTS[key][0])[1]], float)
                for row in tied
-               for key in [(row["symbol"], row["phrase"].lower())] if key in _REFERENTS), (
+               for key in [(row["symbol"], phrase.lower()) for phrase in row["phrases"]]
+               if key in _REFERENTS), (
         "not one TIED pointer names a NUMBER, so the probe this test is about is wired to nothing "
         "the direction leg actually runs and its green says nothing about the page")
 

@@ -97,6 +97,7 @@ _HERE_RELATIVE = published._HERE_RELATIVE
 _LANDMARK = published._LANDMARK
 _LONG_ENOUGH = published._LONG_ENOUGH
 _here_relative_phrase = published._here_relative_phrase
+_here_relative_phrases = published._here_relative_phrases
 _norm = published._norm
 
 #: The shortest literal fragment worth matching a producer's prose by. Producers interpolate, so a
@@ -165,14 +166,21 @@ def _speakable_strings(path: Path) -> list[ast.Constant]:
 
 
 def _producer_literals() -> list[dict]:
-    """Every here-relative sentence a producer CAN publish, from its source."""
+    """Every here-relative sentence a producer CAN publish, from its source.
+
+    EVERY DIRECTION THE SENTENCE CLAIMS, not the first one. `phrases` is a list and there is
+    deliberately no `phrase` key beside it: three rungs import this census, and leaving the
+    singular in place would leave each of them a field that answers the narrower question while
+    reading as the whole answer. Dropping it makes a consumer that has not been widened raise, not
+    quietly judge one direction and report a clean sentence. See `_here_relative_phrases`.
+    """
     found = []
     for path in _PRODUCERS:
         for node in _speakable_strings(path):
-            phrase = _here_relative_phrase(node.value)
-            if not phrase:
+            phrases = _here_relative_phrases(node.value)
+            if not phrases:
                 continue
-            found.append({"producer": path.name, "line": node.lineno, "phrase": phrase,
+            found.append({"producer": path.name, "line": node.lineno, "phrases": phrases,
                           "literal": node.value,
                           "fragments": _stable_fragments(node.value)})
     return found
@@ -313,12 +321,14 @@ def test_no_feed_FIELD_that_reaches_two_regions_carries_a_here_relative_sentence
         if len(homes) < 2:
             continue
         text = _feed_text_cache(field.rsplit(" ", 1)[0]).get(field) or ""
-        phrase = _here_relative_phrase(text)
-        if phrase:
+        # ALL OF THEM, for the reason the published sweep's twin records: the rule needs one
+        # direction to refuse, and the repairer needs every one of them to repair it whole.
+        phrases = _here_relative_phrases(text)
+        if phrases:
             defects.append(
-                "{!r} claims a direction from wherever it renders, and its FIELD reaches {} "
+                "{} claims a direction from wherever it renders, and its FIELD reaches {} "
                 "regions: {} -- written at {}. Name the landmark the direction is FROM.".format(
-                    phrase, len(homes), sorted(homes), field))
+                    ", ".join(repr(p) for p in phrases), len(homes), sorted(homes), field))
     assert not defects, (
         "a feed field that renders in more than one region carries a sentence pointing relative "
         "to itself:\n  " + "\n  ".join(defects))
@@ -339,9 +349,9 @@ def test_a_here_relative_sentence_a_producer_can_emit_lands_in_at_most_one_regio
         if len(row["homes"]) < 2:
             continue
         defects.append(
-            "{}:{} can publish {!r}, which lands in {} and reaches {} regions: {}".format(
-                row["producer"], row["line"], row["phrase"], row["landed"],
-                len(row["homes"]), sorted(row["homes"])))
+            "{}:{} can publish {}, which lands in {} and reaches {} regions: {}".format(
+                row["producer"], row["line"], ", ".join(repr(p) for p in row["phrases"]),
+                row["landed"], len(row["homes"]), sorted(row["homes"])))
     assert not defects, (
         "a producer can publish a sentence that points relative to itself into more than one "
         "region:\n  " + "\n  ".join(defects))
@@ -374,10 +384,11 @@ def test_an_untied_literal_is_refused_once_its_producer_publishes_a_multi_home_f
         shared = by_producer[producer] & multi_home_feeds
         if shared:
             defects.append(
-                "{}:{} can publish {!r} on a branch today's data does not drive, so its homes "
+                "{}:{} can publish {} on a branch today's data does not drive, so its homes "
                 "cannot be derived -- and it writes {}, which has a field reaching two regions. "
                 "Name the landmark, or drive the branch in a per-page rung.".format(
-                    producer, row["line"], row["phrase"], sorted(shared)))
+                    producer, row["line"], ", ".join(repr(p) for p in row["phrases"]),
+                    sorted(shared)))
     assert not defects, (
         "a producer can publish an unjudgeable pointer into a feed that already renders a field "
         "twice:\n  " + "\n  ".join(defects))
@@ -432,6 +443,68 @@ def test_the_producer_census_is_aimed_at_prose_these_producers_actually_write(pr
     assert any(row["landed"] for row in rows), (
         "no producer literal could be tied to ANY published field, so the fragment matching has "
         "gone blind and the rule over tied literals is judging an empty set")
+
+
+def test_the_census_registers_EVERY_direction_a_literal_claims_and_not_just_the_first():
+    """A sentence can point twice, and the census must carry both or the second is judged by nobody.
+
+    THE DEFECT THIS SERVES (filed `2957c2cc9`, repaired 2026-09-19). `_producer_literals` read the
+    vocabulary with `search`, so one literal arrived here as one direction however many it claimed.
+    Live on `origin/main` the day this landed: `generate_value_arms_data.py`'s
+    `_current_world_contrast` says "the figures above" and then "the run above it" in one string.
+    The census registered `figures above`, three rungs judged it, and it was TIED -- a byte a reader
+    could fetch -- while the second claim had never been asked about by anything in this tree.
+
+    AND IT WAS INVISIBLE TO EVERY LEG ALREADY HERE. Nothing was red. The homes rules fire on
+    whether a sentence claims a direction AT ALL, which is a boolean the narrow read answers
+    correctly; the per-page rungs judge direction, but only over the subjects the census hands
+    them. A dropped direction is not a wrong answer anywhere -- it is an absent question, and
+    absent questions are the failure mode no assertion about the site's prose can reach.
+
+    THE INSTRUMENT IS SUBTRACTION, which is what makes this failable rather than a restatement of
+    `_producer_literals`. Each registered phrase is struck from the literal ONCE and the vocabulary
+    is asked again: anything it still finds is a direction the census dropped. Reverting
+    `_here_relative_phrases` to `search` reds this and nothing else in the tree -- measured, not
+    assumed, which is why this leg exists at all.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ONE INSTANCE. Nothing below names that sentence or that
+    producer. Repairing it to claim one direction leaves this green; the next literal to claim two
+    reds it wherever it is written.
+
+    Fires on: the census reading the vocabulary with a first-match call; a widened `_HERE_RELATIVE`
+    admitting a second phrase into a literal already registered under an earlier one.
+    """
+    # THE INSTRUMENT FIRST, DRIVEN BOTH WAYS. Without this the rule below is vacuously green the
+    # day no producer happens to write a two-direction sentence -- and a control that passes on
+    # having no subject is exactly the silence this file's other blindness legs exist to refuse.
+    two = _here_relative_phrases(
+        "the figures above are the same book as the run above it")
+    assert two == ["figures above", "run above"], (
+        "the vocabulary reports {} for a sentence claiming two directions, so the census below "
+        "cannot register a second one and this rule is measuring nothing".format(two))
+    one = _here_relative_phrases("the figures above are the same book")
+    assert one == ["figures above"], (
+        "a sentence claiming ONE direction came back as {}, so the plural read is inventing "
+        "claims rather than finding them and every rung downstream would demand a referent for a "
+        "pointer no producer wrote".format(one))
+
+    rows = _producer_literals()
+    assert rows, "no producer literal claims a direction, so this rule has no subject at all"
+    dropped = []
+    for row in rows:
+        remaining = row["literal"]
+        for phrase in row["phrases"]:
+            remaining = remaining.replace(phrase, " ", 1)
+        missed = _here_relative_phrases(remaining)
+        if missed:
+            dropped.append("{}:{} registered {} and still claims {}".format(
+                row["producer"], row["line"],
+                ", ".join(repr(p) for p in row["phrases"]),
+                ", ".join(repr(p) for p in missed)))
+    assert not dropped, (
+        "a producer literal claims a direction the census did not register, so nothing downstream "
+        "can ask where it points and its silence reads as a clean sentence:\n  "
+        + "\n  ".join(dropped))
 
 
 # ── R15: the rules must be failable by the site being wrong ──────────────────────────────────
