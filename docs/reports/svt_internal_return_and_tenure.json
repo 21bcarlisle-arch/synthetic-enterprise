@@ -286,7 +286,124 @@
       ],
       "years_inside_the_records_span": []
     },
+    "this_comparison_is_against_the_MIXED_quantity": "`I` is internal switching over ALL households and `published_route_split`'s own identity makes it `s*J_svt + (1-s)*0.35*(1-phi)` -- this route PLUS fixed-term active renewal. The world figure above counts only this route, so the world is carrying one numerator against a record filled by two and `world_below_record` is biased toward True for a reason that is not about the world. `against_the_floor_for_this_route` is the same question asked of a bound on THIS route alone, which `svt_internal_conversion_floor` made available on 2026-09-19; read that one for the verdict and this one for the shape.",
     "a_caveat_this_reading_does_not_resolve": "C4's internal code is 'switched tariff with the same supplier' as the household reports it, and a fixed term expiring ONTO the default tariff is also a tariff change with the same supplier. Section 15 read the row as re-contracting onto a fix. If some of it is the opposite move, the record's internal row overstates the quantity this world's return route models, and the gap below is smaller than it reads. Nothing published separates the two directions and this reading does not assume one."
+  },
+  "against_the_floor_for_this_route": {
+    "what_this_is": "this world's SVT-to-fixed internal conversion rate against `published_route_split.svt_internal_conversion_floor`, which bounds that SAME route from below. The un-mixed companion to `against_the_record`, which compares against CIM C4's raw internal row and therefore against both routes at once.",
+    "refused": null,
+    "binding_floor": 0.044919,
+    "binding_floor_unit": "conversions per SVT household per SIX MONTHS, un-annualised, and therefore also a valid floor per SVT household-year",
+    "binding_floor_source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+    "waves_with_a_floor": 6,
+    "the_point_estimate_is_still": null,
+    "what_each_number_counts": {
+      "world": "`returned_to_fixed` stints over SVT account-years of exposure, binned on the year the stint ends. This book's resi electricity accounts.",
+      "floor": "(I - (1-s)*0.35) / s_max -- conversions per SVT household per six months. GB domestic survey respondents, both fuels.",
+      "the_two_mismatches_that_are_named_and_not_corrected": "a full year against a six-month bar, and this book's electricity accounts against GB households. Both are stated because neither is closed."
+    },
+    "the_bar_is_weak_in_this_direction": "a six-month floor used as an annual bar is LOWER than the true annual bar, so `clears_the_binding_floor` is the flattering verdict and a year BELOW it is below by at least that much. The floor is deliberately not annualised here.",
+    "world_per_svt_account_year": 0.185887,
+    "clears_the_binding_floor": true,
+    "multiple_of_the_binding_floor": 4.1383,
+    "per_year": {
+      "2016": {
+        "world_per_svt_account_year": 0.0,
+        "svt_account_years": 0.0055,
+        "returns": 0,
+        "clears_the_binding_floor": false
+      },
+      "2017": {
+        "world_per_svt_account_year": 0.039857,
+        "svt_account_years": 25.0897,
+        "returns": 1,
+        "clears_the_binding_floor": false
+      },
+      "2018": {
+        "world_per_svt_account_year": 0.307507,
+        "svt_account_years": 29.2676,
+        "returns": 9,
+        "clears_the_binding_floor": true
+      },
+      "2019": {
+        "world_per_svt_account_year": 0.085519,
+        "svt_account_years": 23.3867,
+        "returns": 2,
+        "clears_the_binding_floor": true
+      },
+      "2020": {
+        "world_per_svt_account_year": 0.072904,
+        "svt_account_years": 27.4333,
+        "returns": 2,
+        "clears_the_binding_floor": true
+      },
+      "2021": {
+        "world_per_svt_account_year": 0.300233,
+        "svt_account_years": 29.9767,
+        "returns": 9,
+        "clears_the_binding_floor": true
+      },
+      "2022": {
+        "world_per_svt_account_year": 0.0,
+        "svt_account_years": 40.1095,
+        "returns": 0,
+        "clears_the_binding_floor": false
+      },
+      "2023": {
+        "world_per_svt_account_year": 0.470548,
+        "svt_account_years": 38.2533,
+        "returns": 18,
+        "clears_the_binding_floor": true
+      },
+      "2024": {
+        "world_per_svt_account_year": 0.08684,
+        "svt_account_years": 34.5462,
+        "returns": 3,
+        "clears_the_binding_floor": true
+      },
+      "2025": {
+        "world_per_svt_account_year": 0.32192,
+        "svt_account_years": 15.5318,
+        "returns": 5,
+        "clears_the_binding_floor": true
+      }
+    },
+    "years_scored": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "years_below_the_floor": [
+      "2016",
+      "2017",
+      "2022"
+    ],
+    "years_clearing_the_floor": [
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "the_verdict_is_not_uniform": true,
+    "years_below_with_no_returns_at_all": [
+      "2016",
+      "2022"
+    ],
+    "years_the_record_calls_a_structural_break": {
+      "2022": "the crisis year. Fixed-term offers were withdrawn across the market for most of it, so the identity's fixed route -- households actively renewing onto a NEW fixed deal -- is describing a product that was largely not for sale. A phi held constant across it is one parameter over two markets. EXCLUDED FROM THE HEADLINE INTERSECTION AND REPORTED SEPARATELY, with its own phi interval at both bands, so the exclusion is checkable rather than assumed."
+    },
+    "what_this_cannot_say": "nothing about whether the world's rate is RIGHT. The floor is one-sided and the point estimate `SVT_INTERNAL_CONVERSION_RATE` is still None, so a world four times the floor is not thereby four times too high -- it is above a bound and the bound has no ceiling beside it. It also cannot attribute a below-floor year: 2016 is the report window's first year and carries 0.0055 SVT account-years, which is an exposure count and not a behaviour, and 2022 is the year the record's own register excludes.",
+    "the_decision_this_judges": "one call to `renewal_engagement.rolls_active_renewal` answers two different household decisions -- coming off a FIXED term (which the 35% anchor is cut on) and coming off an SVT STINT (an internal switch, which nothing published cuts). This reading is where that borrow becomes refutable, and it is refutable HERE rather than in `simulation/` because the published floor is a check and a check may not reach the thing it judges. See docs/staging/SEAT_DECISION_THE_SVT_SIDE_DECISION_IS_NAMED_ON_THE_CHECK_SIDE_BECAUSE_A_CHECK_MAY_NOT_REACH_THE_WORLD_IT_JUDGES_2026-09-19.md."
   },
   "tenure_mix_vs_the_published_observations": {
     "what_this_is": "section 14 put two published observations of the SVT segment's within-segment long-stayer share into the tree -- to compose the published churn band for the phi question -- and nothing has compared them with the world's own mix. This is that comparison, and it bears on section 9's headline because section 9's 1.67x-1.71x was taken against the published RECENT endpoint at a mix of 0.000 and 0.202.",

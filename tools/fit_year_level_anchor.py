@@ -1366,6 +1366,13 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
       * `of_the_whole_book` -- returns over accounts on the book. The unit Ofgem CIM question C4
         publishes, whose base is all respondents, and therefore the ONLY one in which the world and
         the record can be put beside each other at all.
+        **CORRECTED 2026-09-19, BESIDE THE CLAIM AND NOT OVER IT: "the ONLY one" stopped being true
+        when `b721b6acf` landed `published_route_split.svt_internal_conversion_floor`.** That bound
+        is on `J_svt` ITSELF -- conversions per SVT HOUSEHOLD -- so `per_svt_account_year` is now
+        comparable to the record too, and it is the better comparison of the two: C4's raw internal
+        row mixes this route with fixed-term active renewal, and the floor is that row with the
+        renewal route's ceiling netted off. `against_the_floor_for_this_route` below is that
+        comparison and `against_the_record` above is kept unchanged beside it.
       * `long_stayer_share` -- the share of SVT account-DAYS carrying three or more years of tenure,
         which is what selects `SVT_INERTIA_ANNUAL_LONG_STAYER` over `SVT_INERTIA_ANNUAL_RECENT`.
         This is the quantity §14 put two published observations of into the tree, for the composition
@@ -1496,6 +1503,14 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
             ),
         },
         "against_the_record": _internal_return_vs_record(per_year),
+        # APPENDED AFTER the keys the previous artefact carried, so a reader diffing the two sees an
+        # addition rather than a rewrite -- the same ordering rule `published_route_split.
+        # svt_segment_churn_band` states for its own dict.
+        "against_the_floor_for_this_route": _internal_return_vs_the_published_floor(
+            per_year,
+            round(totals[STINT_RETURNED] / account_years_total, 6)
+            if account_years_total else None,
+        ),
         "tenure_mix_vs_the_published_observations": {
             "what_this_is": (
                 "section 14 put two published observations of the SVT segment's within-segment "
@@ -1686,6 +1701,20 @@ def _internal_return_vs_record(per_year: dict[str, dict]) -> dict:
             "years_touched": touched,
             "years_inside_the_records_span": inside,
         },
+        # CORRECTED 2026-09-19, BESIDE THE CLAIM AND NOT OVER IT. Nothing above is changed: the
+        # comparison is still the one the record's raw internal row supports, and it is still worth
+        # having. What it could not know is that the row is MIXED, and that a bound on this route
+        # alone now exists.
+        "this_comparison_is_against_the_MIXED_quantity": (
+            "`I` is internal switching over ALL households and `published_route_split`'s own "
+            "identity makes it `s*J_svt + (1-s)*0.35*(1-phi)` -- this route PLUS fixed-term active "
+            "renewal. The world figure above counts only this route, so the world is carrying one "
+            "numerator against a record filled by two and `world_below_record` is biased toward "
+            "True for a reason that is not about the world. `against_the_floor_for_this_route` is "
+            "the same question asked of a bound on THIS route alone, which "
+            "`svt_internal_conversion_floor` made available on 2026-09-19; read that one for the "
+            "verdict and this one for the shape."
+        ),
         "a_caveat_this_reading_does_not_resolve": (
             "C4's internal code is 'switched tariff with the same supplier' as the household "
             "reports it, and a fixed term expiring ONTO the default tariff is also a tariff change "
@@ -1693,6 +1722,156 @@ def _internal_return_vs_record(per_year: dict[str, dict]) -> dict:
             "of it is the opposite move, the record's internal row overstates the quantity this "
             "world's return route models, and the gap below is smaller than it reads. Nothing "
             "published separates the two directions and this reading does not assume one."
+        ),
+    }
+
+
+def _internal_return_vs_the_published_floor(
+    per_year: dict[str, dict], world_rate_per_svt_account_year: float | None
+) -> dict:
+    """The world's `J_svt` against the floor the record sets for `J_svt` ITSELF, not for `I`.
+
+    WHY THIS EXISTS BESIDE `_internal_return_vs_record` RATHER THAN REPLACING IT. That function
+    compares this world's internal return rate against CIM C4's internal-switching row `I`, and when
+    it was written `I` was the only published quantity there was. `I` is MIXED:
+    `published_route_split`'s own identity says `I = s*J_svt + (1-s)*0.35*(1-phi)`, so it contains
+    the fixed-term renewal route as well as this one -- while the world figure it is compared against
+    counts ONLY stints returning to a fixed term. A numerator carrying one route over a denominator
+    the record fills with two is the mixed-quantity comparison this repository keeps paying for, and
+    `b721b6acf` is what made it avoidable: `svt_internal_conversion_floor` nets the renewal route's
+    ceiling off `I` and leaves a bound on `J_svt` alone.
+
+    THE SEAM, AND IT CROSSES NO WALL. The published floor is a CHECK on what the world produces and
+    `svt_internal_conversion_floor`'s own docstring refuses to be a parameter -- so it reaches the
+    world's SVT-side decision by JUDGING ITS OUTPUT, never by being imported into it. That is why
+    this reading lives here: `tools/` may read both the record and a committed capture, and
+    `simulation/` may import neither `tools.published_route_split` nor `tools.published_tariff_mix`
+    (`test_the_published_route_split_does_not_read_the_worlds_clipped_constants`,
+    `test_the_published_check_band_cannot_be_read_by_the_world_it_judges`). No world-side constant is
+    minted and the rate gap keeps its one home.
+
+    WHAT EACH NUMBER COUNTS, because the last comparison went wrong by not asking:
+      * WORLD -- `returned_to_fixed` stints over SVT account-DAYS/365.25 of exposure, binned on the
+        year the stint ENDS. Conversions per SVT account-year, on this book's resi electricity
+        accounts.
+      * FLOOR -- `(I - (1-s)*0.35) / s_max`, conversions per SVT household per six months, on GB
+        domestic survey respondents across both fuels.
+      Same KIND of quantity -- conversions per SVT household per unit of exposure on the product --
+      which is what makes this admissible and the mixed one above not. `s` enters the floor as the
+      published share of the household STOCK over the recall window, so its denominator is
+      exposure-like over that window; a household converting mid-window is counted whole, which
+      makes the record's denominator slightly larger than true exposure and the floor slightly
+      understated -- the same conservative direction the floor's own three choices already take.
+
+    THE BAR IS WEAK IN A NAMED DIRECTION AND IS NOT STRENGTHENED HERE. A six-month floor used as an
+    annual bar is LOWER than the true annual bar, so `clears_the_binding_floor` is the flattering
+    verdict and a year that comes out BELOW is below by at least that much. Annualising the floor
+    would need the repeat-switching assumption `svt_internal_conversion_floor` declines to make and
+    that `_internal_return_vs_record` refused for the same row; inventing one to strengthen this
+    reading's own verdict is the one move that would make it worthless.
+
+    FAILS CLOSED. A floor of `None` is reported as a refusal with its reason, never as a pass.
+    """
+    floor_reading = published_route_split.svt_internal_conversion_floor()
+    floor = floor_reading["binding_floor"]
+    per_year_verdicts: dict[str, dict] = {}
+    for year, row in sorted(per_year.items()):
+        rate = row["internal_return_rate"]["per_svt_account_year"]
+        per_year_verdicts[year] = {
+            "world_per_svt_account_year": rate,
+            "svt_account_years": row["svt_account_years"],
+            "returns": row["stint_fates"][STINT_RETURNED],
+            "clears_the_binding_floor": (
+                None if (floor is None or rate is None) else rate >= floor
+            ),
+        }
+    scored = [
+        year for year, cell in per_year_verdicts.items()
+        if cell["clears_the_binding_floor"] is not None
+    ]
+    below = [year for year in scored if not per_year_verdicts[year]["clears_the_binding_floor"]]
+    clearing = [year for year in scored if per_year_verdicts[year]["clears_the_binding_floor"]]
+    return {
+        "what_this_is": (
+            "this world's SVT-to-fixed internal conversion rate against "
+            "`published_route_split.svt_internal_conversion_floor`, which bounds that SAME route "
+            "from below. The un-mixed companion to `against_the_record`, which compares against "
+            "CIM C4's raw internal row and therefore against both routes at once."
+        ),
+        "refused": (
+            None if floor is not None else
+            "the record establishes no binding floor from any wave, so there is no bar to judge "
+            "against. Reported rather than passed."
+        ),
+        "binding_floor": floor,
+        "binding_floor_unit": floor_reading["binding_floor_unit"],
+        "binding_floor_source": floor_reading["source"],
+        "waves_with_a_floor": floor_reading["waves_with_a_floor"],
+        "the_point_estimate_is_still": floor_reading["the_point_estimate_is"],
+        "what_each_number_counts": {
+            "world": (
+                "`returned_to_fixed` stints over SVT account-years of exposure, binned on the year "
+                "the stint ends. This book's resi electricity accounts."
+            ),
+            "floor": (
+                "(I - (1-s)*0.35) / s_max -- conversions per SVT household per six months. GB "
+                "domestic survey respondents, both fuels."
+            ),
+            "the_two_mismatches_that_are_named_and_not_corrected": (
+                "a full year against a six-month bar, and this book's electricity accounts against "
+                "GB households. Both are stated because neither is closed."
+            ),
+        },
+        "the_bar_is_weak_in_this_direction": (
+            "a six-month floor used as an annual bar is LOWER than the true annual bar, so "
+            "`clears_the_binding_floor` is the flattering verdict and a year BELOW it is below by "
+            "at least that much. The floor is deliberately not annualised here."
+        ),
+        "world_per_svt_account_year": world_rate_per_svt_account_year,
+        "clears_the_binding_floor": (
+            None if (floor is None or world_rate_per_svt_account_year is None)
+            else world_rate_per_svt_account_year >= floor
+        ),
+        "multiple_of_the_binding_floor": (
+            None if (not floor or world_rate_per_svt_account_year is None)
+            else round(world_rate_per_svt_account_year / floor, 4)
+        ),
+        "per_year": per_year_verdicts,
+        "years_scored": scored,
+        "years_below_the_floor": below,
+        "years_clearing_the_floor": clearing,
+        # DERIVED, NEVER DECLARED. A verdict that is the same in every year would make a control
+        # keyed to the count green for a reason that has nothing to do with the mechanism, and the
+        # spread is the reading: the level clears comfortably and three individual years do not.
+        "the_verdict_is_not_uniform": bool(below) and bool(clearing),
+        "years_below_with_no_returns_at_all": [
+            year for year in below if per_year_verdicts[year]["returns"] == 0
+        ],
+        # The record's OWN register of years its identity cannot describe, imported rather than
+        # restated, so a below-floor year that the record itself excludes is visible as such.
+        "years_the_record_calls_a_structural_break": {
+            year: reason for year, reason in (
+                (year, published_route_split.STRUCTURAL_BREAK_YEARS.get(int(year)))
+                for year in below
+            )
+            if reason is not None
+        },
+        "what_this_cannot_say": (
+            "nothing about whether the world's rate is RIGHT. The floor is one-sided and the point "
+            "estimate `SVT_INTERNAL_CONVERSION_RATE` is still None, so a world four times the floor "
+            "is not thereby four times too high -- it is above a bound and the bound has no ceiling "
+            "beside it. It also cannot attribute a below-floor year: 2016 is the report window's "
+            "first year and carries 0.0055 SVT account-years, which is an exposure count and not a "
+            "behaviour, and 2022 is the year the record's own register excludes."
+        ),
+        "the_decision_this_judges": (
+            "one call to `renewal_engagement.rolls_active_renewal` answers two different household "
+            "decisions -- coming off a FIXED term (which the 35% anchor is cut on) and coming off an "
+            "SVT STINT (an internal switch, which nothing published cuts). This reading is where "
+            "that borrow becomes refutable, and it is refutable HERE rather than in `simulation/` "
+            "because the published floor is a check and a check may not reach the thing it judges. "
+            "See docs/staging/SEAT_DECISION_THE_SVT_SIDE_DECISION_IS_NAMED_ON_THE_CHECK_SIDE_"
+            "BECAUSE_A_CHECK_MAY_NOT_REACH_THE_WORLD_IT_JUDGES_2026-09-19.md."
         ),
     }
 
@@ -1772,6 +1951,24 @@ def _internal_return_main(table_path: Path) -> int:
           f"{len(shape['years_touched'])} years those waves touch: "
           + ", ".join(f"{y} {shape['world_rate_in_each_year_the_waves_touch'][y]:.4f}"
                       for y in shape["years_touched"]))
+    floor_vs = reading["against_the_floor_for_this_route"]
+    print()
+    print("── AND AGAINST THE FLOOR THE RECORD SETS FOR THIS ROUTE ALONE (the un-mixed one) ──")
+    print()
+    if floor_vs["refused"] is not None:
+        print(f"  REFUSED — {floor_vs['refused']}")
+    else:
+        print(f"  binding floor {floor_vs['binding_floor']:.6f} "
+              f"({floor_vs['waves_with_a_floor']} waves carry one); "
+              f"world {floor_vs['world_per_svt_account_year']:.6f} per SVT account-year "
+              f"= {floor_vs['multiple_of_the_binding_floor']:.2f}x — "
+              f"{'CLEARS' if floor_vs['clears_the_binding_floor'] else 'BELOW'}")
+        print(f"  years below the floor: {floor_vs['years_below_the_floor']} of "
+              f"{len(floor_vs['years_scored'])} scored"
+              f" (no returns at all in {floor_vs['years_below_with_no_returns_at_all']})")
+        print("  AND THE BAR IS THE FLATTERING ONE: a six-month floor read as an annual bar is "
+              "lower than")
+        print("  the true annual bar, so a year BELOW it is below by at least that much.")
     mix = reading["tenure_mix_vs_the_published_observations"]
     print()
     print("── THE TENURE MIX §14 SOURCED, AGAINST THE WORLD'S ──")
