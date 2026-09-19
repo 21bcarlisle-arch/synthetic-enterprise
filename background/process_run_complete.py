@@ -1497,8 +1497,17 @@ def update_latest_md(data, elapsed_s, git_hash="unknown"):
     no_offer_churns = len(no_offer)
     churn_count = len(churned)
 
+    # THE BLOCK CARRIES ITS OWN CLOCK (2026-09-19). Every financial figure on a surface carries
+    # its basis, and this block — the only live £ on the status page — carried none. The clock it
+    # was supposed to get was the `Net position:` line stamped below, and that line was deleted
+    # from LATEST.md on 2026-07-03 (`e50ae96c1`), so the `re.sub` matched nothing and wrote
+    # nothing for 78 days without raising: a zero-match substitution is silent by construction.
+    # Undated, the figure cannot be told from the dated records of earlier runs in the same file,
+    # which is exactly how the page came to state two net margins with no basis between them.
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     parts = [
-        "**Latest simulation results (2016–2025)** — auto-processed ({:.0f}s / {:.0f} min):".format(elapsed_s, mins),
+        "**Latest simulation results (2016–2025)** — auto-processed ({:.0f}s / {:.0f} min)"
+        " // run {}, {}:".format(elapsed_s, mins, git_hash, date_str),
         "- Net margin: \xa3{:,.2f} | Gross: \xa3{:,.2f} | Capital: \xa3{:,.0f}".format(net, gross, capital),
         "- Treasury: \xa3{:,.0f} → \xa3{:,.0f} | {} committee interventions | {} bills issued".format(t_start, t_end, committee, bills),
         "- Enterprise value: \xa3{:,.2f} | Net after CTS: \xa3{:,.0f}".format(ev, net_cts),
@@ -1518,13 +1527,9 @@ def update_latest_md(data, elapsed_s, git_hash="unknown"):
         # Block not yet present — append to end on first auto-process
         text = text.rstrip() + "\n\n" + new_block + "\n"
         log("Created 'Latest simulation results' block in LATEST.md")
-    # Update "Net position:" summary line in Last Run section
-    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    text = re.sub(
-        r"Net position: .*",
-        "Net position: \xa3{:,.0f} (git {}, {})".format(net, git_hash, date_str),
-        text,
-    )
+    # The `Net position:` re.sub that stood here is gone rather than repaired: its anchor has not
+    # existed in LATEST.md since 2026-07-03, it is the clock the block above now carries inline,
+    # and a second home for one published quantity is what this whole repair is about.
     LATEST_MD.write_text(text)
 
 
