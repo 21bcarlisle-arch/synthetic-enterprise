@@ -2210,6 +2210,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # because the DEPARTURE booking further down is outside that branch -- a name left over
             # from the previous iteration would book one customer's channel against another's loss.
             _company_payment_method = None
+            # HOISTED OUT OF THE BRANCH BELOW (2026-09-19) because the churn-journey REGISTRATION
+            # that used it is now needed at a second site -- the `advance` call at the end of this
+            # block, which is NOT inside the branch. Same expression, same inputs, no side effects:
+            # a lookup over a list and a date subtraction. See the registration guard beside that
+            # advance for what it is for.
+            acq_date_for_est = next(
+                (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS
+                 if c["customer_id"] == billing_account),
+                term_start_str,
+            )
+            tenure_for_est = (
+                date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)
+            ).days / 365.25
             if old_decision_leg_rate is not None:
                 # Phase 2 Layer 1 (CORE_FIDELITY_PHASES.md): each household's
                 # engagement archetype is a persistent trait (keyed on the
@@ -2227,11 +2240,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     active_renewal_probability(_engagement_level),
                 )
                 passive_cap = passive_churn_cap_for(active_renewal)
-                acq_date_for_est = next(
-                    (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
-                    term_start_str,
-                )
-                tenure_for_est = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
                 # Phase 15d: pass previous-term hedge fraction — well-hedged customers
                 # experienced stable prices, making them less rate-sensitive at renewal.
                 prev_hf = current_hf.get(cid, 0.0)
@@ -2493,6 +2501,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 max(0.0, unit_rate - old_decision_leg_rate) * (company_eac / 1000.0)
                 if old_decision_leg_rate else 0.0
             )
+            # A TERM CAN REACH THIS ADVANCE HAVING NEVER STRUCK A RATE, AND UNTIL 2026-09-19 THAT
+            # RAISED KeyError AND KILLED THE RUN. The registration above sits inside
+            # `if old_decision_leg_rate is not None:`; this call is outside it, so the pairing held
+            # only while every account's decision leg opened on a product with a struck rate. An
+            # account that opens on the DEFAULT TARIFF has no rate to carry forward, reaches its
+            # first in-window term unregistered, and dies here -- which is exactly what the C6
+            # arrival producer began minting on 2026-09-19 (`simulation/arrival_route.py`), 989s
+            # into a value-arm pass, on SYN-2016-008.
+            #
+            # INERT FOR EVERY WORLD THAT COMPLETES TODAY, which is the argument for fixing it here
+            # rather than in the producer: an account reaching this line unregistered RAISED, so
+            # this branch is reachable only in worlds that currently cannot finish at all. It
+            # cannot move a published figure.
+            if _churn_journey_register.get_journey(billing_account) is None:
+                _churn_journey_register.register_customer(
+                    billing_account, tenure_years=tenure_for_est, churn_threshold=50.0,
+                )
             _journey_state = _churn_journey_register.advance(
                 billing_account, date.fromisoformat(term_start_str),
                 renewal_window_open=True,
