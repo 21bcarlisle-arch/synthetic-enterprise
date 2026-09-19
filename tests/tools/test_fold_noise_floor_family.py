@@ -619,3 +619,125 @@ def test_the_value_arm_pairing_fails_closed_and_every_branch_is_reachable():
     # is not a guard that only ever says one thing.
     assert {mixed["same_value_arm"], single["same_value_arm"], unstamped["same_value_arm"]} == {
         False, True, None}
+
+
+# --- the duplicate-seed refusal names the cause it established -------------------------------
+#
+# THE DEFECT (2026-09-19). The refusal above fires on any repeated seed id and used to explain
+# itself the same way every time: "folding it would count one draw twice". That is one specific
+# cause, and the remedy it implies -- drop a copy -- is right only when both rows came off the
+# same pricing code. Seeds 3100001-3100012 have now been drawn twice, at `a178b56d6` and at
+# `18327d977`, on trees that differ on `company/pricing/value_based_renewal.py`. There the rows
+# are two instruments, de-duplicating discards an entire family, and the refusal was recommending
+# it. A refusal that names a cause it has not established is how a correct refusal produces the
+# wrong repair.
+
+# Derived from `_REPO` rather than from the module-level floor-directory constant on purpose:
+# another lane is reworking that constant in this same file, and these controls must land on
+# HEAD-plus-these-hunks without carrying it.
+_NEXT12 = (_REPO / "docs" / "observability"
+           / "value_cycle_ab_s1_noise_floor_next12_20260917.json")
+
+
+def _twelve_twice(tmp_path, commit_a, commit_b):
+    """The same twelve rows twice, stamped with the two commits under test."""
+    if not _NEXT12.exists():
+        pytest.skip("no twelve-seed floor on disk at {}".format(_NEXT12))
+    src = json.loads(_NEXT12.read_text(encoding="utf-8"))
+    out = []
+    for tag, commit in (("a", commit_a), ("b", commit_b)):
+        data = copy.deepcopy(src)
+        data.setdefault("producing_commit", {})["commit"] = commit
+        path = tmp_path / "twelve_{}.json".format(tag)
+        path.write_text(json.dumps(data), encoding="utf-8")
+        out.append(path)
+    return out
+
+
+def _refusal(tmp_path, commit_a, commit_b):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    with pytest.raises(FoldRefused) as caught:
+        fold(_twelve_twice(tmp_path, commit_a, commit_b))
+    return str(caught.value)
+
+
+def _cause_only(text):
+    """The refusal with its "seed N appears in both `x` and `y`." preamble removed.
+
+    WHY THE PARTITION CONTROL CANNOT READ THE WHOLE STRING. It did, and it was a tautology:
+    the preamble carries the two file paths, which differ between cases because the fixtures are
+    written to different directories. So the four messages were distinct no matter what the
+    explanation said, and the control stayed GREEN under the mutation that collapsed all four
+    causes to one sentence -- the exact defect it was written for. Caught by mutation, 2026-09-19.
+    """
+    head, sep, rest = text.partition("`. ")
+    assert sep, "the refusal no longer opens with the two source paths: {}".format(text[:120])
+    return rest
+
+
+def _head_of(rev):
+    import subprocess
+    done = subprocess.run(["git", "-C", str(_REPO), "rev-parse", rev],
+                          capture_output=True, text=True)
+    if done.returncode != 0:
+        pytest.skip("{} is not in this repository".format(rev))
+    return done.stdout.strip()
+
+
+def test_every_branch_of_the_duplicate_refusal_is_reachable(tmp_path):
+    """THE DEFECT THIS SHAPE CATCHES: a guard that refuses EVERYTHING passes every per-branch
+    test written for it, and a branch reached through no door is pinned by nothing. So this is one
+    control over the whole partition -- it asserts each of the four cases produces a DISTINCT
+    explanation before any other test asserts what those explanations say.
+
+    Learned here the expensive way: the old refusal had exactly one sentence for all four."""
+    same = _head_of("a178b56d6")
+    other = _head_of("18327d977")
+    seen = {
+        "same_commit": _refusal(tmp_path / "s", same, same),
+        "different_arm": _refusal(tmp_path / "d", same, other),
+        "unstamped": _refusal(tmp_path / "u", same, None),
+        "unresolvable": _refusal(tmp_path / "x", same, "0" * 40),
+    }
+    for name, text in seen.items():
+        assert "appears in both" in text, "{} stopped refusing altogether".format(name)
+    causes = {k: _cause_only(v) for k, v in seen.items()}
+    assert len(set(causes.values())) == 4, (
+        "two of the four duplicate causes explain themselves identically, so at least one is "
+        "unreachable or unnamed: {}".format({k: v[:80] for k, v in causes.items()}))
+
+
+def test_two_instruments_drawing_one_seed_are_not_called_one_draw_twice(tmp_path):
+    """THE DEFECT: the refusal tells the reader to de-duplicate when the two rows are different
+    measurements. Dropping either discards a whole instrument's family and publishes the survivor
+    as though no choice had been made. Pinned against the REAL pair of trees the twelve ran on."""
+    text = _refusal(tmp_path, _head_of("a178b56d6"), _head_of("18327d977"))
+    assert "DIFFERENT PRICING CODE" in text
+    assert "company/pricing/value_based_renewal.py" in text
+    assert "Do NOT de-duplicate" in text
+    # The cause it must NOT claim here, and the repair it must not recommend.
+    assert "one draw recorded twice" not in text
+    assert "Drop one copy" not in text
+
+
+def test_the_same_tree_twice_still_earns_the_original_sentence(tmp_path):
+    """THE MIRROR, and it is why the test above is not satisfied by deleting the old sentence: when
+    both rows DO come off one commit, de-duplication is the right repair and must still be said."""
+    same = _head_of("a178b56d6")
+    text = _refusal(tmp_path, same, same)
+    assert "one draw recorded twice" in text
+    assert "Drop one copy" in text
+    assert "DIFFERENT PRICING CODE" not in text
+
+
+def test_a_duplicate_it_cannot_resolve_recommends_neither_repair(tmp_path):
+    """THE DEFECT: fail-open. An unstamped member and an unresolvable commit both leave the
+    question unasked, and the two candidate causes need OPPOSITE repairs -- so naming either is a
+    coin flip wearing a finding's clothes. `_value_arm_diff` returns an empty path set on failure
+    and an empty path set on agreement; a caller that reads the set before the failure flag lands
+    on 'same arm, drop a copy', which is the flattering branch."""
+    for label, other in (("unstamped", None), ("unresolvable", "0" * 40)):
+        text = _refusal(tmp_path / label, _head_of("a178b56d6"), other)
+        assert "Drop one copy" not in text, "{} took the flattering branch".format(label)
+        assert "opposite remedies" in text
+        assert "neither is applied here" in text
