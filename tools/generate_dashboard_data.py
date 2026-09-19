@@ -1951,11 +1951,27 @@ def extract_run_history(history_path=None, max_entries=10):
 
 
 def count_run_history_total(history_path=None):
-    """Full count of every run ever recorded, not just the last N kept by
-    extract_run_history() for display. The Project tab's "Sim runs" KPI used
-    to read len(run_history) off the truncated list, so it always showed
-    exactly max_entries (10) no matter how many runs had actually happened
-    -- a dead counter (PROJECT_TAB_OVERHAUL.md critique).
+    """Count of the runs the ledger still holds -- NOT "every run ever recorded".
+
+    IT SAID "full count of every run ever recorded" UNTIL 2026-09-19, AND THAT WAS NEVER TRUE.
+    `generate_insights.append_run_history` ends `history = history[-100:]`, so its subject is a
+    100-entry ring buffer. Measured: the ledger reached 100 on 2026-06-30 and this function has
+    returned exactly 100 on every build since -- 81 days. It was written to replace a dead
+    counter pinned at 10 (the Project tab read `len()` off the already-truncated display list,
+    PROJECT_TAB_OVERHAUL.md) and it is a dead counter pinned at 100. The number is a floor, not a
+    total: the true count is *at least* this, and the ledger cannot say by how much.
+
+    `tests/tools/test_generate_dashboard_data.py::test_count_run_history_total_counts_full_history
+    _not_truncated` is green throughout, on a 37-entry fixture. Its subject is the READER and the
+    truncation is in the WRITER -- a control narrower than the class its name claims.
+
+    AND THE SURFACE IT NAMES IS GONE. `site/project/` was deleted on 2026-08-20 (`03dd8c49e`,
+    "the five tabs are the site"), and `renderKpis()` with it. Nothing under `site/` reads
+    `run_history` or `run_history_total`; `site/index.html` is dashboard.json's only consumer and
+    reads five keys, neither among them. This field is computed and committed on every cycle and
+    rendered by nobody. Whether it should carry its bound or be deleted is filed, not decided
+    here: `docs/staging/SEAT_RESULT_THE_PUBLISHED_SERIES_WAS_FRESH_THE_KPI_WAS_CAPPED_AND_ITS_
+    PAGE_WAS_DELETED_2026-09-19.md`.
 
     THE KPI MUST NOT BE FABRICATED FROM A CORRUPT RECORD (2026-09-05 census loader sweep).
     Measured against a live prior of 100 runs: `"abc"` published **3** and `[1, 2, 3]` published
