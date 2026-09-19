@@ -70,7 +70,6 @@ from __future__ import annotations
 import html
 import json
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -95,6 +94,7 @@ if str(PROJECT) not in sys.path:
 import ia_register as _ia  # noqa: E402
 
 from tools import maturity_map_store as map_store  # noqa: E402
+from tools import provenance_stamp  # noqa: E402
 from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
 from tools.python_code_text import searchable  # noqa: E402
 
@@ -484,17 +484,29 @@ def _count_test_functions(path: str, project: Path = PROJECT) -> int:
 # --- payload -----------------------------------------------------------------
 
 
+# The inputs this generator names in its stamp are `build_payload`'s four source ARGUMENTS, read
+# there rather than listed here: a module-level tuple would describe the globals even when a
+# caller redirected a source, which is the defaulted-argument trap `generate()`'s own comment
+# already records. They are not a complete account — this module also counts `def test_` across
+# every test file in the tree — which is why `provenance_stamp` asks the coarse whole-tree
+# question beside the list. `/suite/*` was one of the keys the 2026-09-19 measurement found
+# divergent at this feed's own recorded commit.
+
+
 def _git_hash() -> str:
-    try:
-        out = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=str(PROJECT), capture_output=True, text=True, timeout=10,
-        )
-        if out.returncode == 0:
-            return out.stdout.strip()
-    except (OSError, subprocess.SubprocessError):
-        pass
-    return "unknown"
+    """The short commit this tree stands at.
+
+    KEPT SHORT because `render_html` prints it to a reader and a 40-hex sha in prose is noise, and
+    DERIVED from the same `provenance_stamp.head_commit` the full stamp uses rather than by a
+    second `git rev-parse --short`. Two independent calls could answer differently across a
+    concurrent landing, and then the feed would carry two provenance claims and no way to tell
+    which described the run — which is the defect one size smaller.
+
+    This is NOT the feed's provenance claim. `published_from` is, and it says whether the commit
+    describes the bytes that were read. See `tools/provenance_stamp.py`.
+    """
+    full = provenance_stamp.head_commit(PROJECT)
+    return full[:9] if full else "unknown"
 
 
 def build_payload(
@@ -600,6 +612,11 @@ def build_payload(
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "git_hash": _git_hash(),
+        # The sources are taken from the ARGUMENTS, not the module globals, for the same reason
+        # `generate()` passes them explicitly: a stamp built from the globals would describe files
+        # a redirected build never read, which is this module's own defect wearing a fix's clothes.
+        provenance_stamp.STAMP_KEY: provenance_stamp.stamp(
+            (map_path, mapping_path, ledger_path, suite_log_path), project),
         "suite": suite,
         "sources": {
             "node_mapping": _rel(mapping_path, project),

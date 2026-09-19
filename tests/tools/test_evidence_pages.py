@@ -321,7 +321,12 @@ def test_page_is_reproducible_from_the_sources(payload):
     # `suite` is legitimately volatile: EVERY pytest invocation appends to
     # test_execution_log.jsonl, so this very test run can move it. The evidence content --
     # nodes, atoms, citations, ledger, totals -- must be byte-identical.
-    volatile = ("generated_at", "git_hash", "suite")
+    # `published_from` is volatile for the SAME reason `git_hash` is, one step further: it is a
+    # description of the tree at generation time, and in this shared tree the answer moves with
+    # every lane's uncommitted edit. It is not unchecked — it is bound by
+    # `tests/tools/test_a_generators_stamp_describes_the_bytes_it_read.py`, which asserts over its
+    # shape and its refusals rather than over one run's answer.
+    volatile = ("generated_at", "git_hash", "suite", "published_from")
     assert {k: v for k, v in fresh.items() if k not in volatile} == {
         k: v for k, v in payload.items() if k not in volatile
     }, "the published evidence.json is not reproducible from its sources"

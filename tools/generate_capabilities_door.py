@@ -52,6 +52,8 @@ if str(PROJECT) not in sys.path:
 
 from moap_stage import BUILDING, LIVE, PLANNED, compute_stage  # noqa: E402
 
+from tools import provenance_stamp  # noqa: E402
+
 MAP_FEED = SITE / "data" / "maturity_map.json"
 INTERFACES = PROJECT / "company" / "interfaces"
 OUT_PATH = SITE / "data" / "capabilities_door.json"
@@ -811,13 +813,29 @@ def scale(customers: Path = SITE / "data" / "customers.json",
     }
 
 
-def _git_commit() -> str:
-    try:
-        out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT),
-                             capture_output=True, text=True, timeout=30)
-        return (out.stdout or "").strip() or "unknown"
-    except (OSError, subprocess.SubprocessError):
-        return "unknown"
+#: The DATA inputs this generator reads off the working tree, named so the provenance stamp can
+#: say whether standing at the recorded commit would give the same bytes. Not a complete account
+#: of what is read — `wall_position()` shells out to a register that walks the whole of `company/`
+#: — which is why `provenance_stamp` also asks the coarse whole-tree question beside this list.
+#: These are the paths the 2026-09-19 measurement caught: `/scale/figures[0]/as_of` came from a
+#: `customers.json` NEWER than the commit the feed stamped.
+READS = (
+    MAP_FEED,
+    SITE / "data" / "moap_node_atoms.json",
+    SITE / "data" / "customers.json",
+    SITE / "data" / "dashboard.json",
+    SITE / "data" / "evidence.json",
+    QUALIFICATION_REGISTER,
+)
+
+
+# `_git_commit()` was DELETED here on 2026-09-19, not kept beside its replacement. It was a second
+# `git rev-parse HEAD` call whose answer `build()` published as the feed's whole provenance claim,
+# and that claim was measured false: the generator stamps HEAD and reads `customers.json` off the
+# working tree, so the commit named a state it had not read. `build()` now takes the commit out of
+# the `published_from` stamp, which answers the question a reader is actually asking — would
+# standing at this commit give these inputs — and cannot disagree with itself the way two
+# independent `rev-parse` calls could.
 
 
 # EVERY GAP NAMES THE WORK THAT CLOSES IT (director, 2026-08-18: "a gap with no plan beside
@@ -983,9 +1001,15 @@ def build(feed: Path = MAP_FEED) -> dict:
     def tally(rows):
         return {s: sum(1 for r in rows if r["status"] == s) for s in (LIVE, BUILDING, PLANNED)}
 
+    published_from = provenance_stamp.stamp(READS, PROJECT)
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "git_commit": _git_commit(),
+        # The commit is repeated here rather than removed: the door's own JavaScript renders it and
+        # `test_published_provenance_is_real` shapes it. It is the same value as
+        # `published_from.commit` by construction, so the two can never disagree the way a second
+        # `rev-parse` call could.
+        "git_commit": published_from["commit"] or "unknown",
+        provenance_stamp.STAMP_KEY: published_from,
         "sources": {
             "record": "site/data/maturity_map.json",
             "status_rule": "site/moap_stage.py (Live / Building / Planned)",

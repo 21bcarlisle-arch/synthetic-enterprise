@@ -89,6 +89,11 @@ import sys
 import tempfile
 from pathlib import Path
 
+if str(Path(__file__).resolve().parent.parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools import provenance_stamp  # noqa: E402
+
 PROJECT = Path(__file__).resolve().parent.parent
 FEED_DIR = "site/data"
 
@@ -151,6 +156,14 @@ COVERED_AT_THEIR_OWN_COMMIT: dict[str, str] = {}
 #:
 #: That is a producer defect and no comparator or standpoint can repair it: there is no commit to
 #: stand at that describes the inputs, because the inputs were never a commit.
+#:
+#: REPAIRED AT THE PRODUCER, 2026-09-19 — and the repair does not make these feeds reproduce, it
+#: makes them SAY SO. Both generators now publish `provenance_stamp.STAMP_KEY`, carrying the commit
+#: AND whether the bytes they read were that commit's. `recorded_publication_commit` reads it first
+#: and returns NO_STANDPOINT with the feed's own reason when the answer is no, rather than standing
+#: at a commit that was never going to reproduce and reporting the difference as a divergence. A
+#: feed published from a clean tree becomes checkable here with nobody editing a list; a feed
+#: published from a dirty one is uncheckable and now names which input moved.
 PROVENANCE_IS_NOT_THE_INPUT_DESCRIPTION = (
     "a feed that stamps `git rev-parse HEAD` beside content read from the working tree records a "
     "commit that does not describe its inputs, so standing at that commit cannot reproduce it"
@@ -203,7 +216,32 @@ def recorded_publication_commit(doc, root: Path = PROJECT) -> tuple[str | None, 
     So the rule refuses in both directions rather than guessing, and it needs no per-feed table: the
     day `value_arms.json` stamps its publishing commit in one reserved place and stops scattering
     the rest, it becomes answerable here with nobody editing a list.
+
+    THAT DAY ARRIVED 2026-09-19 AND THE RESERVED KEY IS CONSULTED FIRST. `provenance_stamp.STAMP_KEY`
+    is the one place a feed may say which of its shas is the standpoint. Reading it before the scan
+    is not an optimisation: `capabilities_door.json` keeps a back-compatible `git_commit` beside the
+    stamp and `evidence.json` a SHORT `git_hash`, and the scan would count the short form and the
+    full form as TWO commits and lose the standpoint of a feed that had finally declared it.
     """
+    if isinstance(doc, dict):
+        block = doc.get(provenance_stamp.STAMP_KEY)
+        if isinstance(block, dict) and "commit" in block:
+            sha = block.get("commit")
+            if not (isinstance(sha, str) and _is_ancestor_commit(root, sha)):
+                return None, (
+                    f"the feed's reserved {provenance_stamp.STAMP_KEY!r} names "
+                    f"{sha!r}, which is not a commit of this repository reachable from HEAD"
+                )
+            if not provenance_stamp.describes_its_inputs(block):
+                # A NAMED REFUSAL, NOT A DIVERGENCE. The feed itself says the commit does not
+                # describe the bytes it read, so standing there cannot reproduce it and reporting
+                # the difference as a red would blame the comparator for a producer's honesty.
+                return None, (
+                    f"the feed records {sha[:9]} but says the bytes it read were not that "
+                    f"commit's — {block.get('reason') or 'no reason given'}"
+                )
+            return sha, (f"the commit the feed declares under {provenance_stamp.STAMP_KEY!r}, "
+                         "which also says its inputs were that commit's bytes")
     seen: list[str] = []
     for value in _scalars(doc):
         if (isinstance(value, str) and 7 <= len(value) <= 40
