@@ -9,10 +9,10 @@
   "meter_type": "Traditional",
   "mpan": null,
   "mprn": "20543812",
-  "lifetime_revenue_gbp": 1950.93,
-  "lifetime_gross_gbp": 1270.15,
-  "lifetime_net_gbp": 800.61,
-  "lifetime_net_after_cts_gbp": 538.26,
+  "lifetime_revenue_gbp": 1951.0,
+  "lifetime_gross_gbp": 1270.22,
+  "lifetime_net_gbp": 800.68,
+  "lifetime_net_after_cts_gbp": 538.33,
   "cost_to_serve_gbp": 262.34,
   "pricing_action": {
     "flag": "OK",
@@ -29,8 +29,8 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 800.61,
-      "revenue_gbp": 1950.93
+      "net_gbp": 800.68,
+      "revenue_gbp": 1951.0
     }
   },
   "dual_fuel_combined": null,
@@ -46,8 +46,8 @@
     {
       "year": 2017,
       "revenue_gbp": 0,
-      "gross_gbp": 207.87,
-      "net_gbp": 107.48,
+      "gross_gbp": 207.94,
+      "net_gbp": 107.55,
       "tariff_min": 26.6,
       "tariff_max": 28.23
     },
@@ -598,14 +598,14 @@
       "period_end": "2017-03-31",
       "commodity": "gas",
       "consumption_kwh": 861.3,
-      "unit_rate_p_per_kwh": 2.802,
-      "commodity_amount_gbp": 24.13,
+      "unit_rate_p_per_kwh": 2.81,
+      "commodity_amount_gbp": 24.2,
       "standing_charge_gbp": 7.13,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.23,
       "non_commodity_amount_gbp": 8.18,
-      "vat_gbp": 1.97,
-      "amount_gbp": 41.41,
+      "vat_gbp": 1.98,
+      "amount_gbp": 41.49,
       "status": "PAID",
       "meter_serial": "M00038130",
       "mpan": null,
@@ -618,8 +618,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 861.3,
-          "amount_gbp": 24.13,
-          "unit_rate_p_per_kwh": 2.802
+          "amount_gbp": 24.2,
+          "unit_rate_p_per_kwh": 2.81
         }
       ],
       "catchup_applied": false,
@@ -2725,17 +2725,17 @@
         "date": "2017-04-03",
         "type": "invoice_raised",
         "invoice_number": 1092,
-        "amount_gbp": 41.41,
+        "amount_gbp": 41.49,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1092 raised",
-        "running_balance_gbp": 41.41
+        "running_balance_gbp": 41.49
       },
       {
         "date": "2017-04-17",
         "type": "payment_received",
         "invoice_number": 1092,
-        "amount_gbp": -41.41,
+        "amount_gbp": -41.49,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -3703,8 +3703,8 @@
       }
     ],
     "current_balance_gbp": -0.01,
-    "total_billed_gbp": 2546.64,
-    "total_collected_gbp": 2546.65,
+    "total_billed_gbp": 2546.72,
+    "total_collected_gbp": 2546.73,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

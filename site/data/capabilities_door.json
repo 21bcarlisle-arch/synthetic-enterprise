@@ -1,6 +1,38 @@
 {
- "generated_at": "2026-09-19T09:02:17Z",
- "git_commit": "be7311e35aa403a699b8b813175cd21c58968b2a",
+ "generated_at": "2026-09-19T17:15:42Z",
+ "git_commit": "3a8d151852754fd7b918872bb5fc0a8aff625041",
+ "published_from": {
+  "commit": "3a8d151852754fd7b918872bb5fc0a8aff625041",
+  "tree_was_clean": false,
+  "inputs_are_the_committed_bytes": false,
+  "inputs": [
+   {
+    "path": "site/data/maturity_map.json",
+    "state": "committed"
+   },
+   {
+    "path": "site/data/moap_node_atoms.json",
+    "state": "committed"
+   },
+   {
+    "path": "site/data/customers.json",
+    "state": "committed"
+   },
+   {
+    "path": "site/data/dashboard.json",
+    "state": "modified"
+   },
+   {
+    "path": "site/data/evidence.json",
+    "state": "modified"
+   },
+   {
+    "path": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
+    "state": "committed"
+   }
+  ],
+  "reason": "read off the working tree, not out of this commit: site/data/dashboard.json, site/data/evidence.json \u2014 standing at this commit will not reproduce this feed"
+ },
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -1408,7 +1440,7 @@
     "value": 154,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-19T06:53:33Z"
+    "as_of": "2026-09-19T09:02:33Z"
    },
    {
     "value": 224,
