@@ -134,6 +134,81 @@ at the most generous share the record allows. Annualising would roughly double t
 
 ---
 
+## 4a. The other side of the bound, added 2026-09-19: a CEILING on `J_svt`
+
+**Added by claim `svt-internal-conversion-needs-a-ceiling-not-a-better-floor`. Pre-registration:
+`docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_RECORD_SETS_A_CEILING_ON_J_SVT_AND_WHETHER_THE_BANNER_RULED_OUT_FOR_PHI_IS_ADMISSIBLE_ONE_SIDED_2026-09-19.md`.**
+
+§4 above netted the renewal route's ceiling off `I` to bound `J_svt` from BELOW, and that floor
+landed as `tools.published_route_split.svt_internal_conversion_floor` at 0.0449. The world it judges
+runs at 0.1859 — **4.14× the floor, so the floor refuses nothing.** The same identity gives the
+other side, and it needs *less*:
+
+```
+I = s·J_svt + (1−s)·0.35·(1−φ),   and (1−s)·0.35·(1−φ) ≥ 0 at φ = 1   ⟹   J_svt ≤ I / s
+```
+
+`φ ≤ 1` is the definition of a share, not an assumption about one. **Every conservative choice
+inverts relative to the floor** — smallest published default share rather than largest, maximum
+across waves rather than minimum — because for an upper bound the safe direction is upward:
+
+| wave | I (6 mo.) | s_min | **ceiling on `J_svt`** | banner-tightened (§4b) |
+|---|---|---|---|---|
+| W1 | 0.1318 | 0.80 | 0.1648 | 0.1406 |
+| W2 | 0.1248 | 0.80 | 0.1560 | 0.1246 |
+| W3 | 0.1449 | 0.80 | 0.1811 | 0.1392 |
+| W4 | 0.1104 | 0.80 | 0.1380 | 0.1071 |
+| W5 | 0.1159 | 0.80 | 0.1448 | 0.1196 |
+| W6 | 0.1702 | **0.64** | **0.2659** ← binding | **0.2389** ← binding |
+
+**The six-month convention flips its sign here and that is the trap.** §4 and the floor both rely on
+a six-month rate being a valid *annual* floor — a year carries at least a half-year's switching. The
+identical fact makes a six-month rate **not** a valid annual *ceiling*: a year can carry up to twice
+a half-year's, and bounding that above needs the repeat-switching assumption this file has declined
+to make twice. So **`below` is the established verdict and `above` establishes nothing.**
+
+## 4b. The tariff-type banner is inadmissible for φ and admissible ONE-SIDEDLY for this ceiling
+
+§3 rules Table 109 out and §6.3 names it as the obvious reach that does not work. **That stands for
+φ and it does not stand for an upper bound on `J_svt`, because the contamination runs the safe
+way.** A `J_svt` event *is* a move onto a fix, so the household is on a fixed tariff when asked, so
+every `J_svt` event lands in the **Fixed** column. Dropping the Variable column can only discard
+non-conversions — SVT households taking a different *variable* tariff with the same supplier, which
+are internal switches and are not `J_svt`.
+
+Table 109's internal row (*"switched tariff with the same supplier"*), weighted, all six waves —
+fetched and parsed 2026-09-19 from the same workbook §7 records:
+
+| wave | base (wtd) | internal, **Fixed** | internal, **Variable** | sum | Total row | fixed ÷ all hh |
+|---|---|---|---|---|---|---|
+| W1 | 2,873.69 | 323.1437 | 55.6556 | 378.7993 | 378.7993 | 0.11245 |
+| W2 | 2,954.50 | 294.5112 | 74.1248 | 368.6360 | 368.6360 | 0.09968 |
+| W3 | 3,457.00 | 384.9075 | 115.9518 | 500.8593 | 500.8593 | 0.11134 |
+| W4 | 3,434.00 | 294.3085 | 84.8972 | 379.2057 | 379.2057 | 0.08570 |
+| W5 | 3,439.00 | 328.9266 | 69.5202 | 398.4468 | 398.4467 | 0.09565 |
+| W6 | 3,458.00 | 528.7749 | 59.7502 | 588.5251 | 588.5251 | 0.15291 |
+
+**The two columns partition the internal switchers exactly, in every wave** — checked in code
+(`the_banner_partitions_the_internal_switchers`) rather than assumed, because dropping a column is
+only safe if the pair is exhaustive and the *bases* are a different question with a different
+answer: they account for the whole base in W1–W5 and fall **15 unweighted respondents (0.46%) short
+at W6**, where some respondents have no tariff type recorded. None of those 15 reported an internal
+switch, which is why the switchers still partition at W6. It is the switchers that must be
+exhausted here, and they are.
+
+**What the assumption is worth, priced rather than caveated:** the two ceilings differ by *exactly*
+the Variable column's internal switchers. If every one of those were a conversion whose mover
+mis-reported their new tariff, 0.2389 would be wrong and 0.2659 would still be right. **So 0.2659 is
+the published bar and 0.2389 is carried beside it**, in `svt_internal_conversion_ceiling`.
+
+**A tension worth recording, not resolved here.** The banner's own base says 61.9% of W6 respondents
+are on a fixed tariff (2,141 of 3,458 weighted), while `published_tariff_mix` puts the 2025 GB fixed
+share at 30–36% from Ofgem's State of the Market. Self-reported tariff type and the market statistic
+disagree by nearly a factor of two. It does not touch the ceiling above — that argument needs only
+where a conversion *lands*, never what the banner's base is a share of — but **any future use of
+these columns as a population share has to settle it first**, and this paragraph is here so the next
+session does not discover the disagreement after building on it.
+
 ## 5. Why that matters to the thing the finding is actually repairing
 
 §9 of the finding put the world's departure shortfall onto one quantity — the hazard per
@@ -165,6 +240,12 @@ and it is written as that.**
    the *easier* of the two to imagine a supplier-returned series carrying.
 3. **Not the tariff-type banner**, for the reason in §3. Named here because it is the obvious next
    reach and it does not work.
+   **PARTLY CORRECTED 2026-09-19, beside the claim and not over it: it does not work for φ, which
+   is what this list is about, and it DOES work one-sidedly for an upper bound on `J_svt`.** See
+   §4b. The sentence above is left as written because the distinction it misses — a contaminated
+   variable being useless for a share and usable for a bound when the contamination runs the safe
+   way — is the thing worth carrying forward, and it is only visible next to the claim that missed
+   it.
 
 ---
 
@@ -176,7 +257,11 @@ and it is written as that.**
 - **Data tables (the series above):** `Consumer impacts of market conditions survey wave 6 data
   tables.xlsx`, https://www.ofgem.gov.uk/sites/default/files/2025-07/Consumer%20impacts%20of%20market%20conditions%20survey%20wave%206%20data%20tables.xlsx
   (fetched and parsed 2026-09-04; sheet `W2W Tables`, Table 108 for the Total banner, Table 109 for
-  the tariff-type banner)
+  the tariff-type banner. **Re-fetched and re-parsed 2026-09-19 for §4b — the same workbook, same
+  URL, `last-modified: Fri, 19 Jun 2026`, so the cells §2 records were re-read from the file they
+  came from rather than trusted.** Table 109 rows *"I/we have switched tariff with the same
+  supplier"* and *"Base: All respondents Answering"*, banner group *Tariff type*, columns
+  `W1–W6 Fixed` and `W1–W6 Variable`.)
 - Ofgem, *CIM Wave 6 Main Report* —
   https://www.ofgem.gov.uk/sites/default/files/2025-07/CIM%20Wave%206%20Main%20Report.pdf
   (fetched and `pdftotext`-parsed 2026-09-04; the C4 narrative and question wording)

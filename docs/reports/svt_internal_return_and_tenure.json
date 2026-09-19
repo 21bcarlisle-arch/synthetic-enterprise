@@ -403,7 +403,122 @@
       "2022": "the crisis year. Fixed-term offers were withdrawn across the market for most of it, so the identity's fixed route -- households actively renewing onto a NEW fixed deal -- is describing a product that was largely not for sale. A phi held constant across it is one parameter over two markets. EXCLUDED FROM THE HEADLINE INTERSECTION AND REPORTED SEPARATELY, with its own phi interval at both bands, so the exclusion is checkable rather than assumed."
     },
     "what_this_cannot_say": "nothing about whether the world's rate is RIGHT. The floor is one-sided and the point estimate `SVT_INTERNAL_CONVERSION_RATE` is still None, so a world four times the floor is not thereby four times too high -- it is above a bound and the bound has no ceiling beside it. It also cannot attribute a below-floor year: 2016 is the report window's first year and carries 0.0055 SVT account-years, which is an exposure count and not a behaviour, and 2022 is the year the record's own register excludes.",
+    "there_is_now_a_ceiling_beside_it": "`against_the_ceiling_for_this_route`, from the same identity at phi = 1. The preceding sentence is left as written; this is what corrects it.",
     "the_decision_this_judges": "one call to `renewal_engagement.rolls_active_renewal` answers two different household decisions -- coming off a FIXED term (which the 35% anchor is cut on) and coming off an SVT STINT (an internal switch, which nothing published cuts). This reading is where that borrow becomes refutable, and it is refutable HERE rather than in `simulation/` because the published floor is a check and a check may not reach the thing it judges. See docs/staging/SEAT_DECISION_THE_SVT_SIDE_DECISION_IS_NAMED_ON_THE_CHECK_SIDE_BECAUSE_A_CHECK_MAY_NOT_REACH_THE_WORLD_IT_JUDGES_2026-09-19.md."
+  },
+  "against_the_ceiling_for_this_route": {
+    "what_this_is": "this world's SVT-to-fixed internal conversion rate against `published_route_split.svt_internal_conversion_ceiling`, which bounds that SAME route from ABOVE. The other side of `against_the_floor_for_this_route`, and the side that can actually refuse: the floor sits at 0.24x the world and this ceiling at 1.43x.",
+    "refused": null,
+    "binding_ceiling": 0.265926,
+    "binding_ceiling_unit": "conversions per SVT household per SIX MONTHS, un-annualised, and therefore NOT a valid ceiling per SVT household-year -- see `the_verdict_that_is_safe`",
+    "binding_ceiling_source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+    "waves_with_a_ceiling": 6,
+    "the_point_estimate_is_still": null,
+    "the_bar_is_weak_in_this_direction": "BELOW. A six-month ceiling used as an annual bar is LOWER than the true annual ceiling, because a year can carry up to twice a half-year's conversions and bounding that needs a repeat-switching assumption nothing supplies. So a world below this ceiling is below the true one as well and that verdict is established; a world ABOVE it has established nothing. This is the floor's conservatism running the other way and it is the error most available to a reader of both bounds at once.",
+    "world_per_svt_account_year": 0.185887,
+    "clears_the_binding_ceiling": true,
+    "share_of_the_binding_ceiling": 0.699,
+    "binding_ceiling_from_the_tariff_banner": 0.238927,
+    "what_the_banner_ceiling_assumes": "that a household which has just taken a fixed deal reports a FIXED tariff when asked. Tariff type is recorded after the move, so the contamination that makes this banner useless for phi puts every conversion in the fixed column, which is the safe direction for an upper bound. The two ceilings differ by exactly the internal switchers who report a variable tariff; if all of those were mis-reported conversions the banner ceiling would be wrong and `binding_ceiling` would not.",
+    "clears_the_banner_ceiling_too": true,
+    "per_year": {
+      "2016": {
+        "world_per_svt_account_year": 0.0,
+        "svt_account_years": 0.0055,
+        "returns": 0,
+        "clears_the_binding_ceiling": true
+      },
+      "2017": {
+        "world_per_svt_account_year": 0.039857,
+        "svt_account_years": 25.0897,
+        "returns": 1,
+        "clears_the_binding_ceiling": true
+      },
+      "2018": {
+        "world_per_svt_account_year": 0.307507,
+        "svt_account_years": 29.2676,
+        "returns": 9,
+        "clears_the_binding_ceiling": false
+      },
+      "2019": {
+        "world_per_svt_account_year": 0.085519,
+        "svt_account_years": 23.3867,
+        "returns": 2,
+        "clears_the_binding_ceiling": true
+      },
+      "2020": {
+        "world_per_svt_account_year": 0.072904,
+        "svt_account_years": 27.4333,
+        "returns": 2,
+        "clears_the_binding_ceiling": true
+      },
+      "2021": {
+        "world_per_svt_account_year": 0.300233,
+        "svt_account_years": 29.9767,
+        "returns": 9,
+        "clears_the_binding_ceiling": false
+      },
+      "2022": {
+        "world_per_svt_account_year": 0.0,
+        "svt_account_years": 40.1095,
+        "returns": 0,
+        "clears_the_binding_ceiling": true
+      },
+      "2023": {
+        "world_per_svt_account_year": 0.470548,
+        "svt_account_years": 38.2533,
+        "returns": 18,
+        "clears_the_binding_ceiling": false
+      },
+      "2024": {
+        "world_per_svt_account_year": 0.08684,
+        "svt_account_years": 34.5462,
+        "returns": 3,
+        "clears_the_binding_ceiling": true
+      },
+      "2025": {
+        "world_per_svt_account_year": 0.32192,
+        "svt_account_years": 15.5318,
+        "returns": 5,
+        "clears_the_binding_ceiling": false
+      }
+    },
+    "years_scored": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "years_above_the_ceiling": [
+      "2018",
+      "2021",
+      "2023",
+      "2025"
+    ],
+    "years_within_the_ceiling": [
+      "2016",
+      "2017",
+      "2019",
+      "2020",
+      "2022",
+      "2024"
+    ],
+    "the_verdict_is_not_uniform": true,
+    "the_band_is_now_two_sided": {
+      "floor": 0.044919,
+      "ceiling": 0.265926,
+      "world": 0.185887,
+      "world_is_inside_the_band": true,
+      "why_this_is_the_gain": "a one-sided bound at 0.24x of the thing it bounds refuses nothing. The band is [floor, ceiling] and the world sits at 0.70 of its width from the top, so the next change to the SVT-side decision can now be refused in the direction it is most likely to move -- upward, since the borrowed 35% fixed-expiry anchor is cut on a population that renews more often than an SVT household converts."
+    },
+    "what_this_cannot_say": "that the world's rate is right. Two bounds are not a point estimate and `SVT_INTERNAL_CONVERSION_RATE` is still None with its gap named. It also cannot call any of the four above-ceiling years a breach: the bar is a six-month rate read as an annual one, which for a CEILING is harsher than the record supports, so those four years are where the bound is live and not where it has fired.",
+    "the_decision_this_judges": "the same borrow `against_the_floor_for_this_route` names -- one call to `renewal_engagement.rolls_active_renewal` answering both a FIXED-term expiry and an SVT stint. The floor could only refuse that borrow if it were set far too LOW; this ceiling is what could refuse it for being too HIGH, which is the direction a fixed-expiry anchor borrowed for a default-tariff household would err in."
   },
   "tenure_mix_vs_the_published_observations": {
     "what_this_is": "section 14 put two published observations of the SVT segment's within-segment long-stayer share into the tree -- to compose the published churn band for the phi question -- and nothing has compared them with the world's own mix. This is that comparison, and it bears on section 9's headline because section 9's 1.67x-1.71x was taken against the published RECENT endpoint at a mix of 0.000 and 0.202.",
