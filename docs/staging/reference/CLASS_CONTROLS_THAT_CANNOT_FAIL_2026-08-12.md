@@ -87,9 +87,6 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
-- `SEAT_FINDING_THE_DECOMPOSITION_CLASSS_REACHABILITY_LEG_CANNOT_PASS_BECAUSE_EVERY_STRATUM_CARRIES_A_DECISIONS_COUNT_IT_WAS_NOT_MEASURED_OVER_2026-09-09.md` — lane `A_strategy_governance`
-- `SEAT_FINDING_THE_HALF_HOURLY_SHAPE_REACHES_FOUR_CUSTOMERS_AND_AN_UNCOMMITTED_ARTEFACT_KILLS_THE_ONE_MECHANISM_THAT_WIDENS_IT_2026-09-16.md` — lane `W1_market_weather`
-- `SEAT_FINDING_THE_WORLD_IDENTITY_DIGEST_IS_BLIND_TO_THE_HOME_STOCK_2026-09-15.md` — lane `W2_customer_generator`
 - `SEAT_RESULT_THE_CENSUS_READ_CORRECTIONS_AS_CLAIMS_AND_ITS_CLAIM_UNIT_WAS_HIDING_A_LIVE_ONE_2026-09-18.md` — lane `A_strategy_governance`
 - `SEAT_RESULT_THE_HOOK_CHAIN_IS_GROWING_AT_6_PERCENT_A_DAY_AND_THE_INSTRUMENT_GOES_BLIND_EXACTLY_WHEN_THE_PUBLISH_PATH_WEDGES_2026-09-18.md` — lane `A_strategy_governance`
 

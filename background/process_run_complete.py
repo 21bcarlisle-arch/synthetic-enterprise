@@ -4670,6 +4670,31 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     # tools/generate_test_mix_data.py is KEPT and still runnable on demand -- the composition
     # breakdown is a real harness measurement, it just does not need recomputing every cycle
     # for nobody. Wire it back the moment a reachable page renders it.
+    # THE MOMENT A HAND-EDIT IS DESTROYED. The 2026-09-03 `Ofgem SLC 27B` correction was applied to
+    # site/data/simplified.json and never to the .yaml the generator copies byte-identically, so it
+    # lived only as committed bytes and the first regeneration below reverted it -- sixteen days
+    # later, silently. This says so BEFORE the overwrite. It reads HEAD in a throwaway clone, so it
+    # is independent of whatever the working tree has already regenerated this cycle, and it never
+    # blocks: the red-if-divergent control is
+    # tests/tools/test_a_published_feed_matches_what_its_generator_would_produce, which runs at
+    # commit time. Here the job is to name what this run is about to undo.
+    try:
+        from tools.published_feed_regeneration_check import check as feed_regen_check
+        from tools.published_feed_regeneration_check import covered_generators
+        covered = covered_generators()
+        reverting = [
+            row["feed"] for row in feed_regen_check(covered)
+            if row["verdict"] == "DIVERGES"
+        ]
+        if reverting:
+            log("PUBLISHED FEED ABOUT TO BE REVERTED -- the committed bytes of {} are not what "
+                "their generator produces, so this run is about to overwrite an edit that never "
+                "reached the source: {}".format(len(reverting), ", ".join(sorted(reverting))))
+        else:
+            log("Feed regeneration check: {} covered feed(s) match their generator".format(
+                len(covered)))
+    except Exception as exc:
+        log("feed regeneration check failed (publish continues): {}".format(exc))
     try:
         from tools.generate_capabilities_json import generate as gen_capabilities
         gen_capabilities()
