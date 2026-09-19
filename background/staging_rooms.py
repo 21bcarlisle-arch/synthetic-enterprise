@@ -862,6 +862,114 @@ def root_flow(root: Path | str = DEFAULT_STAGING_ROOT, *, days: int = GROWTH_WIN
     }
 
 
+def head_root_documents(root: Path | str = DEFAULT_STAGING_ROOT) -> dict:
+    """The root `.md` names the COMMITTED RECORD holds, or why they could not be read.
+
+    HEAD AND NOT THE INDEX, and the difference is not academic here. `git ls-files` reads the
+    index, and this repository lands by plumbing (`tools/surgical_land`) which never opens the
+    shared index — so after 98 archive moves were committed on 2026-09-19 the index still listed
+    all 98 in the root while no commit did. A reading taken from `ls-files` would have reported
+    the queue as unchanged by the landing that had just emptied two thirds of it.
+    """
+    import subprocess
+
+    try:
+        proc = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", "HEAD", "--", "docs/staging/"],
+            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"readable": False, "why": f"git could not be asked ({exc!r})"}
+    if proc.returncode != 0:
+        return {"readable": False,
+                "why": f"git ls-tree exited {proc.returncode}: {proc.stderr.strip()[:200]}"}
+    names = set()
+    for line in proc.stdout.splitlines():
+        path = line.strip()
+        if not path.startswith("docs/staging/"):
+            continue
+        rest = path[len("docs/staging/"):]
+        if "/" in rest or not rest.endswith(".md"):
+            continue
+        names.add(rest)
+    return {"readable": True, "names": names}
+
+
+def stranded_dispositions(root: Path | str = DEFAULT_STAGING_ROOT,
+                          *, head_names: set[str] | None = None) -> dict:
+    """Documents the RECORD still has in the queue that the DISK has already dealt with.
+
+    Split into two buckets on purpose, because they call for opposite remedies and `root_flow`
+    — which reads from git deliberately, so that a disk-only archival cannot read as drained —
+    structurally cannot tell them apart:
+
+    * `archived`: absent from the root on disk and present in one of the sub-rooms. The
+      disposition HAPPENED and was never committed. The remedy is a landing.
+    * `vanished`: absent from the root on disk with no copy anywhere under it. Not an archival at
+      all; a document that left no trace, which is possible loss rather than progress.
+
+    WHY THE SPLIT IS THE WHOLE POINT. The sediment alarm's own message recommends "fewer channels
+    that file, or a disposition route for the ones that do" — advice about FILING. On 2026-09-19
+    it was firing at +48 while 98 dispositions sat uncommitted on disk, i.e. the queue was draining
+    faster than it filled and the alarm was recommending a change to the half that was not broken.
+    Neither archiver commits: `background/staging_watcher.py` and
+    `background/staging_archive_policy.py` both `rename()` and stop there, so this recurs by
+    construction and the alarm must be able to say which cause it is looking at.
+
+    `head_names` is injectable so both branches can be driven without a git repository.
+    """
+    root = Path(root)
+    if head_names is None:
+        head = head_root_documents(root)
+        if not head.get("readable"):
+            return {"readable": False, "why": head.get("why")}
+        head_names = head["names"]
+    archived: list[str] = []
+    vanished: list[str] = []
+    for name in sorted(head_names):
+        if (root / name).exists():
+            continue
+        elsewhere = any(p.name == name for p in root.glob("*/*.md"))
+        (archived if elsewhere else vanished).append(name)
+    return {"readable": True, "archived": archived, "vanished": vanished}
+
+
+def stranded_disposition_violations(root: Path | str = DEFAULT_STAGING_ROOT,
+                                   *, head_names: set[str] | None = None) -> list[str]:
+    """The record disagreeing with the disk is a violation whatever the flow says.
+
+    Keyed to the PROPERTY — does every root document the record holds still exist on disk — and
+    not to the 98 instances that were landed on 2026-09-19, so it stays green when the tree
+    becomes more honest and goes red the next time an archiver moves without committing.
+    """
+    stranded = stranded_dispositions(root, head_names=head_names)
+    if not stranded.get("readable"):
+        return [
+            "STRANDED DISPOSITIONS UNREADABLE: {}. Whether the record agrees with the disk could "
+            "not be established, which is not evidence that it does.".format(stranded.get("why"))
+        ]
+    out: list[str] = []
+    if stranded["archived"]:
+        out.append(
+            "STRANDED ARCHIVAL: {} document(s) are archived into a sub-room ON DISK and still sit "
+            "in the root at HEAD, so every lane reading the queue from a ref sees work that has "
+            "already been dispositioned. An uncommitted archival is not a discharge. The remedy is "
+            "a landing of both sides of each move, not a change to what files: "
+            "{}{}".format(
+                len(stranded["archived"]), ", ".join(stranded["archived"][:5]),
+                ", ..." if len(stranded["archived"]) > 5 else "")
+        )
+    if stranded["vanished"]:
+        out.append(
+            "VANISHED FROM THE ROOT: {} document(s) are in the root at HEAD and nowhere under "
+            "docs/staging/ on disk. This is NOT an archival -- there is no copy -- so it is "
+            "possible loss and not progress: {}{}".format(
+                len(stranded["vanished"]), ", ".join(stranded["vanished"][:5]),
+                ", ..." if len(stranded["vanished"]) > 5 else "")
+        )
+    return out
+
+
 def sediment_violations(root: Path | str = DEFAULT_STAGING_ROOT) -> list[str]:
     """The root's own alarm: is more arriving than leaving?
 
@@ -878,13 +986,23 @@ def sediment_violations(root: Path | str = DEFAULT_STAGING_ROOT) -> list[str]:
         ]
     if flow["net"] <= 0:
         return []
+    # A NET THAT COUNTS UNCOMMITTED DISPOSITIONS AS UNDISPOSITIONED IS OVERSTATED, and pointing at
+    # filing would then be pointing at the half that works. Say so in the same breath as the number
+    # rather than leaving the reader to reconcile two violations.
+    stranded = stranded_dispositions(root)
+    held_back = len(stranded.get("archived") or ()) if stranded.get("readable") else 0
+    cause = (
+        " BUT {} of those dispositions HAVE happened and are merely uncommitted (see STRANDED "
+        "ARCHIVAL): this net is overstated by that much, and the remedy is a landing before it is "
+        "anything about filing.".format(held_back) if held_back else
+        " The remedy is not a bigger folder: it is fewer channels that file, or a disposition "
+        "route for the ones that do."
+    )
     return [
         "SEDIMENT: {} document(s) filed into the staging root in {} day(s) and {} "
         "dispositioned out of it -- a net {:+d}. Filing is free and dispositioning is not, so a "
-        "queue where the first outruns the second grows without bound whatever its size today. "
-        "The remedy is not a bigger folder: it is fewer channels that file, or a disposition "
-        "route for the ones that do.".format(
-            flow["filed"], flow["days"], flow["dispositioned"], flow["net"])
+        "queue where the first outruns the second grows without bound whatever its size today."
+        "{}".format(flow["filed"], flow["days"], flow["dispositioned"], flow["net"], cause)
     ]
 
 
@@ -954,6 +1072,11 @@ def render(root: Path | str = DEFAULT_STAGING_ROOT) -> str:
             flow["days"], flow["filed"], flow["dispositioned"], flow["net"]))
     else:
         lines.append(f"Root flow: UNREADABLE -- {flow.get('why')}")
+    stranded = stranded_disposition_violations(root)
+    lines.append(f"Stranded dispositions: {len(stranded)} violation(s)")
+    for v in stranded:
+        lines.append(f"  ! {v}")
+    lines.append("")
     sediment = sediment_violations(root)
     lines.append(f"Sediment: {len(sediment)} violation(s)")
     for v in sediment:
@@ -967,10 +1090,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(DEFAULT_STAGING_ROOT))
     parser.add_argument("--check", action="store_true",
-                        help="exit non-zero on a population-floor or sediment violation")
+                        help="exit non-zero on a population-floor, stranded-disposition or "
+                             "sediment violation")
     args = parser.parse_args(argv)
     print(render(args.root))
-    if args.check and (population_floor_violations(args.root) or sediment_violations(args.root)):
+    if args.check and (population_floor_violations(args.root)
+                       or stranded_disposition_violations(args.root)
+                       or sediment_violations(args.root)):
         return 1
     return 0
 

@@ -361,3 +361,111 @@ def test_a_finding_about_a_preregistration_is_a_finding():
             "that was never work".format(name))
         assert sr.room_for(sr.kind_of(name)) is None, (
             "a finding is work and belongs in the staging ROOT, not in a room")
+
+
+# --- The record agreeing with the disk (2026-09-19) ---------------------------------------------
+#
+# 98 archive moves existed on disk and in no commit. `root_flow()` reads from git ON PURPOSE so a
+# disk-only archival cannot read as drained -- and that same correct choice means it counts a
+# disposition that HAPPENED as one that did not, then recommends a change to filing. The defect
+# each test below drives is that misattribution, in both directions.
+
+
+def _plant(root, *, in_root=(), archived=(), vanished=()):
+    """A staging root on disk. Returns the HEAD name set the record would hold.
+
+    HEAD is injected rather than committed: the branch where a document is absent from disk is the
+    RARE one, and a test that had to build a git repository to reach it would reach it once.
+    """
+    (root / "done").mkdir(parents=True, exist_ok=True)
+    for name in in_root:
+        (root / name).write_text("still in the queue\n", encoding="utf-8")
+    for name in archived:
+        (root / "done" / name).write_text("dispositioned\n", encoding="utf-8")
+    return set(in_root) | set(archived) | set(vanished)
+
+
+def test_an_archival_that_reached_no_commit_is_named_as_a_landing_and_not_as_a_filing_problem(tmp_path):
+    """The defect: an uncommitted archival reported as undispositioned work.
+
+    Mutations that must red this:
+      * drop the `elsewhere` lookup and put every absent document in one bucket -> the archived
+        count goes to 0 and the vanished count to 2, so the remedy named is loss and not a landing.
+      * read the root from disk instead of HEAD (`root.glob("*.md")`) -> nothing is ever absent,
+        `archived` is always empty, and this control can never fire at all.
+    """
+    head = _plant(tmp_path, in_root=["A_2026-09-01.md"],
+                  archived=["B_2026-09-01.md", "C_2026-09-01.md"])
+    got = sr.stranded_dispositions(tmp_path, head_names=head)
+
+    assert got["readable"], "a readable root reported unreadable"
+    assert got["archived"] == ["B_2026-09-01.md", "C_2026-09-01.md"], (
+        "an archive move present in a sub-room on disk and still in the root at HEAD is the "
+        "uncommitted-archival case and must be named as one")
+    assert got["vanished"] == [], (
+        "a document with a copy in done/ is archived, not lost -- calling it loss sends the "
+        "reader looking for bytes that are right there")
+
+    violations = sr.stranded_disposition_violations(tmp_path, head_names=head)
+    assert len(violations) == 1 and violations[0].startswith("STRANDED ARCHIVAL:"), violations
+    assert "a landing" in violations[0], (
+        "the violation must name the remedy that works -- committing both sides of the move -- "
+        "because the sediment alarm's standing advice is about filing and would be wrong here")
+
+
+def test_a_document_gone_from_the_root_with_no_copy_anywhere_is_not_reported_as_an_archival(tmp_path):
+    """The defect: possible LOSS reported as progress.
+
+    The two buckets have opposite remedies, so collapsing them is the failure either way round.
+    Mutation: return a single list -> the assertion that `archived` is empty here reds.
+    """
+    head = _plant(tmp_path, in_root=["A_2026-09-01.md"], vanished=["GONE_2026-09-01.md"])
+    got = sr.stranded_dispositions(tmp_path, head_names=head)
+
+    assert got["vanished"] == ["GONE_2026-09-01.md"], (
+        "a root document at HEAD with no copy under docs/staging/ left no trace on disk, and "
+        "reporting it as archived would file possible loss as a discharge")
+    assert got["archived"] == [], "there is no copy, so nothing here was archived"
+
+    violations = sr.stranded_disposition_violations(tmp_path, head_names=head)
+    assert len(violations) == 1 and violations[0].startswith("VANISHED FROM THE ROOT:"), violations
+
+
+def test_both_stranded_buckets_are_reachable_and_the_clean_case_is_silent(tmp_path):
+    """ONE control over the WHOLE partition, because a guard that reports NOTHING passes every
+    per-branch test. This is the assertion that a mutation making the function return `{}` — or
+    making the absence test `if not (root / name).exists(): continue` — cannot survive.
+    """
+    head = _plant(tmp_path, in_root=["KEPT_2026-09-01.md"],
+                  archived=["MOVED_2026-09-01.md"], vanished=["GONE_2026-09-01.md"])
+    got = sr.stranded_dispositions(tmp_path, head_names=head)
+
+    assert got["archived"] and got["vanished"], (
+        "both stranded branches must be reachable in one root -- a control that reports neither "
+        "passes every test written per branch while seeing nothing")
+    assert "KEPT_2026-09-01.md" not in got["archived"] + got["vanished"], (
+        "a document in the root at HEAD and on disk is not stranded, and flagging it would make "
+        "this control fire on every healthy queue and therefore be turned off")
+
+    clean = _plant(tmp_path / "clean", in_root=["ONLY_2026-09-01.md"])
+    assert sr.stranded_disposition_violations(tmp_path / "clean", head_names=clean) == [], (
+        "a root whose record matches its disk must be SILENT, or the violation carries no "
+        "information")
+
+
+def test_the_unreadable_record_is_a_violation_and_never_a_pass(tmp_path, monkeypatch):
+    """"I could not tell" must not wear a pass's colour.
+
+    The git read is monkeypatched rather than injected, so this drives the REAL unreadable branch
+    of `stranded_dispositions` and not a hand-built dict. Mutation: return `[]` when the record
+    cannot be read -> reds here. That fail-open has shipped in this repository more than once.
+    """
+    monkeypatch.setattr(sr, "head_root_documents",
+                        lambda root=None: {"readable": False, "why": "git could not be asked"})
+    got = sr.stranded_dispositions(tmp_path)
+    assert got["readable"] is False and got["why"] == "git could not be asked"
+
+    out = sr.stranded_disposition_violations(tmp_path)
+    assert out and out[0].startswith("STRANDED DISPOSITIONS UNREADABLE:"), out
+    assert "not evidence that it does" in out[0], (
+        "an unreadable probe must say that silence is not agreement")
