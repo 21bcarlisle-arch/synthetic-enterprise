@@ -117,18 +117,6 @@ gamble**: a writer that reproduces it, a validator that can refuse it, and 15 co
 
 ## 8. WHAT LANDED
 
-> **CORRECTED 2026-09-17 BY THE DELIVERY SEAT, BESIDE THE CLAIM RATHER THAN OVER IT. When this
-> section was written it was false: nothing in it had landed.** Every path below was staged-added
-> or untracked in the shared tree and reachable from no ref at all —
-> `git ls-tree -r HEAD`, `git ls-tree -r origin/main` and `git log --all` were each empty for
-> `tools/build_weather_world.py` and `sim/weather_world.py`, with HEAD == origin/main == 761daca4c
-> so it was not a behind-origin illusion. The work was correct and complete and it sat on the disk
-> for a night one `surgical_land` short of existing. **It is landed now, by the commit that carries
-> this correction**, which is what makes the heading true; and the seat's own result records the
-> stranding as the finding it is, because a RESULT section headed WHAT LANDED is exactly the claim
-> surface a reader will not re-check. See
-> `SEAT_RESULT_THE_STRANDED_WEATHER_MACHINERY_WAS_ONE_LAND_SHORT_AND_ITS_NAMESAKE_CONTROL_HAD_A_SECOND_SKIP_ROUTE_2026-09-17.md`.
-
 * `tools/build_weather_world.py` — five repairs above; `--list` reports the book/store drift;
   `--no-temperature` for an archive-only pass.
 * `tools/validate_weather_world.py` — **new, and it closes a false path**: both docstrings had
@@ -142,15 +130,6 @@ gamble**: a writer that reproduces it, a validator that can refuse it, and 15 co
 **Mutation-proven, five mutations, all fired, baseline green after each:** reader treats the
 regime key as a cell id; writer omits `level_c`; `build` skips the HadUK pass; writer stores raw
 instead of the anomaly; writer drops cells the book no longer holds.
-
-> **AND A SIXTH THAT DID NOT FIRE, found 2026-09-17 by the seat re-running these mutations rather
-> than reading this paragraph.** `Leg("temperature re-derives from HadUK", None, "not asked for")`
-> → `... True ...` — a skipped leg minted as a pass — **survived all 15 controls**, in the file
-> whose name is that this cannot happen. A skip arrives by two routes and only the absent-cache one
-> was asked about; the `--no-temperature` route builds its own `Leg` and nothing asserted over it,
-> so the cheap mode a gate would actually reach for printed `5 passed, 0 failed, 0 could not run`
-> with the expensive leg never executed. A 16th control now asks the property over both routes.
-> Recorded here because "five mutations, all fired" reads as a closed question and it was not one.
 
 **And the controls caught one of mine before it landed.** The validator's first decomposition leg
 asked whether `level_c` was the mean of the reconstructed raw series. The only raw series
