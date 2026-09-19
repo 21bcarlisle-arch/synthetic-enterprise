@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T09:19:53.464094Z",
+  "generated_at": "2026-09-19T13:04:17.554663Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "0b2ba65c7e9a144224ca484dcead101c5b4cf8e7",
+    "publishing_tree_commit": "085a23c73de471671658d3e2bfa75d24fb86f905",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 0b2ba65c7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 085a23c73 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -703,6 +703,26 @@
         "the_leg_is_not_the_value_of_choosing": true,
         "clause": "THIS LEG IS NOT THE VALUE OF CHOOSING PER CUSTOMER. The statutory price cap binds 143 of the value arm's 214 priced decisions (67%) and 0 of the level arm's 281. The flat arm sits below the lawful cap everywhere, so it is bound on nothing and there is no free/bound partition on that side to difference this one against. What the figure contrasts is an arm the cap binds on most of its decisions against an arm it never binds at all -- so the confound is in the QUANTITY, not in the sample, and no larger book removes it.",
         "what_would_remove_it": "A bound flag defined EXOGENOUSLY, so it applies to both arms: per renewal, whether the lawful cap at that term's own window lies below the arm's UNCONSTRAINED optimum -- a shadow score `decide_margin` already computes. Applied to both rosters it partitions both sides. As recorded, `ceiling_bound` is a property of a value-arm decision and is 0 on the level arm by construction, which is not a measurement."
+      },
+      "population_repair_bias": {
+        "available": true,
+        "run_carries_the_repair": false,
+        "direction": "downward",
+        "never_asked": true,
+        "magnitude_gbp": 810.18,
+        "ci_low_gbp": 778.26,
+        "ci_high_gbp": 842.11,
+        "t": 55.86,
+        "paired_seeds": 12,
+        "measured_on_commit": "18327d977",
+        "measured_against_commit": "a178b56d6",
+        "paths_between_the_two_books": 20,
+        "is_a_correction_to_the_figure_above": false,
+        "total_advantage_moved_gbp": 0.0,
+        "source": "docs/staging/SEAT_RESULT_THE_PAIRED_TWELVE_PRICE_THE_POPULATION_REPAIR_AT_810_POUNDS_AND_THE_STANDALONE_SIGN_GOT_SEVENTEEN_TIMES_HARDER_2026-09-19.md",
+        "level_arm_priced": 281,
+        "value_arm_priced": 214,
+        "clause": "THE FIGURE ABOVE IS BIASED DOWNWARD, and here is one measured size for that bias. This run never asked whether the two arms priced the same renewals -- the field is written only by runs taken after the level arm was given the per-customer arm's refusal frontier. The flat arm priced 281 renewals against the per-customer arm's 214. Where the flat arm prices renewals the per-customer arm has already declined, it books margin on them, and the residual called \"the choosing\" carries that difference as a shortfall. Twelve seeds paired across exactly that one repair price it: `selection_gbp` rose by \u00a3810.18 (95% CI \u00a3778.26 to \u00a3842.11, t = 55.86 on 12 paired seeds). THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE FIGURE ABOVE. On every one of those 12 seeds the WHOLE advantage moved by \u00a30.00 -- not a penny, not a rounding -- because the \u00a3810.18 came OFF the price-level leg and went ONTO the choosing leg by exactly equal and opposite amounts. Nothing was created; one side of the decomposition was handed to the other. A reader who takes this as \"the choosing leg is now positive and significant\" has read it backwards. AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `18327d977` against `a178b56d6`, 20 paths of pricing code away from the run above, so it is the size of the CLASS and not this figure's own error. Subtracting it here would be arithmetic across two instruments. The figure above stands as published."
       },
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved."
     },
@@ -994,7 +1014,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "0b2ba65c7e9a144224ca484dcead101c5b4cf8e7",
+      "publishing_tree_commit": "085a23c73de471671658d3e2bfa75d24fb86f905",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1006,7 +1026,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 0b2ba65c7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 085a23c73 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1073,8 +1093,8 @@
         "dashboard_run_id": "run_output_9a1d6591e_20260919T083130Z.json",
         "dashboard_commit": "9a1d6591e",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_3d82f9f68_20260919T062301Z.json",
-        "last_verified_commit": "3d82f9f68",
+        "last_verified_run_id": "run_output_9a1d6591e_20260919T083130Z.json",
+        "last_verified_commit": "9a1d6591e",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1303,6 +1323,9 @@
             "retained": 64,
             "left": 42,
             "null_sd": 0.057595245477272704,
+            "null_sd_untied": 0.057595245477272704,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.127144336723449,
             "clears_its_own_null": false
           },
@@ -1312,6 +1335,9 @@
             "retained": 63,
             "left": 42,
             "null_sd": 0.05777864991492475,
+            "null_sd_untied": 0.05777864991492475,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.4749908176394937,
             "clears_its_own_null": false
           },
@@ -1321,6 +1347,9 @@
             "retained": 68,
             "left": 41,
             "null_sd": 0.057340217352780276,
+            "null_sd_untied": 0.057340217352780276,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 0.935166817553525,
             "clears_its_own_null": false
           },
@@ -1330,6 +1359,9 @@
             "retained": 62,
             "left": 42,
             "null_sd": 0.05796736197002104,
+            "null_sd_untied": 0.05796736197002104,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.5038389905365457,
             "clears_its_own_null": false
           },
@@ -1339,6 +1371,9 @@
             "retained": 63,
             "left": 42,
             "null_sd": 0.05777864991492475,
+            "null_sd_untied": 0.05777864991492475,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.3736056394868912,
             "clears_its_own_null": false
           },
@@ -1348,6 +1383,9 @@
             "retained": 60,
             "left": 43,
             "null_sd": 0.05795837408532944,
+            "null_sd_untied": 0.05795837408532944,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 0.6152504325981132,
             "clears_its_own_null": false
           },
@@ -1357,6 +1395,9 @@
             "retained": 64,
             "left": 42,
             "null_sd": 0.057595245477272704,
+            "null_sd_untied": 0.057595245477272704,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.127144336723449,
             "clears_its_own_null": false
           },
@@ -1366,6 +1407,9 @@
             "retained": 64,
             "left": 41,
             "null_sd": 0.05802035667434221,
+            "null_sd_untied": 0.05802035667434221,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 0.8965787191752123,
             "clears_its_own_null": false
           },
@@ -1375,6 +1419,9 @@
             "retained": 64,
             "left": 41,
             "null_sd": 0.05802035667434221,
+            "null_sd_untied": 0.05802035667434221,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 0.8965787191752123,
             "clears_its_own_null": false
           },
@@ -1384,6 +1431,9 @@
             "retained": 64,
             "left": 42,
             "null_sd": 0.057595245477272704,
+            "null_sd_untied": 0.057595245477272704,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.2401817343891237,
             "clears_its_own_null": false
           },
@@ -1393,6 +1443,9 @@
             "retained": 63,
             "left": 43,
             "null_sd": 0.057371573776078245,
+            "null_sd_untied": 0.057371573776078245,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 1.032688327969408,
             "clears_its_own_null": false
           },
@@ -1402,10 +1455,37 @@
             "retained": 65,
             "left": 41,
             "null_sd": 0.05784324637085301,
+            "null_sd_untied": 0.05784324637085301,
+            "null_sd_basis": "no_roster",
+            "null_sd_basis_why": "this row carries no `scored_decisions`, so the only null available to it is the untied closed form over its two outcome counts",
             "null_sds_above_no_information": 0.849809189672719,
             "clears_its_own_null": false
           }
         ],
+        "nulls_from_their_own_rosters": {
+          "seeds_read": 12,
+          "graded_by_their_own_roster": 0,
+          "seeds_by_basis": {
+            "no_roster": [
+              3100001,
+              3100002,
+              3100003,
+              3100004,
+              3100005,
+              3100006,
+              3100007,
+              3100008,
+              3100009,
+              3100010,
+              3100011,
+              3100012
+            ]
+          },
+          "every_null_is_from_its_own_roster": false,
+          "largest_tie_correction_to_the_null_variance": null,
+          "rosters_that_disagree_with_their_own_row": [],
+          "what_a_fallback_costs": "a row with no usable roster keeps `sqrt((n1+n2+1)/(12*n1*n2))`, the UNTIED form. Ties can only shrink the null variance, so the fallback is the WIDER ruler and the reading it supports is harder to clear, never easier. The direction is stated because a fallback whose direction is not stated is a fallback a reader has to assume went the flattering way."
+        },
         "seeds_clearing_their_own_null": 0,
         "widest_single_seed_distance": 1.5038389905365457,
         "sds_needed_to_state_a_sign": 1.959963984540054,

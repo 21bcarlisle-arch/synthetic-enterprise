@@ -10441,6 +10441,139 @@ def _bind_asymmetry(artefact: dict | None) -> dict:
     }
 
 
+#: THE PRICE OF THE TWO-POPULATIONS CONTAMINATION, measured 2026-09-19 and carried here as a
+#: literal because it is a READING, not a parameter: twelve seeds (3100001-3100012) paired across
+#: one bounded change to the objective, same world (digest `39a192ce04c1eda8`), same households
+#: (`billing_accounts_settled_in_window` identical on 12 of 12). Write-up and full pre-registration:
+#: `_POPULATION_REPAIR_BIAS_SOURCE`. The paired sd is £50.24 against £5,413.58 unpaired -- a factor
+#: of 107.7 -- which is why twelve seeds can state this when 1,744 could not state the leg itself.
+_POPULATION_REPAIR_BIAS_GBP = 810.18
+_POPULATION_REPAIR_BIAS_CI_LOW_GBP = 778.26
+_POPULATION_REPAIR_BIAS_CI_HIGH_GBP = 842.11
+_POPULATION_REPAIR_BIAS_T = 55.86
+_POPULATION_REPAIR_BIAS_SEEDS = 12
+#: THE OTHER BOOK. NOT this page's run and not a larger sample of it -- there is no tree of which
+#: these twelve are a bigger draw. Every candidate is 20 paths away, which is why the size is
+#: published as the class's and never subtracted from the figure it sits beside.
+_POPULATION_REPAIR_BIAS_INSTRUMENT = "18327d977"
+_POPULATION_REPAIR_BIAS_AGAINST = "a178b56d6"
+_POPULATION_REPAIR_BIAS_PATHS_APART = 20
+_POPULATION_REPAIR_BIAS_SOURCE = (
+    "docs/staging/SEAT_RESULT_THE_PAIRED_TWELVE_PRICE_THE_POPULATION_REPAIR_AT_810_POUNDS_AND_"
+    "THE_STANDALONE_SIGN_GOT_SEVENTEEN_TIMES_HARDER_2026-09-19.md")
+
+#: THE ONE SENTENCE THE MAGNITUDE MAY NEVER TRAVEL WITHOUT. Composed INTO `clause` rather than
+#: offered as a sibling key, for the reason `_population_repair_bias` gives at length.
+_POPULATION_REPAIR_BIAS_NOT_A_GAIN = (
+    "THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE FIGURE ABOVE. On every one of those "
+    "{seeds} seeds the WHOLE advantage moved by £0.00 -- not a penny, not a rounding -- because "
+    "the £{gbp:,.2f} came OFF the price-level leg and went ONTO the choosing leg by exactly equal "
+    "and opposite amounts. Nothing was created; one side of the decomposition was handed to the "
+    "other. A reader who takes this as \"the choosing leg is now positive and significant\" has "
+    "read it backwards.")
+
+
+def _population_repair_bias(artefact: dict | None) -> dict:
+    """WHICH WAY the published `selection_gbp` is wrong, and one measured size for it.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-19, Lane 0, the director's own item). `_one_book` already
+    puts the two-populations warning on the surface and says, honestly, that this run never asked
+    whether the arms priced the same renewals. What it cannot say is HOW MUCH, and a published
+    negative with a known bias DIRECTION and no size is a "we cannot tell" hiding behind a number
+    -- the reader gets a figure that looks measured and a caveat that looks decorative, and has no
+    way to tell whether the contamination is worth £5 or £5,000. It is worth £810.
+
+    THE SIZE AND THE SENTENCE THAT DEFUSES IT ARE ONE STRING, AND THAT IS THE WHOLE DESIGN. A
+    +£810.18 at t = 55.86 printed beside a thesis quantity is exactly the shape that gets read as
+    "the selection leg is now positive and significant", and it is not: `value_advantage_gbp` was
+    bit-identical on all twelve seeds and the £810.18 moved between legs. If the magnitude were a
+    key and the counter-sentence a sibling key, any future renderer that reached for the number
+    alone would publish the flattering half -- and every renderer reaches for the number alone
+    eventually, because the number is the part that fits in a table cell. So `clause` carries
+    both or neither, and `magnitude_gbp` is published ONLY inside a block whose `clause` already
+    states the counter. The page renders `clause`. See the control that mutates this apart.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S RUN. The trigger is the artefact's OWN
+    `decision_population.same_priced_population` -- the same field `_one_book` reads, from the same
+    place, so the two can never disagree about which run this is. The day the page publishes a run
+    taken after the level arm was given the per-customer arm's refusal frontier, that field answers
+    `True`, this block goes unavailable and the clause comes off the page with nobody editing it.
+    It does NOT key on the commit date, on `CURRENT_WORLD_THREE_ARM_PATH`, or on the 2026-09-18
+    boundary as a literal, each of which would need a human to retire it.
+
+    THREE-VALUED FOR THE SAME REASON `_one_book` IS. `None` (the field is absent, so the question
+    was never asked) and `False` (it was asked and the arms differed) BOTH take the bias branch:
+    absence here is not neutrality, because the field is absent exactly when the run predates the
+    repair. `True` is the only answer that clears it.
+    """
+    dp = (artefact or {}).get("decision_population") or {}
+    spp = dp.get("same_priced_population")
+    answer = spp.get("answer") if isinstance(spp, dict) else None
+    priced = dp.get("priced_by_arm") or {}
+    level, value = priced.get("level_arm"), priced.get("value_arm")
+
+    if answer is True:
+        return {
+            "available": False,
+            "run_carries_the_repair": True,
+            "reason": (
+                "this run was taken after the level arm was given the per-customer arm's own "
+                "refusal frontier, so both arms priced one book and the downward bias this block "
+                "sizes does not apply to the figure above."),
+        }
+
+    # THE COUNTS ARE CARRIED, NEVER DIFFERENCED INTO A SECOND ESTIMATE. `priced_by_arm` diverging
+    # is not itself evidence of the contamination -- churn moves who is left to renew -- so these
+    # are here to let a reader see the order of magnitude of the gap, and the SIZE comes from the
+    # paired twelve alone. Deriving a per-renewal rate from them would be this module inventing a
+    # second answer to a question another instrument already answered properly.
+    return {
+        "available": True,
+        "run_carries_the_repair": False,
+        "direction": "downward",
+        "never_asked": answer is None,
+        "magnitude_gbp": _POPULATION_REPAIR_BIAS_GBP,
+        "ci_low_gbp": _POPULATION_REPAIR_BIAS_CI_LOW_GBP,
+        "ci_high_gbp": _POPULATION_REPAIR_BIAS_CI_HIGH_GBP,
+        "t": _POPULATION_REPAIR_BIAS_T,
+        "paired_seeds": _POPULATION_REPAIR_BIAS_SEEDS,
+        "measured_on_commit": _POPULATION_REPAIR_BIAS_INSTRUMENT,
+        "measured_against_commit": _POPULATION_REPAIR_BIAS_AGAINST,
+        "paths_between_the_two_books": _POPULATION_REPAIR_BIAS_PATHS_APART,
+        "is_a_correction_to_the_figure_above": False,
+        "total_advantage_moved_gbp": 0.0,
+        "source": _POPULATION_REPAIR_BIAS_SOURCE,
+        "level_arm_priced": level,
+        "value_arm_priced": value,
+        "clause": (
+            "THE FIGURE ABOVE IS BIASED DOWNWARD, and here is one measured size for that bias. "
+            + ("This run never asked whether the two arms priced the same renewals -- the field "
+               "is written only by runs taken after the level arm was given the per-customer "
+               "arm's refusal frontier. "
+               if answer is None else
+               "This run asked whether the two arms priced the same renewals and they did not. ")
+            + ("The flat arm priced {level:,} renewals against the per-customer arm's {value:,}. "
+               .format(level=level, value=value)
+               if isinstance(level, int) and isinstance(value, int) else "")
+            + "Where the flat arm prices renewals the per-customer arm has already declined, it "
+              "books margin on them, and the residual called \"the choosing\" carries that "
+              "difference as a shortfall. Twelve seeds paired across exactly that one repair "
+              "price it: `selection_gbp` rose by £{gbp:,.2f} (95% CI £{lo:,.2f} to £{hi:,.2f}, "
+              "t = {t} on {seeds} paired seeds). "
+            + _POPULATION_REPAIR_BIAS_NOT_A_GAIN + " "
+              "AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `{inst}` against "
+              "`{against}`, {paths} paths of pricing code away from the run above, so it is the "
+              "size of the CLASS and not this figure's own error. Subtracting it here would be "
+              "arithmetic across two instruments. The figure above stands as published."
+        ).format(
+            gbp=_POPULATION_REPAIR_BIAS_GBP, lo=_POPULATION_REPAIR_BIAS_CI_LOW_GBP,
+            hi=_POPULATION_REPAIR_BIAS_CI_HIGH_GBP, t=_POPULATION_REPAIR_BIAS_T,
+            seeds=_POPULATION_REPAIR_BIAS_SEEDS, inst=_POPULATION_REPAIR_BIAS_INSTRUMENT,
+            against=_POPULATION_REPAIR_BIAS_AGAINST,
+            paths=_POPULATION_REPAIR_BIAS_PATHS_APART),
+    }
+
+
 def _withdraw_a_verdict_stated_from_a_superseded_run(
         leg: dict, is_the_later_run, current_at, superseded_at) -> dict:
     """A run this page marks superseded may publish its measurement and may not publish a VERDICT.
@@ -10711,6 +10844,12 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             # THE CONFOUND IS IN THE ESTIMAND, NOT THE SAMPLE, which is why it sits HERE and not
             # in a caveat block. See `_bind_asymmetry`.
             bind_asymmetry=_bind_asymmetry(current),
+            # WHICH WAY THIS FIGURE IS WRONG AND BY HOW MUCH, from the run's own
+            # `same_priced_population`. Sits beside `bind_asymmetry` because the two are different
+            # complaints about the same number and a reader needs both: that one says the
+            # QUANTITY is not the value of choosing, this one says the MEASUREMENT of it is biased
+            # low, and names a size. Goes quiet by itself the day a repaired run is published.
+            population_repair_bias=_population_repair_bias(current),
             # THE SAME SENTENCE THE ERROR-BAR BLOCK'S OWN SELECTION LEG CARRIES, from the one
             # place it is written. See `_LEG_SUBJECTS`.
             what_this_leg_is=_WHAT_THE_SELECTION_LEG_IS),

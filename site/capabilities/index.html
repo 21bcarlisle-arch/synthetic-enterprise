@@ -1800,15 +1800,31 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       if (!leg) return;
       legs.push({ label: spec[1], what: spec[2], figure: leg.figure_gbp,
                   stability: leg.verdict_stability, withheld: leg.verdict_withheld_because,
-                  /* WHAT THE LEG ACTUALLY CONTRASTS, carried to the line where the reader meets
-                     its definition. The cap binds most of the value arm's decisions and none of
-                     the flat arm's, so "the value of choosing per customer" is not all of what
-                     this figure measures — and the confound is in the QUANTITY, not the sample,
-                     which no larger book removes. Read from the feed; it goes quiet on its own
-                     when a bound flag partitions both rosters. */
-                  caveat: (leg.bind_asymmetry && leg.bind_asymmetry.available
-                           && leg.bind_asymmetry.asymmetric)
-                            ? leg.bind_asymmetry.clause : null });
+                  /* TWO DIFFERENT COMPLAINTS ABOUT THE SAME NUMBER, AND A READER NEEDS BOTH, so
+                     they are a LIST and each keeps its own sentence. Concatenating them into one
+                     string is the shape `_the_legs_own_regions` refuses further down — a reader
+                     cannot tell where one statement ends and the next begins — and these two say
+                     genuinely different things.
+
+                     [1] WHAT THE LEG ACTUALLY CONTRASTS. The cap binds most of the value arm's
+                     decisions and none of the flat arm's, so "the value of choosing per customer"
+                     is not all of what this figure measures — the confound is in the QUANTITY,
+                     not the sample, which no larger book removes. Goes quiet on its own when a
+                     bound flag partitions both rosters.
+
+                     [2] WHICH WAY THE MEASUREMENT IS BIASED AND BY HOW MUCH. Rendered as ONE
+                     opaque string straight from the feed and never re-composed here: the size and
+                     the sentence saying the whole advantage did not move are deliberately welded
+                     together in `_population_repair_bias`, because the size alone reads as "the
+                     choosing leg is now positive and significant" and it is not. Any edit here
+                     that reaches past `.clause` for `.magnitude_gbp` is that defect. Goes quiet
+                     on its own when the page publishes a run that carries the repair. */
+                  caveats: [
+                    (leg.bind_asymmetry && leg.bind_asymmetry.available
+                     && leg.bind_asymmetry.asymmetric) ? leg.bind_asymmetry.clause : null,
+                    (leg.population_repair_bias && leg.population_repair_bias.available)
+                      ? leg.population_repair_bias.clause : null
+                  ].filter(function (c) { return c; }) });
     });
 
     var anyChecked = false;
@@ -1868,9 +1884,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + legs.map(function (leg) {
           return "<li><strong>" + esc(leg.label) + "</strong> &mdash; " + prose(leg.what)
             + "."
-            + (leg.caveat
-                ? ' <span style="color:var(--amber);">' + prose(leg.caveat) + "</span>"
-                : "")
+            + (leg.caveats || []).map(function (c) {
+                /* EACH IN ITS OWN BLOCK, not run together after the definition. Two amber
+                   sentences butted onto one line read as a single complaint, and a reader who
+                   stops after the first never reaches the size. */
+                return '<div style="color:var(--amber);margin:3px 0 0;">' + prose(c) + "</div>";
+              }).join("")
             + "</li>";
         }).join("")
       + "</ul>"
