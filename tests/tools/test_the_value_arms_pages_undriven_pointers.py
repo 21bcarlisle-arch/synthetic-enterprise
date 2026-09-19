@@ -54,9 +54,37 @@ FAIL CLOSED IN THREE PLACES, because each is a way this could quietly stop measu
   * a phrase outside the registered referent table is refused for being unregistered, and the
     refusal says which phrase, so silence is never a pass.
 
+THE OTHER HALF OF THE CENSUS ARRIVED 2026-09-19, and the file is no longer only about undriven
+pointers. `_here_relative_census` splits this producer's literals into the ones the page publishes
+today and the ones it does not, and BOTH halves are judged here. The gap that forced it: a
+here-relative pointer was checked for direction exactly while it was UNPUBLISHED and stopped being
+checked the moment a reader could meet it -- this rung scoped itself to untied literals by
+construction, and the published-feed sweep that sees the tied ones asks only whether a sentence has
+ONE home, never which way it points or whether it has one at all.
+
+WHAT THE TIED HALF JUDGES TODAY, and what it does NOT. It judges that a published here-relative
+sentence RENDERS SOMEWHERE, because a direction claimed from a place no reader stands is a claim
+nothing can check -- which is what the live instance turned out to be, against the filing that
+brought it here. It does NOT yet judge the tied half's DIRECTIONS. Eleven tied literals, four of
+them already carrying a `_REFERENTS` row that has never been consulted because the census filtered
+them out before the table was reached; the seven unregistered ones need a referent each, and FIVE
+of those name a NUMBER (`current_world.selection_gbp`) rather than a sentence. The marker probe
+both halves use is a string prefix, and prefixing a float changes what the door does with it, so
+the numeric referent needs a probe of its own -- perturb the value and look for its FORMATTED
+forms. That is the next increment and it is written down rather than half-built.
+
 R15 -- the mutations, each run against the real tree and reverted:
   * restore "ARE named above" to `_departures` -> `test_every_undriven_pointer_is_true_from_the_
     region_it_lands_in` reds naming the home, the referent's home and both directions.
+  * point the tied probe's unread field at one the door DOES render ->
+    `test_MUTATION_the_tied_probe_tells_a_rendered_field_from_an_unrendered_one` reds on its
+    second assertion, which is the fail-open direction (a probe that finds a home for everything).
+  * repair `_auc_attribution`'s "beside this" and revert it ->
+    `test_no_tied_here_relative_pointer_is_published_into_a_field_no_door_renders` reds naming
+    that symbol and line alone, and nothing else in this file moves.
+  * make the fragment lookup in `_here_relative_census` return no published text -> every literal
+    falls into the untied half, and `test_the_census_puts_every_here_relative_literal_in_exactly_
+    one_half` reds on its tied witness BEFORE the tied legs can pass over an empty list.
   * plant "the figures below" into `_polarity_check`'s reason (home `#arms-decisions`, referent
     `#arms-decisions`) -> reds as a direction that does not hold; the honest "beside this" wording
     in the same place stays green, so the judge is not refusing its whole partition.
@@ -451,15 +479,28 @@ def _owning_symbol(source: Path, line: int) -> str | None:
     return owning[-1][2] if owning else None
 
 
-def _untied_literals(producer: Path) -> list[dict]:
-    """Every here-relative literal in `producer` that lands in NO published field today.
+def _here_relative_census(producer: Path) -> dict[str, list[dict]]:
+    """Every here-relative literal `producer` owns, split by whether the page PUBLISHES it today.
 
-    THE UNTIED SET IS DERIVED, not listed. `_producer_literals` is the producer sweep's own AST
-    census -- docstrings excluded, because a producer's prose ABOUT this defect is not something
-    the page can publish -- and a literal is untied when none of its interpolation-stable
-    fragments appears in any string the site currently publishes. Pinning the thirteen as a list
-    would key this rung to today's answer: a literal that gains a home would stay in the census
-    and one that loses its branch would never enter it.
+    ONE WALK, TWO HALVES, RETURNED TOGETHER, and that is not tidying. Until 2026-09-19 only the
+    untied half was computed here, and the tied half was judged by nothing in this tree: this rung
+    scopes itself to untied literals by construction, and the published-feed sweep that DOES see
+    the tied ones checks only that a sentence has one home -- never which way it points, and never
+    whether it has a home at all. A here-relative pointer therefore stopped being checked at
+    exactly the moment a reader could meet it. Two censuses computed in two places is how a gap of
+    that shape stays open, so there is one census and the halves are its output.
+
+    TIED IS DERIVED FROM THE PUBLISHED FEEDS, never from the build below, and the asymmetry is
+    deliberate. "Tied" means a reader can fetch this sentence today, which is a fact about the
+    bytes in `site/data/` -- not about what the producer would compose if it ran now. The build is
+    how the tied half's LANDING FIELDS are then measured, which is a different question.
+
+    THE UNTIED SET IS STILL DERIVED, not listed. `_producer_literals` is the producer sweep's own
+    AST census -- docstrings excluded, because a producer's prose ABOUT this defect is not
+    something the page can publish -- and a literal is untied when none of its interpolation-stable
+    fragments appears in any string the site currently publishes. Pinning either half as a list
+    would key this rung to today's answer: a literal that gains a home would stay in the untied
+    census and one that loses its branch would never enter it.
     """
     published_text = []
     for feed in sorted((SITE / "data").glob("*.json")):
@@ -471,15 +512,36 @@ def _untied_literals(producer: Path) -> list[dict]:
         producers._slots(payload, "", slots)
         published_text.extend(producers._norm(container[key]) for container, key, _ in slots)
 
-    untied = []
+    halves: dict[str, list[dict]] = {"tied": [], "untied": []}
     for literal in producers._producer_literals():
         if literal["producer"] != producer.name:
             continue
-        if any(fragment in text for text in published_text
-               for fragment in literal["fragments"]):
-            continue
-        untied.append(dict(literal, symbol=_owning_symbol(producer, literal["line"])))
-    return untied
+        row = dict(literal, symbol=_owning_symbol(producer, literal["line"]))
+        tied = any(fragment in text for text in published_text
+                   for fragment in literal["fragments"])
+        halves["tied" if tied else "untied"].append(row)
+    return halves
+
+
+def _untied_literals(producer: Path) -> list[dict]:
+    """Every here-relative literal in `producer` that lands in NO published field today.
+
+    ONE HALF OF `_here_relative_census`, kept as a name because the proof page's rung imports it.
+    """
+    return _here_relative_census(producer)["untied"]
+
+
+def _built_text(built: dict) -> dict[str, str]:
+    """`{json path: normalised text}` for every long string a built payload carries.
+
+    THE SWEEPS' OWN SLOT WALK, by import rather than a third copy. `_slots` applies the same
+    `_LONG_ENOUGH` floor they judge by, so a string too short to be a pointer here is too short to
+    be one there -- and `_norm` puts producer prose and published bytes in one normal form, which
+    is what makes a fragment match mean anything.
+    """
+    slots: list = []
+    producers._slots(built, "", slots)
+    return {where: producers._norm(container[key]) for container, key, where in slots}
 
 
 # ── what a pointer claims, and what it points AT ─────────────────────────────────────────────
@@ -725,6 +787,198 @@ def test_a_sentence_no_door_renders_is_reported_rather_than_read_as_clean(driven
         "direction is taken from a place no reader stands and nothing can check it: {}. Either "
         "a door should render the field or the sentence should name a landmark".format(
             sorted(unrendered)))
+
+
+# ── the TIED half: the sentences a reader can already fetch ──────────────────────────────────
+
+@pytest.fixture(scope="module")
+def tied() -> list[dict]:
+    """Each TIED literal, the fields of a REAL build it lands in, and those fields' homes.
+
+    NOTHING IS PATCHED HERE, and that is the whole difference from `driven` above. A tied sentence
+    is on the page because a real run put it there, so `build()` over the real artefacts IS the
+    drive. The recipes exist only because an UNdriven branch has no other way to be reached;
+    forcing one here would measure a payload the producer did not compose.
+
+    ONE RENDER FOR THE WHOLE HALF, not one per field. Every landing field carries its own marker
+    into a single build and the door is driven once -- the producer sweep's own economy, for its
+    own reason: a render per field costs a render per field and answers exactly the same question.
+    The marker is a PREFIX with the original text behind it, so a door that branches on a field's
+    content still takes the branch it really takes.
+    """
+    built = gva.build(*_real_inputs())
+    text = _built_text(built)
+    rows = [dict(literal, fields=sorted(
+        where for where, body in text.items()
+        if any(fragment in body for fragment in literal["fragments"])))
+        for literal in _here_relative_census(PRODUCER)["tied"]]
+
+    marker_for = {field: _MARK.format("T{}".format(index)) for index, field
+                  in enumerate(sorted({f for row in rows for f in row["fields"]}))}
+    homes: dict[str, set] = {field: set() for field in marker_for}
+    if marker_for:
+        marked = copy.deepcopy(built)
+        slots: list = []
+        producers._slots(marked, "", slots)
+        for container, key, where in slots:
+            if where in marker_for:
+                container[key] = "{} {}".format(marker_for[where], container[key])
+        regions, _, meta = published._render(DOOR_URL, overrides={FEED_URL: marked})
+        assert not meta.get("scriptError"), (
+            "the door raised {!r} on the real build, so every home below is a render that did not "
+            "finish and zero homes would be the flattering answer".format(meta.get("scriptError")))
+        homes = {field: {element for element, body in regions.items() if marker in body}
+                 for field, marker in marker_for.items()}
+    return [dict(row, homes={home for field in row["fields"] for home in homes[field]})
+            for row in rows]
+
+
+def test_the_census_puts_every_here_relative_literal_in_exactly_one_half():
+    """A literal in NEITHER half is judged by nothing, which is the state the tied half was in.
+
+    THE FAIL-OPEN THIS CLOSES is not hypothetical -- it is the defect the tied half exists for,
+    one level up. `_here_relative_census` decides tied-ness by looking for a literal's fragments
+    in the published feeds; if that lookup went blind (a `_slots` walk that returns nothing, a
+    `_norm` that stops agreeing with itself across the two sides), EVERY literal would fall into
+    the untied half, the tied legs below would judge an empty list, and both would pass. Counting
+    the halves against the whole is what makes that a red instead of a clean run.
+
+    AND BOTH HALVES NEED A WITNESS, for the reason the published sweep's detector leg gives about
+    its vocabulary: a half that is empty is a set of legs judging nothing, and an empty set passes
+    every assertion made over it. The day this producer genuinely publishes no here-relative prose,
+    delete the tied legs rather than keep green ones that check nothing.
+
+    Fires on: the fragment lookup going blind; `_owning_symbol` throwing a literal away; a half
+    emptying while its legs stay in the file.
+    """
+    halves = _here_relative_census(PRODUCER)
+    whole = [literal for literal in producers._producer_literals()
+             if literal["producer"] == PRODUCER.name]
+    counted = len(halves["tied"]) + len(halves["untied"])
+    assert counted == len(whole), (
+        "this producer owns {} here-relative literals and the census accounts for {} of them, so "
+        "{} are in neither half and nothing in this file judges them".format(
+            len(whole), counted, len(whole) - counted))
+    assert halves["tied"], (
+        "not one here-relative literal of this producer appears in any published feed, which this "
+        "page is known not to be -- either the fragment lookup has gone blind, in which case the "
+        "tied legs below are judging an empty list, or the page really has stopped publishing "
+        "here-relative prose and those legs should be deleted rather than left green")
+    assert halves["untied"], (
+        "every here-relative literal is published, so the driven census above has no subject -- "
+        "the same question in the other direction")
+
+
+def test_every_tied_here_relative_literal_is_found_in_the_build_that_publishes_it(tied):
+    """A sentence the FEED carries and a fresh BUILD does not is a row nothing below can judge.
+
+    FAIL CLOSED ON A DIVERGENCE, which is a real state and not a defensive nicety: tied-ness is
+    read off `site/data/`, landing fields are read off `build()`, and the two disagree whenever the
+    committed feed is older than the producer. When that happens the row's `fields` are empty, its
+    homes are empty, and the rule below would red for the wrong reason -- naming a sentence as
+    unrendered when what is actually stale is the feed. A red that names the wrong cause is how a
+    correct repair gets reverted, so this leg runs first and says which it is.
+
+    Fires on: a published feed left un-regenerated after a producer's prose changed; a branch that
+    stopped being taken on today's artefacts while its sentence is still in the feed.
+    """
+    lost = ["{}:{} {!r}".format(row["symbol"], row["line"], row["phrase"])
+            for row in tied if not row["fields"]]
+    assert not lost, (
+        "these sentences are in a published feed and in NO field of a build over today's "
+        "artefacts, so the feed and the producer have diverged and their homes below would come "
+        "back empty for a reason that is not about the door: {}. Regenerate the feed, or find the "
+        "branch that stopped being taken".format(sorted(lost)))
+
+
+def test_no_tied_here_relative_pointer_is_published_into_a_field_no_door_renders(tied):
+    """THE RULE FOR THE PUBLISHED HALF. A here-relative sentence a reader can fetch must render
+    somewhere, or the direction it claims is taken from a place no reader stands.
+
+    THE DEFECT IT SERVES (2026-09-19, and it is why this half exists at all).
+    `.method_skill.the_sample_size_explanation.what_this_is` said "the explanation for the figure
+    above being unreadable". It was filed as a misdirection -- the same one repaired a field away
+    in `76c72e1e2` -- on the reading that the sentence and the figure both land in `#arms-method`.
+    Measured, the sentence lands in NO REGION: the door's renderer for that block reads `.sentence`
+    and `.reason` and never `what_this_is`. So it was not the `_departures` defect (a direction
+    that points the wrong way from somewhere a reader stands); it was the state
+    `_population_repair_bias`'s cleared branch was in, and "beside this" would have been just as
+    false, because there is no *this*.
+
+    AND IT IS WHY THIS LEG IS HERE RATHER THAN ON THE PUBLISHED-FEED SWEEP. That sweep derives a
+    sentence's homes from what rendered, so a sentence with zero homes is invisible to it by
+    construction -- it has nothing to count. A direction leg bolted on there would have passed over
+    the very instance it was written for. The instrument has to be one that starts from the
+    PRODUCER's literals and asks the door about each, which is what this file already does for the
+    undriven half.
+
+    THE SAME RULE AS `test_a_sentence_no_door_renders_is_reported_rather_than_read_as_clean`, held
+    over the other half of the census. There it is a branch nobody publishes; here it is a byte a
+    reader can fetch today, which is the worse of the two and was the unjudged one.
+
+    Fires on: a producer writing a here-relative sentence into a published field no door reads; a
+    door dropping the region that used to render one.
+    """
+    homeless = ["{}:{} {!r}".format(row["symbol"], row["line"], row["phrase"])
+                for row in tied if not row["homes"]]
+    assert not homeless, (
+        "these sentences are PUBLISHED, claim a direction, and render in no region of the door "
+        "that carries their feed, so the direction is claimed from a place no reader stands and "
+        "nothing can check it: {}. Either name the subject -- which is true from anywhere and "
+        "leaves the here-relative vocabulary -- or give the field a door that renders "
+        "it".format(sorted(homeless)))
+
+
+def test_MUTATION_the_tied_probe_tells_a_rendered_field_from_an_unrendered_one(tied):
+    """The rule above must be failable by the page being wrong, and passable by it being right.
+
+    WHICH DIRECTION IS DANGEROUS. A probe that found NO home anywhere would make the rule red on
+    the whole half -- loud, and therefore not the failure that survives. The one that survives is a
+    probe that finds a home for everything, because it waves through exactly the defect this leg
+    exists for and reports a clean page while doing it. So both are driven side by side against
+    the real door, on one build: a field the door is known to render, and a field its source never
+    reads.
+
+    KEYED TO THE DOOR'S BEHAVIOUR, NOT TO EITHER SENTENCE'S PROSE. `what_this_is` on the sample-
+    size block is the unread field because the block's renderer takes `.sentence` and `.reason` and
+    nothing else -- which stayed true when that sentence was repaired, and is the property this
+    poison needs. The day a door starts rendering it, this leg names itself rather than quietly
+    measuring the wrong thing.
+    """
+    built = gva.build(*_real_inputs())
+    rendered_field = ".withdrawn_claim.note"
+    unread_field = ".method_skill.the_sample_size_explanation.what_this_is"
+    marks = {rendered_field: _MARK.format("Rendered"), unread_field: _MARK.format("Unread")}
+
+    marked = copy.deepcopy(built)
+    slots: list = []
+    producers._slots(marked, "", slots)
+    seen = set()
+    for container, key, where in slots:
+        if where in marks:
+            container[key] = "{} {}".format(marks[where], container[key])
+            seen.add(where)
+    assert seen == set(marks), (
+        "the build no longer carries {}, so this poison marks nothing and both assertions below "
+        "are vacuous".format(sorted(set(marks) - seen)))
+
+    regions, _, meta = published._render(DOOR_URL, overrides={FEED_URL: marked})
+    assert not meta.get("scriptError"), meta.get("scriptError")
+    homes_of = {field: {element for element, body in regions.items() if marker in body}
+                for field, marker in marks.items()}
+
+    assert homes_of[rendered_field], (
+        "a field the door does render came back with NO home, so this probe reports every "
+        "published sentence as homeless and the rule above is refusing its whole partition")
+    assert not homes_of[unread_field], (
+        "a field the door's own source never reads came back WITH a home, so this probe cannot "
+        "tell a rendered sentence from an unrendered one and the rule above passes on everything")
+
+    # AND THE SETS ABOVE ARE ARITHMETIC UNTIL SOMETHING REAL IS IN THEM. This is the leg that says
+    # the census itself reached the door, not just the two fields this poison hand-picked.
+    assert any(row["homes"] for row in tied), (
+        "not one TIED here-relative sentence reached a region on the real door, so the rule above "
+        "is judging an empty set and its green means nothing")
 
 
 def test_MUTATION_a_pointer_that_misdirects_is_CAUGHT_and_both_verdicts_are_reachable(driven):

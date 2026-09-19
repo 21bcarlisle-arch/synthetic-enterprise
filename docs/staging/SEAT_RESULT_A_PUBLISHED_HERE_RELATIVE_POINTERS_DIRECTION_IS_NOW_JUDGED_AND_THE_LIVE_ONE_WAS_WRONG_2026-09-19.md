@@ -160,3 +160,73 @@ half too, or `what_it_settles` stays unjudged for the same reason `what_this_is`
 That increment cannot be split: `pre_commit_test_gate.tests_for` maps a changed test file to
 ITSELF with no pre-existing-red allowance, so extending the census means every tied defect it finds
 is repaired in the same landing — the same all-or-nothing `76c72e1e2` hit with its three recipes.
+
+---
+
+## INCREMENT 2 — the tied half of the census now exists, and it judges HOMES, not yet DIRECTION
+
+Landed after the increment above, against the tree it created.
+
+### What was built
+
+`_here_relative_census` in `tests/tools/test_the_value_arms_pages_undriven_pointers.py` replaces
+`_untied_literals`' private walk and returns BOTH halves from one pass. `_untied_literals` stays as
+a name because the proof page's rung imports it. The tied half gets a fixture that builds over the
+real artefacts — nothing is patched, because a tied sentence is on the page already and forcing a
+branch would measure a payload the producer did not compose — reads each literal's landing fields
+out of that build by stable-fragment match, marks every landing field with its own marker in ONE
+build, and drives `/capabilities/` once.
+
+Four legs, and what each refuses:
+
+* `test_the_census_puts_every_here_relative_literal_in_exactly_one_half` — counts the halves
+  against the whole, and requires a witness in each. Without it, a fragment lookup that went blind
+  would drop every literal into the untied half and the tied legs would pass over an empty list.
+* `test_every_tied_here_relative_literal_is_found_in_the_build_that_publishes_it` — tied-ness is
+  read off `site/data/`, landing fields off `build()`, and the two diverge whenever the committed
+  feed is older than the producer. Then homes come back empty for a reason that is not about the
+  door, and the rule below would red naming the wrong cause.
+* `test_no_tied_here_relative_pointer_is_published_into_a_field_no_door_renders` — **the rule.**
+* `test_MUTATION_the_tied_probe_tells_a_rendered_field_from_an_unrendered_one` — both halves of the
+  partition against the real door, plus the witness that the census itself reached it.
+
+### The rule fired on a second live instance before it was repaired
+
+Run against the unrepaired tree, the rule red naming exactly one row and nothing else:
+
+```
+_auc_attribution:7451 'beside this'
+```
+
+`.decisions.auc_attribution.independent_grade.what_it_settles` said *"The polarity branch is closed
+by `polarity_check` beside this block"*. The door composes its own prose for that block out of
+`oracle_ceiling_auc`, `renewals` and `tool` and never reads `what_it_settles`, so the sentence is a
+byte a reader can fetch and a direction claimed from a place no reader stands — the identical state
+`what_this_is` was in, found by the instrument written for `what_this_is`, which is the only
+evidence worth having that the instrument generalises. Repaired the same way: name
+`polarity_check`, claim no direction.
+
+### What the tied half still does NOT judge, and the obstacle is concrete
+
+Direction. Eleven tied literals; four already carry a `_REFERENTS` row that had never been
+consulted, because the census filtered tied literals out before the table was reached. Measured
+against the door's own reading order, **all four are true today** — `_family_discrimination`
+(`#arms-errorbar` → `#arms-errorbar`, `same`), `_departure_statement` (`#arms-departure` →
+`#arms-realised`, `below`), `_against_the_superseded_panel` (`#arms-composition` →
+`#arms-realised`, `above`), `_current_world_contrast` (`#arms-redraw` → `#arms-headline`, `above`).
+So switching the direction leg on for those four is free.
+
+The other seven need a referent each, and **five of them name a NUMBER** —
+`current_world.selection_gbp`, the choosing figure. Both halves of this file locate a referent by
+prefixing its value with a string marker and looking for the marker in the rendered DOM. Prefixing
+a float changes what the door does with it (`toFixed`, `toLocaleString`, the `gbp()` formatter), so
+the probe would be measuring a page nobody publishes — the exact objection `_polarity_reason` and
+`_family_never_asked` were written against. A numeric referent needs its own probe: perturb the
+value to a distinctive one and search the rendered text for its FORMATTED forms.
+
+That is the next increment, and it is written down rather than half-built. Three of those seven are
+suspicious on arithmetic already and remain **unjudged, not cleared**: `_leg_in_this_world` says
+"the figure above" from `#arms-legs-first`, position 0; `WITHDRAWN_CLAIMS` says "the choosing figure
+below" from `#arms-note`, position 17; `_control_leg_agreement` says "the control row above" from
+`#arms-method`, where the control row is published inside that same block. Each is one side of a
+two-sided measurement, and this rung's own rule is that both sides are measured.

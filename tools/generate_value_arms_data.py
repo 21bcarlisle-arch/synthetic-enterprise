@@ -7455,8 +7455,15 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
                 "and not decisive on polarity: `tools/grade_renewal_churn_belief.py::rank_auc` is "
                 "a separate implementation grading a different belief, so a sign error inside "
                 "`run_value_cycle_ab.belief_vs_outcome` would leave these two figures untouched. "
-                "The polarity branch is closed by `polarity_check` beside this block, which "
-                "compares the level across the runs that share that estimator's code path. All "
+                # IT NAMES `polarity_check` AND CLAIMS NO DIRECTION, repaired 2026-09-19 by the
+                # TIED half of the pointer census on the first run in which anything could see it.
+                # This field is PUBLISHED and renders in NO region: the door composes its own
+                # prose for the independent-grade block out of `oracle_ceiling_auc`, `renewals`
+                # and `tool`, and never reads `what_it_settles`. So "beside this block" claimed a
+                # direction from a place no reader stands -- the same state, and the same repair,
+                # as `what_this_is` one block away and `_population_repair_bias`'s cleared branch.
+                "The polarity branch is closed by `polarity_check`, which compares the level "
+                "across the runs that share that estimator's code path. All "
                 "three figures here are measured on a different run from the 0.13 -- 708 renewals "
                 "over 134 accounts against 20 over 10 -- so none is a replacement figure for it, "
                 "and none is quoted here as one."),
