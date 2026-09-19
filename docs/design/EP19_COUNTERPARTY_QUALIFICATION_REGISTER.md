@@ -105,6 +105,20 @@ permission — the exact failure the 2026-08-15 correction exists to prevent. Qu
 **Until that lands, this column is a mixed instrument** — nine rows derived, two asserted — and it must
 not be described as exhaustive-by-construction without that caveat.
 
+> **THE CAVEAT STAYS, and the reason is now stronger than "not yet done" (2026-09-19).** That queued
+> finding is no longer in `docs/staging/` — it sits in `docs/staging/done/`. It did not land: it was
+> **swept there by a 772-path bulk archive** (commit `2766c8ca2`, whose own message describes clearing a
+> 419-file backlog), and `background/one_way_door.py` has had **zero commits since 2026-08-18**. Measured
+> at HEAD this pass, the finding's own stated null control is **false**: `classify_action` still returns
+> `PROCEED` for *"add a host to the egress allowlist"* and *"change the sandbox security profile"*, and
+> still returns `PROCEED` for the two Elexon acts that make this column mixed in the first place.
+>
+> So a reader who checks whether the blocker cleared by looking for the finding will find it filed under
+> `done/` and conclude the caveat can come out. It cannot. The condition for removing it is the null
+> control passing, never the document's location — this register's own repeated defect is treating a
+> citation as a discharge, and the archive path has now produced a third way to do it. Raised separately
+> at `docs/staging/WORKER_FINDING_A_BULK_ARCHIVE_SWEEP_FILED_A_FINDING_AS_DONE_WHILE_ITS_OWN_NULL_CONTROL_IS_STILL_FALSE_2026-09-19.md`.
+
 *(Qualified 2026-08-18 by the ⚠ note above: two of eleven rows are now asserted from CLAUDE.md rather than
 derived, because the classifier fails open on them. The two claims below hold for the derived nine.)*
 
@@ -175,6 +189,28 @@ on `background/egress_allowlist.py`; see § Why only one row is priced):
 `/bsc/market-entry/becoming-supplier/`, `/bsc/market-entry/becoming-an-energy-contract-volume-notification-agent/`,
 `/bsc/market-entry/sva-qualification/`.
 
+**RE-VERIFIED LIVE 2026-09-19** (worker tick). All three URLs return 200 and **every figure below is
+unchanged** after thirty-two days. The observation freshness of this section is therefore 2026-09-19.
+
+> **TWO CLOCKS, and this table only ever carried one (registered 2026-09-19).** The date above is when
+> *we looked*. It is not when the *figure took effect*, and those are different quantities — the
+> distinction this project's basis rule exists to force. `/bsc/market-entry/becoming-supplier/` is a
+> **narrative restatement**; the authoritative home is the **Schedule of Main and SVA Specified Charges**,
+> a versioned instrument under BSC Annex D-3.3/D-3.4 that the **BSC Panel re-determines before the start
+> of each BSC Year**. Observed live 2026-09-19 on `bscdocs.elexon.co.uk`: **V24.0, Effective From Date
+> 12/05/2026, status LIVE**, with a V23.0 behind it. So the basis date of every figure below is
+> **12/05/2026**, not either fetch date.
+>
+> Why this matters more than a missing column: an unchanged narrative page cannot distinguish *"the Panel
+> did not move the price"* from *"the narrative page has not caught up with the schedule yet"*. A
+> re-verification that reads only the restatement can return **unchanged** in both cases, so the
+> confirmation above is weaker than it looks and is recorded at its real strength. The next Panel
+> determination will move V24.0 with **no signal on the page this register reads**.
+>
+> **Not closed by this pass, and not inferrable:** the schedule's own body is served by a JavaScript
+> document viewer, and its figures are absent from the static HTML this seat can fetch. Nothing was read
+> across from the restatement into the schedule's column to make the clocks look reconciled.
+
 | row | item | published figure |
 |---|---|---|
 | B11 | BSC **accession fee** | **£500** (*"covers the administrative costs of entering the market"*) |
@@ -189,6 +225,12 @@ on `background/egress_allowlist.py`; see § Why only one row is priced):
 | B11 | SVA Qualification | **£0** — *"costs are recovered centrally through Elexon's funding mechanisms"* |
 | B11 | Credit Cover | **Elexon does not specify it** — *"it is up to the Party to decide"*, from its own trading characteristics |
 | B7 | ECVNA status | **£0** — *"There are no costs as a ECVNAs are not a BSC Party"* |
+| B11 | Minimum monthly BSCCo invoice *(added 2026-09-19)* | **£500** — the floor below which Parties are not billed in a month, excluding quarter end. From `/bsc/about/bsc-costs-charges/` |
+
+> **The two £500s are different quantities (2026-09-19).** The accession fee is a **one-off entry cost**;
+> the minimum monthly invoice is a **recurring billing floor**. They are recorded as separate rows because
+> a register carrying one unlabelled £500 is how the next reader divides or adds the wrong pair — and the
+> figure they collide with is the single most-quoted number in this row.
 
 **Lead times are not published on any of these pages** — the enduring process names its *stages*
 (PQS → QRA + QTF) and no calendar duration, service level or typical elapsed time. Nothing is inferred
