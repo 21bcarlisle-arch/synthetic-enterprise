@@ -1399,12 +1399,19 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
 
     fates_by_year: dict[int, collections.Counter] = collections.defaultdict(collections.Counter)
     totals: collections.Counter = collections.Counter()
+    # WHO converted, not only HOW MANY conversions. The published record bounds an INCIDENCE -- a
+    # household counted once however many times it moved -- so the count of distinct converting
+    # accounts is the world's own numerator of that kind, and the ratio of the two is the world's
+    # repeat factor. Collected in the walk that was already happening rather than in a second one.
+    converters_by_year: dict[int, set[str]] = collections.defaultdict(set)
     for account, spells in _svt_stints(svt_rows).items():
         for index, stint in enumerate(spells):
             following = spells[index + 1] if index + 1 < len(spells) else None
             fate = _stint_fate(stint, following, renewal_dates.get(account, []))
             fates_by_year[_stint_end(stint).year][fate] += 1
             totals[fate] += 1
+            if fate == STINT_RETURNED:
+                converters_by_year[_stint_end(stint).year].add(account)
 
     per_year: dict[str, dict] = {}
     for year in sorted(svt_by_year):
@@ -1422,6 +1429,12 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
         per_year[str(year)] = {
             "svt_account_years": round(account_years, 4),
             "accounts_on_book": accounts,
+            # The HEADCOUNT pair beside the exposure pair, for `as_an_incidence` below. An account
+            # that spent six weeks on the product counts once here and 0.115 of a year above, and
+            # that difference is most of the distance between the world's published figure and the
+            # kind of quantity the two published bounds actually bound.
+            "svt_accounts_touched": len({row["customer_id"] for row in rows}),
+            "accounts_that_converted": len(converters_by_year[year]),
             "stint_fates": {fate: fates_by_year[year][fate] for fate in _STINT_FATES},
             "internal_return_rate": {
                 "per_svt_account_year": (
@@ -1519,6 +1532,12 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
         "against_the_band_in_annual_units": _internal_return_vs_the_annualised_band(
             round(totals[STINT_RETURNED] / account_years_total, 6)
             if account_years_total else None,
+        ),
+        # APPENDED, for the reason the two above were: this does not restate any key already here,
+        # it says what KIND of quantity they all are. It is last because it is the reading that
+        # grades the other three rather than a fourth comparison beside them.
+        "as_an_incidence_which_is_what_the_record_bounds": _internal_return_as_an_incidence(
+            per_year
         ),
         "tenure_mix_vs_the_published_observations": {
             "what_this_is": (
@@ -1923,6 +1942,23 @@ def _internal_return_vs_the_published_ceiling(
         respondents across both fuels. Same KIND of quantity as the floor and as the world, which
         is what makes the band admissible at all.
 
+    **CORRECTED 2026-09-19, BESIDE THE SENTENCE AND NOT OVER IT. The last clause above is FALSE and
+    it was the only thing licensing this band.** The ceiling is the same kind as the FLOOR -- both
+    are incidences, because CIM C4 counts a household once however many times it moved and the
+    arithmetic deriving both bounds preserves that. It is NOT the same kind as the WORLD, which is
+    an event count over exposure. The sentence is kept verbatim because a claim with its refutation
+    next to it is the only evidence the claim was made before the answer was known.
+
+    What replaces it is a measurement, not a second assertion. The reading
+    `as_an_incidence_which_is_what_the_record_bounds` states the world in the record's kind, finds
+    the numerator half an EQUIVALENCE on this capture (no account converts twice in a year) and the
+    denominator half live (exposure is 0.70 of headcount), and returns the world as a BAND -- whose
+    upper endpoint is the figure judged here. Every verdict in THIS function is
+    unaffected in direction -- the world's event rate is the band's upper endpoint, so a world
+    within this ceiling on the event rate is within it on the incidence too, which is the strong
+    verdict this function already claims. The floor is where the correction bites, and it bites
+    there because that is the live side.
+
     FAILS CLOSED. A ceiling of `None` is reported as a refusal with its reason, never as a pass.
     """
     ceiling_reading = published_route_split.svt_internal_conversion_ceiling()
@@ -2128,6 +2164,259 @@ def _internal_return_vs_the_annualised_band(
             "and away from it the world's numerator is the larger, which flatters the floor "
             "verdict and harshens the ceiling one."
         ),
+        # CORRECTED 2026-09-19, BESIDE THE SENTENCE AND NOT OVER IT. The DIRECTION above survives
+        # measurement; the CAUSE does not. The sentence attributes the whole gap to repetition, and
+        # `as_an_incidence_which_is_what_the_record_bounds` finds the world's repeat factor is
+        # exactly 1 -- the world IS at the r = 0 corner on the numerator, and every bit of the gap
+        # comes from the denominator instead, exposure being 0.70 of headcount. A true statement
+        # with the wrong cause under it is this project's own catalogued shape, so it is named here
+        # rather than left for a reader to infer the gap closes when repetition does.
+        "the_gap_is_real_but_not_for_the_reason_above": (
+            "the world's repeat factor is 1.000 -- 49 conversions by 49 distinct accounts -- so "
+            "repetition contributes NOTHING to the mismatch on this capture. The gap is entirely "
+            "the denominator: account-YEARS of exposure against a headcount of accounts touched. "
+            "The direction stated above is unchanged; its cause is not what it says."
+        ),
+        "the_clearing_verdict_here_is_the_bands_upper_endpoint": (
+            "`multiple_of_the_tightest_annual_floor` is 1.11 and it is the TOP of the kind-matched "
+            "band, whose bottom is 0.77 of the same bar. The band straddles the tightest annual "
+            "floor, so clearance of it was never established -- see "
+            "`as_an_incidence_which_is_what_the_record_bounds`. The floor IN FORCE is cleared by "
+            "both endpoints and the conclusion that the floor is the live side is sharpened, not "
+            "weakened."
+        ),
+    }
+
+
+def _verdict_over_a_band(band: list[float | None], bar: float | None, side: str) -> bool | None:
+    """Does a world known only to lie in `band` clear `bar`? `None` when the band straddles it.
+
+    THE WHOLE POINT IS THE THIRD ANSWER. Every verdict in this chain was two-valued because the
+    world was a single number; once it is a band, "the band contains the bar" is a distinct outcome
+    from both pass and fail, and collapsing it into either is how an unestablished verdict gets
+    published as an established one. Fails closed in the literal sense -- an absent endpoint or an
+    absent bar returns `None`, never `True`.
+    """
+    if bar is None or any(endpoint is None for endpoint in band):
+        return None
+    clears = [
+        (endpoint >= bar) if side == "FLOOR" else (endpoint <= bar)
+        for endpoint in band
+        if endpoint is not None
+    ]
+    if not clears:
+        return None
+    return True if all(clears) else (False if not any(clears) else None)
+
+
+def _internal_return_as_an_incidence(per_year: dict[str, dict]) -> dict:
+    """The world's internal return as the KIND of quantity the two published bounds actually bound.
+
+    THE DEFECT THIS EXISTS TO REPAIR, NAMED PLAINLY. `_internal_return_vs_the_published_ceiling`
+    asserts in its own docstring that the ceiling is the *"Same KIND of quantity as the floor and as
+    the world, which is what makes the band admissible at all"*. **That sentence is false**, and it
+    was the only thing licensing the band. Ofgem CIM C4's internal row is an INCIDENCE -- the share
+    of households reporting AT LEAST ONE internal switch in six months, one per household however
+    many times they moved -- and both bounds are derived from it by arithmetic that preserves that
+    kind. The world's figure is `returned_to_fixed` stints over SVT account-years: an EVENT COUNT
+    over EXPOSURE, which can exceed 1 and which an incidence cannot.
+
+    It does not follow that the band is inadmissible. It follows that whether it is admissible is a
+    MEASUREMENT, and nobody had taken it. This is that measurement.
+
+    TWO DISTORTIONS, AND THEY ARE NOT THE SAME SIZE. Write `E` for the published event rate and `J`
+    for the incidence on a headcount base:
+
+      * THE NUMERATOR. `E` counts conversions, `J` counts converting households. Their ratio is the
+        world's own repeat factor and it is **1.000 in every year of this capture** -- 49
+        conversions by 49 distinct accounts, no account converting twice. So on this capture the
+        numerator half of the conflation is an EQUIVALENCE, which is a finding and not a clearance:
+        `simulation/renewals.py` bounds a passive stint at the next anniversary and a fixed term
+        runs about a year, so a second conversion inside one calendar year has nowhere to happen.
+        Shorten fixed terms and it stops being true with nothing to say so, which is why
+        `repeat_factor` is DERIVED here and keyed to by a control rather than written into prose.
+      * THE DENOMINATOR, which is the live half. `E` divides by account-YEARS of exposure and `J`
+        by a headcount of accounts touched; accounts join and leave the product mid-year, so the
+        exposure denominator is about 0.70 of the headcount one and `E` is correspondingly larger.
+
+    WHY THE ANSWER IS A BAND AND NOT A CORRECTED NUMBER. Neither endpoint is the record's quantity.
+    A survey's base is the households on the default tariff AT FIELDWORK, each with a full window's
+    exposure; `accounts_touched` includes accounts that were on the product for six weeks, and those
+    dilute the incidence downward. So the true kind-matched figure is bounded on BOTH sides::
+
+        J_touched  <=  J_true  <=  E
+
+    The upper leg is structural: conversions are at least conversion-having households, and a
+    per-exposure rate is at least the incidence full exposure would produce (`1 - exp(-h) <= h`).
+    The lower leg rests on ONE named assumption -- that an account's chance of converting does not
+    DECREASE with its exposure -- which is an assumption, stated here rather than buried, and not a
+    number anyone picked. Picking a point inside the band would mint exactly the constant
+    `SVT_INTERNAL_CONVERSION_RATE` refuses to be.
+
+    WHAT IT DOES TO THE LIVE SIDE OF THE BAND, which is the reason this was worth measuring. The
+    world's published figure clears the tightest annual floor at 1.11x. Its kind-matched lower
+    endpoint sits at 0.77x of the same bar. **The band straddles the tightest annual floor**, so the
+    honest verdict there is not "clears" and not "fails" -- it is that the record cannot tell, and
+    `clears_the_tightest_annual_floor` returns `None` to say so. The bound actually IN FORCE (the
+    `r = 1` corner, 0.0449) is cleared by both endpoints and is unaffected.
+
+    FAILS CLOSED throughout: a straddle is `None`, an absent endpoint is `None`, and no leg here
+    returns `True` on missing evidence.
+    """
+    annual = published_route_split.svt_internal_conversion_annualisation()
+    scored = [row for row in per_year.values() if row["svt_account_years"]]
+    events = sum(row["stint_fates"][STINT_RETURNED] for row in scored)
+    converters = sum(row["accounts_that_converted"] for row in scored)
+    account_years = sum(row["svt_account_years"] for row in scored)
+    touched = sum(row["svt_accounts_touched"] for row in scored)
+
+    per_year_rows: dict[str, dict] = {}
+    for year, row in sorted(per_year.items()):
+        year_events = row["stint_fates"][STINT_RETURNED]
+        year_converters = row["accounts_that_converted"]
+        year_touched = row["svt_accounts_touched"]
+        year_exposure = row["svt_account_years"]
+        per_year_rows[year] = {
+            "conversions": year_events,
+            "accounts_that_converted": year_converters,
+            # `None` rather than 1.0 when nobody converted: a year with no events establishes
+            # nothing about repetition, and a 1.0 there would read as evidence that it holds.
+            "repeat_factor": (
+                None if not year_converters else round(year_events / year_converters, 6)
+            ),
+            "event_rate_per_svt_account_year": (
+                None if not year_exposure else round(year_events / year_exposure, 6)
+            ),
+            "incidence_per_svt_account_touched": (
+                None if not year_touched else round(year_converters / year_touched, 6)
+            ),
+        }
+
+    event_rate = round(events / account_years, 6) if account_years else None
+    incidence = round(converters / touched, 6) if touched else None
+    band = [incidence, event_rate]
+    tightest_floor = annual["the_floor_if_nobody_repeats"]
+    floor_in_force = annual["the_floor_in_force_is_the_total_repetition_corner"]
+    ceilings = annual["annual_ceiling_at_each_endpoint"]
+    return {
+        "what_this_is": (
+            "the world's internal return expressed as the INCIDENCE the two published bounds "
+            "actually bound, beside the EVENT RATE every earlier reading in this chain published. "
+            "Not a third bound and not a correction to the world: a statement of what the world's "
+            "figure counts, and of how far that is from what the record's figure counts."
+        ),
+        "refused": (
+            None if (event_rate is not None and incidence is not None) else
+            "the capture carries no scored SVT year with both exposure and a headcount, so neither "
+            "kind of rate can be formed. Reported rather than passed."
+        ),
+        "the_two_quantities": {
+            "the_record_bounds": (
+                "an INCIDENCE -- the share of SVT households reporting AT LEAST ONE internal "
+                "switch in the window, one per household however many times they moved. CIM C4, "
+                "carried through both bounds unchanged by the arithmetic that derives them."
+            ),
+            "the_world_published": (
+                "an EVENT COUNT over EXPOSURE -- `returned_to_fixed` stints over SVT account-years "
+                "-- which can exceed 1 and which an incidence cannot."
+            ),
+            "they_coincide_only_where": (
+                "nobody converts twice in the window AND exposure equals headcount. The first "
+                "holds on this capture and the second does not."
+            ),
+        },
+        # ---- the numerator half: an equivalence on this capture, and derived so it can stop being
+        # one without anybody editing this docstring ----
+        "conversions": events,
+        "accounts_that_converted": converters,
+        "repeat_factor": (
+            None if not converters else round(events / converters, 6)
+        ),
+        "no_account_converts_twice_in_a_year": (
+            None if not converters else events == converters
+        ),
+        "what_the_repeat_factor_being_one_means": (
+            "the numerator half of the event-vs-incidence conflation is an EQUIVALENCE on this "
+            "capture, not a defect and not a clearance. It holds because a fixed term runs about a "
+            "year and a passive stint is bounded at the next anniversary, so a second conversion "
+            "inside one calendar year has nowhere to happen. It is a property of the world's term "
+            "lengths, not of the comparison, and it is derived here so that shortening them reds a "
+            "control instead of silently reopening the gap."
+        ),
+        # ---- the denominator half: the live one ----
+        "svt_account_years": round(account_years, 4),
+        "svt_accounts_touched": touched,
+        "exposure_per_account_touched": (
+            None if not touched else round(account_years / touched, 6)
+        ),
+        "why_the_denominators_differ": (
+            "accounts join and leave the SVT product mid-year. An account on the product for six "
+            "weeks contributes one to the headcount and 0.115 to the account-years, so the "
+            "exposure denominator is the smaller and the event rate the larger. This is the half "
+            "of the conflation that is live on this capture."
+        ),
+        # ---- the band, DERIVED, and the reason it is a band ----
+        "event_rate_per_svt_account_year": event_rate,
+        "incidence_per_svt_account_touched": incidence,
+        "the_kind_matched_band": band,
+        "why_it_is_a_band_and_not_a_corrected_number": (
+            "neither endpoint is the record's quantity. A survey's base is the households on the "
+            "default tariff at fieldwork, each with a full window's exposure; `accounts_touched` "
+            "includes accounts on the product for weeks, which dilutes the incidence downward. So "
+            "J_touched <= J_true <= E. The upper leg is structural; the lower leg costs one named "
+            "assumption -- that conversion probability does not DECREASE with exposure. Choosing a "
+            "point inside would mint the constant `SVT_INTERNAL_CONVERSION_RATE` refuses to be."
+        ),
+        # DERIVED, NEVER DECLARED. The ordering is the claim the whole band rests on; a hand-written
+        # True here would survive the two endpoints crossing, which is exactly the state in which
+        # every verdict below becomes meaningless.
+        "the_band_is_ordered": (
+            None if (incidence is None or event_rate is None) else incidence <= event_rate
+        ),
+        # ---- what it does to each bound, three-valued ----
+        "the_floor_in_force": floor_in_force,
+        "clears_the_floor_in_force": _verdict_over_a_band(band, floor_in_force, "FLOOR"),
+        "the_tightest_annual_floor": tightest_floor,
+        "clears_the_tightest_annual_floor": _verdict_over_a_band(band, tightest_floor, "FLOOR"),
+        "the_tightest_annual_ceiling": ceilings["a_1_every_switcher_repeats"],
+        "within_the_tightest_annual_ceiling": _verdict_over_a_band(
+            band, ceilings["a_1_every_switcher_repeats"], "CEILING"
+        ),
+        "multiple_of_the_tightest_annual_floor_at_each_endpoint": [
+            None if not tightest_floor or endpoint is None
+            else round(endpoint / tightest_floor, 4)
+            for endpoint in band
+        ],
+        # DERIVED. The bar the band straddles is the one whose verdict the conflation was deciding,
+        # and naming it is worth more than the three flags above read separately.
+        "bars_this_band_cannot_decide": [
+            name for name, bar in (
+                ("the_floor_in_force", floor_in_force),
+                ("the_tightest_annual_floor", tightest_floor),
+                ("the_tightest_annual_ceiling", ceilings["a_1_every_switcher_repeats"]),
+            )
+            if _verdict_over_a_band(
+                band, bar, "CEILING" if "ceiling" in name else "FLOOR"
+            ) is None and bar is not None
+        ],
+        "per_year": per_year_rows,
+        "what_this_changes_about_the_published_reading": (
+            "`against_the_band_in_annual_units` reports the world at 1.11x the tightest annual "
+            "floor and concludes the floor is the live side. The first half is the band's UPPER "
+            "endpoint: the lower endpoint is at 0.77x the same bar, so the band straddles it and "
+            "the clearing verdict was never established. The conclusion that the FLOOR is the live "
+            "side is not weakened by this -- it is sharpened, because the bar the world cannot be "
+            "shown to clear is on that side. The bound actually in force, the r = 1 corner at "
+            "0.0449, is cleared by both endpoints and is untouched."
+        ),
+        "what_this_cannot_say": (
+            "that the world's rate is wrong, or that it breaches anything. The tightest annual "
+            "floor is the r = 0 corner of a family whose `r` is a declared None -- it is the "
+            "tightest bar the record COULD support, not a bar the record makes -- so failing to "
+            "establish clearance of it refutes nothing. It also cannot repair the remaining "
+            "mismatch between an account base and a survey's respondent base; it can only measure "
+            "which way that runs, which is the direction already stated."
+        ),
     }
 
 
@@ -2274,6 +2563,43 @@ def _internal_return_main(table_path: Path) -> int:
         print("  are further from a breach here than in six-month units, and no evidence about "
               "repeat")
         print("  switching can bring them closer. The floor is where such evidence would land.")
+    # THE CORRECTION HAS TO REACH THE SURFACE A READER MEETS. The block above prints "clears the
+    # tightest: True" from a figure that is the band's UPPER endpoint, and a correction that lives
+    # only in the JSON leaves that sentence standing on the page. So this is printed immediately
+    # after it and not appended at the end of the run.
+    kind = reading["as_an_incidence_which_is_what_the_record_bounds"]
+    print()
+    print("── AND IN THE KIND OF QUANTITY THE RECORD ACTUALLY BOUNDS ──")
+    print()
+    if kind["refused"] is not None:
+        print(f"  REFUSED — {kind['refused']}")
+    else:
+        lo, hi = kind["the_kind_matched_band"]
+        print("  the record bounds an INCIDENCE (one household however many times it moved); the "
+              "world")
+        print("  published above is an EVENT COUNT over EXPOSURE. They are not the same kind of "
+              "quantity.")
+        print(f"  repeat factor {kind['repeat_factor']}  —  {kind['conversions']} conversions by "
+              f"{kind['accounts_that_converted']} distinct accounts, so the")
+        print("  NUMERATOR half is an equivalence on this capture and contributes nothing to the "
+              "gap.")
+        print(f"  exposure per account touched {kind['exposure_per_account_touched']:.4f}  —  the "
+              "DENOMINATOR half is the whole of it.")
+        print(f"  kind-matched world [{lo:.6f}, {hi:.6f}]  —  the figure above is its TOP endpoint")
+        print(f"  vs the tightest annual floor {kind['the_tightest_annual_floor']:.6f}: at "
+              f"{kind['multiple_of_the_tightest_annual_floor_at_each_endpoint'][0]:.2f}–"
+              f"{kind['multiple_of_the_tightest_annual_floor_at_each_endpoint'][1]:.2f}x it, "
+              f"clears = {kind['clears_the_tightest_annual_floor']}")
+        if kind["bars_this_band_cannot_decide"]:
+            print(f"  THE BAND STRADDLES {', '.join(kind['bars_this_band_cannot_decide'])} — that "
+                  "verdict is NOT established.")
+            print("  'clears the tightest: True' printed above is the upper endpoint alone. The "
+                  "bound IN")
+            print(f"  FORCE ({kind['the_floor_in_force']:.6f}, the r = 1 corner) is cleared by "
+                  "BOTH endpoints and is untouched;")
+            print("  the r = 0 corner is the tightest bar the record COULD support, not one it "
+                  "makes, so this")
+            print("  refutes nothing. It sharpens which side is live rather than weakening it.")
     mix = reading["tenure_mix_vs_the_published_observations"]
     print()
     print("── THE TENURE MIX §14 SOURCED, AGAINST THE WORLD'S ──")
