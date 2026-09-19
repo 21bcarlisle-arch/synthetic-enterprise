@@ -11,7 +11,7 @@ import math
 import pytest
 
 from simulation import weather_cell_siting as wcs
-from simulation.weather_inputs import _WEATHER_SOURCE_CUSTOMERS, _weather_source_customer_id
+from simulation.weather_inputs import _weather_source_customer_id, weather_source_customers
 
 LONDON = {"lat": 51.5074, "lon": -0.1278, "region": "London"}
 BIRMINGHAM = {"lat": 52.4862, "lon": -1.8904, "region": "Birmingham"}
@@ -260,7 +260,7 @@ def test_a_drawn_household_has_a_coordinate_and_the_artefact_resolves_it():
         # The claim is about which STEP answers, not which CSV it lands on. Asserting the
         # destination would pass if the cell branch started answering and returned the same site,
         # which is precisely the change this control exists to notice.
-        assert any(s["location"] == premise["location"] for s in _WEATHER_SOURCE_CUSTOMERS), (
+        assert any(s["location"] == premise["location"] for s in weather_source_customers()), (
             f"{premise['customer_id']} no longer has an exact-location archive, so it now reaches "
             "the cell branch — W1_14's household gap has begun to close and this control has done "
             "its job"
