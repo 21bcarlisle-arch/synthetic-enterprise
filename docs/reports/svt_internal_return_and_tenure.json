@@ -18,6 +18,8 @@
     "2016": {
       "svt_account_years": 0.0055,
       "accounts_on_book": 3,
+      "svt_accounts_touched": 2,
+      "accounts_that_converted": 0,
       "stint_fates": {
         "returned_to_fixed": 0,
         "departed": 0,
@@ -33,6 +35,8 @@
     "2017": {
       "svt_account_years": 25.0897,
       "accounts_on_book": 58,
+      "svt_accounts_touched": 39,
+      "accounts_that_converted": 1,
       "stint_fates": {
         "returned_to_fixed": 1,
         "departed": 2,
@@ -48,6 +52,8 @@
     "2018": {
       "svt_account_years": 29.2676,
       "accounts_on_book": 50,
+      "svt_accounts_touched": 42,
+      "accounts_that_converted": 9,
       "stint_fates": {
         "returned_to_fixed": 9,
         "departed": 8,
@@ -63,6 +69,8 @@
     "2019": {
       "svt_account_years": 23.3867,
       "accounts_on_book": 41,
+      "svt_accounts_touched": 29,
+      "accounts_that_converted": 2,
       "stint_fates": {
         "returned_to_fixed": 2,
         "departed": 8,
@@ -78,6 +86,8 @@
     "2020": {
       "svt_account_years": 27.4333,
       "accounts_on_book": 46,
+      "svt_accounts_touched": 36,
+      "accounts_that_converted": 2,
       "stint_fates": {
         "returned_to_fixed": 2,
         "departed": 4,
@@ -93,6 +103,8 @@
     "2021": {
       "svt_account_years": 29.9767,
       "accounts_on_book": 51,
+      "svt_accounts_touched": 40,
+      "accounts_that_converted": 9,
       "stint_fates": {
         "returned_to_fixed": 9,
         "departed": 2,
@@ -108,6 +120,8 @@
     "2022": {
       "svt_account_years": 40.1095,
       "accounts_on_book": 51,
+      "svt_accounts_touched": 51,
+      "accounts_that_converted": 0,
       "stint_fates": {
         "returned_to_fixed": 0,
         "departed": 2,
@@ -123,6 +137,8 @@
     "2023": {
       "svt_account_years": 38.2533,
       "accounts_on_book": 53,
+      "svt_accounts_touched": 52,
+      "accounts_that_converted": 18,
       "stint_fates": {
         "returned_to_fixed": 18,
         "departed": 5,
@@ -138,6 +154,8 @@
     "2024": {
       "svt_account_years": 34.5462,
       "accounts_on_book": 57,
+      "svt_accounts_touched": 44,
+      "accounts_that_converted": 3,
       "stint_fates": {
         "returned_to_fixed": 3,
         "departed": 6,
@@ -153,6 +171,8 @@
     "2025": {
       "svt_account_years": 15.5318,
       "accounts_on_book": 52,
+      "svt_accounts_touched": 43,
+      "accounts_that_converted": 5,
       "stint_fates": {
         "returned_to_fixed": 5,
         "departed": 1,
@@ -519,6 +539,148 @@
     },
     "what_this_cannot_say": "that the world's rate is right. Two bounds are not a point estimate and `SVT_INTERNAL_CONVERSION_RATE` is still None with its gap named. It also cannot call any of the four above-ceiling years a breach: the bar is a six-month rate read as an annual one, which for a CEILING is harsher than the record supports, so those four years are where the bound is live and not where it has fired.",
     "the_decision_this_judges": "the same borrow `against_the_floor_for_this_route` names -- one call to `renewal_engagement.rolls_active_renewal` answering both a FIXED-term expiry and an SVT stint. The floor could only refuse that borrow if it were set far too LOW; this ceiling is what could refuse it for being too HIGH, which is the direction a fixed-expiry anchor borrowed for a default-tariff household would err in."
+  },
+  "against_the_band_in_annual_units": {
+    "what_this_is": "both published bounds on `J_svt` restated in the world's own ANNUAL units, and the world beside them. Not a new bound -- the same two, with the six-month convention that both of them carry taken off.",
+    "refused": null,
+    "world_per_svt_account_year": 0.185887,
+    "annualisation_factor_band": [
+      1.0,
+      2.0
+    ],
+    "why_the_factor_is_a_band_and_not_a_number": "r -- the share of a year's internal switchers who switch internally more than once in that year -- is published nowhere located. The one frequency question found in the GB domestic instruments asks how many times a household has EVER switched SUPPLIER (Ofgem RMR 2015 Q21/Q22), which is the wrong event on the wrong window: external rather than internal, lifetime rather than annual. The twelve-month internal series that does exist (`TWELVE_MONTH_INTERNAL_SWITCHING_OBSERVATIONS`) shares no year with any CIM wave, so it cannot be divided by a CIM six-month rate to recover r.",
+    "annual_ceiling_span": [
+      0.265926,
+      0.531852
+    ],
+    "share_of_the_tightest_annual_ceiling": 0.699,
+    "share_of_the_loosest_annual_ceiling": 0.3495,
+    "the_ceiling_can_only_loosen": "a tighter annual ceiling needs q -- the both-halves overlap -- bounded from BELOW. A repeat-switching figure bounds q from ABOVE (switching in both halves implies more than once, and not conversely), so it moves the ceiling up or leaves it, never down. The only instrument that could tighten it is one that follows the SAME households across two consecutive half-years and reports how many switched in both.",
+    "annual_floor_span": [
+      0.044919,
+      0.167616
+    ],
+    "multiple_of_the_floor_in_force": 4.1383,
+    "multiple_of_the_tightest_annual_floor": 1.109,
+    "the_world_clears_the_tightest_floor": true,
+    "the_live_side_of_the_band": "FLOOR",
+    "why_that_inverts_what_the_ceiling_landed_under": "`svt_internal_conversion_ceiling` landed as *the side that can refuse*, and against a six-month bar it looked like it: the world sat at 0.70 of it with four years above. In annual units the world sits at 0.35-0.70 of the ceiling and at 1.11-4.14x the floor, so the floor is the closer bound and the one a change to the SVT-side decision could actually trip. The ceiling's own sentence is left standing where it is written and this is what corrects it.",
+    "what_this_cannot_say": "that the world's rate is right, and not that any year breaches anything. Annualising moves both bars AWAY from every above-ceiling year, so those four years are further from a breach here than they were before -- the opposite of what the claim that drew this work expected, and the reason it is written down rather than left implied. It also compares an EVENT count (the world's returned stints over exposure) against two bounds built from an INCIDENCE (households reporting at least one switch), and those coincide only where nobody repeats: at the r = 0 corner they are the same quantity and away from it the world's numerator is the larger, which flatters the floor verdict and harshens the ceiling one.",
+    "the_gap_is_real_but_not_for_the_reason_above": "the world's repeat factor is 1.000 -- 49 conversions by 49 distinct accounts -- so repetition contributes NOTHING to the mismatch on this capture. The gap is entirely the denominator: account-YEARS of exposure against a headcount of accounts touched. The direction stated above is unchanged; its cause is not what it says.",
+    "the_clearing_verdict_here_is_the_bands_upper_endpoint": "`multiple_of_the_tightest_annual_floor` is 1.11 and it is the TOP of the kind-matched band, whose bottom is 0.77 of the same bar. The band straddles the tightest annual floor, so clearance of it was never established -- see `as_an_incidence_which_is_what_the_record_bounds`. The floor IN FORCE is cleared by both endpoints and the conclusion that the floor is the live side is sharpened, not weakened."
+  },
+  "as_an_incidence_which_is_what_the_record_bounds": {
+    "what_this_is": "the world's internal return expressed as the INCIDENCE the two published bounds actually bound, beside the EVENT RATE every earlier reading in this chain published. Not a third bound and not a correction to the world: a statement of what the world's figure counts, and of how far that is from what the record's figure counts.",
+    "refused": null,
+    "the_two_quantities": {
+      "the_record_bounds": "an INCIDENCE -- the share of SVT households reporting AT LEAST ONE internal switch in the window, one per household however many times they moved. CIM C4, carried through both bounds unchanged by the arithmetic that derives them.",
+      "the_world_published": "an EVENT COUNT over EXPOSURE -- `returned_to_fixed` stints over SVT account-years -- which can exceed 1 and which an incidence cannot.",
+      "they_coincide_only_where": "nobody converts twice in the window AND exposure equals headcount. The first holds on this capture and the second does not."
+    },
+    "conversions": 49,
+    "accounts_that_converted": 49,
+    "repeat_factor": 1.0,
+    "no_account_converts_twice_in_a_year": true,
+    "what_the_repeat_factor_being_one_means": "the numerator half of the event-vs-incidence conflation is an EQUIVALENCE on this capture, not a defect and not a clearance. It holds because a fixed term runs about a year and a passive stint is bounded at the next anniversary, so a second conversion inside one calendar year has nowhere to happen. It is a property of the world's term lengths, not of the comparison, and it is derived here so that shortening them reds a control instead of silently reopening the gap.",
+    "svt_account_years": 263.6003,
+    "svt_accounts_touched": 378,
+    "exposure_per_account_touched": 0.697355,
+    "why_the_denominators_differ": "accounts join and leave the SVT product mid-year. An account on the product for six weeks contributes one to the headcount and 0.115 to the account-years, so the exposure denominator is the smaller and the event rate the larger. This is the half of the conflation that is live on this capture.",
+    "event_rate_per_svt_account_year": 0.185887,
+    "incidence_per_svt_account_touched": 0.12963,
+    "the_kind_matched_band": [
+      0.12963,
+      0.185887
+    ],
+    "why_it_is_a_band_and_not_a_corrected_number": "neither endpoint is the record's quantity. A survey's base is the households on the default tariff at fieldwork, each with a full window's exposure; `accounts_touched` includes accounts on the product for weeks, which dilutes the incidence downward. So J_touched <= J_true <= E. The upper leg is structural; the lower leg costs one named assumption -- that conversion probability does not DECREASE with exposure. Choosing a point inside would mint the constant `SVT_INTERNAL_CONVERSION_RATE` refuses to be.",
+    "the_band_is_ordered": true,
+    "the_floor_in_force": 0.044919,
+    "clears_the_floor_in_force": true,
+    "the_tightest_annual_floor": 0.167616,
+    "clears_the_tightest_annual_floor": null,
+    "the_tightest_annual_ceiling": 0.265926,
+    "within_the_tightest_annual_ceiling": true,
+    "multiple_of_the_tightest_annual_floor_at_each_endpoint": [
+      0.7734,
+      1.109
+    ],
+    "bars_this_band_cannot_decide": [
+      "the_tightest_annual_floor"
+    ],
+    "per_year": {
+      "2016": {
+        "conversions": 0,
+        "accounts_that_converted": 0,
+        "repeat_factor": null,
+        "event_rate_per_svt_account_year": 0.0,
+        "incidence_per_svt_account_touched": 0.0
+      },
+      "2017": {
+        "conversions": 1,
+        "accounts_that_converted": 1,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.039857,
+        "incidence_per_svt_account_touched": 0.025641
+      },
+      "2018": {
+        "conversions": 9,
+        "accounts_that_converted": 9,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.307507,
+        "incidence_per_svt_account_touched": 0.214286
+      },
+      "2019": {
+        "conversions": 2,
+        "accounts_that_converted": 2,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.085519,
+        "incidence_per_svt_account_touched": 0.068966
+      },
+      "2020": {
+        "conversions": 2,
+        "accounts_that_converted": 2,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.072904,
+        "incidence_per_svt_account_touched": 0.055556
+      },
+      "2021": {
+        "conversions": 9,
+        "accounts_that_converted": 9,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.300233,
+        "incidence_per_svt_account_touched": 0.225
+      },
+      "2022": {
+        "conversions": 0,
+        "accounts_that_converted": 0,
+        "repeat_factor": null,
+        "event_rate_per_svt_account_year": 0.0,
+        "incidence_per_svt_account_touched": 0.0
+      },
+      "2023": {
+        "conversions": 18,
+        "accounts_that_converted": 18,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.470548,
+        "incidence_per_svt_account_touched": 0.346154
+      },
+      "2024": {
+        "conversions": 3,
+        "accounts_that_converted": 3,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.08684,
+        "incidence_per_svt_account_touched": 0.068182
+      },
+      "2025": {
+        "conversions": 5,
+        "accounts_that_converted": 5,
+        "repeat_factor": 1.0,
+        "event_rate_per_svt_account_year": 0.32192,
+        "incidence_per_svt_account_touched": 0.116279
+      }
+    },
+    "what_this_changes_about_the_published_reading": "`against_the_band_in_annual_units` reports the world at 1.11x the tightest annual floor and concludes the floor is the live side. The first half is the band's UPPER endpoint: the lower endpoint is at 0.77x the same bar, so the band straddles it and the clearing verdict was never established. The conclusion that the FLOOR is the live side is not weakened by this -- it is sharpened, because the bar the world cannot be shown to clear is on that side. The bound actually in force, the r = 1 corner at 0.0449, is cleared by both endpoints and is untouched.",
+    "what_this_cannot_say": "that the world's rate is wrong, or that it breaches anything. The tightest annual floor is the r = 0 corner of a family whose `r` is a declared None -- it is the tightest bar the record COULD support, not a bar the record makes -- so failing to establish clearance of it refutes nothing. It also cannot repair the remaining mismatch between an account base and a survey's respondent base; it can only measure which way that runs, which is the direction already stated."
   },
   "tenure_mix_vs_the_published_observations": {
     "what_this_is": "section 14 put two published observations of the SVT segment's within-segment long-stayer share into the tree -- to compose the published churn band for the phi question -- and nothing has compared them with the world's own mix. This is that comparison, and it bears on section 9's headline because section 9's 1.67x-1.71x was taken against the published RECENT endpoint at a mix of 0.000 and 0.202.",
