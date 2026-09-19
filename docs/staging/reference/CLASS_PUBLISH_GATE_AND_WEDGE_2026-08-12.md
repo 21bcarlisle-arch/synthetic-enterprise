@@ -98,7 +98,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**524.9 recorded episode-hours** across 23 of the 84 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
+**524.9 recorded episode-hours** across 23 of the 85 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -128,7 +128,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-10 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+11 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md`
 - `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`
@@ -140,6 +140,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
 - `WORKER_RESULT_THE_GATES_RED_HAD_A_REPAIR_ON_ORIGIN_AND_THE_RECONCILER_THAT_CARRIES_IT_LOST_95_RACES_TO_THE_GATES_OWN_LOCK_TODAY_2026-09-18.md`
+- `WORKER_RESULT_THE_WEDGES_RED_WAS_REAL_ON_A_FORK_THAT_DIED_THREE_MINUTES_LATER_AND_THE_RECORD_COULD_NOT_SAY_SO_2026-09-18.md`
 
 ## Disposition
 
