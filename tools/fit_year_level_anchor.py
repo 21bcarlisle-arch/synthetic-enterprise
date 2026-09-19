@@ -1511,6 +1511,11 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
             round(totals[STINT_RETURNED] / account_years_total, 6)
             if account_years_total else None,
         ),
+        "against_the_ceiling_for_this_route": _internal_return_vs_the_published_ceiling(
+            per_year,
+            round(totals[STINT_RETURNED] / account_years_total, 6)
+            if account_years_total else None,
+        ),
         "tenure_mix_vs_the_published_observations": {
             "what_this_is": (
                 "section 14 put two published observations of the SVT segment's within-segment "
@@ -1864,6 +1869,15 @@ def _internal_return_vs_the_published_floor(
             "first year and carries 0.0055 SVT account-years, which is an exposure count and not a "
             "behaviour, and 2022 is the year the record's own register excludes."
         ),
+        # CORRECTED 2026-09-19, BESIDE THE SENTENCE AND NOT OVER IT. "the bound has no ceiling
+        # beside it" was true when written and stopped being true the same day: the identity that
+        # gives the floor also gives `svt_internal_conversion_ceiling`, and the sentence above is
+        # kept verbatim because a claim with its refutation next to it is the only evidence the
+        # claim was made before the answer was known.
+        "there_is_now_a_ceiling_beside_it": (
+            "`against_the_ceiling_for_this_route`, from the same identity at phi = 1. The "
+            "preceding sentence is left as written; this is what corrects it."
+        ),
         "the_decision_this_judges": (
             "one call to `renewal_engagement.rolls_active_renewal` answers two different household "
             "decisions -- coming off a FIXED term (which the 35% anchor is cut on) and coming off an "
@@ -1872,6 +1886,136 @@ def _internal_return_vs_the_published_floor(
             "because the published floor is a check and a check may not reach the thing it judges. "
             "See docs/staging/SEAT_DECISION_THE_SVT_SIDE_DECISION_IS_NAMED_ON_THE_CHECK_SIDE_"
             "BECAUSE_A_CHECK_MAY_NOT_REACH_THE_WORLD_IT_JUDGES_2026-09-19.md."
+        ),
+    }
+
+
+def _internal_return_vs_the_published_ceiling(
+    per_year: dict[str, dict], world_rate_per_svt_account_year: float | None
+) -> dict:
+    """The world's `J_svt` against the ceiling the record sets for `J_svt`, the floor's other side.
+
+    WHY A SECOND BOUND ON THE SAME QUANTITY IS NOT A SECOND HOME FOR IT. `against_the_floor_for_
+    this_route` closes with *"the bound has no ceiling beside it"*, and that was the honest reading
+    of a one-sided bound the world clears by 4.14x: a floor that far below what it judges can refuse
+    nothing any world here would produce. This is the other side, out of the same identity at the
+    other endpoint of `phi`, and the two together are a BAND. The rate gap still has exactly one
+    home -- `SVT_INTERNAL_CONVERSION_RATE`, still None -- because a band is not a point estimate.
+
+    THE DIRECTION OF SAFETY INVERTS BETWEEN THE TWO BOUNDS AND THAT IS THE WHOLE CARE THIS NEEDS.
+    Both bars are six-month rates read against an annual world figure, deliberately un-annualised in
+    both cases. For the FLOOR that is the flattering direction: the true annual floor is higher, so
+    clearing the six-month one is the weak verdict. For the CEILING the identical fact runs the
+    other way: the true annual ceiling is higher too, so the six-month bar is HARSHER than the
+    record supports, `clears_the_binding_ceiling` is the STRONG verdict, and an exceedance
+    establishes nothing whatever. A reader holding both bounds at once will reach for "the world
+    breaches the ceiling in four years" as a refutation, and it is not one.
+
+    WHAT EACH NUMBER COUNTS, asked again here rather than inherited from the floor's answer:
+      * WORLD -- unchanged from the floor's reading: `returned_to_fixed` stints over SVT
+        account-years of exposure, binned on the year the stint ENDS, this book's resi electricity
+        accounts.
+      * CEILING -- `I / s_min`, conversions per SVT household per six months, GB domestic survey
+        respondents across both fuels. Same KIND of quantity as the floor and as the world, which
+        is what makes the band admissible at all.
+
+    FAILS CLOSED. A ceiling of `None` is reported as a refusal with its reason, never as a pass.
+    """
+    ceiling_reading = published_route_split.svt_internal_conversion_ceiling()
+    ceiling = ceiling_reading["binding_ceiling"]
+    banner_ceiling = ceiling_reading["binding_ceiling_from_the_tariff_banner"]
+    floor = published_route_split.svt_internal_conversion_floor()["binding_floor"]
+    per_year_verdicts: dict[str, dict] = {}
+    for year, row in sorted(per_year.items()):
+        rate = row["internal_return_rate"]["per_svt_account_year"]
+        per_year_verdicts[year] = {
+            "world_per_svt_account_year": rate,
+            "svt_account_years": row["svt_account_years"],
+            "returns": row["stint_fates"][STINT_RETURNED],
+            "clears_the_binding_ceiling": (
+                None if (ceiling is None or rate is None) else rate <= ceiling
+            ),
+        }
+    scored = [
+        year for year, cell in per_year_verdicts.items()
+        if cell["clears_the_binding_ceiling"] is not None
+    ]
+    above = [year for year in scored if not per_year_verdicts[year]["clears_the_binding_ceiling"]]
+    clearing = [year for year in scored if per_year_verdicts[year]["clears_the_binding_ceiling"]]
+    return {
+        "what_this_is": (
+            "this world's SVT-to-fixed internal conversion rate against "
+            "`published_route_split.svt_internal_conversion_ceiling`, which bounds that SAME route "
+            "from ABOVE. The other side of `against_the_floor_for_this_route`, and the side that "
+            "can actually refuse: the floor sits at 0.24x the world and this ceiling at 1.43x."
+        ),
+        "refused": (
+            None if ceiling is not None else
+            "the record establishes no binding ceiling from any wave, so there is no bar to judge "
+            "against. Reported rather than passed."
+        ),
+        "binding_ceiling": ceiling,
+        "binding_ceiling_unit": ceiling_reading["binding_ceiling_unit"],
+        "binding_ceiling_source": ceiling_reading["source"],
+        "waves_with_a_ceiling": ceiling_reading["waves_with_a_ceiling"],
+        "the_point_estimate_is_still": ceiling_reading["the_point_estimate_is"],
+        "the_bar_is_weak_in_this_direction": ceiling_reading["the_verdict_that_is_safe"],
+        "world_per_svt_account_year": world_rate_per_svt_account_year,
+        "clears_the_binding_ceiling": (
+            None if (ceiling is None or world_rate_per_svt_account_year is None)
+            else world_rate_per_svt_account_year <= ceiling
+        ),
+        "share_of_the_binding_ceiling": (
+            None if (not ceiling or world_rate_per_svt_account_year is None)
+            else round(world_rate_per_svt_account_year / ceiling, 4)
+        ),
+        # The tighter bound is CARRIED but never becomes the bar. It costs one assumption -- that a
+        # household which has just taken a fix says so when asked -- and the verdict is reported
+        # under both so a reader can see the assumption buys no change of verdict here.
+        "binding_ceiling_from_the_tariff_banner": banner_ceiling,
+        "what_the_banner_ceiling_assumes": ceiling_reading["what_the_banner_ceiling_assumes"],
+        "clears_the_banner_ceiling_too": (
+            None if (banner_ceiling is None or world_rate_per_svt_account_year is None)
+            else world_rate_per_svt_account_year <= banner_ceiling
+        ),
+        "per_year": per_year_verdicts,
+        "years_scored": scored,
+        "years_above_the_ceiling": above,
+        "years_within_the_ceiling": clearing,
+        # DERIVED, NEVER DECLARED -- the same shape the floor's reading uses, and it earns its place
+        # for the same reason: the level clears and four individual years do not, so a verdict
+        # frozen either way would look exactly like the mechanism working.
+        "the_verdict_is_not_uniform": bool(above) and bool(clearing),
+        "the_band_is_now_two_sided": {
+            "floor": floor,
+            "ceiling": ceiling,
+            "world": world_rate_per_svt_account_year,
+            "world_is_inside_the_band": (
+                None if (floor is None or ceiling is None
+                         or world_rate_per_svt_account_year is None)
+                else floor <= world_rate_per_svt_account_year <= ceiling
+            ),
+            "why_this_is_the_gain": (
+                "a one-sided bound at 0.24x of the thing it bounds refuses nothing. The band is "
+                "[floor, ceiling] and the world sits at 0.70 of its width from the top, so the "
+                "next change to the SVT-side decision can now be refused in the direction it is "
+                "most likely to move -- upward, since the borrowed 35% fixed-expiry anchor is "
+                "cut on a population that renews more often than an SVT household converts."
+            ),
+        },
+        "what_this_cannot_say": (
+            "that the world's rate is right. Two bounds are not a point estimate and "
+            "`SVT_INTERNAL_CONVERSION_RATE` is still None with its gap named. It also cannot call "
+            "any of the four above-ceiling years a breach: the bar is a six-month rate read as an "
+            "annual one, which for a CEILING is harsher than the record supports, so those four "
+            "years are where the bound is live and not where it has fired."
+        ),
+        "the_decision_this_judges": (
+            "the same borrow `against_the_floor_for_this_route` names -- one call to "
+            "`renewal_engagement.rolls_active_renewal` answering both a FIXED-term expiry and an "
+            "SVT stint. The floor could only refuse that borrow if it were set far too LOW; this "
+            "ceiling is what could refuse it for being too HIGH, which is the direction a "
+            "fixed-expiry anchor borrowed for a default-tariff household would err in."
         ),
     }
 
@@ -1969,6 +2113,31 @@ def _internal_return_main(table_path: Path) -> int:
         print("  AND THE BAR IS THE FLATTERING ONE: a six-month floor read as an annual bar is "
               "lower than")
         print("  the true annual bar, so a year BELOW it is below by at least that much.")
+    ceiling_vs = reading["against_the_ceiling_for_this_route"]
+    print()
+    print("── AND AGAINST THE CEILING, WHICH IS THE SIDE THAT CAN REFUSE ──")
+    print()
+    if ceiling_vs["refused"] is not None:
+        print(f"  REFUSED — {ceiling_vs['refused']}")
+    else:
+        band = ceiling_vs["the_band_is_now_two_sided"]
+        print(f"  binding ceiling {ceiling_vs['binding_ceiling']:.6f} "
+              f"({ceiling_vs['waves_with_a_ceiling']} waves carry one); "
+              f"world {ceiling_vs['world_per_svt_account_year']:.6f} per SVT account-year "
+              f"= {ceiling_vs['share_of_the_binding_ceiling']:.2f} of it — "
+              f"{'CLEARS' if ceiling_vs['clears_the_binding_ceiling'] else 'ABOVE'}")
+        print(f"  band [{band['floor']:.6f}, {band['ceiling']:.6f}]  world {band['world']:.6f}  "
+              f"inside: {band['world_is_inside_the_band']}")
+        print(f"  tighter ceiling from the tariff banner "
+              f"{ceiling_vs['binding_ceiling_from_the_tariff_banner']:.6f}, and the world clears "
+              f"that too: {ceiling_vs['clears_the_banner_ceiling_too']}")
+        print(f"  years above the ceiling: {ceiling_vs['years_above_the_ceiling']} of "
+              f"{len(ceiling_vs['years_scored'])} scored")
+        print("  AND THE BAR HERE IS THE HARSH ONE, WHICH IS THE FLOOR'S DIRECTION INVERTED: a "
+              "six-month")
+        print("  ceiling read as an annual bar is LOWER than the true annual ceiling, so CLEARS "
+              "is the")
+        print("  established verdict and a year ABOVE it has established nothing.")
     mix = reading["tenure_mix_vs_the_published_observations"]
     print()
     print("── THE TENURE MIX §14 SOURCED, AGAINST THE WORLD'S ──")

@@ -223,6 +223,49 @@ class SwitcherSplitObservation:
     #: The table's own "Net: Have switched". The UNION, so it is <= the sum when a respondent
     #: reported both. Held rather than derived because the overlap is the thing worth seeing.
     net_switched_weighted: float
+    #: The same internal-switch count, cut by the respondent's tariff type AT INTERVIEW -- Table
+    #: 109's `Fixed` and `Variable` banner columns. BOTH are held and neither is derived from the
+    #: other, because whether they partition `internal_weighted` is a fact about the table and is
+    #: what `the_banner_partitions_the_internal_switchers` checks rather than assumes.
+    #:
+    #: READ `svt_internal_conversion_ceiling` BEFORE USING EITHER. Tariff type here is recorded
+    #: AFTER the move, which is exactly why `whether_the_survey_split_identifies_phi` refuses this
+    #: banner for `phi`. That contamination is fatal in both directions for a share and safe in ONE
+    #: direction for an upper bound, and the ceiling is the only thing in this module that uses it.
+    internal_weighted_reporting_fixed: float | None = None
+    internal_weighted_reporting_variable: float | None = None
+
+    @property
+    def the_banner_partitions_the_internal_switchers(self) -> bool | None:
+        """Do the two tariff-type columns account for every internal switcher on the Total row?
+
+        They do, in all six waves, to the 4dp the cells are published at -- so there is no third
+        group of internal switchers whose tariff type is unstated, and the fixed column plus the
+        variable column is the whole of `internal_weighted`.
+
+        THE BASES ARE NOT THE SWITCHERS AND THE TWO QUESTIONS HAVE DIFFERENT ANSWERS. The columns'
+        bases account for the whole base in W1-W5 and fall 15 unweighted respondents (0.46%) short
+        at W6, so at that one wave some respondents have no tariff type recorded -- and none of
+        them reported an internal switch, which is why the switchers still partition there. The
+        ceiling drops one of these two columns and dropping a column is only safe if the pair is
+        exhaustive OVER SWITCHERS, so that is the property checked here rather than the base one.
+        """
+        if self.internal_weighted_reporting_fixed is None:
+            return None
+        pair = self.internal_weighted_reporting_fixed + self.internal_weighted_reporting_variable
+        return abs(pair - self.internal_weighted) <= 0.001
+
+    @property
+    def internal_rate_of_all_households_landing_on_fixed(self) -> float | None:
+        """Internal switchers who report a FIXED tariff, over all households in the recall window.
+
+        The numerator of the tighter ceiling. Same denominator as
+        `internal_rate_of_all_households` -- all respondents, not the fixed-tariff base -- because
+        the quantity being bounded, `s * J_svt`, is also a share of all households.
+        """
+        if self.internal_weighted_reporting_fixed is None:
+            return None
+        return self.internal_weighted_reporting_fixed / self.base_weighted
 
     @property
     def external_share_of_switching(self) -> float:
@@ -265,36 +308,48 @@ SWITCHER_SPLIT_OBSERVATIONS: tuple[SwitcherSplitObservation, ...] = (
         base_unweighted=2944, base_weighted=2873.6930,
         external_weighted=267.9529, internal_weighted=378.7993,
         net_switched_weighted=632.3701,
+        internal_weighted_reporting_fixed=323.1437,
+        internal_weighted_reporting_variable=55.6556,
     ),
     SwitcherSplitObservation(
         wave=2, fieldwork="July 2022", recall_window_years=(2022,),
         base_unweighted=2984, base_weighted=2954.5042,
         external_weighted=245.1449, internal_weighted=368.6360,
         net_switched_weighted=613.7809,
+        internal_weighted_reporting_fixed=294.5112,
+        internal_weighted_reporting_variable=74.1248,
     ),
     SwitcherSplitObservation(
         wave=3, fieldwork="November/December 2022", recall_window_years=(2022,),
         base_unweighted=3457, base_weighted=3456.9999,
         external_weighted=252.4255, internal_weighted=500.8593,
         net_switched_weighted=753.2848,
+        internal_weighted_reporting_fixed=384.9075,
+        internal_weighted_reporting_variable=115.9518,
     ),
     SwitcherSplitObservation(
         wave=4, fieldwork="July 2023", recall_window_years=(2023,),
         base_unweighted=3434, base_weighted=3434.0000,
         external_weighted=157.8359, internal_weighted=379.2057,
         net_switched_weighted=537.0416,
+        internal_weighted_reporting_fixed=294.3085,
+        internal_weighted_reporting_variable=84.8972,
     ),
     SwitcherSplitObservation(
         wave=5, fieldwork="January 2024", recall_window_years=(2023, 2024),
         base_unweighted=3439, base_weighted=3439.0000,
         external_weighted=191.9714, internal_weighted=398.4467,
         net_switched_weighted=590.4181,
+        internal_weighted_reporting_fixed=328.9266,
+        internal_weighted_reporting_variable=69.5202,
     ),
     SwitcherSplitObservation(
         wave=6, fieldwork="January/February 2025", recall_window_years=(2024, 2025),
         base_unweighted=3458, base_weighted=3458.0000,
         external_weighted=182.8863, internal_weighted=588.5251,
         net_switched_weighted=771.4115,
+        internal_weighted_reporting_fixed=528.7749,
+        internal_weighted_reporting_variable=59.7502,
     ),
 )
 
@@ -1483,6 +1538,153 @@ def svt_internal_conversion_floor() -> dict:
             "valid floor per SVT household-year"
         ),
         "waves_with_a_floor": len(floors),
+        "the_point_estimate_is": SVT_INTERNAL_CONVERSION_RATE,
+        "why_there_is_no_point_estimate": SVT_INTERNAL_CONVERSION_RATE_GAP,
+    }
+
+
+def svt_internal_conversion_ceiling() -> dict:
+    """The MOST SVT-to-fixed internal conversion the published record can bear, per wave.
+
+    THE OTHER SIDE OF `svt_internal_conversion_floor`, AND THE REASON IT IS WORTH HAVING: a
+    one-sided bound four times below the thing it bounds refuses nothing. The floor is 0.0449 and
+    the world it judges runs at 0.1859, so no world this project is likely to build could fail it.
+    A ceiling closes the band, and the band is what can actually refuse.
+
+    It comes out of the SAME identity, and needs LESS than the floor did:
+
+        I  =  s * J_svt  +  (1 - s) * 0.35 * (1 - phi)        <- internal switching, all households
+
+    The renewal route's contribution is non-negative -- at `phi = 1` it is exactly zero, and
+    `phi <= 1` is the definition of a share rather than an assumption about one. So:
+
+        J_svt  <=  I / s
+
+    The floor needed `J_svt >= 0` to drop a term; this needs `(1-s)*0.35*(1-phi) >= 0` to drop one.
+    Neither is an assumption anyone has to accept.
+
+    THE CONSERVATIVE DIRECTION IS THE MIRROR OF THE FLOOR'S, WHICH MEANS IT INVERTS, and getting
+    that backwards would publish a bar tighter than the record supports and refute a world for the
+    arithmetic rather than for its behaviour:
+
+      * `s` is taken at the SMALLEST published default share across the recall window -- the floor
+        took the largest. Concentrating the same internal switching into fewer SVT households raises
+        the per-household rate, and for a CEILING the safe move is the one that raises it.
+      * the binding ceiling is the MAXIMUM across waves -- the floor took the minimum. Each wave
+        bounds `J_svt` at ITS OWN time and `J_svt` moves, so the only claim safe at every time is
+        the loosest one any wave permits. Taking the tightest would assert a bound no wave makes.
+
+    Driven at the published inputs, before anything was written against it:
+
+        wave  fieldwork          I(6mo)   s_min   ceiling     banner-tightened
+        W1    March 2022         0.1318   0.80    0.1648      0.1406
+        W2    July 2022          0.1248   0.80    0.1560      0.1246
+        W3    Nov/Dec 2022       0.1449   0.80    0.1811      0.1392
+        W4    July 2023          0.1104   0.80    0.1380      0.1071
+        W5    January 2024       0.1159   0.80    0.1448      0.1196
+        W6    Jan/Feb 2025       0.1702   0.64    0.2659 <-   0.2389 <-
+                                                  binding     binding
+
+    THE SIX-MONTH BAR IS UNSAFE IN THE OPPOSITE DIRECTION TO THE FLOOR'S, AND THIS IS THE TRAP.
+    The floor's docstring says a six-month floor is also a valid ANNUAL floor, because a year's
+    conversions are at least a half-year's. The same fact makes a six-month ceiling NOT a valid
+    annual ceiling -- a year can carry up to twice the conversions, and bounding that above needs
+    the repeat-switching assumption this module has declined to make twice already. So:
+
+        a world BELOW this ceiling is below the true annual ceiling too   -- the STRONG verdict
+        a world ABOVE it establishes nothing at all                       -- the WEAK verdict
+
+    A reader who takes an exceedance here as a refutation has made the error the floor's own
+    conservatism was built to prevent, running the other way. `the_verdict_that_is_safe` says so in
+    the returned dict and not only here.
+
+    THE TIGHTER CEILING, AND THE ONE ASSUMPTION IT COSTS. Table 109 cuts the same internal row by
+    the respondent's tariff type. `whether_the_survey_split_identifies_phi` refuses that banner for
+    `phi` because tariff type is recorded AFTER the move, and
+    `gb_domestic_switcher_split_cim_2022_2025.md` §6 names it as the obvious next reach that does
+    not work. **It does not work for a share and it works one-sidedly for an upper bound**, because
+    the contamination runs the safe way: a `J_svt` event IS a move onto a fix, so the household is
+    on a fixed tariff when asked, so every `J_svt` event sits in the fixed column. Dropping the
+    variable column can only remove non-`J_svt` moves -- SVT households taking a different VARIABLE
+    tariff with the same supplier, which are internal switches and are not conversions.
+
+    What that assumption is worth, exactly, rather than as a caveat: the two ceilings differ by
+    PRECISELY the variable column's internal switchers. If every one of those were a conversion
+    whose mover mis-reported their new tariff, the tighter ceiling would be wrong and the
+    assumption-free one would still be right. That is why `binding_ceiling` is the assumption-free
+    figure and the tighter one is reported beside it rather than in its place.
+    """
+    waves, ceilings, tight_ceilings = [], [], []
+    for obs in SWITCHER_SPLIT_OBSERVATIONS:
+        rate = obs.internal_rate_of_all_households
+        landing_on_fixed = obs.internal_rate_of_all_households_landing_on_fixed
+        s_min, missing = None, []
+        for year in obs.recall_window_years:
+            band = default_tariff_share(year, "all_domestic")
+            if band is None:
+                missing.append(year)
+                continue
+            s_min = band[0] if s_min is None else min(s_min, band[0])
+        ceiling = None if not s_min else round(rate / s_min, 6)
+        tight = (
+            None if (not s_min or landing_on_fixed is None)
+            else round(landing_on_fixed / s_min, 6)
+        )
+        if ceiling is not None:
+            ceilings.append(ceiling)
+        if tight is not None:
+            tight_ceilings.append(tight)
+        waves.append({
+            "wave": obs.wave,
+            "fieldwork": obs.fieldwork,
+            "internal_rate_of_all_households_6mo": round(rate, 6),
+            "internal_rate_landing_on_a_fixed_tariff_6mo": (
+                None if landing_on_fixed is None else round(landing_on_fixed, 6)
+            ),
+            "smallest_published_default_share": s_min,
+            "years_with_no_established_default_share": missing,
+            "ceiling_on_j_svt": ceiling,
+            "ceiling_on_j_svt_from_the_tariff_banner": tight,
+            "the_banner_partitions_the_internal_switchers": (
+                obs.the_banner_partitions_the_internal_switchers
+            ),
+        })
+    return {
+        "what_this_is": (
+            "the most SVT-to-fixed internal conversion the published record can bear, per CIM "
+            "wave. A derived BOUND on J_svt from above, not an estimate of it: the point estimate "
+            "is `SVT_INTERNAL_CONVERSION_RATE`, which is None."
+        ),
+        "source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+        "identity": "I = s*J_svt + (1-s)*0.35*(1-phi)  =>  J_svt <= I / s",
+        "per_wave": waves,
+        "binding_ceiling": max(ceilings) if ceilings else None,
+        "binding_ceiling_unit": (
+            "conversions per SVT household per SIX MONTHS, un-annualised, and therefore NOT a "
+            "valid ceiling per SVT household-year -- see `the_verdict_that_is_safe`"
+        ),
+        "waves_with_a_ceiling": len(ceilings),
+        # Reported beside the binding one, never in place of it. The gap between them is the price
+        # of the banner assumption and is the only honest way to state what that assumption buys.
+        "binding_ceiling_from_the_tariff_banner": (
+            max(tight_ceilings) if tight_ceilings else None
+        ),
+        "what_the_banner_ceiling_assumes": (
+            "that a household which has just taken a fixed deal reports a FIXED tariff when asked. "
+            "Tariff type is recorded after the move, so the contamination that makes this banner "
+            "useless for phi puts every conversion in the fixed column, which is the safe "
+            "direction for an upper bound. The two ceilings differ by exactly the internal "
+            "switchers who report a variable tariff; if all of those were mis-reported "
+            "conversions the banner ceiling would be wrong and `binding_ceiling` would not."
+        ),
+        "the_verdict_that_is_safe": (
+            "BELOW. A six-month ceiling used as an annual bar is LOWER than the true annual "
+            "ceiling, because a year can carry up to twice a half-year's conversions and bounding "
+            "that needs a repeat-switching assumption nothing supplies. So a world below this "
+            "ceiling is below the true one as well and that verdict is established; a world ABOVE "
+            "it has established nothing. This is the floor's conservatism running the other way "
+            "and it is the error most available to a reader of both bounds at once."
+        ),
         "the_point_estimate_is": SVT_INTERNAL_CONVERSION_RATE,
         "why_there_is_no_point_estimate": SVT_INTERNAL_CONVERSION_RATE_GAP,
     }
