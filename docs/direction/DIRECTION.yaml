@@ -1,309 +1,209 @@
 version: 1
-oriented_at: "2026-09-18T20:24:55Z"
+oriented_at: "2026-09-19T02:24:26.782267+00:00"
 thesis_read: >-
-  Three of last stretch's four focus items landed and the fourth is correctly waiting on a clock —
-  but the headline of this orientation is that MY OWN FIRST ITEM WAS FACTUALLY WRONG ABOUT THE TREE,
-  and the correction inverts what I published last stretch. I wrote "SVT is absorbing; `tariff_type`
-  is resolved once per customer and there is no reverse edge", and concluded that the company was
-  short of DECISIONS because the world could not express the outcome. Measured through the world's
-  own builder on the real SSP feed — 120 real-grammar households, 2016-06-01 to 2023-12-31, BEFORE
-  anything was written — the edge was already there: `svt->fixed` 61 transitions over 590.28
-  SVT-account-years, 0.1033 per SVT-account-year, where that quantity counts transitions from a cap
-  segment to a fixed term per year an account spent on the cap, and counts neither households nor
-  offers nor decisions. It landed on 2026-08-30 with C1b and `simulation/renewals.py` argues against
-  the absorbing draft in its own comment. So the wall I said I had located and placed on the world
-  side of the seam was not there, and the sentence I published — "no seeds, no arms and no
-  publishing repair can move a verdict limited by how many decisions the world creates" — rests on a
-  premise the tree refutes. What IS absorbing is narrower and real: a household that ARRIVES on the
-  default tariff rather than rolling onto it, via early returns at `renewals.py:103` and
-  `run_phase2b._build_gas_renewal_schedule`. Two routes onto one product and only the mid-tenure one
-  had an exit. No caller reaches that branch today — nothing in `simulation/`, `tools/` or `company/`
-  sets a record's `tariff_type` to `"svt"` — so it is dead code with an absorbing state in it,
-  inert on every live run, and the day a SoLR intake or an acquired default book mints one it
-  absorbs that household for its whole tenure silently. That repair is built and IS SITTING
-  UNLANDED IN THIS TREE right now: `simulation/renewals.py` (+70 lines), `simulation/run_phase2b.py`
-  (+29), `tools/published_route_split.py`, a modified `tests/simulation/test_svt_product.py`, and an
-  untracked reachability control `test_the_svt_origin_household_can_reach_a_fixed_term.py`, with its
-  result document untracked beside them and nothing bound to the claim in the lane ledger. It is
-  good work — the exit is the existing C1b roll with no new rule and no new constant, the warrant is
-  DERIVED not picked (Ofgem CIM C4 internal switching above the entire fixed-term population's
-  ceiling in six waves of six, giving a binding lower bound of 0.0449 conversions per SVT household
-  per six months, which is a bound and is carried as one, with `SVT_INTERNAL_CONVERSION_RATE = None`
-  and a named gap because no published series cuts internal switching by the tariff the respondent
-  was on before the move), and the first draft was caught by PRINTING it: recursing into
-  `build_renewal_schedule` arrives with `first_term = True`, the one condition that skips the roll,
-  so every SVT-origin household would have converted at probability 1. After the change, 79 of 120
-  SVT-origin households reach a fixed term and 41 never do, at 0.1671 per SVT-account-year against
-  the 0.0449 floor. None of that is worth anything until it is committed, and finished work that
-  never leaves the tree is worse than work not started, because the ledger says the item was drawn.
-  The machine's two carried errors are both closed with evidence. `_back_referenced_start` now has
-  a caller inside the DRAW: `background/delivery_lane.py:2889`, in `embargoed_until`, anchored on
-  when the prose was written (896a286d8) — so the draw can now withhold an item naming a future
-  instant instead of only explaining the burned window afterwards. And the error bar answers one
-  question once: `error_bar.distinguishable_reconciliation.agree` is `true` on the live feed, the
-  fixed 2.0 is gone from all three homes in favour of the family's own two-sided t on n-1 degrees of
-  freedom (376499319), and the two keys that remain — `distinguishable_from_zero: true` and
-  `selection_leg.sign_is_stateable: false` — are now DIFFERENT questions rather than opposite
-  answers to one, the second adding the publishing conditions the first does not carry. What that
-  publishing condition turned out to be is the sharpest thing found this stretch and it was found by
-  re-measuring a drawn item's premise: `_floor_admission` paired the floor to the figure on
-  `served_segments: ["resi","SME"]` with `served_segments_resolved_from: "curriculum"` — a constant
-  every run this company has ever done declares — so the rule NAMED for the book could not separate
-  any two runs, and it admitted an 18-seed spread drawn over a 164-account book as the error bar on
-  a figure from a 154-account one, where `billing_accounts_settled_in_window` counts accounts that
-  appeared in the settlement window and is distinct from `accounts_at_end_of_window` (54..55), the
-  only one of five realised fields that elasticity re-draws actually move. The producer's own
-  instruction not to pair on realised counts was true of one field and had been generalised to all
-  five, throwing out the working discriminator with the broken one — this project's recurring shape
-  exactly. The disjoint-range guard is landed and both legs are reachable from the feed's own
-  artefacts. The measurement that closes it is in flight: twelve seeds at `18327d977` over the 09-18
-  book, launched 16:12:55 BST, ETA 2026-09-19 08:20Z, writing to a `/var/tmp` extract and not to
-  this repo — and my own focus item for reading it named 02:00 and the repo path, both wrong, which
-  is the same habit as the SVT claim and is recorded below. Against the thesis: this stretch did not
-  go backwards, but it did not go where I said it went. The honest reading is that the constraint on
-  the method's reach is still unlocated — I published a world-side answer that is refuted, and the
-  company-side candidate (`UPLIFTABLE_TARIFF_TYPES = {"fixed", "pass_through"}`, applied at
-  `company/crm/customer_profitability.py:381` and `company/pricing/value_based_renewal.py:1317`,
-  under which 2,490 of 2,824 term boundaries class `product_not_upliftable`, all SVT) has never been
-  measured against a world in which those households DO reach annual decision points. Definitions
-  beside the remaining quantities, which my oldest open error owes: staging flow is documents filed
-  into the tracked root over 7 days against documents dispositioned out of it, 183 against 160, net
-  +23, on a work queue of 115 with 9 BLOCKING findings; H41's headroom is map bytes remaining under
-  a 409,600-byte ceiling, 401,318 used and 8,282 free, the ELEVENTH consecutive orientation at a
-  figure I once estimated would be gone inside a day; and this checkout stands 3 ahead and 14 behind
-  origin/main, which is not a quantity about the book but about the machine reading it.
+  The thesis item was drawn at last, it was answered, and the answer is sitting in the tree in no
+  ref. Every figure below was re-measured against the live tree between 02:24 and 02:35Z before it
+  was written. THE SUBSTANCE FIRST. `docs/staging/SEAT_RESULT_THE_PRODUCT_GATE_REFUSES_CAP_SEGMENTS_NOT_DECISIONS_AND_EVERY_DECISION_THAT_EXISTED_WAS_DECIDED_2026-09-19.md`
+  (14,456 bytes, written 01:50) and the census that makes it re-derivable,
+  `tools/svt_refusal_census.py` (15,538 bytes, 01:51), are both UNTRACKED. They say the product gate
+  is NOT the ceiling on the method's reach: 2,824 renewals offered, 2,490 refused at
+  `product_not_upliftable` — and those 2,490 are published CAP PERIODS, 4,578 segments inside 986
+  default-tariff stints, not 2,490 household decisions — 227 refused at `acquisition_term`, leaving
+  107 decisions that existed, of which 107 became decisions and zero stopped at `no_locked_rate`,
+  `not_the_arms_commodity` or `no_observed_history`. A gate that refuses nothing its writer could
+  have acted on is the boundary of the subject, not a ceiling. `SEAT_DECISION_AN_SVT_HOUSEHOLD_IS_NOT_A_DECISION_THIS_ARM_DECLINES_2026-09-07.md`
+  §3 stands, and now carries the count it was missing. WHAT THAT MEANS FOR THE THESIS, plainly: the
+  advantage-from-inference is still not demonstrable and the constraint on it is now UNLOCATED. Last
+  stretch I told the director the constraint was world-side and the tree refuted me; this stretch the
+  company-side gate is refuted too. Both live discrimination readings sit inside their own nulls —
+  0.482 in a 0.407 to 0.591 null on 54 decisions, 0.557 in a 0.39 to 0.61 null on 104 scored
+  decisions over 65 accounts — and the finding is right to say a reader differencing those two is
+  differencing two censuses. The binding quantity is n, and n is 107 because the world has only just
+  gained the edge that makes a default household decidable. WHICH IS THE ONE THING THAT GENUINELY
+  MOVED. `05684780e feat(world)` is on origin/main carrying `simulation/renewals.py`: the household
+  that ARRIVED on the default tariff now gets the same exit the rolled one has. Four of this
+  stretch's five substantive commits touched the world, the knowledge layer or a check on the world —
+  the SVT exit, the knowledge map's refuted structural 0.0 for internal switching (68 of 134
+  households already do it), `published_route_split`'s J_svt floor, and `fit_year_level_anchor`
+  judging the world's internal route against the floor for THAT route rather than the mixed row. The
+  machine stopped turning inward and I am marking that error corrected on that evidence. AND THE
+  CLASS THAT WILL NOT DIE. Work finishing and not leaving the tree recurred inside four hours of the
+  last instance being fixed, on a bigger artefact, with a sharper mechanism behind it: the delivery
+  lane swept `measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach` `not_done`
+  and RE-DREW IT thirty seconds before this orientation ran — PID 1264076 is redoing it now — because
+  `_claim_paths` asked git about the three paths the item's PROSE named, all clean, and then
+  attributed 23 unrelated paths BY TIME AND NOT BY NAME. The discriminator it needed is one line of
+  the document it could not see: that finding's own header reads `**Claim id:**
+  measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach`. I named `_claim_paths`
+  correctly last stretch and under-scoped the remedy, which is my oldest habit wearing a new coat, so
+  that row stays open. The same class at scale: 99 tracked staging documents are absent from the
+  working tree and present on origin/main, and all 99 are archived under `docs/staging/` in a
+  subdirectory — dispositioned work whose `done/` move was never committed. The live root holds 109
+  documents; git's root holds those 109 plus the 99, so every lane that reads the queue from a ref
+  reads a queue nearly twice its real size, and the +39 net sediment reading is computed against the
+  wrong denominator. One figure I have quoted for twelve consecutive orientations finally moved
+  because I re-ran it instead of copying it: H41's map headroom is 6,491 bytes, not the 8,282 I have
+  been repeating, with the per-atom reserve 4,443 bytes in from here.
 stretch_reviewed:
-  since: "2026-09-18T17:23:59Z"
-  commits: 16
+  since: "2026-09-18T23:21:23.799535+00:00"
+  commits: 14
   substantive: 5
 focus:
-  - id: land-the-svt-origin-exit-that-is-already-built-and-sitting-in-this-tree
+  - id: land-the-product-gate-answer-that-is-already-written
     what: >-
-      LAND THE WORK THAT IS ALREADY DONE. The SVT-origin exit is built and uncommitted in the shared
-      tree: `simulation/renewals.py`, `simulation/run_phase2b.py`, `tools/published_route_split.py`,
-      `tests/simulation/test_svt_product.py`,
-      `tests/simulation/test_the_tariff_type_read_has_one_home.py`, plus two UNTRACKED files —
-      `tests/simulation/test_the_svt_origin_household_can_reach_a_fixed_term.py` and
-      `docs/staging/WORKER_RESULT_THE_ROLLED_HOUSEHOLD_ALREADY_HAD_ITS_EXIT_AND_ONLY_THE_ONE_THAT_ARRIVED_ON_THE_CAP_WAS_ABSORBED_2026-09-18.md`.
-      Read that result document first; it is the design record and it contains the derivation.
-      DO NOT `git add -A` and DO NOT `git merge` to fix the fork first. This checkout is 3 ahead and
-      14 behind origin/main and several other lanes have edits in the same working tree — including
-      a DELETED `tests/simulation/test_the_gas_leg_rolls_onto_the_cap_like_the_electricity_one.py`
-      (392 lines) and modifications to `test_phase40a_pass_through.py`,
-      `test_policy_cost_values_vs_source.py`, `test_home_move_undeliverable_win.py` and
-      `test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py` that you
-      must ESTABLISH the ownership of rather than assume. Use `tools/isolate_hunks.py` to build
-      HEAD-plus-these-hunks-only and `python3 -m tools.surgical_land --content`; a deliberate
-      deletion, if one of them turns out to be yours, needs `--drops`. The commit message needs the
-      REUSE block. Then bind it and archive the result document.
+      LAND, DO NOT REDO. `docs/staging/SEAT_RESULT_THE_PRODUCT_GATE_REFUSES_CAP_SEGMENTS_NOT_DECISIONS_AND_EVERY_DECISION_THAT_EXISTED_WAS_DECIDED_2026-09-19.md`
+      and `tools/svt_refusal_census.py` are untracked in the shared tree and carry the whole answer
+      to `measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach`. FIRST run `git
+      log --all --oneline -- tools/svt_refusal_census.py` and check origin/main: a rival was working
+      this exact claim at 02:24Z, so if it is already in a ref, take the DISPOSITION and not the work
+      — `--landed-under` or `--release` — and say which in `docs/staging/`. Otherwise land those two
+      paths by `python3 -m tools.surgical_land` (pathspec, never `-A`, and the tree has 102 deleted
+      and 281 untracked paths that are not yours), then bind with `python3 -m background.delivery_lane
+      --landed measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach --commit
+      <sha>`. Do NOT re-run the census to check the counts — the tool exists precisely so they are
+      re-derivable later, and re-deriving them now is the fourth turn spent on one answer. Do NOT
+      change `UPLIFTABLE_TARIFF_TYPES`; the finding says relaxing it buys nothing.
     why: >-
-      This is 99 changed lines of correct, derived, mutation-aware work with a reachability control
-      that refuses both the absorbing draft AND the converts-at-probability-1 draft in one assertion
-      over the partition — and none of it exists anywhere but one dirty working tree that three
-      lanes and a merge are writing to. It is the second instance today of finished work stranded in
-      this tree and the class has cost this project whole days before. The change is inert on every
-      live run (no caller mints a default-tariff arrival), so it moves no published figure and
-      carries no risk to the arms page; the value is entirely that the landmine stops being armed
-      and the derivation stops being one `rm` away from gone. DONE is: the commit is on origin/main,
-      it carries the reachability control and `SVT_INTERNAL_CONVERSION_RATE = None` with its named
-      gap, the result document is archived out of the staging root, and the delivery claim is bound
-      with `--landed <id> --commit <sha>`.
-  - id: measure-whether-the-product-gate-is-the-real-ceiling-on-the-methods-reach
+      This item has now been named in three consecutive directions and drawn three times, and the
+      answer has existed since 01:50. Every turn it stays unlanded, the lane pays for it again — it
+      was re-drawn thirty seconds before this orientation. DONE is the two paths in a commit on
+      origin/main with the claim bound, or a filed disposition saying a rival landed it first.
+  - id: the-decision-count-is-the-thesis-reading-and-the-world-changed-under-it
     what: >-
-      ANSWER THE QUESTION MY LAST THESIS READ GOT WRONG, BY MEASURING, NOT BY RELAXING ANYTHING.
-      `UPLIFTABLE_TARIFF_TYPES = frozenset({"fixed", "pass_through"})`
-      (`company/crm/customer_profitability.py:316`) is applied at that file's line 381 and at
-      `company/pricing/value_based_renewal.py:1317`, and under it 2,490 of the 2,824 term boundaries
-      the world puts in front of the value arm class `product_not_upliftable`, all of them SVT.
-      Establish, on the current world and stating separately what each number counts: (a) how many
-      of those 2,490 boundaries are annual decision points at which `rolls_active_renewal` actually
-      decides — i.e. a household that ROLLED onto SVT mid-tenure and gets its anniversary back —
-      versus stints with no decision in them; (b) whether the arm has any observable at such a
-      boundary that a real supplier could act on, or whether the decline is correct because no rate
-      is being struck; (c) what the decision count would be if the gate admitted only class (a),
-      against the 107 decisions and 54 scored decisions the arm has today. File the answer as a
-      finding with the three counts and their definitions. DO NOT change
-      `UPLIFTABLE_TARIFF_TYPES`, do not build a conversion or targeting desk, and do not touch the
-      arms page under this item — `docs/staging/done/SEAT_DECISION_AN_SVT_HOUSEHOLD_IS_NOT_A_DECISION_THIS_ARM_DECLINES_2026-09-07.md`
-      §3 stands until a measurement refutes it, and this item is that measurement, not its verdict.
+      The world gained the SVT exit at `05684780e` (`simulation/renewals.py` — the household that
+      ARRIVED on the default tariff now reaches a fixed term). The funnel figures on
+      `site/data/value_arms.json` — 2,824 offered / 2,490 `product_not_upliftable` / 227
+      `acquisition_term` / 107 decisions that existed / 104 scored — were measured on a feed produced
+      BEFORE that edge existed. After the next completed run publishes, re-read those five counts
+      from the live feed and state, in a filed finding, whether `decisions_that_existed` moved off
+      107 and in which direction, and what the discrimination reading is on whatever n results. Say
+      separately what each number counts: the 54-decision `inference_claim` population and the
+      104-scored `decisions.discrimination_auc` population are two censuses and must not be
+      differenced. If the count did not move, say so and name what in `renewals.py` stops the new
+      edge reaching a priced boundary. Do not build a targeting or conversion desk under this item.
     why: >-
-      The thesis needs a population of decisions large enough for inference to be distinguishable
-      from noise, and `method_skill` at a concordance of 0.482 over 54 scored decisions against an
-      exact two-sided null of 0.407-0.591 says we cannot yet tell whether the method carries any
-      information. I told the director last stretch that the constraint was world-side and the tree
-      refutes me, so the constraint is now UNLOCATED and this is the only remaining candidate that
-      can be checked without building anything. It is also the honest order: last stretch's mistake
-      was writing a company-side instruction before establishing whether the world could express the
-      outcome, and the symmetric mistake available now is relaxing a company-side gate before
-      establishing whether there is a decision behind it. DONE is: a filed finding that states which
-      of (a) or the §3 decision is right, with the counts and what each one counts, and either
-      refutes the product gate as the ceiling or names it as the ceiling with evidence. A
-      measurement that says "the decline is correct" is a complete and valuable answer.
-  - id: a-swept-claim-whose-paths-carry-uncommitted-work-is-built-unlanded-not-not-done
+      The thesis needs the advantage to come from inference, and inference cannot be told from noise
+      at n=54 or n=104 — both readings sit inside their own nulls. The product-gate finding removed
+      the company-side explanation for the small n, so the only remaining lever anyone has actually
+      changed is the world-side edge that landed this stretch. This is the first time a live causal
+      change sits upstream of the number the thesis is judged on, and it is a prediction that can
+      refute itself. DONE is a filed finding carrying the re-read counts and saying plainly whether
+      the reachable surface grew.
+  - id: the-sweep-cannot-see-a-finding-that-names-its-own-claim-id
     what: >-
-      Give the delivery lane's sweep one more disposition. When a claim's window expires,
-      `background/delivery_lane.py` already grades it `landed_unbound`, `premise_not_yet_ripe`,
-      `premise_spent` or `not_done`. Add the reading that would have caught today's loss: if the
-      claim's own paths carry UNCOMMITTED modifications or untracked files in the shared working
-      tree at sweep time, the row is `built_unlanded` and its evidence names the paths and their
-      mtimes, so the next orientation is told to land rather than to rebuild. Key the control to the
-      PROPERTY — a swept claim with dirty subject paths can never be graded `not_done` — not to
-      today's file list, and assert over the whole partition in one control that every disposition
-      including this one is reachable, rather than one leg per branch. Prove it with the SVT claim's
-      own paths.
+      In `background/delivery_lane.py`, `_claim_paths` returns the paths a draw stamped from the
+      ITEM'S PROSE, so the 02:24Z sweep asked git about three clean paths and then attributed 23
+      unrelated ones BY TIME. The by-NAME discriminator already exists in the artefacts: a filed
+      finding's header carries `**Claim id:** <id>`. BEFORE WRITING ANYTHING, grep
+      `background/delivery_lane.py` and `background/` for an existing content-side claim-id reader —
+      `resolve_claim_id` at line 2247 is a spelling-alias resolver over the claims store and is NOT
+      this; if a content grep already exists, file that as the finding and stop. Otherwise add one
+      leg to the swept-row disposition: scan untracked and modified files under `docs/staging/` and
+      `tools/` for the claim id being swept, and name any hit in the disposition as evidence the work
+      MOVED. Do not mint a new disposition verdict and do not touch `_stranded_paths`' mtime logic —
+      one leg over the existing verdicts, with a control that asserts the leg can fire AND that a
+      claim with no such file still sweeps.
     why: >-
-      This is the cheapest mechanism on the board and it recovers work rather than watching work.
-      The brief's own warning says finished work that never left the tree is worse than work not
-      started because the ledger says the item was drawn; it happened twice on 2026-09-07 and it
-      happened again today with 99 lines of derived simulation work. Every other disposition here
-      exists because someone paid for its absence once, and this one has now been paid for three
-      times. The reading is a `git status` over paths the row already holds — no new register, no
-      new document class, one disposition and one control. DONE is: a swept claim with dirty subject
-      paths is graded `built_unlanded` with the paths in its evidence, the orientation brief prints
-      it, and a mutation that removes the new branch reds a control written for that branch.
-  - id: read-the-twelve-at-18327d977-and-pair-the-bar-to-the-book-it-bounds
+      The strand-clock repair I ordered last stretch (`20d594ac1`) landed and did not catch this,
+      four hours later, on a bigger artefact — so the remedy was correctly aimed and under-scoped.
+      Time-attribution is weak by construction ("the longer this list, the busier the window and the
+      weaker the attribution"); a claim id written inside the document is exact. DONE is a sweep that
+      would have named the product-gate finding, proven by a control that fails when the leg is
+      removed.
+  - id: ninety-nine-dispositioned-staging-docs-were-never-committed-out-of-the-root
     what: >-
-      DO NOT DRAW BEFORE 09:00 on 2026-09-19 (local time, BST). The floor re-run is
-      `longjob-floor-next12-at-head-20260918`, twelve seeds, started 2026-09-18 16:12:55 BST, ETA
-      2026-09-19 08:20Z. ITS ARTEFACT IS NOT IN THIS REPO: it writes to
-      `/var/tmp/se-floorrun-head-20260918/docs/observability/value_cycle_ab_s1_noise_floor_next12_at_18327d977.json`,
-      an extract with no `.git`, so a repository-subject control run there will fail for locality
-      reasons and not for its subject. First ask the user manager whether
-      `longjob-floor-next12-at-head-20260918` is still active — a verdict from outside the job's own
-      cgroup — and if the run is incomplete, say so with the leg count and stop. If it is complete,
-      bring the artefact into `docs/observability/`, re-pair the arms page's error bar to it, and
-      republish. Grade it against the PRE-REGISTRATION at
-      `docs/staging/records/PREREG_THE_TWELVE_AT_HEAD_OVER_THE_09_18_BOOK_AND_WHAT_WOULD_MAKE_ME_NOT_PUBLISH_THEM_2026-09-18.md`
-      and record where the predictions were refuted BESIDE the result. Do NOT fold these twelve into
-      the existing eighteen: they were drawn over different books — 154 settled accounts against 164
-      — and that splice is the whole defect being closed. State the selection leg's direction if the
-      family supports it under the single derived rule, and state plainly that it does not if it
-      does not.
+      `git status` shows 102 tracked paths missing from the working tree; 99 are `docs/staging/*.md`
+      and all 99 exist on disk under a `docs/staging/` subdirectory — they were archived and the move
+      was never committed. Commit the renames by pathspec (both sides: the deletion from the root and
+      the copy in `done/`/`records/`) via `python3 -m tools.surgical_land`, in batches small enough
+      to gate, checking each file is still where you found it because a daemon archives mid-turn.
+      Then re-read the staging flow reading and say whether "201 filed, 162 dispositioned, net +39
+      over 7 days" survives once the 99 are counted as dispositioned.
     why: >-
-      Both headline figures on the one page carrying the thesis claim are published today with no
-      direction, and until this run lands the stated reason is still that the bar is older than the
-      figure it bounds — a refusal nobody re-examines reads as a settled finding. The disjoint-range
-      guard landed this stretch means the new floor will be graded on the BOOK rather than waved
-      through on a curriculum setting, which is the first time that grading has been possible: had
-      the guard not landed first, this very run would have been admitted under `declared_book`
-      whether or not its pre-registration held, and the guard meant to check my own run could not
-      have checked it. That is why this is last in order and not dropped. DONE is: no figure on that
-      page withholds its direction for staleness, whatever it does withhold names a reason measured
-      on the book it was drawn over, and the pre-registration's refuted predictions are recorded
-      next to the result rather than quietly revised.
+      An uncommitted archival is not a discharge, so every lane reading the queue from a ref sees 208
+      documents where 109 exist, and the sediment reading that drives "the queue grows without bound"
+      is computed over the wrong denominator — it may be measuring a filing problem that is really a
+      committing problem. This is the same class as focus one at scale, and it is the cheapest 99
+      discharges available. DONE is a clean `git status` on `docs/staging/` root deletions and a
+      re-stated flow reading.
 not_now:
-  - what: >-
-      Build the SVT conversion desk in `company/` — the arm that decides which default-tariff or
-      rolled-SVT households to approach — now, on the strength of the world edge existing.
+  - what: Relaxing `UPLIFTABLE_TARIFF_TYPES` to admit cap segments, or building the SVT conversion desk behind it.
     why: >-
-      I said last stretch this would be the next stretch's first item once the world edge landed. I
-      am not doing it, and the reason is that my premise for promising it was wrong: the edge was
-      already there and had been since 2026-08-30, so "the world can now express the outcome" is not
-      new information and cannot be what licenses the desk. What would license it is a measurement
-      showing there is a decision at those boundaries, and that is focus two. Building the desk
-      first would repeat exactly the error focus two exists to correct, one seam over.
-  - what: >-
-      Reconcile the fork: this checkout is 3 ahead and 14 behind origin/main, so the daemons running
-      from it execute code the branch has moved past, and
-      `WORKER_FINDING_THE_ROSTER_RUN_WOULD_HAVE_BEEN_INERT_BECAUSE_THE_WORKING_COPY_OF_THE_RUNNER_IS_BEHIND_THE_COMMIT_CARRYING_IT_2026-09-18.md`
-      is a BLOCKING finding recording a run that would have measured nothing because of it.
+      The finding that is sitting unlanded already refutes the premise — 107 of 107 terms that
+      cleared the gate became decisions, so the gate refuses nothing its writer could have acted on.
+      Relaxing a company-side gate before establishing there is a decision behind it is the
+      symmetric error, and the measurement has now been made and says do not.
+  - what: Repairing the error bar in `SEAT_FINDING_THE_PAGE_PAIRED_ITS_ERROR_BAR_ON_A_CURRICULUM_SETTING_AND_CALLED_IT_THE_BOOK_2026-09-18.md`, a live BLOCKING finding.
     why: >-
-      Stronger evidence than last stretch and it still loses, for a reason that changed: the working
-      tree now holds 99 lines of unlanded SVT work, and a merge run to close the fork is the most
-      likely way to lose it — this project has a recorded instance of a merge adopting one side's
-      rewrite and deleting the other side's purely additive work. Focus one lands through
-      `isolate_hunks` and `surgical_land --content`, which never writes the shared worktree and
-      fast-forwards the branch as a side effect. Reconciling first inverts the risk for no gain.
-      If focus one lands and the fork is still open, any lane closes it in one gated command.
-  - what: >-
-      Attack the staging sediment as a class — 183 documents filed into the tracked root against 160
-      dispositioned out over 7 days, net +23, on a queue of 115 — and work down the 9 BLOCKING
-      findings as a batch.
+      It is real and it is correctly filed, but it is a question about the WIDTH of a bar around a
+      reading whose n is the binding constraint. Both discrimination readings sit inside their nulls
+      at n=54 and n=104; a correctly-paired bar on the same n changes no conclusion. Focus two moves
+      n, and the bar is worth repairing once there is something for it to bound. It stays BLOCKING
+      and stays in the lane's way, which is the right amount of pressure.
+  - what: Draining H41's map ratchet, and chasing the 42 tracked files whose working copies predate their landed version.
     why: >-
-      Third deferral and I am recording it as such. The half that actually wedged commits got its
-      repair two stretches ago, so growth now costs reading time rather than blocking the tree, and
-      two of the nine BLOCKING rows are discharged by focus one and focus four individually. The
-      general remedy is "fewer channels that file", which changes how every lane records its work
-      and cannot be done by one worker in one window. It becomes first the moment filing wedges
-      anything again, or the moment the queue stops being readable in one orientation.
-  - what: >-
-      Repair the arms feed's staleness prose, which now carries the sentence "THE ERROR BAR IS OLDER
-      THAN THE FIGURE IT BOUNDS" nine times across the published payload.
+      H41 improved on its own — 8,282 to 6,491 bytes of headroom — so the drain I have been
+      threatening for twelve orientations is not what is binding. And the stale-copy list is weak
+      evidence: `surgical_land` never writes the shared worktree, so a copy older than its commit is
+      the normal residue of a sibling landing, not a defect. Both are tidying, and this stretch has
+      an unlanded answer to the thesis question.
+  - what: Writing a new register or alarm for the "work finishes and never leaves the tree" class.
     why: >-
-      Third deferral, worse than I described it last stretch — I called it a paragraph appended
-      twice inside one string and it is nine occurrences across the feed. It is still reader-facing
-      prose on the thesis page and it is still the case that focus four rewrites the generator that
-      emits it and that `_staleness_caveat` was already recomposed this stretch into three
-      distinguishable sentences. If focus four lands and the duplication survives, it is first next
-      stretch with no further deferral available to it.
-  - what: Drain the maturity-map ratchet (H41), 8,282 bytes of headroom under a 409,600-byte ceiling.
-    why: >-
-      Eleventh consecutive orientation at the identical figure. My estimate that it would cross
-      inside a day has now been refuted eleven times by its own series, and spending a focus slot on
-      it would be paying for that estimate a twelfth time rather than acting on a measurement.
+      Three of this file's four items are instances of that class and the right response is to LAND
+      the instances, not to build the thing that watches them. Focus three adds one leg to an
+      existing disposition; a new register would be the fourth control over a failure whose cause is
+      that nobody ran `surgical_land`.
 wrong:
   - what: >-
-      MINE, NEW, AND THE WORST OF THIS STRETCH. Focus one's central factual claim about the tree was
-      REFUTED on the live tree by the worker who drew it. I wrote "`tariff_type` is resolved once per
-      customer at schedule-build time and SVT is absorbing", quoting a worker finding's §1(b) as
-      established without re-measuring it. Measured before anything was written: `svt->fixed` 61
-      transitions over 590.28 SVT-account-years, 0.1033 per SVT-account-year, an edge that landed on
-      2026-08-30 with C1b and whose own comment in `simulation/renewals.py` argues against the
-      absorbing draft. Worse than the instruction being wrong is that last stretch's `thesis_read`
-      built a conclusion on it — that the wall was world-side and the company was short of decisions
-      — and told the director so. Corrected in this `thesis_read`: the wall is unlocated, the
-      company-side candidate is named, and focus two goes and measures it. The instruction cost no
-      work because the worker established the premise before building, which is the habit working,
-      not the instruction working.
-    corrected: true
-  - what: >-
-      MINE, NEW, SAME HABIT, SECOND INSTANCE IN ONE FILE. Last stretch's focus four told a worker to
-      read the twelve-seed floor after 02:00 on 2026-09-19 at
-      `docs/observability/value_cycle_ab_s1_noise_floor_next12_at_18327d977.json`. Both facts are
-      wrong: the unit's ETA is 2026-09-19 08:20Z, more than seven hours after the stamp, and the
-      artefact is written to `/var/tmp/se-floorrun-head-20260918/docs/observability/...`, an extract
-      outside this repo. A worker drawing at 02:00 would have found no file at the path named and
-      stopped, and the item would have read as "the run failed". Both are corrected in this file's
-      focus four with the unit name and the outside-the-cgroup check that settles it.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW, AND OPEN. Work is finishing and not leaving the tree. The SVT item's whole
-      delivery — `simulation/renewals.py` (+70), `simulation/run_phase2b.py` (+29),
-      `tools/published_route_split.py`, two modified test files, an untracked reachability control
-      and an untracked result document — is uncommitted in the shared working tree with nothing
-      bound to its claim in the lane ledger, and a second row this stretch was dispositioned
-      `landed_unbound` against 2f436602b. The sweep can already tell `landed_unbound` from
-      `not_done` but cannot tell either from "built and sitting there", so the orientation is told
-      to rebuild what exists. Focus three is the one-disposition repair.
+      MINE, CARRIED FROM THIRTEEN STRETCHES BACK, STILL OPEN, AND IT FAILED THIS STRETCH IN ITS MOST
+      EXPENSIVE FORM YET. The parent habit is a claim used with confidence before anyone asked what
+      it counts or re-asked whether it is true. Last stretch I correctly identified `_claim_paths` as
+      the hole and wrote a focus item to repair it. The repair landed at `20d594ac1`. Four hours
+      later the same sweep lost the same class of work again, on a 30KB artefact, because I asserted
+      what the fix would ACHIEVE without re-asking — I scoped the remedy to the strand half's clock
+      when the missing discriminator was attribution by name, and the name was printed in the
+      document's own header all along. Naming a mechanism correctly and under-scoping its remedy is
+      the same failure as describing one from the shape of the defect; it just costs a stretch
+      instead of a turn. The widened closing test stands as written — a whole stretch in which no
+      factual claim I write goes un-re-measured — and this orientation passed the measurement half
+      of it (H41 moved 8,282 to 6,491 only because I re-ran it, and I found the product-gate answer
+      in the tree instead of writing that it was never done). The half it fails is predictions about
+      what a repair will do, which I have never subjected to the same rule. That is the test's new
+      leg: any focus item ordering a repair must say what would prove the repair insufficient.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED AND NOW CORRECTED. `_back_referenced_start` had one caller, inside the
-      after-the-fact disposition, so the draw could name a burned window but not prevent one. It now
-      has a caller in the DRAW — `background/delivery_lane.py:2889`, inside `embargoed_until`,
-      anchored on when the prose was written rather than on a draw that has not happened, with the
-      fail-open direction preserved (896a286d8), and a control that reds if only the dated `_EMBARGO`
-      grammar is honoured.
+      THE MACHINE'S, CARRIED, STILL OPEN, AND IT RECURRED WITHIN FOUR HOURS OF THE PREVIOUS INSTANCE
+      CLEARING. The SVT half of this row is discharged: `05684780e` is on origin/main carrying
+      `simulation/renewals.py`, so the specific work I was tracking did leave the tree. The row stays
+      open because the class did not. At this orientation the shared tree holds 281 untracked paths
+      and 102 tracked paths that are simply absent, and among them are a 14,456-byte finding and the
+      15,538-byte census tool that together answer the one item this direction has named three times
+      — plus 99 dispositioned staging documents archived on disk and never committed out of the root.
+      Work is still finishing and not leaving the tree; only the identity of the stranded artefact
+      changed. It stays open until a stretch ends with the answer to its own named focus item in a
+      ref.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, CARRIED FROM LAST STRETCH, AND NOW CORRECTED. The error was that a whole
+      stretch's substantive output landed in the system's own reporting layer — the machine turning
+      inward. This stretch four of five substantive commits reached the world, the knowledge layer or
+      a check on the world: `05684780e` gave the household that arrived on the default tariff the
+      same exit the rolled one has, `04ab33216` refuted the knowledge map's structurally-zero
+      internal-switch rate against 68 of 134 households that already do it, `b721b6acf` established
+      the J_svt floor as a bound rather than a number, and `fec868d31` made the check judge the
+      world's internal route against the floor for THAT route instead of the mixed row. The fifth,
+      `20d594ac1`, is the lane repair. That is the shape I asked for, and the thesis item was drawn
+      this time rather than named and ignored. Marking corrected on that evidence, not on intent.
     corrected: true
   - what: >-
-      THE MACHINE'S, CARRIED AND NOW CORRECTED. One question no longer has two published answers:
-      `error_bar.distinguishable_reconciliation.agree` is `true` on the live feed and the fixed
-      2.0-standard-error bar is gone from all three homes in favour of the family's own two-sided t
-      on n-1 degrees of freedom (376499319). `distinguishable_from_zero: true` and
-      `sign_is_stateable: false` still both appear, and that is now correct rather than contradictory
-      — the first is the statistical question and the second is the publishing question, which adds
-      conditions the first does not carry, and the reconciliation block is the record of why.
-    corrected: true
-  - what: >-
-      MINE, CARRIED FROM ELEVEN STRETCHES BACK, STILL OPEN, AND MY CLOSING TEST FOR IT WAS TOO
-      NARROW. The parent habit is a claim used with confidence before anyone asked what it counts or
-      re-asked whether it is true. I set the closing test as "a whole stretch with no quantity
-      published whose definition I have not stated beside it", and by that test this stretch passes —
-      definitions are stated beside every quantity above. But the two errors above are the same habit
-      applied to a STATE and to a CLOCK rather than to a quantity, so my own test could not see them.
-      Widened: it closes when a whole stretch passes in which no factual claim I write into a focus
-      item or a thesis read — quantity, state of the tree, or instant — went un-re-measured against
-      the thing it describes. H41's headroom read 8,282 bytes again today, the eleventh consecutive
-      orientation at the figure I said would be gone inside a day, which is the same habit standing
-      still in public.
+      THE MACHINE'S, NEW, AND OPEN. The delivery lane swept a claim `not_done` and re-drew the same
+      id thirty seconds later, sending a worker (PID 1264076) to redo an answer that had been
+      complete in the tree for thirty-four minutes. The sweep's own evidence line says why and does
+      not know it: "this claim's own named paths are clean" — because the item's prose named
+      `company/crm/customer_profitability.py`, `company/pricing/value_based_renewal.py` and two
+      documents, while the work went to a new tool and a new finding — followed by 23 paths
+      "ATTRIBUTED BY TIME AND NOT BY NAME". A sweep that can only attribute by time will keep buying
+      the same turn repeatedly whenever the answer is a NEW file, which is what an answer usually is.
+      Focus three is the repair and it is deliberately one leg, not a register.
     corrected: false
 for_the_director: []
