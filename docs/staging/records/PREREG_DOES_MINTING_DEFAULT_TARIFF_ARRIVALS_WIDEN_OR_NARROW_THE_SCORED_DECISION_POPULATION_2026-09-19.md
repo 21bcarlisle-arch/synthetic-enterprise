@@ -111,3 +111,82 @@ result.
 selection leg's sign.** No sentence in the result will let it travel as one. Any AUC quoted is
 graded against its OWN roster's null, off that leg's own `scored_decisions` — never another
 family's ruler.
+
+---
+
+# THE RESULT, FILED BESIDE THE PREDICTION — 2026-09-19 ~19:20 BST
+
+*Both legs are on disk and folded. Every figure below comes from
+`tools.arrival_decision_population --fold`, re-run in this turn and **byte-identical** to the
+`docs/observability/arrival_decision_population.json` landed at `db00d334c` (compared field by
+field, ignoring timestamps). Nothing here is a hand calculation.*
+
+## 6. The scoreboard: one refuted, three confirmed
+
+| # | predicted | observed | verdict |
+|---|---|---:|---|
+| **P3a** | `decisions_that_existed` **below** 107; point **95**, 80% band 85–107 | **114** | **REFUTED** — wrong in DIRECTION and outside the band |
+| **P3b** | null sd moves <15% either way; rank leg not materially cheaper; ~416 decisions to halve | ratio **0.9897** (1.0% narrower); **414** | **CONFIRMED** |
+| **P3c** | on-leg AUC still inside 2 null sd of 0.5 | **0.564** null sd | **CONFIRMED** — still does not clear |
+| **P3d** | off leg 0 `svt` roster records, on leg 35 | **0 / 35** | **CONFIRMED** — the patch fired; the leg is a result, not VOID |
+
+**P2 — the earlier prediction this file was written to contradict — is CONFIRMED, and P3a, the one
+written four hours later at `768895de2`, is the one that was wrong.** Both stay in the record.
+
+## 7. The explicit sentence the drawn item asked for
+
+**The rank leg got THE SAME, not cheaper.** In the module's own words
+(`did_the_rank_leg_get_cheaper`): *"the same, within 5%: the arrivals-on null is 99.0% of the
+arrivals-off null, so this route does not move the rank leg's cost."* The 95% half-width goes
+**0.11280 → 0.11164**. Halving it needs **414** scored decisions against today's 107 — and this
+producer bought **+3** scored decisions by minting 35 SVT arrivals on a 226-record roster. **This
+route is closed as a way to buy rank-leg power.** The item pre-priced that answer as worth the same
+hour as a positive one; it is, and it means the ask to the director is the route that remains.
+
+## 8. Why P3a was wrong, kept rather than revised
+
+P3a's *mechanism* was visible and real: `product_not_upliftable` rose **2,490 → 2,602**, every one
+`'svt'`, exactly as predicted, and `no_observed_history` held at 0 and `acquisition_term` at 227 —
+so the increment is new arrivals reaching the funnel and not the term-index mechanism, the read P1
+and P2 both required before anyone attributed it.
+
+**What P3a did not count is that the denominator was not fixed.** `renewals_the_world_offered` rose
+**2,824 → 2,943**, because an account on a default tariff is offered a term boundary more often than
+one on a fixed deal. The arithmetic closes exactly: **+119 boundaries = +112 refused at
+`product_not_upliftable` + 7 priced.** I reasoned about the composition of a fixed denominator and
+the denominator moved. That is the error, it is named, and the prediction above is left standing.
+
+## 9. The two legs were produced at DIFFERENT commits, and the divergence is INERT BY PATHS
+
+The drawn item asked for this check explicitly and it had not been answered.
+
+| leg | `producing_commit` | resolved |
+|---|---|---|
+| OFF | `768895de2` | 16:39:05Z |
+| ON | `f8a54c985` | 17:03:54Z |
+
+**They differ**, and `768895de2` is a strict ancestor of `f8a54c985` — the ON leg bound its modules
+two commits later. The item warned that the one-variable attribution "expires if the ON leg is re-run
+at a later tree", so this is not cosmetic.
+
+**It is inert, and by path disjointness rather than by argument.** The complete diff
+`768895de2..f8a54c985` is three paths — `docs/staging/SEAT_RESULT_THE_VALUE_ARMS_POINTER_RUNG_...md`,
+`tests/tools/test_the_value_arms_pages_undriven_pointers.py`, and `tools/generate_value_arms_data.py`
+— a staging document, a test, and the value-arms *page* producer. `tools/arrival_decision_population.py`
+imports none of them; it reads only `argparse`, `json`, `math`, `subprocess`, `sys`, `time` and
+`pathlib`, plus the simulation modules it binds at process start. **No path the arrival producer can
+read moved between the two legs, so the +7 remains attributable to the one rebound symbol
+(`_draw_tariff_type`) and to nothing else.**
+
+## 10. What may NOT travel from this
+
+* **The decision count is a count of opportunities to be graded.** It is not evidence the selection
+  leg improved, and no sentence above says it is.
+* **The AUC fell, 0.5566 → 0.5321, and that is NOT a finding about the producer.** It is a different
+  population, measured once, with no error bar on the difference between two AUCs. What is sayable —
+  each graded against its own roster's null via `_auc_from_a_roster`, never another family's ruler —
+  is that **neither leg clears, and the ON leg is further from clearing** (0.564 null sd against
+  0.984).
+* **+7 priced becomes +3 scored** because four of the seven new priced decisions are unscored: the
+  world rolled no lifecycle event at that `(account, term_start)`. That is the funnel's own
+  `unmatched_meaning`, not an inference.
