@@ -18,13 +18,6 @@ This document supersedes the individual findings listed below, which are **archi
 
 **0 hours traced** across 3 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_FINDING_NO_CENSUS_EXISTS_OF_THE_PLACES_A_COUNT_OVER_A_POPULATION_IS_COMPARED_TO_A_PUBLISHED_RATE_2026-09-16.md` — lane `A_strategy_governance`
-- `SEAT_RESULT_THE_SAMPLE_EARNS_ITS_PLACE_ON_THE_SETTLEMENT_SELECTION_2026-09-16.md` — lane `W2_customer_generator`
-
 ## Disposition
 
 **Decision:** OPEN
