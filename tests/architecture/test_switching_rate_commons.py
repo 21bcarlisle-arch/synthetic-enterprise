@@ -763,6 +763,29 @@ def test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cau
 #: quotation from a claim would force the history to be deleted to stay green.
 _LIVE_FLOOR_CLAIM = re.compile(r"SVT floor is ([0-9.]+)% against a published ([0-9.]+)%")
 
+
+def _floor_claims(causes) -> list[tuple[int, float, float]]:
+    """EVERY present-tense floor claim in every cause, not the first one in each.
+
+    READ WITH `finditer`, AND THE YEAR IS NOT A KEY. Until 2026-09-19 the leg below read
+    `_LIVE_FLOOR_CLAIM.search(cause)` and stored the result in a dict keyed by year. Both halves
+    dropped a second claim, and they drop it the same silent way: a cause that states two floors
+    registers one, and the second is not judged WRONGLY -- it is never asked about. A dropped match
+    is an ABSENT QUESTION, not a wrong answer, which is why no assertion downstream can notice.
+    Returning a flat list rather than a mapping is the half that has to come with the `finditer`:
+    keeping the year as a dict key would let the wider read find both and then overwrite one.
+
+    LATENT, NOT LIVE, WHEN THIS LANDED. Measured at `087e3ad58`: each pattern finds exactly one
+    match per cause today (2022 only). It becomes live the moment a cause gains a second floor
+    sentence or the grammar is widened -- and `087e3ad58` was the widening that made the sibling
+    case live in an afternoon.
+    """
+    return [
+        (year, float(found.group(1)), float(found.group(2)))
+        for year, cause in causes.items()
+        for found in _LIVE_FLOOR_CLAIM.finditer(cause)
+    ]
+
 #: The capture this leg re-drives, and it is deliberately NOT `instrument.DEFAULT_TABLE`.
 #:
 #: THIS LEG NEEDS A PAIR AND THE BAND LEG NEEDS A TABLE, WHICH IS WHY THEY READ DIFFERENT FILES.
@@ -881,11 +904,7 @@ def test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually
     this fires on the value; drop `market_switching_multiplier` back out of `svt_inertia_hazard`'s
     reach and it fires on the same leg from the other side.
     """
-    claims: dict[int, tuple[float, float]] = {}
-    for year, cause in anchor_module.UNFITTED_YEARS.items():
-        found = _LIVE_FLOOR_CLAIM.search(cause)
-        if found:
-            claims[year] = (float(found.group(1)), float(found.group(2)))
+    claims = _floor_claims(anchor_module.UNFITTED_YEARS)
 
     assert claims, (
         "no year in `UNFITTED_YEARS` states an SVT floor in the present tense, so this leg has no "
@@ -895,7 +914,7 @@ def test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually
     )
 
     live = _live_svt_floor_pct()
-    for year, (stated_floor, stated_target) in sorted(claims.items()):
+    for year, stated_floor, stated_target in sorted(claims):
         assert year in live, (
             f"{year}'s cause states an SVT floor of {stated_floor}%, but the committed capture "
             f"carries no accounts that year, so the claim cannot be checked at all. A refusal "
@@ -918,12 +937,38 @@ def test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually
 
 #: A cause's claim about the rows a NAMED capture holds for the year it refuses. The grammar is
 #: `<file>.json ... ALL <n> OF THOSE ROWS CARRY \`passive_churn_cap = <v>\``, and the file must be
-#: named before the claim in the same cause.
+#: named before the claim in the same cause, and in practice IMMEDIATELY before it.
+#:
+#: THE GAP CANNOT DISAMBIGUATE AND NO VARIANT OF IT CAN. Measured 2026-09-19 on
+#: `alpha.json and beta.json are both cited. ALL 53 ... ; ALL 7 ...` -- two files named before two
+#: claims -- this grammar reads `alpha` and drops the second claim, and a gap tempered against a
+#: second `.json` reads `beta` and drops the second claim. Two wrong answers, not one right one.
+#: So the tempering was NOT landed: it changes which file a mis-paired claim names without
+#: registering the claim that is lost either way. Filed as its own finding rather than half-fixed
+#: here; `_cited_rows_claims` below holds the shape that IS expressible.
 _CITED_ROWS_CLAIM = re.compile(
     r"(?P<capture>[a-z0-9_]+\.json).{0,900}?ALL (?P<rows>\d+) OF THOSE ROWS CARRY "
     r"`passive_churn_cap = (?P<cap>[0-9.]+)`",
     re.S,
 )
+
+
+def _cited_rows_claims(causes) -> list[tuple[int, str, int, float]]:
+    """EVERY cited-rows claim in every cause, on the same rule as `_floor_claims` above.
+
+    WHAT THIS REGISTERS AND WHAT IT STILL CANNOT. A cause that names a capture and then states its
+    claim, twice over, now registers both. A cause that names BOTH captures first and then states
+    both claims registers one claim bound to one of the two files, and which file it picks is an
+    artefact of the gap (see the pattern's own comment). That second shape is a real remaining
+    hole, it is not fixed here, and it is filed rather than papered over -- the reason being that
+    every candidate repair measured on 2026-09-19 swapped one mis-pairing for another without
+    registering the lost claim.
+    """
+    return [
+        (year, found.group("capture"), int(found.group("rows")), float(found.group("cap")))
+        for year, cause in causes.items()
+        for found in _CITED_ROWS_CLAIM.finditer(cause)
+    ]
 
 
 def test_a_capture_a_refusal_cites_for_its_rows_is_read_for_what_those_rows_actually_are():
@@ -959,12 +1004,7 @@ def test_a_capture_a_refusal_cites_for_its_rows_is_read_for_what_those_rows_actu
     `c5_refitted_departure_factors.json` (which carries no 2022 rows at all) -> fires on the
     zero-row leg, which is the case where a re-capture claim would be checked against nothing.
     """
-    claims: list[tuple[int, str, int, float]] = []
-    for year, cause in anchor_module.UNFITTED_YEARS.items():
-        found = _CITED_ROWS_CLAIM.search(cause)
-        if found:
-            claims.append((year, found.group("capture"), int(found.group("rows")),
-                           float(found.group("cap"))))
+    claims = _cited_rows_claims(anchor_module.UNFITTED_YEARS)
 
     assert claims, (
         "no `UNFITTED_YEARS` cause states what a named capture's rows for its refused year "
@@ -1000,6 +1040,68 @@ def test_a_capture_a_refusal_cites_for_its_rows_is_read_for_what_those_rows_actu
             f"they are not all the retired defect, and the conclusion the entry draws from them "
             f"— that only a change to the world can close this year — has to be re-argued."
         )
+
+
+def test_a_cause_stating_two_claims_registers_both_and_not_only_the_first():
+    """THE READERS ABOVE ARE HELD ON SYNTHETIC CAUSES BECAUSE THE REAL ONES CANNOT HOLD THEM.
+
+    THE DEFECT THIS EXISTS FOR, filed 2026-09-19 as a LATENT instance of the class `087e3ad58`
+    made live in the here-relative census that morning. `_LIVE_FLOOR_CLAIM` and
+    `_CITED_ROWS_CLAIM` were each read with `.search(cause)`, so a cause string stating TWO floors
+    or TWO cited-rows claims registered one. The second was not judged wrongly by the legs above:
+    it was never asked about. That is why no assertion in this file could notice, and why the two
+    legs stayed green on a subject half the size they claim.
+
+    WHY IT HAS TO BE SYNTHETIC, WHICH IS THE PART WORTH KEEPING. Measured at `087e3ad58`, each
+    pattern finds exactly ONE match per real cause (2022's, and no other year states either
+    grammar). A control keyed to `UNFITTED_YEARS` as it stands today therefore cannot tell
+    `search` from `finditer` at all -- both give the same one-element answer, so reverting the
+    repair would leave every rung green. A dropped match is an ABSENT QUESTION, and the only way
+    to hold an absent question is to supply a subject that HAS a second one. These strings are the
+    instrument, not a fixture of the world; they deliberately do not live in
+    `simulation.departure_level_anchor`.
+
+    KEYED TO THE PROPERTY, NOT TO 2022 OR TO TWO. The assertion is *the reader returns as many
+    claims as the cause states*. A real cause that grows a second floor sentence tomorrow is
+    caught by the legs above without this one changing; this one guarantees it would be READ.
+
+    MUTATION (proven with `python3 -B`, both fire): put `finditer` back to `search` in
+    `_floor_claims` -> the floor leg here fires on the count; the same in `_cited_rows_claims` ->
+    the cited leg fires. Neither mutation is visible to any other leg in this file.
+
+    WHAT THIS LEG DOES NOT HOLD, stated so the next reader does not read a wider green than there
+    is. A cause naming two captures BEFORE stating two claims is still read as one claim, and
+    tightening the gap so the claim binds to the nearer filename was measured and NOT landed: it
+    changes which file the surviving claim names without registering the one that is lost. That
+    hole is a finding of its own, not a mutation this leg fails to catch.
+    """
+    two_floors = (
+        "its SVT floor is 2.54% against a published 4.30% ceiling on the renewal route, and on "
+        "the SVT route its SVT floor is 7.10% against a published 4.30% ceiling."
+    )
+    floors = _floor_claims({2022: two_floors})
+    assert floors == [(2022, 2.54, 4.30), (2022, 7.10, 4.30)], (
+        f"a cause stating two present-tense SVT floors registered {floors}. A reader that stops "
+        f"at the first does not judge the second wrongly -- it never asks about it, so every leg "
+        f"downstream stays green over half a subject. Read with `finditer`, and do not key the "
+        f"result by year: a mapping finds both and then overwrites one."
+    )
+
+    two_captures = (
+        "`alpha_factors.json` is cited: ALL 53 OF THOSE ROWS CARRY `passive_churn_cap = 0.1`. "
+        "And `beta_factors.json` is cited too: ALL 7 OF THOSE ROWS CARRY "
+        "`passive_churn_cap = 0.25`."
+    )
+    cited = _cited_rows_claims({2022: two_captures})
+    assert cited == [
+        (2022, "alpha_factors.json", 53, 0.1),
+        (2022, "beta_factors.json", 7, 0.25),
+    ], (
+        f"a cause citing two captures for what their rows are registered {cited}. Expected both, "
+        f"each bound to the filename it follows. A second cited artefact that nothing opens is "
+        f"exactly the shape the leg above was landed for -- an inference drawn from a file, "
+        f"published in a refusal, checked by nobody."
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
