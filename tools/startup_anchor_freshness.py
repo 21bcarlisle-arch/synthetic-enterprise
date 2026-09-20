@@ -223,11 +223,21 @@ _FIGURE_RES = {
 }
 
 
-#: Directories the GitHub Pages workflow's `paths-ignore` excludes, plus the retired shadow mirror.
-#: A path under these is not published, so a reader cannot be sent to it.
+#: Directories the GitHub Pages workflow's `paths-ignore` excludes.
+#:
+#: CAREFUL, AND THE NAME OVERSTATES IT (corrected 2026-09-20, docs/staging/SEAT_FINDING_THE_
+#: PAGES_ROOT_SERVES_A_RETIRED_MIRROR_AND_PATHS_IGNORE_IS_NOT_A_PUBLISH_FILTER_2026-09-20.md).
+#: This used to be commented "a path under these is not published, so a reader cannot be sent to
+#: it". That is FALSE, and this module's own docstring says so 189 lines above: `paths-ignore` is
+#: a TRIGGER filter -- the upload step is `path: docs`, the whole tree. A push to any non-ignored
+#: path ships every one of these directories to the Pages root along with it. What these paths
+#: really are is CHURN the anchor report should not rank, which is all this list is used for at
+#: the filter below; whether the wider surface should be narrowed is the director's call and is
+#: open in that finding. `docs/shadow/` was a member until the retired mirror was deleted the
+#: same day; it is dropped rather than left naming a path that no longer exists.
 _UNPUBLISHED = ("docs/observability/", "docs/staging/", "docs/market_data/", "docs/state/",
                 "docs/snapshots/", "docs/design/", "docs/instructions/", "docs/claude/",
-                "docs/domain_artefact_library/", "docs/review_gates/", "docs/shadow/")
+                "docs/domain_artefact_library/", "docs/review_gates/")
 #: Extensions a person opens and reads. A JSON feed is machinery output, not an orientation surface.
 _READER_SUFFIXES = (".md", ".txt", ".yaml", ".yml", ".jsonl")
 

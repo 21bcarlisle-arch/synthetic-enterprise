@@ -408,7 +408,9 @@ _BUCKET_KEYWORDS = {
     "harness": ["background/", "supervisor", "daemon", "digest", "ntfy",
                 "idle", "watchdog", "harness"],
     "company": ["company/", "saas/", "billing", "pricing", "churn"],
-    "site": ["site/", "docs/shadow", "dashboard"],
+    # "docs/shadow" dropped 2026-09-20 with the surface it named -- a keyword for a directory
+    # that cannot be mentioned again buckets nothing.
+    "site": ["site/", "dashboard"],
     "sim": ["sim/", "simulation/"],
 }
 

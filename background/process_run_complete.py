@@ -4963,7 +4963,7 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     try:
         from tools.mirror_github_pages import mirror as mirror_gh_pages
         mirrored = mirror_gh_pages()
-        log("Mirrored {} file(s) to docs/shadow + docs/state for GitHub Pages".format(len(mirrored)))
+        log("Mirrored {} state file(s) to the GitHub Pages docs root".format(len(mirrored)))
     except Exception as exc:
         log("GitHub Pages mirror failed: {}".format(exc))
     # Publish the per-step record LAST, so it describes the cycle that just ran, and
@@ -6258,7 +6258,6 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     site_data = PROJECT_DIR / "site" / "data" / "dashboard.json"
     site_customers = PROJECT_DIR / "site" / "data" / "customers"
     site_sample = PROJECT_DIR / "site" / "data" / "customer_sample.json"
-    site_shadow = PROJECT_DIR / "site" / "shadow"
     files = [str(report), str(LATEST_MD)]
     # H11_naive_organ: commit the organ's question log alongside the run whose
     # publish cycle produced it (LATEST.md's digest block is already tracked).
@@ -6278,8 +6277,6 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         files.append(str(site_customers))
     if site_sample.exists():
         files.append(str(site_sample))
-    if site_shadow.exists():
-        files.append(str(site_shadow))
     site_state_sample = PROJECT_DIR / "site" / "state" / "customer_sample.json"
     if site_state_sample.exists():
         files.append(str(site_state_sample))
@@ -6437,11 +6434,14 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             log("site/state paths not added to the commit (non-fatal): {}".format(_exc))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
-    # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
-    # same as docs/status/PROJECT_STATE.txt already does.
-    docs_shadow = PROJECT_DIR / "docs" / "shadow"
-    if docs_shadow.exists():
-        files.append(str(docs_shadow))
+    # incident, so the state JSONs also ship from docs/ (GitHub Pages), same as
+    # docs/status/PROJECT_STATE.txt already does.
+    #
+    # `docs/shadow/` used to be staged here too, and was removed with the mirror itself on
+    # 2026-09-20 (docs/staging/SEAT_FINDING_THE_PAGES_ROOT_SERVES_A_RETIRED_MIRROR_AND_
+    # PATHS_IGNORE_IS_NOT_A_PUBLISH_FILTER_2026-09-20.md). Staging a DIRECTORY by existence
+    # is how a retired surface returns: nothing here asks whether anything still writes it,
+    # so the day something drops a file in that path the publish ships it to the public root.
     docs_state = PROJECT_DIR / "docs" / "state"
     if docs_state.exists():
         files.append(str(docs_state))
