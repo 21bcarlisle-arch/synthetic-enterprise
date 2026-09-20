@@ -274,15 +274,31 @@ def _repo_sources() -> dict[str, str]:
     return out
 
 
-def test_no_stamped_page_at_the_pages_root_has_lost_its_writer():
-    """THE PROPERTY, against the real tree."""
+def test_no_stamped_page_at_the_pages_root_has_lost_its_writer(tmp_path):
+    """THE PROPERTY, against what a reader actually gets.
+
+    THE SUBJECT MOVED, 2026-09-20 (docs/staging/SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_
+    MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md). This walked `ROOT / pages_root()` -- correct while
+    the artefact WAS a directory, and pointed at nothing the moment the workflow started building
+    one. `pages_root()` now answers `_pages`, which exists only inside a CI run.
+
+    That is the control going red because the code became MORE honest, which this project has paid
+    for before. The repair is not to pin the old answer back: it is to build the artefact the way
+    the workflow does and walk THAT. The subject is then what is served rather than what happens to
+    sit in the tree, which is what the docstring above claimed all along -- the manifest is simply
+    the first arrangement where the two differ.
+    """
     sources = _repo_sources()
     assert len(sources) > 100, (
         "only {} source files found under {} -- the writer population collapsed, so this "
         "control cannot judge anything".format(len(sources), _SOURCE_ROOTS)
     )
 
-    frozen = frozen_pages(ROOT / pages_root(), sources)
+    from tools.pages_publish_manifest import build as _build_artefact
+    served = tmp_path / pages_root()
+    _build_artefact(served, root=ROOT)
+
+    frozen = frozen_pages(served, sources)
 
     assert frozen == [], (
         "These pages are served from the GitHub Pages root and stamp themselves with a date, "
@@ -390,7 +406,12 @@ def test_a_missing_or_reshaped_workflow_refuses(tmp_path):
     with pytest.raises(AssertionError):
         pages_root(unparseable)
 
-    assert pages_root() == "docs"
+    # NOT `== "docs"`, which is what stood here and which went red on 2026-09-20 for the one
+    # reason a control must never go red: the workflow got better. This leg's subject is the
+    # REFUSALS above; its last line only has to say the real workflow is not one of them. Which
+    # directory it names is a separate claim, and it has one home --
+    # `test_the_pages_artifact_is_the_manifest_not_the_docs_tree` ties it to the build step.
+    assert pages_root(), "the live workflow yields no upload path at all"
 
 
 def test_the_root_is_read_from_the_structure_not_the_text(tmp_path):
