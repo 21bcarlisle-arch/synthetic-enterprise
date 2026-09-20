@@ -10513,6 +10513,27 @@ _POPULATION_REPAIR_BIAS_SEEDS = 12
 _POPULATION_REPAIR_BIAS_INSTRUMENT = "18327d977"
 _POPULATION_REPAIR_BIAS_AGAINST = "a178b56d6"
 _POPULATION_REPAIR_BIAS_PATHS_APART = 20
+#: THE SAME TWELVE SEEDS READ STANDALONE ON THE REPAIRED BOOK, which is the only artefact on disk
+#: that answers the question the bias size makes a reader ask and does not answer: not "how far is
+#: the published figure from a like-for-like one" but "what IS the choosing worth where both arms
+#: priced one book". Produced 2026-09-19T09:10:27Z by `_POPULATION_REPAIR_BIAS_INSTRUMENT` -- the
+#: tree in which `FLAT_AT_LEVEL` carries the per-customer arm's own refusal frontier -- so its
+#: `selection_gbp` family is taken over a shared population by construction rather than by
+#: post-hoc restriction, which is what makes it admissible for this and nothing else.
+#:
+#: IT IS READ, NEVER PINNED. The paired difference above is a literal because no single artefact
+#: carries it -- it is a contrast BETWEEN two families. This one is a whole artefact that computes
+#: its own `selection_gbp_spread`, `selection_sem_gbp` and `distance_to_a_sign` natively, so the
+#: block below re-derives at publication and cannot drift from the file it names. A constant here
+#: would be this module keeping a second copy of a number the producer already published.
+#:
+#: WHY IT MAY NOT BE POOLED WITH, DIFFERENCED AGAINST, OR SUBTRACTED FROM THE PUBLISHED FIGURE.
+#: Same seed ids, same world, DIFFERENT PRICING CODE -- `tools/fold_noise_floor_family.py` refuses
+#: exactly this pair by name and says so live. The two are reported side by side and the block
+#: below states which book each belongs to, because a reader who nets them has assembled one
+#: estimate out of two instruments, which is the mispairing every other block in this file refuses.
+POPULATION_REPAIR_SIGN_PATH = PROJECT / "docs" / "observability" / (
+    "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json")
 _POPULATION_REPAIR_BIAS_SOURCE = (
     "docs/staging/SEAT_RESULT_THE_PAIRED_TWELVE_PRICE_THE_POPULATION_REPAIR_AT_810_POUNDS_AND_"
     "THE_STANDALONE_SIGN_GOT_SEVENTEEN_TIMES_HARDER_2026-09-19.md")
@@ -10533,6 +10554,93 @@ _POPULATION_REPAIR_BIAS_NOT_A_GAIN = (
     "and opposite amounts. Nothing was created; one side of the decomposition was handed to the "
     "other. A reader who takes this as \"the choosing leg is now positive and significant\" has "
     "read it backwards.")
+
+
+def _sign_on_the_shared_population(path=None) -> dict:
+    """What the choosing is worth where BOTH arms priced one book -- and whether that has a sign.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-20, Lane 0, the director's own item). The page tells a
+    reader the published `selection_gbp` is biased DOWNWARD and prices that bias at £810.18. It
+    does not tell them what the figure looks like on a book where the bias is absent. A reader who
+    has been handed "+£270.21" and "biased downward by £810.18" does the only arithmetic available
+    to them and concludes the choosing is worth about £1,080 and positive. The instrument that
+    measured the £810.18 drew a family on its own repaired book in the same turn, and that family
+    says the mean is NEGATIVE (-£259.29) and the sign is NOT STATEABLE -- 0.166 of the 2.0 SEMs it
+    would need, 1,744 seeds away at today's spread. Both facts came off one instrument on one day.
+    Only the flattering one reached the page.
+
+    SO THIS BLOCK'S ANSWER IS "WE CANNOT TELL", AND THAT IS THE RESULT RATHER THAN A GAP IN IT.
+    The thesis question -- does the per-customer method beat its own flat-at-level baseline on a
+    population both arms priced -- has never been measured to a sign, and the page has never said
+    so in those words. It says so here. A published "we cannot tell" with its distance attached is
+    worth more than a figure whose bias direction invites the reader to correct it themselves.
+
+    THE MEAN MAY NEVER TRAVEL WITHOUT ITS DISTANCE, for the reason
+    `_POPULATION_REPAIR_BIAS_NOT_A_GAIN` exists one constant above: a number that fits in a table
+    cell gets read for its sign. -£259.29 published alone would be read as "the choosing is worth
+    less than nothing on a fair population", which is a DIRECTION this family cannot carry at
+    0.166 SEMs. So `mean_gbp` is published only inside a block whose own `clause` states the
+    refusal, and the caller composes that clause rather than the number.
+
+    KEYED TO THE PROPERTY, NOT TO THE FILENAME. The artefact is admitted on its own
+    `producing_commit` matching the repair instrument -- the same identity
+    `_population_repair_bias` names as the book the size came from -- so a file renamed, moved or
+    replaced by a family drawn on some OTHER tree fails closed instead of being read as though it
+    were taken on the repaired book. It is never admitted on the path it was found at.
+
+    FAILS CLOSED AND SAYS SO ON THE SURFACE. When no admissible family is on disk the block
+    returns `available: False` WITH a `why_not` the caller composes into the clause, because the
+    alternative -- silence -- restores exactly the state this block was built to end: a reader
+    told the figure is biased downward and left to guess what removing the bias does.
+    """
+    path = POPULATION_REPAIR_SIGN_PATH if path is None else path
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {
+            "available": False,
+            "why_not": (
+                "no seed family drawn on the repaired book is readable at "
+                "`{name}`, so what the choosing is worth where both arms priced one book is "
+                "unmeasured here.".format(name=path.name)),
+        }
+
+    produced_by = ((loaded.get("producing_commit") or {}).get("commit") or "")
+    if not produced_by.startswith(_POPULATION_REPAIR_BIAS_INSTRUMENT):
+        return {
+            "available": False,
+            "why_not": (
+                "the family at `{name}` was produced by `{got}`, not by the repair instrument "
+                "`{want}`, so it was not drawn on a book where both arms refuse at one frontier "
+                "and cannot say what the choosing is worth on a shared population.".format(
+                    name=path.name, got=produced_by[:9] or "an unstated commit",
+                    want=_POPULATION_REPAIR_BIAS_INSTRUMENT)),
+        }
+
+    spread = loaded.get("selection_gbp_spread") or {}
+    distance = loaded.get("distance_to_a_sign") or {}
+    mean = spread.get("mean")
+    sem = loaded.get("selection_sem_gbp")
+    # THE PRODUCER'S OWN VERDICT, NOT THIS MODULE'S RE-DERIVATION OF IT. `noise_floor` writes
+    # `selection_distinguishable_from_zero` from the same spread it publishes; recomputing the
+    # comparison here would be a second opinion on a question the artefact already answered, and
+    # the two would drift the first time either side's rule changed.
+    stateable = loaded.get("selection_distinguishable_from_zero")
+    return {
+        "available": True,
+        "n": spread.get("n"),
+        "mean_gbp": mean,
+        "sem_gbp": sem,
+        "sems_from_zero": distance.get("sems_from_zero"),
+        "sems_needed_to_state_a_sign": distance.get("sems_needed_to_state_a_sign"),
+        "seeds_needed_to_state_a_sign": distance.get("seeds_needed_to_state_a_sign"),
+        "sign_is_stateable": stateable,
+        "sign_if_it_were_stateable": distance.get("sign_if_it_were_stateable"),
+        "measured_on_commit": _POPULATION_REPAIR_BIAS_INSTRUMENT,
+        "is_this_pages_run": False,
+        "may_be_netted_against_the_published_figure": False,
+        "source_artefact": path.name,
+    }
 
 
 def _population_repair_bias(artefact: dict | None) -> dict:
@@ -10573,11 +10681,47 @@ def _population_repair_bias(artefact: dict | None) -> dict:
     answer = spp.get("answer") if isinstance(spp, dict) else None
     priced = dp.get("priced_by_arm") or {}
     level, value = priced.get("level_arm"), priced.get("value_arm")
+    # THE OTHER HALF OF WHAT THE SAME INSTRUMENT MEASURED, read before the branch below so that
+    # BOTH branches can reach it. A run that carries the repair still owes a reader the sign on
+    # the shared population, and a run that does not owes it twice over.
+    shared = _sign_on_the_shared_population()
+    if shared.get("available"):
+        # THE MINUS GOES BEFORE THE CURRENCY SYMBOL AND THE SEMS ARE ROUNDED, both found by
+        # printing this clause at its real inputs rather than by reading it: `£{v:,.2f}` on a
+        # negative renders "£-259.29", and `sems_from_zero` arrives as a full float, so the
+        # sentence carrying this page's most careful refusal read "0.16591746236761307 of the 2.0
+        # SEMs". A refusal that looks unproofed is read as unconsidered.
+        mean = shared.get("mean_gbp") or 0.0
+        shared_sentence = (
+            " AND HERE IS WHAT THE SAME INSTRUMENT SAYS ITS OWN REPAIRED BOOK IS WORTH, which is "
+            "the question the size above makes a reader ask and does not answer. The {n} seeds "
+            "drawn on `{inst}` -- where both arms refuse at one frontier, so the populations "
+            "match by construction and not by restriction -- put `selection_gbp` at a mean of "
+            "{mean}, and THE SIGN IS NOT STATEABLE: {have} of the {need} SEMs it would "
+            "need, {seeds:,} seeds away at today's spread. So the answer to what the choosing is "
+            "worth on a population both arms priced is WE CANNOT TELL, and that is this page's "
+            "result rather than a gap in it. A reader who adds £{gbp:,.2f} to the figure above "
+            "and reads the total as the like-for-like worth of choosing has done arithmetic "
+            "across two instruments to reach a number this one refuses to state."
+        ).format(
+            n=shared.get("n"), inst=_POPULATION_REPAIR_BIAS_INSTRUMENT,
+            mean=("-£{:,.2f}".format(abs(mean)) if mean < 0 else "£{:,.2f}".format(mean)),
+            have=round(shared.get("sems_from_zero") or 0.0, 3),
+            need=shared.get("sems_needed_to_state_a_sign"),
+            seeds=shared.get("seeds_needed_to_state_a_sign") or 0,
+            gbp=_POPULATION_REPAIR_BIAS_GBP)
+    else:
+        shared_sentence = (
+            " AND WHAT THE CHOOSING IS WORTH ON A SHARED POPULATION IS NOT STATED HERE: "
+            + (shared.get("why_not") or "no reason was recorded.")
+            + " That is a gap in the evidence and not a reason to read the size above as a "
+              "correction which, applied, would make the choosing positive.")
 
     if answer is True:
         return {
             "available": False,
             "run_carries_the_repair": True,
+            "sign_on_the_shared_population": shared,
             # IT NAMES `selection_gbp` RATHER THAN "the figure above", and the difference is not
             # style. This branch is the one the door is built to go QUIET on -- `caveats` reaches
             # for `.clause` and only when `available` -- so `reason` reaches a field NO door
@@ -10615,6 +10759,12 @@ def _population_repair_bias(artefact: dict | None) -> dict:
         "source": _POPULATION_REPAIR_BIAS_SOURCE,
         "level_arm_priced": level,
         "value_arm_priced": value,
+        # THE THESIS QUESTION'S OWN ANSWER, beside the bias rather than instead of it. The two are
+        # one instrument's two readings and the page carried only the one that flatters: a
+        # downward bias invites the reader to correct the figure upward, and the corrected figure
+        # is not positive, it is unmeasurable. `clause` carries the sentence; this key carries the
+        # numbers it was composed from, for the same reason `magnitude_gbp` sits beside `clause`.
+        "sign_on_the_shared_population": shared,
         "clause": (
             "THE CHOOSING FIGURE IS BIASED DOWNWARD, and here is one measured size for that "
             "bias. "
@@ -10642,7 +10792,13 @@ def _population_repair_bias(artefact: dict | None) -> dict:
             hi=_POPULATION_REPAIR_BIAS_CI_HIGH_GBP, t=_POPULATION_REPAIR_BIAS_T,
             seeds=_POPULATION_REPAIR_BIAS_SEEDS, inst=_POPULATION_REPAIR_BIAS_INSTRUMENT,
             against=_POPULATION_REPAIR_BIAS_AGAINST,
-            paths=_POPULATION_REPAIR_BIAS_PATHS_APART),
+            paths=_POPULATION_REPAIR_BIAS_PATHS_APART)
+        # APPENDED AFTER `.format()`, NEVER CONCATENATED INTO IT. `shared_sentence` is already
+        # substituted, and a run artefact is free to put a brace in a field it composes from;
+        # folding it in above would hand those braces to this `.format()` as placeholders and
+        # raise on a value nobody chose. The clause is still ONE string when it reaches the
+        # reader, which is the property the door's mutation rung holds.
+        + shared_sentence,
     }
 
 

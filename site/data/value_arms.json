@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T20:46:33.333746Z",
+  "generated_at": "2026-09-20T00:23:55.417119Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "da154eaf56c92e8b8592810f4ec2c8f13505808d",
+    "publishing_tree_commit": "e436774b18fbc90babc9eeb9f6db9fd49c7dc5f1",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from da154eaf5 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from e436774b1 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -722,7 +722,22 @@
         "source": "docs/staging/SEAT_RESULT_THE_PAIRED_TWELVE_PRICE_THE_POPULATION_REPAIR_AT_810_POUNDS_AND_THE_STANDALONE_SIGN_GOT_SEVENTEEN_TIMES_HARDER_2026-09-19.md",
         "level_arm_priced": 281,
         "value_arm_priced": 214,
-        "clause": "THE CHOOSING FIGURE IS BIASED DOWNWARD, and here is one measured size for that bias. This run never asked whether the two arms priced the same renewals -- the field is written only by runs taken after the level arm was given the per-customer arm's refusal frontier. The flat arm priced 281 renewals against the per-customer arm's 214. Where the flat arm prices renewals the per-customer arm has already declined, it books margin on them, and the residual called \"the choosing\" carries that difference as a shortfall. Twelve seeds paired across exactly that one repair price it: `selection_gbp` rose by \u00a3810.18 (95% CI \u00a3778.26 to \u00a3842.11, t = 55.86 on 12 paired seeds). THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those 12 seeds the WHOLE advantage moved by \u00a30.00 -- not a penny, not a rounding -- because the \u00a3810.18 came OFF the price-level leg and went ONTO the choosing leg by exactly equal and opposite amounts. Nothing was created; one side of the decomposition was handed to the other. A reader who takes this as \"the choosing leg is now positive and significant\" has read it backwards. AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `18327d977` against `a178b56d6`, 20 paths of pricing code away from the run that produced the choosing figure, so it is the size of the CLASS and not this figure's own error. Subtracting it here would be arithmetic across two instruments. The choosing figure stands as published."
+        "sign_on_the_shared_population": {
+          "available": true,
+          "n": 12,
+          "mean_gbp": -259.29018858333194,
+          "sem_gbp": 1562.7661180644066,
+          "sems_from_zero": 0.16591746236761307,
+          "sems_needed_to_state_a_sign": 2.0,
+          "seeds_needed_to_state_a_sign": 1744,
+          "sign_is_stateable": false,
+          "sign_if_it_were_stateable": "negative",
+          "measured_on_commit": "18327d977",
+          "is_this_pages_run": false,
+          "may_be_netted_against_the_published_figure": false,
+          "source_artefact": "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json"
+        },
+        "clause": "THE CHOOSING FIGURE IS BIASED DOWNWARD, and here is one measured size for that bias. This run never asked whether the two arms priced the same renewals -- the field is written only by runs taken after the level arm was given the per-customer arm's refusal frontier. The flat arm priced 281 renewals against the per-customer arm's 214. Where the flat arm prices renewals the per-customer arm has already declined, it books margin on them, and the residual called \"the choosing\" carries that difference as a shortfall. Twelve seeds paired across exactly that one repair price it: `selection_gbp` rose by \u00a3810.18 (95% CI \u00a3778.26 to \u00a3842.11, t = 55.86 on 12 paired seeds). THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those 12 seeds the WHOLE advantage moved by \u00a30.00 -- not a penny, not a rounding -- because the \u00a3810.18 came OFF the price-level leg and went ONTO the choosing leg by exactly equal and opposite amounts. Nothing was created; one side of the decomposition was handed to the other. A reader who takes this as \"the choosing leg is now positive and significant\" has read it backwards. AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `18327d977` against `a178b56d6`, 20 paths of pricing code away from the run that produced the choosing figure, so it is the size of the CLASS and not this figure's own error. Subtracting it here would be arithmetic across two instruments. The choosing figure stands as published. AND HERE IS WHAT THE SAME INSTRUMENT SAYS ITS OWN REPAIRED BOOK IS WORTH, which is the question the size above makes a reader ask and does not answer. The 12 seeds drawn on `18327d977` -- where both arms refuse at one frontier, so the populations match by construction and not by restriction -- put `selection_gbp` at a mean of -\u00a3259.29, and THE SIGN IS NOT STATEABLE: 0.166 of the 2.0 SEMs it would need, 1,744 seeds away at today's spread. So the answer to what the choosing is worth on a population both arms priced is WE CANNOT TELL, and that is this page's result rather than a gap in it. A reader who adds \u00a3810.18 to the figure above and reads the total as the like-for-like worth of choosing has done arithmetic across two instruments to reach a number this one refuses to state."
       },
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved."
     },
@@ -1014,7 +1029,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "da154eaf56c92e8b8592810f4ec2c8f13505808d",
+      "publishing_tree_commit": "e436774b18fbc90babc9eeb9f6db9fd49c7dc5f1",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1026,7 +1041,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from da154eaf5 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from e436774b1 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1090,11 +1105,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 158278.48,
       "run_identity": {
-        "dashboard_run_id": "run_output_87c485285_20260919T190012Z.json",
-        "dashboard_commit": "87c485285",
+        "dashboard_run_id": "run_output_e436774b1_20260919T233112Z.json",
+        "dashboard_commit": "e436774b1",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_87c485285_20260919T190012Z.json",
-        "last_verified_commit": "87c485285",
+        "last_verified_run_id": "run_output_e436774b1_20260919T233112Z.json",
+        "last_verified_commit": "e436774b1",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -4151,7 +4166,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from -- the error bar below prices how many the family on disk would need. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "da154eaf56c92e8b8592810f4ec2c8f13505808d",
+    "commit": "e436774b18fbc90babc9eeb9f6db9fd49c7dc5f1",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

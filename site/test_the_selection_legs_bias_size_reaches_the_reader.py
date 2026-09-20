@@ -239,6 +239,151 @@ def test_the_magnitude_never_reaches_the_reader_without_the_sentence_that_nothin
         "so the arithmetic a reader is invited to do is subtraction across two instruments")
 
 
+def _shared(block: dict) -> dict:
+    """The bias block's reading of the repaired book, or a FAILURE naming what is missing."""
+    shared = block.get("sign_on_the_shared_population")
+    assert isinstance(shared, dict), (
+        "the bias block carries no `sign_on_the_shared_population`, so the page states which way "
+        "the figure is wrong and never what it is worth where it is not wrong. Regenerate with "
+        "`tools/generate_value_arms_data.py`.")
+    return shared
+
+
+def test_the_bias_size_never_reaches_the_reader_without_the_sign_on_the_shared_population():
+    """THE SECOND FALSIFIER, and the one the bias size CREATED (2026-09-20, Lane 0).
+
+    `..._without_the_sentence_that_nothing_was_created` defends against the size being read as a
+    GAIN. This defends against the remaining reading, which the repair above made available for
+    the first time: the size being read as a CORRECTION the reader applies themselves. A page that
+    says "+£270.21" and "biased downward by £810.18" and stops there has handed a reader two
+    numbers and one obvious operation, and the total they reach -- about £1,080, positive -- is a
+    number this project has never measured and cannot state.
+
+    The instrument that priced the bias drew a family on its own repaired book in the same turn.
+    That family puts the choosing at a NEGATIVE mean and cannot state a sign at all: 0.166 of the
+    2.0 SEMs it needs. Both readings came off one instrument on one day and only the flattering
+    one reached the page. So the property asserted here is that they travel together.
+
+    KEYED TO THE PROPERTY, NOT TO -£259.29. Nothing below pins the mean, the SEM count or the
+    seed price as literals. What is asserted is that WHATEVER the feed's shared-population reading
+    says, the reader meets it -- and never meets its mean without the refusal that the sign is not
+    stateable. The day a wider family DOES state a sign, `sign_is_stateable` turns True, the
+    refusal leg goes quiet by itself and the reader rung still holds.
+    """
+    feed = _published_feed()
+    block = _bias(feed)
+    assert block.get("available"), (
+        "no bias is published, so this control has no subject -- and that is a state "
+        "`test_both_sides_of_the_partition_are_reachable` owns, not a pass here")
+    shared = _shared(block)
+    rendered = _render(feed)
+    printed = "£{:,.2f}".format(block["magnitude_gbp"])
+    assert printed in rendered, "the magnitude is not on the page at all"
+
+    if not shared.get("available"):
+        # FAILING CLOSED IS A PASS ONLY IF IT IS SAID OUT LOUD. A missing family restores exactly
+        # the state this rung exists to end, so silence here is the defect and the reason must be
+        # the thing that reaches the reader instead.
+        why = shared.get("why_not") or ""
+        assert why, "the shared-population block is unavailable and records no reason"
+        assert "NOT STATED HERE" in rendered.upper(), (
+            "no family drawn on the repaired book is readable, and the page says nothing about "
+            "it -- so a reader meets {} with a bias direction and no indication that what the "
+            "figure is worth unbiased is unmeasured. A 'we cannot tell' belongs on the page, not "
+            "in a missing file.".format(printed))
+        return
+
+    # THE MEAN, as the page's own formatting of the feed's own number. The minus goes BEFORE the
+    # symbol because that is what the clause composes, and a rung that accepted either spelling
+    # would be green on a page that printed "£-259.29" at a reader.
+    mean = shared.get("mean_gbp")
+    assert isinstance(mean, (int, float)), "the shared-population block carries no mean"
+    mean_printed = ("-£{:,.2f}".format(abs(mean)) if mean < 0 else "£{:,.2f}".format(mean))
+    assert mean_printed in rendered, (
+        "the page prices the BIAS at {} and never tells the reader what the choosing is worth on "
+        "the book where the bias is absent ({}). The only arithmetic left available to them is "
+        "adding the two, and the number that produces has never been measured.".format(
+            printed, mean_printed))
+
+    # AND THE MEAN NEVER TRAVELS WITHOUT ITS DISTANCE. This is the discriminating half: a page
+    # carrying "-£259.29" alone states a DIRECTION the family cannot carry, which is the same
+    # defect as the bias size alone, pointing the other way.
+    if shared.get("sign_is_stateable") is False:
+        assert "NOT STATEABLE" in rendered.upper(), (
+            "the mean {} reaches the reader and the refusal does not, so the page states that "
+            "the choosing is worth less than nothing on a fair population -- a direction this "
+            "family is {} SEMs from being able to carry".format(
+                mean_printed, shared.get("sems_from_zero")))
+        assert "CANNOT TELL" in rendered.upper(), (
+            "the page never states the result in the words the result is in. 'We cannot tell' "
+            "is this leg's finding, and a finding that only appears as a small number beside a "
+            "large one is not published")
+        needed = shared.get("seeds_needed_to_state_a_sign")
+        assert isinstance(needed, int) and needed > 0, (
+            "the shared-population block states no price for the question, so the refusal is a "
+            "shrug rather than a measurement")
+        assert "{:,}".format(needed) in rendered, (
+            "the page refuses to state a sign and never says how far it is from stating one. A "
+            "refusal without its distance cannot be told from one that will never resolve")
+
+    # THE TWO INSTRUMENTS STAY TWO. The whole point of the mean is that it is NOT this page's run,
+    # and a block that let itself be netted against the published figure would rebuild the defect.
+    assert shared.get("may_be_netted_against_the_published_figure") is False, (
+        "the shared-population block no longer disclaims being nettable against the figure it "
+        "sits beside, which is the arithmetic across two instruments this panel refuses")
+    assert shared.get("is_this_pages_run") is False, (
+        "the shared-population block claims to be this page's own run, which it is not -- it was "
+        "drawn on the repair instrument, 20 paths of pricing code away")
+
+
+def test_MUTATION_a_clause_that_keeps_the_bias_size_and_drops_the_shared_population_sign_is_caught():
+    """The poison that produces TODAY'S PAGE, applied to the feed and never to the door.
+
+    Before 2026-09-20 the clause ended at "The choosing figure stands as published." Every other
+    rung in this file is green on that string -- the direction, the size, the book and the
+    nothing-was-created counter are all still in it. What it does not carry is any statement of
+    what the choosing is worth where the populations match, and that omission is the one a reader
+    fills in themselves, upward. So the mutation is the clause truncated at exactly the sentence
+    it used to end on.
+    """
+    feed = _published_feed()
+    block = _bias(feed)
+    if not block.get("available"):
+        pytest.fail("no bias is published; this control has no subject")
+    shared = _shared(block)
+    if not shared.get("available"):
+        pytest.skip("no family on the repaired book, so the sentence to poison is the fail-closed "
+                    "one and `..._without_the_sign_on_the_shared_population` already drives it")
+
+    clause = block["clause"]
+    marker = "AND HERE IS WHAT THE SAME INSTRUMENT SAYS"
+    assert marker in clause, (
+        "the clause no longer composes the shared-population sentence, so this mutation has "
+        "nothing to cut and the control it proves is not the one running")
+    cut = clause.split(marker)[0].strip()
+
+    poisoned = copy.deepcopy(feed)
+    poisoned["current_world"]["selection_leg"]["population_repair_bias"] = dict(
+        block, clause=cut)
+    shown = _render(poisoned)
+
+    printed = "£{:,.2f}".format(block["magnitude_gbp"])
+    # THE POISON IS REAL: the page still looks complete by every earlier rung's standard.
+    assert printed in shown, "the poisoned feed did not even render the size"
+    assert "£0.00" in shown, (
+        "the poison cut the nothing-was-created counter too, so it is a cruder mutation than "
+        "intended and does not isolate the shared-population sentence")
+    # AND THE SIGN IS GONE, which is what the real control must red on.
+    mean = shared.get("mean_gbp")
+    mean_printed = ("-£{:,.2f}".format(abs(mean)) if mean < 0 else "£{:,.2f}".format(mean))
+    assert mean_printed not in shown, (
+        "the poison failed: the shared-population mean reached the reader from somewhere other "
+        "than the clause, which would mean the welding this rung defends is not load-bearing")
+    assert "CANNOT TELL" not in shown.upper(), (
+        "the poison failed: the refusal reached the reader from another element, so cutting the "
+        "clause is not what this control is actually detecting")
+
+
 def test_the_bias_qualifies_the_figure_rather_than_footnoting_it():
     """AMBER, not muted. On this page the colour is the claim about the figure's standing.
 
