@@ -10033,3 +10033,88 @@ def test_the_published_family_on_disk_is_unmoved_by_the_roster_repair():
     assert out["nulls_from_their_own_rosters"]["graded_by_their_own_roster"] == 0, (
         "a row of the on-disk twelve claims a roster it cannot have, so the fixture and the "
         "artefact have come apart")
+
+
+# ── where the superseded panel sends a reader for a BOUND ─────────────────────────────────────
+#
+# `no_spread_on_this_clock` ended, until 2026-09-21, with a typed sentence: "The bounded reading
+# is the realised one, in the headline." It was true on the day it was written and false on the
+# day the floor stopped being admissible for that figure -- at which point the page was sending a
+# reader from one unbounded figure to another under the word "bounded", and the headline one
+# panel up was already refusing it in terms. A pointer at another reading's verdict IS that
+# verdict, so it is now read from the bounds block the headline reads it from.
+
+
+def _spreads_holding(stdev):
+    """A bounds block in one of the three states the pointer distinguishes."""
+    if stdev is None:
+        return {"available": True, "contrasts": {}}
+    return {"available": True,
+            "contrasts": {"selection_gbp": {"stdev_gbp": stdev, "n": 9}}}
+
+
+def test_the_superseded_panels_pointer_is_READ_from_the_bounds_block_and_not_typed_beside_it():
+    """The claim "there is a bounded reading elsewhere" must be the bounds block's, on every state.
+
+    THREE BRANCHES, ALL REACHABLE, and asserted as a PARTITION rather than one leg each: a
+    function that returned the withheld sentence on every input would satisfy a leg-per-branch
+    test, and "refuses correctly" is what a guard that refuses its whole partition also passes.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. What is asserted is the equivalence -- the
+    panel claims a bounded reading exists IF AND ONLY IF the bounds block holds a family for that
+    contrast -- so this rung stays green when the floor is re-run and goes red if the sentence
+    ever again outlives the state it describes.
+
+    Fires on: restoring the literal; keying the pointer to anything but `spreads`; dropping the
+    third branch into the second (a family never measured is a floor to run, a family withheld is
+    a floor already run over the wrong book, and they are different repairs).
+    """
+    withheld = gva._where_the_bounded_reading_is(
+        {"available": False, "reason": "the floor was drawn over another book"})
+    never = gva._where_the_bounded_reading_is(_spreads_holding(None))
+    inhand = gva._where_the_bounded_reading_is(_spreads_holding(1632.0))
+
+    assert len({withheld, never, inhand}) == 3, (
+        "two of the three states return the same sentence, so the pointer is a constant wearing "
+        "a computation's clothes")
+    for sentence in (withheld, never):
+        assert "IS bounded" not in sentence, (
+            "the panel claims a bounded reading exists while the bounds block holds none: "
+            + sentence)
+        assert "NO clock on this page states a direction" in sentence
+    assert "IS bounded" in inhand and "in the headline" in inhand, (
+        "with a family in hand the panel still refuses to point at it, so the sentence cannot "
+        "tell a reader where the bound is on the one run where there is one")
+    assert "and not here" in inhand, (
+        "the pointer states the realised reading's DIRECTION itself instead of saying where it "
+        "is stated -- a second producer of the same verdict")
+
+
+def test_the_pointer_is_REQUIRED_of_the_superseded_panels_call_site():
+    """A DEFAULTED `spreads` would be the defect back, silently and in the flattering direction:
+    a call site that forgot it would publish "there is a bounded reading" on a publish that has
+    none. Same guard as `test_the_staleness_answer_is_REQUIRED_of_every_call_site`."""
+    with pytest.raises(TypeError):
+        gva._provisioned(_load(THREE_ARM))
+
+
+def test_the_live_artefacts_publish_the_pointer_their_own_bounds_block_earns():
+    """And the end-to-end leg, because the two above are about a helper.
+
+    The prediction, written before it was run: the floor on disk is withheld from this contrast
+    (it was drawn over a 164-account book against this run's 154-155), so the live panel takes
+    the FIRST branch and no clock on the page states a direction for the choosing. If a later
+    floor makes the family admissible this rung does not red -- it follows the bounds block,
+    which is the whole point.
+    """
+    three_arm = _load(THREE_ARM)
+    spreads = gva._seed_spreads(_load(gva.NOISE_FLOOR_PATH), three_arm)
+    panel = gva._provisioned(three_arm, spreads)
+
+    claims_a_bound = "IS bounded" in panel["no_spread_on_this_clock"]
+    holds_a_family = gva._f(
+        (gva._spread_for(spreads, "selection_gbp") or {}).get("stdev_gbp")) is not None
+    assert claims_a_bound is holds_a_family, (
+        "the published panel says a bounded realised reading {} while the bounds block "
+        "{} one".format("exists" if claims_a_bound else "does not exist",
+                        "holds" if holds_a_family else "does not hold"))
