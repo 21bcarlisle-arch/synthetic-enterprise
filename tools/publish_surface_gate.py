@@ -73,13 +73,17 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # The roots a content publish SHIPS to a reader. Asserted (in this module's tests) to cover
 # `pre_commit_test_gate.PUBLISHED_OUTPUT_ROOTS`, so the exclusion and its counterpart cannot drift
-# apart again. `docs/shadow/` and `docs/state/` are the GitHub-Pages mirrors of `site/` and are
-# shipped by the same commit, so they belong here even though the exclusion list predates them.
+# apart again. `docs/state/` is the GitHub-Pages mirror of `site/state/` and is shipped by the
+# same commit, so it belongs here even though the exclusion list predates it.
+#
+# `docs/shadow/` was here too until 2026-09-20 and is gone with the surface (docs/staging/
+# SEAT_FINDING_THE_PAGES_ROOT_SERVES_A_RETIRED_MIRROR_AND_PATHS_IGNORE_IS_NOT_A_PUBLISH_
+# FILTER_2026-09-20.md). A root listed here whose directory no longer exists contributes
+# nothing but the impression of coverage.
 PUBLISH_SURFACE_ROOTS = (
     "site/",
     "docs/reports/",
     "docs/status/",
-    "docs/shadow/",
     "docs/state/",
 )
 

@@ -34,7 +34,8 @@ MUTATIONS THESE MUST CATCH (each verified to fail this file):
   * `load_list_prior(hp, item_type=dict)` -> `load_list_prior(hp)`     (items unscreened again)
   * `preserve_unreadable(hp)` deleted from append_run_history / _append_suspect_outcome
   * `load_episode_prior(X)` -> `json.loads(X.read_text())` in any of the four loaders
-  * `count_run_history_total` returning `len(json.loads(...))` again
+  * `extract_run_history` returning a slice of `json.loads(...)` again (was
+    `count_run_history_total` until that function was deleted on 2026-09-20)
   * any loader's `isinstance` screen widened to admit a non-mapping / non-list
 """
 from __future__ import annotations
@@ -105,7 +106,10 @@ def test_a_readable_run_history_is_fully_accounted_for(tmp_path):
     correct."""
     p = _carrier(tmp_path, "run_history.json")
     p.write_text(json.dumps(LIVE_HISTORY))
-    assert gdd.count_run_history_total(p) == 100
+    # The full-file read was `count_run_history_total(p)` until 2026-09-20; that function went with
+    # the `run_history_total` field it fed. `max_entries` large is the same read -- the loader
+    # returns every entry and the cap to 10 is `extract_run_history`'s own argument.
+    assert len(gdd.extract_run_history(p, max_entries=10_000)) == 100
     assert len(gdd.extract_run_history(p)) == 10
     gi.append_run_history(_insights(), p)
     assert len(json.loads(p.read_text())) == 100, "100 kept + 1 new, capped at 100"
@@ -132,15 +136,15 @@ def test_the_published_run_count_is_never_fabricated_from_a_corrupt_record(tmp_p
     """`len()` answers for a string and for a list of ints, so `"abc"` published "Sim runs: 3".
     A count is a claim about runs we can account for; a record we cannot parse accounts for none.
 
-    Asserts the two readers AGREE as well as their value: a KPI that disagrees with the list it
-    is drawn from is the severity-column defect wearing different clothes.
+    Asserts the CAPPED and UNCAPPED reads agree as well as their value: a corrupt record must
+    account for no runs at either depth. Until 2026-09-20 the second reader here was
+    `count_run_history_total`, deleted with the `run_history_total` field it fed.
 
     MUTATION: `item_type=dict` -> unscreened; `[1, 2, 3]` returns 3 again and this reds."""
     p = _carrier(tmp_path, "run_history.json")
     p.write_text(raw)
-    assert gdd.count_run_history_total(p) == 0
+    assert gdd.extract_run_history(p, max_entries=10_000) == []
     assert gdd.extract_run_history(p) == []
-    assert gdd.count_run_history_total(p) == len(gdd.extract_run_history(p))
 
 
 def test_the_run_history_readers_answer_zero_for_absent_and_for_unreadable_alike(tmp_path):
@@ -148,7 +152,7 @@ def test_the_run_history_readers_answer_zero_for_absent_and_for_unreadable_alike
     render 0, because a display of "runs we can account for" is honest in both cases. What is NOT
     conflated is the disposal of the bytes -- absent has none, unreadable keeps its own."""
     absent = _carrier(tmp_path, "gone.json")
-    assert gdd.count_run_history_total(absent) == 0
+    assert gdd.extract_run_history(absent) == []
     gi.append_run_history(_insights(), absent)
     assert not _preserved_beside(absent), "there was nothing to preserve"
 

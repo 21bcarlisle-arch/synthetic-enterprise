@@ -1940,32 +1940,24 @@ def extract_dd_rails(data):
 def extract_run_history(history_path=None, max_entries=10):
     """Return last N run history entries, or [] if absent/invalid.
 
+    THE SOLE SURVIVING READER of `run_history.json` on the publish path, and the only run figure
+    `dashboard.json` still carries. Its companion `count_run_history_total`, which published a
+    `run_history_total` field, was DELETED on 2026-09-20 -- see `_dashboard_payload`'s note at the
+    `run_history` line for the whole reason. Keep the full-file read: `load_list_prior` returns
+    every entry and the cap to 10 is THIS function's `max_entries`, not the loader's. A caller
+    wanting the ledger's full depth passes a large `max_entries`; nothing on the publish path
+    does, deliberately.
+
     `null` PARSES, so `except (JSONDecodeError, ValueError)` never saw it and `len(None)` raised
     TypeError out of a function whose whole contract is "or [] if invalid" -- measured 2026-09-05
     in the census loader sweep, and the raise lands in the dashboard build. `load_list_prior`
     screens the items too: `"abc"` has a `len` of 3 and slices, so a bare string reached the
-    Project tab as three runs."""
+    Project tab as three runs. A count is a claim about runs we can account for; a record we
+    cannot parse accounts for none, so 0 (and `[]`) is the honest answer for both absent and
+    unreadable."""
     path = history_path or RUN_HISTORY_PATH
     history, _verdict = load_list_prior(path, item_type=dict)
     return history[-max_entries:] if len(history) > max_entries else history
-
-
-def count_run_history_total(history_path=None):
-    """Full count of every run ever recorded, not just the last N kept by
-    extract_run_history() for display. The Project tab's "Sim runs" KPI used
-    to read len(run_history) off the truncated list, so it always showed
-    exactly max_entries (10) no matter how many runs had actually happened
-    -- a dead counter (PROJECT_TAB_OVERHAUL.md critique).
-
-    THE KPI MUST NOT BE FABRICATED FROM A CORRUPT RECORD (2026-09-05 census loader sweep).
-    Measured against a live prior of 100 runs: `"abc"` published **3** and `[1, 2, 3]` published
-    **3** -- `len()` answers for both, so a garbage file rendered as a plausible run count on the
-    director's own surface; `null` raised TypeError, uncaught, out of the dashboard build.
-    `load_list_prior` screens the items, so every one of those is now 0, and 0 is honest: this
-    figure is "runs we can account for", not "bytes in a file"."""
-    path = history_path or RUN_HISTORY_PATH
-    history, _verdict = load_list_prior(path, item_type=dict)
-    return len(history)
 
 
 # The 23 SLC/regulatory obligations shown on the Supplier Regulatory tab, each
@@ -2312,8 +2304,34 @@ def generate(run_json_path=None):
         "reputation": extract_reputation(data),
         "nudge_discovery": extract_nudge_discovery(data),
         "insights": insights,
+        # `run_history_total` WAS HERE AND WAS DELETED 2026-09-20, with the function behind it.
+        # It published `len()` of a 100-entry RING BUFFER (`generate_insights.append_run_history`
+        # ends `history = history[-100:]`) under a name that says "total". It read exactly 100 on
+        # every build for the 81 days from 2026-06-30, and its renderer -- `site/project/`'s
+        # `renderKpis()` -- was deleted on 2026-08-20 in `03dd8c49e`. Censused tree-wide before
+        # deleting: the line above was the ONLY reference to the key in any code, so it was
+        # written on every publish cycle, committed into `site/data/dashboard.json` on every
+        # publish cycle, and read by nothing.
+        #
+        # THE OTHER TWO OPTIONS WERE MEASURED, NOT ASSUMED. (1) Publish the bound, `">=100"`: an
+        # honest label on a field no reader has, which buys nothing and leaves a type change and
+        # a standing invitation to read a floor as a total. (2) Recompute a TRUE total: measured,
+        # there is no untruncated source. `docs/reports/run_output_*.json` are 7 whole-simulation
+        # outputs, not a per-run ledger. The union of `git_hash` over all 86 committed revisions
+        # of the ledger is 1041 -- 10x better than 100 and STILL PROVABLY A FLOOR, because
+        # 858f38dd7's revision holds 100 entries of which 100 are new, so the buffer turned over
+        # completely between commits and the runs it dropped are unrecoverable. It also needs
+        # `git`, and `surgical_land` gates an extract with no `.git`. A floor cannot be made into
+        # a total by working harder on it; it can only be deleted or labelled, and nothing reads
+        # the label. Full reasoning and the refuted predictions:
+        # `docs/staging/SEAT_RESULT_THE_RUN_TOTAL_IS_DELETED_AND_THE_SERIES_HAS_A_READER_THAT_
+        # ASKS_FOR_KEYS_IT_NEVER_HAD_2026-09-20.md`.
+        #
+        # `run_history` STAYS, and the asymmetry is the point: it has two live readers. The
+        # non-vacuity leg of `tests/background/test_the_published_series_and_the_ledger_it_came_
+        # from_are_committed_together.py` asserts this list is non-empty, and
+        # `tools/generate_shadow_html.build_project` renders it.
         "run_history": extract_run_history(),
-        "run_history_total": count_run_history_total(),
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),

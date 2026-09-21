@@ -267,8 +267,8 @@ def test_a_row_whose_path_vanished_from_the_census_is_refused():
 
 def test_a_row_whose_readers_all_disappeared_is_refused():
     """THE SHAPE THAT ACTUALLY HAPPENED. `run_history.json` kept three writers and went to ZERO
-    recorded readers when its read moved behind `load_list_prior(RUN_HISTORY_PATH)`, while
-    `count_run_history_total` read it on every dashboard build. A row still written by somebody
+    recorded readers when its read moved behind `load_list_prior(RUN_HISTORY_PATH)`, while the
+    dashboard build read it on every cycle. A row still written by somebody
     and read by nobody is the instrument going blind, not a control being repaired."""
     out = census.eroded_dispositions(
         _synthetic({"run_history.json": {"writers": ["a::f", "a::g", "a::h"], "readers": []}}, []),
