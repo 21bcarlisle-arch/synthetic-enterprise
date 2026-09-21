@@ -93,6 +93,17 @@ origin adds at the same path. **The condition is widening, not holding.** I am n
 repair — it is live under another lane's claim, and two lanes fixing one advance is how the
 contested-path refusals in this tree get made.
 
+**Corrected after the fact, beside the claim rather than over it.** The two rows above were read
+**before this document landed**, on a tree that was `0 ahead / 13 behind` — purely behind, which is
+the state the fast-forward path is for. Landing this document made it **`1 ahead / 13 behind`**, and
+`advance_shared_tree` asks divergence FIRST and of git, not of the tree: a diverged tree refuses with
+*"Diverging branches can't be fast-forwarded"* and the 11-path blocker list is no longer the binding
+constraint. **The route for a diverged tree is `origin_reconcile.reconcile`'s merge-and-push, not the
+advance** — the same route that gated clean and pushed at `6a9f49cf9` this morning. So the figures
+stand as measured and the *reason* they are now moot is my own commit; any lane landing anything
+would have done the same, and the refusal touches nothing, by construction. **Read the 13-behind as
+the live number and the 11 blockers as a reading taken at `0 ahead`.**
+
 **The recursion is worth naming.** Blocker 9 of 11 is
 `docs/staging/SEAT_RESULT_THE_PAIRING_CLASS_IS_EMPTY_..._2026-09-21.md` — *untracked here, and
 origin adds its own copy*. The document that discharged this claim's last owed bullet is itself one
