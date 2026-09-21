@@ -599,3 +599,95 @@ def test_the_floor_is_published_as_a_diagnostic_and_never_as_a_target():
     note = _block()["it_is_a_diagnostic"]
     assert "NEVER a book size to grow towards" in note
     assert "failure this arm was built to be able to report" in note
+
+
+# ---------------------------------------------------------------------------
+# WHETHER THE BOOK CAN BE BUILT. Added 2026-09-21: this key said "not established"
+# for eleven days while the answer sat in two constants in this repo.
+# ---------------------------------------------------------------------------
+
+
+def _buildable_run(customer_years: float, records: int = 301823) -> dict:
+    """A run carrying exactly the two counts the ceiling bridge reads, and nothing else."""
+    return {
+        "gross_to_net_bridge": {"control_arm": {"records": records}},
+        "household_side": {"control_arm": {"customer_years": customer_years}},
+        "book_identity": {"control_arm": {"billing_accounts_settled_in_window": 154}},
+    }
+
+
+def test_the_buildability_verdict_is_REACHABLE_ON_BOTH_SIDES_of_its_own_partition():
+    """THE SHAPE THIS FILE EXISTS FOR: a verdict that can only come out one way is not a
+    verdict. Swept over book sizes, `no_leg_is_reachable` must take BOTH values -- a
+    tiny book cannot reach a 2.8x requirement and a book already at the capacity can.
+
+    Fires on: hard-wiring either verdict; on a capacity read that collapses to a
+    constant; and on a requirement that stops being compared to anything.
+    """
+    from tools.generate_value_arms_data import _can_this_book_be_built
+
+    rows = [{"times_this_book": 2.82}]
+    seen = set()
+    for customer_years in (10.0, 100.0, 1029.0, 400.0, 425.0):
+        verdict = _can_this_book_be_built(_buildable_run(customer_years), rows)
+        assert verdict["available"], verdict.get("reason")
+        seen.add(verdict["no_leg_is_reachable"])
+    assert seen == {True, False}, (
+        "the buildability verdict returned {} across a 100x sweep of book sizes, so it is "
+        "a constant wearing a comparison's clothes".format(seen)
+    )
+
+
+def test_the_sentence_cannot_say_MEASURED_when_the_measurement_REFUSED():
+    """A refusal that reads like an answer is the failure mode this key already had once.
+
+    The three states are: refused, reachable, not reachable. Only the last two may claim
+    the question is settled, and the first must still say what it could not read.
+    """
+    from tools.generate_value_arms_data import _can_this_book_be_built, _what_is_not_established
+
+    rows = [{"times_this_book": 2.82}]
+    refused = _can_this_book_be_built(None, rows)
+    assert refused["available"] is False
+    refusal_prose = _what_is_not_established(refused)
+    assert "now measured" not in refusal_prose, (
+        "the buildability bridge refused and the published sentence claims a measurement"
+    )
+    assert refused["reason"] in refusal_prose, "a refusal that does not carry its reason"
+
+    for customer_years, expect_no in ((1029.0, True), (425.0, False)):
+        prose = _what_is_not_established(
+            _can_this_book_be_built(_buildable_run(customer_years), rows))
+        assert "now measured" in prose
+        assert ("the answer is NO" in prose) is expect_no, (
+            "at {:,.0f} customer-years the sentence and the arithmetic disagree about "
+            "reachability".format(customer_years)
+        )
+
+
+def test_the_published_key_no_longer_asks_for_work_this_repo_has_already_done():
+    """KEYED TO THE PROPERTY. The live feed's `what_is_not_established` must not still be
+    naming the settled-book ceiling mismatch as its open question: that question is
+    closed, and a page asking for a measurement it holds sends the next session to
+    re-derive it. Reds if the block reverts, not if the numbers move.
+    """
+    # PARSED, NEVER READ AS TEXT. `substring_source_scan_census` taints any `read_text`
+    # in a control and it is right to: this assertion is a substring check, and one run
+    # over a file's raw characters cannot tell a feed's VALUE from a key name that happens
+    # to contain it. Going through `json.load` means the strings below are matched against
+    # the field they belong to and nothing else.
+    with FEED.open(encoding="utf-8") as handle:
+        feed = json.load(handle)
+    block = ((feed.get("current_world") or {}).get("selection_leg") or {}
+             ).get("what_would_settle_the_sign") or {}
+    if not block.get("available"):
+        pytest.fail("the remedy block is unavailable, so this control cannot run: {}".format(
+            str(block.get("why_not"))[:200]))
+    built = block.get("can_a_book_that_size_be_built") or {}
+    assert built.get("available") is True, (
+        "the live feed cannot size its own requirement: {}".format(built.get("reason")))
+    assert built["unit"] == "customer-years"
+    assert "17,520" in built["why_the_old_comparison_was_not_one"], (
+        "the block no longer records WHICH record population the old ceiling priced, which "
+        "is the whole reason the two numbers were never comparable"
+    )

@@ -89,6 +89,13 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_WALL_CENSUS_PINS_CUSTOMER_IDENTIFIERS_AS_A_SCHEMA_2026-09-01.md`
 - `WORKER_RESULT_THE_LIVE_LEDGER_GUARD_IS_BLIND_FROM_A_LINKED_WORKTREE_AND_A_FIXTURE_ID_WAS_STEERING_THE_DELIVERY_LANE_2026-09-17.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_RESULT_THE_CENSUS_READ_CORRECTIONS_AS_CLAIMS_AND_ITS_CLAIM_UNIT_WAS_HIDING_A_LIVE_ONE_2026-09-18.md` — lane `A_strategy_governance`
+- `SEAT_RESULT_THE_HOOK_CHAIN_IS_GROWING_AT_6_PERCENT_A_DAY_AND_THE_INSTRUMENT_GOES_BLIND_EXACTLY_WHEN_THE_PUBLISH_PATH_WEDGES_2026-09-18.md` — lane `A_strategy_governance`
+
 ## Disposition
 
 **Decision:** OPEN

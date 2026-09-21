@@ -10261,6 +10261,155 @@ def _the_complement_this_bound_rests_on(current: dict | None, probe: dict | None
     }
 
 
+def _can_this_book_be_built(current: dict | None, priced_rows: list) -> dict:
+    """Whether this world can reach the book the leg above prices — on ONE ruler.
+
+    THE DEFECT THIS REPLACES (2026-09-21). This block used to refuse, and the refusal was
+    right but its reason was only half the story. It said `settled_book_ceiling` and the
+    book "are not the same quantity", which is true, and left it there — so the page
+    carried an open question that had a measured answer in this repo the whole time.
+
+    WHY THEY WERE NOT THE SAME QUANTITY, established rather than restated.
+    `settled_book_ceiling` prices every customer at 17,520 settlement records a year.
+    That is the HALF-HOURLY rate — what an I&C account settles on — and it is wrong for
+    this book twice over: I&C was suspended from the served book on 2026-08-24 (the
+    curriculum file says so in exactly these words), and `run_phase2b` folds each term to
+    DAILY rows before retaining any of it. Measured on this run, the retained book holds
+    ~293 rows per customer-year against the probe's 17,520 — a factor of ~60.
+
+    THE RULER THEY CAN SHARE IS CUSTOMER-YEARS, and this repo already had it:
+    `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET`, the constant that actually caps
+    the published growth curve. Both the requirement (a multiple of this book) and the
+    capacity (a budget) are expressible in it; neither is expressible in accounts, because
+    a book's accounts do not each live the whole window.
+
+    AND ON THAT RULER MEMORY IS NOT WHAT BINDS. Re-ruled to the retained rate the RSS
+    ceiling is tens of thousands of customer-years, and the `SETTLEMENT_CUSTOMER_YEAR_BUDGET`
+    note independently records memory as slack by 4.5x. What binds is the budget, and the
+    budget's own note says nothing bounds it at 1,200 except a publish-interval preference
+    nobody has stated. So a NEGATIVE verdict here is a direction question and not a wall,
+    and it is published as one.
+
+    FAILS CLOSED. Any input this cannot read yields `available: False` with the reason,
+    never a verdict — the same direction as the refusal it replaces.
+    """
+    if not priced_rows:
+        return {"available": False,
+                "reason": "no row on this leg priced a requirement, so there is no book to size"}
+    try:
+        from simulation.net_new_acquisition import SETTLEMENT_CUSTOMER_YEAR_BUDGET
+        from simulation.premise_population import (
+            retained_settlement_records_per_customer_year,
+            settled_book_ceiling_customer_years,
+        )
+    except Exception as exc:  # noqa: BLE001 -- any failure here is "we cannot tell"
+        return {"available": False,
+                "reason": "the world's book-size ceilings could not be read ({}: {})".format(
+                    type(exc).__name__, exc)}
+    if not isinstance(current, dict):
+        return {"available": False,
+                "reason": ("no current three-arm run was supplied, so this book's customer-years "
+                           "-- the unit both ceilings are stated in -- cannot be read")}
+    try:
+        rate = retained_settlement_records_per_customer_year(current)
+        memory = settled_book_ceiling_customer_years(records_per_customer_year=rate)
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False,
+                "reason": "this run does not publish what the ceilings need ({}: {})".format(
+                    type(exc).__name__, exc)}
+    customer_years = (((current.get("household_side") or {}).get("control_arm") or {})
+                      .get("customer_years"))
+    if not customer_years:
+        return {"available": False,
+                "reason": "this run publishes no `household_side.control_arm.customer_years`"}
+    budget = float(SETTLEMENT_CUSTOMER_YEAR_BUDGET)
+    # THE BINDING CEILING IS THE SMALLER OF THE TWO, named rather than assumed. Which one
+    # binds is a fact about this box and it is allowed to change: re-rule the memory bound
+    # and it could in principle come under the budget, and then this key would say so.
+    binds, capacity = (("SETTLEMENT_CUSTOMER_YEAR_BUDGET", budget)
+                       if budget <= memory["max_customer_years"]
+                       else ("settled_book_ceiling_customer_years", float(
+                           memory["max_customer_years"])))
+    needed = max(row["times_this_book"] for row in priced_rows)
+    smallest = min(row["times_this_book"] for row in priced_rows)
+    reachable = capacity / float(customer_years)
+    return {
+        "available": True,
+        "unit": "customer-years",
+        "why_this_unit": (
+            "Accounts will not do it: this book's {:,} accounts are counted over a ten-year "
+            "window and do not each live it, so the same book is {:,.0f} customer-years and not "
+            "ten times its account count. Customer-years is what both ceilings are stated in."
+        ).format(_book_accounts(current) or 0, float(customer_years)),
+        "this_book_customer_years": float(customer_years),
+        "capacity_customer_years": capacity,
+        "what_binds": binds,
+        "reachable_multiple_of_this_book": reachable,
+        "required_multiple_smallest_leg": smallest,
+        "required_multiple_largest_leg": needed,
+        "required_customer_years_smallest_leg": smallest * float(customer_years),
+        "every_leg_is_reachable": smallest <= reachable and needed <= reachable,
+        "no_leg_is_reachable": smallest > reachable,
+        "memory_ceiling": memory,
+        "retained_records_per_customer_year": rate,
+        "why_the_old_comparison_was_not_one": (
+            "`settled_book_ceiling` prices every customer at 17,520 settlement records a year -- "
+            "the HALF-HOURLY rate, which is what an I&C account settles on. I&C was suspended "
+            "from the served book on 2026-08-24, and `run_phase2b` folds each term to DAILY rows "
+            "before retaining any of it. This run retains {:,.1f} rows per customer-year, so the "
+            "old ceiling was pricing a record population the settled book does not hold, by a "
+            "factor of {:,.0f}."
+        ).format(rate, 17520.0 / rate if rate else 0.0),
+    }
+
+
+def _what_is_not_established(buildability: dict) -> str:
+    """What is left open once the buildability question is answered, and nothing more.
+
+    KEYED TO THE PROPERTY, not to today's answer: it reads `buildability` rather than
+    restating it, so a run that makes the requirement reachable empties the first clause
+    without a word here changing. The 2026-09-10 version of this key named the ceiling
+    mismatch as the open question; that question is now closed, and a key that still
+    listed it would be the page asking for work it already has.
+    """
+    if not buildability.get("available"):
+        return ("Whether a book that size can be built: {} -- so this block prices the "
+                "requirement and states no verdict on reachability.".format(
+                    buildability.get("reason") or "it could not be established"))
+    if buildability.get("no_leg_is_reachable"):
+        return (
+            "Not whether a book that size can be built -- that is now measured, on one ruler, "
+            "and the answer is NO: {req:,.2f}x this book is {need:,.0f} customer-years against a "
+            "capacity of {have:,.0f}, and `{binds}` is what binds. What is NOT established is "
+            "why that capacity is where it is. Memory is not the constraint -- re-ruled to the "
+            "records this book actually retains the RSS ceiling is {mem:,.0f} customer-years -- "
+            "and `SETTLEMENT_CUSTOMER_YEAR_BUDGET`'s own note records nothing holding it at 1,200 "
+            "except a publish-interval preference nobody has stated. So the open question is a "
+            "DIRECTION one and not a measurement: what publish cadence this company is willing to "
+            "pay for a signed answer."
+        ).format(req=buildability["required_multiple_smallest_leg"],
+                 need=buildability["required_customer_years_smallest_leg"],
+                 have=buildability["capacity_customer_years"],
+                 binds=buildability["what_binds"],
+                 mem=buildability["memory_ceiling"]["max_customer_years"])
+    return (
+        "Not whether a book that size can be built -- that is now measured, on one ruler: "
+        "{have:,.0f} customer-years of capacity against {need:,.0f} required, so the requirement "
+        "is inside what `{binds}` admits. What is NOT established is whether a book that size can "
+        "be ACQUIRED -- capacity to settle a book is not a route to winning one -- nor what such "
+        "a run costs in wall clock, which is the quantity `{binds}` was set from."
+    ).format(have=buildability["capacity_customer_years"],
+             need=buildability["required_customer_years_smallest_leg"],
+             binds=buildability["what_binds"])
+
+
+def _book_accounts(current: dict | None) -> int | None:
+    """This run's settled account count, for a sentence that needs to contrast it with years."""
+    book = ((current or {}).get("book_identity") or {}).get("control_arm") or {}
+    value = book.get("billing_accounts_settled_in_window")
+    return value if isinstance(value, int) else None
+
+
 def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
                                 contrast: str = SELECTION_CONTRAST) -> dict:
     """How much larger a book would have to be before this leg could carry a direction.
@@ -10357,6 +10506,7 @@ def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
     verdicts = {row["times_this_book"] <= 1.0 for row in priced_rows}
     complement = _the_complement_this_bound_rests_on(current)
     attained = complement.get("empty") is True
+    buildability = _can_this_book_be_built(current, priced_rows)
     return {
         "available": True,
         "what_this_is": (
@@ -10413,15 +10563,8 @@ def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
             len(priced_rows) > 1
             and max(r["times_this_book"] for r in priced_rows)
             > 2.0 * min(r["times_this_book"] for r in priced_rows)),
-        "what_is_not_established": (
-            "Whether a book that size can be built. The obvious ceiling to check it against -- "
-            "`simulation.premise_population.settled_book_ceiling` -- is stated per customer-YEAR "
-            "(632 accounts at years=1, 63 at years=10) against a book whose 164 accounts are "
-            "counted over a ten-year window, and 63 is fewer than the book that demonstrably "
-            "runs. Those are not the same quantity and their ratio would not be one, so this "
-            "block prices the requirement and states no verdict on reachability. Also "
-            "unestablished: whether acquiring customers reaches this arm at all -- "
-            "`where_the_priced_decisions_come_from` measured that on the OTHER book."),
+        "can_a_book_that_size_be_built": buildability,
+        "what_is_not_established": _what_is_not_established(buildability),
         "sentence": _sign_remedy_sentence(rows, priced, attained=attained),
     }
 

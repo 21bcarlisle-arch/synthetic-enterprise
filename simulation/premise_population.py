@@ -1377,6 +1377,25 @@ def settlement_records_per_customer_year(report: Mapping) -> float:
 
     Computed from the record rather than written down as 17,520, so a probe re-run
     at a different horizon moves this instead of silently disagreeing with it.
+
+    WHICH RECORD POPULATION THIS IS, because the name does not say and a reader who
+    assumes "the settled book" is wrong by a measured factor of 60 (2026-09-21).
+    `tools/scale_probe_10k._stage_settlement_build` accumulates the raw output of
+    `simulation.settlement.run_settlement` into one list, so this is the HALF-HOURLY
+    rate: 17,520 records per customer-year, which is what an I&C account settles on.
+    Two things make it the wrong ruler for the book this company actually runs:
+
+    1. **I&C has been suspended since 2026-08-24.** The curriculum file says it in
+       terms — *"I&C accounts settle half-hourly (17,520 records per customer-year)
+       and households settle on a profile class"* — and `served` is `resi + SME`.
+    2. **The retained book is folded to days before it is kept.** `run_phase2b`
+       extends `all_records` at exactly one place (its line 3337) with
+       `settlement_daily.fold_to_days(settled_this_term)`, one row per (customer,
+       commodity, day); the per-period records are released at that line, and the
+       file's own comment says so: *"`all_records` holds DAILY rows from here on"*.
+
+    Use `retained_settlement_records_per_customer_year` for a bound on the settled
+    book. This one bounds the scale probe's instrument and is correct for it.
     """
     customers = (report.get("target") or {}).get("customers")
     stage = next((s for s in report.get("stages", []) if s.get("stage") == "settlement_build"), None)
@@ -1420,4 +1439,116 @@ def settled_book_ceiling(
         "budget_rss_bytes": budget,
         "contributing_stages": (settlement.stage, serialization.stage),
         "both_are_floors": settlement.is_floor and serialization.is_floor,
+        # DECLARED ON THE RETURN, not left to whoever reads the name. This figure was
+        # cited as a bound on the value cycle's settled book on two published surfaces;
+        # it is not one, and the field is here so the next caller cannot repeat that
+        # without deleting a sentence that says otherwise.
+        "prices_which_record_population": HALF_HOURLY_RECORD_POPULATION,
+        "is_not_a_bound_on": (
+            "the SETTLED BOOK a value-cycle run retains. That book is folded to days at "
+            "`run_phase2b`'s single feed point and holds ~60x fewer records per "
+            "customer-year -- use `settled_book_ceiling_customer_years`."
+        ),
+    }
+
+
+#: WHAT THE CEILING ABOVE PRICES. Named once, so the two record populations in this
+#: file are distinguishable by a grep rather than by reading two docstrings.
+HALF_HOURLY_RECORD_POPULATION = (
+    "the raw half-hourly output of `simulation.settlement.run_settlement`, accumulated "
+    "in one list -- the I&C settlement rate (17,520 records per customer-year), on a "
+    "book from which I&C was suspended on 2026-08-24"
+)
+
+#: And what a value-cycle run actually holds. Both strings are descriptions; neither is
+#: a number, because the numbers are read off a run and a probe rather than written here.
+RETAINED_RECORD_POPULATION = (
+    "the DAILY rows `run_phase2b` retains in `all_records` -- one per (customer, "
+    "commodity, settlement_date), after `settlement_daily.fold_to_days`"
+)
+
+
+def retained_settlement_records_per_customer_year(
+    run: Mapping, *, arm: str = "control_arm"
+) -> float:
+    """What the SETTLED BOOK holds per customer-year, measured off a run's own record.
+
+    Read from the artefact rather than written down for the same reason its half-hourly
+    sibling is: the fold ratio is not a constant anyone chose. A dual-fuel account
+    contributes two rows a day and a single-fuel account one, accounts join and leave
+    mid-year, and the realised rate is therefore a property of the book, not of the
+    code. On the 2026-09-18 three-arm run it is 301,823 rows over 1,029 customer-years
+    = 293.3 -- against the probe's 17,520, a factor of 59.7.
+
+    REFUSES RATHER THAN GUESSING. A run that does not publish both counts cannot have
+    this rate derived from it, and an invented fold ratio here would be load-bearing
+    inside a week. `ScaleProbeUnavailable` is the same refusal the sibling raises.
+    """
+    bridge = ((run.get("gross_to_net_bridge") or {}).get(arm) or {})
+    household = ((run.get("household_side") or {}).get(arm) or {})
+    records = bridge.get("records")
+    customer_years = household.get("customer_years")
+    if not records or not customer_years:
+        raise ScaleProbeUnavailable(
+            "cannot read retained-records-per-customer-year for arm {!r}: the run "
+            "publishes `gross_to_net_bridge.{}.records`={!r} and "
+            "`household_side.{}.customer_years`={!r}, and a rate needs both".format(
+                arm, arm, records, arm, customer_years
+            )
+        )
+    return float(records) / float(customer_years)
+
+
+def settled_book_ceiling_customer_years(
+    *,
+    report: Mapping | None = None,
+    records_per_customer_year: float,
+    budget_bytes: float | None = None,
+) -> dict:
+    """The RSS bound on the settled book, in CUSTOMER-YEARS.
+
+    WHY THIS UNIT AND NOT CUSTOMERS. `settled_book_ceiling` returns customers at a
+    declared window, which makes it look comparable to an account count and is how it
+    came to be published against one. It is not: a book's accounts do not each live the
+    whole window. The 2026-09-18 run settled 154 accounts over ten years and spent 1,029
+    customer-years doing it, not 1,540. Customer-years is the unit that survives that,
+    and it is the unit this repo's OTHER ceiling already uses --
+    `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` -- so stating the memory bound
+    here lets the two be compared instead of argued about.
+
+    `records_per_customer_year` HAS NO DEFAULT, deliberately. Which record population a
+    bound prices is the whole question this function exists to stop being guessed at, so
+    the caller names it: `retained_settlement_records_per_customer_year(run)` for the
+    settled book, `settlement_records_per_customer_year(report)` for the probe's.
+    """
+    if not records_per_customer_year or records_per_customer_year <= 0:
+        raise ScaleProbeUnavailable(
+            "a customer-year ceiling needs a positive records-per-customer-year rate; "
+            "got {!r}".format(records_per_customer_year)
+        )
+    report = load_scale_probe_report() if report is None else report
+    prices = stage_prices(report)
+    settlement = _require(prices, "settlement_build")
+    serialization = _require(prices, "run_output_serialization")
+    budget = float(
+        budget_bytes if budget_bytes is not None else report["box"]["budgets"]["rss_bytes"]
+    )
+    per_record = float(settlement.per_unit["rss_bytes"]) + float(
+        serialization.per_unit["rss_bytes"]
+    )
+    per_customer_year = per_record * float(records_per_customer_year)
+    return {
+        "max_customer_years": int(math.floor(budget / per_customer_year)),
+        "bound_kind": "upper_bound",
+        "records_per_customer_year": float(records_per_customer_year),
+        "bytes_per_record": per_record,
+        "bytes_per_customer_year": per_customer_year,
+        "budget_rss_bytes": budget,
+        "both_are_floors": settlement.is_floor and serialization.is_floor,
+        "what_it_does_not_bound": (
+            "wall clock. Memory is not what caps this book -- "
+            "`net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` is, at 1,200 "
+            "customer-years, and its own note records memory as slack by 4.5x. A book "
+            "inside this bound can still be one no publish cycle will ever finish."
+        ),
     }
