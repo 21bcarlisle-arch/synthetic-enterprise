@@ -105,6 +105,35 @@ CONTENT_PATHS = (
 #: verdict both derive from it, so changing the cadence moves the alarm with it rather than leaving
 #: an alarm calibrated for the old one. An alarm keyed to a cadence it no longer describes is the
 #: shape that had a correct control refusing correct work all week.
+#:
+#: AND THE CLAIM WAS FALSE FOR SEVENTEEN DAYS, WHICH IS WHY IT NOW NAMES WHAT IT EXCLUDES
+#: ──────────────────────────────────────────────────────────────────────────────────────
+#: Corrected 2026-09-21, beside the claim rather than over it. "Single source of truth" was
+#: written here on 2026-09-04 and was not true when written: `suite_duration_watch` held a
+#: second constant of the same name, 5,400s — 112x smaller — and stamped it into
+#: `publish_gate_duration.jsonl` under the same field name this module's `snapshot()` uses,
+#: `cadence_seconds`. A module asserting it is the only home for a quantity is not a mechanism;
+#: it is a sentence, and a sentence cannot notice a rival. This is the VAT-rule class.
+#:
+#: THE RIVAL WAS NEVER THIS QUANTITY, and that is the resolution rather than a tie-break. The
+#: two numbers are a DECISION and an OBSERVATION of different subjects:
+#:
+#:   HERE — how often the site PUBLISHES. A choice, the director's, moved only by him.
+#:   THERE — how often sim RUNS ARRIVE. A measurement, moved by the book getting bigger. It is
+#:     now called `suite_duration_watch.MEASURED_RUN_ARRIVAL_SECONDS` and writes
+#:     `measured_arrival_seconds`, so neither the symbol nor the field can be picked up in
+#:     mistake for this one. Nothing there was wrong except its name.
+#:
+#: WHY IT MATTERED, because a naming defect that costs nothing is worth leaving alone. It did
+#: not: `settlement_ceiling_probe` read the arrival measurement as the publish interval and
+#: priced `SETTLEMENT_CUSTOMER_YEAR_BUDGET` against it. Run duration SETS marker inter-arrival,
+#: so that bound grows whenever the ceiling it bounds grows — the exact circularity the ceiling's
+#: own note records as removed, re-entered through a second door nobody re-asked. Against 5,400s
+#: the binding leg is TIME; against this constant it is MEMORY. The two answers differ in kind.
+#:
+#: THE CONTROL that makes this sentence checkable rather than merely written is
+#: `tests/architecture/test_the_publish_cadence_has_one_home.py`. It reds if a second
+#: `PUBLISH_CADENCE_SECONDS` is ever defined anywhere in the tree.
 PUBLISH_CADENCE_SECONDS = 7 * 24 * 60 * 60
 
 #: DERIVED, not picked: one full cadence plus one day of retry opportunity. The worker sweeps every

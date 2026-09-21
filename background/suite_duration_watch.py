@@ -124,8 +124,42 @@ TREND_WINDOW = 5
 # WHAT IT MEASURES AGAINST, since not the ceiling. The gate's job is to answer "may THIS run
 # publish". A check slower than the interval between runs is answering about a repo that has
 # already moved on — the director again: *"A check that takes 75 minutes in a repo changing every
-# 15 isn't verifying the current state, it's reporting on the past."* So the reference is the
-# CADENCE the gate gates, which is a fact about the world and not a budget anyone can raise.
+# 15 isn't verifying the current state, it's reporting on the past."* So the reference is HOW
+# OFTEN RUNS ACTUALLY ARRIVE, which is a fact about the world and not a budget anyone can raise.
+#
+# AND IT IS NOT THE PUBLISH CADENCE, WHICH IS A DIFFERENT QUANTITY WITH A DIFFERENT HOME
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# RENAMED 2026-09-21, from `PUBLISH_CADENCE_SECONDS`, and the rename IS the repair.
+#
+# Until today this constant and `publish_freshness.PUBLISH_CADENCE_SECONDS` carried the same
+# name, 112x apart — 5,400 here against 604,800 there — and stamped the same field name,
+# `cadence_seconds`, into two different artefacts. That is the VAT-rule class CLAUDE.md names:
+# one word, several implementations, and nothing able to notice. It went load-bearing rather
+# than cosmetic when `tools/settlement_ceiling_probe` reached this number by a second route
+# nobody re-asked, and priced the settlement ceiling on it.
+#
+# THE TWO QUANTITIES, said plainly, because the split is what the name was hiding:
+#
+#   THE DECLARED PUBLISH CADENCE — a DECISION. The director's, stated 2026-09-04: *"The site
+#     publishes numbers and runs once a week."* It does not move when our runs get slower; it
+#     moves when he changes his mind. Its single home is `publish_freshness`, which says so.
+#   THE MEASURED RUN ARRIVAL INTERVAL — an OBSERVATION. This constant. Nobody chose 5,400s;
+#     it is the median gap between `run_complete_*` markers, and it has moved 330 → 1500 → 5400
+#     purely because the book grew and runs got slower.
+#
+# A DECISION AND AN OBSERVATION OF THE SAME SUBJECT ARE STILL TWO QUANTITIES, and this one is
+# the one that is USELESS AS A BOUND ON ANYTHING THE RUN CONTROLS: run duration sets marker
+# inter-arrival, so any ceiling argued "against the cadence" using THIS number grows when the
+# ceiling grows. It is legitimate here, and only here, because this module asks the one question
+# the circularity does not spoil — is the GATE slower than the runs it gates — where both sides
+# are observations and neither is a budget.
+#
+# WHAT WAS DELIBERATELY NOT RENAMED, and why. `absolute_band()` still returns `over_cadence` /
+# `within_cadence`, and `record()` still writes `cadence_band`. Those strings are STORED on
+# 5,570 rows of history; renaming them would silently change what every historical row says,
+# which is the opposite of the repair. The band vocabulary is this module's local word for its
+# own comparison. The NUMBER is what a foreign reader picked up and mistook, so the number is
+# what got an unmistakable name.
 #
 # MEASURED, not assumed. RE-MEASURED 2026-08-26, and the re-measurement is the point.
 #
@@ -149,11 +183,11 @@ TREND_WINDOW = 5
 # distinction has to be stated rather than assumed. What that paragraph forbids is raising a
 # BUDGET to fit the work: six ceiling raises made the same runtime read as more headroom, and
 # `absolute_band()` cannot even be passed a ceiling so the move is structurally unavailable.
-# This is not that. `PUBLISH_CADENCE_SECONDS` is not a budget anyone chose; it is a measurement
+# This is not that. `MEASURED_RUN_ARRIVAL_SECONDS` is not a budget anyone chose; it is a measurement
 # of how often runs actually arrive, and a measurement that no longer matches the world is
 # simply wrong. Re-measuring it is the same act as re-freezing the ruff baseline after a real
 # shrink — and like that ratchet, the move is DATED, its window is named, and the evidence is
-# reproducible by `measure_publish_cadence_seconds()` below rather than asserted here.
+# reproducible by `measure_run_arrival_seconds()` below rather than asserted here.
 #
 # THE DIRECTION IS THE UNCOMFORTABLE ONE and a reader should weigh it as such: this makes the
 # alarm quieter. It is defensible only because the alarm was wrong 30 times out of 30, and a
@@ -169,7 +203,7 @@ TREND_WINDOW = 5
 #     A first attempt used 2400, taken from the 2026-08-25..08-26 slice alone (median 2,637s).
 #     That slice is real but it is a different method from the one this constant was defined by,
 #     and 2400 was SOFTER than the 200-marker observation — i.e. it broke the very rounding rule
-#     it cited. Caught by `measure_publish_cadence_seconds()` before it landed, which is the
+#     it cited. Caught by `measure_run_arrival_seconds()` before it landed, which is the
 #     argument for the helper existing at all.
 #   2026-09-17  1500 -> 5400  (re-measured; runs slowed again, by a further ~3.6x)
 #     SAME METHOD AGAIN: median over the LAST 200 markers = 5,445s (n=189 usable gaps, p10 784s,
@@ -181,14 +215,14 @@ TREND_WINDOW = 5
 #     THE UNCOMFORTABLE DIRECTION, AGAIN, and the paragraph above applies unchanged: this makes
 #     the alarm quieter for the second time. What makes it a re-measurement rather than a budget
 #     raise is also unchanged -- the method was fixed before the answer was known, the window is
-#     named, and `measure_publish_cadence_seconds()` reproduces it. What a reader must NOT
+#     named, and `measure_run_arrival_seconds()` reproduces it. What a reader must NOT
 #     conclude is that runs getting slower is FINE. This constant describes the world; a second
 #     ~3.6x slowdown in three weeks is a finding ABOUT THE MACHINE, and moving the number records
 #     it rather than answers it. It is written here because this is where it was noticed.
 #     NOT TAKEN FROM THE SLICE. The last two slices alone would justify ~6,600s -- which is the
 #     exact error the 2400 attempt made above: a different method from the one this constant is
 #     defined by, and softer than the 200-marker observation.
-PUBLISH_CADENCE_SECONDS = 5400
+MEASURED_RUN_ARRIVAL_SECONDS = 5400
 
 
 def cadence_measurement_subject(markers_dir=None):
@@ -202,7 +236,7 @@ def cadence_measurement_subject(markers_dir=None):
 
     MEASURED 2026-09-03, the wedge this fixes. The working tree held 1,470 markers (newest
     21:28:50Z) and measured a 1,685.5s median; the gate's checkout of the same HEAD held 1,305
-    (newest 17:55:42Z, ~3.5h stale) and measured 3,009s. `PUBLISH_CADENCE_SECONDS` was
+    (newest 17:55:42Z, ~3.5h stale) and measured 3,009s. `MEASURED_RUN_ARRIVAL_SECONDS` was
     re-measured on 2026-08-26 from the WORKING tree, so the gate was grading a constant
     calibrated on one population against a different one, and failed it by 4.5 seconds:
     `1500 >= 3009 * 0.5` is `1500 >= 1504.5`. Four consecutive publish-gate failures, all
@@ -264,10 +298,10 @@ def cadence_measurement_subject(markers_dir=None):
             main_worktree / "docs" / "staging"], None
 
 
-def measure_publish_cadence_seconds(markers_dir=None, window: int = 200):
-    """Re-measure the publish cadence from the `run_complete_*` markers on disk.
+def measure_run_arrival_seconds(markers_dir=None, window: int = 200):
+    """Re-measure the RUN ARRIVAL INTERVAL from the `run_complete_*` markers on disk.
 
-    THE EVIDENCE FOR `PUBLISH_CADENCE_SECONDS`, callable rather than quoted. The constant above
+    THE EVIDENCE FOR `MEASURED_RUN_ARRIVAL_SECONDS`, callable rather than quoted. The constant above
     is a claim about the world, and a claim about the world that nobody can re-run is a claim
     that goes stale silently — which is exactly what happened between 2026-08-21 and today.
 
@@ -351,7 +385,9 @@ def band(h, previous: str | None = None) -> str:
 
 
 def absolute_band(duration_seconds) -> str:
-    """Classify a raw runtime against the publish CADENCE: over_cadence / within_cadence / unknown.
+    """Classify a raw runtime against the MEASURED RUN ARRIVAL INTERVAL: over_cadence /
+    within_cadence / unknown. (The band names are this module's own vocabulary and are stored on
+    5,570 historical rows; they are NOT a claim about the declared publish cadence.)
 
     Takes ONE argument and it is not the ceiling. Every silencing move this project has actually
     made — six ceiling raises — works by changing the denominator, and there is no denominator
@@ -372,7 +408,7 @@ def absolute_band(duration_seconds) -> str:
         return "unknown"
     if not math.isfinite(d) or d < 0:
         return "unknown"
-    return "over_cadence" if d > PUBLISH_CADENCE_SECONDS else "within_cadence"
+    return "over_cadence" if d > MEASURED_RUN_ARRIVAL_SECONDS else "within_cadence"
 
 
 def row_cadence_band(rec) -> str:
@@ -539,11 +575,17 @@ def record(duration_seconds, ceiling_seconds, git_hash: str, outcome: str,
         "band": band(h, prev_band),
         # The absolute verdict is STORED, not only alarmed: 5,570 rows of history exist and every
         # one of them can be asked this question retroactively, but only if the answer is on the
-        # row. `cadence_seconds` rides along for the same reason `ceiling_seconds` does — if the
-        # measured cadence is ever re-derived, the old rows must not silently change meaning.
+        # row. The arrival interval rides along for the same reason `ceiling_seconds` does — if it
+        # is ever re-measured, the old rows must not silently change meaning.
         "cadence_band": row_cadence_band({"duration_seconds": duration_seconds,
                                           "outcome": outcome}),
-        "cadence_seconds": PUBLISH_CADENCE_SECONDS,
+        # RENAMED 2026-09-21 from `cadence_seconds`, and this key is the one that did the damage.
+        # `publish_freshness.snapshot()` writes a field ALSO called `cadence_seconds`, carrying
+        # the DECLARED weekly cadence — so two artefacts in this tree published one field name
+        # over two quantities 112x apart. `settlement_ceiling_probe.publisher_context()` read
+        # THIS one, out of `publish_gate_duration.jsonl`, and spent it as the publish interval
+        # the settlement ceiling is priced against. Nothing was lying; the name was.
+        "measured_arrival_seconds": MEASURED_RUN_ARRIVAL_SECONDS,
         "outcome": outcome,
         # The KEY is always present so a reader can tell "stated 1" from "said nothing"; the
         # VALUE is None unless the caller gave a positive int, because a bad count is an
@@ -593,11 +635,37 @@ def note_line(path: Path | None = None) -> str:
             + _exclusion_fragment(excluded))
 
 
+def row_arrival_seconds(row) -> float:
+    """The arrival interval a STORED row was written against, new key first, legacy key second.
+
+    THE LEGACY KEY IS DATA, NOT CODE, and that is the whole reason this fallback is honest where
+    a fallback usually is not. 5,570 rows on disk were written before 2026-09-21 and carry
+    `cadence_seconds`; they recorded the interval correctly under a name that turned out to be
+    ambiguous. Rewriting history to fix a name would destroy the one property the key exists for
+    — that a re-measurement must not silently change what an old row says.
+
+    So the fallback has an END: no writer in this module emits `cadence_seconds` any more, so the
+    legacy branch is reachable only by rows older than the rename and can never be reached by a
+    row written from here again. It is not a compatibility shim for two live spellings.
+
+    RETURNED AS STORED, not coerced. These values are interpolated straight into the alarm the
+    director reads, so `float()` here turns "the 330s interval" into "the 330.0s interval" on
+    every historical row — a cosmetic-looking change to a line whose whole job is to be read.
+    """
+    if not isinstance(row, dict):
+        return MEASURED_RUN_ARRIVAL_SECONDS
+    for key in ("measured_arrival_seconds", "cadence_seconds"):
+        v = row.get(key)
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0:
+            return v
+    return MEASURED_RUN_ARRIVAL_SECONDS
+
+
 def _absolute_fragment(latest: dict) -> str:
     """The absolute number, on the same line as the ratio, because the ratio alone is what let a
     75-minute gate read as healthy. Silent only when unmeasurable — never silent on a green."""
     d = latest.get("duration_seconds")
-    cadence = latest.get("cadence_seconds") or PUBLISH_CADENCE_SECONDS
+    cadence = row_arrival_seconds(latest)
     cur = latest.get("cadence_band") or row_cadence_band(latest)
     if cur == "unknown":
         # SILENCE HERE WAS THE FIRST DRAFT AND IT WAS WRONG. The rows that classify as unknown
@@ -610,9 +678,10 @@ def _absolute_fragment(latest: dict) -> str:
                     "bound, not a measurement. A censored run is not a fast one.")
         return " Absolute: unmeasured (no usable duration on the latest run)."
     if cur == "within_cadence":
-        return f" Absolute: {d}s, inside the {cadence}s publish cadence."
+        return f" Absolute: {d}s, inside the {cadence}s measured run arrival interval."
     ratio = f"{d / cadence:.1f}x" if isinstance(d, (int, float)) and cadence else "?"
-    return (f" 🔴 Absolute: {d}s is {ratio} the {cadence}s cadence this gate gates — a check "
+    return (f" 🔴 Absolute: {d}s is {ratio} the {cadence}s interval between the runs this "
+            f"gate gates — a check "
             "slower than its own subject changes is reporting on the past. Not clearable by "
             "raising the ceiling (this figure never reads it).")
 
@@ -734,10 +803,11 @@ def absolute_alarm(current: dict, previous: dict | None = None, *, notify_fn=Non
 
     d = current.get("duration_seconds")
     sha = str(current.get("git_hash"))[:9]
-    cadence = current.get("cadence_seconds") or PUBLISH_CADENCE_SECONDS
+    cadence = row_arrival_seconds(current)
     if cur == "over_cadence":
         ratio = (f"{d / cadence:.1f}x" if isinstance(d, (int, float)) and cadence else "?")
-        msg = (f"[GATE ABSOLUTE] The publish gate took {d}s — {ratio} the {cadence}s cadence it "
+        msg = (f"[GATE ABSOLUTE] The publish gate took {d}s — {ratio} the {cadence}s interval "
+               f"between the runs it gates — "
                f"gates, at {sha}. A check slower than the interval between the runs it checks is "
                "reporting on the past, not verifying the present. This figure does NOT read the "
                "ceiling, so raising the ceiling cannot clear it. R12/R15: it clears by deciding "
@@ -745,7 +815,7 @@ def absolute_alarm(current: dict, previous: dict | None = None, *, notify_fn=Non
                "by moving a bound.")
     else:
         msg = (f"[GATE ABSOLUTE] Recovered: the publish gate took {d}s, inside the {cadence}s "
-               f"cadence it gates, at {sha}.")
+               f"interval between the runs it gates, at {sha}.")
 
     send = notify_fn
     if send is None:
