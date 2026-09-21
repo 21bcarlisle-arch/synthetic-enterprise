@@ -1092,6 +1092,27 @@ def staged(root: Path = ROOT, env: dict | None = None) -> tuple[int, str]:
     hook cannot see. Re-asking it would not add a check; it would silently DELETE the escape hatch,
     refusing a declared deletion at the only legal landing door. So the skip is keyed to the tree
     sha, re-derived here: a token naming any other tree is ignored and the check runs.
+
+    AND THE HOOK CHAIN MOVES THE INDEX OUT FROM UNDER THAT TOKEN, which is the wedge this leg
+    exists to close (measured 2026-09-21 on a 7-behind/9-ahead fork, eleven consecutive
+    `commit_did_not_land` refusals and 36 hours with nothing published). The FIRST block of
+    `tools/git-hooks/pre-commit` re-stamps `docs/status/LATEST.md` and `git add`s it whenever that
+    path is staged -- so on any landing carrying LATEST.md the index the hook writes out is NOT the
+    tree `surgical_land` judged, the sha comparison above fails, and the whole question is re-asked
+    with none of the caller's context. On a MERGE that is not a stricter check, it is a WRONG one:
+    `violations(merge_ref=...)` had already exempted 46 paths this side never touched since the
+    merge-base, and the bare re-ask reads origin's own landed deletions
+    (`count_run_history_total`, `DOCS_SHADOW`, `SITE_SHADOW`) as this lane reverting them. The
+    printed remedy is then `refresh_to_head`, which refreshes to the HEAD that is itself behind --
+    a closed loop, and the reason the fork could not be closed by either door.
+
+    SO THE DELTA IS RE-ASKED, NOT THE WHOLE TREE, and the delta is exactly what no caller judged:
+    the paths that differ between the tree the token names and the tree the index now writes out.
+    Everything else has a verdict from a caller that knew the merge ref and the `--drops`. This
+    does not widen the trust the token already carries -- a token naming a tree far from the result
+    makes the delta the whole staged set, so the only way to shrink what is re-asked is to name
+    very nearly the tree being committed, which is the claim the pairing rests on anyway. A token
+    that does not resolve to a tree in this repo buys nothing and the full check runs.
     """
     env = os.environ if env is None else env
     if _git(root, "rev-parse", "--verify", "HEAD").returncode != 0:
@@ -1102,9 +1123,25 @@ def staged(root: Path = ROOT, env: dict | None = None) -> tuple[int, str]:
                    "the check could NOT RUN and an unavailable check is a failed one:\n  {}".format(
                        written.stderr.strip()[-300:]))
     result = written.stdout.strip()
-    if env.get(ALREADY_GATED_ENV) == result:
+    token = env.get(ALREADY_GATED_ENV) or ""
+    if token == result:
         return 0, ("[stale-copy] already judged on this exact tree ({}) by tools/surgical_land.py, "
                    "which knows this landing's --drops; not re-asking.".format(result[:9]))
+    # THE TOKEN MUST NAME A TREE OBJECT IN THIS REPO, and be that tree rather than a commit whose
+    # tree it is. Anything else is a claim about a tree nobody here can look at, and it is ignored.
+    resolved = _git(root, "rev-parse", "--verify", "--quiet", "{}^{{tree}}".format(token)
+                    ).stdout.strip() if token else ""
+    if resolved and resolved == token:
+        moved = [ln.strip() for ln in _git(
+            root, "diff-tree", "-r", "--name-only", token, result).stdout.splitlines()
+            if ln.strip()]
+        losses = violations(root, "HEAD", result, moved)
+        if losses:
+            return 1, refusal_text(losses)
+        return 0, ("[stale-copy] judged on {} by tools/surgical_land.py, which knows this landing's "
+                   "--drops; the hook chain has re-staged {} path(s) since, and THOSE were asked "
+                   "here: {} -- none reverts a landing.".format(
+                       token[:9], len(moved), ", ".join(moved[:4]) or "none"))
     changed = [ln.strip() for ln in _git(
         root, "diff-tree", "-r", "--name-only", "HEAD", result).stdout.splitlines() if ln.strip()]
     losses = violations(root, "HEAD", result, changed)

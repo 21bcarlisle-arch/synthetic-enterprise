@@ -454,6 +454,49 @@ def test_the_guard_is_wired_into_the_cheap_door_too(repo: Path) -> None:
         "suite first only spends a full cycle to reach the same answer")
 
 
+def test_a_restage_by_the_hook_chain_itself_re_asks_only_the_paths_it_moved(repo: Path) -> None:
+    """THE WEDGE THIS OWNS, and it is a control that could not fail in the register's exact sense.
+
+    The first block of `tools/git-hooks/pre-commit` re-stamps `docs/status/LATEST.md` and re-adds
+    it. Any landing carrying that path therefore hands the hook a token for tree T and writes out
+    tree T', the sha comparison fails, and the whole question is re-asked WITHOUT the caller's
+    merge ref -- so a merge that `violations(merge_ref=...)` passed is refused for adopting the
+    other history's landed deletions, with `refresh_to_head` printed as the remedy and HEAD itself
+    behind. Eleven publish refusals and 36 hours of nothing published, 2026-09-21.
+
+    KEYED TO THE PARTITION, NOT TO TODAY'S PATHS. Both legs below run on ONE tree state, so a
+    guard that refused everything or passed everything fails one of them: the path the caller
+    judged must NOT be re-asked, and the path the hook moved MUST be.
+    """
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    _commit(repo, "n.py", "def beta():\n    return 1\n\n\ndef landed_in_n():\n    return 2\n", "n")
+
+    # What the caller judged (WITH a merge ref / --drops it does not share): a rival copy of m.py
+    # that supplies no name HEAD lacks. A bare re-ask refuses exactly this.
+    _stage(repo, "m.py", RIVAL_SUPPLYING_NOTHING)
+    judged = _run(repo, "write-tree").strip()
+
+    # Then the hook chain itself re-stages a SECOND path, as the LATEST.md stamp does.
+    _stage(repo, "n.py", "def beta():\n    return 1\n\n\ndef landed_in_n():\n    return 2\n\n\n"
+                         "def a_stamp_the_hook_added():\n    return 3\n")
+    moved = _run(repo, "write-tree").strip()
+    assert moved != judged, "the fixture must reproduce the index moving under the token"
+
+    rc, text = scr.staged(repo, env={scr.ALREADY_GATED_ENV: judged})
+    assert rc == 0, (
+        "a path the caller already judged was re-asked because the hook chain re-staged a "
+        "DIFFERENT one -- this is the false refusal that wedged the fork:\n" + text)
+    assert "n.py" in text and "m.py" not in text, (
+        "the pass must name what it DID ask, or it is indistinguishable from a blanket skip: " + text)
+
+    # THE MUTATION LEG. Same token, same shape -- the hook's own re-stage now reverts a landing.
+    _stage(repo, "n.py", "def beta():\n    return 1\n")
+    rc, text = scr.staged(repo, env={scr.ALREADY_GATED_ENV: judged})
+    assert rc == 1 and "n.py" in text, (
+        "the delta re-ask cannot fail, so it is not a check: a path the hook moved into a revert "
+        "was passed:\n" + text)
+
+
 def test_surgical_land_hands_the_hook_the_tree_it_actually_judged(repo: Path) -> None:
     """THE FAIL-OPEN THIS FORBIDS. `rederive_in` REBINDS `result_tree` on a merge, after the
     violations call. Handing the hook the post-rederive sha would assert a verdict for a tree no
