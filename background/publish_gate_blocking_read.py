@@ -34,12 +34,14 @@ WHAT THIS IS
 ------------
 Contracts the supervisor must be able to ASK without importing the publisher. It has no imports
 beyond the standard library, so nothing that reads one of them is dragged toward the publish
-path again. Two live here now:
+path again. Three live here now:
 
   * the gate blocking record's four-way honesty contract (`read_blocking_record`), the reason
     the module was cut in the first place;
   * the operational-layer timeout vocabulary (`operational_layer_timeout_named_a_test` and the
-    three "cannot tell" phrases), moved 2026-09-11 after the SAME edge was re-cut by hand.
+    three "cannot tell" phrases), moved 2026-09-11 after the SAME edge was re-cut by hand;
+  * the declared LIVENESS SURFACE (`LIVENESS_SURFACE_FILES`), moved 2026-09-21 when the same
+    edge was cut a THIRD time, by `delivery_lane` asking what a heartbeat commit touches.
 
 That membership rule is deliberately narrow, and it is NOT "small things the supervisor uses".
 It is: a contract with more than one reader, where at least one reader must stay off the
@@ -90,6 +92,34 @@ from pathlib import Path
 # (2x) and the cap (12) are the publisher's, not this module's, to change.
 DEFAULT_MAX_AGE_SECONDS = 2 * 3800
 DEFAULT_MAX_CITED = 12
+
+
+# ── THE DECLARED LIVENESS SURFACE (moved here 2026-09-21, the THIRD cut of the same edge) ──
+#
+# The files the publisher commits when it has nothing to say but is still alive
+# (`process_run_complete._refresh_published_liveness_on_skip`). Born 2026-07-25 as fault #1 of the
+# overnight publish-freeze: liveness publication must not be coupled to business-output change.
+#
+# WHY IT IS IN THE LEAF AND NOT WITH ITS WRITER. It acquired a second and third READER --
+# `commit_narrative`, deciding whether a commit carried work, and `delivery_lane`, deciding
+# whether a commit that touched a claim's paths was a landing or a heartbeat. The lane is reached
+# from `background/supervisor.py`, which nearly every `tests/background/**` module imports, so
+# `delivery_lane -> process_run_complete` put the entire harness self-governance suite back inside
+# the publish gate. `test_publish_scope::test_the_supervisor_does_not_import_the_publish_path`
+# refused the commit and named this remedy; it is the same edge cut in 2026-08-21 and again in
+# 2026-09-11, arrived at a third time from a third direction.
+#
+# IT IS A DECLARATION, NOT A MIRROR, and that is why it moved instead of being copied. The
+# membership rule in the docstring is met exactly: more than one reader, at least one of which
+# must stay off the publish path. `process_run_complete` imports it back and remains its only
+# WRITER -- it is the only module that commits these files, so a fourth liveness file must still
+# be added HERE to be publishable at all, and every reader picks it up untouched. Unlike
+# `DEFAULT_MAX_AGE_SECONDS` above there is no second copy to hold equal, because there is no
+# second copy: this is the one home.
+LIVENESS_SURFACE_FILES = (
+    "site/data/tick_heartbeat.json",
+    "docs/observability/agent_status.json",
+)
 
 
 # ── THE OPERATIONAL-LAYER TIMEOUT VOCABULARY (moved here 2026-09-11, same reason as above) ──

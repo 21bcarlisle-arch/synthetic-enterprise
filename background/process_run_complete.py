@@ -7233,9 +7233,15 @@ def _landing_in_flight_marker(git_hash):
 
 # ── Fault #1 (2026-07-25 overnight publish-freeze): liveness publication must NOT
 # be coupled to business-output-change ──────────────────────────────────────────
-LIVENESS_SURFACE_FILES = (
-    "site/data/tick_heartbeat.json",
-    "docs/observability/agent_status.json",
+#
+# THE DECLARATION MOVED TO THE LEAF on 2026-09-21 and is imported back here. This module remains
+# its only WRITER -- nothing else commits these files -- but it acquired two readers that must
+# stay off the publish path (`commit_narrative`, `delivery_lane`), and `delivery_lane` is reached
+# from the supervisor, so importing it from here re-enrolled the whole harness suite in the
+# publish gate. See `publish_gate_blocking_read.LIVENESS_SURFACE_FILES` for the full argument.
+# A fourth liveness file is still added in ONE place; that place is now the leaf.
+from background.publish_gate_blocking_read import (  # noqa: E402
+    LIVENESS_SURFACE_FILES,
 )
 
 

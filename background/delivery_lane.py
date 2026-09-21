@@ -414,6 +414,84 @@ class GitUnavailable(RuntimeError):
     """
 
 
+class LivenessSurfaceUnreadable(RuntimeError):
+    """The publisher's liveness declaration could not be read, so no commit can be judged.
+
+    A distinct type from `GitUnavailable` because it is a DIFFERENT unavailable check and the
+    reader has to be told which one: git answering is no help if the thing git's answer must be
+    measured against is missing. `_raised` prints the type name into the residual's sentence, so
+    the two arrive at `could_not_ask` saying different things about where to look.
+    """
+
+
+def _liveness_surface_or_raise() -> frozenset[str]:
+    """The publisher's OWN declaration of the files it commits as pure liveness. Never empty.
+
+    READ, NOT COPIED, and that is the whole of why this is a function rather than a tuple here.
+    `publish_gate_blocking_read.LIVENESS_SURFACE_FILES` is what the publisher actually commits --
+    it cannot publish a third liveness file without declaring it there -- so reading it means the
+    day one is added this join picks it up untouched. A private copy of today's two filenames
+    would be a second hand-typed answer that goes stale in silence, which is this project's
+    most-repeated defect and the one the drawn item that asked for this explicitly refused.
+
+    IT IS READ FROM THE LEAF, NOT FROM THE PUBLISHER, AND THE GATE IS WHAT DECIDED THAT. The first
+    landing attempt read `process_run_complete` directly and was REFUSED by
+    `test_publish_scope::test_the_supervisor_does_not_import_the_publish_path`:
+    `supervisor -> delivery_lane -> process_run_complete` puts nearly every `tests/background/**`
+    module inside the publish gate, because the supervisor is what they all import. One import of
+    a two-element tuple of filenames, by a reader with nothing to do with publishing, and the
+    harness self-governance suite blocks publishing -- the identical edge cut on 2026-08-21 and
+    again on 2026-09-11, reached a third time from a third direction.
+
+    So the DECLARATION moved to the leaf and the publisher imports it back, which is the remedy
+    those two earlier cuts took. The publisher is still its only WRITER and there is still exactly
+    one home; what changed is only where that home sits. Note for whoever reads this next: the
+    gate caught it, prose did not -- the docstring below was written confidently about the wrong
+    module and gated green on `commit_narrative`, which the supervisor does not reach.
+
+    IT READS THE DECLARATION DIRECTLY, AND NOT THROUGH `commit_narrative._liveness_surface`, which
+    is the near-identical reader one rung over (deciding whether a commit carried work). The first
+    draft of this DID call it, and the commit gate refused: at that time that function existed in
+    the shared working tree and in no commit, so the consumer would have landed and the supplier
+    would not. The reuse argument was sound and its premise was a measurement of the wrong tree.
+
+    THAT PREMISE EXPIRED IN dc9e27ccd, minutes before this landed, and the sentence above is kept
+    in the past tense rather than deleted so the reason this reads the declaration twice is still
+    legible. The supplier is now committed, so the reuse argument is live again and the duplication
+    is real -- but it is duplication of the READER, not of the DECLARATION, and only the second
+    kind is the defect this whole function exists to avoid. Merging the two is now an ordinary
+    choice someone can make on its merits; it is deliberately not made here, because a tidy-up
+    smuggled into a landing is how a change nobody reviewed acquires a commit message about
+    something else. Measured: 0.03s on the first call, nothing after, and no write to the shared
+    tree.
+
+    IT RAISES RATHER THAN RETURNING EMPTY. An unreadable declaration means nothing can be SHOWN to
+    be liveness-only, and the flattering reading of that is "then nothing is, so credit everything"
+    -- which is the fail-open this exists to close, arriving through the check's own failure. The
+    raise lands in the `except`s every caller already has and comes out as `could_not_ask`: the row
+    is NOT credited and the reader is told which check could not answer (R15).
+    """
+    try:
+        from background import publish_gate_blocking_read as leaf
+    except Exception as exc:  # noqa: BLE001 - a reader must not die of a producer's import
+        raise LivenessSurfaceUnreadable(
+            "`publish_gate_blocking_read` would not import: {}".format(exc)) from exc
+    # Read as an ATTRIBUTE, not bound by `from ... import`, so that a test emptying the
+    # declaration on the module is emptying what this actually reads. A `from` import would
+    # snapshot the tuple at call time and quietly ignore the substitution, which would make the
+    # fail-closed leg below untestable -- and an untestable fail-closed leg is a fail-open.
+    declared = getattr(leaf, "LIVENESS_SURFACE_FILES", None)
+    try:
+        surface = frozenset(str(p) for p in declared)
+    except TypeError as exc:
+        raise LivenessSurfaceUnreadable(
+            "`publish_gate_blocking_read.LIVENESS_SURFACE_FILES` is not iterable") from exc
+    if not surface:
+        raise LivenessSurfaceUnreadable(
+            "`publish_gate_blocking_read.LIVENESS_SURFACE_FILES` read back empty")
+    return surface
+
+
 def _git_or_raise(*args: str) -> str:
     """`_git`, with the unavailable case raised instead of returned. `""` is an ANSWER and is kept.
 
@@ -1171,8 +1249,38 @@ def _claim_paths(focus_id: str, row: dict) -> list[str]:
     return named or _paths_named_in(_item_text(focus_id))
 
 
-def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], list[tuple]]:
-    """`(paths, hits)` — every commit on this claim's own paths inside its own window.
+def _window_hits(focus_id: str, row: dict,
+                 drawn: float) -> tuple[list[str], list[tuple], list[tuple]]:
+    """`(paths, hits, liveness_only)` — commits on this claim's own paths inside its own window.
+
+    A HEARTBEAT IS NOT A LANDING, and until 2026-09-19 it was (measured on the live ledger, which
+    is where this was found rather than reasoned about). The claim
+    `the-orientation-brief-misreports-the-machine-it-describes` named six paths, and
+    `credit_from_tree` bound it to `851dffdbb` -- an auto-process republish touching 52 files
+    whose intersection with those six was exactly `site/data/tick_heartbeat.json`. The row's
+    `last_landing_paths` is that one filename, which is how the route was identified: only the
+    intersecting writer produces it. The item was marked done and its 379 lines of finished work
+    were left in the tree, on the one subject that WAS this blindness.
+
+    SAY WHAT THE RULE IS. A commit's intersection with the claim's named paths is INSUFFICIENT to
+    credit a landing when that intersection is non-empty and every path in it is in the publisher's
+    declared liveness surface (`_liveness_surface_or_raise`). Such commits come back in the third
+    element instead of being dropped, because "twelve heartbeats touched your paths" is a better
+    answer for the residual to give than "nothing did", and a reader told the second goes and looks.
+
+    WHY THE DIRECTION MATTERS MORE THAN THE COUNT. A ledger wrong towards "done" is worse than one
+    that is silent: a swept row gets redrawn and a credited row never does. Every liveness commit
+    touches that file by construction and the publisher makes several an hour, so before this ANY
+    claim naming it was one republish away from being closed by a timestamp.
+
+    AN EMPTY PRINTED INTERSECTION IS NOT LIVENESS-ONLY, and this is the one clause that is keyed to
+    a measurement rather than to the shape. Under a pathspec `git log` simplifies history, so a
+    merge can come back with no filenames printed under it -- and an empty set is vacuously a
+    subset of the surface, which would silently make every such commit uncreditable and open a new
+    blindness in the other direction. Those are KEPT. The evidence for that being safe rather than
+    lucky: across the last 14 days of the record, every `chore(liveness)` and every
+    `Auto-process run complete` commit is single-parent, so a commit whose intersection git will
+    not print is never one of the publisher's.
 
     ONE QUERY, TWO READINGS, and it is one mechanism because the discriminating clauses are shared:
     the paths the item's own prose named, and the window the claim was given plus the grace a gated
@@ -1183,7 +1291,11 @@ def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], lis
     same second is worse than either one being absent.
 
     `hits` IS UNFILTERED BY OWNERSHIP ON PURPOSE. Each caller applies its own side of that test, so
-    neither can be made to agree with the other by accident.
+    neither can be made to agree with the other by accident. The liveness test is NOT of that kind
+    and is applied HERE, for the reason the paragraph above gives: ownership is a fact about which
+    row may claim a commit, whereas carrying no work is a fact about the commit itself. A landing
+    that is not a landing is not one for the sibling reading either, and putting it in one caller
+    would be the drift this function was made single to prevent.
 
     AND AN EMPTY `hits` NOW MEANS ONE THING, WHICH IS THE 2026-09-18 REPAIR. The sentence that stood
     here said an empty list "means git said nothing, which both callers must read as 'cannot
@@ -1206,27 +1318,40 @@ def _window_hits(focus_id: str, row: dict, drawn: float) -> tuple[list[str], lis
     """
     paths = _claim_paths(focus_id, row)
     if not paths:
-        return [], []
+        return [], [], []
+    # ASKED BEFORE GIT, so an unreadable declaration costs nothing and cannot be mistaken for a
+    # clean window: there is no point holding an answer that cannot be judged.
+    surface = _liveness_surface_or_raise()
     window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
-    out = _git_or_raise("log", "--all", "--no-renames", "--format=%H%x1f%ct%x1f%s",
+    # `--name-only` UNDER THE SAME PATHSPEC IS THE INTERSECTION, FOR FREE. git filters the printed
+    # filenames to the pathspec, so this one call answers both "which commits" and "which of the
+    # claim's paths did each touch" -- no second query, and no chance of the two drifting.
+    out = _git_or_raise("log", "--all", "--no-renames", "--name-only",
+                        "--format=%H%x1f%ct%x1f%s",
                         "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
                         "--", *paths)
     if not out:
-        return paths, []
-    hits = []
+        return paths, [], []
+    # A HEADER LINE IS THE ONE THAT SPLITS IN THREE; filenames carry no \x1f, so the two cannot be
+    # confused. A commit git printed no filenames for keeps an EMPTY touched set, which the test
+    # below deliberately does not read as liveness-only (see the docstring).
+    found: list[tuple[str, str, str, set[str]]] = []
     for line in out.splitlines():
         parts = line.split("\x1f")
-        if len(parts) != 3:
-            continue
-        sha, stamp, subject = parts
+        if len(parts) == 3:
+            found.append((parts[0], parts[1], parts[2], set()))
+        elif line and found:
+            found[-1][3].add(line)
+    hits, liveness_only = [], []
+    for sha, stamp, subject, touched in found:
         try:
             when = float(stamp)
         except ValueError:
             continue
         if not (drawn <= when <= window_ends):
             continue
-        hits.append((sha, when, subject))
-    return paths, hits
+        (liveness_only if touched and touched <= surface else hits).append((sha, when, subject))
+    return paths, hits, liveness_only
 
 
 def _landed_by_sibling(focus_id: str, row: dict, drawn: float, bound_by: dict) -> dict | None:
@@ -1254,7 +1379,7 @@ def _landed_by_sibling(focus_id: str, row: dict, drawn: float, bound_by: dict) -
     evidence, so the worst case of a wrong sibling is a named lead the reader can check in one
     `git show`, against a residual that sent them to `git status` with nothing.
     """
-    paths, hits = _window_hits(focus_id, row, drawn)
+    paths, hits, _liveness = _window_hits(focus_id, row, drawn)
     owned = [(sha, when, subject, bound_by[when]) for sha, when, subject in hits
              if bound_by.get(when) and bound_by[when] != focus_id]
     if not owned:
@@ -1276,9 +1401,14 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
     shape: a dial that reports the flattering residual by construction. Git already holds the
     fact, and `_git` already ran `rev-list`/`merge-base`/`diff` twenty lines up.
 
-    SAY WHAT IT IS. A commit counts when all three hold: its committer instant falls inside the
-    window below, it touched a path the item's own prose named, and no row of this ledger is
-    credited with it. The disposition is named `LANDED_UNBOUND` for exactly that
+    SAY WHAT IT IS. A commit counts when all FOUR hold: its committer instant falls inside the
+    window below, it touched a path the item's own prose named, that intersection is not confined
+    to the publisher's declared liveness surface, and no row of this ledger is credited with it.
+    THE THIRD CLAUSE IS THE 2026-09-19 REPAIR and the count above moved with it rather than being
+    left to read as three -- a clause list that undercounts itself is how a reader learns the
+    docstring is not the code. `_window_hits` holds it, for the reason given there: a heartbeat is
+    not a landing for the sibling reading either. The disposition is named `LANDED_UNBOUND` for
+    exactly that
     reading and NOT `DELIVERED`: it says work landed on this subject and nothing bound it, which
     is what was measured. Calling it delivered would be inferring the item was finished from the
     fact that its files moved, and the reader can tell the difference only if the label does.
@@ -1304,7 +1434,7 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
     the one of the three that was measuring the wrong thing; the two that do the discriminating are
     untouched.
     """
-    paths, hits = _window_hits(focus_id, row, drawn)
+    paths, hits, _liveness = _window_hits(focus_id, row, drawn)
     hits = [(sha, when, subject) for sha, when, subject in hits if when not in bound_at]
     if not hits:
         return None
@@ -2057,7 +2187,13 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
     in the reader's own terms — the paths it queried, the window it queried them over, and the
     count git returned.
 
-    FOUR BRANCHES, AND THE ORDER IS FROM LEAST TO MOST TRUSTWORTHY ANSWER:
+    FIVE BRANCHES, AND THE ORDER IS FROM LEAST TO MOST TRUSTWORTHY ANSWER. IT SAID FOUR UNTIL
+    2026-09-19 and the count is corrected here rather than left to be inferred: the fifth is the
+    liveness-only window below, which before that date was not a residual at all because those
+    commits were CREDITED. A branch list that undercounts itself teaches the reader that the
+    docstring is decoration, and the paragraph after the list still says "the fourth branch" about
+    the last one because that is the branch that split -- it is numbered by what it answers, not by
+    its position after an insertion.
 
       * a join RAISED — `unanswered` is non-empty, so the tree was asked and the asking broke.
         This must be said first and loudest: it is the only branch where a louder disposition may
@@ -2076,6 +2212,11 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
       * paths, and git returned commits — every one of them already bound, or `_landed_unbound`
         would have taken the row. Naming the count is what lets a reader tell this from the empty
         case in one glance.
+      * paths, and git returned commits that CARRIED NO WORK — every one's intersection with this
+        row's paths confined to the publisher's declared liveness surface. It is above the empty
+        case because it is a stronger statement about the same window: the paths were right, the
+        window was right, and what arrived on them was a heartbeat. Before the liveness clause
+        this branch was unreachable and the row was not here at all — it had been credited.
       * paths, and git returned nothing — the only branch that has actually earned the sentence
         "we looked and found nothing", and it says which paths and over what window so the reader
         can check whether the paths were the right ones.
@@ -2110,7 +2251,7 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
                             "be true and was lost, so check the tree before redoing this".format(
                                 "; ".join(unanswered))}
     try:
-        paths, hits = _window_hits(focus_id, row, drawn)
+        paths, hits, liveness_only = _window_hits(focus_id, row, drawn)
     except Exception as exc:
         return {"disposition": NOT_DONE,
                 "evidence": "CANNOT ANSWER, not 'nothing landed': {}".format(
@@ -2135,6 +2276,25 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         return {"disposition": NOT_DONE,
                 "evidence": asked + "grace): {} found, each already bound in this ledger, so none "
                                     "was creditable to this window".format(len(hits))}
+    if liveness_only:
+        # THE ANSWERED VOICE, AND IT HAS EARNED IT. git was asked, on this row's own paths, over
+        # this row's own window, and what came back carried no work -- so "workable, draw it
+        # again" is the correct instruction and this is not a `CANNOT ANSWER`. Before the
+        # liveness clause landed these commits were CREDITED and the row left this list
+        # altogether; the point of naming them here rather than dropping them is that a reader
+        # told "nothing touched your paths" goes and checks, and would find twelve heartbeats
+        # that did.
+        #
+        # IT DOES NOT NAME THE FILENAMES, deliberately. Spelling them in this sentence would be
+        # the hand-typed second copy of the publisher's declaration that the whole repair exists
+        # to avoid -- one that goes stale in silence, in prose, where nothing can catch it.
+        return {"disposition": NOT_DONE,
+                "evidence": asked + "grace): {} commit(s) touched them, and every one's "
+                                    "intersection with them was confined to the publisher's "
+                                    "declared liveness surface -- so commits carrying work on "
+                                    "this subject: none. A heartbeat republish is not a landing; "
+                                    "this window is workable and can be drawn again".format(
+                                        len(liveness_only))}
     # AND THE LAST BRANCH IS NOT ALLOWED TO SAY "GENUINE MISS" UNTIL THE TREE HAS BEEN ASKED THE
     # SECOND QUESTION. This is the sentence the whole reading is for -- it is what the orientation
     # brief prints and what sends a reader off to do the work again -- and every one of its clauses

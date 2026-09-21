@@ -182,6 +182,39 @@ def test_the_doorbell_carries_the_WHY_and_says_what_DONE_means(tree):
     assert "re-orients every three hours" in bell
 
 
+def test_the_doorbell_states_the_sweep_deadline_the_lane_actually_enforces(tree):
+    """The brief used to end *"When you judge it finished: `--release`. You do not have to: the
+    seat re-orients every three hours and drops what is done, which is the real acceptance test."*
+    That sentence was FALSE BY ARITHMETIC and it cost two consecutive invocations.
+
+    `CLAIM_STALE_SECONDS` is 100 minutes; the seat re-orients at 180. So a finished-but-unreleased
+    claim is ALWAYS swept back into the pool ~80 minutes before the seat could drop it, and the
+    "real acceptance test" the brief pointed at never gets the chance to run. This is the same
+    arithmetic `retire_continuation` already records against the 360-minute continuation window --
+    the doorbell, which is the copy every tick actually reads, said the opposite.
+
+    MEASURED, 2026-09-15, on `restore-the-groups-parameter-to-the-working-copy-of-fit-weights`:
+    the tick that finished it filed and landed its RESULT, bound no paths and released nothing
+    because the brief said it need not, and the item was swept and redrawn into the next tick.
+
+    KEYED TO THE CONSTANT, NOT TO THE SENTENCE. The figure the brief quotes is derived from
+    `CLAIM_STALE_SECONDS`, so raising the sweep moves the prose instead of rotting it. An
+    assertion that the old wording is ABSENT would be unfalsifiable the moment anyone reworded it
+    again, which is the failure this project has already paid for -- so both legs here are
+    positive.
+
+    MUTATION (must fire): hardcode `100` in the doorbell and change `CLAIM_STALE_SECONDS`.
+    """
+    tree["write"]([_item("x", "calibrate the control", "the baseline is the whole meaning")])
+
+    bell = dl.doorbell(dl.next_item(now=NOW_EPOCH, path=tree["claims"]))
+
+    assert "--release x" in bell, "the tick is never told the command that discharges it"
+    assert f"{dl.CLAIM_STALE_SECONDS // 60} minutes" in bell, (
+        "the brief must quote the deadline this lane enforces, not a literal that can drift "
+        "away from CLAIM_STALE_SECONDS")
+
+
 # --------------------------------------------------------------------------- #
 # 2. It never pre-empts the lanes that already work                            #
 # --------------------------------------------------------------------------- #
