@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-21T18:53:39.491285+00:00",
+  "last_updated": "2026-09-21T19:43:41.473792+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:53:38.966641+00:00",
+      "last_heartbeat": "2026-09-21T19:43:40.960643+00:00",
       "last_action": "Watcher started",
-      "last_action_ts": "2026-09-21T18:53:38.966275+00:00",
+      "last_action_ts": "2026-09-21T19:43:40.960330+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:53:38.770114+00:00",
+      "last_heartbeat": "2026-09-21T19:43:40.734474+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-21T18:53:38.770114+00:00",
+      "last_action_ts": "2026-09-21T19:43:40.734474+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-09-19T23:25:47.008834+00:00",
+      "last_heartbeat": "2026-09-21T19:24:41.840521+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-09-19T23:25:47.008834+00:00",
+      "last_action_ts": "2026-09-21T19:24:41.840521+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:53:39.491285+00:00",
+      "last_heartbeat": "2026-09-21T19:43:41.473792+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-09-21T18:53:39.491285+00:00",
+      "last_action_ts": "2026-09-21T19:43:41.473792+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:35:48.068424+00:00",
+      "last_heartbeat": "2026-09-21T19:35:48.602117+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-21T18:35:48.068424+00:00",
+      "last_action_ts": "2026-09-21T19:35:48.602117+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
