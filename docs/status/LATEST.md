@@ -2060,7 +2060,8 @@ Director's correction: *"£80k makes no sense either. Why is that the lead numbe
 campaign was walled on. One pass, gate-on-green: (1) all **22** non-canonical internal links (→ legacy `/method`,
 `/project`, `/simplified`) rewritten to the canonical `/proof` anchors — **R11 link-walk now 0/0** (was 22); (2) the
 `/project` **investor reframe re-homed onto `/proof#project-anchor`** and **render-verified live** via the page's own JS
-against published data — **£80,056/customer** (net margin ÷ N=19), total £1,521,070, treasury £3,824,376, all carrying
+against published data — **£80,056/customer** (net margin ÷ N=19), total £1,521,070 *// run `ac0869715`, 2026-07-17*,
+treasury £3,824,376, all carrying
 their claim-status + `//` basis clock (RC6: unit economics leads, totals demoted/caveated); no longer orphaned on the
 killed door; (3) the temporary `/method` live-door **retired** — every remaining door's nav is the canonical set only
 (Home/World/Company/Proof, no ghost entries); (4) the R11 link-walk **flipped from mechanism-only to a LIVE publish
@@ -2079,7 +2080,9 @@ h1); (c) **colour is information only** — decorative coloured card top-borders
 claim-status chips (blue=VERIFIED, amber=PROVISIONAL) and the thesis chart (achieved cost=green on-track,
 benchmark=structural black); off-brand teal/purple chart hex (`#1baf7a`/`#4a3aa7`) replaced by token reads; (d) **no
 leading tilde** on any board numeral — the number + its `//` clock, status rides the chip; (e) **chat widget REMOVED**
-from the marketing front door. **RC5 (effort-as-outcomes) ADDRESSED** — outcome metrics lead (net margin £1,521,070,
+from the marketing front door. **RC5 (effort-as-outcomes) ADDRESSED** — outcome metrics lead (net margin £1,521,070
+*// run `ac0869715`, 2026-07-17 — the vintage this entry published, NOT the current book; the live figure is in the
+"Latest simulation results" block at the foot of this file, and the two are the same quantity at two vintages*,
 treasury £3,898,729, 1,588 bills, 113 settlement months, EV £7,803,340 PROVISIONAL), **no** tests/commits/phases
 anywhere. **Honesty/R14:** every figure carries a claim-status chip + `//` basis clock; margin & EV read their
 provisional flag from `portfolio.basis`; no fabricated numbers. **R11+R15** proven by the render harness executing the

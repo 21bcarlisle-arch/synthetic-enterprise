@@ -223,11 +223,21 @@ _FIGURE_RES = {
 }
 
 
-#: Directories the GitHub Pages workflow's `paths-ignore` excludes, plus the retired shadow mirror.
-#: A path under these is not published, so a reader cannot be sent to it.
-_UNPUBLISHED = ("docs/observability/", "docs/staging/", "docs/market_data/", "docs/state/",
-                "docs/snapshots/", "docs/design/", "docs/instructions/", "docs/claude/",
-                "docs/domain_artefact_library/", "docs/review_gates/", "docs/shadow/")
+#: THE LIST IS GONE; THE QUESTION IS ASKED (2026-09-20, docs/staging/SEAT_DECISION_THE_PAGES_ROOT_
+#: PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md).
+#:
+#: What stood here was a hand-copy of the workflow's `paths-ignore` entries, commented "a path
+#: under these is not published, so a reader cannot be sent to it". That was false -- the upload
+#: was `path: docs`, the whole tree -- and this module's own docstring said so 189 lines above. It
+#: was the THIRD of the three places that read a trigger filter as a publish filter, and the only
+#: one wired into a control: it is used below to decide which surfaces a reader can be sent to.
+#:
+#: The correction earlier that day rewrote the comment to admit the list was really "churn". That
+#: left the sentence honest and the mechanism wrong, which is the worse half. Now that the artefact
+#: is built from a manifest, `is_published` is simply TRUE, and the filter is its negation rather
+#: than a second list that can drift from it.
+from tools.pages_publish_manifest import is_published as _is_published  # noqa: E402
+
 #: Extensions a person opens and reads. A JSON feed is machinery output, not an orientation surface.
 _READER_SUFFIXES = (".md", ".txt", ".yaml", ".yml", ".jsonl")
 
@@ -313,7 +323,7 @@ def discover_maintained_surfaces(root: Path | None = None) -> dict[str, set[str]
                 if not segs:
                     continue
                 rel = "docs/" + "/".join(segs)
-                if rel.startswith(_UNPUBLISHED) or not rel.endswith(_READER_SUFFIXES):
+                if not _is_published(rel) or not rel.endswith(_READER_SUFFIXES):
                     continue
                 found.setdefault(rel, set()).add(f"{tree}/{f.name}")
     return found

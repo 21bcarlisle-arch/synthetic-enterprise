@@ -3,32 +3,37 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
-    # 2026-07-11 (REPO_PRIVATE_AND_IP.md Phase 1 audit, docs/design/
-    # REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md): this workflow had no path
-    # filter at all, unlike its sibling deploy-pages.yml -- measured
-    # ~4,120 runs/month (206% of the private-repo Actions free quota),
-    # root-caused to firing on every push regardless of whether anything
-    # actually served by this Pages mirror changed. `docs/` holds far more
-    # than the served content (observability logs, staging files, market
-    # data caches, internal design docs) that churns on nearly every
-    # commit. paths-ignore (not an inclusive whitelist) chosen deliberately
-    # to be conservative -- excludes only the clearly-non-served, clearly
-    # high-churn directories, so nothing genuinely served by the mirror
-    # (docs/PROJECT_OVERVIEW.md, docs/status/, docs/reports/,
-    # docs/retrospectives/, docs/market_research/, docs/shadow/) can be
-    # silently missed.
-    paths-ignore:
-      - docs/observability/**
-      - docs/staging/**
-      - docs/market_data/**
+    # THIS LIST IS DERIVED, NOT AUTHORED. It is `tools/pages_publish_manifest.trigger_paths()`,
+    # and `tests/tools/test_the_pages_artifact_is_the_manifest_not_the_docs_tree.py` reds if the
+    # two drift. The manifest is also what the upload step below ships, so the trigger and the
+    # artefact cannot disagree about what "published" means.
+    #
+    # IT REPLACES A `paths-ignore:` LIST, 2026-09-20 (seat, docs/staging/SEAT_DECISION_THE_PAGES_
+    # ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md). That list was added by the
+    # 2026-07-11 audit (docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md) against a measured
+    # ~4,120 runs/month, and its own comment called its entries "the clearly-non-served"
+    # directories. They were non-TRIGGERING, not non-served: the upload was `path: docs`, whole.
+    # The comment is the second of three places in the repo that read a trigger filter as a
+    # publish filter, and it is the reason nobody looked at what the root was actually serving.
+    #
+    # It was also the wrong instrument for its own stated job. It named only `docs/`
+    # subdirectories, so every push touching `company/`, `tools/`, `tests/` or `site/` passed it
+    # and deployed a byte-identical artefact. Measured over the last 408 commits on main: the
+    # `paths-ignore` filter fires on 70.1% of them, this inclusive list on 8.6%.
+    paths:
+      - docs/PROJECT_OVERVIEW.md
+      - docs/status/**
       - docs/state/**
-      - docs/snapshots/**
-      - docs/design/**
-      - docs/instructions/**
-      - docs/claude/**
-      - docs/domain_artefact_library/**
-      - docs/context-handshake-latest.md
-      - docs/review_gates/**
+      - docs/reports/ANNUAL_REPORT.md
+      - docs/reports/SEGMENT_REPORT.md
+      - docs/market_research/**
+      - docs/retrospectives/**
+      - docs/institutional/**
+      - docs/operations/**
+      - docs/direction/**
+      - docs/design/ONE_FRAMEWORK.md
+      - .github/workflows/github-pages.yml
+      - tools/pages_publish_manifest.py
   workflow_dispatch:
 
 # PAGES_CONCURRENCY_FIX.md (2026-07-05): the automatic "pages build and
@@ -60,10 +65,23 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
-      - name: Upload docs/ as Pages artifact
+      # THE ARTEFACT IS BUILT, NOT A DIRECTORY. This step used to be `path: docs`, which shipped
+      # 10,068 tracked files -- 8,600 internal findings under docs/staging/ (BLOCKING ones among
+      # them, naming defects in our own published figures), 909 design documents, 282
+      # observability logs -- to a public root. Nobody decided that; it was inherited from when
+      # `docs/` was the site, and the `paths-ignore` list above was misread as holding it back.
+      # `docs/shadow/` served a frozen internal P&L there for a month (80e363721).
+      #
+      # A path is published now IF AND ONLY IF `tools/pages_publish_manifest.PUBLISHED` names it,
+      # so a directory added to `docs/` tomorrow is private without anyone having to notice it.
+      # Measured at the landing: 179 files, 26 MB, down from 10,068 files and 273 MB.
+      - name: Build the Pages artefact from the publish manifest
+        run: python3 -m tools.pages_publish_manifest _pages
+
+      - name: Upload the built artefact as the Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: docs
+          path: _pages
 
       - name: Deploy to GitHub Pages
         id: deployment

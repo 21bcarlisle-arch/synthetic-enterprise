@@ -52,9 +52,16 @@ def test_generated_artefacts_are_excluded():
     """The publish path rewrites ~180 of these every cycle. Counting them would make the measure
     unreadable regardless of how carefully anyone looked at it.
 
-    MUTATION: empty GENERATED_PREFIXES and this fails."""
+    MUTATION: empty GENERATED_PREFIXES and this fails.
+
+    `docs/shadow/index.html` was the fourth member here until 2026-09-20 and it was ASSERTING
+    THE STALE CLAIM: the mirror that rewrote it was switched off on 2026-08-20, so for a month
+    this leg pinned "the machine regenerates that path" as correct while the path was frozen.
+    Replaced with `docs/state/`, which the mirror genuinely does still rewrite every cycle.
+    (docs/staging/SEAT_FINDING_THE_PAGES_ROOT_SERVES_A_RETIRED_MIRROR_AND_PATHS_IGNORE_IS_NOT_
+    A_PUBLISH_FILTER_2026-09-20.md)"""
     for rel in ("site/data/dashboard.json", "docs/observability/agent_status.json",
-                "docs/reports/ANNUAL_REPORT.md", "docs/shadow/index.html"):
+                "docs/reports/ANNUAL_REPORT.md", "docs/state/customer_sample.json"):
         assert td._is_generated(rel), rel
 
 

@@ -341,6 +341,17 @@ class _FunctionScan:
                 # proven return shape -- see `_attribute_through_returns`.
                 fn = node.value.func
                 callee = fn.attr if isinstance(fn, ast.Attribute) else getattr(fn, "id", None)
+                # EXCEPT WHEN THE CALLEE IS A READ OR A WRITE, which is not an unknown at all.
+                # `raw = p.read_text()` yields the file's CONTENTS, and that is settled HERE by
+                # the attribute's own name -- there is no callee return shape to go and resolve.
+                # Recording it as a candidate made `raw` a path descriptor, so the next call
+                # taking `raw` (`other(raw)`) was kept as an edge and the parameter fixpoint
+                # attributed reads that never happened -- exactly the taint `_is_path_shaped`
+                # exists to stop, arriving through the branch that handles what it rejects.
+                # `test_a_files_contents_never_become_an_alias_of_its_path` was RED AT HEAD on
+                # this, and its own docstring had already named the mechanism.
+                if callee in _READ_ATTRS or callee in _WRITE_ATTRS:
+                    callee = None
                 if callee:
                     descriptors = (
                         callee,
@@ -505,8 +516,10 @@ def _attribute_through_parameters(facts: dict[str, dict[str, Any]]) -> int:
     derived over the tree before and after that commit LOST FIVE HITS:
     `run_history.json`, `.harden_cooldown.json`, `.ntfy_digest_state.json`,
     `.supervisor_map_exhausted_state.json` and `retired_paths_served.json` went from 34 hits to
-    29, with `run_history.json` dropping to ZERO recorded readers while
-    `count_run_history_total` reads it on every dashboard build.
+    29, with `run_history.json` dropping to ZERO recorded readers while it was being read on
+    every dashboard build. (That reader was named `count_run_history_total` until 2026-09-20,
+    when it was deleted with the `run_history_total` field it fed; `extract_run_history` is the
+    surviving one and the census's subject is unchanged.)
 
     That is the census's fail-open shape and it was getting STRONGER WITH ADOPTION: the more
     correctly a carrier was repaired -- through the shared helper rather than a hand-rolled loop,

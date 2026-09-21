@@ -54,7 +54,11 @@ GENERATED_PREFIXES = (
     "docs/reports/",
     "docs/market_data/",
     "docs/snapshots/",
-    "docs/shadow/",
+    # `docs/shadow/` sat here until 2026-09-20 and came out with the surface (docs/staging/
+    # SEAT_FINDING_THE_PAGES_ROOT_SERVES_A_RETIRED_MIRROR_AND_PATHS_IGNORE_IS_NOT_A_PUBLISH_
+    # FILTER_2026-09-20.md). It had stopped being true a month before that: this tuple means
+    # "the machine rewrites these every cycle", and the mirror that rewrote it was switched off
+    # on 2026-08-20, so the exemption was excusing divergence nothing was causing.
     "docs/state/",
     "site/",
     "node_modules/",

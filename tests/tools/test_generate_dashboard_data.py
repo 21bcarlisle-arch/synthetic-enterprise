@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pytest
 
 from tools.generate_dashboard_data import (
-    _fmt, extract_portfolio, extract_financial, count_run_history_total,
+    _fmt, extract_portfolio, extract_financial, extract_run_history,
     extract_regulatory, _SLC_OBLIGATIONS, extract_reputation, extract_opex_ledger,
     extract_b2_taxonomy, extract_customers, extract_trading,
 )
@@ -203,24 +203,39 @@ def test_extract_financial_annual_is_list():
     assert isinstance(r["annual"], list)
 
 
-def test_count_run_history_total_missing_file_returns_zero(tmp_path):
-    assert count_run_history_total(tmp_path / "nonexistent.json") == 0
+# THE THREE `count_run_history_total` TESTS THAT WERE HERE WENT WITH THE FUNCTION ON 2026-09-20.
+# Their subject was never really the count -- it was `load_list_prior`'s screening, which
+# `extract_run_history` exercises identically and which the three legs below now pin. The count
+# itself published `len()` of a 100-entry ring buffer as `run_history_total`; it read exactly 100
+# for 81 days and its renderer was deleted on 2026-08-20. Note in particular that
+# `test_count_run_history_total_counts_full_history_not_truncated` -- whose NAME is a direct claim
+# about truncation -- was green throughout on a 37-entry fixture, because it pinned the READER and
+# the truncation is in the WRITER. Its replacement below straddles the writer's cap.
 
 
-def test_count_run_history_total_counts_full_history_not_truncated(tmp_path):
-    """Regression (PROJECT_TAB_OVERHAUL.md): the Project tab's "Sim runs" KPI
-    used to read len() of the already-truncated last-10-entries list, so it
-    always displayed exactly 10 no matter how many runs had really happened
-    -- a dead counter. count_run_history_total() must read the full file."""
-    history_path = tmp_path / "run_history.json"
-    history_path.write_text(json.dumps([{"git_hash": "abc%d" % i} for i in range(37)]))
-    assert count_run_history_total(history_path) == 37
+def test_extract_run_history_missing_file_returns_empty(tmp_path):
+    assert extract_run_history(tmp_path / "nonexistent.json") == []
 
 
-def test_count_run_history_total_invalid_json_returns_zero(tmp_path):
+def test_extract_run_history_invalid_json_returns_empty(tmp_path):
     history_path = tmp_path / "run_history.json"
     history_path.write_text("not valid json")
-    assert count_run_history_total(history_path) == 0
+    assert extract_run_history(history_path) == []
+
+
+def test_extract_run_history_reads_the_whole_file_and_caps_only_at_its_own_max(tmp_path):
+    """THE CAP IS THE CALLER'S, NOT THE LOADER'S, and the fixture STRADDLES the writer's cap.
+
+    `append_run_history` keeps the last 100. A fixture below 100 cannot tell "the loader read
+    everything" from "the loader stopped at the writer's cap" -- which is exactly how the deleted
+    test stayed green on 37 entries while the number it guarded was pinned at the cap. 137 is
+    above it, so a loader that truncated at 100 reds here."""
+    history_path = tmp_path / "run_history.json"
+    history_path.write_text(json.dumps([{"git_hash": "abc%d" % i} for i in range(137)]))
+    assert len(extract_run_history(history_path, max_entries=10_000)) == 137
+    assert len(extract_run_history(history_path)) == 10
+    assert extract_run_history(history_path)[-1]["git_hash"] == "abc136", (
+        "the LAST 10, not the first")
 
 
 def _regulatory_data(contact_centre_log=None, **year_overrides):
