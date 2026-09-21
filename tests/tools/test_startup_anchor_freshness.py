@@ -305,7 +305,7 @@ def _unfiltered_discovery(root):
                 if not segs:
                     continue
                 rel = "docs/" + "/".join(segs)
-                if rel.startswith(saf._UNPUBLISHED) or not rel.endswith(saf._READER_SUFFIXES):
+                if not saf._is_published(rel) or not rel.endswith(saf._READER_SUFFIXES):
                     continue
                 found.setdefault(rel, set()).add(f"{tree}/{f.name}")
     return found

@@ -70,7 +70,8 @@ def _load_log(log_path=None):
     crash it replaces. This scorecard's `log_entry_count` and its grading counts are read by
     `tools/generate_proof_data.py` and rendered on the Proof door; a quietly dropped line publishes
     a smaller, entirely plausible track record, and a plausible smaller number does not get noticed
-    the way a traceback does. Same shape as `count_run_history_total` answering 3 for `"abc"`.
+    the way a traceback does. Same shape as the run-history readers answering 3 for `"abc"`,
+    which is what `load_list_prior(..., item_type=dict)` exists to refuse.
 
     An unreadable FILE is still allowed to raise. Absent is not unreadable: absent means the live
     decisions run has never logged a day and an empty scorecard is the truth, while an OSError
