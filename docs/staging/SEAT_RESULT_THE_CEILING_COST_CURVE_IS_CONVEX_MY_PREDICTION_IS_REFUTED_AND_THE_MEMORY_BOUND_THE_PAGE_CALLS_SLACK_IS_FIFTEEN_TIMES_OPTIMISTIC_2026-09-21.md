@@ -207,3 +207,104 @@ points of being provable.
    `--menu-intervals` work, among others) and uncommitted. It is what is producing this
    measurement. It is not landed here because the lane that wrote it is mid-run against it;
    landing its bytes underneath a live parent is the one thing that could lose the four points.
+
+---
+
+# ADDENDUM — the probe finished at 19:49Z, twenty minutes after the above was filed
+
+Everything above was written from three of four points and a `/proc` sample. The parent has since
+written `docs/observability/settlement_ceiling_slope_20260921.json` with all four and its own
+parent-side `peak_rss_mb`. **Three of my figures above are wrong and one of my judgements was.**
+They are corrected here rather than edited above, because a document revised after its answer
+arrived is not evidence that it was written before.
+
+## What the fourth point changed
+
+| budget | committed cy | wall (s) | peak RSS (MB) | probe says clean |
+|---|---|---|---|---|
+| 1,200 | 1,197.0 | 1,499.6 | 5,507.4 | **yes** |
+| 2,000 | 1,995.2 | 2,666.5 | 8,504.7 | no |
+| 2,800 | 2,799.3 | 4,591.5 | 12,501.8 | no |
+| 3,400 | **3,135.5** | 5,296.0 | 13,920.9 | **yes** |
+
+**CORRECTION 1 — two of the three points I built §1–§3 on are labelled UNCLEAN by the probe
+itself**, and I did not know it because the reason lives in a parent-side field the child files do
+not carry: *"another process wrote `book_growth_campaign.json` during this run"*, so their
+committed customer-years are not their own. Their wall clock and RSS are parent-side and
+uncontaminated; it is the x-axis that is suspect. The probe therefore computes ONE marginal, over
+the two clean points only: **1.958 s and 4.340 MB per customer-year.**
+
+**The convexity conclusion survives that**, and it is worth saying why rather than assuming it: on
+the two CLEAN points alone, a straight line has an intercept of **−844.6 s**. A negative fixed cost
+is not a thing, so the curve is not affine over that range whichever middle points you trust. What
+does NOT survive is my fitted quadratic — it predicted 5,613 s at 3,135.5 cy against 5,296 measured,
+and the last segment's marginal (2.10 s/cy) is *below* the previous one's (2.39), so the curve is
+not uniformly convex either. **My "T(cy) = 1,132.2 − 0.3933·cy + 0.00058116·cy²" in §2 should not be
+quoted.** The defensible statement is the probe's: 1.958 s/cy between the clean points, against
+August's 0.673 at a smaller book.
+
+**CORRECTION 2 — the memory error is 19.4x, not the 15.8x I estimated**, and my "~2,300
+customer-years" was too generous. Measured 4.340 MB/cy against a published 0.224. On the probe's own
+25%-of-guest share the ceiling is **1,312.3 customer-years** against a published 38,275 — a factor
+of **29.2**. The §4 finding is right in direction and understated in size.
+
+**CORRECTION 3 — my §5 claim that "1,200 still stands on nothing" is now FALSE, and this is the
+result.** The probe's recommendation is `binding_bound: "memory"`, `binding_bound_is_evidence:
+true`, `supported_customer_years: 1312.3`. Across the whole interval menu it was given — 90 minutes,
+24 hours, one week, a factor of **112** — the supported ceiling moves only **1,194.6 → 1,312.3, or
+9.9%**. Time binds at 90 minutes; memory binds at both longer intervals.
+
+So **1,200 sits inside the entire admissible band, and is defended by measurement for the first
+time — by measurement arriving at it, not by anyone having chosen it well.** Not moved: the band is
+±10%, the 2026-08-29 allocation fix means a wrong value costs precision rather than coverage, and
+moving to 1,312 spends the last of the memory headroom on a box with 107 lifetime OOM kills.
+
+And the interval — four weeks of treating the director's choice as the thing standing between us
+and a bigger book — turns out to move the answer by a tenth. **That was reasoning about the wrong
+leg**, and nothing before this measurement could have told us.
+
+## The one that closes the item
+
+At budget 3,400 the campaign **refused nothing**: 500 funnel wins, 500 booked. So the campaign's
+entire demand is **3,135.6 customer-years**, and the probe says it plainly — *"a ceiling above it
+buys no accounts at all."*
+
+The smallest leg of `what_would_settle_the_sign` needs **3,163.9**.
+
+**The world tops out about 28 customer-years short of the book the thesis needs, and this box stops
+at 1,312.3 long before that.** Compared on the page's own terms — the same comparison
+`can_a_book_that_size_be_built` already makes against the 1,200 — the answer to "can a book that
+size be built" is NO on two independent legs, one of them not an engineering limit at all.
+
+That is the measured *"this world cannot reach it"* the drawn item named as a complete answer. It
+is complete.
+
+## My filed prediction, scored
+
+> *"the marginal cost is ≈0.67s per customer-year on a ≈215s fixed component … I predict wall clock
+> will not bound it either and that 1,200 will turn out to be bounded by nothing."*
+
+Wrong on every clause. The marginal is 2.9x what I said, there is no positive fixed component,
+wall clock binds at 90-minute cadences, and 1,200 is bounded by memory at 1.09x slack. The item
+offered me an out — *"if the curve is stale my prediction is probably wrong"* — and the curve was
+not stale in the way I meant: its **slope at a given book size is roughly unchanged since August**
+(§3 stands: 0.767 fitted vs 0.673 measured). What I got wrong was assuming a slope measured over
+796–1,200 customer-years describes 3,000, on a run whose cost per customer-year rises with the book.
+
+## Still owed, revised
+
+1. ~~The in-flight probe's report~~ — landed with this addendum.
+2. **Two live constants both declare themselves the publish cadence and differ by 112x.**
+   `publish_freshness.PUBLISH_CADENCE_SECONDS = 604800` (the director's, stated 2026-09-04, and the
+   module calls itself "the SINGLE SOURCE OF TRUTH") against
+   `suite_duration_watch.PUBLISH_CADENCE_SECONDS = 5400`, which is what stamps
+   `publish_gate_duration.jsonl` and therefore what this probe falls back to when no interval is
+   passed. Every reading the probe produced before today carried the 5,400 one. A repo defect, not
+   a director question, and the reason §5's original conclusion was reachable at all.
+3. **Re-rule `settled_book_ceiling_customer_years` against measured whole-run RSS**, and delete its
+   hard-coded `what_it_does_not_bound` string — it pins "1,200", "slack by 4.5x" and "Memory is not
+   what caps this book", all three now refuted, inside the function that computes the number they
+   describe. Until that lands, `site/data/value_arms.json` keeps publishing 38,275 and the sentence
+   that goes with it. **This is what keeps the finding BLOCKING.**
+4. One repeat of the 1,200 point on a genuinely idle box, to settle §3's open question — the run's
+   fixed cost is ~900s heavier than August's and I still cannot attribute it.

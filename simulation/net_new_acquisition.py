@@ -626,6 +626,102 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: guest). So on today's evidence nothing bounds this constant at 1,200 except an interval
 #: preference nobody has stated. 1,200 remains a historical number, and this note still says so.
 #:
+#: ── THE INTERVAL HAS BEEN STATED SINCE 2026-09-04, AND THIS NOTE MISSED IT FOR 17 DAYS ──────
+#:
+#: CORRECTED 2026-09-21, beside the claim rather than over it. The paragraph above ends "an
+#: interval preference nobody has stated", and that was true when written and went FALSE six
+#: days later. The director named it, verbatim, in `background/publish_freshness.py`:
+#:
+#:   *"The site publishes numbers and runs once a week, thoroughly and robustly, not every half
+#:   hour ... The reason is cost."* — director, 2026-09-04
+#:   `publish_freshness.PUBLISH_CADENCE_SECONDS = 7 * 24 * 60 * 60` (604,800s), and that module
+#:   declares itself "the SINGLE SOURCE OF TRUTH for that cadence".
+#:
+#: THE REASONING ABOVE WAS RIGHT AND IS WHY THIS IS A CONFIRMATION, NOT A RETRACTION. It located
+#: the interval as the director's to name rather than inventing one; he then named it. What
+#: failed is that nothing connected the two — the sentence sat here asserting the decision was
+#: outstanding while the decision was in the tree, and every reader of this constant since has
+#: been told the ceiling waits on something it does not.
+#:
+#: AND THE PROBE STILL PRICES THE CEILING ON THE CIRCULAR RULER. `settlement_ceiling_probe`'s
+#: `publisher_context()` reads `cadence_seconds` out of `publish_gate_duration.jsonl`, which
+#: `suite_duration_watch` stamps from ITS `PUBLISH_CADENCE_SECONDS` — 5,400s, and its own comment
+#: still says "it is a measurement of how often runs actually arrive". That is the exact constant
+#: the paragraphs above record as removed for circularity, reached by a second route nobody
+#: re-asked. The two live cadences differ by 112x. The probe was built for this: `recommend()`
+#: takes a CHOSEN `publish_interval_s` and flags `chosen: false` when it falls back — and nobody
+#: had ever passed one, so every reading it has produced carries the circular bound.
+#:
+#: SO THE ARITHMETIC MOVES, BUT THE NUMBER DOES NOT MOVE HERE YET, and the distinction is the
+#: whole point. A stated interval is not a ceiling; a cost curve turns it into one, and the curve
+#: is being measured now (`docs/observability/settlement_ceiling_slope_20260921.json`, launched
+#: 2026-09-21 against `--publish-interval 604800` on a producer-held box). Writing a new value
+#: from the old slope would be the move this file's own rules forbid, with a better-dressed
+#: justification than the last one. What can be said before it lands: at a weekly interval the
+#: time leg stops being the binding one by orders of magnitude, so the leg that binds becomes
+#: memory — and memory re-ruled to the records the book actually retains is ~38,275 customer-
+#: years. If that survives the measurement, nothing bounds 1,200 and the constant's own history
+#: is all that holds it there.
+#:
+#: ── THE CURVE LANDED, 2026-09-21T19:49Z, AND IT REFUTES THE PARAGRAPH ABOVE ─────────────────
+#:
+#: `docs/observability/settlement_ceiling_slope_20260921.json`, four full-window points at
+#: `--publish-interval 604800` (the director's stated weekly cadence). **THE PREDICTION DIRECTLY
+#: ABOVE — "memory re-ruled is ~38,275 customer-years; if that survives the measurement, nothing
+#: bounds 1,200" — DID NOT SURVIVE.** It is kept unedited because a prediction revised after its
+#: answer is not one.
+#:
+#:     budget     committed cy     wall (s)     peak RSS (MB)     clean
+#:      1,200        1,197.0        1,499.6         5,507.4        yes
+#:      2,000        1,995.2        2,666.5         8,504.7        no
+#:      2,800        2,799.3        4,591.5        12,501.8        no
+#:      3,400        3,135.5        5,296.0        13,920.9        yes
+#:
+#: Between the two CLEAN points: **1.958 s and 4.340 MB per marginal customer-year.** The middle
+#: two are labelled unclean by the probe itself — another process wrote
+#: `book_growth_campaign.json` mid-run, so their x-axis is not their own; their parent-side wall
+#: clock and RSS are uncontaminated, and they are reported rather than dropped.
+#:
+#: 1. **MEMORY IS NOT SLACK BY 4.5x. IT IS SLACK BY 1.09x, AND IT IS WHAT BINDS.** The re-ruled
+#:    38,275 came from `premise_population.settled_book_ceiling_customer_years`, which prices two
+#:    stage costs from an old scale probe — `settlement_build` and `run_output_serialization` —
+#:    at 0.224 MB per customer-year. Measured whole-run cost is **4.340 MB/cy, 19.4x higher**,
+#:    because those two stages were never the run's footprint, only one of its data structures.
+#:    The 2026-09-21 repair at `c58350e2e` was right to cut the record population from 17,520 to
+#:    289.4 and fixed a 59.7x error in the PESSIMISTIC direction; it left one of similar size in
+#:    the OPTIMISTIC one, which is the direction that licenses "memory is not what caps this
+#:    book". On the probe's 25%-of-guest share memory supports **1,312.3 customer-years**.
+#:
+#: 2. **THE INTERVAL QUESTION IS ALL BUT MOOT, WHICH NOBODY EXPECTED.** Across the menu the probe
+#:    was given — 90 minutes, 24 hours, one week, a factor of 112 — the supported ceiling moves
+#:    only from 1,194.6 to 1,312.3, **9.9%**. Time binds at 90 minutes; memory binds at both
+#:    longer intervals and caps it at 1,312.3 whatever he chooses. Four weeks of this note
+#:    treating the director's interval as the thing standing between us and a bigger book was
+#:    reasoning about the wrong leg.
+#:
+#: 3. **SO 1,200 IS DEFENDED BY MEASUREMENT FOR THE FIRST TIME — by arriving at it, not by having
+#:    chosen it.** It sits inside the whole admissible band (1,194.6–1,312.3): 0.45% above the
+#:    weekly-cadence time bound's sibling at 90 minutes, 8.6% below the memory bound. Every
+#:    paragraph above calling it "a historical number that survived because nothing forced the
+#:    question" was accurate and stays; what has changed is that the question has now been forced
+#:    and the number happens to be right. **NOT MOVED**, and deliberately: the band is ±10%, the
+#:    gain is precision rather than coverage since the 2026-08-29 allocation fix, and moving it
+#:    to 1,312 would spend the last of the memory headroom on a box with 107 lifetime OOM kills.
+#:
+#: 4. **AND THE WORLD CANNOT SUPPLY THE BOOK THE THESIS NEEDS, CEILING OR NO CEILING.** At 3,400
+#:    the campaign refused nothing — 500 funnel wins, 500 booked — so **3,135.6 customer-years is
+#:    the campaign's entire demand** and a ceiling above it buys no accounts at all. The smallest
+#:    leg of `what_would_settle_the_sign` needs 3,163.9. The world tops out ~28 customer-years
+#:    short of it, and 1,312.3 is where this box stops long before that. "This world cannot reach
+#:    it" is the complete answer, and it is now measured on both legs rather than asserted.
+#:
+#: WHAT IS STILL OWED, named so it is not read as closed. **Two live constants both declare
+#: themselves the publish cadence and they differ by 112x** — `publish_freshness` at 604,800s
+#: (the director's, 2026-09-04) and `suite_duration_watch` at 5,400s, which is what stamps
+#: `publish_gate_duration.jsonl` and therefore what the probe falls back to. That is a repo
+#: defect and not a director question. Filed:
+#: `docs/staging/SEAT_RESULT_THE_CEILING_COST_CURVE_IS_CONVEX_..._2026-09-21.md`.
+#:
 #: WHAT IS BEING MEASURED, AND WHY IT IS A CURVE AND NOT A NUMBER. A chosen interval only
 #: becomes a ceiling through a cost curve — seconds and MB per marginal customer-year — so the
 #: curve is the deliverable and the number is its consequence. `tools/settlement_ceiling_probe.py`
