@@ -215,7 +215,20 @@ class ChurnJourneyRegister:
         renewal_window_open: bool = False,
         perceived_bill_saving_gbp: float = 0.0,
     ) -> ChurnJourneyState:
-        journey = self._journeys[customer_id]
+        # A REFUSAL THAT NAMES ITS REASON, BECAUSE THE BARE ONE COST AN 880s RUN. On 2026-09-19 this
+        # line raised `KeyError: 'SYN-2016-008'` deep in a value-arm pass and said nothing about
+        # which book refused or what should have registered the account -- so the diagnosis needed
+        # the run re-driven against a truncated window. The caller was repaired at `3a8d15185`; this
+        # is the other half, and it is the half that survives the NEXT caller. The survey behind it
+        # (`tools/conditional_registration_survey.py`) found 37 of 38 raise-on-missing accessors in
+        # this tree refusing exactly as bare as this one did.
+        try:
+            journey = self._journeys[customer_id]
+        except KeyError:
+            raise KeyError(
+                f"{customer_id} has no churn journey: advance() was reached before "
+                f"register_customer(). {len(self._journeys)} accounts are registered."
+            ) from None
         return journey.advance(
             as_of, self.gri,
             renewal_window_open=renewal_window_open,

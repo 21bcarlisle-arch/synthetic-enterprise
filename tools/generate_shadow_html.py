@@ -1710,11 +1710,24 @@ def build_project(dash, latest_md, ts):
     modules = build.get("company_modules", "")
     sim_window = build.get("simulation_window", "")
 
+    # THESE THREE KEY NAMES WERE `git`, `date` AND `net_gbp` UNTIL 2026-09-20, AND THE PRODUCER
+    # HAS NEVER WRITTEN ANY OF THEM. `generate_dashboard_data.extract_run_history` passes the
+    # ledger entries straight through, and `generate_insights.append_run_history` builds them with
+    # `git_hash`, `generated_at` and `net_margin_gbp`. So all three `.get`s missed, every row
+    # rendered blank/blank/&pound;0, and `docs/shadow/project/index.html` -- committed, and served
+    # by the GitHub Pages workflow, which uploads `docs/` whole -- has carried ten rows of
+    # "&pound;0 net margin" since 2026-08-20. Measured on the committed page, not inferred.
+    #
+    # NO FALLBACK ON THE MONEY COLUMN. `r.get("net_gbp", 0)` is what turned three missing keys
+    # into a plausible published zero instead of a visible blank -- ARM 2 of
+    # `tools/structural_blank_guard.py`'s class, on a field that registry does not cover. `_gbp`
+    # and `_cls` both already render `None` as an em dash, so the blank states itself.
     hist_rows = ""
     for r in run_hist[:10]:
-        git = r.get("git", "")
-        date = r.get("date", "")
-        n = r.get("net_gbp", 0)
+        git = r.get("git_hash") or "&#8212;"
+        stamp = r.get("generated_at") or ""
+        date = stamp[:10] if stamp else "&#8212;"
+        n = r.get("net_margin_gbp")
         hist_rows += _row(git, date, '<span class="' + _cls(n) + '">' + _gbp(n) + "</span>")
 
     body = (
