@@ -229,9 +229,9 @@ def test_record_gate_run_appends_and_alarms(monkeypatch, tmp_path):
     # Re-measuring the cadence to 1500s left the 600s run UNDER it, so the second figure never
     # fired and the test reddened on an arrangement it had only ever assumed. Anchored to the
     # constant, the intent survives any future re-measurement.
-    over = sdw.PUBLISH_CADENCE_SECONDS * 2.0        # over the cadence, roomy on headroom -> ok
-    tight = sdw.PUBLISH_CADENCE_SECONDS * 5.0       # over the cadence AND short of headroom
-    ceiling = sdw.PUBLISH_CADENCE_SECONDS * 6.0
+    over = sdw.MEASURED_RUN_ARRIVAL_SECONDS * 2.0        # over the cadence, roomy on headroom -> ok
+    tight = sdw.MEASURED_RUN_ARRIVAL_SECONDS * 5.0       # over the cadence AND short of headroom
+    ceiling = sdw.MEASURED_RUN_ARRIVAL_SECONDS * 6.0
     sdw.record_gate_run(over, ceiling, "sha_ok_0001", "pass", p)      # headroom 0.67 -> ok
     sdw.record_gate_run(tight, ceiling, "sha_tight_01", "pass", p)    # headroom 0.17 -> tight
     rows = sdw.read_series(p)
@@ -452,11 +452,11 @@ def test_the_absolute_band_is_unmoved_by_a_ceiling_that_grew_to_fit():
     1250s is today's real gate run. Under every ceiling this project has shipped it is still four
     times the cadence, and the instrument must say so at 4500 exactly as loudly as at 600."""
     # RELATIVE TO THE CADENCE, NOT A LITERAL (2026-08-26). These durations were chosen
-    # when `PUBLISH_CADENCE_SECONDS` was 330; re-measuring it to 1500 (runs got ~7.7x
+    # when `MEASURED_RUN_ARRIVAL_SECONDS` was 330; re-measuring it to 1500 (runs got ~7.7x
     # slower as the book grew) turned them from 'comfortably over' into 'under', and the
     # tests reddened on a constant they were never about. A fixture that pins an absolute
     # number against a MEASURED quantity is the same defect this module exists to watch.
-    over = sdw.PUBLISH_CADENCE_SECONDS * 2.0
+    over = sdw.MEASURED_RUN_ARRIVAL_SECONDS * 2.0
     verdicts = {sdw.absolute_band(over) for _ in (600, 1800, 2600, 2900, 3400, 3600, 4500)}
     assert verdicts == {"over_cadence"}, "a verdict that moved with the ceiling is the old figure"
     # And the headroom ratio over the same runtime DOES move — which is why a second figure had
@@ -479,8 +479,8 @@ def test_a_genuinely_fast_gate_reads_within_the_cadence():
     alarm nobody reads. The gate measured 39s scoped and ~10 minutes two weeks ago; the first
     must read within and the second must not."""
     assert sdw.absolute_band(39.0) == "within_cadence"
-    assert sdw.absolute_band(sdw.PUBLISH_CADENCE_SECONDS - 1) == "within_cadence"
-    assert sdw.absolute_band(sdw.PUBLISH_CADENCE_SECONDS + 1) == "over_cadence"
+    assert sdw.absolute_band(sdw.MEASURED_RUN_ARRIVAL_SECONDS - 1) == "within_cadence"
+    assert sdw.absolute_band(sdw.MEASURED_RUN_ARRIVAL_SECONDS + 1) == "over_cadence"
 
 
 def test_the_absolute_band_fails_closed_on_what_it_cannot_measure():
@@ -562,9 +562,11 @@ def test_the_record_stores_the_absolute_verdict_and_the_cadence_it_used(tmp_path
     MUTATION: drop either key from `record()` and this fails."""
     p = tmp_path / "series.jsonl"
     # Relative to the cadence: a literal chosen against the old 330s reads within the new 1500s.
-    rec = sdw.record(sdw.PUBLISH_CADENCE_SECONDS * 2.0, 4500, "2c0ba712b", "pass", p)
+    rec = sdw.record(sdw.MEASURED_RUN_ARRIVAL_SECONDS * 2.0, 4500, "2c0ba712b", "pass", p)
     assert rec["cadence_band"] == "over_cadence"
-    assert rec["cadence_seconds"] == sdw.PUBLISH_CADENCE_SECONDS
+    assert rec["measured_arrival_seconds"] == sdw.MEASURED_RUN_ARRIVAL_SECONDS
+    assert "cadence_seconds" not in rec, (
+        "the field name that collided with publish_freshness's DECLARED cadence is back")
     assert json.loads(p.read_text().splitlines()[-1])["cadence_band"] == "over_cadence"
 
 
@@ -580,7 +582,10 @@ def test_the_read_surface_states_the_absolute_number_beside_the_ratio(tmp_path):
                              "outcome": "pass"}) + "\n")
     line = sdw.note_line(p)
     assert "72%" in line                      # the ratio still reads healthy...
-    assert "1247.73s is 3.8x the 330s cadence" in line   # ...and the absolute number says so
+    assert "1247.73s is 3.8x the 330s interval between the runs" in line  # ...and the
+    # absolute number says so. The fixture carries the LEGACY `cadence_seconds` key on
+    # purpose: 5,570 stored rows predate the 2026-09-21 rename, and this is the leg that
+    # proves `row_arrival_seconds` still reads them -- as an int, not "330.0s".
     assert "never reads it" in line
 
 
@@ -613,14 +618,14 @@ def test_the_cadence_is_read_from_a_measurement_not_an_aspiration():
     roots, reason = sdw.cadence_measurement_subject()
     if roots is None:
         pytest.skip(reason)
-    measured = sdw.measure_publish_cadence_seconds()
+    measured = sdw.measure_run_arrival_seconds()
     if measured is None:
         pytest.skip("fewer than three usable marker gaps on disk; nothing to measure against")
-    assert sdw.PUBLISH_CADENCE_SECONDS <= measured, (
-        f"cadence {sdw.PUBLISH_CADENCE_SECONDS}s is SOFTER than the measured "
+    assert sdw.MEASURED_RUN_ARRIVAL_SECONDS <= measured, (
+        f"cadence {sdw.MEASURED_RUN_ARRIVAL_SECONDS}s is SOFTER than the measured "
         f"{measured:.0f}s — the bound must never be looser than the observation")
-    assert sdw.PUBLISH_CADENCE_SECONDS >= measured * 0.5, (
-        f"cadence {sdw.PUBLISH_CADENCE_SECONDS}s is far below the measured {measured:.0f}s — "
+    assert sdw.MEASURED_RUN_ARRIVAL_SECONDS >= measured * 0.5, (
+        f"cadence {sdw.MEASURED_RUN_ARRIVAL_SECONDS}s is far below the measured {measured:.0f}s — "
         "an aspiration used as a bound is what wedged publishing twice on 2026-08-21")
 
 
@@ -658,20 +663,20 @@ def test_a_standalone_gate_checkout_refuses_to_measure_a_cadence(tmp_path, monke
         "a standalone `git init` gate checkout was accepted as the machine's marker series; that "
         "is the landing-gate refusal of 2026-09-03 exactly")
     assert "no `origin`" in reason, "a refusal must name its reason"
-    assert sdw.measure_publish_cadence_seconds() is None
+    assert sdw.measure_run_arrival_seconds() is None
 
     # NULL CONTROL: give the same tree an `origin` and it is a worktree of this repository again,
     # so it MEASURES. The refusal must key on ownership, not on the tree being temporary.
     subprocess.run(["git", "remote", "add", "origin", "https://example.invalid/x.git"],
                    cwd=str(tmp_path), check=True)
     assert sdw.cadence_measurement_subject()[0] is not None
-    assert sdw.measure_publish_cadence_seconds() == 3600.0
+    assert sdw.measure_run_arrival_seconds() == 3600.0
 
 
 def test_a_tree_that_cannot_see_the_machine_refuses_to_measure_a_cadence(tmp_path, monkeypatch):
     """THE DEFECT THIS NAMES, measured on 2026-09-03: the publish gate ran a checkout of HEAD
     holding a 3.5-hour-stale COMMITTED subset of the marker series, measured 3,009s off it, and
-    failed `PUBLISH_CADENCE_SECONDS` — a constant calibrated on the working tree's 1,685.5s — by
+    failed `MEASURED_RUN_ARRIVAL_SECONDS` — a constant calibrated on the working tree's 1,685.5s — by
     4.5 seconds. Four consecutive gate failures, all publishing blocked, because the two sides of
     the comparison were never the same series and nothing said so.
 
@@ -696,13 +701,13 @@ def test_a_tree_that_cannot_see_the_machine_refuses_to_measure_a_cadence(tmp_pat
         "a non-git throwaway checkout was accepted as the machine's marker series; that is the "
         "publish-gate wedge of 2026-09-03 exactly")
     assert "not a git repository" in reason, "a refusal must name its reason"
-    assert sdw.measure_publish_cadence_seconds() is None, (
+    assert sdw.measure_run_arrival_seconds() is None, (
         "the measurement reported a number for a tree that cannot observe the machine")
 
     # NULL CONTROL: the refusal must key on the SUBJECT being unknowable, not on the markers
     # being unreadable. Name the same directory explicitly and it measures, because a caller
     # naming its own subject has already answered the question.
-    assert sdw.measure_publish_cadence_seconds(markers_dir=snapshot) == 3600.0
+    assert sdw.measure_run_arrival_seconds(markers_dir=snapshot) == 3600.0
 
 
 def test_a_killed_run_is_not_certified_as_inside_the_cadence():
@@ -720,13 +725,13 @@ def test_a_killed_run_is_not_certified_as_inside_the_cadence():
 
     THE ABOVE-CADENCE LEG IS DERIVED, NOT PINNED (2026-09-17). It read a literal 4503.7s, which
     was above the cadence when it was written and stopped being above it the moment
-    `PUBLISH_CADENCE_SECONDS` was re-measured 1500 -> 5400. The leg then tested nothing it was
+    `MEASURED_RUN_ARRIVAL_SECONDS` was re-measured 1500 -> 5400. The leg then tested nothing it was
     written to test -- it had quietly become a SECOND below-cadence case, and it went red only
     because `over_cadence` and `unknown` differ. Both legs now say what they mean in terms of the
     constant, so a future re-measurement moves them with it. The below-cadence leg keeps its
     literal 304.05s because that is the REAL row that found the defect, and its precondition is
     now asserted rather than assumed."""
-    cadence = sdw.PUBLISH_CADENCE_SECONDS
+    cadence = sdw.MEASURED_RUN_ARRIVAL_SECONDS
     assert 304.05 < cadence, (
         "the found-in-the-wild row is no longer BELOW the cadence, so it can no longer exercise "
         "the censoring branch it was written for -- the cadence has fallen far enough that this "
