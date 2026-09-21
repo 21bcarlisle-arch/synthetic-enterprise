@@ -93,6 +93,8 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
+import json
 import os
 import re
 import subprocess
@@ -121,6 +123,58 @@ ROOT = Path(__file__).resolve().parent.parent
 PY_SUFFIXES = (".py",)
 PAGE_SUFFIXES = (".html", ".js")
 READABLE = PY_SUFFIXES + PAGE_SUFFIXES
+
+#: Suffixes `symbols()` can read but `READABLE` deliberately does NOT include, so the COMMIT guard
+#: is unchanged by their arrival. The distinction is the whole of this addition: `violations()` and
+#: `judge()` gate on `READABLE` and run on every commit in a tree three lanes write, where a daemon
+#: rewriting a `.json` ledger between two commits is ordinary operation -- widening READABLE would
+#: red every lane for a carrier's normal churn. The ADVANCE's losslessness door has the opposite
+#: problem and is where this is consumed: `tools/refresh_to_head.judge_copy` answered every `.json`
+#: blocker "this control has no reader for .json files, so it CANNOT establish that the copy has
+#: nothing to lose", which is fail-closed and correct and ALSO permanently unresolvable -- and under
+#: `origin_reconcile.advance_shared_tree`'s all-or-nothing rule ONE permanently unresolvable path is
+#: fatal to every class beside it. Measured on the shared tree 2026-09-21: of 11 paths holding the
+#: fast-forward, 6 got this answer and only the generated-output oracle rescued 5 of them.
+DATA_SUFFIXES = (".json",)
+
+
+def _json_leaf_names(text: str, path: str) -> frozenset[str]:
+    """A JSON document's leaves as `key.path=<digest of value>` names.
+
+    THE VALUE IS IN THE NAME, AND THAT IS THE FAIL-OPEN THIS AVOIDS. Keyed on the key-path alone,
+    a copy that REWROTE every value while keeping the shape supplies no name the base lacks and
+    would be cleared as "superseded" -- destroying an edit while looking checked. That is exactly
+    the collapse `_PAGE_ANCHORS` warns about one class over. With the value digested into the name,
+    any changed leaf reads as BOTH a name supplied and a name dropped, so the copy refuses; only a
+    copy whose every leaf is present AND equal in the base can be strictly superseded by it.
+
+    LIST POSITION IS PART OF THE PATH, so a reordering or an insertion refuses. Conservative on
+    purpose: this decides whether a file is written over, and an ordering nobody proved irrelevant
+    is not one this control may flatten.
+    """
+    try:
+        doc = json.loads(text)
+    except ValueError as exc:
+        raise Unparseable("{} does not parse as JSON: {}".format(path, exc)) from exc
+    names: set[str] = set()
+
+    def walk(node, trail: str) -> None:
+        if isinstance(node, dict):
+            if not node:
+                names.add("{}={{}}".format(trail))
+            for key, value in node.items():
+                walk(value, "{}.{}".format(trail, key) if trail else str(key))
+        elif isinstance(node, list):
+            if not node:
+                names.add("{}=[]".format(trail))
+            for index, value in enumerate(node):
+                walk(value, "{}[{}]".format(trail, index))
+        else:
+            names.add("{}={}".format(trail, hashlib.sha256(
+                json.dumps(node, sort_keys=True).encode("utf-8")).hexdigest()[:16]))
+
+    walk(doc, "")
+    return frozenset(names)
 
 #: The name-bearing anchors of a page. NOT "every symbol" -- an id and a function declaration are
 #: what another lane's landed work adds to a page and a stale copy silently removes. Narrow on
@@ -278,6 +332,8 @@ def symbols(text: str, path: str) -> frozenset[str] | None:
         for pattern in _PAGE_ANCHORS:
             found.update(pattern.findall(text))
         return frozenset(found)
+    if suffix in DATA_SUFFIXES:
+        return _json_leaf_names(text, path)
     return None
 
 

@@ -77,6 +77,7 @@ from pathlib import Path
 # `judge()` is refusal 2 entire. Re-deriving either would be a second opinion about what a stale
 # copy is, and two answers to that question is the defect this class already banked.
 from tools.stale_copy_refusal import (
+    DATA_SUFFIXES,
     READABLE,
     Dead,
     Unparseable,
@@ -235,7 +236,13 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     about the tree the path is about to hold and the act is the one that lets it get there.
     """
     staged = _staged_paths(root) if staged is None else staged
-    if Path(path).suffix not in READABLE:
+    # THE ADVANCE'S DOOR READS ONE SUFFIX CLASS WIDER THAN THE COMMIT GUARD, and the asymmetry is
+    # deliberate. `READABLE` gates `violations()` on every commit in a tree three lanes write, where
+    # a daemon rewriting a `.json` ledger between two commits is ordinary operation. Here the
+    # question is only ever asked of a path already HOLDING a fast-forward, and answering it
+    # "no reader" made that path PERMANENTLY unresolvable -- which, under the all-or-nothing rule in
+    # `origin_reconcile.advance_shared_tree`, is fatal to every other blocker beside it.
+    if Path(path).suffix not in READABLE + DATA_SUFFIXES:
         return Verdict(path, NO_READER,
                        "this control has no reader for {} files, so it CANNOT establish that the "
                        "copy has nothing to lose. An unavailable check is a failed check.".format(
@@ -273,6 +280,38 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         return Verdict(path, NO_READER,
                        "no symbol reader for this path, so 'supplies nothing HEAD lacks' is "
                        "unestablished and the refresh is not licensed.")
+    if Path(path).suffix in DATA_SUFFIXES:
+        # A DATA DOCUMENT IS ANSWERED IN ITS OWN TERMS AND NOT IN PYTHON'S. `cuts_among` and
+        # `dead_among` are both arguments about Python: whether the base DELETED a name on purpose,
+        # and whether a name could RUN against the base's module. Neither sentence means anything
+        # about a JSON leaf, and running them here would dress a vacuous answer as a measured one.
+        # So the subset question is asked directly -- which is all rules 1 and 2 ever were for a
+        # document whose every leaf carries its own value (see `_json_leaf_names`).
+        supplies = tuple(sorted(work_names - head_names))
+        drops = tuple(sorted(head_names - work_names))
+        if supplies:
+            return Verdict(path, SUPPLIES_NEW,
+                           "this copy supplies {} JSON leaf/leaves {} does not have (e.g. {}), so "
+                           "it is NOT a copy {} supersedes. A leaf name carries its own value, so "
+                           "this counts a key the base lacks and a key whose VALUE was edited "
+                           "alike -- both are content the refresh would destroy. Decide which "
+                           "document wins and land it deliberately.".format(
+                               len(supplies), base,
+                               ", ".join(s.split("=")[0] for s in supplies[:3]), base),
+                           gains=supplies)
+        if not drops:
+            return Verdict(path, NOT_SUPERSEDED,
+                           "every JSON leaf in this copy is present in {} with an equal value and "
+                           "it drops none, so the two documents differ only in FORMATTING. There "
+                           "is nothing for {} to supersede and nothing to refresh.".format(
+                               base, base))
+        return Verdict(path, REFRESHABLE,
+                       "rival copy: it supplies NO JSON leaf {} lacks and DROPS {} that {} has "
+                       "(e.g. {}), so {} strictly supersedes it leaf for leaf.".format(
+                           base, len(drops), base,
+                           ", ".join(d.split("=")[0] for d in drops[:3]), base),
+                       gains=(), dead=(),
+                       discarded=_discarded_lines(head_text, work_text))
     # A NAME THE BASE CUT ON PURPOSE IS NOT HOLDER WORK, AND THIS TOOL WAS GATED ON THE OPPOSITE
     # READING. Rule 1 asks "does the copy supply a name the base lacks" as a set difference, and
     # `WORKER_FINDING_THE_HOLDER_WORK_VERDICT_NAMED_A_FORBIDDEN_IMPORT_AS_WORK_TO_LAND` is what that

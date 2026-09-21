@@ -124,9 +124,22 @@ def test_a_lost_method_is_seen_and_a_module_level_reader_would_miss_it(repo: Pat
 
 def test_an_unreadable_suffix_yields_no_opinion_and_never_an_empty_set(repo: Path) -> None:
     """VACUITY. Folded to an empty set, both sides compare equal, no strict subset exists, and the
-    path is waved through WHILE LOOKING CHECKED -- useless without ever being fail-open."""
+    path is waved through WHILE LOOKING CHECKED -- useless without ever being fail-open.
+
+    `.json` WAS THIS LEG'S SECOND EXAMPLE AND IS NOW ITS THIRD ASSERTION, which is a repair and not
+    a weakening. It stood here as an unreadable suffix until 2026-09-21, when `DATA_SUFFIXES` gave
+    the ADVANCE's door a reader for it -- see `tests/tools/
+    test_a_json_blocker_was_permanently_unresolvable_and_held_every_class_beside_it.py` for why a
+    permanently-unresolvable blocker was fatal to every class beside it. So the example had to move
+    to a suffix that is genuinely unread, and the interesting question for `.json` became the one
+    below: an EMPTY document must still not be the empty set, or the vacuity this leg exists to
+    forbid walks straight back in through the new reader.
+    """
     assert scr.symbols("anything at all", "docs/x.md") is None
-    assert scr.symbols("{}", "site/data/dashboard.json") is None
+    assert scr.symbols("subject,count\na,1\n", "docs/x.csv") is None
+    assert scr.symbols("{}", "site/data/dashboard.json") not in (None, frozenset()), (
+        "an empty JSON document read as the empty set compares equal to every other empty "
+        "document, so a truncated-to-`{}` ledger would be graded a strict subset of anything")
 
 
 def test_an_unparseable_python_blob_is_a_finding_not_a_skip(repo: Path) -> None:
