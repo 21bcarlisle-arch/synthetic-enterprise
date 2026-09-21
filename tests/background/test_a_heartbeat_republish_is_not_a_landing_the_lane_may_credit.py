@@ -59,6 +59,25 @@ MUTATIONS (each must fire, and which leg catches it):
       reds on both of its halves;
   (f) put the liveness test in `_landed_unbound` instead of `_window_hits`, so the sibling reading
       still calls a heartbeat a landing -- `test_THE_SIBLING_READING_APPLIES_THE_SAME_RULE` reds.
+
+THE RULE WAS ON THE READER ONLY UNTIL 2026-09-21, WHICH IS THE OTHER HALF OF THE SAME DEFECT, and
+the legs below the `--- THE WRITER ---` banner are that half. Everything above grades
+`_window_hits`, which DESCRIBES the ledger. `record_landing` is what FILLS IT IN, it takes
+`commit: str = "HEAD"` because every documented call is the bare `--landed <id>`, and 28 of the
+last 200 HEADs on this record are pure liveness republishes -- so the writer went on binding
+exactly the commits the reader had learned to refuse. A control pinning the reader is blind to a
+cap in the writer; this project has a register entry for the shape and walked into it again here.
+
+WRITER MUTATIONS (each must fire, and which leg catches it):
+  (g) delete the liveness clause from `record_landing` -- the writer partition's heartbeat leg
+      reds, and its work and mixed legs are what stop a binder that refuses everything passing;
+  (h) leave the clause but not the cause-naming in `refusal_reason` --
+      `test_THE_WRITERS_REFUSAL_NAMES_THE_HEARTBEAT_AND_THE_COMMIT_FLAG_THAT_ESCAPES_IT` reds;
+  (i) judge the INTERSECTION with the claim's named paths here rather than the whole commit (the
+      reader's question, asked in the wrong place) -- the writer's heartbeat leg reds, because the
+      row below names a liveness path and the intersection would be non-empty either way;
+  (j) fall back to "nothing is liveness" when the declaration will not read --
+      `test_AN_UNREADABLE_DECLARATION_REFUSES_THE_WRITE_TOO` reds.
 """
 from __future__ import annotations
 
@@ -66,6 +85,7 @@ import pytest
 
 from background import delivery_lane as dl
 from background import publish_gate_blocking_read as liveness_home
+from background import seat_work_in_hand as claims_mod
 from tests.background import residual_voices
 
 #: Taken from the one declaration, never typed. See the module docstring.
@@ -229,3 +249,127 @@ def test_THE_RESIDUAL_SAYS_TWELVE_HEARTBEATS_TOUCHED_YOUR_PATHS_rather_than_noth
     assert (verdict["disposition"] == dl.NOT_DONE
             and residual_voices.looked_and_found_nothing(verdict)
             and "liveness surface" in verdict["evidence"]), verdict
+
+
+# --- THE WRITER -------------------------------------------------------------------------------
+# Everything above grades the reading. `record_landing` is the WRITE, and until 2026-09-21 it had
+# none of this: see the module docstring's second half for why that is the more expensive side.
+
+
+def _fake_git_commit(touched: list[str]):
+    """A `_git` answering the three queries `_commit_facts` asks of a single-parent commit.
+
+    A SEPARATE FAKE FROM `_fake_git`, deliberately, and not a flag on it. That one's whole value is
+    that it prints filenames only when `--name-only` is in the ARGS, which is what makes the
+    reader's mutation (c) fire; the writer asks `show` and always passes the flag, so folding the
+    two together would either lose that property or grow a branch nobody grades. Going through
+    `_commit_facts` for real rather than stubbing it keeps `record_landing`'s own ordering under
+    test: the clause has to sit after the paths are known and before the bind.
+    """
+    def fake(*args: str) -> str | None:
+        if not args:
+            return ""
+        if args[0] == "rev-list":
+            return "{} {}".format(args[-1], "d" * 40)
+        if args[0] == "show" and "-s" in args:
+            return "{:.0f}\n".format(IN_WINDOW)
+        if args[0] == "show":
+            return "\n".join(touched) + "\n"
+        return ""
+    return fake
+
+
+def _bind(monkeypatch, tmp_path, touched: list[str]) -> list[str]:
+    """What `record_landing` binds to a live claim from a commit touching exactly `touched`."""
+    store = tmp_path / "claims.json"
+    claims_mod.claim(FOCUS_ID, "doing the thing", paths=[], path=store, now=DRAWN_AT)
+    monkeypatch.setattr(dl, "_git", _fake_git_commit(touched))
+    return dl.record_landing(FOCUS_ID, commit=WORK_SHA, path=store)
+
+
+def test_THE_WRITERS_PARTITION_a_heartbeat_binds_nothing_and_real_work_still_binds(
+        monkeypatch, tmp_path):
+    """The writer's whole partition in one statement, for the reason the reader's is one too.
+
+    A binder that returns `[]` to everything satisfies the middle leg alone, and this project has
+    entered that trap through three separate doors in one afternoon. The third leg is the one that
+    separates the rule from an over-correction: the publisher's 52-file republish is a perfectly
+    good landing for a claim naming any of the other fifty-one, so CONFINED-to is the test and
+    TOUCHES is not.
+    """
+    work_only = _bind(monkeypatch, tmp_path / "a", [WORK_PATH])
+    heartbeat_only = _bind(monkeypatch, tmp_path / "b", [LIVENESS_PATH])
+    mixed = _bind(monkeypatch, tmp_path / "c", [LIVENESS_PATH, WORK_PATH])
+
+    assert (work_only == [WORK_PATH]
+            and heartbeat_only == []
+            and sorted(mixed) == sorted([LIVENESS_PATH, WORK_PATH])), (
+        work_only, heartbeat_only, mixed)
+
+
+def test_THE_WRITER_JUDGES_THE_WHOLE_COMMIT_not_its_overlap_with_the_claims_named_paths(
+        monkeypatch, tmp_path):
+    """The reader's question asked here would be the wrong one, and it would look right.
+
+    `_window_hits` judges a commit's INTERSECTION with the claim's paths because it is choosing
+    among commits that already touched them. `record_landing` has no intersection to take -- the
+    caller named a commit, not a claim's paths -- and a claim that happens to name a liveness path
+    would then have a republish's overlap read as "work confined to nothing else", or not, on a
+    fact about the CLAIM rather than about the COMMIT. Judging the whole commit is the stricter
+    side and the one keyed to the property: did this commit carry work at all?
+
+    The claim here names NO paths, so an intersection-based binder has nothing to intersect and
+    every branch of it would have to invent an answer. The commit is still a heartbeat.
+    """
+    store = tmp_path / "claims.json"
+    claims_mod.claim(FOCUS_ID, "a claim naming nothing", paths=[], path=store, now=DRAWN_AT)
+    monkeypatch.setattr(dl, "_git", _fake_git_commit([LIVENESS_PATH]))
+
+    assert dl.record_landing(FOCUS_ID, commit=HEARTBEAT_SHA, path=store) == []
+
+
+def test_THE_WRITERS_REFUSAL_NAMES_THE_HEARTBEAT_AND_THE_COMMIT_FLAG_THAT_ESCAPES_IT(
+        monkeypatch, tmp_path):
+    """A refusal that does not say WHY gets the wrong repair, and here both wrong ones are dear.
+
+    Read as "the lane is broken" it gets the bind retried against the same republish; read as "my
+    work did not land" it gets the work done again. What it means is neither: you landed real work
+    and then bound the wrong commit, because `--landed <id>` defaults to HEAD and a republish got
+    there first. So the reason names the class AND the escape, and both are asserted -- a reason
+    saying "heartbeat" without telling a caller who has never passed `--commit` that it exists
+    leaves them with a correct diagnosis and no move.
+    """
+    store = tmp_path / "claims.json"
+    claims_mod.claim(FOCUS_ID, "doing the thing", paths=[], path=store, now=DRAWN_AT)
+    monkeypatch.setattr(dl, "_git", _fake_git_commit([LIVENESS_PATH]))
+
+    reason = dl.refusal_reason(FOCUS_ID, commit=HEARTBEAT_SHA, path=store)
+
+    assert ("HEARTBEAT" in reason and LIVENESS_PATH in reason and "--commit" in reason), reason
+
+
+def test_AN_UNREADABLE_DECLARATION_REFUSES_THE_WRITE_TOO(monkeypatch, tmp_path):
+    """The three-valued discipline on the writing side: a check that cannot answer refuses.
+
+    The flattering fallback is the same one the reader had available -- "the declaration is empty,
+    so nothing is liveness, so bind it" -- and it is worse here, because the reader's version of
+    that mistake writes a sentence and this one writes the ledger.
+
+    THE REFUSAL IS TOTAL, AND SAYING SO IS THE POINT. An unreadable declaration refuses the bind
+    for a commit of plain work too, because nothing can be shown to carry work when the thing that
+    says what does not carry work will not read. The cost is one unbound increment and a sweep, and
+    a swept row is redrawn. So this leg's own danger is that "refused" is what a permanently broken
+    binder looks like -- which is why the control is the SAME work commit through an INTACT
+    declaration, in the same statement: only a binder that reads the declaration passes both.
+
+    IT BREAKS THE REAL DECLARATION, for the reason the reader's twin gives: emptying
+    `publish_gate_blocking_read.LIVENESS_SURFACE_FILES` is the state a publisher-side mistake
+    actually produces, and it reaches the code under test through the import production takes.
+    """
+    with_declaration = _bind(monkeypatch, tmp_path / "intact", [WORK_PATH])
+    monkeypatch.setattr(liveness_home, "LIVENESS_SURFACE_FILES", ())
+    heartbeat = _bind(monkeypatch, tmp_path / "broken-heartbeat", [LIVENESS_PATH])
+    work = _bind(monkeypatch, tmp_path / "broken-work", [WORK_PATH])
+
+    assert (with_declaration == [WORK_PATH] and heartbeat == [] and work == []), (
+        with_declaration, heartbeat, work)

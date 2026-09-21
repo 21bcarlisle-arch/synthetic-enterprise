@@ -492,6 +492,26 @@ def _liveness_surface_or_raise() -> frozenset[str]:
     return surface
 
 
+def _is_liveness_only(touched, surface: frozenset[str]) -> bool:
+    """Do these paths carry NOTHING but the publisher's declared liveness surface?
+
+    ONE PREDICATE FOR THE READER AND THE WRITER, and that is the whole reason it is a function.
+    `_window_hits` asked this of a commit's INTERSECTION with a claim's paths from 2026-09-19;
+    `record_landing` -- which is what actually WRITES the credit -- asked it of nothing at all, so
+    the rule existed on the side that only describes the ledger and not on the side that fills it
+    in. A control pinning the reader is blind to the writer, and this project has a register entry
+    for exactly that shape. Two spellings of one rule would drift the day the surface grows.
+
+    `touched and` IS LOAD-BEARING IN BOTH CALLERS and is not defensive tidiness: the empty set is
+    vacuously a subset of everything, so without it a commit whose paths could not be listed reads
+    as a heartbeat and becomes permanently uncreditable -- a new fail-silent in the direction
+    neither caller was aimed at. `_window_hits`' docstring carries the measurement that keeps those
+    commits; in `record_landing` an empty list is already refused one line earlier as "unreadable
+    or touched no files", so this can only ever see a non-empty set there.
+    """
+    return bool(touched) and set(touched) <= surface
+
+
 def _git_or_raise(*args: str) -> str:
     """`_git`, with the unavailable case raised instead of returned. `""` is an ANSWER and is kept.
 
@@ -1350,7 +1370,8 @@ def _window_hits(focus_id: str, row: dict,
             continue
         if not (drawn <= when <= window_ends):
             continue
-        (liveness_only if touched and touched <= surface else hits).append((sha, when, subject))
+        (liveness_only if _is_liveness_only(touched, surface) else hits).append(
+            (sha, when, subject))
     return paths, hits, liveness_only
 
 
@@ -2639,9 +2660,9 @@ def near_claim_ids(focus_id: str, *, path: Path | None = None) -> list[str]:
 
 def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
                    since: str | None = None) -> str:
-    """WHICH of `record_landing`'s four refusals fired. Called only after one did.
+    """WHICH of `record_landing`'s refusals fired. Called only after one did.
 
-    The refusal used to recite all four causes at once, which is the same as naming none: the
+    The refusal used to recite all its causes at once, which is the same as naming none: the
     caller reads "not claimed, or unreadable, or empty, or older than the first draw" and still
     has to open the store to find out which. Two of those mean STOP AND LOOK (an unreadable
     commit, an unclaimed id) and one is ordinary (an id already released after finishing). A
@@ -2697,6 +2718,20 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
             if len(ancestry) > 2:
                 return _merge_base_side(commit, ancestry[1:])[1]
             return f"{commit} is UNREADABLE or touched no files -- there are no paths to bind"
+        # THE REFUSAL HAS TO SAY *HEARTBEAT*, because the caller's next move depends on it and the
+        # two available misreadings are both expensive. Read as "the lane is broken" it gets the
+        # bind retried against the same republish; read as "my work did not land" it gets the work
+        # redone. What it actually means is: you landed real work and then bound the wrong commit,
+        # so name that commit and the bind will take. The `--commit` spelling is printed because
+        # this refusal is overwhelmingly reached from the bare `--landed <id>` form, whose HEAD
+        # default is the whole mechanism of the defect, and a reader who has never passed
+        # `--commit` has no reason to know it exists.
+        if _is_liveness_only(paths, _liveness_surface_or_raise()):
+            return (f"{commit} is a HEARTBEAT, not a landing -- everything it touched "
+                    f"({', '.join(paths)}) is in the publisher's declared liveness surface, so it "
+                    f"carries no work any claim can be credited with. This is what the `--commit` "
+                    f"default of HEAD binds when a liveness republish lands between your commit "
+                    f"and this call: re-run it as `--landed {focus_id} --commit <your own sha>`")
         # NOT `since`: that is now the REF parameter above, and a float landing on top of it
         # would read as the same quantity twice.
         first_drawn = _binding_instant(focus_id, rec, store)
@@ -2861,6 +2896,8 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
     REFUSES, returning `[]` and writing nothing, when:
       * `focus_id` is not claimed — there is no deadline to inform;
       * the commit is unreadable or touched no files;
+      * the commit is a HEARTBEAT — everything it touched is in the publisher's declared liveness
+        surface, so it carries no work any claim could be credited with. See below;
       * the commit is NOT NEWER than the id's FIRST DRAW. On a first draw that is `claimed_at`
         and the rule is unchanged: an older commit is somebody else's work. On a RE-ISSUED claim
         it reaches back to when this id first became somebody's work, because the commit that
@@ -2868,6 +2905,35 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         still not a heartbeat: binding a commit older than `claimed_at` gives the deadline a
         subject without restarting it (`seat_work_in_hand.last_progress` takes the max), so the
         claim is swept on schedule anyway if this tick lands nothing of its own.
+
+    THE COMMIT IS IMPLICIT AND THAT IS WHY THE HEARTBEAT REFUSAL BELONGS HERE (2026-09-21). Every
+    documented call is the bare `--landed <id>` above, whose `--commit` default is `HEAD` -- so
+    what gets bound is whatever HEAD happens to be at the instant the tick remembers to run it,
+    and 28 of the last 200 HEADs on this record are pure liveness republishes. A tick that lands
+    real work, then runs this one republish later, binds the republish's paths and restarts its
+    deadline from the republish's timestamp: a claim credited for work it did not do, in the one
+    direction that never recovers, because a swept row is redrawn and a credited row is not.
+
+    REFUSING THE IMPLICIT COMMIT OUTRIGHT WAS THE OTHER CANDIDATE AND IS REJECTED. `HEAD` is the
+    only spelling the executor's own instructions to an isolated turn give, and `--landed` with no
+    commit is what every tick in the machine runs; making that a refusal would silence the ledger
+    for every caller in order to close a hole that only the heartbeat class actually walks through.
+    The heartbeat rule is narrower, keyed to the property (does this commit carry work?) rather
+    than to how the caller spelt it, and catches the explicit `--commit <a-republish-sha>` too.
+
+    IT IS THE SAME RULE THE READER HAS HAD SINCE 2026-09-19, through the same predicate
+    (`_is_liveness_only`) and the same declaration. What it is NOT is the same QUESTION: the reader
+    judges a commit's INTERSECTION with the claim's named paths, because there it is choosing among
+    commits that already touched them. Here there is no intersection to take -- the caller has
+    named a commit, not a claim's paths -- so it judges the whole commit, which is the stricter and
+    safer side: a republish is refused, and a 52-file commit that happens to include the heartbeat
+    is still a landing.
+
+    AN UNREADABLE DECLARATION REFUSES THE BIND, via the `except` below. That is deliberate and is
+    the same three-valued discipline the reader takes: nothing can be SHOWN to carry work, and the
+    flattering reading -- "then nothing is liveness, so credit it" -- is the fail-open arriving
+    through the check's own failure. The cost is one unbound increment and a sweep; the cost the
+    other way is a permanent false credit.
 
     Never raises: it is called from a tick that has just committed, and losing the binding is a
     false alarm 100 minutes later, while raising would lose the tick.
@@ -2884,6 +2950,8 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
             return []
         when, paths = _commit_facts(commit, since)
         if not paths:
+            return []
+        if _is_liveness_only(paths, _liveness_surface_or_raise()):
             return []
         if claimed_at is None:
             # Pin a claim the ledger predates (it was drawn before this ledger existed, or by a
