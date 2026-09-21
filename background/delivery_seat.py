@@ -339,6 +339,163 @@ def commit_shape(since: datetime, now: datetime | None = None) -> dict:
     }
 
 
+#: A process below this is a COMMAND, not a job: the `ps` that produces this reading, a `git`
+#: the brief itself shells out to, the shell around them. Nothing that finishes inside a minute
+#: can change what the seat writes as its focus. Set against the case that motivated the reading
+#: rather than against a round number -- a value-arm leg four minutes from finishing MUST appear,
+#: so the floor has to sit well below that, and `SESSION_TIMEOUT_SECONDS` (1800) is far too high
+#: to be the floor even though it is the right ceiling for "will outlive this turn".
+ELAPSED_FLOOR_SECONDS = 60
+
+def _project_namespaces() -> set[str]:
+    """Top-level package directories, so an argv can be told to be THIS PROJECT'S work.
+
+    Read off the tree rather than typed, because anything else on the machine
+    (networkd-dispatcher, unattended-upgrades) is somebody else's python and is not the seat's
+    business -- and because a hand-typed list of package names would go stale the first time one
+    is added.
+
+    IT IS THE PRESENCE OF PYTHON, NOT OF `__init__.py`. Every top-level package here is a
+    NAMESPACE package: `background`, `tools`, `simulation` and `saas` have no `__init__.py`
+    between them, and an earlier draft of this asking for one found exactly `company` and `tests`
+    -- so `python3 -m background.anything` was dropped from the reading entirely, and the live box
+    only looked right because a long argv happened to also mention a file path.
+    """
+    try:
+        return {p.name for p in PROJECT_DIR.iterdir()
+                if p.is_dir() and not p.name.startswith(".") and any(p.glob("*.py"))}
+    except OSError:
+        return set()
+
+
+def _job_name(tokens: list[str]) -> str:
+    """The MODULE a process runs, which is how a person names a long job when they talk about it.
+
+    `python3 -m background.launch_long_job` is "background.launch_long_job", not "python3". The
+    argv head is kept alongside for the cases this cannot name, but a reading whose every row said
+    `/usr/bin/python3` would be the "buried at a glance" failure the ask names explicitly.
+
+    ONLY THE INTERPRETER'S OWN `-m` COUNTS, and that restriction was earned on the live box on the
+    first run of this reading: a sibling `claude -p` seat was named `tools.surgical_land`, because
+    its PROMPT recites `python3 -m tools.surgical_land` as the instruction for how to land. A
+    scan of every token for `-m` reads any process that merely MENTIONS a module as running it --
+    the identical defect `process_reconciler._runs_daemon` exists to refuse, arrived at again from
+    a different direction. So the executable must be a python, and the scan stops at the first
+    non-option token, which is where the interpreter's arguments end and the program's begin.
+    """
+    if not tokens:
+        return "?"
+    if os.path.basename(tokens[0]).startswith("python"):
+        i = 1
+        while i < len(tokens):
+            tok = tokens[i]
+            if tok == "-m" and i + 1 < len(tokens):
+                return tokens[i + 1]
+            if not tok.startswith("-"):
+                return tok           # the script path: the interpreter's options are over
+            i += 1
+    return os.path.basename(tokens[0])
+
+
+def _elapsed_phrase(seconds: int) -> str:
+    """`17h42m`, `4m10s`. A number of seconds is not readable at a glance and this reading's whole
+    claim is that it is -- the seventeen-hour duplicate run had to be obvious, not computed."""
+    if seconds >= 3600:
+        return "{}h{:02d}m".format(seconds // 3600, (seconds % 3600) // 60)
+    if seconds >= 60:
+        return "{}m{:02d}s".format(seconds // 60, seconds % 60)
+    return "{}s".format(seconds)
+
+
+def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
+    """WHAT IS ON THE BOX, with the DECLARED permanent daemons subtracted.
+
+    Six consecutive orientations ran this `ps` by hand, and twice in a row the answer changed what
+    the seat wrote: once it would have said "launch the ON leg" about a leg four minutes from
+    finishing. The expensive precedent is the seventeen-hour duplicate floor run that was ordered
+    killed, never killed, and ended only because it happened to finish. None of that is visible in
+    a commit list, a divergence or a findings count -- the brief's other six readings all describe
+    the TREE, and a job that has not landed yet is in none of them.
+
+    THE SUBTRACTION IS THE WHOLE DESIGN, and it is why this is not just `ps`. The permanent daemons
+    are the LONGEST-running processes on the box -- days, against a job's hours -- so an elapsed
+    floor alone sorts them straight to the top and buries the one row that matters. The stated
+    failure for this reading is exactly that: "lists every python process including the four
+    permanent daemons, so the one long job that matters is buried". They are subtracted using
+    `process_manifest.yaml`, the single declaration of what SHOULD be running, and the token match
+    `process_reconciler._runs_daemon` already got right -- a substring test counts `grep
+    ntfy_responder` as the daemon, which false-positived a control within minutes of going live.
+    So the day a daemon is added, it is added to the manifest because nothing starts it otherwise,
+    and it stops appearing here without this function being touched.
+
+    "NOTHING LONG IS RUNNING" IS A POSITIVE STATEMENT. An empty list and a reading that failed are
+    the same shape on the page and opposite in meaning, so `nothing_long_running` is only True when
+    the `ps` actually ran and returned rows to filter. `available: False` says the other thing.
+
+    No scheduler, no lock, no contention register: one reading, printed into a brief that already
+    prints six others.
+    """
+    try:
+        proc = subprocess.run(["ps", "-eo", "pid=,etimes=,rss=,euid=,args="],
+                              capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"available": False, "why": repr(exc)}
+    if proc.returncode != 0:
+        return {"available": False, "why": "ps exited {}".format(proc.returncode)}
+
+    try:
+        from background.process_reconciler import _runs_daemon, load_manifest
+        declared = [e["match"] for e in load_manifest() if e.get("match")]
+    except Exception as exc:  # noqa: BLE001
+        # Without the declaration the daemons cannot be told from the jobs, and a reading that
+        # buries its subject is the failure this was written against. Say so; do not guess.
+        return {"available": False, "why": "process manifest unreadable: {!r}".format(exc)}
+
+    namespaces = _project_namespaces()
+    me = os.geteuid()
+    mine = os.getpid()
+    jobs, daemons = [], 0
+    for line in (proc.stdout or "").splitlines():
+        parts = line.split(maxsplit=4)
+        if len(parts) < 5:
+            continue
+        try:
+            pid, etimes, rss, euid = (int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]))
+        except ValueError:
+            continue
+        args = parts[4]
+        if euid != me or pid == mine or etimes < floor_seconds:
+            continue
+        if any(_runs_daemon(args, m) for m in declared):
+            daemons += 1
+            continue
+        tokens = args.split()
+        touches_project = any(
+            tok.startswith(str(PROJECT_DIR))
+            or tok.split(".")[0] in namespaces
+            or (tok.endswith(".py") and (PROJECT_DIR / tok).exists())
+            for tok in tokens)
+        if not touches_project:
+            continue
+        jobs.append({
+            "pid": pid,
+            "elapsed_seconds": etimes,
+            "elapsed": _elapsed_phrase(etimes),
+            "rss_mb": round(rss / 1024.0, 1),
+            "what": _job_name(tokens),
+            "argv_head": args[:160],
+        })
+    jobs.sort(key=lambda j: -j["elapsed_seconds"])
+    return {
+        "available": True,
+        "floor_seconds": floor_seconds,
+        "nothing_long_running": not jobs,
+        "count": len(jobs),
+        "daemons_subtracted": daemons,
+        "jobs": jobs,
+    }
+
+
 def findings_now() -> dict:
     """Open staging findings by severity, from the parser the rest of the tree already reads."""
     try:
@@ -723,6 +880,12 @@ def build_brief(now: datetime | None = None) -> dict:
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
         "shape": commit_shape(since, now),
+        # WHAT IS ON THE BOX, and AHEAD of the tree readings below for the same truncation reason
+        # `divergence` is first. Every other key here describes the TREE; a job that is still
+        # running has landed nothing, so it appears in none of them -- and it is the one fact that
+        # has changed what this seat wrote twice in a row. Six consecutive orientations ran this
+        # `ps` by hand before it was a key.
+        "running": running_now(),
         "findings": findings_now(),
         "levels_moved": moved,
         "levels_recorded": levels_recorded_since(since),
@@ -936,14 +1099,41 @@ def _prompt(brief: dict) -> str:
         graded = ("\n\nNO PREVIOUS SELF-AUDIT ROWS were recorded, so there is nothing to grade. "
                   "That is either a clean stretch or a seat that stopped looking, and only you "
                   "can say which.")
+    # AND SO DOES WHAT IS ON THE BOX, for the same truncation reason and because this one has to
+    # be a SENTENCE rather than a key. The seat ran this `ps` by hand at six consecutive
+    # orientations; a fact it has to dig out of 60k of JSON is a fact it will dig out on the
+    # stretches when it is not busy and skip on exactly the stretches when the box is.
+    running = brief.get("running") or {}
+    if not running.get("available", False):
+        running_sentence = (
+            "\n\nWHAT IS RUNNING COULD NOT BE READ ({}) -- so 'nothing is running' is NOT what "
+            "this says, and a long job may be in flight.".format(running.get("why", "unknown")))
+    elif running.get("nothing_long_running"):
+        running_sentence = (
+            "\n\nNOTHING LONG IS RUNNING. Positively measured, not inferred from an empty list: "
+            "`ps` ran, and after subtracting the {} declared daemons no process of this project's "
+            "has been up longer than {}s. Anything you start, you are starting from cold.".format(
+                running.get("daemons_subtracted", 0), running.get("floor_seconds")))
+    else:
+        running_sentence = (
+            "\n\nWHAT IS ON THE BOX RIGHT NOW, with the {} declared permanent daemons subtracted "
+            "so the jobs are not buried. DO NOT LAUNCH SOMETHING THAT IS ALREADY RUNNING, and do "
+            "not write a focus that assumes a job has not started:\n\n".format(
+                running.get("daemons_subtracted", 0))
+            + "\n".join(
+                "  {:>8}  {:>8}  {:>7}MB  {}".format(
+                    j["pid"], j["elapsed"], j["rss_mb"], j["what"])
+                for j in running.get("jobs", [])))
     return (
         CHARTER
         + graded
-        + "\n\nTHE LAST STRETCH OF COMMITS, as a person would read them. `!!` marks a commit whose "
-          "tree is identical to one of its own parents -- it changed NOTHING. A run of those, or a "
-          "run of identical subjects, is a finding about the MACHINE and outranks whatever else "
-          "this brief says is due.\n\n"
+        + "\n\nTHE LAST STRETCH OF COMMITS, as a person would read them. `!!` marks a commit that "
+          "CARRIED NO WORK -- either its tree is identical to one of its own parents, or its whole "
+          "diff was the liveness surface and all it did was prove the machine was alive. A run of "
+          "those, or a run of identical subjects, is a finding about the MACHINE and outranks "
+          "whatever else this brief says is due.\n\n"
         + rendered
+        + running_sentence
         + "\n\nWHAT THE STRETCH ABOVE WAS MEASURED OVER. Everything you are about to grade -- the "
           "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "
           "together, so it does not change with whether this checkout has fast-forwarded:\n\n"

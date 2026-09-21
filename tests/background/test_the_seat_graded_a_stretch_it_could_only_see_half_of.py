@@ -21,6 +21,20 @@ SO THE CONTROL IS KEYED TO THE PROPERTY, NOT TO THE STATE: a stretch measured wh
 AHEAD must report the same work as one measured while the checkout is LEVEL. Both readings are
 taken here, from one real repository, and compared to EACH OTHER -- so this test cannot pass by
 the divergence happening to be zero, and cannot go red for the tree becoming more honest.
+
+CONFIRMED IN THE WORLD, 2026-09-04, and this paragraph is the correction to the one above it: the
+"never yet" is no longer true. The shared tree was found sitting 0 ahead / 4 BEHIND `origin/main`
+-- a rival lane had pushed the published-route-split work and nothing had fast-forwarded this
+checkout, which is the condition the fixtures below simulate. Measured over a fixed window at that
+instant, the seat read 142 commits; the pre-fix HEAD-only reader read 138, losing four real
+commits including a substantive one. The tree was then fast-forwarded and the same window
+re-measured LEVEL: 142, symmetric difference EMPTY. So the property holds against a real
+divergence and not only a constructed one.
+
+That reading was perishable and is the reason it is written down here rather than left in a turn
+log: the comparison instant only exists while the checkout is behind, and a fast-forward -- by any
+lane, at any time -- puts it permanently out of reach. The fixtures below remain the control,
+because they can be re-run; this paragraph is the evidence that what they control for occurs.
 """
 from __future__ import annotations
 

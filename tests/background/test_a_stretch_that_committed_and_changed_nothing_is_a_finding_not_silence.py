@@ -141,3 +141,154 @@ def test_the_shape_is_built_from_the_real_stretch_and_never_raises():
     shape = seat.commit_shape(since)
     assert shape["available"] is True
     assert isinstance(shape["count"], int) and "rendered" in shape
+
+
+# ── what is ON THE BOX, which no reading above can see ──────────────────────────────────────
+def _ps_line(pid, etimes, rss, args, euid=None):
+    import os
+    return "{} {} {} {} {}".format(pid, etimes, rss,
+                                   os.geteuid() if euid is None else euid, args)
+
+
+def _fake_ps(monkeypatch, lines):
+    """Drive `running_now` off a manufactured `ps`, so the assertions are about the READING and
+    not about whatever happened to be on the box when the suite ran."""
+    import subprocess as sp
+
+    class _R:
+        returncode = 0
+        stdout = "\n".join(lines) + "\n"
+
+    monkeypatch.setattr(seat.subprocess, "run",
+                        lambda *a, **k: _R() if a and a[0][:1] == ["ps"] else sp.run(*a, **k))
+
+
+def test_A_LONG_JOB_IS_SEEN_AND_AN_IDLE_BOX_SAYS_SO_POSITIVELY(monkeypatch):
+    """THE WHOLE PARTITION IN ONE ASSERTION, for the same reason the heartbeat leg needs one.
+
+    A reading hard-wired to "nothing is running" satisfies every test written about the idle box;
+    one hard-wired to "something is running" satisfies every test about the busy one. Only both
+    sides together can fail either way, so both are asserted here and neither can be dropped to
+    make the other pass.
+
+    THE SECOND CLAUSE IS THE POINT: an empty list and a `ps` that never ran look identical on the
+    page and mean opposite things, so "nothing long is running" has to be POSITIVELY measured.
+    """
+    repo = str(seat.PROJECT_DIR)
+    busy = [_ps_line(4172305, 9000, 47000, "/usr/bin/python3 -m tools.surgical_land -m msg"),
+            _ps_line(4172397, 200, 191000, "/usr/bin/python3 {}/tools/pre_commit_test_gate.py"
+                     .format(repo))]
+    _fake_ps(monkeypatch, busy)
+    seen = seat.running_now()
+    assert seen["available"] is True and seen["nothing_long_running"] is False
+    assert [j["what"] for j in seen["jobs"]] == [
+        "tools.surgical_land", "{}/tools/pre_commit_test_gate.py".format(repo)]
+    assert seen["jobs"][0]["elapsed"] == "2h30m", "readable at a glance, not a second count"
+    assert seen["jobs"][0]["pid"] == 4172305 and seen["jobs"][0]["rss_mb"] > 0
+
+    _fake_ps(monkeypatch, [_ps_line(9, 5, 100, "/usr/bin/python3 {}/tools/x.py".format(repo))])
+    idle = seat.running_now()
+    assert idle["available"] is True, "the ps RAN; that is what makes the next line a statement"
+    assert idle["nothing_long_running"] is True and idle["jobs"] == []
+
+
+def test_THE_DECLARED_DAEMONS_ARE_SUBTRACTED_OR_THE_ONE_JOB_THAT_MATTERS_IS_BURIED(monkeypatch):
+    """THE STATED FAILURE CONDITION FOR THIS READING, in the ask's own words: *"a process reading
+    that lists every python process including the four permanent daemons, so the one long job
+    that matters is buried -- it has to be readable at a glance or it gets skipped exactly when
+    the box is busiest."*
+
+    And the daemons are not merely noisy, they are the LONGEST-lived things on the box -- days
+    against a job's minutes -- so any sort by elapsed puts every one of them ABOVE the row that
+    matters. Subtracting them is what makes this a reading rather than a dump.
+
+    MUTATION: drop the `_runs_daemon` filter and this fails on the first assertion.
+    """
+    repo = str(seat.PROJECT_DIR)
+    _fake_ps(monkeypatch, [
+        _ps_line(101, 400000, 4000, "/usr/bin/python3 {}/background/dispatcher.py".format(repo)),
+        _ps_line(102, 390000, 15000, "/usr/bin/python3 background/ntfy_responder.py"),
+        _ps_line(103, 380000, 48000, "/usr/bin/python3 background/supervisor.py"),
+        _ps_line(104, 370000, 30000, "/usr/bin/python3 background/deadmans_switch.py"),
+        _ps_line(105, 600, 90000, "/usr/bin/python3 -m simulation.run_phase2b --seeds 12"),
+    ])
+    seen = seat.running_now()
+    assert [j["what"] for j in seen["jobs"]] == ["simulation.run_phase2b"], (
+        "the four permanent daemons are older than the job and would sort above it")
+    assert seen["daemons_subtracted"] == 4
+
+
+def test_A_PROCESS_THAT_MERELY_MENTIONS_A_MODULE_IS_NOT_NAMED_AS_RUNNING_IT(monkeypatch):
+    """CAUGHT ON THE LIVE BOX on this reading's first run, not imagined. A sibling `claude -p`
+    seat was named `tools.surgical_land`, because its PROMPT recites `python3 -m tools.surgical_
+    land` as the instruction for how to land. Scanning every token for `-m` reads a process that
+    MENTIONS a module as one that RUNS it -- the same defect `process_reconciler._runs_daemon`
+    was written to refuse, reached again from a different direction.
+
+    MUTATION: scan all tokens for `-m` instead of stopping at the interpreter's first non-option
+    argument, and this names the seat `tools.surgical_land`.
+    """
+    repo = str(seat.PROJECT_DIR)
+    _fake_ps(monkeypatch, [
+        _ps_line(4073589, 1700, 476000,
+                 "/home/rich/.nvm/bin/claude -p --model claude-opus-5 "
+                 "You hold the delivery seat in {} -- land with python3 -m tools.surgical_land "
+                 "and never --no-verify".format(repo)),
+    ])
+    seen = seat.running_now()
+    assert [j["what"] for j in seen["jobs"]] == ["claude"], (
+        "a module recited in a prompt is not a module the process is running")
+
+
+def test_AN_UNREADABLE_BOX_IS_NOT_REPORTED_AS_AN_IDLE_ONE(monkeypatch):
+    """`fail_closed_on_unreadable_input` once more, and it is the failure with teeth here: the
+    consequence of reading "nothing is running" when the truth is "I could not tell" is the seat
+    LAUNCHING a duplicate of a job already in flight. The seventeen-hour duplicate floor run is
+    the precedent, and it cost a whole day of the box.
+
+    MUTATION: return `{"nothing_long_running": True}` on the failure path and this fails twice --
+    once on the flag, once on the sentence the seat actually reads.
+    """
+    def _boom(*a, **k):
+        raise OSError("no ps on this box")
+
+    monkeypatch.setattr(seat.subprocess, "run", _boom)
+    seen = seat.running_now()
+    assert seen["available"] is False
+    assert seen.get("nothing_long_running") is None, (
+        "'could not tell' must not wear 'nothing is running' as its answer")
+    text = seat._prompt(_brief(running=seen))
+    assert "WHAT IS RUNNING COULD NOT BE READ" in text and "no ps on this box" in text
+    assert "NOTHING LONG IS RUNNING" not in text, (
+        "the positive statement is reserved for a ps that actually ran")
+
+
+def test_WHAT_IS_RUNNING_IS_A_SENTENCE_ABOVE_THE_JSON_AND_OUTSIDE_ITS_TRUNCATION():
+    """Six consecutive orientations ran this `ps` BY HAND. A fact the seat must dig out of 60k of
+    JSON is one it will dig out on a quiet stretch and skip on a busy one -- which is precisely
+    when the box has a job on it.
+
+    MUTATION: leave `running` as a brief key only, and this fails on the filler below.
+    """
+    brief = _brief(commits=[{"sha": "x" * 40, "subject": "y" * 200} for _ in range(2000)],
+                   running={"available": True, "nothing_long_running": False, "count": 1,
+                            "daemons_subtracted": 9, "floor_seconds": 60,
+                            "jobs": [{"pid": 4172305, "elapsed": "2h30m", "rss_mb": 46.5,
+                                      "what": "simulation.run_phase2b", "elapsed_seconds": 9000,
+                                      "argv_head": "x"}]})
+    text = seat._prompt(brief)
+    assert "simulation.run_phase2b" in text
+    assert text.index("simulation.run_phase2b") < text.index("THE STRETCH, assembled from git")
+    assert "4172305" in text and "2h30m" in text
+
+
+def test_the_box_reading_is_built_from_the_real_ps_and_never_raises():
+    """The wire, on the real machine -- the leg that would have caught an argv format this parser
+    cannot read, which no manufactured `ps` above can."""
+    seen = seat.running_now()
+    assert seen["available"] is True, seen.get("why")
+    assert isinstance(seen["count"], int) and isinstance(seen["daemons_subtracted"], int)
+    assert seen["nothing_long_running"] is (seen["count"] == 0)
+    for job in seen["jobs"]:
+        assert job["elapsed_seconds"] >= seat.ELAPSED_FLOOR_SECONDS
+        assert job["what"] and not job["what"].startswith("/usr/bin/python")
