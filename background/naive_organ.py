@@ -408,7 +408,9 @@ _BUCKET_KEYWORDS = {
     "harness": ["background/", "supervisor", "daemon", "digest", "ntfy",
                 "idle", "watchdog", "harness"],
     "company": ["company/", "saas/", "billing", "pricing", "churn"],
-    "site": ["site/", "docs/shadow", "dashboard"],
+    # "docs/shadow" dropped 2026-09-20 with the surface it named -- a keyword for a directory
+    # that cannot be mentioned again buckets nothing.
+    "site": ["site/", "dashboard"],
     "sim": ["sim/", "simulation/"],
 }
 
@@ -578,9 +580,55 @@ def _t6_rows(state: dict) -> list[tuple]:
     ]
 
 
+#: `docs/status/LATEST.md` is TWO documents sharing a file: a live head that states what is true
+#: now, and — under this heading — an append-only log of dated entries recording what was true, or
+#: what the site published, on some past day. A detector asking *"does the page's claim match the
+#: data"* must read the first and not the second. A 2026-07-23 entry recording a £1,521,070 net
+#: margin is not a claim that the net margin IS £1,521,070; it is a correct record of the run at
+#: `ac0869715`. Judged as a current claim it contradicts every later run forever, and the only
+#: remedy the alarm leaves you is to falsify the historical record.
+_HISTORY_HEADING = "\n## PREVIOUS"
+
+#: Blocks REWRITTEN IN PLACE on every run, so they state the present wherever they physically sit.
+#: The run block is appended at the FOOT of the file, below the history — measured on the real page
+#: (2026-09-19): the live head contains ZERO net-margin claims, and both of the page's two sit
+#: below the heading, one in the history and one in this block. So a head-only slice would leave
+#: T6 asking NOTHING about net margin, returning the same `[]` it returns when it agrees. That is
+#: the fail-open this detector was just repaired for, re-introduced from the other side, and
+#: `test_the_live_run_block_survives_the_history_scoping` is the leg that stops it.
+_LIVE_BLOCKS_BELOW_HISTORY = ("**Latest simulation results",)
+
+
+def _current_claims(text: str) -> str:
+    """The part of a claims surface that asserts the PRESENT.
+
+    Absent the heading the whole text is returned: an unrecognised surface is judged in full,
+    which over-fires rather than under-fires. That direction is deliberate — a detector that
+    silently narrows its own surface is the failure mode, and a spurious question costs one
+    answer while a missing one costs the catch.
+    """
+    cut = text.find(_HISTORY_HEADING)
+    if cut == -1:
+        return text
+    parts = [text[:cut]]
+    for marker in _LIVE_BLOCKS_BELOW_HISTORY:
+        start = text.find(marker, cut)
+        if start == -1:
+            continue
+        end = text.find("\n\n", start)
+        parts.append(text[start:] if end == -1 else text[start:end])
+    return "\n\n".join(parts)
+
+
 def detect_t6(state: dict) -> list[Trigger]:
     """Claim-vs-data contradiction on any observable surface (real catch: 'no
     drawable atoms' vs 30 idle atoms — the tautology).
+
+    Judged against the surface's LIVE section only (2026-09-19) — see `_current_claims`. With the
+    whole file in scope T6 fired one trigger on every tick and could not do otherwise: the page
+    stated £1,521,070 (a dated July record) and £158,278 (the latest run), so whichever one the
+    comparator agreed with, the other was a standing contradiction. An alarm with no available
+    remedy is how a detector gets ignored, and this one had just been given its first coverage.
 
     EVERY claim a row's pattern finds is asked, not the first (2026-09-19). This read `search()`
     and judged one claim per row per surface, which is the `087e3ad58` class: a dropped match is
@@ -594,7 +642,7 @@ def detect_t6(state: dict) -> list[Trigger]:
     were never compared with the data. `detect_t6` returned `[]` against a computed £42.
     """
     fires = []
-    claims = state.get("claims_text", "")
+    claims = _current_claims(state.get("claims_text", ""))
     for pattern, extract, computed, name in _t6_rows(state):
         if computed is None:
             continue
