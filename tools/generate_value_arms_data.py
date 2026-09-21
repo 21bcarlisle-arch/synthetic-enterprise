@@ -1291,10 +1291,16 @@ def _provisioned(three_arm: dict, spreads: dict | None) -> dict:
         #
         # THE CLOSING CLAUSE IS NOT A CONSTANT, and it is the half of this field that rotted.
         # See `_where_the_bounded_reading_is`.
+        # IT NAMES `selection_gbp` RATHER THAN "the figure above" (2026-09-21), which is this
+        # page's standing repair for an untied here-relative pointer and not a style choice: the
+        # direction of "above" is a fact about which door region this field lands in, and this
+        # one had never been registered, so nothing could judge it. A named subject is true from
+        # wherever the sentence renders. Same repair as `_population_repair_bias`'s cleared
+        # branch and `the_sample_size_explanation`'s `what_this_is`.
         "no_spread_on_this_clock": (
-            "No seed spread has ever been measured on this superseded clock, so the figure above "
-            "is a SIZE and not a direction: nothing here says the choosing was worth more or less "
-            "than nothing. " + _where_the_bounded_reading_is(spreads)),
+            "No seed spread has ever been measured on this superseded clock, so this panel's "
+            "`selection_gbp` is a SIZE and not a direction: nothing here says the choosing was "
+            "worth more or less than nothing. " + _where_the_bounded_reading_is(spreads)),
         # AND THE ROUTE ROUND IT, NAMED (2026-09-21). The sentence above was true and the panel
         # printed a SIGNED figure under it anyway, so a reader met "−£1,904" and a footnote saying
         # not to read the minus. That is the shape this page withdraws everywhere else, live one
@@ -10283,12 +10289,18 @@ def _can_this_book_be_built(current: dict | None, priced_rows: list) -> dict:
     capacity (a budget) are expressible in it; neither is expressible in accounts, because
     a book's accounts do not each live the whole window.
 
-    AND ON THAT RULER MEMORY IS NOT WHAT BINDS. Re-ruled to the retained rate the RSS
-    ceiling is tens of thousands of customer-years, and the `SETTLEMENT_CUSTOMER_YEAR_BUDGET`
-    note independently records memory as slack by 4.5x. What binds is the budget, and the
-    budget's own note says nothing bounds it at 1,200 except a publish-interval preference
-    nobody has stated. So a NEGATIVE verdict here is a direction question and not a wall,
-    and it is published as one.
+    AND ON THAT RULER MEMORY VERY NEARLY BINDS -- which is the opposite of what this
+    docstring said until 2026-09-21, and the correction is the reason the block was
+    re-ruled. It said "MEMORY IS NOT WHAT BINDS ... the RSS ceiling is tens of thousands of
+    customer-years ... memory as slack by 4.5x", and every clause of that came from pricing
+    two scale-probe stage costs, which bound the retained settlement rows and never bounded
+    the run. The first whole-run measurement
+    (`docs/observability/settlement_ceiling_slope_20260921.json`) puts the RSS ceiling at
+    ~1,312 customer-years against a 1,200 budget: slack of 1.09x, not 4.5x, and the old
+    figure optimistic by 29.2x. The budget still binds, so the VERDICT below is unchanged --
+    which is exactly why nothing on this page could notice. What changed is that a NEGATIVE
+    verdict here is no longer only a direction question: there is a measured wall a few
+    percent above the budget, and raising the budget spends it.
 
     FAILS CLOSED. Any input this cannot read yields `available: False` with the reason,
     never a verdict — the same direction as the refusal it replaces.
@@ -10312,7 +10324,7 @@ def _can_this_book_be_built(current: dict | None, priced_rows: list) -> dict:
                            "-- the unit both ceilings are stated in -- cannot be read")}
     try:
         rate = retained_settlement_records_per_customer_year(current)
-        memory = settled_book_ceiling_customer_years(records_per_customer_year=rate)
+        memory = settled_book_ceiling_customer_years()
     except Exception as exc:  # noqa: BLE001
         return {"available": False,
                 "reason": "this run does not publish what the ceilings need ({}: {})".format(
@@ -10375,6 +10387,14 @@ def _can_this_book_be_built(current: dict | None, priced_rows: list) -> dict:
         "no_leg_is_reachable": smallest > reachable,
         "memory_ceiling": memory,
         "retained_records_per_customer_year": rate,
+        # HOW CLOSE THE OTHER LEG IS, DERIVED. `what_binds` alone reads as a clean verdict
+        # and hides whether the losing bound lost by 4x or by 9%. Published because the two
+        # read completely differently to anyone deciding whether to raise the budget, and
+        # because the sentence this block used to carry -- "memory as slack by 4.5x" -- was
+        # a hard-coded version of exactly this number, and wrong by 29.2x.
+        "memory_slack_multiple_over_the_budget": (
+            float(memory["max_customer_years"]) / budget if budget else None
+        ),
         "why_the_old_comparison_was_not_one": (
             "`settled_book_ceiling` prices every customer at 17,520 settlement records a year -- "
             "the HALF-HOURLY rate, which is what an I&C account settles on. I&C was suspended "
@@ -10383,6 +10403,21 @@ def _can_this_book_be_built(current: dict | None, priced_rows: list) -> dict:
             "old ceiling was pricing a record population the settled book does not hold, by a "
             "factor of {:,.0f}."
         ).format(rate, 17520.0 / rate if rate else 0.0),
+        # AND WHY RE-RULING TO THAT RATE WAS STILL NOT THE ANSWER. Both corrections are kept
+        # because the first one is what made the second one look already-fixed: a 60x repair
+        # in the pessimistic direction landed on 2026-09-21 and left a 29.2x error in the
+        # optimistic one, and the retained rate above is now CONTEXT, not the ceiling's input.
+        "why_the_retained_rate_is_not_the_ceilings_input_either": (
+            "Re-ruling to {:,.1f} rows per customer-year fixed which RECORDS were priced and "
+            "left the ceiling pricing records at all. The scale probe's two stages bound one "
+            "data structure; a run's peak RSS is the whole process. This ceiling is now read "
+            "off a measured whole-run curve -- {:.3f} MB per customer-year across four "
+            "budgets -- and the retained rate above is context, not its input. On 2026-09-21 "
+            "the stage-cost arithmetic this replaced published 0.214 MB per customer-year and "
+            "a ceiling of 38,275, optimistic by a factor of 29.2; that figure is named here "
+            "with its date because it was cited on this page and is not recoverable from the "
+            "code once the arithmetic is gone."
+        ).format(rate, memory["mb_per_customer_year"]),
     }
 
 
@@ -10400,20 +10435,50 @@ def _what_is_not_established(buildability: dict) -> str:
                 "requirement and states no verdict on reachability.".format(
                     buildability.get("reason") or "it could not be established"))
     if buildability.get("no_leg_is_reachable"):
+        # THE SECOND LEG IS COMPUTED, NOT ASSERTED. Until 2026-09-21 this sentence read
+        # "Memory is not the constraint" and cited an RSS ceiling of tens of thousands --
+        # a claim about the world, published as a finding, and false by 29.2x on the first
+        # whole-run measurement taken against it. What replaces it reads the slack rather
+        # than stating it, so if the ceiling moves under or over the budget the sentence
+        # follows without anyone editing a word of it.
+        slack = buildability.get("memory_slack_multiple_over_the_budget")
+        if slack is None:
+            memory_clause = (
+                "How much room the other bound has is not established: the capacity and the "
+                "RSS ceiling could not be put on one ruler this run."
+            )
+        elif slack < 1.0:
+            memory_clause = (
+                "Memory is the TIGHTER of the two: the measured whole-run RSS ceiling is "
+                "{mem:,.0f} customer-years, BELOW the settlement budget, so the budget is "
+                "no longer what this box can actually pay."
+            )
+        elif slack < 1.5:
+            memory_clause = (
+                "Memory very nearly binds too: the measured whole-run RSS ceiling is "
+                "{mem:,.0f} customer-years, slack of only {slack:,.2f}x over the budget. "
+                "Raising the budget to reach the requirement above spends that slack long "
+                "before it gets there."
+            )
+        else:
+            memory_clause = (
+                "Memory has room: the measured whole-run RSS ceiling is {mem:,.0f} "
+                "customer-years, slack of {slack:,.2f}x over the budget."
+            )
         return (
             "Not whether a book that size can be built -- that is now measured, on one ruler, "
             "and the answer is NO: {req:,.2f}x this book is {need:,.0f} customer-years against a "
             "capacity of {have:,.0f}, and `{binds}` is what binds. What is NOT established is "
-            "why that capacity is where it is. Memory is not the constraint -- re-ruled to the "
-            "records this book actually retains the RSS ceiling is {mem:,.0f} customer-years -- "
-            "and `SETTLEMENT_CUSTOMER_YEAR_BUDGET`'s own note records nothing holding it at 1,200 "
-            "except a publish-interval preference nobody has stated. So the open question is a "
-            "DIRECTION one and not a measurement: what publish cadence this company is willing to "
-            "pay for a signed answer."
+            "why that capacity is where it is. " + memory_clause + " What no measurement here "
+            "settles is what publish cadence this company is willing to pay for a signed "
+            "answer -- though the 2026-09-21 curve narrows even that: across a 112x range of "
+            "intervals the supported ceiling moved under 10%, so the cadence is a far smaller "
+            "lever on this question than it was argued to be."
         ).format(req=buildability["required_multiple_smallest_leg"],
                  need=buildability["required_customer_years_smallest_leg"],
                  have=buildability["capacity_customer_years"],
                  binds=buildability["what_binds"],
+                 slack=slack or 0.0,
                  mem=buildability["memory_ceiling"]["max_customer_years"])
     return (
         "Not whether a book that size can be built -- that is now measured, on one ruler: "
@@ -10932,9 +10997,15 @@ def _population_repair_bias(artefact: dict | None) -> dict:
             "{mean}, and THE SIGN IS NOT STATEABLE: {have} of the {need} SEMs it would "
             "need, {seeds:,} seeds away at today's spread. So the answer to what the choosing is "
             "worth on a population both arms priced is WE CANNOT TELL, and that is this page's "
-            "result rather than a gap in it. A reader who adds £{gbp:,.2f} to the figure above "
-            "and reads the total as the like-for-like worth of choosing has done arithmetic "
-            "across two instruments to reach a number this one refuses to state."
+            # IT NAMES `selection_gbp` RATHER THAN "the figure above", the same repair the
+            # cleared branch of this very function already took and recorded (see the comment
+            # on the `answer is True` branch below). This branch renders and that one does not,
+            # so the untied pointer survived here while the repair was being written a hundred
+            # lines away -- which is the argument for naming rather than registering: a name
+            # does not have to be re-judged every time a door moves.
+            "result rather than a gap in it. A reader who adds £{gbp:,.2f} to this page's "
+            "`selection_gbp` and reads the total as the like-for-like worth of choosing has "
+            "done arithmetic across two instruments to reach a number this one refuses to state."
         ).format(
             n=shared.get("n"), inst=_POPULATION_REPAIR_BIAS_INSTRUMENT,
             mean=("-£{:,.2f}".format(abs(mean)) if mean < 0 else "£{:,.2f}".format(mean)),
