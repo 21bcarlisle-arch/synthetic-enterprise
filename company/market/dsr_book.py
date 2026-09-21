@@ -76,7 +76,13 @@ class DSRBook:
     def dispatch(self, customer_id: str, requested_mw: float,
                  dispatch_start: dt.datetime, dispatch_end: dt.datetime,
                  delivered_mw: float) -> DispatchEvent:
-        p = self._participants[customer_id]
+        try:
+            p = self._participants[customer_id]
+        except KeyError:
+            raise KeyError(
+                f"no DSR participant {customer_id} in DSRBook._participants: "
+                "dispatch() was reached before enroll() registered them"
+            )
         if p.status != DSRStatus.ACTIVE:
             raise ValueError(f'Customer {customer_id} is not active in DSR programme')
         duration_hours = (dispatch_end - dispatch_start).total_seconds() / 3600

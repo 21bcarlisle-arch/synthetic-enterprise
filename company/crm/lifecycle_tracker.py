@@ -90,11 +90,17 @@ class CustomerLifecycleTracker:
         return lc
 
     def get(self, customer_id: str) -> CustomerLifecycle:
-        return self._customers[customer_id]
+        try:
+            return self._customers[customer_id]
+        except KeyError:
+            raise KeyError(
+                f"no lifecycle for {customer_id} in CustomerLifecycleTracker._customers: "
+                "the read was reached before register() registered it"
+            )
 
     def transition(self, customer_id: str, to_stage: LifecycleStage,
                    event_date: dt.date, reason: str = '') -> None:
-        self._customers[customer_id].transition(to_stage, event_date, reason)
+        self.get(customer_id).transition(to_stage, event_date, reason)
 
     def customers_in_stage(self, stage: LifecycleStage) -> List[str]:
         return [cid for cid, lc in self._customers.items() if lc.stage == stage]

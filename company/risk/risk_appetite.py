@@ -79,7 +79,13 @@ class RiskAppetiteFramework:
 
     def record_measurement(self, limit_id: str, measured_value: float,
                            measured_date: dt.date) -> RiskMeasurement:
-        limit = self._limits[limit_id]
+        try:
+            limit = self._limits[limit_id]
+        except KeyError:
+            raise KeyError(
+                f"no limit {limit_id} in RiskAppetiteFramework._limits: "
+                "record_measurement() was reached before add_limit() registered it"
+            )
         m = RiskMeasurement(
             limit_id=limit_id, measured_value=measured_value,
             measured_date=measured_date, limit=limit,

@@ -71,19 +71,39 @@ class PaymentDeferralBook:
         return d
 
     def record_repayment(self, deferral_id: str, amount_gbp: float) -> PaymentDeferral:
-        d = self._deferrals[deferral_id]
+        try:
+            d = self._deferrals[deferral_id]
+        except KeyError:
+            raise KeyError(
+                f"no deferral {deferral_id} in PaymentDeferralBook._deferrals: "
+                "record_repayment() was reached before create() registered it"
+            )
         d.amount_repaid_gbp = round(d.amount_repaid_gbp + amount_gbp, 2)
         if d.outstanding_gbp == 0.0:
             d.status = DeferralStatus.COMPLETED
         return d
 
     def mark_defaulted(self, deferral_id: str) -> PaymentDeferral:
-        self._deferrals[deferral_id].status = DeferralStatus.DEFAULTED
-        return self._deferrals[deferral_id]
+        try:
+            d = self._deferrals[deferral_id]
+        except KeyError:
+            raise KeyError(
+                f"no deferral {deferral_id} in PaymentDeferralBook._deferrals: "
+                "mark_defaulted() was reached before create() registered it"
+            )
+        d.status = DeferralStatus.DEFAULTED
+        return d
 
     def cancel(self, deferral_id: str) -> PaymentDeferral:
-        self._deferrals[deferral_id].status = DeferralStatus.CANCELLED
-        return self._deferrals[deferral_id]
+        try:
+            d = self._deferrals[deferral_id]
+        except KeyError:
+            raise KeyError(
+                f"no deferral {deferral_id} in PaymentDeferralBook._deferrals: "
+                "cancel() was reached before create() registered it"
+            )
+        d.status = DeferralStatus.CANCELLED
+        return d
 
     def active_deferrals(self) -> List[PaymentDeferral]:
         return [d for d in self._deferrals.values() if d.is_active]

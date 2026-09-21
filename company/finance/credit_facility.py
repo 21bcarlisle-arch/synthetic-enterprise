@@ -70,7 +70,13 @@ class CreditFacilityBook:
 
     def drawdown(self, facility_id: str, amount_gbp: float,
                  drawdown_date: dt.date, reason: DrawdownReason) -> FacilityDrawdown:
-        facility = self._facilities[facility_id]
+        try:
+            facility = self._facilities[facility_id]
+        except KeyError:
+            raise KeyError(
+                f"no facility {facility_id} in CreditFacilityBook._facilities: "
+                "drawdown() was reached before register_facility() registered it"
+            )
         outstanding = self.outstanding_balance(facility_id)
         if outstanding + amount_gbp > facility.limit_gbp:
             raise ValueError(
@@ -100,12 +106,27 @@ class CreditFacilityBook:
     def total_interest_accrued_gbp(self, as_of: dt.date) -> float:
         total = 0.0
         for dd in self._drawdowns:
-            facility = self._facilities[dd.facility_id]
+            try:
+                facility = self._facilities[dd.facility_id]
+            except KeyError:
+                # The drawdown outlives its facility: only register_facility() writes
+                # the book and nothing removes from it, so the facility was never there.
+                raise KeyError(
+                    f"no facility {dd.facility_id} in CreditFacilityBook._facilities, but "
+                    f"drawdown {dd.drawdown_id} is booked against it: "
+                    "register_facility() should have registered it before drawdown()"
+                )
             total += dd.interest_accrued_gbp(as_of, facility.interest_rate_pct)
         return round(total, 2)
 
     def utilisation_pct(self, facility_id: str) -> float:
-        f = self._facilities[facility_id]
+        try:
+            f = self._facilities[facility_id]
+        except KeyError:
+            raise KeyError(
+                f"no facility {facility_id} in CreditFacilityBook._facilities: "
+                "utilisation_pct() was reached before register_facility() registered it"
+            )
         if f.limit_gbp == 0:
             return 0.0
         return round(self.outstanding_balance(facility_id) / f.limit_gbp * 100, 1)

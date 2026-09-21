@@ -117,7 +117,7 @@ class CampaignTracker:
     def record_contact(self, campaign_id: str, customer_id: str,
                         contact_date: dt.date, outcome: ContactOutcome,
                         agent_id: Optional[str] = None) -> CampaignContact:
-        campaign = self._campaigns[campaign_id]
+        campaign = self.get(campaign_id)
         contact = CampaignContact(
             contact_id=f'CTT-{self._next_contact:04d}',
             campaign_id=campaign_id, customer_id=customer_id,
@@ -129,10 +129,16 @@ class CampaignTracker:
         return contact
 
     def close_campaign(self, campaign_id: str, end_date: dt.date) -> None:
-        self._campaigns[campaign_id].end_date = end_date
+        self.get(campaign_id).end_date = end_date
 
     def get(self, campaign_id: str) -> Campaign:
-        return self._campaigns[campaign_id]
+        try:
+            return self._campaigns[campaign_id]
+        except KeyError:
+            raise KeyError(
+                f"no campaign {campaign_id} in CampaignTracker._campaigns: "
+                "the read was reached before create_campaign() registered it"
+            )
 
     def active_campaigns(self) -> List[Campaign]:
         return [c for c in self._campaigns.values() if c.is_active]

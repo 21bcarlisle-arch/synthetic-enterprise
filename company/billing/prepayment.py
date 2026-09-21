@@ -84,7 +84,13 @@ class PPMBook:
         Returns: dict with balance_before, debt_before, debt_repaid,
                  credited_to_balance, balance_after, debt_after.
         """
-        acc = self._accounts[customer_id]
+        try:
+            acc = self._accounts[customer_id]
+        except KeyError:
+            raise KeyError(
+                f"no prepayment account {customer_id} in PPMBook._accounts: "
+                "top_up() was reached before register() registered it"
+            )
         balance_before = acc.balance_gbp
         debt_before = acc.debt_gbp
 
@@ -123,7 +129,13 @@ class PPMBook:
         Returns: dict with cost, balance_before, balance_after, in_emergency_credit,
                  emergency_credit_used, emergency_credit_remaining.
         """
-        acc = self._accounts[customer_id]
+        try:
+            acc = self._accounts[customer_id]
+        except KeyError:
+            raise KeyError(
+                f"no prepayment account {customer_id} in PPMBook._accounts: "
+                "consume_daily() was reached before register() registered it"
+            )
         cost = round(kwh * rate_gbp_per_kwh + sc_gbp_per_day, 4)
         balance_before = acc.balance_gbp
         acc.balance_gbp = round(acc.balance_gbp - cost, 4)

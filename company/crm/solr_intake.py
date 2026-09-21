@@ -119,7 +119,13 @@ class SoLRBook:
         return round(contacted / len(batch_custs) * 100, 1)
 
     def batch_summary(self, batch_id: str) -> dict:
-        batch = self._batches[batch_id]
+        try:
+            batch = self._batches[batch_id]
+        except KeyError:
+            raise KeyError(
+                f"no SoLR batch {batch_id} in SoLRBook._batches: "
+                "batch_summary() was reached before register_batch() registered it"
+            )
         custs = self.customers_in_batch(batch_id)
         by_status: dict[str, int] = {}
         for c in custs:

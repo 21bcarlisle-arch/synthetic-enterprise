@@ -121,7 +121,13 @@ class SwitchGovernanceBook:
 
     def resolve_objection(self, objection_id: str, outcome: ObjectionOutcome,
                            outcome_date: dt.date) -> None:
-        obj = self._objections[objection_id]
+        try:
+            obj = self._objections[objection_id]
+        except KeyError:
+            raise KeyError(
+                f"no objection {objection_id} in SwitchGovernanceBook._objections: "
+                "resolve_objection() was reached before raise_objection() registered it"
+            )
         obj.outcome = outcome
         obj.outcome_date = outcome_date
 
@@ -139,7 +145,13 @@ class SwitchGovernanceBook:
 
     def resolve_et(self, et_id: str, status: ErroneousTransferStatus,
                     resolution_date: dt.date) -> None:
-        et = self._ets[et_id]
+        try:
+            et = self._ets[et_id]
+        except KeyError:
+            raise KeyError(
+                f"no erroneous transfer {et_id} in SwitchGovernanceBook._ets: "
+                "resolve_et() was reached before report_et() registered it"
+            )
         et.status = status
         et.resolution_date = resolution_date
 

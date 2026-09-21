@@ -79,7 +79,13 @@ class TPIBook:
 
     def record_deal(self, tpi_id: str, customer_id: str, annual_consumption_mwh: float,
                     annual_revenue_gbp: float, deal_date: dt.date) -> TPIDeal:
-        tpi = self._tpis[tpi_id]
+        try:
+            tpi = self._tpis[tpi_id]
+        except KeyError:
+            raise KeyError(
+                f"no TPI {tpi_id} in TPIBook._tpis: "
+                "record_deal() was reached before register() registered it"
+            )
         if tpi.tier == TPITier.SUSPENDED:
             raise ValueError(f'TPI {tpi_id} is suspended; cannot record deal')
         deal_id = f'DEAL-{self._next_deal:04d}'

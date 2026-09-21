@@ -411,7 +411,19 @@ class TenancyChangeCoupler:
         return change
 
     def _changes_for(self, supply_point_id: str, fuel: str) -> List[TenancyChange]:
-        return [self._changes[cid] for cid in self._by_key.get((supply_point_id, fuel), [])]
+        out: List[TenancyChange] = []
+        for cid in self._by_key.get((supply_point_id, fuel), []):
+            try:
+                out.append(self._changes[cid])
+            except KeyError:
+                # Not a missing registration -- the two stores disagree, and only
+                # _open_change() writes both, so it wrote one and not the other.
+                raise KeyError(
+                    f"no tenancy change {cid} in TenancyChangeCoupler._changes, but "
+                    f"_by_key lists it under {(supply_point_id, fuel)}: the index and "
+                    "the store disagree; _open_change() is the only writer of both"
+                )
+        return out
 
     def _seen(self, event_id: Optional[str]) -> Optional[TenancyChange]:
         """C-S2 idempotency: a replayed event id is a no-op, returning the
@@ -526,7 +538,7 @@ class TenancyChangeCoupler:
         `company.billing.account_closure.record_final_bill_outcome()`, whose
         wall guard has already rejected anything non-observable.
         """
-        change = self._changes[change_id]
+        change = self.get(change_id)
         change.exit_outcome = outcome
         change.exit_resolved_on = resolved_on
         change.exit_recovered_gbp = round(recovered_gbp, 2)
@@ -539,7 +551,7 @@ class TenancyChangeCoupler:
         """Record whether we kept the property's supply, and what the landed
         occupant is worth (`saas.home_move_win_rate.home_move_acquisition_value`
         supplies the expectation; this records the realisation)."""
-        change = self._changes[change_id]
+        change = self.get(change_id)
         change.acquisition_outcome = (
             AcquisitionOutcome.WON if won else AcquisitionOutcome.LOST
         )
@@ -551,7 +563,13 @@ class TenancyChangeCoupler:
     # -- views --------------------------------------------------------------
 
     def get(self, change_id: str) -> TenancyChange:
-        return self._changes[change_id]
+        try:
+            return self._changes[change_id]
+        except KeyError:
+            raise KeyError(
+                f"no tenancy change {change_id} in TenancyChangeCoupler._changes: "
+                "the read was reached before _open_change() registered it"
+            )
 
     def all_changes(self) -> List[TenancyChange]:
         return list(self._changes.values())
