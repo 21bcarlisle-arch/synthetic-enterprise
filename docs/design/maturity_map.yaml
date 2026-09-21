@@ -2427,7 +2427,7 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 50
@@ -2439,6 +2439,7 @@
   file_scope:
     - company/pricing/fabric_intervention.py
     - tests/company/test_turn_down_respects_the_health_floor.py
+    - tests/company/test_the_epc_band_reaches_the_floor_from_the_register.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the advice a supplier's call handler actually gives for free -- turn the thermostat down a degree, drop the flow temperature -- which is the only thing they can offer a household with no capital, and which a responsible supplier withholds from a home that is already too cold"
   # MINTED 2026-09-08 from SEAT_FINDING_EVERY_PIECE_OF_ADVICE_THE_COMPANY_CAN_GIVE_COSTS_THE_CUSTOMER_MONEY
@@ -2447,11 +2448,16 @@
   # names ADVICE as one of three mechanisms. Every route the company had to a customer's bill ran
   # through the customer's capital.
   #
-  # L1 IS WHERE THIS SITS AND THE REASON IS REACHABILITY, NOT THE CONTROLS. `turn_down` is in the
-  # book at zero capex, the floor is proven over the whole EPC partition, and 9 controls are green
-  # -- but `decide(epc_band=...)` defaults to `None` and NO production caller passes a band, so
-  # `tools/couple_fabric.py` and `background/fabric_gap_ledger.py` reach only the fail-closed
-  # branch. The measure is safe and it is not yet live for any household.
+  # L2 2026-09-21: THE BAND ARRIVES AND THE MEASURE IS LIVE. `EpcCertificate.efficiency_band`
+  # carries the register's A-G band, `couple_fabric` passes the drawn one where a certificate
+  # exists, and on a 40-premise draw 13 of 39 households are offered a turn-down by the production
+  # rule. L1 sat on REACHABILITY, not the controls: 9 green legs while `epc_band` defaulted to
+  # `None` and every real call hit the fail-closed branch.
+  #
+  # NO MONEY FIGURE MOVED, MEASURED NOT ASSUMED. `turn_down` only ever wins the ranking where every
+  # capital measure destroys value; elsewhere it is surfaced in `zero_capital_measure`, which the
+  # gap ledger does not read. Both ledger arms get the SAME band on purpose -- a one-sided floor
+  # would book a refusal that protects cold households as money the company's ignorance cost them.
   #
   # THE DESIGN THE FINDING ASKED FOR WAS SUPERSEDED, DELIBERATELY. The finding's step 2 said "with
   # a stated comfort cost". Comfort is FLOORED here instead, on the director's refusal of the
@@ -2465,15 +2471,14 @@
   # that reds if a well-meaning refactor turns the floor back into a term, which is the only way
   # this defect comes back.
   #
-  # EXIT to L2: the EPC A-G band crosses the seam as an observable -- a field on
-  # `company/pricing/thermal_inference.EpcCertificate`, which today carries only `build_era_band`
-  # -- and at least one production caller passes it, so the floor's ALLOW branch is reached by
-  # something other than a test. The band must be drawn from the published register the way
-  # `simulation/premise_population.py` already draws it, NOT derived from insulation level or from
-  # the truth HLC: either would be a domain constant invented to fill a slot.
   # EXIT to L3: FLOW TEMPERATURE in the book. It is the measure that actually answers the finding
   # -- zero capital, and it does not make the home one degree colder, so it never meets this floor
-  # at all. It is blocked on a source for the saving, not on physics.
+  # at all. STILL BLOCKED ON A SOURCE, and the only figure in this repo is `docs/market_research/
+  # gas_demand_what_drives_it...md`'s 6-10%, which is the DIRECTOR'S OWN REMARK rather than a
+  # citation. It is also a BOILER EFFICIENCY loss, not a demand reduction -- a different quantity
+  # that shares a number with `TURN_DOWN_DEMAND_REDUCTION`, and reading them as one is how this
+  # gets built wrong. The flow-temp measure also needs its own gate, not this floor: it applies
+  # only to a condensing wet system, so a heat pump or a non-condensing boiler must be refused.
 - id: A50_the_supplier_use_case_register_is_published_with_a_status_per_item
   title: "the supplier use-case register reaches a reader on Capabilities, each item carrying its SIM-native test and a status derived from the tree"
   notes_rehomed: [gain]
