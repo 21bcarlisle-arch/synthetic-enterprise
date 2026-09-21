@@ -3108,6 +3108,13 @@ class FabricObservation:
     inferred_relative_sd: float
     epc_basis: EvidenceBasis
     inferred_basis: EvidenceBasis
+    # THE REGISTER'S A-G BAND, OR `None` WHERE THE REGISTER HAS NO CERTIFICATE
+    # (2026-09-21, W2_34 L1->L2). This one is DEFAULTED where the decision inputs
+    # above are required, and the reason is the opposite of theirs: a default of
+    # `None` cannot manufacture evidence, it only reaches the health floor's
+    # fail-closed branch. A caller that forgets it gets no turn-down offered, which
+    # is the state this field was added to leave behind — never a silent allow.
+    epc_band: str | None = None
 
     def __post_init__(self) -> None:
         for name in (
@@ -3386,6 +3393,20 @@ class PremiseForgone:
     misranked: bool
     declined_with_value: bool
     value_destroying: bool
+    # THE TWO MEASURES THE THREE BOOLEANS ABOVE ARE A LOSSY READING OF (2026-09-21).
+    # They were computed here and thrown away, and a caller wanting to know WHICH
+    # measure moved had to re-run both `decide` calls — a second copy of the
+    # decision, which is the drift surface this dataclass was split out to close.
+    #
+    # THE DEFECT THAT PAID FOR THEM. `test_the_money_consequence_is_AFFINE_in_the_
+    # unit_rate_for_a_fixed_decision` guards its pricing law on "the decision vector
+    # is unchanged" and checked two AGGREGATE COUNTS for it. At 13 p/kWh premise S9's
+    # truth arm moved `insulate` -> `heat_pump` while its CLASSIFICATION stayed
+    # `declined_with_value`: same counts, £6,000 of capex intercept different, and
+    # the affine identity broke by £367.33 with the guard green. An aggregate cannot
+    # stand in for a vector.
+    chosen_measure: str = ""
+    best_measure: str = ""
 
 
 def _premise_forgone(
@@ -3426,6 +3447,7 @@ def _premise_forgone(
             unit_rate_p_per_kwh=unit_rate_p_per_kwh,
             offers=catalogue,
             evidence_note=f"basis={held_basis.value}, relative_sd={relative_sd:.3f}",
+            epc_band=o.epc_band,
         )
         # THE TRUTH ARM. Zero uncertainty and actionable by construction: this is
         # not a belief anyone holds, it is what a decider WOULD have chosen with
@@ -3441,6 +3463,17 @@ def _premise_forgone(
             unit_rate_p_per_kwh=unit_rate_p_per_kwh,
             offers=catalogue,
             evidence_note="SIM truth — harness counterfactual, no company holds this",
+            # THE SAME BAND AS THE COMPANY ARM, AND THIS IS NOT AN OVERSIGHT
+            # (2026-09-21, W2_34 L1->L2). Perfect knowledge here means perfect
+            # knowledge of the FABRIC — that is the one number this arm is given
+            # that the company does not have. The health floor is not a knowledge
+            # question at all: it is a rule about what may be recommended, read off
+            # the same public register in both arms. Hand the truth arm a band the
+            # company lacks and this ledger books the safety refusal as FORGONE
+            # VALUE, so a floor protecting cold households would be published as
+            # money the company's ignorance cost them. The gap measured here is
+            # about belief, and the floor must cancel out of it exactly.
+            epc_band=o.epc_band,
         )
         chosen, best = company.measure, truth.measure
         if chosen == best:
@@ -3452,6 +3485,8 @@ def _premise_forgone(
                     misranked=False,
                     declined_with_value=False,
                     value_destroying=False,
+                    chosen_measure=chosen,
+                    best_measure=best,
                 )
             )
             continue
@@ -3488,6 +3523,8 @@ def _premise_forgone(
                 misranked=not declined,
                 declined_with_value=declined,
                 value_destroying=not declined and true_values[chosen] < 0.0,
+                chosen_measure=chosen,
+                best_measure=best,
             )
         )
     return rows

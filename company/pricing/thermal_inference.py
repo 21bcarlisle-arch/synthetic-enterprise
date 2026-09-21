@@ -283,6 +283,20 @@ class EpcCertificate:
     the register carries one; it is used only as a cross-check, never as the
     primary estimate, because it embeds the assessor's standard occupancy
     assumptions rather than this household's behaviour.
+
+    `efficiency_band` is the A-G headline band, added 2026-09-21 for the health
+    floor in `fabric_intervention` (W2_34 L1->L2). It is the certificate's most
+    public field and it was the one thing this record did not carry: until now
+    `build_era_band`, an AGE band, was the only band here, so nothing downstream
+    could establish whether a household was warm enough to be advised to turn its
+    heating down, and every real call reached the fail-closed branch.
+
+    IT IS READ BY THE HEALTH FLOOR AND BY NOTHING ELSE, DELIBERATELY. `epc_prior`
+    below builds the fabric belief from floor area, property type, era and
+    insulation, and it is NOT changed to read this band: doing so would move every
+    belief in the measured gap in the same commit that made one refusal reachable,
+    and no result afterwards could be attributed to either. Whether the band
+    belongs in the prior is a separate question with its own answer.
     """
 
     lodged_date: dt.date
@@ -292,6 +306,7 @@ class EpcCertificate:
     insulation: str = "unknown"
     main_heating_fuel: str = "mains gas"
     modelled_space_heat_kwh_yr: float | None = None
+    efficiency_band: str | None = None
 
 
 @dataclass(frozen=True)

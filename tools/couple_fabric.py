@@ -322,9 +322,30 @@ def _reads_from_trace(trace, commodity, *, every_n_days, start):
     return reads
 
 
-def _certificate_for(trace, household, lodged):
+def _certificate_for(trace, household, lodged, epc_band=None):
     """The EPC record in the REGISTER'S OWN VOCABULARY (plain strings), never the
-    SIM's enums. `None` where the register has no certificate for the premise."""
+    SIM's enums. `None` where the register has no certificate for the premise.
+
+    `epc_band` IS THE REGISTER'S OWN BAND AND NOWHERE ELSE'S (2026-09-21, W2_34
+    L1->L2). It crosses here only when `lodged is not None`, which is the whole
+    epistemic content of the field: a band is a fact ABOUT A CERTIFICATE, so a
+    premise the register has never certified has no band, and the health floor
+    downstream fails closed on it exactly as it should.
+
+    IT IS NOT DERIVED, AND THAT IS THE POINT. `simulation.premise_population`
+    draws the band from EHS 2022-23 AT1_2's published marginals, raked into the
+    type x era joint; this passes that draw through untouched. Deriving it from
+    `household.insulation` or from the trace's true heat-loss coefficient — both
+    right here in this function's arguments — would put a domain constant nobody
+    published into the one field a customer's advice turns on, and it would read
+    as established. The atom names both of those and forbids them.
+
+    `AB` IS A REAL VALUE HERE AND IS NOT A BUG. The published marginal itself
+    reports A and B as one class, so the draw has no finer fact to report and
+    inventing a split would be that same invented constant. `fabric_intervention.
+    internal_temperature_c` reads the leading letter and EFUS measures A, B and C
+    at one temperature, so the two agree without a mapping table between them.
+    """
     if lodged is None:
         return None
     return ti.EpcCertificate(
@@ -334,6 +355,7 @@ def _certificate_for(trace, household, lodged):
         build_era_band=_ERA_BAND[household.build_era],
         insulation=household.insulation.value,
         main_heating_fuel=_register_fuel(household),
+        efficiency_band=epc_band,
     )
 
 
@@ -369,7 +391,18 @@ def build_panel(weather, *, seed: int = 17, limit: int | None = None):
         # electric" maintained in this file is one heating system away from
         # reading a resistive home's gas register and finding nothing on it.
         commodity = trace.heating_commodity
-        out.append((premise_id, household, trace, commodity, cadence, _LODGED.get(premise_id)))
+        # NO EPC BAND, AND THAT IS THE HONEST VALUE RATHER THAN A GAP TO FILL. The
+        # ten premises below were COMPOSED — a type, an era and an insulation level
+        # chosen to span the stock — and nobody assigned them a certificate band.
+        # The register's band is a drawn fact in `build_drawn_population` and there
+        # is no corresponding fact here, so the health floor fails closed on every
+        # panel premise and no turn-down is offered on one. Deriving a band from the
+        # insulation column would make the panel's numbers move on a constant this
+        # file invented, and the panel is the arm most figures are quoted over.
+        out.append((
+            premise_id, household, trace, commodity, cadence,
+            _LODGED.get(premise_id), None,
+        ))
     return out
 
 
@@ -399,6 +432,11 @@ def build_drawn_population(weather, *, n: int, seed: int = 17, population_seed: 
             premise.commodity,
             premise.meter_cadence_days,
             premise.epc_lodged,
+            # THE ONE PRODUCTION PATH THAT CARRIES A BAND (2026-09-21, W2_34
+            # L1->L2). Drawn from the published marginal, not derived from this
+            # premise's fabric, and paired with `epc_lodged` above so it reaches
+            # the certificate only where the register has one.
+            premise.epc_band,
         ))
     return out
 
@@ -450,8 +488,12 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     hdd_by_day = ti.heating_degree_days(published, DEGREE_DAY_BASE_C)
     annual_degree_days = sum(hdd_by_day.values()) / len(hdd_by_day) * 365.25
     observations, detail, no_belief = [], [], []
-    for premise_id, household, trace, commodity, cadence, lodged in panel:
-        certificate = _certificate_for(trace, household, lodged)
+    for premise_id, household, trace, commodity, cadence, lodged, band in panel:
+        certificate = _certificate_for(trace, household, lodged, band)
+        # READ BACK OFF THE CERTIFICATE, never off `band` directly. The certificate
+        # is the company's whole view of the register, and a premise it has none for
+        # must not acquire a band by the harness handing one round the seam.
+        register_band = certificate.efficiency_band if certificate is not None else None
         try:
             belief = ti.infer_thermal_parameters(
                 premise_id=premise_id,
@@ -497,6 +539,7 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
                 epc_basis=belief.prior.basis,
                 inferred_relative_sd=belief.relative_sd,
                 inferred_basis=belief.basis,
+                epc_band=register_band,
             )
         )
         detail.append(
@@ -515,6 +558,7 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
                     annual_heat_kwh=trace.annual_kwh(commodity),
                     annual_degree_days_k_day=annual_degree_days,
                     unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+                    epc_band=register_band,
                 ).decision.value,
             }
         )

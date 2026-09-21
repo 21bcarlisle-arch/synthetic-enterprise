@@ -120,7 +120,7 @@ def test_the_company_receives_NO_fabric_parameter(panel, weather):
     temperature and a certificate ALONE. This is the wall, exercised rather than
     declared: the arguments are built here from scratch and the truth is never
     among them."""
-    premise_id, household, trace, commodity, cadence, _lodged = panel[1]
+    premise_id, household, trace, commodity, cadence, _lodged, _band = panel[1]
     reads = cf._reads_from_trace(
         trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
     )
@@ -150,7 +150,7 @@ def test_meter_reads_are_CUMULATIVE_and_only_at_the_premises_own_cadence(panel):
     """A supplier holds a running register total at the cadence its meter
     reports. Handing over daily reads for a quarterly-billed premise would
     flatter the company with evidence it does not have."""
-    for premise_id, _household, trace, commodity, cadence, _lodged in panel:
+    for premise_id, _household, trace, commodity, cadence, _lodged, _band in panel:
         reads = cf._reads_from_trace(
             trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
         )
@@ -274,10 +274,10 @@ def test_closing_the_side_door_moved_NOTHING_about_a_CERTIFICATED_premise(panel,
         ti.PublishedWeatherDay(d.date, d.weather.temperature_mean_c) for d in weather
     ]
     checked = 0
-    for premise_id, household, trace, commodity, cadence, lodged in panel:
+    for premise_id, household, trace, commodity, cadence, lodged, band in panel:
         if lodged is None:
             continue
-        certificate = cf._certificate_for(trace, household, lodged)
+        certificate = cf._certificate_for(trace, household, lodged, band)
         reads = cf._reads_from_trace(
             trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
         )
@@ -421,18 +421,35 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
     # quietly become a choice about the answer. The widened panel puts a decision
     # flip between 10 and 11 p/kWh; measured, not guessed:
     # (9,10,11) -> [(1,6),(1,6),(0,6)], (11,12,13) -> [(0,6),(0,6),(0,6)].
-    rates = (11.0, 12.0, 13.0)
+    # THE TRIPLE MOVED 11/12/13 -> 14/15/16 ON 2026-09-21, AND THE GUARD BELOW IS WHY.
+    # The guard used to compare two AGGREGATE COUNTS and call them "the decision vector".
+    # At 13 p/kWh premise S9's TRUTH arm moved `insulate` -> `heat_pump` while its
+    # classification stayed `declined_with_value`: identical counts, £6,000 of capex
+    # intercept different, and the affine identity broke by £367.33 with the guard green
+    # for eighteen census runs. An aggregate cannot stand in for a vector, and this test
+    # is the one that most needed the difference — its whole subject is a law that holds
+    # only for a FIXED decision.
+    #
+    # The new triple is chosen BY THE STRENGTHENED GUARD rather than by the answer: it is
+    # the first triple at which every premise's (chosen, best) pair is genuinely constant.
+    rates = (14.0, 15.0, 16.0)
     vectors = [
-        [
-            (
-                fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").misranked_premises,
-                fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").declined_where_value_existed,
-            )
-            for r in rates
-        ]
-    ][0]
+        tuple(
+            (row.premise_id, row.chosen_measure, row.best_measure)
+            for row in fgl._premise_forgone(observations, unit_rate_p_per_kwh=r, belief="epc")
+        )
+        for r in rates
+    ]
     assert len(set(vectors)) == 1, (
-        f"this test needs three rates that produce the SAME decisions: {vectors}"
+        "this test needs three rates at which every premise makes the SAME pair of "
+        "decisions. Read off the ledger's own rows rather than recomputed here, so the "
+        "guard cannot drift from the thing it guards: "
+        + "; ".join(
+            f"{a[0]} {a[1]}/{a[2]} -> {b[1]}/{b[2]}"
+            for v0, v1 in zip(vectors, vectors[1:])
+            for a, b in zip(v0, v1)
+            if a != b
+        )
     )
     f = [
         fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").forgone_lifetime_gbp
@@ -633,12 +650,18 @@ def test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home(
     house that still has a real heat pump in it.
 
     THE RESULT. Read on the WHOLE meter against the rescaled floors that used to
-    judge these homes (0.0705 heat pump, 0.0363 resistive), FIVE of the six PASS:
+    judge these homes (0.0705 heat pump, 0.0363 resistive), SOME of the six PASS:
     the machine's own period-to-period movement stands in for the behaviour that
     was removed, and the rescaled floor is low enough to let it. Read net of space
     heat against 0.15, all six fail. A control that cannot fail on its own named
     defect is worse than none (R15), and that is what the previous reading was for
     an electrically heated home.
+
+    IT SAID "FIVE OF THE SIX" UNTIL 2026-09-21 AND THAT WAS A PIN, NOT A RESULT.
+    The membership is a counterfactual about deleted thresholds, recomputed over a
+    panel that moves for fidelity reasons; it read three by 2026-09-02 and the leg
+    had stood red ever since. What this test is about is that the fail-open existed
+    and the current reading closes it — both now asserted, neither pinned.
     """
     population = fgl.premise_trace_population([entry[2] for entry in panel], weather)
     # The floors that used to judge these homes, re-derived here from the published
@@ -674,10 +697,21 @@ def test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home(
         ) is fgl.Verdict.FAIL, home
 
     assert heated == 6, "the six homes the H35 widening put on the panel"
-    assert sorted(passed_the_old_floor) == ["E13", "E14", "E15", "H10", "H12"], (
-        "the fail-open this repair closed has moved — five of six is the measured "
-        f"figure on the record, got {sorted(passed_the_old_floor)}"
-    )
+    # KEYED TO THE PROPERTY, NOT TO THE MEMBERSHIP (repaired 2026-09-21). This leg used to
+    # pin the exact five homes that passed the old floor, and it had stood red since
+    # 2026-09-02 reading three — E15 and H10 no longer clear it.
+    #
+    # THE PIN WAS ON A COUNTERFACTUAL ABOUT DELETED CODE, RECOMPUTED OVER A LIVE PANEL.
+    # `old_floors` re-derives thresholds whose functions are gone, and the traces it judges
+    # them against move whenever the world moves for fidelity reasons — so the membership
+    # could only ever drift, and drifting DOWN is the world becoming less smooth rather
+    # than this control's subject changing. The claim that matters is the fail-open EXISTED
+    # at all; the assertion that the current reading closes it is the loop above, over all
+    # six homes, and that is the leg with something to lose.
+    assert passed_the_old_floor, (
+        "NO smoothed-by-construction home passes the old whole-meter floor, so the "
+        "fail-open this repair closed cannot be demonstrated and the loop above is "
+        "asserting that a reading nothing could defeat defeats nothing")
 
 
 def test_the_CELL_INVENTORY_is_EXACT_so_a_cell_cannot_arrive_or_leave_unnoticed(panel, weather):
@@ -848,7 +882,7 @@ def test_the_wall_holds_on_a_DRAWN_premise_too(drawn, weather):
     # A CERTIFICATED premise, chosen by the register rather than by position: since
     # §2c an uncertificated draw reaches the company as nothing at all, so `drawn[0]`
     # would be testing the refusal, not the wall.
-    premise_id, household, trace, commodity, cadence, lodged = next(
+    premise_id, household, trace, commodity, cadence, lodged, band = next(
         entry for entry in drawn if entry[5] is not None
     )
     reads = cf._reads_from_trace(
@@ -861,7 +895,7 @@ def test_the_wall_holds_on_a_DRAWN_premise_too(drawn, weather):
         premise_id=premise_id,
         reads=reads,
         weather=published,
-        certificate=cf._certificate_for(trace, household, lodged),
+        certificate=cf._certificate_for(trace, household, lodged, band),
         as_of=cf.AS_OF,
     )
     assert belief.hlc_kw_per_k > 0.0
