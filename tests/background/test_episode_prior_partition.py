@@ -188,6 +188,39 @@ def _stuck(tmp_path, monkeypatch):
     return p, live, probe
 
 
+def _delivery_claims(tmp_path, monkeypatch):
+    """THE ONE CARRIER WHOSE PRIOR IS A MAP OF EPISODES, NOT ONE EPISODE, and it is probed through
+    `delivery_lane`, not through `seat_work_in_hand`.
+
+    That is the whole point of the leg. `delivery_lane` binds `claims_mod = seat_work_in_hand` and
+    passes its OWN `CLAIMS_FILE` as the path argument, which is why no module-level symbol inside
+    `seat_work_in_hand` names this path and why the census only found it through the parameter
+    walk. A probe that called `claims_mod.claim` directly would grade the module the sibling
+    control already grades and would stay green if this lane were re-pointed at a loader of its
+    own -- so the probe enters where the census says the carrier is written from.
+
+    `claim_dispatched` is the cheapest of this lane's four writers that is reachable without a
+    staging queue or a git fixture, and it is a real one: it is what claims a Lane 0 id at the
+    instant a doorbell hands it to a worker. The bytes at risk are the OTHER lanes' live claims
+    and their `claimed_at` clocks, so the open-episode state below is another lane's hold."""
+    import background.delivery_lane as dl
+
+    p = tmp_path / "delivery_lane_claims.json"
+    live = json.dumps({"another-lanes-item": {"claimed_at": NOW - 36000,
+                                              "note": "held by someone else", "paths": []}})
+
+    def probe():
+        dl.claim_dispatched("--landed the-dispatched-id", now=NOW, path=p)
+        after = json.loads(p.read_text())
+        # WHAT SURVIVED, and WHETHER THE UNREADABLE BYTES WERE KEPT. The first is the fact the
+        # sweep's deadline is derived from; the second is the act that tells an unreadable store
+        # from an absent one on a read-modify-write path, where answering "absent" means writing a
+        # one-claim file over every live hold.
+        preserved = any(q.name.startswith(p.name + ".unreadable") for q in tmp_path.iterdir())
+        return (sorted(after), preserved)
+    return p, live, probe
+
+
 #: name -> (builder, the state path the census knows it by). The census's `real` rows are keyed by
 #: filename, and `test_every_real_census_hit_is_covered` reconciles this map against them.
 CARRIERS = {
@@ -196,6 +229,7 @@ CARRIERS = {
     "atom_stall": (_atom_stall, ".atom_stall_tracker.json"),
     "ntfy": (_ntfy, ".ntfy_delivery_state.json"),
     "stuck": (_stuck, ".supervisor_stuck_state.json"),
+    "delivery_claims": (_delivery_claims, ".delivery_lane_claims.json"),
 }
 
 
@@ -294,8 +328,16 @@ def test_every_real_census_hit_is_covered():
     # `.seat_work_in_hand.json` joined them on 2026-09-05, when the census parameter-seam repair
     # made it a hit for the first time: `claimed_at` is an episode start and `stale_claims`
     # publishes `idle_seconds` off it, and an unreadable store had every writer rebuild a
-    # one-claim file over every other lane's claim. Its prior is a `{work_id: {...}}` MAP, so the
-    # `{counter, since}` probe above cannot reach it either.
+    # one-claim file over every other lane's claim.
+    #
+    # THE REASON THIS ROW ORIGINALLY GAVE WAS "its prior is a `{work_id: {...}}` MAP, so the
+    # `{counter, since}` probe above cannot reach it either", AND THAT IS NOW REFUTED, beside the
+    # claim rather than quietly: `.delivery_lane_claims.json` is the same map shape and is probed
+    # in `CARRIERS` above, because a probe returns whatever tuple discriminates ITS carrier and was
+    # never bound to `{counter, since}`. The citation still stands on its own -- the sibling really
+    # does exercise this path -- but it stands because the control exists, not because this harness
+    # could not have reached it. Reaching it here too would grade `seat_work_in_hand` twice and the
+    # interactive seat's own store is what the sibling was written for.
     #
     # KEYED PER PATH, so each exemption names the control that actually covers it. A single
     # shared citation would let a second path ride in on the first one's file -- which is the
