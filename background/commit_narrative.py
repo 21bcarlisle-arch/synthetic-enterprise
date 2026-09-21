@@ -28,16 +28,40 @@ That is the whole finding, and it held on three separate surfaces at once:
     A commit carries work IFF its tree differs from EVERY one of its parents' trees.
 
 Nothing about a subject line, an author or a path is consulted, so a new class of no-op commit
-cannot be work-by-default the way it is under a denylist. It is exactly right on the four cases:
+cannot be work-by-default the way it is under a denylist.
+
+## AND WHY THE TREE COMPARISON IS THE WRONG QUESTION TO ASK OF A MERGE
+
+Measured on this tree 2026-09-21, last 200 commits: 47 merges, of which 35 authored NOTHING and
+this reader called every one of them work. `f56852e25` is the shape -- tree `bb737f158` against
+parent trees `8b58f2e8e` and `e38e670da`, differing from both, so "differs from EVERY parent"
+scored it as work, while `git show --name-only` on it is EMPTY. It is a reconciliation merge: it
+took one side's file here and the other side's file there and invented nothing, and the union of
+the two sides differs from each side by construction. A reconciliation merge ALWAYS differs from
+every parent's tree, so the rule was not merely blind to the 35 -- it was guaranteed to be.
+
+What a merge AUTHORS is its COMBINED DIFF: exactly the paths whose content differs from ALL of
+its parents, which is the only content no parent already carried. `git diff-tree -c` computes it
+and it is empty for a clean reconciliation, non-empty for a merge that resolved a conflict (12 of
+the 47 -- `f0efa1a06` authored two staging files neither side had). Both halves of the work in a
+clean merge are already counted, in the commits that did author them.
 
   ordinary commit      tree != parent                      -> WORK
-  empty commit         tree == parent                      -> none
-  substantive merge    tree differs from both parents      -> WORK (it resolved something)
-  trivial/no-op merge  tree == one parent's tree           -> none: it recorded topology only
+  empty commit         tree == parent                      -> none: TREE_EQUALS_PARENT
+  merge, conflict      combined diff non-empty             -> WORK: it authored the resolution
+  merge, clean/no-op   combined diff empty                 -> none: MERGE_AUTHORED_NOTHING
 
-The 29 merges are the last row. Each had `p1` = the stale local HEAD, `p2` = the previous merge,
-and a tree byte-identical to `p2` -- a commit that changed nothing about the repository's content
-and existed only to move a ref.
+The 29 are the last row, and so are a further 35 in the most recent 200. Each 29 had `p1` = the
+stale local HEAD, `p2` = the previous merge, and a tree byte-identical to `p2` -- so the tree rule
+did catch THAT sub-shape, and only that one. The reason is kept separate from TREE_EQUALS_PARENT
+because the mechanism sentences differ and only one is true of each.
+
+WHAT THE BRIEF'S OWN `substantive` FIELD IS NOT. `delivery_seat.commits_since` marks every merge
+`files: []`, `substantive: false`, and that looked like the correct reading already computed
+elsewhere. It is not: `git log --name-only` suppresses merge diffs ENTIRELY, so it says false for
+the 12 that authored a conflict resolution just as loudly as for the 35 that authored nothing.
+That field is silence, not agreement, and it cannot be this reader's oracle -- measured
+2026-09-21: it disagrees with the combined diff on 12 of 47 merges, always in the same direction.
 
 ## THE SECOND SHAPE: A COMMIT WHOSE ONLY CONTENT IS THE PROOF IT IS ALIVE
 
@@ -116,6 +140,10 @@ LIVENESS_ONLY = "LIVENESS_ONLY"
 #: itself wrongly is how the reader learns to stop believing the finding.
 TREE_EQUALS_PARENT = "tree_equals_parent"
 LIVENESS_SURFACE_ONLY = "liveness_surface_only"
+#: A merge whose tree differs from every parent's and whose COMBINED DIFF is empty: it took one
+#: side here and the other there and authored nothing of its own. The tree-equality sentence is
+#: FALSE of it -- that is the whole reason it needs a reason of its own.
+MERGE_AUTHORED_NOTHING = "merge_authored_nothing"
 
 
 def _liveness_surface() -> frozenset[str] | None:
@@ -185,6 +213,33 @@ def _changed_paths(project: Path, rows: list[dict]) -> dict[str, set[str] | None
                 break
             union.update(p for p in (proc.stdout or "").splitlines() if p)
         out[row["sha"]] = union
+    return out
+
+
+def _combined_diff(project: Path, rows: list[dict]) -> dict[str, set[str] | None]:
+    """`merge sha -> the paths it AUTHORED`: those differing from ALL parents. None if unreadable.
+
+    This is `git diff-tree -c` -- the same set `git show --name-only` prints for a merge, and the
+    only content in a merge that no parent already carried. Asked per merge rather than batched
+    because `--stdin` interleaves headers with paths and a mis-parse here reads as "authored
+    nothing", which is the flattering answer; merges are a handful per stretch (47 in 200 measured
+    on this tree) so the bounded extra calls are cheaper than that risk.
+
+    Single-parent commits are absent from the result: the combined diff is not their question, and
+    a caller must not read their absence as an empty change set.
+    """
+    out: dict[str, set[str] | None] = {}
+    for row in rows:
+        if len(row["parents"]) <= 1:
+            continue
+        try:
+            proc = _git(project, "diff-tree", "-c", "-r", "--name-only", "--no-commit-id",
+                        row["sha"])
+        except (OSError, subprocess.SubprocessError):
+            out[row["sha"]] = None
+            continue
+        out[row["sha"]] = (None if proc.returncode != 0
+                           else {p for p in (proc.stdout or "").splitlines() if p})
     return out
 
 
@@ -270,11 +325,13 @@ def read_commits(project: Path | None = None, *, since_hours: float | None = Non
     trees = _trees(project, sorted(wanted))
     surface = _liveness_surface()
     changed = _changed_paths(project, rows) if surface else {}
+    authored = _combined_diff(project, rows)
     for row in rows:
         row["tree"] = trees.get(row["sha"])
-        row["carries_work"] = _carries_work(row, trees)
+        row["carries_work"] = _carries_work(row, trees, authored)
         row["liveness_surface_known"] = surface is not None
-        row["empty_because"] = TREE_EQUALS_PARENT if row["carries_work"] is False else None
+        row["empty_because"] = (_why_no_work(row, trees) if row["carries_work"] is False
+                                else None)
         # The liveness leg only ever takes an answer AWAY from "work"; it can never promote a
         # commit the tree rule refused, and it never overrides an honest None.
         if row["carries_work"] is True and _is_liveness_only(changed.get(row["sha"]), surface):
@@ -283,12 +340,20 @@ def read_commits(project: Path | None = None, *, since_hours: float | None = Non
     return rows
 
 
-def _carries_work(row: dict, trees: dict[str, str]) -> bool | None:
-    """The rule: the tree differs from EVERY parent's tree.
+def _carries_work(row: dict, trees: dict[str, str],
+                  authored: dict[str, set[str] | None] | None = None) -> bool | None:
+    """The rule: the tree differs from every parent's, AND a merge authored something of its own.
 
-    A root commit (no parents) carries work if it has a tree at all. An unresolvable tree anywhere
-    in the comparison yields None -- unknown -- because "I could not read it" and "it changed
-    nothing" are different answers and only one of them is a defect report.
+    A root commit (no parents) carries work if it has a tree at all. For a MERGE the tree
+    comparison is necessary and nowhere near sufficient -- a reconciliation merge differs from
+    every parent by construction -- so the answer is its COMBINED DIFF, which is what it authored
+    that no parent already carried. See the module docstring for the measurement.
+
+    Three-valued throughout. An unresolvable tree, or a combined diff git declined to print,
+    yields None -- unknown -- because "I could not read it" and "it changed nothing" are different
+    answers and only one of them is a defect report. `authored` omitted means the merge leg cannot
+    run, so a merge is UNKNOWN rather than quietly falling back to the tree comparison this exists
+    to replace.
     """
     mine = trees.get(row["sha"])
     if mine is None:
@@ -301,7 +366,25 @@ def _carries_work(row: dict, trees: dict[str, str]) -> bool | None:
             return None
         if theirs == mine:
             return False
+    if len(row["parents"]) > 1:
+        paths = (authored or {}).get(row["sha"])
+        if paths is None:
+            return None
+        return bool(paths)
     return True
+
+
+def _why_no_work(row: dict, trees: dict[str, str]) -> str:
+    """WHICH mechanism made this commit empty -- asked only of a row already answered False.
+
+    The two sentences are not interchangeable and a finding that explains itself wrongly teaches
+    the reader to stop believing findings: an empty commit repeats a parent's tree exactly, and a
+    reconciliation merge's tree matches NO parent at all.
+    """
+    mine = trees.get(row["sha"])
+    if any(trees.get(p) == mine for p in row["parents"]):
+        return TREE_EQUALS_PARENT
+    return MERGE_AUTHORED_NOTHING
 
 
 def _runs(rows: list[dict], key) -> list[list[dict]]:
@@ -357,7 +440,12 @@ def findings(rows: list[dict]) -> list[dict]:
         detail = "{} consecutive commits carry the identical subject {!r}".format(
             len(run), run[0]["subject"][:80])
         if len(empty) == len(run):
-            detail += ", and NONE of them changed anything: every tree equals a parent's"
+            # The clause names the MECHANISM, so it has to be true of this run: a run of
+            # reconciliation merges changed nothing and its trees match NO parent.
+            detail += (", and NONE of them changed anything: "
+                       + ("every tree equals a parent's"
+                          if {r.get("empty_because") for r in empty} == {TREE_EQUALS_PARENT}
+                          else "not one of them authored any content"))
         elif empty:
             detail += ", {} of which changed nothing".format(len(empty))
         out.append({"kind": REPETITION, "commits": shas, "count": len(run), "detail": detail,
@@ -382,9 +470,13 @@ def findings(rows: list[dict]) -> list[dict]:
                    "is exactly what it was {} commits ago".format(len(run)))
         elif reasons == {LIVENESS_SURFACE_ONLY}:
             why = "every one of them changed only the liveness surface -- a timestamp moving"
+        elif reasons == {MERGE_AUTHORED_NOTHING}:
+            why = ("every one is a merge that authored nothing: each took one side's file here "
+                   "and the other side's there, so its combined diff is empty and no content in "
+                   "the repository originates in any of these {} commits".format(len(run)))
         else:
-            why = ("each either repeats a parent's tree exactly or moves only the liveness "
-                   "surface")
+            why = ("each either repeats a parent's tree exactly, authored nothing of its own as "
+                   "a merge, or moves only the liveness surface")
         out.append({
             "kind": NO_WORK, "commits": [r["short"] for r in run], "count": len(run),
             "detail": "{} consecutive commits carried no work -- {}".format(len(run), why),

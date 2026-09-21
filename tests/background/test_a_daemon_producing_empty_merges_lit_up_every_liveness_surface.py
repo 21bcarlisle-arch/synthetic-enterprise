@@ -66,20 +66,116 @@ def test_an_empty_commit_carries_none(repo):
     assert cn.read_commits(repo)[0]["carries_work"] is False
 
 
-def test_a_merge_that_resolved_something_carries_work(repo):
-    """A real merge's tree differs from BOTH parents, because it is neither side alone."""
-    _git(repo, "checkout", "-q", "-b", "other")
-    (repo / "theirs.md").write_text("theirs\n")
+def _reconciliation_merge(repo, subject="merge origin/main: automatic reconciliation"):
+    """Two lanes touching DIFFERENT files -- the 47-in-200 shape. Merges clean, authors nothing.
+
+    Its tree differs from BOTH parents by construction (it is the union and neither side is), so
+    it is the exact commit the tree-comparison rule was guaranteed to call work.
+    """
+    head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    _git(repo, "checkout", "-q", "-b", "lane-" + head[:8], head)
+    # The content is keyed to this merge so a SECOND call is a second real divergence and not a
+    # silently empty commit that fast-forwards -- which is how the first draft of this fixture
+    # built one merge while the test believed it had three.
+    (repo / "theirs.md").write_text("theirs, at {}\n".format(head[:8]))
     _git(repo, "add", "-A")
-    _git(repo, "commit", "-qm", "theirs")
+    _git(repo, "commit", "-qm", "the other lane's own work")
+    other = _git(repo, "rev-parse", "HEAD").stdout.strip()
     _git(repo, "checkout", "-q", "main")
-    (repo / "ours.md").write_text("ours\n")
+    (repo / "ours.md").write_text("ours, at {}\n".format(head[:8]))
     _git(repo, "add", "-A")
-    _git(repo, "commit", "-qm", "ours")
-    assert _git(repo, "merge", "--no-ff", "-m", "a real merge", "other").returncode == 0
-    row = cn.read_commits(repo)[0]
-    assert row["subject"] == "a real merge"
-    assert row["carries_work"] is True
+    _git(repo, "commit", "-qm", "this lane's own work")
+    assert _git(repo, "merge", "--no-ff", "-m", subject, other).returncode == 0
+    return _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+def _conflict_resolving_merge(repo, subject="a merge that authored its resolution"):
+    """Two lanes editing the SAME line. The merge STOPS, a judgement is made, and the bytes that
+    judgement produced are in no parent -- so the combined diff is non-empty. 12 of the 47."""
+    head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    _git(repo, "checkout", "-q", "-b", "conflicting-" + head[:8], head)
+    (repo / "contested.md").write_text("their answer\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "their answer")
+    other = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    _git(repo, "checkout", "-q", "main")
+    (repo / "contested.md").write_text("our answer\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "our answer")
+    assert _git(repo, "merge", "--no-ff", "-m", subject, other).returncode != 0, (
+        "this fixture is worthless unless git actually refuses -- a clean merge authors nothing")
+    (repo / "contested.md").write_text("the answer the resolver chose, in neither parent\n")
+    _git(repo, "add", "-A")
+    assert _git(repo, "commit", "-qm", subject).returncode == 0
+    return _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+def test_A_MERGE_CARRIES_WORK_IFF_IT_AUTHORED_SOMETHING_AND_ALL_THREE_SHAPES_IN_ONE_ASSERTION(
+        repo):
+    """THE WHOLE PARTITION IN ONE ASSERTION, because the failure that threatens this leg is a
+    guard that refuses EVERYTHING.
+
+    `_carries_work` compared the commit's tree against every parent's, and a reconciliation merge
+    differs from every parent by construction -- it is the union and neither side is. So the rule
+    was not merely blind to that shape, it was GUARANTEED to call it work: measured on this tree
+    2026-09-21, 47 merges in the last 200 and 35 of them authored nothing, all 35 scored work.
+
+    The obvious repair -- call every merge empty -- passes any per-branch test written for the 35
+    and is catastrophically wrong on the 12 that resolved a conflict, whose resolution bytes exist
+    in no parent. So the three shapes are asserted TOGETHER and no leg can be dropped to make
+    another pass:
+
+    MUTATION: `return False` for `len(parents) > 1` and the middle verdict fails. Restore the
+    tree comparison for merges and the first fails. Neither can be satisfied alone.
+    """
+    reconciliation = _reconciliation_merge(repo)
+    conflict = _conflict_resolving_merge(repo)
+    (repo / "a.md").write_text("an ordinary change\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "a plain single-parent commit")
+    plain = _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+    verdict = {r["sha"]: r["carries_work"] for r in cn.read_commits(repo, limit=40)}
+    assert [verdict[reconciliation], verdict[conflict], verdict[plain]] == [False, True, True], (
+        "a merge authored what its COMBINED DIFF holds and nothing else; a single-parent commit "
+        "is not a merge and its rule did not change")
+
+
+def test_A_RECONCILIATION_MERGE_IS_NOT_EMPTY_FOR_THE_TREE_EQUALITY_REASON(repo):
+    """NO_WORK's sentence asserts a MECHANISM. "its tree is identical to a parent's" is true of
+    the 29 and FALSE of a reconciliation merge, whose tree matches no parent at all -- and a
+    finding that explains itself wrongly teaches the reader to stop believing findings.
+
+    MUTATION: reuse TREE_EQUALS_PARENT for the merge case and the run's sentence asserts a tree
+    equality that does not hold for a single commit it names.
+    """
+    _reconciliation_merge(repo, "merge origin/main: reconciliation one")
+    _reconciliation_merge(repo, "merge origin/main: reconciliation two")
+    _reconciliation_merge(repo, "merge origin/main: reconciliation three")
+    rows = [r for r in cn.read_commits(repo, limit=40) if len(r["parents"]) > 1]
+    assert len(rows) == 3
+    assert [r["empty_because"] for r in rows] == [cn.MERGE_AUTHORED_NOTHING] * 3
+    no_work = [f for f in cn.findings(rows) if f["kind"] == cn.NO_WORK]
+    assert no_work, "three consecutive commits that authored nothing is a finding"
+    assert "combined diff is empty" in no_work[0]["detail"]
+    assert "identical to one of its own parents" not in no_work[0]["detail"], (
+        "that clause is true of the 29 and false of every commit this finding names")
+
+
+def test_A_MERGE_WHOSE_COMBINED_DIFF_CANNOT_BE_READ_IS_UNKNOWN_NOT_EMPTY(repo):
+    """`fail_closed_on_unreadable_input` on the NEW leg. The merge answer now depends on a second
+    git call, and the reassuring reading of a failed call is "it authored nothing" -- which would
+    quietly report every merge in an unreadable repository as a defect.
+
+    MUTATION: default the missing entry to an empty set and both of these turn False.
+    """
+    row = {"sha": "m", "parents": ["p1", "p2"]}
+    trees = {"m": "t0", "p1": "t1", "p2": "t2"}
+    assert cn._carries_work(row, trees, {"m": None}) is None
+    assert cn._carries_work(row, trees, {}) is None, (
+        "a merge leg that did not run must not fall back to the comparison it replaced"
+    )
+    assert cn._carries_work(row, trees, {"m": {"resolved.md"}}) is True
 
 
 def test_THE_NO_OP_MERGE_CARRIES_NOTHING(repo):
@@ -288,17 +384,13 @@ def test_A_MERGE_IS_NEVER_LIVENESS_BY_DEFAULT_THOUGH_DIFF_TREE_PRINTS_IT_WITH_NO
     every merge in the tree while looking like a tightening.
 
     MUTATION: let `_is_liveness_only` accept an empty path set and this fails.
+
+    The repo leg uses a CONFLICT-RESOLVING merge, because a clean one authors nothing and would
+    now read as no-work for the combined-diff reason -- passing this test for a reason that has
+    nothing to do with the fail-open it names.
     """
     assert cn._is_liveness_only(set(), frozenset({"a"})) is False
-    _git(repo, "checkout", "-q", "-b", "other")
-    (repo / "theirs.md").write_text("theirs\n")
-    _git(repo, "add", "-A")
-    _git(repo, "commit", "-qm", "theirs")
-    _git(repo, "checkout", "-q", "main")
-    (repo / "ours.md").write_text("ours\n")
-    _git(repo, "add", "-A")
-    _git(repo, "commit", "-qm", "ours")
-    assert _git(repo, "merge", "--no-ff", "-m", "a real merge", "other").returncode == 0
+    _conflict_resolving_merge(repo, "a merge that resolved a contested file")
     assert cn.read_commits(repo, limit=1)[0]["carries_work"] is True
 
 
