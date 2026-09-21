@@ -1341,11 +1341,37 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + "</p></div>";
   }
 
+  /* THE WHOLE REASON THE FEED HOLDS, WHICHEVER FIELDS IT IS SPREAD ACROSS (2026-09-21).
+     `no_sign` — "the same contrast re-drawn N times falls on BOTH sides of zero" — is the
+     STRONGER of the two disqualifications the feed can carry, and until this date it rendered
+     nowhere on this page. It is usually already inside `verdict_withheld_because`: the producer
+     (`_leg_in_this_world`) either assigns it there or appends it, so on the live feed
+     `selection_leg.no_sign` is a substring of `selection_leg.verdict_withheld_because` and this
+     function changes nothing.
+
+     THAT CONTAINMENT IS NOT STRUCTURAL, WHICH IS WHY THIS IS A GUARD AND NOT A COMMENT. Both of
+     the producer's folding branches are gated on `resolved is not None`. A leg whose point
+     estimate is absent while its floor family IS read reaches `_resolvable` with `value=None`,
+     gets `resolved = None` before either branch, and publishes a non-empty `no_sign` beside a
+     `verdict_withheld_because` of `None` — at which point the old code fell through to "AND NO
+     REASON IS GIVEN" with the reason sitting unread one field away. Concatenating here is the
+     fail-CLOSED direction: a reason the feed holds reaches the reader whichever field it is in,
+     and the `indexOf` stops the ordinary case printing it twice. */
+  function withheldReason(leg) {
+    var withheld = leg.verdict_withheld_because || "";
+    var noSign = leg.no_sign || "";
+    if (noSign && withheld.indexOf(noSign) === -1) {
+      return withheld ? withheld + " " + noSign : noSign;
+    }
+    return withheld;
+  }
+
   function legVerdict(leg) {
-    if (leg.verdict_withheld_because) {
+    var withheld = withheldReason(leg);
+    if (withheld) {
       return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
         + "<strong>NO DIRECTION IS STATED FOR THIS LEG.</strong> "
-        + prose(leg.verdict_withheld_because) + "</p>"
+        + prose(withheld) + "</p>"
         + whatWouldSettleIt(leg);
     }
     if (leg.resolved === true) {
@@ -2233,19 +2259,42 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + "margin of " + esc(lvl) + "/MWh against the baseline's " + esc(ctl) + "/MWh. Giving "
           + "<em>every</em> household that same single margin earned "
           + esc(signed(sp.arms[2].advantage_gbp)) + ", against the per-customer arm's "
-          + esc(signed(sp.arms[1].advantage_gbp)) + ". <strong>The choosing is therefore worth "
-          + esc(signed(sp.selection_gbp)) + "</strong>"
+          + esc(signed(sp.arms[1].advantage_gbp))
+          /* A SIZE, AND NOT A SIGN (2026-09-21). This read `signed(sp.selection_gbp)` and printed
+             "−£1,904" under a closing sentence saying the figure was a magnitude and not a
+             direction. That is the same quantity `#arms-legs-first` refuses outright one panel
+             along, and a class remedy that lands on one instance while the panel beside it still
+             generates the instance is not a correction. The magnitude is the FEED's
+             (`selection_magnitude_gbp`) and not a `Math.abs()` here: a number this page strips a
+             sign off is a number this page produced, and no control over the feed can see it.
+
+             FAIL CLOSED ON AN OLDER FEED. A publish predating that field renders the absence and
+             the reason, never the signed figure it used to render -- the flattering fallback is
+             exactly the state this repair removes. */
+          + ". <strong>"
+          + (gbp(sp.selection_magnitude_gbp) === null
+              ? "The size of the choosing is not on this publish"
+              : "The choosing is therefore worth "
+                + esc(gbp(sp.selection_magnitude_gbp)) + " in SIZE")
+          + "</strong>"
           + (sp.level_share_of_advantage === null || sp.level_share_of_advantage === undefined
               ? ""
               : " &mdash; the price level explains "
                 + (sp.level_share_of_advantage * 100).toFixed(1) + "% of the advantage")
-          + "."
-          /* AND WHAT THAT SIZE IS NOT. This panel is on the clock the run superseded, and no seed
-             spread has ever been measured on it -- so the figure above is a magnitude and the page
-             must not let it read as a direction. It closes the sentence rather than interrupting
-             it: printed mid-clause it orphaned the share that follows, which is the kind of thing
-             only rendering the page catches. The headline carries the bounded reading. */
-          + (sp.no_spread_on_this_clock ? " " + prose(sp.no_spread_on_this_clock) : "")
+          + ".</p>"
+          /* AND WHAT THAT SIZE IS NOT, IN THE SAME VOCABULARY THE LEG PANEL USES. It was a quiet
+             trailing clause on the end of the sentence that stated the figure; it is now the
+             page's standing refusal heading, amber, in its own block, because "no direction is
+             stated" is a result and this page puts results on the surface. The two clauses are
+             the feed's: the first says no family has ever graded this clock, the second says
+             differencing the two signed arm figures does not get round that. */
+          + '<p style="margin:6px 0 0;font-size:12.5px;color:var(--amber);">'
+          + "<strong>NO DIRECTION IS STATED FOR THE CHOOSING ON THIS CLOCK.</strong> "
+          + prose(sp.no_spread_on_this_clock
+                  || "This publish carries no reason for withholding the direction, so the size "
+                     + "above is unexplained rather than unremarkable.")
+          + (sp.and_subtracting_the_arms_does_not_restore_it
+              ? " " + prose(sp.and_subtracting_the_arms_does_not_restore_it) : "")
           + "</p>"
           + '<p style="margin:8px 0 0;font-size:11.5px;color:var(--muted);">'
           + prose(sp.superseded_note) + "</p>";

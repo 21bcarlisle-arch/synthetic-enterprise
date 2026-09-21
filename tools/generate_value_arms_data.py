@@ -1229,6 +1229,14 @@ def _provisioned(three_arm: dict) -> dict:
             _arm("level", level, advantage_gbp=level_adv, one_book=_one_book(three_arm)),
         ],
         "selection_gbp": selection,
+        # THE SIZE, AS ITS OWN PUBLISHED FIELD, because this panel may print a size and may not
+        # print a direction, and the page must not be the place that decides which (2026-09-21).
+        # `selection_gbp` stays: the signed figure is what the run computed and deleting it from
+        # the feed would make the magnitude unauditable. What changed is that the door now has a
+        # field it can render WITHOUT stripping a sign itself -- a `Math.abs()` in the door is a
+        # second producer of a published number, sitting where no control over this feed can see
+        # it, which is this repository's named defect class (one rule, several implementations).
+        "selection_magnitude_gbp": abs(selection),
         "level_share_of_advantage": share,
         "share_undefined_reason": (
             None if share is not None else
@@ -1248,6 +1256,25 @@ def _provisioned(three_arm: dict) -> dict:
             "No seed spread has ever been measured on this superseded clock, so the figure above "
             "is a SIZE and not a direction: nothing here says the choosing was worth more or less "
             "than nothing. The bounded reading is the realised one, in the headline."),
+        # AND THE ROUTE ROUND IT, NAMED (2026-09-21). The sentence above was true and the panel
+        # printed a SIGNED figure under it anyway, so a reader met "−£1,904" and a footnote saying
+        # not to read the minus. That is the shape this page withdraws everywhere else, live one
+        # panel along from the current-world leg that already refuses the identical quantity.
+        #
+        # Printing the magnitude alone does not finish it. The two arm advantages in this panel
+        # keep their signs -- each is a net against the control and legible on its own -- and
+        # their DIFFERENCE is this size, so the direction is one subtraction away from any reader
+        # who does it. A page that removed the sign and said nothing about that arithmetic would
+        # be hiding the recovery rather than refusing the claim, which is the "reader does the
+        # addition" failure recorded against the population-repair bias clause. So the refusal
+        # names its own back door and disqualifies that too, on the same ground: both arms are
+        # single draws on a clock no seed family has ever been measured on.
+        "and_subtracting_the_arms_does_not_restore_it": (
+            "Nor does subtracting one arm's advantage from the other restore one. Those two "
+            "figures carry signs and their difference IS the size stated here, so the arithmetic "
+            "is open to any reader who does it -- but both are single draws on this same "
+            "unbounded clock, and the sign of a difference between two ungraded draws is a "
+            "property of the draw and not of the choosing."),
         "superseded_note": (
             "This is the clock the run superseded inside itself: the company's flat-rate "
             "bad-debt assumption, frozen at the end of the settlement loop, before the arrears "

@@ -378,33 +378,130 @@ def test_every_arm_that_has_a_figure_renders_it(live):
             "reader opens".format(arm["key"], _gbp(arm["net_gbp"])))
 
 
-def test_the_selection_leg_reaches_the_reader_with_its_own_sign(live):
-    """WHICHEVER SIGN IT IS, and that restatement is the repair (2026-08-29).
+def test_the_selection_leg_reaches_the_reader_as_a_SIZE_and_never_as_a_SIGN(live):
+    """The superseded panel may publish the choosing's MAGNITUDE and may not publish a direction.
 
-    This pinned `selection < 0` -- the state on the day it was written -- and its own failure
-    message said the page's sentence should be re-read rather than the assertion flipped. On
-    2026-08-29 the run came back at +£453 and it fired, which is the control working. Pinning the
-    new sign would just re-arm the same trap: what is checked now is that the figure reaches a
-    reader carrying whatever sign it has, and that the panel says why that size is not a
-    direction. A control keyed to the property survives the result moving; this one did not.
+    WHAT THIS REPLACED, AND WHY IT IS A REVERSAL (2026-09-21). This rung was
+    `..._with_its_own_sign`, and it ASSERTED the defect: it required `signed(selection_gbp)` --
+    "−£1,904" -- to be on the page, and was satisfied by a trailing clause saying the words "not
+    a direction" somewhere in the same panel. Both halves passed for weeks while the panel beside
+    it, `#arms-legs-first`, refused the IDENTICAL quantity outright: nine seeds, a family
+    straddling zero, no direction stated. One page, one quantity, two answers -- and the control
+    over the weaker one was the thing holding it in place. A control pinned to today's rendering
+    goes red when the page becomes more honest, which is exactly what this one did.
+
+    THE PROPERTY IT IS KEYED TO NOW. The size reaches the reader; the signed rendering of that
+    same size does not; and the refusal is the panel's own standing heading rather than a clause
+    a reader may stop before. `selection_gbp` keeps its sign IN THE FEED and that is deliberate --
+    the magnitude has to stay auditable against the run -- so what is checked is the RENDERING.
+
+    THE SIGN CHECK IS TWO-SIDED ON PURPOSE. `+£1,904` is refused as well as `−£1,904`, so the day
+    a run draws the other way this rung does not quietly go blind to half the number line -- the
+    failure `_gbp`'s own docstring records against the helper it calls.
     """
     feed = _live_feed()
-    selection = feed["provisioned"]["selection_gbp"]
+    provisioned = feed["provisioned"]
+    selection = provisioned["selection_gbp"]
+    magnitude = provisioned["selection_magnitude_gbp"]
     rendered = live["arms-split"]
 
-    signed = ("−£{:,}".format(abs(round(selection))) if selection < 0
-              else "+£{:,}".format(round(selection)))
-    assert signed in rendered, (
-        "the value of the per-customer choosing ({}) does not reach the reader with its "
-        "sign".format(signed))
+    assert magnitude == abs(selection), (
+        "the feed's published magnitude ({}) is not the size of its own signed figure ({}), so "
+        "the page is rendering a number the run did not compute".format(magnitude, selection))
+    assert _gbp(magnitude) in rendered, (
+        "the size of the per-customer choosing ({}) does not reach the reader at all".format(
+            _gbp(magnitude)))
     assert "the choosing is therefore worth" in rendered.lower()
-    assert "not a direction" in rendered, (
-        "the superseded panel publishes a signed selection figure with no seed spread behind it "
-        "and does not say so, so the size reads as a finding about which way it went")
+    for direction in ("−£{:,}".format(abs(round(selection))),
+                      "+£{:,}".format(abs(round(selection)))):
+        assert direction not in rendered, (
+            "the superseded panel states a DIRECTION for the choosing ({}) that no seed family "
+            "on this clock has ever graded, one panel along from the leg that refuses the same "
+            "quantity outright".format(direction))
+    assert "no direction is stated for the choosing on this clock" in rendered.lower(), (
+        "the panel prints the size without the page's standing refusal, so the magnitude reads "
+        "as a finding about which way the choosing went")
     # The level arm is what makes the split readable at all: without its figure on the page the
-    # negative is an unexplained assertion.
+    # size is an unexplained assertion.
     level = [a for a in feed["provisioned"]["arms"] if a["key"] == "level"][0]
     assert _gbp(level["net_gbp"]) in rendered, "the level arm's own net margin is not rendered"
+
+
+def test_the_refusal_the_panel_carries_is_the_FEEDS_and_names_the_subtraction_round_it(live):
+    """Both clauses reach the reader, and neither is prose this test file wrote.
+
+    WHY THE SECOND CLAUSE EXISTS AT ALL. Removing the sign is not the whole repair: the two arm
+    advantages in this panel keep theirs, and their difference IS the size, so the direction is
+    one subtraction away from any reader who does it. A page that stripped the sign and said
+    nothing about that arithmetic would be hiding the recovery rather than refusing the claim --
+    the "reader does the addition" shape this site already records against the population-repair
+    bias clause. So the panel names its own back door and disqualifies that too.
+
+    THE BYTES ARE THE FEED'S. Asserting a phrase this file composes would pass on a page that
+    authored its own reassurance, which is the failure the `#arms-composition` rungs above record.
+    """
+    provisioned = _live_feed()["provisioned"]
+    rendered = live["arms-split"]
+    for key in ("no_spread_on_this_clock", "and_subtracting_the_arms_does_not_restore_it"):
+        clause = provisioned.get(key)
+        assert clause, (
+            "the published feed carries no `{}`, so whatever refusal is on that panel was "
+            "authored by the page rather than measured".format(key))
+        assert _door_prose(clause) in rendered, (
+            "`{}` is in the feed and not on the page a reader opens: {}".format(
+                key, _door_prose(clause)[:120]))
+
+
+def test_MUTATION_a_panel_that_keeps_the_figure_and_drops_the_clause_is_caught(live):
+    """The discriminating poison: the size stays, the refusal goes. Driven through the real door.
+
+    WHY A FEED AND NOT THE DOOR. A test may not edit production. Both poisons below are FEEDS --
+    a publish that carries the magnitude and no refusal, and a publish that carries the old signed
+    rendering's input with the refusal intact -- and each is driven through the page's own
+    JavaScript. What is asserted is what a READER meets.
+
+    THE REACHABILITY HALF IS THE POINT. A guard that refused everything would satisfy the first
+    two legs; the third drives the LIVE feed and asserts the same rungs PASS. That is the control
+    over the control, and it is the shape `test_MUTATION_a_verdict_rendered_under_the_other_legs_
+    lead_is_caught_and_the_mirror_is_reachable` established on this page.
+    """
+    live_feed = _live_feed()
+
+    # [1] THE FIGURE WITHOUT EITHER CLAUSE. This is the state the panel was in before 2026-09-21
+    # in everything but the sign: a size on the page with nothing saying it is not a direction.
+    stripped = copy.deepcopy(live_feed)
+    stripped["provisioned"]["no_spread_on_this_clock"] = None
+    stripped["provisioned"]["and_subtracting_the_arms_does_not_restore_it"] = None
+    panel = _render(stripped)["arms-split"]
+    assert _gbp(live_feed["provisioned"]["selection_magnitude_gbp"]) in panel, (
+        "the poison changed which FIGURE renders, so whatever the next assertion catches is not "
+        "the dropped clause")
+    assert "no direction is stated for the choosing on this clock" in panel.lower(), (
+        "a publish carrying no reason renders the size with no refusal heading at all -- the "
+        "fail-OPEN this block exists against")
+    assert "unexplained rather than unremarkable" in panel.lower(), (
+        "the page swallows a missing reason instead of naming the absence, so a reader cannot "
+        "tell 'we withheld the direction and here is why' from 'nobody wrote a reason'")
+
+    # [2] THE OLD RENDERING, RE-CREATED THROUGH THE FEED. A publish predating
+    # `selection_magnitude_gbp` must render the absence, NEVER fall back to the signed figure.
+    older = copy.deepcopy(live_feed)
+    older["provisioned"].pop("selection_magnitude_gbp")
+    panel = _render(older)["arms-split"]
+    selection = live_feed["provisioned"]["selection_gbp"]
+    assert "the size of the choosing is not on this publish" in panel.lower(), (
+        "a feed without the magnitude renders neither the size nor a named absence")
+    for direction in ("−£{:,}".format(abs(round(selection))),
+                      "+£{:,}".format(abs(round(selection)))):
+        assert direction not in panel, (
+            "an older feed makes the page fall back to the signed figure ({}), which is the "
+            "flattering fallback this repair removes".format(direction))
+
+    # [3] REACHABILITY. The live feed must still satisfy everything the poisons broke.
+    assert _gbp(live_feed["provisioned"]["selection_magnitude_gbp"]) in live["arms-split"]
+    assert "unexplained rather than unremarkable" not in live["arms-split"].lower(), (
+        "the live publish renders the missing-reason branch, so legs [1] and [2] above are "
+        "satisfied by a page that always says that and prove nothing")
 
 
 def test_the_price_level_is_quoted_to_the_penny(live):
@@ -6247,6 +6344,59 @@ def test_the_selection_legs_withheld_verdict_reaches_the_reader(live):
     assert _door_prose(selection["verdict_withheld_because"])[:120] in rendered, (
         "the leg is marked withheld and the run's own reason for withholding it does not reach "
         "the reader, which reads as a page being coy rather than a run being unable to say")
+
+
+def test_the_no_sign_clause_reaches_the_reader_whichever_field_the_feed_puts_it_in(live):
+    """`no_sign` is the STRONGER refusal, and it must not be deletable by the field it lands in.
+
+    THE QUESTION THIS ANSWERS (Lane 0, 2026-09-21): `no_sign` is in
+    `site/data/value_arms.json` and was rendered nowhere in the page -- so is it wired, or is it
+    already carried by `verdict_withheld_because`? The answer is BOTH, and only the second is
+    true today. `_leg_in_this_world` either assigns `no_sign` to `verdict_withheld_because` or
+    appends it, so on the live feed it is a SUBSTRING of it and the sentence does reach a reader.
+    That is the first leg below, and it is recorded rather than assumed.
+
+    IT IS NOT STRUCTURAL, WHICH IS WHY THE DOOR NOW GUARDS IT. Both folding branches in the
+    producer are gated on `resolved is not None`. A leg with no point estimate whose floor family
+    IS read reaches `_resolvable` with `value=None`, takes `resolved = None` before either branch
+    runs, and publishes a non-empty `no_sign` beside `verdict_withheld_because: None` -- at which
+    point the old door fell through to "AND NO REASON IS GIVEN" with the reason one field away.
+    Leg [2] drives exactly that feed and asserts the sentence still lands.
+
+    AND IT MAY NOT PRINT TWICE. Leg [3] is the other half: a door that concatenated
+    unconditionally would satisfy leg [2] and give every ordinary reader the same paragraph twice.
+    """
+    feed = _live_feed()
+    leg = feed["current_world"]["selection_leg"]
+    no_sign = leg.get("no_sign")
+    if not no_sign:
+        pytest.fail("the published selection leg carries no `no_sign`, so the family behind it "
+                    "does not straddle zero and this control has no subject on the live feed")
+
+    # [1] TODAY: the producer folds it in, so the reader meets it through the withheld reason.
+    assert no_sign in (leg.get("verdict_withheld_because") or ""), (
+        "`no_sign` is no longer inside `verdict_withheld_because`, so the containment this "
+        "control records has stopped holding -- the door's own concatenation is now what puts "
+        "the sentence on the page, and that is a finding rather than a failure")
+    rendered = live["arms-legs-first"]
+    assert _door_prose(no_sign) in rendered, (
+        "the strongest disqualification the feed carries -- the family straddles zero -- is not "
+        "on the page a reader opens")
+
+    # [2] THE REACHABLE GAP. A leg whose reason lands ONLY in `no_sign` must still be read out.
+    orphaned = copy.deepcopy(feed)
+    orphaned["current_world"]["selection_leg"]["verdict_withheld_because"] = None
+    panel = _render(orphaned)["arms-legs-first"]
+    assert _door_prose(no_sign) in panel, (
+        "a leg whose refusal sits only in `no_sign` renders with the reason dropped")
+    assert "AND NO REASON IS GIVEN" not in panel, (
+        "the page tells a reader no reason exists while holding one in `no_sign` -- the "
+        "fail-OPEN this guard exists against")
+
+    # [3] AND NOT TWICE on the ordinary feed, which is what an unconditional concatenation gives.
+    assert rendered.count(_door_prose(no_sign)) == 1, (
+        "the withheld reason prints `no_sign` {} times: the door is concatenating a sentence the "
+        "producer already folded in".format(rendered.count(_door_prose(no_sign))))
 
 
 def test_the_resolved_leg_is_not_given_the_withheld_legs_sentence():
