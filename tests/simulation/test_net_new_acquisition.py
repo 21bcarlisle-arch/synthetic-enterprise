@@ -1607,3 +1607,127 @@ def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book):
         "the pre-build run STILL books campaign spend -- the £157,155 measured above is "
         "not attributable to this change"
     )
+
+
+# ── THE CEILING IS A CONSEQUENCE OF THE MEASURED CURVE, AND CAN STOP BEING ONE ─────────────────
+#
+# WHAT THESE GUARD, stated as a property so they do not rot into a pin on today's answer.
+# `SETTLEMENT_CUSTOMER_YEAR_BUDGET` moved off its historical 1,200 on 2026-09-22 and became a
+# consequence of `settlement_ceiling_slope_20260921.json` priced against the LIVE guest. The claim
+# that can go false is not "the constant is 1,263" -- it is "the constant does not outrun the
+# memory the box can actually find for it". So the assertion is an INEQUALITY in one direction
+# only. A future invocation lowering the value, or a curve re-measured more honestly in the safe
+# direction, must not red these; raising the value past the evidence, or shrinking the guest under
+# it, must.
+
+#: The CGROUP peak systemd recorded for `sim-runner.service` at the previous ceiling of 1,200
+#: customer-years: 5,734.4 MB across 8 runs in 24h, read 2026-09-22 via
+#: `resource_headroom.weight_drift("sim_run")`, whose source is systemd's own `MemoryPeak` and
+#: therefore neither this repo nor the job. It is deliberately NOT the probe's 5,507.4 MB: that is
+#: `ru_maxrss` of the ONE child the probe spawned and omits the 227.0 MB `sim_runner.py` parent
+#: that the kernel always counts and `admit()` always has to find. Dated because it is a
+#: measurement, and re-asked from the journal by the second test below whenever the journal answers.
+CGROUP_PEAK_MB_AT_THE_ANCHOR = 5734.4
+CGROUP_PEAK_ANCHOR_CUSTOMER_YEARS = 1200.0
+
+
+def _memory_ceiling_customer_years(*, total_mb=None, anchor_peak_mb=None):
+    """The memory ceiling in customer-years, from the landed curve and a guest size.
+
+    Imported inside the function on purpose: `premise_population` is a heavy sim module and this
+    file's other 60-odd tests have no business paying for it at collection time.
+    """
+    from simulation.premise_population import load_whole_run_rss_curve
+
+    curve = load_whole_run_rss_curve()
+    share = curve.get("share_of_guest_the_run_may_hold")
+    assert share, (
+        "the landed curve records no share of the guest a run may hold, so no memory ceiling "
+        "can be priced from it -- and inventing one here is the defect this control exists over"
+    )
+    if total_mb is None:
+        from background.resource_headroom import sample
+
+        total_mb = sample()["total_mb"]
+        assert total_mb, "/proc/meminfo gave no MemTotal, so the share is a share of nothing"
+    slope = float(curve["mb_per_customer_year"])
+    assert slope > 0, f"a non-positive slope ({slope} MB/cy) would make the book unbounded"
+    budget_mb = float(total_mb) * float(share)
+    anchor = CGROUP_PEAK_MB_AT_THE_ANCHOR if anchor_peak_mb is None else float(anchor_peak_mb)
+    return CGROUP_PEAK_ANCHOR_CUSTOMER_YEARS + (budget_mb - anchor) / slope
+
+
+def test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve():
+    """THE DEFECT: the ceiling is raised past what the box can hold, and nothing notices.
+
+    That is exactly what happened for three weeks in the other direction -- the constant sat at a
+    historical 1,200 with the note admitting it "stands on no current evidence" -- and it is what
+    would happen again the moment somebody reached for a bigger book to make the arm's sample look
+    better. The number this compares against is computed from an artefact written by the probe and
+    a guest read from /proc, so neither side of the comparison is written by this constant.
+    """
+    ceiling = _memory_ceiling_customer_years()
+    assert nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET <= ceiling, (
+        f"SETTLEMENT_CUSTOMER_YEAR_BUDGET is {nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET:,.1f} "
+        f"customer-years but the measured curve against this guest supports {ceiling:,.1f}. "
+        "Either the value was raised past its evidence, or the guest shrank under it, or the "
+        "curve was re-measured steeper -- all three mean the run no longer fits the box."
+    )
+
+
+def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
+    """THE DEFECT: the anchor above goes stale and the ceiling it prices is quietly wrong.
+
+    NO TOLERANCE IS INVENTED HERE. Rather than asking "is 5,734.4 still about right", this
+    re-prices the whole ceiling using whatever peak the journal reports now and asks the same
+    inequality. A drifting anchor therefore fails only when it has drifted far enough to matter,
+    which is the property; and the arithmetic is the same line either way.
+    """
+    from background.resource_headroom import weight_drift
+
+    verdict = weight_drift("sim_run")
+    if verdict["observed_peak_mb"] is None:
+        pytest.skip(
+            "systemd's journal could not answer, so this leg is UNAVAILABLE and not clean: "
+            f"{verdict['detail']}. The ceiling's own control "
+            "(test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve) does not "
+            "depend on this leg and has already run."
+        )
+    live_ceiling = _memory_ceiling_customer_years(anchor_peak_mb=verdict["observed_peak_mb"])
+    assert nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET <= live_ceiling, (
+        f"re-priced on the {verdict['observed_peak_mb']:,.1f} MB cgroup peak systemd reports for "
+        f"{verdict['unit']} across {verdict['samples']} run(s), the curve supports "
+        f"{live_ceiling:,.1f} customer-years and the constant asks for "
+        f"{nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET:,.1f}. The anchor recorded beside this control has "
+        "gone stale in the direction that matters."
+    )
+
+
+def test_BOTH_verdicts_of_the_memory_ceiling_guard_are_reachable():
+    """THE DEFECT THIS EXISTS FOR: a guard that refuses nothing passes every test of a guard.
+
+    One control over the whole partition rather than a leg per branch -- the shape CLAUDE.md names
+    after this project entered the same trap three times in one afternoon. If the inequality above
+    could only ever hold, it would be green on a constant of any size, and the first thing anybody
+    would learn is from the OOM killer.
+    """
+    real_total = _live_total_mb()
+    shipped = nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET
+
+    admits = shipped <= _memory_ceiling_customer_years(total_mb=real_total)
+    refuses_a_smaller_box = shipped > _memory_ceiling_customer_years(total_mb=real_total / 2.0)
+    refuses_a_bigger_book = (shipped * 2.0) > _memory_ceiling_customer_years(total_mb=real_total)
+
+    assert admits and refuses_a_smaller_box and refuses_a_bigger_book, (
+        "the memory-ceiling comparison must be able to return both verdicts and it returned "
+        f"admits={admits}, refuses_a_smaller_box={refuses_a_smaller_box}, "
+        f"refuses_a_bigger_book={refuses_a_bigger_book}. A leg stuck at one answer is not a guard."
+    )
+
+
+def _live_total_mb():
+    from background.resource_headroom import sample
+
+    total = sample()["total_mb"]
+    assert total, "/proc/meminfo gave no MemTotal"
+    return float(total)
