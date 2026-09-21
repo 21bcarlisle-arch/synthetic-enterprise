@@ -12,32 +12,32 @@
     "open_findings": 15
   },
   "last_verified": {
-    "generated_at": "2026-09-19T19:50:51Z",
-    "git_commit": "87c485285",
+    "generated_at": "2026-09-21T11:55:35Z",
+    "git_commit": "8d3c0df62",
     "population": {
       "accounts": 226,
       "bills": 9892,
       "total_revenue_gbp": 677568.92
     },
-    "run_id": "run_output_87c485285_20260919T190012Z.json",
+    "run_id": "run_output_8d3c0df62_20260921T110603Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-19T19:50:51Z"
+    "verified_at": "2026-09-21T11:55:35Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=f56852e25; blocking tests: FAILED tests/background/test_episode_prior_partition.py::test_every_real_census_hit_is_covered",
+  "paused_since": "2026-09-21T14:11:25Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-19T19:50:51Z",
-    "git_commit": "87c485285",
+    "generated_at": "2026-09-21T11:55:35Z",
+    "git_commit": "8d3c0df62",
     "population": {
       "accounts": 226,
       "bills": 9892,
       "total_revenue_gbp": 677568.92
     },
-    "run_id": "run_output_87c485285_20260919T190012Z.json",
+    "run_id": "run_output_8d3c0df62_20260921T110603Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-19T19:50:51Z"
+    "verified_at": "2026-09-21T11:55:35Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-19T19:50:51Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-21T15:29:56Z"
 }
