@@ -1851,8 +1851,14 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
 HOOK_CHAIN_WINDOW_ROWS = 20
 
 
-def _recent_hook_chain_seconds(series=None):
+def _recent_hook_chain_seconds(series=None, *, stated_only=False):
     """The last twenty pre-commit HOOK CHAIN costs this machine actually recorded, PER CHAIN.
+
+    `stated_only=True` returns ONLY the rows that state their own unit, however few, and NEVER
+    skips. That reading exists for the staleness leg and the reason is in this docstring already:
+    `max` over a mixture of measurements and upper bounds is an upper bound, sound for the
+    headroom assert and UNFAIR TO THE STALENESS ONE. See the staleness assert for why a short
+    stated window is the safe direction there and the wrong one here.
 
     ONE READER, shared by the live half of the headroom control and by the R15 test that proves
     that half can red. Two copies of this window would let the control and its own teeth grade
@@ -1950,6 +1956,13 @@ def _recent_hook_chain_seconds(series=None):
             stated.append(duration)
     if not rows:
         pytest.skip("the hook-chain history holds no readable duration")
+    if stated_only:
+        # NEVER SKIPS, AND THAT IS THE POINT. This reading feeds the staleness leg alone. The
+        # headroom leg above it is the half with teeth, and routing an empty stated window through
+        # `pytest.skip` here would take the whole control down with it -- a skip wears a pass's
+        # colour, which is the fail-open this file already carries two scars from. An empty list
+        # is "inapplicable", and it is said in the caller, where the reason belongs.
+        return stated[-HOOK_CHAIN_WINDOW_ROWS:]
     if len(stated) >= HOOK_CHAIN_WINDOW_ROWS:
         # A FULL WINDOW OF ROWS THAT STATE THEIR UNIT -- see the docstring for why the changeover
         # is all-or-nothing. Every one of these is a per-chain measurement, so there are no holes
@@ -2018,12 +2031,42 @@ def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
     # outage this control is being repaired from. The committed half only has to be a fair
     # stand-in FOR GRADING THIS DEADLINE, so it goes stale when the live worst gets close to the
     # deadline while the committed figure still says there is room.
-    assert worst <= 0.75 * prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, (
-        "the hook chain now costs {:.0f}s against a {}s deadline and a committed measurement of "
-        "{}s -- the committed half of this control has gone stale and must be RE-MEASURED (and "
-        "renamed with today's date), or it will keep reporting room that is no longer there"
-        .format(worst, prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
-                prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17))
+    #
+    # AND IT GRADES ROWS THAT STATE THEIR UNIT, WHICH IS NOT THE WINDOW ABOVE (2026-09-21).
+    # This leg asks whether the PER-CHAIN cost has risen toward the deadline. Only a row carrying
+    # `chains` is a per-chain measurement; a row without one is an upper bound over an unknown
+    # number of chains, and no threshold can recover a unit. The reader's own docstring said so
+    # -- "sound for the headroom assert and unfair to the staleness one" -- and left this assert
+    # reading the mixture anyway. It cost the shared tree twice: `b55667741` recorded 666.95s,
+    # ESTABLISHED ELSEWHERE IN THIS FILE as two chains of 333.48s, and being 6.95s over
+    # `0.75 * 880` it refused every ordinary commit in the tree on 2026-09-16 and again for the
+    # 39 hours to 2026-09-21. The producer was repaired to state `chains` on 2026-09-17, but the
+    # all-or-nothing changeover needs twenty stated rows and ten of them had landed when the
+    # un-stated row wedged the tree -- so the repair's own remaining cost was ten commits this
+    # assert was refusing to let anyone make. A control must not require, to clear itself, the
+    # thing it forbids.
+    #
+    # THE SAMPLE MAY BE SHORT AND THAT IS THE SAFE DIRECTION **HERE**, which is the opposite of
+    # the reader's rule above and deliberately so. `max` is monotone, so a subset's worst is a
+    # LOWER bound on the true worst: a short stated window can only FAIL TO NOTICE staleness,
+    # never invent it. The costs are not symmetric and both have been paid -- a missed detection
+    # leaves a comment carrying a stale date, a false accusation wedges every lane in the tree.
+    # The headroom leg above keeps the full mixed window, where an upper bound is the
+    # conservative reading and over-demanding headroom is the harmless direction.
+    stated = _recent_hook_chain_seconds(stated_only=True)
+    if stated:
+        stated_worst = max(stated)
+        assert stated_worst <= 0.75 * prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, (
+            "the hook chain now costs {:.0f}s PER CHAIN against a {}s deadline and a committed "
+            "measurement of {}s -- the committed half of this control has gone stale. DISCHARGE "
+            "IT BY RE-MEASURING the chain and re-dating "
+            "`MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17` to today, AND, if the new figure "
+            "leaves under {:.0%} headroom, by raising the deadline with it -- re-dating the "
+            "constant ALONE moves neither side of this comparison and cannot clear this "
+            "refusal. Stated rows read: {}".format(
+                stated_worst, prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+                prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_17,
+                prc.COMMIT_DEADLINE_HEADROOM - 1, [round(r) for r in stated[-5:]]))
 
 
 def _publisher_runs_since_the_last_timed_chain(hook_series=None, gate_series=None):
@@ -2728,6 +2771,62 @@ def test_the_headroom_control_ACTUALLY_REDS_at_a_deadline_below_the_measured_cha
     monkeypatch.setattr(prc, "GIT_COMMIT_HOOK_TIMEOUT_SECONDS", int(worst) - 1)
     with pytest.raises(AssertionError):
         test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
+
+
+def test_the_staleness_leg_grades_the_UNIT_and_can_still_red(monkeypatch):
+    """THE STALENESS LEG HAS ITS OWN TEETH, AND THEY BITE ON A STATED ROW ONLY.
+
+    This leg spent five days unable to fail for the right reason and failing constantly for the
+    wrong one. `b55667741` recorded 666.95s with no `chains` key -- two chains of 333.48s, as
+    `test_the_recorded_row_STATES_ITS_CHAIN_COUNT` establishes from the producer -- and at 6.95s
+    over `0.75 * 880` it refused every ordinary commit in the shared tree. The fix cannot be a
+    threshold (a threshold cannot recover a unit) and it cannot be waiting for the changeover
+    (that needs twenty stated commits, which this assert was refusing to let anyone make).
+
+    THE PROPERTY IS DISCRIMINATION BY UNIT, NOT TODAY'S NUMBERS, so all three legs run the same
+    deadline against the same worst cost and vary ONLY whether the row states its unit. Keyed the
+    other way -- "880 is green on today's series" -- this would go red the day the chain honestly
+    speeds up, which is exactly backwards.
+
+    MUTATION (must fire): drop the `stated_only=True` and grade `worst` again -- leg one reds,
+    because the un-stated 667s row is back in the comparison that has no business reading it.
+    """
+    mixed = [333.0] * 19 + [667.0]          # the live shape: a two-chain row nothing divided
+    stated = [333.0] * 20                   # the same machine, every row carrying `chains`
+
+    monkeypatch.setattr(prc, "GIT_COMMIT_HOOK_TIMEOUT_SECONDS", 880)
+
+    # ONE: the un-stated 667s row must NO LONGER red this leg. 667 > 0.75*880 = 660, so the old
+    # reading refused here -- and 880 >= 1.25*667 = 834, so the headroom leg above is green and
+    # this is the staleness leg alone. No stated row exists, so the question is INAPPLICABLE.
+    monkeypatch.setitem(globals(), "_recent_hook_chain_seconds",
+                        lambda series=None, *, stated_only=False: [] if stated_only else mixed)
+    test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
+
+    # TWO: the SAME 667s worst, now carried by rows that STATE their unit, must red -- so this is
+    # not a leg that has simply been switched off. The discriminator is the unit and nothing else.
+    monkeypatch.setitem(globals(), "_recent_hook_chain_seconds",
+                        lambda series=None, *, stated_only=False: mixed)
+    with pytest.raises(AssertionError, match="PER CHAIN"):
+        test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
+
+    # THREE: stated rows comfortably under the bar are green, or leg two would prove only that
+    # this assert always reds -- the shape CLAUDE.md names, a guard that refuses everything.
+    monkeypatch.setitem(globals(), "_recent_hook_chain_seconds",
+                        lambda series=None, *, stated_only=False: stated if stated_only else mixed)
+    test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
+
+    # AND THE REFUSAL MUST NAME A REMEDY THAT CAN DISCHARGE IT. Re-dating the committed constant
+    # alone moves neither side of `stated_worst <= 0.75 * DEADLINE`; the old message demanded
+    # exactly that and nothing else, so a reader who followed it to the letter stayed wedged.
+    monkeypatch.setitem(globals(), "_recent_hook_chain_seconds",
+                        lambda series=None, *, stated_only=False: mixed)
+    with pytest.raises(AssertionError) as red:
+        test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
+    assert "raising the deadline" in str(red.value), (
+        "the staleness refusal must name the deadline as part of its remedy -- re-measuring the "
+        "constant on its own cannot clear this assert, and a refusal whose named remedy cannot "
+        "discharge it is how this one survived a fortnight")
 
 
 def test_the_hook_chain_duration_is_RECORDED_against_its_own_deadline():
