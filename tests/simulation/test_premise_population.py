@@ -676,3 +676,80 @@ def test_an_ERA_STRADDLING_A_BAND_BOUNDARY_is_split_by_YEARS():
     assert weights["ERA_1919_1944"]["2"] == pytest.approx(15 / 26, abs=1e-3)
     for era, bands in weights.items():
         assert sum(bands.values()) == pytest.approx(1.0), f"{era} loses or gains mass"
+
+
+# ---------------------------------------------------------------------------
+# THE TWO RECORD POPULATIONS. Added 2026-09-21, after `settled_book_ceiling` was
+# published twice as a bound on the value cycle's settled book, which it is not.
+# ---------------------------------------------------------------------------
+
+
+def test_the_customer_year_ceiling_is_the_SAME_arithmetic_re_ruled(probe_report):
+    """The two ceilings must not be allowed to drift into two different sums.
+
+    THE DEFECT THIS NAMES: someone repairs the per-record cost in one of them. At the
+    probe's OWN rate the customer-year bound has to reproduce the customer bound at
+    `years=1` exactly, because that is the only thing that makes the new function a
+    re-ruling of the old one rather than a second opinion about the same box. Keyed to
+    the identity, not to 632, so a re-run probe moves both together and this stays green.
+    """
+    probe_rate = pp.settlement_records_per_customer_year(probe_report)
+    customers = pp.settled_book_ceiling(report=probe_report, years=1)["max_customers"]
+    customer_years = pp.settled_book_ceiling_customer_years(
+        report=probe_report, records_per_customer_year=probe_rate)["max_customer_years"]
+    assert customer_years == pytest.approx(customers, rel=0.01), (
+        "at the probe's own record rate the two ceilings are one sum in two units; they "
+        "disagree, so one of them has been repaired and the other has not"
+    )
+
+
+def test_the_ceiling_declares_WHICH_record_population_it_prices(probe_report):
+    """A reader who takes this number for the settled book is wrong by ~60x, and the
+    only thing that stops them is the return saying so.
+
+    Fires on: deleting the declaration, or quietly widening it to cover the retained
+    book as well.
+    """
+    book = pp.settled_book_ceiling(report=probe_report, years=1)
+    assert book["prices_which_record_population"] == pp.HALF_HOURLY_RECORD_POPULATION
+    assert "17,520" in book["prices_which_record_population"]
+    assert "settled_book_ceiling_customer_years" in book["is_not_a_bound_on"], (
+        "the field that says what this is NOT a bound on must name the thing that IS one, "
+        "or it sends the reader nowhere"
+    )
+
+
+def test_the_retained_rate_is_read_from_a_run_and_REFUSES_when_it_cannot_be(probe_report):
+    """FAIL-CLOSED, and the refusal names both halves of the rate it could not form.
+
+    THE PARTITION IN ONE CONTROL: a run with both counts returns a rate, and each of the
+    two single-field runs refuses. A guard that refused everything would pass a
+    per-branch test and fail this one.
+    """
+    whole = {"gross_to_net_bridge": {"control_arm": {"records": 301823}},
+             "household_side": {"control_arm": {"customer_years": 1029}}}
+    rate = pp.retained_settlement_records_per_customer_year(whole)
+    assert rate == pytest.approx(301823 / 1029)
+
+    # THE PROPERTY, NOT THE NUMBER. A daily fold of a half-hourly book can only shrink it,
+    # so the retained rate is below the probe's whatever either becomes.
+    assert rate < pp.settlement_records_per_customer_year(probe_report)
+
+    for missing in ("gross_to_net_bridge", "household_side"):
+        half = {k: v for k, v in whole.items() if k != missing}
+        with pytest.raises(pp.ScaleProbeUnavailable) as exc:
+            pp.retained_settlement_records_per_customer_year(half)
+        assert "records" in str(exc.value) and "customer_years" in str(exc.value), (
+            "the refusal must name both fields: a caller told only that 'a rate failed' "
+            "cannot tell which half of its artefact is missing"
+        )
+
+
+def test_a_customer_year_ceiling_has_no_default_record_population(probe_report):
+    """Guessing which records a bound prices is the whole defect; a default would be a
+    guess wearing a signature. Zero and negative rates refuse too -- a rate of nothing
+    would return an infinite book."""
+    for bad in (0, -1.0, None):
+        with pytest.raises(pp.ScaleProbeUnavailable):
+            pp.settled_book_ceiling_customer_years(
+                report=probe_report, records_per_customer_year=bad)
