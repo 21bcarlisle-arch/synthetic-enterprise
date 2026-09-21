@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-09-19T19:29:48Z",
- "git_commit": "40d54b46e21c73c0331362067dd68da4cf7d4267",
+ "generated_at": "2026-09-21T17:47:28Z",
+ "git_commit": "a8e63a7117b5d44909797693916702efa3ecdad9",
  "published_from": {
-  "commit": "40d54b46e21c73c0331362067dd68da4cf7d4267",
+  "commit": "a8e63a7117b5d44909797693916702efa3ecdad9",
   "tree_was_clean": false,
   "inputs_are_the_committed_bytes": false,
   "inputs": [
    {
     "path": "site/data/maturity_map.json",
-    "state": "committed"
+    "state": "modified"
    },
    {
     "path": "site/data/moap_node_atoms.json",
@@ -16,7 +16,7 @@
    },
    {
     "path": "site/data/customers.json",
-    "state": "committed"
+    "state": "modified"
    },
    {
     "path": "site/data/dashboard.json",
@@ -31,7 +31,7 @@
     "state": "committed"
    }
   ],
-  "reason": "read off the working tree, not out of this commit: site/data/dashboard.json, site/data/evidence.json \u2014 standing at this commit will not reproduce this feed"
+  "reason": "read off the working tree, not out of this commit: site/data/customers.json, site/data/dashboard.json, site/data/evidence.json, site/data/maturity_map.json \u2014 standing at this commit will not reproduce this feed"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -1440,7 +1440,7 @@
     "value": 154,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-19T17:15:57Z"
+    "as_of": "2026-09-21T17:06:54Z"
    },
    {
     "value": 224,
