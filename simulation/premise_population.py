@@ -1499,13 +1499,93 @@ def retained_settlement_records_per_customer_year(
     return float(records) / float(customer_years)
 
 
+#: WHERE THE MEASURED CURVE LIVES. `tools/settlement_ceiling_probe.py` writes one file per
+#: campaign, dated; the newest is the one to price against. A glob rather than a pinned
+#: filename because pinning today's file is how a ceiling comes to be re-ruled once and then
+#: quoted for ever.
+WHOLE_RUN_RSS_CURVE_GLOB = "docs/observability/settlement_ceiling_slope_*.json"
+
+
+def load_whole_run_rss_curve(path: str | None = None) -> dict:
+    """The MEASURED whole-run RSS curve, read off the probe's own report.
+
+    WHAT THIS EXISTS TO STOP. Until 2026-09-21 the customer-year ceiling was two stage
+    costs from `tools/scale_probe_10k.py` -- `settlement_build` + `run_output_serialization`
+    -- times a records-per-customer-year rate. That arithmetic is a genuine upper bound on
+    ONE DATA STRUCTURE and was never a bound on the run: it prices the retained settlement
+    rows and nothing else the process holds. Measured whole-run against it, it was
+    optimistic by a factor of 29.2, and optimistic is the direction that licensed the page's
+    sentence "Memory is not what caps this book".
+
+    REFUSES RATHER THAN FALLING BACK. If fewer than two CLEAN points exist there is no
+    slope, and the old stage-cost sum is not a substitute for one -- restoring it under a
+    new name would put the optimistic number back with a fresh signature on it. The clean
+    flag is the probe's own: a point whose `book_growth_campaign.json` was rewritten mid-run
+    has a contaminated x-axis, so its customer-years are not its own even though its RSS is.
+    """
+    import glob as _glob
+
+    if path is None:
+        root = Path(__file__).resolve().parents[1]
+        candidates = sorted(_glob.glob(str(root / WHOLE_RUN_RSS_CURVE_GLOB)))
+        if not candidates:
+            raise ScaleProbeUnavailable(
+                "no measured whole-run RSS curve: nothing matches {!r}, and a ceiling "
+                "cannot be priced from stage costs -- they bound the retained rows, not "
+                "the run".format(WHOLE_RUN_RSS_CURVE_GLOB)
+            )
+        path = candidates[-1]
+    with open(path, encoding="utf-8") as handle:
+        report = json.load(handle)
+    clean = [
+        point
+        for point in report.get("points", [])
+        if point.get("clean") and point.get("customer_years_committed") and point.get("peak_rss_mb")
+    ]
+    if len(clean) < 2:
+        raise ScaleProbeUnavailable(
+            "the measured curve at {} has {} clean point(s) and a slope needs two; the "
+            "unclean ones are excluded because another process rewrote the campaign "
+            "record during them, so their committed customer-years are not their "
+            "own".format(path, len(clean))
+        )
+    clean.sort(key=lambda point: point["customer_years_committed"])
+    lo, hi = clean[0], clean[-1]
+    span = float(hi["customer_years_committed"]) - float(lo["customer_years_committed"])
+    if span <= 0:
+        raise ScaleProbeUnavailable(
+            "the measured curve's clean points span {} customer-years, so no slope can "
+            "be formed from them".format(span)
+        )
+    share = ((report.get("recommendation") or {}).get("bounds") or {}).get("memory") or {}
+    root = Path(__file__).resolve().parents[1]
+    try:
+        # REPO-RELATIVE ON THE RETURN. This value is published into `site/data/value_arms.json`,
+        # and an absolute path carries whichever worktree the generator happened to run in --
+        # which is both a leak and a pointer no other reader can follow.
+        named = str(Path(path).resolve().relative_to(root))
+    except ValueError:
+        named = str(path)
+    return {
+        "path": named,
+        "generated_at_utc": report.get("generated_at_utc"),
+        "git_head": report.get("git_head"),
+        "mb_per_customer_year": (float(hi["peak_rss_mb"]) - float(lo["peak_rss_mb"])) / span,
+        "seconds_per_customer_year": (float(hi["wall_s"]) - float(lo["wall_s"])) / span,
+        "anchor_customer_years": float(lo["customer_years_committed"]),
+        "anchor_peak_rss_mb": float(lo["peak_rss_mb"]),
+        "anchor_wall_s": float(lo["wall_s"]),
+        "clean_points": len(clean),
+        "share_of_guest_the_run_may_hold": share.get("share_of_guest_the_run_may_hold"),
+    }
+
+
 def settled_book_ceiling_customer_years(
     *,
-    report: Mapping | None = None,
-    records_per_customer_year: float,
-    budget_bytes: float | None = None,
+    curve: Mapping | None = None,
+    budget_mb: float | None = None,
 ) -> dict:
-    """The RSS bound on the settled book, in CUSTOMER-YEARS.
+    """The RSS bound on the settled book, in CUSTOMER-YEARS, from a MEASURED run curve.
 
     WHY THIS UNIT AND NOT CUSTOMERS. `settled_book_ceiling` returns customers at a
     declared window, which makes it look comparable to an account count and is how it
@@ -1516,39 +1596,101 @@ def settled_book_ceiling_customer_years(
     `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` -- so stating the memory bound
     here lets the two be compared instead of argued about.
 
-    `records_per_customer_year` HAS NO DEFAULT, deliberately. Which record population a
-    bound prices is the whole question this function exists to stop being guessed at, so
-    the caller names it: `retained_settlement_records_per_customer_year(run)` for the
-    settled book, `settlement_records_per_customer_year(report)` for the probe's.
+    WHY IT IS ANCHORED AND NOT A BARE RATE. The measured points do not pass through the
+    origin, so `budget / (MB per customer-year)` overstates the ceiling by the run's fixed
+    footprint. The bound is the measured LINE evaluated at the budget -- the lowest clean
+    point plus the marginal -- which is the same form `settlement_ceiling_probe` uses and
+    reproduces its published figure.
+
+    WHY THE BUDGET IS READ AND NOT WRITTEN DOWN. The guest's memory moves, so quoting it
+    sets a ceiling that was true for one boot. The budget is a share of the LIVE
+    `background.resource_headroom.sample()["total_mb"]`, and the share is the one the probe
+    recorded beside the curve rather than a fresh opinion about how much of the box a run
+    may hold. Share of TOTAL, not AVAILABLE: the run has to fit beside daemons that come
+    and go.
+
+    NO `bound_kind: upper_bound` HERE, and its absence is the point. The stage-cost version
+    could call itself an upper bound because both its inputs were floors. This one is a
+    two-point extrapolation of a measured curve whose marginal is not constant across the
+    range, so it is an ESTIMATE and says so. A caller wanting a conservative number should
+    take the narrower of this and its own headroom, not assume this one leans safe.
     """
-    if not records_per_customer_year or records_per_customer_year <= 0:
+    curve = load_whole_run_rss_curve() if curve is None else curve
+    mb_per_customer_year = float(curve["mb_per_customer_year"])
+    if mb_per_customer_year <= 0:
         raise ScaleProbeUnavailable(
-            "a customer-year ceiling needs a positive records-per-customer-year rate; "
-            "got {!r}".format(records_per_customer_year)
+            "the measured curve gives {} MB per customer-year; a non-positive slope "
+            "would make the book unbounded".format(mb_per_customer_year)
         )
-    report = load_scale_probe_report() if report is None else report
-    prices = stage_prices(report)
-    settlement = _require(prices, "settlement_build")
-    serialization = _require(prices, "run_output_serialization")
-    budget = float(
-        budget_bytes if budget_bytes is not None else report["box"]["budgets"]["rss_bytes"]
-    )
-    per_record = float(settlement.per_unit["rss_bytes"]) + float(
-        serialization.per_unit["rss_bytes"]
-    )
-    per_customer_year = per_record * float(records_per_customer_year)
+    if budget_mb is None:
+        share = curve.get("share_of_guest_the_run_may_hold")
+        if not share:
+            raise ScaleProbeUnavailable(
+                "the measured curve at {} records no share of the guest a run may hold, "
+                "and inventing one here would be the whole defect this function was "
+                "re-ruled to remove".format(curve.get("path"))
+            )
+        from background.resource_headroom import sample as _headroom_sample
+
+        total_mb = _headroom_sample().get("total_mb")
+        if not total_mb:
+            raise ScaleProbeUnavailable(
+                "/proc/meminfo gave no MemTotal, so the share this run may hold is a "
+                "share of nothing and no memory ceiling can be stated"
+            )
+        budget_mb = float(total_mb) * float(share)
+    budget_mb = float(budget_mb)
+    max_customer_years = float(curve["anchor_customer_years"]) + (
+        budget_mb - float(curve["anchor_peak_rss_mb"])
+    ) / mb_per_customer_year
     return {
-        "max_customer_years": int(math.floor(budget / per_customer_year)),
-        "bound_kind": "upper_bound",
-        "records_per_customer_year": float(records_per_customer_year),
-        "bytes_per_record": per_record,
-        "bytes_per_customer_year": per_customer_year,
-        "budget_rss_bytes": budget,
-        "both_are_floors": settlement.is_floor and serialization.is_floor,
+        "max_customer_years": int(math.floor(max_customer_years)),
+        "bound_kind": "measured_two_point_extrapolation",
+        "mb_per_customer_year": mb_per_customer_year,
+        "bytes_per_customer_year": mb_per_customer_year * 1024.0 * 1024.0,
+        "budget_rss_mb": budget_mb,
+        "budget_rss_bytes": budget_mb * 1024.0 * 1024.0,
+        "measured_from": {
+            "curve": curve.get("path"),
+            "generated_at_utc": curve.get("generated_at_utc"),
+            "git_head": curve.get("git_head"),
+            "clean_points": curve.get("clean_points"),
+            "anchor_customer_years": curve.get("anchor_customer_years"),
+            "anchor_peak_rss_mb": curve.get("anchor_peak_rss_mb"),
+        },
+        "prices_which_record_population": WHOLE_RUN_FOOTPRINT_POPULATION,
+        # DERIVED, NOT WRITTEN DOWN. The string this replaced pinned "1,200", "slack by
+        # 4.5x" and "Memory is not what caps this book" inside the function that computes
+        # the number those claims describe -- a control keyed to the day's answer, and all
+        # three were refuted by the first whole-run measurement taken against them. What is
+        # left is the part that is a property of the bound rather than of today's box: an
+        # RSS ceiling says nothing about wall clock, and the same curve prices that too.
+        # ANCHORED, for the same reason the memory bound is. `seconds_per_customer_year`
+        # times the book is the bare-marginal form, and it understates the run by its whole
+        # fixed cost -- 2,570s against the line's 1,725s at this ceiling. That is the error
+        # this function was re-ruled to stop making, so it is not repeated one key below it.
         "what_it_does_not_bound": (
-            "wall clock. Memory is not what caps this book -- "
-            "`net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` is, at 1,200 "
-            "customer-years, and its own note records memory as slack by 4.5x. A book "
-            "inside this bound can still be one no publish cycle will ever finish."
+            "wall clock. A book inside this bound can still be one no publish cycle will "
+            "ever finish -- the same curve measures {:.3f} seconds per customer-year above "
+            "a {:,.0f}s run at {:,.0f} customer-years, so this ceiling's book costs about "
+            "{:,.0f} seconds on the box it was measured on."
+        ).format(
+            float(curve["seconds_per_customer_year"]),
+            float(curve["anchor_wall_s"]),
+            float(curve["anchor_customer_years"]),
+            float(curve["anchor_wall_s"])
+            + float(curve["seconds_per_customer_year"])
+            * (max_customer_years - float(curve["anchor_customer_years"])),
         ),
     }
+
+
+#: WHAT THE CUSTOMER-YEAR CEILING PRICES, named beside its half-hourly sibling so the three
+#: record populations in this file are separable by a grep. This one is not a record
+#: population at all, and that is the correction: it is the whole process.
+WHOLE_RUN_FOOTPRINT_POPULATION = (
+    "EVERYTHING a value-cycle run holds resident, measured as the process's own peak RSS "
+    "across four budgets -- not a record count. The retained settlement rows are one term "
+    "inside it and pricing them alone understated the run by 29.2x on first measurement "
+    "(2026-09-21)"
+)
