@@ -17,6 +17,7 @@ directly rather than describing it.
 from __future__ import annotations
 
 import datetime as dt
+import json
 
 import pytest
 
@@ -684,22 +685,108 @@ def test_an_ERA_STRADDLING_A_BAND_BOUNDARY_is_split_by_YEARS():
 # ---------------------------------------------------------------------------
 
 
-def test_the_customer_year_ceiling_is_the_SAME_arithmetic_re_ruled(probe_report):
-    """The two ceilings must not be allowed to drift into two different sums.
+def test_the_customer_year_ceiling_prices_the_RUN_and_not_a_data_structure(probe_report):
+    """THE DEFECT THIS NAMES: the customer-year ceiling is reverted to stage-cost arithmetic.
 
-    THE DEFECT THIS NAMES: someone repairs the per-record cost in one of them. At the
-    probe's OWN rate the customer-year bound has to reproduce the customer bound at
-    `years=1` exactly, because that is the only thing that makes the new function a
-    re-ruling of the old one rather than a second opinion about the same box. Keyed to
-    the identity, not to 632, so a re-run probe moves both together and this stays green.
+    This control replaces `test_the_customer_year_ceiling_is_the_SAME_arithmetic_re_ruled`,
+    which asserted the opposite and was green throughout. That test required the two
+    ceilings to be ONE SUM IN TWO UNITS at the probe's own rate -- and that identity is
+    precisely the conflation: `settled_book_ceiling` adds two scale-probe stage costs,
+    which bound the retained settlement rows, and a run's peak RSS is the whole process.
+    Holding them equal is what kept the published ceiling 29.2x optimistic while a control
+    sat over it going green. A fixture asserting a conflation as correct is the shape to
+    look for when a repair reds a sibling.
+
+    KEYED TO THE PROPERTY. A process cannot cost less than one of the structures it holds,
+    so the measured whole-run rate must EXCEED the stage-cost rate at the same record
+    population, whatever either becomes. No literal here: re-run the probe, re-run the
+    curve, and this still says the same thing.
     """
-    probe_rate = pp.settlement_records_per_customer_year(probe_report)
-    customers = pp.settled_book_ceiling(report=probe_report, years=1)["max_customers"]
-    customer_years = pp.settled_book_ceiling_customer_years(
-        report=probe_report, records_per_customer_year=probe_rate)["max_customer_years"]
-    assert customer_years == pytest.approx(customers, rel=0.01), (
-        "at the probe's own record rate the two ceilings are one sum in two units; they "
-        "disagree, so one of them has been repaired and the other has not"
+    curve = pp.load_whole_run_rss_curve()
+    measured_bytes_per_cy = pp.settled_book_ceiling_customer_years(
+        curve=curve, budget_mb=1000.0)["bytes_per_customer_year"]
+
+    stage_costs = pp.stage_prices(probe_report)
+    per_record = (
+        float(pp._require(stage_costs, "settlement_build").per_unit["rss_bytes"])
+        + float(pp._require(stage_costs, "run_output_serialization").per_unit["rss_bytes"])
+    )
+    retained_rate = 301823 / 1029  # the 2026-09-18 three-arm run's own retained rows/cy
+    stage_bytes_per_cy = per_record * retained_rate
+
+    assert measured_bytes_per_cy > stage_bytes_per_cy, (
+        "the measured whole-run cost per customer-year has fallen to or below the cost of "
+        "the retained rows alone. A run cannot cost less than one of the structures it "
+        "holds, so either the ceiling has been reverted to stage-cost arithmetic or the "
+        "curve is no longer measuring the whole process"
+    )
+
+
+def test_the_measured_curve_is_read_and_REFUSES_rather_than_falling_back(tmp_path):
+    """FAIL-CLOSED, over the WHOLE PARTITION in one control.
+
+    THE DEFECT THIS NAMES: a curve with too few clean points falls back to the stage-cost
+    sum, which would restore the optimistic number under a fresh signature -- the worse of
+    the two available failures, because the new name would read as the repair.
+
+    BOTH LEGS, deliberately. A loader that refused EVERYTHING would pass any per-branch
+    refusal test; this one asserts a two-clean-point curve DOES yield a slope before
+    asserting that a one-clean-point curve does not.
+    """
+    def _point(cy, rss, wall, clean):
+        return {"customer_years_committed": cy, "peak_rss_mb": rss, "wall_s": wall,
+                "clean": clean, "unclean_reasons": [] if clean else ["contaminated x-axis"]}
+
+    both = tmp_path / "settlement_ceiling_slope_both.json"
+    both.write_text(json.dumps({
+        "points": [_point(1000.0, 5000.0, 1200.0, True), _point(2000.0, 9000.0, 3200.0, True)],
+        "recommendation": {"bounds": {"memory": {"share_of_guest_the_run_may_hold": 0.25}}},
+    }))
+    curve = pp.load_whole_run_rss_curve(str(both))
+    assert curve["mb_per_customer_year"] == pytest.approx(4.0), (
+        "the rare branch must be reachable: two clean points are a slope, and a loader "
+        "that could not form one would make every refusal below vacuous"
+    )
+    assert curve["anchor_customer_years"] == 1000.0, "the anchor is the LOWEST clean point"
+
+    # The SECOND point is unclean, so only one clean point survives and no slope exists.
+    one = tmp_path / "settlement_ceiling_slope_one.json"
+    one.write_text(json.dumps({
+        "points": [_point(1000.0, 5000.0, 1200.0, True), _point(2000.0, 9000.0, 3200.0, False)],
+        "recommendation": {"bounds": {"memory": {"share_of_guest_the_run_may_hold": 0.25}}},
+    }))
+    with pytest.raises(pp.ScaleProbeUnavailable) as exc:
+        pp.load_whole_run_rss_curve(str(one))
+    assert "clean point" in str(exc.value), (
+        "the refusal must name WHY the points were rejected, or the next reader re-runs "
+        "the probe rather than looking at what contaminated it"
+    )
+
+
+def test_the_ceiling_carries_no_claim_pinned_to_todays_answer():
+    """THE DEFECT THIS NAMES, and it is a recorded one (2026-09-21).
+
+    `settled_book_ceiling_customer_years` used to return a hard-coded string asserting
+    "Memory is not what caps this book", the literal "1,200", and "slack by 4.5x" -- three
+    claims about the world, pinned inside the function that computes the number they
+    describe, and all three refuted by the first whole-run measurement taken against them.
+    A claim keyed to the day's answer cannot go red when the answer moves.
+
+    Fires on: re-introducing any of them, here or in a new key. The comparison against the
+    settlement budget belongs where it is DERIVED -- `generate_value_arms_data` computes
+    `memory_slack_multiple_over_the_budget` from the two live numbers -- not in a sentence.
+    """
+    published = json.dumps(pp.settled_book_ceiling_customer_years())
+    for pinned in ("1,200", "4.5x", "Memory is not what caps this book",
+                   "SETTLEMENT_CUSTOMER_YEAR_BUDGET"):
+        assert pinned not in published, (
+            "the ceiling's return carries {!r} -- a claim about which leg binds, written "
+            "down inside the function that computes it. It goes stale silently, which is "
+            "how the 29.2x-optimistic version survived a control".format(pinned)
+        )
+    assert "/var/" not in published and "/home/" not in published, (
+        "the return carries an absolute path, so it names whichever worktree the "
+        "generator ran in -- a pointer no other reader can follow"
     )
 
 
@@ -745,11 +832,28 @@ def test_the_retained_rate_is_read_from_a_run_and_REFUSES_when_it_cannot_be(prob
         )
 
 
-def test_a_customer_year_ceiling_has_no_default_record_population(probe_report):
-    """Guessing which records a bound prices is the whole defect; a default would be a
-    guess wearing a signature. Zero and negative rates refuse too -- a rate of nothing
-    would return an infinite book."""
-    for bad in (0, -1.0, None):
+def test_a_customer_year_ceiling_refuses_a_slope_that_would_unbound_the_book():
+    """A rate of nothing returns an infinite book, so it must refuse rather than divide.
+
+    The 2026-09-21 re-ruling moved this function's input from a record rate to a measured
+    MB-per-customer-year slope; the defect is the same one in the new unit, and so is the
+    direction. A zero or negative slope is the reading "the run costs nothing more per
+    customer" -- which no measurement can produce and no ceiling may act on.
+    """
+    good = {"mb_per_customer_year": 4.0, "seconds_per_customer_year": 2.0,
+            "anchor_customer_years": 1000.0, "anchor_peak_rss_mb": 5000.0,
+            "anchor_wall_s": 1200.0, "path": "docs/observability/x.json"}
+    assert pp.settled_book_ceiling_customer_years(
+        curve=good, budget_mb=9000.0)["max_customer_years"] == 2000, (
+        "the admissible branch must be reachable, or the refusals below are vacuous"
+    )
+    for bad in (0.0, -1.0):
         with pytest.raises(pp.ScaleProbeUnavailable):
             pp.settled_book_ceiling_customer_years(
-                report=probe_report, records_per_customer_year=bad)
+                curve={**good, "mb_per_customer_year": bad}, budget_mb=9000.0)
+
+    # AND IT REFUSES TO INVENT THE BUDGET. A curve with no recorded share cannot be given
+    # one here: that choice is the probe's, made beside the measurement, not this call's.
+    with pytest.raises(pp.ScaleProbeUnavailable) as exc:
+        pp.settled_book_ceiling_customer_years(curve=good)
+    assert "share of the guest" in str(exc.value)

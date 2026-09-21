@@ -1,4 +1,16 @@
-**Severity:** BLOCKING · **Lane:** G_data_learning · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** RECORDED · **Lane:** G_data_learning · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+
+> **DISCHARGED 2026-09-21, and the severity moved BLOCKING → RECORDED on that basis.** This
+> document was BLOCKING on ONE clause, named in §4 and at the bottom of §6: the feed publishing
+> `memory_ceiling.max_customer_years = 38,275` and the sentence *"Memory is not what caps this
+> book"*. `premise_population.settled_book_ceiling_customer_years` now prices the MEASURED
+> whole-run RSS curve and the feed publishes **1,312** customer-years with a derived slack of
+> 1.09x; the hard-coded string carrying "1,200", "slack by 4.5x" and "Memory is not what caps this
+> book" is deleted. Written up in
+> `SEAT_RESULT_THE_MEMORY_CEILING_NOW_PRICES_THE_RUN_AND_THE_CONTROL_OVER_IT_WAS_ASSERTING_THE_CONFLATION_2026-09-21.md`,
+> which also records that the control sitting over the old number was enforcing the conflation.
+> **Nothing else here is discharged** — owed items 2 (the repeat of the 1,200 point) and the two
+> disagreeing publish-cadence constants are still open, and the body below stands unedited.
 
 # RESULT — the ceiling's cost curve is CONVEX, my filed prediction is refuted, and the memory bound the page calls slack is ~15x optimistic
 
