@@ -203,7 +203,14 @@ processes:
 
   - session: naive-organ
     command: python3 -m background.naive_organ daemon
-    match: naive_organ
+    match: background.naive_organ   # the argv TOKEN, not the module's stem: `_runs_daemon` asks
+                                    # for basename-equality against some argument, and this daemon
+                                    # is launched `-m background.naive_organ`, so the bare stem
+                                    # `naive_organ` could never match anything. It read as harmless
+                                    # while the only consumer counted daemons to SUBTRACT them; it
+                                    # stops being harmless the moment absence is reported, because
+                                    # a permanently-absent healthy daemon is a control crying wolf.
+                                    # Sibling row `token-proxy` already carries the `-m` form.
     owner: systemd
     state: enabled
     launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the

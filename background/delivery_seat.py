@@ -40,6 +40,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -407,6 +408,89 @@ def _elapsed_phrase(seconds: int) -> str:
     return "{}s".format(seconds)
 
 
+def _unit_last_write(session: str) -> tuple[int | None, str]:
+    """Seconds since `<session>.service` last wrote ANY line to its own journal, and why not.
+
+    A daemon's own log is the only per-daemon clock this machine keeps. The unit name is the
+    manifest's `session` plus `.service` -- `generate_units.py` derives it the same way, so there
+    is no second naming convention to drift.
+
+    THREE OUTCOMES, AND THE MIDDLE ONE IS NOT THE OTHERS. A stamp; `None` because the question
+    could not be PUT (no journalctl, a timeout, an unparseable head); and `None` because the
+    journal answered and holds NOTHING for this unit, which is a real reading and a loud one. They
+    are told apart by the reason string, never collapsed -- a `None` that declares its reason and
+    a `None` that is silence collapsing into the flattering branch is this project's recurring bug.
+    """
+    try:
+        proc = subprocess.run(
+            ["journalctl", "--user", "-u", "{}.service".format(session),
+             "-n", "1", "-o", "short-unix", "--no-pager"],
+            capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return None, "could not be asked ({!r})".format(exc)
+    head = (proc.stdout or "").strip().splitlines()
+    if not head:
+        # rc=1 with no output is journalctl's "no entries matched" -- a clean answer, not a fault.
+        return None, "its journal holds no entry at all"
+    try:
+        stamp = float(head[0].split(maxsplit=1)[0])
+    except (ValueError, IndexError):
+        return None, "its journal's newest line did not start with a timestamp"
+    return max(0, int(time.time() - stamp)), ""
+
+
+def declared_daemon_health(present: set[str], entries: list | None = None,
+                           last_write=None) -> list[dict]:
+    """THE COMPLEMENT of the subtraction in `running_now`: every declared daemon that MUST be
+    running, whether `ps` found it, and how long since it last wrote its own log.
+
+    THE SUBTRACTION WAS A CONTROL THAT COULD NOT FAIL. `running_now` matched the manifest against
+    `ps` and published only how MANY it had taken out -- `daemons_subtracted: 10`. The set it
+    computed to do that was thrown away, so the brief's sentence read identically whether ten
+    daemons were up or none were, and nothing downstream reads a floor on that count. On
+    2026-09-20 the machine produced zero commits over a whole stretch and every instrument in the
+    brief printed a version of "quiet".
+
+    WHY THE LOG AGE IS HERE AND NOT JUST THE ABSENCE. The incident that motivated this reading was
+    NOT an absence: the WSL2 guest froze with its host, so all ten daemons were still on the box,
+    frozen in place, and an absence-only leg would have reported nothing at all. What they had in
+    common was that not one of them had written a line for fourteen hours. Absence and silence are
+    different observables and only the pair covers the case
+    (`docs/staging/WORKER_FINDING_THE_WORKER_DID_NOT_DIE_THE_BOX_FROZE_...`).
+
+    NO SILENCE THRESHOLD IS INVENTED HERE, deliberately. The daemons have no common cadence --
+    `dispatcher` legitimately ran 3.3 days between restarts while `background-worker` cycles every
+    ten minutes -- so any single number would be picked rather than established, and would be
+    load-bearing within a week. The AGE is published and the reader judges it; ten daemons that
+    all last spoke fourteen hours ago is a shape no constant is needed to see.
+
+    ONLY `state: enabled` ROWS. A `dark`, `held` or `retired` daemon being absent is the declared
+    intention, and reporting it would be the crying-wolf failure `_runs_daemon`'s own docstring was
+    written against. The worker seat is excluded by its `SEAT_MATCH` sentinel -- it is detected via
+    tmux and has no `ps` token, so it would be permanently and falsely absent.
+    """
+    from background.process_reconciler import SEAT_MATCH, load_manifest
+
+    # Resolved here rather than bound as a default, so a test can replace the journal reader on
+    # the module and have this call see it -- a default argument would capture the original.
+    last_write = _unit_last_write if last_write is None else last_write
+    rows = []
+    for entry in (load_manifest() if entries is None else entries):
+        match = entry.get("match")
+        if entry.get("state") != "enabled" or not match or match == SEAT_MATCH:
+            continue
+        age, why = last_write(entry["session"])
+        rows.append({
+            "session": entry["session"],
+            "match": match,
+            "on_box": match in present,
+            "last_log_seconds": age,
+            "last_log": _elapsed_phrase(age) if age is not None else None,
+            "why_no_log": why,
+        })
+    return rows
+
+
 def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
     """WHAT IS ON THE BOX, with the DECLARED permanent daemons subtracted.
 
@@ -445,7 +529,8 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
 
     try:
         from background.process_reconciler import _runs_daemon, load_manifest
-        declared = [e["match"] for e in load_manifest() if e.get("match")]
+        entries = load_manifest()
+        declared = [e["match"] for e in entries if e.get("match")]
     except Exception as exc:  # noqa: BLE001
         # Without the declaration the daemons cannot be told from the jobs, and a reading that
         # buries its subject is the failure this was written against. Say so; do not guess.
@@ -454,7 +539,7 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
     namespaces = _project_namespaces()
     me = os.geteuid()
     mine = os.getpid()
-    jobs, daemons = [], 0
+    jobs, present = [], set()
     for line in (proc.stdout or "").splitlines():
         parts = line.split(maxsplit=4)
         if len(parts) < 5:
@@ -464,10 +549,18 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
         except ValueError:
             continue
         args = parts[4]
-        if euid != me or pid == mine or etimes < floor_seconds:
+        if euid != me or pid == mine:
             continue
-        if any(_runs_daemon(args, m) for m in declared):
-            daemons += 1
+        # THE DAEMON MATCH RUNS BEFORE THE ELAPSED FLOOR, and that ordering is the whole
+        # correctness of the absence leg below. `deploy_restart` cycles several of these every ten
+        # minutes, so a healthy daemon is routinely younger than the 60s floor; filtering by age
+        # first would drop it from `present` and report a daemon that is running as MISSING. The
+        # floor exists to keep short-lived JOBS out of the list, and a daemon is never a job.
+        hit = next((m for m in declared if _runs_daemon(args, m)), None)
+        if hit is not None:
+            present.add(hit)
+            continue
+        if etimes < floor_seconds:
             continue
         tokens = args.split()
         touches_project = any(
@@ -486,13 +579,23 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
             "argv_head": args[:160],
         })
     jobs.sort(key=lambda j: -j["elapsed_seconds"])
+    try:
+        declared_rows = declared_daemon_health(present, entries)
+    except Exception as exc:  # noqa: BLE001
+        declared_rows, declared_why = [], repr(exc)
+    else:
+        declared_why = ""
     return {
         "available": True,
         "floor_seconds": floor_seconds,
         "nothing_long_running": not jobs,
         "count": len(jobs),
-        "daemons_subtracted": daemons,
+        "daemons_subtracted": len(present),
         "jobs": jobs,
+        # The complement of the subtraction above, which used to be computed and discarded.
+        "declared": declared_rows,
+        "declared_absent": [r for r in declared_rows if not r["on_box"]],
+        "declared_unreadable": declared_why,
     }
 
 
@@ -1104,6 +1207,46 @@ def _prompt(brief: dict) -> str:
     # orientations; a fact it has to dig out of 60k of JSON is a fact it will dig out on the
     # stretches when it is not busy and skip on exactly the stretches when the box is.
     running = brief.get("running") or {}
+    # THE DECLARED DAEMONS THAT ARE NOT THERE, said first and said unasked. This block is
+    # deliberately OUTSIDE the three branches below, because the branch an absence lands in is the
+    # idle one -- a box with no daemons on it has no long jobs either, so the old reading answered
+    # a dead machine with "NOTHING LONG IS RUNNING. Anything you start, you are starting from
+    # cold," which is true, cheerful, and the single most misleading sentence the brief can print.
+    absent = running.get("declared_absent") or []
+    if not running.get("available", False):
+        # The ps never ran, so `declared_absent` is empty for the reason that proves nothing. An
+        # empty list and an unasked question are the same shape and opposite in meaning; the
+        # unreadable-box sentence below carries this case on its own.
+        absence_sentence = ""
+    elif running.get("declared_unreadable"):
+        absence_sentence = (
+            "\n\nWHICH DECLARED DAEMONS ARE ABSENT COULD NOT BE READ ({}) -- so nothing below "
+            "says they are present.".format(running["declared_unreadable"]))
+    elif absent:
+        absence_sentence = (
+            "\n\n{} DECLARED DAEMON(S) ARE NOT ON THE BOX. Every one of these is `state: enabled` "
+            "in `background/process_manifest.yaml`, which means it MUST be running; nothing "
+            "starts it except the declaration. This outranks whatever else this brief says is "
+            "due, because the readings below describe a tree that nothing is currently working "
+            "on:\n\n".format(len(absent))
+            + "\n".join(
+                "  {:<22} absent; last wrote its own log {}".format(
+                    r["session"],
+                    "{} ago".format(r["last_log"]) if r["last_log"] is not None
+                    else r["why_no_log"] or "at an unknown time")
+                for r in absent))
+    else:
+        quiet = [r for r in (running.get("declared") or []) if r["last_log_seconds"] is not None]
+        quiet.sort(key=lambda r: -r["last_log_seconds"])
+        absence_sentence = (
+            "\n\nEVERY DECLARED DAEMON IS ON THE BOX ({} of them, positively matched against "
+            "`process_manifest.yaml` rather than inferred from an empty list).".format(
+                len(running.get("declared") or []))
+            + (" The quietest has not written its own log for {} (`{}`) -- no threshold is "
+               "applied to that, because these daemons have no common cadence; judge it "
+               "yourself, and note that ALL of them going quiet together is what a frozen "
+               "guest looks like.".format(quiet[0]["last_log"], quiet[0]["session"])
+               if quiet else ""))
     if not running.get("available", False):
         running_sentence = (
             "\n\nWHAT IS RUNNING COULD NOT BE READ ({}) -- so 'nothing is running' is NOT what "
@@ -1133,6 +1276,7 @@ def _prompt(brief: dict) -> str:
           "those, or a run of identical subjects, is a finding about the MACHINE and outranks "
           "whatever else this brief says is due.\n\n"
         + rendered
+        + absence_sentence
         + running_sentence
         + "\n\nWHAT THE STRETCH ABOVE WAS MEASURED OVER. Everything you are about to grade -- the "
           "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "

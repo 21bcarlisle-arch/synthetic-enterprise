@@ -12,6 +12,7 @@ sit unwired from July to September.
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 
 import background.deadmans_switch as dms
@@ -292,3 +293,133 @@ def test_the_box_reading_is_built_from_the_real_ps_and_never_raises():
     for job in seen["jobs"]:
         assert job["elapsed_seconds"] >= seat.ELAPSED_FLOOR_SECONDS
         assert job["what"] and not job["what"].startswith("/usr/bin/python")
+
+
+# ── the COMPLEMENT of that subtraction: a declared daemon that is NOT there ──────────────────
+def _enabled_rows():
+    """The manifest rows that MUST be running, which is the population the absence leg reports
+    over. Read off the manifest rather than typed, so a daemon added tomorrow is in the fixture."""
+    from background.process_reconciler import SEAT_MATCH, load_manifest
+    return [e for e in load_manifest()
+            if e.get("state") == "enabled" and e.get("match") and e["match"] != SEAT_MATCH]
+
+
+def _fake_journal(monkeypatch, ages):
+    """Drive the per-daemon log clock off a dict, so no assertion here depends on journalctl
+    existing or on what this box happened to have logged."""
+    monkeypatch.setattr(seat, "_unit_last_write",
+                        lambda session: (ages.get(session, 300), ""))
+
+
+def test_A_DECLARED_DAEMON_THAT_IS_ABSENT_IS_NAMED_AND_A_PRESENT_ONE_IS_NOT(monkeypatch):
+    """THE WHOLE PARTITION IN ONE CONTROL, and it has to be, for the reason CLAUDE.md gives: a
+    reading hard-wired to "something is missing" names `background-worker` on every input and
+    passes any test that only ever removes it. Both directions are asserted here against the SAME
+    daemon, so neither leg can be dropped to make the other pass.
+
+    THE DEFECT IT IS WRITTEN AGAINST. `running_now` matched the manifest against `ps` in order to
+    SUBTRACT the declared daemons, and published only the count it had taken out. The complement
+    was computed and thrown away, so the brief's sentence read identically whether ten daemons
+    were up or none were -- a subtraction that hides absence, which is a control that cannot fail.
+
+    MUTATION (the one the ask names): make `declared_absent` always empty, or drop
+    `absence_sentence` from the assembled prompt, and the first half fails. Make it return every
+    declared row regardless of `on_box` and the second half fails.
+    """
+    _fake_journal(monkeypatch, {"background-worker": 52_698})
+    # The box is built FROM the manifest's own launch commands, so the partition is exactly one
+    # daemon wide: every enabled daemon is present except `background-worker`. Hand-listing two
+    # of them would leave the other nine absent too, and the header would fire in both halves.
+    others = [_ps_line(100 + i, 400_000, 4000, "/usr/bin/" + e["command"])
+              for i, e in enumerate(_enabled_rows()) if e["session"] != "background-worker"]
+    _fake_ps(monkeypatch, others)
+    gone = seat.running_now()
+    assert [r["session"] for r in gone["declared_absent"]] == ["background-worker"], (
+        "only the one daemon missing from this manufactured box may be listed")
+
+    text = seat._prompt(_brief(running=gone))
+    assert "DECLARED DAEMON(S) ARE NOT ON THE BOX" in text
+    assert "background-worker" in text and "14h38m" in text, (
+        "named, and with how long since it last wrote its own log")
+
+    # PRESENT: the same daemon back on the box, and the line must DISAPPEAR.
+    _fake_ps(monkeypatch, others + [
+        _ps_line(102, 30, 47_000, "/usr/bin/python3 background/background_worker.py")])
+    back = seat.running_now()
+    assert not any(r["session"] == "background-worker" for r in back["declared_absent"])
+    back_text = seat._prompt(_brief(running=back))
+    assert "DECLARED DAEMON(S) ARE NOT ON THE BOX" not in back_text, (
+        "a daemon that is running must not be reported absent -- a control that cries wolf on "
+        "healthy input gets ignored, which is worse than no control")
+    # Asserted on the SENTENCE, not on the whole prompt: the brief also serialises the `running`
+    # dict as JSON below the sentence, so every declared daemon's NAME is in the text either way.
+    # The claim this control makes is about the line the seat actually reads.
+    assert "background-worker" in json.dumps(back["declared"]), "still measured, just not absent"
+
+
+def test_A_DAEMON_YOUNGER_THAN_THE_JOB_FLOOR_IS_STILL_PRESENT(monkeypatch):
+    """`deploy_restart` cycles several declared daemons every ten minutes, so a perfectly healthy
+    daemon is routinely a few seconds old. The elapsed floor exists to keep short-lived JOBS out
+    of the list; if it runs BEFORE the daemon match it also drops young daemons out of the
+    present set and reports a running daemon as MISSING -- on this box, several times an hour.
+
+    MUTATION: move the `etimes < floor_seconds` test back above the `_runs_daemon` match and this
+    fails; the daemon below is 3 seconds old against a 60-second floor.
+    """
+    _fake_journal(monkeypatch, {})
+    _fake_ps(monkeypatch, [
+        _ps_line(102, 3, 47_000, "/usr/bin/python3 background/background_worker.py")])
+    seen = seat.running_now()
+    assert not any(r["session"] == "background-worker" for r in seen["declared_absent"])
+    assert seen["jobs"] == [], "a daemon is never a job, at any age"
+
+
+def test_AN_UNREADABLE_BOX_NEVER_SAYS_EVERY_DECLARED_DAEMON_IS_PRESENT(monkeypatch):
+    """The fail-open twin of the leg above, and the one that would actually have shipped: when the
+    `ps` does not run, `declared_absent` is empty for the reason that proves nothing at all. An
+    empty absence list and an unasked question are the same shape and opposite in meaning.
+
+    MUTATION: drop the `available` guard in front of the absence block and this fails -- the
+    else-branch cheerfully reports "EVERY DECLARED DAEMON IS ON THE BOX (0 of them)".
+    """
+    def _boom(*a, **k):
+        raise OSError("no ps on this box")
+
+    monkeypatch.setattr(seat.subprocess, "run", _boom)
+    text = seat._prompt(_brief(running=seat.running_now()))
+    assert "EVERY DECLARED DAEMON IS ON THE BOX" not in text
+    assert "WHAT IS RUNNING COULD NOT BE READ" in text
+
+
+def test_EVERY_ENABLED_DAEMON_IN_THE_MANIFEST_CAN_ACTUALLY_BE_MATCHED_ON_THIS_BOX():
+    """THE WIRE, and the leg that pays for itself. `naive-organ` is launched `-m
+    background.naive_organ`, and its manifest row declared `match: naive_organ` -- a bare stem
+    that `_runs_daemon`'s basename-equality test can never match against any argument. It was
+    invisible while the only consumer counted daemons in order to subtract them, and became a
+    permanently-absent healthy daemon the moment absence was reported.
+
+    This keys on the PROPERTY (every enabled row is matchable against its own declared launch
+    command) rather than on today's answer, so it stays green when a daemon is added correctly and
+    reds when a row is added with an unmatched token.
+    """
+    from background.process_reconciler import SEAT_MATCH, _runs_daemon, load_manifest
+
+    unmatched = [e["session"] for e in load_manifest()
+                 if e.get("state") == "enabled" and e.get("match")
+                 and e["match"] != SEAT_MATCH
+                 and not _runs_daemon(e["command"], e["match"])]
+    assert not unmatched, (
+        "these enabled daemons declare a `match` their own `command` cannot satisfy, so they "
+        "would be reported absent forever: {}".format(unmatched))
+
+
+def test_the_absence_leg_is_built_from_the_real_box_and_never_raises():
+    """The wire on the real machine, for the argv or journal format no fixture above can imagine."""
+    seen = seat.running_now()
+    assert seen["available"] is True, seen.get("why")
+    assert isinstance(seen["declared"], list) and seen["declared"], "the manifest has enabled rows"
+    for row in seen["declared"]:
+        assert row["session"] and isinstance(row["on_box"], bool)
+        assert row["last_log_seconds"] is None or row["last_log_seconds"] >= 0
+        assert (row["last_log"] is None) == (row["last_log_seconds"] is None), (
+            "a missing age and a rendered one must never disagree about whether it is known")
