@@ -10342,6 +10342,29 @@ def _can_this_book_be_built(current: dict | None, priced_rows: list) -> dict:
             "ten times its account count. Customer-years is what both ceilings are stated in."
         ).format(_book_accounts(current) or 0, float(customer_years)),
         "this_book_customer_years": float(customer_years),
+        # WHICH RUN "THIS BOOK" IS, STAMPED, because the figures above were re-denominated
+        # onto a different run within hours of first being published and the arithmetic gave
+        # no sign. On 2026-09-21 a staging record took `required_multiple_smallest_leg`
+        # (2.8198526, a multiple of the book below) and multiplied it by the PROMOTED run's
+        # 1,029 customer-years, publishing 2,902 and "2.42x the capacity" beside this block's
+        # own 3,163.9 and 2.64x. Neither denominator was stale -- the product was a ratio
+        # across two runs. This page names both panels' stamps elsewhere
+        # (`superseded_generated_at`), so the reader had every reason to think the newer book
+        # was the right one to carry the multiple to; what was missing was this block saying
+        # which book its own multiple belongs to.
+        "the_book_these_figures_are_denominated_in": {
+            "run_generated_at": current.get("generated_at"),
+            "accounts": _book_accounts(current),
+            "customer_years": float(customer_years),
+        },
+        "why_the_multiple_cannot_be_re_denominated": (
+            "`required_multiple_*` is a multiple of THE BOOK STAMPED ABOVE -- it comes off that "
+            "run's own priced-decision count and its own floor spread. `required_customer_years_"
+            "smallest_leg` is that multiple times THAT run's customer-years, and the two factors "
+            "have to be the same book. Carrying the multiple to another run's customer-years "
+            "asks how many customer-years of one book equal a multiple of a different one, which "
+            "is not a quantity. A later run needs the multiple RE-COMPUTED on it, not re-scaled."
+        ),
         "capacity_customer_years": capacity,
         "what_binds": binds,
         "reachable_multiple_of_this_book": reachable,

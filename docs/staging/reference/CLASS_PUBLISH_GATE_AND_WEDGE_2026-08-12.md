@@ -146,6 +146,12 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_RESULT_THE_GATES_RED_HAD_A_REPAIR_ON_ORIGIN_AND_THE_RECONCILER_THAT_CARRIES_IT_LOST_95_RACES_TO_THE_GATES_OWN_LOCK_TODAY_2026-09-18.md`
 - `WORKER_RESULT_THE_WEDGES_RED_WAS_REAL_ON_A_FORK_THAT_DIED_THREE_MINUTES_LATER_AND_THE_RECORD_COULD_NOT_SAY_SO_2026-09-18.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `WORKER_RESULT_THE_WEDGE_WAS_A_LANDING_THAT_NEVER_HAPPENED_AND_THE_SITE_HALF_WAS_SPENT_BY_ROTATION_2026-09-21.md` — lane `A_strategy_governance`
+
 ## Disposition
 
 **Decision:** OPEN
