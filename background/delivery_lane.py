@@ -2500,7 +2500,10 @@ def note_premise_spent(focus_id: str, commit: str, reason: str, *,
 
     REFUSALS NAME THEMSELVES, and each is a different instruction to the caller:
 
-      * `focus_id` was never drawn — nothing was handed out, so there is no window to dispose of;
+      * `focus_id` is in NEITHER store — nothing was handed out, so there is no window to dispose
+        of. A ledger row is not what makes a draw real: an id the ledger never heard of but the
+        CLAIMS store holds live was still handed out, and is disposed of against its `claimed_at`.
+        Refusing it stranded the one population this verb exists for — see the body;
       * the row already holds a landing at or after its last draw — it DELIVERED, and recording it
         as premise-spent would overwrite the stronger fact with the weaker one;
       * `reason` is empty — see above;
@@ -2519,8 +2522,40 @@ def note_premise_spent(focus_id: str, commit: str, reason: str, *,
         ledger = claims_mod._load(ledger_path)
         row = ledger.get(focus_id)
         if not isinstance(row, dict):
-            return (f"{focus_id} was never drawn -- the ledger has no row for it, so there is no "
-                    f"window for a spent premise to explain")
+            # THE LEDGER IS NOT THE ONLY RECORD OF A DRAW, and "nothing was handed out" is simply
+            # false while the CLAIMS store holds a live claim for this id: a live claim IS the
+            # thing that was handed out. A draw that writes the claim without reaching the ledger
+            # is not hypothetical -- it is how `the-landed-binder-defaults-to-head-and-the-
+            # liveness-refusal-never-reaches-it` was handed out at 15:05 on 2026-09-21, 2h14m
+            # AFTER f382f8ace had already spent its premise, while the two claims beside it in the
+            # same store both had ledger rows.
+            #
+            # REFUSING COST MORE THAN IT SAVED, and in the one direction that never recovers. This
+            # is the only verb for "drawn after the work had already landed", so the refusal left
+            # exactly the population it exists for unable to reach it -- and the claim is not held
+            # by the refusal, it is swept at 100 minutes and redrawn. The seat re-orients every
+            # three hours, so the row goes back out before it can be dropped and buys another
+            # whole invocation re-deriving an answer that is already in origin/main. That is the
+            # third mint of this one subject.
+            #
+            # `_binding_instant` below already takes exactly this fallback for exactly this case
+            # ("falls back to `claimed_at` when the ledger has never heard of the id"), so this is
+            # the file's established reading of the two stores rather than a new one. Keyed to the
+            # PROPERTY -- was this id handed out? -- not to which store happened to record it.
+            #
+            # STILL FAILS CLOSED, and this is the branch that keeps the guard honest: an id in
+            # NEITHER store is refused exactly as before. A disposition that fired on every string
+            # would be a free eraser over the seat's most urgent list, which is the one thing
+            # `note_landing_under` says this family must never become.
+            claim = claims_mod._load(path or CLAIMS_FILE).get(focus_id)
+            claimed_at = float(claim.get("claimed_at") or 0.0) if isinstance(claim, dict) else 0.0
+            if claimed_at <= 0.0:
+                return (f"{focus_id} was never drawn -- neither the ledger nor the claims store "
+                        f"has heard of it, so there is no window for a spent premise to explain")
+            # NO `last_landing_at`: this row has never landed, which is the whole premise of the
+            # disposition being recorded, and the DELIVERED guard below reads it as such.
+            row = {"first_drawn_at": claimed_at, "last_drawn_at": claimed_at,
+                   "source": "claims_store_only"}
         drawn = float(row.get("last_drawn_at") or 0.0)
         if float(row.get("last_landing_at") or 0.0) >= drawn > 0.0:
             return (f"{focus_id} already holds a landing at or after its last draw -- it "
