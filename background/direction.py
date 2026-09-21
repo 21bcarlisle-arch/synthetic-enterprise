@@ -311,7 +311,7 @@ def focus_weights(candidates, weights, path: Path | None = None,
         return original
 
 
-def focus_was_drawn(focus: tuple[str, ...], drawn_ids, *, atom_ids=None) -> dict:
+def focus_was_drawn(focus: tuple[str, ...], drawn_ids, *, atom_ids=None, window=None) -> dict:
     """Did the PREVIOUS orientation's focus actually reach the draw?
 
     THE CONTROL ON THIS WHOLE MECHANISM, and the reason it is recorded every cycle rather than
@@ -332,12 +332,22 @@ def focus_was_drawn(focus: tuple[str, ...], drawn_ids, *, atom_ids=None) -> dict
     `atom_ids` is the map's id set. Without it the split cannot be made and `by_class` is absent
     rather than guessed -- an unavailable check reports itself unavailable (R15), it does not
     report a pass.
+
+    `window` IS WHAT `drawn_ids` WAS MEASURED OVER, and this function cannot derive it: the caller
+    chooses the horizon and hands over a finished set. It is stated in the verdict because the
+    brief carries a SECOND drawn-work reading -- every Lane 0 item drawn in the last day, landed
+    or not -- and for four stretches the pair sat side by side with neither saying what it covered
+    and one of them named for a population it did not hold. A caller that does not say gets
+    "AN UNSTATED WINDOW" on the face of the verdict rather than a blank: an unstated window is a
+    finding about the caller, and a verdict that keeps quiet about it will be read as the stretch.
     """
     drawn = {str(d) for d in (drawn_ids or [])}
     hit = [f for f in focus if f in drawn]
+    stated = str(window) if window else "AN UNSTATED WINDOW -- the caller did not say"
     out = {
         "focus": list(focus),
         "drawn": hit,
+        "window": stated,
         "steered": bool(hit),
         "note": (
             "the previous direction named work the draw then took"
@@ -346,6 +356,10 @@ def focus_was_drawn(focus: tuple[str, ...], drawn_ids, *, atom_ids=None) -> dict
             "steer is a no-op and the weight is not biting"
         ) if focus else "no previous focus to check",
     }
+    # ON THE `note` TOO, AND NOT ONLY IN ITS OWN KEY. The note is the sentence that gets quoted,
+    # rendered and pasted; a window that lives only in a sibling key travels nowhere with it.
+    out["note"] += " (measured over {}; this is the PREVIOUS FOCUS, not every drawn item)".format(
+        stated)
     if atom_ids is not None:
         known = {str(a) for a in atom_ids}
         out["by_class"] = {

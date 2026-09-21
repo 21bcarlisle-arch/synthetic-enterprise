@@ -978,7 +978,18 @@ def build_brief(now: datetime | None = None) -> dict:
         # while the lane recorded both items as drawn and moved on. NOT scoped to the stretch:
         # three hours is shorter than the fact is interesting, and see
         # `delivery_lane.DRAWN_WITHOUT_LANDING_HORIZON_SECONDS` for why a day is the horizon.
-        "focus_drawn_never_landed": _drawn_never_landed(now),
+        #
+        # AND IT IS NOT `focus_`, WHICH IS WHAT THIS KEY WAS CALLED FOR ITS FIRST FIVE WEEKS.
+        # `_drawn_never_landed` reads the claims ledger over ITS OWN horizon and returns EVERY
+        # Lane 0 item handed out in it; nothing anywhere filters it to the focus. The name asserted
+        # a population the value does not hold, and it sits inches from `previous_focus_drawn`,
+        # which is the previous focus, over the stretch -- a different window AND a different
+        # population, read side by side by the one reader both exist for. For four stretches the
+        # two agreed only because the evidence happened not to contain a contradiction; on
+        # 2026-09-21 it did -- this key held exactly one row, an ordinary draw that was never in
+        # focus at all, while `previous_focus_drawn` correctly reported all three focus items
+        # drawn. Both windows are now stated in the prompt sentences `_prompt` writes for them.
+        "lane_0_drawn_never_landed": _drawn_never_landed(now),
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
@@ -1018,8 +1029,14 @@ def build_brief(now: datetime | None = None) -> dict:
         # own last steer took, and now whether its own last errors were fixed.
         "previous_wrong": direction_mod.wrong_rows(previous),
         "atoms_drawn": atoms_drawn_since(since),
+        # THE WINDOW IS PASSED, NOT ASSUMED. This one is the STRETCH -- `focus_drawn_since(since)`
+        # and nothing older -- while `lane_0_drawn_never_landed` above is a day of the draw
+        # ledger. The two sat side by side stating neither, which is how one reader took them for
+        # one reading.
         "previous_focus_drawn": direction_mod.focus_was_drawn(
-            prev_focus, focus_drawn_since(since), atom_ids=set(levels)),
+            prev_focus, focus_drawn_since(since), atom_ids=set(levels),
+            window="this stretch only -- the {}h since {}".format(
+                round((now - since).total_seconds() / 3600.0, 1), since.isoformat())),
         "live_direction_age_hours": round(live.age_hours(now), 1) if live else None,
     }
 
@@ -1063,7 +1080,7 @@ def is_material(brief: dict) -> tuple[bool, str]:
     # orientations ran. It outranks a quiet stretch because the bottleneck it names is not "the
     # lane is not drawing" but "the lane is drawing and nothing is coming out", and only the
     # second one is invisible to the commit count.
-    missed = brief.get("focus_drawn_never_landed") or []
+    missed = brief.get("lane_0_drawn_never_landed") or []
     if missed:
         return True, (
             "{} drawn Lane 0 item(s) finished their claim window with NOTHING landed -- {} -- so "
@@ -1115,7 +1132,13 @@ def _prompt(brief: dict) -> str:
     # reaches back into this package and the pair is kept loadable by keeping the edge one-way at
     # import time. Read from the lane rather than restated, so the prose and the reader that
     # writes it cannot drift into two vocabularies for one store.
+    from background.delivery_lane import DRAWN_WITHOUT_LANDING_HORIZON_SECONDS
     from background.delivery_lane import NOT_DONE as delivery_lane_NOT_DONE
+
+    # READ FROM THE CONSTANT, NEVER TYPED. The sentences below are the only place a reader is told
+    # what window this block covers, and a hand-typed "24 hours" beside a horizon that moves is
+    # the same defect one layer down from the one being repaired here.
+    horizon_hours = round(DRAWN_WITHOUT_LANDING_HORIZON_SECONDS / 3600.0, 1)
 
     # THE LIST GOES ABOVE THE JSON, AND OUTSIDE THE TRUNCATION. `brief` is dumped with a 60k cap
     # and `commits` is the first big key in it, so a long stretch can push everything after it off
@@ -1137,12 +1160,12 @@ def _prompt(brief: dict) -> str:
     # errors it happened to remember. An input that a truncation can silently remove is not an
     # input.
     # AND SO DOES THIS, and for a third time it is the same lesson unfinished rather than a new
-    # one. `focus_drawn_never_landed` is the SECOND key of the brief precisely so a truncation
+    # one. `lane_0_drawn_never_landed` is the SECOND key of the brief precisely so a truncation
     # cannot reach it -- but a key the seat has to notice inside 60k of JSON is not the same thing
     # as a sentence it has to read. This is the one fact in the brief that is about work that
     # ALREADY EXISTS and only needs committing, so it belongs above the list of everything that
     # would otherwise be started instead.
-    rows = brief.get("focus_drawn_never_landed") or []
+    rows = brief.get("lane_0_drawn_never_landed") or []
     if rows:
         # AND EACH ROW NOW NAMES ITS DISPOSITION, because this sentence used to say one thing --
         # "nobody did it, check `git status`" -- about three different situations, and the seat
@@ -1153,7 +1176,10 @@ def _prompt(brief: dict) -> str:
         undisposed = [r for r in rows if r.get("disposition", delivery_lane_NOT_DONE)
                       == delivery_lane_NOT_DONE]
         missed = (
-            "\n\nDRAWN, GIVEN ITS WINDOW, AND NOTHING LANDED UNDER ITS OWN NAME. The lane handed "
+            "\n\nDRAWN, GIVEN ITS WINDOW, AND NOTHING LANDED UNDER ITS OWN NAME. MEASURED OVER "
+            "THE LAST {}h OF THE DRAW LEDGER -- not over this stretch -- and over EVERY Lane 0 "
+            "item the lane handed out in that horizon, whatever the focus of the day was. The "
+            "lane handed "
             "each of these out and the claim was swept back into the pool with no commit bound "
             "to it. {} of the {} have NO disposition recorded, and THAT WORK MAY ALREADY BE DONE "
             "AND SITTING IN THE WORKING TREE -- that is what this looked like on 2026-09-07, "
@@ -1172,15 +1198,41 @@ def _prompt(brief: dict) -> str:
             "here that is about the FUTURE: its window closed before the instant its own prose "
             "names, so there was never anything to find -- do not go looking in the tree, and do "
             "not draw it again until the instant the evidence names has "
-            "passed:\n\n".format(len(undisposed), len(rows))
+            "passed:\n\n".format(horizon_hours, len(undisposed), len(rows))
             + "\n".join("- {} (drawn {}h ago, {}{})".format(
                 r.get("id"), r.get("hours_since_draw"),
                 r.get("disposition", delivery_lane_NOT_DONE),
                 ": " + r["evidence"] if r.get("evidence") else "") for r in rows)
         )
     else:
-        missed = ("\n\nNO DRAWN LANE 0 ITEM finished its window without landing in the last day, "
-                  "so everything the lane handed out either landed or is still inside its window.")
+        missed = ("\n\nNO DRAWN LANE 0 ITEM finished its window without landing. MEASURED OVER "
+                  "THE LAST {}h OF THE DRAW LEDGER -- the same horizon and the same population "
+                  "as when this block has rows: every Lane 0 draw in it, not just the ones in "
+                  "focus -- so everything the lane handed out either landed or is still inside "
+                  "its window.".format(horizon_hours))
+    # THE OTHER DRAWN-WORK READING, SAID NEXT TO THE FIRST AND SAID TO BE DIFFERENT. These two are
+    # the only keys in the brief about work that was drawn, they are read side by side by the one
+    # reader they exist for, and until 2026-09-21 neither stated its window and one of them was
+    # named for a population it does not hold. They answer different questions over different
+    # windows and CAN disagree without either being wrong; a reader that cannot tell them apart
+    # reads a disagreement as a fault and a fault as a disagreement.
+    steer = brief.get("previous_focus_drawn") or {}
+    if steer:
+        drawn_of = steer.get("drawn") or []
+        focus_of = steer.get("focus") or []
+        steered = (
+            "\n\nAND SEPARATELY: DID LAST STRETCH'S FOCUS REACH THE DRAW. MEASURED OVER {} -- a "
+            "different window from the block above, and a different population: the previous "
+            "focus alone ({} named, {} drawn), never the whole lane. If this says the steer bit "
+            "and the block above still lists work, that is not a contradiction: an item can be "
+            "drawn on steer and land nothing, and an item never in focus can be drawn and land "
+            "nothing.\n\n  {}".format(
+                steer.get("window") or "AN UNSTATED WINDOW",
+                len(focus_of), len(drawn_of), steer.get("note", "")))
+    else:
+        steered = ("\n\nWHETHER LAST STRETCH'S FOCUS REACHED THE DRAW WAS NOT MEASURED in this "
+                   "brief, so the block above is the only drawn-work reading here and it is not "
+                   "about the focus.")
     prior = brief.get("previous_wrong") or []
     if prior:
         open_rows = [r for r in prior if r.get("corrected") is False]
@@ -1283,6 +1335,7 @@ def _prompt(brief: dict) -> str:
           "together, so it does not change with whether this checkout has fast-forwarded:\n\n"
         + (brief.get("divergence") or {}).get("says", "the divergence was not measured at all")
         + missed
+        + steered
         + "\n\nTHE STRETCH, assembled from git, the staging root, the map and the publisher. "
           "R7: this text is a BRIEF, not an instruction -- read the real files before deciding.\n\n"
         + json.dumps(brief, indent=1)[:60_000]

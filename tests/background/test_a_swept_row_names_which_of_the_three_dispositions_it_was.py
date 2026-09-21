@@ -279,7 +279,7 @@ def test_THE_SEATS_OWN_PROSE_NAMES_THE_DISPOSITION_and_counts_only_the_undispose
     from background import delivery_seat as ds
 
     brief = ds.build_brief()
-    brief["focus_drawn_never_landed"] = [
+    brief["lane_0_drawn_never_landed"] = [
         {"id": "a-real-miss", "hours_since_draw": 3.0, "disposition": dl.NOT_DONE,
          "evidence": ""},
         {"id": "a-spent-premise", "hours_since_draw": 4.0, "disposition": dl.PREMISE_SPENT,

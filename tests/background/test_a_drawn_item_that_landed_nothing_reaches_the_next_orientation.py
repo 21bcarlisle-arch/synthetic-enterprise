@@ -170,12 +170,12 @@ def test_A_MISSED_LANDING_IS_MATERIAL_and_the_reason_names_the_item():
         "substantive_count": 0, "shape": {}, "divergence": {},
         "levels_recorded": {}, "levels_moved": {}, "director_inputs": [],
         "findings": {"blocking": []}, "live_direction_age_hours": 1.0,
-        "focus_drawn_never_landed": [],
+        "lane_0_drawn_never_landed": [],
     }
     material, why = ds.is_material(quiet)
     assert material is False, why
 
-    missed = dict(quiet, focus_drawn_never_landed=[
+    missed = dict(quiet, lane_0_drawn_never_landed=[
         {"id": "the-lane-0-chain-counter-reads-1-across-four-consecutive-continuation-draws",
          "drawn_at": CHAIN_COUNTER_DRAWN_AT, "hours_since_draw": 1.8}])
     material, why = ds.is_material(missed)
@@ -188,7 +188,7 @@ def test_IT_SURVIVES_THE_PROMPT_TRUNCATION_because_the_json_is_capped_at_60k():
     stretch deletes, which is why three other inputs already sit above it."""
     rows = [{"id": "drawn-and-never-landed-{}".format(i), "drawn_at": 0.0,
              "hours_since_draw": 5.0} for i in range(2)]
-    brief = {"focus_drawn_never_landed": rows, "previous_wrong": [],
+    brief = {"lane_0_drawn_never_landed": rows, "previous_wrong": [],
              "divergence": {"says": "measured"}, "shape": {"rendered": "x", "available": True},
              # big enough that anything below the dump is cut
              "commits": [{"subject": "x" * 200} for _ in range(500)]}
@@ -197,14 +197,14 @@ def test_IT_SURVIVES_THE_PROMPT_TRUNCATION_because_the_json_is_capped_at_60k():
     assert "drawn-and-never-landed-0" in head, "the ids must be ABOVE the truncated json"
     assert "git status" in head, "the seat must be told the work may already be on disk"
 
-    empty = ds._prompt(dict(brief, focus_drawn_never_landed=[]))
+    empty = ds._prompt(dict(brief, lane_0_drawn_never_landed=[]))
     assert "NO DRAWN LANE 0 ITEM" in empty, "silence must be stated, not inferred from an absence"
 
 
 def test_THE_BRIEF_CARRIES_IT_and_early_enough_that_the_cap_cannot_reach_it():
     """Read from the real store, so a key wired to nothing cannot pass."""
     brief = ds.build_brief(datetime.now(timezone.utc))
-    assert "focus_drawn_never_landed" in brief
-    assert isinstance(brief["focus_drawn_never_landed"], list)
+    assert "lane_0_drawn_never_landed" in brief
+    assert isinstance(brief["lane_0_drawn_never_landed"], list)
     keys = list(brief)
-    assert keys.index("focus_drawn_never_landed") < keys.index("commits"), keys
+    assert keys.index("lane_0_drawn_never_landed") < keys.index("commits"), keys
