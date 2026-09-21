@@ -39,6 +39,39 @@ The 29 merges are the last row. Each had `p1` = the stale local HEAD, `p2` = the
 and a tree byte-identical to `p2` -- a commit that changed nothing about the repository's content
 and existed only to move a ref.
 
+## THE SECOND SHAPE: A COMMIT WHOSE ONLY CONTENT IS THE PROOF IT IS ALIVE
+
+The tree rule above is necessary and it is not sufficient, and the gap was measured on this very
+tree on 2026-09-19: over the last 60 commits, TWELVE were `chore(liveness): publish heartbeat while
+sim output unchanged`, every one of them read as WORK, and `shape_is_wrong` was False. The
+instrument whose whole job is to notice an empty stretch reported a clean one while a fifth of it
+was a timestamp moving.
+
+It slipped all three existing legs at once, which is why it is worth naming rather than patching:
+
+  * the TREE rule passes it -- a heartbeat really does change bytes, so the tree really does differ
+    from the parent's. Structural, correct, and blind here.
+  * REPETITION never fires, because the subject embeds the publishing commit's hash
+    (`... (git=f8a54c985) ...`). Twelve heartbeats carry twelve DISTINCT subjects, so the leg that
+    caught the 29 merges by their identical titles cannot see these at all.
+  * METRONOME rides on REPETITION's runs, so it never gets asked.
+
+    A commit carries work IFF its tree differs from every parent's AND its whole diff, against
+    every parent, is NOT confined to the declared liveness surface.
+
+KEYED TO THE PROPERTY, NOT TO TODAY'S TWO FILENAMES. The surface is read from
+`process_run_complete.LIVENESS_SURFACE_FILES` -- the publisher's OWN declaration of what it commits
+-- so the day a third liveness file is added it is added THERE, because the producer cannot publish
+it otherwise, and this reader picks it up without being touched. A private copy of the pair here
+would be a second hand-typed answer that goes stale silently, which is the defect this project has
+paid for most often. If that declaration cannot be read, the stretch is NOT cleared: `findings()`
+says so in the UNREADABLE class rather than quietly falling back to the flattering answer.
+
+WHAT THIS DELIBERATELY DOES NOT CLAIM: that a heartbeat commit is a fault. It is not -- it exists
+on purpose, to bound published-heartbeat staleness when the sim output is unchanged
+(`_refresh_published_liveness_on_skip`). What is a fault is COUNTING it as work, because that is
+what lets a stretch of pure heartbeat inflate every productivity surface the seat reads.
+
 ## WHAT IT CLAIMS AND WHAT IT DOES NOT
 
 It claims that a stretch of commits carrying no work is a FINDING ABOUT THE MACHINE. It does not
@@ -75,6 +108,96 @@ REPETITION = "REPETITION"
 NO_WORK = "NO_WORK"
 METRONOME = "METRONOME"
 UNREADABLE = "UNREADABLE"
+LIVENESS_ONLY = "LIVENESS_ONLY"
+
+#: Why a commit that changed nothing worth orienting on changed nothing. Kept on the row because
+#: NO_WORK's sentence asserts a MECHANISM ("its tree is identical to a parent's"), and that
+#: sentence is FALSE of a liveness-only commit -- whose tree does differ. A finding that explains
+#: itself wrongly is how the reader learns to stop believing the finding.
+TREE_EQUALS_PARENT = "tree_equals_parent"
+LIVENESS_SURFACE_ONLY = "liveness_surface_only"
+
+
+def _liveness_surface() -> frozenset[str] | None:
+    """The publisher's OWN declaration of the files it commits as pure liveness, or None.
+
+    Read from `process_run_complete` rather than copied, so that a third liveness file -- which
+    that module must declare in order to publish it at all -- is picked up here for free. None
+    means "could not read the declaration", and the callers surface that as an UNREADABLE finding
+    instead of silently reverting to "nothing is liveness", which would read as a clean stretch.
+    """
+    try:
+        from background.process_run_complete import LIVENESS_SURFACE_FILES
+    except Exception:  # noqa: BLE001 - a reader must not die of a producer's import
+        return None
+    try:
+        surface = frozenset(str(p) for p in LIVENESS_SURFACE_FILES)
+    except TypeError:
+        return None
+    return surface or None
+
+
+def _changed_paths(project: Path, rows: list[dict]) -> dict[str, set[str] | None]:
+    """`sha -> the paths this commit changed against EVERY parent`, or None where unknowable.
+
+    Single-parent commits are answered in ONE batched `diff-tree --stdin` pass. Merges are asked
+    per parent, because `diff-tree` prints a merge's sha with NO PATHS UNDER IT by default -- and
+    reading that silence as "changed nothing" would make every merge in the tree liveness-only,
+    turning this leg into the fail-open it exists to close. Merges are a handful per stretch, so
+    the extra calls are bounded; an unreadable one returns None and is never called liveness.
+    """
+    out: dict[str, set[str] | None] = {}
+    simple = [r["sha"] for r in rows if len(r["parents"]) == 1]
+    if simple:
+        try:
+            proc = subprocess.run(["git", "diff-tree", "--stdin", "-r", "--name-only"],
+                                  cwd=str(project), input="\n".join(simple) + "\n",
+                                  capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            proc = None
+        if proc is None or proc.returncode != 0:
+            out.update({s: None for s in simple})
+        else:
+            seen: dict[str, set[str]] = {}
+            current: str | None = None
+            for line in (proc.stdout or "").splitlines():
+                if line in seen or (len(line) == 40 and all(c in "0123456789abcdef" for c in line)):
+                    current = line
+                    seen.setdefault(current, set())
+                elif current is not None:
+                    seen[current].add(line)
+            # A sha git declined to answer for is UNKNOWN, never an empty change set.
+            out.update({s: seen.get(s) if s in seen else None for s in simple})
+
+    for row in rows:
+        if len(row["parents"]) <= 1:
+            continue
+        union: set[str] | None = set()
+        for parent in row["parents"]:
+            try:
+                proc = _git(project, "diff-tree", "-r", "--name-only", "--no-commit-id",
+                            parent, row["sha"])
+            except (OSError, subprocess.SubprocessError):
+                union = None
+                break
+            if proc.returncode != 0:
+                union = None
+                break
+            union.update(p for p in (proc.stdout or "").splitlines() if p)
+        out[row["sha"]] = union
+    return out
+
+
+def _is_liveness_only(paths: set[str] | None, surface: frozenset[str] | None) -> bool:
+    """True only when this commit's whole diff sits inside the declared liveness surface.
+
+    An EMPTY path set is deliberately not liveness-only: an empty diff is the tree rule's business
+    and already reads as no-work there, and treating "I saw no paths" as "only liveness paths"
+    is precisely the merge-shaped fail-open `_changed_paths` guards against.
+    """
+    if not surface or not paths:
+        return False
+    return paths <= surface
 
 
 def _git(project: Path, *args: str, timeout: int = 60) -> subprocess.CompletedProcess:
@@ -145,9 +268,18 @@ def read_commits(project: Path | None = None, *, since_hours: float | None = Non
 
     wanted = {r["sha"] for r in rows} | {p for r in rows for p in r["parents"]}
     trees = _trees(project, sorted(wanted))
+    surface = _liveness_surface()
+    changed = _changed_paths(project, rows) if surface else {}
     for row in rows:
         row["tree"] = trees.get(row["sha"])
         row["carries_work"] = _carries_work(row, trees)
+        row["liveness_surface_known"] = surface is not None
+        row["empty_because"] = TREE_EQUALS_PARENT if row["carries_work"] is False else None
+        # The liveness leg only ever takes an answer AWAY from "work"; it can never promote a
+        # commit the tree rule refused, and it never overrides an honest None.
+        if row["carries_work"] is True and _is_liveness_only(changed.get(row["sha"]), surface):
+            row["carries_work"] = False
+            row["empty_because"] = LIVENESS_SURFACE_ONLY
     return rows
 
 
@@ -242,12 +374,56 @@ def findings(rows: list[dict]) -> list[dict]:
     for run in _runs(rows, lambda r: r["carries_work"] is False):
         if run[0]["carries_work"] is not False or len(run) < NO_WORK_RUN:
             continue
+        # The sentence must fit the run it is about: a liveness-only commit's tree does NOT equal
+        # its parent's, so the mechanism clause is only stated where it is actually true.
+        reasons = {r.get("empty_because") for r in run}
+        if reasons == {TREE_EQUALS_PARENT}:
+            why = ("each tree is identical to one of its own parents, so the repository's content "
+                   "is exactly what it was {} commits ago".format(len(run)))
+        elif reasons == {LIVENESS_SURFACE_ONLY}:
+            why = "every one of them changed only the liveness surface -- a timestamp moving"
+        else:
+            why = ("each either repeats a parent's tree exactly or moves only the liveness "
+                   "surface")
         out.append({
             "kind": NO_WORK, "commits": [r["short"] for r in run], "count": len(run),
-            "detail": "{} consecutive commits changed NOTHING -- each tree is identical to one of "
-                      "its own parents, so the repository's content is exactly what it was {} "
-                      "commits ago".format(len(run), len(run)),
+            "detail": "{} consecutive commits carried no work -- {}".format(len(run), why),
             "subject": run[0]["subject"]})
+
+    for run in _runs(rows, lambda r: r.get("empty_because") == LIVENESS_SURFACE_ONLY):
+        if run[0].get("empty_because") != LIVENESS_SURFACE_ONLY or len(run) < NO_WORK_RUN:
+            continue
+        out.append({
+            "kind": LIVENESS_ONLY, "commits": [r["short"] for r in run], "count": len(run),
+            "detail": "{} consecutive commits published ONLY the liveness surface: the machine "
+                      "proved it was alive {} times and produced nothing else. Their subjects "
+                      "differ (each names its own publishing hash), so no repetition leg sees "
+                      "them".format(len(run), len(run)),
+            "subject": run[0]["subject"]})
+
+    # Scattered heartbeats are the COMMON shape -- measured 12 in 60 on this tree with a longest
+    # run of 2 -- so the run leg above would not have fired on the live case it was written for.
+    # The count is what carries that one, and it is stated rather than left to the reader.
+    scattered = [r["short"] for r in rows if r.get("empty_because") == LIVENESS_SURFACE_ONLY]
+    if scattered and not any(f["kind"] == LIVENESS_ONLY for f in out):
+        out.append({
+            "kind": LIVENESS_ONLY, "commits": scattered, "count": len(scattered),
+            "detail": "{} of {} commits in this stretch changed only the liveness surface. They "
+                      "are not consecutive, so no run leg names them, and each carries a distinct "
+                      "subject -- they inflate any count of commits that is read as "
+                      "productivity".format(len(scattered), len(rows)),
+            "subject": ""})
+
+    # Only rows that actually CARRY the key are making a claim about the surface. Synthetic rows
+    # from a caller testing the shape legs assert nothing about it and must not be answered for.
+    declares = [r for r in rows if "liveness_surface_known" in r]
+    if declares and not any(r["liveness_surface_known"] for r in declares):
+        out.append({
+            "kind": UNREADABLE, "commits": [r["short"] for r in rows][:12], "count": len(rows),
+            "detail": "the liveness surface declaration could not be read, so commits that change "
+                      "only a heartbeat were NOT separated from work and this stretch is not "
+                      "cleared",
+            "subject": ""})
 
     unknown = [r["short"] for r in rows if r["carries_work"] is None]
     if unknown:
@@ -275,6 +451,7 @@ def narrative(project: Path | None = None, *, since_hours: float | None = None,
         "commits": rows,
         "count": len(rows),
         "carrying_work": len(worked),
+        "liveness_only": sum(1 for r in rows if r.get("empty_because") == LIVENESS_SURFACE_ONLY),
         "quiet": not rows,
         "findings": found,
         "shape_is_wrong": bool([f for f in found if f["kind"] != UNREADABLE]),
@@ -301,9 +478,12 @@ def render(state: dict, *, width: int = 96) -> str:
                                           else subject[:room - 1] + "…"))
     if state["commits"]:
         lines.append("")
-        lines.append("{} commit(s), {} carrying work ({} changed nothing at all)".format(
+        tail = ""
+        if state.get("liveness_only"):
+            tail = ", {} of those only a heartbeat".format(state["liveness_only"])
+        lines.append("{} commit(s), {} carrying work ({} changed nothing at all{})".format(
             state["count"], state["carrying_work"],
-            sum(1 for r in state["commits"] if r["carries_work"] is False)))
+            sum(1 for r in state["commits"] if r["carries_work"] is False), tail))
     for finding in state["findings"]:
         lines.append("")
         lines.append("[{}] {}".format(finding["kind"], finding["detail"]))
