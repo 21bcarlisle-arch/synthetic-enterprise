@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T08:36:57.021485Z",
+  "generated_at": "2026-09-21T10:07:05.667001Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "b37bb5c4054ac7e24b76d82d54027c119fadc77f",
+    "publishing_tree_commit": "7bec11b85585f2298c3abc14fa0a32d53e48b357",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from b37bb5c40 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 7bec11b85 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1029,7 +1029,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "b37bb5c4054ac7e24b76d82d54027c119fadc77f",
+      "publishing_tree_commit": "7bec11b85585f2298c3abc14fa0a32d53e48b357",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1041,7 +1041,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from b37bb5c40 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 7bec11b85 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1105,11 +1105,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 158278.48,
       "run_identity": {
-        "dashboard_run_id": "run_output_013955d49_20260920T163131Z.json",
-        "dashboard_commit": "013955d49",
+        "dashboard_run_id": "run_output_b37bb5c40_20260921T085840Z.json",
+        "dashboard_commit": "b37bb5c40",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_013955d49_20260920T163131Z.json",
-        "last_verified_commit": "013955d49",
+        "last_verified_run_id": "run_output_b37bb5c40_20260921T085840Z.json",
+        "last_verified_commit": "b37bb5c40",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1170,9 +1170,16 @@
     "share_undefined_reason": null,
     "level_gbp_per_mwh": 41.0,
     "control_gbp_per_mwh": 2.0,
-    "no_spread_on_this_clock": "No seed spread has ever been measured on this superseded clock, so the figure above is a SIZE and not a direction: nothing here says the choosing was worth more or less than nothing. The bounded reading is the realised one, in the headline.",
+    "no_spread_on_this_clock": "No seed spread has ever been measured on this superseded clock, so the figure above is a SIZE and not a direction: nothing here says the choosing was worth more or less than nothing. Nor is there a bounded realised reading of the same contrast to send you to: the seed family on disk is WITHHELD from it, for the reason stated with the headline, so NO clock on this page states a direction for the choosing.",
     "and_subtracting_the_arms_does_not_restore_it": "Nor does subtracting one arm's advantage from the other restore one. Those two figures carry signs and their difference IS the size stated here, so the arithmetic is open to any reader who does it -- but both are single draws on this same unbounded clock, and the sign of a difference between two ungraded draws is a property of the draw and not of the choosing.",
-    "superseded_note": "This is the clock the run superseded inside itself: the company's flat-rate bad-debt assumption, frozen at the end of the settlement loop, before the arrears model wrote back what customers actually failed to pay. It is shown because deleting it would leave a reader unable to tell how much of the headline moved when the clock was corrected -- and because it is the more flattering of the two, which is the reason to publish it beside the other rather than instead of it."
+    "superseded_note": "This is the clock the run superseded inside itself: the company's flat-rate bad-debt assumption, frozen at the end of the settlement loop, before the arrears model wrote back what customers actually failed to pay. It is shown because deleting it would leave a reader unable to tell how much of the headline moved when the clock was corrected -- and because it is the more flattering of the two, which is the reason to publish it beside the other rather than instead of it.",
+    "population": {
+      "run_generated_at": "2026-09-18T05:43:40Z",
+      "producing_commit": "b329e702b78496afc9ba96bb159322d884064955",
+      "clock": "settled-provisioned",
+      "priced_decisions": 104,
+      "renewals_offered": 2824
+    }
   },
   "error_bar": {
     "available": true,
@@ -4168,7 +4175,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from -- the error bar below prices how many the family on disk would need. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "b37bb5c4054ac7e24b76d82d54027c119fadc77f",
+    "commit": "7bec11b85585f2298c3abc14fa0a32d53e48b357",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

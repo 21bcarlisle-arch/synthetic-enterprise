@@ -1172,8 +1172,44 @@ def _split_on_the_realised_clock(three_arm: dict) -> dict:
 _PROVISIONED_NET_KEY = "provisioned_net_gbp"
 
 
-def _provisioned(three_arm: dict) -> dict:
+def _where_the_bounded_reading_is(spreads: dict | None) -> str:
+    """Where a reader is sent for a BOUND on this contrast — read off the bounds block's own
+    state rather than typed beside it.
+
+    IT WAS A LITERAL AND THE LITERAL WENT FALSE (2026-09-21). The closing clause of
+    `no_spread_on_this_clock` read *"The bounded reading is the realised one, in the headline"*.
+    That was true on the day it was written. It is not true now: `_seed_spreads` withholds the
+    family from the realised selection figure (the floor was drawn over a different book from the
+    run this page publishes), so the headline states the SAME refusal this panel does — and the
+    sentence was sending a reader from one unbounded figure to another under the word "bounded".
+
+    A POINTER AT ANOTHER READING'S VERDICT *IS* THAT VERDICT, so it is read from the same object
+    the headline reads it from. Deriving it a second way here would be one rule with two
+    implementations, which is this repository's named defect class; typing it is what already
+    rotted. The three branches are the three states `_cannot_resolve` distinguishes one panel
+    along, in the same order and for the same reasons — a family withheld, a family never
+    measured, and a family in hand — because a reader sent somewhere deserves to know which.
+    """
+    if not (spreads or {}).get("available", True):
+        return ("Nor is there a bounded realised reading of the same contrast to send you to: "
+                "the seed family on disk is WITHHELD from it, for the reason stated with the "
+                "headline, so NO clock on this page states a direction for the choosing.")
+    if _f((_spread_for(spreads, "selection_gbp") or {}).get("stdev_gbp")) is None:
+        return ("Nor is there a bounded realised reading of the same contrast to send you to: "
+                "no seed family has been measured for it either, so NO clock on this page "
+                "states a direction for the choosing.")
+    return ("The realised reading of the same contrast IS bounded — it is in the headline, with "
+            "the seed family behind it — and whether that family earns it a direction is stated "
+            "there, with the figure, and not here.")
+
+
+def _provisioned(three_arm: dict, spreads: dict | None) -> dict:
     """The same three arms, same run, on the clock the run superseded inside itself.
+
+    `spreads` is REQUIRED and has no default: the closing clause of `no_spread_on_this_clock`
+    points at the realised reading's bound, and a call site that did not have to answer for that
+    is how the clause came to describe a bound nobody re-checked. See
+    `_where_the_bounded_reading_is`.
 
     WHY THIS IS BUILT FROM THE ARM BLOCKS AND NOT FROM `level_vs_selection` (2026-08-28).
     It used to read the split and stamp `settled-provisioned` on it. That was true of the
@@ -1252,10 +1288,13 @@ def _provisioned(three_arm: dict) -> dict:
         # could bound a provisioned contrast. Deriving it would be a branch nothing can reach --
         # a constant verdict wearing a computation's clothes (R15). What makes this conditional is
         # a floor run on the superseded clock; until one exists, the honest form is to say so.
+        #
+        # THE CLOSING CLAUSE IS NOT A CONSTANT, and it is the half of this field that rotted.
+        # See `_where_the_bounded_reading_is`.
         "no_spread_on_this_clock": (
             "No seed spread has ever been measured on this superseded clock, so the figure above "
             "is a SIZE and not a direction: nothing here says the choosing was worth more or less "
-            "than nothing. The bounded reading is the realised one, in the headline."),
+            "than nothing. " + _where_the_bounded_reading_is(spreads)),
         # AND THE ROUTE ROUND IT, NAMED (2026-09-21). The sentence above was true and the panel
         # printed a SIGNED figure under it anyway, so a reader met "−£1,904" and a footnote saying
         # not to read the minus. That is the shape this page withdraws everywhere else, live one
@@ -11917,7 +11956,37 @@ def build(three_arm: dict | None, floor: dict | None,
 
     provenance = _producing_commit(three_arm)
     realised = _realised(three_arm)
-    provisioned = _provisioned(three_arm)
+    # THE BOUND EVERY DIRECTIONAL CLAUSE OF THE HEADLINE IS GATED ON. Published in the same
+    # payload as the sentence it gates so a reader can check the gate rather than take it, and so
+    # the surface can never render a direction whose bound is not on the page with it.
+    #
+    # RESOLVED HERE, ABOVE THE SUPERSEDED PANEL, since 2026-09-21: that panel's refusal ends by
+    # telling a reader where the BOUNDED reading is, and it may only say that if this object says
+    # there is one. It used to be a sentence typed beside a figure, and it went false.
+    spreads = _seed_spreads(floor, three_arm)
+    provisioned = _provisioned(three_arm, spreads)
+    # THE SUPERSEDED PANEL'S OWN POPULATION, ON THE BLOCK ITSELF (2026-09-21). The door renders a
+    # population line above every figure it calls "the choosing", and this panel's is the SAME RUN
+    # as the headline's read on another clock -- so the page's first draft read the top-level run
+    # stamp twice. That made `producing_commit.commit` a field with TWO homes, and
+    # `site/test_a_producers_here_relative_pointer_has_one_home.py` refuses this producer's
+    # thirteen untied "figure above"/"figure below" literals the moment one of its fields is
+    # multi-homed -- correctly: those pointers become unjudgeable AND dangerous at once.
+    #
+    # So the population is PUBLISHED per block rather than assembled by the page out of shared
+    # fields. That is the better shape anyway: a page that composes a population out of top-level
+    # fields is a second producer of it, sitting where no control over this feed can see it. The
+    # values are read from the same objects the headline reads -- `provenance` and `decisions`,
+    # both built once here -- so this is one implementation with two renderings, not two.
+    decisions = _decisions(three_arm, provenance)
+    if provisioned.get("available"):
+        provisioned["population"] = {
+            "run_generated_at": three_arm.get("generated_at"),
+            "producing_commit": provenance.get("commit"),
+            "clock": provisioned["clock"],
+            "priced_decisions": decisions.get("value_arm_priced"),
+            "renewals_offered": decisions.get("renewals_the_world_offered"),
+        }
     if not realised["available"] and not provisioned["available"]:
         return dict(base, available=False, reason=(
             "The A/B artefact carries neither a realised bridge nor a level-vs-selection split, "
@@ -11938,10 +12007,6 @@ def build(three_arm: dict | None, floor: dict | None,
     split = realised.get("split") or {}
     point = split.get("selection_gbp") if split.get("available") else None
     point_clock = split.get("clock") if split.get("available") else None
-    # THE BOUND EVERY DIRECTIONAL CLAUSE OF THE HEADLINE IS GATED ON. Published in the same
-    # payload as the sentence it gates so a reader can check the gate rather than take it, and so
-    # the surface can never render a direction whose bound is not on the page with it.
-    spreads = _seed_spreads(floor, three_arm)
     # WHETHER THE WORLD THESE FIGURES WERE MEASURED IN IS STILL THE WORLD. Resolved before the
     # headline is composed, because it is a prefix on that sentence and not a footnote under it --
     # a reader who meets the advantage first has already formed the impression. See
@@ -12072,7 +12137,7 @@ def build(three_arm: dict | None, floor: dict | None,
         # keyed by the same arm keys, so the surface can render one row per arm with both
         # columns on it -- see `_household`.
         household=_household(three_arm),
-        decisions=_decisions(three_arm, provenance),
+        decisions=decisions,
         headline=(
             # THE WORLD COMES FIRST, AHEAD OF EVERY OTHER CLAUSE. Not for emphasis -- because a
             # reader who meets "GBP 12,071 better" and learns two paragraphs later that it was

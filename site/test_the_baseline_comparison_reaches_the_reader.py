@@ -504,6 +504,137 @@ def test_MUTATION_a_panel_that_keeps_the_figure_and_drops_the_clause_is_caught(l
         "satisfied by a page that always says that and prove nothing")
 
 
+#: The three panels that render a figure this page calls "the choosing", and where each one's
+#: POPULATION is read from in the feed. One quantity name, three populations: two different books
+#: (214 priced renewals of 2,035 offered on the run of 2026-09-08; 104 of 2,824 on the run of
+#: 2026-09-18) and, on the later book, two clocks. Keyed to the feed's own fields rather than to
+#: today's figures, so this table does not have to be edited when a run lands.
+def _population_specs(feed: dict) -> list[tuple]:
+    cw = feed.get("current_world") or {}
+    dec = feed.get("decisions") or {}
+    run = feed.get("run_generated_at")
+    commit = (feed.get("producing_commit") or {}).get("commit")
+    split = ((feed.get("realised") or {}).get("split") or {})
+    pop = (feed.get("provisioned") or {}).get("population") or {}
+    assert pop.get("run_generated_at") == run and pop.get("producing_commit") == commit, (
+        "the superseded panel's published population names a different run from the top-level "
+        "stamp, so the two panels are not the same run read on two clocks and this table is "
+        "comparing figures nothing says are comparable")
+    return [
+        ("arms-legs-first", _signed(cw.get("selection_gbp")),
+         cw.get("generated_at"), cw.get("producing_commit"), cw.get("clock"),
+         cw.get("priced_decisions"), cw.get("renewals_offered")),
+        ("arms-headline", _gbp(split["selection_gbp"]) if split.get("selection_gbp") else None,
+         run, commit, split.get("clock"),
+         dec.get("value_arm_priced"), dec.get("renewals_the_world_offered")),
+        # THE SUPERSEDED PANEL READS ITS OWN PUBLISHED POPULATION, not the top-level stamp: it is
+        # the same run as the headline, and rendering the shared field twice would make this page
+        # a second producer of the population and give `producing_commit.commit` two homes. The
+        # equality of the two runs is asserted below rather than assumed here.
+        ("arms-split", _gbp((feed.get("provisioned") or {}).get("selection_magnitude_gbp")),
+         pop.get("run_generated_at"), pop.get("producing_commit"), pop.get("clock"),
+         pop.get("priced_decisions"), pop.get("renewals_offered")),
+    ]
+
+
+def _signed(value) -> str | None:
+    """The door's `signed()`: a leading + on a positive, and `_gbp`'s U+2212 on a negative."""
+    if value is None:
+        return None
+    n = round(value)
+    return ("−£" if n < 0 else "+£") + "{:,}".format(abs(n))
+
+
+def test_every_rendering_of_a_selection_figure_names_the_population_it_is_over(live):
+    """Three figures, one name, and until 2026-09-21 nothing on the page said they differ.
+
+    THE DEFECT. `#arms-legs-first` renders +£270, `#arms-headline` renders £4,327 and
+    `#arms-split` renders a £1,904 SIZE, and all three are called "the choosing" in bold. They
+    are over TWO DIFFERENT BOOKS -- 214 priced renewals of 2,035 offered against 104 of 2,824 --
+    read on two clocks. A reader met them one under another with nothing between them, and the
+    only reading available to that reader is that one quantity moved. This is the shape CLAUDE.md
+    names as this project's most expensive recurring one (a concept nobody defined, then
+    differenced and published), sitting on the exact number that decides whether the advantage
+    came from inference rather than from charging more.
+
+    WHAT THIS ASSERTS IS THE FEED'S BYTES, NOT A PHRASE THIS FILE WROTE. Every part checked --
+    the run's timestamp, its commit, the clock, the two counts -- is read out of the published
+    feed here and must appear in the panel. A page that authored its own reassurance would pass a
+    phrase check and fails this one.
+
+    AND IT ASSERTS THE ORDER, because "before any of them is called the choosing" is the whole
+    requirement: a population named UNDER the figure is met by a reader who has already formed
+    the impression, which is the argument `#arms-legs-first`'s own lead makes about the sum.
+
+    Fires on: deleting any of the three `whichPopulation(...)` calls; moving one below its
+    figure; feeding one panel another panel's run or counts.
+    """
+    feed = _live_feed()
+    for panel, figure, run, commit, clock, priced, offered in _population_specs(feed):
+        rendered = live[panel]
+        assert figure, "the published feed carries no selection figure for #{}".format(panel)
+        assert figure in rendered, (
+            "#{} does not render the selection figure {} this control is about".format(
+                panel, figure))
+        for part in (run, str(commit)[:9], clock,
+                     "{:,} renewals it priced of the {:,}".format(priced, offered)):
+            assert part and part in rendered, (
+                "#{} states {} and never says which population it is over -- `{}` is in the "
+                "feed and not on the page a reader opens".format(panel, figure, part))
+        assert rendered.index(run) < rendered.index(figure), (
+            "#{} names its population AFTER stating {}, so a reader meets the figure "
+            "first".format(panel, figure))
+
+
+def test_MUTATION_a_population_a_publish_cannot_fill_renders_a_NAMED_absence(live):
+    """The fail-open this class dies of: a population line that quietly shortens.
+
+    A helper that dropped the parts it could not fill would render three words and look complete,
+    which is indistinguishable on the page from a population fully stated -- and that is worse
+    than the defect it replaced, because it carries the authority of a label.
+
+    WHY A FEED AND NOT THE DOOR, and why the third leg exists: same argument as
+    `test_MUTATION_a_panel_that_keeps_the_figure_and_drops_the_clause_is_caught` above.
+    """
+    live_feed = _live_feed()
+
+    # [1] THE FIGURE WITH NOTHING BEHIND IT. Every part of one panel's population removed at once.
+    blinded = copy.deepcopy(live_feed)
+    for key in ("generated_at", "producing_commit", "clock", "priced_decisions",
+                "renewals_offered"):
+        blinded["current_world"].pop(key, None)
+    panel = _render(blinded)["arms-legs-first"]
+    assert _signed(live_feed["current_world"]["selection_gbp"]) in panel, (
+        "the poison changed which FIGURE renders, so whatever the next assertions catch is not "
+        "the missing population")
+    for absence in ("a run this publish cannot date",
+                    "a commit this publish cannot name",
+                    "a clock this publish cannot name",
+                    "a priced book this publish cannot count"):
+        assert absence in panel, (
+            "a publish missing part of the population renders a SHORTER line rather than a named "
+            "absence, so a reader cannot tell a stated population from a thin one: {}".format(
+                absence))
+
+    # [2] THE COUNTS ALONE. A half-filled population is the likelier publish and the likelier
+    # place for the silent shortening, so it is driven separately rather than inferred from [1].
+    half = copy.deepcopy(live_feed)
+    half["provisioned"]["population"].pop("renewals_offered", None)
+    panel = _render(half)["arms-split"]
+    assert "a priced book this publish cannot count" in panel, (
+        "one missing count drops the whole clause instead of naming what is missing")
+    assert live_feed["provisioned"]["population"]["run_generated_at"] in panel, (
+        "the parts that ARE available stopped rendering when one part went missing")
+
+    # [3] REACHABILITY. None of those absences may be on the live page, or [1] and [2] are
+    # satisfied by a helper that always says them.
+    for panel_id in ("arms-legs-first", "arms-headline", "arms-split"):
+        for absence in ("cannot date", "cannot name", "cannot count"):
+            assert absence not in live[panel_id], (
+                "#{} renders the absence branch on the LIVE feed, so the legs above prove "
+                "nothing".format(panel_id))
+
+
 def test_the_price_level_is_quoted_to_the_penny(live):
     """£44.50/MWh against £2.00/MWh is the whole finding. Rounded to '£45 against £2' the page
     would be restating a number the arm did not charge."""
