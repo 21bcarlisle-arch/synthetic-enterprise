@@ -680,3 +680,126 @@ def test_the_net_margin_pattern_does_not_read_a_number_out_of_an_unrelated_word(
         assert m is not None and m.group(1) == expected, (
             f"the net-margin pattern no longer reads the net margin in {fragment!r}"
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# T6 JUDGES THE SURFACE'S LIVE SECTION, NOT ITS APPEND-ONLY HISTORY
+#
+# Giving T6 its first coverage made it fire once on every tick, and it could not do otherwise:
+# `docs/status/LATEST.md` stated £1,521,070 (a dated 2026-07-23 record of the run at
+# `ac0869715`) and £158,278 (the latest run), so whichever one the comparator agreed with, the
+# other stood as a permanent contradiction. The two figures are the SAME quantity at two
+# vintages, not two quantities sharing a name -- so the remedy is the clock, not a rename.
+#
+# The trap on the other side is the one this detector was just repaired for: scoping the
+# surface DOWN is a way to ask nothing, and `[]` from a detector that asked nothing is
+# indistinguishable from `[]` from one that agreed. Measured on the real page before choosing
+# the scope: the live head contains ZERO net-margin claims and BOTH of the page's two sit below
+# the heading. A head-only slice would have been silently total. Hence the second leg.
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def _surface_with_history(head_claim: str, history_claim: str) -> str:
+    """A LATEST.md-shaped surface: live head, history heading, then the run block at the foot
+    BELOW the history -- which is where `process_run_complete` actually appends it."""
+    return (
+        "## CURRENT SYSTEM (declared truth)\nSomething live.\n"
+        "\n## PREVIOUS\n"
+        f"**PRODUCT LANDED (2026-07-23)** — outcome metrics lead (net margin £{history_claim}).\n"
+        "\n---\n"
+        f"\n**Latest simulation results (2016–2025)** — auto-processed (10s / 0 min) // run abc123, 2026-09-19:\n"
+        f"- Net margin: £{head_claim} | Gross: £1\n"
+        "\n<!-- NAIVE_ORGAN_ASKS -->\n"
+    )
+
+
+def test_t6_does_not_judge_a_dated_historical_record_as_a_current_claim():
+    """MUTATION: `_current_claims(...)` -> `state.get("claims_text", "")` in `detect_t6`.
+
+    The record is CORRECT -- £1,521,070 was the net margin at `ac0869715` on 2026-07-17 -- so
+    the trigger it raised named no defect anyone could fix. The only remedy an alarm of that
+    shape leaves is to falsify the historical record, and an alarm nobody can act on is how a
+    detector gets ignored.
+
+    Synthetic, and the figures are the real pair, because the property is "a dated record is
+    not a claim" and not "today's LATEST.md happens to be quiet".
+    """
+    state = {
+        "atoms": [], "runhist": [{"net_margin_gbp": 158_278.48}],
+        "claims_text": _surface_with_history("158,278.48", "1,521,070"),
+    }
+    fires = [f for f in organ.detect_t6(state) if f.observed_value["field"] == "net_margin"]
+    assert fires == [], (
+        "T6 judged a dated 2026-07-23 record of a past run as a claim about the present and "
+        f"fired {[f.observed_value['claimed'] for f in fires]}. It agrees with the live figure."
+    )
+
+
+def test_the_live_run_block_survives_the_history_scoping():
+    """MUTATION: empty `_LIVE_BLOCKS_BELOW_HISTORY`, or return only `text[:cut]`.
+
+    THE FAIL-OPEN LEG, and it is not hypothetical: `process_run_complete` appends the run block
+    at the FOOT of LATEST.md, below ~1,600 lines of history, and the live head carries no £ at
+    all. So a head-only slice drops the only live financial claim on the page and T6 returns the
+    same `[]` it returns when it agrees -- the exact defect the `finditer` repair closed, walked
+    back in through the surface instead of the read.
+
+    Driven by a CONTRADICTION that must still be caught, not by the absence of one: a scope that
+    asks nothing passes any test that only checks for silence.
+    """
+    state = {
+        "atoms": [], "runhist": [{"net_margin_gbp": 42.0}],
+        "claims_text": _surface_with_history("158,278.48", "1,521,070"),
+    }
+    claimed = [f.observed_value["claimed"] for f in organ.detect_t6(state)
+               if f.observed_value["field"] == "net_margin"]
+    assert claimed == [158278], (
+        "the live run block sits BELOW the history heading, so scoping to the head dropped the "
+        f"page's only current net-margin claim: T6 registered {claimed} against a computed £42."
+    )
+
+
+def test_an_unrecognised_surface_is_judged_whole_rather_than_silently_narrowed():
+    """MUTATION: `return text` -> `return ""` (or `text[:0]`) on the no-heading branch.
+
+    A surface without the heading is one this scoping does not understand. It is judged in
+    FULL: over-firing costs one answered question, under-firing costs the catch and says
+    nothing while it does. The organ's own weekend fixture is such a surface.
+    """
+    fixture_line = "Net position: net margin held flat at £1,505,286 across the weekend runs."
+    assert organ._current_claims(fixture_line) == fixture_line
+
+    # Driven by a claim the row can actually READ. The fixture line above is not one -- fourteen
+    # characters sit between "net margin" and the "£", and the row allows eight -- so asserting
+    # T6 fires on it would have been vacuous in the flattering direction. Found by this leg
+    # failing on its first run, and recorded rather than quietly swapped.
+    plain = "Net margin: £1,505,286 across the weekend runs, no history heading anywhere."
+    assert organ._current_claims(plain) == plain
+    claimed = [f.observed_value["claimed"] for f in organ.detect_t6(
+        {"atoms": [], "runhist": [{"net_margin_gbp": 7.0}], "claims_text": plain})]
+    assert claimed == [1505286], (
+        "a surface with no history heading was narrowed away instead of judged whole"
+    )
+
+
+def test_the_live_status_page_still_offers_t6_a_net_margin_claim_to_judge():
+    """MUTATION: rename the run block's marker in `_LIVE_BLOCKS_BELOW_HISTORY`.
+
+    Keyed to the PROPERTY -- the real page still puts a current net-margin claim inside the
+    scoped surface -- and deliberately NOT to the figure or to whether T6 is quiet today. A
+    control pinned to "T6 fires nothing on LATEST.md" would go green the day the page stopped
+    stating a net margin at all, which is the failure, not the fix.
+
+    This is the leg that reds if `process_run_complete` renames the block it writes, or if the
+    block stops being written -- either of which silently empties T6's surface on the one
+    surface it exists to read.
+    """
+    import re as _re
+    page = organ.LATEST_PATH.read_text(encoding="utf-8")
+    scoped = organ._current_claims(page)
+    assert len(scoped) < len(page), "the live page's history was not scoped out at all"
+    pattern = next(p for p, _x, _c, name in organ._t6_rows(
+        {"atoms": [], "runhist": [{"net_margin_gbp": 1.0}]}) if name == "net_margin")
+    assert _re.search(pattern, scoped, _re.IGNORECASE) is not None, (
+        "LATEST.md's live sections state NO net margin T6 can read, so T6 asks nothing about "
+        "the one figure it was wired to check and returns the same [] it returns when it agrees"
+    )

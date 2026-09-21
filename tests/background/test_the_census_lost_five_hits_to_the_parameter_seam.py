@@ -9,8 +9,11 @@ side of that commit, the census went from **34 hits to 29**:
     LOST: run_history.json  .harden_cooldown.json  .ntfy_digest_state.json
           .supervisor_map_exhausted_state.json  retired_paths_served.json
 
-`run_history.json` dropped to ZERO recorded readers while `count_run_history_total` reads it on
-every dashboard build. Nothing anywhere could notice: `census_is_vacuous()` only refuses a
+`run_history.json` dropped to ZERO recorded readers while it was being read on every dashboard
+build -- then by `count_run_history_total`, deleted 2026-09-20 with the `run_history_total` field
+it fed; now by `extract_run_history`, which is what the witness leg below names.
+
+Nothing anywhere could notice: `census_is_vacuous()` only refuses a
 TOTALLY empty census, and `undispositioned()` only checks a hit with no row -- never a row whose
 hit disappeared. A path that stops being a hit needs no disposition and `--check` exits 0.
 
@@ -208,13 +211,22 @@ def test_a_carrier_repaired_through_the_shared_helper_stays_in_the_class(live, k
         "parameter seam has re-opened".format(key))
 
 
-def test_the_published_run_count_has_a_reader_on_record(live):
-    """`count_run_history_total` IS the Project tab's "Sim runs" KPI. After the sweep the census
-    recorded ZERO readers for the file it reads -- keyed to the named function, not to a count,
-    so this stays green if other readers come and go."""
+def test_the_published_run_history_has_a_reader_on_record(live):
+    """After the 2026-09-05 sweep the census recorded ZERO readers for run_history.json while it
+    was being read on every dashboard build. Keyed to a named function, not to a count, so this
+    stays green if other readers come and go.
+
+    THE WITNESS WAS `count_run_history_total` UNTIL 2026-09-20 AND THAT FUNCTION NO LONGER EXISTS.
+    It was deleted with the `run_history_total` field it fed -- a `len()` of a 100-entry ring
+    buffer, published under a name that says "total", read by nothing since its renderer went on
+    2026-08-20. Borrowing a live artefact's state as a witness is why this leg had to move at all;
+    `extract_run_history` is the more durable choice available, because it is the sole surviving
+    reader on the publish path AND its output is separately asserted non-empty by
+    `tests/background/test_the_published_series_and_the_ledger_it_came_from_are_committed_
+    together.py`. If it too is ever deleted, the census subject is gone and this leg SHOULD red."""
     readers = live["state_paths"]["run_history.json"]["readers"]
-    assert any(r.endswith("::count_run_history_total") for r in readers), (
-        "the KPI's own reader is not on record as reading run_history.json")
+    assert any(r.endswith("::extract_run_history") for r in readers), (
+        "the published series' own reader is not on record as reading run_history.json")
 
 
 def test_the_parameter_walk_is_what_puts_them_there(monkeypatch, live):

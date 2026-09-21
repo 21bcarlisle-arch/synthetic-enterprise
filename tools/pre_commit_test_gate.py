@@ -377,6 +377,14 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     "tests/tools/test_brand_compliance.py",  # docs,site|25|0.10
     "tests/tools/test_credit_bureau_adapter.py",  # company|21|1.21
     "tests/tools/test_generate_shadow_html.py",  # site|14|0.09
+    # THE NINETEENTH INSTANCE, 2026-09-20, and it arrived exactly as the line above predicted it
+    # would -- refused at the commit that wrote it by `test_the_strict_census_stays_discharged`,
+    # not found a fortnight later. Its `site` root is a read of the live `site/data/dashboard.json`
+    # (the non-vacuity leg: the other three legs pass fixtures in and would all stay green if the
+    # published payload lost the series entirely); its `tools` root is the AST derivation of what
+    # `generate_shadow_html.build_project` reads against what `generate_insights.append_run_history`
+    # writes. Cost measured here, not predicted: 4 tests, 0.68/0.78/0.70s over three runs.
+    "tests/tools/test_the_shadow_run_history_renderer_reads_keys_the_producer_writes.py",  # site,tools|4|0.72
 ]
 
 CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS
