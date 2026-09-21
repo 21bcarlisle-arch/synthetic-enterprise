@@ -1,313 +1,362 @@
 version: 1
-oriented_at: "2026-09-21T14:23:17.327634+00:00"
+oriented_at: "2026-09-21T17:23:16.136038+00:00"
 thesis_read: >-
-  THE THESIS QUESTION IS NO LONGER BLOCKED BY THE WORLD. IT IS BLOCKED BY AN UNDEFENDED CONSTANT AND
-  A PUBLISH OUTAGE, AND THAT IS A BETTER PLACE THAN LAST STRETCH EVEN THOUGH NO READER SAW ANY OF IT.
-  Focus two was drawn and answered, and the answer is worth having: `c58350e2e` put the two ceilings
-  on one ruler and established that `settled_book_ceiling` had been pricing every customer at 17,520
-  settlement records a year — the half-hourly rate of I&C, a segment suspended from the served book on
-  2026-08-24 — while `run_phase2b` folds each term to daily rows and retains 289.4 per customer-year,
-  a factor of 61. The bound the page had carried since 2026-09-10, the one the observed system already
-  exceeded, was never a bound on this book. Re-ruled, the page now says NO to "can the book that would
-  settle the choosing be built", and names what binds: the smallest leg needs 2.82x this book and
-  `SETTLEMENT_CUSTOMER_YEAR_BUDGET` caps it at 1,200 customer-years. THAT IS WHERE THE READING TURNS.
-  Memory is not the constraint — re-ruled to the records the book actually retains, the RSS ceiling is
-  38,275 customer-years, twelve times what that leg needs. The constant's own note has said since
-  2026-08-29 that "nothing bounds this constant at 1,200 except an interval preference nobody has
-  stated", and the feed's `what_is_not_established` now agrees in its own words: the open question is
-  "why that capacity is where it is". So the published verdict that the advantage from INFERENCE
-  cannot be signed here rests, at the bottom, on a number the code itself declares undefended. That is
-  the knowledge-first failure in the one place it decides whether the thesis is answerable at all, and
-  it is not a world result — I am not letting it be read as one. AND NOTHING REACHED A READER, A
-  SECOND STRETCH RUNNING, WHICH IS MINE. My focus one named the shared tree; the tree went level at
-  `9e2cfc16e` and there were two wedges and I looked at one. `.publish_gate_state.json` reads
-  `episode_clean_publishes: 0` and `episode_failures: 14`, up from 12, last clean publish 42.2 hours
-  ago, wedge standing 40.0. The single blocking test is `test_every_real_census_hit_is_covered`, red at
-  HEAD in 0.09 seconds on `uncovered == {'.delivery_lane_claims.json'}` — a carrier that became a
-  `real` disposition row at `d066d3534` and whose disposition already contains the reasoning the
-  control is asking for. That carrier is the delivery lane's own claims store, so my focus three is
-  what wedged the gate my focus one was pointed at, and nothing on this box could see it because the
-  two live in different files. Meanwhile the site lane refused every commit it graded, on two controls
-  whose whole cause is my own prose: `delivery.json .what_it_decided.focus[3].why` pointed at a
-  neighbouring row by its position instead of its name — a row noun followed by a direction word,
-  which is a registered `_HERE_RELATIVE` match — and that field renders in both
-  `/harness/#delivery-decided` and `/harness/#delivery-next`, so the direction writer
-  wedged the site lane with a here-relative pointer in a field with two homes. The phrase is gone from
-  this file and it clears when the feed regenerates, which focus one names. ON THE GRADED ROWS: the
-  binder goes to corrected. `f382f8ace` put `_is_liveness_only` inside `record_landing`, read from the
-  publisher's own declaration, judging the whole commit rather than an intersection, refusing on an
-  unreadable declaration, with four writer mutations each firing on its own leg — so a bind whose
-  commit is a pure republish now writes nothing and names the class and the escape. The `"HEAD"`
-  defaults remain; my stated finish condition demanded their removal and that condition was wrong, for
-  the reason the commit records — HEAD is the only spelling the executor gives an isolated turn, so
-  refusing it would silence the ledger for every caller to close a hole only the heartbeat class walks
-  through. The shape instrument stays open with sharper evidence than last stretch: `f56852e25`'s tree
-  (`bb737f158`) differs from both parents' (`8b58f2e8e`, `e38e670da`) so `_carries_work` called it
-  work, while the same brief's `commits[]` field computed its combined diff as empty and marked it
-  `substantive: false` — one document, two instruments, one commit, opposite answers. And my own
-  remedy half worked: four items, three drawn, the fourth undrawn a third time. The drawable budget is
-  three and it is a mechanism, not a mood — `FOCUS_RANK_MULTIPLIERS` pays 4.0, 3.0 and 2.0 to the
-  first three ranks and collapses every rank after to 1.5, so a fourth item is written at the tail
-  multiplier. This file writes three.
+  THE NUMBER THAT REFUSES THE THESIS WAS NEVER A MEASUREMENT, AND THE ANSWER IT WAS WAITING FOR HAS
+  BEEN IN THE TREE SINCE 2026-09-04. That is the stretch, and it is the best news this seat has had
+  in a month. All three focus items were drawn; two landed; the third is a measurement running on
+  the box right now. `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200` is what publishes NO to "can the book
+  that would settle the choosing be built", and its own note said nothing bounded it "except an
+  interval preference nobody has stated". That sentence has been FALSE for seventeen days:
+  `background/publish_freshness.py` carries the director verbatim from 2026-09-04 -- the site
+  publishes once a week -- and declares itself the single source of truth for the cadence at
+  `PUBLISH_CADENCE_SECONDS = 604800`. Nothing carried the answer back to the question. Worse, the
+  probe that prices the ceiling reads a DIFFERENT cadence: `settlement_ceiling_probe
+  .publisher_context()` takes it from `docs/observability/publish_gate_duration.jsonl`, whose last
+  twenty rows all carry 5,400 -- stamped by `suite_duration_watch.PUBLISH_CADENCE_SECONDS`, whose
+  comment still says it "is not a budget anyone chose; it is a measurement of how often runs
+  actually arrive". That is the circular ruler the ceiling document removed by name in August,
+  reached again by a second route nobody re-asked, and `recommend()` has a `publish_interval_s`
+  parameter built for exactly this that no caller has ever passed. Two live publish cadences in one
+  tree, 112x apart. One decision, three implementations, no edge between them -- the VAT shape, and
+  the director is right that this seat is the only place it can be seen. AND MY OWN PREDICTION IS
+  REFUTED, WHICH IS WHY IT WAS FILED. I predicted about 0.67s per marginal customer-year on a 215s
+  fixed component, so roughly 2,335s to settle the smallest leg's 3,163.9 customer-years. The two
+  points landed so far say 1,197.0 cy in 1,494.1s and 1,995.2 cy in 2,660.9s: a marginal rate of
+  1.462 s/cy on a NEGATIVE intercept, so the curve is convex, not affine, and the smallest leg
+  extrapolates to about 4,369s -- 1.87x my number. My CONCLUSION survives and my arithmetic did
+  not, and it survives only because the ruler moved underneath it: 4,369s is 0.72% of a weekly
+  interval and 81% of the 5,400s one. Under the ruler I was reasoning against when I filed the
+  prediction, that measured slope would have made time very nearly the binding leg. I got the right
+  answer for the wrong reason and I am recording that rather than banking it -- and the two
+  remaining points are still running, so nothing here is established until the artefact lands. ON
+  PUBLISHING, WHICH IS MINE AND IS NOW THREE STRETCHES DARK. The wedge was not a defect nobody had
+  solved; it was a commit nobody had made. The whole fix for
+  `test_every_real_census_hit_is_covered` sat uncommitted in the shared tree from 16:07, written by
+  an earlier invocation, while the gate stayed red at HEAD -- the third instance of that class in
+  three days. It landed at `12f4073ed`, mutation-proven, and I re-ran the suite myself this
+  orientation: 60/60 green. And the site half of the same instruction was work that did not need
+  doing: the offending field had stopped existing on 2026-09-19 when an ordinary feed regeneration
+  took that array from four rows to three and rotated the prose out. I instructed a worker to
+  regenerate a feed that was already correct, in a worktree holding 42 other lanes' dirty `site/`
+  artefacts, and the only reason that cost nothing is that the worker checked and refused. STILL,
+  NO FIGURE HAS REACHED A READER. `episode_clean_publishes` is 0, `episode_failures` 18, 45.4 hours
+  since the last clean publish and 43.2 since the wedge began. The gate state was last written at
+  16:59Z -- fourteen minutes BEFORE the fix landed -- so it describes a tree that no longer exists,
+  and the `process_run_complete` tick on the box has been running 24 minutes against a HEAD it took
+  before the landing. A nineteenth failure from THAT tick is not evidence the fix failed. And both
+  commits are unpushed: HEAD is two ahead of origin, so the repair that unwedges publishing is
+  itself somewhere no reader can see. The method is the enterprise value, and a method whose output
+  has not reached a reader in two days is not yet demonstrated. Two instruments closed cleanly:
+  `ea39d8063` made a merge carry work only where its combined diff is non-empty, measured 47 of 47
+  merges in agreement with an independent census, and 35 of those 47 authored nothing -- and this
+  very brief shows it working, reading 5 of 13 as changing nothing where the old rule would have
+  said 0. That repair found a new defect on the way, which I am listing rather than fixing here:
+  `git log --name-only` prints no filenames for a merge, so the brief's own `substantive` field is
+  false for all 47 -- silence, not agreement -- and it feeds `is_material`, which decides whether
+  this seat orients at all.
 stretch_reviewed:
-  since: "2026-09-21T11:22:53.494814+00:00"
-  commits: 8
-  substantive: 5
+  since: "2026-09-21T14:23:17.327634+00:00"
+  commits: 13
+  substantive: 3
 focus:
-  - id: the-publish-gate-has-been-red-since-saturday-on-one-uncovered-carrier
+  - id: nothing-has-reached-a-reader-for-45-hours-and-the-fix-is-unpushed
     what: >-
-      Clear the two INDEPENDENT reds that stop this tree's figures reaching a reader, then confirm a
-      clean publish. FIRST, the publish gate:
-      `tests/background/test_episode_prior_partition.py::test_every_real_census_hit_is_covered` is red
-      at HEAD in 0.09s with `uncovered == {'.delivery_lane_claims.json'}`. That carrier became a
-      `real` row in `docs/design/self_clearing_alarm_dispositions.json` at `d066d3534` (2026-09-20
-      00:42 +0100) and the gate has been wedged from about that moment. DO NOT RE-DERIVE THE
-      REASONING — the disposition's own `loader` field already did it and concludes "ABSENT AND
-      PRESENT-BUT-UNREADABLE ARE THEREFORE DISTINCT HERE", naming the path: `delivery_lane` binds
-      `claims_mod = background.seat_work_in_hand` and passes `CLAIMS_FILE` as the path argument, every
-      reader reaches it through `claims_mod._load` -> `episode_prior.load_episode_prior`, and the
-      three writers pass through `_preserve_if_unreadable` first. So either add the carrier to
-      `CARRIERS` if its prior fits the generic probe, or cite it in `covered_by_a_sibling` — and that
-      citation is checked one leg harder than file-exists for `deliberately_conflated`, so the sibling
-      must hold a control proving absent is distinguished from unreadable ON THIS STORE'S
-      read-modify-write path, where the bytes at risk are other lanes' live claims and their
-      `claimed_at` clocks. `test_the_census_lost_five_hits_to_the_parameter_seam.py` is the nearest
-      sibling and covers `.seat_work_in_hand.json`, not this path; if it has no leg for this carrier,
-      write one rather than borrowing its citation. SECOND, the site lane:
-      `site/test_a_here_relative_pointer_has_one_home.py::test_no_here_relative_pointer_is_composed_into_more_than_one_region`
-      and
-      `site/test_a_producers_here_relative_pointer_has_one_home.py::test_no_feed_FIELD_that_reaches_two_regions_carries_a_here_relative_sentence`
-      are both red on `site/data/delivery.json .what_it_decided.focus[3].why`, which pointed at a
-      neighbouring row by position rather than by name — a row noun followed by a direction word, which
-      `_HERE_RELATIVE` registers — in a field rendering at both `/harness/#delivery-decided` and
-      `/harness/#delivery-next`. The cause was my prose and it
-      is gone from this record; regenerate the feed with `tools/generate_delivery_page.py` and re-run
-      both controls. THEN re-read `.publish_gate_state.json`. Note it grades a throwaway HEAD
-      checkout, so confirm in a clean extract and not in this worktree.
+      Get a figure in front of a reader, and establish which of three things is stopping it. The
+      named blocking test is ALREADY FIXED -- do not redo it.
+      `tests/background/test_episode_prior_partition.py::test_every_real_census_hit_is_covered`
+      landed at `12f4073ed` and the whole partition suite is 60/60 green; I re-ran it at this
+      orientation. In order. (1) READ `docs/observability/.publish_gate_state.json` AND CHECK ITS
+      MTIME FIRST. At this orientation it was written 2026-09-21T16:59:48Z, fourteen minutes before
+      the fix landed, so its `blocking_tests`, its `episode_failures: 18` and its `red_at_head`
+      describe a tree that no longer exists. A state file older than HEAD is stale evidence, not a
+      live red, and the `process_run_complete` tick that was 24 minutes into a run at that moment
+      took its HEAD before the landing -- so a nineteenth failure attributable to THAT tick is not
+      evidence about this fix. Wait for the first gate state written after `12f4073ed` and grade
+      that one. (2) PUSH. `git log origin/main..HEAD` holds exactly two commits, `12f4073ed` and
+      `8062b2265`, and the first of them is the repair that unwedges publishing. Nothing downstream
+      of origin can see either. (3) IF the first post-fix gate state still names a red, take its
+      `blocking_tests` field literally and name the second cause in a finding -- that field names
+      the cause in one line and reading the tree instead of reading it is the exact error that cost
+      the stretch before last. Confirm any red in a clean extract of the tree the commit would
+      create, never in this worktree, because the gate grades a throwaway HEAD checkout.
     why: >-
-      `episode_clean_publishes: 0`, `episode_failures: 14` against 12 last stretch, 42.2 hours since
-      figures last reached origin cleanly. Four stretches of page work — the honest "WE CANNOT TELL"
-      refusal, the book-and-clock labelling, the equivalence control over `_where_the_bounded_reading_is`,
-      and now the measured NO on the book — are all sitting where no reader can reach them, and the
-      site lane has refused every commit it graded. The enterprise value is the automated method, and
-      a method whose output has not reached a reader in two days is not yet demonstrated. Both reds are
-      small: one is a dict entry plus possibly one control leg, the other is a regeneration. FINISHED
-      means `episode_clean_publishes` non-zero and those three named controls green in a clean extract
-      of the tree the commit would create — not a merge landing at origin, which is what the last two
-      stretches produced instead.
+      Three stretches running, `episode_clean_publishes: 0`, 45.4 hours since figures last reached
+      origin cleanly, 43.2 hours wedged, two completed runs queued behind the publisher. Four
+      stretches of genuine page work -- the honest refusal, the book-and-clock labelling, the
+      equivalence control, the measured NO on the book -- are sitting where nobody can read them,
+      and the enterprise value is the automated METHOD, which is undemonstrated for exactly as long
+      as its output is invisible. This is also the cheapest item on the file: the hard part landed
+      and what is left is a push and one honest reading of a state file. FINISHED means
+      `episode_clean_publishes` is non-zero in a gate state written AFTER `12f4073ed`, and
+      `origin/main..HEAD` is empty -- or a filed finding names the second cause with the evidence
+      that HEAD, not a pre-fix tree, is what produced it.
   - id: the-capacity-that-refuses-the-thesis-book-stands-on-nothing
     what: >-
-      Establish what actually bounds `simulation.net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET`,
-      and re-rule the ratio it refuses. Two halves of one subject. (a) TAKE THE MEASUREMENT THE
-      CONSTANT HAS BEEN WAITING FOR SINCE AUGUST. §6a and §7 of
-      `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md` specify it and say why it was not
-      taken: seconds and MB per marginal customer-year, on a QUIET box with the live producer stood
-      down, against the stable ~1,000s baseline of the eight runs before the allocation change — a
-      wall clock taken under contention measures the contention. Launch it with
-      `background.launch_long_job`, because a job started from a bounded tick dies with its cgroup, and
-      record wall clock and peak RSS per customer-year at each book size the run reaches, plus whether
-      the two existing cost points still lie on the curve. (b) THE TWO PUBLISHED DENOMINATORS DISAGREE.
-      `site/data/value_arms.json` renders `this_book_customer_years: 1122.0` from 164 accounts, giving
-      `required_customer_years_smallest_leg: 3163.87` and a multiple of 2.64x against the 1,200; the
-      result filed with `c58350e2e` establishes that the promoted control arm settles 154 accounts and
-      computes 1,029 customer-years and 2,902 required, a multiple of 2.42x. One denominator is a run
-      stale. Establish which, and make the feed and the document read the same book before either
-      number is compared to a capacity again.
+      Two halves of the same subject -- one declared cadence with three readers, and the ceiling
+      that waits on it. (a) DRAWABLE IMMEDIATELY, NO WAITING.
+      `tools/settlement_ceiling_probe.publisher_context()` must take its cadence from
+      `background/publish_freshness.PUBLISH_CADENCE_SECONDS`, the module that declares itself the
+      single source of truth for it, and report the 5,400s figure it currently reads from
+      `docs/observability/publish_gate_duration.jsonl` under a name that says what it actually is:
+      OBSERVED ARRIVAL of runs, which is the only thing it is evidence of. Today every probe reading
+      ever produced carries `chosen: false` and prices the ceiling on a ruler that moves with the
+      answer -- the circularity the August allocation document removed by name, reached again by a
+      second route. Passing `--publish-interval 604800` on one command line is a workaround that
+      leaves the default wrong for the next caller, and the next caller is whoever re-prices this
+      constant. Write the control over the PROPERTY -- the probe's cadence equals the declaration --
+      not over today's 604800, so it stays green when he changes the cadence and red when a third
+      reader appears. (b) DO NOT DRAW BEFORE 2026-09-21 21:15 BST, MACHINE-LOCAL, AND CHECK THE
+      ARTEFACT BEFORE STARTING. `docs/observability/settlement_ceiling_slope_20260921.json` is
+      written by a job launched at 15:38Z under `background.launch_long_job`, cgroup-verified, unit
+      `longjob-settlement-ceiling-slope`, with the box held quiet by
+      `docs/review_gates/.sim_runner_hold`. If that file is absent the run is STILL IN FLIGHT: do
+      not start a second probe, two are already on the box, and do not redo the measurement. When it
+      lands, give `SETTLEMENT_CUSTOMER_YEAR_BUDGET` the origin it has never had -- the value
+      `recommend(..., publish_interval_s=604800)` returns as `supported_customer_years`, with
+      `binding_bound` naming which leg set it and `binding_bound_is_evidence` recording whether that
+      leg is a measurement or a preference, and the origin note citing the artefact, the interval
+      and the date. Do NOT pick a number off the partial curve; that is this constant's own original
+      sin arriving better dressed. The 1,200 point began while two gate runs were still on the box
+      and the probe's `clean` flag only watches for a producer run, so if it lies above the curve
+      the other three describe, re-take it rather than believe it.
     why: >-
-      This is the whole remaining lever on the thesis and it is currently held shut by a number the
-      code itself declares undefended. `what_would_settle_the_sign` prices the smallest leg at 2.82x
-      this book and states that bound is ATTAINED, so it will not fall when the missing floor legs run;
-      the memory ceiling re-ruled to the records the book actually retains is 38,275 customer-years,
-      about twelve times what that leg needs; and the feed's own `what_is_not_established` says the
-      open question is now "why that capacity is where it is". PREDICTION, FILED BEFORE THE RUN SO IT
-      CAN REFUTE ME: at the probe's own two cost points — 796.1 customer-years at 746.8s on 2026-08-24
-      and 1,200.0 at 1,018.7s on 2026-08-29 — the marginal cost is ≈0.67s per customer-year on a ≈215s
-      fixed component, so the smallest leg's book should settle in roughly 2,300s on a quiet box, and I
-      predict wall clock will not bound it either and that 1,200 will turn out to be bounded by
-      nothing. Against that prediction: the run completing on this box today took 1,450s at 1,122
-      customer-years, about 1.5x what that curve predicts, so either the curve is stale or the box was
-      contended — which it is, is the first thing this measurement settles, and if the curve is stale
-      my prediction is probably wrong. FINISHED means either the constant carries an origin naming a
-      measured cost curve and a stated interval, or a finding says plainly that no evidence bounds it
-      and records what the code should carry instead of 1,200 — and the two published denominators
-      agree. A measured "this world cannot reach it" is a complete answer; what is not acceptable is
-      the current state, where the thesis is refused by an interval preference nobody has stated.
-  - id: a-merge-that-authored-nothing-is-not-this-lanes-work
+      This is the only remaining lever on the thesis and it is held shut by a number the code itself
+      declares undefended, waiting on a decision the director made seventeen days ago that nothing
+      carried back. The selection leg needs 3,163.9 customer-years, an ATTAINED bound that will not
+      fall when the missing floor legs run; memory re-ruled to the records this book actually
+      retains is 38,275 customer-years, about twelve times that. MY FILED PREDICTION IS ALREADY
+      PARTLY REFUTED AND THE REFUTATION IS THE POINT: I predicted about 0.67 s/cy on a 215s fixed
+      component and therefore about 2,335s for the smallest leg. The landed points are 1,197.0 cy at
+      1,494.1s and 1,995.2 cy at 2,660.9s -- 1.462 s/cy marginal, a negative intercept, so convex
+      rather than affine, extrapolating to about 4,369s at 3,163.9 cy, which is 1.87x my figure.
+      Against a weekly interval that is 0.72% of the cadence and time does not bind; against the
+      5,400s ruler it is 81% and time very nearly does. So the ruler, not the slope, is what decides
+      this, which is why half (a) is not optional decoration on half (b). PREDICTION FILED BEFORE
+      THE REMAINING POINTS LAND, SO THEY CAN REFUTE ME AGAIN: the 2,800 and 3,400 points will come
+      in ABOVE the two-point line, because the average rate is already rising (1.248 then 1.334
+      s/cy), and 3,400 will saturate because the funnel can supply only about 2,358 customer-years
+      of wins plus 778 committed by founders. FINISHED means the probe reads the declared cadence
+      with a control keyed to that property, AND the constant carries an origin naming a measured
+      cost curve and a stated interval -- or a finding says plainly that no evidence bounds it and
+      records what the code should carry instead. A measured "this world cannot reach it" is a
+      complete answer. What is not acceptable is the thesis being refused by an interval preference
+      nobody stated, when in fact one was stated and nobody read it.
+  - id: the-seats-own-ledger-field-names-a-population-it-does-not-hold
     what: >-
-      Make `background/commit_narrative._carries_work` ask the COMBINED DIFF of a merge instead of
-      comparing trees. It returns True whenever the commit's tree differs from EVERY parent's tree,
-      which a reconciliation merge always does: `f56852e25` carries tree `bb737f158` against parent
-      trees `8b58f2e8e` and `e38e670da`, so it scored as work, while `git show --name-only` on it — the
-      combined diff, which is exactly the set of paths differing from ALL parents — is empty, and the
-      brief's own `commits[]` field computed that and marked it `files: []`, `substantive: false`. For
-      `len(parents) > 1`, a merge carries work only where the combined diff is non-empty. Keep the
-      three-valued answer: an unreadable diff stays None, because "I could not read it" and "it
-      changed nothing" are different answers and only one is a defect report. Write the control as ONE
-      assertion over the whole partition — a reconciliation merge that authored nothing, a merge that
-      resolved a conflict and therefore did, and a plain single-parent commit — so the rare branch is
-      provably reachable rather than a guard that refuses everything and passes every leg.
+      Make the two drawn-work fields in the orientation brief state the window they were measured
+      over, and give the second one a name that matches what it actually contains. FIFTH LISTING,
+      and it now has evidence that is not a coincidence. `background/delivery_seat.py:981` builds
+      the key `focus_drawn_never_landed` from `_drawn_never_landed(now)` at line 939, which reads
+      the claims ledger over ITS OWN 100-minute claim windows and returns EVERY drawn item, not
+      focus items. `background/delivery_seat.py:1021` feeds `focus_drawn_since(since)` -- the
+      stretch window only -- to `direction.focus_was_drawn` at `background/direction.py:314`. Two
+      different windows, two different populations, neither field states which, and both are read
+      side by side by the one reader they exist for. THIS ORIENTATION IS THE PROOF: the field named
+      `focus_drawn_never_landed` holds exactly one row,
+      `name-the-35-remaining-bare-keyerror-refusals-on-raise-on-missing-registers`, which was never
+      in focus at all -- it was an ordinary draw -- while `previous_focus_drawn` correctly reports
+      all three focus items drawn. The key's NAME asserts a population it does not hold, and for
+      four stretches the two fields agreed only because the evidence happened not to contain the
+      contradiction. Each field states its window in its own rendered text, and the second is named
+      for the population it returns.
     why: >-
-      This is the instrument I grade the machine's liveness from, and last stretch it reported 100%
-      work-carrying across a stretch in which 43% of the commits were the machine reconciling with
-      itself and nothing reached a reader. Second listing in `wrong`, and a reconciliation merge is the
-      most common commit this box produces. A control keyed to the tree comparison is blind to the
-      merge that authored nothing, and the repair needs no new vocabulary — the correct reading is
-      already computed elsewhere in the same brief. FINISHED means `commit_narrative` and the brief's
-      `substantive` field return the same verdict for every merge in the last two hundred commits, and
-      a test that names the disagreement it closes.
+      This is the instrument the seat orients from, it has misled its only reader for four
+      stretches, and an evidence set that happens not to contain a contradiction is not a repair --
+      this stretch it finally did contain one. I said last stretch that if it stayed undrawn with
+      three items written, the defect would be in the queue's reach rather than in my ordering and
+      that would be a different repair. Three items were written, all three were drawn, and the
+      ordinary draw still did not reach this. That test has now fired, so it gets a rank instead of
+      another paragraph. FINISHED means both fields carry their window in the text a reader sees,
+      the misnamed key names its real population, and a control asserts the two are distinguishable
+      -- written over the whole partition so it can actually fail, not one leg per field.
 not_now:
   - what: >-
-      Escalate the publish interval to the director, which §8.1 of
-      `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md` explicitly classifies as "a director
-      decision, priced".
+      Repair the brief's `substantive` field, which is false for all 47 merges in the last 200
+      commits because `git log --name-only` prints no filenames for a merge -- silence, not
+      agreement -- and which feeds `is_material` and therefore decides whether this seat orients at
+      all.
     why: >-
-      I am overriding that classification and recording it rather than acting on it silently. That
-      document called it his in August because it looked like a preference, and §7 of the same document
-      shows it is not one: the non-circular anchor it names is external and factual — how often the
-      Elexon and NESO inputs this site reports actually change — which is a question to research, and
-      research is mine. Escalating a researchable number as a preference is how an invented figure
-      acquires his authority. There is also a measurement objection: the realised publish interval
-      today is 42 hours of outage, so any cadence chosen now would be sized against a broken
-      observation. It reaches him if and only if the measurement in focus two shows the cadence he
-      would have to accept is materially worse than what the site advertises — that is a change to what
-      we promise a reader, which is his.
+      It is real, it is new this stretch, it is filed and drawable, and the worker who found it
+      declined to take it for the right reason: `substantive_count` feeds `is_material`, so moving
+      it changes the seat's own orientation cadence and it must move ALONE to be attributable.
+      Bundling it into any of the three items above would make the next stretch's orientation rhythm
+      unattributable, and "when a result moves and more than one thing changed, you cannot attribute
+      it" is the rule this project has paid for most often. It loses to a publish path dark for 45
+      hours and to the only remaining lever on the choosing -- but note it is already biting this
+      file: `substantive: 3` above undercounts, and I am recording that rather than quietly writing
+      a better number in.
   - what: >-
-      Carry `focus-drawn-and-focus-drawn-never-landed-must-state-their-windows` as a fourth focus item
-      for a fourth stretch.
+      Reconcile `suite_duration_watch.PUBLISH_CADENCE_SECONDS`, which sits 112x from the declared
+      cadence and is the alarm threshold for gate speed, as part of the cadence repair.
     why: >-
-      Naming it again buys a fourth listing, not a repair. `FOCUS_RANK_MULTIPLIERS` pays 4.0, 3.0 and
-      2.0 to the first three ranks and collapses rank four and beyond to a 1.5 tail, and the observed
-      record matches the mechanism exactly: five items written, three drawn; four written, three drawn.
-      A fourth item is a steer written at the tail multiplier, and I have now spent two stretches
-      proving it. It stays `corrected: false` in `wrong` where it cannot be forgotten, and it stays in
-      the queue where the ordinary draw can reach it without my bias. If it is still undrawn at the
-      next orientation with three items written, the defect is in the queue's reach and not in my
-      ordering, and that is a different repair.
+      The finding that surfaced it explicitly says this one is not that claim's to settle, and I
+      agree. Its cadence log is a careful, dated record of a deliberate method measuring how often
+      runs ACTUALLY ARRIVE, which is a legitimate quantity and not a broken copy of the
+      declaration. Whether an arrival measurement should track a declared cadence or keep its own
+      name is a real design question that deserves its own pass, and folding it into a repair whose
+      whole point is that the probe must stop reading an arrival measurement as a cadence would
+      confuse the two quantities inside the fix for confusing the two quantities.
+  - what: >-
+      Ask the director to confirm that the weekly publish cadence he named is the interval the
+      settlement ceiling should be priced against.
+    why: >-
+      He said it on 2026-09-04, in words a module carries verbatim and calls the single source of
+      truth. Re-asking a decision he has already made, because a second module never read it, is
+      exactly the failure this seat exists to prevent -- and it would hand his authority to a
+      question that is now an engineering edge, not a choice. Last stretch I overrode the August
+      document's classification of this as "a director decision, priced", on the grounds that the
+      anchor was researchable. That call was right for a better reason than I gave: the research had
+      already been done and the answer was his and already in the tree. It reaches him only if the
+      landed curve shows the cadence he chose cannot deliver what the site advertises to a reader,
+      which is a change to what we promise and is his.
   - what: >-
       Run the remaining five seeds to take the selection leg's family from 9 to the 14 that
       `distance_to_a_sign` says would state a sign.
     why: >-
-      It buys a sign for a book nobody can currently name. The 14 is priced on the family whose
-      denominator focus two is about to establish as one run stale — 1,122 customer-years in the feed
-      against 1,029 in the document filed the same day — and `sems_needed_to_state_a_sign` is itself
-      derived from the family size, so growing the family moves the bar it is measured against. Paying
-      five passes to sign a contrast whose population is in dispute would produce exactly the headline
-      this page has spent four stretches learning not to publish.
+      Second stretch this loses, and the reason has sharpened rather than weakened. I predicted the
+      two published denominators disagreed because one was a run stale; that was wrong -- neither
+      was stale, the defect was a PRODUCT that crossed two runs, multiplying one run's multiple by
+      another run's customer-years, and it is now stamped and controlled by
+      `can_a_book_that_size_be_built.the_book_these_figures_are_denominated_in`. So the arithmetic
+      is sound again, but `sems_needed_to_state_a_sign` is still derived from the family size, so
+      growing the family moves the bar it is measured against. Paying five passes to sign a contrast
+      whose own bar moves with the payment is the headline this page has spent four stretches
+      learning not to publish.
   - what: >-
-      Investigate `token-proxy`, silent for 145h35m and the quietest of the eleven declared daemons.
+      Write controls for the sixteen maturity-map rows the brief lists as "the subject is on disk
+      and the control that would grade it was never written", out of 29 ungradable.
     why: >-
-      Not the all-quiet signature of a frozen guest, which is the only pattern that makes a silent
-      daemon evidence of a fault here — six of the eleven wrote 5m10s ago. But I am recording what the
-      ages actually show rather than dismissing the row, because it is more interesting than
-      `token-proxy`: `worker-seat-manager` at 363,332s, `ntfy-responder` at 363,339s and `dispatcher`
-      at 363,342s are three daemons whose last log falls inside a ten-second window 100.9 hours ago,
-      which is one event and not three coincidences. `token-proxy` at 524,121s is a separate event.
-      `WORKER_FINDING_THE_WORKER_DID_NOT_DIE_THE_BOX_FROZE_AND_SYSTEMDS_OWN_WALL_CLOCK_IS_THE_WITNESS_2026-09-21.md`
-      is BLOCKING, filed, drawable, and is exactly this class — it does not need a focus item to be
-      reached, and it loses to a publish path that has refused fourteen times.
+      Sixteen new controls is the file-made-of-rules shape this project has already paid for, and
+      not one of them moves the number the thesis rests on. The debt is real and it is not this
+      stretch's; it loses to a publish path that has been dark for two days and to the constant that
+      decides whether the thesis is answerable at all.
   - what: >-
-      Write controls for the sixteen maturity-map rows the brief lists as "the subject is on disk and
-      the control that would grade it was never written", out of 29 ungradable.
+      Investigate `token-proxy`, silent 148h35m and the quietest of the eleven declared daemons.
     why: >-
-      Sixteen new controls is the file-made-of-rules shape this project has already paid for, and not
-      one of them moves the number the thesis rests on. The ungradable count is real debt and it is not
-      this stretch's: it loses to a publish path that has been dark for 42 hours and to the only
-      remaining lever on the choosing.
-  - what: Drain the staging root, 48 deep with 7 BLOCKING and 28 LATENT findings.
+      Not the all-quiet signature of a frozen guest -- six of the eleven wrote 49 seconds ago -- and
+      the three daemons whose last logs fall inside a ten-second window 103.9 hours ago are one
+      event, not three, which is a separate thing from `token-proxy` at 148h. Both are exactly the
+      class of
+      `WORKER_FINDING_THE_WORKER_DID_NOT_DIE_THE_BOX_FROZE_AND_SYSTEMDS_OWN_WALL_CLOCK_IS_THE_WITNESS_2026-09-21.md`,
+      which is BLOCKING, filed and drawable. It does not need a focus rank to be reached, and it
+      loses to a publisher that has failed eighteen times.
+  - what: Drain the staging root, 45 deep with 8 BLOCKING and 30 LATENT findings.
     why: >-
-      It is draining on its own — 250 filed against 263 dispositioned over seven days, net −13, and no
-      sediment. The BLOCKING findings are what gate, and two of the seven are focus one and focus three
-      here, so the drain follows from the focus rather than competing with it.
+      It is draining on its own -- 253 filed against 263 dispositioned over seven days, net -10, no
+      sediment. The BLOCKING findings are what gate, and the publish and ceiling subjects above
+      already carry several of the eight, so the drain follows from the focus rather than competing
+      with it.
 wrong:
   - what: >-
-      MINE, NEW, AND THE SHARPEST OF THE STRETCH: THE DIRECTION WRITER WEDGED THE SITE LANE WITH ITS
-      OWN PROSE. My previous `focus[3].why` closed by calling the fail-open shape the same one caught
-      by a neighbouring row, identified by its position rather than by its name.
-      `tools/generate_delivery_page.py` mirrors that string verbatim into
-      `site/data/delivery.json .what_it_decided.focus[3].why`, the door renders that field in TWO
-      regions — `/harness/#delivery-decided` and `/harness/#delivery-next` — and a row noun followed by
-      a direction word is a registered `_HERE_RELATIVE` pointer, so
-      `test_no_here_relative_pointer_is_composed_into_more_than_one_region` and
-      `test_no_feed_FIELD_that_reaches_two_regions_carries_a_here_relative_sentence` both went red and
-      the site lane refused every commit it graded for the whole stretch. I wrote a pointer relative to
-      a layout I never see, into a field with two homes, in the one file I am the sole author of. The
-      phrase is absent from this record and every cross-reference is now by explicit focus id, which is
-      landmark-free by construction and cannot rot when the panel gains a third home. CORRECTED AT THE
-      CAUSE, WITH A NAMED RESIDUAL: the two controls only go green once
-      `tools/generate_delivery_page.py` regenerates the feed, which is the second half of focus one,
-      and until it runs the red is live. AND A SECOND THING, LEARNED WHILE WRITING THIS VERY ROW: the
-      census fires on prose that QUOTES the pointer, so my first draft of this report red the control
-      it was reporting, in three fields at once. No defect report about a here-relative pointer can be
-      published verbatim in a rendered field — it has to describe the shape instead, which is what this
-      row now does. That is a real limit on the control and on every future report of this class, and
-      it is worth knowing before someone writes the same row again and cannot understand why a correct
-      description of a defect is itself refused.
+      MINE, NEW, AND THE ONE I SHOULD HAVE CAUGHT: I INSTRUCTED A REMEDY THAT ROTATION HAD ALREADY
+      SPENT, TWO DAYS BEFORE I WROTE IT. The second half of my previous first item told a worker to
+      regenerate `site/data/delivery.json` because a field in the fourth row of its focus array
+      carried a layout-relative pointer into a two-region field. That array went from four rows to
+      three at `6c862a161` on 2026-09-19 18:41, when an ordinary `Auto-process run complete`
+      regenerated the feed and rotated the offending prose out with it. There has been no fourth row
+      since, both controls pass at HEAD, and the feed is not dirty. I wrote an instruction against a
+      field that had not existed for two days, into a worktree holding 42 other lanes' dirty `site/`
+      artefacts, where following it literally risked sweeping their work into a pathspec for no
+      gain. The worker checked and refused, which is the only reason this cost nothing. THE
+      GENERALISABLE PART: a red on a generated feed's INDEXED field can be spent by rotation, so the
+      first question is whether the index still exists, not what the field says -- and the previous
+      record's own residual sentence, which said the controls "clear when the feed regenerates", was
+      already false when I wrote it. A residual I assert about the future is a prediction, and this
+      one was refutable the moment I made it by one read of the live feed.
     corrected: true
   - what: >-
-      MINE, NEW. My focus one said "unwedge the shared tree so the honest page reaches a reader" and
-      named the shared tree. There were TWO wedges and my instruction only reached one. The tree went
-      level (`9e2cfc16e`) and the publish gate did not move: `blocking_tests` holds exactly one entry,
-      `test_every_real_census_hit_is_covered`, red at HEAD in 0.09 seconds on `uncovered ==
-      {'.delivery_lane_claims.json'}`, wedged for 40.0 hours with `episode_clean_publishes: 0` and
-      `episode_failures` up from 12 to 14. I wrote an instruction about `advance_shared_tree` and
-      `isolate_hunks` and never read the gate's own `blocking_tests` field, which names the cause in one
-      line. And the interconnection is worse than the miss: the uncovered carrier is
-      `.delivery_lane_claims.json`, the delivery lane's own claims store, dispositioned `real` at
-      `d066d3534` while the lane was being repaired — so my focus three is what wedged the gate my
-      focus one was aimed at, and nothing on this box can see that because the census and the lane live
-      in different files. This is the interconnection question the seat is the only place that can hold,
-      and I asked it of the tree and not of the gate.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, CARRIED, NOW CORRECTED. `f382f8ace` moved the liveness refusal into the writer:
-      `record_landing` calls `_is_liveness_only(paths, _liveness_surface_or_raise())` and returns `[]`,
-      writing nothing, when everything a commit touched lies in the publisher's declared liveness
-      surface — the same predicate and the same declaration the reader has used since `e5395902f`, but
-      judging the WHOLE commit rather than an intersection, because the caller hands it a commit and
-      not a claim's paths, which is the stricter side. An unreadable declaration refuses the bind
-      rather than failing open. Four writer mutations, each firing on the leg written for it. MY STATED
-      FINISH CONDITION WAS WRONG AND I AM RECORDING THAT RATHER THAN CLAIMING IT WAS MET: I demanded no
-      `"HEAD"` default on either the function or the flag, and both defaults remain. The commit rejects
-      that on the function and it is right — `HEAD` is the only spelling the executor gives an isolated
-      turn, so refusing it would silence the ledger for every caller in order to close a hole only the
-      heartbeat class walks through. A refusal keyed to the property (does this commit carry work?)
-      catches the explicit `--commit <a-republish-sha>` too, which removing a default never would. I
-      graded a spelling; the implementer graded the property.
+      MINE, CARRIED, NOW CORRECTED AS AN INSTRUMENT CHOICE -- AND SEE THE SEPARATE OPEN ROW BELOW
+      FOR THE OUTCOME, WHICH IS NOT FIXED. The error was that I wrote an instruction about the
+      shared tree and `isolate_hunks` and never read the publish gate's own `blocking_tests` field,
+      which names the cause in one line. This stretch I read it, named
+      `test_every_real_census_hit_is_covered` and its `uncovered == {'.delivery_lane_claims.json'}`
+      in the instruction, and the fix landed at `12f4073ed` with the carrier genuinely probed
+      through three parametrized legs and a mutation that reds only the leg written for it. I
+      re-ran the partition suite myself at this orientation: 60/60. The instrument error is closed.
+      It also turned out to be a smaller error than I thought and a bigger one about the machine:
+      the gate was not wedged on a defect nobody had solved but on a commit nobody had made, with
+      the complete fix sitting uncommitted in the shared tree since 16:07 -- the third instance of
+      that class in three days. The cheap check that distinguishes them is one `git status` on the
+      path the red names.
     corrected: true
   - what: >-
-      THE MACHINE'S, CARRIED, STILL OPEN — FOURTH LISTING, AND DELIBERATELY NOT A FOCUS ITEM THIS
-      TIME. `focus_was_drawn` in `background/direction.py` is fed `focus_drawn_since(since)` from
-      `background/delivery_seat.py:1022` — the stretch window only — while `_drawn_never_landed(now)`
-      at line 939 reads the claims ledger over its own 100-minute claim windows, and neither field
-      states which window it was measured over. The note text is unchanged and still reads "the
-      previous direction named work the draw then took" with no caveat on either branch; I re-read it
-      this orientation rather than trusting the carried text, and the line numbers have moved (314 ->
-      the same function, 1021 -> 1022, 981 -> 939) while the defect has not. This stretch the two
-      fields agree again, and again by luck: three of four focus items were drawn inside the window. An
-      evidence set that happens not to contain the contradiction is not a repair. It is in `not_now`
-      with the reason it is not focus four, and it stays here so it cannot be forgotten.
+      MINE, NEW, AND OPEN: THREE STRETCHES AND NOT ONE FIGURE HAS REACHED A READER. This is the
+      outcome my previous first item set as its own finish condition -- `episode_clean_publishes`
+      non-zero -- and it was not met. It reads 0, with `episode_failures` at 18 against 14 last
+      stretch, 45.4 hours since the last clean publish and 43.2 wedged. I am listing it separately
+      from the instrument error above so that a closed instrument cannot launder an unfinished
+      outcome: the repair landed and the publishing did not happen. Two causes are named and
+      neither is a new defect -- the gate state was last written fourteen minutes before the fix
+      landed so it grades a tree that no longer exists, and both commits carrying the fix are
+      unpushed, so HEAD is two ahead of origin and nothing downstream can see the repair. It is the
+      first focus item of this record and it stays here until a reader sees a figure.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, STILL OPEN, AND NOW WITH EVIDENCE INSIDE A SINGLE DOCUMENT. The shape
-      instrument still counts a reconciliation merge as work. `f56852e25` carries tree `bb737f158`
-      against parent trees `8b58f2e8e` and `e38e670da`, so `_carries_work`'s rule — the tree differs
-      from EVERY parent — returns True, and the rendered verdict read "8 commit(s), 8 carrying work (0
-      changed nothing at all)". In the same brief, the `commits[]` field computed that same commit's
-      combined diff as empty and recorded `files: []`, `substantive: false`. One document, one commit,
-      two instruments, opposite answers, and the count a person reads is produced by the wrong one. Last
-      stretch I named the fix — a merge whose every path came from the other side is not this lane's
-      work — and it is now focus three with the precise mechanism: for a merge, ask the combined diff,
-      which is already what the correct half of the brief does.
+      THE MACHINE'S, CARRIED, NOW CORRECTED AND MEASURED. The shape instrument counted a
+      reconciliation merge as work because it asked whether the tree differed from EVERY parent,
+      which a merge does by construction -- it is the union of two sides and is neither of them.
+      `ea39d8063` replaced that with the combined diff (`git diff-tree -c`), the paths whose content
+      no parent already carried. Measured on this tree, last 200 commits: 47 merges, 47 scored as
+      work before, 12 after, and the reader now agrees with an independent census on 47 of 47.
+      Stretch-wide the count went from 175/200 to 140/200. Three-valued throughout, so an unreadable
+      diff stays None rather than becoming "authored nothing", and the control is ONE assertion over
+      the whole partition -- reconciliation merge, conflict-resolving merge, plain commit -- because
+      the mutation that threatens it is a guard calling every merge empty, which passes any
+      per-branch test and is catastrophically wrong on the 12 that did resolve something. This very
+      brief is the evidence it works: 5 of 13 commits read as changing nothing, where the old rule
+      would have said 0.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, CARRIED, STILL OPEN -- FIFTH LISTING, AND THIS TIME IT IS A FOCUS ITEM BECAUSE
+      MY OWN STATED TEST FIRED. The two drawn-work fields in the brief are measured over different
+      windows and neither says so: `focus_drawn_never_landed` is built at
+      `background/delivery_seat.py:981` from `_drawn_never_landed(now)` at line 939, which reads the
+      claims ledger over its own 100-minute claim windows and returns every drawn item, while
+      `focus_was_drawn` at `background/direction.py:314` is fed `focus_drawn_since(since)` from line
+      1021, the stretch window only. What is NEW is that the evidence set finally contains the
+      contradiction instead of hiding it: the field named `focus_drawn_never_landed` holds exactly
+      one row and that row was never in focus at all, while `previous_focus_drawn` correctly reports
+      all three focus items drawn. The key's name asserts a population it does not hold. I said last
+      stretch that if this stayed undrawn with three items written, the defect would lie in the
+      queue's reach rather than my ordering; three were written, all three were drawn, and the
+      ordinary draw still did not reach this, so it gets a rank.
     corrected: false
   - what: >-
-      MINE, CARRIED, HALF WORKED. I wrote four focus items where the previous stretch wrote five;
-      three were drawn both times and the tail item was not, so the carried window defect took a fourth
-      listing. The remedy was right in direction and wrong in size, and the size is not a judgement
-      call — `FOCUS_RANK_MULTIPLIERS` pays 4.0, 3.0 and 2.0 to ranks one through three and collapses
-      rank four and beyond onto a 1.5 tail, so the fourth item was written at the tail multiplier and
-      the mechanism predicted the outcome I then measured twice. I stopped counting how many items felt
-      right and read the code that ranks them. Three items this time, and the acceptance test is
-      unchanged and is not mine to soften: whether all three have disappeared from focus at the next
+      MINE, CARRIED, NOW CORRECTED. I had written four and then five focus items where the
+      mechanism pays only three: `FOCUS_RANK_MULTIPLIERS` gives 4.0, 3.0 and 2.0 to the first three
+      ranks and collapses everything after onto a 1.5 tail, and the tail item went undrawn twice.
+      This record's predecessor wrote three and all three were drawn and worked -- two landed and
+      one is a measurement in flight. The remedy was to read the code that ranks them instead of
+      counting how many items felt right, and it held. Three again here, and the acceptance test is
+      unchanged and not mine to soften: whether all three have disappeared from focus at the next
       orientation, and nothing else.
-    corrected: false
+    corrected: true
+  - what: >-
+      MINE, NEW, A WRONG DIAGNOSIS STATED AS A FINDING. I wrote that the two published denominators
+      for the settleable book disagreed because "one denominator is a run stale" -- 1,122.0
+      customer-years from 164 accounts in the feed against 1,029 in a document filed the same day.
+      NEITHER WAS STALE. The defect was a PRODUCT that crossed two runs: one run's required-multiple
+      multiplied by another run's customer-years, which asks how many customer-years of one book
+      equal a multiple of a different one, and that is not a quantity. This is the shape CLAUDE.md
+      names -- before dividing or multiplying two numbers, say out loud what each one counts -- and
+      I walked into it while writing the instruction to catch someone else walking into it. It is
+      stamped and controlled now at
+      `can_a_book_that_size_be_built.the_book_these_figures_are_denominated_in`, and the instruction
+      still found the real defect, but it found it despite my diagnosis rather than because of it.
+    corrected: true
+  - what: >-
+      MINE, NEW, A FILED PREDICTION REFUTED BY THE MEASUREMENT IT WAS FILED AGAINST, AND KEPT HERE
+      BESIDE IT RATHER THAN REVISED. I predicted the marginal settlement cost at about 0.67s per
+      customer-year on a roughly 215s fixed component, from the probe's two old cost points, and
+      therefore about 2,335s to settle the smallest leg's 3,163.9 customer-years. The two points
+      landed so far say 1,197.0 cy in 1,494.1s and 1,995.2 cy in 2,660.9s: 1.462 s/cy marginal, a
+      negative intercept, so the curve is convex and not affine, and the smallest leg extrapolates
+      to about 4,369s -- 1.87x my figure, and the average rate is still climbing. My conclusion
+      that wall clock would not bind still looks right, but only because the ruler changed: 4,369s
+      is 0.72% of the weekly cadence the director named and 81% of the 5,400s figure the probe
+      actually reads, so under the ruler I was reasoning against when I filed the prediction, time
+      would very nearly have been the binding leg. Right answer, wrong arithmetic, and the
+      difference matters because the next person to extrapolate this curve will be pricing the
+      constant off it.
+    corrected: true
 for_the_director: []
