@@ -163,7 +163,13 @@ def _five_shapes(tmp_path):
     return _ledger(tmp_path, {
         UNBOUND_ID: _row(named_paths=[SUBJECT_PATH]),
         MISSED_ID: _row(named_paths=[OTHER_PATH]),
-        SPENT_ID: _row(premise_spent={"commit": "deadbeef123", "reason": "already closed"}),
+        # `at` IS PART OF THE SHAPE, not decoration: `note_premise_spent` is the only writer of
+        # this field and has stamped all three keys since the field existed, and `_disposition`
+        # compares that instant against THIS draw so a stated premise cannot explain a later
+        # window. A fixture without it asserts a row no producer can make -- which is how the
+        # across-windows fail-open on this branch stayed invisible until 2026-09-19.
+        SPENT_ID: _row(premise_spent={"commit": "deadbeef123", "reason": "already closed",
+                                      "at": DRAWN_AT + 60}),
         CREDITED_ID: _row(last_drawn_at=DRAWN_AT - 600, last_landing_at=DRAWN_AT - 60,
                           landed_under=LENDER_ID, last_landing_paths=["site/index.html"]),
         DELIVERED_ID: _row(last_landing_at=DRAWN_AT + 60, last_landing_paths=[SUBJECT_PATH]),
