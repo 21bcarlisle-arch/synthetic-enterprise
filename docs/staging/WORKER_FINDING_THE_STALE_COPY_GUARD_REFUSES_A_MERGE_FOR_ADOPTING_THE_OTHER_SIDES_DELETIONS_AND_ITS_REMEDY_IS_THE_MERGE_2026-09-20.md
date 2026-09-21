@@ -92,3 +92,54 @@ local-only until the fork closes, which is not this claim's to fix.
 
 Two gate cycles (~13 min each) were spent establishing the refusal is false rather than working
 around it. Recorded so the next lane to meet it can skip both.
+
+---
+
+## 6. CORRECTION (2026-09-21, delivery seat) — §1's diagnosis is wrong, and §4's open question is settled
+
+*Kept beside the claim rather than revised over it: this section is the only evidence the
+measurement was designed before its answer was known.*
+
+**`strict_symbol_subset` was never the defect, and neither was `adopted_from_merge`.** Both are
+correct. Re-measured on the live fork today (HEAD 9 ahead / 7 behind, merge-base `e436774b1`):
+
+```
+adopted_from_merge(HEAD, origin/main, <47 merge paths>)  -> 46 paths exempt
+violations(HEAD, <merged tree>, ..., merge_ref=None)     -> [generate_dashboard_data.py, mirror_github_pages.py]
+violations(HEAD, <merged tree>, ..., merge_ref=origin/main) -> []
+```
+
+So `surgical_land --merge`'s OWN call passes, and prints that it did:
+`[stale-copy] 46 path(s) adopted from origin/main (0bdee00b7) unchanged on this side since the
+merge-base`. §2's table is right about the merged tree; §1's attribution of the refusal to `--merge`'s
+own guard call is not.
+
+**§4's question — *which check returned rc=1* — answered by keeping the full gate tail.** The
+`REFUSED_GATE` detail is `_classify_merge_failure`'s 400 characters after `GATE RED`, which is why
+it showed the honesty verdict and no stale-copy tail. Run with both streams kept, the refusing leg
+is the hook's own `python3 -m tools.stale_copy_refusal --staged`, and the route to it is:
+
+1. `_land_once` judges the merged tree WITH the merge ref, passes, and pins the already-gated token
+   to `91a49e0e3`.
+2. The **FIRST block of `tools/git-hooks/pre-commit`** re-stamps `docs/status/LATEST.md` and
+   `git add`s it. `docs/status/LATEST.md` is one of the 47 paths this merge carries, so the index
+   the hook writes out is `eb8cb2718`, not the tree the token names.
+3. The sha comparison in `staged()` therefore fails and the WHOLE tree is re-asked — with no merge
+   ref and no `--drops`. That re-ask is what printed §1's refusal, which is why its wording is
+   `COMMIT REFUSED` and not `MERGE REFUSED`: `refusal_text` was called with `merge_ref=None`.
+
+Attributed on ONE tree state, both directions run: on the same extract, the whole-tree re-ask
+returns those two paths and the delta re-ask returns none.
+
+**So the class is right and the instance was misplaced.** §3 stands unaltered — on a pathspec commit
+the check is correct, on a merge the same shape inverts — and so does the closed-loop reading of
+`refresh_to_head`. What was missing is that the inversion was not reachable through `--merge`'s
+call at all; it was reachable through the hook leg behind it, and only on a landing that carries a
+path the hook itself re-stages. `--drops` not clearing it (§3, last paragraph) has the same cause:
+the hook leg cannot see the landing's exemptions either.
+
+**Repaired** by re-asking the DELTA — the paths that differ between the tree the token names and
+the tree the index now writes out — rather than the whole tree. See `staged()` and
+`tests/tools/test_stale_copy_refusal.py::test_a_restage_by_the_hook_chain_itself_re_asks_only_the_paths_it_moved`,
+which runs both legs of the partition on one tree state so a guard that refused everything or
+passed everything fails one of them.
