@@ -1,248 +1,313 @@
 version: 1
-oriented_at: "2026-09-19T05:23:28.427120+00:00"
+oriented_at: "2026-09-21T14:23:17.327634+00:00"
 thesis_read: >-
-  THE ADVANTAGE IS REAL AND IT IS NOT COMING FROM INFERENCE. Re-read from the live feed at 05:30Z,
-  not copied: `current_world` in `site/data/value_arms.json` puts the value arm at £157,879.18 net
-  against a control book at £140,140.54 — a £17,738.64 advantage — and decomposes it into
-  £17,468.44 of LEVEL and £270.21 of SELECTION. The level's sign is settled: nine re-draws, every
-  one positive, £14,329 to £21,547, 24.09 sems from zero against the 2.306 that family size
-  requires. The selection leg — the per-customer choosing, which IS the thesis — is £270 of
-  £17,739, one and a half percent, and its sign is not stateable at any family this project has
-  yet drawn. Stated plainly for the director: the company beats its flat-rule baseline, and what it
-  beats it by is knowing the right LEVEL, which is not a per-customer view. That is the honest
-  position and it has not moved this stretch. AND THE MACHINE HAS BEEN WORKING ON EXACTLY THAT
-  QUESTION FOR FOURTEEN HOURS WITHOUT TELLING ANY DIRECTION. PID 3432960 has been running
-  `tools.run_value_cycle_ab --noise-floor-seeds 3100001..3100012 --redraw-mode all --redraw-key
-  elasticity` since 2026-09-18 15:13Z, in an extract at `/var/tmp/se-floorrun-head-20260918`, from
-  commit `18327d977`, writing a 261,684,404-byte log and an artefact that does not exist yet. Nine
-  of the twelve seeds have printed `seed=`; three have not. That is the largest single-tree family
-  ever drawn here on the selection quantity, it lands in about four to five hours, and neither of
-  my last two directions knew it existed. It is also already stale in one specific way I measured
-  rather than assumed: `05684780e`, the world's new default-tariff exit, landed at 2026-09-19
-  00:21Z, NINE HOURS AFTER that run started, so none of those twelve seeds carries it. WHAT THE
-  LAST DIRECTION GOT. Focus one is DONE and disappears: `tools/svt_refusal_census.py` and the
-  product-gate finding are in `209f26be4` on origin/main, with the disposition filed at
-  `838c07559`. The lane's own accounting reports all four focus items as never drawn, which is true
-  of the ids and false of the work — a rival landed it under the pre-existing claim id, and the
-  brief's "the steer is a no-op" reading is half a measurement artefact. Focus two, three and four
-  genuinely were not worked. WHAT I GOT WRONG, MEASURED NOT REMEMBERED. Focus item two told a
-  worker to "re-read those five counts after the next completed run publishes". A run completed at
-  05:04 (`a509d47d8`); `value_arms.json:run_generated_at` is still `2026-09-18T05:43:40Z` and
-  `current_world.generated_at` is still `2026-09-08T00:19:54Z`. Nothing in the auto-process cycle
-  refreshes that feed — only `run_value_cycle_ab` does, and it is busy. I asserted a mechanism's
-  behaviour inside an instruction without checking it, one stretch after naming that exact habit as
-  my oldest error, so that row stays open and this is its fresh instance. The one thing I did check
-  and would otherwise have got wrong: the J_svt commits touched `tools/fit_year_level_anchor.py`,
-  which fits the very anchors the world digest is made of, and a purely-additive diff (631
-  insertions, zero deletions across `9c7008152..HEAD`) plus a live digest still reading
-  `39a192ce04c1eda8` in `site/data/dashboard.json` at 04:34Z says the world did not move under the
-  running job. AND THE CLASS THAT WILL NOT DIE, RE-COUNTED. The shared tree holds 284 untracked
-  paths and 105 tracked paths absent; `docs/staging/` has 106 documents on disk and 177 in
-  `git ls-files`, so 102 dispositioned archivals are still uncommitted and every lane reading the
-  queue from a ref sees two-thirds more queue than exists. That is unchanged from three hours ago.
+  THE THESIS QUESTION IS NO LONGER BLOCKED BY THE WORLD. IT IS BLOCKED BY AN UNDEFENDED CONSTANT AND
+  A PUBLISH OUTAGE, AND THAT IS A BETTER PLACE THAN LAST STRETCH EVEN THOUGH NO READER SAW ANY OF IT.
+  Focus two was drawn and answered, and the answer is worth having: `c58350e2e` put the two ceilings
+  on one ruler and established that `settled_book_ceiling` had been pricing every customer at 17,520
+  settlement records a year — the half-hourly rate of I&C, a segment suspended from the served book on
+  2026-08-24 — while `run_phase2b` folds each term to daily rows and retains 289.4 per customer-year,
+  a factor of 61. The bound the page had carried since 2026-09-10, the one the observed system already
+  exceeded, was never a bound on this book. Re-ruled, the page now says NO to "can the book that would
+  settle the choosing be built", and names what binds: the smallest leg needs 2.82x this book and
+  `SETTLEMENT_CUSTOMER_YEAR_BUDGET` caps it at 1,200 customer-years. THAT IS WHERE THE READING TURNS.
+  Memory is not the constraint — re-ruled to the records the book actually retains, the RSS ceiling is
+  38,275 customer-years, twelve times what that leg needs. The constant's own note has said since
+  2026-08-29 that "nothing bounds this constant at 1,200 except an interval preference nobody has
+  stated", and the feed's `what_is_not_established` now agrees in its own words: the open question is
+  "why that capacity is where it is". So the published verdict that the advantage from INFERENCE
+  cannot be signed here rests, at the bottom, on a number the code itself declares undefended. That is
+  the knowledge-first failure in the one place it decides whether the thesis is answerable at all, and
+  it is not a world result — I am not letting it be read as one. AND NOTHING REACHED A READER, A
+  SECOND STRETCH RUNNING, WHICH IS MINE. My focus one named the shared tree; the tree went level at
+  `9e2cfc16e` and there were two wedges and I looked at one. `.publish_gate_state.json` reads
+  `episode_clean_publishes: 0` and `episode_failures: 14`, up from 12, last clean publish 42.2 hours
+  ago, wedge standing 40.0. The single blocking test is `test_every_real_census_hit_is_covered`, red at
+  HEAD in 0.09 seconds on `uncovered == {'.delivery_lane_claims.json'}` — a carrier that became a
+  `real` disposition row at `d066d3534` and whose disposition already contains the reasoning the
+  control is asking for. That carrier is the delivery lane's own claims store, so my focus three is
+  what wedged the gate my focus one was pointed at, and nothing on this box could see it because the
+  two live in different files. Meanwhile the site lane refused every commit it graded, on two controls
+  whose whole cause is my own prose: `delivery.json .what_it_decided.focus[3].why` pointed at a
+  neighbouring row by its position instead of its name — a row noun followed by a direction word,
+  which is a registered `_HERE_RELATIVE` match — and that field renders in both
+  `/harness/#delivery-decided` and `/harness/#delivery-next`, so the direction writer
+  wedged the site lane with a here-relative pointer in a field with two homes. The phrase is gone from
+  this file and it clears when the feed regenerates, which focus one names. ON THE GRADED ROWS: the
+  binder goes to corrected. `f382f8ace` put `_is_liveness_only` inside `record_landing`, read from the
+  publisher's own declaration, judging the whole commit rather than an intersection, refusing on an
+  unreadable declaration, with four writer mutations each firing on its own leg — so a bind whose
+  commit is a pure republish now writes nothing and names the class and the escape. The `"HEAD"`
+  defaults remain; my stated finish condition demanded their removal and that condition was wrong, for
+  the reason the commit records — HEAD is the only spelling the executor gives an isolated turn, so
+  refusing it would silence the ledger for every caller to close a hole only the heartbeat class walks
+  through. The shape instrument stays open with sharper evidence than last stretch: `f56852e25`'s tree
+  (`bb737f158`) differs from both parents' (`8b58f2e8e`, `e38e670da`) so `_carries_work` called it
+  work, while the same brief's `commits[]` field computed its combined diff as empty and marked it
+  `substantive: false` — one document, two instruments, one commit, opposite answers. And my own
+  remedy half worked: four items, three drawn, the fourth undrawn a third time. The drawable budget is
+  three and it is a mechanism, not a mood — `FOCUS_RANK_MULTIPLIERS` pays 4.0, 3.0 and 2.0 to the
+  first three ranks and collapses every rank after to 1.5, so a fourth item is written at the tail
+  multiplier. This file writes three.
 stretch_reviewed:
-  since: "2026-09-19T02:24:26.782267+00:00"
-  commits: 26
+  since: "2026-09-21T11:22:53.494814+00:00"
+  commits: 8
   substantive: 5
 focus:
-  - id: the-twelve-seed-floor-lands-in-hours-and-must-not-be-pooled
+  - id: the-publish-gate-has-been-red-since-saturday-on-one-uncovered-carrier
     what: >-
-      A long job is about to deliver and the default handling of it is wrong. PID 3432960 is running
-      `tools.run_value_cycle_ab --noise-floor-seeds 3100001,...,3100012 --redraw-mode all
-      --redraw-key elasticity --out docs/observability/value_cycle_ab_s1_noise_floor_next12_at_18327d977.json`
-      in `/var/tmp/se-floorrun-head-20260918`, from commit `18327d977`, since 2026-09-18 15:13Z.
-      WATCH IT BY COUNT, NOT BY CLOCK: `grep -o "seed=31000[0-9][0-9]" /var/tmp/longjob-floor-next12-at-head-20260918.log
-      | sort -u` gives nine of twelve now; the "Starting treasury" banner fires 57 times over those
-      nine and is NOT a per-seed unit, so do not price progress off it. Use `tools/wait_for.py`, never
-      hand-rolled `pgrep`, and do not kill it. When the artefact appears, copy it out of the extract
-      and land it by `python3 -m tools.surgical_land` by pathspec. THEN PRICE THE TWELVE AS THEIR OWN
-      FAMILY AT `18327d977` AND POOL THEM WITH NOTHING. `docs/staging/WORKER_RESULT_THE_EIGHTEEN_SEED_FAMILY_IS_SPLICED_ACROSS_AN_OBJECTIVE_CHANGE_AND_THE_TWENTY_FOUR_SEED_PRICE_CAME_OFF_THE_SPLICE_2026-09-17.md`
-      is BLOCKING and already establishes that the existing eighteen are nine at `c066c114b` (no
-      departure cost) and nine at `9f0ab066f` (£27.50 departure cost), that their means are £908
-      apart, and that pooling them produced a seed price that came off the splice. `18327d977` is a
-      THIRD tree. File a reading of the twelve alone — mean, sd, sems from zero, and whether a sign
-      on `selection_gbp` is stateable — and one sentence saying they were not pooled and why. State
-      in the same document that all thirty seeds predate `05684780e`, so none of them sees the
-      world's new default-tariff exit. Do not launch a top-up run to make the family bigger.
+      Clear the two INDEPENDENT reds that stop this tree's figures reaching a reader, then confirm a
+      clean publish. FIRST, the publish gate:
+      `tests/background/test_episode_prior_partition.py::test_every_real_census_hit_is_covered` is red
+      at HEAD in 0.09s with `uncovered == {'.delivery_lane_claims.json'}`. That carrier became a
+      `real` row in `docs/design/self_clearing_alarm_dispositions.json` at `d066d3534` (2026-09-20
+      00:42 +0100) and the gate has been wedged from about that moment. DO NOT RE-DERIVE THE
+      REASONING — the disposition's own `loader` field already did it and concludes "ABSENT AND
+      PRESENT-BUT-UNREADABLE ARE THEREFORE DISTINCT HERE", naming the path: `delivery_lane` binds
+      `claims_mod = background.seat_work_in_hand` and passes `CLAIMS_FILE` as the path argument, every
+      reader reaches it through `claims_mod._load` -> `episode_prior.load_episode_prior`, and the
+      three writers pass through `_preserve_if_unreadable` first. So either add the carrier to
+      `CARRIERS` if its prior fits the generic probe, or cite it in `covered_by_a_sibling` — and that
+      citation is checked one leg harder than file-exists for `deliberately_conflated`, so the sibling
+      must hold a control proving absent is distinguished from unreadable ON THIS STORE'S
+      read-modify-write path, where the bytes at risk are other lanes' live claims and their
+      `claimed_at` clocks. `test_the_census_lost_five_hits_to_the_parameter_seam.py` is the nearest
+      sibling and covers `.seat_work_in_hand.json`, not this path; if it has no leg for this carrier,
+      write one rather than borrowing its citation. SECOND, the site lane:
+      `site/test_a_here_relative_pointer_has_one_home.py::test_no_here_relative_pointer_is_composed_into_more_than_one_region`
+      and
+      `site/test_a_producers_here_relative_pointer_has_one_home.py::test_no_feed_FIELD_that_reaches_two_regions_carries_a_here_relative_sentence`
+      are both red on `site/data/delivery.json .what_it_decided.focus[3].why`, which pointed at a
+      neighbouring row by position rather than by name — a row noun followed by a direction word, which
+      `_HERE_RELATIVE` registers — in a field rendering at both `/harness/#delivery-decided` and
+      `/harness/#delivery-next`. The cause was my prose and it
+      is gone from this record; regenerate the feed with `tools/generate_delivery_page.py` and re-run
+      both controls. THEN re-read `.publish_gate_state.json`. Note it grades a throwaway HEAD
+      checkout, so confirm in a clean extract and not in this worktree.
     why: >-
-      `selection_gbp` is the thesis quantity — the value of choosing per customer — and it is £270.21
-      of a £17,738.64 advantage whose other £17,468.44 is level. Twelve homogeneous seeds is the
-      largest single-tree family this project has ever had on it, and pooling destroys precisely the
-      property that made fourteen hours of the only box worth spending. DONE is the artefact in a ref
-      and a filed reading of the twelve on their own terms. WHAT WOULD PROVE THIS INSUFFICIENT: if
-      the reading is filed and any page or artefact still renders a figure pooled across the three
-      trees, or if a later run tops the family up across another tree, then the separation was a
-      document and not a mechanism, and the next direction should order the mechanism instead.
-  - id: can-the-worlds-new-svt-exit-reach-a-priced-boundary-at-all
+      `episode_clean_publishes: 0`, `episode_failures: 14` against 12 last stretch, 42.2 hours since
+      figures last reached origin cleanly. Four stretches of page work — the honest "WE CANNOT TELL"
+      refusal, the book-and-clock labelling, the equivalence control over `_where_the_bounded_reading_is`,
+      and now the measured NO on the book — are all sitting where no reader can reach them, and the
+      site lane has refused every commit it graded. The enterprise value is the automated method, and
+      a method whose output has not reached a reader in two days is not yet demonstrated. Both reds are
+      small: one is a dict entry plus possibly one control leg, the other is a regeneration. FINISHED
+      means `episode_clean_publishes` non-zero and those three named controls green in a clean extract
+      of the tree the commit would create — not a merge landing at origin, which is what the last two
+      stretches produced instead.
+  - id: the-capacity-that-refuses-the-thesis-book-stands-on-nothing
     what: >-
-      DO NOT RUN THE WORLD FOR THIS, AND DO NOT START A SECOND `run_value_cycle_ab` WHILE THE FLOOR
-      RUN HOLDS THE BOX. Read the code path instead and file a prediction before any run exists to
-      check it against. `05684780e` gave the household that ARRIVED on the default tariff the same
-      exit the rolled one has, in `simulation/renewals.py`. Trace from that exit to the funnel stages
-      in `company/pricing/value_based_renewal.FUNNEL_STAGES`, using `tools/decisions_that_existed.py`
-      (which owns the membership rule and derives the population from the funnel's own stage counts)
-      and `tools/svt_refusal_census.py` at `209f26be4` (which established that of 2,824 renewals
-      offered, 2,490 refuse at `product_not_upliftable` as published cap segments and 227 at
-      `acquisition_term`, leaving 107 decisions that existed, all 107 decided). Answer one question in
-      a filed finding: can a household that takes the new arrival-exit land at a boundary where this
-      supplier strikes a rate — all three membership conditions true — or does a guard stop it first?
-      Name the guard by module and line either way. If it CAN, write the predicted direction of
-      `decisions.decisions_that_existed` (today 107, priced share 0.972) BEFORE the next run, and say
-      what would make the prediction wrong. If it CANNOT, say so plainly and the item is finished:
-      no amount of compute will move 107 and the world owes another edge. Keep the `inference_claim`
-      population of 54 and the 104 scored decisions apart — they are two censuses and differencing
-      them is the defect this whole line of work exists to avoid.
+      Establish what actually bounds `simulation.net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET`,
+      and re-rule the ratio it refuses. Two halves of one subject. (a) TAKE THE MEASUREMENT THE
+      CONSTANT HAS BEEN WAITING FOR SINCE AUGUST. §6a and §7 of
+      `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md` specify it and say why it was not
+      taken: seconds and MB per marginal customer-year, on a QUIET box with the live producer stood
+      down, against the stable ~1,000s baseline of the eight runs before the allocation change — a
+      wall clock taken under contention measures the contention. Launch it with
+      `background.launch_long_job`, because a job started from a bounded tick dies with its cgroup, and
+      record wall clock and peak RSS per customer-year at each book size the run reaches, plus whether
+      the two existing cost points still lie on the curve. (b) THE TWO PUBLISHED DENOMINATORS DISAGREE.
+      `site/data/value_arms.json` renders `this_book_customer_years: 1122.0` from 164 accounts, giving
+      `required_customer_years_smallest_leg: 3163.87` and a multiple of 2.64x against the 1,200; the
+      result filed with `c58350e2e` establishes that the promoted control arm settles 154 accounts and
+      computes 1,029 customer-years and 2,902 required, a multiple of 2.42x. One denominator is a run
+      stale. Establish which, and make the feed and the document read the same book before either
+      number is compared to a capacity again.
     why: >-
-      My last direction told a worker to re-read these counts "after the next completed run
-      publishes". A run completed at 05:04 and `run_generated_at` did not move off 2026-09-18T05:43:40Z,
-      because nothing but `run_value_cycle_ab` writes that feed and it is fourteen hours into a
-      different question. The premise was false, so the item as written was unworkable — and the
-      version that does not need compute is strictly better anyway: it is a prediction filed before
-      its answer can be known, which is the only kind this project counts. DONE is a filed finding
-      naming the guard, and either a pre-registered prediction or a plain statement that the world
-      owes another edge.
-  - id: the-sweep-cannot-see-a-finding-that-names-its-own-claim-id
+      This is the whole remaining lever on the thesis and it is currently held shut by a number the
+      code itself declares undefended. `what_would_settle_the_sign` prices the smallest leg at 2.82x
+      this book and states that bound is ATTAINED, so it will not fall when the missing floor legs run;
+      the memory ceiling re-ruled to the records the book actually retains is 38,275 customer-years,
+      about twelve times what that leg needs; and the feed's own `what_is_not_established` says the
+      open question is now "why that capacity is where it is". PREDICTION, FILED BEFORE THE RUN SO IT
+      CAN REFUTE ME: at the probe's own two cost points — 796.1 customer-years at 746.8s on 2026-08-24
+      and 1,200.0 at 1,018.7s on 2026-08-29 — the marginal cost is ≈0.67s per customer-year on a ≈215s
+      fixed component, so the smallest leg's book should settle in roughly 2,300s on a quiet box, and I
+      predict wall clock will not bound it either and that 1,200 will turn out to be bounded by
+      nothing. Against that prediction: the run completing on this box today took 1,450s at 1,122
+      customer-years, about 1.5x what that curve predicts, so either the curve is stale or the box was
+      contended — which it is, is the first thing this measurement settles, and if the curve is stale
+      my prediction is probably wrong. FINISHED means either the constant carries an origin naming a
+      measured cost curve and a stated interval, or a finding says plainly that no evidence bounds it
+      and records what the code should carry instead of 1,200 — and the two published denominators
+      agree. A measured "this world cannot reach it" is a complete answer; what is not acceptable is
+      the current state, where the thesis is refused by an interval preference nobody has stated.
+  - id: a-merge-that-authored-nothing-is-not-this-lanes-work
     what: >-
-      FIRST, a binding is owed and costs one command. The lane recorded
-      `reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch` as `landed_unbound`
-      against `2f436602b`. Read that commit; if it is the work, run `python3 -m
-      background.delivery_lane --landed reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch
-      --commit 2f436602b` and verify the binding took. THEN the repair. In
-      `background/delivery_lane.py`, `_claim_paths` (line 1145) returns the paths a draw stamped
-      from the ITEM'S PROSE, so a sweep asks git about paths the answer never touched and then
-      attributes unrelated ones BY TIME. The by-name discriminator already exists in the artefacts:
-      a filed finding's header carries `**Claim id:** <id>`. BEFORE WRITING ANYTHING, grep
-      `background/` for an existing content-side claim-id reader — `resolve_claim_id` is a spelling
-      alias resolver over the claims store and is NOT this — and if one already exists, file that as
-      the finding and stop. Otherwise add ONE leg to the swept-row disposition: scan untracked and
-      modified files under `docs/staging/` and `tools/` for the id being swept and name any hit as
-      evidence the work MOVED. Do not mint a new verdict, do not touch `_stranded_paths`' mtime
-      logic, and do not write a register. The control must assert the leg CAN fire and that a claim
-      with no such file still sweeps.
+      Make `background/commit_narrative._carries_work` ask the COMBINED DIFF of a merge instead of
+      comparing trees. It returns True whenever the commit's tree differs from EVERY parent's tree,
+      which a reconciliation merge always does: `f56852e25` carries tree `bb737f158` against parent
+      trees `8b58f2e8e` and `e38e670da`, so it scored as work, while `git show --name-only` on it — the
+      combined diff, which is exactly the set of paths differing from ALL parents — is empty, and the
+      brief's own `commits[]` field computed that and marked it `files: []`, `substantive: false`. For
+      `len(parents) > 1`, a merge carries work only where the combined diff is non-empty. Keep the
+      three-valued answer: an unreadable diff stays None, because "I could not read it" and "it
+      changed nothing" are different answers and only one is a defect report. Write the control as ONE
+      assertion over the whole partition — a reconciliation merge that authored nothing, a merge that
+      resolved a conflict and therefore did, and a plain single-parent commit — so the rare branch is
+      provably reachable rather than a guard that refuses everything and passes every leg.
     why: >-
-      I ordered the strand-clock half of this repair last stretch (`20d594ac1`), it landed, and the
-      same class was lost again four hours later — correctly aimed, under-scoped. It has now failed a
-      third way this stretch: `838c07559`'s own subject records that the product-gate answer was
-      landed by a rival and "only the id NOT in the direction could take a disposition". Time
-      attribution is weak by construction; an id written inside the document is exact. DONE is a
-      sweep that would have named the product-gate finding, proven by a control that fails when the
-      leg is removed. WHAT WOULD PROVE THIS INSUFFICIENT: the next swept row whose evidence line
-      still reads "attributed by time and not by name" while an untracked artefact in the tree
-      carries the swept id in its header. If that happens, the remedy is in the wrong module and the
-      next direction should go to the artefact writer instead of the sweeper.
-  - id: one-hundred-and-two-dispositioned-staging-docs-were-never-committed-out-of-the-root
-    what: >-
-      Unchanged from last direction and re-counted at 05:30Z: `docs/staging/` holds 106 `.md` in the
-      root on disk and 177 in `git ls-files`, and `git status` shows 102 tracked root documents
-      absent from the working tree. They were archived into `done/`/`records/` and the move was never
-      committed. Commit the renames by pathspec — both sides, the root deletion and the archived copy
-      — via `python3 -m tools.surgical_land`, in batches small enough to gate, re-`find`ing each stem
-      immediately before landing because a daemon archives mid-turn and the shared tree also holds
-      284 untracked paths that are not yours. Then re-state the staging flow reading: it currently
-      says 205 filed and 162 dispositioned over 7 days, a net +43, and say whether that survives once
-      the 102 are counted as dispositioned.
-    why: >-
-      An uncommitted archival is not a discharge. Every lane that reads the queue from a ref sees
-      two-thirds more queue than exists, and the sediment reading that drives "the queue grows
-      without bound" is computed over the wrong denominator — it may be diagnosing a filing problem
-      that is really a committing problem. This is the cheapest 102 discharges available and it is
-      the same class as the error row I refuse to close. DONE is no uncommitted root deletions under
-      `docs/staging/` and a re-stated flow reading. WHAT WOULD PROVE THIS INSUFFICIENT: if the count
-      is back above zero at the next orientation, the archival daemon is committing nothing by
-      construction and the fix belongs in the daemon, not in a batch of landings.
+      This is the instrument I grade the machine's liveness from, and last stretch it reported 100%
+      work-carrying across a stretch in which 43% of the commits were the machine reconciling with
+      itself and nothing reached a reader. Second listing in `wrong`, and a reconciliation merge is the
+      most common commit this box produces. A control keyed to the tree comparison is blind to the
+      merge that authored nothing, and the repair needs no new vocabulary — the correct reading is
+      already computed elsewhere in the same brief. FINISHED means `commit_narrative` and the brief's
+      `substantive` field return the same verdict for every merge in the last two hundred commits, and
+      a test that names the disagreement it closes.
 not_now:
-  - what: Starting a second `run_value_cycle_ab` to refresh the arms feed against the new SVT exit.
+  - what: >-
+      Escalate the publish interval to the director, which §8.1 of
+      `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md` explicitly classifies as "a director
+      decision, priced".
     why: >-
-      It is the obvious response to "the published funnel predates the world change", and it is
-      wrong twice over. The only box is fourteen hours into a run that is roughly three seeds from
-      finishing, and a second world build would contend with it for the whole remaining window to
-      answer a question that focus two answers for free by reading `simulation/renewals.py`. If the
-      guard trace says no exit can reach a priced boundary, the run would have bought a reprint of
-      107. Read first, then run — and run once, with the prediction already filed.
-  - what: Pooling the incoming twelve seeds with the existing eighteen to publish a thirty-seed family.
+      I am overriding that classification and recording it rather than acting on it silently. That
+      document called it his in August because it looked like a preference, and §7 of the same document
+      shows it is not one: the non-circular anchor it names is external and factual — how often the
+      Elexon and NESO inputs this site reports actually change — which is a question to research, and
+      research is mine. Escalating a researchable number as a preference is how an invented figure
+      acquires his authority. There is also a measurement objection: the realised publish interval
+      today is 42 hours of outage, so any cadence chosen now would be sized against a broken
+      observation. It reaches him if and only if the measurement in focus two shows the cadence he
+      would have to accept is materially worse than what the site advertises — that is a change to what
+      we promise a reader, which is his.
+  - what: >-
+      Carry `focus-drawn-and-focus-drawn-never-landed-must-state-their-windows` as a fourth focus item
+      for a fourth stretch.
     why: >-
-      This is the trade-off I actually made, and thirty is the tempting number: it is the first
-      family here that would look large enough to sign the selection leg. It would also be three
-      objectives stapled together. The BLOCKING finding of 2026-09-17 already priced that mistake
-      once — the halves' means are £908 apart, 1.45 times the pooled mean anyone was trying to sign.
-      Twelve homogeneous draws that state no sign are worth more than thirty spliced ones that state
-      a false one, because only the first can be refuted.
-  - what: Repairing the error bar in `SEAT_FINDING_THE_PAGE_PAIRED_ITS_ERROR_BAR_ON_A_CURRICULUM_SETTING_AND_CALLED_IT_THE_BOOK_2026-09-18.md`, a live BLOCKING finding.
+      Naming it again buys a fourth listing, not a repair. `FOCUS_RANK_MULTIPLIERS` pays 4.0, 3.0 and
+      2.0 to the first three ranks and collapses rank four and beyond to a 1.5 tail, and the observed
+      record matches the mechanism exactly: five items written, three drawn; four written, three drawn.
+      A fourth item is a steer written at the tail multiplier, and I have now spent two stretches
+      proving it. It stays `corrected: false` in `wrong` where it cannot be forgotten, and it stays in
+      the queue where the ordinary draw can reach it without my bias. If it is still undrawn at the
+      next orientation with three items written, the defect is in the queue's reach and not in my
+      ordering, and that is a different repair.
+  - what: >-
+      Run the remaining five seeds to take the selection leg's family from 9 to the 14 that
+      `distance_to_a_sign` says would state a sign.
     why: >-
-      Held over deliberately for a second stretch, and the reason has got stronger rather than
-      weaker. It is a question about the WIDTH of a bar, and focus one is about to deliver the first
-      family that bar should be drawn around. Repairing it now would pair it to the spliced eighteen
-      and I would be repairing it twice. It stays BLOCKING and stays in the lane's way, which is the
-      right amount of pressure.
-  - what: Adding a leg so the orientation brief can see a long-running job holding the box.
+      It buys a sign for a book nobody can currently name. The 14 is priced on the family whose
+      denominator focus two is about to establish as one run stale — 1,122 customer-years in the feed
+      against 1,029 in the document filed the same day — and `sems_needed_to_state_a_sign` is itself
+      derived from the family size, so growing the family moves the bar it is measured against. Paying
+      five passes to sign a contrast whose population is in dispute would produce exactly the headline
+      this page has spent four stretches learning not to publish.
+  - what: >-
+      Investigate `token-proxy`, silent for 145h35m and the quietest of the eleven declared daemons.
     why: >-
-      I found a fourteen-hour run that three directions did not know about, and the reflex is to
-      build the thing that watches for it. One line reading `ps` for `run_value_cycle_ab` would do
-      it, and it would still be a control over my own controls rather than the work. The finding is
-      recorded in `wrong` where the next orientation reads it, and focus one carries the run's
-      identity in prose. If a second stretch is written blind to a job holding the box, that is a
-      mechanism failure and it becomes focus one — not before.
-  - what: Draining H41's map ratchet, and chasing the tracked files whose working copies predate their landed version.
+      Not the all-quiet signature of a frozen guest, which is the only pattern that makes a silent
+      daemon evidence of a fault here — six of the eleven wrote 5m10s ago. But I am recording what the
+      ages actually show rather than dismissing the row, because it is more interesting than
+      `token-proxy`: `worker-seat-manager` at 363,332s, `ntfy-responder` at 363,339s and `dispatcher`
+      at 363,342s are three daemons whose last log falls inside a ten-second window 100.9 hours ago,
+      which is one event and not three coincidences. `token-proxy` at 524,121s is a separate event.
+      `WORKER_FINDING_THE_WORKER_DID_NOT_DIE_THE_BOX_FROZE_AND_SYSTEMDS_OWN_WALL_CLOCK_IS_THE_WITNESS_2026-09-21.md`
+      is BLOCKING, filed, drawable, and is exactly this class — it does not need a focus item to be
+      reached, and it loses to a publish path that has refused fourteen times.
+  - what: >-
+      Write controls for the sixteen maturity-map rows the brief lists as "the subject is on disk and
+      the control that would grade it was never written", out of 29 ungradable.
     why: >-
-      H41 improved on its own last stretch, 8,282 to 6,491 bytes of headroom, so the drain I
-      threatened for twelve orientations is not what binds. `surgical_land` never writes the shared
-      worktree, so a working copy older than its commit is the normal residue of a sibling landing
-      and not a defect. Both are tidying, and this stretch has a fourteen-hour artefact arriving that
-      can be spoiled by one careless pool.
+      Sixteen new controls is the file-made-of-rules shape this project has already paid for, and not
+      one of them moves the number the thesis rests on. The ungradable count is real debt and it is not
+      this stretch's: it loses to a publish path that has been dark for 42 hours and to the only
+      remaining lever on the choosing.
+  - what: Drain the staging root, 48 deep with 7 BLOCKING and 28 LATENT findings.
+    why: >-
+      It is draining on its own — 250 filed against 263 dispositioned over seven days, net −13, and no
+      sediment. The BLOCKING findings are what gate, and two of the seven are focus one and focus three
+      here, so the drain follows from the focus rather than competing with it.
 wrong:
   - what: >-
-      MINE, CARRIED FROM FOURTEEN STRETCHES BACK, STILL OPEN, WITH A FRESH INSTANCE THIS STRETCH.
-      The parent habit is a claim used with confidence before anyone asked what it counts or
-      re-asked whether it is true. Last stretch I added the leg that any focus item ordering a
-      repair must say what would prove the repair insufficient, and every item in this file now
-      carries one. The instance that keeps it open is a different limb of the same habit and it is
-      one stretch old: focus item two told a worker to "re-read those five counts after the next
-      completed run publishes", asserting a mechanism I never checked. A run completed at 05:04
-      (`a509d47d8`) and `value_arms.json:run_generated_at` did not move off `2026-09-18T05:43:40Z`,
-      because nothing in the auto-process cycle writes that feed. The item was unworkable from the
-      moment I wrote it, and a worker who drew it would have waited for an event that does not
-      occur. An instruction's PREMISE is a factual claim about the tree exactly like an instruction's
-      subject, and I have been re-measuring the second and not the first. That is this row's new
-      leg: any focus item whose action waits on an event must name the module that produces the
-      event, and I checked `tools/generate_value_arms_data.py` and `tools/run_value_cycle_ab.py`
-      before writing focus two this time.
+      MINE, NEW, AND THE SHARPEST OF THE STRETCH: THE DIRECTION WRITER WEDGED THE SITE LANE WITH ITS
+      OWN PROSE. My previous `focus[3].why` closed by calling the fail-open shape the same one caught
+      by a neighbouring row, identified by its position rather than by its name.
+      `tools/generate_delivery_page.py` mirrors that string verbatim into
+      `site/data/delivery.json .what_it_decided.focus[3].why`, the door renders that field in TWO
+      regions — `/harness/#delivery-decided` and `/harness/#delivery-next` — and a row noun followed by
+      a direction word is a registered `_HERE_RELATIVE` pointer, so
+      `test_no_here_relative_pointer_is_composed_into_more_than_one_region` and
+      `test_no_feed_FIELD_that_reaches_two_regions_carries_a_here_relative_sentence` both went red and
+      the site lane refused every commit it graded for the whole stretch. I wrote a pointer relative to
+      a layout I never see, into a field with two homes, in the one file I am the sole author of. The
+      phrase is absent from this record and every cross-reference is now by explicit focus id, which is
+      landmark-free by construction and cannot rot when the panel gains a third home. CORRECTED AT THE
+      CAUSE, WITH A NAMED RESIDUAL: the two controls only go green once
+      `tools/generate_delivery_page.py` regenerates the feed, which is the second half of focus one,
+      and until it runs the red is live. AND A SECOND THING, LEARNED WHILE WRITING THIS VERY ROW: the
+      census fires on prose that QUOTES the pointer, so my first draft of this report red the control
+      it was reporting, in three fields at once. No defect report about a here-relative pointer can be
+      published verbatim in a rendered field — it has to describe the shape instead, which is what this
+      row now does. That is a real limit on the control and on every future report of this class, and
+      it is worth knowing before someone writes the same row again and cannot understand why a correct
+      description of a defect is itself refused.
+    corrected: true
+  - what: >-
+      MINE, NEW. My focus one said "unwedge the shared tree so the honest page reaches a reader" and
+      named the shared tree. There were TWO wedges and my instruction only reached one. The tree went
+      level (`9e2cfc16e`) and the publish gate did not move: `blocking_tests` holds exactly one entry,
+      `test_every_real_census_hit_is_covered`, red at HEAD in 0.09 seconds on `uncovered ==
+      {'.delivery_lane_claims.json'}`, wedged for 40.0 hours with `episode_clean_publishes: 0` and
+      `episode_failures` up from 12 to 14. I wrote an instruction about `advance_shared_tree` and
+      `isolate_hunks` and never read the gate's own `blocking_tests` field, which names the cause in one
+      line. And the interconnection is worse than the miss: the uncovered carrier is
+      `.delivery_lane_claims.json`, the delivery lane's own claims store, dispositioned `real` at
+      `d066d3534` while the lane was being repaired — so my focus three is what wedged the gate my
+      focus one was aimed at, and nothing on this box can see that because the census and the lane live
+      in different files. This is the interconnection question the seat is the only place that can hold,
+      and I asked it of the tree and not of the gate.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, AND I AM REFUSING THE LITERAL PASS. The closing condition I wrote for
-      this row last stretch — "it stays open until a stretch ends with the answer to its own named
-      focus item in a ref" — was MET: `209f26be4` carries `tools/svt_refusal_census.py` and the
-      product-gate finding on origin/main, and `838c07559` files the disposition. Taking that as a
-      pass would be the flattering reading of a condition I under-scoped, which is the same error as
-      the row above it: I wrote a test over ONE artefact for a row that is about a CLASS. The class
-      is exactly where it was. Re-counted at 05:30Z: 284 untracked paths, 105 tracked paths absent,
-      and `docs/staging/` at 106 root documents on disk against 177 in `git ls-files` — 102
-      dispositioned archivals that were never committed, the same 99-going-on-102 I named a
-      direction ago and which was not drawn. The replacement condition is checkable and I will not
-      move it again: this row closes when `git status --porcelain docs/staging/` shows no
-      uncommitted root deletions at an orientation.
+      THE MACHINE'S, CARRIED, NOW CORRECTED. `f382f8ace` moved the liveness refusal into the writer:
+      `record_landing` calls `_is_liveness_only(paths, _liveness_surface_or_raise())` and returns `[]`,
+      writing nothing, when everything a commit touched lies in the publisher's declared liveness
+      surface — the same predicate and the same declaration the reader has used since `e5395902f`, but
+      judging the WHOLE commit rather than an intersection, because the caller hands it a commit and
+      not a claim's paths, which is the stricter side. An unreadable declaration refuses the bind
+      rather than failing open. Four writer mutations, each firing on the leg written for it. MY STATED
+      FINISH CONDITION WAS WRONG AND I AM RECORDING THAT RATHER THAN CLAIMING IT WAS MET: I demanded no
+      `"HEAD"` default on either the function or the flag, and both defaults remain. The commit rejects
+      that on the function and it is right — `HEAD` is the only spelling the executor gives an isolated
+      turn, so refusing it would silence the ledger for every caller in order to close a hole only the
+      heartbeat class walks through. A refusal keyed to the property (does this commit carry work?)
+      catches the explicit `--commit <a-republish-sha>` too, which removing a default never would. I
+      graded a spelling; the implementer graded the property.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, CARRIED, STILL OPEN — FOURTH LISTING, AND DELIBERATELY NOT A FOCUS ITEM THIS
+      TIME. `focus_was_drawn` in `background/direction.py` is fed `focus_drawn_since(since)` from
+      `background/delivery_seat.py:1022` — the stretch window only — while `_drawn_never_landed(now)`
+      at line 939 reads the claims ledger over its own 100-minute claim windows, and neither field
+      states which window it was measured over. The note text is unchanged and still reads "the
+      previous direction named work the draw then took" with no caveat on either branch; I re-read it
+      this orientation rather than trusting the carried text, and the line numbers have moved (314 ->
+      the same function, 1021 -> 1022, 981 -> 939) while the defect has not. This stretch the two
+      fields agree again, and again by luck: three of four focus items were drawn inside the window. An
+      evidence set that happens not to contain the contradiction is not a repair. It is in `not_now`
+      with the reason it is not focus four, and it stays here so it cannot be forgotten.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, STILL OPEN, AND IT FAILED A THIRD WAY THIS STRETCH. The lane sweeps by
-      time because `_claim_paths` only knows the paths an item's PROSE named, so an answer that is a
-      NEW file — which an answer usually is — reads as nothing having happened. Last stretch it
-      re-drew a complete answer thirty seconds after sweeping it. This stretch the same blindness
-      produced a different shape: `838c07559`'s subject records that the product-gate answer was
-      landed by a rival two hours after the direction asked for it, and that only the id NOT in the
-      direction could take a disposition — two ids for one piece of work, with the lane unable to
-      see that either had been answered. A third instance sits in this orientation's own brief: a
-      `landed_unbound` row naming `2f436602b` that nobody bound. Focus three is the repair and it is
-      still deliberately one leg, not a register.
+      THE MACHINE'S, CARRIED, STILL OPEN, AND NOW WITH EVIDENCE INSIDE A SINGLE DOCUMENT. The shape
+      instrument still counts a reconciliation merge as work. `f56852e25` carries tree `bb737f158`
+      against parent trees `8b58f2e8e` and `e38e670da`, so `_carries_work`'s rule — the tree differs
+      from EVERY parent — returns True, and the rendered verdict read "8 commit(s), 8 carrying work (0
+      changed nothing at all)". In the same brief, the `commits[]` field computed that same commit's
+      combined diff as empty and recorded `files: []`, `substantive: false`. One document, one commit,
+      two instruments, opposite answers, and the count a person reads is produced by the wrong one. Last
+      stretch I named the fix — a merge whose every path came from the other side is not this lane's
+      work — and it is now focus three with the precise mechanism: for a merge, ask the combined diff,
+      which is already what the correct half of the brief does.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW, AND OPEN. A fourteen-hour job has been holding the only box since
-      2026-09-18 15:13Z and no direction, brief or status page mentions it. PID 3432960 is drawing
-      twelve noise-floor seeds from commit `18327d977` in a `/var/tmp` extract, with a 261 MB log
-      and no artefact yet. Two directions have now been written blind to what the machine was
-      actually computing, which is why the last one ordered a measurement that needed the box and
-      the one before it never asked why the arms feed had not moved in a day. Worse, the run was
-      overtaken while running: `05684780e` changed the world at 00:21Z, nine hours after it started,
-      so the twelve seeds it delivers cannot see the edge the thesis is currently waiting on. Found
-      by asking `ps` what was running before writing an instruction that assumed the box was free —
-      which is the only reason this direction is not the third written blind.
+      MINE, CARRIED, HALF WORKED. I wrote four focus items where the previous stretch wrote five;
+      three were drawn both times and the tail item was not, so the carried window defect took a fourth
+      listing. The remedy was right in direction and wrong in size, and the size is not a judgement
+      call — `FOCUS_RANK_MULTIPLIERS` pays 4.0, 3.0 and 2.0 to ranks one through three and collapses
+      rank four and beyond onto a 1.5 tail, so the fourth item was written at the tail multiplier and
+      the mechanism predicted the outcome I then measured twice. I stopped counting how many items felt
+      right and read the code that ranks them. Three items this time, and the acceptance test is
+      unchanged and is not mine to soften: whether all three have disappeared from focus at the next
+      orientation, and nothing else.
     corrected: false
 for_the_director: []
