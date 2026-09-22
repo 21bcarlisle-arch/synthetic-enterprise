@@ -53,14 +53,81 @@ def _repo_root() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parent.parent
 
 
+def _tests_absence_from(test: ast.AST, book: str) -> bool:
+    """Is this test TRUE exactly when the key is ABSENT from `self.<book>`?
+
+    POLARITY IS THE WHOLE POINT OF ASKING STRUCTURALLY. The two legs below this one match their
+    guard textually on `in self.<book>`, and for an ENCLOSING `if` that is conservative: the read
+    sits in the true arm, so the arm that runs it is the arm that tested the book. An EARLY-RETURN
+    guard inverts that. `if k in self._book: return` followed by `self._book[k]` leaves the read
+    reachable on exactly the paths where it raises -- the textual needle matches, and calling that
+    guarded is fail-open on the one shape the widening exists to see. So this leg reads the operator
+    rather than the characters: `not in`, or `not (... in ...)`.
+
+    An `or` is admitted because absence on either side still reaches the leave. An `and` is not:
+    absence alone does not trigger it, so the read stays reachable with a missing key."""
+    target = f"self.{book}"
+    if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.Or):
+        return any(_tests_absence_from(v, book) for v in test.values)
+    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+        inner = test.operand
+        return (isinstance(inner, ast.Compare) and len(inner.ops) == 1
+                and isinstance(inner.ops[0], ast.In)
+                and ast.unparse(inner.comparators[0]) == target)
+    return (isinstance(test, ast.Compare) and len(test.ops) == 1
+            and isinstance(test.ops[0], ast.NotIn)
+            and ast.unparse(test.comparators[0]) == target)
+
+
+def _always_leaves(body: List[ast.stmt]) -> bool:
+    """Does every path through this block leave it -- `return`, `raise`, `continue` or `break`?
+
+    `continue` and `break` count because both skip the rest of the loop body, so a read BELOW the
+    guard is unreachable for the key that failed it, exactly as a `return` makes it unreachable for
+    the call. A nested `if` counts only with an `else`, and only when both arms leave."""
+    for stmt in body:
+        if isinstance(stmt, (ast.Return, ast.Raise, ast.Continue, ast.Break)):
+            return True
+        if (isinstance(stmt, ast.If) and stmt.orelse
+                and _always_leaves(stmt.body) and _always_leaves(stmt.orelse)):
+            return True
+    return False
+
+
+def _statements_before(node: ast.AST, parent: ast.AST) -> List[ast.stmt]:
+    """The statements preceding `node` in whichever of `parent`'s block-lists holds it."""
+    for _field, value in ast.iter_fields(parent):
+        if not isinstance(value, list):
+            continue
+        for i, item in enumerate(value):
+            if item is node:
+                return [s for s in value[:i] if isinstance(s, ast.stmt)]
+    return []
+
+
 def _membership_guarded(sub: ast.Subscript, fn: ast.AST, book: str) -> bool:
     """Is this `self.<book>[k]` read already protected by a `k in self.<book>` test?
 
     `{self.symbols[n.id] for n in ... if n.id in self.symbols}` cannot raise, and neither can the
     same shape written as an enclosing `if`. Counting it as a raise-on-missing accessor is how the
-    first run of this survey reported `_FunctionScan._keys` as the defect class twice. The test is
-    textual on the guard, which is conservative in the safe direction: a guard naming the book keeps
-    the accessor OUT of the catalogue only when it is the book being subscripted."""
+    first run of this survey reported `_FunctionScan._keys` as the defect class twice. Those two
+    tests are textual on the guard, which is conservative in the safe direction: a guard naming the
+    book keeps the accessor OUT of the catalogue only when it is the book being subscripted.
+
+    THE THIRD SHAPE IS THE ONE THIS REPO ACTUALLY WRITES, and until 2026-09-21 it was not seen:
+
+        if customer_id not in self._records:
+            return None
+        return score_payment_history(self._records[customer_id])   # <- was reported BARE
+
+    Seven accessors sit in it -- `COTBook.void_days`, `CustomerCommPreferenceRegister.can_contact`,
+    `PaymentBehaviourAnalytics.get_score` and `.get_metrics`, `PSRBook.update_needs`, and with an
+    early RAISE rather than a return `TriadNotificationBook.issue_alert` and
+    `HedgingSchedule.add_contract`. The last two already raise a `KeyError` naming the key, which is
+    what the refusal audit asks for, and the survey was counting them as the defect because they
+    name it one statement earlier than it looked. That put a floor of 13 under the BARE headline
+    that no repair could move, and inflated it by ~54%: a count nobody could drive to zero cannot be
+    used to prove the class is closed."""
     needle = f"in self.{book}"
     ancestors: Dict[int, ast.AST] = {}
     for parent in ast.walk(fn):
@@ -75,7 +142,13 @@ def _membership_guarded(sub: ast.Subscript, fn: ast.AST, book: str) -> bool:
                         return True
         if isinstance(cur, (ast.If, ast.IfExp)) and needle in ast.unparse(cur.test):
             return True
-        cur = ancestors.get(id(cur))
+        parent_of = ancestors.get(id(cur))
+        if parent_of is not None:
+            for prior in _statements_before(cur, parent_of):
+                if (isinstance(prior, ast.If) and _tests_absence_from(prior.test, book)
+                        and _always_leaves(prior.body)):
+                    return True
+        cur = parent_of
     return False
 
 
