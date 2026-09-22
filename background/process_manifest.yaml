@@ -40,6 +40,16 @@ processes:
     owner: systemd
     launched_by: systemd   # MIGRATED 2026-07-17 → out of start_worker's tmux set (never two launchers)
     state: enabled
+    log_silence: >-
+      MUTE BY CONSTRUCTION, established 2026-09-22 against live pid 2359727 (up 106h, not one
+      journal line of its own). `background/worker_seat.py` contains ZERO `print()` calls and
+      opens no log file — it has no write-out path at all, so there is no cadence at which it
+      could ever speak. This is a FOURTH cause beside the three the lane-0 item named
+      (wrong-path / wedged / nothing-to-say): a daemon with nothing to write WITH. It is not
+      wedged — `/proc/2359727/wchan` reads `hrtimer_nanosleep`, its ordinary CHECK_INTERVAL sleep.
+      REMEDY, deliberately not taken in the same turn as the reading: a heartbeat line is a real
+      behaviour change to the daemon that seeds the worker seat, and it deserves its own evidence
+      rather than arriving as a side-effect of fixing an instrument.
     purpose: "Thin worker-seat manager: seed-by-id + keep-alive + report status ONLY (no reap, no auto-advance) — the one bespoke process, itself a systemd unit. Migrated live 2026-07-17: verified seeding by dedicated --session-id (not a console latch), worker idle/holding, reaper retired, console untouched."
 
   - session: claude   # the worker seat's tmux session name is `claude`
@@ -55,6 +65,22 @@ processes:
     owner: systemd
     launched_by: systemd   # MIGRATED 2026-07-17 (serial-autonomy go-live) → out of start_worker's tmux set
     state: enabled
+    log_silence: >-
+      WRONG PATH, AND THE STDOUT HALF IS DISCARDED UNFLUSHED — cause established 2026-09-22 and
+      shared with `deadmans-switch`, `staging-watcher` and `naive-organ` below, which is why each
+      names it rather than one of them carrying a class verdict. Its real log is
+      `docs/observability/supervisor-log.md`, 380,766 lines and written 2 minutes before this
+      reading. `supervisor.log()` appends the file and then `print()`s; `background/supervisor.py`
+      passes `flush=True` nowhere, and under systemd stdout is a socket, so Python block-buffers
+      at 8 KiB. THE SECOND HALF IS WHAT MAKES IT PERMANENT: `background/deploy_restart.py`
+      restarts this unit on every landing that touches its module — measured here at a ~10-minute
+      cycle ("Consumed 1min 23s CPU over 10min 25s wall") — and the SIGTERM that ends a run does
+      NOT flush the buffer. Controlled directly, not inferred: an unflushed `print()` in a
+      systemd-run unit produced no journal line while alive and none after `systemctl stop`; the
+      same file with `sys.stdout.reconfigure(line_buffering=True)` reached the journal in under a
+      second. So a few lines per 10-minute run can never reach 8 KiB and are lost at every
+      restart. Not wedged, and not a fresh start either: A FRESH START IS WHAT THIS LOOKS LIKE
+      FOREVER, because the restart clock resets the age faster than any cadence could fill it.
     purpose: "Escalation watchdog over the pull-loop transport (G-L4-as-mapped: find_work is the sole DRAW authority; the Stop hook delivers; this daemon polls every 2min and escalates stuck/map-exhausted, ZERO pane writes / ZERO turn delivery). Migrated live 2026-07-17 as step 3 of the serial-autonomy go-live."
 
   - session: deadmans-switch
@@ -63,6 +89,16 @@ processes:
     owner: systemd
     launched_by: systemd   # MIGRATED 2026-07-17 (serial-autonomy go-live, LAST gate) → out of start_worker's tmux set
     state: enabled
+    log_silence: >-
+      WRONG PATH + UNFLUSHED STDOUT, the same mechanism established on `supervisor` above and
+      controlled there; the per-daemon evidence is what differs. Its real log is
+      `docs/observability/deadmans-switch-log.md`, 41,389 lines, written 3 minutes before this
+      reading on 2026-09-22 — so the daemon that exists to notice a stall is itself working and
+      merely inaudible to the journal. `deadmans_switch.py:199` is its single unflushed `print()`;
+      one line per 10-minute run against an 8 KiB buffer that SIGTERM discards. ITS OWN FAILURE
+      MODE IS THE REASON THIS ROW MATTERS MOST: a stall alarm that cannot speak on the channel the
+      brief reads is the one daemon whose muteness would be indistinguishable from the thing it
+      watches for, and `mute` is now the only reading here that could tell them apart.
     purpose: "Independent stall alarm — liveness = the MEANINGFUL git commit clock ALONE (never max'd with observability mtimes; the fail-silent fix). BLOCKED at 45min of no meaningful commit + queued work, STALL at 90min, transition-only + hourly re-escalate. Migrated live 2026-07-17 against a fresh commit clock, completing the autonomy layer's tmux→systemd migration (all three: worker-seat + supervisor + deadmans)."
 
   # ── DARK: present as a daemon but a no-op unless its flag; director-gated ──
@@ -96,6 +132,18 @@ processes:
                            # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
                            # left this row un-flipped: two launchers declared, AND excluded from
                            # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
+    log_silence: >-
+      INTERMITTENTLY AUDIBLE, and it is the only row here observed in BOTH states — which is why
+      it gets its own cause instead of joining the four above. Same mechanism (its `log()` appends
+      `docs/observability/background-worker-log.md` then `print()`s unflushed, against the ~10-min
+      `deploy_restart` cycle), but unlike its siblings this daemon is sometimes VERBOSE enough to
+      push past Python's 8 KiB stdout buffer before the SIGTERM, and then its own lines do land.
+      Directly observed on 2026-09-22 seven minutes apart, one restart between: at 17:40 it read
+      NOT mute, its own MainPID 1767967 having written two `[process_run] Publish ...` lines; at
+      17:47, after a restart, it read MUTE with nothing but systemd's line. SO ITS `mute` READING
+      IS TRUE BUT NOT STABLE, and that is the useful thing to know about it: a run of this daemon
+      appearing in the actionable list is evidence about THAT RUN'S verbosity, never about the
+      daemon's health, and it should not be chased the way a permanently-mute row should.
     purpose: "Qwen task queue + leftover run_complete-marker sweep; off-peak"
 
   - session: staging-watcher
@@ -118,6 +166,18 @@ processes:
                            # cutover (unit installed+enabled+ACTIVE, this flip never made) left TWO
                            # launchers -- systemd PID 266098 + tmux PID 419021 -- so ONE director NTFY
                            # became TWO queued instructions (DIRECTOR_RULING_FIX_DOUBLE_MESSAGING).
+    log_silence: >-
+      NOT MUTE AND NEVER WAS — it writes to a path the journal reader does not watch.
+      Established 2026-09-22 against live pid 2358733: its real log is
+      `docs/observability/ntfy-responder-log.md`, which took ~1,300 lines over the same 106h in
+      which its own stdout produced EXACTLY ZERO journal lines (counted by `_SYSTEMD_USER_UNIT`
+      over the whole unit journal). `log()` writes the file and then `print()`s; only the file
+      write arrives. WHY THE STDOUT HALF NEVER LANDS IS NOT ESTABLISHED — block-buffering is the
+      obvious candidate and the volume argues against it, so it is left named and open rather
+      than asserted. The daemon is healthy: watermark `background/.ntfy_responder_since.json`
+      advances every poll, and a live round-trip probe on 2026-09-22 (published id V2usjzrPOqir,
+      polled straight back down) proves the inbound NTFY path reaches this machine.
+      The director's silence since 2026-09-05 is therefore SILENCE, not a dropped channel.
     purpose: "Acks inbound NTFY, writes to staging/"
 
   - session: dispatcher
@@ -130,6 +190,15 @@ processes:
                            # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
                            # left this row un-flipped: two launchers declared, AND excluded from
                            # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
+    log_silence: >-
+      GENUINELY NOTHING TO LOG, and the same wrong-path half as `ntfy-responder` underneath it.
+      Established 2026-09-22 against live pid 2358571: `dispatcher.log()` writes
+      `docs/observability/dispatcher-log.md`, whose newest line is its own "Dispatcher started"
+      at 2026-09-17 09:27 UTC. It logs ONLY when it classifies a `from_rich_*.md`, and no such
+      file has been staged since 2026-09-05 — `ls docs/staging/from_rich_*.md` is empty — so
+      there has been nothing to classify. Not wedged: `/proc/2358571/wchan` reads
+      `hrtimer_nanosleep`, its POLL_INTERVAL sleep. This row is the one a class verdict would
+      have been most wrong about: identical journal symptom to `ntfy-responder`, opposite cause.
     purpose: "Classifies from_rich_*.md URGENT/NORMAL/FYI"
 
   - session: discovery-daemon
@@ -218,6 +287,17 @@ processes:
                            # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
                            # left this row un-flipped: two launchers declared, AND excluded from
                            # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
+    log_silence: >-
+      WRONG PATH + UNFLUSHED STDOUT, the mechanism established and controlled on `supervisor`
+      above. Its real log is `docs/observability/naive_organ_log.jsonl` — 20,511 lines, written 8
+      minutes before this reading on 2026-09-22 — and it is the one of the four that writes JSONL
+      rather than markdown, so nothing that tails the `-log.md` family sees it either. Eight
+      unflushed `print()` calls in `background/naive_organ.py`, none with `flush=True`, against
+      the same ~10-minute restart cycle. NOT A CANDIDATE FOR THE `staging-watcher` REPAIR without
+      thinking first: this daemon is the outside-view skeptic, its output is judgement rather than
+      trace, and routing that to the journal would put a second copy of its verdicts somewhere
+      with no retention policy. The file is the right home; the fix here is that this row now
+      TELLS the brief so, which is all the brief needed.
     purpose: "Independent outside-view skeptic on its own timer (was MISSING from the old EXPECTED_PANES)"
 
   - session: token-proxy
@@ -230,6 +310,18 @@ processes:
                            # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
                            # left this row un-flipped: two launchers declared, AND excluded from
                            # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
+    log_silence: >-
+      QUIET, NOT MUTE — and quiet because nothing uses it. Established 2026-09-22 against live
+      pid 1192: it DID speak, at +0.2s into its run, and it is the only daemon here whose own
+      line reached the journal at all, because lines 311-312 of `background/token_proxy.py` are
+      the only `print()`s in the four that pass `flush=True`. Nothing since, for 151h, because it
+      logs per PROXIED API CALL and nothing routes through it: `ANTHROPIC_BASE_URL` is unset for
+      every `claude` process on this box, and `docs/observability/token-usage-log.jsonl` was last
+      written 2026-06-25. Not wedged — `/proc/1192/wchan` reads `do_sys_poll`, a listening socket
+      waiting for a connection that never comes.
+      OPEN QUESTION, filed not answered: a proxy nothing is configured to use is a daemon earning
+      nothing, and whether it should be `held` rather than `enabled` is a director-facing call
+      about a declared process, not a tidy-up to make inside a reading.
     purpose: "Local token-usage proxy"
 
   # NOTE: file-api is NOT here — it is a systemd-owned service (director-access

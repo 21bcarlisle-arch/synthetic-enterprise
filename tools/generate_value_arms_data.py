@@ -7133,6 +7133,378 @@ def _svt_drift_belief() -> dict:
     }
 
 
+#: THE SECOND GRADE OF THE SAME QUESTION, on a different book. RECORDED AND NEVER MERGED -- see
+#: `_renewal_churn_belief`'s fourth paragraph. It is opened to establish WHAT IT CARRIES; no figure
+#: is ever lifted out of it, because it carries no null.
+RENEWAL_BELIEF_SECOND_GRADE = (
+    PROJECT / "docs" / "observability" / "renewal_churn_belief_grade.json")
+
+#: The one renewal-route belief that can be put beside the ceiling without a tautology. The other
+#: arm on that route, `churn_probability`, SEEDS the world's own roll -- scoring it against the
+#: outcome measures whether the world's adjustment chain preserved the ordering of a number it was
+#: handed, which is a different question and not the company's forecast.
+_RENEWAL_BELIEF_FIELD = "company_churn_estimate"
+
+
+def _renewal_churn_belief(size_block: dict | None = None) -> dict:
+    """WHETHER THE COMPANY'S BELIEF ORDERS WHO LEAVES ON THE ROUTE WHERE IT PRICES.
+
+    THE THESIS HAS ONE DIRECT TEST AND THIS IS IT. "It beats average precisely to the degree it
+    understands and predicts the truth behind the SIM better than average" resolves, on the renewal
+    route, to a single question: does `company.crm.churn_model.estimate_churn_probability` put the
+    accounts that actually left above the ones that stayed. It was measured -- with a 2,000-
+    permutation null, an oracle ceiling on the identical rows, and a per-factor decomposition -- on
+    2026-09-22, and it reached NO reader for the reason a finding filed in the wrong place always
+    does: the artefact's FILENAME names the other route. `svt_drift_belief_grade.json` grades both,
+    and `per_route.renewal` sat unread. Same class as `_inference_claim` and `_svt_drift_belief`
+    above; same sentence applies.
+
+    A SECOND READER RATHER THAN A WIDENED ONE, and the REUSE block on the landing says so.
+    `_svt_drift_belief` is one `.get("svt_segment")` from this block and widening it was the cheaper
+    move. It would have been wrong. That function's load-bearing line is that the uncorrected
+    `belief_auc` key is REFUSED and only the per-exposure-day reading is quotable -- a discipline
+    that exists because SVT cap segments run 1 to 92 days. The renewal route has no such key, for a
+    reason stated below, so a single function would need a branch on route at exactly the point
+    where its one non-negotiable rule lives. The refusal is the same SHAPE and it is re-armed here
+    against this route's own pointer; what is not shared is the key it reads.
+
+    (1) THE EXPOSURE OFFSET DOES NOT APPLY HERE, AND THAT IS ESTABLISHED, NOT ASSUMED. The grader
+    keys the correction to the PROPERTY and never to the route name --
+    `measure_churn_heterogeneity.route_carries_exposure` requires every row to carry a positive
+    `sim_segment_days` -- and the renewal capture carries that field on 0 of its 144 rows. So
+    `belief_exposure_offset` returned `None`, the arm carries no `exposure_offset` block and no
+    `belief_auc_superseded_by` pointer, and the bare `belief_auc` is this route's ONLY reading
+    rather than its flattering one. The domain reason is the same fact from the other side: a
+    renewal is one decision at a fixed contract anniversary, not a window of variable length, so
+    there is no duration for a belief to be accidentally ordered by. `estimate_churn_probability`
+    reads a rate move, a bill stress and a tenure; none of the three is an exposure.
+
+    AND THE REFUSAL IS STILL ARMED, which is the part that matters. If the renewal capture ever
+    gains `sim_segment_days`, the grader will stamp a superseding pointer on this arm without
+    anyone editing this file -- and this surface would then be publishing the withdrawn number
+    under a `clears_the_null` flag, which is the defect `delivery.json.what_it_got_wrong` already
+    records this project publishing once. Any pointer at all, or any `exposure_offset` block, is
+    refused outright here. `_svt_drift_belief` refuses a pointer naming the WRONG key; this refuses
+    a pointer naming ANY key, because on this route the correct number of superseding pointers is
+    zero.
+
+    (2) THE DIFFERENT-WORLD CAVEAT REACHES ONE OF THE TWO CLAIMS AND NOT THE OTHER, and it is
+    neither inherited wholesale nor dropped. The capture names no world: `world_identity.digest` is
+    null and the capture's own per-year departure-level anchors disagree with the live world on 10
+    of the 10 years it covers, by up to +3.41 against a captured 3.23. `_svt_drift_belief` withholds
+    its ceiling's verdict for that, and is right to -- the claim it publishes from the ceiling is
+    "there is this much signal there to find", which is a statement about a world.
+
+    This block makes two claims and they do not share a fate:
+
+    * **WITHIN THE CAPTURE, AND IT SURVIVES.** The belief and the ceiling are graded on the SAME
+      144 decisions, the SAME 32 departures and the SAME 427 comparable pairs, each against its own
+      permutation null drawn from those same rows. "The belief did not order these departures while
+      the world's own hazard did" is a property of the rows in front of us. It does not become
+      truer or falser if the world has moved, because it is not about the world -- it is about
+      whether one ordering of a fixed list beat chance on that list while another did not.
+    * **ABOUT THE LIVE WORLD, AND IT DOES NOT SURVIVE.** How much orderable signal today's renewal
+      book holds is exactly what the departure level decides, and the departure level is what
+      disagrees on all ten years. The ceiling's LEVEL is therefore published as a measurement on
+      this capture and is NOT transported: `ceiling_is_the_live_worlds_signal` is `None` with the
+      capture's own measured reason, never `True` and never quietly omitted.
+
+    The distinction is not a relaxation of `_svt_drift_belief`'s rule -- it is a narrower claim
+    carrying its own name, so that a reader can see which of the two they have been given.
+
+    (3) THE CHAIN, STATED RATHER THAN LEFT TO ADJACENCY. The route's ceiling decomposes: of the
+    four world factors, `sim_bill_shock_base` is the only one that clears its own null ALONE, and
+    it carries the largest contribution. So the orderable signal in this world's renewal departures
+    is concentrated in bill shock -- and the block rendered beside this one establishes that the
+    company's belief reaches consumption through ONE bill-borne term which is identically zero
+    below a declared threshold, for the overwhelming majority of the book's legs. The company's
+    belief is flat in the dimension the world orders departures by. That is why the choosing has
+    nothing to choose with, and it is the account the negative selection leg has been missing.
+
+    The joining sentence is built from the SIZE BLOCK'S OWN COUNTS, passed in rather than re-read,
+    so the two panels cannot come to state different numbers for one population. `None` in, and the
+    chain says plainly that the other half could not be read.
+
+    (4) THE OTHER GRADE IS RECORDED, NOT MERGED AND NEVER AVERAGED. `renewal_churn_belief_grade.json`
+    (2026-08-30) grades the same question on a different and larger book. It carries NO permutation
+    null and NO world identity. A rank statistic without a null is not a reading -- this page's own
+    rule -- so nothing is quoted from it here: not its AUC, not its oracle, not a difference against
+    either. What IS published is that it exists, what book it is over, and the named reason it is
+    not quotable, because a second measurement a reader could find and this page did not mention is
+    how a surface loses the right to be believed. The two are on different books and different
+    instruments; an average of them would be a figure of neither.
+
+    FAIL-CLOSED AND VISIBLY, for `_svt_drift_belief`'s reason: a missing artefact renders its
+    absence and the rebuild command, never an omitted paragraph. An absent caveat and a discharged
+    one look identical to a reader.
+    """
+    def _unavailable(why: str) -> dict:
+        return {
+            "available": False,
+            "why": why,
+            "sentence": ("On whether the company's belief orders who leaves at renewal, {}: "
+                         "{}".format(CANNOT_TELL, why)),
+            "belief": None,
+            "ceiling": None,
+            "factors": [],
+        }
+
+    # THROUGH THE MODULE'S OWN READER, and that is not only reuse. A bare `read_text` here makes
+    # this function a row in `substring_source_scan_baseline.json` -- the census of controls that
+    # read source as text -- which is a shrink-only ratchet, and taking an exemption for a function
+    # that reads JSON would spend the ratchet on a row that did not need it. `_read` returns None
+    # for a missing file and for one that is not a JSON object alike, which is the same answer to a
+    # reader and is said in those words below rather than dressed as an exception.
+    grade = _read(SVT_BELIEF_GRADE)
+    if not isinstance(grade, dict):
+        return _unavailable("the belief grade artefact could not be read -- it is missing, or it "
+                            "is not the JSON object this surface expects. Rebuild it with "
+                            "`python3 -m tools.measure_churn_heterogeneity "
+                            "--out=docs/observability/svt_drift_belief_grade.json`")
+    route = (grade.get("per_route") or {}).get("renewal") or {}
+    if not route:
+        return _unavailable("the belief grade artefact carries no renewal route, so the route the "
+                            "company prices on has not been graded in it")
+
+    by_field = {b.get("field"): b for b in (route.get("company_belief") or [])
+                if isinstance(b, dict)}
+    arm = by_field.get(_RENEWAL_BELIEF_FIELD) or {}
+    if not arm.get("available"):
+        return _unavailable(
+            "the artefact carries no graded reading for `{}`, which is the only renewal belief "
+            "that can be put beside the ceiling without measuring the world reading back its own "
+            "input".format(_RENEWAL_BELIEF_FIELD))
+    # THE TAUTOLOGY GUARD, RE-ASKED OF THE ARTEFACT RATHER THAN TAKEN FROM THE FIELD NAME. The
+    # other renewal arm seeds `effective_p_retain`; if this one ever starts doing so too, the
+    # comparison below stops being a forecast against an outcome and this block must stop making
+    # it. Keyed to the declared property, so a belief that becomes independent publishes itself.
+    if arm.get("independent_of_the_outcome") is not True or arm.get("decomposition_arm"):
+        return _unavailable(
+            "the artefact no longer declares `{}` independent of the outcome, so putting it beside "
+            "the world's own hazard would measure the world reading back its own input. Refused "
+            "rather than published as a forecast".format(_RENEWAL_BELIEF_FIELD))
+    # (1) THE REFUSAL. See the docstring: on this route the correct number of superseding pointers
+    # is ZERO, and either shape of one means the artefact's idea of the quotable figure and this
+    # surface's have diverged.
+    pointer = arm.get("belief_auc_superseded_by")
+    if pointer is not None or arm.get("exposure_offset") is not None:
+        return _unavailable(
+            "the artefact now supersedes the renewal reading with `{}` -- this route has gained an "
+            "exposure the grader can divide out, and the bare reading this surface publishes is no "
+            "longer the quotable one. Refused rather than guessed".format(
+                pointer or "exposure_offset"))
+
+    observed = _f(arm.get("belief_auc"))
+    null = arm.get("null") or {}
+    low, high = _f(null.get("low")), _f(null.get("high"))
+    ceiling = _f(route.get("oracle_auc"))
+    ceiling_null = route.get("null") or {}
+    ceiling_low, ceiling_high = _f(ceiling_null.get("low")), _f(ceiling_null.get("high"))
+    if observed is None or ceiling is None:
+        return _unavailable("the renewal route carries no reading or no ceiling, so there is "
+                            "nothing to weigh one against the other")
+
+    # (2) THE TWO CLAIMS, EACH DERIVED FROM THE NUMBERS rather than read off a verdict string -- a
+    # verdict field is one more thing that can go stale against the figures beside it.
+    belief_inside = None if None in (low, high) else low <= observed <= high
+    ceiling_clears_here = (None if None in (ceiling_low, ceiling_high)
+                           else not (ceiling_low <= ceiling <= ceiling_high))
+    world = grade.get("world_identity") or {}
+    measured_in_world = world.get("digest")
+    # KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. On the day this belief starts ordering its
+    # departures the same code says so, and nobody edits a sentence. The four states are named
+    # because a reading nobody enumerated must not be able to reach a surface.
+    if belief_inside is None or ceiling_clears_here is None:
+        contrast = "cannot_be_stated"
+    elif belief_inside and ceiling_clears_here:
+        contrast = "the_world_ordered_these_departures_and_the_belief_did_not"
+    elif not belief_inside and ceiling_clears_here:
+        contrast = "both_ordered_these_departures"
+    elif belief_inside and not ceiling_clears_here:
+        contrast = "neither_ordered_these_departures"
+    else:
+        contrast = "the_belief_ordered_these_departures_and_the_world_did_not"
+
+    # (3) THE DECOMPOSITION, in the artefact's own keys and ordered by what a reader needs: the
+    # factors that clear their null ALONE first. `inside_null_alone` is the artefact's, not
+    # recomputed, because it is the grader's own verdict on its own permutation draw.
+    factors = []
+    for name, row in sorted((route.get("per_factor") or {}).items()):
+        if not isinstance(row, dict):
+            continue
+        factors.append({
+            "factor": name,
+            "alone": _f(row.get("alone")),
+            "held_out": _f(row.get("held_out")),
+            "contribution": _f(row.get("contribution")),
+            "clears_its_null_alone": (None if row.get("inside_null_alone") is None
+                                      else not row["inside_null_alone"]),
+            "tie_fraction": _f(row.get("tie_fraction")),
+            "distinct_values": row.get("distinct_values"),
+        })
+    factors.sort(key=lambda f: (f["clears_its_null_alone"] is not True,
+                                -(f["contribution"] or 0.0)))
+    carrying = [f["factor"] for f in factors if f["clears_its_null_alone"] is True]
+
+    # (4) THE OTHER GRADE. Opened to establish WHAT IT CARRIES; no figure is taken from it.
+    second = _read(RENEWAL_BELIEF_SECOND_GRADE)
+    if isinstance(second, dict):
+        second_book = second.get("book") or {}
+        # RECURSIVELY, AND THAT IS THE POINT. "It carries no null" is the whole reason this
+        # block declines to quote it, so a scan that only looked at the top level would publish
+        # that reason as true while a null sat one key deeper -- fail-open, in the flattering
+        # direction, on the sentence doing the refusing.
+        def _carries_a_null(node) -> bool:
+            if isinstance(node, dict):
+                return "null" in node or any(_carries_a_null(v) for v in node.values())
+            return isinstance(node, list) and any(_carries_a_null(v) for v in node)
+
+        carries_a_null = _carries_a_null(second)
+        second_grade = {
+            "exists": True,
+            "path": _cited_path(RENEWAL_BELIEF_SECOND_GRADE),
+            "renewals": second_book.get("renewals_the_world_rolled"),
+            "departures": second_book.get("churned"),
+            "accounts": second_book.get("billing_accounts"),
+            "carries_a_permutation_null": carries_a_null,
+            "names_the_world_it_was_measured_in": "world_identity" in second,
+            "quotable_here": False,
+            "why_not": (
+                "A second grade of this same question exists on a larger and different book, and "
+                "it is named here rather than left for a reader to find. No figure is taken from "
+                "it: it carries no permutation null, and a rank statistic with no null is not a "
+                "reading -- it is a number that cannot be told from chance. It also names no "
+                "world. The reading published above is the one with an interval, a ceiling on its "
+                "own rows and a stated population."),
+            "never_averaged_because": (
+                "The two are different books measured by different instruments. An average of "
+                "them would describe neither population, and the difference between them is not "
+                "a movement in anything."),
+        }
+    else:
+        second_grade = {
+            "exists": False,
+            "path": _cited_path(RENEWAL_BELIEF_SECOND_GRADE),
+            "quotable_here": False,
+            "why_not": ("the second grade of this question could not be read, so what it does and "
+                        "does not carry cannot be stated here"),
+        }
+
+    # THE CHAIN. Built from the size block's OWN counts so the two panels cannot disagree, and
+    # withheld in words when that block could not be read -- see the docstring.
+    if isinstance(size_block, dict) and size_block.get("available"):
+        below = size_block.get("legs_below_the_knee")
+        legs = size_block.get("supply_legs")
+        chain = (
+            "These two panels are one chain. The orderable signal in this world's renewal "
+            "departures is concentrated in bill shock — it is the only one of the four world "
+            "factors that clears its own null on its own. And the company's belief reaches a "
+            "household's bill through a single term that is identically zero for {} of {} supply "
+            "legs. The belief is flat in the one dimension the world orders departures by, which "
+            "is why the choosing has nothing to choose with. Neither panel is an instruction to "
+            "make the belief discriminate.".format(below, legs)
+            if below is not None and legs is not None else None)
+    else:
+        chain = ("The other half of this chain — how flat the belief is in household size — could "
+                 "not be read on this publish, so the join is not stated rather than stated from "
+                 "one side.")
+
+    sentence = cannot_tell_sentence(
+        subject="whether the company's belief orders who leaves at renewal",
+        observed=observed, null_low=low, null_high=high, n=route.get("decisions"))
+    return {
+        "available": True,
+        "why": None,
+        "route": "renewal",
+        "what_it_is": (
+            "The most direct test this company has of its own claim. On the route where the "
+            "priced per-customer decisions are actually made, does the company's own belief about "
+            "who will leave put the accounts that left above the accounts that stayed? The "
+            "ceiling beside it is the world's own hazard scored the same way on the same rows."),
+        "decisions": route.get("decisions"),
+        "departures": route.get("departures"),
+        "pairs": route.get("pairs"),
+        "belief": {
+            "field": _RENEWAL_BELIEF_FIELD,
+            "what_it_is": ("`company.crm.churn_model.estimate_churn_probability` — a rate move, a "
+                           "bill stress and a tenure. It does not feed the world's roll, which is "
+                           "what makes it the renewal reading that can be compared to a ceiling."),
+            "auc": observed,
+            "null_95_low": low,
+            "null_95_high": high,
+            "inside_the_null": belief_inside,
+            "cannot_tell": sentence,
+            "tie_fraction": _f(arm.get("tie_fraction")),
+            "distinct_values": arm.get("distinct_values"),
+            "mean_believed": _f(arm.get("mean_believed")),
+            "realised_rate": _f(arm.get("realised_rate")),
+        },
+        "ceiling": {
+            "auc": ceiling,
+            "null_95_low": ceiling_low,
+            "null_95_high": ceiling_high,
+            "clears_on_these_rows": ceiling_clears_here,
+            "what_it_is": ("The world's own hazard over these same 144 decisions, scored by the "
+                           "same statistic against the same outcomes."),
+        },
+        # (2) THE CLAIM THAT SURVIVES THE CAPTURE'S WORLD, and it is marked as the within-capture
+        # one in the field name itself.
+        "within_this_capture": contrast,
+        "within_this_capture_holds_because": (
+            "The belief and the ceiling are graded on the same {} decisions, the same {} "
+            "departures and the same {} comparable pairs, each against a permutation null drawn "
+            "from those same rows. Whether one ordering beat chance on this list while another "
+            "did not is a property of the list.".format(
+                route.get("decisions"), route.get("departures"), route.get("pairs"))),
+        # (2) THE CLAIM THAT DOES NOT. `None`, never `False`: "we cannot say" and "there is no
+        # signal in the live world" are different states and collapsing them is the flattering
+        # reading.
+        "ceiling_is_the_live_worlds_signal": (
+            ceiling_clears_here if measured_in_world else None),
+        "measured_in_world": measured_in_world,
+        "live_world_claim_withheld_because": None if measured_in_world else (
+            world.get("unavailable_because") or (
+                "THIS GRADE NAMES NO WORLD. The artefact carries no `world_identity` block, so it "
+                "cannot be shown to have been measured over the world that is live now — and how "
+                "much book there is to lose is what decides how much signal there is to find. The "
+                "ceiling and its interval are published because they are what was measured on "
+                "these rows; whether that level is what today's book holds is not stated here. "
+                "Re-take the grade with `python3 -m tools.measure_churn_heterogeneity "
+                "--out=docs/observability/svt_drift_belief_grade.json`, which stamps the world it "
+                "measures the capture in.")),
+        "world_gap": (None if measured_in_world else (world.get("years_disagreeing") or {})),
+        # (1) WHY NO PER-EXPOSURE-DAY FIGURE APPEARS HERE, on the surface, beside the SVT panel
+        # where every figure carries one. Two panels of the same instrument quoting on different
+        # scales without saying why is how a reader concludes one of them forgot.
+        "why_no_exposure_offset": (
+            "The SVT panel divides every reading by the days it was exposed for, because a cap "
+            "segment runs from 1 to 92 days and a belief that simply ran longer would appear to "
+            "discriminate. A renewal is one decision at a fixed contract anniversary, not a window "
+            "of variable length, so there is no duration here for a belief to be accidentally "
+            "ordered by. This is established rather than assumed: the grader applies the "
+            "correction to any route whose every row carries a positive exposure, and the renewal "
+            "capture carries no such field on any of its rows — so no correction was applied, and "
+            "the reading above is this route's only one rather than its flattering one."),
+        "signal_is_concentrated_in": carrying,
+        "factors": factors,
+        "factors_reading": (
+            "The ceiling taken apart. `alone` is that factor's ordering on its own; a factor that "
+            "does not clear its own null alone is one this book cannot show orders anything by "
+            "itself."),
+        "chain_to_the_flat_belief": chain,
+        "second_grade": second_grade,
+        # THE SENTENCE IS THE PAYLOAD. Derived from the belief's own three numbers, so the prose
+        # and the table beside it cannot disagree.
+        "sentence": sentence or (
+            "The company's belief about who leaves at renewal clears the interval a signal "
+            "carrying no information reaches."),
+        "not_a_target": (
+            "No figure here is a target. This says what the belief did on one graded book; it "
+            "does not price the gap and it is not an instruction to tune the belief until it "
+            "ranks. A belief that cannot order its departures is a complete answer."),
+    }
+
+
 def _inference_claim() -> dict:
     """THE STANDING RULE'S VERDICT, ON THE PAGE. Independence is not inference, said to a reader.
 
@@ -13576,6 +13948,10 @@ def build(three_arm: dict | None, floor: dict | None,
           blind_envelope_arms: dict | None = None,
           auc_family: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    # ONE CALL, TWO PANELS. The renewal block's joining sentence names this
+    # block's own counts; two panels deriving one population separately is how
+    # they come to state different numbers for it.
+    size_block = _churn_belief_size_response()
     base = {
         "generated_at": now,
         "what_this_is": (
@@ -13602,7 +13978,14 @@ def build(three_arm: dict | None, floor: dict | None,
             # block publishes its `reading` VERBATIM, so of every artefact in this list it is the
             # one a reader is most owed a pointer to: the sentence on the page is that file's
             # sentence, and a reader who wants to disagree with it has to be able to find it.
-            CHURN_BELIEF_SIZE_PATH)],
+            CHURN_BELIEF_SIZE_PATH,
+            # THE TENTH AND ELEVENTH, added 2026-09-22 with the renewal-belief block. This
+            # field's own stated rule is that it names what `generate` OPENS, and the belief
+            # grade has been opened by `_svt_drift_belief` since that block landed without ever
+            # appearing here -- the exact drift this list was derived to stop, inside the list
+            # itself. Both are named now: the grade the two belief panels are read from, and
+            # the second grade the renewal panel declines to quote.
+            SVT_BELIEF_GRADE, RENEWAL_BELIEF_SECOND_GRADE)],
         # ABOVE THE `available` GATE ON PURPOSE, and it is the only block on this page that is.
         # Everything else here describes the three-arm A/B run and is correctly withheld when that
         # artefact cannot be read. The blind envelope is a DIFFERENT measurement on a different set
@@ -13615,7 +13998,14 @@ def build(three_arm: dict | None, floor: dict | None,
         # is at its most relevant on a publish where the A/B artefact could not be read at all --
         # "the choosing found nothing" and "we could not run the comparison" are the two states a
         # reader confuses, and the account of why the choosing has little to find is true in both.
-        "churn_belief_size": _churn_belief_size_response(),
+        "churn_belief_size": size_block,
+        # ABOVE THE `available` GATE for the same two reasons as the block above it, and a
+        # third of its own: this is the OUTCOME the block above argues the mechanism for, and
+        # the pair only reads as a chain when both are present. It is a grade of the company's
+        # belief rather than a reading of the A/B run, so an unreadable run artefact must not
+        # take it down -- least of all on a publish where the comparison could not be made and
+        # the question "does the belief order anyone at all" is what is left.
+        "renewal_churn_belief": _renewal_churn_belief(size_block),
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(

@@ -409,8 +409,106 @@ def _elapsed_phrase(seconds: int) -> str:
     return "{}s".format(seconds)
 
 
-def _unit_last_write(session: str) -> tuple[int | None, str]:
-    """Seconds since `<session>.service` last wrote ANY line to its own journal, and why not.
+def _boot_id() -> str | None:
+    """This boot's id in the journal's own spelling (no dashes), or None if it cannot be read."""
+    try:
+        return open("/proc/sys/kernel/random/boot_id").read().strip().replace("-", "")
+    except OSError:
+        return None
+
+
+def _wait_channel(session: str) -> str:
+    """WHAT THE DAEMON'S MAIN PID IS BLOCKED IN, verbatim from the kernel, or "" if unreadable.
+
+    THE GAP THIS CLOSES. `mute` tells you nothing has been written in this run. It cannot tell you
+    WHY, and the two answers it collapses are opposite: a daemon sleeping between polls and a
+    daemon wedged on something that will never return are both silent, both `active (running)`
+    under systemd, and both counted present by the census. Every reading this machine kept asked
+    whether the process EXISTS, and a wedged one exists. On 2026-09-22 the four established causes
+    each had to rule out a wedge BY HAND -- `/proc/<pid>/wchan` read off the live box, once, into
+    a manifest comment that goes stale the moment the daemon restarts. This asks it every time.
+
+    NO THRESHOLD, NO VERDICT, NO ALLOW-LIST OF "HEALTHY" CHANNELS, deliberately and for the reason
+    `declared_daemon_health` gives about cadence: these daemons block in different places for good
+    reasons -- `hrtimer_nanosleep` for a sleeper, `do_sys_poll` for `token-proxy` listening on a
+    socket, an empty channel for one that is actually on CPU -- so any list of blessed values would
+    be picked rather than established, and would be load-bearing within a week. The raw channel is
+    published beside the age and the reader judges it, exactly as they already judge the age.
+    WHAT MAKES IT READABLE ANYWAY is that it is stable per daemon: a channel that CHANGES between
+    two briefs is the signal, and that comparison needs no constant from us.
+
+    `""` is returned for every failure -- no such unit, no main process, `/proc` gone, permission
+    refused -- and the caller renders it as "could not be read", never as evidence either way.
+
+    IT READS `/proc` DIRECTLY AND SPAWNS NOTHING, which is a correctness point and not only a
+    cost one. The obvious implementation asks `systemctl --user show -p MainPID`, and that is
+    exactly what `tests/conftest.py`'s G-T1 guard refuses: `systemctl` is in `_BLOCKED_SPAWN`,
+    so the real-box test that exercises this function would have raised `RuntimeError` inside
+    `running_now` and emptied the whole declared list. The guard caught it on the first run.
+    Reading the cgroup out of `/proc/<pid>/cgroup` needs no process, is faster than the fork it
+    replaces, and works identically under pytest and in the daemon.
+
+    THE MAIN PROCESS IS FOUND BY PARENTHOOD, NOT BY LOWEST PID. Every pid in the unit's cgroup is
+    a candidate, and the main one is the only member whose PARENT is outside the cgroup -- systemd
+    spawned it, and everything else in there descends from it. The tempting `min(pids)` is wrong
+    on this box specifically: pids wrap (the counter passed 3.9M against a 4.19M ceiling on
+    2026-09-22), so a child spawned after a wrap has a LOWER pid than its own parent.
+    """
+    want = "{}.service".format(session)
+    members = {}
+    try:
+        candidates = [p for p in os.listdir("/proc") if p.isdigit()]
+    except OSError:
+        return ""
+    for pid in candidates:
+        try:
+            with open("/proc/{}/cgroup".format(pid)) as fh:
+                if want not in fh.read():
+                    continue
+            # Field 4 of /proc/<pid>/stat is PPID. The comm field can contain spaces and
+            # parentheses, so the split is taken AFTER the last ')' -- the standard parse.
+            with open("/proc/{}/stat".format(pid)) as fh:
+                members[pid] = fh.read().rpartition(")")[2].split()[1]
+        except (OSError, IndexError):
+            continue
+    main = [pid for pid, ppid in members.items() if ppid not in members]
+    if len(main) != 1:
+        # Zero: nothing in the cgroup, or the parse failed. More than one: the unit's process
+        # tree is not the shape this assumes, and guessing between them would be a made-up
+        # answer about the one question this function exists to answer honestly.
+        return ""
+    try:
+        return open("/proc/{}/wchan".format(main[0])).read().strip()
+    except OSError:
+        return ""
+
+
+def _entry_speaker(entry: dict, session: str) -> bool | None:
+    """Did this journal entry come from the SERVICE, or is it systemd writing ABOUT the service?
+
+    `journalctl -u x.service` returns both, and they mean opposite things. The service's own
+    output -- the daemon or any child it spawns -- is tagged `_SYSTEMD_USER_UNIT=x.service`.
+    systemd's bookkeeping ("Starting x.service", "Started x.service") is tagged
+    `_SYSTEMD_USER_UNIT=init.scope`, because the manager, not the service, emitted it.
+
+    THE FIRST DRAFT OF THIS ASKED `_PID == MainPID` AND WAS WRONG IN BOTH DIRECTIONS, caught by
+    running it against the real box rather than a fixture. `ntfy-responder` and `dispatcher` were
+    graded mute while they were demonstrably working: their newest lines came from a `git push`
+    CHILD (pid 321004, 321120), whose pid is not the MainPID and whose output is nonetheless
+    proof the daemon is alive and doing its job. A control that reads a working daemon as mute is
+    worse than no control, because the four rows it was written for are then indistinguishable
+    from the two it libelled.
+
+    `None` when the tag is absent, never a guess: a missing field is not evidence of muteness.
+    """
+    unit = entry.get("_SYSTEMD_USER_UNIT") or entry.get("_SYSTEMD_UNIT")
+    if not unit:
+        return None
+    return unit == "{}.service".format(session)
+
+
+def _unit_last_write(session: str) -> tuple[int | None, str, bool | None]:
+    """Seconds since `<session>.service` last wrote to its journal, why not, and WHOSE line it was.
 
     A daemon's own log is the only per-daemon clock this machine keeps. The unit name is the
     manifest's `session` plus `.service` -- `generate_units.py` derives it the same way, so there
@@ -421,27 +519,63 @@ def _unit_last_write(session: str) -> tuple[int | None, str]:
     journal answered and holds NOTHING for this unit, which is a real reading and a loud one. They
     are told apart by the reason string, never collapsed -- a `None` that declares its reason and
     a `None` that is silence collapsing into the flattering branch is this project's recurring bug.
+
+    THE AGE IS MEASURED ON THE MONOTONIC CLOCK, and that is the repair this function needed.
+    The old body did `time.time() - __REALTIME_TIMESTAMP`, which silently prices in every
+    correction the wall clock has taken since the line was written. On 2026-09-22 that read four
+    daemons as having last written 14.61 HOURS BEFORE THEY STARTED -- an impossibility the brief
+    published as a fact, because the guest's realtime clock was 14.61h behind while those entries
+    were stamped and was resynchronised afterwards. `__MONOTONIC_TIMESTAMP` cannot be corrected,
+    so `uptime - log_monotonic` is the true age. Measured against the four: 166.02h realtime
+    against 151.40h monotonic for `token-proxy`, and the same 14.61h gap on the other three, whose
+    two start times differ by two days -- one shared skew, not three coincidences.
+    The monotonic clock is per-BOOT, so it is used only when the entry's `_BOOT_ID` is this boot's;
+    otherwise the realtime reading is returned with its weakness named rather than hidden.
+
+    WHOSE LINE IT WAS is the third return value, and it is what separates MUTE from QUIET. When
+    the newest entry did not come from the service itself (see `_entry_speaker`), the only thing
+    in this unit's journal is systemd writing ABOUT the daemon ("Started x.service") and nothing
+    inside the service has produced a line in this run. That is a categorically louder reading
+    than a daemon that has spoken and then gone quiet, and no threshold is invented to reach it:
+    it is the structural question "has this run written a line at all", which has an answer at
+    every age. The age is published beside it so a daemon that started a minute ago reads as the
+    harmless case it is -- that judgement is the reader's, exactly as it is for the quiet rows.
     """
     try:
         proc = subprocess.run(
             ["journalctl", "--user", "-u", "{}.service".format(session),
-             "-n", "1", "-o", "short-unix", "--no-pager"],
+             "-n", "1", "-o", "json", "--no-pager"],
             capture_output=True, text=True, timeout=15)
     except (OSError, subprocess.SubprocessError) as exc:
-        return None, "could not be asked ({!r})".format(exc)
+        return None, "could not be asked ({!r})".format(exc), None
     head = (proc.stdout or "").strip().splitlines()
     if not head:
         # rc=1 with no output is journalctl's "no entries matched" -- a clean answer, not a fault.
-        return None, "its journal holds no entry at all"
+        return None, "its journal holds no entry at all", None
     try:
-        stamp = float(head[0].split(maxsplit=1)[0])
-    except (ValueError, IndexError):
-        return None, "its journal's newest line did not start with a timestamp"
-    return max(0, int(time.time() - stamp)), ""
+        entry = json.loads(head[0])
+        realtime = float(entry["__REALTIME_TIMESTAMP"]) / 1e6
+    except (ValueError, KeyError, TypeError):
+        return None, "its journal's newest line carried no readable timestamp", None
+
+    spoke = _entry_speaker(entry, session)
+    why = ""
+    age = max(0, int(time.time() - realtime))
+    try:
+        log_mono = float(entry["__MONOTONIC_TIMESTAMP"]) / 1e6
+        uptime = float(open("/proc/uptime").read().split()[0])
+    except (KeyError, ValueError, TypeError, OSError, IndexError):
+        why = "measured on the wall clock; this line carries no monotonic stamp"
+    else:
+        if entry.get("_BOOT_ID") and entry["_BOOT_ID"] == _boot_id():
+            age = max(0, int(uptime - log_mono))
+        else:
+            why = "measured on the wall clock; that line was written in an earlier boot"
+    return age, why, spoke
 
 
 def declared_daemon_health(present: set[str], entries: list | None = None,
-                           last_write=None) -> list[dict]:
+                           last_write=None, wait_channel=None) -> list[dict]:
     """THE COMPLEMENT of the subtraction in `running_now`: every declared daemon that MUST be
     running, whether `ps` found it, and how long since it last wrote its own log.
 
@@ -475,21 +609,148 @@ def declared_daemon_health(present: set[str], entries: list | None = None,
     # Resolved here rather than bound as a default, so a test can replace the journal reader on
     # the module and have this call see it -- a default argument would capture the original.
     last_write = _unit_last_write if last_write is None else last_write
+    wait_channel = _wait_channel if wait_channel is None else wait_channel
     rows = []
     for entry in (load_manifest() if entries is None else entries):
         match = entry.get("match")
         if entry.get("state") != "enabled" or not match or match == SEAT_MATCH:
             continue
-        age, why = last_write(entry["session"])
+        age, why, spoke = last_write(entry["session"])
         rows.append({
             "session": entry["session"],
             "match": match,
             "on_box": match in present,
             "last_log_seconds": age,
             "last_log": _elapsed_phrase(age) if age is not None else None,
-            "why_no_log": why,
+            # `why` carries two different things and they must not share a key: a reason there is
+            # no age at all, and a caveat about the ruler the age was taken with. Collapsing them
+            # would put a live reading into a field every reader treats as "no reading".
+            "why_no_log": why if age is None else "",
+            "clock_caveat": why if age is not None else "",
+            # True: the newest line in this unit's journal is the daemon's own. False: it is only
+            # systemd writing about the daemon, so this run has produced no line whatever -- MUTE.
+            # None: the question could not be put. The three never collapse.
+            "mute": spoke is False,
+            "spoke_this_run": spoke,
+            # THE MANIFEST'S OWN ANSWER, carried as a key of its own and never merged into any of
+            # the three above. `why_no_log` is a MEASURED absence -- this reading could not get a
+            # number. `declared_cause` is a DECLARED one -- a human established why this daemon is
+            # silent and wrote it on the row. Collapsing them would make an investigated daemon
+            # indistinguishable from an uninvestigated one, which is the whole distinction the
+            # brief needs: the actionable list is the mute rows with NO cause on file.
+            "declared_cause": (entry.get("log_silence") or "").strip(),
+            # ASKED ONLY OF THE MUTE ROWS, and that is a cost decision rather than a claim: it is
+            # a subprocess per daemon, it is the only population where the answer changes what the
+            # reader should do, and a daemon that has spoken in this run has already proved it is
+            # not wedged by the only evidence that matters. A quiet row's blank here is therefore
+            # "not asked", which is why the key is only ever rendered inside the mute sentence.
+            "wait_channel": wait_channel(entry["session"]) if spoke is False else "",
         })
     return rows
+
+
+def _mute_sentence(declared_rows: list) -> str:
+    """The MUTE daemons, said separately from the quiet ones or not said at all.
+
+    THE DEFECT THIS IS WRITTEN AGAINST. Four declared daemons -- `token-proxy`, `dispatcher`,
+    `ntfy-responder`, `worker-seat-manager` -- were on the box, `active (running)` under systemd,
+    counted present by the daemon census, and had produced no journal line of their own since
+    starting, in one case for six days. Every liveness reading this machine keeps said they were
+    fine, because every one of them asks whether the process EXISTS. `ntfy-responder` is the
+    channel the director reaches the seat on; a mute one is indistinguishable from a quiet one and
+    the difference is whether "he said nothing" or "we stopped listening" is the true sentence.
+
+    IT IS A SENTENCE, NOT A REGISTER. No alarm document, no threshold, no per-daemon cadence
+    table -- the reading is structural (did this run write a line at all) and the seat that reads
+    the brief is the control. `None` rows are excluded rather than assumed innocent: a daemon
+    whose speaker could not be established is not evidence of muteness and not evidence against.
+
+    WHICH DEFINITION OF MUTE THIS APPLIES, said on the page because the count has already moved
+    under a reader who could not see that it had. Two definitions were in use on 2026-09-22 and
+    they gave 4 and 5 over the same box within hours:
+
+      A -- "the DAEMON'S OWN stdout has written no journal line since it started." The manifest's
+           first four `log_silence` rows were established under this one.
+      B -- "NOTHING INSIDE THE UNIT has written a line in this run -- not the daemon, not any
+           child it spawned -- so the only entry is systemd's own." THIS IS THE ONE APPLIED HERE.
+
+    B is narrower and it is the honest one for a LIVENESS question, for the reason
+    `_entry_speaker` gives: `ntfy-responder` and `dispatcher` were graded mute under A while
+    demonstrably working, because their newest lines came from a `git push` CHILD -- output that
+    is proof the daemon is alive and doing its job, and that A throws away. A remains the right
+    definition for a DIAGNOSABILITY question ("can this daemon tell me anything when it goes
+    wrong"), and the two manifest rows that answer A rather than B say so on their own faces.
+    SO A COUNT THAT MOVES FROM 4 TO 5 IS NOT DECAY, and nothing here should be read as decay
+    unless the SESSIONS change -- which is why they are named, every time, rather than counted.
+    """
+    mute = [r for r in declared_rows if r.get("mute")]
+    if not mute:
+        return ""
+    explained = [r for r in mute if r.get("declared_cause")]
+    unexplained = [r for r in mute if not r.get("declared_cause")]
+
+    def _age(row):
+        return " ({} so far)".format(row["last_log"]) if row["last_log"] else ""
+
+    def _channel(row):
+        """The wait channel as the kernel gives it, with `0` spelled out rather than translated.
+
+        `/proc/<pid>/wchan` is `0` when the task is not blocked in the kernel at all -- it is on
+        CPU. That is a kernel convention, not a judgement of ours, and it is the one value a
+        reader cannot look up from the name; every other value IS a symbol they can grep for.
+        It is still printed verbatim beside the gloss, so nothing here is a translation layer.
+        """
+        chan = row.get("wait_channel")
+        if not chan:
+            return "could not be read -- which is NOT evidence that it is fine"
+        if chan == "0":
+            return "0 (the kernel's 'not blocked at all' -- it was on CPU when asked)"
+        return chan
+
+    out = (
+        "\n\n{} DECLARED DAEMON(S) ARE MUTE, WHICH IS NOT THE SAME AS QUIET. The only entry in "
+        "each of these units' journals is systemd's own line saying it started -- nothing inside "
+        "the service has written at all in this run, however long it has been up. MUTE HERE MEANS "
+        "DEFINITION B (see this function's docstring); the sessions, not the count, are the "
+        "reading.\n".format(len(mute)))
+    if unexplained:
+        out += (
+            "\n  NO CAUSE ON FILE -- this is the actionable list, and it is the only part of this "
+            "sentence that asks anything of you:\n"
+            + "\n".join(
+                "    {:<22} on the box, unit active, silent for its whole run{}"
+                "\n      blocked in: {}".format(r["session"], _age(r), _channel(r))
+                for r in unexplained)
+            + "\n    `blocked in` is `/proc/<MainPID>/wchan` verbatim -- no threshold and no "
+              "allow-list of healthy channels, because these daemons block in different places "
+              "for good reasons. It is here so a WEDGED daemon reads differently from a freshly "
+              "started one, which mute and age alone cannot tell apart: an ordinary sleeper sits "
+              "in `hrtimer_nanosleep` and a socket listener in `do_sys_poll`, and the signal is a "
+              "channel that CHANGES between two briefs -- a comparison needing no constant.\n"
+              "    Establish which it is per daemon -- writing somewhere this reading does not "
+              "watch, wedged, mute by construction, restarted faster than it speaks, or genuinely "
+              "with nothing to say -- and write it to `log_silence` on that daemon's row in "
+              "`background/process_manifest.yaml`, which is where this sentence reads it back "
+              "from. A CLASS VERDICT WILL BE WRONG FOR AT LEAST ONE OF THEM: the five established "
+              "so far came out as five different causes.\n")
+    if explained:
+        out += (
+            "\n  CAUSE ESTABLISHED AND ON FILE -- carried here from `log_silence` in "
+            "`background/process_manifest.yaml` so a finding is not filed where nothing looks. "
+            "These need no action; they are shown because a mute daemon that VANISHES from this "
+            "list has changed behaviour, and that is worth seeing. THE WAIT CHANNEL IS RE-ASKED "
+            "LIVE FOR THESE TOO, and that is the point of repeating it beside a cause that "
+            "already mentions one: the cause was established ONCE, against a pid that no longer "
+            "exists, and a daemon with a filed cause can wedge tomorrow. A cause on file must not "
+            "become a reason to stop looking -- that is a control pinned to the day's answer:\n"
+            + "\n".join("    {}{}, blocked in {}: {}".format(
+                r["session"], _age(r), _channel(r),
+                " ".join(r["declared_cause"].split())) for r in explained)
+            + "\n")
+    out += (
+        "\nA mute daemon passes every liveness check here, because they all ask whether the "
+        "process exists.")
+    return out
 
 
 def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
@@ -1313,19 +1574,32 @@ def _prompt(brief: dict) -> str:
                     r["session"],
                     "{} ago".format(r["last_log"]) if r["last_log"] is not None
                     else r["why_no_log"] or "at an unknown time")
-                for r in absent))
+                for r in absent)
+            # Said in the absent branch too: a box can have one daemon missing AND another mute,
+            # and the mute one would otherwise be invisible for exactly as long as the absence
+            # takes to fix -- the reading would go quiet about it the moment something else broke.
+            + _mute_sentence(running.get("declared") or []))
     else:
-        quiet = [r for r in (running.get("declared") or []) if r["last_log_seconds"] is not None]
+        # MUTE is taken out of the quiet population FIRST. A daemon that has written nothing at
+        # all in this run would otherwise sort into the same list as one that logs hourly and
+        # render as the same row -- just with a bigger number -- and the reader would apply the
+        # same "no common cadence, judge it yourself" licence to both. It is not the same
+        # observable: quiet is a daemon with nothing to say, mute is a daemon that has never
+        # spoken, and only the second is consistent with a process that is up and doing nothing.
+        declared_rows = running.get("declared") or []
+        quiet = [r for r in declared_rows
+                 if r["last_log_seconds"] is not None and not r.get("mute")]
         quiet.sort(key=lambda r: -r["last_log_seconds"])
         absence_sentence = (
             "\n\nEVERY DECLARED DAEMON IS ON THE BOX ({} of them, positively matched against "
             "`process_manifest.yaml` rather than inferred from an empty list).".format(
-                len(running.get("declared") or []))
+                len(declared_rows))
             + (" The quietest has not written its own log for {} (`{}`) -- no threshold is "
                "applied to that, because these daemons have no common cadence; judge it "
                "yourself, and note that ALL of them going quiet together is what a frozen "
                "guest looks like.".format(quiet[0]["last_log"], quiet[0]["session"])
-               if quiet else ""))
+               if quiet else "")
+            + _mute_sentence(declared_rows))
     if not running.get("available", False):
         running_sentence = (
             "\n\nWHAT IS RUNNING COULD NOT BE READ ({}) -- so 'nothing is running' is NOT what "

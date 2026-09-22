@@ -638,6 +638,15 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        NOT the book the arms above are scored over, and the page says so rather than letting the
        adjacency imply it. -->
   <div id="arms-churn-belief-size" style="margin:14px 0 0;"></div>
+  <!-- AND WHAT ACTUALLY HAPPENED. The block above is a property of the MODEL argued from the
+       code: the belief is flat in the dimension the world reacts to. This is the OUTCOME test
+       of the same claim, on the route where this section's arms actually price -- did that
+       belief put the accounts that left above the ones that stayed. It is the most direct test
+       this company has of its own thesis; it was graded with a permutation null and a ceiling
+       on the identical rows, and it reached no reader until now because the artefact holding
+       it is named for the OTHER route. Nothing is authored here: the sentence is the feed's,
+       derived in `cannot_tell_sentence` from the reading's own three numbers. -->
+  <div id="arms-renewal-belief" style="margin:14px 0 0;"></div>
   <div id="arms-decisions"></div>
   <!-- WHAT THE ACCOUNT COUNT DIRECTLY ABOVE IS A COUNT OF. The decisions block says "the book is
        N settled accounts", and a reader takes N for the business. It is not: our settlement
@@ -2781,6 +2790,198 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + prose(cb.what_it_cannot_say || "") + " " + prose(cb.not_a_target || "") + "</p>"
             : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
               + prose(cb.why || "") + "</p>");
+
+      /* THE DIRECT TEST OF THE THESIS, AND IT IS THE PANEL DIRECTLY ABOVE STATED AS AN OUTCOME.
+         The block above says the belief is FLAT in the dimension the world reacts to -- that is a
+         property of the model, argued from the code. This is what actually happened: on the route
+         where the priced per-customer decisions are made, did that belief put the accounts that
+         left above the accounts that stayed. It did not; the world's own hazard, scored the same
+         way on the same rows, did. So the mechanism claim above and the outcome below are the two
+         halves of one finding, and the feed joins them in `chain_to_the_flat_belief` using the
+         block above's OWN counts rather than leaving it to this page's adjacency.
+
+         WHY IT SITS HERE AND NOT BESIDE `arms-svt-belief`. That panel grades the SVT route; this
+         grades RENEWAL, which is where the arms comparison this section is about actually prices.
+         The reading belongs beside the leg it explains, not beside the other route's grade.
+
+         TWO VERDICTS WITH DIFFERENT FATES, AND THE PAGE MUST NOT COLLAPSE THEM. `within_this_
+         capture` is a comparison of two orderings of ONE list and survives the capture's world
+         being a different one; `ceiling_is_the_live_worlds_signal` is a claim about how much
+         there is to find TODAY and does not. The first renders as a stated verdict, the second as
+         "world unknown" with the capture's own measured reason beneath it. This is the same
+         grammar as `arms-svt-belief` one block down, applied to a narrower claim -- and the
+         narrower claim carries its own name so a reader can see which one they were given.
+
+         NO PER-EXPOSURE-DAY COLUMN, AND THE PAGE SAYS WHY. Every figure in the SVT panel is
+         divided by the days it was exposed for. Two panels of one instrument quoting on different
+         scales, with nothing saying why, is how a reader concludes one of them forgot. */
+      var rb = d.renewal_churn_belief || {};
+      var rbRows = (rb.available && rb.factors ? rb.factors : []).map(function (f) {
+        var c = f.clears_its_null_alone;
+        return '<tr><td style="padding:1px 10px 1px 0;">' + esc(f.factor)
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + (f.alone === null || f.alone === undefined ? "&mdash;" : Number(f.alone).toFixed(4))
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + (f.contribution === null || f.contribution === undefined
+              ? "&mdash;" : Number(f.contribution).toFixed(4))
+          + '</td><td style="padding:1px 0;white-space:nowrap;">'
+          /* THREE STATES. A factor the artefact carries no verdict for is not a factor that
+             failed to clear, and a two-branch ternary would print the second for the first. */
+          + (c === null || c === undefined
+              ? '<span style="color:var(--muted);">not stated</span>'
+              : (c ? '<span style="color:var(--green);">orders them alone</span>'
+                   : '<span style="color:var(--muted);">we cannot tell</span>'))
+          + "</td></tr>";
+      }).join("");
+      $("arms-renewal-belief").innerHTML =
+        '<p style="margin:14px 0 4px;font-size:13px;"><strong>And did the belief order who '
+        + "actually left?</strong> "
+        + (rb.available
+            ? prose(rb.what_it_is)
+            : "This reading could not be produced for this publish.")
+        + "</p>"
+        /* THE SENTENCE IS THE FEED'S, derived there from the belief's own three numbers so the
+           prose and the table cannot disagree. Amber whenever the reading sits inside its null,
+           in the director's own words, and green on the day it stops doing so -- keyed to the
+           property and not to today's answer. */
+        + '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;color:'
+        + (rb.available && rb.belief && rb.belief.inside_the_null === false
+            ? "var(--green);" : "var(--amber);")
+        + '">' + prose(rb.sentence || "") + "</p>"
+        + (rb.available
+            ? '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + '<th style="text-align:left;padding:1px 10px 1px 0;font-weight:600;">Reading</th>'
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Orders '
+              + "who left</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">A signal '
+              + "with no information reaches</th>"
+              + '<th style="text-align:left;padding:1px 0;font-weight:600;">Verdict</th></tr>'
+              /* THE BELIEF FIRST, because it is the subject. The ceiling is the row that makes it
+                 readable and the page says which is which rather than printing two numbers. */
+              + '<tr><td style="padding:1px 10px 1px 0;"><strong>The company’s belief</strong>'
+              + "</td>"
+              + '<td style="text-align:right;padding:1px 10px 1px 0;">'
+              + (rb.belief.auc === null || rb.belief.auc === undefined
+                  ? "&mdash;" : Number(rb.belief.auc).toFixed(4))
+              + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+              + (rb.belief.null_95_low === null || rb.belief.null_95_low === undefined
+                  ? "&mdash;"
+                  : Number(rb.belief.null_95_low).toFixed(4) + "&ndash;"
+                    + Number(rb.belief.null_95_high).toFixed(4))
+              + '</td><td style="padding:1px 0;white-space:nowrap;">'
+              + (rb.belief.inside_the_null === null || rb.belief.inside_the_null === undefined
+                  ? '<span style="color:var(--muted);">no interval</span>'
+                  : (rb.belief.inside_the_null
+                      ? '<span style="color:var(--amber);font-weight:600;">we cannot tell</span>'
+                      : '<span style="color:var(--green);">orders who leaves</span>'))
+              + "</td></tr>"
+              + '<tr><td style="padding:1px 10px 1px 0;">The world’s own hazard '
+              + "(the ceiling), same rows</td>"
+              + '<td style="text-align:right;padding:1px 10px 1px 0;">'
+              + (rb.ceiling.auc === null || rb.ceiling.auc === undefined
+                  ? "&mdash;" : Number(rb.ceiling.auc).toFixed(4))
+              + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+              + (rb.ceiling.null_95_low === null || rb.ceiling.null_95_low === undefined
+                  ? "&mdash;"
+                  : Number(rb.ceiling.null_95_low).toFixed(4) + "&ndash;"
+                    + Number(rb.ceiling.null_95_high).toFixed(4))
+              + '</td><td style="padding:1px 0;white-space:nowrap;">'
+              /* THE WITHIN-CAPTURE VERDICT, WHICH IS ALL THIS CELL CLAIMS. Whether the world's
+                 hazard beat chance on THESE rows. The separate question -- whether that level is
+                 what today's book holds -- is the line beneath the table, and it is a different
+                 claim with a different fate. */
+              + (rb.ceiling.clears_on_these_rows === null
+                 || rb.ceiling.clears_on_these_rows === undefined
+                  ? '<span style="color:var(--muted);">no interval</span>'
+                  : (rb.ceiling.clears_on_these_rows
+                      ? '<span style="color:var(--green);">orders who leaves</span>'
+                      : '<span style="color:var(--muted);">we cannot tell</span>'))
+              + "</td></tr></table></div>"
+              /* THE CONTRAST, NAMED. Two rows a reader has to difference for themselves is the
+                 shape this project publishes misleading things through. Four states, from the
+                 feed, so the day the belief starts ranking its departures this sentence changes
+                 itself. */
+              + '<p style="margin:6px 0 0;font-size:11.5px;color:'
+              + (rb.within_this_capture === "the_world_ordered_these_departures_and_the_belief_did_not"
+                  ? "var(--amber);" : "var(--muted);")
+              + '">'
+              + (rb.within_this_capture === "the_world_ordered_these_departures_and_the_belief_did_not"
+                  ? "<strong>On these rows the world ordered its departures and the company’s "
+                    + "belief did not.</strong> "
+                  : rb.within_this_capture === "both_ordered_these_departures"
+                      ? "<strong>On these rows both the world and the company’s belief ordered "
+                        + "the departures.</strong> "
+                      : rb.within_this_capture === "neither_ordered_these_departures"
+                          ? "<strong>On these rows neither the world’s own hazard nor the "
+                            + "company’s belief ordered the departures.</strong> "
+                          : rb.within_this_capture
+                            === "the_belief_ordered_these_departures_and_the_world_did_not"
+                              ? "<strong>On these rows the company’s belief ordered the "
+                                + "departures and the world’s own hazard did not.</strong> "
+                              : "<strong>This contrast could not be stated for this "
+                                + "publish.</strong> ")
+              + prose(rb.within_this_capture_holds_because || "") + "</p>"
+              /* THE CLAIM THAT DOES NOT SURVIVE THE CAPTURE'S WORLD, with its reason beside it.
+                 A refusal a reader cannot expand is a refusal without its reason. */
+              + '<p style="margin:6px 0 0;font-size:11px;color:'
+              + (rb.ceiling_is_the_live_worlds_signal === null
+                 || rb.ceiling_is_the_live_worlds_signal === undefined
+                  ? "var(--amber);" : "var(--muted);")
+              + '">'
+              + (rb.ceiling_is_the_live_worlds_signal === null
+                 || rb.ceiling_is_the_live_worlds_signal === undefined
+                  ? "How much orderable signal the LIVE book holds is a separate claim and it is "
+                    + "not made here. " + prose(rb.live_world_claim_withheld_because || "")
+                  : (rb.ceiling_is_the_live_worlds_signal
+                      ? "This capture was graded in the world that is live now, so the ceiling "
+                        + "above is also what there is to find today."
+                      : "This capture was graded in the world that is live now, and the ceiling "
+                        + "above does not clear its interval: no orderable signal is established "
+                        + "on this book."))
+              + "</p>"
+              /* WHERE THE CEILING'S SIGNAL ACTUALLY IS, which is the join to the block above. */
+              + '<p style="margin:8px 0 2px;font-size:11.5px;color:var(--muted);">'
+              + prose(rb.factors_reading || "") + "</p>"
+              + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + '<th style="text-align:left;padding:1px 10px 1px 0;font-weight:600;">World '
+              + "factor</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Alone</th>'
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">'
+              + "Contribution</th>"
+              + '<th style="text-align:left;padding:1px 0;font-weight:600;">Verdict</th></tr>'
+              + rbRows + "</table></div>"
+              /* THE CHAIN, STATED. See the block comment: adjacency alone would have had a reader
+                 do the join, and the feed builds this sentence from the panel-above's own counts
+                 so the two can never state different numbers for one population. */
+              + (rb.chain_to_the_flat_belief
+                  ? '<p style="margin:6px 0 0;font-size:11.5px;font-weight:600;'
+                    + 'color:var(--amber);">' + prose(rb.chain_to_the_flat_belief) + "</p>"
+                  : "")
+              /* WHY NO EXPOSURE CORRECTION HERE while the panel below divides every figure by
+                 one. Established from the artefact, not asserted. */
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(rb.why_no_exposure_offset || "") + "</p>"
+              /* THE SECOND GRADE, NAMED RATHER THAN LEFT FOR A READER TO FIND -- and declined,
+                 with the reason. No figure from it reaches this page. */
+              + (rb.second_grade && rb.second_grade.exists
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">A second grade '
+                    + "of this same question exists on a different book of "
+                    + esc(String(rb.second_grade.renewals)) + " renewals and "
+                    + esc(String(rb.second_grade.departures)) + " departures ("
+                    + esc(rb.second_grade.path) + "). "
+                    + prose(rb.second_grade.why_not || "") + " "
+                    + prose(rb.second_grade.never_averaged_because || "") + "</p>"
+                  : "")
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">Measured on '
+              + esc(String(rb.decisions)) + " renewal decisions, " + esc(String(rb.departures))
+              + " departures and " + esc(String(rb.pairs))
+              + " comparable pairs — one capture, one population. "
+              + prose(rb.not_a_target || "") + "</p>"
+            /* FAIL-CLOSED, ON THE SURFACE — the reason, never an omitted paragraph. */
+            : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+              + prose(rb.why || "") + "</p>");
 
       var dec = d.decisions || {};
       if (dec.available) {
