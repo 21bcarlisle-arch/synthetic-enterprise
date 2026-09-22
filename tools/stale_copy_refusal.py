@@ -22,6 +22,13 @@ TWO RULES, AND THE ORDER THEY WERE ARRIVED AT IS EVIDENCE, SO IT IS RECORDED HER
      version of the file. If the copy about to be committed contains **not one** of them, that copy
      was taken before C landed and committing it reverts C.
 
+     1a. AND WHERE THE CLOCK ALREADY SAYS THE COPY IS OLDER THAN C, the vouch is **all** of them
+     rather than any, because there a shared line is coincidence and not derivation. A copy that
+     predates C cannot have been built on C, so a single line it LACKS is proof it does not have
+     it. This is the fail-open that let a 1-of-53 revert of `tools/generate_value_arms_data.py`
+     past the census; see `judge` for the measurement and for why no threshold between the two
+     extremes is used.
+
   2. STRICT SYMBOL SUBSET. Refuse when the copy supplies strictly fewer names than HEAD and adds
      not one. Cheap, exact, and it catches a deletion that rule 1 misses because the deleted name
      came from an older commit than C.
@@ -205,6 +212,7 @@ PREDATES = "predates_landing"
 SUBSET = "strict_symbol_subset"
 UNPARSEABLE = "unparseable"
 CLOCK = "predates_landing_by_clock"
+PARTIAL = "predates_landing_carrying_some"
 
 
 class Unparseable(Exception):
@@ -672,6 +680,13 @@ class Loss:
     gains: tuple[str, ...] | None = None
     #: The subset of `gains` the base DELETED on purpose -- see `cut_of`. Never holder work.
     cuts: tuple[Cut, ...] = ()
+    #: The file's own mtime established that it predates `commit`. Decides the remedy where no
+    #: symbol reader can: a copy taken before a landing cannot be holder work OVER that landing.
+    by_clock: bool = False
+    #: How many of the landing's distinctive lines this copy DOES carry, when `detail` is the ones
+    #: it lacks. Coincidence rather than derivation once `by_clock` is set -- printed so the reader
+    #: can see the share the verdict was reached on rather than take the verdict's word for it.
+    carried: int = 0
 
     @property
     def novel(self) -> tuple[str, ...]:
@@ -692,12 +707,18 @@ class Loss:
                        for c in self.cuts)
 
     def remedy(self) -> str:
-        if self.rule == CLOCK:
+        if self.by_clock and self.gains is None:
             # The door is NOT in doubt here, which is why this branch precedes the `gains is None`
             # one that would otherwise claim it. `gains` is None for every CLOCK loss because these
             # are the paths no symbol reader can read -- but the clock has already established the
             # thing `gains` exists to guess at: this copy was taken before the landing, so it cannot
             # be holder work over it, and `isolate_hunks` has nothing legitimate to select.
+            #
+            # KEYED TO `by_clock` AND NOT TO `rule == CLOCK`, because PARTIAL is also a clock
+            # verdict and a READABLE one, so it arrives here with `gains` READ rather than guessed
+            # at. Where the names could be read they decide the door, and this branch must not
+            # claim them: a copy can predate one landing and still hold work HEAD lacks from
+            # before it.
             return ("      REMEDY: your copy of this file is OLDER than {} -- it was taken before "
                     "that\n      landing, so it cannot be carrying work built ON it. Re-open the "
                     "file at HEAD\n      (`python3 -m tools.refresh_to_head {}` surveys it; "
@@ -752,6 +773,13 @@ class Loss:
                    "the {}\n      distinctive line(s) that commit added here -- so it was taken "
                    "before that landing\n      and this commit reverts it:".format(
                        self.commit[:9], len(self.detail)),
+            PARTIAL: "      this file's mtime PREDATES commit {}, so it cannot have been built on "
+                     "that\n      landing -- and it is MISSING {} of that commit's {} distinctive "
+                     "line(s). The {}\n      it does carry are lines two lanes happened to write, "
+                     "not evidence of the landing.\n      These are the landed lines this commit "
+                     "would delete:".format(
+                         self.commit[:9], len(self.detail),
+                         len(self.detail) + self.carried, self.carried),
             UNPARSEABLE: "      {}".format(self.detail[0] if self.detail else "did not parse"),
         }[self.rule]
         shown = list(self.detail[:6]) if self.rule != UNPARSEABLE else []
@@ -762,32 +790,84 @@ class Loss:
             "".join("        - {}\n".format(n[:110]) for n in shown), tail, remedy)
 
 
+def taken_before(root: Path, path: str, new_text: str, commit: str) -> bool:
+    """Whether the bytes in `new_text` are the file ON DISK and that file is OLDER than `commit`.
+
+    THE SAME TWO GUARDS `clock_judge` CARRIES, lifted out so the readable leg can ask them too. An
+    mtime is a fact about a file, so it says nothing about bytes supplied by `--content`; the
+    identity check is what keeps this honest, and it is the only honest width."""
+    try:
+        if (root / path).read_text(encoding="utf-8", errors="replace") != new_text:
+            return False
+        mtime = (root / path).stat().st_mtime
+    except OSError:
+        return False
+    landed = committed_at(root, commit)
+    return landed is not None and landed > mtime
+
+
 def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
           parent: str = "HEAD") -> Loss | None:
     """The one judgement for one path. `None` on either side of the content means there is no base
     or no result -- a wholly new file is not contested, a deletion is explicit -- so neither is this
-    control's business."""
+    control's business.
+
+    TWO VOUCHES, NOT ONE, AND THE CLOCK IS WHAT PICKS BETWEEN THEM. Rule 1 asks "contains NOT ONE
+    of the landing's distinctive lines", so ONE surviving line vouches the whole copy. That is
+    right where the clock says nothing: a copy NEWER than the landing that carries some of it and
+    edits the rest is ordinary work, and demanding all of them would refuse every honest edit to a
+    line that landed. It is fail-open where the copy is OLDER than the landing, because there the
+    vouch is arguing from coincidence: a file that predates a commit cannot have been derived from
+    it, so a line they share is a line two lanes happened to write, and a line the copy LACKS is
+    proof it does not have the landing.
+
+    THAT WAS LIVE AND IT WAS THE FILE THIS RULE'S OWN `base_caveat` IS WRITTEN ABOUT. On this tree
+    `tools/generate_value_arms_data.py` carried 1 of the 53 distinctive lines of `c3e2ba377` and
+    the census graded it CLEAN, while the working copy reinstated "MEMORY IS NOT WHAT BINDS ...
+    slack by 4.5x" and deleted the whole-run measurement that refuted it by 29.2x. The one survivor
+    was `memory = settled_book_ceiling_customer_years()` -- a call the landing arrived at by
+    DELETING an argument, which the reverting lane had independently deleted too. It is in the
+    parent blob nowhere, so no "already there" filter could have taken it; only the share could.
+
+    ALL-OR-NOTHING BOTH WAYS ROUND, AND NEITHER IS A DIAL. `any` vouches; the complement of
+    "carries the landing" is "carries ALL of it", so the older-clock leg refuses on a single
+    MISSING line. Measured on the live tree of 2026-09-22: 66 readable paths carry line evidence,
+    the share is sharply bimodal -- 12 at exactly 0, 37 at exactly 1 -- and the older-clock leg
+    newly names 5 of the 17 in between. All five are working copies whose mtime predates their own
+    last landing by hours and whose diff is a net deletion, `test_year_keyed_rate_table_census.py`
+    at -134 lines the largest. No threshold between the two extremes was needed and none is used."""
     if head_text is None or new_text is None or Path(path).suffix not in READABLE:
         return None
+    partial: Loss | None = None
     commit = last_commit_touching(root, path, parent)
     if commit:
         distinctive = distinctive_lines(root, path, commit)
         if distinctive:
             present = {ln.strip() for ln in new_text.splitlines()}
-            if not any(d in present for d in distinctive):
+            missing = tuple(d for d in distinctive if d not in present)
+            if len(missing) == len(distinctive):
                 gains = gains_over(head_text, new_text, path)
                 return Loss(path, PREDATES, distinctive, commit, gains,
                             cuts_among(root, path, gains or (), parent))
+            if missing and taken_before(root, path, new_text, commit):
+                gains = gains_over(head_text, new_text, path)
+                partial = Loss(path, PARTIAL, missing, commit, gains,
+                               cuts_among(root, path, gains or (), parent),
+                               by_clock=True, carried=len(distinctive) - len(missing))
     try:
         before, after = symbols(head_text, path), symbols(new_text, path)
     except Unparseable as exc:
         return Loss(path, UNPARSEABLE, (str(exc),))
     if before is None or after is None:
-        return None
+        return partial
     if after < before:  # STRICT subset: loses names and adds not one
         # A strict subset supplies nothing by definition, so the door is never in doubt here.
+        # AND IT OUTRANKS A PARTIAL CARRY, which is why `partial` is held rather than returned.
+        # Both verdicts refuse the same copy, so the choice between them is purely what the reader
+        # is told: "would DELETE these 13 names" is a stronger and more actionable statement than
+        # "is missing 1 of 45 lines", and `test_finding_classes.py` on the live tree is both.
         return Loss(path, SUBSET, tuple(sorted(before - after)), gains=())
-    return None
+    return partial
 
 
 # --------------------------------------------- rule 4: predates the landing, by the file's own clock
@@ -849,28 +929,32 @@ def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | No
 
     NO EVIDENCE IS NO OPINION, never a refusal -- the same discipline as `judge`'s `if distinctive:`
     guard. A commit whose every added line is trivial or repeated leaves nothing to ask, and a
-    clock-only refusal is exactly the verdict the measurement above refuted."""
+    clock-only refusal is exactly the verdict the measurement above refuted.
+
+    AND A PARTIAL CARRY IS NOT A VOUCH ONCE THE CLOCK HAS SPOKEN -- see `judge` for why, and for the
+    file that was live. The two rules differ only in whether a symbol reader exists for the suffix,
+    so they must not differ in what counts as carrying the landing. On the live tree of 2026-09-22
+    this leg newly names two: `docs/data-sources/weather.md` (13 of 29) and
+    `docs/observability/self_clearing_alarm_census.json` (440 of 739) -- a generated census
+    regenerated BEFORE its own landing and never refreshed since, which is the population the
+    `READABLE` note above says the clock excludes by construction, entering here legitimately
+    because its mtime is on the wrong side of the landing."""
     if head_text is None or new_text is None or Path(path).suffix in READABLE:
         return None
-    try:
-        if (root / path).read_text(encoding="utf-8", errors="replace") != new_text:
-            return None  # the bytes are not from disk, so this file's mtime does not describe them
-        mtime = (root / path).stat().st_mtime
-    except OSError:
-        return None
     commit = last_commit_touching(root, path, parent)
-    if not commit:
-        return None
-    landed = committed_at(root, commit)
-    if landed is None or landed <= mtime:
+    if not commit or not taken_before(root, path, new_text, commit):
         return None
     distinctive = distinctive_lines(root, path, commit)
     if not distinctive:
         return None
     present = {ln.strip() for ln in new_text.splitlines()}
-    if any(d in present for d in distinctive):
+    missing = tuple(d for d in distinctive if d not in present)
+    if not missing:
         return None
-    return Loss(path, CLOCK, distinctive, commit)
+    if len(missing) == len(distinctive):
+        return Loss(path, CLOCK, distinctive, commit, by_clock=True)
+    return Loss(path, PARTIAL, missing, commit, by_clock=True,
+                carried=len(distinctive) - len(missing))
 
 
 def adopted_from_merge(root: Path, parent: str, ref: str,

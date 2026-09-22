@@ -1225,3 +1225,189 @@ def test_the_census_reports_a_clock_no_opinion_as_a_no_opinion(repo: Path) -> No
     assert "quiet.md" in no_opinion, (
         "a path this leg declined vanished from both columns, so the census reports a coverage it "
         "does not have")
+
+
+# ------------------------------------------------ rule 1a: the vouch is ALL of it, once the clock
+#                                                             has said the copy predates the landing
+
+#: WHAT THE LANDING REPLACED. Committed first so that `def ceiling():` and the lines around it are
+#: NOT part of the landing's evidence -- the question is what the CORRECTION added, and a fixture
+#: whose landing also creates the function makes "carries one" unreachable.
+ARMS_BEFORE = (
+    "def alpha():\n    return 1\n\n\n"
+    "def ceiling():\n"
+    '    """MEMORY IS NOT WHAT BINDS -- the ceiling is tens of thousands of customer-years."""\n'
+    "    return stage_cost_arithmetic()\n"
+)
+
+#: The landing: THREE distinctive lines, so "carries one" and "carries all" are different states.
+#: Two would make a partial carry indistinguishable from a majority.
+ARMS_LANDED = (
+    "def alpha():\n    return 1\n\n\n"
+    "def ceiling():\n"
+    '    """CORRECTED 2026-09-22: memory does bind, and the old note was optimistic by 29.2x."""\n'
+    "    measured = whole_run_rss_curve()\n"
+    "    return measured\n"
+)
+
+#: The revert: taken before that landing, reinstating the refuted note -- and carrying ONE of the
+#: landing's three distinctive lines, because this lane arrived at the same call independently.
+#: That single coincidence is what vouched the whole copy until 2026-09-22.
+ARMS_REVERT_CARRYING_ONE = (
+    "def alpha():\n    return 1\n\n\n"
+    "def ceiling():\n"
+    '    """MEMORY IS NOT WHAT BINDS -- the ceiling is tens of thousands of customer-years."""\n'
+    "    measured = whole_run_rss_curve()\n"
+    "    return stage_cost_arithmetic()\n"
+)
+
+#: The same lane's copy carrying NONE of the landing -- the pre-existing rule's population.
+ARMS_REVERT_CARRYING_NONE = ARMS_BEFORE + "\n\ndef mine():\n    return 0\n"
+
+
+def _arms_fixture(repo: Path, on_disk: str, *, older: bool) -> str:
+    """Land `ARMS_LANDED` over `ARMS_BEFORE`, then put `on_disk` there with a clock either side.
+
+    THE MTIME IS SET EXPLICITLY AND NOT SLEPT FOR, for the reason `_clock_fixture` records: git
+    stamps to the second, so wall-clock ordering is flaky in the direction that hides the defect."""
+    _commit(repo, "m.py", ARMS_BEFORE, "the note as it stood")
+    sha = _commit(repo, "m.py", ARMS_LANDED, "lane B lands the correction")
+    (repo / "m.py").write_text(on_disk)
+    landed_at = scr.committed_at(repo, sha)
+    offset = -60 if older else 60
+    os.utime(repo / "m.py", (landed_at + offset, landed_at + offset))
+    return sha
+
+
+def test_a_revert_carrying_one_coincidental_line_of_its_landing_is_refused(repo: Path) -> None:
+    """THE DEFECT ITSELF, and it was live on `tools/generate_value_arms_data.py`: 1 of 53
+    distinctive lines carried, census CLEAN, and the working copy reinstating a paragraph a
+    whole-run measurement had refuted by 29.2x. Rule 1's vouch is `any`, so one surviving line
+    speaks for the other fifty-two."""
+    sha = _arms_fixture(repo, ARMS_REVERT_CARRYING_ONE, older=True)
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), ARMS_REVERT_CARRYING_ONE)
+    assert loss is not None and loss.rule == scr.PARTIAL, (
+        "a copy older than its landing and missing all but one of its lines read as clean")
+    assert loss.commit == sha and loss.carried == 1
+    assert any("29.2x" in line for line in loss.detail), (
+        "the refusal must name the landed lines it would delete, not just a count")
+
+
+def test_the_whole_carry_partition_is_reachable_in_one_tree(repo: Path) -> None:
+    """A CONTROL OVER THE PARTITION, NOT A LEG PER BRANCH. The new leg has four neighbouring states
+    and three plausible mutations that each pass three of them:
+
+      * `if missing and ...` -> `if False`             passes every vouching leg below
+      * the `taken_before` guard dropped               passes every refusing leg below
+      * `all(...)` back to `any(...)` for the vouch    passes both extremes and only the middle
+                                                       state -- the live one -- can tell
+
+    So all four answers are asked of one tree at once, and no single leg of it is the control."""
+    root = repo
+
+    _arms_fixture(root, ARMS_REVERT_CARRYING_ONE, older=True)
+    head = scr.blob_at(root, "HEAD", "m.py")
+    partial_and_old = scr.judge(root, "m.py", head, ARMS_REVERT_CARRYING_ONE)
+
+    # SAME BYTES, CLOCK THE OTHER WAY ROUND. A copy NEWER than the landing that carries some of it
+    # and edits the rest is ordinary work: demanding all of them there would refuse every honest
+    # edit to a line that landed, which is the false-positive floor this module lives under.
+    os.utime(root / "m.py", (scr.committed_at(root, scr.last_commit_touching(root, "m.py")) + 60,)
+             * 2)
+    partial_but_fresh = scr.judge(root, "m.py", head, ARMS_REVERT_CARRYING_ONE)
+
+    # OLDER, AND CARRYING ALL OF IT. `surgical_land` never writes the working tree, so the lane that
+    # AUTHORED a landing is left holding a copy whose mtime predates its own commit. That is the
+    # normal resting state of a shared checkout and must never be refused.
+    built_on = ARMS_LANDED + "\n\ndef mine():\n    return 0\n"
+    (root / "m.py").write_text(built_on)
+    os.utime(root / "m.py", (scr.committed_at(root, scr.last_commit_touching(root, "m.py")) - 60,)
+             * 2)
+    whole_and_old = scr.judge(root, "m.py", head, built_on)
+
+    # OLDER, AND CARRYING NONE. The pre-existing rule, which must still answer PREDATES and not be
+    # swallowed by the new branch -- its remedy and its refusal text are different.
+    none_of_it = ARMS_REVERT_CARRYING_NONE
+    (root / "m.py").write_text(none_of_it)
+    os.utime(root / "m.py", (scr.committed_at(root, scr.last_commit_touching(root, "m.py")) - 60,)
+             * 2)
+    none_and_old = scr.judge(root, "m.py", head, none_of_it)
+
+    assert partial_and_old is not None and partial_and_old.rule == scr.PARTIAL, (
+        "the partial-carry refusal is unreachable")
+    assert partial_but_fresh is None, (
+        "the fresh-clock exemption is unreachable -- this leg now refuses honest post-landing edits")
+    assert whole_and_old is None, (
+        "the carries-all exemption is unreachable -- this leg now refuses the authoring lane's own "
+        "copy, which is the normal resting state of a shared checkout")
+    assert none_and_old is not None and none_and_old.rule == scr.PREDATES, (
+        "the carries-none branch has been swallowed by the partial one, which names a different "
+        "remedy and a different refusal")
+
+
+def test_the_partial_refusal_reads_the_bytes_on_disk_and_not_a_content_landing(repo: Path) -> None:
+    """AN MTIME IS A FACT ABOUT A FILE, so it can say nothing about bytes `--content` supplied from
+    somewhere else. Grading those by the clock of the file they overwrite is how this leg would
+    refuse a landing whose bytes are strictly newer than everything in the tree."""
+    _arms_fixture(repo, ARMS_LANDED, older=True)  # disk holds the LANDED copy, older by clock
+    supplied = ARMS_REVERT_CARRYING_ONE  # ...but the commit would create these bytes
+    assert scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), supplied) is None, (
+        "the clock of the file on disk was read as describing bytes that are on no disk")
+
+
+def test_a_strict_subset_outranks_a_partial_carry_and_keeps_its_own_words(repo: Path) -> None:
+    """BOTH VERDICTS REFUSE, so the choice between them is purely what the reader is told. "would
+    DELETE these names" is stronger and more actionable than "is missing 1 of 3 lines", and
+    `tests/background/test_finding_classes.py` on the live tree of 2026-09-22 is both at once."""
+    # 2 OF THE 3 LINES CARRIED AND ONE MODULE-LEVEL NAME DELETED, so both rules have something to
+    # say and the precedence between them is the only thing this asks about.
+    subset = (ARMS_LANDED
+              .replace("def alpha():\n    return 1\n\n\n", "")
+              .replace("    return measured\n", "    return stage_cost_arithmetic()\n"))
+    _arms_fixture(repo, subset, older=True)
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), subset)
+    assert loss is not None and loss.rule == scr.SUBSET, (
+        "the partial-carry leg swallowed a strict subset and downgraded what the reader is told")
+    assert "alpha" in loss.detail
+
+
+#: The unreadable-suffix mirror of `ARMS_REVERT_CARRYING_ONE`. Two corrections landed together; the
+#: stale copy carries one of them because both lanes quoted the same measured figure.
+NOTE_LANDED_TWICE = (
+    NOTE_MINTED
+    + "\nCORRECTED 2026-09-22 by the measurement it was waiting on: the bound is 1.09x and not "
+      "4.5x.\n"
+      "\nAND THE OLD FIGURE WAS OPTIMISTIC BY 29.2x, which is the reason the block was re-ruled.\n"
+)
+NOTE_STALE_CARRYING_ONE = (
+    NOTE_MINTED
+    + "\nAND THE OLD FIGURE WAS OPTIMISTIC BY 29.2x, which is the reason the block was re-ruled.\n"
+      "\nA sentence this lane added to the old copy, so the diff is not empty.\n"
+)
+
+
+def test_the_clock_leg_holds_the_same_vouch_as_the_readable_one(repo: Path) -> None:
+    """THE TWO RULES DIFFER ONLY IN WHETHER A SYMBOL READER EXISTS FOR THE SUFFIX, so they must not
+    differ in what counts as carrying the landing. Left at `any`, the knowledge layer and the
+    staging record keep the fail-open that `judge` just closed -- and on the live tree of
+    2026-09-22 that is `docs/data-sources/weather.md` at 13 of 29 and
+    `docs/observability/self_clearing_alarm_census.json` at 440 of 739.
+
+    THE WHOLE PARTITION, for the reason `test_the_whole_carry_partition_is_reachable_in_one_tree`
+    gives: a leg hardwired to `None` passes the vouching half and one hardwired to a Loss passes
+    the refusing half."""
+    sha = _clock_fixture(repo, landed=NOTE_LANDED_TWICE, stale=NOTE_STALE_CARRYING_ONE)
+    head = scr.blob_at(repo, "HEAD", "note.md")
+    partial = scr.clock_judge(repo, "note.md", head, NOTE_STALE_CARRYING_ONE)
+
+    whole = NOTE_LANDED_TWICE + "\nBuilt on top of both corrections.\n"
+    (repo / "note.md").write_text(whole)
+    os.utime(repo / "note.md", (scr.committed_at(repo, sha) - 60,) * 2)
+    vouched = scr.clock_judge(repo, "note.md", head, whole)
+
+    assert partial is not None and partial.rule == scr.PARTIAL, (
+        "a record copy older than its landing and missing one of its two corrections read as "
+        "clean, because one carried line vouched for the other")
+    assert partial.carried == 1 and any("1.09x" in line for line in partial.detail), (
+        "the refusal must name the landed sentence it would delete and the share it was reached on")
+    assert vouched is None, "the carries-all exemption is unreachable on the clock leg"
