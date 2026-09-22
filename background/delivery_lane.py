@@ -3872,6 +3872,18 @@ def path_note(item: dict) -> str:
         return ""
 
 
+def _drift_note(item: dict) -> str:
+    """`direction_path_check.drift_note`, deferred and fail-soft. "" for anything it cannot answer.
+
+    IMPORTED INSIDE THE CALL for `_path_verdict`'s reason: `direction_path_check` imports back from
+    this module, and a top-level import here would make the pair circular at load time."""
+    try:
+        from background import direction_path_check
+        return direction_path_check.drift_note(item)
+    except Exception:
+        return ""
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
@@ -3888,6 +3900,14 @@ def doorbell(item: dict) -> str:
     per-path table for work they are not going to do. It is also the longest of the four, and the
     three that can end the turn in one line have to be readable above it."""
     return premise_note(item) + rival_note(item) + successor_note(item) + path_note(item) + (
+        # DRIFT COMES LAST OF THE FIVE AND IMMEDIATELY AFTER THE TABLE IT REFERS TO. It is the only
+        # row here that is not answerable from the tree in front of the reader: a hand-off carries
+        # the landing door's reading from the moment it was WRITTEN, and the difference between
+        # that and `path_note`'s fresh tags says who has been working in these files while the
+        # item waited. It says nothing at all when the two readings agree, because `path_note` has
+        # just said it freshly -- and nothing on a focus item, which carries no stored reading.
+        _drift_note(item)
+    ) + (
         "LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
         "lanes because a judgement about what matters beats a weighted coin over a map whose "
         "idle atoms are all over their pass ceiling. WORK: {what} WHY: {why} "
