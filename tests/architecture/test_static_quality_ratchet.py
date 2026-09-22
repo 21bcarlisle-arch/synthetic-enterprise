@@ -116,6 +116,20 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-21  I001 1307 -> 1306  (the gas/HDD leg reads the premise's own cell: W1_14 step 3).
+#     ONE FILE, `tests/sim/test_weather_hdd.py`, and it is a side effect rather than a tidying
+#     pass: that file's import block was unsorted AT HEAD, and this commit had it open anyway to
+#     swap `_resolve_source_cid` (deleted with the string resolver) for `PremiseSky`. `--fix` was
+#     used and its diff READ BEFORE ACCEPTING — one line moved, imports only, no `noqa` in the
+#     block.
+#     MEASURED ON THE TREE THIS COMMIT WOULD CREATE, per this log's standing rule and NOT off the
+#     working tree: `git archive HEAD` extract with this commit's files copied in reads I001
+#     1306, F841 124, total 2282.
+#     THE SHARED WORKING TREE READS I001 1305 AND F841 123, one lower each, AND NEITHER IS BANKED
+#     HERE — the extra I001 is another lane's uncommitted `tests/tools/test_generate_maturity_map_
+#     data.py` and the F841 is another lane's uncommitted `tests/simulation/test_phase25a_eac_
+#     solar.py`. Both are theirs to lower, and banking them here would red this control the moment
+#     either lane reverted a file this commit never touched.
 #   2026-09-19  I001 1308 -> 1307, F841 125 -> 124  (T6 is given its first coverage, and the
 #     `087e3ad58` class census). ONE FILE, `tests/background/test_naive_organ.py`, and both are
 #     side effects rather than a tidying pass. That file had NO test of `detect_t6` at all, which
@@ -745,7 +759,8 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1307,  # lowered 2026-09-19 (see the SHRINK LOG head). Previously 1308,
+    "I001": 1306,  # lowered 2026-09-21 (see the SHRINK LOG head). Previously 1307,
+    #             lowered 2026-09-19 (see the SHRINK LOG head). Previously 1308,
     #             lowered 2026-09-16 (see the SHRINK LOG head). Previously 1309,
     #             lowered 2026-09-08 (the substring-control residue: five source-scanning
     #             controls re-read through `tools/python_code_text`): -1, in
@@ -875,7 +890,9 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2283  # 2285 -> 2283 on 2026-09-19: the I001 and the F841 above, both
+RUFF_BASELINE_TOTAL = 2282  # 2283 -> 2282 on 2026-09-21: the I001 above, attributed to
+# `tests/sim/test_weather_hdd.py`, whose block W1_14 step 3 had open anyway.
+# 2285 -> 2283 on 2026-09-19: the I001 and the F841 above, both
 # `tests/background/test_naive_organ.py`, the one file T6's first coverage opened.
 # 2286 -> 2285 on 2026-09-16: the I001 above, same attribution --
 # `tests/simulation/test_run_phase2b.py`, whose block this commit had open anyway.

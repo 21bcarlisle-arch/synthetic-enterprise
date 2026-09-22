@@ -1,14 +1,15 @@
 """Tests for Phase 58: HDD weather adjustment for gas consumption."""
 
 import pytest
+
 from sim.weather_hdd import (
     HDD_BASE_TEMP_C,
     REFERENCE_MONTHLY_HDD,
+    PremiseSky,
     get_hdd,
     get_monthly_hdd,
     get_weather_factor,
     weather_factor_for_term,
-    _resolve_source_cid,
 )
 from simulation.gas_settlement import run_gas_term
 
@@ -43,10 +44,12 @@ class TestHddCalculation:
     def test_hdd_formula_correct(self):
         # Inject a known temperature via the cache to verify the formula
         from sim.weather_hdd import _WEATHER_CACHE
-        _WEATHER_CACHE["TEST_COLD"] = {"2020-02-01": 5.0}
+        _WEATHER_CACHE["TEST_COLD"] = PremiseSky(
+            "TEST_COLD", cell="fixture", series={"2020-02-01": 5.0})
         hdd = get_hdd("2020-02-01", "TEST_COLD")
         assert abs(hdd - 10.5) < 0.001, "HDD should be 15.5 - 5.0 = 10.5"
-        _WEATHER_CACHE["TEST_WARM"] = {"2020-07-01": 20.0}
+        _WEATHER_CACHE["TEST_WARM"] = PremiseSky(
+            "TEST_WARM", cell="fixture", series={"2020-07-01": 20.0})
         hdd_warm = get_hdd("2020-07-01", "TEST_WARM")
         assert hdd_warm == 0.0, "HDD above base temp must be 0"
 
@@ -93,15 +96,35 @@ class TestWeatherFactor:
 
 
 class TestGasCustomerMapping:
-    def test_resolve_source_cid_gas_to_electricity(self):
-        assert _resolve_source_cid("C1g") == "C1"
-        assert _resolve_source_cid("C2g") == "C2"
-        assert _resolve_source_cid("C3g") == "C3"
-        assert _resolve_source_cid("C4g") == "C4"
+    """The `Xg -> X` STRING RULE IS GONE (2026-09-21, W1_14 step 3).
 
-    def test_resolve_source_cid_non_gas_unchanged(self):
-        assert _resolve_source_cid("C1") == "C1"
-        assert _resolve_source_cid("C_IC3g") == "C_IC3"  # I&C gas maps to electricity counterpart
+    A gas point and its dual-fuel electricity twin still read the same weather -- but because the
+    supply book publishes them at one coordinate and the store gives one cell one sky, not because
+    an id ends in `g`. The distinction is the whole finding: under the string rule, C_IC3g borrowed
+    C_IC3's resolution and both then missed every archive, and C7 -- no suffix, same London
+    coordinate as C1 -- got a climate normal.
+    """
+
+    def test_a_gas_point_reads_the_same_cell_as_its_twin_because_they_share_a_coordinate(self):
+        for gas_id, elec_id in (("C1g", "C1"), ("C2g", "C2"), ("C3g", "C3"), ("C4g", "C4"),
+                                ("C_IC3g", "C_IC3")):
+            assert get_hdd("2022-01-15", gas_id) == get_hdd("2022-01-15", elec_id), (
+                f"{gas_id} and {elec_id} are one supply point's two commodities at one address"
+            )
+
+    def test_the_g_suffix_no_longer_borrows_another_premises_weather(self):
+        """The failable half: an UNREGISTERED `Xg` must not inherit the registered `X`'s sky.
+
+        Restore the old rule and this reds -- `C7g` would strip to `C7`, which now resolves to a
+        cell, and the reading would claim to be weather for a premise that is on no book.
+        """
+        from sim.weather_hdd import hdd_reading
+        borrowed = hdd_reading("2022-01-15", "C7g")
+        assert borrowed.from_normal, (
+            f"C7g is not a registered supply point; it must not read C7's cell. "
+            f"basis={borrowed.basis!r}"
+        )
+        assert "not a registered supply point" in borrowed.basis, borrowed.basis
 
 
 class TestWeatherAdjustedGasSettlement:

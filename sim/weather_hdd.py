@@ -3,6 +3,24 @@
 UK standard base temperature 15.5°C (DECC/Ofgem domestic gas standard).
 Reference monthly HDD: UK Met Office 1991-2020 climate normals (England & Wales).
 
+THE PREMISE READS ITS OWN CELL (2026-09-21, W1_14 step 3)
+---------------------------------------------------------
+This leg was the THIRD resolver of "which sky did this household have", and the last one still
+answering from a per-property file. `_premise_sky()` below now asks
+`simulation.weather_inputs.cell_weather_for_customer_id`, which is `WeatherWorld.cell_id_for` --
+the one rule the fabric leg (2026-09-17) and the demand-shape/forward-price legs (2026-09-21)
+already resolve by. 16 of the book's 18 premises hold a cell; the two that do not (C_IC1, C_IC2,
+7.4 km outside the store) still get `REFERENCE_MONTHLY_HDD`, and `hdd_reading()` NAMES that
+substitution in what it returns rather than handing back a climatological number that reads like
+weather.
+
+THIS IS NOT AN EQUIVALENCE. Measured annual HDD over the whole book moves on 16 of 18 premises,
+-2.5% to -34.5% (2018 and 2022), for two reasons that must not be confused: the ten premises that
+were on the normal now see weather at all, and the eight that were on an ERA5 ~9 km archive now
+read HadUK-Grid 1 km, which is ~1.2 C warmer at an urban cell. An R13 fidelity decision, taken
+blind to what it does to company results. Full before/after in
+`docs/staging/WORKER_RESULT_THE_HDD_LEG_READS_THE_WORLDS_OWN_CELLS_NOW_2026-09-21.md`.
+
 Cumulative/rolling HDD windows (thermal memory), added 2026-08-03
 ------------------------------------------------------------------
 `get_hdd()` below is memoryless: HDD(D) depends only on D's own mean
@@ -33,12 +51,12 @@ the cited source.
 """
 from __future__ import annotations
 
-import csv
 import math
 from calendar import monthrange
+from dataclasses import dataclass, field
 from datetime import date, timedelta
+from typing import Mapping
 
-WEATHER_DATA_DIR = "sim/weather_data"
 HDD_BASE_TEMP_C = 15.5
 
 # UK 1991-2020 HDD climate normals (base 15.5°C, England & Wales).
@@ -58,56 +76,109 @@ REFERENCE_MONTHLY_HDD: dict[int, float] = {
     12: 341.0,
 }
 
-_WEATHER_CACHE: dict[str, dict[str, float]] = {}
+#: Opening words of the basis an `HddReading` carries when it could NOT read the premise's own
+#: weather and fell back to `REFERENCE_MONTHLY_HDD`. A caller asking "is this weather?" asks
+#: `HddReading.from_normal`; this prefix is for the reader of a printed record, and it is a
+#: constant so the two can never drift apart.
+NORMAL_BASIS_PREFIX = "1991-2020 England & Wales monthly normal"
 
 
-def _load_weather_means(customer_id: str) -> dict[str, float]:
+@dataclass(frozen=True)
+class PremiseSky:
+    """One premise's daily mean-temperature series, the cell it came from, and why there is none.
+
+    THE REFUSAL TRAVELS WITH THE SERIES, for the same reason it does in
+    `simulation.weather_inputs.CellWeather`: without it, "this cell's January was mild" and "this
+    premise has no weather at all" both arrive here as a number in the right range, and the second
+    one settles.
+    """
+
+    customer_id: str
+    cell: str | None = None
+    series: Mapping[str, float] = field(default_factory=dict)
+    refusal: str | None = None
+
+
+@dataclass(frozen=True)
+class HddReading:
+    """A day's HDD and WHAT IT WAS READ FROM -- a cell of the world, or a climate normal."""
+
+    hdd: float
+    basis: str
+    from_normal: bool
+
+
+#: Resolved skies by customer_id. Also the injection door for controls that need an exact
+#: temperature (`PremiseSky("X", cell="fixture", series={...})`) -- seeding it is what keeps them
+#: independent of which 1 km cell the store happens to hold.
+_WEATHER_CACHE: dict[str, PremiseSky] = {}
+
+
+def _premise_sky(customer_id: str) -> PremiseSky:
+    """The premise's sky, from the PER-CELL STORE -- the same cell its physics runs on.
+
+    WHAT THIS REPLACED, and why the replacement is not a widening (W1_14 step 3, 2026-09-21).
+    Until this date the resolver here was a STRING RULE with no notion of location: strip a
+    trailing `g`, else pass the id through, then look for `sim/weather_data/{id}.csv`. Four such
+    archives exist, so ten of the book's eighteen premises found no file -- and `get_hdd` then
+    returned `REFERENCE_MONTHLY_HDD[month] / 30.0` silently. That normal is the same number in
+    2018 and in 2022, so a premise on it could not see the coldest winter in the record; it is
+    biased high by a third to a half at an urban cell; and C1 and C7, which are the SAME
+    COORDINATE, read annual HDD 12-20% apart purely because one id matched a filename.
+
+    The import is deferred because `simulation.weather_inputs` reaches the registered supply book
+    and this module is imported by `simulation.gas_settlement` -- at call time there is no cycle,
+    at import time there would be.
+    """
     if customer_id in _WEATHER_CACHE:
         return _WEATHER_CACHE[customer_id]
-    path = f"{WEATHER_DATA_DIR}/{customer_id}.csv"
-    try:
-        with open(path, newline="") as f:
-            result = {row["date"]: float(row["temperature_mean_c"]) for row in csv.DictReader(f)}
-    except FileNotFoundError:
-        result = {}
-    _WEATHER_CACHE[customer_id] = result
-    return result
+    from simulation.weather_inputs import cell_weather_for_customer_id
+
+    cell_weather = cell_weather_for_customer_id(customer_id)
+    sky = PremiseSky(customer_id, cell_weather.cell, cell_weather.series, cell_weather.refusal)
+    _WEATHER_CACHE[customer_id] = sky
+    return sky
 
 
-def _resolve_source_cid(customer_id: str) -> str:
-    """Map gas customer IDs to their weather-data counterpart.
+def hdd_reading(date_str: str, customer_id: str) -> HddReading:
+    """HDD for one day at the premise's CELL, carrying what it was read from.
 
-    C1g -> C1 (shares location with dual-fuel electricity customer).
-    Non-gas customers and unrecognised IDs pass through unchanged.
+    `get_hdd` is this function's `.hdd` and is what every arithmetic caller wants. This one exists
+    so the substitution can NAME ITSELF: a run that prints `HddReading.basis`, or asserts on
+    `from_normal`, can tell "the world's weather at cell E529N0180" from "no weather for this
+    premise, so a climate normal stood in" -- which two plausible HDD numbers cannot.
+
+    R15 hardening (2026-08-03, kept): a non-finite (NaN/inf) recorded temperature is rejected with
+    ValueError rather than silently reaching the max(0.0, ...) comparison below. Python's
+    `max(0.0, nan)` evaluates to 0.0 (NaN never compares greater than 0.0), which would otherwise
+    silently read a corrupt/missing temperature reading as "warm, zero heating demand" -- the
+    exact FAIL-OPEN pattern this codebase has been bitten by before.
     """
-    if customer_id.endswith("g") and len(customer_id) > 1:
-        return customer_id[:-1]
-    return customer_id
+    sky = _premise_sky(customer_id)
+    temp = sky.series.get(date_str)
+    if temp is not None:
+        if not math.isfinite(temp):
+            raise ValueError(
+                f"non-finite mean temperature ({temp!r}) for {customer_id} "
+                f"(cell {sky.cell}) on {date_str}"
+            )
+        return HddReading(max(0.0, HDD_BASE_TEMP_C - temp), f"cell {sky.cell}", False)
+    month = int(date_str[5:7])
+    why = sky.refusal or (
+        f"cell {sky.cell} holds no mean temperature on {date_str}" if sky.cell
+        else f"no cell resolved for {customer_id}"
+    )
+    return HddReading(REFERENCE_MONTHLY_HDD[month] / 30.0, f"{NORMAL_BASIS_PREFIX} -- {why}", True)
 
 
 def get_hdd(date_str: str, customer_id: str) -> float:
-    """HDD for one day at customer's location. max(0, 15.5 - mean_temp).
+    """HDD for one day at the premise's cell. max(0, 15.5 - mean_temp).
 
-    R15 hardening (2026-08-03): a non-finite (NaN/inf) recorded temperature is
-    rejected with ValueError rather than silently reaching the max(0.0, ...)
-    comparison below. Python's `max(0.0, nan)` evaluates to 0.0 (NaN never
-    compares greater than 0.0), which would otherwise silently read a
-    corrupt/missing temperature reading as "warm, zero heating demand" -- the
-    exact FAIL-OPEN pattern this codebase has been bitten by before. Genuine
-    CSV weather data never contains non-finite values, so this changes nothing
-    for any existing well-formed input/caller.
+    A bare float, so it stays the arithmetic every caller already does with it. When the premise
+    has no weather this is a climate normal and the float cannot say so -- `hdd_reading` is the
+    call that can, and `HddReading.from_normal` is the question.
     """
-    source_cid = _resolve_source_cid(customer_id)
-    means = _load_weather_means(source_cid)
-    if date_str in means:
-        temp = means[date_str]
-        if not math.isfinite(temp):
-            raise ValueError(
-                f"non-finite mean temperature ({temp!r}) for {source_cid} on {date_str}"
-            )
-        return max(0.0, HDD_BASE_TEMP_C - temp)
-    month = int(date_str[5:7])
-    return REFERENCE_MONTHLY_HDD[month] / 30.0
+    return hdd_reading(date_str, customer_id).hdd
 
 
 def get_monthly_hdd(year: int, month: int, customer_id: str) -> float:
@@ -248,8 +319,8 @@ def get_cumulative_hdd(
     happened first.
 
     Short-history / missing-day behaviour (explicit choice, not an
-    accident): a day within the window that has no per-customer weather
-    record falls through to `get_hdd()`'s own existing monthly-climatology
+    accident): a day within the window that the premise's CELL has no
+    temperature for falls through to `get_hdd()`'s own monthly-climatology
     fallback (`REFERENCE_MONTHLY_HDD`) -- exactly the same fallback the
     memoryless API already uses and existing callers already depend on. A
     short/missing history therefore reads as "typical weather for that
@@ -258,6 +329,13 @@ def get_cumulative_hdd(
     wrong FAIL-OPEN shape). The weights above are also renormalised to sum
     to 1 regardless of `window_days`, so shrinking the window never
     silently drops mass.
+
+    THIS FUNCTION RETURNS A BARE FLOAT AND SO CANNOT SAY WHICH DAYS OF ITS
+    WINDOW WERE THE NORMAL. `hdd_reading()` is the per-day call that names
+    its basis; a caller that needs the window's provenance must ask that
+    function over the same days rather than infer it from this sum, because
+    a window blended from nine real days and one normal is indistinguishable
+    here from ten real days.
 
     Raises ValueError (never silently returns a value) if `date_str` is
     malformed, if `window_days`/`decay` are out of range, or if any day in

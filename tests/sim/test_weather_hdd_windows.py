@@ -25,6 +25,7 @@ from sim.weather_hdd import (
     HDD_WINDOW_DAYS,
     HDD_WINDOW_DECAY,
     REFERENCE_MONTHLY_HDD,
+    PremiseSky,
     _finite_hdd_window_weights,
     get_cumulative_hdd,
     get_hdd,
@@ -35,8 +36,11 @@ def _inject(customer_id: str, temps: dict[str, float]) -> None:
     """Directly seed the module's weather cache (same technique as
     test_weather_hdd.py::test_hdd_formula_correct) so scenarios are exact and
     independent of the real historical CSVs -- avoids any dependency on real
-    weather data changing under us."""
-    _WEATHER_CACHE[customer_id] = dict(temps)
+    weather data changing under us.
+
+    `cell="fixture"` is deliberately not a cell id the store could hold: a seeded sky is this
+    test's own construction, and a reading built from it must never be mistaken for the world's."""
+    _WEATHER_CACHE[customer_id] = PremiseSky(customer_id, cell="fixture", series=dict(temps))
 
 
 # ---------------------------------------------------------------------------
