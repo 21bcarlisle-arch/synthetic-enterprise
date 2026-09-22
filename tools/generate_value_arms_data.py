@@ -7705,13 +7705,20 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             "carries_a_permutation_null": carries_a_null,
             "names_the_world_it_was_measured_in": "world_identity" in second,
             "quotable_here": False,
+            # A NAME, NOT A DIRECTION (2026-09-22). The last clause said "the reading published
+            # above" from the day this block landed (eff979da5, hours earlier), and the tied-pointer
+            # rung caught it as a direction it cannot judge. The repair this repository has already
+            # chosen for this shape four times over is to NAME the subject rather than point up at
+            # it -- a feed string has more homes than its producer can know, so "above" is a claim
+            # about a layout nobody here can see. The subject is the renewal route of the belief
+            # grade, which is what this same block quotes, so it is called that.
             "why_not": (
                 "A second grade of this same question exists on a larger and different book, and "
                 "it is named here rather than left for a reader to find. No figure is taken from "
                 "it: it carries no permutation null, and a rank statistic with no null is not a "
                 "reading -- it is a number that cannot be told from chance. It also names no "
-                "world. The reading published above is the one with an interval, a ceiling on its "
-                "own rows and a stated population."),
+                "world. The renewal-route reading this block quotes from the belief grade is the "
+                "one with an interval, a ceiling on its own rows and a stated population."),
             "never_averaged_because": (
                 "The two are different books measured by different instruments. An average of "
                 "them would describe neither population, and the difference between them is not "
@@ -7753,16 +7760,25 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             # THE READABLE HALF IS STILL STATED, and only the JOIN is withheld. The size block is
             # a fact about the belief whether or not the world's side of the chain resolves, and
             # dropping it here would withhold a measurement for the failure of a different one.
+            #
+            # A NAME, NOT A DIRECTION (2026-09-22), the second of two in this producer. This said
+            # "the reason is the table above" and, later in the SAME literal, "the belief's own
+            # reading above" -- two directions in one string, and only the first was red, because
+            # `reading` is not a noun the tied-pointer vocabulary carries and `table` is. Both are
+            # repaired, and the unjudged one deliberately so: a claim that is wrong in the same way
+            # is not made right by the detector being unable to see it yet, and the day `reading`
+            # enters that vocabulary this sentence must not be what reds.
             chain = (
                 "The join between these two panels is NOT stated on this capture, and the reason "
-                "is the table above: not one of the world's renewal factors clears its own null "
-                "on its own here, so there is no single dimension this book can show departures "
-                "are ordered by. The belief's side is unchanged and still readable — it reaches a "
-                "household's bill through a single term that is identically zero for {} of {} "
-                "supply legs. What cannot be drawn from this capture is the link that made those "
-                "two facts one argument: that the world orders departures by the very dimension "
-                "the belief is flat in. The belief's own reading above stands on its own null and "
-                "is unaffected by any of this.".format(below, legs)
+                "is the world's per-factor decomposition: not one of the world's renewal factors "
+                "clears its own null on its own here, so there is no single dimension this book "
+                "can show departures are ordered by. The belief's side is unchanged and still "
+                "readable — it reaches a household's bill through a single term that is "
+                "identically zero for {} of {} supply legs. What cannot be drawn from this "
+                "capture is the link that made those two facts one argument: that the world "
+                "orders departures by the very dimension the belief is flat in. The belief's own "
+                "reading stands on its own null and is unaffected by any of this.".format(
+                    below, legs)
                 if below is not None and legs is not None else None)
         else:
             chain = (

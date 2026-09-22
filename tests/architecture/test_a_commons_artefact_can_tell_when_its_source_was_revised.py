@@ -46,6 +46,7 @@ from tools.commons_source_supersession import (
     check,
     check_artefact,
     report,
+    resolve_open_finding,
 )
 
 TODAY = date(2026, 9, 7)
@@ -54,6 +55,14 @@ REPO = Path(__file__).resolve().parents[2]
 
 #: Any finding that really is in the tree. The obligation is that the path RESOLVES, so this is a
 #: stand-in for "an act was performed", not a claim about this particular document.
+#:
+#: AND THIS ONE HAS SINCE BEEN ARCHIVED TO `docs/staging/done/`, which is now LOAD-BEARING rather
+#: than an accident to tidy up (2026-09-22). It is what makes `test_every_verdict_can_be_recorded`
+#: the control over `resolve_open_finding`: narrow the resolver back to asking the cited path and
+#: only the cited path -- the shape that reds an artefact because an unrelated lane tidied the
+#: queue -- and both legs of that test go red. Do NOT "fix" this constant by pointing it at
+#: `done/`: that pins the fixture to today's archive layout and deletes the control in the same
+#: edit. The never-written case keeps its own poison rounds below, so both directions are reached.
 A_FILED_FINDING = (
     "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED"
     "_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md"
@@ -144,7 +153,6 @@ def test_a_superseded_verdict_in_the_live_commons_names_a_finding_that_exists() 
     Keyed to the property, not to which artefacts are superseded today: if none are, this passes
     vacuously and `test_the_actioned_leg_fires...` below carries the reach.
     """
-    root = COMMONS.parent.parent
     for path in artefact_paths():
         block = json.loads(path.read_text(encoding="utf-8")).get("source_check", {})
         checked = block.get("checked_for_supersession", {})
@@ -152,7 +160,13 @@ def test_a_superseded_verdict_in_the_live_commons_names_a_finding_that_exists() 
             continue
         named = checked.get("open_finding")
         assert named, f"{path.stem} records superseded and names no finding"
-        assert (root / named).exists(), f"{path.stem} names {named}, which is not in the tree"
+        # THROUGH THE MODULE'S OWN RESOLVER (2026-09-22), not a second `(root / named).exists()`.
+        # This leg asked the cited path and only the cited path, which is the same defect the
+        # checker carried: an archival to `docs/staging/done/` would red this on a document that
+        # is tracked and committed. One home for "where does a filed finding live", so repairing
+        # it there repairs it here.
+        assert resolve_open_finding(named) is not None, (
+            f"{path.stem} names {named}, which is in no directory under docs/staging/ at any depth")
 
 
 # --------------------------------------------------------------------------------------
