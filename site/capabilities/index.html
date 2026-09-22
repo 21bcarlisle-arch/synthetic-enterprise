@@ -2360,7 +2360,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + "another; read each figure against the run and the date beside it.</p>"
             : "")
         + '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
-        + prose(comp.against_the_superseded_panel || "") + "</p>";
+        + prose(comp.against_the_superseded_panel || "") + "</p>"
+        /* WHICH ARM CARRIED THE MOVEMENT, RENDERED BESIDE THE REFUSAL THAT SAYS NOTHING CAN BE
+           ATTRIBUTED — because they are compatible and a reader met only the second for a
+           fortnight. The refusal is about which DIFFERENCE moved the figure and stands; this is
+           about which ARM moved, which is a subtraction on two fields both artefacts carry and
+           which the page had never done. Its own paragraph and not appended to the refusal: two
+           statements with opposite polarity in one paragraph read as a hedge on the first.
+           RENDERS ONLY WHEN THE PRODUCER MADE IT. `available: false` carries a named reason for
+           the feed's reader; putting a "we could not split it" line on the page under a block
+           that already refuses would be the same refusal a third time. */
+        + (((comp.which_arm_moved || {}).available && (comp.which_arm_moved || {}).statement)
+            ? '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+              + prose(comp.which_arm_moved.statement) + "</p>"
+            : "");
 
       var sp = d.provisioned || {};
       if (sp.available) {

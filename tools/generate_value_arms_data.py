@@ -10571,12 +10571,273 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
              un=_listed(differences.get("unestablished") or []), inv=invariant)
 
 
+def _the_books_a_run_priced(run: dict | None) -> tuple | None:
+    """The settled-account counts a run's arms were scored over, as the SPAN they actually take.
+
+    READ, NEVER PINNED, for `_the_book_this_floor_was_drawn_on`'s reason one artefact over: the
+    counts are in comments in this file and must not become literals in a rendered sentence.
+
+    A SPAN AND NOT ONE NUMBER, because on every three-arm run on disk it IS a span: the control
+    and level arms are scored over one book and the value arm over one more account, so a function
+    returning "the run's book" returns `None` on the only input it will ever be given. That is the
+    shape where a caveat goes quiet by being unanswerable rather than by being satisfied -- a
+    field structurally unable to answer agrees with every answer to it -- so the span is published
+    as a span and the comparison beside it asks CONTAINMENT rather than equality.
+
+    `None` only when no arm publishes a count at all, which is genuinely "could not be asked".
+    """
+    books = {(arm or {}).get("billing_accounts_settled_in_window")
+             for arm in ((run or {}).get("book_identity") or {}).values()
+             if isinstance(arm, dict)}
+    books.discard(None)
+    counts = sorted(b for b in books if isinstance(b, int))
+    return (counts[0], counts[-1]) if counts else None
+
+
+def _the_shares_own_null(share, superseded_share, share_books: tuple | None = None,
+                         path: Path | None = None) -> dict:
+    """What `level_share_of_advantage` does when ONLY the seed moves -- the ruler it never had.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-22, Lane 0). This page published 98.5% for the share
+    against the superseded panel's 5.5%, and `_against_the_superseded_panel` explained the 17.9x
+    between them by counting three confounders -- the date, the commit and the book. Every word of
+    that is true and it is an order of magnitude too small for what it is explaining:
+    `AUC_FAMILY_FLOOR_PATH` re-runs this same world with ONLY the per-household elasticity draw
+    moved and takes this same statistic from 0.067 to 12.074. So the page differenced a quantity,
+    reasoned about the difference and published the reasoning before anything asked what the
+    quantity does when nothing at all is done to it. That is this repository's most expensive
+    recurring shape, and the aggravation here is that the null had already been MEASURED and was
+    sitting in `docs/observability/` with no reader.
+
+    THE COMPARISON IS BETWEEN TWO SPANS OF ONE STATISTIC, WHICH IS WHY IT IS A QUANTITY. `range`
+    is max-minus-min over the family; `observed_disagreement` is the gap between the two draws
+    this page prints. Both are differences of `level_share_of_advantage` in the same units, so
+    their ratio counts how many observed gaps fit inside the null. THE RATIO OF THE ENDPOINTS --
+    the "181x" this was found by -- is deliberately NOT the comparator: it divides one draw of the
+    share by another, and the day a draw lands at or below zero it is a fold of a sign change
+    reported as a magnitude. This family's numerator is nowhere near determined enough to rule
+    that out. `min` and `max` are both carried, so the fold is available to a reader who wants it
+    and is not the thing a control is keyed to.
+
+    IT IS A CONSERVATIVE COMPARISON AND THAT IS THE WHOLE ARGUMENT. The null moves ONE thing. The
+    observed gap moves the seed AND the date AND the commit AND the book. Fewer sources of
+    variation already spanning more than the gap is exactly what makes the gap uninformative, and
+    the direction of that inference does not need the two to be matched -- it holds a fortiori.
+
+    WHAT IT DOES NOT ESTABLISH, PUBLISHED RATHER THAN LEFT IN THIS DOCSTRING. The family is drawn
+    on ONE book, and that book is the SUPERSEDED panel's, not the published run's. So the seed
+    sensitivity of this statistic is established there and is NOT established on the book the
+    headline share is drawn on. `book` and `the_book_the_share_is_drawn_on` are both published and
+    `book_matches_the_share` states whether they agree, because a reader who is told a null is
+    wide is entitled to know which population it was wide over. It is published on the mismatched
+    branch anyway: a measured null on a neighbouring book is evidence, and the alternative is the
+    state this page has been in, which is a difference explained by a confounder story with no
+    ruler underneath it at all.
+
+    FAILS CLOSED, AND `available: False` NEVER LICENSES A READING. An unreadable artefact, a
+    family under two draws, a missing endpoint, or a gap this page cannot form all return the
+    refusal with its reason named, and no branch here may set `readable` True. The absence of a
+    null is not a null of no width -- that is the direction in which every observed value clears
+    its bound.
+    """
+    path = AUC_FAMILY_FLOOR_PATH if path is None else path
+    loaded = _read(path)
+    if loaded is None:
+        return {"available": False, "why_not": (
+            "no seed-redraw family for this statistic could be read from {}, so what the share "
+            "does when nothing but the seed moves is unmeasured here".format(path.name))}
+    spread = loaded.get("level_share_spread") or {}
+    n, lo, hi = spread.get("n"), _f(spread.get("min")), _f(spread.get("max"))
+    if not isinstance(n, int) or n < 2 or lo is None or hi is None:
+        return {"available": False, "why_not": (
+            "{} carries no spread of `level_share_of_advantage` over two or more draws, so this "
+            "statistic's own null could not be formed from it".format(path.name))}
+    observed = (abs(share - superseded_share)
+                if share is not None and superseded_share is not None else None)
+    null_range = hi - lo
+    book = _the_book_this_floor_was_drawn_on(loaded)
+    block = {
+        "available": True,
+        "family": AUC_FAMILY_SOURCE,
+        "artefact": path.name,
+        "world": ((loaded.get("world_identity") or {}).get("digest")),
+        "book": book,
+        # THE POPULATION THE NULL IS WIDE OVER, AND THE ONE THE SHARE IS DRAWN ON, AS TWO FIELDS
+        # AND A VERDICT. A null published without them reads as a null of THIS run, which is the
+        # stronger claim and not the one the evidence supports. `None` on either side yields
+        # `None` here and never `False`: "the books disagree" and "one of them could not be read"
+        # are different states, and the second reading as the first would manufacture a caveat.
+        "the_books_the_share_is_drawn_on": (list(share_books) if share_books else None),
+        "book_matches_the_share": (
+            None if book is None or not share_books
+            else share_books[0] <= book <= share_books[1]),
+        "what_was_re_drawn": loaded.get("redraw_key_means"),
+        "n": n,
+        "min": lo,
+        "max": hi,
+        "mean": _f(spread.get("mean")),
+        "stdev": _f(spread.get("stdev")),
+        "range": null_range,
+        "observed_disagreement": observed,
+        "what_each_span_counts": (
+            "`range` is the widest minus the narrowest draw of `level_share_of_advantage` across "
+            "{n} re-runs of ONE world in which nothing moved but the per-household elasticity "
+            "draw. `observed_disagreement` is the gap between the two draws of that same "
+            "statistic this page prints. Both are differences of one quantity in one unit, so "
+            "`times_the_observed_disagreement` counts how many of the second fit inside the "
+            "first. It is NOT a fold of one share by another.".format(n=n)),
+        "times_the_observed_disagreement": (
+            null_range / observed if observed is not None and observed > 0 else None),
+        "null_is_wider_than_the_disagreement": (
+            None if observed is None else null_range > observed),
+    }
+    # THE CAVEAT IS COMPOSED FROM THE TWO BOOKS AND NEVER WRITTEN DOWN, so it follows the family
+    # the day `AUC_FAMILY_FLOOR_PATH` moves and goes silent of its own accord if a null is ever
+    # drawn on the share's own book. All three branches carry it -- a caveat that appears only
+    # when the news is bad is a caveat a reader never learns to weigh.
+    span = ("{}".format(share_books[0]) if share_books and share_books[0] == share_books[1]
+            else "{}-{}".format(*share_books) if share_books else None)
+    if block["book_matches_the_share"] is True:
+        book_clause = (
+            " The null is drawn on {b} settled accounts, which is inside the {s} the share's own "
+            "arms were scored over, so this is that statistic's own population.".format(
+                b=book, s=span))
+    elif block["book_matches_the_share"] is False:
+        book_clause = (
+            " WHAT THIS IS NOT MEASURED ON: the null is drawn on {b} settled accounts and the "
+            "share's own arms were scored over {s}, so the seed sensitivity is established for "
+            "this statistic on a NEIGHBOURING book and not on its own. It is published with that "
+            "named because a measured null one book over is evidence and the alternative already "
+            "on the page is no ruler at all.".format(b=book, s=span))
+    else:
+        book_clause = (
+            " Which book either side was drawn on could not be established from both artefacts, "
+            "so whether this null describes the share's own population is unknown here.")
+    if observed is None:
+        block["statement"] = (
+            "This page could not form the gap between its own two draws of the share, so the "
+            "seed-redraw null read from {source} is published without a comparison.{book}".format(
+                source=AUC_FAMILY_SOURCE, book=book_clause))
+        return block
+    if null_range > observed:
+        block["statement"] = (
+            "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC "
+            "RATHER THAN OF THESE TWO RUNS. Re-running this same world {n} times with NOTHING "
+            "moved but the per-household elasticity draw takes `level_share_of_advantage` from "
+            "{lo:.3f} to {hi:.3f} -- a span of {rng:.3f}, which is {times:.1f} times the "
+            "{obs:.3f} between the two draws this page prints. The gap between them is therefore "
+            "smaller than what the statistic does when nothing is done to it, so no arrangement "
+            "of confounders explains it and none is needed to: a single draw of this share "
+            "carries no reading, and that stays true however the confounders are cleaned up.{book}"
+        ).format(n=n, lo=lo, hi=hi, rng=null_range, times=null_range / observed, obs=observed,
+                 book=book_clause)
+    else:
+        block["statement"] = (
+            "The seed-redraw null for this share is NARROWER than the gap between the two draws "
+            "this page prints: {n} re-runs of this world with nothing moved but the per-household "
+            "elasticity draw span {rng:.3f}, against {obs:.3f} between the two draws. Seed noise "
+            "does not account for the difference, so what does is a live question and the "
+            "differences counted in `differs_from_the_superseded_panel` are the account of it."
+            "{book}"
+        ).format(n=n, rng=null_range, obs=observed, book=book_clause)
+    return block
+
+
+def _which_arm_moved(contrast: dict, superseded_contrast: dict | None) -> dict:
+    """Which of the two arm nets composing the numerator actually moved between the two runs.
+
+    THE ATTRIBUTION THIS PAGE SAYS IT CANNOT MAKE, AND IT CAN MAKE PART OF IT. `level_advantage_
+    gbp` is the level arm's net MINUS the control arm's, so the movement in the numerator splits
+    exactly between those two nets and nothing else. Splitting it is one subtraction each and the
+    page had never done it, so a reader was told only that the share moved 17.9x and that three
+    things differed. The split says which arm carried the move, and the answer is the CONTROL arm
+    -- the arm that prices nothing per customer.
+
+    WHAT IT LICENSES AND WHERE IT STOPS, and the stopping point is the half that matters. The
+    control arm applies flat rules and takes no per-customer pricing decision, so nothing the
+    value arm or the level arm does can reach its net. That rules out the reading a reader is
+    most likely to take -- that the company got better or worse at choosing -- and it locates the
+    movement in the BASELINE the split is measured against. It does NOT name which of the counted
+    differences moved the control arm. The two runs' producing commits differ, and the book count
+    is itself an OUTPUT of the code those commits differ in, so book and commit are not separable
+    here and this block does not pretend they are.
+
+    `share_of_the_movement` COUNTS ONE THING AND SAYS SO. It is one arm's absolute net change over
+    the sum of both arms' absolute net changes. It is not a share of the advantage, not a share of
+    either arm's net, and not a share of the numerator's change -- the last of which would be a
+    different number, because the two deltas point the same way and their difference is smaller
+    than either. Refused outright when both arms moved by nothing at all: a share of zero movement
+    is a divide by a rounding error dressed as a percentage, which is the rule `level_vs_selection`
+    applies one function away and the reason it applies it.
+    """
+    if not isinstance(superseded_contrast, dict) or not superseded_contrast.get("available"):
+        return {"available": False, "why_not": (
+            "the run the superseded panel states its share from carries no arm contrast, so the "
+            "movement in the numerator cannot be split between the arms that compose it")}
+    reads = {}
+    for key in ("control_net_gbp", "level_arm_net_gbp"):
+        mine, theirs = _f(contrast.get(key)), _f(superseded_contrast.get(key))
+        if mine is None or theirs is None:
+            return {"available": False, "why_not": (
+                "one of the two runs does not publish `{}`, so the movement in the numerator "
+                "cannot be split between the arms that compose it".format(key))}
+        reads[key] = (mine, theirs)
+    control_here, control_there = reads["control_net_gbp"]
+    level_here, level_there = reads["level_arm_net_gbp"]
+    control_delta, level_delta = control_there - control_here, level_there - level_here
+    moved = abs(control_delta) + abs(level_delta)
+    if not moved > 0:
+        return {"available": False, "why_not": (
+            "neither the control arm's net nor the level arm's moved between the two runs, so "
+            "there is no movement here to attribute to either of them")}
+    control_share = abs(control_delta) / moved
+    bigger = "control" if abs(control_delta) >= abs(level_delta) else "level"
+    return {
+        "available": True,
+        "what_moved": (
+            "`level_advantage_gbp`, the numerator of this share, which is the level arm's net "
+            "minus the control arm's -- so its movement between two runs is the difference of "
+            "those two arms' movements and of nothing else"),
+        "direction": ("from the run this block publishes to the run the superseded panel states "
+                      "its share from"),
+        "control_net_gbp": {"published": control_here, "superseded_panel": control_there,
+                            "delta": control_delta,
+                            "pct": (100.0 * control_delta / control_here
+                                    if control_here else None)},
+        "level_arm_net_gbp": {"published": level_here, "superseded_panel": level_there,
+                              "delta": level_delta,
+                              "pct": (100.0 * level_delta / level_here if level_here else None)},
+        "numerator_delta_gbp": level_delta - control_delta,
+        "the_arm_that_moved": bigger,
+        "share_of_the_movement": control_share,
+        "what_that_share_counts": (
+            "the control arm's absolute net change over the SUM of both arms' absolute net "
+            "changes. Not a share of the advantage, not a share of either net, and not a share "
+            "of the numerator's own change"),
+        "statement": (
+            "THE ARM THAT MOVED IS THE ONE THAT PRICES NOTHING. Between the two runs this page "
+            "prints, the level arm's net moved {ld:+,.0f} and the control arm's moved {cd:+,.0f}: "
+            "{pct:.1%} of the two arms' absolute movement is the CONTROL arm, which applies flat "
+            "rules and takes no per-customer pricing decision. Nothing either pricing arm does "
+            "can reach it, so what moved between these two runs is the BASELINE the split is "
+            "measured against and not the choosing. That is as far as this goes: which of the "
+            "differences counted in `differs_from_the_superseded_panel` moved the control arm is "
+            "NOT established, because the two producing commits differ and the book count is "
+            "itself an output of the code they differ in, so the book and the commit cannot be "
+            "told apart here."
+        ).format(ld=level_delta, cd=control_delta, pct=control_share),
+    }
+
+
 def _composition_in_this_world(contrast: dict, floor_current: dict | None,
                                superseded_share, live: str,
                                later_runs: list | None = None,
                                published_at=None, published_from=None,
                                level_stability: dict | None = None,
-                               differences: dict | None = None) -> dict:
+                               differences: dict | None = None,
+                               superseded_contrast: dict | None = None,
+                               share_books: tuple | None = None,
+                               shares_own_null: dict | None = None) -> dict:
     """How the advantage SPLITS between the two legs -- and why that split may not be read.
 
     THE RESIDUE THIS CLOSES, named in `09009c236`'s own discharge as still unwritten anywhere a
@@ -10618,6 +10879,26 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     SECOND, independent reason: both can fire, both are published, and neither is folded into the
     other, because "the numerator has no sign" and "a later run disagrees" are different states
     with different remedies.
+
+    THE THIRD REFUSAL, ADDED 2026-09-22, AND IT IS THE ONE NEITHER OF THE OTHER TWO CAN BE CLEANED
+    UP INTO. Both refusals above are about THIS PAIR of runs: repair the mechanism so the level leg
+    holds a sign, or land a run every later one agrees with, and each lifts. This one is about the
+    STATISTIC. `_the_shares_own_null` reads what `level_share_of_advantage` does across a family
+    that re-runs one world with NOTHING moved but the per-household elasticity draw, and when that
+    range is wider than the gap the page is attributing, the gap carries no information -- before
+    any confounder is named and after every one is removed. It is what `against_the_superseded_
+    panel` had been missing for a fortnight: that sentence counted three real differences and
+    explained a 17.9x disagreement with them, in a statistic whose own null spans thirteen times
+    that gap. A quantity published, differenced and reasoned about before anyone asked what its
+    own null looks like is this project's most expensive recurring shape, and the aggravation here
+    is that the null had been MEASURED five days earlier and wired to nothing.
+
+    ALL THREE ARE INDEPENDENT AND EACH HAS A CONTROL THAT MUST ISOLATE ITS OWN. That is why
+    `shares_own_null` is injectable exactly as `later_runs` is: a control cannot show that ITS
+    refusal is a judgement while a second, entirely correct refusal fires on the same witness. See
+    `_a_quiet_null` in this file's suite for the reasoning written out, and
+    `test_a_share_whose_own_null_outruns_the_gap_is_not_readable_at_one_run` for where this leg's
+    own two branches are pinned.
     """
     share = _f(contrast.get("level_share_of_advantage"))
     if share is None:
@@ -10713,6 +10994,46 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     block["differs_from_the_superseded_panel"] = differences
     block["against_the_superseded_panel"] = _against_the_superseded_panel(
         superseded_share, differences)
+    # THE THIRD REFUSAL, AND IT IS THE ONE NO ARRANGEMENT OF THE OTHER TWO CAN LIFT. The sign test
+    # asks whether the numerator has a direction in the floor this page is bound over; the later-
+    # runs census asks whether something later says otherwise. Both are questions about THIS pair
+    # of runs, and both can in principle be answered by cleaning the comparison up. This one is
+    # about the STATISTIC: if its own seed-redraw range is wider than the gap being attributed,
+    # the gap carries no information and a single draw of the share carries no reading -- and that
+    # is true before any confounder is named and stays true after every one is removed.
+    #
+    # KEYED TO THE PROPERTY, NEVER TO TODAY'S SPAN. The trigger is `null_is_wider_than_the_
+    # disagreement`, a comparison of two measured spans, so the day the instrument's seed
+    # sensitivity comes in under the gap this refusal lifts on its own and the block says so in
+    # the other branch. Nothing here is pinned to 12x, to 181x, or to any figure a re-draw moves.
+    #
+    # SCANNED BY DEFAULT, INJECTABLE FOR A CONTROL, for the reason `later_runs` carries: the two
+    # branches of this refusal both need a witness and neither may be bought by writing an
+    # artefact onto the real disk.
+    null = (_the_shares_own_null(share, superseded_share, share_books)
+            if shares_own_null is None else shares_own_null)
+    block["the_shares_own_null"] = null
+    statement = null.get("statement")
+    if null.get("null_is_wider_than_the_disagreement"):
+        block["readable"] = False
+        # PREPENDED AHEAD OF BOTH OTHERS, because it is the most general of the three: a reader
+        # who stops after the first sentence should meet the reason that does not depend on which
+        # two runs the page happens to be comparing.
+        block["why_not_readable"] = " ".join(
+            part for part in (statement, block.get("why_not_readable")) if part)
+    elif statement:
+        # AND THE OTHER BRANCH REACHES THE READER TOO, APPENDED RATHER THAN PREPENDED. "We looked
+        # at what this statistic does under re-draw and it is narrower than the gap" is a result,
+        # and a page that published the null only when it refused would be one a reader could not
+        # tell from a page that had never measured it. It goes LAST because it qualifies the
+        # refusals rather than making one, and a qualification read first reads as a hedge on
+        # everything after it.
+        block["why_not_readable"] = " ".join(
+            part for part in (block.get("why_not_readable"), statement) if part)
+    # WHICH ARM CARRIED THE MOVEMENT, PUBLISHED WHETHER OR NOT ANY REFUSAL ABOVE FIRED. It is not
+    # a reason the share is unreadable -- it is the part of the attribution this page had been
+    # saying it could not make while the two subtractions that make it sat in both artefacts.
+    block["which_arm_moved"] = _which_arm_moved(contrast, superseded_contrast)
     return block
 
 
@@ -11792,7 +12113,8 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
                             superseded_split: dict | None = None,
                             later_runs: list | None = None,
                             observability_dir: Path | None = None,
-                            superseded_run: dict | None = None) -> dict:
+                            superseded_run: dict | None = None,
+                            shares_own_null: dict | None = None) -> dict:
     """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
@@ -12041,7 +12363,24 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             level_stability=level.get("verdict_stability"),
             # COUNTED FROM THE TWO RUNS, never asserted from the pair this page happened to carry
             # when the sentence was written. See `_what_differs_between_two_runs`.
-            differences=_what_differs_between_two_runs(current, superseded_run)),
+            differences=_what_differs_between_two_runs(current, superseded_run),
+            # THE OTHER RUN'S ARM NETS, HANDED OVER RATHER THAN RE-READ FROM A CONSTANT. Which
+            # arm moved is a question about the pair this block is already built from, so the
+            # pair is what answers it; a second path lookup would be a second way to choose the
+            # comparison run and the two would drift on the day either constant moves.
+            superseded_contrast=(superseded_run or {}).get("level_vs_selection"),
+            # AND THE BOOKS THE SHARE IS DRAWN ON, so `_the_shares_own_null` can state whether
+            # the null it read describes this share's own population. A SPAN, because the arms
+            # do not agree -- see `_the_books_a_run_priced`.
+            share_books=_the_books_a_run_priced(current),
+            # READ FROM DISK BY DEFAULT, INJECTABLE FOR A CONTROL, and the reason is `later_runs`'
+            # word for word. `composition` now carries THREE independent refusals and each has a
+            # control that has to isolate its own: a sign-stable floor or an agreeing later run
+            # cannot be shown to lift the refusal it is a witness for while a second, correct
+            # refusal is firing on the same subject. Injecting a null puts THIS leg out of scope
+            # the way `later_runs=[]` puts the census leg out of scope, and it buys that without
+            # writing an artefact onto the real disk.
+            shares_own_null=shares_own_null),
         # WHAT WOULD ANSWER THE THING THIS PANEL CANNOT SAY -- one question, and since 2026-09-09
         # two causes rather than one. The first is a MISSING BOUND, and it was the only cause this
         # key knew about; the floor legs landed, all three bounds arrived, and the key went to
