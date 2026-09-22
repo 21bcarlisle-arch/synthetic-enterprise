@@ -7739,3 +7739,96 @@ def test_a_feed_carrying_NO_null_reading_says_so_rather_than_going_quiet():
     assert "NOTHING PLACES IT AGAINST ITS OWN NULL" in text.upper(), (
         "a feed with no null reading renders nothing about it, so a page that has stopped "
         "computing the figure looks exactly like a page whose figure sits on chance")
+
+
+def test_a_familys_repeated_draws_reach_the_reader_beside_its_sign(live):
+    """The census showed the sems and hid what the bound was made of.
+
+    A family's sign is its mean against its bound, and its bound is a standard deviation across
+    its draws. When two of those draws returned the same value to fifteen digits, the bound is
+    measuring how often the instrument PINNED and not how far the choosing moves -- and the page's
+    only stated selection sign rests on exactly such a bound. A reader handed `3.14 standard
+    errors from zero (negative)` with no repeat count beside it is being handed the decisive half.
+
+    KEYED TO THE PARTITION. Nothing here asserts a repeat COUNT: it asserts that whatever count
+    the feed reached arrives on the page, for every family, including the ones that repeat none --
+    "0 of 12" is the row that makes the others mean anything.
+    """
+    census = (_live_feed().get("error_bar") or {}).get("does_the_sign_replicate") or {}
+    assert census.get("families"), "the published census names no family"
+    rendered = live["arms-errorbar"]
+    counted = 0
+    for family in census["families"]:
+        rep = family.get("repetition") or {}
+        if not rep.get("countable"):
+            continue
+        counted += 1
+        assert "{} of {} draws repeat another".format(
+            rep["draws_that_repeat_another"], rep["draws"]) in rendered, (
+            "{!r} carries {} of {} draws repeating another in the feed and the page does not say "
+            "so, so its bound reaches a reader with nothing to qualify it".format(
+                family["family"], rep["draws_that_repeat_another"], rep["draws"]))
+    assert counted, (
+        "NO family in the published census carries a countable repeat count, so this control "
+        "asserted nothing -- an empty evidence set reading to the guard as no complaint")
+    assert _door_prose(census["width_against_repetition"]["reading"]) in rendered, (
+        "the census compares the widths of the repeating families against the clean ones and the "
+        "page does not carry the answer, so five repeat counts are left for a reader to assemble")
+
+
+def test_MUTATION_a_family_that_repeats_a_draw_renders_amber_and_a_clean_one_does_not():
+    """R15 fail-silent on the styling: a row ambered on every branch qualifies nothing.
+
+    Stripped to text, "2 of 12 draws repeat another" and "0 of 12 draws repeat another" are two
+    similar-looking rows, and the one that matters is the one whose bound is not a fact about the
+    world. The colour is what stops a skimming reader taking the narrowest family's sign at face
+    value, so both branches are driven and the markup is asserted -- which `_text` cannot see.
+
+    THE SUBJECT IS THE RENDERER, so the feed is built here. Borrowing the live census would make
+    this control silently un-runnable the day no published floor repeats a draw.
+    """
+    def _census(repeats):
+        return {
+            "the_reading": "A sentence about whether the signs survive a change of floor.",
+            "families": [{"family": "SOME FLOOR", "available": True, "seeds": 12,
+                          "repetition": {"countable": True, "draws": 12,
+                                         "distinct_values": 12 - repeats,
+                                         "draws_that_repeat_another": repeats},
+                          "legs": {"selection_gbp": {"sems_from_zero": 3.14,
+                                                     "what_this_family_states": "negative"}}}],
+            "per_leg": {"selection_gbp": {
+                "subject": "the selection leg", "verdict": "not_settled",
+                "families_that_state_a_sign": 1, "families_that_could_grade_it": 1,
+                "signs_stated": ["negative"]}},
+            "width_against_repetition": {
+                "answerable": False,
+                "reading": "There are not two groups here to compare widths between."},
+        }
+
+    def _rendered(repeats, raw=False):
+        feed = _live_feed()
+        feed["error_bar"] = dict(feed["error_bar"], does_the_sign_replicate=_census(repeats))
+        return _render(feed, raw=raw)["arms-errorbar"]
+
+    assert "2 of 12 draws repeat another" in _rendered(2), _rendered(2)[-500:]
+    assert "0 of 12 draws repeat another" in _rendered(0), (
+        "a floor that repeats NO draw says nothing about its draws, so the count appears only "
+        "where it is bad news and a reader cannot tell a clean floor from an unasked one")
+
+    def _own_span(raw, marker):
+        """The FAMILY ROW's own opening tag, not whatever span happens to precede it.
+
+        A fixed character window fails open here: the leg rows immediately above a family are
+        ambered whenever the sign is unsettled, so a window wide enough to be safe swallows THEIR
+        colour and the control passes on a family row that carries none of its own.
+        """
+        before = raw.split(marker)[0]
+        assert "<span" in before, before[-300:]
+        return before[before.rindex("<span"):]
+
+    assert "var(--amber)" in _own_span(_rendered(2, raw=True), "2 of 12 draws repeat another"), (
+        "a family whose bound is made of repeated draws renders in the same colour as one drawn "
+        "clean, so the qualification on the page's only stated sign is invisible to a skim")
+    assert "var(--amber)" not in _own_span(
+        _rendered(0, raw=True), "0 of 12 draws repeat another"), (
+        "a family that repeats nothing is ambered anyway, so the amber qualifies nothing")

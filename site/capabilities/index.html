@@ -1564,7 +1564,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     for (var j = 0; j < (c.families || []).length; j++) {
       var f = c.families[j];
       var sel = ((f.legs || {}).selection_gbp) || null;
-      fam += '<span style="display:block;margin-top:4px;color:var(--muted);font-size:0.92em;">'
+      /* HOW MANY OF THIS FAMILY'S DRAWS REPEAT ANOTHER, on the row rather than in a footnote
+         (2026-09-22). The sign a family states rests on its bound, and a bound computed across
+         draws that returned the same value to fifteen digits measures how often the instrument
+         pinned rather than how far the quantity moves. A reader shown the sems and not the
+         repeats is being handed the decisive-looking half. Rendered for a family that repeats
+         NONE as well, because "0 of 12" is the reading that makes the others mean something. */
+      var rep = f.repetition || {};
+      var repeats = rep.countable
+        ? " &mdash; " + esc(rep.draws_that_repeat_another) + " of " + esc(rep.draws)
+          + " draws repeat another"
+        : rep.why_not ? " &mdash; repeats NOT COUNTABLE" : "";
+      fam += '<span style="display:block;margin-top:4px;color:'
+        + (rep.draws_that_repeat_another > 0 ? "var(--amber)" : "var(--muted)")
+        + ';font-size:0.92em;">'
         + esc(f.family) + " &mdash; "
         + (f.available
             ? esc(f.seeds) + " seeds, choosing leg "
@@ -1573,11 +1586,24 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + esc(sel.what_this_family_states) + ")"
                   : "not graded")
             : "NOT GRADED. " + prose(f.reason))
+        + repeats
         + "</span>";
     }
+    /* WHAT SEPARATES THE FLOORS THAT STATE A SIGN FROM THE FLOORS THAT DO NOT. The rows above say
+       the sign depends on which floor was drawn; this says what the dependence is MADE of, and on
+       today's evidence it is not a fact about the choosing. Amber whenever repetition sorts the
+       widths, because that is the state in which the page's narrowest bounds -- and so its only
+       stated sign -- are the ones drawn from an instrument that pinned. */
+    var wr = c.width_against_repetition || null;
+    var wrRow = wr && wr.reading
+      ? '<span style="display:block;margin-top:8px;color:'
+        + (wr.answerable && wr.widest_repeating_family_bound_gbp
+             < wr.narrowest_non_repeating_family_bound_gbp ? "var(--amber)" : "var(--muted)")
+        + ';font-size:0.92em;">' + prose(wr.reading) + "</span>"
+      : "";
     return '<span style="display:block;margin-top:10px;color:'
       + (contested ? "var(--amber)" : "var(--muted)") + ';">'
-      + prose(c.the_reading) + "</span>" + rows + fam;
+      + prose(c.the_reading) + "</span>" + rows + fam + wrRow;
   }
 
   function legsOnOneBar(b) {
