@@ -1676,6 +1676,125 @@ def test_MUTATION_a_feed_that_grades_no_leg_says_so_rather_than_going_quiet():
     assert "Every leg is graded off the same seed rows." in rendered, rendered[-400:]
 
 
+def test_whether_each_legs_sign_survives_a_change_of_floor_reaches_the_reader(live):
+    """The page answered "we cannot tell" out of ONE refused pair while holding four graded ones.
+
+    `legs_on_one_bar` is refused on today's publish, correctly -- the floor is older than the
+    figure and priced a different book -- so everything the control above asserts lands on the
+    refusing branch and the reader meets one amber sentence. Meanwhile four same-world families in
+    this repository grade the same three contrasts: they AGREE on the value and level legs and
+    DISAGREE on the choosing, which is the leg the mission turns on. None of that reached a reader.
+
+    KEYED TO THE PARTITION, NEVER TO TODAY'S FOUR NUMBERS. Every leg the census grades must arrive
+    with its subject and a verdict a reader can act on; nothing here asserts WHICH verdict. The day
+    a re-run makes the families agree, the page says `SAME SIGN ON EVERY FLOOR` and this control
+    keeps its meaning with nobody editing a string.
+    """
+    census = (_live_feed().get("error_bar") or {}).get("does_the_sign_replicate") or {}
+    assert census, (
+        "the published feed grades no replication census at all, so the page cannot tell a reader "
+        "whether any leg's sign survives a change of floor")
+    rendered = live["arms-errorbar"]
+    assert _door_prose(census["the_reading"]) in rendered, (
+        "the census reaches a reading the page does not carry: {!r}".format(census["the_reading"]))
+    words = {"replicates": "SAME SIGN ON EVERY FLOOR",
+             "contested": "THE FLOORS DISAGREE ON THE SIGN",
+             "not_settled": "THE SIGN DEPENDS ON WHICH FLOOR WAS DRAWN",
+             "no_family_grades_it": "NO FLOOR GRADES IT"}
+    for key, leg in census["per_leg"].items():
+        assert leg["subject"] in rendered, (
+            "{} reaches a replication verdict in the feed and is named nowhere on the page".format(
+                key))
+        assert words[leg["verdict"]] in rendered, (
+            "{} carries the verdict {!r} in the feed and the page does not say it".format(
+                key, leg["verdict"]))
+    # AND THE PAIRING ITSELF, because a floor bounds the run it was MEASURED ON and this page has
+    # already paid once for pairing a floor with whatever run happened to be live. A census that
+    # named four floors without saying which run each graded would invite the same defect back.
+    for family in census["families"]:
+        assert _door_prose(family["family"]) in rendered, (
+            "the census grades {!r} and the page does not name it".format(family["family"]))
+
+
+def test_MUTATION_a_contested_sign_renders_amber_and_a_replicating_one_does_not():
+    """R15 fail-silent on the STYLING: a census amber on every branch says nothing by saying it always.
+
+    Stripped to text, "this sign survives a change of floor" and "this sign is a property of the
+    draw" are two rows that look alike to a skimming reader. The colour is what qualifies the
+    strongest claim this page makes about the choosing, so the two branches are driven separately
+    and the markup is asserted -- which `_text` is blind to by construction.
+
+    THE SUBJECT IS THE RENDERER, so the feed is built here rather than borrowed from the live one.
+    Borrowing would make this control silently un-runnable the day the live census happens to
+    replicate on every leg, which is the state this is written to keep legible.
+    """
+    def _census(verdict):
+        return {
+            "the_reading": "A sentence about whether the signs survive a change of floor.",
+            "families": [{"family": "the 9-seed floor of 2026-09-10 23:03", "available": True,
+                          "seeds": 9,
+                          "legs": {"selection_gbp": {"sems_from_zero": 2.85,
+                                                     "what_this_family_states": "negative"}}}],
+            "per_leg": {"selection_gbp": {
+                "subject": "the selection leg", "verdict": verdict,
+                "families_that_state_a_sign": 1, "families_that_could_grade_it": 1,
+                "signs_stated": ["negative"]}},
+        }
+
+    def _rendered(verdict, raw=False):
+        feed = _live_feed()
+        feed["error_bar"] = dict(feed["error_bar"], does_the_sign_replicate=_census(verdict))
+        return _render(feed, raw=raw)["arms-errorbar"]
+
+    contested = _rendered("not_settled")
+    assert "THE SIGN DEPENDS ON WHICH FLOOR WAS DRAWN" in contested, contested[-500:]
+    settled = _rendered("replicates")
+    assert "SAME SIGN ON EVERY FLOOR" in settled, settled[-500:]
+    assert "THE SIGN DEPENDS ON WHICH FLOOR WAS DRAWN" not in settled, (
+        "a leg whose sign replicates on every floor still renders the contested verdict")
+    raw_contested = _rendered("not_settled", raw=True)
+    assert "var(--amber)" in raw_contested.split(
+        "THE SIGN DEPENDS ON WHICH FLOOR WAS DRAWN")[0][-300:], (
+        "a sign that is a property of which floor was drawn renders in the same colour as one "
+        "that survives every floor, so the reader skims past the qualification")
+    raw_settled = _rendered("replicates", raw=True)
+    assert "var(--amber)" not in raw_settled.split("SAME SIGN ON EVERY FLOOR")[0][-300:], (
+        "a leg whose sign replicates is ambered anyway, so the amber qualifies nothing")
+
+
+def test_MUTATION_the_census_renders_even_when_the_published_pair_was_refused():
+    """The defect in one line: the block that matters most rendered only where it was not needed.
+
+    A census nested inside the `legs_on_one_bar.available` branch would appear exactly when the
+    page already had legs to show, and vanish on the branch where the page is silent -- which is
+    the branch four graded families exist to speak to. This drives the door with a REFUSED
+    `legs_on_one_bar` and a present census and asserts the reader still meets it.
+    """
+    feed = _live_feed()
+    feed["error_bar"] = dict(
+        feed["error_bar"],
+        legs_on_one_bar={"available": False, "reason": "NO FLOOR ADMITTED THIS FIGURE.",
+                         "why_no_leg_is_graded": "Every leg is graded off the same seed rows."},
+        does_the_sign_replicate={
+            "the_reading": "Four families grade this and they do not agree about the choosing.",
+            "families": [{"family": "the 12-seed floor of 2026-09-18 11:07", "available": False,
+                          "reason": "THIS PAIR WAS NOT GRADED."}],
+            "per_leg": {"selection_gbp": {
+                "subject": "the selection leg", "verdict": "contested",
+                "families_that_state_a_sign": 2, "families_that_could_grade_it": 4,
+                "signs_stated": ["negative", "positive"]}}})
+    rendered = _render(feed)["arms-errorbar"]
+    assert "NO FLOOR ADMITTED THIS FIGURE." in rendered, rendered[-400:]
+    assert "Four families grade this and they do not agree about the choosing." in rendered, (
+        "the published pair was refused and the replication census did not render, so the page is "
+        "silent on every leg while four same-world families sit on this disk: {}".format(
+            rendered[-500:]))
+    assert "THE FLOORS DISAGREE ON THE SIGN" in rendered, rendered[-500:]
+    # A FAMILY THAT COULD NOT BE GRADED IS SHOWN AS SUCH, never dropped: a census that renders
+    # only what it could grade shows a smaller disagreement than it found.
+    assert "THIS PAIR WAS NOT GRADED." in rendered, rendered[-500:]
+
+
 def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     """R11 on a caveat rather than a number, and the caveat is DERIVED.
 
