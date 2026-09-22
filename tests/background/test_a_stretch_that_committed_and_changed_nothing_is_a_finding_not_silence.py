@@ -12,7 +12,10 @@ sit unwired from July to September.
 """
 from __future__ import annotations
 
+import io
 import json
+import time
+import types
 from datetime import datetime, timedelta, timezone
 
 import background.deadmans_switch as dms
@@ -304,11 +307,17 @@ def _enabled_rows():
             if e.get("state") == "enabled" and e.get("match") and e["match"] != SEAT_MATCH]
 
 
-def _fake_journal(monkeypatch, ages):
+def _fake_journal(monkeypatch, ages, mute=()):
     """Drive the per-daemon log clock off a dict, so no assertion here depends on journalctl
-    existing or on what this box happened to have logged."""
+    existing or on what this box happened to have logged.
+
+    `mute` names the sessions whose newest journal line is systemd's own rather than the
+    service's -- the third element of `_unit_last_write`'s return. Default False: a daemon is
+    assumed to have spoken unless a test says otherwise, because the flattering assumption here
+    is the loud one and it must be asked for explicitly.
+    """
     monkeypatch.setattr(seat, "_unit_last_write",
-                        lambda session: (ages.get(session, 300), ""))
+                        lambda session: (ages.get(session, 300), "", session not in mute))
 
 
 def test_A_DECLARED_DAEMON_THAT_IS_ABSENT_IS_NAMED_AND_A_PRESENT_ONE_IS_NOT(monkeypatch):
@@ -355,6 +364,145 @@ def test_A_DECLARED_DAEMON_THAT_IS_ABSENT_IS_NAMED_AND_A_PRESENT_ONE_IS_NOT(monk
     # dict as JSON below the sentence, so every declared daemon's NAME is in the text either way.
     # The claim this control makes is about the line the seat actually reads.
     assert "background-worker" in json.dumps(back["declared"]), "still measured, just not absent"
+
+
+def test_A_MUTE_DAEMON_AND_A_QUIET_ONE_DO_NOT_RENDER_AS_THE_SAME_ROW(monkeypatch):
+    """THE WHOLE PARTITION IN ONE CONTROL, for the reason CLAUDE.md gives about rare branches: a
+    reading hard-wired to call everything mute passes any test that only ever shows it a mute
+    daemon. Both classes are asserted here against the SAME brief, at the SAME age, so neither
+    leg can be dropped to make the other pass -- and the shared age is the point, because it is
+    what makes the two rows indistinguishable to the OLD reading.
+
+    THE DEFECT IT IS WRITTEN AGAINST (2026-09-22, lane 0). Four declared daemons were on the box,
+    `active (running)` under systemd, counted present by the census, and had produced no line of
+    their own since starting -- `worker-seat-manager` for 106 hours. Every liveness reading this
+    machine keeps said they were fine, because every one of them asks whether the process EXISTS.
+    A process that exists and does nothing passed all of them. `ntfy-responder` is the only
+    channel the director has, so "he said nothing" and "we stopped listening" had the same shape.
+
+    MUTATION: delete the `not r.get("mute")` filter from the quiet population in `_prompt` and
+    the mute daemon sorts back into the quiet sentence -- the first assertion fails because the
+    quietest-daemon phrase names it. Make `_mute_sentence` return "" and the second fails.
+    """
+    # SAME age for both, so the only thing telling them apart is which clock's line it was.
+    _fake_journal(monkeypatch, {"worker-seat-manager": 384_000, "token-proxy": 384_000},
+                  mute=["worker-seat-manager"])
+    _fake_ps(monkeypatch, [_ps_line(100 + i, 400_000, 4000, "/usr/bin/" + e["command"])
+                           for i, e in enumerate(_enabled_rows())])
+    seen = seat.running_now()
+    rows = {r["session"]: r for r in seen["declared"]}
+    assert rows["worker-seat-manager"]["mute"] is True
+    assert rows["token-proxy"]["mute"] is False, "a daemon that spoke is never mute"
+
+    text = seat._prompt(_brief(running=seen))
+    # QUIET: the quietest-daemon sentence must name the one that SPOKE, never the mute one --
+    # at 106h40m they are the same number, so this can only pass by reading the right field.
+    assert "The quietest has not written its own log for 106h40m (`token-proxy`)" in text
+    # MUTE: said separately, in its own words, naming the daemon the quiet sentence excluded.
+    assert "DECLARED DAEMON(S) ARE MUTE, WHICH IS NOT THE SAME AS QUIET" in text
+    assert "worker-seat-manager" in text.split("ARE MUTE, WHICH IS NOT THE SAME AS QUIET")[1]
+
+    # AND THE OTHER DIRECTION: with nothing mute, the loud sentence must DISAPPEAR entirely.
+    # A reading that prints a mute header on a healthy box gets ignored, which is worse than none.
+    _fake_journal(monkeypatch, {"worker-seat-manager": 384_000, "token-proxy": 384_000})
+    healthy = seat._prompt(_brief(running=seat.running_now()))
+    assert "ARE MUTE, WHICH IS NOT THE SAME AS QUIET" not in healthy
+
+
+def test_A_MUTE_DAEMONS_ESTABLISHED_CAUSE_REACHES_THE_BRIEF_AND_AN_UNESTABLISHED_ONE_IS_ASKED_FOR(
+        monkeypatch):
+    """BOTH SIDES OF THE PARTITION AT ONCE, against two daemons that are mute for the SAME number
+    of seconds, so the only thing that can separate them is whether the manifest has a cause.
+
+    THE DEFECT IT IS WRITTEN AGAINST (2026-09-22, lane 0). The causes for four mute daemons were
+    established correctly -- one of them, `worker-seat-manager`, naming a failure mode nobody had
+    thought of -- written into `log_silence` on their manifest rows, and `grep -rn log_silence`
+    over the whole repository returned the manifest and NOTHING ELSE. No reader read the key.
+    `declared_daemon_health` built its row from the journal alone, so a daemon with a perfectly
+    good cause on file rendered identically to one nobody had ever looked at, and the brief went
+    on asking for work that was already done. A finding filed where no reader looks is not filed.
+
+    WHY THE TWO KEYS MUST STAY SEPARATE, which is the other half of the claim. `why_no_log` is a
+    MEASURED absence -- this reading could not get a number. `declared_cause` is a DECLARED one --
+    a human established why and wrote it down. Collapsing a declared cause into a measured absence
+    is the same defect the reader was built to fix, one level up, so this control asserts the
+    caused daemon still carries its measurement and is still counted mute.
+
+    MUTATION: drop `declared_cause` from the row dict in `declared_daemon_health` and the caused
+    daemon's text vanishes -- the first assert fails. Render the causes but not the uncaused list
+    (or vice versa) and one of the two section assertions fails. Merge the two populations so
+    every mute row prints under one heading and the "asks nothing of you" separation collapses:
+    the `ACTIONABLE_ONLY` assert fails, because a caused daemon would appear in it.
+    """
+    CAUSE = "MUTE BY CONSTRUCTION -- no write-out path at all, established against live pid."
+    # Built by STRIPPING the live manifest rather than by hand, so this fixture cannot drift into
+    # asserting a cause the manifest no longer carries -- then exactly one cause is put back.
+    entries = [{k: v for k, v in e.items() if k != "log_silence"} for e in _enabled_rows()]
+    for e in entries:
+        if e["session"] == "worker-seat-manager":
+            e["log_silence"] = CAUSE
+
+    # IDENTICAL AGE, both mute: the cause is the ONLY discriminator left in the input.
+    monkeypatch.setattr(seat, "_unit_last_write", lambda s: (384_000, "", False))
+    rows = seat.declared_daemon_health(
+        {e["match"] for e in entries}, entries=entries)
+    by = {r["session"]: r for r in rows}
+    assert by["worker-seat-manager"]["declared_cause"] == CAUSE, "the manifest key must reach the row"
+    assert by["supervisor"]["declared_cause"] == "", "a row with no cause on file declares that"
+    # The measurement is NOT displaced by the declaration -- both are still true of this daemon.
+    assert by["worker-seat-manager"]["mute"] is True
+    assert by["worker-seat-manager"]["last_log"] == "106h40m"
+
+    text = seat._mute_sentence(rows)
+    # THE ESTABLISHED CAUSE IS CARRIED THROUGH, verbatim enough to be useful at the point of read.
+    assert "no write-out path at all" in text, "an established cause must reach the brief"
+    # AND THE UNESTABLISHED ONE IS STILL ASKED FOR, under a heading that says it is the ask.
+    actionable = text.split("NO CAUSE ON FILE")[1].split("CAUSE ESTABLISHED AND ON FILE")[0]
+    assert "supervisor" in actionable, "a daemon nobody has investigated is the actionable list"
+    assert "worker-seat-manager" not in actionable, \
+        "ACTIONABLE_ONLY -- a daemon whose cause is on file must never be asked for again"
+
+    # THE DEFINITION IS ON THE PAGE, not inferred from the count. Two definitions gave 4 and 5
+    # over one box in one morning; a reader who cannot see which is in force reads that as decay.
+    assert "MUTE HERE MEANS DEFINITION B" in text
+
+
+def test_THE_LOG_AGE_IS_TAKEN_ON_THE_MONOTONIC_CLOCK_NOT_THE_CORRECTABLE_WALL_CLOCK(monkeypatch):
+    """The age must survive a wall-clock correction, because on this box it did not.
+
+    THE MEASUREMENT THIS IS KEYED TO (2026-09-22, the real journal). Four units' newest entries
+    carried realtime stamps 52,609 SECONDS -- 14.61h -- before the units' own start, an
+    impossibility the brief published as a fact. The guest's realtime clock had run 14.61h behind
+    while those lines were stamped and was resynchronised afterwards; the identical offset on
+    daemons whose start times differ by two days is what rules out coincidence. Monotonic stamps
+    cannot be corrected, so `uptime - __MONOTONIC_TIMESTAMP` is the true age.
+
+    MUTATION -- and it is a mutation OF THE STAMP, which is what the ask named: the realtime
+    stamp below is deliberately 14.61h earlier than the monotonic one describes. Restore the old
+    `time.time() - realtime` body and the age comes back 52,609s too large and this fails. Keyed
+    to the PROPERTY (the two clocks disagree, follow the uncorrectable one), not to today's
+    answer, so it stays green when the box's clock is behaving and red whenever the code regresses.
+    """
+    boot = "abc123def456"
+    uptime = 500_000.0
+    true_age, skew = 3_600.0, 52_609.0
+    entry = {
+        "__REALTIME_TIMESTAMP": str(int((time.time() - true_age - skew) * 1e6)),  # <-- MUTATED
+        "__MONOTONIC_TIMESTAMP": str(int((uptime - true_age) * 1e6)),
+        "_BOOT_ID": boot,
+        "_SYSTEMD_USER_UNIT": "dispatcher.service",
+    }
+    monkeypatch.setattr(seat, "_boot_id", lambda: boot)
+    monkeypatch.setattr(seat.subprocess, "run",
+                        lambda *a, **k: types.SimpleNamespace(stdout=json.dumps(entry), returncode=0))
+    monkeypatch.setattr("builtins.open", lambda *a, **k: io.StringIO("{} 0.0".format(uptime)))
+
+    age, why, spoke = seat._unit_last_write("dispatcher")
+    assert abs(age - true_age) <= 2, (
+        "the age must follow the monotonic stamp ({}s); the realtime stamp says {}s and it is "
+        "the one that was corrected".format(true_age, true_age + skew))
+    assert why == "", "a clean monotonic reading carries no caveat"
+    assert spoke is True, "_SYSTEMD_USER_UNIT names the service itself, so the service spoke"
 
 
 def test_A_DAEMON_YOUNGER_THAN_THE_JOB_FLOOR_IS_STILL_PRESENT(monkeypatch):

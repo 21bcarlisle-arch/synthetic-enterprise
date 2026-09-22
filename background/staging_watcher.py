@@ -151,7 +151,19 @@ def log(msg: str) -> None:
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "a") as f:
         f.write(entry)
-    print(entry)
+    # FLUSHED ON PURPOSE, and it is the whole repair. Under systemd this process's stdout is a
+    # socket, not a tty, so Python block-buffers it at 8 KiB; `deploy_restart.py` restarts this
+    # unit on every landing that touches its module, measured at a ~10-minute cycle; and the
+    # SIGTERM that ends a run does NOT flush. A few lines per run therefore never reached 8 KiB
+    # and were discarded at every restart -- this daemon wrote its file faithfully for months and
+    # was MUTE in its own journal the entire time, which is what `delivery_seat._mute_sentence`
+    # was built to see. Controlled before it was written: an unflushed `print()` in a systemd-run
+    # unit produced no journal line while alive and none after `systemctl stop`; the identical
+    # file with line buffering reached the journal in under a second.
+    # THE FILE IS STILL THE SYSTEM OF RECORD. This does not move the log -- it makes the daemon
+    # audible on the channel the brief's liveness reading actually watches, so that a
+    # staging doorbell going quiet is distinguishable from a staging doorbell going away.
+    print(entry, flush=True)
 
 
 def ntfy(msg: str):
