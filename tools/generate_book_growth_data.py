@@ -448,40 +448,77 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
         #     settlement data can revise a figure inside it and there is no data-freshness
         #     requirement to derive an interval from.
         #
-        # AND IT FAILS CLOSED ON THE NUMBER. What ceiling this basis supports needs a cost
-        # curve, which needs two clean probe points, and there is one. That is no longer a gap
-        # waiting on a run -- the run HAPPENED (2026-08-30,
-        # `docs/observability/settlement_ceiling_slope_20260829.json`) and came back
-        # `decidable: false`, because its 2,000 point carries `campaign_record_agrees: false`
-        # and is barred from the slope. Priced up in `docs/design/A46_THE_PRICED_MENU_
-        # 2026-08-30.md`, whose marginal-cost column reads "one clean point; no slope".
-        # "We cannot yet say" is the result and it belongs on the page rather than in a
-        # footnote -- publishing "1,200 is right" off a basis that does not reach a number
-        # would be exactly the invented constant this project keeps paying for. The one number
-        # this basis DOES reach needs no probe at all: 3,136.5 customer-years is where the
-        # sample rate hits 1.0 (opening book 778.1 + campaign demand 2,358.4, read live from
+        # IT FAILED CLOSED ON THE NUMBER FOR THREE WEEKS AND NO LONGER HAS TO, 2026-09-21. The
+        # sentence this comment used to defend said the ceiling was "STILL NOT YET KNOWN",
+        # because a cost curve needs two clean probe points and the 2026-08-30 run
+        # (`settlement_ceiling_slope_20260829.json`) returned one. THE SECOND RUN LANDED:
+        # `docs/observability/settlement_ceiling_slope_20260921.json`, four full-window points
+        # at the director's chosen weekly cadence, two of them clean. So the page now publishes
+        # a ceiling -- and the refusal it replaces was right, which is why the control over this
+        # sentence was re-keyed rather than deleted: the page may state a ceiling only while it
+        # names the measurement behind it, and must go back to "NOT YET KNOWN" the moment it
+        # cannot. Publishing "1,200 is right" off a basis that reaches no number is still the
+        # invented constant this project keeps paying for; publishing a ceiling off a curve,
+        # with the curve's path in the sentence, is the opposite move and not a licence for the
+        # first. The one number that needs no probe at all is unchanged: 3,136.5 customer-years
+        # is where the sample rate hits 1.0 (opening book + campaign demand, read live from
         # `book_growth_campaign.json`), above which a bigger budget buys no accounts.
+        #
+        # RECONCILED TO WHAT ACTUALLY SHIPPED, 2026-09-22. The sentence below was written
+        # against a fit of 1,330 that no constant ever held: that draft priced the marginal
+        # customer-year at 3.73 MB (the 1,200->2,000 secant) against the PROBE's peak RSS, and
+        # the probe's peak is `ru_maxrss` of the ONE CHILD it spawned. What has to fit this box
+        # is the CGROUP -- systemd's `MemoryPeak` for `sim-runner.service`, which also counts
+        # the `sim_runner.py` parent the probe never spawns, and which read 227.0 MB higher at
+        # the same budget. `SETTLEMENT_CUSTOMER_YEAR_BUDGET` landed at 1,250.0 off that anchor
+        # and off the curve's own clean secant of 4.3402 MB/cy, and the derivation is in that
+        # constant's note (sections 3-5) rather than re-done here -- a lane owns the ceiling and
+        # this page reports it.
+        #
+        # THE NUMBERS THIS SENTENCE MAY STATE, and the distinction is the whole reason the
+        # control over it is keyed to the property rather than to a literal: the CEILING the
+        # curve supports and the CONSTANT that shipped are not the same quantity. 1,263 is what
+        # 25% of the guest buys at that slope; 1,250 is that floored, so the control over the
+        # constant is not sitting on its own boundary while MemTotal drifts. Stating either
+        # without the artefact behind it is the defect; stating both with it is the deliverable.
         "engine_bound_basis": (
             "That limit is a COMPUTE budget, not a commercial one. "
             "`SETTLEMENT_CUSTOMER_YEAR_BUDGET` is how many customer-years of settlement this "
             "machine folds inside one publish cycle{budget}, bounded by the memory of the box "
             "this simulation runs on and by how long a cycle we allow. No supplier in the "
-            "modelled world faces it. The memory leg is measured and slack; the time leg is a "
-            "publish interval we CHOOSE, because the reported window reached Elexon Final "
-            "Reconciliation on 2026-08-07 and none of its figures can change again, so there "
-            "is no data-freshness requirement to set one from. So 1,200 is not an engineering "
-            "limit: it is a choice, and the memory leg was slack at the point we measured "
-            "(3,952.4 MB peak against a 24,032 MB guest). What ceiling that choice supports "
-            "was measured on 2026-08-30 and is STILL NOT YET KNOWN, which is now a result "
-            "rather than a gap: the run returned ONE clean point and one contaminated by "
-            "another writer, and a cost per customer-year needs two clean points, so no slope "
-            "exists. One ceiling IS known and needs no run — above 3,136.5 customer-years the "
-            "whole funnel is settled and a higher budget buys nothing. Read the height of this "
-            "curve as our budget, and do not read this budget as evidence of what the machine "
-            "can afford."
+            "modelled world faces it. The time leg is a publish interval we CHOOSE, because "
+            "the reported window reached Elexon Final Reconciliation on 2026-08-07 and none of "
+            "its figures can change again, so there is no data-freshness requirement to set "
+            "one from; the director chose weekly on 2026-09-04. MEMORY IS THE LEG THAT BINDS, "
+            "which is new on 2026-09-21 and is the reverse of what this page said before. A "
+            "four-point cost curve measured on the live path's own compute "
+            "(`docs/observability/settlement_ceiling_slope_20260921.json`) prices the marginal "
+            "customer-year at 4.34 MB between its two clean points, and against a 25% share of "
+            "this guest's memory that supports 1,263 customer-years — which the constant ships "
+            "FLOORED to 1,250, so the control over it is not sitting on its own boundary while "
+            "the guest's size drifts. THE PEAK IT IS ANCHORED ON IS THE CGROUP'S, not one "
+            "process's: systemd recorded 5,734.4 MB for `sim-runner.service` "
+            "(`resource_headroom.weight_drift(\"sim_run\")`), 227 MB above what the probe "
+            "measured, because the probe never spawns the parent the kernel always counts. A "
+            "ceiling fitted to the child instead reaches 1,312 and is 227 MB OVER the memory "
+            "budget it was derived to respect. So the budget above is DERIVED from that curve "
+            "against that anchor, rather than inherited from its own history. The same curve's "
+            "time leg supports 22,879 customer-years at the weekly interval, 18x this ceiling, "
+            "so time does not bind. One ceiling needs no run at all: above 3,136.5 "
+            "customer-years the whole funnel is settled and a higher budget buys nothing — 2.5x "
+            "what the memory leg allows, so this world cannot supply the book our own box could "
+            "not hold either. Read the height of this curve as our budget, and do not read this "
+            "budget as evidence of what the machine can afford."
         ).format(
             budget=(
-                " (today {:,.0f})".format(campaign.get("customer_year_budget"))
+                # NOT "today". This is the budget the run BEHIND THIS PAGE was given, read from
+                # its own campaign record, and it lags the constant by one publish cycle every
+                # time the constant moves. Calling it "today" is how a reader ends up citing a
+                # superseded ceiling as the current one -- which is the exact defect this whole
+                # sentence was rewritten to clear.
+                " (the run behind this page was given {:,.0f}; a change to the constant reaches "
+                "this figure one publish cycle later)".format(
+                    campaign.get("customer_year_budget"))
                 if isinstance(campaign.get("customer_year_budget"), (int, float)) else ""
             )
         ) if sample_rate is not None and sample_rate < 1.0 else (

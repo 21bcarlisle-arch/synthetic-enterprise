@@ -42,11 +42,12 @@ R15 -- the mutations, each naming the defect it catches:
   * say only "our machine" and drop "compute" / "not a commercial one" ->
     `test_the_rendered_basis_names_the_limit_as_COMPUTE_and_not_commerce` red. A sentence that
     hedges the kind of limit leaves both readings open, which is the original defect.
-  * fill in a ceiling the probe has not established ("1,200 is right") ->
-    `test_the_page_refuses_to_publish_a_ceiling_it_has_not_measured` red. The basis is the
-    deliverable and the number is not: a slope needs two clean points and there is one
-    (`docs/design/SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` §6). "We cannot yet say" is a
-    result and it belongs on the surface.
+  * state a ceiling and name no measurement behind it, or cite an artefact that is in no commit
+    -> `test_the_page_publishes_no_ceiling_it_cannot_name_the_measurement_for` red. RE-KEYED
+    2026-09-21: it pinned the literal "NOT YET KNOWN" while a slope needed two clean points and
+    there was one, and the second run then landed four points with two clean
+    (`docs/observability/settlement_ceiling_slope_20260921.json`), so the page states a ceiling
+    now. The property that holds in both states is the one asserted: unknown, or evidenced.
   * derive the interval from `PUBLISH_CADENCE_SECONDS` and say the page checks it against the
     measured cadence -> `test_the_rendered_basis_does_not_rest_on_the_measured_cadence` red.
     That quantity is the rate runs actually arrive and run duration is what sets arrival, so it
@@ -67,6 +68,7 @@ and only when there is one), never to today's answer.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -301,18 +303,43 @@ def test_the_rendered_basis_does_not_rest_on_the_measured_cadence():
     )
 
 
-def test_the_page_refuses_to_publish_a_ceiling_it_has_not_measured():
-    """FAIL CLOSED, ON THE SURFACE. The deliverable is the basis; the number needs a cost curve,
-    a cost curve needs two clean points, and there is one. A page that answered "1,200 is right"
-    off a basis that does not yet reach a number would be publishing an invented constant with a
-    freshly-written justification attached -- worse than publishing nothing, because the
-    justification is what makes it durable."""
-    rendered = _basis(_build())
+def test_the_page_publishes_no_ceiling_it_cannot_name_the_measurement_for():
+    """FAIL CLOSED, ON THE SURFACE -- RE-KEYED TO THE PROPERTY 2026-09-21.
 
-    assert "NOT YET KNOWN" in rendered, (
-        "the basis does not tell the reader that the ceiling this basis supports is still "
-        "unmeasured. 'We cannot tell' is a result and it belongs on the page, not in a footnote"
+    This asserted the literal `"NOT YET KNOWN"` until today, and that was the honest answer for
+    as long as a cost curve needed two clean probe points and the 2026-08-30 run returned one.
+    The second run landed -- `docs/observability/settlement_ceiling_slope_20260921.json`, four
+    full-window points at the director's weekly cadence, two of them clean -- and the basis now
+    states the ceiling the box supports. A control pinned to "we cannot yet say" goes RED when
+    the page becomes MORE honest and stays green while the claim rots, which is backwards and is
+    a shape this project has paid for repeatedly.
+
+    THE PROPERTY, which holds in both states: the basis either tells the reader the ceiling is
+    NOT YET KNOWN, or it states one AND names the artefact it was measured from -- and any
+    artefact it names has to be bytes a reader can actually open. What it may never do is put a
+    number on the page with no measurement behind it, which is the invented constant with a
+    freshly-written justification attached.
+
+    Fires on: dropping the citation while keeping the ceiling; citing a path that was never
+    landed (the comparator-artefact failure this repo has met before); and quietly going back to
+    silence on both.
+    """
+    rendered = _basis(_build())
+    says_unknown = "NOT YET KNOWN" in rendered
+    cited = re.findall(r"docs/observability/[\w./-]+\.json", rendered)
+
+    assert says_unknown or cited, (
+        "the basis states a ceiling and names no measurement behind it. Either it says the "
+        "ceiling is NOT YET KNOWN, or it cites the artefact it was measured from -- a number "
+        "with a justification and no evidence is the durable version of an invented constant"
     )
+    for path in cited:
+        in_git = subprocess.run(["git", "-C", str(PROJECT), "cat-file", "-e", "HEAD:" + path],
+                                capture_output=True)
+        assert in_git.returncode == 0, (
+            "the basis cites `{}` as the measurement behind its published ceiling, and that "
+            "path is in no commit -- the reader is sent to bytes that do not exist".format(path)
+        )
 
 
 # ── the null controls: it must NOT say this when it is not true ──────────────────────────────
@@ -343,8 +370,10 @@ def test_a_run_our_engine_did_NOT_bound_makes_NO_compute_claim():
     assert "commercial" in rendered.lower(), (
         "with nothing refused, the height of the curve IS commercial and the page should say so"
     )
-    assert "NOT YET KNOWN" not in rendered, (
-        "there is no unmeasured ceiling to warn about on a run nothing was refused from"
+    assert "NOT YET KNOWN" not in rendered and "settlement_ceiling_slope" not in rendered, (
+        "nothing was refused on this run, so there is neither an unmeasured ceiling to warn "
+        "about nor a measured one to cite -- the page is carrying the compute-ceiling apparatus "
+        "on a run it does not apply to"
     )
 
 

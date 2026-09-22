@@ -211,6 +211,31 @@ the product label, which is R13 curriculum and is yours.
 If you disagree, the menu in §2 is the priced version of every alternative and the change is one
 constant.
 
+> **SUPERSEDED 2026-09-22 — THE BUDGET MOVED, AND THE PARAGRAPH ABOVE IS KEPT RATHER THAN EDITED
+> BECAUSE WHAT CHANGED IS THE EVIDENCE, NOT THE JUDGEMENT.** "Leaving it at 1,200" was the right
+> call for exactly as long as the slope had one clean point, which is what §2's rightmost columns
+> say in every row: *one clean point; no slope*. The second probe run landed four points with two
+> clean (`docs/observability/settlement_ceiling_slope_20260921.json`), and
+> `SETTLEMENT_CUSTOMER_YEAR_BUDGET` **is now 1,250.0** — derived from that curve's own clean
+> secant of 4.3402 MB per marginal customer-year against a 25% share of the live guest, and
+> anchored on the CGROUP peak systemd recorded for `sim-runner.service` rather than on the
+> probe's single-child RSS. The full arithmetic, and what the earlier refusal got wrong, is in
+> that constant's note §3–§5; it is not restated here, because one home for a derivation is the
+> point.
+>
+> **What did NOT change, so you are not being told two things at once:** the publish interval is
+> still where it was (you named 604,800s on 2026-09-04, and the curve now says the interval
+> question is close to moot — across a 112x menu of intervals the supported ceiling moves under
+> 10%, because memory binds and time does not); and the product label is still R13 and still
+> yours. **The menu in §2 remains the priced version of the alternatives.** What it was missing
+> was never a column — it was a slope, and now it has one.
+>
+> **The one thing this does NOT establish, said plainly:** the funnel's entire demand is 3,136.5
+> customer-years and the smallest leg of `what_would_settle_the_sign` needs 3,163.9. Those are two
+> different instruments about 0.9% apart, and neither publishes a bound that narrow. *"This world
+> cannot supply the book that signs the per-customer arm"* is **not** established by this move —
+> "we cannot tell" is.
+
 ---
 
 ## 7. What I predicted and what happened
