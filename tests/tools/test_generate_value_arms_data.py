@@ -7070,7 +7070,16 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
               # entry whose omission would have been worst: that block publishes the artefact's
               # own `reading` VERBATIM, so the sentence a reader meets on the page IS that file's
               # sentence and the citation is the only route from one to the other.
-              gva.CHURN_BELIEF_SIZE_PATH]
+              gva.CHURN_BELIEF_SIZE_PATH,
+              # AND THE TENTH AND ELEVENTH, added 2026-09-22 with the renewal-belief block. The
+              # TENTH is the drift this list exists to stop, found inside the list itself: the
+              # belief grade has been opened by `_svt_drift_belief` since that block landed and
+              # was never cited, so the page published a per-exposure-day reading and named no
+              # file a reader could check it against. The ELEVENTH is the second grade the renewal
+              # panel DECLINES to quote -- and a refusal is exactly the case where the citation
+              # matters most, because "we did not use this" is only checkable against the thing
+              # not used.
+              gva.SVT_BELIEF_GRADE, gva.RENEWAL_BELIEF_SECOND_GRADE]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))
@@ -10995,3 +11004,286 @@ def test_the_block_is_published_even_when_the_AB_RUN_cannot_be_read():
     assert withheld["available"] is False, "this leg's premise is that the run was unreadable"
     assert (withheld.get("churn_belief_size") or {}).get("available") is True, (
         "the churn-belief account was withheld because an unrelated artefact could not be read")
+
+
+# ── the renewal belief: the producer's own refusals ───────────────────────────────────────────
+#
+# The RENDER is swept in `site/test_the_renewal_belief_reaches_the_reader.py`, which drives the
+# real door with mutated FEEDS and structurally cannot reach any of the refusals below. These are
+# the other half: what `_renewal_churn_belief` does when the ARTEFACT moves under it.
+
+
+#: The grade artefact's REAL path, held apart from the constant the helper below monkeypatches.
+#: Reading `gva.SVT_BELIEF_GRADE` inside the helper meant the second call in a test read the FIRST
+#: call's mutation, so mutations compounded and a leg asserting a whole partition was reachable
+#: silently measured three of its four states. The bug was in the control, and it reported the
+#: subject.
+_RENEWAL_GRADE_SOURCE = gva.PROJECT / "docs" / "observability" / "svt_drift_belief_grade.json"
+
+
+def _renewal_grade_with(tmp_path, monkeypatch, mutate=None):
+    """The live grade artefact, optionally mutated, wired in as the producer's subject."""
+    grade = json.loads(_RENEWAL_GRADE_SOURCE.read_text(encoding="utf-8"))
+    if mutate is not None:
+        mutate(grade)
+    path = tmp_path / "grade.json"
+    path.write_text(json.dumps(grade), encoding="utf-8")
+    monkeypatch.setattr(gva, "SVT_BELIEF_GRADE", path)
+    return grade
+
+
+def _renewal_arm(grade):
+    return [b for b in grade["per_route"]["renewal"]["company_belief"]
+            if b.get("field") == "company_churn_estimate"][0]
+
+
+def test_the_renewal_reading_is_the_INDEPENDENT_arm_and_not_the_one_that_seeds_the_roll():
+    """The route carries two beliefs and only one of them can be put beside the ceiling.
+
+    `churn_probability` SEEDS `effective_p_retain`; scoring it against the outcome measures whether
+    the world's adjustment chain preserved the ordering of a number it was handed. That is a
+    different question, it reads higher (0.6815 against 0.4988), and publishing it as "the
+    company's belief" would be the flattering one of the two.
+
+    Fires on: pointing `_RENEWAL_BELIEF_FIELD` at `churn_probability`.
+    """
+    block = gva._renewal_churn_belief()
+    assert block["available"] is True
+    assert block["belief"]["field"] == "company_churn_estimate"
+    assert "does not feed the world's roll" in block["belief"]["what_it_is"]
+
+
+def test_a_superseding_pointer_on_the_renewal_arm_is_REFUSED_outright(tmp_path, monkeypatch):
+    """THE EXPOSURE REFUSAL, RE-ARMED FOR THIS ROUTE, and it must be able to fire.
+
+    On the SVT route a belief's bare `belief_auc` is withdrawn in favour of a per-exposure-day
+    reading, and `delivery.json.what_it_got_wrong` records this project publishing the withdrawn
+    figure once already. The renewal capture carries no exposure today -- but if it ever gains
+    `sim_segment_days` the grader stamps the pointer without anyone editing the generator, and this
+    surface would then publish a superseded number under a `clears_the_null` flag.
+
+    BOTH SHAPES, because either alone would leave the other open: the pointer the grader writes,
+    and the `exposure_offset` block it writes beside it.
+
+    Fires on: deleting either clause of the pointer check.
+    """
+    _renewal_grade_with(tmp_path, monkeypatch, lambda g: _renewal_arm(g).__setitem__(
+        "belief_auc_superseded_by", "exposure_offset.belief_auc_per_exposure_day"))
+    pointed = gva._renewal_churn_belief()
+    assert pointed["available"] is False
+    assert "exposure_offset.belief_auc_per_exposure_day" in pointed["why"]
+
+    _renewal_grade_with(tmp_path, monkeypatch, lambda g: _renewal_arm(g).__setitem__(
+        "exposure_offset", {"belief_auc_per_exposure_day": 0.41, "clears_the_null": False}))
+    offset = gva._renewal_churn_belief()
+    assert offset["available"] is False
+    assert "exposure" in offset["why"]
+
+
+def test_an_arm_that_stops_declaring_itself_INDEPENDENT_is_refused(tmp_path, monkeypatch):
+    """THE TAUTOLOGY GUARD, asked of the artefact rather than inferred from the field name.
+
+    A belief that seeds the world's roll and then scores well against it has measured the world
+    reading back its own input. The guard is keyed to the declared property, so a belief that
+    BECOMES independent publishes itself without an edit here.
+
+    Fires on: dropping the `independent_of_the_outcome` check.
+    """
+    _renewal_grade_with(tmp_path, monkeypatch, lambda g: _renewal_arm(g).__setitem__(
+        "independent_of_the_outcome", False))
+    block = gva._renewal_churn_belief()
+    assert block["available"] is False
+    assert "independent" in block["why"]
+
+
+def test_every_renewal_refusal_names_its_own_reason(tmp_path, monkeypatch):
+    """A refusal that says why is how you discover the refusal itself was wrong.
+
+    Fires on: collapsing any two branches onto one message.
+    """
+    refusals = {}
+    for name, mutate in (
+        ("no route", lambda g: g["per_route"].pop("renewal")),
+        ("no arm", lambda g: _renewal_arm(g).__setitem__("available", False)),
+        ("not independent",
+         lambda g: _renewal_arm(g).__setitem__("independent_of_the_outcome", False)),
+        ("superseded", lambda g: _renewal_arm(g).__setitem__(
+            "belief_auc_superseded_by", "exposure_offset.belief_auc_per_exposure_day")),
+        ("no reading", lambda g: _renewal_arm(g).__setitem__("belief_auc", None)),
+    ):
+        _renewal_grade_with(tmp_path, monkeypatch, mutate)
+        block = gva._renewal_churn_belief()
+        assert block["available"] is False, "{} was not refused".format(name)
+        refusals[name] = block["why"]
+    assert len(set(refusals.values())) == len(refusals), (
+        "two refusals give the same reason, so a reader cannot tell which fired: {}".format(
+            refusals))
+    # ...AND THE GUARD IS NOT REFUSING EVERYTHING, which is what makes the five above evidence.
+    monkeypatch.undo()
+    assert gva._renewal_churn_belief()["available"] is True, (
+        "the live artefact is refused too, so the refusals above prove nothing")
+
+
+def test_an_unreadable_grade_renders_its_reason_and_the_rebuild_command(tmp_path, monkeypatch):
+    """FAIL-CLOSED AND VISIBLY. An absent caveat and a discharged one look identical to a reader.
+
+    Fires on: letting the read raise, or returning an empty dict with no `why`.
+    """
+    missing = tmp_path / "not-here.json"
+    monkeypatch.setattr(gva, "SVT_BELIEF_GRADE", missing)
+    block = gva._renewal_churn_belief()
+    assert block["available"] is False
+    assert "tools.measure_churn_heterogeneity" in block["why"], (
+        "the unreadable branch does not say how to rebuild the artefact")
+    assert gva.CANNOT_TELL in block["sentence"]
+
+
+def test_the_within_capture_verdict_is_keyed_to_the_PROPERTY_not_to_todays_answer(
+        tmp_path, monkeypatch):
+    """All four states reachable, and the live one is the unflattering one.
+
+    A control pinned to the current answer goes red when the code becomes MORE honest and stays
+    green when the claim rots. This asserts the whole partition rather than one leg per branch.
+
+    Fires on: hard-coding the verdict string.
+    """
+    live = gva._renewal_churn_belief()
+    assert live["within_this_capture"] == (
+        "the_world_ordered_these_departures_and_the_belief_did_not")
+
+    seen = {live["within_this_capture"]}
+    _renewal_grade_with(tmp_path, monkeypatch,
+                        lambda g: _renewal_arm(g).__setitem__("belief_auc", 0.99))
+    seen.add(gva._renewal_churn_belief()["within_this_capture"])
+    _renewal_grade_with(tmp_path, monkeypatch,
+                        lambda g: g["per_route"]["renewal"].__setitem__("oracle_auc", 0.5))
+    seen.add(gva._renewal_churn_belief()["within_this_capture"])
+
+    def _both(grade):
+        _renewal_arm(grade)["belief_auc"] = 0.99
+        grade["per_route"]["renewal"]["oracle_auc"] = 0.5
+    _renewal_grade_with(tmp_path, monkeypatch, _both)
+    seen.add(gva._renewal_churn_belief()["within_this_capture"])
+    assert seen == {
+        "the_world_ordered_these_departures_and_the_belief_did_not",
+        "both_ordered_these_departures",
+        "neither_ordered_these_departures",
+        "the_belief_ordered_these_departures_and_the_world_did_not",
+    }, "the partition is not reachable: {}".format(sorted(seen))
+
+
+def test_the_live_world_claim_is_WITHHELD_while_the_within_capture_one_is_not(
+        tmp_path, monkeypatch):
+    """THE SPLIT CAVEAT, and neither half may be taken for the other.
+
+    The capture names no world, so how much signal the LIVE book holds is not stated. The contrast
+    between two orderings of the SAME rows is, because it is not a claim about a world. A block
+    that resolved both, or withheld both, would be wrong in opposite directions.
+
+    `None` and not `False`: "we cannot say which world this was graded in" and "the ceiling does
+    not clear" are different states.
+
+    Fires on: resolving `ceiling_is_the_live_worlds_signal` unconditionally, or withholding
+    `within_this_capture` when the world is unknown.
+    """
+    live = gva._renewal_churn_belief()
+    assert live["measured_in_world"] is None
+    assert live["ceiling_is_the_live_worlds_signal"] is None
+    assert live["live_world_claim_withheld_because"]
+    assert live["within_this_capture"] != "cannot_be_stated", (
+        "the within-capture contrast was withheld for a world it does not depend on")
+    assert live["ceiling"]["clears_on_these_rows"] is True
+
+    # ...AND IT RESOLVES when the grade names a world, so the withholding is not unconditional.
+    _renewal_grade_with(tmp_path, monkeypatch, lambda g: g.__setitem__(
+        "world_identity", {"digest": "39a192ce04c1eda8"}))
+    named = gva._renewal_churn_belief()
+    assert named["ceiling_is_the_live_worlds_signal"] is True
+    assert named["live_world_claim_withheld_because"] is None
+
+
+def test_the_chain_sentence_uses_the_SIZE_BLOCKS_OWN_counts(tmp_path, monkeypatch):
+    """ONE POPULATION, ONE SOURCE. Two panels deriving it separately is how they come to disagree.
+
+    Fires on: re-reading the size artefact inside `_renewal_churn_belief` instead of taking the
+    block it is handed, or composing the sentence from literals.
+    """
+    handed = {"available": True, "legs_below_the_knee": 991, "supply_legs": 993}
+    block = gva._renewal_churn_belief(handed)
+    assert "991 of 993 supply legs" in block["chain_to_the_flat_belief"]
+    # ...AND IT IS WITHHELD IN WORDS, not invented, when the other half could not be read.
+    for unreadable in (None, {"available": False, "why": "gone"}):
+        withheld = gva._renewal_churn_belief(unreadable)
+        assert "could not be read" in withheld["chain_to_the_flat_belief"]
+        assert "supply legs" not in withheld["chain_to_the_flat_belief"]
+
+
+def test_the_second_grade_is_recorded_and_its_null_is_scanned_RECURSIVELY(
+        tmp_path, monkeypatch):
+    """RECORDED, NEVER MERGED -- and the reason for declining it must itself be measured.
+
+    "It carries no null" is the whole reason this block does not quote the second grade. A scan
+    that only looked at the artefact's top level would publish that reason as TRUE while a null sat
+    one key deeper: fail-open, in the flattering direction, on the sentence doing the refusing.
+
+    Fires on: replacing the recursive scan with a top-level `any(... "null" in v ...)`.
+    """
+    live = gva._renewal_churn_belief()["second_grade"]
+    assert live["exists"] is True
+    assert live["quotable_here"] is False
+    assert live["carries_a_permutation_null"] is False
+    assert live["names_the_world_it_was_measured_in"] is False
+    assert live["renewals"] and live["departures"]
+
+    nested = json.loads(gva.RENEWAL_BELIEF_SECOND_GRADE.read_text(encoding="utf-8"))
+    nested["company_estimate"]["bootstrap"] = {"null": {"low": 0.4, "high": 0.6}}
+    path = tmp_path / "second.json"
+    path.write_text(json.dumps(nested), encoding="utf-8")
+    monkeypatch.setattr(gva, "RENEWAL_BELIEF_SECOND_GRADE", path)
+    assert gva._renewal_churn_belief()["second_grade"]["carries_a_permutation_null"] is True, (
+        "a null one key below the top was not seen, so the page's reason for declining this "
+        "grade is a claim the code cannot support")
+
+
+def test_no_figure_from_the_second_grade_reaches_the_payload():
+    """A rank statistic with no null is not a reading, and this one must not be quoted anywhere.
+
+    Fires on: lifting `discrimination_auc` or the oracle out of the second grade for a comparison.
+    """
+    payload = json.dumps(gva._renewal_churn_belief(None))
+    second = json.loads(gva.RENEWAL_BELIEF_SECOND_GRADE.read_text(encoding="utf-8"))
+    for key in ("bill_shock_model", "company_estimate", "oracle_ceiling"):
+        auc = (second.get(key) or {}).get("discrimination_auc")
+        if auc is None:
+            continue
+        assert "{:.4f}".format(auc) not in payload, (
+            "{}'s AUC reached the payload from a grade carrying no null".format(key))
+
+
+def test_the_renewal_block_is_published_even_when_the_AB_RUN_cannot_be_read():
+    """It is a grade of the BELIEF, not a reading of the A/B run.
+
+    "The choosing found nothing" and "we could not run the comparison" are the two states a reader
+    confuses, and the question "does the belief order anyone at all" is what is left on a publish
+    that has no comparison. Under the `available` gate it would be withheld exactly there.
+
+    Fires on: moving `renewal_churn_belief` below the gate in `build`.
+    """
+    withheld = gva.build(None, None)
+    assert withheld["available"] is False, "this leg's premise is that the run was unreadable"
+    assert (withheld.get("renewal_churn_belief") or {}).get("available") is True, (
+        "the renewal belief grade was withheld because an unrelated artefact could not be read")
+
+
+def test_both_grades_this_page_reads_are_CITED_in_its_sources():
+    """The list's own rule is that it names what `generate` OPENS, and it went stale inside itself.
+
+    `svt_drift_belief_grade.json` has been opened by `_svt_drift_belief` since that block landed
+    and never appeared here. A page citing artefacts it does not read, and omitting ones it does,
+    in the one field a reader would use to check it.
+
+    Fires on: dropping either constant from the `sources` tuple.
+    """
+    sources = gva.build(None, None)["sources"]
+    assert "docs/observability/svt_drift_belief_grade.json" in sources
+    assert "docs/observability/renewal_churn_belief_grade.json" in sources

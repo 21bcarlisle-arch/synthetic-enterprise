@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T15:18:28.749329Z",
+  "generated_at": "2026-09-22T15:59:42.965505Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -13,7 +13,9 @@
     "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260909c.json",
     "docs/design/blind_envelope_arms_2026-09-11.json",
-    "docs/observability/churn_belief_size_response.json"
+    "docs/observability/churn_belief_size_response.json",
+    "docs/observability/svt_drift_belief_grade.json",
+    "docs/observability/renewal_churn_belief_grade.json"
   ],
   "blind_envelope": {
     "available": true,
@@ -175,6 +177,99 @@
     "which_book": "The 154 accounts these arms were scored over, read from `site/data/customers.json` at the commit the run recorded (b329e702b) and reconciled against the four counts the run published about its own book.",
     "population_is_not_this_pages_book": "The commit alone would only establish which CODE ran. These four counts were published by the run about its own book and recomputed here from the blob; all four agreeing is what makes this the arms' population rather than a roster of about the right size. The book at HEAD fails this check on every one of them.",
     "arms_book_unavailable_because": null
+  },
+  "renewal_churn_belief": {
+    "available": true,
+    "why": null,
+    "route": "renewal",
+    "what_it_is": "The most direct test this company has of its own claim. On the route where the priced per-customer decisions are actually made, does the company's own belief about who will leave put the accounts that left above the accounts that stayed? The ceiling beside it is the world's own hazard scored the same way on the same rows.",
+    "decisions": 144,
+    "departures": 32,
+    "pairs": 427,
+    "belief": {
+      "field": "company_churn_estimate",
+      "what_it_is": "`company.crm.churn_model.estimate_churn_probability` \u2014 a rate move, a bill stress and a tenure. It does not feed the world's roll, which is what makes it the renewal reading that can be compared to a ceiling.",
+      "auc": 0.49882903981264637,
+      "null_95_low": 0.382903981264637,
+      "null_95_high": 0.6241217798594848,
+      "inside_the_null": true,
+      "cannot_tell": "On whether the company's belief orders who leaves at renewal, we cannot tell: 0.499 sits inside the 0.383\u20130.624 a signal carrying no information reaches on 144 decisions.",
+      "tie_fraction": 0.02810304449648712,
+      "distinct_values": 127,
+      "mean_believed": 0.27129444444444445,
+      "realised_rate": 0.2222222222222222
+    },
+    "ceiling": {
+      "auc": 0.7400468384074942,
+      "null_95_low": 0.3793911007025761,
+      "null_95_high": 0.6206088992974239,
+      "clears_on_these_rows": true,
+      "what_it_is": "The world's own hazard over these same 144 decisions, scored by the same statistic against the same outcomes."
+    },
+    "within_this_capture": "the_world_ordered_these_departures_and_the_belief_did_not",
+    "within_this_capture_holds_because": "The belief and the ceiling are graded on the same 144 decisions, the same 32 departures and the same 427 comparable pairs, each against a permutation null drawn from those same rows. Whether one ordering beat chance on this list while another did not is a property of the list.",
+    "ceiling_is_the_live_worlds_signal": null,
+    "measured_in_world": null,
+    "live_world_claim_withheld_because": "THIS GRADE NAMES NO WORLD. The artefact carries no `world_identity` block, so it cannot be shown to have been measured over the world that is live now \u2014 and how much book there is to lose is what decides how much signal there is to find. The ceiling and its interval are published because they are what was measured on these rows; whether that level is what today's book holds is not stated here. Re-take the grade with `python3 -m tools.measure_churn_heterogeneity --out=docs/observability/svt_drift_belief_grade.json`, which stamps the world it measures the capture in.",
+    "world_gap": {},
+    "why_no_exposure_offset": "The SVT panel divides every reading by the days it was exposed for, because a cap segment runs from 1 to 92 days and a belief that simply ran longer would appear to discriminate. A renewal is one decision at a fixed contract anniversary, not a window of variable length, so there is no duration here for a belief to be accidentally ordered by. This is established rather than assumed: the grader applies the correction to any route whose every row carries a positive exposure, and the renewal capture carries no such field on any of its rows \u2014 so no correction was applied, and the reading above is this route's only one rather than its flattering one.",
+    "signal_is_concentrated_in": [
+      "sim_bill_shock_base"
+    ],
+    "factors": [
+      {
+        "factor": "sim_bill_shock_base",
+        "alone": 0.7014051522248244,
+        "held_out": 0.6065573770491803,
+        "contribution": 0.13348946135831385,
+        "clears_its_null_alone": true,
+        "tie_fraction": 0.2786885245901639,
+        "distinct_values": 17
+      },
+      {
+        "factor": "sim_action_propensity",
+        "alone": 0.5925058548009368,
+        "held_out": 0.6861826697892272,
+        "contribution": 0.05386416861826704,
+        "clears_its_null_alone": false,
+        "tie_fraction": 0.27634660421545665,
+        "distinct_values": 9
+      },
+      {
+        "factor": "sim_price_response",
+        "alone": 0.48360655737704916,
+        "held_out": 0.7142857142857143,
+        "contribution": 0.025761124121779888,
+        "clears_its_null_alone": false,
+        "tie_fraction": 0.02107728337236534,
+        "distinct_values": 131
+      },
+      {
+        "factor": "sim_dissatisfaction_response",
+        "alone": 0.3805620608899297,
+        "held_out": 0.7412177985948478,
+        "contribution": -0.0011709601873536313,
+        "clears_its_null_alone": false,
+        "tie_fraction": 0.00234192037470726,
+        "distinct_values": 135
+      }
+    ],
+    "factors_reading": "The ceiling taken apart. `alone` is that factor's ordering on its own; a factor that does not clear its own null alone is one this book cannot show orders anything by itself.",
+    "chain_to_the_flat_belief": "These two panels are one chain. The orderable signal in this world's renewal departures is concentrated in bill shock \u2014 it is the only one of the four world factors that clears its own null on its own. And the company's belief reaches a household's bill through a single term that is identically zero for 217 of 226 supply legs. The belief is flat in the one dimension the world orders departures by, which is why the choosing has nothing to choose with. Neither panel is an instruction to make the belief discriminate.",
+    "second_grade": {
+      "exists": true,
+      "path": "docs/observability/renewal_churn_belief_grade.json",
+      "renewals": 708,
+      "departures": 40,
+      "accounts": 134,
+      "carries_a_permutation_null": false,
+      "names_the_world_it_was_measured_in": false,
+      "quotable_here": false,
+      "why_not": "A second grade of this same question exists on a larger and different book, and it is named here rather than left for a reader to find. No figure is taken from it: it carries no permutation null, and a rank statistic with no null is not a reading -- it is a number that cannot be told from chance. It also names no world. The reading published above is the one with an interval, a ceiling on its own rows and a stated population.",
+      "never_averaged_because": "The two are different books measured by different instruments. An average of them would describe neither population, and the difference between them is not a movement in anything."
+    },
+    "sentence": "On whether the company's belief orders who leaves at renewal, we cannot tell: 0.499 sits inside the 0.383\u20130.624 a signal carrying no information reaches on 144 decisions.",
+    "not_a_target": "No figure here is a target. This says what the belief did on one graded book; it does not price the gap and it is not an instruction to tune the belief until it ranks. A belief that cannot order its departures is a complete answer."
   },
   "available": true,
   "contrast_bounds": {
@@ -524,7 +619,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "15ffadd5ffa126d97be163b6c5e6a4682c81e077",
+    "publishing_tree_commit": "192826ee97a3723a319873a65262cdd9154b410e",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -536,7 +631,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 15ffadd5f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 192826ee9 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1212,7 +1307,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "15ffadd5ffa126d97be163b6c5e6a4682c81e077",
+      "publishing_tree_commit": "192826ee97a3723a319873a65262cdd9154b410e",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1224,7 +1319,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 15ffadd5f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 192826ee9 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -4564,7 +4659,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "15ffadd5ffa126d97be163b6c5e6a4682c81e077",
+    "commit": "192826ee97a3723a319873a65262cdd9154b410e",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
