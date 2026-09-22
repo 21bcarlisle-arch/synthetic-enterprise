@@ -1661,26 +1661,57 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + " rows. " + prose(p.why) + "</span>";
     }
     if (r.available) {
-      out += '<span style="display:block;margin-top:4px;color:var(--amber);">'
-        + "<strong>Price of a sign &mdash; about "
-        + esc(r.rosters_needed_to_state_a_sign) + " independent rosters</strong>"
-        /* THE MONEY LEG'S WITHHELD PRICE IS RENDERED, NOT DROPPED (2026-09-22). This clause used
-           to fall through to the roster sentence whenever the money count was absent, which
-           spelled "the money leg has no price because no finite number of draws buys one" exactly
-           like "there is no money leg in this artefact". The first is the more interesting half of
-           the comparison the panel exists to make, and a reader shown the roster price alone would
-           conclude the money question was simply not costed. Keyed to the reason the feed carries,
-           so the day a family clears its bar this branch goes away without anyone editing it. */
-        + (m.available && m.money_leg_seeds_needed_to_state_a_sign !== null
-            && m.money_leg_seeds_needed_to_state_a_sign !== undefined
-            ? ", against " + esc(m.money_leg_seeds_needed_to_state_a_sign)
-              + " seeds for the money leg from this same artefact. " + prose(m.the_units_differ)
-            : m.available && m.money_leg_seeds_needed_unavailable_because
-            ? ", and <strong>the money leg from this same artefact carries no price at all</strong>"
-              + ". " + prose(m.money_leg_seeds_needed_unavailable_because)
-              + " " + prose(r.the_unit_is_a_roster_not_a_seed)
-            : ". " + prose(r.the_unit_is_a_roster_not_a_seed))
-        + " " + prose(r.what_this_count_is) + "</span>";
+      /* THE RANK PRICE IS RENDERED ONLY WHERE IT EXISTS (2026-09-22, the fourth instance of one
+         rule). The count divides by this reading's distance from chance and is asked only where
+         that distance has failed its own null, so in the state a reader wants it there is no
+         finite number. The feed now withholds it and says why; this render is keyed to the
+         withholding the feed carries rather than to today's answer, so the day a reading clears
+         its own null the priced branch returns with nobody editing a string. */
+      var rosterPriced = r.rosters_needed_to_state_a_sign !== null
+        && r.rosters_needed_to_state_a_sign !== undefined;
+      var moneyPriced = m.available && m.money_leg_seeds_needed_to_state_a_sign !== null
+        && m.money_leg_seeds_needed_to_state_a_sign !== undefined;
+      var ri = r.rosters_needed_interval || {};
+      out += '<span style="display:block;margin-top:4px;color:var(--amber);">';
+      if (rosterPriced) {
+        out += "<strong>Price of a sign &mdash; about "
+          + esc(r.rosters_needed_to_state_a_sign) + " independent rosters</strong>"
+          /* THE MONEY LEG'S WITHHELD PRICE IS RENDERED, NOT DROPPED (2026-09-22). This clause used
+             to fall through to the roster sentence whenever the money count was absent, which
+             spelled "the money leg has no price because no finite number of draws buys one" exactly
+             like "there is no money leg in this artefact". The first is the more interesting half of
+             the comparison the panel exists to make, and a reader shown the roster price alone would
+             conclude the money question was simply not costed. Keyed to the reason the feed carries,
+             so the day a family clears its bar this branch goes away without anyone editing it. */
+          + (moneyPriced
+              ? ", against " + esc(m.money_leg_seeds_needed_to_state_a_sign)
+                + " seeds for the money leg from this same artefact. " + prose(m.the_units_differ)
+              : m.available && m.money_leg_seeds_needed_unavailable_because
+              ? ", and <strong>the money leg from this same artefact carries no price at all</strong>"
+                + ". " + prose(m.money_leg_seeds_needed_unavailable_because)
+                + " " + prose(r.the_unit_is_a_roster_not_a_seed)
+              : ". " + prose(r.the_unit_is_a_roster_not_a_seed));
+      } else {
+        out += "<strong>The price of a sign cannot be stated for this reading</strong>. "
+          + prose(r.rosters_needed_unavailable_because)
+          + (ri.at_the_point_estimate !== null && ri.at_the_point_estimate !== undefined
+              ? " At the point estimate the arithmetic returns "
+                + esc(ri.at_the_point_estimate) + "; one exact null SD either side of the distance "
+                + "it returns " + esc(ri.price_at_the_low_end_of_the_denominator) + " and "
+                + esc(ri.price_at_the_high_end_of_the_denominator) + ". "
+                + prose(ri.these_two_are_not_a_range)
+              : "")
+          + (moneyPriced
+              ? " The money leg from this same artefact IS priced, at "
+                + esc(m.money_leg_seeds_needed_to_state_a_sign) + " seeds. "
+                + prose(m.the_units_differ)
+              : m.available && m.money_leg_seeds_needed_unavailable_because
+              ? " <strong>Neither leg of this comparison carries a price.</strong> "
+                + prose(m.money_leg_seeds_needed_unavailable_because)
+                + " " + prose(r.the_unit_is_a_roster_not_a_seed)
+              : " " + prose(r.the_unit_is_a_roster_not_a_seed));
+      }
+      out += " " + prose(r.what_this_count_is) + "</span>";
     }
     return out;
   }

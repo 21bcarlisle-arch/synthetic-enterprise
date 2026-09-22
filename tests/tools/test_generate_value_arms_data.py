@@ -9444,14 +9444,79 @@ def test_MUTATION_the_price_of_a_sign_is_in_ROSTERS_and_never_reaches_a_SECOND_a
         "as though they were the same thing")
     # MONOTONE IN THE DISTANCE, not pinned to today's four. A reading twice as far from chance
     # needs fewer rosters; one at chance names no finite count at all.
+    #
+    # READ OFF THE POINT ESTIMATE AND NOT THE PUBLISHED COUNT (2026-09-22). The count is now gated
+    # on the reading clearing its own null, so `_rosters_to_state_a_sign(1.0)` withholds it and
+    # this comparison would be `None > 1`. Re-pointing at `rosters_at_the_point_estimate` keeps the
+    # property asked over the WHOLE partition; reading it off the gated key would have left it
+    # comparing two distances that both clear the bar -- half the partition, with an identical
+    # green and no way to tell the difference.
     near = gva._rosters_to_state_a_sign(1.0)
     far = gva._rosters_to_state_a_sign(2.5)
-    assert near["rosters_needed_to_state_a_sign"] > far["rosters_needed_to_state_a_sign"], (
+    assert near["rosters_at_the_point_estimate"] > far["rosters_at_the_point_estimate"], (
         "the price of a sign does not fall as the reading moves away from chance, so it is not a "
         "function of the distance it claims to price")
     assert gva._rosters_to_state_a_sign(0.0)["available"] is False, (
         "a reading sitting exactly on the no-information point was given a finite price, which "
         "is a number a reader would act on and no evidence supports")
+
+
+def test_MUTATION_the_roster_price_is_published_ONLY_where_its_denominator_excludes_chance():
+    """The fourth instance of one rule, controlled over the partition and not over today's answer.
+
+    THE DEFECT (live until 2026-09-22, on `site/data/value_arms.json` as
+    `rosters_needed_to_state_a_sign: 4`). The count is `ceil((bar/|d|)^2)` where `d` is this
+    reading's distance from chance -- an ESTIMATE, in the DENOMINATOR -- and it is asked only where
+    that estimate has failed its own null, which IS the statement that the denominator's interval
+    at that bar covers zero. So in the one state a reader wants the number there is no finite
+    number, and 4 is a figure small enough to read as a cheap, considered price.
+
+    THE PARTITION IS ASSERTED INHABITED BEFORE EITHER SIDE IS ASSERTED ABOUT. A gate that withheld
+    EVERY count would satisfy every leg below that only ever checks a withholding, and would read
+    in the log exactly like the mechanism working. So the sweep is required to reach both states
+    first; `published` and `withheld` are both non-empty or this control fails before it tests
+    anything.
+
+    Fires on: dropping the gate (every distance prices, `withheld` empties), inverting it
+    (`published` empties), or publishing the count in the withheld state under any name whose
+    grammar is a plan.
+    """
+    bar = gva._AUC_SDS_TO_STATE_A_SIGN
+    sweep = [0.25 * i for i in range(1, 17)]
+    published = [d for d in sweep
+                 if gva._rosters_to_state_a_sign(d)["rosters_needed_to_state_a_sign"] is not None]
+    withheld = [d for d in sweep
+                if gva._rosters_to_state_a_sign(d)["rosters_needed_to_state_a_sign"] is None]
+    assert published and withheld, (
+        "this sweep does not reach both sides of the gate, so every leg below is asserting about "
+        "a branch that cannot be taken and would stay green if the gate refused everything")
+    assert all(d > bar for d in published) and all(d <= bar for d in withheld), (
+        "the published count is not keyed to the reading clearing its own null, so it is keyed to "
+        "something other than whether its denominator's interval excludes the no-information point")
+    for d in withheld:
+        block = gva._rosters_to_state_a_sign(d)
+        interval = block["rosters_needed_interval"]
+        assert block["rosters_needed_unavailable_because"], (
+            "a withheld roster price names no reason, so 'no price exists' reads on the page as "
+            "'nobody costed it' -- the opposite reading, and the one silence spells")
+        assert interval and interval["has_no_upper_bound"] is True, (
+            "a withheld count publishes no interval, so the only arithmetic in hand is hidden "
+            "rather than bounded")
+        assert block["rosters_at_the_point_estimate"] == interval["at_the_point_estimate"], (
+            "the point estimate and the interval's own copy of it disagree, which is two "
+            "spellings of one quantity drifting apart")
+        note = interval["these_two_are_not_a_range"].lower()
+        assert "denominator" in note and "not the ends of the price" in note, (
+            "the two endpoint prices are published with nothing saying they are the ends of the "
+            "DENOMINATOR's interval, so a reader takes them for a bound on the price")
+    for d in published:
+        block = gva._rosters_to_state_a_sign(d)
+        assert block["rosters_needed_interval"] is None, (
+            "a reading that clears its own null still carries the unbounded-price interval, so "
+            "the block says the price diverges and states it in the same breath")
+        assert block["rosters_needed_to_state_a_sign"] <= block["rosters_in_hand"], (
+            "a reading that clears its own null was told it needs more rosters than it holds, "
+            "which contradicts the verdict the same artefact publishes")
 
 
 def test_a_folds_several_trees_are_told_apart_from_several_INSTRUMENTS():

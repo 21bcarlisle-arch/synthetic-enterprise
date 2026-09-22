@@ -2710,6 +2710,34 @@ def _rosters_to_state_a_sign(sds_from_chance) -> dict:
     distance stayed exactly where it is. A new roster is a new draw of the statistic and moves the
     distance as well as the count, so this is a price for a decision about compute and never a
     prediction of when a sign will arrive.
+
+    AND THE COUNT IS BOUNDED AT THE SOURCE (2026-09-22), ON THE RULE `_seed_price_interval`
+    ESTABLISHED. `sds_from_chance` is `(auc - 0.5) / null_sd`, an ESTIMATE, and it sits in the
+    DENOMINATOR of a quotient that scales as `(bar/|d|)^2`. The count is worth asking only where
+    the reading has failed `clears_its_own_null`, which IS the statement that the denominator's
+    interval at that bar contains zero -- so in the one state where a reader wants the number,
+    there is no finite number to give. `rosters_needed_to_state_a_sign` therefore carries an
+    integer ONLY where the reading clears its own null, and is `None` with a named reason
+    otherwise, beside `rosters_needed_interval` carrying the arithmetic and the two endpoint
+    prices.
+
+    THIS IS THE FOURTH INSTANCE OF ONE RULE. 06e316ae4 and 5742edb1c removed the bare count from
+    two page keys, 964036259 bounded it at the money leg's producer -- and 964036259's census found
+    THIS, the same quotient in another unit, rendered in the SAME SENTENCE as the money-leg price
+    it was filed beside. That is the VAT shape CLAUDE.md names: one requirement, several
+    implementations, fixed in some and live in the rest.
+
+    ONE THING DIFFERS FROM THE MONEY LEG AND IT IS NOT AN OVERSIGHT. The money leg's error is
+    `sd/sqrt(n)`, estimated from the same draws, so its bar is a t point that widens with `n`.
+    `null_sd` here is `sqrt((n1+n2+1)/(12*n1*n2))`, an exact function of the two outcome counts and
+    estimated from nothing (see `_AUC_SDS_TO_STATE_A_SIGN`). So the error unit is exact, the bar is
+    the normal point, and the denominator's own interval is `sds_from_chance +/- 1` in standardised
+    units -- one exact null SD either side, not a t interval.
+
+    THE ARITHMETIC IS RENAMED, NOT DELETED. `rosters_at_the_point_estimate` carries it in BOTH
+    states, for the reason the money leg keeps `seeds_at_the_point_estimate`: withholding the
+    measurement would hide the only figure in hand, while publishing it as `needed` promises a
+    reader that buying that many rosters settles the question, which is the claim that is false.
     """
     if sds_from_chance is None or not math.isfinite(sds_from_chance) or sds_from_chance == 0:
         return {
@@ -2718,12 +2746,66 @@ def _rosters_to_state_a_sign(sds_from_chance) -> dict:
                 "the reading sits exactly at the no-information point, or no distance could be "
                 "computed, so no finite number of rosters is implied by it"),
         }
-    needed = math.ceil((_AUC_SDS_TO_STATE_A_SIGN / abs(sds_from_chance)) ** 2)
+
+    def price_at(distance):
+        """The rosters this reading would need if its distance from chance were `distance`.
+
+        The SAME closed form the point estimate uses, so the endpoints and the point can never be
+        computed two different ways.
+        """
+        return None if distance == 0 else math.ceil(
+            (_AUC_SDS_TO_STATE_A_SIGN / abs(distance)) ** 2)
+
+    point = price_at(sds_from_chance)
+    # THE GATE, KEYED TO THE DENOMINATOR'S INTERVAL AND NOT TO TODAY'S COUNT. This is the same
+    # inequality `clears_its_own_null` publishes per seed: clearing the bar IS the statement that
+    # the denominator's interval at that bar excludes zero, and it is the only state in which the
+    # quotient above has an upper bound. The day a reading pins its distance past its own null this
+    # block fills with nobody editing a string -- because the question stops being asked, not
+    # because the answer changed.
+    clears_bar = abs(sds_from_chance) > _AUC_SDS_TO_STATE_A_SIGN
+    low, high = sds_from_chance - 1.0, sds_from_chance + 1.0
+    interval = None if clears_bar else {
+        "at_the_point_estimate": point,
+        "denominator_sds_from_chance": sds_from_chance,
+        "denominator_error_is_one_exact_null_sd": 1.0,
+        "denominator_one_error_low": low,
+        "denominator_one_error_high": high,
+        "price_at_the_low_end_of_the_denominator": price_at(low),
+        "price_at_the_high_end_of_the_denominator": price_at(high),
+        # NAMED FOR THE DENOMINATOR'S POSITION, NEVER THE PRICE'S. A denominator further from
+        # chance is CHEAPER, so the prices come back in the opposite order to the bounds that
+        # produced them, and naming them by the price would invite exactly the min/max reading
+        # this block exists to refuse.
+        "these_two_are_not_a_range": (
+            "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the "
+            "PRICE's. The price is not monotone between them: it rises without limit as the "
+            "distance approaches chance, and this denominator's own interval {}contains the "
+            "no-information point.".format("" if low <= 0.0 <= high else "at its own sign bar ")),
+        "has_no_upper_bound": True,
+    }
+    why = None if clears_bar else (
+        "NO ROSTER COUNT IS PUBLISHED FOR THIS READING AND NO LARGER ONE WOULD CHANGE THAT. The "
+        "count scales as (bar / |distance from chance|)^2, so the estimate sits in the "
+        "DENOMINATOR, and it is asked only when that estimate has failed its own null -- which is "
+        "the statement that the denominator's interval at that bar contains the no-information "
+        "point. A denominator that may be zero prices the question at no finite number of rosters. "
+        "The arithmetic at this reading's point estimate is `rosters_at_the_point_estimate` and "
+        "the two endpoints one exact null SD either side are published beside it; they are not a "
+        "range, because the quantity diverges between them.")
     return {
         "available": True,
         "sds_from_chance": sds_from_chance,
         "sds_needed_to_state_a_sign": _AUC_SDS_TO_STATE_A_SIGN,
-        "rosters_needed_to_state_a_sign": needed,
+        "rosters_needed_to_state_a_sign": point if clears_bar else None,
+        # THE ARITHMETIC, UNDER A NAME THAT IS NOT A PLAN. Published in BOTH states, so a control
+        # over the price's monotonicity in the distance can be asked over the WHOLE partition
+        # rather than over the clearing half alone -- which is half the partition with an
+        # identical green.
+        "rosters_at_the_point_estimate": point,
+        # THE PRICE'S OWN INTERVAL, non-null exactly when the count is withheld.
+        "rosters_needed_interval": interval,
+        "rosters_needed_unavailable_because": why,
         "rosters_in_hand": 1,
         "the_unit_is_a_roster_not_a_seed": (
             "a roster is one independently drawn book of scored renewals. Re-drawing the "
@@ -3201,26 +3283,61 @@ def _auc_null_reading_tail(*, clearing, seeds, widest_distance, pooled, rosters,
             n=pooled["seeds"],
             r=(pooled.get("family_sd_over_the_single_draw_null_sd") or float("nan")))
     if rosters and rosters.get("available"):
-        out += (" At this distance, and only if it stayed exactly where it is, a sign would need "
-                "about {k} independent ROSTERS".format(
-                    k=rosters["rosters_needed_to_state_a_sign"]))
-        if money and money.get("available") and money.get(
-                "money_leg_seeds_needed_to_state_a_sign") is not None:
-            out += (" -- against the {s} SEEDS the money leg beside it prices out of this same "
-                    "artefact. Different units, and the rank question is the one nobody has "
-                    "costed.".format(s=money["money_leg_seeds_needed_to_state_a_sign"]))
-        # THE COMPARISON'S ABSENCE IS ITSELF THE READING, SO IT IS SAID (2026-09-22). This branch
-        # used to fall through to a full stop, which spelled "the money leg has no price because
-        # its price is unbounded" exactly like "there is no money leg here" -- and the first of
-        # those is the more interesting half of the sentence, not the missing half.
-        elif money and money.get("available"):
-            out += (" -- and the money leg beside it, out of this same artefact, carries NO seed "
-                    "price at all: its own estimate sits in the denominator of that price and has "
-                    "failed its sign bar, so no finite number of draws buys the answer. The rank "
-                    "question is costed and the money one cannot be, which is the opposite of the "
-                    "reading a missing figure invites.")
+        money_is_priced = bool(money and money.get("available") and money.get(
+            "money_leg_seeds_needed_to_state_a_sign") is not None)
+        money_is_withheld = bool(
+            money and money.get("available") and not money_is_priced)
+        if rosters.get("rosters_needed_to_state_a_sign") is not None:
+            out += (" At this distance, and only if it stayed exactly where it is, a sign would "
+                    "need about {k} independent ROSTERS".format(
+                        k=rosters["rosters_needed_to_state_a_sign"]))
+            if money_is_priced:
+                out += (" -- against the {s} SEEDS the money leg beside it prices out of this "
+                        "same artefact. Different units, and the rank question is the one nobody "
+                        "has costed.".format(s=money["money_leg_seeds_needed_to_state_a_sign"]))
+            # THE COMPARISON'S ABSENCE IS ITSELF THE READING, SO IT IS SAID (2026-09-22). This
+            # branch used to fall through to a full stop, which spelled "the money leg has no
+            # price because its price is unbounded" exactly like "there is no money leg here" --
+            # and the first of those is the more interesting half of the sentence, not the
+            # missing half.
+            elif money_is_withheld:
+                out += (" -- and the money leg beside it, out of this same artefact, carries NO "
+                        "seed price at all: its own estimate sits in the denominator of that "
+                        "price and has failed its sign bar, so no finite number of draws buys the "
+                        "answer. The rank question is costed and the money one cannot be, which "
+                        "is the opposite of the reading a missing figure invites.")
+            else:
+                out += "."
+        # THE RANK PRICE'S OWN ABSENCE, SAID RATHER THAN DROPPED (2026-09-22, the fourth instance).
+        # The count is withheld exactly when this reading has failed its own null, and this leg
+        # used to print the unbounded quotient as "about 4 independent ROSTERS". The withholding
+        # cannot fall through to silence for the same reason the money leg's could not: "no price
+        # exists" and "nobody costed it" are opposite readings, and silence spells the second.
+        # The point estimate is still named, because it is the only arithmetic in hand.
         else:
-            out += "."
+            interval = rosters.get("rosters_needed_interval") or {}
+            out += (" NO ROSTER PRICE IS PUBLISHED FOR THIS READING and no larger book would "
+                    "change that: the count divides by this reading's distance from chance, and "
+                    "it is asked only because that distance has failed its own null -- which is "
+                    "the statement that the distance's own interval covers the no-information "
+                    "point. At the point estimate the arithmetic returns {p}, and one exact null "
+                    "SD either side of the distance it returns {lo} and {hi}; those are the ends "
+                    "of the DISTANCE's interval and not of the PRICE's, which rises without limit "
+                    "between them.".format(
+                        p=interval.get("at_the_point_estimate"),
+                        lo=interval.get("price_at_the_low_end_of_the_denominator"),
+                        hi=interval.get("price_at_the_high_end_of_the_denominator")))
+            if money_is_priced:
+                out += (" The money leg beside it, out of this same artefact, IS priced, at {s} "
+                        "SEEDS -- a different unit, and the rank question is the one that cannot "
+                        "be costed at all.".format(
+                            s=money["money_leg_seeds_needed_to_state_a_sign"]))
+            elif money_is_withheld:
+                out += (" NEITHER LEG OF THIS COMPARISON CARRIES A PRICE. The money leg beside it, "
+                        "out of this same artefact, is withheld for the same reason in its own "
+                        "unit: its estimate also sits in the denominator of its own price and has "
+                        "also failed its sign bar. Two questions, two units, and no finite number "
+                        "of draws buys either answer.")
     return out
 
 
