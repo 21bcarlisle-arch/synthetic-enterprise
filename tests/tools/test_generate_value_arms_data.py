@@ -5278,13 +5278,26 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
             "runs: " + block["against_the_superseded_panel"])
 
 
-def _run_stamped(world: str | None, when: str, commit: str | None) -> dict:
-    """A run carrying only the three fields the attribution count reads. `None` omits the field."""
+def _run_stamped(world: str | None, when: str, commit: str | None,
+                 accounts: int | None = 164, partial_book: bool = False) -> dict:
+    """A run carrying only the fields the attribution count reads. `None` omits the field.
+
+    `accounts=None` omits the book block entirely; `partial_book=True` states four of the five
+    counts, which is the state a tuple built with `.get` would have compared EQUAL to another
+    equally-partial run.
+    """
     run = {"generated_at": when}
     if world is not None:
         run["world_identity"] = {"digest": world}
     if commit is not None:
         run["producing_commit"] = {"commit": commit}
+    if accounts is not None:
+        book = {"billing_accounts_settled_in_window": accounts,
+                "with_an_electricity_leg": accounts - 18, "with_a_gas_leg": accounts - 59,
+                "dual_fuel": accounts - 77, "accounts_at_end_of_window": accounts - 91}
+        if partial_book:
+            book["dual_fuel"] = None
+        run["book_identity"] = {"control_arm": book}
     return run
 
 
@@ -5313,15 +5326,23 @@ def test_the_superseded_panels_attribution_is_COUNTED_and_the_whole_partition_is
     matching.
     """
     a = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa")
-    # THE FOUR STATES, each differing from `a` in exactly what its name says.
+    # THE STATES, each differing from `a` in exactly what its name says.
     three = _run_stamped("world_bbbb", "2026-08-31T03:47:57Z", "commit_bbb")
     one = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_bbb")
     same = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa")
     blind = _run_stamped(None, "2026-09-08T21:01:30Z", "commit_aaa")
+    # THE BOOK'S OWN THREE STATES. `book_only` is the live pair this field was added for: the two
+    # runs the page publishes opposite composition answers from differ in the book and in nothing
+    # else that is held fixed here.
+    book_only = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa", accounts=154)
+    four = _run_stamped("world_bbbb", "2026-08-31T03:47:57Z", "commit_bbb", accounts=154)
+    bookless = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa", accounts=None)
 
     counts = {name: gva._what_differs_between_two_runs(a, other)
               for name, other in (("three", three), ("one", one),
-                                  ("same", same), ("blind", blind))}
+                                  ("same", same), ("blind", blind),
+                                  ("book_only", book_only), ("four", four),
+                                  ("bookless", bookless))}
 
     # THE PARTITION, IN ONE ASSERT. Every state must be reachable; a counter stuck on any single
     # answer fails here rather than passing three of four assertions elsewhere.
@@ -5331,11 +5352,34 @@ def test_the_superseded_panels_attribution_is_COUNTED_and_the_whole_partition_is
             and counts["blind"]["unestablished"] == ["the world it ran in"]), (
         "the attribution count cannot reach all four of its states, so whichever sentence it "
         "publishes is a constant: " + repr({k: v for k, v in counts.items()}))
+    # THE BOOK IS A FIELD THE COUNT CAN REACH IN EVERY ONE OF ITS THREE STATES -- differing alone,
+    # differing alongside the rest, and unreadable. A book wired in but never able to differ would
+    # satisfy every assertion above while leaving the page saying "two things changed" about a pair
+    # whose books are 164 and 154, which is the defect this field was added for.
+    assert (counts["book_only"]["differ"] == ["the book it was scored over"]
+            and counts["four"]["how_many_differ"] == 4
+            and counts["bookless"]["unestablished"] == ["the book it was scored over"]), (
+        "the book cannot reach all three of its states in the attribution count: "
+        + repr({k: counts[k] for k in ("book_only", "four", "bookless")}))
     # AN ABSENT FIELD IS NEITHER, and that is the load-bearing case: counted as differing it
     # manufactures the refusal, counted as matching it manufactures a one-variable claim.
     assert counts["blind"]["how_many_differ"] == 0
     assert counts["blind"]["the_same_run"] is False, (
         "two runs agreeing on the fields a third could not be read from were called the same run")
+    assert counts["bookless"]["how_many_differ"] == 0
+    assert counts["bookless"]["the_same_run"] is False
+    # A PARTIAL BOOK IS UNESTABLISHED AND NEVER A MATCH. Two runs each stating four of the five
+    # counts carry identical tuples once a `None` is allowed into one, so a reader would be told
+    # they were scored over the same population on the strength of the same field being missing
+    # from both.
+    partial = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa", partial_book=True)
+    both_partial = gva._what_differs_between_two_runs(partial, partial)
+    assert both_partial["unestablished"] == ["the book it was scored over"], (
+        "two runs with the SAME missing book count were compared on their books anyway: "
+        + repr(both_partial))
+    assert both_partial["the_same_run"] is False
+    assert gva._the_book_a_run_was_scored_over(partial) is None, (
+        "a book missing one of its five counts still read as an established population")
 
     sentences = {name: gva._against_the_superseded_panel(0.7867, count)
                  for name, count in counts.items()}

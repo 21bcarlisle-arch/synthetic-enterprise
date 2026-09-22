@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T00:36:36.465222Z",
+  "generated_at": "2026-09-22T06:54:45.005357Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -472,7 +472,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "f31e3b1cd33b41959340d6dba612129dc4d5e0a1",
+    "publishing_tree_commit": "5c330ac62cf0e6261b7401643b21bd7f5b5cb236",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -484,7 +484,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from f31e3b1cd -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 5c330ac62 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -707,31 +707,33 @@
           "every_leg_is_reachable": false,
           "no_leg_is_reachable": true,
           "memory_ceiling": {
-            "max_customer_years": 1260,
-            "bound_kind": "measured_two_point_extrapolation",
-            "mb_per_customer_year": 4.340211503740005,
-            "bytes_per_customer_year": 4551041.61774568,
-            "budget_rss_mb": 6008.025,
-            "budget_rss_bytes": 6299870822.4,
-            "measured_from": {
-              "curve": "docs/observability/settlement_ceiling_slope_20260921.json",
-              "generated_at_utc": "2026-09-21T19:49:05.549028+00:00",
-              "git_head": "b726402c1",
-              "clean_points": 2,
-              "anchor_customer_years": 1197.0,
-              "anchor_peak_rss_mb": 5734.4,
-              "anchor_peak_child_rss_mb": 5507.4,
-              "production_parent_rss_mb": 227.0
+            "max_customer_years": 1312,
+            "bound_kind": "measured_interpolation",
+            "within_the_measured_range": true,
+            "measured_range_customer_years": [
+              1197.0,
+              3135.5
+            ],
+            "mb_per_customer_year": 4.3402,
+            "anchored_at": {
+              "customer_years": 1197.0,
+              "peak_rss_mb": 5507.4
             },
-            "prices_which_record_population": "EVERYTHING a value-cycle run holds resident, measured as the process's own peak RSS across four budgets -- not a record count. The retained settlement rows are one term inside it and pricing them alone understated the run by 29.2x on first measurement (2026-09-21)",
-            "what_it_does_not_bound": "wall clock. A book inside this bound can still be one no publish cycle will ever finish -- the same curve measures 1.958 seconds per customer-year above a 1,500s run at 1,197 customer-years, so this ceiling's book costs about 1,623 seconds on the box it was measured on."
+            "budget_peak_rss_mb": 6008.0,
+            "share_of_guest_the_run_may_hold": 0.25,
+            "guest_total_mb": 24032.1,
+            "measured_at_utc": "2026-09-21T19:49:05.549028+00:00",
+            "measured_at_git_head": "b726402c1",
+            "read_from": "docs/observability/settlement_ceiling_slope_20260921.json",
+            "prices_which_footprint": "the PEAK RSS OF THE WHOLE RUN -- `tools.run_annual_report._run_and_extract` over the full window, the same call `background/sim_runner.py` makes -- measured at several settlement budgets, not any one data structure inside it",
+            "what_it_does_not_bound": "wall clock. A book inside this bound can still be one no publish cycle will ever finish; the probe's own `bounds.time` is that separate question, and WHICH of the two binds is a comparison the caller makes against `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` -- not a sentence this function can carry. It carried one until 2026-09-21: the literals '1,200', 'slack by 4.5x' and 'Memory is not what caps this book' were hard-coded here, inside the function computing the number they described, and the measurement refuted all three. They are named here only so a reader meeting them elsewhere knows they were deleted, not restated."
           },
           "retained_records_per_customer_year": 289.3903743315508,
-          "memory_slack_multiple_over_the_budget": 1.008,
+          "memory_slack_multiple_over_the_budget": 1.0496,
           "why_the_old_comparison_was_not_one": "`settled_book_ceiling` prices every customer at 17,520 settlement records a year -- the HALF-HOURLY rate, which is what an I&C account settles on. I&C was suspended from the served book on 2026-08-24, and `run_phase2b` folds each term to DAILY rows before retaining any of it. This run retains 289.4 rows per customer-year, so the old ceiling was pricing a record population the settled book does not hold, by a factor of 61.",
           "why_the_retained_rate_is_not_the_ceilings_input_either": "Re-ruling to 289.4 rows per customer-year fixed which RECORDS were priced and left the ceiling pricing records at all. The scale probe's two stages bound one data structure; a run's peak RSS is the whole process. This ceiling is now read off a measured whole-run curve -- 4.340 MB per customer-year across four budgets -- and the retained rate above is context, not its input. On 2026-09-21 the stage-cost arithmetic this replaced published 0.214 MB per customer-year and a ceiling of 38,275, optimistic by a factor of 29.2; that figure is named here with its date because it was cited on this page and is not recoverable from the code once the arithmetic is gone."
         },
-        "what_is_not_established": "Not whether a book that size can be built -- that is now measured, on one ruler, and the answer is NO: 2.82x this book is 3,164 customer-years against a capacity of 1,250, and `SETTLEMENT_CUSTOMER_YEAR_BUDGET` is what binds. What is NOT established is why that capacity is where it is. Memory very nearly binds too: the measured whole-run RSS ceiling is 1,260 customer-years, slack of only 1.01x over the budget. Raising the budget to reach the requirement above spends that slack long before it gets there. What no measurement here settles is what publish cadence this company is willing to pay for a signed answer -- though the 2026-09-21 curve narrows even that: across a 112x range of intervals the supported ceiling moved under 10%, so the cadence is a far smaller lever on this question than it was argued to be.",
+        "what_is_not_established": "Not whether a book that size can be built -- that is now measured, on one ruler, and the answer is NO: 2.82x this book is 3,164 customer-years against a capacity of 1,250, and `SETTLEMENT_CUSTOMER_YEAR_BUDGET` is what binds. What is NOT established is why that capacity is where it is. Memory very nearly binds too: the measured whole-run RSS ceiling is 1,312 customer-years, slack of only 1.05x over the budget. Raising the budget to reach the requirement above spends that slack long before it gets there. What no measurement here settles is what publish cadence this company is willing to pay for a signed answer -- though the 2026-09-21 curve narrows even that: across a 112x range of intervals the supported ceiling moved under 10%, so the cadence is a far smaller lever on this question than it was argued to be.",
         "sentence": "What it would take, against this book's 214 priced renewals: to give the published draw (\u00a3270) a direction, more than 44.9x this book -- about 9,608 priced renewals out of 91,331 the world must offer; to give the centre of its own re-draw family (-\u00a31,078) a direction, more than 2.8x this book -- about 604 priced renewals out of 5,742 the world must offer. Both are the most optimistic book in the family, and on this instrument that corner is where this book sits -- read them as exact, not as a floor that will rise when the missing floor legs are run, which on this book they cannot be. Which of the two a reader should mean is not a detail this page can settle for them: they are different quantities and they are answered by different books."
       },
       "figure_gbp": 270.20708699998795,
@@ -1034,16 +1036,17 @@
         "available": true,
         "differ": [
           "the date it ran on",
-          "the commit that produced it"
+          "the commit that produced it",
+          "the book it was scored over"
         ],
         "same": [
           "the world it ran in"
         ],
         "unestablished": [],
-        "how_many_differ": 2,
+        "how_many_differ": 3,
         "the_same_run": false
       },
-      "against_the_superseded_panel": "The panel above states 5.5% for the same quantity. 2 things differ between the two runs -- the date it ran on and the commit that produced it -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run."
+      "against_the_superseded_panel": "The panel above states 5.5% for the same quantity. 3 things differ between the two runs -- the date it ran on, the commit that produced it and the book it was scored over -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run."
     },
     "what_would_answer_it": "a LARGER PRICED BOOK, not another floor leg: the choosing carries a measured bound already and still no direction, because the same contrast re-drawn nine times in this world falls on both sides of zero. What size of book that would take is priced beside the leg itself, under `what_would_settle_the_sign` -- and it is a lower bound, so read it as the smallest book that would not be enough.",
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, run at a different hour of the same world and from a different commit. It is NOT the more recent of the two -- the run above it was taken at 2026-09-18T05:43:40Z and this one at 2026-09-08T00:19:54Z -- so nothing here is a statement about how things stand relative to that panel. Compare the two as two draws of one world, not as a revision and not as a trend."
@@ -1073,7 +1076,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "f31e3b1cd33b41959340d6dba612129dc4d5e0a1",
+      "publishing_tree_commit": "5c330ac62cf0e6261b7401643b21bd7f5b5cb236",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1085,7 +1088,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from f31e3b1cd -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 5c330ac62 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1147,21 +1150,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 158278.48,
+      "dashboard_net_gbp": 154754.54,
       "run_identity": {
-        "dashboard_run_id": "run_output_87b25d6da_20260921T152931Z.json",
-        "dashboard_commit": "87b25d6da",
+        "dashboard_run_id": "run_output_b2b233ef7_20260922T043219Z.json",
+        "dashboard_commit": "b2b233ef7",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_87b25d6da_20260921T152931Z.json",
-        "last_verified_commit": "87b25d6da",
+        "last_verified_run_id": "run_output_b2b233ef7_20260922T043219Z.json",
+        "last_verified_commit": "b2b233ef7",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": 471.60409200549475,
-      "statement": "The published run's net margin (\u00a3158,278.48) is NOT the baseline arm's (\u00a3157,806.88) -- they differ by \u00a3471.60. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": -3052.3359079945076,
+      "statement": "The published run's net margin (\u00a3154,754.54) is NOT the baseline arm's (\u00a3157,806.88) -- they differ by \u00a33,052.34. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -4219,7 +4222,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from -- the error bar below prices how many the family on disk would need. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "f31e3b1cd33b41959340d6dba612129dc4d5e0a1",
+    "commit": "5c330ac62cf0e6261b7401643b21bd7f5b5cb236",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

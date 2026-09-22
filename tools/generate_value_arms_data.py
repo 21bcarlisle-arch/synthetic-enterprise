@@ -3461,6 +3461,14 @@ def _objective_pays_for_departures(commit: str | None) -> bool | None:
     return None
 
 
+#: WHICH COUNTS MAKE TWO RUNS' BOOKS THE SAME BOOK. Hoisted out of `_same_book` 2026-09-22 when
+#: `_RUN_IDENTITY_FIELDS` became the second reader of this question -- two copies of the field list
+#: is how "the same book" would come to mean one thing in the departure-term block and another in
+#: the attribution count, edited on different days. The CONTROL arm only, for `_same_book`'s reason.
+_BOOK_IDENTITY_FIELDS = ("billing_accounts_settled_in_window", "with_an_electricity_leg",
+                         "with_a_gas_leg", "dual_fuel", "accounts_at_end_of_window")
+
+
 def _same_book(left: dict, right: dict) -> tuple[bool | None, list]:
     """Whether two runs were scored over the same book, by the counts both artefacts publish.
 
@@ -3468,16 +3476,27 @@ def _same_book(left: dict, right: dict) -> tuple[bool | None, list]:
     no arm's own pricing can move: `renewals_priced_by_the_arm` differs between any two objectives
     by construction, so requiring it to match would refuse every comparison this block exists for.
     """
-    fields = ("billing_accounts_settled_in_window", "with_an_electricity_leg",
-              "with_a_gas_leg", "dual_fuel", "accounts_at_end_of_window")
     lb = ((left or {}).get("book_identity") or {}).get("control_arm") or {}
     rb = ((right or {}).get("book_identity") or {}).get("control_arm") or {}
     rows = []
-    for field in fields:
+    for field in _BOOK_IDENTITY_FIELDS:
         rows.append({"field": field, "baseline": lb.get(field), "rerun": rb.get(field)})
     if any(r["baseline"] is None or r["rerun"] is None for r in rows):
         return None, rows
     return all(r["baseline"] == r["rerun"] for r in rows), rows
+
+
+def _the_book_a_run_was_scored_over(run: dict) -> tuple | None:
+    """The control arm's settled counts as one comparable value, or `None` if any is missing.
+
+    FAILS CLOSED ON A PARTIAL BOOK, which is the whole reason this is not `.get` per field. A run
+    stating four of the five counts has not established its population, and a tuple carrying a
+    `None` in it would compare EQUAL to another run's identically-partial tuple -- manufacturing
+    "same book" out of two silences. `None` sends both to `unestablished`, where they belong.
+    """
+    block = ((run or {}).get("book_identity") or {}).get("control_arm") or {}
+    counts = tuple(block.get(field) for field in _BOOK_IDENTITY_FIELDS)
+    return None if any(c is None for c in counts) else counts
 
 
 def _departure_term_rerun(baseline: dict | None, floor: dict | None,
@@ -9914,19 +9933,62 @@ def _the_level_legs_family(measured: list, stability: dict | None) -> str:
                 lo=_gbp(min(measured)), hi=_gbp(max(measured)))
 
 
-#: The three things about a run that this page can compare between two artefacts. A CONSTANT so
-#: that the sentence enumerating them and the code testing them cannot become two lists edited on
-#: different days -- which is the shape that put "DIFFERENT WORLDS" on a page comparing a run to
-#: itself.
+#: The things about a run that this page can compare between two artefacts. A CONSTANT so that the
+#: sentence enumerating them and the code testing them cannot become two lists edited on different
+#: days -- which is the shape that put "DIFFERENT WORLDS" on a page comparing a run to itself. The
+#: prose branches of `_against_the_superseded_panel` DERIVE their enumeration from this tuple for
+#: the same reason; they used to type "the world, the date and the producing commit" out by hand in
+#: three places, which is the second list this comment exists to forbid, written by the block the
+#: comment is attached to.
+#:
+#: THE BOOK WAS ADDED 2026-09-22 AND IT IS THE FIELD THE DEFECT WAS ABOUT. The page publishes two
+#: runs of world `39a192ce04c1eda8` that disagree about the composition of the advantage by ~18x --
+#: 98.5% level against 5.5% -- and told the reader that TWO things differ between them, the date and
+#: the commit. Three do. `value_cycle_ab_s1_three_arm_20260908.json` settles 164 control-arm
+#: accounts and `..._20260918.json` settles 154 (electricity 146/136, gas 105/90, dual 87/72,
+#: end-of-window 73/55), and the book is not a footnote to that disagreement -- it is the term that
+#: moves the leg the share is a share OF. Measured on the two same-book re-draw families on disk:
+#: `level_advantage_gbp` centres at GBP 19,277 (sd 1,297) over the 164 book and GBP 8,465 (sd 5,593)
+#: over the 154 book. So the page understated its own attribution refusal, in the flattering
+#: direction -- "two things changed" invites the reader to hold the third fixed -- while `_same_book`
+#: sat in this same module, already able to answer, read by one block and not by this one.
 _RUN_IDENTITY_FIELDS = (
     ("the world it ran in", lambda r: (r.get("world_identity") or {}).get("digest")),
     ("the date it ran on", lambda r: r.get("generated_at")),
     ("the commit that produced it", lambda r: (r.get("producing_commit") or {}).get("commit")),
+    ("the book it was scored over", _the_book_a_run_was_scored_over),
 )
 
 
+def _listed(names) -> str:
+    """`a`, `a and b`, `a, b and c` -- one home, because these lists grew past two on 2026-09-22.
+
+    `" and ".join` was right while every list here held exactly two items and published "the date
+    it ran on and the commit that produced it and the book it was scored over" the day a third
+    arrived. A list whose length is data should never have its punctuation written by hand.
+    """
+    names = [n for n in names if n]
+    if len(names) <= 2:
+        return " and ".join(names)
+    return ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def _the_fields_this_page_compares() -> str:
+    """The identity fields as English, DERIVED from the tuple so the prose cannot be a second list.
+
+    Every branch of `_against_the_superseded_panel` names what it looked at. Typed out, that
+    enumeration went stale the moment a field was added -- a sentence reading "of the world, the
+    date and the producing commit, exactly ONE differs" while the count ranged over four.
+    """
+    return _listed([name for name, _ in _RUN_IDENTITY_FIELDS])
+
+
 def _what_differs_between_two_runs(current: dict | None, superseded: dict | None) -> dict:
-    """Which of world, date and commit actually differ between two runs -- COUNTED, never asserted.
+    """Which of `_RUN_IDENTITY_FIELDS` actually differ between two runs -- COUNTED, never asserted.
+
+    THE FIELDS ARE NOT ENUMERATED IN THIS SENTENCE, on purpose and at the cost of a vaguer one:
+    this docstring said "world, date and commit" until 2026-09-22, and it was false the moment the
+    book was added to the tuple. The tuple is the list; a prose copy of it is the defect below.
 
     THE DEFECT THIS EXISTS FOR (2026-09-08, Lane 0). `against_the_superseded_panel` stated, on
     every branch and in prose, that the two panels' shares "were measured in DIFFERENT WORLDS, on
@@ -9952,8 +10014,8 @@ def _what_differs_between_two_runs(current: dict | None, superseded: dict | None
     """
     if not isinstance(current, dict) or not isinstance(superseded, dict):
         return {"available": False, "why_not": (
-            "one of the two runs could not be read, so which of the world, the date and the "
-            "producing commit differ between them has not been established")}
+            "one of the two runs could not be read, so which of {} differ between them has not "
+            "been established".format(_the_fields_this_page_compares()))}
     differ, same, unestablished = [], [], []
     for name, read in _RUN_IDENTITY_FIELDS:
         mine, theirs = read(current), read(superseded)
@@ -10001,16 +10063,17 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
     if not isinstance(differences, dict) or not differences.get("available"):
         return (
             "The panel above states {old} for the same quantity. This page has not established "
-            "which of the world, the date and the producing commit differ between the two runs, "
+            "which of {fields} differ between the two runs, "
             "so it states no attribution for the difference between them at all.{inv}"
-        ).format(old=old, inv=invariant)
+        ).format(old=old, fields=_the_fields_this_page_compares(), inv=invariant)
     if differences.get("the_same_run"):
         return (
             "The panel above states {old} for the same quantity, and it is the SAME RUN as this "
-            "one -- same world, same date, same commit. There is no difference between them to "
-            "attribute: the two figures are one figure printed twice, not a comparison.{inv}"
+            "one -- same world, same date, same commit, same book. There is no difference between "
+            "them to attribute: the two figures are one figure printed twice, not a "
+            "comparison.{inv}"
         ).format(old=old, inv=invariant)
-    named = " and ".join(differences.get("differ") or [])
+    named = _listed(differences.get("differ") or [])
     how_many = differences.get("how_many_differ") or 0
     if how_many >= 2:
         return (
@@ -10021,17 +10084,18 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
         ).format(old=old, n=how_many, named=named, inv=invariant)
     if how_many == 1:
         return (
-            "The panel above states {old} for the same quantity. Of the world, the date and the "
-            "producing commit, exactly ONE differs between the two runs -- {named} -- so this is "
+            "The panel above states {old} for the same quantity. Of {fields}, exactly ONE differs "
+            "between the two runs -- {named} -- so this is "
             "the one-variable version of the comparison, and the difference is attributable to "
             "that alone only if nothing this page cannot see also moved.{inv}"
-        ).format(old=old, named=named, inv=invariant)
+        ).format(old=old, fields=_the_fields_this_page_compares(), named=named, inv=invariant)
     return (
-        "The panel above states {old} for the same quantity. Of the world, the date and the "
-        "producing commit, none that this page could read differ between the two runs and {un} "
+        "The panel above states {old} for the same quantity. Of {fields}, "
+        "none that this page could read differ between the two runs and {un} "
         "could not be read at all -- so no difference between them has been established, and none "
         "is attributed.{inv}"
-    ).format(old=old, un=" and ".join(differences.get("unestablished") or []), inv=invariant)
+    ).format(old=old, fields=_the_fields_this_page_compares(),
+             un=_listed(differences.get("unestablished") or []), inv=invariant)
 
 
 def _composition_in_this_world(contrast: dict, floor_current: dict | None,
