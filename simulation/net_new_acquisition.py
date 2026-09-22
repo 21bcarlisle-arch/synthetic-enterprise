@@ -566,6 +566,9 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:
 #:    SO 1,200 STANDS ON NO CURRENT EVIDENCE, and this comment says so rather than dressing it.
 #:    It is a historical number that survived because nothing forced the question.
+#:    [2026-09-22: true when written, and it stopped being the value on that date. The question
+#:    was forced, MEMORY turned out to be the binding leg and not TIME, and the reasoning below
+#:    this line supersedes the two legs above it. Read to the end before quoting any of it.]
 #:
 #:    WHAT MAKES THAT SURVIVABLE IS THE ALLOCATION FIX OF THE SAME DAY, and this is the reason
 #:    the ceiling was not moved instead. Until 2026-08-29 this constant decided WHICH YEARS
@@ -578,9 +581,12 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:    that can now wait for a real answer instead of forcing an invented one.
 #:    `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`.
 #:
-#: 3. THE SECOND POINT WAS CONTAMINATED AND THE PROBE NOW SAYS SO. A slope needs two clean
-#:    points and there is one, so this number stays where it is until the run specified in §6 of
-#:    that document is taken with the producer stood down. "I cannot yet say" is the result.
+#: 3. THE SECOND POINT WAS CONTAMINATED AND THE PROBE NOW SAYS SO — and that run has since been
+#:    taken (`settlement_ceiling_slope_20260921.json`, landed c4bee75e3). "I cannot yet say" was
+#:    the result for three weeks and is no longer; what replaced it is §"WHERE 1,263 COMES FROM"
+#:    below. The contamination did not go away, it was routed around: points 2 and 3 contribute
+#:    their `customer_year_budget_seen` and `peak_rss_mb`, which are the probe's own, and never
+#:    their `customer_years_committed`, which another writer's `book_growth_campaign.json` is in.
 #:
 #: ── WHAT THIS IS A BUDGET OF, 2026-08-29 ────────────────────────────────────────────────────
 #:
@@ -699,14 +705,66 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:    treating the director's interval as the thing standing between us and a bigger book was
 #:    reasoning about the wrong leg.
 #:
-#: 3. **SO 1,200 IS DEFENDED BY MEASUREMENT FOR THE FIRST TIME — by arriving at it, not by having
-#:    chosen it.** It sits inside the whole admissible band (1,194.6–1,312.3): 0.45% above the
-#:    weekly-cadence time bound's sibling at 90 minutes, 8.6% below the memory bound. Every
-#:    paragraph above calling it "a historical number that survived because nothing forced the
-#:    question" was accurate and stays; what has changed is that the question has now been forced
-#:    and the number happens to be right. **NOT MOVED**, and deliberately: the band is ±10%, the
-#:    gain is precision rather than coverage since the 2026-08-29 allocation fix, and moving it
-#:    to 1,312 would spend the last of the memory headroom on a box with 107 lifetime OOM kills.
+#: 3. **THE PARAGRAPH THAT STOOD HERE SAID "NOT MOVED, and deliberately", AND IT WAS WRONG ON ITS
+#:    OWN TERMS. It is kept stated rather than quietly replaced, because the way it was wrong is
+#:    the finding.** It read the admissible band as 1,194.6–1,312.3 and declined to spend the
+#:    memory headroom. Both ends of that band price the peak RSS of ONE CHILD PROCESS — the
+#:    probe's `ru_maxrss` of the `run_annual_report` it spawned. What has to fit this box is the
+#:    CGROUP: `sim-runner.service` peaked at **5,734.4 MB** across 8 runs in 24h (systemd's own
+#:    `MemoryPeak`, via `resource_headroom.weight_drift("sim_run")`, 2026-09-22) against the
+#:    probe's 5,507.4 MB at the same budget. The 227.0 MB difference is the `sim_runner.py` parent
+#:    the probe never spawned and the kernel always counts. So 1,312 was never admissible: it puts
+#:    the cgroup 227 MB OVER the memory budget it was derived to respect. Declining to move TO an
+#:    over-budget number is not caution, it is two errors that happened to point opposite ways.
+#:
+#: 4. **WHERE 1,250 COMES FROM.** One line, three inputs, all readable:
+#:
+#:      budget_mb = sample()["total_mb"] × 0.25                      = 6,008.0 MB
+#:      ceiling   = 1,200 + (budget_mb − 5,734.4) / 4.3402 MB-per-cy = 1,263.0 customer-years
+#:      shipped   = that, floored                                    = 1,250.0 customer-years
+#:
+#:    **THE FLOOR IS NOT A ROUNDING PREFERENCE, it is the only reason the control over this
+#:    number is not sitting on its own boundary.** Shipping 1,263.0 leaves 0.8 MB of MemTotal
+#:    between green and red, and MemTotal on this WSL2 guest is not a constant — it is a share of
+#:    a Windows host and it moves between restarts, which is why this file's rules say read it and
+#:    never quote it. A control that reds because the guest came back 1 MB smaller would name a
+#:    file nobody touched and stop every lane. 1,250.0 buys 13.0 customer-years = 56.6 MB of run
+#:    RSS = **226.5 MB of guest drift (0.94%)** before the control has anything to say. It is also
+#:    the honest precision: the ceiling across the three admissible slope fits spans 1,263.0 (the
+#:    landed secant), 1,273.0 (the 1,200→2,000 secant) and 1,287.7 (the quadratic's marginal at
+#:    1,200), so a tenth of a customer-year was false precision on a ±2% quantity.
+#:
+#:    * **The slope is 4.3402 MB per customer-year** — the landed curve's own, and the STEEPEST of
+#:      the three the artefact supports (a quadratic fitted to the budget axis gives 3.1217 at
+#:      1,200 and the 1,200→2,000 secant 3.7466). Steepest means narrowest ceiling, which is the
+#:      direction to take when three fits of one quantity disagree. The budget-axis fit is in the
+#:      result doc; it is convex there too, so the wide secant overstates the local slope and
+#:      therefore under-states this ceiling. Corroboration, not the basis.
+#:    * **Point 4 (budget 3,400) is excluded and this is why:** it refused 0 of 500 funnel wins, so
+#:      it is funnel-bound, not budget-bound, and it is not a point about this constant's ceiling
+#:      at all. Its RSS is the RSS of the 3,135.5 customer-years the funnel could supply, not of
+#:      the 3,400 it was offered — fitting RSS against the offer would flatten the slope.
+#:    * **The share is 0.25 of the guest TOTAL, and it is a RECORDED CHOICE, not a measurement.**
+#:      It is `--rss-share`'s default in `tools/settlement_ceiling_probe.py`, recorded beside the
+#:      curve, and `premise_population.settled_book_ceiling_customer_years` refuses to invent a
+#:      fresh one — so using the artefact's keeps the two agreeing instead of arguing. It is the
+#:      conservative leg by a wide margin: the admission governor's own budget is
+#:      `total_mb − RESERVE_FOR_UNDECLARED_MB` = 23,008.1 MB, **3.83x** larger. Establishing the
+#:      share properly would raise this ceiling well past the funnel's supply, at which point §5
+#:      binds instead and the question stops mattering. Filed, not fixed here.
+#:
+#: 5. **WHICH LEG BINDS AT 1,263: MEMORY, and the other two are not close.** Wall clock against
+#:    `publish_freshness.PUBLISH_CADENCE_SECONDS` (604,800s, the director's, named 2026-09-04)
+#:    allows 22,879 customer-years on the honest convex fit — 18x this ceiling. The funnel's whole
+#:    demand is 3,135.5. Memory is the only leg in contact with the number.
+#:    **At 1,250.0 the run claims 5,951.4 MB, which is 24.8% of the live guest** (the ceiling's
+#:    own 1,263.0 is 6,008.0 MB and 25.0% by construction),
+#:    and `resource_headroom.CLASS_WEIGHTS_MB["sim_run"]` at 13,824 MB covers it at 0.43x, so the
+#:    declared weight does NOT drift at this value and is not re-declared in this commit. That
+#:    13,824 is a stale high-water mark from the 2026-08-24 OOM-kill day, 2.41x what the unit
+#:    actually peaks at now — over-declared, therefore fail-CLOSED, therefore not urgent. It is
+#:    also why point 4's 13,920.9 MB does not oblige a re-declaration: that peak belongs to a
+#:    budget of 3,400 this constant will never be set to.
 #:
 #: 4. **AND THE WORLD CANNOT SUPPLY THE BOOK THE THESIS NEEDS, CEILING OR NO CEILING.** At 3,400
 #:    the campaign refused nothing — 500 funnel wins, 500 booked — so **3,135.6 customer-years is
@@ -715,29 +773,53 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:    short of it, and 1,312.3 is where this box stops long before that. "This world cannot reach
 #:    it" is the complete answer, and it is now measured on both legs rather than asserted.
 #:
-#: WHAT IS STILL OWED, named so it is not read as closed. **Two live constants both declare
-#: themselves the publish cadence and they differ by 112x** — `publish_freshness` at 604,800s
-#: (the director's, 2026-09-04) and `suite_duration_watch` at 5,400s, which is what stamps
-#: `publish_gate_duration.jsonl` and therefore what the probe falls back to. That is a repo
-#: defect and not a director question. Filed:
-#: `docs/staging/SEAT_RESULT_THE_CEILING_COST_CURVE_IS_CONVEX_..._2026-09-21.md`.
+#: WAS OWED, AND IS NOW CLOSED BY ANOTHER LANE — kept rather than deleted, because the reason it
+#: closed is a fact about THIS constant. It read: *"Two live constants both declare themselves the
+#: publish cadence and they differ by 112x"* — `publish_freshness` at 604,800s (the director's,
+#: 2026-09-04) and `suite_duration_watch` at 5,400s, which stamps `publish_gate_duration.jsonl`
+#: and is therefore what the probe falls back to.
+#:
+#: **REPAIRED 2026-09-21 and landed mid-turn while this constant was being re-derived**, by the
+#: rename `suite_duration_watch.PUBLISH_CADENCE_SECONDS` → `MEASURED_RUN_ARRIVAL_SECONDS`, with
+#: `tests/architecture/test_the_publish_cadence_has_one_home.py` over it. The two numbers were
+#: never one quantity: one is a DECISION (how often we publish, his), the other an OBSERVATION
+#: (how often runs arrive, ours). **Why it matters here and not just there:
+#: `settlement_ceiling_probe.recommend()` was spending the OBSERVATION as the publish interval
+#: this ceiling is priced against — the circularity this note records as removed, re-entered
+#: through a second door nobody re-asked. And the two answers differ in KIND: against 5,400s the
+#: binding leg is TIME, against 604,800s it is MEMORY.** The derivation above took 604,800s from
+#: `publish_freshness` directly and never read the artefact's `publisher.cadence_seconds: 5400`,
+#: so it is on the right side of that repair — but it would not have been if it had trusted the
+#: artefact's own field, and the next reader should know which one it read.
 #:
 #: WHAT IS BEING MEASURED, AND WHY IT IS A CURVE AND NOT A NUMBER. A chosen interval only
 #: becomes a ceiling through a cost curve — seconds and MB per marginal customer-year — so the
 #: curve is the deliverable and the number is its consequence. `tools/settlement_ceiling_probe.py`
-#: takes it; the clean-slope run is `docs/observability/settlement_ceiling_slope_20260829.json`,
-#: deliberately NOT `settlement_ceiling_probe.json`, whose 2,000 row is the contaminated one.
+#: takes it; the run this constant is a consequence OF is
+#: `docs/observability/settlement_ceiling_slope_20260921.json` (landed c4bee75e3), deliberately
+#: NOT `settlement_ceiling_probe.json`, whose 2,000 row is the contaminated one.
 #:
 #: THE PAGE SAYS ALL OF THIS NOW, which is where it belongs: `engine_bound_basis` in
 #: `tools/generate_book_growth_data.py`, rendered at `site/capabilities/`. A reader meets the
 #: fact that the height of the growth curve is our compute budget rather than the supplier's
-#: commerce, and that what ceiling the basis supports is not yet known. The zero-requirement
+#: commerce. What ceiling that basis supports IS now known and is the value below — the clause
+#: here saying it was not is deleted, and the sentence elsewhere in this note calling the publish
+#: interval unstated went with it: the director named 604,800s on 2026-09-04. The zero-requirement
 #: claim has a control that can fail —
 #: `site/test_the_book_is_bounded_by_compute_reaches_the_reader.py::
 #: test_the_published_no_freshness_requirement_claim_is_STILL_TRUE` reds if `REPORT_END` is ever
 #: extended back inside the reconciliation window, which is the one change that makes the
 #: published sentence false and which nothing else in the tree would notice.
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0
+#: ORIGIN: derived 2026-09-22 from the measured curve at
+#: `docs/observability/settlement_ceiling_slope_20260921.json` (landed c4bee75e3) against the LIVE
+#: guest — 0.25 × `resource_headroom.sample()["total_mb"]` = 6,008.0 MB — anchored on the CGROUP
+#: peak systemd recorded for `sim-runner.service` (5,734.4 MB at the previous value of 1,200), not
+#: on the probe's single-child 5,507.4 MB. That prices 1,263.0; shipped floored to 1,250.0 so the
+#: control has 226.5 MB of guest drift in hand rather than 0.8. MEMORY is the binding leg; see
+#: §3–§5 above for the
+#: arithmetic and for what the paragraph that held this at 1,200 got wrong. The control that can
+#: fail is `test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve`.
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1250.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
