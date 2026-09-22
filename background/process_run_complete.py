@@ -4400,15 +4400,31 @@ class _RefusedProducer(types.ModuleType):
 #: is part of, and a census refusing itself has no door to send anyone through.
 _NEVER_REFUSED = frozenset({"tools.stale_copy_refusal"})
 
+#: THE ROOTS THAT PRODUCE A PUBLISHED FIGURE, and the membership test is `publish_scope`'s own --
+#: "if this module is wrong, a figure on the live site is wrong". `tools` alone was the original
+#: filter and it was SILENTLY SCOPED: `simulation.publish_market_feed` and
+#: `simulation.publish_consumption_data` are named in `background/publish_scope.py`'s
+#: PUBLISH_PATH_SOURCES, are imported and run by `_process` below, and write
+#: `docs/market_data/price_feed.json` and `consumption_feed.json` -- and a `tools.`-prefix register
+#: could not see either of them. A guard that looks total and covers one root of three is the
+#: shape this project pays for most often.
+#:
+#: `background` IS DELIBERATELY ABSENT, and the reason is not convenience. Those are the
+#: publisher's own machinery rather than producers of a figure, most are bound at module load
+#: before this guard can run (so poisoning them is inert theatre), and `background.notify` is the
+#: channel that REPORTS a refusal -- poisoning the alarm path to protect a feed would trade a
+#: wrong number for a silent one.
+_PRODUCER_ROOTS = ("tools", "simulation", "saas")
+
 
 def _site_producers(source: str | None = None) -> dict[str, str]:
-    """`{dotted module: repo-relative path}` for every `tools.*` module the publish path imports.
+    """`{dotted module: repo-relative path}` for every producer module the publish path imports.
 
-    THE IMPORTS ARE THE REGISTER. Anything this file reaches for under `tools.` is code the publish
-    path RUNS, by the only definition that cannot rot -- a hand-kept list of producers is wrong the
-    first time a generator is wired in without it, and the wiring is the only evidence that
-    matters. Read from the AST rather than from `sys.modules` because the whole point is to act
-    BEFORE the import.
+    THE IMPORTS ARE THE REGISTER. Anything this file reaches for under `_PRODUCER_ROOTS` is code
+    the publish path RUNS, by the only definition that cannot rot -- a hand-kept list of producers
+    is wrong the first time a generator is wired in without it, and the wiring is the only evidence
+    that matters. Read from the AST rather than from `sys.modules` because the whole point is to
+    act BEFORE the import.
 
     DELIBERATELY WIDER THAN "GENERATOR". `tools.stretch_log` and `tools.wait_for` publish no feed,
     and a reverted copy of either is the same hazard on the same path for the same reason, so the
@@ -4421,15 +4437,18 @@ def _site_producers(source: str | None = None) -> dict[str, str]:
         if dotted not in _NEVER_REFUSED:
             out[dotted] = dotted.replace(".", "/") + ".py"
 
+    def is_producer(dotted: str) -> bool:
+        return dotted.split(".")[0] in _PRODUCER_ROOTS and "." in dotted
+
     for node in ast.walk(ast.parse(text)):
-        if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("tools."):
+        if isinstance(node, ast.ImportFrom) and is_producer(node.module or ""):
             add(node.module)
-        elif isinstance(node, ast.ImportFrom) and node.module == "tools":
+        elif isinstance(node, ast.ImportFrom) and node.module in _PRODUCER_ROOTS:
             for alias in node.names:
-                add("tools." + alias.name)
+                add(node.module + "." + alias.name)
         elif isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name.startswith("tools."):
+                if is_producer(alias.name):
                     add(alias.name)
     return out
 
@@ -9697,7 +9716,19 @@ def main(marker_path_str):
                 "itself retrying)".format(
                     Path(marker_path_str).name))
             return EXIT_LOCK_SKIPPED
-        return _process(marker_path_str)
+        # HELD OVER THE WHOLE CYCLE, not just over `generate_dashboard_json`. That wrapper was
+        # the first half of this door and it covers `_generate_dashboard_json`'s ~40 generators
+        # -- but `_process` imports and RUNS six more producers of its own AFTER it returns and
+        # the stand-ins have been lifted: `tools.revenue_sanity_check`,
+        # `simulation.publish_market_feed`, `simulation.publish_consumption_data`,
+        # `tools.generate_grid_intensity_feed`, `tools.generate_explore_carbon` and
+        # `tools.couple_value_based_pricing`. Measured on the live tree 2026-09-22, the census
+        # REFUSED `tools/couple_value_based_pricing.py` (predates c4809c5fc) while the guard as
+        # landed would have run it -- the exact defect this door was built for, surviving inside
+        # the door's own blind spot. Nesting is safe and deliberate: the inner wrapper saves and
+        # restores whatever it found, so an already-poisoned producer is handed back unchanged.
+        with refuse_stale_producers():
+            return _process(marker_path_str)
 
 
 def _process(marker_path_str):

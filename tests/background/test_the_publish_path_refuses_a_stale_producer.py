@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -254,3 +255,91 @@ def test_the_entry_point_holds_the_refusal_over_every_return_below_it(repo: Path
         "every generator below it is ungraded again")
     assert not isinstance(sys.modules.get(dotted), prc._RefusedProducer), (
         "the wrapper returned without lifting the refusal")
+
+
+def test_the_register_spans_every_first_party_root_the_publisher_runs(repo: Path) -> None:
+    """A CONTROL OVER THE ROOT PARTITION, NOT A LEG PER ROOT. The register's first filter was the
+    prefix `tools.`, which passes every assertion anyone thought to write about a generator and is
+    BLIND to two producers named in `background/publish_scope.py`'s own PUBLISH_PATH_SOURCES:
+    `simulation.publish_market_feed` and `simulation.publish_consumption_data`, which `_process`
+    imports, runs, and publishes `docs/market_data/*.json` from.
+
+    Asking for all four roots of one parse at once is what makes this unpassable by a filter
+    scoped to a minority: `tools`-only fails the simulation and saas legs, and a filter widened to
+    "every first-party import" fails the background leg. A guard that refuses everything and a
+    guard that refuses one root are both caught here, which is the point -- neither is caught by a
+    leg that only asks whether the root it was written for is present."""
+    found = prc._site_producers(
+        "from tools.generate_one import generate\n"
+        "from simulation.publish_market_feed import publish\n"
+        "from simulation import publish_consumption_data\n"
+        "from saas.reporting.annual_report import render\n"
+        "import tools.generate_three\n"
+        "from background.notify import notify\n"
+        "from background import naive_organ\n")
+
+    assert found == {
+        "tools.generate_one": "tools/generate_one.py",
+        "tools.generate_three": "tools/generate_three.py",
+        "simulation.publish_market_feed": "simulation/publish_market_feed.py",
+        "simulation.publish_consumption_data": "simulation/publish_consumption_data.py",
+        "saas.reporting.annual_report": "saas/reporting/annual_report.py",
+    }, (
+        "the producer register does not span the roots the publish path actually runs -- a root "
+        "it cannot see is a root whose reverted copy regenerates a published feed unrefused")
+
+    live = prc._site_producers()
+    assert "simulation.publish_market_feed" in live, (
+        "the live register cannot see simulation.publish_market_feed, which _process imports and "
+        "publishes docs/market_data/price_feed.json from")
+    assert not any(d.startswith("background.") for d in live), (
+        "the register poisons the publisher's own machinery -- background.notify is how a refusal "
+        "is REPORTED, so poisoning it trades a wrong number for a silent one")
+
+
+def test_the_refusal_is_held_over_the_producers_process_runs_after_the_dashboard(repo: Path) -> None:
+    """THE SCOPE, AND IT IS THE HALF THAT WAS STILL OPEN. `generate_dashboard_json`'s wrapper
+    covers its own ~40 generators and lifts the stand-ins on the way out -- but `_process` then
+    imports and runs six more producers of its own: revenue_sanity_check, the two simulation
+    feeds, the grid-intensity feed, generate_explore_carbon and couple_value_based_pricing.
+
+    Measured on the live tree 2026-09-22: the census REFUSED
+    `tools/couple_value_based_pricing.py` (a working copy predating c4809c5fc) while the guard as
+    landed would have imported and run it -- the exact defect this door exists for, alive inside
+    the door's own blind spot.
+
+    KEYED TO THE PROPERTY, NOT TO THE WIRING'S TEXT, for the reason its sibling records: a control
+    that greps `main` for "refuse_stale_producers" is satisfied by this docstring. The subject is
+    what `_process` SEES: at the moment its body runs, a stale producer must already be poisoned."""
+    dotted = "tools.a_producer_process_imports_after_the_dashboard"
+    seen: dict[str, object] = {}
+
+    def _probe(marker_path_str):
+        seen["at_body"] = type(sys.modules.get(dotted)).__name__
+        return 0
+
+    def _refused_to_run(paths, root=None):
+        return {p: scr.Loss(p, scr.PREDATES, ("a landed line",), "abc123def", gains=())
+                for p in paths}
+
+    @contextmanager
+    def _always_acquired():
+        yield True
+
+    originals = (prc._process, prc._site_producers, scr.refused_to_run, prc._run_lock)
+    prc._process = _probe
+    prc._site_producers = lambda source=None: {dotted: "tools/p.py"}
+    scr.refused_to_run = _refused_to_run
+    prc._run_lock = _always_acquired
+    try:
+        result = prc.main("staging/run_complete_x.md")
+    finally:
+        (prc._process, prc._site_producers, scr.refused_to_run, prc._run_lock) = originals
+        sys.modules.pop(dotted, None)
+
+    assert result == 0, "the cycle entry point no longer reaches the body it wraps"
+    assert seen.get("at_body") == "_RefusedProducer", (
+        "_process ran with a stale producer un-poisoned, so every producer it imports after "
+        "generate_dashboard_json returns is ungraded -- which is where the live one was")
+    assert not isinstance(sys.modules.get(dotted), prc._RefusedProducer), (
+        "the refusal outlived the cycle; this is a long-lived daemon and that is a wedge")
