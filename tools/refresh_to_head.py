@@ -35,6 +35,11 @@ WHAT STOPS THIS BEING `git checkout` WITH A NICER NAME. Three things, and they a
      has no selection and `--content` lands a revert, so neither door applies: the verdict is
      `REPLACEMENT` and the choice between two implementations of one property goes back to a
      person. `stale_copy_refusal.landable_hunks` computes it on the bytes `--keep` would build.
+     THE PERSON THEN HAD ONE ANSWER THEY COULD NOT ENACT. "The copy wins" is a landing; "the base
+     wins" is a discard, and nothing legal here discarded anything, so a REPLACEMENT resolved for
+     the base sat in the tree permanently and the stale-copy door refused every landing over it.
+     `--base-wins` is that enactment, and it is gated on the CLOCK (`BASE_WINS_RULES`) and not on
+     the person, because the person's word is what `git checkout <path>` already takes.
   2. HEAD MUST ACTUALLY SUPERSEDE IT. `stale_copy_refusal.judge` must have a complaint about this
      copy. Keyed to the PROPERTY (this copy would revert a landing), not to a path anyone listed:
      without it the tool reverts any edit you point it at, which IS `git checkout`.
@@ -77,7 +82,9 @@ from pathlib import Path
 # `judge()` is refusal 2 entire. Re-deriving either would be a second opinion about what a stale
 # copy is, and two answers to that question is the defect this class already banked.
 from tools.stale_copy_refusal import (
+    CLOCK,
     DATA_SUFFIXES,
+    PREDATES,
     READABLE,
     Dead,
     Unparseable,
@@ -111,6 +118,15 @@ STAGED = "refused_holder_has_it_staged"
 #: implementations of one property is a judgement, and a refusal that says so is worth more than a
 #: verdict that picks the flattering side of it.
 REPLACEMENT = "refused_replacement_no_landable_hunk"
+#: THE ONLY RULES THAT LICENSE `--base-wins`, and the point is that the CLOCK returned them rather
+#: than the operator. Both say the copy contains not one of its own landing's distinctive lines, so
+#: it cannot have been derived from that landing -- which is what makes "these names are the older
+#: draft" a measurement instead of a preference. Every other rule is excluded on purpose: `SUBSET`
+#: never reaches here (a strict subset supplies nothing, so `REPLACEMENT` cannot be its verdict),
+#: `PARTIAL` says the copy carries SOME of the landing and therefore may be built on it, and
+#: `UNPARSEABLE` is a failed check. `None` -- no complaint at all -- is the one this must refuse
+#: hardest: that is an ordinary edit, and admitting it makes the flag `git checkout <path>`.
+BASE_WINS_RULES = (PREDATES, CLOCK)
 #: Supplies names, but NOT ONE of them can run against the base -- see `stale_copy_refusal.Dead`.
 #: A refusal by default and writable only under `--superseded`, because a test-first lane looks
 #: exactly like this and the difference is intent, which is not on disk.
@@ -210,7 +226,7 @@ def _staged_paths(root: Path) -> frozenset[str]:
 
 
 def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
-               base: str = "HEAD", superseded: bool = False) -> Verdict:
+               base: str = "HEAD", superseded: bool = False, base_wins: bool = False) -> Verdict:
     """The whole precondition for one path. Reads; writes nothing, ever.
 
     `base` IS THE TREE THAT MUST SUPERSEDE THE COPY, AND IT IS NOT ALWAYS `HEAD`. On a tree that is
@@ -228,6 +244,21 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     passes it: `background.origin_reconcile` requires `REFRESHABLE`, which this state is not until
     a person types the flag. See `stale_copy_refusal.Dead` for the false positive it cannot rule
     out, which is why it is a person.
+
+    `base_wins` RELAXES ONE STATE AND ONLY WHERE THE CLOCK HAS ALREADY SPOKEN -- `REPLACEMENT`,
+    the one state with no legal exit at all. `SUPPLIES_NEW` is NOT admitted by it even when the
+    same clock evidence is present, and that exclusion is the whole difference between this flag
+    and `git checkout <path>`: a copy with a landable hunk HAS a door (`isolate_hunks --keep N`
+    then `surgical_land --content`) that takes the work without the revert, so discarding it would
+    destroy recoverable work where a route existed. `REPLACEMENT` is the state where both doors are
+    proven inapplicable on this copy's own bytes -- `--keep` has no selection and `--content` lands
+    a revert -- so the only enactment left is discarding the copy, and before this flag there was
+    none: `WORKER_RESULT_THE_THREE_CLEARABLE_REVERTS_ARE_GONE_AND_THE_TWO_LEFT_NEED_A_DOOR_THAT_
+    ENACTS_THE_BASE_WINNING_2026-09-22` names two files that had sat in the shared tree wedging
+    every lane that touches them, with the door working correctly and the tree stuck anyway.
+    Rules 2 and 3 are unchanged in full: `judge` must still refuse the copy -- and now with a rule
+    from `BASE_WINS_RULES`, which is strictly stronger than rule 2's "has a complaint" -- and the
+    bytes are still preserved and the recovery still verified before one is written.
 
     THE WRITE IS STILL HEAD'S BYTES, AND THAT IS NOT AN INCONSISTENCY. `refresh` clears a path by
     returning it to HEAD, because what refuses a fast-forward is *worktree differs from HEAD* --
@@ -353,22 +384,54 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         landable = landable_hunks(head_text, work_text, path)
         if not landable:
             drops = tuple(sorted(head_names - work_names))
+            # THE JUDGEMENT IS STILL A PERSON'S; WHAT `--base-wins` ADDS IS AN ENACTMENT FOR ONE
+            # OF ITS TWO ANSWERS. "The working copy wins" was always enactable -- land it. "The
+            # base wins" had no move: there is nothing to land, and the act required is discarding
+            # the copy, which `git checkout <path>` is and which is walled. So the copy stayed,
+            # and the stale-copy door refused every landing over it forever.
+            clock = judge(root, path, head_text, work_text, parent=base) if base_wins else None
+            if clock is not None and clock.rule in BASE_WINS_RULES:
+                return Verdict(path, REFRESHABLE,
+                               "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
+                               "refuses this copy [{}] against {} ({}), so the clock -- not the "
+                               "operator -- has established it cannot be carrying work built on "
+                               "that landing, and the {} name(s) it supplies are the older draft "
+                               "of the {} it drops. Neither landing door applies to it, so "
+                               "discarding it is the only enactment of the base winning.".format(
+                                   clock.rule, base,
+                                   clock.commit[:9] if clock.commit else "no commit", len(live),
+                                   len(drops)),
+                               gains=live, drops=drops,
+                               discarded=_discarded_lines(head_text, work_text))
             return Verdict(path, REPLACEMENT,
                            "this copy supplies {} name(s) {} lacks, and EVERY hunk carrying one "
                            "also deletes a name {} has -- so `--keep` has no selection that takes "
                            "the work without the revert, and `--content` would land the revert. "
                            "It is a REPLACEMENT, not holder work: two implementations of one "
                            "property, and which survives is a judgement neither door may make. "
-                           "Decide it, then land the winner deliberately.".format(
-                               len(live), base, base),
+                           "Decide it, then land the winner deliberately.{}".format(
+                               len(live), base, base,
+                               "" if not base_wins else
+                               " `--base-wins` DOES NOT REACH THIS COPY: the stale-copy control's "
+                               "verdict on it is [{}], not one of {}, so nothing but your word "
+                               "says the copy is the older draft -- and that word is what the "
+                               "flag exists not to take.".format(
+                                   "no complaint" if clock is None else clock.rule,
+                                   "/".join(BASE_WINS_RULES))),
                            gains=live, drops=drops)
         return Verdict(path, SUPPLIES_NEW,
                        "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
                        "supersedes -- it is holder work. Use `python3 -m tools.isolate_hunks "
                        "--survey {}` and land hunk(s) {} over HEAD -- those are the ones that add "
-                       "without deleting anything {} carries.".format(
+                       "without deleting anything {} carries.{}".format(
                            len(live), base, base, path,
-                           ", ".join(str(h) for h in landable), base),
+                           ", ".join(str(h) for h in landable), base,
+                           "" if not base_wins else
+                           " `--base-wins` DOES NOT REACH A COPY WITH A LANDABLE HUNK, however "
+                           "stale the clock says it is: the hunk(s) above take the work WITHOUT "
+                           "the revert, so a route to keep it exists and discarding it would "
+                           "destroy work a door could have saved. The flag only enacts the base "
+                           "winning where no door applies at all."),
                        gains=live)
     loss = judge(root, path, head_text, work_text, parent=base)
     if loss is None:
@@ -465,14 +528,16 @@ def _probe(verdict: Verdict) -> str | None:
 
 
 def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
-            base: str = "HEAD", superseded: bool = False) -> tuple[int, str]:
+            base: str = "HEAD", superseded: bool = False,
+            base_wins: bool = False) -> tuple[int, str]:
     """Survey, and when `write` is set and EVERY named path is refreshable, do it.
 
     `base` is the JUDGEMENT tree only -- see `judge_copy`. The bytes written are always HEAD's,
     because the block this clears is *worktree differs from HEAD*.
     """
     staged = _staged_paths(root)
-    verdicts = [judge_copy(root, path, staged, base=base, superseded=superseded)
+    verdicts = [judge_copy(root, path, staged, base=base, superseded=superseded,
+                           base_wins=base_wins)
                 for path in paths]
     report = "".join(v.render() for v in verdicts)
     refusals = [v for v in verdicts if v.refused]
@@ -530,10 +595,17 @@ def main(argv: list[str] | None = None) -> int:
                          "reaches for an attribute the base's own module does not bind. Survey it "
                          "first: the names are printed, and a lane writing a control before the "
                          "module it grades produces the same file.")
+    ap.add_argument("--base-wins", action="store_true",
+                    help="enact the base winning on a REPLACEMENT copy -- one where `--keep` has "
+                         "no selection and `--content` would land a revert, so no landing door "
+                         "applies. Admitted ONLY where the stale-copy control has already "
+                         "returned predates_landing or predates_landing_by_clock for that path: "
+                         "the clock, not your word, is what establishes the copy is the older "
+                         "draft. Does NOT reach a copy with a landable hunk.")
     args = ap.parse_args(argv)
     try:
         rc, text = refresh(Path(args.root), args.paths, args.slug, args.write, base=args.base,
-                           superseded=args.superseded)
+                           superseded=args.superseded, base_wins=args.base_wins)
     except RefreshError as exc:
         print("\n[refresh-to-head] ❌ {}".format(exc))
         return 1
