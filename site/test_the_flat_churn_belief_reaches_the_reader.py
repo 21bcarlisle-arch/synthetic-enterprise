@@ -306,32 +306,69 @@ def test_the_knee_is_rendered_as_a_BILL_with_its_kWh_at_EVERY_probed_rate(live, 
     assert "{:.2f}".format(live_block["knee_kwh_spread_across_the_probe_rates"]) in live
 
 
-def test_the_reader_is_told_this_is_NOT_the_book_the_arms_above_are_scored_over(live,
-                                                                                live_block):
-    """THE LOAD-BEARING LEG. A count over one population, rendered inside a section scored over
-    another, with nothing saying so.
+def test_the_reader_is_told_WHICH_book_these_counts_are_over(live, live_block):
+    """THE LOAD-BEARING LEG, and its subject inverted on 2026-09-22 without the leg going away.
 
-    The artefact measures 244 supply legs out of `site/data/customers.json`. The arms comparison
-    this block sits inside is scored over 154 accounts whose per-account rows are not persisted at
-    all. Those are different books, the artefact says so in its own words, and adjacency is what
-    would make a reader take them for one. This asserts the artefact's OWN string reaches the
-    screen -- not a paraphrase composed by the page, which would be a claim about a reconciliation
-    nobody ran.
+    It used to assert a warning: the block measured the tree's 164-account book while the arms
+    comparison around it is scored over 154 accounts, and adjacency is what would make a reader
+    take them for one. The measurement can now cut the arms' OWN book -- `site/data/customers.json`
+    at the commit the run recorded, reconciled against the four counts the run published about its
+    own book -- so the counts here and the arms above describe the same accounts.
 
-    Fires on: dropping the caveat, paraphrasing it, or rendering the block with the arms feed's
-    own book counts.
+    WHAT IS ASSERTED IS THE PROPERTY, NOT EITHER ANSWER. A reader must be told which book these
+    counts are over, in the artefact's own words, on every render. That claim is true whether the
+    arms' book was identified or the block fell back to the tree's, and it is what goes red if the
+    page ever stops saying. Pinning "this is NOT the arms' book" would have gone red for the code
+    becoming MORE honest, which is exactly backwards.
+
+    Fires on: dropping either string, paraphrasing one, or rendering the block with no population
+    line at all.
     """
-    caveat = live_block.get("population_is_not_this_pages_book")
-    assert caveat, "the feed carries no population caveat, so the page cannot render one"
-    assert _text(caveat) in live, (
-        "the reader is shown this book's counts inside the arms section with nothing saying it is "
-        "a different book. Rendered: {!r}".format(live[:900]))
+    which = live_block.get("which_book")
+    assert which, "the feed does not say which book these counts are over"
+    assert _text(which) in live, (
+        "the reader is shown counts inside the arms section with nothing saying which book they "
+        "are over. Rendered: {!r}".format(live[:900]))
 
-    silent = copy.deepcopy(_live_feed())
-    silent["churn_belief_size"]["population_is_not_this_pages_book"] = None
-    assert _text(caveat) not in _render(silent), (
-        "the caveat survived a feed that no longer carries it -- the page is authoring the "
-        "population claim itself")
+    caveat = live_block.get("population_is_not_this_pages_book")
+    assert caveat, "the feed carries no population line, so the page cannot render one"
+    assert _text(caveat) in live
+
+    for field in ("which_book", "population_is_not_this_pages_book"):
+        silent = copy.deepcopy(_live_feed())
+        original = silent["churn_belief_size"][field]
+        silent["churn_belief_size"][field] = None
+        assert _text(original) not in _render(silent), (
+            "`{}` survived a feed that no longer carries it -- the page is authoring the "
+            "population claim itself".format(field))
+
+
+def test_a_book_that_is_NOT_the_arms_own_is_rendered_as_a_WARNING(live_block):
+    """The fallback must look different from the provenance, or the fallback is invisible.
+
+    When the arms' book cannot be identified this block renders the tree's book instead, and a
+    reader who cannot tell that from the identified case is being shown counts about a different
+    population in the same muted grey. The colour is DERIVED from
+    `arms_book_unavailable_because` rather than hard-coded, and both branches are exercised here
+    because a branch that exists to be taken rarely is the one that quietly stops being takeable.
+    """
+    # RAW HTML, because the claim is about COLOUR and `_text` is blind to it by construction —
+    # the helper's own docstring says so.
+    identified = _render(_live_feed(), raw=True)
+    assert live_block.get("arms_book_unavailable_because") is None, (
+        "the live feed could not identify the arms' book: {}".format(
+            live_block.get("arms_book_unavailable_because")))
+
+    fell_back = copy.deepcopy(_live_feed())
+    fell_back["churn_belief_size"]["arms_book_unavailable_because"] = (
+        "git could not produce the roster at that commit")
+    warned = _render(fell_back, raw=True)
+    assert warned != identified, (
+        "a block rendered from a book that is NOT the arms' own is indistinguishable from one "
+        "that is -- the fallback cannot be seen")
+    assert warned.count("var(--amber)") > identified.count("var(--amber)"), (
+        "the fallback is not marked. Identified: {} amber, fell back: {}".format(
+            identified.count("var(--amber)"), warned.count("var(--amber)")))
 
 
 def test_the_unsourced_threshold_is_MARKED_where_a_reader_meets_it(live, live_block):

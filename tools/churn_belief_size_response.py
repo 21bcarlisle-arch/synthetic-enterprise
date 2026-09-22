@@ -71,18 +71,30 @@ to 12,000 kWh would go red the next time the price deck moves and green while th
 `knee` is therefore DERIVED by bisection from the estimator itself at each probe rate, and the
 constant is reported beside it as a cross-check rather than as the answer.
 
-WHICH BOOK THE DISTRIBUTION DESCRIBES, AND THE ONE THING THAT COULD NOT BE ESTABLISHED
+WHICH BOOK THE DISTRIBUTION DESCRIBES, AND HOW THE 154-ACCOUNT ONE WAS FINALLY REACHED
 ---------------------------------------------------------------------------------------
 The item asked for the EAC distribution of the 154 settled billing accounts behind
-`site/data/value_arms.json`. **Those per-account rows are not persisted anywhere on disk.**
-`value_cycle_ab_s1_three_arm_20260918.json` carries `book_identity` COUNTS and names
-`phase2b.all_records` only inside prose; the records themselves are not written out, and
-reconstructing them means re-running the arms. So the distribution here is measured on the book
-this tree actually holds per-account -- `site/data/customers.json`, 164 accounts -- and the
-artefact says so in `book.population_is_not_the_published_arms_book`. That difference is not
-cosmetic and is not smoothed over: `generate_value_arms_data` already refuses to bound the 09-18
-arms with a 164-account family for exactly this reason. What is claimed is a statement about THIS
-book; whether the 154-account book differed in this dimension is recorded as not established.
+`site/data/value_arms.json`. The first pass of this module recorded that as NOT ESTABLISHED, on
+the ground that the per-account rows are not persisted and reconstructing them means re-running
+the arms. **That premise was wrong, and it was wrong in the cheap direction: the rows are
+persisted, in git.** `site/data/customers.json` is one row per billing account, it is regenerated
+each run, and the run artefact records the commit the arms were drawn at
+(`producing_commit.commit`). `git show <that commit>:site/data/customers.json` is the book itself.
+No re-run, and no reconstruction -- the bytes the run was reading.
+
+IT IS RECONCILED BEFORE IT IS BELIEVED, and the reconciliation is the control. A commit-pinned
+blob is only the right book if it IS the right book, and "the roster at the commit the code was
+bound at" is an inference, not an observation. So `arms_book` checks the four counts the run
+independently recorded in `book_identity` -- accounts, electricity legs, gas legs, dual fuel --
+against the four counts computed from the blob, and REFUSES with the mismatching field named if
+any disagree. All four agree exactly (154 / 136 / 90 / 72), which is what makes this the arms'
+own book rather than a roster of about the right size. The book at HEAD has drifted to 164
+accounts and 244 legs since, so the check is not decorative: pointing this at the current file
+would have silently measured a different population, which is precisely the failure the first
+pass was being careful about.
+
+Both distributions are published. `book` is the tree's current book; `arms_book` is the one the
+published arms were scored over, and it is the one the page quotes.
 
 R12: diagnostic, never a target. This measures whether a belief carries information in a
 dimension; it is not an instruction to make it vary, and nothing here should be read as one. The
@@ -95,6 +107,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 from company.crm.churn_model import (
@@ -351,12 +364,141 @@ def book_distribution(book: dict, knee_bill_gbp: float) -> dict:
             "input and can only move legs INTO the above-knee set -- the claim that "
             "{} legs sit below it is safe in the direction it is made.".format(len(below))),
         "population_is_not_the_published_arms_book": (
-            "NOT THE 154 ACCOUNTS BEHIND `site/data/value_arms.json`. Those per-account rows are "
-            "not persisted: `value_cycle_ab_s1_three_arm_20260918.json` carries `book_identity` "
-            "counts and mentions `phase2b.all_records` only inside prose, so reconstructing them "
-            "means re-running the arms. This is the book this tree holds per-account, and whether "
-            "the 154-account book fell differently against the knee is NOT ESTABLISHED."),
+            "THIS IS THE BOOK THE TREE HOLDS NOW, NOT THE ONE THE PUBLISHED ARMS WERE SCORED "
+            "OVER. The arms' own book is measured separately in `arms_book`, read from this same "
+            "file at the commit the run recorded, and it is the one the page quotes. Keep both: "
+            "the two populations differ (164 accounts here against 154 there), so a single figure "
+            "would have to pick one silently."),
     }
+
+
+#: The four counts the AB run recorded about its own book, which `arms_book` reconciles the
+#: commit-pinned roster against before believing it is that book. Named here rather than inline
+#: because the whole weight of the arms-book claim rests on this list being the FULL set of
+#: independent counts the run published -- a subset would be a weaker check wearing the same name.
+_BOOK_IDENTITY_COUNTS: tuple[tuple[str, str], ...] = (
+    ("billing_accounts_settled_in_window", "billing_accounts"),
+    ("with_an_electricity_leg", "with_an_electricity_leg"),
+    ("with_a_gas_leg", "with_a_gas_leg"),
+    ("dual_fuel", "dual_fuel"),
+)
+
+
+def _roster_counts(book: dict) -> dict:
+    """The four `book_identity` counts, recomputed from a roster blob."""
+    customers = book.get("customers") or []
+
+    def _has(customer: dict, fuel: str) -> bool:
+        return bool(((customer.get("legs") or {}).get(fuel) or {}).get("cid"))
+
+    return {
+        "billing_accounts": len(customers),
+        "with_an_electricity_leg": sum(1 for c in customers if _has(c, "electricity")),
+        "with_a_gas_leg": sum(1 for c in customers if _has(c, "gas")),
+        "dual_fuel": sum(1 for c in customers
+                         if _has(c, "electricity") and _has(c, "gas")),
+    }
+
+
+def _roster_at_commit(commit: str) -> dict | None:
+    """`site/data/customers.json` as it stood at `commit`, or None if git cannot supply it.
+
+    READ-ONLY BY CONSTRUCTION -- `git show` of a blob touches neither the index nor the worktree,
+    which is what makes this safe to call from a generator that several lanes run concurrently.
+    """
+    try:
+        raw = subprocess.run(
+            ["git", "show", "{}:{}".format(commit, BOOK_PATH.relative_to(PROJECT).as_posix())],
+            cwd=PROJECT, capture_output=True, text=True, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if raw.returncode != 0 or not raw.stdout.strip():
+        return None
+    try:
+        return json.loads(raw.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def arms_book(knee_bill_gbp: float) -> dict:
+    """How the 154 accounts the PUBLISHED arms were scored over fall either side of the knee.
+
+    FAILS CLOSED, and every refusal names the field that caused it. The chain has four places it
+    can break -- no run artefact, no recorded commit, git cannot produce the blob, or the blob
+    disagrees with the run's own counts -- and a reader who cannot tell which one fired is being
+    handed an absence dressed as a measurement.
+
+    THE RECONCILIATION IS NOT A FORMALITY. `producing_commit.commit` is the commit the run's
+    Python modules were bound at, which is an excellent reason to believe the roster at that
+    commit is the run's roster and is not an observation of it. The run separately published four
+    counts about its own book; recomputing those four from the blob and requiring all four to
+    agree is what turns the inference into evidence. They do agree (154 / 136 / 90 / 72) against a
+    current book of 164 / 146 / 98 / 80, so the check distinguishes the two populations it exists
+    to distinguish.
+    """
+    from tools.generate_value_arms_data import THREE_ARM_PATH
+
+    def _refuse(why: str) -> dict:
+        return {"available": False, "unavailable_because": why}
+
+    if not THREE_ARM_PATH.exists():
+        return _refuse(
+            "no run artefact at `{}`, so which book the published arms were scored over is not "
+            "recorded anywhere this can read".format(THREE_ARM_PATH.relative_to(PROJECT)))
+    try:
+        run = json.loads(THREE_ARM_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return _refuse("the run artefact could not be read ({})".format(exc.__class__.__name__))
+
+    commit = ((run.get("producing_commit") or {}).get("commit") or "").strip()
+    if not commit:
+        return _refuse(
+            "the run artefact records no `producing_commit.commit`, so there is no commit to read "
+            "the book at -- the run did not say which code drew it")
+
+    identity = (run.get("book_identity") or {}).get("control_arm") or {}
+    missing = [field for field, _ in _BOOK_IDENTITY_COUNTS if identity.get(field) is None]
+    if missing:
+        return _refuse(
+            "the run recorded no {} for its own book, so the roster at {} cannot be reconciled "
+            "against it and would be believed on the commit alone".format(
+                ", ".join("`{}`".format(f) for f in missing), commit[:9]))
+
+    roster = _roster_at_commit(commit)
+    if roster is None:
+        return _refuse(
+            "git could not produce `{}` at {} -- the commit is not in this tree, or the file did "
+            "not exist there".format(BOOK_PATH.relative_to(PROJECT), commit[:9]))
+
+    counts = _roster_counts(roster)
+    disagreed = [
+        {"field": field, "the_run_recorded": identity[field], "the_roster_holds": counts[key]}
+        for field, key in _BOOK_IDENTITY_COUNTS if int(identity[field]) != counts[key]
+    ]
+    if disagreed:
+        return _refuse(
+            "the roster at {} is NOT the book the arms ran on: {}. Refused rather than published, "
+            "because a population that is merely about the right size would answer this question "
+            "about a different set of households.".format(
+                commit[:9],
+                "; ".join("`{}` run={} roster={}".format(
+                    d["field"], d["the_run_recorded"], d["the_roster_holds"]) for d in disagreed)))
+
+    dist = book_distribution(roster, knee_bill_gbp)
+    dist.pop("population_is_not_the_published_arms_book", None)
+    dist["source"] = "{} at {}".format(BOOK_PATH.relative_to(PROJECT), commit[:9])
+    dist["identified_by"] = {
+        "producing_commit": commit,
+        "reconciled_counts": [
+            {"field": field, "value": identity[field]} for field, _ in _BOOK_IDENTITY_COUNTS],
+        "all_four_agree": True,
+        "why_all_four": (
+            "The commit alone would only establish which CODE ran. These four counts were "
+            "published by the run about its own book and recomputed here from the blob; all four "
+            "agreeing is what makes this the arms' population rather than a roster of about the "
+            "right size. The book at HEAD fails this check on every one of them."),
+    }
+    return dist
 
 
 def report(book: dict) -> dict:
@@ -369,6 +511,7 @@ def report(book: dict) -> dict:
         knee_bill = min(derived)
     part = partition()
     dist = book_distribution(book, knee_bill)
+    arms = arms_book(knee_bill)
     return {
         "what_this_is": (
             "Whether the company's per-customer churn belief carries information in the dimension "
@@ -380,7 +523,12 @@ def report(book: dict) -> dict:
         "knee": k,
         "partition": part,
         "book": dist,
-        "reading": _reading(k, part, dist),
+        "arms_book": arms,
+        "which_book_the_reading_quotes": (
+            "`arms_book` when it is available -- the 154 accounts the published arms were scored "
+            "over, which is the population the page's selection leg is a statement about. `book` "
+            "is the tree's book today and is kept beside it because the two differ."),
+        "reading": _reading(k, part, dist, arms),
         "not_a_target": (
             "R12. A belief that does not vary in a dimension is a diagnostic about the belief. "
             "Nothing here instructs the company to make it vary, and the epistemic wall is "
@@ -390,13 +538,21 @@ def report(book: dict) -> dict:
     }
 
 
-def _reading(k: dict, part: dict, dist: dict) -> str:
+def _reading(k: dict, part: dict, dist: dict, arms: dict | None = None) -> str:
     if not (k.get("available") and dist.get("available")):
         return ("REFUSED: the knee or the book could not be established, so no statement about "
                 "whether the belief distinguishes this book's households is made.")
-    resi = dist["by_segment"].get("resi") or {}
+    # THE ARMS' BOOK WHEN IT IS THERE, and the tree's when it is not. The page hangs this sentence
+    # beside a selection leg measured over the 154-account book, so quoting the 164-account one
+    # would answer a question about a different set of households in the same words. The fallback
+    # is not silent: `which_book_the_reading_quotes` says which, and `arms_book` names why it
+    # refused.
+    quoted, which = ((arms, "the 154-account book the published arms were scored over")
+                     if (arms or {}).get("available")
+                     else (dist, "the book this tree holds today"))
+    resi = quoted["by_segment"].get("resi") or {}
     flat = (resi.get("legs") or 0) - (resi.get("above_the_knee") or 0)
-    return (
+    return "Measured over {}. ".format(which) + (
         "The company's churn belief is FLAT in household size for {flat} of this book's {legs} "
         "domestic supply legs. Consumption reaches `estimate_churn_probability` through one term, "
         "`bill_stress`, which is identically zero below GBP {knee:.0f} of previous annual bill -- "
@@ -412,11 +568,11 @@ def _reading(k: dict, part: dict, dist: dict) -> str:
         "has to beat. This does not price that gap and is not an instruction to close it."
     ).format(
         flat=flat, legs=resi.get("legs"),
-        knee=dist["knee_used_gbp"],
+        knee=quoted["knee_used_gbp"],
         kwh=next((r["knee_kwh"] for r in k["by_rate"]
                   if r["old_rate_gbp_per_mwh"] == 250.0 and r["knee_kwh"]), float("nan")),
         spread=k.get("kwh_spread_across_the_probe_rates"),
-        world=dist.get("world_multiplier_spread"),
+        world=quoted.get("world_multiplier_spread"),
     )
 
 

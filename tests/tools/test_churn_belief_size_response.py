@@ -168,3 +168,211 @@ def test_the_census_carries_what_it_could_not_establish(field):
 
     book = json.loads(cb.BOOK_PATH.read_text(encoding="utf-8"))
     assert cb.book_distribution(book, 3000.0)[field].strip()
+
+
+# ----------------------------------------------------------------------------------------------
+# THE ARMS' OWN BOOK (2026-09-22, second pass)
+#
+# The first pass measured the tree's current 164-account book and recorded the 154-account book the
+# PUBLISHED arms were scored over as NOT ESTABLISHED, on the stated ground that its per-account
+# rows are not persisted. They are: `site/data/customers.json` is one row per billing account and
+# git holds it at the commit the run recorded. `arms_book` reads it there.
+#
+# WHAT CAN GO WRONG IS NOT "THE NUMBERS ARE WRONG", IT IS "THE NUMBERS ARE ABOUT SOMEBODY ELSE".
+# A commit-pinned blob is an inference about which book ran, and the whole of this second pass
+# rests on turning that inference into evidence by reconciling four counts the run published about
+# its own book. So the control is over the IDENTIFICATION partition, in one function: it must
+# accept the real book, REFUSE a roster that disagrees on any reconciled count, refuse each broken
+# link in the chain with a DISTINGUISHABLE reason, and — the fail-open leg — the published reading
+# must name which of the two books it is quoting and quote that one's figures.
+#
+# MUTATION RECORD, injected per-call rather than into the shared tree:
+#   * baseline, no mutation — SILENT.
+#   * drop one account from the roster blob — CAUGHT (leg 2), naming
+#     `billing_accounts_settled_in_window`.
+#   * move one account's gas leg off — CAUGHT (leg 2), naming `with_a_gas_leg` and `dual_fuel`.
+#   * `_BOOK_IDENTITY_COUNTS` truncated to the accounts row alone — CAUGHT (leg 2's gas mutation
+#     stops being seen), which is the leg that keeps the check from shrinking to one count.
+#   * `_roster_at_commit` returns None — CAUGHT (leg 3), with a reason distinct from leg 2's.
+#   * `_roster_at_commit` ignores its commit and returns whatever the checkout holds — SILENT at
+#     first, and that was a MISSING LEG, not an equivalence. HEAD's own committed roster is a
+#     154-account book, so in a clean checkout the mutation reconciles on all four counts and
+#     every published figure stays correct; in the shared tree, where the working copy has been
+#     regenerated to 164 accounts, the same mutation measures the wrong population and says
+#     nothing. Repaired by leg 1's "a commit that cannot exist produces nothing" pair, which pins
+#     the property (the read is keyed to the commit) instead of today's agreement between two
+#     books. NOW CAUGHT.
+#   * the reconciliation's `if disagreed:` deleted so it publishes anyway — CAUGHT (leg 2).
+#   * `_reading` quoting `dist` unconditionally while still printing "the 154-account book" —
+#     CAUGHT (leg 4). This is the mutation the leg exists for: every figure stays plausible and
+#     the sentence becomes a claim about a population that was never measured.
+#   * `PROBE_DIFFERENTIAL_PCT` moved — SILENT here, and an EQUIVALENCE for the same reason the
+#     partition control records: no leg below reads the world multiplier's LEVEL, only which book
+#     it was taken over.
+# ----------------------------------------------------------------------------------------------
+
+def _run_artefact() -> dict:
+    import json
+
+    from tools.generate_value_arms_data import THREE_ARM_PATH
+    return json.loads(THREE_ARM_PATH.read_text(encoding="utf-8"))
+
+
+def _identity() -> dict:
+    return (_run_artefact().get("book_identity") or {}).get("control_arm") or {}
+
+
+def test_the_arms_book_is_identified_and_a_near_miss_is_refused(monkeypatch):
+    """One control over the whole identification partition.
+
+    Leg 1 — the real book is accepted, and it is the RUN's book: every reconciled count matches
+            what the run itself published, not merely "a roster of about the right size".
+    Leg 2 — a roster that disagrees on ANY reconciled count is refused, with the field named. Run
+            over each count separately, because a check that has quietly shrunk to one of them
+            would pass a single mutation and miss the other three.
+    Leg 3 — a broken link earlier in the chain refuses for a DIFFERENT, nameable reason. A reader
+            who cannot tell "git has no such blob" from "that blob is another book" is being
+            handed an absence dressed as a measurement.
+    Leg 4 — the published reading names which book it quotes AND quotes that book's figures. This
+            is the fail-open leg: silently falling back to the 164-account book leaves every
+            number plausible and the sentence about a population nobody measured.
+    """
+    import copy
+    import json
+
+    knee_bill = 3000.0
+    identity = _identity()
+
+    # ---- leg 1: accepted, and reconciled against the run's own counts ----------------------
+    real = cb.arms_book(knee_bill)
+    assert real["available"] is True, real.get("unavailable_because")
+    assert real["billing_accounts"] == identity["billing_accounts_settled_in_window"]
+    assert real["identified_by"]["all_four_agree"] is True
+    assert len(real["identified_by"]["reconciled_counts"]) == len(cb._BOOK_IDENTITY_COUNTS)
+    # The partition it exists to report is populated on BOTH sides over this book too, or the
+    # published "flat for N of M" sentence would be unfalsifiable rather than measured.
+    assert real["legs_above_the_knee"] > 0 and real["legs_below_the_knee"] > 0
+
+    commit = real["identified_by"]["producing_commit"]
+    blob = cb._roster_at_commit(commit)
+    assert blob is not None
+
+    # ...and the read is actually KEYED TO THE COMMIT. Asserting only that the counts reconcile
+    # cannot see a reader that ignores its argument and hands back whatever the checkout holds:
+    # HEAD's committed roster is itself a 154-account book, so in any clean checkout that mutation
+    # reconciles perfectly and every figure stays right. Found by mutation, and it is a MISSING
+    # LEG rather than an equivalence — in the shared tree, where the working copy has been
+    # regenerated to 164 accounts, the same mutation measures the wrong population silently. A
+    # commit that cannot exist must therefore produce nothing at all.
+    assert cb._roster_at_commit("0" * 40) is None
+    assert cb._roster_at_commit("not-a-commit") is None
+
+    # ---- leg 2: disagreement on any reconciled count refuses, naming the field --------------
+    def _refusal_for(mutate) -> str:
+        mutated = copy.deepcopy(blob)
+        mutate(mutated)
+        monkeypatch.setattr(cb, "_roster_at_commit", lambda _c, _m=mutated: _m)
+        out = cb.arms_book(knee_bill)
+        assert out["available"] is False
+        monkeypatch.undo()
+        return out["unavailable_because"]
+
+    def _drop_account(book):
+        book["customers"] = book["customers"][:-1]
+
+    def _drop_gas(book):
+        for customer in book["customers"]:
+            if ((customer.get("legs") or {}).get("gas") or {}).get("cid"):
+                customer["legs"].pop("gas")
+                return
+        raise AssertionError("no gas leg to drop — the fixture book cannot exercise this leg")
+
+    def _drop_electricity(book):
+        for customer in book["customers"]:
+            legs = customer.get("legs") or {}
+            if (legs.get("electricity") or {}).get("cid") and (legs.get("gas") or {}).get("cid"):
+                legs.pop("electricity")
+                return
+        raise AssertionError("no dual-fuel account — the fixture book cannot exercise this leg")
+
+    assert "billing_accounts_settled_in_window" in _refusal_for(_drop_account)
+    gas_refusal = _refusal_for(_drop_gas)
+    assert "with_a_gas_leg" in gas_refusal and "dual_fuel" in gas_refusal
+    elec_refusal = _refusal_for(_drop_electricity)
+    assert "with_an_electricity_leg" in elec_refusal and "dual_fuel" in elec_refusal
+    # Every refusal above carries the numbers that disagreed, not just the field name.
+    assert "run=" in gas_refusal and "roster=" in gas_refusal
+
+    # ---- leg 3: an earlier break in the chain refuses for a different, nameable reason -------
+    monkeypatch.setattr(cb, "_roster_at_commit", lambda _c: None)
+    no_blob = cb.arms_book(knee_bill)
+    monkeypatch.undo()
+    assert no_blob["available"] is False
+    assert "git could not produce" in no_blob["unavailable_because"]
+    assert "NOT the book the arms ran on" not in no_blob["unavailable_because"]
+
+    headless = copy.deepcopy(_run_artefact())
+    headless["producing_commit"]["commit"] = ""
+    written = tmp_run_artefact(monkeypatch, headless)
+    assert written["available"] is False
+    assert "producing_commit" in written["unavailable_because"]
+    assert "git could not produce" not in written["unavailable_because"]
+
+    # ---- leg 4: the reading names the book it quotes, and quotes that book -------------------
+    k, part = cb.knee(), cb.partition()
+    tree = cb.book_distribution(json.loads(cb.BOOK_PATH.read_text(encoding="utf-8")), knee_bill)
+    arms_reading = cb._reading(k, part, tree, real)
+    assert "154-account book the published arms were scored over" in arms_reading
+    arms_resi = real["by_segment"]["resi"]
+    assert "{} of this book's {}".format(
+        arms_resi["legs"] - arms_resi["above_the_knee"], arms_resi["legs"]) in arms_reading
+    assert "{}x".format(real["world_multiplier_spread"]) in arms_reading
+
+    fallback = cb._reading(k, part, tree, {"available": False, "unavailable_because": "probe"})
+    assert "the book this tree holds today" in fallback
+    tree_resi = tree["by_segment"]["resi"]
+    assert "{} of this book's {}".format(
+        tree_resi["legs"] - tree_resi["above_the_knee"], tree_resi["legs"]) in fallback
+    # And the two are genuinely different sentences — a fallback nobody can detect is the whole
+    # defect this leg is written for.
+    assert arms_reading != fallback
+
+
+def tmp_run_artefact(monkeypatch, payload: dict) -> dict:
+    """Point `arms_book` at a substitute run artefact and return what it made of it."""
+    import json
+    import tempfile
+    from pathlib import Path
+
+    import tools.generate_value_arms_data as gva
+
+    with tempfile.TemporaryDirectory() as raw:
+        path = Path(raw) / "three_arm.json"
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        monkeypatch.setattr(gva, "THREE_ARM_PATH", path)
+        out = cb.arms_book(3000.0)
+        monkeypatch.undo()
+    return out
+
+
+def test_the_artefact_publishes_both_books_and_says_which_one_the_reading_quotes():
+    """The two populations are both on the page's feed, and the feed says which is quoted.
+
+    Keyed to the PROPERTY and not to 154: the assertion is that the quoted book's own resi counts
+    are the ones in the sentence, so this stays green when the book changes and goes red when the
+    sentence stops describing the book it names.
+    """
+    import json
+
+    data = json.loads(cb.DEFAULT_ARTEFACT.read_text(encoding="utf-8"))
+    assert data["book"]["available"] is True
+    assert data["which_book_the_reading_quotes"].strip()
+    quoted = data["arms_book"] if data["arms_book"].get("available") else data["book"]
+    assert quoted is not data["book"] or not data["arms_book"].get("available")
+    resi = quoted["by_segment"]["resi"]
+    assert "{} of this book's {}".format(
+        resi["legs"] - resi["above_the_knee"], resi["legs"]) in data["reading"]
+    # DELIBERATELY NOT "the two books differ". They do today -- 164 against 154 -- but that is a
+    # fact about when the roster was last regenerated, not a property, and a control pinned to it
+    # would go red the day the tree's book and the arms' book legitimately coincide. What must
+    # hold is that each block says which population it is, which is asserted above.

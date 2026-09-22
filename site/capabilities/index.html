@@ -2691,10 +2691,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                   : "")
               + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
               + prose(cb.bill_is_an_upper_bound || "") + "</p>"
-              /* WHICH BOOK THIS IS OVER, said inside the section whose other figures are over a
-                 different one. See the block comment. */
+              /* WHICH BOOK THIS IS OVER. It used to be a different book from the arms above and
+                 this line was the amber warning that said so; the measurement now cuts the arms'
+                 OWN book, so the same line is rendered muted as provenance. The COLOUR is derived
+                 from `arms_book_unavailable_because` and never hard-coded: if the arms' book ever
+                 stops being identifiable this block falls back to the tree's book and the warning
+                 comes back by itself. */
+              + (cb.which_book
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:'
+                    + (cb.arms_book_unavailable_because ? "var(--amber)" : "var(--muted)") + ';">'
+                    + prose(cb.which_book) + "</p>"
+                  : "")
               + (cb.population_is_not_this_pages_book
-                  ? '<p style="margin:6px 0 0;font-size:11px;color:var(--amber);">'
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:'
+                    + (cb.arms_book_unavailable_because ? "var(--amber)" : "var(--muted)") + ';">'
                     + prose(cb.population_is_not_this_pages_book) + "</p>"
                   : "")
               + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
