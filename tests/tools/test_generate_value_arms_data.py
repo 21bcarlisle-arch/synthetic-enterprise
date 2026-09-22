@@ -5065,6 +5065,31 @@ def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_t
         "subject and its red above carries no information")
 
 
+def _a_quiet_null() -> dict:
+    """A seed-redraw null that does not refuse -- this leg put out of scope for the controls below.
+
+    EXACTLY THE MOVE `later_runs=[]` MAKES, ONE REFUSAL LATER, and for the reason that docstring
+    gives. `composition` carries THREE independent refusals since 2026-09-22: the numerator having
+    no sign, a later run in this world disagreeing about which leg is bigger, and the statistic's
+    own seed-redraw null outrunning the gap being attributed. Each has its own control, and every
+    one of those controls needs a CLEAN witness -- a subject on which its refusal does not fire --
+    to show the refusal is a judgement rather than an unconditional red.
+
+    A clean witness is only clean if the OTHER refusals are out of scope. On the real artefacts the
+    null leg fires (`next12` spans 12.007 against a 0.930 gap), so a sign-stable floor or an
+    agreeing later run would come back `readable: False` for a second, entirely correct reason, and
+    the control reporting "refuses regardless of its subject" would be wrong about the leg it is
+    testing. So the null is injected narrow here, exactly as the census is injected empty.
+
+    `statement` IS EMPTY ON PURPOSE. A non-refusing null appends its reading to
+    `why_not_readable`, which is right on the page and would make two subjects differ by more than
+    the one thing a rung moves. This block's own control is
+    `tests/tools/test_a_share_whose_own_null_outruns_the_gap_is_not_readable_at_one_run.py`, which
+    asserts BOTH of its verdicts reachable and is where its behaviour is pinned.
+    """
+    return {"available": True, "null_is_wider_than_the_disagreement": False, "statement": ""}
+
+
 def _floor_with_level_legs(floor: dict, values: list) -> dict:
     """The same floor with its per-seed level leg replaced, and the share it implies moved with it.
 
@@ -5222,6 +5247,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
 
     # WITNESS A -- the live artefact's own rows: -882.45, +1,733.38, +9,085.08. No sign.
     refused = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
+                                          shares_own_null=_a_quiet_null(),
                                           superseded_split={"level_share_of_advantage": 0.7867})
     comp = refused["composition"]
     assert comp["available"] is True, str(comp.get("reason"))[:200]
@@ -5237,6 +5263,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     # draw is positive; nothing else edited.
     stable = _floor_with_level_legs(admitted, [1_000.0, 1_733.378959, 9_085.082015])
     allowed = gva._current_world_contrast(current, superseded, stable, later_runs=[],
+                                          shares_own_null=_a_quiet_null(),
                                           superseded_split={"level_share_of_advantage": 0.7867})
     assert allowed["composition"]["readable"] is True, (
         "a floor whose level leg holds one sign is still refused, so this block refuses "
@@ -5249,7 +5276,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     # test it was an unreachable branch that crashed on an empty range, which this file's own
     # suite caught on the foreign-world subject.
     unasked = gva._current_world_contrast(current, superseded, dict(admitted, seeds=[]),
-                                          later_runs=[],
+                                          later_runs=[], shares_own_null=_a_quiet_null(),
                                           superseded_split={"level_share_of_advantage": 0.7867})
     assert unasked["composition"]["readable"] is None, (
         "a floor that could not be asked is reported as an answer")
@@ -5448,6 +5475,7 @@ def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_reci
     admitted = _admitted_live_floor()
 
     built = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
+                                        shares_own_null=_a_quiet_null(),
                                         superseded_split={"level_share_of_advantage": 0.7867})
     comp, leg = built["composition"], built["level_leg"]
     said = comp["why_not_readable"] or ""
@@ -5488,9 +5516,10 @@ def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_reci
     # RE-DRAWN. Pointing there would send the reader to the gap, so the numbers must stay.
     contrast = current["level_vs_selection"]
     pointed = gva._composition_in_this_world(contrast, admitted, 0.7867, live, later_runs=[],
+                                             shares_own_null=_a_quiet_null(),
                                              level_stability=stability)
     recited = gva._composition_in_this_world(
-        contrast, admitted, 0.7867, live, later_runs=[],
+        contrast, admitted, 0.7867, live, later_runs=[], shares_own_null=_a_quiet_null(),
         level_stability={"checked": False, "why_not": "no bound was read in this world"})
     assert pointed["why_not_readable"] == said, (
         "the direct call does not reproduce what the build published, so the two subjects below "
@@ -5971,7 +6000,7 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
     # them green on hand-built input.
     rows = gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [flips, agrees]))
     refused = gva._current_world_contrast(
-        current, superseded, stable, later_runs=rows,
+        current, superseded, stable, later_runs=rows, shares_own_null=_a_quiet_null(),
         superseded_split={"level_share_of_advantage": 0.7867})
     comp = refused["composition"]
     assert comp["readable"] is False, (
@@ -5999,7 +6028,7 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
     # WITNESS B -- THE SOLE WITNESS THAT THE REFUSAL IS A JUDGEMENT. Same everything, except the
     # later run falls on the same side of which-leg-is-bigger as the published one.
     allowed = gva._current_world_contrast(
-        current, superseded, stable,
+        current, superseded, stable, shares_own_null=_a_quiet_null(),
         later_runs=gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [agrees])),
         superseded_split={"level_share_of_advantage": 0.7867})
     assert allowed["composition"]["readable"] is True, (
