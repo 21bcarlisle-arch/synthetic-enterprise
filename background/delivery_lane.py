@@ -1056,25 +1056,152 @@ def _paths_named_in(text: str) -> list[str]:
 
     AN EMPTY `tracked` NOW MEANS ONE THING: git RAN and tracks nothing. That is an answer, it keeps
     the `[]` it always returned, and the row falls to the residual's NO-PATHS branch honestly.
+
+    IT IS THE UNION OF THE TWO ROLES SINCE 2026-09-22 and its answer is unchanged. `_path_roles`
+    below is the same walk with the governing verb kept; this stays the whole set because the
+    strand half and the residual's "which paths were asked" sentence both want every path the
+    prose named, whatever it asked for them.
     """
-    tracked = _tracked_files()
+    to_change, mentioned = _path_roles(text)
+    return sorted(set(to_change) | set(mentioned))
+
+
+def _confirm_path(token: str, tracked: set[str]) -> str | None:
+    """The tracked file `token` spells, or None. The peel-back `_paths_named_in` always did.
+
+    Lifted out of that loop unchanged so `_path_roles` can walk the SAME candidates with their
+    offsets in hand. Two copies of this peel would be two answers to "does the prose name this
+    file", and the roles reading must not be able to confirm a path the set reading cannot.
+    """
+    head = token
+    while True:
+        if head in tracked:
+            return head
+        candidate = head + ".py"
+        if candidate in tracked:
+            return candidate
+        if "." not in head.rsplit("/", 1)[-1]:
+            return None
+        head = head.rsplit(".", 1)[0]
+
+
+#: A clause boundary, for the back-scan in `_path_roles`. Deliberately NOT the comma: the prose
+#: that caused this repair put its governing verb and its object either side of several
+#: (`DERIVING the new one from the four-point curve that landed at ... in <path> and the weekly
+#: interval the director named on 2026-09-04 (<path>)`), and a comma-split reads the second path
+#: as ungoverned. `:` is excluded for the same reason — `NOT TOUCHED: <path>` is the commonest
+#: spelling of the forbidding clause in this repo's commit messages.
+_CLAUSE_END = re.compile(r"(?:[.;!?](?=\s)|\n)")
+
+#: The verbs that make a path SOMETHING TO READ OR LEAVE ALONE, and the verbs that make it
+#: something to CHANGE. The NEAREST one before the path governs it — not the first, because a
+#: single sentence routinely does both (`Move X in <subject> ... DERIVING it from <artefact>`).
+#:
+#: THE DETECTOR IS ONE-SIDED ON PURPOSE AND THAT IS ITS WHOLE SAFETY ARGUMENT. Neither vocabulary
+#: matching leaves the path a SUBJECT, which is what every path was before this existed, so a gap
+#: in `_READ_ONLY_GOVERNORS` can only fail to remove an over-credit — it can never invent one. The
+#: cost lands the other way: a real subject governed by a read verb (`delete the sentence from
+#: <path>`) is dropped and the row is redrawn. That is the direction the ledger must fail in — an
+#: under-credit costs one redraw, an over-credit retires live work and publishes evidence for it.
+#: (Measured 2026-09-22: `the-settlement-ceiling-can-move-now-that-its-curve-has-landed` was
+#: retired `landed_elsewhere` on `edc1b14df`, whose own message says `NOT TOUCHED:
+#: simulation/net_new_acquisition.py` in capitals. The match was `background/publish_freshness.py`,
+#: which that item named only as a constant to read.)
+#: `to` IS IN THE CHANGE LIST AND IT IS A PREPOSITION, NOT A VERB, WHICH IS THE POINT. `Move the
+#: liveness refusal from the reader to the writer in <path>` is one of this repo's commonest
+#: direction sentences, and without it the `from` that governs the SOURCE ("the reader") is the
+#: nearest thing to the DESTINATION's path and drops the row's only subject. Measured over the
+#: live ledger (299 rows carrying 771 paths): it recovers four paths and ONE of the seven rows
+#: the first draft left with no subject at all, and moves the instance above not at all. The
+#: recovered row is `the-landed-binder-defaults-to-head-...`, whose single named path is this
+#: very module. It is the one entry here that widens rather
+#: than narrows, so it is named separately and its cost is stated: a path whose nearest governor
+#: is `compared to` or `according to` stays a subject, which is what it was before any of this.
+_CHANGE_GOVERNORS = (
+    r"move|rewrite|writes?|adds?|deletes?|removes?|repairs?|fix(?:es)?|"
+    r"changes?|edits?|modif(?:y|ies)|makes?|lands?|updates?|gives?|"
+    r"teach(?:es)?|wires?|replaces?|extends?|splits?|renames?|sets?|"
+    r"builds?|creates?|puts?|restores?|corrects?|touch(?:es)?|to")
+
+#: A NEGATED CHANGE VERB IS A READ GOVERNOR AND MUST BE TRIED FIRST. Without this clause the
+#: commonest forbidding sentence in this repo's own direction prose — `READ FIRST, DO NOT
+#: REWRITE: the shared tree holds <path>` — matched `rewrite` in the CHANGE vocabulary and made
+#: the forbidden path a subject, which is the defect wearing the repair's clothes. Caught by
+#: printing the whole live ledger's roles before this shipped (`widen-the-weather-archive-beyond-
+#: c1-c4`, three paths it explicitly forbids, all three read as subjects by the first draft).
+#: `finditer` is non-overlapping, so a match starting at `DO` consumes the verb after it.
+_NEGATED_CHANGE = (r"\b(?:do\s+not|don't|does\s+not|never|must\s+not|cannot|"
+                   r"without|rather\s+than|instead\s+of)\s+(?:" + _CHANGE_GOVERNORS + r")\b")
+#: `reading` IS NOT HERE AND ITS ABSENCE IS A MEASUREMENT. It was, until the first real sentence
+#: run through this classifier — `Rewrite the window reading in <path>` — came back read-only,
+#: because the nearest governor to the subject was a NOUN. `reads?` is kept: in direction prose
+#: `read` is overwhelmingly the imperative and `reads` the verb, and the residual noun risk costs
+#: an under-credit, which is the side this detector is allowed to be wrong on.
+_READ_ONLY_GOVERNORS = (
+    _NEGATED_CHANGE + r"|not\s+touched|untouched|leave\b|"
+    r"read\s+from|reads?\b|see\b|cited\b|citing\b|declared\s+in|named\s+in|from\b")
+_GOVERNOR = re.compile(
+    r"(?P<read>" + _READ_ONLY_GOVERNORS + r")|(?P<change>\b(?:" + _CHANGE_GOVERNORS + r")\b)",
+    re.I)
+
+
+def _path_roles(text: str, known: set[str] | None = None) -> tuple[list[str], list[str]]:
+    """`(to_change, mentioned_only)` — the paths the prose asks to be CHANGED, and the rest.
+
+    THE DEFECT THIS ENDS (measured 2026-09-22 on the live ledger, in the NEW direction). Every
+    reader of an item's path set treated every path the prose named as a subject, so a commit
+    touching a path the item named only as *a constant to read*, or only inside an explicit
+    `DO NOT TOUCH` clause, credited the item. `_landed_by_sibling` retired
+    `the-settlement-ceiling-can-move-now-that-its-curve-has-landed` on exactly that: the item's
+    subject was `simulation/net_new_acquisition.py`, the commit says in capitals that it did not
+    touch it, and the match was on `background/publish_freshness.py` — which the item named once,
+    to read a constant out of. An afternoon's fit was dropped and the ledger published evidence
+    for the drop that one `git show` contradicts.
+
+    THE DIRECTION FILE IS AN INPUT TO THIS MECHANISM (director, 2026-09-22): the words written in
+    an item's `what` become the ledger's path set, so prose that carefully names what NOT to touch
+    was supplying the false disposition. Naming a path to protect it made it creditable.
+
+    SAY WHAT THE RULE IS. Each confirmed path occurrence is governed by the NEAREST governing verb
+    before it within its own clause (`_CLAUSE_END`). A read/forbid governor makes that occurrence
+    a mention; a change governor, or no governor at all, makes it a subject. A path is
+    `mentioned_only` when EVERY one of its occurrences is a mention — one unmarked occurrence is
+    enough to keep it a subject, because the flattering direction here is to drop it.
+
+    NEAREST, NOT FIRST, AND IT IS A MEASUREMENT NOT A PREFERENCE. `Move <constant> in <subject>
+    ... DERIVING the new one from <artefact> and the weekly interval ... (<constant's home>)` is
+    one sentence naming one subject and two read-onlys. First-governor-wins reads all three as
+    subjects (`Move`); clause-splitting on commas reads the third as ungoverned; nearest-wins
+    reads it as the code does. That table was printed over the live ledger's prose before this
+    shipped, not after.
+
+    IT NEVER ASKS GIT TWICE, AND A CALLER THAT ALREADY HOLDS THE PATH SET NEED NOT LET IT ASK AT
+    ALL. `known` is that set, and it is not an optimisation: `_claim_paths` promises that a row
+    carrying the draw-time stamp is answered from the ledger and "stays both free and
+    unraisable", and this reading is asked of every swept row on the orientation brief. Passing
+    the stamp in keeps that promise — and makes the confirmation STRICTER, since a spelling can
+    only resolve to a path the claim already holds. Left to None it asks `_tracked_files`, which
+    is the route `_paths_named_in` takes, so the union it returns is unchanged.
+    """
+    tracked = _tracked_files() if known is None else set(known)
     if not tracked:
-        return []
-    out: set[str] = set()
-    for token in _PATH_TOKEN.findall(text or ""):
-        head = token
-        while True:
-            if head in tracked:
-                out.add(head)
-                break
-            candidate = head + ".py"
-            if candidate in tracked:
-                out.add(candidate)
-                break
-            if "." not in head.rsplit("/", 1)[-1]:
-                break
-            head = head.rsplit(".", 1)[0]
-    return sorted(out)
+        return [], []
+    body = text or ""
+    to_change: set[str] = set()
+    mentioned: set[str] = set()
+    for match in _PATH_TOKEN.finditer(body):
+        path = _confirm_path(match.group(0), tracked)
+        if path is None:
+            continue
+        prefix = body[:match.start()]
+        ends = list(_CLAUSE_END.finditer(prefix))
+        clause = prefix[ends[-1].end():] if ends else prefix
+        governors = list(_GOVERNOR.finditer(clause))
+        if governors and governors[-1].lastgroup == "read":
+            mentioned.add(path)
+        else:
+            to_change.add(path)
+    return sorted(to_change), sorted(mentioned - to_change)
 
 
 #: The prose fields a direction/continuation item carries, in the order a reader would read them.
@@ -1269,6 +1396,38 @@ def _claim_paths(focus_id: str, row: dict) -> list[str]:
     return named or _paths_named_in(_item_text(focus_id))
 
 
+def _claim_subject_paths(focus_id: str, row: dict) -> list[str]:
+    """The subset of `_claim_paths` this item asked to be CHANGED. The credit half's path set.
+
+    WHY THE CREDIT HALF MAY NOT USE `_claim_paths` (measured 2026-09-22, and it is the first time
+    this ledger failed towards DONE). `_claim_paths` is every path the prose names, whatever it
+    names it for, and both credit readings matched on it — so a commit touching a path the item
+    named only to READ, or named only inside a `DO NOT TOUCH` clause, retired the item. See
+    `_path_roles` for the instance and the cost. The strand half is deliberately left on the full
+    set: it asks whether uncommitted bytes sit on these paths, and bytes on a path the item was
+    told not to touch is a thing a reader wants shouted, not filtered.
+
+    THE ROLES ARE DERIVED AT READ TIME AND NOT STAMPED, which is a choice against a second field
+    in the ledger that could drift from `named_paths`. The stamp stays the authority on WHICH
+    paths (the prose as it stood at this draw); the text is asked only for what the prose asked
+    FOR each of them, and the answer is intersected with the stamp. So the reach-back can only
+    ever REMOVE paths here — the widening `_item_text` warns about (a later revision naming more)
+    cannot reach this set, because a path the stamp does not hold is not in `paths` to begin with.
+
+    A PATH THE STAMP HOLDS THAT TODAY'S PROSE NO LONGER MENTIONS KEEPS ITS SUBJECT ROLE, and so
+    does every path when the item has left both stores and the reach-back is silent. That is the
+    reading this function replaces, kept exactly where it cannot be improved on: with no prose to
+    read there is no role to read, and inventing `mentioned` for an unreadable item would let a
+    row be un-creditable for the sole reason that its text expired. The narrowing applies where
+    the evidence for it exists and nowhere else.
+    """
+    paths = _claim_paths(focus_id, row)
+    if not paths:
+        return []
+    _to_change, mentioned = _path_roles(_item_text(focus_id), known=set(paths))
+    return [p for p in paths if p not in set(mentioned)]
+
+
 def _window_hits(focus_id: str, row: dict,
                  drawn: float) -> tuple[list[str], list[tuple], list[tuple]]:
     """`(paths, hits, liveness_only)` — commits on this claim's own paths inside its own window.
@@ -1335,8 +1494,23 @@ def _window_hits(focus_id: str, row: dict,
     published the one reason it has for that state — *the item's prose names no tracked path* — for
     a question git was never able to be asked. `_tracked_files` now raises, so the early return
     below is reached only when git ANSWERED and the prose genuinely named nothing it tracks.
+
+    AND `paths` IS THE SUBJECT SET, NOT EVERY PATH THE PROSE NAMED (2026-09-22). Both readings
+    below say a commit is ABOUT this item, and a commit on a path the item asked only to read is
+    not. `_claim_subject_paths` holds the split and `_path_roles` holds the instance that paid
+    for it. It is applied HERE rather than in each caller for the reason the paragraph above
+    gives about liveness: which paths an item is ABOUT is a fact about the item, so the two
+    readings cannot be allowed to hold different answers to it. An empty subject set with a
+    non-empty named set is a REAL state now — an item that only reads and forbids — and the
+    residual has its own sentence for it rather than borrowing the no-paths one.
+
+    EACH HIT CARRIES THE PATHS THAT ACTUALLY MATCHED, which is the fourth element of the tuple
+    and the reason the evidence strings below stopped naming `paths[:3]`. A reader handed the
+    item's first three paths cannot tell whether the commit touched any of them; handed the
+    intersection, one `git show` settles it. It is already computed — `--name-only` under the
+    pathspec prints exactly that — so this is a field that was being thrown away.
     """
-    paths = _claim_paths(focus_id, row)
+    paths = _claim_subject_paths(focus_id, row)
     if not paths:
         return [], [], []
     # ASKED BEFORE GIT, so an unreadable declaration costs nothing and cannot be mistaken for a
@@ -1371,7 +1545,7 @@ def _window_hits(focus_id: str, row: dict,
         if not (drawn <= when <= window_ends):
             continue
         (liveness_only if _is_liveness_only(touched, surface) else hits).append(
-            (sha, when, subject))
+            (sha, when, subject, sorted(touched)))
     return paths, hits, liveness_only
 
 
@@ -1399,17 +1573,31 @@ def _landed_by_sibling(focus_id: str, row: dict, drawn: float, bound_by: dict) -
     own prose named. What it replaces is an empty string, never a `not_done` that was carrying
     evidence, so the worst case of a wrong sibling is a named lead the reader can check in one
     `git show`, against a residual that sent them to `git status` with nothing.
+
+    AND THAT DEFENCE WAS FALSE IN THE ONE CASE IT MATTERED, corrected here beside the claim
+    rather than rewritten over it (measured 2026-09-22). "What it replaces is an empty string,
+    never a `not_done` that was carrying evidence" is true of the FIELD and says nothing about
+    the ROW: when the residual would have been a true miss, this reading does not replace an
+    empty string — it replaces a live item with a retirement, and the work stops being drawn.
+    `the-settlement-ceiling-can-move-now-that-its-curve-has-landed` was retired that way on
+    `edc1b14df`, a commit whose own message says `NOT TOUCHED: simulation/net_new_acquisition.py`
+    in capitals, because the item had also named `background/publish_freshness.py` — to read a
+    constant out of. A wrong sibling is not a cheap lead when the lead is also a disposition.
+    The fix is the path set, not this docstring: `_window_hits` now answers on the paths the item
+    asked to be CHANGED (`_claim_subject_paths`), so a commit confined to what it asked to read
+    or leave alone reaches neither reading.
     """
     paths, hits, _liveness = _window_hits(focus_id, row, drawn)
-    owned = [(sha, when, subject, bound_by[when]) for sha, when, subject in hits
+    owned = [(sha, when, subject, touched, bound_by[when])
+             for sha, when, subject, touched in hits
              if bound_by.get(when) and bound_by[when] != focus_id]
     if not owned:
         return None
-    sha, _when, subject, holder = owned[0]
+    sha, _when, subject, touched, holder = owned[0]
     more = " (+{} more)".format(len(owned) - 1) if len(owned) > 1 else ""
     return {"disposition": LANDED_ELSEWHERE,
             "evidence": "landed under {} -- {} {} touched {}{}".format(
-                holder, sha[:9], subject.strip()[:80], ", ".join(paths[:3]), more)}
+                holder, sha[:9], subject.strip()[:80], _matched(touched, paths), more)}
 
 
 def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | None:
@@ -1456,10 +1644,10 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
     untouched.
     """
     paths, hits, _liveness = _window_hits(focus_id, row, drawn)
-    hits = [(sha, when, subject) for sha, when, subject in hits if when not in bound_at]
+    hits = [h for h in hits if h[1] not in bound_at]
     if not hits:
         return None
-    sha, when, subject = hits[0]
+    sha, when, subject, touched = hits[0]
     more = " (+{} more)".format(len(hits) - 1) if len(hits) > 1 else ""
     # `commit`/`at`/`paths` are ADDITIVE and exist for `tree_verdict`, which has to bind the thing
     # this function found rather than only describe it. The two keys every existing reader of a
@@ -1467,7 +1655,28 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
     # to learn a new shape to keep working.
     return {"disposition": LANDED_UNBOUND, "commit": sha, "at": when, "paths": list(paths),
             "evidence": "{} {} touched {}{}".format(
-                sha[:9], subject.strip()[:80], ", ".join(paths[:3]), more)}
+                sha[:9], subject.strip()[:80], _matched(touched, paths), more)}
+
+
+def _matched(touched: list[str], paths: list[str]) -> str:
+    """The paths a hit ACTUALLY touched, for an evidence string. Falls back to what was asked.
+
+    BOTH EVIDENCE STRINGS NAMED `paths[:3]` UNTIL 2026-09-22 — the item's own first three paths,
+    in sorted order, whatever the commit did. On the retirement that caused this repair the
+    reader was told the commit `touched simulation/net_new_acquisition.py, ...`, which is the one
+    path the commit's message says in capitals it did NOT touch. A sentence that names the
+    question instead of the answer is worse than no sentence: it reads as the answer.
+
+    AN EMPTY `touched` IS NOT A MISSING ANSWER AND MUST NOT BE PRINTED AS `` — under a pathspec
+    `git log` simplifies history, so a merge can come back with no filenames printed under it,
+    and `_window_hits` keeps those commits deliberately (see its docstring). For those the honest
+    sentence is the one this replaced: git matched the commit against these paths and would not
+    say which, so the reader is given the pathspec and told so.
+    """
+    shown = touched or paths
+    more = " (+{} more)".format(len(shown) - 3) if len(shown) > 3 else ""
+    named = ", ".join(shown[:3]) + more
+    return named if touched else "{} (git printed no filenames for it)".format(named)
 
 
 #: The FOUR things a window that closed with no landing of its own can mean.
@@ -2278,6 +2487,24 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
                 "evidence": "CANNOT ANSWER, not 'nothing landed': {}".format(
                     _raised("composing the commit query", exc))}
     if not paths:
+        # WHICH SILENCE THIS IS, and the branch split on 2026-09-22 for the same reason every
+        # other branch here did. `paths` is the SUBJECT set now, so it empties two ways: the
+        # prose named nothing git tracks, or it named paths and asked for none of them to be
+        # CHANGED (`_claim_subject_paths`). The second is a real and readable state -- an item
+        # whose whole instruction is to read an artefact and leave two files alone -- and
+        # publishing it as "names no tracked path" would blame the prose for being precise,
+        # which is the fourth-voice defect (`_tracked_files`) one layer further out.
+        try:
+            named = _claim_paths(focus_id, row)
+        except Exception:
+            named = []
+        if named:
+            return {"disposition": NOT_DONE,
+                    "evidence": "CANNOT ANSWER, not 'nothing landed': this item's prose names {} "
+                                "tracked path(s) -- {} -- but asks for none of them to be "
+                                "CHANGED (each is named only to read or not to touch), so no "
+                                "commit could credit it and git was never asked".format(
+                                    len(named), ", ".join(named[:3]))}
         return {"disposition": NOT_DONE,
                 "evidence": "CANNOT ANSWER, not 'nothing landed': this item's prose names no "
                             "tracked path (in `named_paths` or either store holding its text), "
