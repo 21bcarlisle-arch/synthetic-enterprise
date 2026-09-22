@@ -374,15 +374,29 @@ def test_the_selection_leg_and_its_error_bar_are_published_together(bounded_pair
     assert inside is not None, (
         "the feed cannot say whether the published run is inside the range its own family was "
         "drawn over -- an unknown relationship must not be published as a comfortable one")
-    # THE READING MUST ANSWER ABOUT THE FIGURE THE PAGE STATES, and there are three states of the
+    # THE READING MUST ANSWER ABOUT THE FIGURE THE PAGE STATES, and there are FOUR states of the
     # gate rather than two of a band. `sign_is_stateable` is the producer's own verdict; the
     # branches below check the sentence matches it, never that any particular verdict is right.
+    #
+    # THE FOURTH STATE LANDED 2026-09-22 AND THIS BRANCH SET WAS WHAT CAUGHT IT. A family that
+    # REPEATS ITS OWN DRAWS withholds too, and it can do so while sitting comfortably past its bar
+    # -- so the `else` here told a reader the mean was "inside its own precision" about a family
+    # 2.5 errors from zero against a bar of 2.11. Exactly the shape the 09-18 comment in
+    # `_selection_leg_reading` records one reason earlier, one reason later.
     if leg["sign_is_stateable"] is True:
         assert leg["sign"] in eb["reading"], (
             "the family pins its mean past the bar and the reading does not say which side: "
             "{}".format(eb["reading"]))
+        assert not leg.get("sign_withheld_because_the_family_repeats_draws"), (
+            "the page states a side off a family that repeats its own draws, so the bound the "
+            "side rests on is partly a count of how often the instrument pinned")
     elif leg["sems_from_zero"] is None:
         assert "no measurable error" in eb["reading"], eb["reading"]
+    elif leg.get("sign_withheld_because_the_family_repeats_draws"):
+        assert "repeat" in eb["reading"] and "re-draws returned a value" in eb["reading"], (
+            "the family repeats its own draws and the reading a reader meets does not say so: "
+            "{}".format(eb["reading"]))
+        assert leg["sign"] is None, "the verdict withheld a sign and the block published one"
     else:
         assert "cannot yet resolve" in eb["reading"], (
             "the mean is inside its own precision and the reading does not say so: {}".format(
@@ -8170,6 +8184,13 @@ _CLEARS_ZERO_KEYS = {
     # is meant to pick up. Classifying it says "we looked at this one"; excluding it by pattern
     # would silently widen the hole to every future key that ends the same way.
     ("selection_leg", "sign_withheld_despite_clearing_the_bar_because"): "REASON",
+    # THE SECOND REASON, DECLARED FOR THE SAME REASON THE FIRST IS. It is `null` on any family that
+    # repeats nothing, and a `null` under a `sign`-shaped name is exactly what the wide net exists
+    # to pick up. It is a REASON and not a verdict: the verdict it feeds is `sign_is_stateable`
+    # above, and publishing it separately is what lets a reader tell WHICH of the two refusals is
+    # live -- which matters because one of them (the book) has owed work against it and the other
+    # does not go away when that work lands.
+    ("selection_leg", "sign_withheld_because_the_family_repeats_draws"): "REASON",
     ("distinguishable_reconciliation", "agree"): "META",
     ("distinguishable_reconciliation", "the_two_rules_are_one_rule"): "META",
     ("distinguishable_reconciliation", "sign_stated_despite_disagreement"): "META",
@@ -8346,7 +8367,14 @@ def test_the_control_FIRES_on_a_payload_whose_two_homes_disagree():
         base = {"available": True, "distinguishable_from_zero": True,
                 "selection_leg": dict({"clears_its_own_bar": True, "sign_is_stateable": True,
                                        "sign": "negative", "seeds_needed_to_state_a_sign": None,
-                                       "sign_withheld_despite_clearing_the_bar_because": None},
+                                       "sign_withheld_despite_clearing_the_bar_because": None,
+                                       # THE SECOND REASON KEY, CARRIED BY THE SOUND WITNESS TOO.
+                                       # The registry declares it, so a payload that omitted it
+                                       # would red on "the registry names a key the payload no
+                                       # longer publishes" -- a true complaint about the WITNESS
+                                       # rather than about any of the five defects below, and it
+                                       # would mask every one of them.
+                                       "sign_withheld_because_the_family_repeats_draws": None},
                                       **leg),
                 "distinguishable_reconciliation": {
                     "the_floors_rule": {"says": True}, "the_pages_rule": {"says": True},
@@ -8544,13 +8572,35 @@ def _a_family_that_states_a_sign(mean, sem=613.0, seeds=9):
     own published headline -- a mean of -£1,749 over nine re-draws, ±£613 -- which is the run that
     opens the gate. `sem` and `seeds` are parameters so the same witness can be walked the other
     way without retuning anything to make a point.
+
+    IT CARRIES A CLEAN REPEAT COUNT, AND THAT IS PART OF WHAT "STATES A SIGN" MEANS (2026-09-22).
+    A family whose re-draws repeat one another withholds its side however far its mean sits from
+    zero -- see `_repetition_withholds` -- so a witness for the sign branches has to be a family
+    that repeats nothing, or it is a witness for a branch it can no longer reach. `_repeats(...)`
+    below builds the other side of that partition.
     """
     return {"available": True, "seeds": seeds, "contrasts": {
         "selection_gbp": {"n": seeds, "mean_gbp": mean, "sem_gbp": sem,
                           "stdev_gbp": sem * seeds ** 0.5, "min_gbp": mean - 3 * sem,
-                          "max_gbp": mean + 3 * sem},
+                          "max_gbp": mean + 3 * sem, "repetition": _repeats(0, seeds)},
         "value_advantage_gbp": {"n": seeds, "mean_gbp": 16792.0, "sem_gbp": 777.0,
-                                "stdev_gbp": 2331.0, "min_gbp": 14000.0, "max_gbp": 19000.0}}}
+                                "stdev_gbp": 2331.0, "min_gbp": 14000.0, "max_gbp": 19000.0,
+                                "repetition": _repeats(0, seeds)}}}
+
+
+def _repeats(count, draws=9):
+    """A `_draw_repetition` block saying `count` of `draws` re-draws repeat another.
+
+    BUILT HERE RATHER THAN BY CALLING THE PRODUCER, so a control keyed to the withholding branch
+    cannot be satisfied by a producer that stopped counting. `count=0` is the passing side of the
+    partition and both sides are reachable from artefacts on disk -- the published folded eighteen
+    repeats 5, the 12-seed next12 family of 2026-09-17 repeats none -- so this is a convenience,
+    never the only witness. See `test_the_repetition_rule_walks_its_whole_partition`.
+    """
+    return {"countable": True, "draws": draws, "distinct_values": draws - max(count - 1, 0),
+            "draws_that_repeat_another": count,
+            "redundant_draws": max(count - 1, 0),
+            "what_this_counts": "a constructed census for a control"}
 
 
 def test_a_sentence_the_page_withdrew_is_refused_however_the_arithmetic_comes_out():
@@ -8577,7 +8627,7 @@ def test_a_sentence_the_page_withdrew_is_refused_however_the_arithmetic_comes_ou
     for mean in (-1749.0, 1749.0):
         spreads = _a_family_that_states_a_sign(mean)
         leg = gva._leg_over_its_own_family(
-            spreads["contrasts"]["selection_gbp"], -333.0, None, None)
+            spreads["contrasts"]["selection_gbp"], -333.0, None, None, _repeats(0))
         assert leg["sign_is_stateable"] is True, (
             "the witness does not open the sign gate at all, so nothing below is tested")
         reached.add(leg["sign"])
@@ -8595,7 +8645,8 @@ def test_the_refusal_fires_on_the_run_the_fork_close_produced():
     the guard replaces it -- so this control is not asserting over an input that could never
     reach the branch it guards (`CONTROLS_THAT_CANNOT_FAIL`)."""
     leg = gva._leg_over_its_own_family(
-        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, None)
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, None,
+        _repeats(0))
     unguarded = ("Running it through ONE flat margin at the same price LEVEL earned £1,749 more "
                  "than the per-customer engine did, on average across the 9 seed re-draws. On "
                  "this evidence the advantage is the price level, and the per-customer choosing "
@@ -8614,7 +8665,8 @@ def test_the_refusal_does_not_fall_silent_and_states_the_bar_and_the_error_count
     mean stands from zero. A guard that silenced the leg would have traded one defect for its
     mirror image."""
     leg = gva._leg_over_its_own_family(
-        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, None)
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, None,
+        _repeats(0))
     fresh = gva._the_level_leg_in_fresh_words(leg, gva.WITHDRAWN_CLAIMS[-1])
     assert "2.31" in fresh, "the derived bar is not on the surface"
     assert "2.9 standard errors" in fresh, "the standard-error count is not on the surface"
@@ -9885,8 +9937,9 @@ def test_a_family_from_ANOTHER_BOOK_withdraws_its_membership_claim_and_states_no
     claim membership, over the same inputs.
     """
     family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
-    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None)
-    stale = gva._leg_over_its_own_family(family, -333.0, "settled", _a_stale_pair_caveat())
+    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None, _repeats(0))
+    stale = gva._leg_over_its_own_family(family, -333.0, "settled", _a_stale_pair_caveat(),
+                                         _repeats(0))
 
     assert clean["sign_is_stateable"] is True and clean["sign"] == "negative", (
         "the clean branch does not state a sign on this witness, so the stale branch below "
@@ -9922,8 +9975,9 @@ def test_the_membership_SENTENCES_stop_claiming_membership_and_do_not_merely_go_
     """The keys are not what a reader meets -- the prose is. Every sentence that asserted
     membership has to stop, and the reader has to be TOLD why rather than left with a gap."""
     family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
-    stale = gva._leg_over_its_own_family(family, -333.0, "settled", _a_stale_pair_caveat())
-    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None)
+    stale = gva._leg_over_its_own_family(family, -333.0, "settled", _a_stale_pair_caveat(),
+                                         _repeats(0))
+    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None, _repeats(0))
 
     assert "one member of the 9" in clean["what_each_number_is_over"], (
         "the clean branch does not make the membership claim, so its withdrawal below is vacuous")
@@ -9954,7 +10008,8 @@ def test_the_withheld_sentence_never_tells_a_reader_a_CLEARED_bar_was_short_of_i
     """
     caveat = _a_stale_pair_caveat()
     clears = gva._leg_over_its_own_family(
-        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None, caveat)
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0, None,
+        caveat, _repeats(0))
     assert clears["sems_from_zero"] > clears["sems_needed_to_state_a_sign"], (
         "this witness does not clear its own bar, so it cannot catch a sentence that says it "
         "fell short of it")
@@ -9967,7 +10022,8 @@ def test_the_withheld_sentence_never_tells_a_reader_a_CLEARED_bar_was_short_of_i
     # so -- a control that only checked the words were absent would pass on a page that had
     # stopped explaining itself entirely.
     short = gva._leg_over_its_own_family(
-        _a_family_that_states_a_sign(-120.0)["contrasts"]["selection_gbp"], -333.0, None, None)
+        _a_family_that_states_a_sign(-120.0)["contrasts"]["selection_gbp"], -333.0, None, None,
+        _repeats(0))
     assert short["sign_is_stateable"] is False
     assert "short of" in gva._selection_leg_reading(short, None), (
         "the genuine too-few-errors reading lost its explanation")
@@ -9977,12 +10033,141 @@ def test_the_staleness_answer_is_REQUIRED_of_every_call_site():
     """A DEFAULTED PARAMETER WOULD BE THE WHOLE DEFECT BACK. Every call site that forgot it would
     silently assert one book, in the flattering direction, and the mutation proving otherwise
     would be unreachable -- the shape this project has already paid for. The guard is that the
-    signature refuses to be called without it."""
+    signature refuses to be called without it.
+
+    THE REPEAT COUNT IS REQUIRED ON THE SAME TERMS (2026-09-22) and for the same reason: a call
+    site that omitted it would assert "this family repeats nothing" on no evidence, which is the
+    flattering branch of the one question the headline's bound now turns on."""
     family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
     with pytest.raises(TypeError):
         gva._leg_over_its_own_family(family, -333.0)
     with pytest.raises(TypeError):
         gva._leg_over_its_own_family(family, -333.0, "settled")
+    with pytest.raises(TypeError):
+        gva._leg_over_its_own_family(family, -333.0, "settled", None)
+
+
+def test_each_repeat_count_counts_what_its_own_name_says():
+    """THE DEFECT: one name over two quantities, and the page's prose meant the other one.
+
+    `draws_that_repeat_another` returned `len(values) - distinct` -- 3 on the published floor,
+    whose repeats are one value twice and one value three times. Every sentence about that floor,
+    in the finding that minted the function and in the staging item that asked for it, says **5 of
+    its 18 draws repeat another draw** -- and under the plain reading of the key's own name they
+    are right: five draws each share their value with some other draw. 2 + 3 = 5; 18 - 15 = 3.
+
+    Both quantities are worth publishing and they are different numbers, so each is named for what
+    it counts. THE WITNESS IS A FAMILY WHERE THEY DIFFER, which is the only kind that can catch a
+    silent revert: on a family whose only repeat is a single value returned twice the two counts
+    are both 2 and 1 -- close enough that a reverted definition would go unnoticed -- so the
+    witness below carries a value returned FOUR times, where they are 4 and 3.
+
+    EVERY CONSUMER OF THESE COUNTS IS DERIVED FROM THEM -- the render, the door control, the
+    census rows -- so a definition that quietly changed would propagate to the page with nothing
+    anywhere able to disagree. This is the one control that asks what the numbers MEAN.
+    """
+    floor = {"seeds": [{"selection_gbp": v} for v in
+                       [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 30.0, 40.0, 50.0]]}
+    rep = gva._draw_repetition(floor)
+    assert rep["countable"] is True and rep["draws"] == 9
+    assert rep["distinct_values"] == 5, rep
+    assert rep["draws_that_repeat_another"] == 6, (
+        "four draws returned 10.0 and two returned 20.0, so SIX of the nine share their value "
+        "with another draw -- this key counts {} instead, which is the redundancy and not the "
+        "draws its name names".format(rep["draws_that_repeat_another"]))
+    assert rep["redundant_draws"] == 4, (
+        "nine draws returned five distinct values, so FOUR of them added nothing the family did "
+        "not already hold -- this key says {}".format(rep["redundant_draws"]))
+    assert rep["draws_that_repeat_another"] != rep["redundant_draws"], (
+        "the witness makes the two counts equal, so it cannot tell one definition from the other "
+        "and this control would pass on a payload that published either under both names")
+
+    # AND THEY ARE ZERO TOGETHER, which is what lets every rule keyed to `> 0` stay unmoved by the
+    # correction. A family that repeats nothing must answer 0 to both, or the census's own
+    # repeating/clean split would have been re-sorted by a change that was only about magnitude.
+    none = gva._draw_repetition({"seeds": [{"selection_gbp": float(v)} for v in range(6)]})
+    assert none["draws_that_repeat_another"] == 0 and none["redundant_draws"] == 0
+
+
+def test_the_repetition_rule_walks_its_whole_partition():
+    """THE DEFECT: the headline states a side off a bound made of draws that pinned.
+
+    `NOISE_FLOOR_PATH` -- the floor the page's headline selection sign is stated on -- is the worst
+    repeater on this disk: 5 of its 18 re-draws return a `selection_gbp` another of its own draws
+    already returned, and the census beside it establishes that every family here that repeats a
+    draw is bounded MORE TIGHTLY than every one that does not, with no overlap. A bound built that
+    way measures how often the instrument pinned, not how far the quantity moves.
+
+    THE RULE IS INDEPENDENT OF THE BOOK RULE, WHICH IS THE WHOLE POINT AND THE WHOLE RISK. On the
+    live feed both refusals fire at once, so a repetition rule bolted onto the staleness one would
+    be a branch nothing could ever reach on its own -- green forever, and silently permitting the
+    sign the day the owed book re-run lands. So every family below is ONE BOOK by construction and
+    only the repeat count moves.
+
+    FOUR STATES, ALL ASSERTED, because a rule that refused everything would satisfy any subset of
+    them: repeats-nothing states its side; repeats-something withholds and says so; not-countable
+    withholds and says it is not the same as counting none; never-looked withholds.
+    """
+    family = _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"]
+
+    clean = gva._leg_over_its_own_family(family, -333.0, "settled", None, _repeats(0))
+    assert clean["clears_its_own_bar"] is True and clean["sign_is_stateable"] is True, (
+        "the clean witness does not state a side, so every withholding assertion below withdraws "
+        "something that was never there and this control proves nothing")
+    assert clean["sign"] == "negative"
+    assert clean["sign_withheld_because_the_family_repeats_draws"] is None
+
+    repeats = gva._leg_over_its_own_family(family, -333.0, "settled", None, _repeats(5, 18))
+    assert repeats["clears_its_own_bar"] is True, (
+        "the repeating witness fails its bar for an unrelated reason, so what is withheld below "
+        "is not this rule's doing")
+    assert repeats["sign_is_stateable"] is False and repeats["sign"] is None
+    why = repeats["sign_withheld_because_the_family_repeats_draws"]
+    assert why and "5 of this family's 18" in why, (
+        "the refusal does not name the count it is keyed to, so a reader cannot check it: "
+        "{!r}".format(why))
+    assert repeats["sign_withheld_despite_clearing_the_bar_because"] == why, (
+        "the page withheld a sign its own statistics allow and the composed reason does not carry "
+        "this one, so the reader is given an incomplete cause for a true refusal")
+    assert "5 of this family's 18" in gva._selection_leg_reading(repeats, None), (
+        "the count reaches the payload and not the sentence a reader actually meets")
+
+    uncountable = gva._leg_over_its_own_family(
+        family, -333.0, "settled", None,
+        {"countable": False, "why_not": "these rows carry no `selection_gbp`"})
+    assert uncountable["sign_is_stateable"] is False, (
+        "a floor that cannot say whether it repeated a draw is read as a floor that repeated "
+        "none -- absent treated as zero, which is the flattering answer")
+
+    never_looked = gva._leg_over_its_own_family(family, -333.0, "settled", None, None)
+    assert never_looked["sign_is_stateable"] is False, (
+        "a caller that never counted buys the sign anyway")
+
+
+def test_both_sides_of_the_repetition_partition_exist_on_disk():
+    """A CONSTRUCTED WITNESS IS NOT EVIDENCE THAT EITHER BRANCH IS REACHABLE IN PRODUCTION.
+
+    The control above builds its families, which is right for isolating one variable and wrong for
+    establishing that the rule is about anything real. This one asks the artefacts. If every floor
+    in this repository repeated a draw, the rule would refuse every floor forever and would be
+    indistinguishable from deleting the sign -- which this page explicitly declined to do.
+    """
+    published = gva._draw_repetition(json.loads(gva.NOISE_FLOOR_PATH.read_text(encoding="utf-8")))
+    assert published["countable"] is True
+    assert published["draws_that_repeat_another"] > 0, (
+        "the floor the headline is stated on no longer repeats a draw -- which is good news and "
+        "means this rule's refusing branch is now unreachable from the published floor; point it "
+        "at whichever floor does repeat, or retire it and say why")
+
+    # READ THROUGH THE CENSUS'S OWN ROSTER rather than a list retyped here: a second list of floor
+    # filenames would drift from the one the page actually publishes, and this control would then
+    # be asserting reachability over artefacts nothing renders.
+    others = [gva._draw_repetition(f) for f in
+              (gva._replication_artefact(floor) for _, floor, _ in gva._REPLICATION_PAIRS)
+              if f is not None]
+    assert any(r.get("countable") and r["draws_that_repeat_another"] == 0 for r in others), (
+        "no floor in this repository repeats NOTHING, so the rule's passing branch is reachable "
+        "from no artefact and it refuses everything it will ever be shown")
 
 
 def test_seed_spreads_does_not_let_NEVER_ASKED_pass_as_measured_contemporaneous():
@@ -10018,7 +10203,8 @@ def test_seed_spreads_does_not_let_NEVER_ASKED_pass_as_measured_contemporaneous(
     # AND IT REACHES THE LEG, which is the only place the distinction does any work.
     leg = gva._leg_over_its_own_family(
         gva._spread_for(never_asked, "selection_gbp"), -333.0, None,
-        never_asked.get("staleness_at_admission"))
+        never_asked.get("staleness_at_admission"),
+        gva._spread_for(never_asked, "selection_gbp").get("repetition"))
     assert leg["single_run"]["is_a_member_of_the_family"] is False, (
         "an unasked question still buys the run its membership in the family")
 
@@ -10363,9 +10549,9 @@ def test_a_seed_price_is_NOT_published_for_a_family_that_cannot_bound_it():
     """
     sd, n = 5398.31430804405, 12
     cannot = gva._leg_over_its_own_family(_family_that(-1069.4751089166675, sd, n),
-                                          None, "settled-realised", None)
+                                          None, "settled-realised", None, _repeats(0, n))
     can = gva._leg_over_its_own_family(_family_that(-12000.0, sd, n),
-                                       None, "settled-realised", None)
+                                       None, "settled-realised", None, _repeats(0, n))
     assert cannot["clears_its_own_bar"] is False and can["clears_its_own_bar"] is True, (
         "the two synthetic families do not straddle the bar ({!r} / {!r}), so this test grades one "
         "branch twice and the rare one is unreachable".format(

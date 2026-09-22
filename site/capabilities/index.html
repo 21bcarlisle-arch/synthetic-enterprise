@@ -1606,6 +1606,42 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + prose(c.the_reading) + "</span>" + rows + fam + wrRow;
   }
 
+  /* THE HEADLINE FLOOR'S OWN REPEAT COUNT, in the sentence that states how many standard errors
+     the value of the choosing sits from zero. `signAcrossFamilies` above renders this per family
+     for the five floors in the replication census; the floor the HEADLINE is stated on is not one
+     of them, so until this function its count rendered nowhere and the strongest claim on the page
+     carried no qualification at all.
+
+     THE NUMBERS AND THE REASON COME FROM THE FEED, NEVER FROM HERE. The count is the producer's
+     and the sentence explaining what a repeated draw does to a bound is the producer's -- one home
+     for each, so the page and the payload cannot come to say different things. This function
+     decides only where it goes and what colour it is.
+
+     IT RENDERS ON EVERY BRANCH INCLUDING ZERO. A qualification that appears only when the news is
+     bad teaches a reader that its absence means the question was not asked; "0 of 12 draws repeat
+     another" is a fact worth as much as the other reading, and it is the one that makes the amber
+     branch mean something. Uncountable renders too, and says so: absent is not zero. */
+  function repetitionOfTheBound(rep, why) {
+    if (!rep) { return ""; }
+    if (rep.countable !== true) {
+      return '<span style="display:block;margin-top:6px;color:var(--amber);font-size:12.5px;">'
+        + "<strong>WHETHER THESE DRAWS REPEAT ONE ANOTHER WAS NOT COUNTABLE.</strong> "
+        + prose(rep.why_not || "no reason was recorded, which is itself the finding.")
+        + "</span>";
+    }
+    var n = rep.draws_that_repeat_another;
+    return '<span style="display:block;margin-top:6px;font-size:12.5px;color:'
+      + (n > 0 ? "var(--amber)" : "var(--muted)") + ';">'
+      + "<strong>" + esc(n) + " of those " + esc(rep.draws)
+      + " draws repeat another draw.</strong> "
+      + (n > 0
+          ? prose(why || "This bound is therefore partly a count of how often the instrument "
+                       + "pinned, and this page states no side from it.")
+          : "Every draw in this family returned a value none of the others did, so nothing here "
+            + "says the bound above is a count of how often the instrument pinned.")
+      + "</span>";
+  }
+
   function legsOnOneBar(b) {
     var order = ["value_advantage_gbp", "level_advantage_gbp", "selection_gbp"];
     var rows = "";
@@ -2576,6 +2612,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                       + " draws set, not a constant"
                     : "")
                 + ". "
+                /* WHAT THAT BAR-CLEARING IS MADE OF, IN THE SENTENCE THAT STATES IT (2026-09-22).
+                   The replication census further down has carried a repeat count per family since
+                   the day before this landed, and the finding beside it establishes that every
+                   family on this disk that repeats a draw is bounded more tightly than every one
+                   that does not, with no overlap. The floor the sentence above is stated on is not
+                   one of those families -- it is the worst repeater we hold, 5 of 18 -- so a
+                   reader met the strongest claim this page makes about the choosing with the
+                   evidence that qualifies it two inches below and no way to know it applied. It
+                   renders the count on EVERY branch, zero included: "this floor repeats none" is
+                   the reassurance a reader is owed when it is true, and a line that appears only
+                   when there is bad news teaches a reader that its absence means nothing was
+                   checked. Amber only when it fires. */
+                + repetitionOfTheBound(eb.selection_leg.repetition,
+                                       eb.selection_leg
+                                         .sign_withheld_because_the_family_repeats_draws)
                 + (eb.single_run_gbp === null || eb.single_run_gbp === undefined
                     ? ""
                     : "The one published run below is a single member of that family, "

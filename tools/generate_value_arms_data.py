@@ -119,6 +119,7 @@ import random
 import re
 import statistics
 import subprocess
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -2328,10 +2329,20 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
     # the floor's seed rows directly, so it met no such refusal and published an 18-seed sign over
     # a run from another book. It is the same answer this function's own `staleness_caveat` key
     # is built from, ten lines below -- now passed to the leg instead of only printed beside it.
+    # AND THE SAME IS TRUE OF THE REPEAT COUNT, FOR THE SAME REASON AND ONE DEFECT LATER
+    # (2026-09-22). This is the HEADLINE block -- the strongest claim the page makes about the
+    # choosing, which is the one leg that could be value MADE rather than moved -- and it is stated
+    # on `NOISE_FLOOR_PATH`, the worst repeater on this disk: 5 of its 18 draws return a
+    # `selection_gbp` another of its own draws already returned. The replication census below
+    # publishes a repeat count per family and the cross-family finding that every repeating family
+    # is bounded more tightly than every clean one; the published floor is not one of those
+    # families, so its own count reached the reader nowhere. The evidence that qualifies the
+    # strongest figure on the page sat two inches beneath it and did not reach it.
     leg = _leg_over_its_own_family(
         {"n": n, "mean_gbp": _f(spread.get("mean")), "stdev_gbp": stdev,
          "min_gbp": lo, "max_gbp": hi, "sem_gbp": _f(floor.get("selection_sem_gbp"))},
-        point_estimate, point_clock, _staleness_caveat(floor, three_arm or {}))
+        point_estimate, point_clock, _staleness_caveat(floor, three_arm or {}),
+        _draw_repetition(floor, SELECTION_CONTRAST))
     # Whether the ONE published run is even inside the range the family was drawn over. `None`
     # when either end is missing -- an unknown relationship must not read as a comfortable one.
     inside = leg.get("single_run_inside_the_family")
@@ -3584,6 +3595,15 @@ def _selection_leg_reading(leg: dict, inside, subject: str = "the selection leg"
         return ("The family pins its mean with no measurable error, so how far that mean is from "
                 "zero cannot be stated in units of its own precision and this page states no "
                 "side.{}".format(member))
+    # AND WHAT THE BOUND ITSELF IS MADE OF, APPENDED TO EVERY WITHHOLDING BRANCH BELOW RATHER THAN
+    # FOLDED INTO ONE OF THEM (2026-09-22). It is a third reason and it is independent of both: a
+    # family can repeat draws while clearing its bar, while failing it, on its own book or on
+    # another. Writing it into `sign_withheld_because` would have overwritten the book reason on
+    # the branch where both hold, and dropped "short of the bar" on the branch where the bar is
+    # what failed -- the reader handed one true cause in place of two. So the key is read here,
+    # where the sentence is composed, and every branch that withholds says all of why.
+    repeats = leg.get("sign_withheld_because_the_family_repeats_draws")
+    tail = (" AND THE BOUND ITSELF IS PARTLY THE INSTRUMENT. " + repeats) if repeats else ""
     # TWO REASONS A SIDE IS WITHHELD, AND THEY READ NOTHING ALIKE (2026-09-18). This branch was
     # written when the only way to be unstateable was to sit too few errors from zero, so it said
     # "short of the bar" on every firing. A family from ANOTHER BOOK is now also unstateable --
@@ -3600,9 +3620,19 @@ def _selection_leg_reading(leg: dict, inside, subject: str = "the selection leg"
         return ("The estimate sits {sems:.1f} standard errors from zero against this family's own "
                 "bar of {bar}, but no side is stated for {effect}, because {why} So what is "
                 "published here bounds the seed family and nothing else on this page; the figure "
-                "the rest of the page is drawn from is not graded by it.{member}").format(
-                    sems=sems, bar=bar_text, effect=effect, member=member,
+                "the rest of the page is drawn from is not graded by it.{tail}{member}").format(
+                    sems=sems, bar=bar_text, effect=effect, member=member, tail=tail,
                     why=withheld[0].lower() + withheld[1:])
+    if repeats:
+        # THE BAR IS NOT MENTIONED IN EITHER DIRECTION HERE, for the reason the branch above gives
+        # about the book: a family that repeats draws can sit either side of its own bar, and the
+        # reason its side is withheld is about what the bar is MADE of rather than where the mean
+        # falls against it. Both numbers are printed and the comparison is left to the reader.
+        return ("The estimate sits {sems:.1f} standard errors from zero against this family's own "
+                "bar of {bar}, and this page states no side for {effect} from it. {why} That is a "
+                "finding about the INSTRUMENT and not about the pricing arm, and more draws of "
+                "this instrument are not what settles it.{member}").format(
+                    sems=sems, bar=bar_text, effect=effect, member=member, why=repeats)
     return ("The estimate sits {sems:.1f} standard errors from zero, short of the {bar} this page "
             "requires before stating a side, so this book cannot yet resolve {effect} "
             "of the size it is measuring -- in either direction. That is a finding about the "
@@ -3668,8 +3698,13 @@ def _legs_on_one_bar(floor: dict | None, three_arm: dict | None, split: dict | N
         # (rather than a literal `None`) is what keeps it true if that upstream refusal is ever
         # narrowed: this leg would then withdraw its own membership claim instead of inheriting a
         # permission nobody re-checked.
+        # AND THIS LEG'S OWN REPEAT COUNT, read off the family `_seed_spreads` built rather than
+        # recounted here. Per-contrast on purpose: the selection residual is the leg that pins, and
+        # a level leg graded against the selection leg's repetition would be told about a family it
+        # is not a member of.
         leg = _leg_over_its_own_family(family, run, point_clock,
-                                       _staleness_caveat(floor, three_arm or {}))
+                                       _staleness_caveat(floor, three_arm or {}),
+                                       family.get("repetition"))
         # THE EFFECT NOUN, so the unstateable branch reads about THIS leg. `a selection effect` is
         # the selection leg's and stays its exact words -- a door control is keyed to them.
         effect = ("a selection effect" if key == SELECTION_CONTRAST else
@@ -3856,11 +3891,28 @@ def _draw_repetition(floor: dict | None, key: str | None = None) -> dict:
     moved by 1,625.897961 and the residual is their difference. The arms move in lockstep and the
     residual is pinned. See the 2026-09-22 finding on the narrow width behind the published sign.
 
-    COUNTED, NEVER JUDGED. This returns three integers and no verdict. Whether a repeating family
+    COUNTED, NEVER JUDGED. This returns integers and no verdict. Whether a repeating family
     should be believed is the reader's, and the comparison that bears on it is derived once, over
     every family at a time, in `_width_against_repetition` -- not re-decided per row where five
     copies could drift. A floor whose rows do not carry `key` is UNCOUNTABLE and says so: absent is
     not zero, and zero is the flattering answer.
+
+    TWO COUNTS, BECAUSE THERE ARE TWO QUANTITIES AND THIS KEY USED TO PUBLISH ONE UNDER THE OTHER'S
+    NAME (2026-09-22, found by carrying this block up to the headline). `draws_that_repeat_another`
+    returned `len(values) - distinct` -- 3 on the published floor, whose repeats are one value twice
+    and one value three times. But the finding that minted this function, the staging item that
+    asked for it, and the sentence a reader meets all say **5 of its 18 draws repeat another draw**,
+    and under the plain reading of this key's own NAME they are right: five draws each share their
+    value with some other draw. 2 + 3 = 5; 18 - 15 = 3. Both numbers are correct and they count
+    different things, and for as long as one name carried both a reader could not tell which.
+
+    So both are published and each is named for what it counts. `draws_that_repeat_another` is now
+    what its name has always promised -- how many DRAWS are implicated. `redundant_draws` is the
+    other one: how many draws added no value the family did not already hold, which is what a
+    reader wants when asking how much independent evidence eighteen draws actually bought. They
+    are zero together and positive together, so every rule keyed to `> 0` is unmoved by the
+    correction; only the printed magnitude changes, and it changes to the number the page's own
+    prose was already claiming.
     """
     key = SELECTION_CONTRAST if key is None else key
     seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
@@ -3870,13 +3922,18 @@ def _draw_repetition(floor: dict | None, key: str | None = None) -> dict:
                 "why_not": ("this floor's seed rows do not all carry `{}`, so whether any draw "
                             "repeats another cannot be counted from them -- which is not the same "
                             "as counting none".format(key))}
-    distinct = len(set(values))
+    counts = Counter(values)
+    distinct = len(counts)
     return {"countable": True, "draws": len(values), "distinct_values": distinct,
-            "draws_that_repeat_another": len(values) - distinct,
+            "draws_that_repeat_another": sum(n for n in counts.values() if n > 1),
+            "redundant_draws": len(values) - distinct,
             "what_this_counts": (
                 "re-draws of this floor returning a `{}` another of its own draws already "
-                "returned. A bound computed across repeated draws measures how often the "
-                "instrument pinned, not how far the quantity moves.".format(key))}
+                "returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value "
+                "returned three times implicates three of them; `redundant_draws` counts how many "
+                "added nothing the family did not already hold, which is two fewer for that same "
+                "value. A bound computed across repeated draws measures how often the instrument "
+                "pinned, not how far the quantity moves.".format(key))}
 
 
 #: THE WIDTHS THE TWO GROUPS REACH, as the page's own words for what separates them. Kept here
@@ -5513,6 +5570,15 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
         variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
         contrasts[key] = {"n": len(values), "stdev_gbp": variance ** 0.5, "mean_gbp": mean,
                           "min_gbp": min(values), "max_gbp": max(values),
+                          # HOW MANY OF THOSE DRAWS REPEAT ANOTHER, carried with the family rather
+                          # than re-derived by each consumer. `_selection_sentence` holds no floor
+                          # and can only get this from here, which is the same reason
+                          # `staleness_at_admission` is carried: a consumer that had to re-ask
+                          # would be a second home for the answer, and the two could drift.
+                          # Counted on THIS contrast's own values -- a family can pin one leg and
+                          # move freely on another, and the census is only evidence about the leg
+                          # it was counted over.
+                          "repetition": _draw_repetition(floor, key),
                           # THE BOUND THAT PAIRS WITH THE MEAN, derived here beside it so the two
                           # can never be picked up from different places. `stdev_gbp` is how far
                           # ONE re-draw moves; `sem_gbp` is how well the FAMILY pins its own mean.
@@ -5720,8 +5786,46 @@ def _price_word(count) -> str:
     return "no count under the search ceiling" if count is None else "{} seeds".format(count)
 
 
+def _repetition_withholds(repetition: dict | None) -> str | None:
+    """This family's own reason its bound cannot state a side, or `None` if it has none.
+
+    A STRING IS A REFUSAL AND `None` IS A PASS, which is the way round that lets the caller write
+    `if reason:` and lets the reason itself be what reaches the reader. The alternative -- a bool
+    beside a string -- is two homes for one verdict, and this module has paid for that shape.
+
+    THREE STATES AND NOT TWO. A family that was counted and repeats nothing passes. A family that
+    was counted and repeats something refuses, naming the count. A family that could not be counted
+    at all ALSO refuses, and says which of the two it is: absent is not zero, and a floor whose
+    rows cannot answer the question is not a floor that answered it "no".
+
+    THE NUMBER IN THE SENTENCE IS THE ONE THE KEY HOLDS, never a literal. The day a floor lands
+    that repeats nothing this returns `None` and the page states its side with nobody editing a
+    string; the day one lands that repeats more, the sentence says so.
+    """
+    if not isinstance(repetition, dict):
+        return ("Whether this family's re-draws repeat one another was never counted, so how much "
+                "of its bound is the instrument pinning rather than the quantity moving cannot be "
+                "said -- and an uncounted question is not a question answered 'none'.")
+    if repetition.get("countable") is not True:
+        return ("This family's own rows cannot say whether any of its re-draws repeated another "
+                "({why}), so nothing establishes that the width below is dispersion in the world "
+                "rather than a count of how often the instrument pinned.").format(
+                    why=repetition.get("why_not") or "no reason was recorded")
+    repeats = repetition.get("draws_that_repeat_another")
+    if not isinstance(repeats, int) or repeats <= 0:
+        return None
+    return ("{repeats} of this family's {draws} re-draws returned a value another of its own draws "
+            "had already returned, so the standard error the estimate is graded in units of is "
+            "partly a count of how often this instrument PINNED rather than a measure of how far "
+            "the quantity moves. Across every family on this disk the ones that repeat a draw are "
+            "bounded more tightly than every one that does not, with no overlap between the two "
+            "groups -- so the narrowness that would let this mean clear its bar is the same "
+            "phenomenon as the repetition, and not evidence about the choosing.").format(
+                repeats=repeats, draws=repetition.get("draws"))
+
+
 def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
-                             staleness_caveat: str | None) -> dict:
+                             staleness_caveat: str | None, repetition: dict | None) -> dict:
     """ONE contrast's estimate and ONE contrast's bound, both over the SAME population.
 
     THE DEFECT IT SERVES, and it is the thesis of the page rather than a detail of it. Until
@@ -5777,6 +5881,34 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
     has already paid for, and the flattering direction on the one sentence this block exists to
     get right. `None` here means a caller LOOKED and found the two contemporaneous; a string is
     that caller's own reason they are not.
+
+    `repetition` IS THE SECOND REQUIRED ANSWER, AND IT IS REQUIRED FOR THE SAME REASON (2026-09-22).
+    A bound is a standard deviation across draws, and the sign it states is that bound against its
+    mean. If draws of this family returned values other draws of it had already returned, the bound
+    is partly a measure of how often the instrument PINNED and not of how far the quantity moves --
+    and it is narrow for a reason that has nothing to do with the quantity. On the floor this page
+    publishes, 5 of 18 draws repeat another, and the census two keys down establishes that across
+    every family on this disk the ones that repeat are bounded MORE TIGHTLY than every one that
+    does not, with no overlap. A sign stated across such a family is stated on a width the evidence
+    does not license.
+
+    WHY IT IS A SECOND, INDEPENDENT REFUSAL AND NOT A TIGHTENING OF THE FIRST. Today the published
+    floor fails BOTH tests: it repeats draws AND it priced a different book from the figure. So
+    withdrawing the sign for repetition alone changes nothing a reader sees, and that is exactly
+    why it has to be written as its own rule now rather than later: re-running the floor on the
+    figure's own book is owed work named on this page, and the day it lands the staleness refusal
+    goes quiet. If repetition were folded into that refusal, the sign would come back with the
+    repeated draws still underneath it and nothing anywhere able to notice. A guard that only ever
+    fires behind another guard is a guard nobody has tested.
+
+    `None` HERE MEANS THE CALLER DID NOT LOOK, AND IT WITHHOLDS. So does `countable: False`, which
+    is the floor saying its own rows cannot answer. Absent is not zero and zero is the flattering
+    answer -- the same asymmetry `_draw_repetition` is written to.
+
+    BOTH BRANCHES ARE REACHABLE FROM ARTEFACTS ON THIS DISK, which is what makes this a control and
+    not a refusal of everything: the published folded eighteen repeats 5 of its draws, and the
+    12-seed next12 family of 2026-09-17 repeats none of its twelve. A rule whose passing branch no
+    artefact can reach passes every test of a refusal.
 
     WHAT IS WITHDRAWN WHEN IT FIRES, and what is not. The family's own statistics stay -- they are
     true OF THE FAMILY, and blanking them would hide the only measurement in hand. What goes is
@@ -5849,10 +5981,24 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
     stateable = clears_bar
     if stateable and not one_book:
         stateable = False
+    # AND A FAMILY THAT REPEATS ITS OWN DRAWS STATES NO SIGN EITHER, however far from zero its mean
+    # sits -- because the standard error it is that far from zero IN UNITS OF is partly a count of
+    # how often the instrument pinned. This is the 2026-09-22 refusal and it is independent of the
+    # one above: see the docstring for why folding the two would leave the sign to return silently
+    # the day the book re-run lands.
+    repeats_caveat = _repetition_withholds(repetition)
+    if stateable and repeats_caveat:
+        stateable = False
     # WHY THE PAGE WITHHELD, WHEN THE STATISTICS DID NOT. `None` when nothing was withheld, so the
     # key is empty exactly when there is nothing to explain and never carries a reassuring string.
+    #
+    # BOTH REASONS, WHEN BOTH FIRED. Naming only the first would tell a reader the sign returns
+    # when the book is repaired, which on this floor is false -- and "the reader was given the
+    # wrong cause for a true refusal" is the failure this block has already made once, in the
+    # opposite direction, when a BOOK refusal was explained as a difference of bars.
     withheld_because = (
-        staleness_caveat if (clears_bar is True and stateable is False) else None)
+        " ".join(reason for reason in (staleness_caveat, repeats_caveat) if reason)
+        if (clears_bar is True and stateable is False) else None) or None
     lo, hi = _f((spread or {}).get("min_gbp")), _f((spread or {}).get("max_gbp"))
     stdev = _f((spread or {}).get("stdev_gbp"))
     # WHAT IT WOULD TAKE, PRICED IN THE ONE UNIT THAT ACTUALLY BUYS IT DOWN. The page's remedy
@@ -5924,7 +6070,20 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
         # page that may be reconciled against it -- both ask "does the mean clear its own bar" and
         # neither knows anything about which book the published run came from.
         "clears_its_own_bar": clears_bar,
+        # WHAT THAT BAR-CLEARING IS MADE OF, BESIDE IT AND NOT TWO INCHES DOWN THE PAGE. The
+        # replication census below has carried a per-family repeat count since 2026-09-22 and the
+        # published floor is not one of the families in it, so until this key the count for the one
+        # floor the headline is stated on appeared nowhere. A reader met "2.5 standard errors from
+        # zero against this family's own bar of 2.11" with nothing beside it saying 5 of those 18
+        # draws repeat another. The evidence that qualifies a figure has to travel with it.
+        "repetition": repetition,
         "sign_is_stateable": stateable,
+        # THE REPETITION REFUSAL ON ITS OWN, so which of the two reasons fired is readable from the
+        # payload rather than only by matching substrings of the composed caveat. It is published
+        # whether or not the sign would otherwise have been stateable -- the width is made of what
+        # it is made of regardless of what else is wrong with the pairing, and the day the book
+        # re-run repairs the other refusal this key is what stops the sign returning quietly.
+        "sign_withheld_because_the_family_repeats_draws": repeats_caveat,
         # WHAT THE PUBLISHING HALF ADDED TO THE STATISTICAL ONE, named. Non-null only when the two
         # differ, which is the one state where a reader who saw `clears_its_own_bar: true` beside
         # `sign_is_stateable: false` would otherwise have to guess at the reason.
@@ -14628,8 +14787,15 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # case where it was never able to ask. Writing a literal `None` here would assert one book on
     # the strength of an upstream refusal nobody re-checks, which is the defaulted-permission
     # shape the required parameter exists to prevent.
+    # THE REPEAT COUNT IS READ, NOT TYPED, FOR THE SAME REASON THE STALENESS ANSWER IS. This
+    # function holds no floor either, so it cannot count the repeats itself -- `_seed_spreads`
+    # already did and carries the answer on the family. A literal `None` here would assert "nobody
+    # looked", which withholds, and that is the safe direction; but it would also make this
+    # sentence permanently unable to state a side even after a clean floor lands, which is a
+    # control keyed to today's answer rather than to the property.
     leg = _leg_over_its_own_family(selection_spread, selection, None,
-                                   (spreads or {}).get("staleness_at_admission"))
+                                   (spreads or {}).get("staleness_at_admission"),
+                                   (selection_spread or {}).get("repetition"))
 
     # NO DIRECTION WITHOUT A CONTRAST THAT EARNED ONE. Unknown is treated exactly as "cannot
     # tell": a missing family is not evidence that the sign is safe to state.
