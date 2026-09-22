@@ -288,8 +288,25 @@ def test_the_strength_of_the_replicating_legs_is_measured_and_not_typed():
     # keyed to today's answer agrees with the defect it exists to catch. The subset below drops
     # the family carrying the strongest leg, so a hard-coded number can satisfy at most one of
     # these two and a derived one satisfies both.
+    #
+    # WHICH FAMILY THAT IS, IS DERIVED (2026-09-22). This slice was `[1:]` -- a literal standing
+    # for "the first family carries the strongest leg", which was true of the four families of the
+    # morning and false by the afternoon: the one-variable family added that day reaches 55.97 on
+    # the level leg against the first family's 49.45, so dropping the first stopped moving the
+    # maximum and this control reded while the code became MORE honest. That is a control pinned
+    # to today's answer going red for the reason it exists to prevent, and the repair is to ask
+    # the rows which family carries it rather than to assume an index.
+    replicating = {key for key, leg in gva._the_sign_across_families()["per_leg"].items()
+                   if leg["verdict"] == "replicates"}
+    carrier = max(
+        range(len(gva._REPLICATION_PAIRS)),
+        key=lambda i: gva._strongest_sems(
+            gva._replication_pair_blocks(gva._REPLICATION_PAIRS[i:i + 1]),
+            replicating) or float("-inf"))
+    without_the_carrier = (gva._REPLICATION_PAIRS[:carrier]
+                           + gva._REPLICATION_PAIRS[carrier + 1:])
     full = _quoted(gva._REPLICATION_PAIRS)
-    weaker = _quoted(gva._REPLICATION_PAIRS[1:])
+    weaker = _quoted(without_the_carrier)
     assert full != weaker, (
         "dropping the family that carries the strongest replicating leg did not move the number "
         "the sentence quotes, so that number is not a function of the families at all")
@@ -321,3 +338,150 @@ def test_the_feed_carries_the_census_on_the_branch_that_needs_it():
         assert census.get("families_graded"), (
             "the published pair is REFUSED and the census graded nothing either, so the page is "
             "silent on every leg while four same-world families sit on this disk")
+
+
+def test_the_census_holds_one_variable_fixed_in_both_directions():
+    """Fires on: a census where every family moves the tree AND the seed set at once.
+
+    THE DEFECT THIS FORBIDS IS AN UNATTRIBUTABLE CENSUS, and it is not a wrong number -- it is a
+    result nobody can assign a cause to. Four families that each vary both the instrument (the
+    tree the floor was drawn at) and the seed set can say the selection sign is a property of
+    which floor was drawn, and can say NOTHING about which of the two differences does it. "When a
+    result moves and more than one thing changed, you cannot attribute it" is this project's rule
+    and the census was in exactly that state until 2026-09-22.
+
+    KEYED TO THE PROPERTY AND NOT TO WHICH FAMILY SUPPLIES IT. What is asserted is that the pair
+    set contains a contrast holding the SEED SET fixed while the tree moves, and a contrast
+    holding the TREE fixed while the seed set moves. Any family set with that structure passes;
+    today's happens to get it from the twelve seeds drawn at `4e7938f673`, but nothing here names
+    that file. Drop the one-variable family and BOTH assertions red, which is the point.
+    """
+    fingerprints = []
+    for name, floor_file, _run in gva._REPLICATION_PAIRS:
+        floor = _load(OBSERVABILITY / floor_file)
+        tree = (floor.get("producing_commit") or {}).get("commit")
+        seeds = tuple(sorted(s.get("seed") for s in (floor.get("seeds") or [])
+                             if isinstance(s, dict)))
+        assert tree and seeds, (
+            "{} names no producing commit or no seeds, so this census cannot say what varies "
+            "between it and any other family".format(name))
+        fingerprints.append((name, tree, seeds))
+
+    same_seeds_moving_tree = [(a[0], b[0]) for i, a in enumerate(fingerprints)
+                              for b in fingerprints[i + 1:]
+                              if a[2] == b[2] and a[1] != b[1]]
+    same_tree_moving_seeds = [(a[0], b[0]) for i, a in enumerate(fingerprints)
+                              for b in fingerprints[i + 1:]
+                              if a[1] == b[1] and a[2] != b[2]]
+    assert same_seeds_moving_tree, (
+        "no two families in this census share a SEED SET while differing in the tree they were "
+        "drawn at, so nothing here can attribute a disagreement to the INSTRUMENT -- every "
+        "contrast moves both at once and the census is unattributable by construction")
+    assert same_tree_moving_seeds, (
+        "no two families in this census share a TREE while differing in their seeds, so nothing "
+        "here can attribute a disagreement to the SEED SET, and a census that can only blame the "
+        "instrument has not ruled the seeds out -- it has never asked them")
+
+
+def test_a_floor_that_repeats_no_draw_is_not_a_floor_that_could_not_be_counted():
+    """Fires on: `_draw_repetition` collapsing UNCOUNTABLE into zero repeats.
+
+    A DECLARED `None` AND A SILENT `None` COLLAPSE INTO THE FLATTERING BRANCH, and here the
+    flattering branch is `0`. A floor whose rows do not carry the contrast at all has not been
+    shown to repeat nothing -- it has not been asked -- and a reader shown "0 of 12 draws repeat
+    another" for a floor nobody could count is being handed a clean bill the evidence never gave.
+
+    BOTH OUTCOMES DRIVEN, over a floor built here because the subject is the COUNTER and not the
+    corpus. A counter that can only ever report one of its two answers passes every test of that
+    answer.
+    """
+    def _floor(values):
+        return {"seeds": [{"selection_gbp": v} for v in values]}
+
+    clean = gva._draw_repetition(_floor([1.0, 2.0, 3.0]))
+    assert clean["countable"] is True and clean["draws_that_repeat_another"] == 0, clean
+    assert clean["distinct_values"] == 3 and clean["draws"] == 3, clean
+
+    repeats = gva._draw_repetition(_floor([1.0, 1.0, 1.0, 2.0]))
+    assert repeats["draws_that_repeat_another"] == 2, (
+        "three draws returning one value counts as fewer than TWO draws repeating another, so a "
+        "floor that pinned three times reads as milder than it was: {!r}".format(repeats))
+
+    silent = gva._draw_repetition(_floor([1.0, None, 3.0]))
+    assert silent["countable"] is False, (
+        "a floor whose rows do not all carry the contrast was COUNTED rather than refused, so "
+        "'could not be asked' and 'repeats nothing' reach a reader as the same statement")
+    assert silent.get("why_not"), "the refusal names no reason, so nobody can tell it was one"
+    assert "draws_that_repeat_another" not in silent, (
+        "an UNCOUNTABLE floor still publishes a repeat count, which is the silent zero this "
+        "control exists to forbid")
+    assert gva._draw_repetition({"seeds": []})["countable"] is False, (
+        "a floor with NO seed rows reports a countable zero -- an empty evidence set reading to "
+        "the counter as no complaint")
+
+
+def test_the_width_against_repetition_comparison_reaches_both_of_its_answers():
+    """Fires on: a comparison that can only ever say repetition sorts the widths.
+
+    THE CONTROL THAT MATTERS MOST HERE, for the reason the file header gives: a rule with one
+    reachable branch passes every test OF that branch, and this project has entered that trap
+    through three doors in one afternoon. The sentence this drives qualifies the page's ONLY
+    stated selection sign, so a version of it that says "the narrow bounds are the repeated draws"
+    whatever the evidence shows would be a control keyed to today's answer wearing a reading's
+    clothes -- green on the day the claim rotted.
+
+    THE SUBJECT IS THE COMPARISON, so rows are built here. Nothing below reaches the page:
+    `_the_sign_across_families` grades only committed artefacts through the production rule.
+    """
+    def _row(family, repeats, bound):
+        return {"family": family, "available": True,
+                "repetition": {"countable": True, "draws": 9, "distinct_values": 9 - repeats,
+                               "draws_that_repeat_another": repeats},
+                "legs": {"selection_gbp": {"bound_gbp": bound}}}
+
+    separated = gva._width_against_repetition(
+        [_row("a repeating floor", 2, 300.0), _row("a clean floor", 0, 1500.0)])
+    assert separated["answerable"] is True, separated
+    assert gva._REPEATS_RUN_NARROWER.split("{")[0] in separated["reading"], separated["reading"]
+
+    overlapping = gva._width_against_repetition(
+        [_row("a repeating floor", 2, 1500.0), _row("a clean floor", 0, 300.0)])
+    assert overlapping["answerable"] is True, overlapping
+    assert gva._REPEATS_DO_NOT_SORT_THE_WIDTHS.split("{")[0] in overlapping["reading"], (
+        "a family set where the REPEATING floor is the WIDER one still publishes 'repeats run "
+        "narrower', so the sentence is not a function of the bounds it quotes: {!r}".format(
+            overlapping["reading"]))
+
+    one_group = gva._width_against_repetition(
+        [_row("a repeating floor", 2, 300.0), _row("another repeating floor", 1, 400.0)])
+    assert one_group["answerable"] is False, (
+        "a census with NO clean family still answers whether repetition sorts the widths -- there "
+        "is no second group to compare against, and a question one group cannot be asked agrees "
+        "with every answer to it")
+    assert one_group["reading"], "the unanswerable branch says nothing, so it reads as silence"
+    assert gva._width_against_repetition([])["answerable"] is False, (
+        "an EMPTY census answers the comparison, which is a control's own filters emptying the "
+        "evidence and the guard reading empty as no complaint")
+
+
+def test_every_census_row_carries_its_repeat_count_including_the_ungraded_ones():
+    """Fires on: counting repeats only for the families that graded.
+
+    A floor the bounds rule REFUSED still repeats however many draws it repeats, and that is
+    exactly where a reader most needs the number -- an ungraded family is the one nobody can check
+    through the legs. Publishing the count only on the graded rows would hide it behind the same
+    refusal it qualifies.
+    """
+    census = gva._the_sign_across_families()
+    assert census["families"], "the census grades no family at all"
+    for family in census["families"]:
+        rep = family.get("repetition")
+        assert rep, (
+            "{!r} reaches the feed with no repeat count, so a reader meets its bound with no way "
+            "to ask whether that bound is made of draws that pinned".format(family["family"]))
+        assert rep.get("countable") is True or rep.get("why_not"), (
+            "{!r} is neither counted nor refused with a reason".format(family["family"]))
+    assert census.get("width_against_repetition", {}).get("reading"), (
+        "the census publishes per-family repeat counts and no comparison across them, so the "
+        "question they exist to answer -- whether repeating is what makes a floor narrow -- is "
+        "left for a reader to assemble from five rows")

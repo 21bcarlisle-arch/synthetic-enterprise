@@ -3777,6 +3777,22 @@ _REPLICATION_PAIRS = (
      "value_cycle_ab_s1_noise_floor_next12_20260917.json", "value_cycle_ab_s1_three_arm.json"),
     ("the 12-seed floor of 2026-09-19 09:10",
      "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json", "value_cycle_ab_s1_three_arm.json"),
+    # THE ONE-VARIABLE CONTROL, and it is the reason the four above can now be ATTRIBUTED rather
+    # than only counted (2026-09-22). Each of the four varies BOTH the instrument (the tree the
+    # floor was drawn at) and the seed set at once, so a census over them could say the selection
+    # sign depends on which floor was drawn and could not say WHICH of the two differences does
+    # it. This family is next12's twelve seeds -- the seed set of the two 12-seed rows -- drawn at
+    # `4e7938f673`, the tree of the FIRST row. It therefore shares its seeds with rows three and
+    # four and its tree with row one, and it is the only row here that holds one of the two fixed.
+    #
+    # ITS RUN IS NOT A CHOICE. `value_cycle_ab_s1_three_arm.json` is REFUSED for this floor by
+    # `_floor_admission` on the books' own counts (70-72 accounts at end of window against 52-55,
+    # 164 settled against 154-155), so the 09-10 run is the only one it can be graded against --
+    # which is the same run row one is graded against, and that is what makes the tree the single
+    # moving part. Printed at real inputs before this line was written, not reasoned to.
+    ("the 12-seed floor of 2026-09-18 23:49, on the 09-10 tree",
+     "value_cycle_ab_s1_noise_floor_next12_at_4e7938f673.json",
+     "value_cycle_ab_s1_three_arm_20260910.json"),
 )
 
 
@@ -3818,6 +3834,119 @@ def _replication_artefact(filename: str) -> dict | None:
     return loaded if isinstance(loaded, dict) else None
 
 
+def _draw_repetition(floor: dict | None, key: str | None = None) -> dict:
+    """How many of this floor's re-draws returned a value another of its draws already returned.
+
+    `key` DEFAULTS TO `SELECTION_CONTRAST` AND RESOLVES IN THE BODY, because that constant is
+    bound further down this module than this function is defined -- a default argument would be
+    evaluated at import and raise. Resolving here keeps the one home for the contrast's name.
+
+    WHY A CENSUS OF THE PAGE'S SIGNS OWES THIS NUMBER (2026-09-22, and it is the whole reason this
+    function exists). A family's bound is a standard deviation across its draws, and the sign it
+    states is that bound against its mean. If two draws return the SAME value to fifteen digits,
+    the bound is measuring how often the instrument pinned and not how far the world moves -- and
+    it is narrow for a reason that has nothing to do with the quantity. The floor this page
+    publishes is the worst case on disk: 5 of its 18 draws repeat another draw, and its NEGATIVE
+    selection sign is stated across them.
+
+    IT IS NOT A RE-DRAW THAT FAILED TO FIRE, which is the reading a reader would reach for and the
+    artefacts refute it on their own rows: `elasticity_redrawn` is 292-296 with `held_fixed: 0` on
+    every seed. Two seeds drew materially different passes -- 292 elasticities against 296, value
+    advantage 20,383.78 against 18,757.89 -- and returned the same residual, because both arms
+    moved by 1,625.897961 and the residual is their difference. The arms move in lockstep and the
+    residual is pinned. See the 2026-09-22 finding on the narrow width behind the published sign.
+
+    COUNTED, NEVER JUDGED. This returns three integers and no verdict. Whether a repeating family
+    should be believed is the reader's, and the comparison that bears on it is derived once, over
+    every family at a time, in `_width_against_repetition` -- not re-decided per row where five
+    copies could drift. A floor whose rows do not carry `key` is UNCOUNTABLE and says so: absent is
+    not zero, and zero is the flattering answer.
+    """
+    key = SELECTION_CONTRAST if key is None else key
+    seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
+    values = [_f(seed.get(key)) for seed in seeds]
+    if not values or any(value is None for value in values):
+        return {"countable": False,
+                "why_not": ("this floor's seed rows do not all carry `{}`, so whether any draw "
+                            "repeats another cannot be counted from them -- which is not the same "
+                            "as counting none".format(key))}
+    distinct = len(set(values))
+    return {"countable": True, "draws": len(values), "distinct_values": distinct,
+            "draws_that_repeat_another": len(values) - distinct,
+            "what_this_counts": (
+                "re-draws of this floor returning a `{}` another of its own draws already "
+                "returned. A bound computed across repeated draws measures how often the "
+                "instrument pinned, not how far the quantity moves.".format(key))}
+
+
+#: THE WIDTHS THE TWO GROUPS REACH, as the page's own words for what separates them. Kept here
+#: rather than inlined so the branch a family set lands on is nameable from a test.
+_REPEATS_RUN_NARROWER = (
+    "Every family that repeats a draw is bounded more TIGHTLY than every family that repeats "
+    "none: the widest repeating family is {widest} and the narrowest non-repeating family is "
+    "{narrowest}. The narrow bounds on this page and the repeated draws are one phenomenon and "
+    "not two, and the families that state a sign at all are drawn from the narrow group.")
+_REPEATS_DO_NOT_SORT_THE_WIDTHS = (
+    "The families that repeat a draw and the families that do not OVERLAP in how tightly they are "
+    "bounded -- the widest repeating family is {widest} and the narrowest non-repeating family is "
+    "{narrowest} -- so repetition does not, on this evidence, sort these bounds by width.")
+
+
+def _width_against_repetition(rows: list, key: str | None = None) -> dict:
+    """Are the narrow bounds on this page exactly the families that repeat a draw?
+
+    THE QUESTION A COUNT PER ROW CANNOT ANSWER, and it is the one that bears on the sign. Five
+    per-row repetition counts tell a reader that some floors repeat; only a comparison ACROSS them
+    says whether repeating is what makes a floor narrow -- and the sign the mission turns on rests
+    on a narrow bound. So the comparison is derived once, here, from the same rows the verdicts
+    come from.
+
+    A COMPARISON OF TWO BOUNDS AND NEVER A RATIO OF THEM. Both numbers are standard errors on the
+    same leg in the same currency, so asking which is larger is a question about one quantity.
+    Dividing them would be this file's most expensive recurring shape -- two correct figures whose
+    quotient is not a quantity -- and nothing here divides them.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. The separation is what it measures, so the
+    day a repeating family comes in wide, or a non-repeating one comes in narrow, this returns the
+    overlapping branch and the page says so with nobody editing a sentence. Both branches are
+    reachable from a family set and a control drives each.
+
+    FEWER THAN TWO IN EITHER GROUP AND THERE IS NO COMPARISON TO MAKE. That is reported as
+    UNANSWERABLE with the counts that made it so, never as agreement: a question one group is
+    structurally unable to be asked agrees with every answer to it.
+    """
+    key = SELECTION_CONTRAST if key is None else key  # see `_draw_repetition` on why not a default
+    graded = [r for r in rows
+              if r.get("available") and isinstance((r.get("repetition") or {}).get(
+                  "draws_that_repeat_another"), int)
+              and isinstance(((r.get("legs") or {}).get(key) or {}).get("bound_gbp"), float)]
+    repeating = [r for r in graded if r["repetition"]["draws_that_repeat_another"] > 0]
+    clean = [r for r in graded if r["repetition"]["draws_that_repeat_another"] == 0]
+    block = {"families_compared": len(graded),
+             "families_that_repeat_a_draw": len(repeating),
+             "families_that_repeat_none": len(clean)}
+    if not repeating or not clean:
+        block["answerable"] = False
+        block["reading"] = (
+            "Of the {n} families that grade this leg, {r} repeat a draw and {c} repeat none, so "
+            "there are not two groups here to compare widths between. This page states nothing "
+            "about whether repetition is what makes a floor narrow.".format(
+                n=len(graded), r=len(repeating), c=len(clean)))
+        return block
+    def bound(row):
+        return row["legs"][key]["bound_gbp"]
+    widest = max(repeating, key=bound)
+    narrowest = min(clean, key=bound)
+    block["answerable"] = True
+    block["widest_repeating_family_bound_gbp"] = bound(widest)
+    block["narrowest_non_repeating_family_bound_gbp"] = bound(narrowest)
+    words = {"widest": "{} at {}".format(widest["family"], _gbp(bound(widest))),
+             "narrowest": "{} at {}".format(narrowest["family"], _gbp(bound(narrowest)))}
+    block["reading"] = (_REPEATS_RUN_NARROWER if bound(widest) < bound(narrowest)
+                        else _REPEATS_DO_NOT_SORT_THE_WIDTHS).format(**words)
+    return block
+
+
 def _replication_pair_blocks(pairs=_REPLICATION_PAIRS) -> list:
     """Each named pair, graded by `_legs_on_one_bar` and by nothing else.
 
@@ -3844,7 +3973,12 @@ def _replication_pair_blocks(pairs=_REPLICATION_PAIRS) -> list:
         block = _legs_on_one_bar(floor, run, split, split.get("clock"))
         row = {"family": name, "floor": floor_file, "run": run_file, "readable": True,
                "available": bool(block.get("available")), "seeds": block.get("seeds"),
-               "world_measured_in": block.get("world_measured_in")}
+               "world_measured_in": block.get("world_measured_in"),
+               # ON EVERY ROW INCLUDING THE UNGRADED ONES, and counted off the floor's own seed
+               # rows rather than off the grader -- a floor refused by the bounds rule still
+               # repeats however many draws it repeats, and publishing that only for the families
+               # that happened to grade would hide it exactly where a reader could not check it.
+               "repetition": _draw_repetition(floor)}
         if not block.get("available"):
             row["reason"] = block.get("reason")
             out.append(row)
@@ -3940,6 +4074,13 @@ def _the_sign_across_families(pairs=_REPLICATION_PAIRS) -> dict:
         "families_offered": len(rows),
         "per_leg": per_leg,
         "the_reading": _replication_reading(per_leg, rows),
+        # WHAT THE DISAGREEMENT IS MADE OF, beside the count of it. `per_leg` says the selection
+        # sign is a property of which floor was drawn; this says what separates the floors that
+        # state one from the floors that do not, and the answer is not a fact about the quantity.
+        # Published at the same level as the verdict because a reader who takes the NEGATIVE sign
+        # off this census needs both in one place -- the sign rests on a narrow bound, and the
+        # narrow bounds are the repeated draws.
+        "width_against_repetition": _width_against_repetition(rows),
     }
 
 
