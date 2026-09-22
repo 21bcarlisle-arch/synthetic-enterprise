@@ -624,6 +624,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <div id="arms-composition" style="margin:14px 0 0;font-size:13px;"></div>
   <div id="arms-split"></div>
   <p id="arms-errorbar" style="margin:14px 0 0;"></p>
+  <!-- WHY THE CHOOSING HAS SO LITTLE TO FIND. The two elements above say the selection leg is
+       negative and refuse it a sign; neither says why a per-customer arm should have anything to
+       win in the first place. This does, and it is not a reading of any run: consumption reaches
+       the company's churn belief through ONE term that is identically zero below a declared bill
+       threshold, so the belief is exactly flat in household size for 235 of 244 supply legs --
+       over a book where the world's own churn response spans 11.57x in that same dimension.
+       It sits HERE, immediately under the bar, on this page's ordering rule: a reader who meets
+       the refusal and leaves has been told the measurement was inconclusive, when the mechanism
+       says where the conclusion would have had to come from. Nothing is authored in this block;
+       the sentence is `churn_belief_size.reading`, lifted verbatim from the artefact that
+       measured it, and the population caveat beside it is that artefact's own -- this book is
+       NOT the book the arms above are scored over, and the page says so rather than letting the
+       adjacency imply it. -->
+  <div id="arms-churn-belief-size" style="margin:14px 0 0;"></div>
   <div id="arms-decisions"></div>
   <!-- WHAT THE ACCOUNT COUNT DIRECTLY ABOVE IS A COUNT OF. The decisions block says "the book is
        N settled accounts", and a reader takes N for the business. It is not: our settlement
@@ -2527,6 +2541,122 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           /* ON THIS BRANCH TOO. A page with no bar is the one where a second draw of the same
              figure matters MOST, and rendering it only beside a bar would drop it exactly then. */
           + departureRerun(d.departure_term_rerun);
+
+      /* WHY THE CHOOSING HAS SO LITTLE TO FIND. The bar this element sits under refuses the
+         selection leg a sign; this says where a sign would have had to come from, and it is a
+         property of the company's churn model rather than of any run.
+
+         THE SENTENCE IS THE FEED'S, WORD FOR WORD. `tools/churn_belief_size_response.py`
+         measured it and `_churn_belief_size_response` lifts it unchanged; this page renders it
+         and decides nothing about it. A surface that re-words a measurement's conclusion is a
+         second author of that conclusion, sitting where no control over the measurement can see
+         it -- and this conclusion is unflattering, which is exactly the class a page must not be
+         able to soften on its way to a reader.
+
+         AMBER, AND UNCONDITIONALLY SO. Every other verdict colour on this page branches, because
+         elsewhere there are two states to tell apart. There are not two here: a per-customer
+         belief that is flat in the dimension the world reacts to is the finding whenever this
+         block renders at all, and a branch would only ever be a way of rendering it quietly.
+
+         THE POPULATION LINE IS NOT DECORATION. This artefact's book is `customers.json`'s 244
+         supply legs, which is NOT the book the arms comparison is scored over -- and a figure
+         rendered inside this section without that said would be read as being about the same
+         accounts. The string is the artefact's own; the page does not paraphrase it.
+
+         FAIL-CLOSED, ON THE SURFACE. An unreadable or diverged artefact renders its reason, never
+         an omitted paragraph: an absent account and a discharged one look identical to a reader,
+         and this one is the account of the page's own central refusal. */
+      var cb = d.churn_belief_size || {};
+      var cbSegments = (cb.available && cb.segments ? cb.segments : []).map(function (s) {
+        return '<tr><td style="padding:1px 10px 1px 0;">' + esc(s.segment)
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">' + esc(s.legs)
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + esc(s.above_the_knee)
+          + '</td><td style="padding:1px 0;white-space:nowrap;">'
+          /* THREE STATES. A segment whose artefact carries no answer is not a segment the world
+             ignores, and a two-branch ternary would have printed the second for the first. */
+          + (s.world_reads_their_own_bill === null || s.world_reads_their_own_bill === undefined
+              ? '<span style="color:var(--muted);">not stated</span>'
+              : (s.world_reads_their_own_bill
+                  ? "yes" : '<span style="color:var(--amber);">no</span>'))
+          + "</td></tr>";
+      }).join("");
+      $("arms-churn-belief-size").innerHTML =
+        '<p style="margin:0 0 4px;font-size:13px;"><strong>Why the choosing has so little to '
+        + "find.</strong> "
+        + (cb.available
+            ? prose(cb.what_it_is)
+            : "This reading could not be produced for this publish.")
+        + "</p>"
+        + (cb.available
+            ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
+              + 'color:var(--amber);">' + prose(cb.reading) + "</p>"
+              + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">The knee is a '
+              + "BILL and not a consumption: " + esc(gbp(cb.knee_gbp))
+              + " of previous annual bill, which lands at a different meter reading for every "
+              + "unit rate &mdash; "
+              + (cb.knee_by_rate || []).map(function (k) {
+                  return esc(Number(k.knee_kwh).toLocaleString("en-GB", {
+                    maximumFractionDigits: 0 })) + "&nbsp;kWh at "
+                    + esc(gbp(k.old_rate_gbp_per_mwh)) + "/MWh";
+                }).join(", ")
+              + (cb.knee_kwh_spread_across_the_probe_rates === null
+                 || cb.knee_kwh_spread_across_the_probe_rates === undefined
+                  ? ""
+                  : ", a spread of "
+                    + esc(Number(cb.knee_kwh_spread_across_the_probe_rates).toFixed(2))
+                    + "&times; in kWh across the rates this book was billed at")
+              + ". Of "
+              + esc(cb.supply_legs) + " supply legs, <strong>" + esc(cb.legs_below_the_knee)
+              + "</strong> sit below it"
+              + (cb.share_below_the_knee === null || cb.share_below_the_knee === undefined
+                  ? ""
+                  : " (" + esc((Number(cb.share_below_the_knee) * 100).toFixed(1)) + "%)")
+              + " and " + esc(cb.legs_above_the_knee) + " above, while the world's own churn "
+              + "response spans "
+              + esc(Number(cb.world_multiplier_spread).toFixed(2))
+              + "&times; across the same legs ("
+              + esc(Number(cb.world_multiplier_low).toFixed(1)) + "&ndash;"
+              + esc(Number(cb.world_multiplier_high).toFixed(1)) + ").</p>"
+              + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + '<th style="text-align:left;padding:1px 10px 1px 0;font-weight:600;">Segment</th>'
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Supply '
+              + "legs</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Of which '
+              + "the belief can move for</th>"
+              + '<th style="text-align:left;padding:1px 0;font-weight:600;">Does the world read '
+              + "their own bill?</th></tr>" + cbSegments + "</table></div>"
+              /* THE ASYMMETRY IS STATED, NOT LEFT TO THE TABLE. Two columns a reader has to
+                 difference for themselves is the shape this project publishes misleading things
+                 through. Read from the feed's own verdict, three-valued. */
+              + (cb.the_belief_varies_where_the_world_does_not === true
+                  ? '<p style="margin:4px 0 0;font-size:11px;color:var(--amber);">The one segment '
+                    + "whose every leg the belief can move for is the one segment the world does "
+                    + "not read a bill for &mdash; so where the belief varies, the world does "
+                    + "not, and where the world varies, the belief does not.</p>"
+                  : "")
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(cb.what_the_term_is || "") + "</p>"
+              /* THE UNSOURCED NUMBER, MARKED WHERE A READER MEETS IT. The knee's position is set
+                 by a constant this repository's own register lists as carrying no origin, and an
+                 unsourced figure rendered unmarked is read as established. */
+              + (cb.the_thresholds_own_origin
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:var(--amber);">'
+                    + prose(cb.the_thresholds_own_origin) + "</p>"
+                  : "")
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(cb.bill_is_an_upper_bound || "") + "</p>"
+              /* WHICH BOOK THIS IS OVER, said inside the section whose other figures are over a
+                 different one. See the block comment. */
+              + (cb.population_is_not_this_pages_book
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:var(--amber);">'
+                    + prose(cb.population_is_not_this_pages_book) + "</p>"
+                  : "")
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(cb.what_it_cannot_say || "") + " " + prose(cb.not_a_target || "") + "</p>"
+            : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+              + prose(cb.why || "") + "</p>");
 
       var dec = d.decisions || {};
       if (dec.available) {

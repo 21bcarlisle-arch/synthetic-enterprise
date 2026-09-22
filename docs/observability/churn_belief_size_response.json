@@ -1,0 +1,190 @@
+{
+ "what_this_is": "Whether the company's per-customer churn belief carries information in the dimension the world's churn response is most sensitive to -- household size -- and how this book's own accounts fall either side of the point where it starts to.",
+ "what_this_cannot_say": "It does not price the gap. It says whether the belief can express a difference the world makes, not what failing to express it costs, and no figure here is a target.",
+ "knee": {
+  "available": true,
+  "by_rate": [
+   {
+    "old_rate_gbp_per_mwh": 150.0,
+    "knee_kwh": 20000.5,
+    "knee_prev_annual_bill_gbp": 3000.1
+   },
+   {
+    "old_rate_gbp_per_mwh": 250.0,
+    "knee_kwh": 12000.1,
+    "knee_prev_annual_bill_gbp": 3000.0
+   },
+   {
+    "old_rate_gbp_per_mwh": 400.0,
+    "knee_kwh": 7500.6,
+    "knee_prev_annual_bill_gbp": 3000.3
+   }
+  ],
+  "the_knee_is_a_bill_not_a_consumption": true,
+  "kwh_spread_across_the_probe_rates": 2.67,
+  "declared_threshold_gbp": 3000.0,
+  "declared_sensitivity": 0.25,
+  "the_thresholds_own_origin": "NOT ESTABLISHED. `BILL_STRESS_THRESHOLD_GBP` appears in `tools.domain_constant_origins --list`, i.e. this repository's own register of domain constants carrying no origin, and `churn_model`'s docstring justifies it as \"the threshold where empirically customers start actively switching\" without citing what established that. Reported, not repaired: the knee's POSITION is not what this measures, and re-picking an unsourced number would replace one invention with another.",
+  "what_the_term_is": "An absent term below the knee, not a band with wrong edges and not saturation. `bill_stress = sens * max(0, prev_annual_bill / threshold - 1)` is the ONLY place `estimate_churn_probability` reads consumption, and below the threshold `max` returns exactly 0.0, so d(belief)/d(consumption) is exactly zero. The term models financial DISTRESS at a large bill; household SIZE has no term in this model at any value."
+ },
+ "partition": {
+  "available": true,
+  "probed_at_old_rate_gbp_per_mwh": 250.0,
+  "probed_at_price_differential_pct": 0.12,
+  "resi": {
+   "below_the_knee": {
+    "annual_kwh": 3000.0,
+    "segment": "resi",
+    "prev_annual_bill_gbp": 750.0,
+    "company_belief": 0.166,
+    "world_multiplier": 1.36,
+    "world_reads_this_households_own_bill": true
+   },
+   "above_the_knee": {
+    "annual_kwh": 25000.0,
+    "segment": "resi",
+    "prev_annual_bill_gbp": 6250.0,
+    "company_belief": 0.436833,
+    "world_multiplier": 8.6,
+    "world_reads_this_households_own_bill": true
+   },
+   "belief_moves": true,
+   "world_moves": true
+  },
+  "sme": {
+   "below_the_knee": {
+    "annual_kwh": 3000.0,
+    "segment": "SME",
+    "prev_annual_bill_gbp": 750.0,
+    "company_belief": 0.166,
+    "world_multiplier": 2.232,
+    "world_reads_this_households_own_bill": false
+   },
+   "above_the_knee": {
+    "annual_kwh": 25000.0,
+    "segment": "SME",
+    "prev_annual_bill_gbp": 6250.0,
+    "company_belief": 0.436833,
+    "world_multiplier": 2.232,
+    "world_reads_this_households_own_bill": false
+   },
+   "belief_moves": true,
+   "world_moves": false
+  },
+  "the_belief_varies_where_the_world_does_not": true
+ },
+ "book": {
+  "available": true,
+  "source": "site/data/customers.json",
+  "billing_accounts": 164,
+  "supply_legs": 244,
+  "legs_above_the_knee": 9,
+  "legs_below_the_knee": 235,
+  "share_below_the_knee": 0.9631,
+  "households_without_a_bill": 0,
+  "knee_used_gbp": 3000.0,
+  "leg_annual_bill_gbp": {
+   "min": 9.1,
+   "p10": 394.3,
+   "p50": 739.3,
+   "p90": 1630.7,
+   "max": 13174.9
+  },
+  "leg_annual_kwh": {
+   "min": 35.0,
+   "p10": 1622.5,
+   "p50": 3759.6,
+   "p90": 12976.2,
+   "max": 41575.5
+  },
+  "world_multiplier_over_this_book": {
+   "min": 1.0,
+   "p10": 1.2,
+   "p50": 1.6,
+   "p90": 2.7,
+   "max": 11.7
+  },
+  "world_multiplier_spread": 11.57,
+  "by_segment": {
+   "SME": {
+    "legs": 2,
+    "above_the_knee": 2,
+    "world_reads_their_own_bill": false
+   },
+   "resi": {
+    "legs": 242,
+    "above_the_knee": 7,
+    "world_reads_their_own_bill": true
+   }
+  },
+  "the_legs_above_the_knee": [
+   {
+    "cid": "PROS-2024-0082",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 41576.0,
+    "bill_upper_bound_gbp": 13175.0
+   },
+   {
+    "cid": "C6",
+    "segment": "SME",
+    "fuel": "electricity",
+    "annual_kwh": 25067.0,
+    "bill_upper_bound_gbp": 4610.0
+   },
+   {
+    "cid": "PROS-2024-0197",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 3567.0,
+    "bill_upper_bound_gbp": 4380.0
+   },
+   {
+    "cid": "C5",
+    "segment": "SME",
+    "fuel": "electricity",
+    "annual_kwh": 20423.0,
+    "bill_upper_bound_gbp": 4309.0
+   },
+   {
+    "cid": "PROS-2019-0302",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 11339.0,
+    "bill_upper_bound_gbp": 4040.0
+   },
+   {
+    "cid": "C8",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 11459.0,
+    "bill_upper_bound_gbp": 3373.0
+   },
+   {
+    "cid": "PROS-2018-0192",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 14685.0,
+    "bill_upper_bound_gbp": 3280.0
+   },
+   {
+    "cid": "PROS-2016-0098",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 11488.0,
+    "bill_upper_bound_gbp": 3211.0
+   },
+   {
+    "cid": "PROS-2018-0002",
+    "segment": "resi",
+    "fuel": "electricity",
+    "annual_kwh": 16416.0,
+    "bill_upper_bound_gbp": 3129.0
+   }
+  ],
+  "bill_is_an_upper_bound": "Each leg's bill here is its whole annual revenue, standing charge included; the model's own input takes the standing charge back out. So this OVERSTATES the model's input and can only move legs INTO the above-knee set -- the claim that 235 legs sit below it is safe in the direction it is made.",
+  "population_is_not_the_published_arms_book": "NOT THE 154 ACCOUNTS BEHIND `site/data/value_arms.json`. Those per-account rows are not persisted: `value_cycle_ab_s1_three_arm_20260918.json` carries `book_identity` counts and mentions `phase2b.all_records` only inside prose, so reconstructing them means re-running the arms. This is the book this tree holds per-account, and whether the 154-account book fell differently against the knee is NOT ESTABLISHED."
+ },
+ "reading": "The company's churn belief is FLAT in household size for 235 of this book's 242 domestic supply legs. Consumption reaches `estimate_churn_probability` through one term, `bill_stress`, which is identically zero below GBP 3000 of previous annual bill -- an absent term, not saturation and not a mis-placed band edge, because the estimate still moves freely with price at every consumption. The knee is a BILL: at GBP 250/MWh it falls at 12000 kWh and it moves 2.67x in kWh across the rate deck this book was billed at. Over the same book the world's own churn multiplier spans 11.57x, because it scales the price differential by each household's OWN annual spend. And the asymmetry is exact: the world reads a household's own bill for domestic supply only, so the one segment where the company's belief DOES vary with size is the segment where the world's does not. A per-customer belief that is constant in the dimension the world reacts to is a flat rule wearing a per-customer name in that dimension -- which is the baseline the thesis has to beat. This does not price that gap and is not an instruction to close it.",
+ "not_a_target": "R12. A belief that does not vary in a dimension is a diagnostic about the belief. Nothing here instructs the company to make it vary, and the epistemic wall is untouched either way: a supplier meters its own customers, which is why the world's own `churn_position_multiplier` calls consumption something the company can legitimately act on."
+}

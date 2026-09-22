@@ -4909,6 +4909,19 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("customers.json generation failed: {}".format(exc))
     try:
+        # IMMEDIATELY AFTER THE BOOK IT READS, and that ordering is the whole reason it is here
+        # rather than anywhere else: `churn_belief_size_response` counts this book's supply legs
+        # either side of the point where the company's churn belief starts to hear consumption at
+        # all, so a copy generated against the PREVIOUS run's book would publish a census of a
+        # population this company no longer holds -- the defect
+        # `WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26` names, one
+        # artefact over.
+        from tools.churn_belief_size_response import generate as gen_belief_size
+        gen_belief_size()
+        log("Generated docs/observability/churn_belief_size_response.json")
+    except Exception as exc:
+        log("churn belief size response generation failed: {}".format(exc))
+    try:
         from tools.generate_supplier_json import generate as gen_supplier
         gen_supplier(json_path)
         log("Generated site/data/supplier.json")
