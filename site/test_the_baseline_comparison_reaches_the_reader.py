@@ -7832,3 +7832,50 @@ def test_MUTATION_a_family_that_repeats_a_draw_renders_amber_and_a_clean_one_doe
     assert "var(--amber)" not in _own_span(
         _rendered(0, raw=True), "0 of 12 draws repeat another"), (
         "a family that repeats nothing is ambered anyway, so the amber qualifies nothing")
+
+
+def test_the_HEADLINE_floors_own_repeat_count_reaches_the_reader(live):
+    """THE DEFECT: the qualification was two inches down the page and did not reach the claim.
+
+    The census above carries a repeat count per family, and the finding beside it establishes that
+    every family on this disk that repeats a draw is bounded more tightly than every one that does
+    not, with no overlap. The floor the HEADLINE is stated on -- the strongest claim this page
+    makes about the choosing, and the one leg that could be value MADE rather than moved -- is not
+    one of those families. So a reader met "sits 2.5 standard errors from zero against this
+    family's own bar of 2.11" with its own count published nowhere, while the evidence that
+    qualifies it rendered a few hundred pixels below about OTHER floors.
+
+    KEYED TO THE FEED'S OWN COUNT AND NOT TO 5-OF-18. The day a floor drawn clean at this book
+    lands, the count goes to zero and this control asserts THAT number arrived instead. A control
+    pinned to today's answer reds when the evidence improves and stays green when the claim rots.
+    """
+    leg = ((_live_feed().get("error_bar") or {}).get("selection_leg") or {})
+    rep = leg.get("repetition") or {}
+    rendered = live["arms-errorbar"]
+    assert rep, (
+        "the headline block publishes no repeat count for the floor it is stated on, so the "
+        "sentence a reader meets carries no qualification and nothing on the page can supply one")
+    if rep.get("countable") is not True:
+        assert _door_prose(rep["why_not"]) in rendered, (
+            "the page cannot say whether its own floor repeated a draw and does not tell the "
+            "reader that -- an uncounted question rendering as a question answered 'none'")
+        return
+    assert "{} of those {} draws repeat another draw".format(
+        rep["draws_that_repeat_another"], rep["draws"]) in rendered, (
+        "the headline floor's repeat count is in the feed and not on the page")
+    # AND THE CONSEQUENCE, NOT ONLY THE COUNT. A number with nothing saying what it does to the
+    # bound is a number a reader skims past; the producer's own sentence is what makes it a
+    # qualification, and it is asserted here rather than re-typed so the two cannot drift.
+    why = leg.get("sign_withheld_because_the_family_repeats_draws")
+    if rep["draws_that_repeat_another"] > 0:
+        assert why, (
+            "the published floor repeats its own draws and the feed states no consequence, so the "
+            "page's strongest claim is qualified by a bare integer")
+        assert _door_prose(why) in rendered, (
+            "the reason the count matters is in the feed and not on the page")
+        assert leg.get("sign") is None and leg.get("sign_is_stateable") is not True, (
+            "the page states a side off a bound partly made of draws that pinned")
+    else:
+        assert why is None, (
+            "a floor that repeats nothing carries a refusal keyed to repetition, so the refusal "
+            "is not keyed to the property it names")
