@@ -773,12 +773,24 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:    short of it, and 1,312.3 is where this box stops long before that. "This world cannot reach
 #:    it" is the complete answer, and it is now measured on both legs rather than asserted.
 #:
-#: WHAT IS STILL OWED, named so it is not read as closed. **Two live constants both declare
-#: themselves the publish cadence and they differ by 112x** — `publish_freshness` at 604,800s
-#: (the director's, 2026-09-04) and `suite_duration_watch` at 5,400s, which is what stamps
-#: `publish_gate_duration.jsonl` and therefore what the probe falls back to. That is a repo
-#: defect and not a director question. Filed:
-#: `docs/staging/SEAT_RESULT_THE_CEILING_COST_CURVE_IS_CONVEX_..._2026-09-21.md`.
+#: WAS OWED, AND IS NOW CLOSED BY ANOTHER LANE — kept rather than deleted, because the reason it
+#: closed is a fact about THIS constant. It read: *"Two live constants both declare themselves the
+#: publish cadence and they differ by 112x"* — `publish_freshness` at 604,800s (the director's,
+#: 2026-09-04) and `suite_duration_watch` at 5,400s, which stamps `publish_gate_duration.jsonl`
+#: and is therefore what the probe falls back to.
+#:
+#: **REPAIRED 2026-09-21 and landed mid-turn while this constant was being re-derived**, by the
+#: rename `suite_duration_watch.PUBLISH_CADENCE_SECONDS` → `MEASURED_RUN_ARRIVAL_SECONDS`, with
+#: `tests/architecture/test_the_publish_cadence_has_one_home.py` over it. The two numbers were
+#: never one quantity: one is a DECISION (how often we publish, his), the other an OBSERVATION
+#: (how often runs arrive, ours). **Why it matters here and not just there:
+#: `settlement_ceiling_probe.recommend()` was spending the OBSERVATION as the publish interval
+#: this ceiling is priced against — the circularity this note records as removed, re-entered
+#: through a second door nobody re-asked. And the two answers differ in KIND: against 5,400s the
+#: binding leg is TIME, against 604,800s it is MEMORY.** The derivation above took 604,800s from
+#: `publish_freshness` directly and never read the artefact's `publisher.cadence_seconds: 5400`,
+#: so it is on the right side of that repair — but it would not have been if it had trusted the
+#: artefact's own field, and the next reader should know which one it read.
 #:
 #: WHAT IS BEING MEASURED, AND WHY IT IS A CURVE AND NOT A NUMBER. A chosen interval only
 #: becomes a ceiling through a cost curve — seconds and MB per marginal customer-year — so the

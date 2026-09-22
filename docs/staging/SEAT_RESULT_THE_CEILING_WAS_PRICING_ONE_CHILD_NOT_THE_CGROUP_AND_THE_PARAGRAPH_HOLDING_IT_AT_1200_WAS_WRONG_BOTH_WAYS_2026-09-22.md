@@ -133,8 +133,22 @@ secants: 1,200→2,000 = 3.7466 MB/cy ; 2,000→2,800 = 4.9964 MB/cy
    OOM-kill day — 2.41x what the unit peaks at now. Over-declared, therefore **fail-CLOSED** (the
    governor refuses jobs it could admit), therefore not urgent. Named so it is not mistaken for
    agreement.
-5. **Two constants still both claim to be THE publish cadence, 112x apart** — carried by the live
-   claim `one-publish-cadence-two-constants-112x-apart`, not by this item.
+5. ~~**Two constants still both claim to be THE publish cadence, 112x apart**~~ — **CLOSED, and
+   this claim of mine went stale between filing and promoting.** The lane holding
+   `one-publish-cadence-two-constants-112x-apart` landed the repair while this constant was being
+   re-derived; I met it as an adopted path in the reconciliation merge, re-asked it rather than
+   taking the commit message at face value, and it holds: `suite_duration_watch`'s constant is
+   renamed `MEASURED_RUN_ARRIVAL_SECONDS` with
+   `tests/architecture/test_the_publish_cadence_has_one_home.py` over it.
+   **It bears directly on this derivation and not only on that lane.** Their document is explicit:
+   *"Against 5,400s the binding leg is TIME; against 604,800s it is MEMORY. The two answers differ
+   in kind, not degree."* — and `settlement_ceiling_probe.recommend()` had been spending the
+   measured arrival rate as the publish interval this ceiling is priced against, re-entering the
+   circularity this constant's note records as removed. **The derivation above read 604,800s from
+   `publish_freshness` directly and never touched the artefact's `publisher.cadence_seconds: 5400`,
+   so it is on the right side of the repair by construction rather than by luck** — but an
+   invocation that had trusted the artefact's own field would have concluded TIME binds and shipped
+   a different number. Recorded because the near-miss is the finding, not the outcome.
 
 ## 6. The control, and the mutation that proves it can fail
 
