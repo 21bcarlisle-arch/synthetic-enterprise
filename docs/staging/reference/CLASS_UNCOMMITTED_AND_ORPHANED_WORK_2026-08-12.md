@@ -69,12 +69,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
 
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_RESULT_THE_ORPHANED_SVT_COMMIT_WAS_DROPPED_BY_JUDGEMENT_NOT_LOST_AND_ITS_ONE_SURVIVING_ASSET_IS_AN_EQUIVALENCE_PROOF_2026-09-19.md` — lane `W2_customer_generator`
-
 ## Disposition
 
 **Decision:** OPEN

@@ -205,6 +205,55 @@ def test_an_unreadable_tree_costs_the_note_and_never_the_draw(
     assert "LANE 0 DELIVERY" in dl.doorbell(dict(ALL_SHAPES, id="an-id", why=""))
 
 
+#: One item spreading FOUR DIFFERENT real paths across the four prose fields, one each. Built this
+#: way so the leg below is a control over the whole key partition rather than four legs: a reading
+#: that drops any single key leaves exactly one path ungraded and cannot pass.
+ONE_PATH_PER_FIELD = {
+    "id": "one-path-per-prose-field",
+    "what": "Land pile/already.py.",
+    "why": "pile/revert.py is a pure revert of the helper.",
+    "done_means": "done means pile/holder.py carries the new name.",
+    "note": "left behind: pile/plain.py.",
+}
+
+
+def test_every_prose_field_an_item_carries_reaches_the_classifier(tree: Path) -> None:
+    """THE DEFECT, measured 2026-09-22 on the live continuation store (360 entries). This note built
+    its text from a hand-rolled `what + why` while `direction_path_check._item_text` -- which the
+    orientation door and the hand-off door both go through -- read the canonical
+    `_ITEM_PROSE_KEYS`. 54 entries named a tracked path in `done_means` or `note` and in NEITHER
+    `what` nor `why`, 68 such paths, every one invisible here. `done_means` is where "done means the
+    row is in `docs/design/maturity_map.yaml`" lives, so the blind field was the one carrying the
+    artefact the tick must actually touch.
+
+    ONE ASSERT OVER THE WHOLE PARTITION, NOT A LEG PER FIELD. Four legs would each pass against a
+    reader that had merely SWAPPED which pair of keys it reads, and the mutation this has to catch
+    -- `_ITEM_PROSE_KEYS` narrowed back to any subset -- is exactly a subset. Keyed to the property
+    (every field an item carries reaches the door) and not to today's tuple, so widening the tuple
+    later does not red it and narrowing it does.
+    """
+    note = dl.path_note(ONE_PATH_PER_FIELD)
+    missing = [p for p in ("pile/already.py", "pile/revert.py", "pile/holder.py", "pile/plain.py")
+               if "`{}`".format(p) not in note]
+    assert not missing, (
+        "{} named in this item's prose never reached the classifier, so a tick is sent at bytes "
+        "nothing graded -- the field each one sits in is the field the note is blind to".format(
+            missing))
+
+
+def test_the_widened_text_does_not_cost_the_verdicts_their_accuracy(tree: Path) -> None:
+    """A WIDER READ THAT MISGRADES IS WORSE THAN A NARROW ONE THAT DOES NOT, because the rows now
+    cover the paths a reader would otherwise have checked by hand. The four paths above are one of
+    each shape, so this pins that spreading them across fields changes WHICH paths are graded and
+    never WHAT they are graded as."""
+    note = dl.path_note(ONE_PATH_PER_FIELD)
+    for path, tag in (("pile/already.py", "already landed"), ("pile/revert.py", "predates landing"),
+                      ("pile/holder.py", "holder work"), ("pile/plain.py", "dirty")):
+        assert "`{}` -- [{}]".format(path, tag) in note, (
+            "`{}` reached the note but was not graded `{}`; a path picked up by the widening and "
+            "then mislabelled sends the reader through the wrong door".format(path, tag))
+
+
 def test_a_classifier_that_cannot_decide_says_so_rather_than_saying_dirty(
         tree: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """`we cannot tell` is a result and belongs on the surface. Collapsing an ungraded path into
