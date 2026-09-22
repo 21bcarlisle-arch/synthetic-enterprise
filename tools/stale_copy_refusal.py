@@ -26,6 +26,18 @@ TWO RULES, AND THE ORDER THEY WERE ARRIVED AT IS EVIDENCE, SO IT IS RECORDED HER
      not one. Cheap, exact, and it catches a deletion that rule 1 misses because the deleted name
      came from an older commit than C.
 
+  4. PREDATES-BY-CLOCK (`clock_judge`, added 2026-09-22). Rules 1 and 2 have NO READER outside
+     `READABLE`, so `violations()` skipped `.md`, `.yaml` and `.json` in silence -- which is where
+     the maturity map, the knowledge layer, the simplification notes and the staging record live.
+     There, rule 1's line evidence is applied ONLY to a copy whose own mtime predates C. The clock
+     is a TRIGGER, not a verdict: measured on the live tree, a clock-only rule refuses 13.1% of
+     tracked-modified paths and rule 1 positively vouches for nineteen of them, because
+     `surgical_land` never writes the working tree and clock-staleness is therefore the normal
+     resting state of a shared checkout. What the clock buys is the `.json` exclusion this module
+     rejected widening `READABLE` for: a regenerated artefact has a mtime NEWER than the landing, so
+     it never enters. See `clock_judge` for the full measurement. (Rule 3 is `index_residue`, a
+     different subject on the same door; the numbering is historical and left alone.)
+
 WHICH DOOR THE REFUSAL NAMES IS A THIRD QUESTION, AND IT HAS THREE ANSWERS, NOT TWO. A copy that
 supplies a name the base lacks was called HOLDER WORK and sent to `surgical_land --content`. That is
 a set difference, and a set difference cannot tell a name the base NEVER HAD from one it CUT ON
@@ -117,9 +129,12 @@ from tools.symbol_landing_check import _bound_names
 
 ROOT = Path(__file__).resolve().parent.parent
 
-#: Suffixes this control has an opinion about. Anything else yields `None` -- no opinion, reported
-#: as such. Generated artefacts are deliberately absent: `site/data/*.json` is REWRITTEN whole on
-#: every publish, so "lost a line" is its normal operation and not a finding.
+#: Suffixes the CONTENT rules (1 and 2) have an opinion about. Anything else falls to `clock_judge`,
+#: which reaches a strict subset of it, and whatever that declines is reported as no-opinion.
+#: Generated artefacts are deliberately absent here: `site/data/*.json` is REWRITTEN whole on every
+#: publish, so "lost a line" is its normal operation and not a finding. That reason is why widening
+#: this tuple is still the wrong move -- `clock_judge` excludes the same population by the file's
+#: own mtime instead, which is a property of the artefact rather than a list that rots.
 PY_SUFFIXES = (".py",)
 PAGE_SUFFIXES = (".html", ".js")
 READABLE = PY_SUFFIXES + PAGE_SUFFIXES
@@ -189,6 +204,7 @@ _PAGE_ANCHORS = (
 PREDATES = "predates_landing"
 SUBSET = "strict_symbol_subset"
 UNPARSEABLE = "unparseable"
+CLOCK = "predates_landing_by_clock"
 
 
 class Unparseable(Exception):
@@ -676,6 +692,17 @@ class Loss:
                        for c in self.cuts)
 
     def remedy(self) -> str:
+        if self.rule == CLOCK:
+            # The door is NOT in doubt here, which is why this branch precedes the `gains is None`
+            # one that would otherwise claim it. `gains` is None for every CLOCK loss because these
+            # are the paths no symbol reader can read -- but the clock has already established the
+            # thing `gains` exists to guess at: this copy was taken before the landing, so it cannot
+            # be holder work over it, and `isolate_hunks` has nothing legitimate to select.
+            return ("      REMEDY: your copy of this file is OLDER than {} -- it was taken before "
+                    "that\n      landing, so it cannot be carrying work built ON it. Re-open the "
+                    "file at HEAD\n      (`python3 -m tools.refresh_to_head {}` surveys it; "
+                    "`--write --slug NAME`\n      preserves these bytes and writes HEAD's over "
+                    "them) and re-apply your edit.".format(self.commit[:9], self.path))
         if self.gains is None:
             return ("      REMEDY: cannot tell which door -- this copy's names could not be read, "
                     "so\n      neither `refresh_to_head` nor `isolate_hunks` is licensed until "
@@ -721,6 +748,10 @@ class Loss:
                       "reverts it:".format(len(self.detail), self.commit[:9]),
             SUBSET: "      would DELETE {} name(s) HEAD has, and adds none:".format(
                 len(self.detail)),
+            CLOCK: "      this file's mtime PREDATES commit {}, and your copy contains not one of "
+                   "the {}\n      distinctive line(s) that commit added here -- so it was taken "
+                   "before that landing\n      and this commit reverts it:".format(
+                       self.commit[:9], len(self.detail)),
             UNPARSEABLE: "      {}".format(self.detail[0] if self.detail else "did not parse"),
         }[self.rule]
         shown = list(self.detail[:6]) if self.rule != UNPARSEABLE else []
@@ -757,6 +788,89 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
         # A strict subset supplies nothing by definition, so the door is never in doubt here.
         return Loss(path, SUBSET, tuple(sorted(before - after)), gains=())
     return None
+
+
+# --------------------------------------------- rule 4: predates the landing, by the file's own clock
+
+
+def committed_at(root: Path, commit: str) -> int | None:
+    """`commit`'s COMMITTER epoch seconds, or `None` if git will not answer.
+
+    COMMITTER AND NOT AUTHOR, because the question is *when did these bytes appear in this
+    repository* and not *when were they written*. A cherry-pick, a rebase and a `surgical_land`
+    re-derivation all keep the author date of the original -- which can be days before a working
+    copy that is nonetheless stale against the landing."""
+    out = _git(root, "log", "-1", "--format=%ct", commit)
+    text = out.stdout.strip()
+    return int(text) if out.returncode == 0 and text.isdigit() else None
+
+
+def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | None,
+                parent: str = "HEAD") -> Loss | None:
+    """Rule 1's line evidence, carried to the paths rule 1 has NO READER FOR, and made safe there by
+    the file's own mtime.
+
+    THE GAP THIS OWNS, and it is not the one the direction that commissioned it named. The item said
+    *nothing in the landing path asks whether the bytes are OLDER than HEAD*. That is false of
+    `.py`/`.html`/`.js` and has been since 2026-09-08: measured on this tree on 2026-09-22, all five
+    of the stale copies in the HDD pile that motivated the item are already refused by `judge`. What
+    is true is that `violations()` skips every suffix outside `READABLE` in silence, and that is
+    where the map, the knowledge layer, the simplification notes and the staging record live. On the
+    same tree, `docs/design/simplifications/A49_...yaml` was a working copy that deletes the entire
+    record of two landed ceiling instruments and the gating decision between them, and no control in
+    this repository could see it.
+
+    WHY THE CLOCK IS THE TRIGGER AND NOT THE VERDICT, measured rather than argued. The rule as
+    commissioned -- refuse when the last commit is newer than the working copy -- fires on 47 of the
+    358 tracked-modified paths on this tree, 13.1%. Nineteen of those are paths `judge` positively
+    VOUCHES for: they carry the landing's own distinctive lines. The reason is structural and is
+    this module's oldest recorded finding -- `surgical_land` **never writes the working tree**, by
+    design, so every landing leaves every other lane's copy stale by mtime while its content is
+    perfectly current. Clock-staleness is the NORMAL resting state of a shared checkout, so a clock
+    verdict refuses honest work through the one legal door, which is the pressure toward bypass this
+    module exists to remove. Narrow-and-armed beats wide-and-turned-off, again.
+
+    WHY THE CLOCK IS NEEDED AT ALL, when the line evidence is already suffix-agnostic. Widening
+    `READABLE` was considered when this module was written and rejected for a stated reason: a
+    generated `.json` is REWRITTEN WHOLE on every publish, so "contains not one line of the last
+    commit" is its ordinary operation and not a finding. The clock excludes that population BY
+    CONSTRUCTION rather than by a suffix list that will rot -- a regenerated artefact has a mtime
+    newer than the landing, so it never enters this rule at all. The clock is what makes the line
+    evidence safe outside `READABLE`; the line evidence is what stops the clock refusing the honest
+    nineteen. Neither leg is worth shipping without the other, and this is one rule, not two.
+
+    THE BYTES MUST BE THE BYTES ON DISK. Everywhere else in this module the subject is the tree the
+    commit would create, never the working tree, precisely because `surgical_land --content` supplies
+    bytes that are on no disk anywhere. An mtime is a fact about a file, so it can say nothing about
+    bytes that came from somewhere else -- and reading it as though it could would grade a `--content`
+    landing by the clock of the file it is overwriting. So this rule asks whether the result blob IS
+    the working copy, and yields no opinion when it is not. That is narrower than it could be and it
+    is the only honest width.
+
+    NO EVIDENCE IS NO OPINION, never a refusal -- the same discipline as `judge`'s `if distinctive:`
+    guard. A commit whose every added line is trivial or repeated leaves nothing to ask, and a
+    clock-only refusal is exactly the verdict the measurement above refuted."""
+    if head_text is None or new_text is None or Path(path).suffix in READABLE:
+        return None
+    try:
+        if (root / path).read_text(encoding="utf-8", errors="replace") != new_text:
+            return None  # the bytes are not from disk, so this file's mtime does not describe them
+        mtime = (root / path).stat().st_mtime
+    except OSError:
+        return None
+    commit = last_commit_touching(root, path, parent)
+    if not commit:
+        return None
+    landed = committed_at(root, commit)
+    if landed is None or landed <= mtime:
+        return None
+    distinctive = distinctive_lines(root, path, commit)
+    if not distinctive:
+        return None
+    present = {ln.strip() for ln in new_text.splitlines()}
+    if any(d in present for d in distinctive):
+        return None
+    return Loss(path, CLOCK, distinctive, commit)
 
 
 def adopted_from_merge(root: Path, parent: str, ref: str,
@@ -814,10 +928,14 @@ def violations(root: Path, parent: str, result: str, paths: list[str],
                if merge_ref is not None else frozenset())
     out = []
     for path in sorted(set(paths)):
-        if path in allow or path in adopted or Path(path).suffix not in READABLE:
+        if path in allow or path in adopted:
             continue
-        loss = judge(root, path, blob_at(root, parent, path), blob_at(root, result, path),
-                     parent=parent)
+        before, after = blob_at(root, parent, path), blob_at(root, result, path)
+        # `judge` owns READABLE and `clock_judge` owns everything else; each returns None outside
+        # its own population, so the two can never hold a second opinion about one path.
+        loss = (judge(root, path, before, after, parent=parent)
+                if Path(path).suffix in READABLE
+                else clock_judge(root, path, before, after, parent=parent))
         if loss is not None:
             out.append(loss)
     return out
@@ -919,16 +1037,24 @@ def base_caveat(root: Path = ROOT) -> str:
 def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
     """(losses, no_opinion) over everything the working tree changes vs HEAD."""
     changed = [p for p in _git_text(root, "diff", "--name-only", "HEAD").splitlines() if p.strip()]
-    losses = []
-    for path in sorted(p for p in changed if Path(p).suffix in READABLE):
+    losses, no_opinion = [], []
+    for path in sorted(changed):
+        readable = Path(path).suffix in READABLE
         try:
             work = (root / path).read_text(encoding="utf-8", errors="replace")
         except OSError:
+            if not readable:
+                no_opinion.append(path)
             continue
-        loss = judge(root, path, blob_at(root, "HEAD", path), work)
+        loss = (judge(root, path, blob_at(root, "HEAD", path), work) if readable
+                else clock_judge(root, path, blob_at(root, "HEAD", path), work))
         if loss is not None:
             losses.append(loss)
-    return losses, sorted(p for p in changed if Path(p).suffix not in READABLE)
+        elif not readable:
+            # A CLOCK no-opinion is still a no-opinion, and it belongs in the section that says so.
+            # This leg takes a BITE out of the unread population; it does not read it.
+            no_opinion.append(path)
+    return losses, no_opinion
 
 
 # --------------------------------------------------------------------------- rule 3: index residue

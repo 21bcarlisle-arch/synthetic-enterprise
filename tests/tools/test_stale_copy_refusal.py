@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ast
 import builtins
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -1000,3 +1001,227 @@ def test_the_sentinel_key_cannot_be_mistaken_for_a_censused_path(repo: Path) -> 
     assert "\0" in scr.UNGRADED_DOORS, "a sentinel a filename could hold is not a sentinel"
     losses, no_opinion = scr.census(repo)
     assert scr.UNGRADED_DOORS not in {loss.path for loss in losses} | set(no_opinion)
+
+
+# ------------------------------------------- rule 4: predates the landing, by the file's own clock
+#
+# The defect: `violations()` skipped every suffix outside `READABLE` IN SILENCE, so `.md`, `.yaml`
+# and `.json` -- the maturity map, the knowledge layer, the simplification notes, the staging record
+# -- passed the one legal landing door unread. Measured on the live tree 2026-09-22:
+# `docs/design/simplifications/A49_...yaml` was a working copy that deletes the whole record of two
+# landed ceiling instruments and the gating decision between them, and no control could see it.
+#
+# THE CLOCK IS THE TRIGGER, NOT THE VERDICT, and that is the half these tests exist to hold. A
+# clock-only rule -- the shape the commissioning item specified -- fires on 47 of 358 tracked-modified
+# paths on the live tree, and rule 1 positively VOUCHES for nineteen of them: `surgical_land` never
+# writes the working tree, so clock-staleness is the normal resting state of a shared checkout.
+
+#: The note as minted. The landing below ADDS to this, which is the shape every live record has --
+#: a fixture whose landing commit also CREATES the file makes its whole body distinctive, and any
+#: stale copy sharing one original line would then read as fresh.
+NOTE_MINTED = (
+    "# The ceiling\n\n"
+    "The first paragraph, written when this note was minted and never since touched.\n"
+)
+
+#: A record file with the shape the live ones have: a long distinctive line per landed correction.
+NOTE_LANDED = (
+    NOTE_MINTED
+    + "\nCORRECTED 2026-09-22 by the measurement it was waiting on: the bound is 1.09x and not "
+      "4.5x.\n"
+)
+
+#: The stale copy: taken before that correction landed, and carrying an edit of its own, so it is
+#: not an identity and nothing about it looks like a revert from the outside.
+NOTE_STALE = (
+    NOTE_MINTED + "\nA sentence this lane added to the old copy, so the diff is not empty.\n"
+)
+
+
+def _clock_fixture(repo: Path, name: str = "note.md", landed: str = NOTE_LANDED,
+                   stale: str = NOTE_STALE) -> str:
+    """Land `landed`, then put `stale` on disk with an mtime BEFORE the landing.
+
+    THE MTIME IS SET EXPLICITLY AND NOT SLEPT FOR. git's commit timestamps have one-second
+    resolution, so a fixture that relied on wall-clock ordering would be flaky in exactly the
+    direction that hides the defect -- the two stamps land in the same second, `landed <= mtime`
+    holds, and the rule yields no opinion while looking exercised."""
+    _commit(repo, name, NOTE_MINTED, "the note is minted")
+    sha = _commit(repo, name, landed, "lane B lands a correction")
+    (repo / name).write_text(stale)
+    landed_at = scr.committed_at(repo, sha)
+    os.utime(repo / name, (landed_at - 60, landed_at - 60))
+    return sha
+
+
+def test_a_stale_record_copy_is_refused_where_no_content_rule_can_read_it(repo: Path) -> None:
+    """THE DEFECT ITSELF. `.md` has no symbol reader and never will, so before this leg the ONE
+    legal landing door had no opinion at all about the knowledge layer or the staging record."""
+    sha = _clock_fixture(repo)
+    loss = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE)
+    assert loss is not None and loss.rule == scr.CLOCK, (
+        "a copy older than the landing, carrying not one line of it, was waved through")
+    assert loss.commit == sha
+    assert any("1.09x" in d for d in loss.detail)
+
+
+def test_the_content_rules_alone_have_no_opinion_on_that_copy(repo: Path) -> None:
+    """THE REFUTATION, kept as a control so the new leg cannot quietly stop being the thing that
+    fires. If `judge` ever answers here, the test above stops demonstrating why rule 4 exists."""
+    _clock_fixture(repo)
+    assert scr.judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE) is None
+    assert scr.symbols(NOTE_STALE, "note.md") is None
+
+
+def test_a_clock_stale_copy_that_carries_the_landing_is_not_refused(repo: Path) -> None:
+    """THE FALSE-POSITIVE FLOOR, AND IT IS THE MEASURED POPULATION. Nineteen of the 47 clock-stale
+    paths on the live tree are this: `surgical_land` never writes the working tree, so a lane's copy
+    is stale BY CLOCK the instant anyone lands anything, while its content is perfectly current.
+    Refuse these and the one legal door refuses honest work, which is the pressure toward bypass
+    this whole module exists to remove."""
+    _clock_fixture(repo)
+    current = NOTE_LANDED + "\nAnd this lane's own new paragraph, built on top of that correction.\n"
+    os.utime(repo / "note.md", (0, 0))  # as stale by the clock as a file can be
+    (repo / "note.md").write_text(current)
+    os.utime(repo / "note.md", (0, 0))
+    assert scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), current) is None, (
+        "a copy carrying the landing's own line was refused for its mtime; the clock is a trigger, "
+        "not a verdict")
+
+
+def test_a_regenerated_artefact_is_outside_this_rule_by_its_own_clock(repo: Path) -> None:
+    """WHY THE CLOCK EARNS ITS PLACE rather than just widening `READABLE`. A generated `.json` is
+    REWRITTEN WHOLE on every publish, so "contains not one line of the last commit" is its ordinary
+    operation -- that is the stated reason this module refused to widen the suffix list. The clock
+    excludes that population BY CONSTRUCTION: a regenerated artefact is NEWER than the landing.
+
+    Without this leg's mtime condition the line evidence alone refuses it, which is asserted here so
+    the exclusion cannot be read as an accident of the fixture."""
+    sha = _commit(repo, "feed.json", '{\n  "measured_run_arrival_seconds": 112.5\n}\n', "publish")
+    regenerated = '{\n  "measured_run_arrival_seconds": 97.25\n}\n'
+    (repo / "feed.json").write_text(regenerated)
+    landed_at = scr.committed_at(repo, sha)
+    os.utime(repo / "feed.json", (landed_at + 60, landed_at + 60))
+    head = scr.blob_at(repo, "HEAD", "feed.json")
+    assert scr.clock_judge(repo, "feed.json", head, regenerated) is None
+
+    present = {ln.strip() for ln in regenerated.splitlines()}
+    assert not any(d in present for d in scr.distinctive_lines(repo, "feed.json", sha)), (
+        "this fixture no longer demonstrates the exclusion: the line evidence alone passes it, so "
+        "the clock is not what is doing the work")
+
+
+def test_bytes_that_never_touched_this_disk_get_no_clock_opinion(repo: Path) -> None:
+    """THE SUBJECT IS THE TREE THE COMMIT WOULD CREATE, and everywhere else in this module that is
+    why the working tree is never read. `surgical_land --content` supplies bytes on no disk
+    anywhere; an mtime is a fact about a FILE, so it describes those bytes not at all. Read anyway,
+    it would grade a `--content` landing by the clock of the file it is overwriting -- refusing a
+    freshly-authored replacement because the file it lands over is old."""
+    _clock_fixture(repo)
+    supplied = NOTE_STALE + "\nBytes composed in memory and handed to --content.\n"
+    assert scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), supplied) is None
+
+
+def test_no_evidence_is_no_opinion_and_never_a_clock_only_refusal(repo: Path) -> None:
+    """THE FAIL-CLOSED DIRECTION IS TOWARD SILENCE HERE, and this is the leg that holds the
+    trigger/verdict split from the other side. A commit whose every added line is trivial leaves
+    nothing to ask; answering CLOCK anyway is precisely the 13.1%-of-the-tree rule the measurement
+    refuted."""
+    sha = _commit(repo, "thin.md", "# T\n\n- a\n", "a landing with no distinctive line")
+    assert scr.distinctive_lines(repo, "thin.md", sha) == (), (
+        "this fixture must have NO evidence or it is testing the other branch")
+    (repo / "thin.md").write_text("# T\n\n- b\n")
+    landed_at = scr.committed_at(repo, sha)
+    os.utime(repo / "thin.md", (landed_at - 60, landed_at - 60))
+    assert scr.clock_judge(repo, "thin.md", scr.blob_at(repo, "HEAD", "thin.md"), "# T\n\n- b\n") \
+        is None
+
+
+def test_the_two_judgements_never_both_speak_for_one_path(repo: Path) -> None:
+    """ONE QUESTION, ONE IMPLEMENTATION. This repo's most expensive recurring shape is one rule with
+    several implementations that drift apart (the VAT rule, five times over). `judge` owns READABLE
+    and `clock_judge` owns its complement; each must be silent outside its own population, or a path
+    carries two verdicts and the refusal text renders whichever was appended first."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    (repo / "m.py").write_text(STALE_WITH_OWN_WORK)
+    os.utime(repo / "m.py", (0, 0))
+    assert scr.clock_judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), STALE_WITH_OWN_WORK) \
+        is None, "the clock leg answered for a path the content rules already own"
+    _clock_fixture(repo)
+    assert scr.judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE) is None
+
+
+def test_the_clock_refusal_names_the_commit_and_a_door_that_exists(repo: Path) -> None:
+    """A refusal whose stated remedy the tool would refuse is the pressure toward bypass. `gains` is
+    None for every CLOCK loss -- no symbol reader can read a `.md` -- and the `gains is None` branch
+    says "cannot tell which door", which is FALSE here: the clock has established the copy predates
+    the landing, so it cannot be holder work over it and `isolate_hunks` has nothing to select."""
+    sha = _clock_fixture(repo)
+    loss = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE)
+    text = scr.refusal_text([loss])
+    assert sha[:9] in text, "a refusal that does not name the commit cannot be checked by its reader"
+    assert "refresh_to_head" in text
+    assert "isolate_hunks" not in text, (
+        "the copy predates the landing, so isolate_hunks has nothing legitimate to select -- naming "
+        "it sends the lane to a tool that will correctly refuse")
+
+
+def test_the_clock_leg_is_wired_into_the_landing_door(repo: Path) -> None:
+    """FAIL-SILENT. The whole finding is that `violations()` skipped these suffixes; a leg that only
+    answers when someone imports it by name leaves the door exactly as open as it was.
+
+    THE ASSERTION IS ON `violations()`' OWN ANSWER over a real result tree, not on the source text,
+    because the skip this closes was a `continue` INSIDE that function."""
+    sha = _clock_fixture(repo)
+    _run(repo, "add", "note.md")
+    result = _run(repo, "write-tree").strip()
+    losses = scr.violations(repo, "HEAD", result, ["note.md"])
+    assert [loss.rule for loss in losses] == [scr.CLOCK], (
+        "the landing door still has no opinion about a path outside READABLE")
+    assert losses[0].commit == sha
+    assert scr.violations(repo, "HEAD", result, ["note.md"],
+                          allow=frozenset({"note.md"})) == [], (
+        "the declared-deletion escape hatch must reach this leg too, or a lane meeting it has no "
+        "legal move at all")
+
+
+def test_the_whole_clock_partition_is_reachable_in_one_tree(repo: Path) -> None:
+    """A CONTROL OVER THE PARTITION, NOT A LEG PER BRANCH. A `clock_judge` hardwired to `None`
+    passes every false-positive test above; one hardwired to a Loss passes the refusal test. Only
+    asking for all three answers at once refuses both."""
+    _clock_fixture(repo)
+    refused = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE)
+
+    fresh = NOTE_LANDED + "\nBuilt on top of the correction.\n"
+    (repo / "note.md").write_text(fresh)
+    os.utime(repo / "note.md", (0, 0))
+    vouched = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), fresh)
+
+    # The SAME stale content as the refused case, so the fresh clock is the only thing between this
+    # path and a refusal -- otherwise this leg would pass for the line evidence and prove nothing.
+    _commit(repo, "other.md", NOTE_MINTED, "a second note is minted")
+    sha = _commit(repo, "other.md", NOTE_LANDED, "a second landing")
+    (repo / "other.md").write_text(NOTE_STALE)
+    landed_at = scr.committed_at(repo, sha)
+    os.utime(repo / "other.md", (landed_at + 60, landed_at + 60))
+    current_clock = scr.clock_judge(repo, "other.md", scr.blob_at(repo, "HEAD", "other.md"),
+                                    NOTE_STALE)
+
+    assert refused is not None and refused.rule == scr.CLOCK, "the refusal is unreachable"
+    assert vouched is None, "the line-evidence exemption is unreachable"
+    assert current_clock is None, "the fresh-clock exemption is unreachable"
+
+
+def test_the_census_reports_a_clock_no_opinion_as_a_no_opinion(repo: Path) -> None:
+    """VACUOUS EXTRACTION IS A REPORTED STATE, NOT A PASS -- the rule this module already holds for
+    `symbols()`, carried to the new leg. `clock_judge` takes a BITE out of the unread population; it
+    does not read it, and a path it declined must stay in the section that says so or the census
+    publishes a coverage it has not got."""
+    sha = _commit(repo, "quiet.md", NOTE_LANDED, "a landing")
+    (repo / "quiet.md").write_text(NOTE_LANDED + "\nan edit made after the landing\n")
+    os.utime(repo / "quiet.md", (scr.committed_at(repo, sha) + 60,) * 2)
+    losses, no_opinion = scr.census(repo)
+    assert "quiet.md" not in {loss.path for loss in losses}
+    assert "quiet.md" in no_opinion, (
+        "a path this leg declined vanished from both columns, so the census reports a coverage it "
+        "does not have")
