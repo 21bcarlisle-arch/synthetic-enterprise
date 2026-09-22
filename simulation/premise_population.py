@@ -1505,6 +1505,35 @@ def retained_settlement_records_per_customer_year(
 #: quoted for ever.
 WHOLE_RUN_RSS_CURVE_GLOB = "docs/observability/settlement_ceiling_slope_*.json"
 
+#: THE PRODUCTION PARENT THE PROBE NEVER SPAWNS, in MB, and the reason this file needs it at
+#: all. `tools/settlement_ceiling_probe.py` runs the value cycle as ONE child and records that
+#: child's `ru_maxrss`. In production the same cycle runs under the `sim_runner.py` daemon, and
+#: the thing that has to fit the box is the PAIR -- which is what the kernel accounts and what
+#: `resource_headroom.admit()` asks about. Anchoring the ceiling on the child alone published a
+#: bound the run could not actually hold.
+#:
+#: WHERE THE VALUE COMES FROM -- two instruments reading the same run at the same budget,
+#: recorded 2026-09-22 in
+#: `docs/staging/SEAT_RESULT_THE_CEILING_WAS_PRICING_ONE_CHILD_NOT_THE_CGROUP_AND_THE_PARAGRAPH_HOLDING_IT_AT_1200_WAS_WRONG_BOTH_WAYS_2026-09-22.md`:
+#:
+#:     systemd MemoryPeak for sim-runner.service, 8 runs at budget 1,200   5,734.4 MB  (cgroup)
+#:     settlement_ceiling_slope_20260921.json point 1, budget 1,200        5,507.4 MB  (child)
+#:     difference                                                            227.0 MB
+#:
+#: WHY IT IS NOT READ LIVE, and this is the trap to avoid rather than a preference. The cgroup
+#: figure is only comparable to the child figure when both describe the SAME budget. The moment
+#: `SETTLEMENT_CUSTOMER_YEAR_BUDGET` moves, `weight_drift("sim_run")` starts reporting the peak
+#: of the NEW book, so `live_cgroup - probe_child` stops being the parent and becomes the parent
+#: plus the marginal cost of the ceiling's own increase -- an offset that grows every time the
+#: ceiling is raised, which is the flattering direction. The pairing is historical by
+#: construction and a fresh probe run is what re-establishes it, not a fresh read.
+#:
+#: WHAT IT IS AND IS NOT. One paired observation of a fixed cost, so read it as a FLOOR on the
+#: parent rather than a precise figure; it is the conservative direction, because understating
+#: the parent overstates the book. It moves only the anchor, never the slope: a constant offset
+#: cancels in the difference of two peaks.
+PRODUCTION_PARENT_RSS_MB = 227.0
+
 
 def load_whole_run_rss_curve(path: str | None = None) -> dict:
     """The MEASURED whole-run RSS curve, read off the probe's own report.
@@ -1522,6 +1551,14 @@ def load_whole_run_rss_curve(path: str | None = None) -> dict:
     new name would put the optimistic number back with a fresh signature on it. The clean
     flag is the probe's own: a point whose `book_growth_campaign.json` was rewritten mid-run
     has a contaminated x-axis, so its customer-years are not its own even though its RSS is.
+
+    ANCHORED ON THE CGROUP, NOT ON THE PROBE'S CHILD. The report's `peak_rss_mb` is one
+    process; production runs the same cycle under `sim_runner.py` and the kernel counts both.
+    `PRODUCTION_PARENT_RSS_MB` is added to the ANCHOR only -- see its note for why it is a
+    recorded pairing and not a live read. The raw child figure stays on the return as
+    `anchor_peak_child_rss_mb` so the correction is visible rather than absorbed: a reader who
+    finds this number disagreeing with the artefact should be able to see the 227.0 MB rather
+    than conclude the artefact was misread.
     """
     import glob as _glob
 
@@ -1570,10 +1607,15 @@ def load_whole_run_rss_curve(path: str | None = None) -> dict:
         "path": named,
         "generated_at_utc": report.get("generated_at_utc"),
         "git_head": report.get("git_head"),
+        # THE SLOPE IS UNCORRECTED ON PURPOSE. Both peaks omit the same parent, so the offset
+        # cancels here; adding it to a difference would double-count it into the marginal,
+        # which is the term the whole ceiling is most sensitive to.
         "mb_per_customer_year": (float(hi["peak_rss_mb"]) - float(lo["peak_rss_mb"])) / span,
         "seconds_per_customer_year": (float(hi["wall_s"]) - float(lo["wall_s"])) / span,
         "anchor_customer_years": float(lo["customer_years_committed"]),
-        "anchor_peak_rss_mb": float(lo["peak_rss_mb"]),
+        "anchor_peak_rss_mb": float(lo["peak_rss_mb"]) + PRODUCTION_PARENT_RSS_MB,
+        "anchor_peak_child_rss_mb": float(lo["peak_rss_mb"]),
+        "production_parent_rss_mb": PRODUCTION_PARENT_RSS_MB,
         "anchor_wall_s": float(lo["wall_s"]),
         "clean_points": len(clean),
         "share_of_guest_the_run_may_hold": share.get("share_of_guest_the_run_may_hold"),
@@ -1657,6 +1699,10 @@ def settled_book_ceiling_customer_years(
             "clean_points": curve.get("clean_points"),
             "anchor_customer_years": curve.get("anchor_customer_years"),
             "anchor_peak_rss_mb": curve.get("anchor_peak_rss_mb"),
+            # BOTH HALVES OF THE ANCHOR, published. The corrected figure alone would read as
+            # something the artefact says, and it is not -- the artefact says the child.
+            "anchor_peak_child_rss_mb": curve.get("anchor_peak_child_rss_mb"),
+            "production_parent_rss_mb": curve.get("production_parent_rss_mb"),
         },
         "prices_which_record_population": WHOLE_RUN_FOOTPRINT_POPULATION,
         # DERIVED, NOT WRITTEN DOWN. The string this replaced pinned "1,200", "slack by
