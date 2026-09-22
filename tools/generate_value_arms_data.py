@@ -149,6 +149,10 @@ from tools.product_gate_refusal import refusal_breakdown
 # this project's most expensive recurring shape is one question with several implementations. The
 # bar is imported rather than re-spelled so the two cannot drift apart again.
 from tools.run_value_cycle_ab import (
+    # THE SEARCH CEILING COMES FROM THE SOLVER IT BOUNDS, for the reason above. `_seed_price_interval`
+    # states where the price stops being reachable, and a second spelling of that ceiling here is
+    # how the sentence and the solver come to disagree about what "unreachable" means.
+    _SEEDS_SEARCH_CEILING,
     BOOK_REALISED_FIELDS,
     FLOOR_RUN_PEAK_MB,
     SIGN_TAIL_PROBABILITY_EACH_SIDE,
@@ -380,9 +384,34 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
 #: from the advantage family -- so the two families stay separate and the block that reads this
 #: one says in every branch that it is not the family the advantage is bounded over.
 #:
-#: WHAT IT MAY NEVER BE USED FOR. It bounds nothing else on this page. Its seeds' `selection_gbp`
-#: must not join the error bar's family, and its spread must not become any figure's interval:
-#: `_auc_against_its_own_null` publishes the family's own sd explicitly as REFUTED for that use.
+#: WHAT IT MAY NEVER BE USED FOR, NAMED AS TWO PROHIBITIONS RATHER THAN ONE BLANKET (2026-09-22).
+#: This block said "it bounds nothing else on this page" for five days, and that sentence forbids
+#: MORE THAN THE TWO THINGS IT WAS WRITTEN TO FORBID -- which is why it has to be narrowed rather
+#: than kept as the safe wording. The two real prohibitions:
+#:
+#:   1. THE FOLD. Its twelve seeds must not join the error bar's eighteen. That fold moves the
+#:      ADVANTAGE family from 18 draws to 21, which is the sibling lane's subject, and the folded
+#:      21 would state NO BOOK at all (`folded18` declares none, so the union declares none).
+#:   2. THE SPREAD-AS-INTERVAL. Its `stdev` must not become any figure's error bar.
+#:      `_auc_against_its_own_null` publishes the family's own sd explicitly as REFUTED for that
+#:      use, and a width from one family around an estimate from another is this page's own
+#:      thesis-defect committed a second time.
+#:
+#: AND WHAT THE BLANKET WAS WRONGLY REFUSING, which is the reading the page actually needs. This
+#: family's twelve seeds are ALL DRAWN ON BOOK 154 (`billing_accounts_settled_in_window`, 12 of 12,
+#: min == max), and 154 is the book the PUBLISHED FIGURE prices. `NOISE_FLOOR_PATH`'s folded
+#: eighteen are all on book 164. So next12 is the only floor on disk that is a floor FOR THE RUN
+#: THE PAGE IS DRAWN FROM -- same book, one book -- and the eighteen, whatever their draw count,
+#: are a family the published run is not a member of. Reading next12's own mean and standard error
+#: as the published figure's floor is therefore PERMITTED and is not case 1 or case 2: it folds
+#: nothing and it lends its width to no other estimate. The prohibition is on MIXING this family
+#: with the eighteen, never on reading it on its own book.
+#:
+#: THE PRICE OF THAT PERMISSION IS PAID IN `_leg_over_its_own_family`, not waived here. On book 154
+#: the selection leg reads mean -£1,069.48 at 12 seeds with a standard error of £1,558.36 -- 0.686
+#: errors from zero against a bar of 2.201. It does not clear, so no sign follows from it, and the
+#: seed count that would buy one is NOT PUBLISHABLE EITHER for the reason that function records.
+#: Permitting the reading is not permitting a conclusion from it.
 #:
 #: MOVED 2026-09-19 FROM THE THREE TO THE TWELVE, and the paragraph above is why it was allowed:
 #: this constant bounds nothing but itself, so it may be chosen on DRAWS and never on answers. The
@@ -3830,11 +3859,22 @@ _BOUNDED_CONTRASTS = ("value_advantage_gbp", "level_advantage_gbp", "selection_g
 #: SO IT NOW SEPARATES THE TWO QUANTITIES rather than choosing between them, and points at the
 #: block that prices the seeds -- `error_bar.selection_leg.seeds_needed_to_state_a_sign`, which
 #: is derived from the family on disk and cannot go stale the way this sentence did.
+#:
+#: AND THE POINTER WENT STALE ANYWAY, ON 2026-09-22, WHICH IS THE THIRD TIME THIS SENTENCE HAS
+#: BEEN MADE FALSE BY A CORRECTION THREE THOUSAND LINES AWAY. "The error bar below prices how many
+#: the family on disk would need" was true of the key it named until `_seed_price_interval`
+#: established that the key can never carry a count: the price has the estimate in its denominator
+#: and is only ever asked of an estimate whose interval contains zero. The claim is not narrowed
+#: here, it is INVERTED -- seeds are still the right KIND of remedy, and the number of them is not
+#: a finite quantity. Pointing at a key that is structurally `None` would send a reader to an empty
+#: field to find a price this page has established does not exist.
 MORE_SEEDS_WOULD_NOT = (
     "More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. "
     "What they do buy is how well those draws pin their own MEAN, which is the quantity this "
-    "page states a side from -- the error bar below prices how many the family on disk would "
-    "need.")
+    "page states a side from. How many would be needed is NOT a number this page can give: the "
+    "count divides by the estimate itself, and it is only ever asked when that estimate's own "
+    "interval contains zero -- so it has no upper bound. The error bar below publishes that "
+    "interval and the reason, in place of a count.")
 
 #: The half that is a CLAIM ABOUT WHERE THE SPREAD COMES FROM, and was published as fact for a day
 #: before anyone measured it. The floor re-draws elasticity for ~2,050 households and the arm
@@ -4857,6 +4897,96 @@ def _spread_for(spreads: dict | None, key: str):
 # at more than one family size -- so it was retired rather than reconciled.
 
 
+def _seed_price_interval(mean, sem, stdev, clears_bar) -> dict | None:
+    """What the seed price is worth AS AN INTERVAL, and whether that interval has an upper end.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-22). `seeds_needed_to_state_a_sign` was published as a bare
+    integer -- 101 on the book-154 family -- in a key whose whole grammar is a plan: draw this many
+    and you will know. It is not a plan. The count solves `|m| > t(k-1) * s / sqrt(k)`, so it
+    scales as `(t * s / |m|)^2` with the ESTIMATE IN THE DENOMINATOR, and it is quoted only when
+    that estimate has failed its own sign bar -- which is exactly the statement that its confidence
+    interval contains zero. A denominator that may be zero gives a quotient with no upper bound.
+
+    SO THE TWO STATES COINCIDE AND THAT IS THE FINDING. A family that clears its bar wants no
+    seeds; a family that does not clear its bar cannot be priced. There is no third state, so no
+    family this page can hold yields a publishable count -- and saying that once, here, is worth
+    more than a key that silently never fills.
+
+    WHAT IS PUBLISHED INSTEAD. The point evaluation is kept, because withholding the measurement
+    would hide the only arithmetic in hand -- but it is named `at_the_point_estimate` rather than
+    `needed`, and it is published beside the two endpoints one standard error either side of the
+    denominator and beside the explicit statement that those endpoints ARE NOT A RANGE. On the live
+    family they are 19 and 471; the interval between them straddles zero, so the quantity is larger
+    than both over a band in the middle and unbounded at the crossing. A reader handed "19 to 471"
+    has been handed a bound that does not exist, which is why `these_two_are_not_a_range` is a
+    published field and not a comment in this docstring.
+
+    THE UNBOUNDEDNESS IS KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. `has_no_upper_bound`
+    reads `clears_bar`, which IS the test of whether the denominator's interval contains zero. The
+    day a family pins its mean past its own bar, this whole block goes `None` with nobody editing
+    a string -- because the question stops being asked, not because the answer changed.
+
+    FAILS CLOSED. Anything unreadable -- no mean, no error, no verdict on the bar -- returns `None`
+    rather than a block asserting the price is fine.
+    """
+    mean_f, sem_f, stdev_f = _f(mean), _f(sem), _f(stdev)
+    if mean_f is None or sem_f is None or stdev_f is None or clears_bar is not False:
+        return None
+    point = seeds_to_state_a_sign(mean_f, stdev_f)
+    # THE TWO ENDS OF THE DENOMINATOR'S OWN ONE-ERROR INTERVAL. `low`/`high` name the DENOMINATOR's
+    # position, not the price's: a denominator further from zero is CHEAPER, so the prices come
+    # back in the opposite order to the bounds that produced them. Naming them by the price would
+    # invite exactly the min/max reading this block exists to refuse.
+    low, high = mean_f - sem_f, mean_f + sem_f
+    # WHERE THE SEARCH GIVES UP, IN THE UNITS OF THE DENOMINATOR. Closed form, not a scan: the
+    # ceiling family's own bar is `t(ceiling-1)` and its error is `s / sqrt(ceiling)`, so any mean
+    # inside this magnitude is unpriceable by any family the search will look at.
+    unpriceable_below = (sems_to_state_a_sign(_SEEDS_SEARCH_CEILING) * stdev_f
+                         / math.sqrt(_SEEDS_SEARCH_CEILING))
+    straddles_zero = low <= 0.0 <= high
+    band = ((min(high, unpriceable_below) - max(low, -unpriceable_below)) / (2.0 * sem_f)
+            if sem_f > 0 else None)
+    return {
+        "at_the_point_estimate": point,
+        "denominator_gbp": mean_f,
+        "denominator_error_gbp": sem_f,
+        "denominator_one_error_low_gbp": low,
+        "denominator_one_error_high_gbp": high,
+        "price_at_the_low_end_of_the_denominator": seeds_to_state_a_sign(low, stdev_f),
+        "price_at_the_high_end_of_the_denominator": seeds_to_state_a_sign(high, stdev_f),
+        "these_two_are_not_a_range": (
+            "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the "
+            "PRICE's. The price is not monotone between them: it rises without limit as the "
+            "denominator approaches zero, and this denominator's own interval {}contains zero."
+            .format("" if straddles_zero else "at its own sign bar ")),
+        "has_no_upper_bound": True,
+        "share_of_the_interval_the_search_cannot_price": band,
+        "search_ceiling_seeds": _SEEDS_SEARCH_CEILING,
+        "withheld_because": (
+            "NO SEED COUNT IS PUBLISHED FOR THIS LEG AND NO LARGER FAMILY WOULD CHANGE THAT. The "
+            "count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it "
+            "is asked only when that estimate has failed its own sign bar -- which is the "
+            "statement that its interval contains zero. A denominator that may be zero prices the "
+            "question at no finite number of draws. At this family's point estimate the arithmetic "
+            "gives {point}; one standard error either side of the denominator gives {lo} and {hi}, "
+            "and those are not a range because the quantity diverges between them. The page "
+            "therefore states neither a sign nor a price for one, and the honest remedy is a "
+            "different instrument rather than more draws of this one.".format(
+                point=("no count under the search ceiling" if point is None else point),
+                lo=_price_word(seeds_to_state_a_sign(low, stdev_f)),
+                hi=_price_word(seeds_to_state_a_sign(high, stdev_f)))),
+    }
+
+
+def _price_word(count) -> str:
+    """A seed count as prose, with the search ceiling's `None` spelled out rather than printed.
+
+    `None` here means "past `_SEEDS_SEARCH_CEILING`", which is a MEASUREMENT and not a missing
+    one -- and "None seeds" in a published sentence reads as the second.
+    """
+    return "no count under the search ceiling" if count is None else "{} seeds".format(count)
+
+
 def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
                              staleness_caveat: str | None) -> dict:
     """ONE contrast's estimate and ONE contrast's bound, both over the SAME population.
@@ -5016,9 +5146,37 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
     # book from the run it is printed beside -- drawing more of them buys a wider family of the
     # WRONG book, and quoting a seed price against that refusal would send a reader to spend
     # machine-hours on a thing no number of hours fixes.
+    #
+    # AND THE COUNT IS NOT PUBLISHABLE AT ALL, WHICH IS THE 2026-09-22 FINDING AND NOT A TIGHTENING
+    # OF THE ABOVE. Everything above is right about WHICH refusal seeds are the remedy for. What it
+    # missed is that in exactly that state the remedy has no price.
+    #
+    #   The count solves `|m| > t(k-1) * s / sqrt(k)`, so it grows as `(t * s / |m|)^2`: the
+    #   estimate is in the DENOMINATOR. `clears_its_own_bar: false` means precisely that this
+    #   family's own confidence interval for `m` CONTAINS ZERO -- that is what the bar tests. An
+    #   interval containing zero contains denominators arbitrarily close to zero, and
+    #   `(t * s / |m|)^2` diverges there. So the count has NO UPPER BOUND, and `101` is a point
+    #   evaluation of an unbounded quantity printed in a key a reader reads as a plan.
+    #
+    #   MEASURED, NOT ARGUED, on the book-154 family the published figure is drawn from (mean
+    #   -1069.475, sd 5398.314, sem 1558.359). The point price is 101 seeds. One standard error
+    #   either side of the denominator it divides by gives 19 seeds at one end and 471 at the
+    #   other -- and those two are NOT a range, because the interval between them straddles zero:
+    #   6.8% of it needs more than `_SEEDS_SEARCH_CEILING` draws and the true supremum is infinite.
+    #   A reader handed "19 to 471" would be handed a bound that does not exist.
+    #
+    # SO THE COUNT IS WITHHELD AND THE EVIDENCE IS PUBLISHED IN ITS PLACE. This is the same
+    # fail-closed move `sign` makes four keys down, for the same reason and at the same moment:
+    # the page states neither the sign NOR its price, and now says so on the surface rather than
+    # refusing one half and quoting the other.
+    #
+    # THE KEY IS STRUCTURALLY NULL AND THAT IS THE RESULT, NOT A BUG. Seeds are wanted only when
+    # the family fails its bar; the price is unbounded exactly when the family fails its bar. The
+    # two states coincide, so no family this page could ever hold makes this key an integer. A
+    # reader meeting a permanently-empty key is owed that sentence, and `seeds_needed_unavailable`
+    # carries it rather than leaving the emptiness to read as a missing measurement.
     needed = None
-    if clears_bar is False:
-        needed = seeds_to_state_a_sign(mean, stdev)
+    interval = _seed_price_interval(mean, sem, stdev, clears_bar)
     return {
         "available": True,
         "estimate_gbp": mean,
@@ -5052,6 +5210,13 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
                  conf=100 * (1 - 2 * SIGN_TAIL_PROBABILITY_EACH_SIDE), df=n - 1, n=n, bar=bar)),
         "bound_to_estimate_ratio": (None if mean == 0 or sem is None else abs(sem / mean)),
         "seeds_needed_to_state_a_sign": needed,
+        # WHY THAT KEY IS EMPTY, IN THE ONE PLACE A READER MEETS THE EMPTINESS. `None` when there
+        # is nothing to explain, so it never carries a reassuring string over a live count.
+        "seeds_needed_unavailable": (interval or {}).get("withheld_because"),
+        # THE PRICE'S OWN INTERVAL, WHICH IS WHAT REPLACES THE POINT. Published whenever the
+        # question is live, because "we withheld a number" and "here is why no number exists" are
+        # different statements and only the second can be checked.
+        "seeds_needed_interval": interval,
         "seeds_needed_holds_this_family_fixed": (
             None if needed is None else
             ("arithmetic on THIS family's mean and deviation, not a forecast: at {n} seeds the "
