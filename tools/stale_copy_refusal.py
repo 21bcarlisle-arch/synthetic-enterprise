@@ -702,6 +702,27 @@ class Loss:
         the test."""
         return self.gains is not None and not self.novel
 
+    @property
+    def names_the_refresh_door(self) -> bool:
+        """True when `remedy()` sends this path to `refresh_to_head` -- which is the ONLY thing
+        `_door_check` may key its grading on.
+
+        THE DEFECT THIS IS THE REPAIR FOR (2026-09-22). `_door_check` graded the named door for
+        `is_rival` rows only, and `is_rival` is False whenever `gains is None` -- which is every
+        `.md` and `.yaml` row, because no symbol reader reads them. Those rows reach the `by_clock`
+        branch of `remedy()`, which names `refresh_to_head` just as loudly, and that tool answers
+        `refused_no_reader` for those suffixes BY CONSTRUCTION and can never answer anything else.
+        So the census printed a door that was permanently shut for 7 of 21 paths, and the grader
+        built to catch exactly that was scoped past them. Measured on the shared tree the same day:
+        27 rows, and the door the census named took ZERO of them.
+
+        KEYED TO WHICH BRANCH `remedy()` TAKES, not to a suffix list. A suffix list here would rot
+        the moment `READABLE` moves, and it would be a second implementation of the branch
+        condition above it -- the one-requirement-two-implementations shape this repository pays
+        for most. The two conditions are the two branches that print the tool's name; if a third is
+        ever added, this returns False for it and the row goes ungraded rather than mis-graded."""
+        return self.is_rival or (self.by_clock and self.gains is None)
+
     def _cut_lines(self) -> str:
         return "".join("        - {}  <- REMOVED by {}\n".format(c.name[:90], c.commit[:9])
                        for c in self.cuts)
@@ -1066,6 +1087,41 @@ def refusal_text(losses: list[Loss], merge_ref: str | None = None) -> str:
 # ------------------------------------------------------------------------------------ the census
 
 
+def behind_overlap(root: Path = ROOT) -> tuple[str, ...] | None:
+    """The paths a behind base can actually mis-grade: census population ∩ what the trunk moved on.
+
+    WHY THIS EXISTS, and it is `base_caveat`'s own blanket turning round and voiding readings its
+    evidence vouches. A behind base inverts a verdict for ONE reason -- `last_commit_touching` and
+    `blob_at` ask HEAD, so a path the trunk has landed on since reads against the older blob. That
+    is a per-PATH condition, and `behind > 0` is a per-TREE one. When the commits HEAD lacks touch
+    none of the paths the census is walking, every verdict below is computed against exactly the
+    blob the trunk holds and the caveat is voiding nothing.
+
+    MEASURED ON THE LIVE TREE 2026-09-22, which is why it is not a tidy-up. The class "finished work
+    does not reach history" went three records ungraded -- 17, then 22, then 25 -- with each reading
+    discarded as taken through a stale base. Re-run as a one-variable control (same working tree,
+    base `3e4290bc0` at 4 behind against the advanced base) the count was 25 BOTH WAYS and the path
+    sets were identical: those 4 commits touched 7 paths, and the census population was 453, and the
+    intersection was EMPTY. The readings were comparable all along. Base sensitivity is real -- the
+    same tree against a base 60 commits back reads 13, not 25 -- so the caveat keeps its full force
+    exactly where the overlap says it has a subject.
+
+    `None` IS NOT `()`. Unmeasurable overlap keeps the full-strength caveat: the empty tuple is a
+    measurement saying no path is contested, and a git failure is the absence of one. Collapsing
+    them would make an unreadable repo read as a vouched one, which is this repo's own recurring
+    fail-open.
+    """
+    base = _git(root, "merge-base", "HEAD", REMOTE_BASE)
+    if base.returncode != 0:
+        return None
+    moved = _git(root, "diff", "--name-only", base.stdout.strip(), REMOTE_BASE)
+    walked = _git(root, "diff", "--name-only", "HEAD")
+    if moved.returncode != 0 or walked.returncode != 0:
+        return None
+    population = {p for p in walked.stdout.splitlines() if p.strip()}
+    return tuple(sorted(p for p in moved.stdout.splitlines() if p.strip() and p in population))
+
+
 def base_caveat(root: Path = ROOT) -> str:
     """What the census owes its reader when its OWN base is not the trunk. `""` when nothing is owed.
 
@@ -1109,13 +1165,23 @@ def base_caveat(root: Path = ROOT) -> str:
     behind = base.get("behind") or 0
     if not behind:
         return ""
+    contested = behind_overlap(root)
+    if contested == ():
+        return ("[stale-copy] THE BASE IS BEHIND THE TRUNK AND THE READINGS BELOW STILL STAND: "
+                "HEAD is\n  {} commit(s) behind {} (and {} ahead), and NOT ONE path those commits "
+                "touched is\n  in the population below -- so no verdict here was computed against "
+                "a blob the trunk has\n  moved on. The remedies are safe to walk. Re-check if you "
+                "widen the population.".format(behind, REMOTE_BASE, base.get("ahead")))
+    unknown = " (the overlap could not be measured)" if contested is None else (
+        " The contested path(s): {}.".format(", ".join(contested[:6])
+                                             + ("..." if len(contested) > 6 else "")))
     return ("[stale-copy] THE REMEDIES BELOW ARE COMPUTED AGAINST A BASE THE TRUNK HAS MOVED PAST: "
             "HEAD is\n  {} commit(s) behind {} (and {} ahead). Every \"supplies N name(s) HEAD "
             "lacks\"\n  reading below asks HEAD, not the trunk, so a copy the trunk ALREADY "
             "supersedes reads as\n  HOLDER WORK -- and the door that reading names, `surgical_land "
             "--content`, would land it OVER\n  the trunk. Advance the base and re-run before "
-            "walking through any door named below.".format(
-                behind, REMOTE_BASE, base.get("ahead")))
+            "walking through any door named below.{}".format(
+                behind, REMOTE_BASE, base.get("ahead"), unknown))
 
 
 def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
@@ -1308,8 +1374,10 @@ def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
 
     THE FINDING THIS EXISTS FOR IS A REMEDY THAT REFUSED. Naming a door is a claim, and the claim
     was wrong for two of eight copies for as long as anybody looked. So the census now runs the
-    door it names: `refresh_to_head.judge_copy` for a copy supplying nothing HEAD lacks, and
-    `landing_pair` for one that carries holder work -- because that copy's isolated hunks may
+    door it names: `refresh_to_head.judge_copy` for every path whose remedy names that tool
+    (`Loss.names_the_refresh_door` -- and read its note, because scoping this to `is_rival` alone
+    is the defect it was built from), and `landing_pair` for one that carries holder work --
+    because that copy's isolated hunks may
     reference a name only another lane's UNCOMMITTED file supplies, which lands red for every lane
     and is invisible to the path-by-path route that sent you.
 
@@ -1353,7 +1421,7 @@ def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
     out: dict[str, str] = {}
     index = None
     for loss in losses:
-        if loss.is_rival:
+        if loss.names_the_refresh_door:
             verdict = refresh_to_head.judge_copy(root, loss.path)
             out[loss.path] = (
                 "      the door this refusal names IS OPEN: {}".format(verdict.state)

@@ -7391,7 +7391,17 @@ def _svt_drift_belief() -> dict:
     # which is the direction that cannot mislead upward, and the director's instruction is that
     # those words appear whenever the reading sits inside its null. Withholding a refusal because
     # its world is unknown would replace a caveat with a silence.
-    measured_in_world = ((grade.get("world_identity") or {}).get("digest"))
+    _world = grade.get("world_identity") or {}
+    measured_in_world = _world.get("digest")
+    # THE REASON IS THE ARTEFACT'S OWN MEASUREMENT WHERE IT HAS ONE, and the fixed string is the
+    # fallback rather than the answer (2026-09-22). What stood here named a remedy that could
+    # never have discharged the refusal -- "re-run the grader from a tree that stamps
+    # `world_identity`". The grader reads a CAPTURE; the world is a property of that capture, so
+    # no grading run can move it, and a reader who followed that sentence would have got a stamp
+    # and not one more fact. `capture_world_identity` now measures the disagreement year by year
+    # and says so in words; carrying its sentence verbatim is what keeps this surface from having
+    # a second, staler opinion about why it is withholding.
+    _withheld_because = _world.get("unavailable_because")
     return {
         "available": True,
         "why": None,
@@ -7405,15 +7415,23 @@ def _svt_drift_belief() -> dict:
                            if measured_in_world else None),
         "measured_in_world": measured_in_world,
         "ceiling_verdict_withheld_because": None if measured_in_world else (
-            "THIS GRADE NAMES NO WORLD. The artefact it is read from carries no departure-level "
-            "identity and no run date, so it cannot be shown to have been measured over the "
-            "world that is live now -- and the departure level is what decides how much signal "
-            "there is to find. The ceiling and its interval are published because they are what "
-            "was measured; whether the ceiling CLEARS that interval is a direction, and a "
-            "direction whose world is unknown is not stated here. Re-run "
-            "`python3 -m tools.measure_churn_heterogeneity "
-            "--out=docs/observability/svt_drift_belief_grade.json` from a tree that stamps "
-            "`world_identity` to restore it."),
+            _withheld_because or (
+                "THIS GRADE NAMES NO WORLD. The artefact it is read from carries no "
+                "departure-level identity at all, so it cannot be shown to have been measured "
+                "over the world that is live now -- and the departure level is what decides how "
+                "much signal there is to find. The ceiling and its interval are published "
+                "because they are what was measured; whether the ceiling CLEARS that interval "
+                "is a direction, and a direction whose world is unknown is not stated here. "
+                # THE REMEDY NAMES A CAPTURE, NOT A GRADING RUN. The sentence here used to say
+                # "re-run the grader from a tree that stamps `world_identity`", which cannot
+                # discharge this: the grader reads a capture and the world belongs to the capture.
+                "Re-take the capture with `python3 -m tools.capture_departure_factors "
+                "docs/reports/ladder_churn_factors.json`, then re-grade it.")),
+        # WHAT THE GRADER MEASURED, BESIDE THE SENTENCE. A refusal that says "a different world"
+        # and cannot show the gap is an assertion; this is the evidence, and it is empty exactly
+        # when the grade could not ask the question rather than asked it and got no.
+        "ceiling_world_gap": (None if measured_in_world
+                              else (_world.get("years_disagreeing") or {})),
         "arms": arms,
         # THE SENTENCE IS THE PAYLOAD, exactly as in `_inference_claim`. Derived from the belief
         # arm's own three numbers, so the prose and the table beside it cannot disagree.
@@ -7444,6 +7462,14 @@ RENEWAL_BELIEF_SECOND_GRADE = (
 #: outcome measures whether the world's adjustment chain preserved the ordering of a number it was
 #: handed, which is a different question and not the company's forecast.
 _RENEWAL_BELIEF_FIELD = "company_churn_estimate"
+#: The OTHER renewal arm: the company number that SEEDS the world's roll, so it is not a forecast
+#: and is never this surface's reading. Published beside the reading, never in place of it -- see
+#: `seeded_leg` for why a surface that shows only the admissible leg cannot be checked.
+_RENEWAL_SEEDED_FIELD = "churn_probability"
+#: The world factor `chain_to_the_flat_belief` names in words. It is a CONSTANT here so the
+#: paragraph's premise can be asked of the grader's own derived `carrying` list rather than
+#: asserted -- see the branch there for what that paragraph published before it was.
+_RENEWAL_BILL_SHOCK_FACTOR = "sim_bill_shock_base"
 
 
 def _renewal_churn_belief(size_block: dict | None = None) -> dict:
@@ -7604,6 +7630,16 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
         return _unavailable("the renewal route carries no reading or no ceiling, so there is "
                             "nothing to weigh one against the other")
 
+    # THE SEEDED ARM, resolved the same way and from the same artefact. Its absence is a state,
+    # not an error: a capture taken before the arm existed carries no row for it, and `seeded_leg`
+    # says so rather than printing a blank figure.
+    seeded = by_field.get(_RENEWAL_SEEDED_FIELD) or {}
+    _seeded_observed = _f(seeded.get("belief_auc"))
+    _seeded_null = seeded.get("null") or {}
+    _seeded_low, _seeded_high = _f(_seeded_null.get("low")), _f(_seeded_null.get("high"))
+    _seeded_inside = (None if None in (_seeded_observed, _seeded_low, _seeded_high)
+                      else _seeded_low <= _seeded_observed <= _seeded_high)
+
     # (2) THE TWO CLAIMS, EACH DERIVED FROM THE NUMBERS rather than read off a verdict string -- a
     # verdict field is one more thing that can go stale against the figures beside it.
     belief_inside = None if None in (low, high) else low <= observed <= high
@@ -7695,15 +7731,48 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     if isinstance(size_block, dict) and size_block.get("available"):
         below = size_block.get("legs_below_the_knee")
         legs = size_block.get("supply_legs")
-        chain = (
-            "These two panels are one chain. The orderable signal in this world's renewal "
-            "departures is concentrated in bill shock — it is the only one of the four world "
-            "factors that clears its own null on its own. And the company's belief reaches a "
-            "household's bill through a single term that is identically zero for {} of {} supply "
-            "legs. The belief is flat in the one dimension the world orders departures by, which "
-            "is why the choosing has nothing to choose with. Neither panel is an instruction to "
-            "make the belief discriminate.".format(below, legs)
-            if below is not None and legs is not None else None)
+        # THE FIRST CLAUSE IS NOW ASKED OF `carrying`, NOT TYPED FROM THE DAY IT WAS WRITTEN.
+        # Until 2026-09-22 this sentence asserted flatly that the world's orderable renewal signal
+        # "is concentrated in bill shock — it is the only one of the four world factors that
+        # clears its own null on its own", and published that whenever the size block could be
+        # read. On the first re-capture in the live world NO factor cleared its null alone:
+        # `signal_is_concentrated_in` came back empty and this paragraph would have gone out
+        # asserting the opposite of the table printed directly above it. The premise is the
+        # derived list; where the list does not support the clause, the clause is not stated.
+        # Keyed to the property, so the day bill shock carries it again nobody edits a sentence.
+        if carrying == [_RENEWAL_BILL_SHOCK_FACTOR] and below is not None and legs is not None:
+            chain = (
+                "These two panels are one chain. The orderable signal in this world's renewal "
+                "departures is concentrated in bill shock — it is the only one of the world "
+                "factors that clears its own null on its own. And the company's belief reaches a "
+                "household's bill through a single term that is identically zero for {} of {} "
+                "supply legs. The belief is flat in the one dimension the world orders departures "
+                "by, which is why the choosing has nothing to choose with. Neither panel is an "
+                "instruction to make the belief discriminate.".format(below, legs))
+        elif not carrying:
+            # THE READABLE HALF IS STILL STATED, and only the JOIN is withheld. The size block is
+            # a fact about the belief whether or not the world's side of the chain resolves, and
+            # dropping it here would withhold a measurement for the failure of a different one.
+            chain = (
+                "The join between these two panels is NOT stated on this capture, and the reason "
+                "is the table above: not one of the world's renewal factors clears its own null "
+                "on its own here, so there is no single dimension this book can show departures "
+                "are ordered by. The belief's side is unchanged and still readable — it reaches a "
+                "household's bill through a single term that is identically zero for {} of {} "
+                "supply legs. What cannot be drawn from this capture is the link that made those "
+                "two facts one argument: that the world orders departures by the very dimension "
+                "the belief is flat in. The belief's own reading above stands on its own null and "
+                "is unaffected by any of this.".format(below, legs)
+                if below is not None and legs is not None else None)
+        else:
+            chain = (
+                "The join between these two panels is NOT stated on this capture. The world's "
+                "orderable renewal signal here is carried by {} rather than by bill shock alone, "
+                "and the half of the chain that can be read — the belief's bill term is "
+                "identically zero for {} of {} supply legs — speaks only to bill shock. Stating "
+                "the join from one side is how a reader is handed a mechanism the rows do not "
+                "show.".format(", ".join("`{}`".format(f) for f in carrying), below, legs)
+                if below is not None and legs is not None else None)
     else:
         chain = ("The other half of this chain — how flat the belief is in household size — could "
                  "not be read on this publish, so the join is not stated rather than stated from "
@@ -7739,13 +7808,56 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             "mean_believed": _f(arm.get("mean_believed")),
             "realised_rate": _f(arm.get("realised_rate")),
         },
+        # THE SEEDED LEG, BESIDE THE INDEPENDENT ONE AND NEVER INSTEAD OF IT. The route carries two
+        # company numbers and only one of them is a forecast; `_RENEWAL_BELIEF_FIELD` picks that
+        # one and this surface published it alone. Alone is the wrong count. A reader who is told
+        # "the company's belief orders who leaves" cannot check that claim without also seeing the
+        # number that does NOT qualify and WHY, because the disqualifying property -- it seeds
+        # `effective_p_retain`, so grading it against the outcome measures the world reading back
+        # its own input -- is the whole content of the thesis's one prohibition: the advantage must
+        # come from INFERENCE, never from ACCESS. Publishing only the admissible leg leaves the
+        # reader to trust that the inadmissible one was excluded for a reason rather than for its
+        # reading, and on 2026-09-22 the two swapped which of them flattered: the seeded leg was
+        # the HIGHER of the pair (0.6815 against 0.4988) on the superseded capture and is the
+        # LOWER (0.5911 against 0.6706) on the live one. A rule that only ever excluded the
+        # flattering number would have been indistinguishable from this one until that day.
+        "seeded_leg": {
+            "field": _RENEWAL_SEEDED_FIELD,
+            "available": bool(seeded.get("available")),
+            "what_it_is": (
+                "`saas.churn_model.build_churn_risk`, logged per renewal. The world's own roll is "
+                "SEEDED from this number: `roll_lifecycle_event` takes it as the base retention "
+                "and multiplies it through the passive cap, the switching multiplier, the price "
+                "position, income stress and satisfaction."),
+            "auc": _f(seeded.get("belief_auc")),
+            "null_95_low": _f((seeded.get("null") or {}).get("low")),
+            "null_95_high": _f((seeded.get("null") or {}).get("high")),
+            "inside_the_null": _seeded_inside,
+            "is_a_forecast": False,
+            # THE REASON IS A PROPERTY OF THE CHAIN, NOT OF THE FIGURE, so it reads the same
+            # whichever way the number comes out -- which is what stops it being an excuse.
+            "why_it_is_not_the_reading": (
+                "Grading this against who actually left does not ask whether the company saw "
+                "anything coming. It asks whether the world's own adjustment chain preserved the "
+                "ordering of a base rate the world was handed -- and the company handed it over. "
+                "Whatever it reads, high or low, it is the world reading back its own input, so "
+                "it cannot be quoted as the company knowing something. It is published here so "
+                "that the leg beside it can be checked, and never as advantage."),
+        },
         "ceiling": {
             "auc": ceiling,
             "null_95_low": ceiling_low,
             "null_95_high": ceiling_high,
             "clears_on_these_rows": ceiling_clears_here,
-            "what_it_is": ("The world's own hazard over these same 144 decisions, scored by the "
-                           "same statistic against the same outcomes."),
+            # THE COUNT IS DERIVED, NOT TYPED. It read "these same 144 decisions" from the day
+            # this block was written until 2026-09-22, when the first re-capture in the live world
+            # brought the route to 102 and the sentence went on claiming 144 beside a `decisions`
+            # field that said otherwise. Its sibling `within_this_capture_holds_because` was
+            # derived from `route` all along and moved correctly, which is the whole argument: on
+            # one surface, one of these two sentences rotted and the other could not.
+            "what_it_is": ("The world's own hazard over these same {} decisions, scored by the "
+                           "same statistic against the same outcomes.".format(
+                               route.get("decisions"))),
         },
         # (2) THE CLAIM THAT SURVIVES THE CAPTURE'S WORLD, and it is marked as the within-capture
         # one in the field name itself.

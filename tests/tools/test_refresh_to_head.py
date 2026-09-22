@@ -7,12 +7,15 @@ useless rather than exercising the happy path twice.
 """
 from __future__ import annotations
 
+import os
 import subprocess
+import time
 from pathlib import Path
 
 import pytest
 
 from tools import refresh_to_head as rth
+from tools.stale_copy_refusal import judge
 
 
 def _run(root: Path, *args: str) -> str:
@@ -61,6 +64,43 @@ HOLDER_APPENDS = LANDED + (
 #: An ORDINARY EDIT on top of the landing: it has the distinctive line, and its symbol set is
 #: HEAD's exactly. Nothing is stale about it.
 ORDINARY_EDIT = LANDED.replace("return argument * 41 + 7", "return argument * 41 + 8")
+
+#: A REPLACEMENT WRITTEN ON TOP OF THE LANDING, which is the shape `--base-wins` must not touch.
+#: It renames `alpha` in one indivisible hunk, so `--keep` has no selection and the verdict is
+#: `REPLACEMENT` exactly as for `RIVAL_KIND_B` -- and it carries every distinctive line of the
+#: landing, so the stale-copy control has NO complaint about it. The verdict is the same and the
+#: clock's answer is the opposite, which is the only thing separating the flag from `git checkout`.
+REPLACEMENT_ON_TOP_OF_THE_LANDING = LANDED.replace("def alpha():", "def beta():")
+
+#: THE MIDDLE OF THE CLOCK'S THREE ANSWERS, and the one `--base-wins` must not take. It keeps ONE
+#: of the landing's distinctive lines and rewords the rest under its own name, so it is a
+#: REPLACEMENT by the hunk test and `predates_landing_carrying_some` by the clock: older than the
+#: commit, but holding part of it, so it may be that commit edited rather than a draft that
+#: preceded it. The test that uses it backdates its mtime, which is the other half of `PARTIAL`.
+PARTIAL_CARRY_REPLACEMENT = (
+    "def alpha():\n    return 1\n\n\n"
+    "def my_own_helper(argument):\n"
+    '    """this lane\'s own wording for the same thing"""\n'
+    "    return argument * 41 + 7\n"
+)
+
+#: `k.py` exists for ONE leg: a copy that is stale by the clock AND still has a landable hunk. The
+#: padding is load-bearing rather than decorative -- `isolate_hunks.group_opcodes` merges changes
+#: within its context window, so without it the deletion of the landed helper and the addition of
+#: the lane's own function group into a single hunk and the file grades `REPLACEMENT` again,
+#: testing nothing. Six fillers put them in separate hunks, which is what gives `--keep` a
+#: selection and this copy a door.
+_FILLER = "".join("def filler_{}():\n    return {}\n\n\n".format(i, i) for i in range(6))
+K_BASE = "def alpha():\n    return 1\n\n\n" + _FILLER + "def gamma():\n    return 3\n"
+K_LANDED = ("def alpha():\n    return 1\n\n\n"
+            "def freshly_landed_helper(argument):\n"
+            '    """A distinctive line that appears exactly once in this file."""\n'
+            "    return argument * 41 + 7\n\n\n" + _FILLER + "def gamma():\n    return 3\n")
+#: Older than the landing (it has not one of the landing's lines) and it APPENDS its own work in a
+#: hunk of its own. The clock refuses it; `isolate_hunks --keep` can still save the work.
+K_STALE_BUT_LANDABLE = K_BASE + (
+    "\n\ndef my_own_unlanded_function():\n"
+    "    return 'work that only exists in this lane and nowhere else'\n")
 
 
 # ------------------------------------------------- the API that MOVED, which is the r1 instance
@@ -133,10 +173,12 @@ def repo(tmp_path: Path) -> Path:
     (root / "notes.md").write_text("# notes\n\nprose\n")
     (root / "dep.py").write_text(DEP_BEFORE)
     (root / "d.py").write_text(D_BASELINE)
-    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py")
+    (root / "k.py").write_text(K_BASE)
+    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py", "k.py")
     _run(root, "commit", "-qm", "base")
     (root / "m.py").write_text(LANDED)
     (root / "dep.py").write_text(DEP_AFTER)
+    (root / "k.py").write_text(K_LANDED)
     # THE DRAFT'S NAMES ARE COMMITTED BY NOBODY, and that is the whole difference between this
     # class and the one `cut_of` already closed. `d.py` gains the three-way control here and never
     # held the `honest_point_estimate` one, so `git log -S` finds no deletion to attribute and the
@@ -144,7 +186,7 @@ def repo(tmp_path: Path) -> Path:
     # which the 2026-09-16 door already admits -- and the fixture would grade green with the
     # defect still in.
     (root / "d.py").write_text(D_LANDED)
-    _run(root, "add", "m.py", "dep.py", "d.py")
+    _run(root, "add", "m.py", "dep.py", "d.py", "k.py")
     _run(root, "commit", "-qm", "lane B lands a helper, and dep's API moves under it")
     return root
 
@@ -557,3 +599,130 @@ def test_the_holder_work_verdict_names_a_hunk_the_landing_tool_agrees_with(repo:
     assert "freshly_landed_helper" in built and "my_own_unlanded_function" in built, (
         "the selection this verdict names does not build HEAD-plus-the-holder's-work, so the "
         "remedy sends a lane to a landing that loses something")
+
+
+# ------------------------------------------------------------------- `--base-wins`, and its edge
+#
+# THE STATE WITH NO EXIT. `REPLACEMENT` names a judgement and hands it to a person, which was the
+# repair. But only ONE of the two answers a person can give was enactable: "the copy wins" is a
+# landing, and "the base wins" is a discard that nothing legal here performed -- so a REPLACEMENT
+# resolved for the base sat in the shared tree permanently, with the stale-copy door refusing every
+# landing over it. `WORKER_RESULT_THE_THREE_CLEARABLE_REVERTS_ARE_GONE_AND_THE_TWO_LEFT_NEED_A_DOOR
+# _THAT_ENACTS_THE_BASE_WINNING_2026-09-22` is two live files in that state.
+
+
+def test_base_wins_refreshes_a_replacement_the_clock_says_predates_its_landing(repo: Path) -> None:
+    """REACHABILITY FIRST, and stated against the DEFAULT in the same test. A flag that refuses
+    every copy passes every refusal leg below while clearing none of the files it was built for,
+    and asserting the default refusal beside it is what proves the flag is the thing that moved."""
+    (repo / "m.py").write_text(RIVAL_KIND_B)
+    assert rth.judge_copy(repo, "m.py").state == rth.REPLACEMENT, (
+        "the fixture is not in the state the flag is about, so this proves nothing about it")
+    rc, text = rth.refresh(repo, ["m.py"], "base-wins", write=True, base_wins=True)
+    assert rc == 0, text
+    assert (repo / "m.py").read_text() == LANDED, (
+        "the REPLACEMENT was not discarded, so the state the finding calls unexitable still has "
+        "no exit: {}".format(text))
+    assert rth.PREDATES in text, "the verdict does not say which clock rule licensed the write"
+
+
+def test_the_line_level_surface_this_branch_destroys_reaches_the_reader_and_the_probe(
+        repo: Path) -> None:
+    """`discarded` IS NOT DECORATION ON THIS BRANCH -- it is the input to `_probe`, and without it
+    `verify_recoverable` takes its no-probe route and never RUNS the `git log --all -S` lookup the
+    tool advertises. A preservation that is only claimed is the whole thing rule 3 exists to stop.
+    Asserted on the field and not on the rendered text, because the supplied NAMES are printed
+    beside it and would answer a text search for the same string -- the flattering reading."""
+    (repo / "m.py").write_text(RIVAL_KIND_B)
+    verdict = rth.judge_copy(repo, "m.py", base_wins=True)
+    assert verdict.state == rth.REFRESHABLE
+    assert any("my_own_unlanded_function" in line for line in verdict.discarded), (
+        "the lines this branch is about to destroy were not collected: {}".format(
+            verdict.discarded))
+    assert rth._probe(verdict) is not None, (
+        "there is no probe, so the advertised recovery search is skipped and the preservation is "
+        "asserted rather than verified on the branch that destroys the most")
+
+
+def test_base_wins_refuses_a_copy_that_carries_SOME_of_its_landing(repo: Path) -> None:
+    """THE RULE SET IS NARROWER THAN 'the control has a complaint', and the gap is this copy.
+    `PARTIAL` says it holds some of the landing's own lines, so it MAY have been written on top of
+    it and edited -- the clock has not established it is the older draft, only that it is older
+    than the commit. Widening `BASE_WINS_RULES` to any complaint at all discards a lane's edit to
+    a landed file, and every other leg here stays green while it does."""
+    (repo / "m.py").write_text(PARTIAL_CARRY_REPLACEMENT)
+    os.utime(repo / "m.py", (time.time() - 99_999, time.time() - 99_999))
+    loss = judge(repo, "m.py", LANDED, PARTIAL_CARRY_REPLACEMENT)
+    assert loss is not None and loss.rule not in rth.BASE_WINS_RULES, (
+        "the fixture is not in the PARTIAL state, so the narrowing is not exercised: {}".format(
+            None if loss is None else loss.rule))
+    verdict = rth.judge_copy(repo, "m.py", base_wins=True)
+    assert verdict.state == rth.REPLACEMENT, (
+        "a copy carrying part of its own landing was discarded under `--base-wins`, so the flag "
+        "admits any complaint rather than the clock's own two: [{}]".format(verdict.state))
+
+
+def test_base_wins_still_refuses_a_replacement_the_clock_has_no_complaint_about(
+        repo: Path) -> None:
+    """THE LEG THAT STOPS THIS BEING `git checkout <path>`. A REPLACEMENT written ON TOP of the
+    landing is an ordinary rename someone is mid-way through: same verdict, opposite clock. If the
+    flag keyed on the verdict alone it would discard a lane's live work and read as correct."""
+    (repo / "m.py").write_text(REPLACEMENT_ON_TOP_OF_THE_LANDING)
+    verdict = rth.judge_copy(repo, "m.py", base_wins=True)
+    assert verdict.state == rth.REPLACEMENT, (
+        "a copy the stale-copy control has NO complaint about was cleared for overwriting under "
+        "`--base-wins`, so the flag is a revert button: [{}]".format(verdict.state))
+    assert "no complaint" in verdict.reason, (
+        "the refusal does not say WHY the flag did not reach it, so the next reader cannot tell "
+        "a missing precondition from a tool that ignores its own flag")
+    rc, _ = rth.refresh(repo, ["m.py"], "base-wins", write=True, base_wins=True)
+    assert rc == 1 and (repo / "m.py").read_text() == REPLACEMENT_ON_TOP_OF_THE_LANDING, (
+        "a refused path was written anyway")
+
+
+def test_base_wins_does_not_reach_a_stale_copy_that_still_has_a_landable_hunk(
+        repo: Path) -> None:
+    """THE EXCLUSION THE FINDING'S OWN PROPOSAL DID NOT MAKE, and it is the difference between
+    'no door applies' and 'I prefer the base'. This copy IS older than its landing -- the same
+    clock evidence that licenses the leg above -- and `isolate_hunks --keep` can lift its work out
+    without the revert. Admitting it would destroy recoverable work where a route existed, which
+    is the harm the prohibition on `git checkout <path>` is for."""
+    (repo / "k.py").write_text(K_STALE_BUT_LANDABLE)
+    plain = rth.judge_copy(repo, "k.py")
+    assert plain.state == rth.SUPPLIES_NEW and rth.landable_hunks(
+        K_LANDED, K_STALE_BUT_LANDABLE, "k.py"), (
+        "the fixture has no landable hunk, so the exclusion this test is about is not exercised")
+    verdict = rth.judge_copy(repo, "k.py", base_wins=True)
+    assert verdict.state == rth.SUPPLIES_NEW, (
+        "`--base-wins` discarded a copy whose work a landing door could have saved: [{}]".format(
+            verdict.state))
+    assert "isolate_hunks" in verdict.reason, "the door that does apply was not named"
+    assert (repo / "k.py").read_text() == K_STALE_BUT_LANDABLE
+
+
+def test_the_bytes_a_base_wins_refresh_discards_come_back_by_the_advertised_search(
+        repo: Path) -> None:
+    """RULE 3 IS UNCHANGED, and it has to be asserted on THIS branch rather than inferred from the
+    Kind-A one: the whole point of the state is that the copy supplies names, so it destroys MORE
+    than a Kind-A refresh does and the preservation matters more, not less."""
+    (repo / "m.py").write_text(RIVAL_KIND_B)
+    rc, _ = rth.refresh(repo, ["m.py"], "base-wins", write=True, base_wins=True)
+    assert rc == 0
+    probe = "work that only exists in this lane and nowhere else"
+    found = _run(repo, "log", "--all", "--format=%H", "-S", probe, "--", "m.py").split()
+    assert found, "the discarded work is not reachable by the route the tool advertises"
+    assert _run(repo, "show", "{}:m.py".format(found[0])) == RIVAL_KIND_B
+
+
+def test_the_flag_is_off_by_default_everywhere_the_tool_is_called(repo: Path) -> None:
+    """A RELAXATION THAT DEFAULTS ON IS NOT A RELAXATION, it is the new behaviour. `judge_copy`
+    and `refresh` are both called by other modules (`background.origin_reconcile` among them) with
+    no opinion about this flag, and each must still get the refusal."""
+    (repo / "m.py").write_text(RIVAL_KIND_B)
+    assert rth.judge_copy(repo, "m.py").state == rth.REPLACEMENT
+    rc, text = rth.refresh(repo, ["m.py"], "base-wins", write=True)
+    assert rc == 1 and rth.REPLACEMENT in text
+    assert (repo / "m.py").read_text() == RIVAL_KIND_B
+    assert "--base-wins" not in text, (
+        "the default refusal advertises the flag, so every reader of an ordinary REPLACEMENT is "
+        "pointed at the one door that must stay a deliberate choice")
