@@ -113,6 +113,58 @@ def test_an_INCOMPLETE_handoff_is_REFUSED_and_names_what_is_missing(store):
     )
 
 
+def test_EVERY_FIELD_DECLARED_REQUIRED_IS_THE_ONE_THE_WRITER_DEMANDS(store):
+    """`REQUIRED_FIELDS` and `hand_off`'s enforcement must not be able to disagree.
+
+    THE DEFECT THIS NAMES: until 2026-09-22 the module DECLARED its required fields in a tuple that
+    nothing read, and ENFORCED them from a second literal inside `hand_off`. Narrowing
+    `REQUIRED_FIELDS` to `("id",)` and widening it with `note` each left all 113 tests in the
+    delivery-lane family green -- the shared definition could be cut under three call sites and no
+    leg anywhere could tell. That is the `_ITEM_PROSE_KEYS` shape (0b1898452, 14dc33969) in a
+    sibling module.
+
+    KEYED TO `hand_off`'s SIGNATURE AND NOT TO TODAY'S FOUR NAMES. The signature is the independent
+    witness: a parameter with no default is a field the caller MUST supply, and the tuple is the
+    module's statement of the same fact. Deriving the expectation from `REQUIRED_FIELDS` itself
+    would be the constant vouching for its own value, which is the control that cannot fail.
+
+    MUTATION: narrow `REQUIRED_FIELDS`, or restore the separate literal in `hand_off`, and the
+    blank-field leg below fires; widen it with a name `hand_off` has no argument for and the
+    happy-path leg fires, because an unsuppliable name reads as missing on every call.
+    """
+    import inspect
+
+    #: `hand_off(work_id, ...)` writes the field as `id`; every other parameter keeps its name.
+    as_field = {"work_id": "id"}
+    demanded = [as_field.get(p.name, p.name)
+                for p in inspect.signature(seat_continuation.hand_off).parameters.values()
+                if p.kind is p.POSITIONAL_OR_KEYWORD and p.default is inspect.Parameter.empty]
+
+    assert set(seat_continuation.REQUIRED_FIELDS) == set(demanded), (
+        "the declared required fields and the fields `hand_off` demands have drifted apart: "
+        f"declared {seat_continuation.REQUIRED_FIELDS}, signature demands {demanded}"
+    )
+
+    # THE HAPPY PATH IS A LEG AND NOT A SETUP LINE. A widening this function cannot supply makes
+    # EVERY hand-off raise, and a file of refusal tests passes that mutation unanimously.
+    assert _hand(store, "complete")["id"] == "complete", (
+        "a hand-off supplying every declared field was refused"
+    )
+
+    for field in demanded:
+        blank = "work_id" if field == "id" else field
+        kwargs = {"work_id": "  "} if field == "id" else {blank: "   "}
+        with pytest.raises(ValueError) as exc:
+            if field == "id":
+                seat_continuation.hand_off("   ", "w", "y", "d", now=1_000_000.0, path=store)
+            else:
+                _hand(store, "incomplete", **kwargs)
+        assert field in str(exc.value), (
+            f"`{field}` is declared required and blanking it was accepted, or the refusal did not "
+            f"name it"
+        )
+
+
 def test_re_recording_the_same_id_REPLACES_it_rather_than_competing(store):
     """A session that refines what it is handing over must not leave two versions in the queue.
 

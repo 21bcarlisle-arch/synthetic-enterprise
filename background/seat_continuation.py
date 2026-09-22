@@ -140,6 +140,15 @@ STALE_AFTER_SECONDS = 6 * 3600
 #: makes it direction rather than an atom (`delivery_lane` §"DONE IS DERIVED"). The seat holding
 #: the context is the only one that can say it, and if it will not, the item is not ready to hand
 #: over.
+#:
+#: UNTIL 2026-09-22 THIS TUPLE WAS READ BY NOTHING BUT ITS OWN ERROR MESSAGE. `hand_off` built a
+#: second literal — `{"id": ..., "what": ..., "why": ..., "done_means": ...}` — and checked THAT,
+#: and the test that proves the refusal works held a third copy of the same four names. Narrowing
+#: this tuple to `("id",)` and widening it with `note` both left 113 tests green, because the
+#: declaration and the enforcement were separate objects that happened to agree. `hand_off` now
+#: reads it, so the two cannot drift apart silently; the leg that keys this to `hand_off`'s own
+#: SIGNATURE rather than to today's four names is
+#: `test_seat_continuation.py::test_EVERY_FIELD_DECLARED_REQUIRED_IS_THE_ONE_THE_WRITER_DEMANDS`.
 REQUIRED_FIELDS = ("id", "what", "why", "done_means")
 
 
@@ -286,8 +295,13 @@ def hand_off(
     AND A RE-STAMP INHERITS WHAT IT RETIRED, because the id-keyed replacement above is exactly what
     would otherwise erase it -- see the note at the union below.
     """
+    # THE DECLARATION IS THE ENFORCEMENT, and it was not until 2026-09-22 -- see `REQUIRED_FIELDS`.
+    # `fields` still names the parameters because only this function knows which argument carries
+    # which field; what it no longer does is decide WHICH of them are required. A name declared and
+    # not supplied reads as missing on every call rather than passing unchecked, which is the side
+    # a widening should fail on.
     fields = {"id": work_id, "what": what, "why": why, "done_means": done_means}
-    missing = [k for k, v in fields.items() if not (v or "").strip()]
+    missing = [k for k in REQUIRED_FIELDS if not (fields.get(k) or "").strip()]
     if missing:
         raise ValueError(
             f"a continuation must carry {', '.join(REQUIRED_FIELDS)}; missing or empty: "
