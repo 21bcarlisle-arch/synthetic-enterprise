@@ -15,6 +15,29 @@ demonstrate is the price.
 Every control below names the defect it fires on. The two that matter most are the reachability
 one -- a grader that can only ever produce one verdict passes every test of a verdict -- and the
 two-routes one, because the new path could read the wrong rows and nothing else would notice.
+
+THE SECOND DEFECT, AND IT WAS IN THIS FILE (2026-09-22). Seven of these controls went red when
+`_legs_on_one_bar` became MORE honest: the live pairing is refused, because the published floor is
+older than the figure it bounds and did not measure the same book. The controls indexed `legs` and
+asserted `available is True`, so they were pinned to a state where the artefacts happened to agree.
+
+The fixture defect underneath was not a stale stamp. This file named two FLOORS and then bolted
+both onto whatever `THREE_ARM_PATH` carried on the day the test ran -- and a noise floor bounds THE
+RUN IT WAS MEASURED ON. Pairing a 09-10 floor with a 09-18 figure asks a question the bounds rule
+is right to refuse, and it is not the question the paragraphs above say this file asks. **The
+subject of every control here is a PAIR, and the fixture was half of one.** So each floor is now
+named with the contemporaneous run it bounds, both frozen committed artefacts, and the premise that
+makes the pair admissible is asserted in `test_each_fixture_pair_is_admitted_for_a_stated_reason`
+rather than left for seven assertions to discover the hard way.
+
+WHAT THE CORPUS SAYS ABOUT THE LEGS IS NOT PINNED HERE. Two floors on the live run's own side of
+the ordering rule exist and are admitted, and on them the selection leg reads -1,069 at 0.69 SEMs
+and -259 at 0.17 SEMs -- against -1,749 at 2.85 SEMs on the 09-10 nine. The negative sign is a
+property of which floor was drawn, not of the book. That belongs in the knowledge layer and is
+written up in
+`docs/staging/SEAT_FINDING_SEVEN_CONTROLS_PAIRED_EVERY_FLOOR_WITH_THE_LIVE_RUN_INSTEAD_OF_THE_RUN_IT_WAS_MEASURED_ON_2026-09-22.md`;
+no control below asserts it. These controls assert that the grader DISCRIMINATES, which is a
+property. Which way it discriminates today is a result, and a result does not belong in a test.
 """
 
 import json
@@ -27,11 +50,26 @@ import tools.generate_value_arms_data as gva
 PROJECT = Path(__file__).resolve().parents[2]
 OBSERVABILITY = PROJECT / "docs" / "observability"
 
-#: A floor whose legs all clear their own bar, and one whose legs SPLIT. Both are real artefacts
-#: already in this repository, chosen by measuring the corpus rather than by construction -- a
-#: fabricated family would make every assertion below unfalsifiable.
-UNANIMOUS_FLOOR = OBSERVABILITY / "value_cycle_ab_s1_noise_floor.json"
-SPLIT_FLOOR = OBSERVABILITY / "value_cycle_ab_s1_noise_floor_20260910b.json"
+#: A FLOOR AND THE RUN IT WAS MEASURED ON -- the pair, because half a pair cannot be graded. Both
+#: families are real artefacts already in this repository, chosen by measuring the corpus rather
+#: than by construction: a fabricated family would make every assertion below unfalsifiable. One
+#: pair's legs all clear their own bar; the other's SPLIT. They share a run, differ by ninety
+#: minutes of wall clock and nine fresh seeds, and disagree about the selection leg by a factor of
+#: ten -- which is why both are kept rather than one being preferred.
+UNANIMOUS_PAIR = (OBSERVABILITY / "value_cycle_ab_s1_noise_floor.json",
+                  OBSERVABILITY / "value_cycle_ab_s1_three_arm_20260910.json")
+SPLIT_PAIR = (OBSERVABILITY / "value_cycle_ab_s1_noise_floor_20260910b.json",
+              OBSERVABILITY / "value_cycle_ab_s1_three_arm_20260910.json")
+
+#: WHAT THE PAGE ACTUALLY PUBLISHES, and it is here to be a REAL instance of the refusing branch.
+#: `test_a_floor_that_bounds_nothing_grades_no_leg_and_says_why` used to reach that branch only by
+#: hand-mutating a floor's world identity away, which exercises one refusal out of the five
+#: `_seed_spreads` can take and proves nothing about the rest. This pair is refused by the
+#: production rule over production bytes, and it is deliberately NOT asserted to be refused: what
+#: is asserted is that the block agrees with `_seed_spreads` whichever way that goes, so the day
+#: the floor is re-run on the figure's own tree this control keeps its meaning with nobody editing
+#: a string.
+LIVE_PUBLISHED_PAIR = (gva.NOISE_FLOOR_PATH, gva.THREE_ARM_PATH)
 
 
 def _load(path: Path) -> dict:
@@ -48,19 +86,59 @@ def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _run():
-    return _load(gva.THREE_ARM_PATH)
+def _run(pair):
+    return _load(pair[1])
 
 
 def _split(run):
     return run.get("level_vs_selection") or {}
 
 
-def _bar(floor_path):
-    run = _run()
+def _bar(pair):
+    """The graded block for a (floor, run) pair -- the pair, never a floor against today's run."""
+    run = _run(pair)
     split = _split(run)
-    return gva._legs_on_one_bar(_load(floor_path),
-                                run, split, split.get("clock"))
+    return gva._legs_on_one_bar(_load(pair[0]), run, split, split.get("clock"))
+
+
+def _graded(pair):
+    """The block, having first established it was admitted AND said why it could be.
+
+    The failure this exists for is the one that cost this file seven reds: `block["legs"]` on a
+    refused block raises `KeyError` in the middle of an assertion about sentences, and the reader
+    is told nothing about the pairing that is the actual cause. A fixture whose premise has gone is
+    a BROKEN FIXTURE and has to say so in those words.
+    """
+    block = _bar(pair)
+    assert block["available"] is True, (
+        "the fixture pair {} x {} is no longer admitted by the bounds rule, so this control has no "
+        "subject -- repair the PAIR, do not soften the assertion. The rule's own reason: {}".format(
+            pair[0].name, pair[1].name, block.get("reason")))
+    return block
+
+
+def test_each_fixture_pair_is_admitted_for_a_stated_reason():
+    """Fires on: the bounds rule ceasing to admit the pairs the rest of this file is built on.
+
+    THE PREMISE, ASSERTED RATHER THAN ASSUMED. Every control below rests on these pairs being
+    gradable, and that is a claim about the production rule, not about the fixtures. Asserted here
+    once, so a rule change reds ONE control naming the pairing -- rather than reding seven that
+    each look like a defect in a leg.
+
+    And it asserts WHY, not just THAT: the ordering is the property the rule is over, so the pair
+    has to satisfy the ordering on its own stamps. A pair that passed the rule while failing the
+    ordering would mean the rule had stopped being about the ordering.
+    """
+    for pair in (UNANIMOUS_PAIR, SPLIT_PAIR):
+        floor, run = _load(pair[0]), _load(pair[1])
+        assert floor["generated_at"] >= run["generated_at"], (
+            "{} was measured BEFORE the run it is paired with here, so this fixture asks the "
+            "bounds rule a question it is right to refuse".format(pair[0].name))
+        assert (floor.get("world_identity") or {}).get("digest") == (
+            (run.get("world_identity") or {}).get("digest")), (
+            "{} and {} name different worlds".format(pair[0].name, pair[1].name))
+        assert gva._seed_spreads(floor, run)["available"] is True, (
+            "the bounds rule now refuses {} x {}".format(pair[0].name, pair[1].name))
 
 
 def test_every_bounded_contrast_reaches_a_reading_of_its_own():
@@ -70,9 +148,7 @@ def test_every_bounded_contrast_reaches_a_reading_of_its_own():
     control is over the PARTITION and not over one leg: every contrast this file says it bounds
     has to arrive with its own estimate, its own bar and its own sentence.
     """
-    block = _bar(UNANIMOUS_FLOOR)
-    assert block["available"] is True, block
-    legs = block["legs"]
+    legs = _graded(UNANIMOUS_PAIR)["legs"]
     assert set(legs) == set(gva._BOUNDED_CONTRASTS), (
         "the advantage has {} bounded legs and only {} reached a reading; a leg nobody "
         "summarises reads on the page exactly like a leg with nothing in it".format(
@@ -92,7 +168,7 @@ def test_the_level_leg_states_its_sign_because_its_own_family_determines_one():
     measurement. A level leg whose draws straddled zero would fail this by its own numbers, which
     is the correct direction for it to fail in.
     """
-    leg = _bar(UNANIMOUS_FLOOR)["legs"][gva.LEVEL_CONTRAST]
+    leg = _graded(UNANIMOUS_PAIR)["legs"][gva.LEVEL_CONTRAST]
     assert leg["sems_from_zero"] > leg["sems_needed_to_state_a_sign"], leg
     assert leg["sign_is_stateable"] is True, leg
     assert leg["sign"] == ("positive" if leg["estimate_gbp"] > 0 else "negative"), leg
@@ -106,10 +182,9 @@ def test_each_leg_is_graded_at_its_own_familys_bar_and_over_its_own_rows():
     spread. It would render three verdicts, all of them wrong for two legs, and every other
     control here would stay green.
     """
-    run = _run()
-    floor = _load(UNANIMOUS_FLOOR)
+    floor = _load(UNANIMOUS_PAIR[0])
     rows = [s for s in floor["seeds"] if isinstance(s, dict)]
-    legs = _bar(UNANIMOUS_FLOOR)["legs"]
+    legs = _graded(UNANIMOUS_PAIR)["legs"]
     for key, leg in legs.items():
         values = [row[key] for row in rows]
         assert leg["estimate_gbp"] == pytest.approx(sum(values) / len(values)), (
@@ -119,7 +194,6 @@ def test_each_leg_is_graded_at_its_own_familys_bar_and_over_its_own_rows():
     assert len(set(sems.values())) == len(sems), (
         "two legs share a standard error, so at least one is bounded by another leg's "
         "family: {}".format(sems))
-    assert run is not None
 
 
 def test_the_selection_leg_reads_the_same_on_both_routes():
@@ -131,9 +205,9 @@ def test_the_selection_leg_reads_the_same_on_both_routes():
     bounds the other two -- and a derivation that cannot reproduce the single figure it is
     checkable against has no business bounding anything.
     """
-    run = _run()
+    run = _run(UNANIMOUS_PAIR)
     split = _split(run)
-    floor = _load(UNANIMOUS_FLOOR)
+    floor = _load(UNANIMOUS_PAIR[0])
     bar = gva._error_bar(floor, split.get("selection_gbp"), run, split.get("clock"), split)
     published = bar["selection_leg"]
     derived = bar["legs_on_one_bar"]["legs"][gva.SELECTION_CONTRAST]
@@ -156,13 +230,14 @@ def test_both_verdicts_are_reachable_over_real_floors_on_this_disk():
     """Fires on: a grader that can only ever produce one verdict.
 
     A partition every test asks one side of is a partition nothing has established is a partition.
-    This asserts the level leg CAN be stated while the selection leg CANNOT, on a floor that is
-    already in this repository -- which is the state the whole finding is about -- and that a
-    floor exists where every leg clears. Neither family is constructed here; both were found by
-    running this grader over the real corpus.
+    This asserts the level leg CAN be stated while the selection leg CANNOT, on a pair that is
+    already in this repository -- which is the state the whole finding is about -- and that a pair
+    exists where every leg clears. Neither family is constructed here; both were found by running
+    this grader over the real corpus, and they share a run, so the difference between them is nine
+    seeds and nothing else.
     """
-    unanimous = _bar(UNANIMOUS_FLOOR)["legs"]
-    split = _bar(SPLIT_FLOOR)["legs"]
+    unanimous = _graded(UNANIMOUS_PAIR)["legs"]
+    split = _graded(SPLIT_PAIR)["legs"]
     assert all(leg["sign_is_stateable"] is True for leg in unanimous.values()), unanimous
     assert split[gva.LEVEL_CONTRAST]["sign_is_stateable"] is True, split[gva.LEVEL_CONTRAST]
     assert split[gva.SELECTION_CONTRAST]["sign_is_stateable"] is False, (
@@ -177,7 +252,7 @@ def test_the_split_verdict_says_the_level_is_what_can_be_called():
     called" are each half an answer, and a reader left to pair them from two paragraphs has been
     handed the conflation this feed refuses everywhere else.
     """
-    clause = _bar(SPLIT_FLOOR)["the_verdicts"]
+    clause = _graded(SPLIT_PAIR)["the_verdicts"]
     assert "price LEVEL" in clause, clause
     assert "value MOVED" in clause, clause
     assert "cannot yet call" in clause, clause
@@ -191,11 +266,12 @@ def test_a_unanimous_family_that_reads_against_the_company_says_so():
     drops the sentence with nobody editing a string. That is what makes it a reading rather than
     a confession pinned to today's answer.
     """
-    clause = _bar(UNANIMOUS_FLOOR)["the_verdicts"]
-    legs = _bar(UNANIMOUS_FLOOR)["legs"]
+    block = _graded(UNANIMOUS_PAIR)
+    legs = block["legs"]
     against_us = (legs[gva.LEVEL_CONTRAST]["sign"] == "positive"
                   and legs[gva.SELECTION_CONTRAST]["sign"] == "negative")
-    assert against_us, "this floor no longer reads against the company; the control below is moot"
+    assert against_us, "this pair no longer reads against the company; the control below is moot"
+    clause = block["the_verdicts"]
     assert "AGAINST THIS COMPANY" in clause, clause
     assert "flat rule beat the control by MORE" in clause, clause
 
@@ -207,9 +283,9 @@ def test_a_floor_that_bounds_nothing_grades_no_leg_and_says_why():
     floor that bounds no leg. The permissive failure -- deriving the level and value families
     locally and skipping those five refusals -- is the one this is written against.
     """
-    run = _run()
+    run = _run(UNANIMOUS_PAIR)
     split = _split(run)
-    floor = _load(UNANIMOUS_FLOOR)
+    floor = _load(UNANIMOUS_PAIR[0])
     worldless = dict(floor, world_identity={})
     block = gva._legs_on_one_bar(worldless, run, split, split.get("clock"))
     assert block["available"] is False, block
@@ -219,3 +295,36 @@ def test_a_floor_that_bounds_nothing_grades_no_leg_and_says_why():
     assert block["reason"] == gva._seed_spreads(worldless, run)["reason"], (
         "the refusal was softened rather than republished; a narrower reason about one leg is "
         "how a page comes to render two legs a bound was withheld from")
+
+
+def test_the_published_pair_is_graded_by_the_bounds_rule_and_by_nothing_else():
+    """Fires on: the block second-guessing `_seed_spreads` on the pair the READER actually meets.
+
+    The control above reaches the refusing branch by hand-mutating a world identity away, which
+    exercises ONE of the five refusals `_seed_spreads` can take. This asks the same question of
+    production bytes through the production rule -- today that is a staleness-and-book refusal,
+    which the mutated fixture cannot reach at all.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S REFUSAL, deliberately: it asserts the block AGREES
+    with the bounds rule, in both directions, and that a refusal costs the page every leg. The day
+    the floor is re-run on the figure's own tree this goes on meaning the same thing with nobody
+    editing a string -- and the day the block starts grading legs off a pairing the rule refused,
+    it reds. Pinning `available is False` here would have reproduced the exact defect this file
+    was just repaired for, one branch over.
+    """
+    run = _run(LIVE_PUBLISHED_PAIR)
+    floor = _load(LIVE_PUBLISHED_PAIR[0])
+    spreads = gva._seed_spreads(floor, run)
+    block = _bar(LIVE_PUBLISHED_PAIR)
+    assert block["available"] is spreads["available"], (
+        "the legs block and the bounds rule disagree about whether {} bounds {}".format(
+            LIVE_PUBLISHED_PAIR[0].name, LIVE_PUBLISHED_PAIR[1].name))
+    if block["available"]:
+        assert set(block["legs"]) == set(gva._BOUNDED_CONTRASTS), block["legs"]
+        assert block["the_verdicts"], block
+    else:
+        assert "legs" not in block, "a refused pairing still handed the page legs to render"
+        assert block["reason"] == spreads["reason"], (
+            "the page's refusal is not the bounds rule's refusal, so a reader is being given a "
+            "cause nothing measured")
+        assert block["why_no_leg_is_graded"], block
