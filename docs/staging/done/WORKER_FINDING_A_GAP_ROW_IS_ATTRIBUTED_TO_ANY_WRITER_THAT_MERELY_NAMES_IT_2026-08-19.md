@@ -8,7 +8,18 @@
 `tests/background/test_gap_ledger_reconciler.py::test_a_DELEGATED_write_attributes_the_caller_that_never_names_the_ids`,
 `tests/background/test_gap_ledger_reconciler.py::test_an_UNRESOLVABLE_write_site_is_reported_and_never_silently_empty`,
 `tests/background/test_gap_ledger_reconciler.py::test_the_live_writer_family_has_no_unresolvable_write_site`,
-`tests/background/test_gap_ledger_reconciler.py::test_a_marker_matched_on_PROSE_ALONE_produces_nothing`
+`tests/background/test_gap_ledger_reconciler.py::test_a_marker_matched_on_PROSE_ALONE_IS_NOT_A_WRITER`
+
+**Citation corrected 2026-09-22, and the correction is beside the claim rather than a silent
+rewrite.** The seventh falsifier was cited as `test_a_marker_matched_on_PROSE_ALONE_produces_nothing`
+from the day this record was filed. That name is in no tree: the node was renamed on 2026-09-08 when
+it was CORRECTED to assert the opposite of what it had asserted — it used to require
+`background/live_ledger_guard.py` to be discovered as a ledger writer, and the repair established
+that a module whose DOCSTRING quotes `--write-ledger` does not perform the write. Same file, same
+subject, and its own docstring records that correction. The other six citations in this list resolve
+unchanged, so this was one stale name and not a stale record. Found by
+`tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`, which had been red
+at `origin/main` on this citation with no commit's gate selection able to reach it.
 
 **Found:** 2026-08-19 worker tick, LANE 1 BUILD draw on `EP1_clv_three_horizon` (pass 12), while
 landing pass 11's uncommitted producer and checking what the reconciler would say about it.
