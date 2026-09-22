@@ -5478,6 +5478,28 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float | None = None) -> dict
     book's selection leg). `seeds_to_state_a_sign` scans instead, because `t(m-1)` has no algebraic
     inverse in `m`. The closed form is kept for an explicitly-passed fixed bar, where it is exact.
 
+    AND THE COUNT IS BOUNDED AT THE SOURCE (2026-09-22). The count scales as `(t·s/|m|)^2`, so the
+    ESTIMATE SITS IN THE DENOMINATOR -- and it is worth asking only when that estimate has failed
+    its own sign bar, which IS the statement that the denominator's interval at that bar contains
+    zero. A denominator that may be zero gives a quotient with no upper bound, so in the one state
+    where a reader wants the number there is no finite number to give. `seeds_needed_to_state_a_sign`
+    therefore carries an integer ONLY when the family clears its bar -- where the count is at most
+    `n` and the seeds are already in hand -- and is `None` with a named reason otherwise, beside
+    `seeds_needed_interval` carrying the arithmetic and the two endpoint prices.
+
+    THIS IS THE THIRD INSTANCE OF ONE RULE AND THE FIRST AT ITS SOURCE. 06e316ae4 removed the bare
+    count from one page key and 5742edb1c from another; both left this function writing it into
+    every artefact it draws, so every consumer that read an artefact rebuilt the defect. That is
+    the VAT shape CLAUDE.md names -- one requirement, several implementations, fixed in one of them
+    and live in the others -- and the fix belongs here, upstream of all of them.
+
+    THE ARITHMETIC IS NOT DELETED, IT IS RENAMED OUT OF THE GRAMMAR OF A PLAN.
+    `seeds_at_the_point_estimate` carries it in BOTH states. Withholding the measurement would hide
+    the only arithmetic in hand; publishing it as `needed` promises a reader that drawing that many
+    settles the question, which is the claim that is false. It is also what keeps
+    `test_the_seed_count_and_the_published_verdict_are_the_same_inequality` able to cross-check two
+    spellings of one inequality over the WHOLE sweep rather than over its clearing half.
+
     FAILS CLOSED. A mean of exactly zero needs infinitely many seeds and yields `None` with a
     named reason, never a large integer that reads like a plan.
     """
@@ -5495,23 +5517,72 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float | None = None) -> dict
         }
     sem = stdev_f / math.sqrt(n)
     sems_from_zero = abs(mean_f) / sem if sem > 0 else None
+
+    def price_at(denominator):
+        """The seed count this family would need if its mean were `denominator`.
+
+        The SAME method the point estimate uses, so the endpoints and the point can never be
+        computed two different ways: a scan when the bar is derived (t(m-1) has no algebraic
+        inverse in `m`), the exact closed form when the caller pinned the bar.
+        """
+        if denominator == 0.0:
+            return None
+        if derived:
+            return seeds_to_state_a_sign(denominator, stdev_f)
+        return int(math.floor((sems * stdev_f / abs(denominator)) ** 2)) + 1
+
+    point = price_at(mean_f)
     if mean_f == 0.0:
-        seeds_needed = None
         why = ("this family's mean is exactly zero, so no number of seeds separates it from zero "
                "and the count is undefined rather than large")
-    elif derived:
-        # Solved against the bar the PROJECTED family would face, not this one's. See the docstring.
-        seeds_needed = seeds_to_state_a_sign(mean_f, stdev_f)
-        why = (None if seeds_needed is not None else
-               "no family below {} seeds states a sign at its own bar, which is the instrument "
+    elif point is None:
+        why = ("no family below {} seeds states a sign at its own bar, which is the instrument "
                "saying it cannot settle this rather than a count a reader could act on".format(
                    _SEEDS_SEARCH_CEILING))
     else:
-        # The smallest integer STRICTLY greater than the threshold -- see the docstring. Exact only
-        # because the caller pinned the bar: at a FIXED `k` the inequality inverts in closed form.
-        threshold = (sems * stdev_f / abs(mean_f)) ** 2
-        seeds_needed = int(math.floor(threshold)) + 1
         why = None
+
+    # THE GATE, KEYED TO THE DENOMINATOR'S INTERVAL AND NOT TO TODAY'S COUNT. This is the same
+    # inequality the artefact's verdict publishes: clearing the bar IS the statement that the
+    # denominator's interval at that bar excludes zero, and it is the only state in which the
+    # quotient below has an upper bound. Written as the verdict rather than via `sems_from_zero`
+    # so a zero spread -- where `sems_from_zero` is `None` and the sign is certain -- reaches the
+    # branch it belongs in instead of the refusing one.
+    clears_bar = abs(mean_f) > sems * sem
+    low, high = mean_f - sem, mean_f + sem
+    if clears_bar:
+        seeds_needed, interval = point, None
+    else:
+        seeds_needed = None
+        interval = {
+            "at_the_point_estimate": point,
+            "denominator_gbp": mean_f,
+            "denominator_error_gbp": sem,
+            "denominator_one_error_low_gbp": low,
+            "denominator_one_error_high_gbp": high,
+            "price_at_the_low_end_of_the_denominator": price_at(low),
+            "price_at_the_high_end_of_the_denominator": price_at(high),
+            # NAMED FOR THE DENOMINATOR'S POSITION, NEVER THE PRICE'S. A denominator further from
+            # zero is CHEAPER, so the prices come back in the opposite order to the bounds that
+            # produced them, and naming them by the price would invite exactly the min/max reading
+            # this block exists to refuse.
+            "these_two_are_not_a_range": (
+                "The two prices above are the ends of the DENOMINATOR's interval, not the ends of "
+                "the PRICE's. The price is not monotone between them: it rises without limit as "
+                "the denominator approaches zero, and this denominator's own interval {}contains "
+                "zero.".format("" if low <= 0.0 <= high else "at its own sign bar ")),
+            "has_no_upper_bound": True,
+            "search_ceiling_seeds": _SEEDS_SEARCH_CEILING,
+        }
+        why = why or (
+            "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The "
+            "count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it "
+            "is asked only when that estimate has failed its own sign bar -- which is the "
+            "statement that the denominator's interval at that bar contains zero. A denominator "
+            "that may be zero prices the question at no finite number of draws. The arithmetic at "
+            "this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints "
+            "one standard error either side are published beside it; they are not a range, "
+            "because the quantity diverges between them.")
     return {
         "available": True,
         "sems_from_zero": sems_from_zero,
@@ -5521,6 +5592,14 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float | None = None) -> dict
         # caller that pinned it says so here, so a fixed bar can never be mistaken for the rule.
         "sems_needed_is_derived_from_the_family_size": derived,
         "seeds_needed_to_state_a_sign": seeds_needed,
+        # THE ARITHMETIC, UNDER A NAME THAT IS NOT A PLAN. Published in BOTH states -- it is the
+        # only figure in hand and withholding it would hide the measurement rather than bound it --
+        # and it is what a reader reconciles `seeds_in_hand` against. `needed` above promises that
+        # drawing that many settles the question; `at_the_point_estimate` promises only that this
+        # is what the inequality returns at today's mean and spread, which is all that is true.
+        "seeds_at_the_point_estimate": point,
+        # THE PRICE'S OWN INTERVAL, non-null exactly when the count is withheld. See the docstring.
+        "seeds_needed_interval": interval,
         "seeds_in_hand": n,
         "sign_if_it_were_stateable": (
             None if mean_f == 0.0 else ("negative" if mean_f < 0 else "positive")),
@@ -7335,10 +7414,20 @@ def main(argv: list[str] | None = None) -> int:
             "{:,.2f}".format(folded["selection_sem_gbp"])
             if folded["selection_sem_gbp"] is not None else "n/a"))
         if dist.get("available"):
-            print("  distance        {:.3f} sems from zero, and it takes {}".format(
+            # THE SUMMARY CANNOT SAY "IT TAKES N" WHEN THE BLOCK WITHHELD N. It said exactly that
+            # until 2026-09-22, reading the withheld count as "infinitely many" and so spelling
+            # three different states -- a zero mean, a search that gave up, and a price with no
+            # upper bound -- as one sentence a reader would act on.
+            print("  distance        {:.3f} sems from zero; {}".format(
                 dist["sems_from_zero"],
-                "{} seed(s) at this mean and sd".format(dist["seeds_needed_to_state_a_sign"])
-                if dist["seeds_needed_to_state_a_sign"] is not None else "infinitely many"))
+                "{} seed(s) needed at this mean and sd".format(
+                    dist["seeds_needed_to_state_a_sign"])
+                if dist["seeds_needed_to_state_a_sign"] is not None else
+                "NO COUNT -- the mean is inside its own bar, so the price has no upper bound"
+                " (the arithmetic at the point estimate is {})".format(
+                    dist["seeds_at_the_point_estimate"]
+                    if dist["seeds_at_the_point_estimate"] is not None else
+                    "beyond the search ceiling")))
         print("  SIGN STATEABLE?  {}".format(
             {True: "YES -- {}".format(dist.get("sign_if_it_were_stateable")),
              False: "NO -- the mean is inside its own standard error",

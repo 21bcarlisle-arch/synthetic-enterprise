@@ -5065,6 +5065,31 @@ def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_t
         "subject and its red above carries no information")
 
 
+def _a_quiet_null() -> dict:
+    """A seed-redraw null that does not refuse -- this leg put out of scope for the controls below.
+
+    EXACTLY THE MOVE `later_runs=[]` MAKES, ONE REFUSAL LATER, and for the reason that docstring
+    gives. `composition` carries THREE independent refusals since 2026-09-22: the numerator having
+    no sign, a later run in this world disagreeing about which leg is bigger, and the statistic's
+    own seed-redraw null outrunning the gap being attributed. Each has its own control, and every
+    one of those controls needs a CLEAN witness -- a subject on which its refusal does not fire --
+    to show the refusal is a judgement rather than an unconditional red.
+
+    A clean witness is only clean if the OTHER refusals are out of scope. On the real artefacts the
+    null leg fires (`next12` spans 12.007 against a 0.930 gap), so a sign-stable floor or an
+    agreeing later run would come back `readable: False` for a second, entirely correct reason, and
+    the control reporting "refuses regardless of its subject" would be wrong about the leg it is
+    testing. So the null is injected narrow here, exactly as the census is injected empty.
+
+    `statement` IS EMPTY ON PURPOSE. A non-refusing null appends its reading to
+    `why_not_readable`, which is right on the page and would make two subjects differ by more than
+    the one thing a rung moves. This block's own control is
+    `tests/tools/test_a_share_whose_own_null_outruns_the_gap_is_not_readable_at_one_run.py`, which
+    asserts BOTH of its verdicts reachable and is where its behaviour is pinned.
+    """
+    return {"available": True, "null_is_wider_than_the_disagreement": False, "statement": ""}
+
+
 def _floor_with_level_legs(floor: dict, values: list) -> dict:
     """The same floor with its per-seed level leg replaced, and the share it implies moved with it.
 
@@ -5222,6 +5247,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
 
     # WITNESS A -- the live artefact's own rows: -882.45, +1,733.38, +9,085.08. No sign.
     refused = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
+                                          shares_own_null=_a_quiet_null(),
                                           superseded_split={"level_share_of_advantage": 0.7867})
     comp = refused["composition"]
     assert comp["available"] is True, str(comp.get("reason"))[:200]
@@ -5237,6 +5263,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     # draw is positive; nothing else edited.
     stable = _floor_with_level_legs(admitted, [1_000.0, 1_733.378959, 9_085.082015])
     allowed = gva._current_world_contrast(current, superseded, stable, later_runs=[],
+                                          shares_own_null=_a_quiet_null(),
                                           superseded_split={"level_share_of_advantage": 0.7867})
     assert allowed["composition"]["readable"] is True, (
         "a floor whose level leg holds one sign is still refused, so this block refuses "
@@ -5249,7 +5276,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     # test it was an unreachable branch that crashed on an empty range, which this file's own
     # suite caught on the foreign-world subject.
     unasked = gva._current_world_contrast(current, superseded, dict(admitted, seeds=[]),
-                                          later_runs=[],
+                                          later_runs=[], shares_own_null=_a_quiet_null(),
                                           superseded_split={"level_share_of_advantage": 0.7867})
     assert unasked["composition"]["readable"] is None, (
         "a floor that could not be asked is reported as an answer")
@@ -5448,6 +5475,7 @@ def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_reci
     admitted = _admitted_live_floor()
 
     built = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
+                                        shares_own_null=_a_quiet_null(),
                                         superseded_split={"level_share_of_advantage": 0.7867})
     comp, leg = built["composition"], built["level_leg"]
     said = comp["why_not_readable"] or ""
@@ -5488,9 +5516,10 @@ def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_reci
     # RE-DRAWN. Pointing there would send the reader to the gap, so the numbers must stay.
     contrast = current["level_vs_selection"]
     pointed = gva._composition_in_this_world(contrast, admitted, 0.7867, live, later_runs=[],
+                                             shares_own_null=_a_quiet_null(),
                                              level_stability=stability)
     recited = gva._composition_in_this_world(
-        contrast, admitted, 0.7867, live, later_runs=[],
+        contrast, admitted, 0.7867, live, later_runs=[], shares_own_null=_a_quiet_null(),
         level_stability={"checked": False, "why_not": "no bound was read in this world"})
     assert pointed["why_not_readable"] == said, (
         "the direct call does not reproduce what the build published, so the two subjects below "
@@ -5971,7 +6000,7 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
     # them green on hand-built input.
     rows = gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [flips, agrees]))
     refused = gva._current_world_contrast(
-        current, superseded, stable, later_runs=rows,
+        current, superseded, stable, later_runs=rows, shares_own_null=_a_quiet_null(),
         superseded_split={"level_share_of_advantage": 0.7867})
     comp = refused["composition"]
     assert comp["readable"] is False, (
@@ -5999,7 +6028,7 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
     # WITNESS B -- THE SOLE WITNESS THAT THE REFUSAL IS A JUDGEMENT. Same everything, except the
     # later run falls on the same side of which-leg-is-bigger as the published one.
     allowed = gva._current_world_contrast(
-        current, superseded, stable,
+        current, superseded, stable, shares_own_null=_a_quiet_null(),
         later_runs=gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [agrees])),
         superseded_split={"level_share_of_advantage": 0.7867})
     assert allowed["composition"]["readable"] is True, (
@@ -9444,14 +9473,79 @@ def test_MUTATION_the_price_of_a_sign_is_in_ROSTERS_and_never_reaches_a_SECOND_a
         "as though they were the same thing")
     # MONOTONE IN THE DISTANCE, not pinned to today's four. A reading twice as far from chance
     # needs fewer rosters; one at chance names no finite count at all.
+    #
+    # READ OFF THE POINT ESTIMATE AND NOT THE PUBLISHED COUNT (2026-09-22). The count is now gated
+    # on the reading clearing its own null, so `_rosters_to_state_a_sign(1.0)` withholds it and
+    # this comparison would be `None > 1`. Re-pointing at `rosters_at_the_point_estimate` keeps the
+    # property asked over the WHOLE partition; reading it off the gated key would have left it
+    # comparing two distances that both clear the bar -- half the partition, with an identical
+    # green and no way to tell the difference.
     near = gva._rosters_to_state_a_sign(1.0)
     far = gva._rosters_to_state_a_sign(2.5)
-    assert near["rosters_needed_to_state_a_sign"] > far["rosters_needed_to_state_a_sign"], (
+    assert near["rosters_at_the_point_estimate"] > far["rosters_at_the_point_estimate"], (
         "the price of a sign does not fall as the reading moves away from chance, so it is not a "
         "function of the distance it claims to price")
     assert gva._rosters_to_state_a_sign(0.0)["available"] is False, (
         "a reading sitting exactly on the no-information point was given a finite price, which "
         "is a number a reader would act on and no evidence supports")
+
+
+def test_MUTATION_the_roster_price_is_published_ONLY_where_its_denominator_excludes_chance():
+    """The fourth instance of one rule, controlled over the partition and not over today's answer.
+
+    THE DEFECT (live until 2026-09-22, on `site/data/value_arms.json` as
+    `rosters_needed_to_state_a_sign: 4`). The count is `ceil((bar/|d|)^2)` where `d` is this
+    reading's distance from chance -- an ESTIMATE, in the DENOMINATOR -- and it is asked only where
+    that estimate has failed its own null, which IS the statement that the denominator's interval
+    at that bar covers zero. So in the one state a reader wants the number there is no finite
+    number, and 4 is a figure small enough to read as a cheap, considered price.
+
+    THE PARTITION IS ASSERTED INHABITED BEFORE EITHER SIDE IS ASSERTED ABOUT. A gate that withheld
+    EVERY count would satisfy every leg below that only ever checks a withholding, and would read
+    in the log exactly like the mechanism working. So the sweep is required to reach both states
+    first; `published` and `withheld` are both non-empty or this control fails before it tests
+    anything.
+
+    Fires on: dropping the gate (every distance prices, `withheld` empties), inverting it
+    (`published` empties), or publishing the count in the withheld state under any name whose
+    grammar is a plan.
+    """
+    bar = gva._AUC_SDS_TO_STATE_A_SIGN
+    sweep = [0.25 * i for i in range(1, 17)]
+    published = [d for d in sweep
+                 if gva._rosters_to_state_a_sign(d)["rosters_needed_to_state_a_sign"] is not None]
+    withheld = [d for d in sweep
+                if gva._rosters_to_state_a_sign(d)["rosters_needed_to_state_a_sign"] is None]
+    assert published and withheld, (
+        "this sweep does not reach both sides of the gate, so every leg below is asserting about "
+        "a branch that cannot be taken and would stay green if the gate refused everything")
+    assert all(d > bar for d in published) and all(d <= bar for d in withheld), (
+        "the published count is not keyed to the reading clearing its own null, so it is keyed to "
+        "something other than whether its denominator's interval excludes the no-information point")
+    for d in withheld:
+        block = gva._rosters_to_state_a_sign(d)
+        interval = block["rosters_needed_interval"]
+        assert block["rosters_needed_unavailable_because"], (
+            "a withheld roster price names no reason, so 'no price exists' reads on the page as "
+            "'nobody costed it' -- the opposite reading, and the one silence spells")
+        assert interval and interval["has_no_upper_bound"] is True, (
+            "a withheld count publishes no interval, so the only arithmetic in hand is hidden "
+            "rather than bounded")
+        assert block["rosters_at_the_point_estimate"] == interval["at_the_point_estimate"], (
+            "the point estimate and the interval's own copy of it disagree, which is two "
+            "spellings of one quantity drifting apart")
+        note = interval["these_two_are_not_a_range"].lower()
+        assert "denominator" in note and "not the ends of the price" in note, (
+            "the two endpoint prices are published with nothing saying they are the ends of the "
+            "DENOMINATOR's interval, so a reader takes them for a bound on the price")
+    for d in published:
+        block = gva._rosters_to_state_a_sign(d)
+        assert block["rosters_needed_interval"] is None, (
+            "a reading that clears its own null still carries the unbounded-price interval, so "
+            "the block says the price diverges and states it in the same breath")
+        assert block["rosters_needed_to_state_a_sign"] <= block["rosters_in_hand"], (
+            "a reading that clears its own null was told it needs more rosters than it holds, "
+            "which contradicts the verdict the same artefact publishes")
 
 
 def test_a_folds_several_trees_are_told_apart_from_several_INSTRUMENTS():
