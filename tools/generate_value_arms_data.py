@@ -359,7 +359,12 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: of a width disagreement would be choosing between two instruments by their answers. What is
 #: owed instead is the one-variable run -- these twelve seeds at `4e7938f673` -- which separates
 #: the instrument from the seed set; until it exists I cannot say which width is the right one.
-#: THE SIGN PUBLISHED HERE IS NOW CONTESTED BY A SAME-WORLD FAMILY AND THE PAGE SHOULD SAY SO.
+#: THE SIGN PUBLISHED HERE IS CONTESTED BY A SAME-WORLD FAMILY, AND SINCE 2026-09-22 THE PAGE SAYS
+#: SO -- see `_the_sign_across_families`, which grades all FOUR same-world families against the run
+#: each was measured on and publishes whether any leg's sign survives a change of floor. It reached
+#: no reader for four days while this comment said it should: the census renders on the REFUSING
+#: branch too, which is the branch that needed it, because the pair this constant forms with
+#: `THREE_ARM_PATH` is itself refused and the page was therefore silent on every leg.
 #: `docs/staging/SEAT_RESULT_THE_TWELVE_REPLICATE_THE_LEVEL_AND_REFUTE_THE_WIDTH_AND_THE_SIGN_WAS`
 #: `_A_PROPERTY_OF_THE_WIDTH_2026-09-18.md`.
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
@@ -2465,6 +2470,13 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # what this block said, which made the page silent about a leg whose sign has been
         # determined since the first floor was ever run. See `_legs_on_one_bar`.
         "legs_on_one_bar": _legs_on_one_bar(floor, three_arm, split, point_clock),
+        # AND WHETHER THOSE LEGS' SIGNS SURVIVE A CHANGE OF FLOOR (2026-09-22). The block above is
+        # REFUSED on today's publish, correctly, and the page therefore said nothing about any leg
+        # -- while four same-world families on this disk grade the same three contrasts, agree on
+        # two of them and disagree on the third. This is not a second grader: every family here
+        # goes through `_legs_on_one_bar` itself. It renders on the refusing branch too, which is
+        # the branch that needs it. See `_the_sign_across_families`.
+        "does_the_sign_replicate": _the_sign_across_families(),
         # AND WHETHER THE ARM WON BY KNOWING ANYTHING, BESIDE THE FIGURE FOR HOW MUCH IT WON
         # (2026-09-17). The advantage and the discrimination are the two halves of one question and
         # this page has published the first without the second before -- the retraction is in
@@ -3733,6 +3745,278 @@ def _the_verdicts_clause(stateable: list, unstateable: list, seeds) -> str:
             "is the one this book cannot yet call."
             ).format(n=seeds, said=said, cannot=cannot,
                      verb="has" if len(unstateable) == 1 else "have")
+
+
+#: EVERY SAME-WORLD FAMILY ON THIS DISK THAT CAN GRADE THESE THREE LEGS, each named with the run it
+#: was MEASURED ON rather than with today's run. Half a pair cannot be graded: a noise floor bounds
+#: the run it was drawn against, and pairing a floor with a later figure asks the bounds rule a
+#: question it is right to refuse. That mis-pairing is what put seven controls red on 2026-09-22 --
+#: `SEAT_FINDING_SEVEN_CONTROLS_PAIRED_EVERY_FLOOR_WITH_THE_LIVE_RUN_INSTEAD_OF_THE_RUN_IT_WAS`
+#: `_MEASURED_ON_2026-09-22.md` -- so the pairing is DATA here and never inferred.
+#:
+#: CHOSEN BY A PROPERTY AND NOT BY THEIR ANSWERS, which is the only footing that makes the verdict
+#: below mean anything. The property is: a floor in world `39a192ce04c1eda8` whose seed rows carry
+#: all three bounded contrasts, together with the committed three-arm run it is contemporaneous
+#: with. All four that satisfy it are here. Two of them state a sign for the selection leg's
+#: neighbour legs and not for the selection leg; one states a sign for all three. Dropping the
+#: awkward one would be choosing an instrument by its answer, which is the defect the
+#: `NOISE_FLOOR_PATH` block refused to commit when it declined to swap families on a width
+#: disagreement.
+#:
+#: THE PUBLISHED PAIR IS DELIBERATELY NOT IN THIS LIST. `NOISE_FLOOR_PATH` x `THREE_ARM_PATH` is
+#: REFUSED by the bounds rule today, and the refusal is rendered in its own right immediately above
+#: this block. Putting a refused pair in a replication census would let "no sign" from a floor that
+#: was never graded count as evidence that the sign does not replicate -- a family structurally
+#: unable to answer agrees with every answer.
+_REPLICATION_PAIRS = (
+    ("the 9-seed floor of 2026-09-10 23:03",
+     "value_cycle_ab_s1_noise_floor.json", "value_cycle_ab_s1_three_arm_20260910.json"),
+    ("the 9-seed floor of 2026-09-10 21:34, on the SAME run",
+     "value_cycle_ab_s1_noise_floor_20260910b.json", "value_cycle_ab_s1_three_arm_20260910.json"),
+    ("the 12-seed floor of 2026-09-18 11:07",
+     "value_cycle_ab_s1_noise_floor_next12_20260917.json", "value_cycle_ab_s1_three_arm.json"),
+    ("the 12-seed floor of 2026-09-19 09:10",
+     "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json", "value_cycle_ab_s1_three_arm.json"),
+)
+
+
+#: WHAT A FAMILY THAT CLEARED NO BAR SAYS, as words rather than as an absence. Every published row
+#: below states its side as a STRING and never as `sign`/`sign_is_stateable`, and that is a
+#: requirement rather than a style: `error_bar` holds a registry of every key bearing on "does the
+#: selection family's mean clear zero" (`_CLEARS_ZERO_KEYS`), and its net catches any boolean-or-
+#: null leaf whose name carries `sign`, `stateable`, `clears`, `agree` or `distinguishable`. A
+#: per-family copy of that verdict machinery would land in the net as a NEW HOME for that question
+#: -- and it would be a false one, because these rows answer it for a DIFFERENT family. Re-typing
+#: the verdict per family would also be a second home in the plain sense: `per_leg` already carries
+#: the counts and the signs stated, so the row would be a duplicate that could drift.
+#:
+#: AND A DECLARED "no sign" IS NOT A SILENT `None`. Those two collapse into the flattering branch
+#: wherever a reader or a renderer treats absence as agreement; a family that was graded and could
+#: not call its side has said something, and it says it here in words.
+_NO_SIGN_AT_ITS_OWN_BAR = "no sign at its own bar"
+
+
+def _what_a_family_states(leg: dict) -> str:
+    """One family's side for one leg, ALWAYS a string. See `_NO_SIGN_AT_ITS_OWN_BAR`."""
+    if leg.get("sign_is_stateable") is True and leg.get("sign"):
+        return leg["sign"]
+    return _NO_SIGN_AT_ITS_OWN_BAR
+
+
+def _replication_artefact(filename: str) -> dict | None:
+    """One committed artefact under `docs/observability`, or `None` if it cannot be read.
+
+    `None` MEANS UNREADABLE AND NEVER MEANS EMPTY. The caller publishes it as an UNREADABLE family
+    rather than dropping the row, because a census that silently omits what it could not open
+    reports a smaller disagreement than it found -- and an empty evidence set reads to a guard
+    exactly like no complaint.
+    """
+    try:
+        loaded = json.loads((OBSERVABILITY_DIR / filename).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def _replication_pair_blocks(pairs=_REPLICATION_PAIRS) -> list:
+    """Each named pair, graded by `_legs_on_one_bar` and by nothing else.
+
+    ONE GRADER, WHICH IS THE WHOLE POINT. A census that re-derived the legs here would be a second
+    implementation of the rule the page publishes, and it would be the permissive one -- none of
+    `_seed_spreads`' five refusals would come with it. A family this function could not have graded
+    through the production path is not evidence about the production path.
+
+    A pair whose artefacts are not on disk is reported as UNREADABLE, never dropped. A census that
+    silently omits what it could not read publishes a smaller disagreement than it found.
+    """
+    out = []
+    for name, floor_file, run_file in pairs:
+        floor = _replication_artefact(floor_file)
+        run = _replication_artefact(run_file)
+        if floor is None or run is None:
+            out.append({"family": name, "floor": floor_file, "run": run_file,
+                        "readable": False, "available": False,
+                        "reason": "one of this pair's two artefacts could not be read, so this "
+                                  "family is UNREADABLE rather than silent -- it is neither "
+                                  "agreement nor disagreement"})
+            continue
+        split = run.get("level_vs_selection") or {}
+        block = _legs_on_one_bar(floor, run, split, split.get("clock"))
+        row = {"family": name, "floor": floor_file, "run": run_file, "readable": True,
+               "available": bool(block.get("available")), "seeds": block.get("seeds"),
+               "world_measured_in": block.get("world_measured_in")}
+        if not block.get("available"):
+            row["reason"] = block.get("reason")
+            out.append(row)
+            continue
+        row["legs"] = {
+            key: {"subject": leg.get("subject"),
+                  "estimate_gbp": leg.get("estimate_gbp"),
+                  "bound_gbp": leg.get("bound_gbp"),
+                  "sems_from_zero": leg.get("sems_from_zero"),
+                  "what_this_family_states": _what_a_family_states(leg)}
+            for key, leg in (block.get("legs") or {}).items() if leg.get("available")}
+        out.append(row)
+    return out
+
+
+def _leg_replication(rows: list, key: str) -> dict:
+    """Does ONE leg's sign say the same thing on every family that could grade it?
+
+    THREE OUTCOMES AND NOT TWO, because "they disagree about the sign" and "some of them cannot
+    state one" are different claims and collapsing them would flatter whichever is convenient:
+
+      `replicates`  -- every gradable family states a sign and they are the SAME sign.
+      `contested`   -- the families that DO state a sign do not all state the same one.
+      `not_settled` -- at least one gradable family states no sign at all, and no two that do
+                       disagree. The sign is then a property of WHICH family was drawn, which is
+                       exactly the claim this block exists to publish.
+
+    DERIVED FROM THE SIGNS, so a family set that agrees tomorrow publishes `replicates` with nobody
+    editing a sentence. A verdict written as a literal here would be a control keyed to today's
+    answer, and it would go green precisely when the evidence rotted.
+    """
+    gradable = [r for r in rows if r.get("available") and key in (r.get("legs") or {})]
+    said = [r["legs"][key].get("what_this_family_states") for r in gradable]
+    stated = [s for s in said if s and s != _NO_SIGN_AT_ITS_OWN_BAR]
+    signs = sorted(set(stated))
+    if not gradable:
+        verdict = "no_family_grades_it"
+    elif len(signs) > 1:
+        verdict = "contested"
+    elif len(stated) == len(gradable) and len(signs) == 1:
+        verdict = "replicates"
+    else:
+        verdict = "not_settled"
+    # NO `sign_if_it_replicates` FIELD, DELIBERATELY. It would be a second home for exactly what
+    # `verdict` and `signs_stated` already say -- readable as "the sign" by a consumer that never
+    # checked the verdict beside it, and free to drift from both. This payload's own registry of
+    # keys answering "does the mean clear zero" exists because that shape has cost this page
+    # before. The sign a replicating leg carries is `signs_stated[0]` WHEN `verdict` is
+    # `replicates`, and the two cannot disagree because there is only one of them.
+    return {"families_that_could_grade_it": len(gradable),
+            "families_that_state_a_sign": len(stated),
+            "signs_stated": signs,
+            "verdict": verdict}
+
+
+def _the_sign_across_families(pairs=_REPLICATION_PAIRS) -> dict:
+    """Whether each leg's sign is a property of the BOOK or of WHICH FLOOR WAS DRAWN.
+
+    THE DEFECT THIS REMOVES, AND IT IS A SILENCE RATHER THAN A WRONG NUMBER. The pair this page
+    publishes is refused by the bounds rule -- correctly: the floor is older than the figure and
+    priced a different book. So `legs_on_one_bar` renders one amber sentence and the page says
+    nothing about any leg. Meanwhile four same-world families on this disk DO grade the same three
+    contrasts, they AGREE on the level and value legs, and they DISAGREE on the selection leg, and
+    none of that reached a reader. Answering "we cannot tell" out of one refused pair, while
+    holding four graded families that replicate two legs of three, publishes less than the page
+    knows -- in the direction that happens to read safe.
+
+    WHY THE SELECTION LEG IS THE ONE THIS MATTERS FOR. The mission turns on the choosing: the level
+    leg is a price CHARGED and is value moved, and only the selection leg could be value made. The
+    strongest claim this page has ever carried about the choosing is that it is NEGATIVE, and that
+    claim rests on ONE floor. A second floor drawn from the SAME RUN ninety minutes later reads a
+    tenth of it and states no sign. A sign that moves by a factor of ten between two draws of the
+    same instrument is a property of the draw.
+
+    ALL THREE LEGS, NOT THE CONTESTED ONE. A block that graded only the leg that fails to replicate
+    would make "contested" unfalsifiable -- there would be nothing on the page showing what
+    replication looks like when it happens. The level leg is the control arm here and it is
+    published at the same rule: it states POSITIVE on every family, and it is the reason the
+    selection leg's disagreement cannot be waved away as these floors being too noisy to grade
+    anything. The same rows that cannot call the choosing call the level at up to 49 errors.
+    """
+    rows = _replication_pair_blocks(pairs)
+    per_leg = {key: dict(_leg_replication(rows, key),
+                         subject=_LEG_SUBJECTS[key][0] if key in _LEG_SUBJECTS else key)
+               for key in _BOUNDED_CONTRASTS}
+    return {
+        "what_this_is": (
+            "The same three contrasts, graded by the same rule, on every same-world family in this "
+            "repository that can grade them -- each floor against the run it was MEASURED ON. It "
+            "asks whether a leg's sign is a property of the BOOK or of WHICH FLOOR WAS DRAWN."),
+        "families": rows,
+        "families_graded": sum(1 for r in rows if r.get("available")),
+        "families_offered": len(rows),
+        "per_leg": per_leg,
+        "the_reading": _replication_reading(per_leg, rows),
+    }
+
+
+def _upper_first(text: str) -> str:
+    """`text` with only its first character raised. NOT `str.capitalize`, which lowers the rest."""
+    return text[:1].upper() + text[1:]
+
+
+def _strongest_sems(rows: list, keys) -> float | None:
+    """The largest distance from zero any of `keys` reached on any family that graded it.
+
+    IT IS DERIVED BECAUSE THE SENTENCE BELOW LEANS ON IT. The first draft of that sentence said
+    "at up to 49 standard errors" as a literal, which is a control keyed to today's answer wearing
+    a reading's clothes: it would still say 49 on the day the replicating legs weakened to 3, and
+    the claim it supports -- that these rows are not simply too noisy to call anything -- would
+    have quietly inverted while the page went on asserting it.
+    """
+    seen = [leg.get("sems_from_zero")
+            for row in rows if row.get("available")
+            for key, leg in (row.get("legs") or {}).items()
+            if key in keys and isinstance(leg.get("sems_from_zero"), (int, float))]
+    return max(seen) if seen else None
+
+
+def _replication_reading(per_leg: dict, rows: list) -> str:
+    """The sentence, COMPOSED from the verdicts rather than written beside them.
+
+    Every branch here is reachable from some family set, and every number in it is derived. The day
+    the selection leg replicates, this function says so without an edit -- which is the only way a
+    sentence about replication can still be true after the evidence moves.
+    """
+    graded = sum(1 for r in rows if r.get("available"))
+    if not graded:
+        return ("No same-world family in this repository can grade these legs against the run it "
+                "was measured on, so this page says nothing about whether any sign replicates.")
+    settled = [(k, v) for k, v in per_leg.items() if v["verdict"] == "replicates"]
+    moving = [(k, v) for k, v in per_leg.items()
+              if v["verdict"] in ("contested", "not_settled")]
+    head = "Across {n} same-world {fam}, each graded against the run it was measured on: ".format(
+        n=graded, fam="family" if graded == 1 else "families")
+    def names(pairs, joiner):
+        return joiner.join(v["subject"] for _, v in pairs)
+
+    if not moving:
+        return (head + "every leg states the same sign on every one of them -- "
+                + names(settled, ", ") + ". No sign here is a property of which floor was drawn.")
+    if not settled:
+        return (head + "no leg states the same sign on all of them. " + names(moving, " and ")
+                + (" depends" if len(moving) == 1 else " each depend")
+                + " on which floor was drawn, so this page states no side for any of them off "
+                  "this evidence.")
+    # THE PRICE OF THE CONTRAST, DERIVED. "These floors are just too noisy to grade anything" is
+    # the reading that would dissolve the finding, and the only thing that refutes it is how far
+    # from zero the SAME ROWS put the legs that do replicate. So it is measured, not asserted.
+    strongest = _strongest_sems(rows, {k for k, _ in settled})
+    contested = ["{sub} states {stated} on {a} of {b} and no sign on the {c} other{s}".format(
+        sub=v["subject"],
+        stated=" and ".join(v["signs_stated"]) if v["signs_stated"] else "no sign",
+        a=v["families_that_state_a_sign"], b=v["families_that_could_grade_it"],
+        c=v["families_that_could_grade_it"] - v["families_that_state_a_sign"],
+        s="" if v["families_that_could_grade_it"] - v["families_that_state_a_sign"] == 1 else "s")
+        for _, v in moving]
+    return (head + names(settled, ", ")
+            + (" states" if len(settled) == 1 else " state")
+            + " the same sign on every one of them, while " + names(moving, " and ")
+            + (" does" if len(moving) == 1 else " do") + " not. That contrast is the finding and "
+            "not a gap in it"
+            + (": the same seed rows reach {:.1f} standard errors from zero on the legs that do "
+               "replicate, so this family is not simply too noisy to call anything".format(
+                   strongest) if strongest is not None else "")
+            # `.capitalize()` WOULD BE WRONG HERE: it lower-cases the whole tail, and these
+            # subjects carry deliberate emphasis (`the price-LEVEL leg`) that says which leg is
+            # which. Only the first character moves.
+            + ". " + _upper_first("; ".join(contested)) + ". A sign that changes with which floor "
+            "was drawn is a "
+            "property of the draw and not of this book, and it is the leg the mission turns on: "
+            "the price LEVEL is value MOVED, and only the choosing could be value MADE.")
 
 
 #: The name the objective's departure term arrives under, and the ONLY thing this feed will accept

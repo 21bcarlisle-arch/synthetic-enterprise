@@ -1505,6 +1505,72 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      resolved would make silence and refusal look identical, which is the whole defect this block
      was written for one layer up. Nothing here divides one leg by another: two correct figures
      whose ratio is not a quantity is this page's most expensive recurring shape. */
+  /* WHETHER EACH LEG'S SIGN SURVIVES A CHANGE OF FLOOR (2026-09-22).
+
+     WHY IT RENDERS ON THE REFUSING BRANCH, WHICH IS THE WHOLE POINT. `legs_on_one_bar` is refused
+     on today's publish -- the floor is older than the figure and priced a different book -- so
+     everything above this said one amber sentence and nothing about any leg, while four
+     same-world families on this disk grade the same three contrasts. They agree on the value and
+     level legs and DISAGREE on the choosing: a stated NEGATIVE on one nine-seed floor, and a tenth
+     of it with no sign at all on a second nine-seed floor drawn from the SAME RUN ninety minutes
+     later. Answering "we cannot tell" out of one refused pair while holding four graded families
+     publishes less than the page knows, in the direction that reads safe.
+
+     AMBER WHEN A LEG'S SIGN DEPENDS ON WHICH FLOOR WAS DRAWN, because that is the state in which
+     the strongest claim on this page about the CHOOSING -- the leg the mission turns on, and the
+     only one that could be value made rather than moved -- is a property of the draw. */
+  function signAcrossFamilies(c) {
+    if (!c || !c.the_reading) { return ""; }
+    var order = ["value_advantage_gbp", "level_advantage_gbp", "selection_gbp"];
+    var contested = false;
+    var rows = "";
+    for (var i = 0; i < order.length; i++) {
+      var leg = (c.per_leg || {})[order[i]];
+      if (!leg) { continue; }
+      var settled = leg.verdict === "replicates";
+      if (!settled) { contested = true; }
+      var verdict = settled
+        ? "SAME SIGN ON EVERY FLOOR"
+        : leg.verdict === "contested"
+          ? "THE FLOORS DISAGREE ON THE SIGN"
+          : leg.verdict === "not_settled"
+            ? "THE SIGN DEPENDS ON WHICH FLOOR WAS DRAWN"
+            : "NO FLOOR GRADES IT";
+      rows += '<span style="display:block;margin-top:6px;color:'
+        + (settled ? "var(--muted)" : "var(--amber)") + ';">'
+        + "<strong>" + esc(leg.subject) + " &mdash; " + esc(verdict) + "</strong>: "
+        + esc(leg.families_that_state_a_sign) + " of "
+        + esc(leg.families_that_could_grade_it)
+        + (leg.families_that_could_grade_it === 1 ? " family states" : " families state")
+        + " a sign"
+        + ((leg.signs_stated || []).length ? " &mdash; " + esc(leg.signs_stated.join(" and ")) : "")
+        + ".</span>";
+    }
+    /* THE FAMILIES THEMSELVES, NAMED WITH THE RUN EACH WAS MEASURED ON. A floor bounds the run it
+       was drawn against, and this page has already paid once for pairing a floor with whatever run
+       happened to be live -- so the pairing is shown rather than left to be assumed. A family that
+       could not be graded is listed too, with its reason: dropping it would publish a smaller
+       disagreement than was found. */
+    var fam = "";
+    for (var j = 0; j < (c.families || []).length; j++) {
+      var f = c.families[j];
+      var sel = ((f.legs || {}).selection_gbp) || null;
+      fam += '<span style="display:block;margin-top:4px;color:var(--muted);font-size:0.92em;">'
+        + esc(f.family) + " &mdash; "
+        + (f.available
+            ? esc(f.seeds) + " seeds, choosing leg "
+              + (sel && sel.sems_from_zero !== null && sel.sems_from_zero !== undefined
+                  ? esc(sel.sems_from_zero.toFixed(2)) + " standard errors from zero ("
+                    + esc(sel.what_this_family_states) + ")"
+                  : "not graded")
+            : "NOT GRADED. " + prose(f.reason))
+        + "</span>";
+    }
+    return '<span style="display:block;margin-top:10px;color:'
+      + (contested ? "var(--amber)" : "var(--muted)") + ';">'
+      + prose(c.the_reading) + "</span>" + rows + fam;
+  }
+
   function legsOnOneBar(b) {
     var order = ["value_advantage_gbp", "level_advantage_gbp", "selection_gbp"];
     var rows = "";
@@ -2516,6 +2582,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + prose(eb.legs_on_one_bar.why_no_leg_is_graded) + " "
                     + prose(eb.legs_on_one_bar.reason) + "</span>"
                   : "")
+          /* AND WHETHER THOSE SIGNS SURVIVE A CHANGE OF FLOOR (2026-09-22). OUTSIDE the branch
+             above on purpose: it renders whether the published pair graded or was refused, and
+             the refused case is the one it exists for. See `signAcrossFamilies`. */
+          + signAcrossFamilies(eb.does_the_sign_replicate)
           /* AND WHETHER THE ARM WON BY KNOWING ANYTHING, IN THE SAME PANEL AS HOW MUCH IT WON
              (2026-09-17). The legs above are the advantage; this is the discrimination for the
              SAME family, and the two are halves of one question. This page has published the

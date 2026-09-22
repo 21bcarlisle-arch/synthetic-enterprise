@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T15:18:28.749329Z",
+  "generated_at": "2026-09-22T17:07:16.962918Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -524,7 +524,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "15ffadd5ffa126d97be163b6c5e6a4682c81e077",
+    "publishing_tree_commit": "4a7d86b8cfe732277bc9c98d41eef3bb69b0b5cd",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -536,7 +536,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 15ffadd5f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 4a7d86b8c -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1212,7 +1212,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "15ffadd5ffa126d97be163b6c5e6a4682c81e077",
+      "publishing_tree_commit": "4a7d86b8cfe732277bc9c98d41eef3bb69b0b5cd",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1224,7 +1224,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 15ffadd5f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 4a7d86b8c -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1516,6 +1516,171 @@
       "reason": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction.",
       "what_this_costs": "no contrast on this page can have its direction stated until the noise floor is re-run on the book the figure was measured on",
       "why_no_leg_is_graded": "Every leg on this page is graded off the same seed rows, so a floor that cannot bound one of them cannot bound any of them. This refusal is the bounds block's own, republished rather than softened into a narrower reason about one leg."
+    },
+    "does_the_sign_replicate": {
+      "what_this_is": "The same three contrasts, graded by the same rule, on every same-world family in this repository that can grade them -- each floor against the run it was MEASURED ON. It asks whether a leg's sign is a property of the BOOK or of WHICH FLOOR WAS DRAWN.",
+      "families": [
+        {
+          "family": "the 9-seed floor of 2026-09-10 23:03",
+          "floor": "value_cycle_ab_s1_noise_floor.json",
+          "run": "value_cycle_ab_s1_three_arm_20260910.json",
+          "readable": true,
+          "available": true,
+          "seeds": 9,
+          "world_measured_in": "39a192ce04c1eda8",
+          "legs": {
+            "value_advantage_gbp": {
+              "subject": "the whole advantage over flat rules",
+              "estimate_gbp": 17645.755077888894,
+              "bound_gbp": 777.0976370737088,
+              "sems_from_zero": 22.707256123357855,
+              "what_this_family_states": "positive"
+            },
+            "level_advantage_gbp": {
+              "subject": "the price-LEVEL leg",
+              "estimate_gbp": 19395.228245222224,
+              "bound_gbp": 392.21353860772416,
+              "sems_from_zero": 49.45068524169568,
+              "what_this_family_states": "positive"
+            },
+            "selection_gbp": {
+              "subject": "the selection leg",
+              "estimate_gbp": -1749.4731673333283,
+              "bound_gbp": 613.4645850495316,
+              "sems_from_zero": 2.8517916273717328,
+              "what_this_family_states": "negative"
+            }
+          }
+        },
+        {
+          "family": "the 9-seed floor of 2026-09-10 21:34, on the SAME run",
+          "floor": "value_cycle_ab_s1_noise_floor_20260910b.json",
+          "run": "value_cycle_ab_s1_three_arm_20260910.json",
+          "readable": true,
+          "available": true,
+          "seeds": 9,
+          "world_measured_in": "39a192ce04c1eda8",
+          "legs": {
+            "value_advantage_gbp": {
+              "subject": "the whole advantage over flat rules",
+              "estimate_gbp": 18988.739146777774,
+              "bound_gbp": 552.189768319004,
+              "sems_from_zero": 34.38806771915383,
+              "what_this_family_states": "positive"
+            },
+            "level_advantage_gbp": {
+              "subject": "the price-LEVEL leg",
+              "estimate_gbp": 19158.828319333334,
+              "bound_gbp": 489.99868689551084,
+              "sems_from_zero": 39.09975441101301,
+              "what_this_family_states": "positive"
+            },
+            "selection_gbp": {
+              "subject": "the selection leg",
+              "estimate_gbp": -170.08917255555733,
+              "bound_gbp": 310.59453453605835,
+              "sems_from_zero": 0.5476244867271188,
+              "what_this_family_states": "no sign at its own bar"
+            }
+          }
+        },
+        {
+          "family": "the 12-seed floor of 2026-09-18 11:07",
+          "floor": "value_cycle_ab_s1_noise_floor_next12_20260917.json",
+          "run": "value_cycle_ab_s1_three_arm.json",
+          "readable": true,
+          "available": true,
+          "seeds": 12,
+          "world_measured_in": "39a192ce04c1eda8",
+          "legs": {
+            "value_advantage_gbp": {
+              "subject": "the whole advantage over flat rules",
+              "estimate_gbp": 7395.847455000007,
+              "bound_gbp": 996.7869014216895,
+              "sems_from_zero": 7.419687642816649,
+              "what_this_family_states": "positive"
+            },
+            "level_advantage_gbp": {
+              "subject": "the price-LEVEL leg",
+              "estimate_gbp": 8465.322563916676,
+              "bound_gbp": 1614.424764044307,
+              "sems_from_zero": 5.2435534640277295,
+              "what_this_family_states": "positive"
+            },
+            "selection_gbp": {
+              "subject": "the selection leg",
+              "estimate_gbp": -1069.4751089166675,
+              "bound_gbp": 1558.3591094597205,
+              "sems_from_zero": 0.6862828358525476,
+              "what_this_family_states": "no sign at its own bar"
+            }
+          }
+        },
+        {
+          "family": "the 12-seed floor of 2026-09-19 09:10",
+          "floor": "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json",
+          "run": "value_cycle_ab_s1_three_arm.json",
+          "readable": true,
+          "available": true,
+          "seeds": 12,
+          "world_measured_in": "39a192ce04c1eda8",
+          "legs": {
+            "value_advantage_gbp": {
+              "subject": "the whole advantage over flat rules",
+              "estimate_gbp": 7395.847455000007,
+              "bound_gbp": 996.7869014216895,
+              "sems_from_zero": 7.419687642816649,
+              "what_this_family_states": "positive"
+            },
+            "level_advantage_gbp": {
+              "subject": "the price-LEVEL leg",
+              "estimate_gbp": 7655.13764358334,
+              "bound_gbp": 1619.551518245252,
+              "sems_from_zero": 4.726702150159144,
+              "what_this_family_states": "positive"
+            },
+            "selection_gbp": {
+              "subject": "the selection leg",
+              "estimate_gbp": -259.29018858333194,
+              "bound_gbp": 1562.7661180644063,
+              "sems_from_zero": 0.1659174623676131,
+              "what_this_family_states": "no sign at its own bar"
+            }
+          }
+        }
+      ],
+      "families_graded": 4,
+      "families_offered": 4,
+      "per_leg": {
+        "value_advantage_gbp": {
+          "families_that_could_grade_it": 4,
+          "families_that_state_a_sign": 4,
+          "signs_stated": [
+            "positive"
+          ],
+          "verdict": "replicates",
+          "subject": "the whole advantage over flat rules"
+        },
+        "level_advantage_gbp": {
+          "families_that_could_grade_it": 4,
+          "families_that_state_a_sign": 4,
+          "signs_stated": [
+            "positive"
+          ],
+          "verdict": "replicates",
+          "subject": "the price-LEVEL leg"
+        },
+        "selection_gbp": {
+          "families_that_could_grade_it": 4,
+          "families_that_state_a_sign": 1,
+          "signs_stated": [
+            "negative"
+          ],
+          "verdict": "not_settled",
+          "subject": "the selection leg"
+        }
+      },
+      "the_reading": "Across 4 same-world families, each graded against the run it was measured on: the whole advantage over flat rules, the price-LEVEL leg state the same sign on every one of them, while the selection leg does not. That contrast is the finding and not a gap in it: the same seed rows reach 49.5 standard errors from zero on the legs that do replicate, so this family is not simply too noisy to call anything. The selection leg states negative on 1 of 4 and no sign on the 3 others. A sign that changes with which floor was drawn is a property of the draw and not of this book, and it is the leg the mission turns on: the price LEVEL is value MOVED, and only the choosing could be value MADE."
     },
     "discrimination_across_the_family": {
       "against_the_statistics_own_null": {
@@ -4564,7 +4729,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "15ffadd5ffa126d97be163b6c5e6a4682c81e077",
+    "commit": "4a7d86b8cfe732277bc9c98d41eef3bb69b0b5cd",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
