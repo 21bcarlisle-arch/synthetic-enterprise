@@ -3693,16 +3693,201 @@ def successor_note(item: dict) -> str:
         return ""
 
 
+#: A path-shaped token in an item's prose. At least one `/`, because that is the one thing that
+#: separates a repository path from a DOTTED MODULE NAME -- every item here carries
+#: `python3 -m tools.surgical_land`, and a reader that took `tools.surgical_land` as a path would
+#: grade the wrong half of this lane's own vocabulary. The class deliberately excludes the
+#: backtick, comma, quote and bracket that wrap a path in prose; a trailing `.` or `)` that
+#: survives is stripped by `_named_paths`, because a path ending a sentence must not eat its
+#: full stop and then resolve to nothing.
+_NAMED_PATH = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_.-]+)+")
+
+#: How many named paths one note will grade. A bound is needed -- the doorbell is a prompt and an
+#: item naming sixty paths would bury the work it is asking for -- and the count of what was
+#: DROPPED is printed with the rows, never silently truncated: a table that stops at twenty and
+#: says nothing reads as "those were all of them", which is the same fail-silent shape this whole
+#: note exists to close.
+_MAX_GRADED_PATHS = 24
+
+
+def _path_verdict(root: Path, path: str):
+    """One path's state in `root`'s working tree, as (tag, one-line detail). Never raises.
+
+    THE THREE TAGS THE ITEM THAT COMMISSIONED THIS ASKED FOR, and one more it did not. `already
+    landed`, `predates landing` and `holder work` are the categories
+    `land-the-weather-hdd-pile-written-twice-and-committed-never` got wrong in all three; the fourth,
+    `dirty`, is the honest residue and it is NOT folded into holder work. A file that differs from
+    HEAD and reverts nothing is ordinary uncommitted work, and whose it is -- the reader's, another
+    lane's -- is a question git cannot answer from a path alone. Calling it holder work would be
+    this project's commonest publishing error: a category nobody defined, differenced, and then
+    treated as a driver. It says `dirty` and says what it does not know.
+
+    THE CLASSIFICATION IS THE LANDING DOOR'S, NOT A SECOND ONE. `judge` for the suffixes it can
+    read, `clock_judge` for the rest -- the same pair `stale_copy_refusal.census` runs, called on
+    one path instead of the whole tree. Re-deriving "is this a revert" here would put two answers
+    in the tree and the draw's would be the one nobody maintains.
+    """
+    try:
+        from tools import stale_copy_refusal as door  # deferred: `tools` is not a draw dependency
+    except Exception:
+        return ("ungraded", "the landing door's classifier could not be imported")
+    try:
+        # A DIRECTORY IS NOT A FILE AND `blob_at` CANNOT TELL YOU SO -- it is `git show tree:path`,
+        # which succeeds on a TREE and hands back its listing, so `is not None` reads every
+        # directory as a tracked blob. Measured on the live record the first time this ran:
+        # `docs/staging`, `docs/staging/done` and `site/data` all came back
+        # "tracked at HEAD and NOT on disk -- a deletion", because `is_file()` is False for a
+        # directory and the HEAD side vouched for it. Three false deletion alarms on three live
+        # focus items, in the loudest category this note has. The object TYPE is what separates
+        # them and nothing cheaper does.
+        head_kind = (_git("cat-file", "-t", "HEAD:{}".format(path), cwd=root) or "").strip()
+        on_disk = (root / path).is_file()
+        if head_kind == "tree" or (root / path).is_dir():
+            return ("directory", "a directory, not a file -- this door grades files and has no "
+                                 "opinion about a whole tree")
+        in_head = head_kind == "blob"
+        if not on_disk and not in_head:
+            return ("unresolved", "no file on disk and no blob at HEAD under this name")
+        if not on_disk:
+            return ("deleted", "tracked at HEAD and NOT on disk -- a deletion, not a pile")
+        if not in_head:
+            return ("untracked", "on disk and at no HEAD blob -- wholly new, nothing to revert")
+        head_text = door.blob_at(root, "HEAD", path)
+        work = (root / path).read_text(encoding="utf-8", errors="replace")
+        if work == head_text:
+            return ("already landed", "identical to HEAD -- the working tree has NOTHING to land")
+        readable = Path(path).suffix in door.READABLE
+        loss = (door.judge(root, path, head_text, work) if readable
+                else door.clock_judge(root, path, head_text, work))
+        if loss is None:
+            return ("dirty", "differs from HEAD and reverts no landing; WHOSE work it is, this "
+                             "cannot say" if readable else
+                             "differs from HEAD; no reader for this suffix and the clock declined "
+                             "-- NOT a clean verdict")
+        if loss.novel:
+            return ("holder work", "supplies {} name(s) HEAD lacks ({}) AND would revert {} -- "
+                                   "land by hunk, never whole".format(
+                                       len(loss.novel), ", ".join(loss.novel[:3]),
+                                       (loss.commit or "a landing")[:9]))
+        return ("predates landing", "[{}] would REVERT {} -- this copy supplies nothing HEAD "
+                                    "lacks".format(loss.rule, (loss.commit or "a landing")[:9]))
+    except Exception as exc:
+        return ("ungraded", "the classifier raised on this path: {}".format(str(exc)[:120]))
+
+
+def path_note(item: dict) -> str:
+    """The per-path state of every file an item NAMES, run through the landing door, else "".
+
+    THE DEFECT (2026-09-22, measured on this lane's own draw, three invocations deep). The item
+    `land-the-weather-hdd-pile-written-twice-and-committed-never` named ten paths and called them a
+    pile to land. **Its composition was wrong in every category**: five were already on origin, three
+    were pure reverts of the ERA5 hourly-limit fix, and two were another lane's. Its prescribed
+    remedy -- `isolate_hunks` then `surgical_land --content` -- separates hunks by AUTHOR and not by
+    AGE, so applied as written it would have faithfully landed the reverting hunks over the landing
+    they reverted. The classifier that says so already existed and had shipped
+    (`stale_copy_refusal.judge`, `028ab23d9`), its census named 19 such paths tree-wide that
+    morning, and **the draw that commissions the work never asked it**. Three seat turns went on
+    re-deriving the same split by hand.
+
+    IT IS THE SAME SHAPE AS ITS THREE SIBLINGS, ASKED OF A FOURTH STORE. `premise_note` asks git
+    whether the commits are landed; `rival_note` asks the claims file who else is on it;
+    `successor_note` asks the continuation store what this item's own tick already did. None of
+    them can answer the question the pile items get wrong, because it is not about commits or
+    claims -- it is about BYTES ON DISK, and the only thing here with an opinion about those is the
+    landing door.
+
+    IT GRADES THE SHARED TREE AND SAYS SO ON ITS FACE. The draw composes in the main worktree and a
+    worker may be dispatched into an isolated one, where every working copy is HEAD's and every row
+    below would read `already landed` -- a true statement about the wrong tree. `shared_tree_dir()`
+    is where the contested bytes are by definition, which is the argument `_git`'s own `cwd`
+    override records one layer down; the note names the tree it measured so a reader in a worktree
+    can tell the two apart.
+
+    IT ANNOTATES AND NEVER REFUSES, for `premise_note`'s reason exactly. An item naming a file that
+    predates a landing is often still the right work -- restoring that very revert is focus item 1
+    on this record -- so a filter would suppress the item written to fix the thing it detected.
+
+    NEVER RAISES, and an unanswerable tree yields "" -- the behaviour before this existed. Same
+    fail-open direction and same argument as its three siblings: a missing annotation is visible to
+    the tick that then does the work anyway, where an item withheld because git hiccuped is visible
+    to nobody. The one thing that is NOT silent is a classifier that ran and could not decide: that
+    reaches the reader as `ungraded`, because "we could not tell" is a result and belongs on the
+    surface rather than collapsed into the flattering `dirty`.
+    """
+    try:
+        from tools import stale_copy_refusal as door  # deferred: see `_path_verdict`
+    except Exception:
+        return ""
+    try:
+        root = seat_continuation.shared_tree_dir()
+        text = "{} {}".format(item.get("what") or "", item.get("why") or "")
+        found = list(dict.fromkeys(tok.rstrip(".,;:)]}-")
+                                   for tok in _NAMED_PATH.findall(text)))
+        if not found:
+            return ""
+        dropped = max(0, len(found) - _MAX_GRADED_PATHS)
+        graded = [(p,) + tuple(_path_verdict(root, p)) for p in found[:_MAX_GRADED_PATHS]]
+        # AN UNRESOLVED TOKEN IS NOT A PATH AND MUST NOT BE COUNTED AS ONE. Prose is full of
+        # `and/or` and `docs/staging/` -- a directory and a slash-joined pair of words both match
+        # the pattern and neither is a file. They are reported as a COUNT, never dropped in
+        # silence, because a token that names nothing is sometimes a path that has been renamed.
+        real = [row for row in graded if row[1] != "unresolved"]
+        if not real:
+            return ""
+        counts: dict[str, int] = {}
+        for _p, tag, _d in real:
+            counts[tag] = counts.get(tag, 0) + 1
+        rows = "".join("\n  * `{}` -- [{}] {}".format(p, tag, detail) for p, tag, detail in real)
+        caveat = door.base_caveat(root)
+        return (
+            "PATH CHECK (the landing door's own classifier, run at draw time over the SHARED tree "
+            "{root}): this item names {n} resolvable path(s) and the door grades them {summary}. "
+            "DO NOT TRUST THE ITEM'S OWN WORD FOR WHAT THE PILE IS -- these are the bytes, read "
+            "just now:{rows}\n"
+            "READ THE TAGS BEFORE YOU PICK A DOOR. `already landed` means there is nothing to land "
+            "there and the item's ask for it is spent. `predates landing` means the copy is OLDER "
+            "than the last commit to its own path and landing it REVERTS that commit -- "
+            "`isolate_hunks` separates hunks by AUTHOR, not by AGE, so it will not save you; the "
+            "door is `python3 -m tools.refresh_to_head <path>`. `holder work` is the only tag "
+            "`isolate_hunks --survey` + `surgical_land --content` is licensed for. `dirty` means "
+            "the door read it and found no revert; it does NOT establish whose work it is. "
+            "`ungraded` means the check could not run and is NOT a clean verdict. "
+            "{unresolved}{dropped}IF YOU ARE RUNNING IN AN ISOLATED WORKTREE, YOUR OWN COPIES ARE "
+            "HEAD'S AND THESE VERDICTS DESCRIBE THE SHARED TREE, NOT YOURS. "
+            "{caveat}"
+        ).format(
+            root=root, n=len(real),
+            summary=", ".join("{} {}".format(v, k) for k, v in sorted(counts.items())),
+            rows=rows,
+            unresolved=("{} further path-shaped token(s) in the prose resolve to no file on disk "
+                        "and no blob at HEAD -- a renamed or deleted subject, or not a path at "
+                        "all. ".format(len(graded) - len(real)) if len(graded) > len(real) else ""),
+            dropped=("{} MORE NAMED PATH(S) WERE NOT GRADED -- this note stops at {}, so the rows "
+                     "above are a sample and not the whole pile. ".format(
+                         dropped, _MAX_GRADED_PATHS) if dropped else ""),
+            caveat=("THE DOOR'S OWN BASE CAVEAT APPLIES AND INVERTS THE HOLDER-WORK READING: {} "
+                    .format(" ".join(caveat.split())) if caveat else ""),
+        )
+    except Exception:
+        return ""
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
 
-    `premise_note`, `rival_note` and `successor_note` go FIRST, ahead of the standing preamble,
-    because a tick that reads the work before it reads the checks has already started. They are the
-    same shape asked of three different stores: has this item's premise already been spent, is
-    somebody else spending it right now, and did THIS ITEM'S OWN TICK already spend it and write
-    down what was left."""
-    return premise_note(item) + rival_note(item) + successor_note(item) + (
+    `premise_note`, `rival_note`, `successor_note` and `path_note` go FIRST, ahead of the standing
+    preamble, because a tick that reads the work before it reads the checks has already started.
+    They are the same shape asked of four different stores: has this item's premise already been
+    spent, is somebody else spending it right now, did THIS ITEM'S OWN TICK already spend it and
+    write down what was left -- and, last because it is the only one about bytes rather than
+    bookkeeping, what state are the FILES this item names actually in.
+
+    `path_note` COMES AFTER THE OTHER THREE AND NOT BEFORE. The first three can retire the item
+    outright, and a reader who has just been told to take a disposition should not first walk a
+    per-path table for work they are not going to do. It is also the longest of the four, and the
+    three that can end the turn in one line have to be readable above it."""
+    return premise_note(item) + rival_note(item) + successor_note(item) + path_note(item) + (
         "LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
         "lanes because a judgement about what matters beats a weighted coin over a map whose "
         "idle atoms are all over their pass ceiling. WORK: {what} WHY: {why} "
