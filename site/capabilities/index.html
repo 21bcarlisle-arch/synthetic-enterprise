@@ -2898,18 +2898,43 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + "<strong>" + (s.what_it_could_have_detected || {}).detectable_excess.toFixed(3)
                 + "</strong>; it read " + wy.auc.toFixed(3) + ", a departure of "
                 + (s.what_it_could_have_detected || {}).observed_excess.toFixed(3) + ". Calling "
-                + "one that small needs about <strong>" + esc(req.scored_decisions_needed)
-                + "</strong> scored decisions — " + req.times_this_run.toFixed(1) + "× this run’s "
-                + esc(req.scored_decisions_this_run) + ", on about "
-                + esc(req.scored_accounts_needed) + " accounts, which is "
-                + esc(pairs.same_year_pairs_needed) + " same-year pairs against today’s "
-                + esc(pairs.same_year_pairs_this_run)
-                + (book.priced_renewals_needed
-                    ? " — a book of about " + esc(book.priced_renewals_needed)
-                      + " priced renewals out of " + esc(book.renewals_the_world_must_offer)
-                      + " the world must offer"
-                    : "")
-                + ". " + prose(pairs.the_sentence_this_corrects) + "</p>"
+                // NO BOOK SIZE IS STATED WHERE THE READING FAILS ITS OWN NULL, and the page says
+                // WHY rather than going quiet (2026-09-22). This paragraph read "needs about
+                // 971 scored decisions ... 36,873 same-year pairs" — a plan a reader could cost.
+                // It is not one: the count solves (k/excess)^2 with THIS RUN'S ESTIMATE in the
+                // denominator, and it is asked only where that estimate has failed its null,
+                // which is the statement that its interval contains zero. A denominator that may
+                // be zero prices the question at no finite number of decisions. Branching on the
+                // producer's own `the_reading_clears_its_own_null` rather than on the count being
+                // null, so a future producer bug that fills the key cannot quietly restore the
+                // plan sentence.
+                + (req.the_reading_clears_its_own_null
+                  ? "one that small needs about <strong>" + esc(req.scored_decisions_needed)
+                    + "</strong> scored decisions — " + req.times_this_run.toFixed(1)
+                    + "× this run’s " + esc(req.scored_decisions_this_run) + ", on about "
+                    + esc(req.scored_accounts_needed) + " accounts, which is "
+                    + esc(pairs.same_year_pairs_needed) + " same-year pairs against today’s "
+                    + esc(pairs.same_year_pairs_this_run)
+                    + (book.priced_renewals_needed
+                        ? " — a book of about " + esc(book.priced_renewals_needed)
+                          + " priced renewals out of " + esc(book.renewals_the_world_must_offer)
+                          + " the world must offer"
+                        : "")
+                    + ". "
+                  : "<strong>no number of decisions is stated for it, and none exists.</strong> "
+                    + "The count scales as (smallest callable departure ÷ the departure observed)"
+                    + "², so this run’s own estimate sits in the denominator — and it is asked "
+                    + "only where that estimate has failed its null, which is exactly the "
+                    + "statement that its interval contains no-information. A denominator that "
+                    + "may be zero prices the question at no finite book. The arithmetic at the "
+                    + "point estimate is "
+                    + esc(req.scored_decisions_at_the_point_estimate) + " scored decisions ("
+                    + esc(pairs.same_year_pairs_at_the_point_estimate) + " same-year pairs "
+                    + "against today’s " + esc(pairs.same_year_pairs_this_run) + "), and it is "
+                    + "published under that name because it is a measurement and not a plan a "
+                    + "reader could buy. The honest remedy is a different instrument, not a "
+                    + "bigger book. ")
+                + prose(pairs.the_sentence_this_corrects) + "</p>"
                 // THE CHEAP ROUTE, AND WHY IT IS NOT ONE. Published where the requirement is,
                 // because "just run more seeds" is the first thing a reader with a machine asks
                 // and the arithmetic agrees with them right up to the point it stops.

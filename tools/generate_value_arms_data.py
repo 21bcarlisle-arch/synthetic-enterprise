@@ -8218,11 +8218,29 @@ def _within_year_remedy(*, observed, null_low, null_high, decisions, accounts, p
     if not reading.get("available"):
         return {"available": False, "reason": reading.get("reason")}
 
-    needed = (reading.get("the_book_this_would_need") or {}).get(
-        "decisions_needed_for_the_observed_effect")
-    needed_accounts = (reading.get("the_book_this_would_need") or {}).get(
-        "accounts_needed_for_the_observed_effect")
-    multiple = (needed / decisions) if needed and decisions else None
+    # THE PRODUCER'S GATE, CARRIED AND NEVER RE-DERIVED (2026-09-22). `detectability` now withholds
+    # the observed effect's book price wherever the reading fails its own null, because the count
+    # scales as (k/excess)^2 with the run's own estimate in the DENOMINATOR and has no upper bound
+    # there. Every figure in this block is that count wearing a unit, so all of them inherit it.
+    #
+    # AND THE WITHHOLDING IS CARRIED RATHER THAN DROPPED, which is the half republication keeps
+    # getting wrong here. Reading the gated key alone would have left this whole block silently
+    # full of `None` -- and an absent count with no reason reads as a missing measurement, while
+    # this one is a RESULT. The arithmetic is kept on the point estimate so the reader still meets
+    # the only figures in hand, under names that do not promise a plan.
+    book = reading.get("the_book_this_would_need") or {}
+    clears = book.get("the_reading_clears_its_own_null")
+    withheld = book.get("decisions_needed_unavailable_because")
+    needed_point = book.get("decisions_at_the_point_estimate_for_the_observed_effect")
+    accounts_point = book.get("accounts_at_the_point_estimate_for_the_observed_effect")
+    needed = book.get("decisions_needed_for_the_observed_effect")
+    needed_accounts = book.get("accounts_needed_for_the_observed_effect")
+    # EVERY MULTIPLE BELOW IS COMPUTED ON THE POINT ESTIMATE and then gated at the point of
+    # PUBLICATION, rather than computed on the gated count. Computing on the gated count would
+    # make each derived key `None` for a second, unrelated reason -- "no multiple is available" --
+    # and the page would say the translation failed where the truth is that the requirement has no
+    # upper bound.
+    multiple = (needed_point / decisions) if needed_point and decisions else None
     # PAIRS GO AS THE SQUARE OF DECISIONS. Both counts are published because the reader met the
     # figure in pairs -- "402 of 3,320" is what the page prints -- and the requirement is in
     # decisions. A translation stated in only one of the two units is the sentence being corrected.
@@ -8230,9 +8248,12 @@ def _within_year_remedy(*, observed, null_low, null_high, decisions, accounts, p
 
     priced_share = _f((funnel or {}).get("scored_share_of_priced"))
     offered_share = _f((funnel or {}).get("priced_share_of_renewals_offered"))
-    priced_needed = int(math.ceil(needed / priced_share)) if needed and priced_share else None
-    offered_needed = (int(math.ceil(priced_needed / offered_share))
-                      if priced_needed and offered_share else None)
+    priced_point = (int(math.ceil(needed_point / priced_share))
+                    if needed_point and priced_share else None)
+    offered_point = (int(math.ceil(priced_point / offered_share))
+                     if priced_point and offered_share else None)
+    priced_needed = priced_point if clears else None
+    offered_needed = offered_point if clears else None
 
     return {
         "available": True,
@@ -8246,9 +8267,15 @@ def _within_year_remedy(*, observed, null_low, null_high, decisions, accounts, p
         "the_requirement": {
             "scored_decisions_needed": needed,
             "scored_decisions_this_run": decisions,
-            "times_this_run": multiple,
+            "times_this_run": multiple if clears else None,
             "scored_accounts_needed": needed_accounts,
             "scored_accounts_this_run": accounts,
+            # THE ARITHMETIC, UNDER NAMES THAT ARE NOT A PLAN, published in BOTH states.
+            "scored_decisions_at_the_point_estimate": needed_point,
+            "scored_accounts_at_the_point_estimate": accounts_point,
+            "times_this_run_at_the_point_estimate": multiple,
+            "the_reading_clears_its_own_null": clears,
+            "scored_decisions_needed_unavailable_because": withheld,
             "the_index_is_decisions": (
                 "the permuted half-width falls as 1/sqrt(DECISIONS) -- accounts and pairs are "
                 "derived from that and never indexed on directly. `accounts_needed` carries this "
@@ -8256,8 +8283,13 @@ def _within_year_remedy(*, observed, null_low, null_high, decisions, accounts, p
         },
         "in_same_year_pairs": {
             "same_year_pairs_this_run": pairs,
-            "same_year_pairs_needed": pairs_needed,
-            "times_this_runs_pairs": (multiple * multiple) if multiple else None,
+            "same_year_pairs_needed": pairs_needed if clears else None,
+            "same_year_pairs_at_the_point_estimate": pairs_needed,
+            "same_year_pairs_needed_unavailable_because": withheld,
+            "times_this_runs_pairs": (
+                (multiple * multiple) if multiple and clears else None),
+            "times_this_runs_pairs_at_the_point_estimate": (
+                (multiple * multiple) if multiple else None),
             "why_the_two_multiples_differ": (
                 "same-year pairs grow as the SQUARE of same-year decisions, so a book {m:.2f}x "
                 "this one carries {sq:.1f}x the pairs. A requirement quoted in pairs and a "
@@ -8274,6 +8306,12 @@ def _within_year_remedy(*, observed, null_low, null_high, decisions, accounts, p
         "the_book": {
             "priced_renewals_needed": priced_needed,
             "renewals_the_world_must_offer": offered_needed,
+            # THE SAME ARITHMETIC UNDER NAMES THAT ARE NOT A PLAN, and the same carried reason.
+            # These two are the requirement carried through two more ratios, so they inherit its
+            # unboundedness exactly: a multiple of an unbounded quantity is unbounded.
+            "priced_renewals_at_the_point_estimate": priced_point,
+            "renewals_the_world_must_offer_at_the_point_estimate": offered_point,
+            "these_counts_unavailable_because": withheld,
             "scored_share_of_priced": priced_share,
             "priced_share_of_renewals_offered": offered_share,
             "what_each_count_counts": (

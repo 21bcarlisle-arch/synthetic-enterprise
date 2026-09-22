@@ -656,6 +656,86 @@ def _reachable_on_this_book(decisions_needed, book: dict | None):
     return False, "beyond_this_book"
 
 
+def _observed_price_interval(observed_excess, half_width, price_at) -> dict | None:
+    """What the observed effect's book price is worth AS AN INTERVAL, and whether it has an end.
+
+    THE FIFTH INSTANCE OF ONE RULE (2026-09-22), and it was found BY SHAPE rather than by reading
+    the block next door. `06e316ae4` and `5742edb1c` removed a bare count from two page keys,
+    `964036259` bounded it at the money leg's producer, `949f80894` at the rank leg's -- and every
+    one of those four was found by a human-ish read of a neighbour. This one was found by
+    `tools/unbounded_quotient_census.py`, which walks `tools/`, `saas/` and `company/` for the
+    SHAPE: a published count in the grammar of a plan whose denominator is an estimate the same
+    artefact grades against its own bar. This file carried six such keys under names sharing no
+    vocabulary with the other four.
+
+    THE ARITHMETIC IS THE SAME ARITHMETIC. `decisions_for` solves `excess = k / sqrt(size)`, so the
+    count scales as `(k / excess) ** 2` with the ESTIMATE IN THE DENOMINATOR -- and it is asked
+    only when that estimate has failed its own null, which IS the statement that its interval at
+    that bar contains zero. A denominator that may be zero prices the question at no finite number
+    of decisions.
+
+    THE ERROR UNIT HERE IS THE BAR ITSELF, AND THAT IS NOT AN APPROXIMATION. The money leg's
+    endpoints are one standard error either side and the rank leg's are one exact null SD; here
+    the honest unit is `half_width`, the smallest departure this run could ever have called,
+    because "the reading failed its null" and "`observed_excess +/- half_width` contains zero" are
+    THE SAME INEQUALITY rather than two that happen to agree. Nothing is assumed about what
+    percentile the permuted interval is -- which is what a standard error here would have had to
+    assume, from a producer that does not declare it.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. This block is non-null exactly where the
+    reading fails its own null. The day a run pins its concordance past `detectable_excess` the
+    whole block goes `None` with nobody editing a string -- because the question stops being
+    asked, not because the answer changed.
+
+    FAILS CLOSED. No excess, no bar, or a bar that is not positive -- `None` rather than a block
+    asserting the price is fine.
+    """
+    if not observed_excess or not half_width or half_width <= 0:
+        return None
+    if observed_excess > half_width:
+        return None
+    low, high = observed_excess - half_width, observed_excess + half_width
+    return {
+        "at_the_point_estimate": price_at(observed_excess),
+        "denominator_observed_excess": observed_excess,
+        "denominator_error_is_one_detectable_excess": half_width,
+        "denominator_one_error_low": low,
+        "denominator_one_error_high": high,
+        # NAMED FOR THE DENOMINATOR'S POSITION, NEVER THE PRICE'S. A departure further from
+        # no-information is CHEAPER, so the prices come back in the opposite order to the bounds
+        # that produced them, and naming them by the price would invite exactly the min/max
+        # reading this block exists to refuse.
+        "price_at_the_low_end_of_the_denominator": price_at(low) if low > 0 else None,
+        "price_at_the_high_end_of_the_denominator": price_at(high),
+        "these_two_are_not_a_range": (
+            "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the "
+            "PRICE's. The price is not monotone between them: it rises without limit as the "
+            "departure approaches no-information, and this denominator's own interval at its own "
+            "null contains zero. The low end is `None` where the interval has already crossed."),
+        "has_no_upper_bound": True,
+    }
+
+
+def _observed_price_withheld(observed_excess, half_width) -> str | None:
+    """Why no book size is published for the observed effect. `None` when one legitimately is.
+
+    A reason key that is non-null beside a live count would read as reassurance over a figure the
+    page is in fact standing behind, so this is `None` in exactly the state the count is filled.
+    """
+    if not observed_excess or not half_width or observed_excess > half_width:
+        return None
+    return (
+        "NO BOOK SIZE IS PUBLISHED FOR THE OBSERVED EFFECT AND NO LARGER BOOK WOULD CHANGE THAT. "
+        "The count scales as (scale constant / |departure from no-information|)^2, so this run's "
+        "own estimate sits in the DENOMINATOR of its own price, and it is asked only when that "
+        "estimate has failed its null -- which is the statement that its interval at that bar "
+        "contains zero. A denominator that may be zero prices the question at no finite number of "
+        "decisions. The observed departure is {obs:.4f} against a detectable {bar:.4f}, so it "
+        "fails. The arithmetic is kept as `decisions_at_the_point_estimate_for_the_observed_"
+        "effect`; it is not a plan a reader could buy. The honest remedy is a different "
+        "instrument, not more decisions of this one.".format(obs=observed_excess, bar=half_width))
+
+
 def detectability(*, observed, null_low, null_high, n, accounts=None, window_years=None,
                   settled_book_accounts=None, ceiling: dict | None = None,
                   book: dict | None = None) -> dict:
@@ -700,6 +780,17 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
                 "reason": "the permuted interval has no width, so no scale constant can be read"}
     k = half_width * math.sqrt(n)
     observed_excess = abs(observed - 0.5)
+    # THE GATE, KEYED TO THE DENOMINATOR'S INTERVAL AND NOT TO TODAY'S COUNT, and computed HERE
+    # because the `floor` rows below need it as much as the headline block does. Clearing the null
+    # IS the statement that `observed_excess +/- half_width` excludes zero, and that is the only
+    # state in which a price of the form `(k / observed_excess)^2` has an upper bound.
+    #
+    # THE POINT ESTIMATE IS STILL USED for `_attainability` and `_reachable_on_this_book`, and
+    # deliberately: both are one-sided REFUSALS, so "even at the point estimate this exceeds every
+    # attainable book" is a STRONGER statement than the gated count could make, not a weaker one.
+    # What is withheld is the published key whose grammar reads as a plan.
+    clears_its_own_null = bool(observed_excess > half_width)
+    observed_withheld = _observed_price_withheld(observed_excess, half_width)
     per_account = (n / accounts) if accounts else None
 
     def decisions_for(excess):
@@ -813,11 +904,24 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
     for excess, is_observed in sorted(rows, key=lambda row: -row[0]):
         needed = decisions_for(excess)
         needed_accounts = accounts_for(needed)
+        #: DENOMINATOR BOUNDED: for every row but one, and the exception is why the flag is on the
+        #: row rather than in this comment. The `FLOOR_EXCESSES` rows price a CHOSEN departure --
+        #: 0.15, 0.10, 0.05 -- which cannot drift towards zero without someone editing a constant,
+        #: so their counts are bounded and are honest under a `needed` name. The `is_observed` row
+        #: prices THIS RUN'S ESTIMATE, and that one is the unbounded quotient: it is asked only
+        #: where the estimate has failed its own null, which is the statement that its interval
+        #: contains zero. Same formula, same key, opposite epistemic status -- so the row carries
+        #: the distinction rather than leaving a reader to infer it from a boolean two keys down.
         floor.append({
             "excess_over_no_information": excess,
             "concordance": 0.5 + excess,
-            "decisions_needed": needed,
-            "accounts_needed": needed_accounts,
+            "decisions_needed": None if is_observed and not clears_its_own_null else needed,
+            "accounts_needed": (
+                None if is_observed and not clears_its_own_null else needed_accounts),
+            "decisions_at_the_point_estimate": needed,
+            "accounts_at_the_point_estimate": needed_accounts,
+            "decisions_needed_unavailable_because": observed_withheld if is_observed else None,
+            "this_row_prices_a_chosen_departure": not is_observed,
             # TWO CEILINGS, TWO FIELDS, AND THEY ARE DELIBERATELY NOT MERGED. This one is over
             # settled-book ACCOUNTS and is upper-only, so it refuses or is silent and reads `None`
             # whenever the window is undeclared. The pair below is over this book's own DECISIONS
@@ -832,6 +936,7 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
 
     observed_needed = decisions_for(observed_excess) if observed_excess > 0 else None
     observed_accounts = accounts_for(observed_needed)
+    observed_interval = _observed_price_interval(observed_excess, half_width, decisions_for)
     attainable, why_no_verdict = _attainability(observed_accounts)
     observed_reach, observed_rests_on = _reachable_on_this_book(observed_needed, book)
     return {
@@ -854,13 +959,31 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
         "curve": curve,
         "floor": floor,
         "the_book_this_would_need": {
-            "decisions_needed_for_the_observed_effect": observed_needed,
-            "accounts_needed_for_the_observed_effect": observed_accounts,
+            "decisions_needed_for_the_observed_effect": (
+                observed_needed if clears_its_own_null else None),
+            "accounts_needed_for_the_observed_effect": (
+                observed_accounts if clears_its_own_null else None),
             # ...RESTATED IN THE POPULATION THE CEILING COUNTS, because the line above is in
             # scored-decision accounts and nothing on this page may be divided by the ceiling
             # until it has been carried across. None when the run does not declare its book.
-            "settled_accounts_needed_for_the_observed_effect": settled_accounts_for(
-                observed_accounts),
+            "settled_accounts_needed_for_the_observed_effect": (
+                settled_accounts_for(observed_accounts) if clears_its_own_null else None),
+            # THE ARITHMETIC, UNDER NAMES THAT ARE NOT A PLAN. Published in BOTH states, for the
+            # reason the money and rank legs keep theirs: withholding the measurement would hide
+            # the only figures in hand, while publishing them as `needed` promises a reader that
+            # buying that many settles the question, which is the claim that is false.
+            "decisions_at_the_point_estimate_for_the_observed_effect": observed_needed,
+            "accounts_at_the_point_estimate_for_the_observed_effect": observed_accounts,
+            "settled_accounts_at_the_point_estimate_for_the_observed_effect":
+                settled_accounts_for(observed_accounts),
+            # WHY THOSE KEYS ARE EMPTY, IN THE PLACE A READER MEETS THE EMPTINESS. `None` when
+            # there is nothing to explain, so it never sits reassuringly over a live count.
+            "decisions_needed_unavailable_because": observed_withheld,
+            # THE PRICE'S OWN INTERVAL, WHICH IS WHAT REPLACES THE POINT. "We withheld a number"
+            # and "here is why no number exists" are different statements and only the second can
+            # be checked.
+            "decisions_needed_interval": observed_interval,
+            "the_reading_clears_its_own_null": clears_its_own_null,
             "scored_accounts_this_run": accounts,
             "settled_book_this_run": settled_book_accounts,
             "settled_accounts_per_scored_account": settled_per_scored,
@@ -915,7 +1038,15 @@ def detectability(*, observed, null_low, null_high, n, accounts=None, window_yea
             "what_each_verdict_means": BOOK_REACH_REASONS,
             "the_observed_effect_is_reachable_on_this_book": observed_reach,
             "the_observed_verdict_rests_on": observed_rests_on,
-            "decisions_needed_for_the_observed_effect": observed_needed,
+            # THE SAME GATE AS `the_book_this_would_need`, AND IT HAS TO BE RE-APPLIED RATHER THAN
+            # ASSUMED: this block republishes the count under the same key, and republication is
+            # exactly how the unbounded figure reached a second page in `964036259`. The verdict
+            # above is unaffected -- `_reachable_on_this_book` is a refusal on a REALISED count
+            # and is sound at the point estimate.
+            "decisions_needed_for_the_observed_effect": (
+                observed_needed if clears_its_own_null else None),
+            "decisions_at_the_point_estimate_for_the_observed_effect": observed_needed,
+            "decisions_needed_unavailable_because": observed_withheld,
             # THE ONE SENTENCE THE PAGE OWES ITS READER, derived from the verdict rather than
             # written beside it, so no edit here can leave prose disagreeing with the arithmetic.
             "sentence": _resolvable_sentence(
