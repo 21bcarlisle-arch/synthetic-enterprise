@@ -1,4 +1,17 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Discharged:** `tests/tools/test_every_leg_of_the_advantage_reaches_a_sentence.py::test_each_fixture_pair_is_admitted_for_a_stated_reason`,
+`tests/tools/test_every_leg_of_the_advantage_reaches_a_sentence.py::test_the_published_pair_is_graded_by_the_bounds_rule_and_by_nothing_else`,
+`tools/generate_value_arms_data.py` — BLOCKING as found: seven controls red on the trunk, reding
+any lane that touched the producer. Repaired in commit b33af985e, and the two nodes above are the
+falsifiers that make the defect non-recurring: the first reds **by name** when the pairing premise
+goes, the second reds if the legs block ever grades a pairing the bounds rule refused. Both were
+mutation-proven before this discharge was written — see the mutation table.
+
+*This field was filed empty in b33af985e and added afterwards, because the discharge rule asks the
+LANDED copy for the node: a falsifier that exists only in a working tree is not a landed falsifier,
+so a finding that repairs its own defect can never discharge itself in the commit that repairs it.
+Note also that the rule reads **every backticked token in the field** as an artefact path — a
+commit sha or a branch name in backticks here voids the whole discharge.*
 
 # Seven controls went red when the code became more honest, and the fixture defect underneath them is a mis-paired artefact, not a stale number
 
