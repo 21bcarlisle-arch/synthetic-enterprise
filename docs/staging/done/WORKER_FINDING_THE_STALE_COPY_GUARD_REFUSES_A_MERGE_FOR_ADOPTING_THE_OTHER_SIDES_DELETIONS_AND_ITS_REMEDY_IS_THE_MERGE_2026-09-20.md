@@ -1,6 +1,23 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery,
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery,
 claim `does-minting-arrivals-widen-the-scored-decision-population`
 
+> **CLOSED 2026-09-22 by the operation this document said was impossible.** The claim was that the
+> merge could not be made: the guard refused it and the remedy it printed (`refresh_to_head`) was a
+> no-op against a HEAD that was itself behind. §6 (2026-09-21) located the real refusing leg — the
+> hook chain's own re-stage — and repaired it by re-asking only the DELTA rather than the whole
+> tree.
+>
+> Closed on live evidence rather than on the repair being present. `tools.surgical_land --merge
+> origin/main` was run on the shared tree today and LANDED as `669546e87`, printing
+> `[stale-copy] 4 path(s) adopted from origin/main (95035ad29) unchanged on this side since the
+> merge-base, so not this lane's loss`. That is the exact reading §2 argued for and the guard
+> would not give. The control is
+> `tests/tools/test_stale_copy_refusal.py::test_a_restage_by_the_hook_chain_itself_re_asks_only_the_paths_it_moved`,
+> which runs both legs of the partition on one tree state, so a guard that refused everything or
+> passed everything fails one of them.
+>
+> The merge was the precondition for the staging archival this finding was BLOCKING
+> (`22c07b232`, `b45f13ca1`).
 # The stale-copy guard refuses a merge for adopting the other side's deletions, and the remedy it prints is the merge it just refused
 
 *`tools.surgical_land --merge origin/main` refuses this tree with `[stale-copy] 2 path(s) would
