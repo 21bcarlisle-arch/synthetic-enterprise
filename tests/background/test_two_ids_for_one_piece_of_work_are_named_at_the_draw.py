@@ -312,3 +312,69 @@ def test_THE_DISPATCH_CARRIES_THE_CHECK_AHEAD_OF_THE_WORK(monkeypatch, stores):
     assert "DUPLICATE-WORK CHECK" in text
     assert text.index("DUPLICATE-WORK CHECK") < text.index("LANE 0 DELIVERY")
     assert f"--landed {mine}" in text, "the dispatched id must still survive into the text"
+
+
+def test_PREMISE_NOTE_STAYS_ON_WHAT_AND_WHY_AND_MUST_NOT_BE_WIDENED_WITH_THE_PATH_DOORS(
+        monkeypatch) -> None:
+    """THE CHANGE THIS EXISTS TO REFUSE, and it is a change that looks obviously right.
+
+    On 2026-09-22 `path_note` was widened from a hand-rolled `what + why` to the canonical
+    `_ITEM_PROSE_KEYS`, because 54 live entries named a tracked path in `done_means`/`note` and
+    nowhere else. That left the SAME narrow literal sitting in `premise_note` one screen up,
+    looking exactly like the defect just repaired. **Copying the widening there would be wrong,
+    and the measurement is why.**
+
+    `premise_note` fires when EVERY commit an item cites has reached origin -- "nothing this item
+    points at is still outstanding". `what`/`why` is where an item states what it DEPENDS ON.
+    `done_means`/`note` is where it states CRITERIA, ANCHORS and COMPLETION MARKERS, and all
+    eleven live entries citing a SHA only in those fields cite one of those three: "Parts TWO and
+    THREE are DISCHARGED in commit 96ec173c0", "the census fail-open closed in 37138c44f", "12
+    unjudged strings at 9e9f4d994", "producing_commit must read a178b56d6".
+
+    A COMPLETION MARKER HAS ALREADY ARRIVED BY DEFINITION, so folding it into `all arrived` makes
+    the condition trivially true and manufactures a spent-premise note for an item whose work has
+    not started. That is the false positive `premise_note`'s own docstring designs against, and it
+    fires hardest on the six live entries that cite NOTHING in `what`/`why` -- silent today,
+    spuriously spent under the widening.
+
+    THE COUNT THAT SAYS OTHERWISE IS THE WRONG RULER, and it is recorded because it was mine:
+    widening flips 6 entries to firing against 1 to silent, which reads as a clear gain until you
+    ask what each number counts. They are verdict FLIPS, not CORRECT verdicts, and all 6 of the
+    gains are false positives.
+    """
+    arrived = "3d954803e"
+
+    def _fake_git(*args, **_kw):
+        # BOTH READS MUST ANSWER, and the first draft of this stub answered only the second.
+        # `_cited_commits` confirms each token with `cat-file -e` before `premise_note` asks
+        # ancestry, so a stub that refuses `cat-file` yields ZERO cited commits and the door
+        # returns "" for the reason the assertion below is testing for -- a control proving its
+        # own stub. The `!= ""` leg at the end is what caught it.
+        # EVERY sha resolves, and resolves as an ancestor: the completion-marker case exactly,
+        # where the citation records work already done.
+        if args[:1] == ("cat-file",) or args[:2] == ("merge-base", "--is-ancestor"):
+            return ""
+        return None
+
+    monkeypatch.setattr(dl, "_git", _fake_git)
+
+    marker_only = {
+        "id": "cites-a-completion-marker-and-nothing-else",
+        "what": "Add Birmingham and Teesside to the archive sites and re-run derive().",
+        "why": "The supply book is 4/6 cell-resolved and W1_14 cannot move until it is 6/6.",
+        "done_means": "done means the coverage refresh is landed; the fail-open that hid the "
+                      "generator closed in {}.".format(arrived),
+    }
+    assert dl.premise_note(marker_only) == "", (
+        "an item whose only cited commit is a COMPLETION MARKER in `done_means` was reported as "
+        "having a spent premise -- the work has not started, and this is what widening "
+        "`premise_note` to `_ITEM_PROSE_KEYS` does to six live entries")
+
+    # AND THE DOOR IS NOT SIMPLY DEAD: the same commit cited in `why` as the thing the item waits
+    # on must still fire. Without this leg a `premise_note` that returned "" unconditionally would
+    # pass the assertion above, which is this file's own stated trap.
+    depends_on_it = dict(marker_only, why="Blocked on {}, which is already on origin.".format(
+        arrived), done_means="done means the coverage refresh is landed.")
+    assert dl.premise_note(depends_on_it) != "", (
+        "`premise_note` said nothing about an item whose stated blocker is already an ancestor of "
+        "origin/main -- the door is dead and the leg above is passing on its silence")

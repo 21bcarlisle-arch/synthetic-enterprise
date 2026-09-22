@@ -3361,6 +3361,23 @@ def premise_note(item: dict) -> str:
     the property is "nothing this item points at is still outstanding". A mixture of landed and
     unlanded ids is exactly the context-citation shape above, and is not a spent premise.
 
+    IT READS `what + why` AND NOT `_ITEM_PROSE_KEYS`, AND THAT IS DELIBERATE -- do not "finish"
+    the 2026-09-22 widening by copying it here. `path_note` was widened to the canonical tuple that
+    day because 54 live entries named a tracked PATH in `done_means`/`note` and nowhere else. The
+    same change here is wrong, and it was measured rather than argued: `what`/`why` is where an item
+    states what it DEPENDS ON, while `done_means`/`note` is where it states CRITERIA, ANCHORS and
+    COMPLETION MARKERS. All eleven live entries citing a sha only in those fields cite one of those
+    three -- *"Parts TWO and THREE are DISCHARGED in commit 96ec173c0"*, *"closed in 37138c44f"*,
+    *"12 unjudged strings at 9e9f4d994"*, *"producing_commit must read a178b56d6"*.
+
+    A COMPLETION MARKER HAS ARRIVED BY DEFINITION, so folding it into `all arrived` makes the
+    condition trivially true and publishes "the work may have landed already, release the claim"
+    over an item whose work has not started -- the exact false positive the paragraph above
+    designs against, hitting hardest on the six live entries that cite nothing in `what`/`why` and
+    are correctly silent today. The flip count says the opposite (6 gained against 1 lost) and it
+    is the wrong ruler: those are verdict FLIPS, not correct verdicts, and all six gains are false.
+    Guarded by `test_PREMISE_NOTE_STAYS_ON_WHAT_AND_WHY_AND_MUST_NOT_BE_WIDENED_WITH_THE_PATH_DOORS`.
+
     NEVER RAISES, and an unanswerable git yields "" -- no note, i.e. the behaviour before this
     existed. That is the fail-OPEN direction and it is chosen for the reason `_retired_ids` gives:
     a missing annotation is visible to the tick that then does the work anyway, where an item
