@@ -49,10 +49,15 @@ import textwrap
 
 from tools import unbounded_quotient_census as census
 
-#: THE DEBT AS IT STOOD WHEN THIS CONTROL LANDED, 2026-09-22. Every one of these is a real
-#: candidate found BY SHAPE and not by name -- `tools/inference_claim.py` alone carries six, under
-#: names sharing no vocabulary with the four hand-found instances. This number may only fall.
-UNDECLARED_DEBT_CEILING = 16
+#: THE DEBT, AND IT MAY ONLY FALL. It landed at 16 on 2026-09-22 and came down to 6 the same day
+#: when `tools/inference_claim.py` -- the fifth instance, and the first this rule ever found by a
+#: CONTROL rather than by reading the block next door -- was repaired along with the three keys
+#: `generate_value_arms_data` republishes from it. Lowered here in the same commit as the repair,
+#: because a ceiling left at the old number is a licence for ten more.
+#:
+#: WHAT IS LEFT, and it is a real list rather than a residue: three sites in
+#: `tools/fit_year_level_anchor.py` and three in `tools/run_value_cycle_ab.py`.
+UNDECLARED_DEBT_CEILING = 6
 
 #: AND A FLOOR UNDER THE WHOLE POPULATION. 23 sites found; a walk that finds materially fewer has
 #: broken rather than been fixed, because no single commit retires a third of them.
@@ -64,6 +69,24 @@ REPAIRED = {
     ("tools/generate_value_arms_data.py", "rosters_needed_to_state_a_sign"),
     ("tools/generate_value_arms_data.py", "rosters_needed_interval"),
     ("tools/generate_value_arms_data.py", "seeds_needed_interval"),
+    # THE FIFTH INSTANCE, repaired 2026-09-22 and pinned for the same reason the other four are:
+    # a ratchet on a count cannot see one of these quietly losing its gate.
+    ("tools/inference_claim.py", "decisions_needed_for_the_observed_effect"),
+    ("tools/inference_claim.py", "accounts_needed_for_the_observed_effect"),
+    ("tools/inference_claim.py", "settled_accounts_needed_for_the_observed_effect"),
+    ("tools/inference_claim.py", "decisions_needed"),
+    ("tools/inference_claim.py", "accounts_needed"),
+    # `scored_decisions_needed` IS REPAIRED TOO AND IS DELIBERATELY NOT PINNED HERE. Its value
+    # arrives through a dict round-trip (`book.get(...)`), which is exactly the limit the census
+    # module's own docstring names: the resolver works within one function and cannot follow a
+    # value out of a dict, so the site is INVISIBLE to the scan rather than ungated by it. Pinning
+    # a site the scan cannot see would red this control permanently and teach the next reader that
+    # the pin means nothing. The repair is controlled instead by
+    # `test_the_observed_book_price_is_WITHHELD_where_the_reading_fails_its_own_null`, which asks
+    # the produced value rather than the source.
+    ("tools/generate_value_arms_data.py", "same_year_pairs_needed"),
+    ("tools/generate_value_arms_data.py", "priced_renewals_needed"),
+    ("tools/generate_value_arms_data.py", "renewals_the_world_must_offer"),
 }
 
 
