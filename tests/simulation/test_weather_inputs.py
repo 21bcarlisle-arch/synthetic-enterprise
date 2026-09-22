@@ -17,16 +17,23 @@ def test_load_weather_means_missing_file_returns_empty():
     assert load_weather_means("DOES_NOT_EXIST") == {}
 
 
-def test_weather_means_for_customer_resolves_shared_location_to_c1():
-    # C5 (SME, London) shares C1's exact location dict — no weather file of
-    # its own, so it should resolve to C1's.
+def test_weather_means_for_customer_gives_two_premises_in_one_place_one_sky():
+    """C5 (SME, London) sits in C1's cell, so it reads C1's sky.
+
+    REWRITTEN 2026-09-21 with the seam migration, and the old form is the point of the rewrite: it
+    asserted `c5_means["2016-01-01"] == 4.6`, which was ERA5's reading at C1's own coordinate out of
+    `sim/weather_data/C1.csv`. The premise now reads the WORLD's weather for the cell it sits in
+    (HadUK 1 km + the cell's climatology), so that literal is a different number — and pinning any
+    literal here was always keying the control to today's answer rather than to the property, which
+    is that two premises in one place cannot get two skies.
+    """
     c5_means = weather_means_for_customer(get_customer("C5"))
     c1_means = weather_means_for_customer(get_customer("C1"))
     assert c5_means == c1_means
-    assert c5_means["2016-01-01"] == 4.6
+    assert c5_means, "London resolves no weather at all — the store has lost the book's own cells"
 
 
-def test_weather_means_for_customer_resolves_gas_leg_to_electricity_counterpart():
+def test_weather_means_for_customer_gives_the_gas_leg_its_electricity_twin_s_sky():
     c2g_means = weather_means_for_customer(get_customer("C2g"))
     c2_means = weather_means_for_customer(get_customer("C2"))
     assert c2g_means == c2_means
@@ -162,3 +169,183 @@ def test_the_live_book_names_every_source_it_holds_and_no_id_without_a_file():
         "C7 is resi electricity and holds no CSV — it is back in the source list, so the proxy "
         "has returned"
     )
+
+
+# ---------------------------------------------------------------------------
+# W1_14 step 1 (2026-09-21): the demand-shape and forward-price legs read the
+# PER-CELL STORE, not the four per-property archives.
+#
+# THE DEFECT THESE EXIST FOR. From 2026-09-17 the fabric physics leg read the
+# per-cell store and these two legs did not, so ONE premise's demand was
+# generated against its cell's sky and its shape adjusted — and its forward
+# temperature priced — against a per-property ERA5 archive resolved by exact
+# `location` match. Two weather sources for one household, disagreeing by
+# +1.19 C on the mean at London, and nothing anywhere able to notice: both legs
+# returned numbers, and an unadjusted shape looks exactly like a shape whose
+# weather said no adjustment was needed.
+# ---------------------------------------------------------------------------
+
+from sim.weather_world import WeatherWorld, WeatherWorldRefusal  # noqa: E402
+from simulation import weather_inputs as wi  # noqa: E402
+from simulation.fabric_demand_path import WeatherWorldSource  # noqa: E402
+
+
+def test_the_shape_leg_reads_the_world_and_not_the_per_property_archive():
+    """DEFECT: resolving a premise to `sim/weather_data/{id}.csv` — the design the director refused,
+    under which two households in one cell get two skies.
+
+    Keyed to AGREEMENT WITH THE WORLD, not to a temperature: the store may be rebuilt, corrected or
+    extended and this stays green. What it cannot survive is the series coming from anywhere but the
+    cell the premise sits in.
+    """
+    c1 = get_customer("C1")
+    verdict = wi.cell_weather_for_customer(c1)
+    world = wi.shared_world()
+    assert verdict.cell == world.cell_id_for(c1["location"]["lat"], c1["location"]["lon"])
+    from_the_world = {row["date"]: row[wi.TEMPERATURE_FIELD]
+                      for row in world.for_cell(verdict.cell)}
+    assert weather_means_for_customer(c1) == from_the_world
+
+    # ...and the archive really is a DIFFERENT reading, so the leg above is not vacuous. If a
+    # future store rebuild ever made the two identical, this control has gone blind and says so
+    # rather than passing.
+    archive = load_weather_means("C1")
+    assert archive, "C1's archive is the witness this non-vacuity check needs"
+    assert any(archive[d] != from_the_world[d] for d in archive if d in from_the_world), (
+        "the cell store and the per-property archive now read identically at C1, so the control "
+        "above can no longer tell which source the shape leg read"
+    )
+
+
+def test_the_physics_leg_and_the_shape_leg_send_a_premise_to_the_same_cell():
+    """DEFECT: two resolution rules for one question — which sky this household had.
+
+    This is the control that would have caught the state this migration ended, and it is keyed to
+    the two legs AGREEING rather than to either answer. It walks the live book because the defect
+    was a whole-book property: the physics leg said `E529N0180` and the shape leg said `C1`.
+    """
+    source = WeatherWorldSource.load()
+    resolved, refused = [], []
+    for customer in wi.CUSTOMERS:
+        mine = wi.cell_weather_for_customer(customer, world=source.world)
+        theirs = source.site_for(customer)
+        if mine.cell is None:
+            refused.append(customer["customer_id"])
+            assert not theirs.startswith("E"), (
+                f"{customer['customer_id']}: the shape leg refuses and the physics leg resolved "
+                f"{theirs} — one premise, two answers about which sky it had"
+            )
+        else:
+            resolved.append(customer["customer_id"])
+            assert mine.cell == theirs, (
+                f"{customer['customer_id']}: shape leg reads {mine.cell}, physics leg reads "
+                f"{theirs}"
+            )
+    # BOTH BRANCHES REACHABLE, asserted over the partition rather than one leg each: a resolver
+    # that refused every premise, or resolved every premise, would satisfy every assertion above.
+    assert resolved and refused, (
+        f"the book no longer exercises both branches ({len(resolved)} resolved, {len(refused)} "
+        "refused), so this control passes without testing the disagreement it exists for"
+    )
+
+
+def test_a_premise_the_store_cannot_reach_gets_a_named_refusal_not_a_silent_empty_series():
+    """DEFECT: an empty series that says nothing. `_weather_adjusted_shape_fn` falls back to the
+    UNADJUSTED base shape for any date it has no weather for, so a premise 7.4 km outside the store
+    and a premise with a complete sky are indistinguishable downstream — a declared `None` and a
+    silent `None` collapsing into the flattering branch.
+
+    C_IC1/C_IC2 (Birmingham) are the live instance. The refusal must be clearable by whoever reads
+    it, which means naming the cell and the per-cell remedy — never a per-property pull.
+    """
+    world = wi.shared_world()
+    birmingham = next(c for c in wi.CUSTOMERS if c["customer_id"] == "C_IC1")
+    verdict = wi.cell_weather_for_customer(birmingham, world=world)
+    assert verdict.series == {} and verdict.cell is None
+    assert verdict.refusal, "the premise got no weather and no reason: this is the silent failure"
+    assert "km from the nearest cell" in verdict.refusal
+    assert "needs its cell adding" in verdict.refusal
+    assert "pull that coordinate" not in verdict.refusal, (
+        "the refusal is recruiting the reader into the per-property design the director refused"
+    )
+
+    register = wi.weather_refusals_for_book(wi.CUSTOMERS, world=world)
+    # THE REGISTER CANNOT DISAGREE WITH THE SERIES. Two surfaces answering one question is the
+    # shape this whole migration existed to remove; a register built by a second rule would be it.
+    empty = {c["customer_id"] for c in wi.CUSTOMERS
+             if not wi.cell_weather_for_customer(c, world=world).series}
+    assert set(register) == empty
+    assert "C_IC1" in register and register["C_IC1"] == verdict.refusal
+
+
+def test_a_premise_with_no_coordinate_says_so_in_its_own_sentence():
+    """DEFECT: sending someone to extend the store for a premise no store build can help. A
+    coordinate-less premise needs a coordinate at the DRAW, and `(0.0, 0.0)` would send them to the
+    Gulf of Guinea."""
+    verdict = wi.cell_weather_for_customer({"customer_id": "P0", "location": {}})
+    assert verdict.cell is None and verdict.series == {}
+    assert "no coordinate" in verdict.refusal and "at the draw" in verdict.refusal
+    assert "build_weather_world" not in verdict.refusal
+
+
+def test_a_cell_holding_temperature_and_no_cloud_still_answers_the_temperature_question():
+    """DEFECT: asking completeness over five fields when the caller reads one. 8 of the store's 221
+    cells hold temperature and no wind, cloud or precipitation; the physics leg must refuse them and
+    this leg must not, or a real 1 km temperature reading is thrown away for a wind column nobody
+    asked for."""
+    class _HoledWorld:
+        cells = {}
+
+        def cell_id_for(self, lat, lon):
+            return "E001N0001"
+
+        def for_cell(self, cell, start=None, end=None):
+            return [{"date": "2022-01-01", "temperature_mean_c": 3.5,
+                     "cloud_cover_pct": float("nan")}]
+
+    premise = {"customer_id": "P9", "location": {"lat": 51.5, "lon": -0.1}}
+    holed = _HoledWorld()
+    assert wi.cell_weather_for_customer(premise, wi.TEMPERATURE_FIELD, holed).series == {
+        "2022-01-01": 3.5}
+    cloud = wi.cell_weather_for_customer(premise, wi.CLOUD_COVER_FIELD, holed)
+    assert cloud.series == {}, "a NaN reached a caller as a number"
+    assert "holds no cloud_cover_pct" in cloud.refusal and "build_weather_world" in cloud.refusal
+
+
+def test_the_world_is_loaded_once_per_process_and_an_injected_world_is_never_reloaded():
+    """DEFECT: a load per leg. `WeatherWorld.load()` reads an 8 MB gzip into ~807,000 rows, and two
+    copies of the world in one process can drift from each other — which is precisely what the
+    per-cell architecture exists to make impossible."""
+    loads = []
+    real_load = WeatherWorld.load
+
+    def counting_load():
+        loads.append(1)
+        return real_load()
+
+    original = wi._WORLD
+    try:
+        wi._WORLD = None
+        WeatherWorld.load = staticmethod(counting_load)
+        first = wi.shared_world()
+        second = wi.shared_world()
+        assert first is second and len(loads) == 1
+        injected = object()
+        assert wi.shared_world(injected) is injected
+        assert len(loads) == 1, "an injected world still triggered a load"
+    finally:
+        WeatherWorld.load = real_load
+        wi._WORLD = original
+
+
+def test_the_store_refusing_entirely_is_a_reason_and_not_a_crash():
+    """DEFECT: a missing store taking the whole run down, or worse, being swallowed. Every premise
+    must carry the store's own build instruction as its reason."""
+    class _NoStore:
+        def cell_id_for(self, lat, lon):
+            raise WeatherWorldRefusal("cells.json is absent: the world has no weather")
+
+    verdict = wi.cell_weather_for_customer(
+        {"customer_id": "P1", "location": {"lat": 51.5, "lon": -0.1}}, world=_NoStore())
+    assert verdict.series == {} and verdict.cell is None
+    assert "cells.json is absent" in verdict.refusal
