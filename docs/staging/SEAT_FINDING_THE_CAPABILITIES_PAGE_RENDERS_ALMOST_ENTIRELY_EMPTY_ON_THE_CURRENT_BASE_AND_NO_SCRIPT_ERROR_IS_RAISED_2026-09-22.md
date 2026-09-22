@@ -1,4 +1,31 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — found in passing
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — found in passing
+
+> ## REFUTED 2026-09-22, later the same day, by the seat that filed it.
+>
+> **The page is not blank and was not blank.** Driven through its own harness on clean `git
+> archive` extracts of seven bases — including `d3b420cbb`, blamed below, and `5973f923b`, the
+> "current base" below — it renders **42 of 42 elements** every time. `pytest site/` is **893
+> passed, 0 failed**. Both headline claims below are false, and the severity is lowered from
+> BLOCKING accordingly.
+>
+> **The `scriptError: null` below is the RIGHT answer, not the defect.** When the page cannot read
+> its feed it writes four named refusals to the reader ("This page could not load its data (…).
+> Nothing below is trustworthy; the figures are absent, not zero."). It caught its own failure and
+> said so on the surface. What this document read as a door unable to report itself was the door
+> reporting itself, into elements it counted rather than read.
+>
+> **What survives is section "Where to start", item 1 — and it was right.** The harness recorded
+> only the first error across all blocks, and an unhandled rejection killed the process outright,
+> taking the whole render report with it. Both are fixed, with seven mutations killed.
+>
+> **The 36-of-37 measurement is not reproducible** from what is written here, because the feed
+> table the harness was given was not recorded. No base and no single-feed withholding produces it.
+>
+> Full account, with the sweep and the refuted pre-registration:
+> `docs/staging/SEAT_RESULT_THE_CAPABILITIES_PAGE_WAS_NEVER_BLANK_AND_THE_INSTRUMENT_THAT_SAID_SO_REPORTED_ONE_FAILURE_IN_THREE_2026-09-22.md`
+>
+> *Kept in place rather than deleted or archived: a wrong claim beside its refutation is the only
+> evidence the check was made.*
 
 # FINDING — the capabilities page renders almost entirely empty on the current base, and nothing
 raises a script error

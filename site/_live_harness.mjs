@@ -52,7 +52,9 @@ const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/scri
 // failure on the Front Door.)
 if (!scripts.length) {
   process.stdout.write(JSON.stringify({
-    _meta: { static: true, requested: [], unresolved: [], scriptError: null },
+    // `scriptErrors` present and empty, not absent: a caller that reads the field must get the
+    // same shape on every path, or "no errors" and "this path does not report errors" collapse.
+    _meta: { static: true, requested: [], unresolved: [], scriptErrors: [], scriptError: null },
   }));
   process.exit(0);
 }
@@ -132,13 +134,33 @@ sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 
-let scriptError = null;
-for (const code of scripts) {
+// EVERY FAILURE, NOT THE FIRST ONE. `scriptError` was a single slot filled with `x = x || ...`
+// across all script blocks AND all document-ready listeners, so a door that broke in three places
+// reported one -- and a caller who repaired that one learned about the second only by re-running.
+// Worse in the case this was found by: a caller reading a mostly-blank page next to ONE error has
+// no way to tell "one defect" from "the first of several", and the natural reading of a single
+// terse message beside a silent page is that the page has nothing to say.
+//
+// `scriptError` IS KEPT and still carries the first message, because controls across `site/`
+// assert `scriptError is None` and re-pointing them all at a new name would be a large diff whose
+// only content is a rename. It is now derived from the list rather than being the record.
+const scriptErrors = [];
+const note = (where, e) => scriptErrors.push({ where, message: String((e && e.message) || e) });
+
+// AN UNHANDLED REJECTION USED TO KILL THE PROCESS, taking the whole render report with it -- the
+// caller got no stdout at all, so which elements HAD rendered, and which feeds were unresolved,
+// were destroyed along with the failure. That is the evidence a reader needs most at exactly the
+// moment it is thrown away. Reported as a failure now, and the run still finishes and prints.
+// NOT swallowed: it lands in `scriptErrors` and so in `scriptError`, which the existing controls
+// already read, so this makes a previously-fatal case VISIBLE rather than quiet.
+process.on("unhandledRejection", (e) => note("unhandledRejection", e));
+
+for (const [i, code] of scripts.entries()) {
   try {
     vm.runInContext(code, sandbox, { timeout: 20000 });
   } catch (e) {
     // Record and continue: one broken block should not hide what the others rendered.
-    scriptError = scriptError || String(e && e.message || e);
+    note("script[" + i + "]", e);
   }
 }
 
@@ -147,7 +169,7 @@ for (const code of scripts) {
 document.readyState = "complete";
 for (const type of ["DOMContentLoaded", "load", "readystatechange"]) {
   for (const fn of domReady[type] || []) {
-    try { fn({ type }); } catch (e) { scriptError = scriptError || String(e && e.message || e); }
+    try { fn({ type }); } catch (e) { note(type, e); }
   }
 }
 
@@ -177,7 +199,12 @@ function serialise(e, seen) {
   return { html, text };
 }
 
-const out = { _meta: { requested, unresolved, scriptError } };
+const out = {
+  _meta: {
+    requested, unresolved, scriptErrors,
+    scriptError: scriptErrors.length ? scriptErrors[0].message : null,
+  },
+};
 for (const [id, e] of Object.entries(elements)) {
   const content = serialise(e, new Set());
   out[id] = { innerHTML: content.html, textContent: content.text };
