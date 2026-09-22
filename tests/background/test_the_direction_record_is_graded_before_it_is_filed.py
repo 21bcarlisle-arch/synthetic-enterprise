@@ -193,6 +193,43 @@ def test_the_note_is_empty_when_there_is_nothing_to_say(tree: Path) -> None:
     assert "nothing to land" in dpc.note(RECORD, tree)
 
 
+#: ONE ITEM WHOSE SUBJECT PATHS ARE ALL IN THE TWO FIELDS THAT USED TO BE UNREAD. `what` and `why`
+#: name no path at all, so a reader narrowed back to that pair grades NOTHING here.
+SUBJECT_ONLY_IN_THE_LATER_FIELDS = {"focus": [{
+    "id": "subject-in-done-means-and-note",
+    "what": "Settle why the two windows disagree.",
+    "why": "The constant and the reading were written months apart.",
+    "done_means": "done means the reading in `tools/spent.py` comes from the constant.",
+    "note": "Rewrite the pile in `tools/revert.py` too -- the work is finished and uncommitted.",
+}]}
+
+
+def test_the_canonical_prose_tuple_cannot_be_narrowed_under_this_door(tree: Path) -> None:
+    """THE GUARD OVER `_ITEM_PROSE_KEYS` ITSELF, and until 2026-09-22 nothing in the tree had one.
+
+    That tuple is the single definition of what an item's prose IS, shared by three doors: this
+    one, the hand-off door, and `delivery_lane.path_note`. Narrowing it to `("what", "why")` and
+    running this file plus the hand-off door's own suite gave 19 passed -- neither sibling could
+    tell that the field list it depends on had been cut under it. The defect that measurement came
+    out of was real and live: `path_note` had been hand-rolling exactly that narrow pair, and 54
+    entries on the live continuation store named a tracked path in `done_means` or `note` and
+    nowhere else.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S TUPLE. The claim is "every prose field an item carries
+    reaches the classifier", so adding a fifth field later does not red this; dropping one does.
+    Asserted on `grade_item`'s `to_change` rather than on a concern CLASS, because the classes are
+    heuristics over the text and a leg that went through them would be measuring the heuristic and
+    reporting it as reach.
+    """
+    graded = dpc.grade_item(SUBJECT_ONLY_IN_THE_LATER_FIELDS["focus"][0], tree)
+    reached = {row[0] for row in graded["to_change"]}
+    missing = {"tools/spent.py", "tools/revert.py"} - reached
+    assert not missing, (
+        "{} is named in this item's prose and never reached the classifier, so an authoring seat "
+        "files a record whose real subject was graded by nothing -- `_ITEM_PROSE_KEYS` has been "
+        "narrowed under this door".format(sorted(missing)))
+
+
 def test_the_orientation_brief_carries_the_verdicts_into_the_prompt(monkeypatch) -> None:
     """The defect this whole module exists for, asserted at the seam rather than in the unit: the
     verdicts exist and never reach the seat that writes the next record. A key in the brief that

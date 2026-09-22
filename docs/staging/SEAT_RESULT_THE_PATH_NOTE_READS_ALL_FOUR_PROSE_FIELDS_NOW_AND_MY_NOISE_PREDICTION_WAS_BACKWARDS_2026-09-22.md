@@ -84,8 +84,20 @@ SWAPPED which pair of keys it reads, and the mutation to catch is exactly a subs
   records the measurement, the refuted prediction and why the cap was not raised.
 * `tests/background/test_the_draw_classifies_the_paths_it_names.py` — two legs, mutation-proven.
 
-## What is still owed
+## What was still owed, and was then closed in the same turn
 
-The tuple guard covers `path_note` only. The orientation and hand-off doors reach the same tuple
-and would go silently narrow with it; a leg over `direction_path_check._item_text` keyed to the same
-property would close that, and is the natural next piece.
+Written above before the second increment: *"the tuple guard covers `path_note` only. The
+orientation and hand-off doors reach the same tuple and would go silently narrow with it."* That is
+now closed. `test_the_canonical_prose_tuple_cannot_be_narrowed_under_this_door` in
+`tests/background/test_the_direction_record_is_graded_before_it_is_filed.py` grades an item whose
+subject paths sit **only** in `done_means` and `note`, and asserts both reach `grade_item`'s
+`to_change`. Under the same narrowing mutation it reds, alone, naming both paths; restored, 32 pass
+across all three doors' suites.
+
+It is asserted on `to_change` and deliberately **not** on a concern CLASS: the classes are
+heuristics over the item's text, and a leg routed through them would be measuring the heuristic
+while reporting it as reach.
+
+The hand-off door has no leg of its own, and does not need one — it reaches the tuple through the
+same `direction_path_check._item_text` this leg now covers. What remains genuinely uncovered is
+nothing in this family.
