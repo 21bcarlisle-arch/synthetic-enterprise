@@ -641,6 +641,19 @@ def landable_hunks(head_text: str, work_text: str, path: str) -> tuple[int, ...]
     landed work, so the copy is a REPLACEMENT and the choice between the two implementations is a
     judgement neither door is allowed to make. Numbering is `isolate_hunks --survey`'s, so a caller
     can print an index a reader can then select.
+
+    RETURNED IN `--keep`'s BASE, WHICH IS 1, AND THAT IS THE WHOLE POINT OF THE SENTENCE ABOVE.
+    `group_opcodes` numbers its groups from 0 and `reconstruct` selects on those, but neither is a
+    surface any reader types at: `isolate_hunks --survey` PRINTS `enumerate(groups, start=1)` and
+    `--keep N` parses `int(sel) - 1`. This returned the 0-based gid for its whole life, so every
+    verdict built on it cited an index shifted one below the only numbering a reader can select --
+    which is exactly what the comment below says must never happen. On
+    `simulation/premise_population.py` the refusal read *"land hunk(s) 0, 1"* and
+    `isolate_hunks --keep 0 --keep 1` answered *"REFUSED: hunk 0 does not exist (4 in this file)"*,
+    while the selection it meant was `--keep 1 --keep 2`. Drop the `+ 1` and the door's own remedy
+    stops being runnable; `test_the_cited_hunks_are_selectable_by_the_tool_the_refusal_names` is
+    the leg, and it goes through `--keep` rather than `reconstruct` because `reconstruct` is the
+    0-based side and asking it agrees with itself is what hid this for the function's whole life.
     """
     # REUSED rather than re-cut: `group_opcodes`/`reconstruct` ARE the hunk map `--keep` selects
     # over, and they are pure. Re-deriving a second hunk numbering here would mean this verdict
@@ -666,7 +679,7 @@ def landable_hunks(head_text: str, work_text: str, path: str) -> tuple[int, ...]
         if names is None:
             continue
         if names - head_names and not head_names - names:
-            out.append(gid)
+            out.append(gid + 1)  # into `--keep`'s base -- see the docstring
     return tuple(out)
 
 

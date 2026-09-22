@@ -584,7 +584,15 @@ def test_the_holder_work_verdict_names_a_hunk_the_landing_tool_agrees_with(repo:
     """A CITED INDEX THAT THE TOOL DOES NOT AGREE WITH IS WORSE THAN NO INDEX. The verdict now
     prints which hunks `--keep` should take, and it earns that only by numbering them the way
     `isolate_hunks --survey` does -- so this asserts the selection it names actually reconstructs
-    HEAD plus the unlanded work and nothing else."""
+    HEAD plus the unlanded work and nothing else.
+
+    THIS LEG ASKS `reconstruct`, WHICH IS THE 0-BASED SIDE, and on its own it is the flattering
+    half of the question -- it proved the cited indices agree with the internal API they came out
+    of, which they did while the reader-facing ones were shifted by one for the function's whole
+    life. Kept because it is still the check that the selection does not LOSE work; the numbering
+    claim in the name is carried by
+    `test_the_cited_hunks_are_selectable_by_the_tool_the_refusal_names` below, which types them at
+    `--keep`. Feeding `landable` here needs the same `- 1` `--keep` applies, for the same reason."""
     from tools.isolate_hunks import group_opcodes, reconstruct
     from tools.stale_copy_refusal import landable_hunks
 
@@ -595,10 +603,59 @@ def test_the_holder_work_verdict_names_a_hunk_the_landing_tool_agrees_with(repo:
         "the verdict cites a hunk selection the reader cannot find in `--survey`")
     base, work = LANDED.splitlines(keepends=True), HOLDER_APPENDS.splitlines(keepends=True)
     ops, groups = group_opcodes(base, work)
-    built = "".join(reconstruct(base, work, ops, groups, set(landable)))
+    built = "".join(reconstruct(base, work, ops, groups, {gid - 1 for gid in landable}))
     assert "freshly_landed_helper" in built and "my_own_unlanded_function" in built, (
         "the selection this verdict names does not build HEAD-plus-the-holder's-work, so the "
         "remedy sends a lane to a landing that loses something")
+
+
+def test_the_cited_hunks_are_selectable_by_the_tool_the_refusal_names(
+        repo: Path, tmp_path: Path) -> None:
+    """THE INDEX IS TYPED AT `--keep`, WHICH IS THE ONLY SURFACE A READER HAS, and for the whole
+    life of `landable_hunks` nothing asked it there. The sibling above fed the cited indices to
+    `reconstruct` -- the 0-based internal the numbers came out of -- so it answered "do these agree
+    with themselves" and passed while the refusal printed indices `--keep` rejects outright.
+
+    The defect this names, measured on the real tree before the fix: `refresh_to_head` refused
+    `simulation/premise_population.py` with *"land hunk(s) 0, 1"*, and
+    `isolate_hunks --keep 0 --keep 1` answered *"REFUSED: hunk 0 does not exist (4 in this file)"*.
+    A reader who dropped the impossible 0 and ran `--keep 1` alone would have landed ONE of the two
+    hunks and believed they had both -- the silent half, and the worse one.
+
+    So this runs `isolate_hunks.build` with exactly the digits the refusal prints. It reds if
+    `landable_hunks` returns `gid` instead of `gid + 1`, and it reds the other way too: shift it by
+    two and the selection stops reproducing the holder's work."""
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state == rth.SUPPLIES_NEW, verdict.state
+    from tools.stale_copy_refusal import landable_hunks
+    cited = landable_hunks(LANDED, HOLDER_APPENDS, "m.py")
+    assert cited, "no hunk was called landable, so there is no cited index to type"
+
+    # `isolate_hunks` reads the path from ITS OWN repo root, so the fixture has to be the one it
+    # sees. Monkeypatching the module global is the seam -- reaching for the real tree here would
+    # make the control's subject whatever the shared worktree happens to hold.
+    import tools.isolate_hunks as iso
+    out = tmp_path / "isolated.py"
+    saved_repo, saved_head = iso._REPO, iso.head_lines
+    try:
+        iso._REPO = repo
+        iso.head_lines = lambda path: LANDED.splitlines(keepends=True)
+        rc = iso.build("m.py", [str(gid) for gid in cited], out)
+    finally:
+        iso._REPO, iso.head_lines = saved_repo, saved_head
+    assert rc == 0, "the tool the refusal names REFUSED the selection the refusal printed"
+    # AS CODE, NOT AS TEXT. The names below are `def`s in the fixture, and the isolated bytes also
+    # carry the docstrings that NAME them -- so a raw `in` over the source would be satisfied by a
+    # hunk that landed the prose describing the helper and not the helper, which is the same
+    # flattering reading this whole test exists to close one level up.
+    from tools.python_code_text import searchable
+    built = searchable(out.read_text())
+    assert "my_own_unlanded_function" in built, (
+        "the cited selection, typed at `--keep`, did not take the holder's work -- the refusal "
+        "names an index that silently lands less than it promises")
+    assert "freshly_landed_helper" in built, (
+        "the cited selection reverted landed work, which is the thing `--keep` exists to avoid")
 
 
 # ------------------------------------------------------------------- `--base-wins`, and its edge
