@@ -93,15 +93,25 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# The trees a test can take as a whole-directory subject. `tests` is excluded by leg 1: a test
-# whose subject is other tests is reached by staging those tests, which the stem selector does
-# handle (a changed test file selects itself).
+# The trees a test can take as a whole-directory subject. `tests` is NOT here and is admitted
+# separately by `_test_corpus_population` -- see its docstring for why the exclusion was SPLIT
+# rather than deleted.
 SOURCE_ROOTS = (
     "background", "company", "saas", "sim", "simulation",
     "tools", "interface", "site", "docs", ".claude", "hooks",
 )
 
 _WALK_ATTRS = frozenset({"glob", "rglob", "iterdir"})
+
+#: Git subcommands that READ a population out of the repository. `ls-files` and `ls-tree` list it,
+#: `grep` searches it, `show`/`cat-file` reads one member of it. All four answer about the
+#: COMMITTED bytes, which is the only honest subject for "what does the record claim" -- the
+#: working tree is not what a clone carries.
+_GIT_ORACLE_SUBCOMMANDS = frozenset({"ls-files", "ls-tree", "grep", "show", "cat-file", "diff"})
+
+#: The subprocess entry points this repo uses. A git oracle is recognised by its ARGV, not by the
+#: runner, so a new runner does not silently leave the class.
+_SUBPROCESS_RUNNERS = frozenset({"run", "check_output", "check_call", "call", "Popen"})
 
 
 def control_tests() -> set[str]:
@@ -140,17 +150,141 @@ def _named_roots(tree: ast.AST) -> set[str]:
     return found
 
 
-def _walks_a_tree(tree: ast.AST) -> bool:
-    """Leg 1: an AST-visible directory walk anywhere in the module."""
+def _literals_under(node: ast.AST) -> list[str]:
+    """Every string constant in this expression, including inside list/tuple argv literals."""
+    return [n.value for n in ast.walk(node)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+
+
+def _git_argv(node: ast.Call) -> list[str] | None:
+    """The git argv this call hands a subprocess runner, or `None` if it is not one.
+
+    Returns the STRING elements only, so `["git", *args]` comes back as `["git"]` -- a git call
+    whose subcommand the CALLER supplies. Collapsing that case to "not a git call" is what hid
+    `_git(*args)`, the wrapper shape every git-oracled member of this class actually uses.
+    """
+    f = node.func
+    runner = (isinstance(f, ast.Attribute) and f.attr in _SUBPROCESS_RUNNERS) or (
+        isinstance(f, ast.Name) and f.id in _SUBPROCESS_RUNNERS)
+    if not runner:
+        return None
+    for arg in node.args:
+        if not isinstance(arg, (ast.List, ast.Tuple)):
+            continue
+        parts = [e.value for e in arg.elts
+                 if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+        if parts and parts[0] == "git":
+            return parts
+    return None
+
+
+def _is_git_oracle_argv(node: ast.Call) -> bool:
+    """Is this call handing git an argv that READS the repository, subcommand inline?"""
+    parts = _git_argv(node)
+    return bool(parts) and any(p in _GIT_ORACLE_SUBCOMMANDS for p in parts[1:])
+
+
+def _git_oracle_helpers(tree: ast.AST) -> dict[str, bool]:
+    """Functions in THIS module that wrap git, mapped to whether the SUBCOMMAND IS FIXED in them.
+
+    A ONE-LEVEL widening, and the level is the one the repo actually writes: every git-oracled
+    member of this class reaches git through a local `_git(...)` rather than inline, so a rule
+    that only sees `subprocess.run(["git", "ls-files"])` sees none of them.
+
+    THE VALUE IS WHERE THE SUBCOMMAND LIVES, AND IT IS NOT A DETAIL. A literal `["git", "show",
+    ...]` inside the helper fixes it at `True`: every call through it reads. `["git", *args]` fixes
+    nothing -- `_git("ls-files")` reads the index and `_git("commit")` writes the repository, and
+    admitting such a wrapper wholesale would credit a test that merely COMMITS with having a
+    population. So a generic wrapper is resolved at its CALL SITE, against the subcommand the
+    caller actually passes.
+
+    Going further -- following imports -- is a different instrument (it must resolve and parse the
+    importee), and the residual it leaves is named in `classify_source`.
+    """
+    helpers: dict[str, bool] = {}
     for n in ast.walk(tree):
-        if not isinstance(n, ast.Call):
+        if not isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        fixed = any(isinstance(c, ast.Call) and _is_git_oracle_argv(c) for c in ast.walk(n))
+        wraps = fixed or any(isinstance(c, ast.Call) and _git_argv(c) is not None
+                             for c in ast.walk(n))
+        if wraps:
+            helpers[n.name] = fixed
+    return helpers
+
+
+def _is_population_call(node: ast.AST, helpers: dict[str, bool]) -> bool:
+    """Does this node READ a population out of the repository -- by walk OR by git?
+
+    THE WIDENING, IN ONE PLACE ON PURPOSE. Legs 2 and 3 are unchanged: they still ask whether the
+    read population is provably the counted one. What changed is only where a population may come
+    FROM. The old rule required an `ast.Attribute` walk, so "grade the committed record against the
+    index" -- a shape with five live instances -- could not match leg 1 at all, and the census's 0
+    was read as absence when it was scope.
+    """
+    if not isinstance(node, ast.Call):
+        return False
+    f = node.func
+    if isinstance(f, ast.Attribute) and f.attr in (_WALK_ATTRS | {"walk"}):
+        return True  # os.walk / Path.walk / glob / rglob / iterdir
+    if _is_git_oracle_argv(node):
+        return True
+    if isinstance(f, ast.Name) and f.id in helpers:
+        if helpers[f.id]:
+            return True  # the wrapper itself fixes a reading subcommand
+        # generic wrapper: the caller supplies the subcommand, so ask THIS call's arguments
+        return any(s in _GIT_ORACLE_SUBCOMMANDS for s in _literals_under(node))
+    return False
+
+
+def _walks_a_tree(tree: ast.AST, helpers: dict[str, bool]) -> bool:
+    """Leg 1: an AST-visible read of a whole population anywhere in the module."""
+    return any(_is_population_call(n, helpers) for n in ast.walk(tree))
+
+
+def _test_corpus_population(tree: ast.AST, helpers: dict[str, bool]) -> bool:
+    """Is `tests/` read here as a POPULATION, rather than named as one file?
+
+    THE EXCLUSION IS SPLIT, NOT DELETED, and the split is the whole point. `SOURCE_ROOTS` leaves
+    `tests` out on this reason:
+
+        a test whose subject is other tests is reached by staging those tests, which the stem
+        selector does handle (a changed test file selects itself).
+
+    That is TRUE of a test naming a sibling file and FALSE of a ratchet over the corpus. Staging
+    `tests/sim/test_scenario_spine_consumption.py` selects that file; it does not select the
+    repo-wide ratchet that file just joined, because the two are different files. Deleting the
+    exclusion would pull in every test in the tree; keeping it cost five `ast.walk` offenders
+    accumulating behind `test_no_tree_scan_passes_on_an_empty_population` while every commit that
+    added one was green.
+
+    So the discriminator is POPULATION vs NAMED FILE, which is exactly the distinction the reason
+    turns on: a glob/walk/git-read rooted at `tests` yields members nobody staged, while a literal
+    `tests/foo/test_bar.py` is reached by staging `tests/foo/test_bar.py`. Only the first is
+    admitted, and a module with no population call at all cannot reach here.
+    """
+    rooted: set[str] = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Assign):
+            targets, value = n.targets, n.value
+        elif isinstance(n, ast.AnnAssign) and n.value is not None:
+            targets, value = [n.target], n.value
+        else:
+            continue
+        if any(s.strip("/").split("/")[0] == "tests" for s in _literals_under(value)):
+            rooted.update(t.id for t in targets if isinstance(t, ast.Name))
+
+    for n in ast.walk(tree):
+        if not _is_population_call(n, helpers):
             continue
         f = n.func
-        if isinstance(f, ast.Attribute) and f.attr in _WALK_ATTRS:
+        # `TESTS.rglob(...)` where TESTS was bound from a literal naming the tests root
+        if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) and f.value.id in rooted:
             return True
-        if isinstance(f, ast.Attribute) and f.attr == "walk":
-            # os.walk / Path.walk -- both are a whole-tree read
-            return True
+        # `git ls-files -- tests/*.py`, `Path(...).glob("tests/**/test_*.py")`
+        for s in _literals_under(n):
+            if s.strip("/").split("/")[0] == "tests" and ("*" in s or s.strip("/") == "tests"):
+                return True
     return False
 
 
@@ -184,14 +318,22 @@ def _count_bound_nodes(tree: ast.AST) -> list[ast.Compare]:
     return out
 
 
-def _strict_dataflow(tree: ast.AST) -> bool:
-    """The BOUNDED over-count: is the walked population provably the counted one?
+def _strict_dataflow(tree: ast.AST, helpers: dict[str, bool] | None = None) -> bool:
+    """The BOUNDED over-count: is the READ population provably the counted one?
 
     True only when a `len(...)`-vs-integer comparison takes, as its argument, a name that is
-    assigned from a walk call, or takes the walk call directly. This is the subset where legs 1 and
-    2 are the same expression rather than two facts about one file. It is reported ALONGSIDE the
-    headline rather than replacing it, so the over-count has a measured size instead of a caveat.
+    assigned from a population call, or takes the population call directly. This is the subset
+    where legs 1 and 2 are the same expression rather than two facts about one file. It is
+    reported ALONGSIDE the headline rather than replacing it, so the over-count has a measured
+    size instead of a caveat.
+
+    THE HOP RULE IS UNCHANGED BY THE WIDENING. Only `_is_population_call` moved, so a git-read
+    population is held to exactly the standard a walked one always was. That is deliberate: the
+    pre-registered prediction being graded here asks what the SAME dataflow rule finds once it can
+    see a population it was structurally blind to, and loosening the hop rule in the same edit
+    would have made the answer unattributable.
     """
+    helpers = {} if helpers is None else helpers
     walked: set[str] = set()
     for n in ast.walk(tree):
         if not isinstance(n, (ast.Assign, ast.AnnAssign)):
@@ -199,12 +341,7 @@ def _strict_dataflow(tree: ast.AST) -> bool:
         value = n.value
         if value is None:
             continue
-        has_walk = any(
-            isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
-            and c.func.attr in (_WALK_ATTRS | {"walk"})
-            for c in ast.walk(value)
-        )
-        if not has_walk:
+        if not any(_is_population_call(c, helpers) for c in ast.walk(value)):
             continue
         targets = n.targets if isinstance(n, ast.Assign) else [n.target]
         for t in targets:
@@ -218,17 +355,16 @@ def _strict_dataflow(tree: ast.AST) -> bool:
         arg = left.args[0]
         if isinstance(arg, ast.Name) and arg.id in walked:
             return True
-        if any(isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
-               and c.func.attr in (_WALK_ATTRS | {"walk"}) for c in ast.walk(arg)):
+        if any(_is_population_call(c, helpers) for c in ast.walk(arg)):
             return True
     return False
 
 
-def _derives_from_walk(value: ast.AST, tainted: set[str]) -> bool:
-    """Does this expression contain a walk call, or a name already known to derive from one?"""
+def _derives_from_walk(value: ast.AST, tainted: set[str], helpers: dict[str, bool] | None = None) -> bool:
+    """Does this expression read a population, or use a name already known to derive from one?"""
+    helpers = {} if helpers is None else helpers
     for c in ast.walk(value):
-        if (isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
-                and c.func.attr in (_WALK_ATTRS | {"walk"})):
+        if _is_population_call(c, helpers):
             return True
         if isinstance(c, ast.Name) and c.id in tainted:
             return True
@@ -262,7 +398,7 @@ def _scope_index(tree: ast.AST) -> tuple[dict[int, ast.AST | None], dict[int, as
     return owner, parent
 
 
-def _walk_tainted_names(tree: ast.AST) -> dict[int, set[str]]:
+def _walk_tainted_names(tree: ast.AST, helpers: dict[str, bool] | None = None) -> dict[int, set[str]]:
     """Per-scope fixpoint: for each scope, every name there whose value derives from a walk.
 
     Flow-INsensitive within a scope and deliberately so -- the question is "could this population
@@ -273,6 +409,7 @@ def _walk_tainted_names(tree: ast.AST) -> dict[int, set[str]]:
     `for` targets are excluded: they bind one item, not a population, and admitting them would only
     pretend to cover the accumulate-through-`append` shape this genuinely cannot see.
     """
+    helpers = {} if helpers is None else helpers
     owner, parent = _scope_index(tree)
     per_scope: dict[int, list[tuple[list[str], ast.AST]]] = {}
     scopes: dict[int, ast.AST | None] = {0: None}  # key 0 is the module; else id(scope node)
@@ -317,14 +454,14 @@ def _walk_tainted_names(tree: ast.AST) -> dict[int, set[str]]:
             for names, value in assigns:
                 if all(nm in tainted for nm in names):
                     continue
-                if _derives_from_walk(value, tainted):
+                if _derives_from_walk(value, tainted, helpers):
                     tainted.update(names)
                     changed = True
         result[key] = tainted
     return result
 
 
-def _transitive_dataflow(tree: ast.AST) -> bool:
+def _transitive_dataflow(tree: ast.AST, helpers: dict[str, bool] | None = None) -> bool:
     """`_strict_dataflow` with the hop limit removed. STRICT IS ITS DEPTH-1 CASE.
 
     WHY THIS EXISTS, and it is not the reason the strict subset exists. `strict_dataflow` bounds the
@@ -348,7 +485,8 @@ def _transitive_dataflow(tree: ast.AST) -> bool:
     It is reported, never enforced, and `strict_dataflow` is untouched: a predicate that decides an
     always-run cost has to be argued and priced, not swapped in under the same name.
     """
-    by_scope = _walk_tainted_names(tree)
+    helpers = {} if helpers is None else helpers
+    by_scope = _walk_tainted_names(tree, helpers)
     owner, _ = _scope_index(tree)
     for cmp_node in _count_bound_nodes(tree):
         left = cmp_node.left
@@ -357,7 +495,7 @@ def _transitive_dataflow(tree: ast.AST) -> bool:
             continue
         s = owner.get(id(cmp_node))
         tainted = by_scope.get(0 if s is None else id(s), set())
-        if _derives_from_walk(left.args[0], tainted):
+        if _derives_from_walk(left.args[0], tainted, helpers):
             return True
     return False
 
@@ -385,22 +523,32 @@ def classify_source(text: str) -> dict | None:
     The unit is source text rather than a path so the predicate can be driven by planted modules
     in a test. A census whose only input is the live tree can only ever be asserted against today's
     answer, and a control keyed to today's answer goes red when the code becomes more honest.
+
+    THE RESIDUAL THIS STILL CANNOT SEE, named because an unnamed one reads as absence. The
+    population predicate is AST-visible and MODULE-local. A test whose population arrives through
+    an IMPORT -- `from tools.commons import artefact_paths` then `assert len(artefact_paths()) >= 9`
+    -- has no population call in its own source and matches leg 1 only if it reads the tree for
+    some OTHER reason. Following imports is a different instrument (it must resolve and parse the
+    importee), and widening to it here would have mixed two changes into one measurement.
     """
     try:
         tree = ast.parse(text)
     except SyntaxError:
         return None
-    if not _walks_a_tree(tree):
+    helpers = _git_oracle_helpers(tree)
+    if not _walks_a_tree(tree, helpers):
         return None
     roots = _named_roots(tree)
+    if _test_corpus_population(tree, helpers):
+        roots.add("tests")
     if not roots:
         return None
     if not _count_bound_nodes(tree):
         return None
     return {
         "subject_roots": sorted(roots),
-        "strict_dataflow": _strict_dataflow(tree),
-        "transitive_dataflow": _transitive_dataflow(tree),
+        "strict_dataflow": _strict_dataflow(tree, helpers),
+        "transitive_dataflow": _transitive_dataflow(tree, helpers),
     }
 
 

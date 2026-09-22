@@ -385,6 +385,25 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     # `generate_shadow_html.build_project` reads against what `generate_insights.append_run_history`
     # writes. Cost measured here, not predicted: 4 tests, 0.68/0.78/0.70s over three runs.
     "tests/tools/test_the_shadow_run_history_renderer_reads_keys_the_producer_writes.py",  # site,tools|4|0.72
+    # THE TWENTIETH, 2026-09-23, and the FIRST MEMBER THE CENSUS COULD NOT PREVIOUSLY SEE AT ALL.
+    # It is the widened predicate's first confirmed catch: its population is `git ls-files` over the
+    # whole tree, not a filesystem walk, so leg 1 did not match it in ANY form until
+    # `_is_population_call` learned to read a git oracle. It was not a new instance -- it was a
+    # standing one the instrument was blind to, which is exactly what the blind-spot finding
+    # predicted the widening would surface.
+    #
+    # Its subject: every tracked file, asked for Pages URLs (`len(refs) >= 9`) and published
+    # markdowns (`len(published_md) >= 20`). Both are integer-literal ratchets over `docs` and
+    # `site`, and a commit publishing a new markdown selects this file by no stem.
+    #
+    # PRICED, AND IT IS THE MOST EXPENSIVE ENTRY ON THIS LIST BY A FACTOR OF THREE: 8 tests, 36.3s
+    # measured. Stated rather than glossed, because against the ~600s hook budget this is ~6% and
+    # the standing budget finding is live. It is added anyway and the reason is the one this whole
+    # file rests on: the alternative is a control whose subject is the whole tree and whose selector
+    # is its own filename, which is the defect, not a saving. If the budget forces a choice later,
+    # the honest move is to make THIS TEST cheaper -- it shells out to git per-file -- and never to
+    # narrow the census until it stops seeing it.
+    "tests/tools/test_the_pages_artifact_is_the_manifest_not_the_docs_tree.py",  # docs,site|8|36.3
 ]
 
 CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS
@@ -455,8 +474,23 @@ CONTROL_TESTS.append("tests/tools/test_pre_commit_test_gate_censused_batch.py")
 #
 # NOT ADDED TO `CENSUSED_WHOLE_DIRECTORY_SUBJECTS`, deliberately. That constant IS whatever the
 # census returns, and `test_every_member_still_earns_its_place_by_scanning_a_whole_directory` grades
-# its members with the census's predicate -- which would red on all five, correctly, because they do
-# not scan a whole directory. Folding them in would have meant weakening that control to admit them.
+# its members with the census's predicate -- which, when this batch landed, red on all five because
+# none of them scanned a whole directory the predicate could see. Folding them in would have meant
+# weakening that control to admit them.
+#
+# THAT READING IS NOW PART-STALE AND IS LEFT HERE WITH ITS CORRECTION BESIDE IT (2026-09-23), which
+# is the point of keeping the batch separate. The census predicate was widened to read a git-oracled
+# population, and it now classifies TWO of the five -- the commons artefact one and the discharge
+# one -- as genuine loose members. The other three still do not match, and the cause is NOT leg 1:
+#   * `test_a_coverage_claim_declares_what_it_reduces_over` has no population call in its own source
+#     at all (its population is IMPORTED -- `OUTSTANDING` from `tools.reduction_dimension`);
+#   * `test_no_tree_scan_passes_on_an_empty_population` and
+#     `test_no_committed_store_claims_an_unlanded_falsifier` both PASS leg 1 now, and fail LEG 2 --
+#     neither compares a count against an integer LITERAL (`>= _MIN_MENTIONS`, a named floor).
+# So the separation still earns its place, but for a different reason than the one written above:
+# not "they do not scan a whole directory", but "leg 2 and the module-local restriction exclude
+# them". Both residuals are filed as their own finding rather than patched from here, for the same
+# independence reason the original note gives.
 #
 # test file                                                             subject | tests | secs
 GIT_ORACLED_AND_TEST_CORPUS_SUBJECTS = [

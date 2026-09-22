@@ -254,3 +254,147 @@ def test_the_live_tree_still_has_members_and_the_strict_set_is_a_subset():
     # for exactly that reason -- see the census docstring. Asserting the subset here would pin the
     # instrument's own defect as a property.
     assert all("transitive_dataflow" in r for r in rows), "a row was admitted with one reading only"
+
+
+# ---------------------------------------------------------------------------
+# THE WIDENED LEG 1 (2026-09-23). A population may come from GIT, not only from a filesystem walk.
+#
+# Each control below names the defect it refuses. They are planted-source rather than live-tree for
+# the reason the file's header gives: a control keyed to today's answer goes red when the code
+# becomes more honest. The live-tree property control above stays the only one that reads the tree.
+# ---------------------------------------------------------------------------
+
+_GIT_LS_FILES = '''
+import subprocess
+from pathlib import Path
+def test_bound():
+    rows = subprocess.run(
+        ["git", "ls-files", "--", "docs/*.md"], capture_output=True, text=True
+    ).stdout.splitlines()
+    assert len(rows) >= 20
+'''
+
+_GIT_WRAPPER_READS = '''
+import subprocess
+from pathlib import Path
+def _git(*args):
+    return subprocess.run(["git", *args], capture_output=True, text=True).stdout
+def test_bound():
+    rows = _git("ls-files", "--", "background/*.py").splitlines()
+    assert len(rows) >= 12
+'''
+
+_GIT_WRAPPER_WRITES = '''
+import subprocess
+from pathlib import Path
+def _git(*args):
+    return subprocess.run(["git", *args], capture_output=True, text=True).stdout
+def test_bound():
+    _git("commit", "-m", "background/x.py")
+    rows = ["a", "b"]
+    assert len(rows) >= 2
+'''
+
+
+def test_a_git_oracled_population_is_seen_at_all():
+    """DEFECT REFUSED: leg 1 required an `ast.Attribute` walk, so a control whose subject is the
+    COMMITTED bytes matched it not at all -- and the census's resulting 0 was read as "no such
+    control exists" by `test_the_strict_census_stays_discharged`, which turns it into a commit-time
+    refusal. Five controls with exactly that shape were red at `origin/main` while it said 0.
+
+    MUTATION (must fire): drop the `_is_git_oracle_argv` branch from `_is_population_call` and this
+    returns `None`.
+    """
+    hit = wtsc.classify_source(_GIT_LS_FILES)
+    assert hit is not None, "a `git ls-files` population is not a population"
+    assert hit["subject_roots"] == ["docs"]
+    assert hit["strict_dataflow"], "the oracled population IS the counted one, in one hop"
+
+
+def test_a_generic_git_wrapper_is_resolved_at_its_call_site_and_not_wholesale():
+    """DEFECT REFUSED: `["git", *args]` names no subcommand, so a rule demanding a literal one sees
+    no git call -- which is how `_git(*args)`, the wrapper shape every git-oracled member of this
+    class actually uses, stayed invisible. But admitting such a wrapper WHOLESALE is the opposite
+    error: `_git("commit")` writes the repository and reads no population, and crediting it with one
+    would put a test that merely commits into a class it does not belong to.
+
+    So the subcommand is asked at the CALL SITE. Both directions are controlled here, because a rule
+    that only ever heard the false-negative side is the asymmetric narrowing this file warns about.
+
+    MUTATION (must fire, either leg): make `_is_population_call` return True for any name in
+    `helpers` and the WRITER leg reds; require `helpers[f.id]` and the READER leg reds.
+    """
+    reader = wtsc.classify_source(_GIT_WRAPPER_READS)
+    assert reader is not None, "a wrapper passed `ls-files` by its caller reads a population"
+    assert reader["strict_dataflow"], "the wrapper's return IS the counted population"
+
+    writer = wtsc.classify_source(_GIT_WRAPPER_WRITES)
+    assert writer is None, (
+        "`_git('commit', ...)` was credited with a population. The wrapper writes; the caller's "
+        "subcommand is what decides, and reading the wrapper alone cannot tell the two apart"
+    )
+
+
+# ---------------------------------------------------------------------------
+# THE SPLIT `tests` EXCLUSION (2026-09-23). `tests` is admitted as a subject root ONLY when it is
+# read as a POPULATION, never when a file is merely named.
+# ---------------------------------------------------------------------------
+
+_TESTS_CORPUS_RATCHET = '''
+from pathlib import Path
+TESTS = Path(__file__).resolve().parent.parent / "tests"
+def test_bound():
+    offenders = [p for p in TESTS.rglob("test_*.py") if "ast.walk" in p.read_text()]
+    assert len(offenders) <= 3
+'''
+
+# THIS FIXTURE MUST CARRY A REAL POPULATION, and the first draft of it did not. A module that only
+# read one test file was excluded by leg 1 (no population call at all), so the control below passed
+# without the `tests` discrimination ever being reached -- it would have stayed green with the split
+# deleted entirely. Driven out by mutation, not by reading: the `tests`-always mutation left it
+# silent. So the population here is a real `background/` glob, the row IS admitted, and the only
+# question the assertion asks is whether `tests` joined its subject roots.
+_TESTS_NAMED_FILE = '''
+from pathlib import Path
+BG = Path(__file__).resolve().parent.parent / "background"
+def test_bound():
+    rows = list(BG.glob("*.py"))
+    assert len(rows) >= 5
+    named = Path("tests/sim/test_scenario_spine_consumption.py").read_text()
+    assert "def test_" in named
+'''
+
+
+def test_a_corpus_wide_ratchet_over_tests_is_admitted():
+    """DEFECT REFUSED: `tests` was excluded from `SOURCE_ROOTS` on a reason -- "a test whose subject
+    is other tests is reached by staging those tests" -- that is TRUE of a test naming a sibling and
+    FALSE of a ratchet over the corpus. Staging `tests/sim/test_x.py` selects that file; it does not
+    select the repo-wide ratchet that file just joined. Measured price of the conflation: five
+    `ast.walk` offenders accumulated behind `test_no_tree_scan_passes_on_an_empty_population` with
+    every arriving commit green.
+
+    MUTATION (must fire): drop the `_test_corpus_population` call from `classify_source` and this
+    returns `None`, because no OTHER source root is named here.
+    """
+    hit = wtsc.classify_source(_TESTS_CORPUS_RATCHET)
+    assert hit is not None, "a repo-wide ratchet over the test corpus is not in class"
+    assert hit["subject_roots"] == ["tests"]
+
+
+def test_naming_one_test_file_is_not_a_population_and_stays_excluded():
+    """THE OTHER HALF, and it is why the exclusion was SPLIT rather than deleted. A blanket
+    un-exclusion would pull in every test file in the tree; the discriminator is POPULATION vs NAMED
+    FILE, which is exactly what the original reason turns on -- a named file IS reached by staging
+    it.
+
+    MUTATION (must fire): make `_test_corpus_population` return True unconditionally and `tests`
+    joins the subject roots below. The row stays ADMITTED under that mutation -- it has a real
+    `background/` population -- so this control isolates the split and nothing else.
+    """
+    hit = wtsc.classify_source(_TESTS_NAMED_FILE)
+    assert hit is not None, "the fixture lost its `background/` population and proves nothing"
+    assert hit["subject_roots"] == ["background"], (
+        f"naming one test file put {hit['subject_roots']} in the subject roots. A named file is "
+        "reached by staging it, which is the whole reason the exclusion exists; admitting `tests` "
+        "here would put every test that reads a sibling into the class"
+    )
