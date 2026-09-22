@@ -247,3 +247,48 @@ def test_the_orientation_brief_carries_the_verdicts_into_the_prompt(monkeypatch)
     assert "background.direction_path_check" in rendered, (
         "the seat is shown the verdicts and not the command that re-runs them against a draft, "
         "so it can read the last record's grades and never grade the one it is writing")
+
+
+def test_A_CLASS_STRING_ALREADY_IN_THE_APPEND_ONLY_RECORD_STAYS_JOINABLE_TO_ITS_VOCABULARY():
+    """A reworded class silently becomes a NEW class in a store nothing can rewrite.
+
+    THE DEFECT THIS NAMES, and it is the reason `NOTHING_TO_LAND` is a named constant rather than a
+    literal -- its own docstring says so: `delivery_seat._record` (line ~1704) writes
+    `direction_path_check.concerns(...)` into `docs/direction/decisions.jsonl`, which is APPEND
+    ONLY. Rewording the constant leaves every record already written joined to nothing, and the
+    reword is invisible everywhere else because every other test in this tree refers to the class
+    BY SYMBOL. Measured 2026-09-22 as part of the shared-constant census: rewording
+    `NOTHING_TO_LAND` left all 113 tests in the delivery-lane family green while two live records
+    in `decisions.jsonl` carried the old string (in the working copy -- see the extract note below).
+
+    NOT KEYED TO TODAY'S WORDING. It asserts the join holds, so retiring a class is still allowed --
+    the remedy is to keep the retired string reachable here, not to edit the records.
+
+    IT COVERS EXACTLY THE CLASSES THAT HAVE REACHED THE STORE, AND THAT IS THE SCOPE AND NOT A GAP.
+    Rewording `REVERTING_REMEDY` passes this today: no record carries it yet, so the reword orphans
+    nothing. It is an EQUIVALENCE and not a blind spot, and it stops being one the first time that
+    class is recorded -- which is the property, since an unwritten string has no reader to lose.
+
+    THE FIRST DRAFT READ THE LIVE STORE AND THE COMMIT GATE KILLED IT, which is the better half of
+    this leg's history. Walking `direction.DECISIONS_PATH` was green in the shared tree and RED in
+    the gate's isolated extract, because the one live record is another lane's UNCOMMITTED append:
+    the COMMITTED `decisions.jsonl` carries zero `path_concerns` rows. A control whose evidence set
+    exists only in one worktree's dirty bytes is green for a reason that has nothing to do with its
+    subject, and empty-reads-as-OK is this project's own fail-silent shape. So the observed string
+    is pinned here as DATA instead. Pinning a literal is normally keying a control to today's
+    answer -- it is legitimate here and only here, because the subject genuinely IS a frozen past
+    write: `decisions.jsonl` is append-only, so what a record already says can never change.
+    """
+    #: Observed in the live `docs/direction/decisions.jsonl` on 2026-09-22 under
+    #: `path_concerns[].class`, written by `delivery_seat._record`. NEVER EDIT A ROW OUT OF HERE
+    #: BECAUSE A CLASS WAS RETIRED -- the record keeps saying this whatever the module later calls
+    #: it, and that is precisely what must stay joinable. Add to it when a new class is first seen.
+    RECORDED = ("nothing to land",)
+
+    declared = {dpc.NOTHING_TO_LAND, dpc.REVERTING_REMEDY, dpc.HAND_OFF_STALE}
+    orphaned = sorted(set(RECORDED) - declared)
+    assert not orphaned, (
+        "{} has been written into the append-only direction record and is no longer a class "
+        "`direction_path_check` declares, so every record carrying it joins to nothing. Those bytes "
+        "cannot be rewritten -- keep the retired string reachable from the module instead of "
+        "editing this list.".format(orphaned))
