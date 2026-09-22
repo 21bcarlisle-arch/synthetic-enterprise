@@ -1141,6 +1141,56 @@ def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
     return losses, no_opinion
 
 
+# ----------------------------------------------- the OTHER half of the door: a producer about to RUN
+
+
+class StaleProducer(Exception):
+    """A module the publish path was about to import and run is a working copy that reverts its own
+    last landing. Raised AT THE IMPORT, so the caller's step ledger records which artefact it did
+    not refresh instead of refreshing it from the revert."""
+
+
+def refused_to_run(paths: list[str], root: Path = ROOT) -> dict[str, Loss]:
+    """The subset of `paths` this census refuses, keyed by path -- for a caller about to IMPORT and
+    RUN them rather than commit them.
+
+    THE HALF OF THE DOOR THAT WAS MISSING, and it is the same rule pointed the other way. Every
+    other entry point here grades a COMMIT: `staged`, `violations`, `--at-tree`. The publisher never
+    goes through any of them. It imports the WORKING-TREE copy of `tools/generate_*.py`, runs it,
+    and writes `site/data/*.json` -- and those outputs carry the clock of the moment they were
+    written, so `clock_judge` exempts them by construction and nothing downstream can tell a feed
+    regenerated from HEAD from one regenerated from a revert. On 2026-09-22 the working copy of
+    `tools/generate_value_arms_data.py` would have republished "MEMORY IS NOT WHAT BINDS ... slack
+    by 4.5x" over the whole-run measurement that refuted it by 29.2x, and the only thing between
+    the site and that paragraph was that nothing happened to run the generator first.
+
+    THE SUBJECT IS THE COPY THAT WOULD RUN, so it reads the working tree and not a tree-ish. That is
+    the opposite of every other reader in this module and it is deliberate: `import` resolves to the
+    bytes on disk, and grading anything else here would be the `--content` mistake `taken_before`
+    exists to refuse, in reverse."""
+    out: dict[str, Loss] = {}
+    for path in paths:
+        try:
+            work = (root / path).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        head = blob_at(root, "HEAD", path)
+        loss = (judge(root, path, head, work) if Path(path).suffix in READABLE
+                else clock_judge(root, path, head, work))
+        if loss is not None:
+            out[path] = loss
+    return out
+
+
+def producer_refusal(loss: Loss) -> str:
+    """The one sentence a refused producer owes its caller: WHICH path, and WHICH landing it
+    predates. A refusal that names neither cannot be acted on and cannot be shown to be wrong."""
+    return ("{} is a working copy that predates commit {} ({}), so regenerating from it would "
+            "republish over that landing. It was NOT run and its artefact was NOT refreshed. "
+            "Restore it first: `python3 -m tools.refresh_to_head {}`".format(
+                loss.path, loss.commit[:9], loss.rule, loss.path))
+
+
 # --------------------------------------------------------------------------- rule 3: index residue
 
 

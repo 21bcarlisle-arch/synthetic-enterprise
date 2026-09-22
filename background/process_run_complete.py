@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import types
 from contextlib import ExitStack, contextmanager, nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1292,6 +1293,11 @@ from background.episode_prior import (  # noqa: E402  (the census loader sweep)
     prior_unreadable,
 )
 from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402
+
+# BOUND AT MODULE SCOPE for the ONE GENERATION PER CYCLE reason above, and with a second one of
+# its own: `refuse_stale_producers` REPLACES entries in `sys.modules`, so it must not itself be
+# reached through a lazy import that the replacement could race.
+from tools import stale_copy_refusal  # noqa: E402
 
 
 @contextmanager
@@ -4350,7 +4356,136 @@ def raise_stretch_report_owed(log_fn=None, notify_fn=None):
     return _raise(log_fn=log if log_fn is None else log_fn, notify_fn=notify_fn)
 
 
+# ── THE OTHER HALF OF THE STALE-COPY DOOR ────────────────────────────────────────────────────
+#
+# `tools/stale_copy_refusal.py` guards a COMMIT and the publisher never goes through it. Every
+# generator below is imported from the WORKING TREE and run, and what it writes is
+# `site/data/*.json` whose mtime is the moment of writing -- so `clock_judge` exempts the output
+# by construction and no control anywhere could tell a feed regenerated from HEAD from one
+# regenerated from a copy that reverts HEAD. Measured 2026-09-22: the working copy of
+# `tools/generate_value_arms_data.py` would have republished "MEMORY IS NOT WHAT BINDS ... slack
+# by 4.5x" over the whole-run measurement that refuted it by 29.2x, and nothing but luck was
+# between the site and that paragraph.
+#
+# NARROW AND ARMED, NOT WIDE AND TURNED OFF -- the lesson the census module itself records. A
+# pre-flight that refuses the WHOLE regeneration when any one producer is stale would wedge
+# publishing on the normal resting state of a shared checkout, which is the pressure toward
+# bypass. So the refusal is PER PRODUCER and it is delivered AT THE IMPORT: the stale module is
+# replaced by one whose every attribute raises, the `from tools.X import gen` line below raises,
+# and the step's own `except` records which artefact it did NOT refresh. That is the machinery
+# built for the 199 swallowed generator crashes, and a producer refused for staleness is exactly
+# the state it was built to make loud. Only the stale producer's artefact freezes, and it freezes
+# on the publish ledger instead of being silently rewritten from a revert.
+#
+# THE LIST IS DERIVED FROM THIS FILE'S OWN IMPORTS and never hand-kept: a register of producers
+# rots the first time a generator is wired in without it, and the wiring is the only evidence
+# that matters. `_site_producers` reads this module's AST.
+
+
+class _RefusedProducer(types.ModuleType):
+    """Stands in for a stale producer in `sys.modules` so its import raises rather than its code
+    running. Every attribute raises -- `from X import generate` and `import X; X.main()` are both
+    live shapes here, and a stand-in that only refused one of them would let the other publish."""
+
+    def __init__(self, dotted: str, message: str):
+        super().__init__(dotted)
+        self._message = message
+
+    def __getattr__(self, name):
+        raise stale_copy_refusal.StaleProducer(self._message)
+
+
+#: The guard cannot poison the module that IS the guard, and `refused_to_run` reading its own
+#: stale copy is a different question from a producer reading one -- the census grades the tree it
+#: is part of, and a census refusing itself has no door to send anyone through.
+_NEVER_REFUSED = frozenset({"tools.stale_copy_refusal"})
+
+
+def _site_producers(source: str | None = None) -> dict[str, str]:
+    """`{dotted module: repo-relative path}` for every `tools.*` module the publish path imports.
+
+    THE IMPORTS ARE THE REGISTER. Anything this file reaches for under `tools.` is code the publish
+    path RUNS, by the only definition that cannot rot -- a hand-kept list of producers is wrong the
+    first time a generator is wired in without it, and the wiring is the only evidence that
+    matters. Read from the AST rather than from `sys.modules` because the whole point is to act
+    BEFORE the import.
+
+    DELIBERATELY WIDER THAN "GENERATOR". `tools.stretch_log` and `tools.wait_for` publish no feed,
+    and a reverted copy of either is the same hazard on the same path for the same reason, so the
+    subject is what this file imports and not what it is named. Three shapes, because all three are
+    live here: `from tools.x import y`, `from tools import x`, and `import tools.x`."""
+    text = source if source is not None else Path(__file__).read_text(encoding="utf-8")
+    out: dict[str, str] = {}
+
+    def add(dotted: str) -> None:
+        if dotted not in _NEVER_REFUSED:
+            out[dotted] = dotted.replace(".", "/") + ".py"
+
+    for node in ast.walk(ast.parse(text)):
+        if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("tools."):
+            add(node.module)
+        elif isinstance(node, ast.ImportFrom) and node.module == "tools":
+            for alias in node.names:
+                add("tools." + alias.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith("tools."):
+                    add(alias.name)
+    return out
+
+
+@contextmanager
+def refuse_stale_producers(log_fn=None, producers: dict[str, str] | None = None):
+    """Poison the import of every publish-path producer the stale-copy census refuses, for the
+    duration of the block, and put each one back afterwards.
+
+    RESTORED ON THE WAY OUT, unconditionally. This is a long-lived daemon process: a stand-in left
+    in `sys.modules` would refuse that producer for every later cycle too, including the cycle
+    after the copy was restored, and a refusal that outlives its own reason is a wedge.
+
+    FAILS OPEN ON ITS OWN FAILURE, and says so. The census shells out to git; a git that will not
+    answer must not stop the site publishing, because the thing this guards against is rare and a
+    dead publisher is not. The log line is the surface -- an unarmed guard that says nothing is the
+    shape this file already paid for once."""
+    say = log_fn or log
+    stand_ins: dict[str, object] = {}
+    try:
+        found = producers if producers is not None else _site_producers()
+        refused = stale_copy_refusal.refused_to_run(sorted(set(found.values())))
+    except Exception as exc:  # noqa: BLE001 -- see the docstring: a dead census is not a dead site
+        say("[stale-producer] census did not run ({}); producers are UNGRADED this cycle".format(
+            exc))
+        refused = {}
+        found = {}
+    for dotted, path in sorted(found.items()):
+        loss = refused.get(path)
+        if loss is None:
+            continue
+        message = stale_copy_refusal.producer_refusal(loss)
+        say("[stale-producer] REFUSED {}".format(message))
+        stand_ins[dotted] = sys.modules.get(dotted)
+        sys.modules[dotted] = _RefusedProducer(dotted, message)
+    try:
+        yield frozenset(stand_ins)
+    finally:
+        for dotted, previous in stand_ins.items():
+            if previous is None:
+                sys.modules.pop(dotted, None)
+            else:
+                sys.modules[dotted] = previous
+
+
 def generate_dashboard_json(json_path, git_hash="unknown"):
+    """The publish path's entry point, WRAPPED so nothing below can be reached from a producer the
+    stale-copy census refuses. A wrapper and not a first statement in the body because the refusal
+    has to be lifted again on the way out -- see `refuse_stale_producers` -- and every `return`
+    below (there are several, including the coverage gate's early one) would otherwise leave the
+    stand-ins in `sys.modules` for the rest of the daemon's life."""
+    with refuse_stale_producers():
+        return _generate_dashboard_json(json_path, git_hash=git_hash)
+
+
+def _generate_dashboard_json(json_path, git_hash="unknown"):
     """Generate site/data/dashboard.json and every downstream site/state artifact.
 
     Returns False if the cross-surface consistency gate failed (Part C of the
