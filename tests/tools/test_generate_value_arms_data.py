@@ -10162,3 +10162,202 @@ def test_the_live_artefacts_publish_the_pointer_their_own_bounds_block_earns():
         "the published panel says a bounded realised reading {} while the bounds block "
         "{} one".format("exists" if claims_a_bound else "does not exist",
                         "holds" if holds_a_family else "does not hold"))
+
+
+def seed_price_complaints(leg: dict) -> list[str]:
+    """THE PROPERTY: a published seed count is a claim that the count has an upper bound.
+
+    THE RULE IN ONE SENTENCE. `seeds_needed_to_state_a_sign` may carry an integer only when the
+    estimate it divides by clears its own sign bar -- because the count scales as
+    `(t x sd / |mean|)^2` and is therefore unbounded above whenever that estimate's own interval
+    contains zero, which is exactly what failing the bar means.
+
+    AND THAT MAKES THE RULE LOOK VACUOUS, WHICH IS WHY IT IS WRITTEN AS A RULE AND NOT AS A
+    CONSTANT. A family that clears its bar wants no seeds, so the count is never asked there; a
+    family that fails it cannot be priced. The two states coincide TODAY. They coincide because of
+    an argument, not because of an arrangement of the code, and a control that asserted
+    "this key is always None" would be pinning the conclusion rather than the property -- it would
+    stay green if someone changed which question the key answers. This one asks the implication.
+
+    KEYED TO THE PROPERTY, NOT TO 101, NOT TO 19..471, AND NOT TO TODAY'S FAMILY. Nothing here
+    names a figure, a book, a seed count or a direction. What it asserts is that the page may not
+    publish a price for a refusal whose price is infinite, and that when it withholds one it says
+    so with evidence a reader can re-derive.
+    """
+    out = []
+    if not leg.get("available"):
+        return out
+    clears = leg.get("clears_its_own_bar")
+    count = leg.get("seeds_needed_to_state_a_sign")
+    interval = leg.get("seeds_needed_interval") or {}
+    if count is not None and clears is False:
+        out.append(
+            "a seed count ({!r}) is published for a family that does NOT clear its own bar, so the "
+            "page prices a question whose price has no upper bound -- the count divides by an "
+            "estimate whose own interval contains zero".format(count))
+    if clears is False and not interval:
+        out.append(
+            "the seed count is withheld and the page publishes no interval and no reason, so the "
+            "reader meets an empty key and cannot tell a missing measurement from an infinite one")
+    if interval:
+        if interval.get("has_no_upper_bound") is not True:
+            out.append(
+                "the page publishes a seed-price interval that claims an upper bound, on a "
+                "denominator its own bar says may be zero")
+        if not (leg.get("seeds_needed_unavailable") or "").strip():
+            out.append(
+                "a seed-price interval is published with no reason beside it naming why no count "
+                "follows from it, which is the refusal that cannot be checked")
+        if not (interval.get("these_two_are_not_a_range") or "").strip():
+            out.append(
+                "the two endpoint prices are published with nothing saying they are not a range, "
+                "so a reader takes the larger as an upper bound it is not")
+    # THE PRICE THE PAGE PRINTS MUST BE THE PRICE THE SOLVER GIVES, or the block is arithmetic
+    # nobody can reproduce. Re-derived here rather than copied from the payload.
+    if interval.get("at_the_point_estimate") is not None:
+        expected = gva.seeds_to_state_a_sign(leg.get("estimate_gbp"),
+                                             leg.get("one_draw_moves_gbp"))
+        if interval["at_the_point_estimate"] != expected:
+            out.append(
+                "the published point price ({!r}) is not what the solver returns for this "
+                "family's own mean and deviation ({!r})".format(
+                    interval["at_the_point_estimate"], expected))
+    return out
+
+
+def _family_that(mean: float, stdev: float, n: int) -> dict:
+    """A seed family with a chosen distance from zero, in the shape `_leg_over_its_own_family` eats."""
+    return {"mean_gbp": mean, "stdev_gbp": stdev, "n": n,
+            "sem_gbp": stdev / math.sqrt(n),
+            "min_gbp": mean - 3 * stdev, "max_gbp": mean + 3 * stdev}
+
+
+def test_a_seed_price_is_NOT_published_for_a_family_that_cannot_bound_it():
+    """THE DEFECT, and it was live on the book-154 family until 2026-09-22.
+
+    `error_bar.selection_leg.seeds_needed_to_state_a_sign` carried `101` -- a bare integer in a key
+    whose grammar is a plan: draw this many and you will know. The family it was quoted for reads
+    0.686 standard errors from zero against a bar of 2.201. It does not clear, so its interval
+    contains zero, so the count it was divided out of has no upper bound. One standard error either
+    side of that denominator gives 19 and 471, and those are not a range: the quantity diverges
+    between them and 6.8% of the interval cannot be priced by any family under the search ceiling.
+
+    WRITTEN OVER THE BUILDER AND NOT OVER THE FEED, DELIBERATELY. On the live feed the error bar's
+    family is the folded eighteen, which CLEARS its bar, so `seeds_needed_to_state_a_sign` is
+    `None` there for a reason that has nothing to do with this rule -- a control pointed at the
+    feed would pass without ever entering the branch it exists for, and would go on passing if the
+    branch were re-armed tomorrow. The synthetic family below fails the bar by construction.
+
+    AND THE PARTITION IS ASSERTED REACHABLE, per this repository's rule about rare branches: both
+    verdicts are produced from the same builder in the same test, so a builder that answered
+    `False` to everything -- which would pass every assertion about the failing family -- is caught
+    by the clearing one.
+    """
+    sd, n = 5398.31430804405, 12
+    cannot = gva._leg_over_its_own_family(_family_that(-1069.4751089166675, sd, n),
+                                          None, "settled-realised", None)
+    can = gva._leg_over_its_own_family(_family_that(-12000.0, sd, n),
+                                       None, "settled-realised", None)
+    assert cannot["clears_its_own_bar"] is False and can["clears_its_own_bar"] is True, (
+        "the two synthetic families do not straddle the bar ({!r} / {!r}), so this test grades one "
+        "branch twice and the rare one is unreachable".format(
+            cannot["clears_its_own_bar"], can["clears_its_own_bar"]))
+
+    assert not seed_price_complaints(cannot), "; ".join(seed_price_complaints(cannot))
+    assert not seed_price_complaints(can), "; ".join(seed_price_complaints(can))
+
+    assert cannot["seeds_needed_to_state_a_sign"] is None, (
+        "a seed count is published for a family whose own bar says the denominator may be zero")
+    interval = cannot["seeds_needed_interval"]
+    assert interval and interval["has_no_upper_bound"] is True, (
+        "no unboundedness is published beside the withheld count, so the refusal is an assertion")
+    assert "denominator" in (cannot["seeds_needed_unavailable"] or "").lower(), (
+        "the reason does not name WHERE the estimate sits in the arithmetic, which is the whole "
+        "argument for why no count exists")
+
+    # THE FAMILY THAT CLEARS ASKS NO PRICE AT ALL, and publishes no interval either: the question
+    # is not live there, and a block explaining why a count is absent would be explaining a
+    # refusal nobody made.
+    assert can["seeds_needed_to_state_a_sign"] is None and can["seeds_needed_interval"] is None, (
+        "a family that clears its own bar is quoted a seed price or an interval for one, so the "
+        "page prices machine-hours against a refusal it does not have")
+
+
+def test_the_seed_price_control_FIRES_on_the_payload_the_page_used_to_publish():
+    """R15: the control above must be able to REFUSE, on each defect it names.
+
+    THE MUTATION IT STANDS IN FOR is one line -- restoring `needed = seeds_to_state_a_sign(mean,
+    stdev)` under `if clears_bar is False` in `_leg_over_its_own_family`. That is the code that ran
+    until 2026-09-22, so the payload below is not a hypothetical: it is what `origin/main` served.
+
+    EVERY BRANCH OF `seed_price_complaints` IS ENTERED HERE, because a control whose real-feed leg
+    is green tells nobody whether it passed on merit or could not fire at all -- this repository
+    has walked into that trap three times in one afternoon through three different doors.
+    """
+    def payload(**over):
+        base = {"available": True, "clears_its_own_bar": False,
+                "estimate_gbp": -1069.4751089166675, "one_draw_moves_gbp": 5398.31430804405,
+                "seeds_needed_to_state_a_sign": None,
+                "seeds_needed_unavailable": "the estimate sits in the DENOMINATOR",
+                "seeds_needed_interval": {"at_the_point_estimate": 101,
+                                          "has_no_upper_bound": True,
+                                          "these_two_are_not_a_range": "not a range"}}
+        base.update(over)
+        return base
+
+    assert not seed_price_complaints(payload()), (
+        "the control complains about a payload with nothing wrong in it, so every red below is "
+        "uninformative")
+
+    was_published = payload(seeds_needed_to_state_a_sign=101)
+    assert any("no upper bound" in c for c in seed_price_complaints(was_published)), (
+        "the page published a seed count for a family that cannot bound it and the control said "
+        "nothing -- this is exactly what origin/main served on the book-154 family")
+
+    silent = payload(seeds_needed_interval=None)
+    assert any("cannot tell a missing measurement" in c for c in seed_price_complaints(silent)), (
+        "the count was withheld with no interval and no reason, so the empty key reads as a "
+        "measurement nobody took rather than one that has no finite answer")
+
+    bounded = payload()
+    bounded["seeds_needed_interval"]["has_no_upper_bound"] = False
+    assert any("claims an upper bound" in c for c in seed_price_complaints(bounded)), (
+        "an interval asserted a ceiling on a quantity that diverges and the control allowed it")
+
+    unexplained = payload(seeds_needed_unavailable="  ")
+    assert any("naming why no count follows" in c for c in seed_price_complaints(unexplained)), (
+        "an interval was published with no reason beside it and the refusal cannot be checked")
+
+    as_a_range = payload()
+    as_a_range["seeds_needed_interval"]["these_two_are_not_a_range"] = ""
+    assert any("not a range" in c for c in seed_price_complaints(as_a_range)), (
+        "the two endpoint prices lost the sentence saying they are not a range, and a reader takes "
+        "the larger as the upper bound this block exists to deny")
+
+    mispriced = payload()
+    mispriced["seeds_needed_interval"]["at_the_point_estimate"] = 7
+    assert any("not what the solver returns" in c for c in seed_price_complaints(mispriced)), (
+        "the published point price disagreed with the solver and nothing re-derived it")
+
+
+def test_the_real_feed_would_NOT_have_entered_this_branch():
+    """THE VACUITY THE CONTROL ABOVE IS DEFENDED AGAINST, asserted rather than described.
+
+    This is the trap the direction that commissioned the control named in advance, and it is worth
+    a test of its own because the cheap move -- point the rule at `site/data/value_arms.json` --
+    passes today and would pass with the defect fully restored. The live error bar's family is the
+    folded eighteen, which CLEARS its own bar, so the branch never runs.
+
+    IF THIS TEST EVER REDS, it is not a failure: it means the live family stopped clearing, the
+    feed now reaches the branch, and the control above may be pointed at the feed as well as the
+    builder. That is a better world, and the message says so.
+    """
+    data = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), None, None, None,
+                     _load(DEPARTURE_RERUN), _load(DEPARTURE_BASELINE))
+    leg = ((data.get("error_bar") or {}).get("selection_leg")) or {}
+    assert leg.get("available") is True, "the real feed publishes no selection leg to grade"
+    assert not seed_price_complaints(leg), "; ".join(seed_price_complaints(leg))
+    assert leg.get("clears_its_own_bar") is True, (
+        "the live family no longer clears its own bar, so the feed now REACHES the unbounded-price "
+        "branch. Nothing is broken: point `seed_price_complaints` at the feed too, and delete this "
+        "test's second assertion")
