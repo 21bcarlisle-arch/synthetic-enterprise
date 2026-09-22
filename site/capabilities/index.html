@@ -1650,10 +1650,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       out += '<span style="display:block;margin-top:4px;color:var(--amber);">'
         + "<strong>Price of a sign &mdash; about "
         + esc(r.rosters_needed_to_state_a_sign) + " independent rosters</strong>"
+        /* THE MONEY LEG'S WITHHELD PRICE IS RENDERED, NOT DROPPED (2026-09-22). This clause used
+           to fall through to the roster sentence whenever the money count was absent, which
+           spelled "the money leg has no price because no finite number of draws buys one" exactly
+           like "there is no money leg in this artefact". The first is the more interesting half of
+           the comparison the panel exists to make, and a reader shown the roster price alone would
+           conclude the money question was simply not costed. Keyed to the reason the feed carries,
+           so the day a family clears its bar this branch goes away without anyone editing it. */
         + (m.available && m.money_leg_seeds_needed_to_state_a_sign !== null
             && m.money_leg_seeds_needed_to_state_a_sign !== undefined
             ? ", against " + esc(m.money_leg_seeds_needed_to_state_a_sign)
               + " seeds for the money leg from this same artefact. " + prose(m.the_units_differ)
+            : m.available && m.money_leg_seeds_needed_unavailable_because
+            ? ", and <strong>the money leg from this same artefact carries no price at all</strong>"
+              + ". " + prose(m.money_leg_seeds_needed_unavailable_because)
+              + " " + prose(r.the_unit_is_a_roster_not_a_seed)
             : ". " + prose(r.the_unit_is_a_roster_not_a_seed))
         + " " + prose(r.what_this_count_is) + "</span>";
     }

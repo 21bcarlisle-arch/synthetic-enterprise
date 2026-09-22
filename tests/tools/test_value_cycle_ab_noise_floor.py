@@ -1354,6 +1354,16 @@ def test_the_seed_count_and_the_published_verdict_are_the_same_inequality():
     The two sides are DIFFERENT EXPRESSIONS on purpose -- one inverts the inequality for `n`, the
     other evaluates it -- so their agreement is evidence rather than a tautology. Swept across a
     range that straddles the threshold, so this cannot pass by never meeting a disagreement.
+
+    THE ARITHMETIC SIDE IS NOW `seeds_at_the_point_estimate` AND THAT IS WHAT KEEPS THIS CONTROL
+    ABLE TO FAIL (2026-09-22). `seeds_needed_to_state_a_sign` became a count the producer publishes
+    only when the family CLEARS its bar -- the price is unbounded otherwise, because the estimate
+    sits in the denominator. Reading the inversion off that key would have left this sweep
+    comparing the two spellings over the clearing half alone and taking the failing half on the
+    `None` branch, i.e. exactly half the partition, with a green that looked identical. The point
+    estimate is the same inverting expression and is published in BOTH states, so the cross-check
+    survives the bound at full width. `seeds_needed_to_state_a_sign` is checked SEPARATELY below,
+    against the gate it is keyed to.
     """
     stateable, unstateable = 0, 0
     for n in range(2, 40):
@@ -1366,7 +1376,27 @@ def test_the_seed_count_and_the_published_verdict_are_the_same_inequality():
                 # itself. The two sides stay different EXPRESSIONS: one inverts the inequality for
                 # `n`, the other evaluates it at the bar the block says it used.
                 verdict = abs(mean) > block["sems_needed_to_state_a_sign"] * (sd / math.sqrt(n))
-                count = block["seeds_needed_to_state_a_sign"]
+                count = block["seeds_at_the_point_estimate"]
+                # THE PUBLISHED COUNT IS KEYED TO THE GATE, and the gate IS the verdict: an
+                # integer may appear only where the denominator's interval excludes zero. Asserted
+                # here rather than in its own test so it is swept over the same straddling range.
+                published = block["seeds_needed_to_state_a_sign"]
+                assert (published is not None) is (verdict and count is not None), (
+                    f"n={n} mean={mean} sd={sd}: the producer published "
+                    f"{published!r} for a family whose verdict is {verdict} -- a bare count on a "
+                    "family inside its own bar is the unbounded quotient, and a withheld count on "
+                    "a family that clears its bar hides a figure that is in hand")
+                if published is not None:
+                    assert published == count, (
+                        "the published count and the point estimate are two spellings of one "
+                        "number and they disagree")
+                    assert block["seeds_needed_interval"] is None, (
+                        "a family that clears its bar carries a price interval, so the block says "
+                        "both that the count is publishable and that it is unbounded")
+                else:
+                    assert block["seeds_needed_unavailable_because"], (
+                        "the count is withheld and names no reason, so a reader cannot tell "
+                        "'no finite number of draws prices this' from 'nobody computed it'")
                 if count is None:
                     # THE SEARCH GAVE UP, which it may only do on a family that does not state a
                     # sign. An unavailable count beside a stateable verdict would be the two
@@ -1398,9 +1428,16 @@ def test_the_seed_count_carries_the_verdicts_STRICTNESS_at_an_exact_integer():
 
     Constructed so `(k*sd/|mean|)^2` is exactly 9.0: k=2, sd=3, mean=2 gives (2*3/2)^2 = 9. A
     family of 9 must NOT be stateable (9 > 9 is false), so the count must be 10 and not 9.
+
+    READ OFF `seeds_at_the_point_estimate` SINCE 2026-09-22, and that is forced by the construction
+    rather than a convenience: a family sitting exactly ON its threshold does NOT clear it, so the
+    published `needed` is withheld here by the bound. The strictness this names is a property of
+    the inversion and the inversion is what the point estimate is, so the control follows it there.
     """
     block = rvca.distance_to_a_sign(2.0, 3.0, 9, sems_needed=2.0)
-    assert block["seeds_needed_to_state_a_sign"] == 10, (
+    assert block["seeds_needed_to_state_a_sign"] is None, (
+        "a family exactly on its own threshold does not clear it, so no count may be published")
+    assert block["seeds_at_the_point_estimate"] == 10, (
         "the count was rounded with ceil, so a family sitting exactly ON the threshold is "
         "reported as able to state a sign the verdict refuses it")
     assert abs(2.0) > 2.0 * (3.0 / math.sqrt(10)), "the count it names does not itself clear"
@@ -1411,6 +1448,12 @@ def test_a_mean_of_exactly_zero_yields_no_count_rather_than_a_large_one():
     plan a reader could act on."""
     block = rvca.distance_to_a_sign(0.0, 100.0, 9)
     assert block["seeds_needed_to_state_a_sign"] is None
+    # THE POINT ESTIMATE TOO, which is the leg that can still fail. Since 2026-09-22 the published
+    # count is `None` for EVERY family inside its bar, so the key above no longer distinguishes a
+    # zero mean from an ordinary unstateable one -- this assertion is what keeps the test about
+    # the zero rather than about the gate, and the reason below is what names which one it is.
+    assert block["seeds_at_the_point_estimate"] is None, (
+        "a zero mean was given an arithmetic price; no number of seeds separates zero from zero")
     assert "exactly zero" in block["seeds_needed_unavailable_because"]
     assert block["sign_if_it_were_stateable"] is None, "a zero mean was given a direction"
 

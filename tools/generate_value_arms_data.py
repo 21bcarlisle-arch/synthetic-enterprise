@@ -2787,6 +2787,61 @@ def _auc_pooled_bound(usable: list, mean: float, null_sd: float) -> dict:
     }
 
 
+def _regrade_a_stored_distance_block(block: dict | None) -> dict | None:
+    """Apply the seed-price bound to a `distance_to_a_sign` block READ OFF DISK.
+
+    THE HALF OF THE DEFECT A PRODUCER FIX CANNOT REACH (2026-09-22). `distance_to_a_sign` now
+    withholds an unbounded count, but every floor artefact already in `docs/observability/` was
+    written before it did and still carries the bare integer -- and a floor costs three full decade
+    passes at a 6.4 GB peak per seed, so re-drawing the family to re-grade a key is not a remedy
+    anyone would spend. The page reads those bytes today. Without this, the producer is honest and
+    the published figure is unchanged, which is the worst of the three available states because it
+    looks fixed.
+
+    IT RE-GRADES, IT DOES NOT RE-PRICE. The only judgement made here is the gate -- does this
+    family's own `sems_from_zero` clear its own `sems_needed_to_state_a_sign` -- and both numbers
+    are read off the block the artefact published. No count is recomputed: a second implementation
+    of the price is the drift this file's `_auc_against_the_money_legs_price` docstring refuses, and
+    it would be a second implementation of the one thing the artefact is authoritative about.
+
+    A BLOCK FROM THE BOUNDED PRODUCER IS PASSED THROUGH UNTOUCHED, detected by the key that only
+    the bounded producer writes rather than by a date or a commit stamp -- artefacts are folded
+    across commits here, so a stamp answers the wrong question.
+
+    FAILS CLOSED. Unavailable, unreadable, or missing either side of the gate -- the count is
+    withheld and says which. An unreadable block cannot establish that its count is bounded.
+    """
+    if not isinstance(block, dict) or not block.get("available"):
+        return block
+    if "seeds_at_the_point_estimate" in block:
+        return block
+    count = block.get("seeds_needed_to_state_a_sign")
+    sems_from_zero, bar = block.get("sems_from_zero"), block.get("sems_needed_to_state_a_sign")
+    regraded = dict(block, seeds_at_the_point_estimate=count)
+    if (isinstance(sems_from_zero, (int, float)) and isinstance(bar, (int, float))
+            and sems_from_zero > bar):
+        # CLEARS ITS BAR: the count is at most `n` and the seeds are already in hand. Nothing
+        # unbounded about it, so it stands exactly as the artefact published it.
+        return regraded
+    regraded["seeds_needed_to_state_a_sign"] = None
+    regraded["seeds_needed_unavailable_because"] = (
+        block.get("seeds_needed_unavailable_because")
+        or ("THIS COUNT WAS WITHHELD WHEN THE ARTEFACT WAS RE-READ, not when it was written. The "
+            "artefact predates the seed-price bound and published {count!r} as a bare integer. The "
+            "count scales as (t x sd / |mean|)^2, so this family's estimate sits in the "
+            "DENOMINATOR of its own price, and {why} -- which is the statement that the "
+            "denominator's interval at that bar contains zero. A denominator that may be zero "
+            "prices the question at no finite number of draws. The arithmetic is kept as "
+            "`seeds_at_the_point_estimate`; it is not a plan a reader could act on.").format(
+                count=count,
+                why=("this family does not clear its own sign bar ({:.3f} sems against {:.3f})"
+                     .format(sems_from_zero, bar)
+                     if isinstance(sems_from_zero, (int, float)) and isinstance(bar, (int, float))
+                     else "the artefact does not publish both sides of its own sign bar, so "
+                          "whether it clears cannot be established from these bytes")))
+    return regraded
+
+
 def _auc_against_the_money_legs_price(money_leg: dict | None, source: str) -> dict:
     """The money leg's own `seeds_needed_to_state_a_sign`, republished and NEVER re-derived.
 
@@ -2804,6 +2859,16 @@ def _auc_against_the_money_legs_price(money_leg: dict | None, source: str) -> di
     THEM. Seeds for the money leg, rosters for the rank leg. Read as the same unit they say the
     rank question is thirty times cheaper; read correctly they say it is a different question
     bought with different compute, and the comparison is worth making only with the unit attached.
+
+    AND REPUBLICATION IS WHAT CARRIED THE UNBOUNDED COUNT ONTO THIS PAGE (2026-09-22). Not
+    recomputing is still right -- a second implementation is how the two drift apart -- but it
+    means this block is only ever as sound as the producer, and the producer was writing a bare
+    `seeds_needed_to_state_a_sign` for families whose estimate sits in the denominator of its own
+    price. The live feed carried `102` for a money leg at 0.686 sems from zero: a count with no
+    upper bound, in a key whose grammar is a plan. `run_value_cycle_ab.distance_to_a_sign` now
+    withholds it and names why, so the fix reaches here by republication too -- which is the point
+    of republishing. WHAT IS ADDED HERE is that the withholding is carried rather than dropped: an
+    absent count with no reason reads as a missing measurement, and this one is a result.
     """
     if not isinstance(money_leg, dict) or not money_leg.get("available"):
         return {
@@ -2816,6 +2881,16 @@ def _auc_against_the_money_legs_price(money_leg: dict | None, source: str) -> di
     return {
         "available": True,
         "money_leg_seeds_needed_to_state_a_sign": money_leg.get("seeds_needed_to_state_a_sign"),
+        # WHY THAT COUNT IS ABSENT, CARRIED FROM THE PRODUCER AND NEVER RE-WORDED. `None` when
+        # there is nothing to explain, so it can never sit reassuringly beside a live count.
+        "money_leg_seeds_needed_unavailable_because": (
+            None if money_leg.get("seeds_needed_to_state_a_sign") is not None
+            else money_leg.get("seeds_needed_unavailable_because")),
+        # THE ARITHMETIC THE COMPARISON WAS ACTUALLY ASKING FOR, under the name that does not
+        # promise a plan. The direction wanted the two questions' prices side by side; that is
+        # still worth having when the money leg's price is unbounded, PROVIDED the reader is told
+        # it is unbounded -- which is the key above.
+        "money_leg_seeds_at_the_point_estimate": money_leg.get("seeds_at_the_point_estimate"),
         "money_leg_sems_from_zero": money_leg.get("sems_from_zero"),
         "money_leg_sign_if_it_were_stateable": money_leg.get("sign_if_it_were_stateable"),
         "both_counts_come_from": source,
@@ -3125,6 +3200,16 @@ def _auc_null_reading_tail(*, clearing, seeds, widest_distance, pooled, rosters,
             out += (" -- against the {s} SEEDS the money leg beside it prices out of this same "
                     "artefact. Different units, and the rank question is the one nobody has "
                     "costed.".format(s=money["money_leg_seeds_needed_to_state_a_sign"]))
+        # THE COMPARISON'S ABSENCE IS ITSELF THE READING, SO IT IS SAID (2026-09-22). This branch
+        # used to fall through to a full stop, which spelled "the money leg has no price because
+        # its price is unbounded" exactly like "there is no money leg here" -- and the first of
+        # those is the more interesting half of the sentence, not the missing half.
+        elif money and money.get("available"):
+            out += (" -- and the money leg beside it, out of this same artefact, carries NO seed "
+                    "price at all: its own estimate sits in the denominator of that price and has "
+                    "failed its sign bar, so no finite number of draws buys the answer. The rank "
+                    "question is costed and the money one cannot be, which is the opposite of the "
+                    "reading a missing figure invites.")
         else:
             out += "."
     return out
@@ -3188,13 +3273,13 @@ def _family_discrimination(floor: dict | None, auc_family: dict | None = None) -
             # from the other one. `floor` and `auc_family` are different runs; taking the rank
             # reading from one and the price of a sign from the other is exactly the two-artefact
             # mispairing this file refuses everywhere else.
-            money_leg=(floor or {}).get("distance_to_a_sign"))
+            money_leg=_regrade_a_stored_distance_block((floor or {}).get("distance_to_a_sign")))
     elif auc_family:
         against_the_null = _auc_against_its_own_null(
             auc_family.get("seeds"),
             world=((auc_family.get("world_identity") or {}).get("digest")),
             source=AUC_FAMILY_SOURCE, is_the_advantages_family=False,
-            money_leg=auc_family.get("distance_to_a_sign"))
+            money_leg=_regrade_a_stored_distance_block(auc_family.get("distance_to_a_sign")))
     else:
         against_the_null = {
             "available": False,
