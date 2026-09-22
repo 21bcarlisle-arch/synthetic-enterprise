@@ -566,6 +566,15 @@ FLOOR_PARTITION_PROBE_PATH = (
 #: `_blind_envelope` for why every span and position is computed at publish time instead.
 BLIND_ENVELOPE_ARMS_PATH = (
     PROJECT / "docs" / "design" / "blind_envelope_arms_2026-09-11.json")
+#: WHY THE SELECTION LEG HAS NOTHING TO FIND, measured on the one dimension the world reacts to
+#: hardest. Every other block on this page asks how BIG the choosing was worth; this asks whether
+#: the belief the choosing is made from can express a difference the world makes at all. Written
+#: by `tools/churn_belief_size_response.py` after each run's `customers.json`, and READ here and
+#: never re-derived -- this generator publishes artefacts and measures nothing, so the sentence a
+#: reader meets is the artefact's own `reading` and not a restatement of it composed at publish
+#: time. See `_churn_belief_size_response`.
+CHURN_BELIEF_SIZE_PATH = (
+    PROJECT / "docs" / "observability" / "churn_belief_size_response.json")
 OUT_PATH = PROJECT / "site" / "data" / "value_arms.json"
 
 #: What each arm IS, in the words a reader who does not work in energy can use. The third is the
@@ -12564,6 +12573,109 @@ def _blind_line(key, blind: list, chosen: dict) -> dict | None:
     }
 
 
+def _churn_belief_size_response(path: Path | None = None) -> dict:
+    """WHY THE CHOOSING HAS SO LITTLE TO FIND: the belief it is made from is flat where the world
+    is steepest. Read from `churn_belief_size_response.json`; nothing here is measured.
+
+    WHAT THE PAGE WAS MISSING. The selection leg comes out negative in all three re-draw families
+    and the page states that, bounds it, and refuses a sign -- and offers a reader no account of
+    WHY a per-customer arm should have nothing to win. This is the account, and it is a property
+    of the MECHANISM rather than of any run: consumption reaches `estimate_churn_probability`
+    through one term, `bill_stress`, which is identically zero below the declared bill threshold.
+    Below that the belief's derivative in household size is exactly zero -- an absent term, not a
+    band with wrong edges -- while the world's own `churn_position_multiplier` scales the price
+    differential by each household's own annual spend and therefore spans 11.57x across this
+    book's legs.
+
+    THE SENTENCE IS THE ARTEFACT'S OWN `reading` AND IS NOT COMPOSED HERE. This generator reads
+    artefacts and never measures, and a page that re-words a measurement's conclusion is a second
+    author of it -- sitting where no control over the measurement can see it. The figures below
+    are lifted for the table; the words are lifted verbatim.
+
+    THE POPULATION CAVEAT IS CARRIED, AND IT IS THE LOAD-BEARING ONE HERE. This artefact's book is
+    the 244 supply legs `site/data/customers.json` holds, which is NOT the 154-account book the
+    arms above are scored over -- the artefact says so itself in
+    `population_is_not_the_published_arms_book`, and that string is published rather than
+    paraphrased. A figure whose population is not the panel's, rendered on the panel without
+    saying so, is this page's own recurring defect (`_population_specs` exists for it).
+
+    TWO REFUSALS, BOTH REACHABLE. An artefact whose `knee.the_knee_is_a_bill_not_a_consumption`
+    is not true is refused outright, because "the knee is a BILL and it moves 2.67x in kWh" is the
+    framing every sentence rendered from this block rests on -- if the measurement stops saying
+    that, this surface's account of it has diverged from it and a reader cannot see which won.
+    Same grammar as `_svt_drift_belief`'s pointer check. And a book that could not be read is an
+    absence with its reason, never an omitted paragraph.
+    """
+    def _unavailable(why: str) -> dict:
+        return {"available": False, "why": why, "reading": None, "segments": []}
+
+    loaded = _read(CHURN_BELIEF_SIZE_PATH if path is None else path)
+    if not isinstance(loaded, dict):
+        return _unavailable(
+            "the churn-belief size artefact could not be read. Rebuild it with `python3 -m "
+            "tools.churn_belief_size_response`")
+    reading = loaded.get("reading")
+    if not isinstance(reading, str) or not reading.strip():
+        return _unavailable("the artefact carries no reading, so there is no finding to publish")
+    knee = loaded.get("knee") or {}
+    book = loaded.get("book") or {}
+    partition = loaded.get("partition") or {}
+    if not book.get("available"):
+        return _unavailable("the artefact could not cut a book against the knee, so the counts "
+                            "this block is made of do not exist")
+    if knee.get("the_knee_is_a_bill_not_a_consumption") is not True:
+        return _unavailable(
+            "the artefact no longer says the knee is a BILL rather than a consumption, which is "
+            "the framing every sentence here rests on. Refused rather than rendered against a "
+            "measurement that has moved under it")
+    return {
+        "available": True,
+        "what_it_is": loaded.get("what_this_is"),
+        "what_it_cannot_say": loaded.get("what_this_cannot_say"),
+        "not_a_target": loaded.get("not_a_target"),
+        # THE SENTENCE, VERBATIM. See the docstring: re-wording it here would make this module a
+        # second author of a conclusion it did not measure.
+        "reading": reading,
+        "supply_legs": book.get("supply_legs"),
+        "legs_below_the_knee": book.get("legs_below_the_knee"),
+        "legs_above_the_knee": book.get("legs_above_the_knee"),
+        "share_below_the_knee": _f(book.get("share_below_the_knee")),
+        "knee_gbp": _f(knee.get("declared_threshold_gbp")),
+        "knee_kwh_spread_across_the_probe_rates": _f(
+            knee.get("kwh_spread_across_the_probe_rates")),
+        "knee_by_rate": [
+            {"old_rate_gbp_per_mwh": _f(row.get("old_rate_gbp_per_mwh")),
+             "knee_kwh": _f(row.get("knee_kwh"))}
+            for row in (knee.get("by_rate") or []) if isinstance(row, dict)],
+        "world_multiplier_spread": _f(book.get("world_multiplier_spread")),
+        "world_multiplier_low": _f((book.get("world_multiplier_over_this_book") or {}).get("min")),
+        "world_multiplier_high": _f((book.get("world_multiplier_over_this_book") or {}).get("max")),
+        # THE ASYMMETRY, AS THE ARTEFACT STATES IT rather than inferred from the rows below. Two
+        # counts agreeing is not the claim; the claim is that the one segment whose every leg is
+        # above the knee is the one the world does not read a bill for.
+        "the_belief_varies_where_the_world_does_not": partition.get(
+            "the_belief_varies_where_the_world_does_not"),
+        "segments": [
+            {"segment": name,
+             "legs": (row or {}).get("legs"),
+             "above_the_knee": (row or {}).get("above_the_knee"),
+             "world_reads_their_own_bill": (row or {}).get("world_reads_their_own_bill")}
+            for name, row in sorted((book.get("by_segment") or {}).items())
+            if isinstance(row, dict)],
+        # THE TERM ITSELF, in the measurement's words: an ABSENT term below the knee, which is a
+        # different defect from a band with wrong edges and has a different remedy.
+        "what_the_term_is": knee.get("what_the_term_is"),
+        # THE THRESHOLD'S OWN ORIGIN, WHICH IS NOT ESTABLISHED, carried onto the surface for the
+        # reason CLAUDE.md gives: an unsourced number a reader meets unmarked is read as
+        # established, and this one sets where the knee falls.
+        "the_thresholds_own_origin": knee.get("the_thresholds_own_origin"),
+        "bill_is_an_upper_bound": book.get("bill_is_an_upper_bound"),
+        # NOT THIS PANEL'S BOOK, SAID ON THE PANEL. See the docstring.
+        "population_is_not_this_pages_book": book.get(
+            "population_is_not_the_published_arms_book"),
+    }
+
+
 def build(three_arm: dict | None, floor: dict | None,
           decomposition: dict | None = None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
@@ -12592,7 +12704,13 @@ def build(three_arm: dict | None, floor: dict | None,
         "sources": [_cited_path(p) for p in (
             THREE_ARM_PATH, NOISE_FLOOR_PATH, CURRENT_WORLD_THREE_ARM_PATH,
             CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH, DEPARTURE_TERM_RERUN_PATH,
-            DEPARTURE_TERM_BASELINE_PATH, BLIND_ENVELOPE_ARMS_PATH)],
+            DEPARTURE_TERM_BASELINE_PATH, BLIND_ENVELOPE_ARMS_PATH,
+            # THE NINTH, added 2026-09-22 with the churn-belief size block below. It is opened on
+            # every publish -- `_churn_belief_size_response` reads it unconditionally -- and the
+            # block publishes its `reading` VERBATIM, so of every artefact in this list it is the
+            # one a reader is most owed a pointer to: the sentence on the page is that file's
+            # sentence, and a reader who wants to disagree with it has to be able to find it.
+            CHURN_BELIEF_SIZE_PATH)],
         # ABOVE THE `available` GATE ON PURPOSE, and it is the only block on this page that is.
         # Everything else here describes the three-arm A/B run and is correctly withheld when that
         # artefact cannot be read. The blind envelope is a DIFFERENT measurement on a different set
@@ -12600,6 +12718,12 @@ def build(three_arm: dict | None, floor: dict | None,
         # artefact went missing would take down the baseline while leaving the claim it qualifies
         # standing everywhere else on the site.
         "blind_envelope": _blind_envelope(blind_envelope_arms),
+        # ABOVE THE `available` GATE, for `blind_envelope`'s reason and a second one of its own.
+        # This is not a reading of the three-arm run: it is a property of the CHURN MODEL, and it
+        # is at its most relevant on a publish where the A/B artefact could not be read at all --
+        # "the choosing found nothing" and "we could not run the comparison" are the two states a
+        # reader confuses, and the account of why the choosing has little to find is true in both.
+        "churn_belief_size": _churn_belief_size_response(),
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(

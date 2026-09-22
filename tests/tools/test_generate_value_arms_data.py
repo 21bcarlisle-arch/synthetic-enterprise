@@ -7036,7 +7036,12 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
               # against reality: leaving it at six would not have failed quietly, it would have
               # said the page cites an artefact it never reads -- which is the inverse defect,
               # and exactly as misleading to a reader following the provenance.
-              gva.BLIND_ENVELOPE_ARMS_PATH]
+              gva.BLIND_ENVELOPE_ARMS_PATH,
+              # AND THE NINTH, added 2026-09-22 with the churn-belief size block. It is the one
+              # entry whose omission would have been worst: that block publishes the artefact's
+              # own `reading` VERBATIM, so the sentence a reader meets on the page IS that file's
+              # sentence and the citation is the only route from one to the other.
+              gva.CHURN_BELIEF_SIZE_PATH]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))
@@ -10739,3 +10744,133 @@ def _live_error_bar_staleness_caveat():
                         / "value_cycle_ab_s1_noise_floor.json").read_text(encoding="utf-8"))
     three_arm = json.loads(THREE_ARM.read_text(encoding="utf-8"))
     return gva._staleness_caveat(floor, three_arm)
+
+
+# ── the churn-belief size block: the account of WHY the selection leg has nothing to find ──────
+#
+# WHAT THIS SECTION OWNS, and what it does NOT. The RENDER is graded in
+# `site/test_the_flat_churn_belief_reaches_the_reader.py`, against the published door and the
+# published feed. This grades the PRODUCER's three refusals, which that file cannot reach: it
+# drives the door with mutated FEEDS, so every branch of `_churn_belief_size_response` that
+# decides whether a feed exists at all is invisible to it. Two files, two subjects, no overlap.
+
+
+def _churn_artefact() -> dict:
+    """The live artefact, read from disk, as the block's own subject.
+
+    NOT A FIXTURE TYPED HERE. A hand-built stand-in would let this whole section pass while the
+    real file and the reader disagreed about every key -- which is the defect the block exists to
+    make impossible, since the sentence it publishes is that file's sentence.
+    """
+    return json.loads((PROJECT / "docs" / "observability"
+                       / "churn_belief_size_response.json").read_text(encoding="utf-8"))
+
+
+def test_the_published_reading_is_the_artefacts_OWN_SENTENCE_byte_for_byte():
+    """The page may publish the measurement's conclusion; it may not restate it.
+
+    THE DEFECT THIS IS ABOUT. A generator that re-words a conclusion it did not measure becomes a
+    second author of it, sitting where no control over the measurement can see it -- and this
+    conclusion is unflattering, which is the class that gets softened on the way to a reader. So
+    the assertion is byte equality and not containment: a truncation, a re-cased word or an added
+    hedge all red here.
+
+    Fires on: composing the sentence at publish time, trimming it, or reading a different key.
+    """
+    block = gva._churn_belief_size_response()
+    assert block["available"] is True, block.get("why")
+    assert block["reading"] == _churn_artefact()["reading"]
+
+
+def test_every_figure_the_block_publishes_is_the_ARTEFACTS(tmp_path):
+    """The counts are read, never re-derived -- this generator measures nothing.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S NUMBERS. It drives the reader with an artefact whose
+    every figure is a value the live one does not carry, so a block that recomputed a count from
+    somewhere else, or defaulted one, reds here and passes on the live file.
+
+    Fires on: deriving any figure at publish time, or reading it from a neighbouring key.
+    """
+    moved = copy.deepcopy(_churn_artefact())
+    moved["book"]["supply_legs"] = 9871
+    moved["book"]["legs_below_the_knee"] = 9013
+    moved["book"]["legs_above_the_knee"] = 858
+    moved["book"]["world_multiplier_spread"] = 3.14
+    moved["knee"]["declared_threshold_gbp"] = 4321.0
+    path = tmp_path / "moved.json"
+    path.write_text(json.dumps(moved), encoding="utf-8")
+    block = gva._churn_belief_size_response(path)
+    assert (block["supply_legs"], block["legs_below_the_knee"], block["legs_above_the_knee"]) == (
+        9871, 9013, 858)
+    assert block["world_multiplier_spread"] == 3.14
+    assert block["knee_gbp"] == 4321.0
+
+
+def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_path):
+    """ONE CONTROL OVER THE WHOLE PARTITION, which is the shape CLAUDE.md asks for.
+
+    A guard that refuses EVERYTHING passes every per-branch leg ever written for it. This asserts
+    all three refusals fire AND that the good artefact still gets through, in one assertion over
+    the partition, so a reader of this file cannot be shown three green branches of a block that
+    has gone dark.
+
+    THE SECOND REFUSAL IS THE INTERESTING ONE. `the_knee_is_a_bill_not_a_consumption` is the
+    framing every sentence the page renders from this block rests on -- "the knee is a BILL and it
+    moves 2.67x in kWh across the rate deck". If the measurement stops saying that, the surface's
+    account of it has diverged from it and a reader cannot see which one won. Same grammar as
+    `_svt_drift_belief`'s `belief_auc_superseded_by` check.
+
+    Fires on: dropping any of the three guards, or returning the flattering branch from one.
+    """
+    live = _churn_artefact()
+
+    unreadable = tmp_path / "does_not_exist.json"
+
+    no_reading = tmp_path / "no_reading.json"
+    no_reading.write_text(json.dumps({k: v for k, v in live.items() if k != "reading"}),
+                          encoding="utf-8")
+
+    no_book = copy.deepcopy(live)
+    no_book["book"] = {"available": False, "why": "the customer book could not be read"}
+    no_book_path = tmp_path / "no_book.json"
+    no_book_path.write_text(json.dumps(no_book), encoding="utf-8")
+
+    diverged = copy.deepcopy(live)
+    diverged["knee"]["the_knee_is_a_bill_not_a_consumption"] = False
+    diverged_path = tmp_path / "diverged.json"
+    diverged_path.write_text(json.dumps(diverged), encoding="utf-8")
+
+    refusals = {name: gva._churn_belief_size_response(path) for name, path in (
+        ("unreadable", unreadable), ("no reading", no_reading),
+        ("no book", no_book_path), ("the knee stopped being a bill", diverged_path))}
+
+    # EVERY REFUSAL FIRES...
+    assert all(block["available"] is False for block in refusals.values()), (
+        "a branch that should refuse published a reading instead: {}".format(
+            {n: b["available"] for n, b in refusals.items()}))
+    # ...AND EACH NAMES ITS OWN REASON, because a refusal that does not say why is how you never
+    # discover the refusal itself was wrong.
+    whys = {name: block["why"] for name, block in refusals.items()}
+    assert len(set(whys.values())) == len(whys), (
+        "two refusals give the same reason, so a reader cannot tell which fired: {}".format(whys))
+    assert "tools.churn_belief_size_response" in whys["unreadable"], (
+        "the unreadable branch does not say how to rebuild the artefact")
+    assert "BILL" in whys["the knee stopped being a bill"]
+    # ...AND THE GUARD IS NOT REFUSING EVERYTHING, which is what makes the four above evidence.
+    assert gva._churn_belief_size_response()["available"] is True, (
+        "the live artefact is refused too, so the refusals above prove nothing")
+
+
+def test_the_block_is_published_even_when_the_AB_RUN_cannot_be_read():
+    """It is not a reading of the A/B run, and it is sharpest on a publish that has none.
+
+    "The choosing found nothing" and "we could not run the comparison" are the two states a reader
+    of this page confuses, and the account of why the choosing has little to find is true in both.
+    Under the `available` gate it would be withheld exactly when it is most needed.
+
+    Fires on: moving `churn_belief_size` below the gate in `build`.
+    """
+    withheld = gva.build(None, None)
+    assert withheld["available"] is False, "this leg's premise is that the run was unreadable"
+    assert (withheld.get("churn_belief_size") or {}).get("available") is True, (
+        "the churn-belief account was withheld because an unrelated artefact could not be read")
