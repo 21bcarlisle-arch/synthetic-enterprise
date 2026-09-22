@@ -145,8 +145,14 @@ def test_the_attainability_verdict_can_refuse_and_can_decline_and_can_do_nothing
     # needs far fewer, and fits under it.
     tight = _block()["the_book_this_would_need"]
     roomy = _block(observed=0.54)["the_book_this_would_need"]
-    assert tight["settled_accounts_needed_for_the_observed_effect"] > 632
-    assert roomy["settled_accounts_needed_for_the_observed_effect"] < 632
+    # READ OFF THE POINT ESTIMATE, AND THAT IS NOT A WEAKENING (2026-09-22). The `*_needed_*` keys
+    # are now withheld wherever the reading fails its own null, because the count has no upper
+    # bound there -- see `_observed_price_interval`. The VERDICT still rests on the point estimate
+    # and deliberately so: `_attainability` only ever refuses, and refusing on the point estimate
+    # is the stronger statement. So the partition this test keys is unchanged, and the arithmetic
+    # it reads has simply moved to the name that is not a plan.
+    assert tight["settled_accounts_at_the_point_estimate_for_the_observed_effect"] > 632
+    assert roomy["settled_accounts_at_the_point_estimate_for_the_observed_effect"] < 632
     # THE REFUSAL IS REACHABLE...
     assert tight["the_observed_effect_is_attainable"] is False
     assert tight["why_no_attainability_verdict"] is None
@@ -284,18 +290,18 @@ def test_a_requirement_is_carried_into_the_ceilings_own_population_before_any_co
     ratio = book["settled_accounts_per_scored_account"]
     assert ratio == pytest.approx(105 / 46)
     assert ratio > 1
-    assert (book["settled_accounts_needed_for_the_observed_effect"]
-            == math.ceil(book["accounts_needed_for_the_observed_effect"] * ratio))
+    assert (book["settled_accounts_at_the_point_estimate_for_the_observed_effect"]
+            == math.ceil(book["accounts_at_the_point_estimate_for_the_observed_effect"] * ratio))
     # THE CARRY IS WHAT DECIDES, not the scored count. Under a ceiling sitting BETWEEN the two, a
     # comparison made on the scored count says "fits" and the honest one says "does not" -- so
     # this asserts the verdict follows the carried figure, which is the whole defect.
-    between = (book["accounts_needed_for_the_observed_effect"]
-               + book["settled_accounts_needed_for_the_observed_effect"]) // 2
+    between = (book["accounts_at_the_point_estimate_for_the_observed_effect"]
+               + book["settled_accounts_at_the_point_estimate_for_the_observed_effect"]) // 2
     straddled = _block(ceiling={"available": True, "accounts": between, "source": "injected"})
     assert straddled["the_book_this_would_need"]["the_observed_effect_is_attainable"] is False
     # ...and with no settled book declared, there is no carry and therefore no comparison at all.
     blind = _block(settled_book_accounts=None)["the_book_this_would_need"]
-    assert blind["settled_accounts_needed_for_the_observed_effect"] is None
+    assert blind["settled_accounts_at_the_point_estimate_for_the_observed_effect"] is None
     assert blind["the_observed_effect_is_attainable"] is None
     assert "not the same set" in blind["why_no_attainability_verdict"]
 
@@ -691,3 +697,82 @@ def test_the_published_key_no_longer_asks_for_work_this_repo_has_already_done():
         "the block no longer records WHICH record population the old ceiling priced, which "
         "is the whole reason the two numbers were never comparable"
     )
+
+
+# ---------------------------------------------------------------------------------------------
+# The book price, and whether it has an upper bound at all.
+# ---------------------------------------------------------------------------------------------
+
+def test_the_observed_book_price_is_WITHHELD_where_the_reading_fails_its_own_null():
+    """DEFECT: a book size published for a reading whose own interval contains no-information.
+
+    THE FIFTH INSTANCE OF ONE RULE, and the first found by a control rather than by reading the
+    block next door -- `tools/unbounded_quotient_census.py`, by SHAPE. `decisions_for` solves
+    `excess = k / sqrt(size)`, so the count scales as `(k / excess) ** 2` with THIS RUN'S ESTIMATE
+    IN THE DENOMINATOR, and it was published under `*_needed_*` -- a name whose grammar is a plan
+    -- in exactly the state where that estimate has failed its null. A denominator that may be
+    zero prices the question at no finite number of decisions, so the number told a reader that
+    buying that many decisions would settle a question no book size settles.
+
+    THE TWO STATES ARE ASSERTED TOGETHER, over the whole partition, because a gate that withholds
+    EVERYTHING passes any test that only checks the withholding half -- and this page's live
+    reading sits on the failing side, so the clearing side is the rare branch.
+
+    Fires on: restoring the bare count, gating on `observed_excess > 0` (the degenerate point
+    rather than the interval), dropping the named reason, or dropping the point estimate -- which
+    would hide the only arithmetic in hand rather than rename it.
+    """
+    failing = _block()["the_book_this_would_need"]
+    # THE LIVE READING FAILS ITS OWN NULL: 0.517 sits inside 0.429-0.572.
+    assert failing["the_reading_clears_its_own_null"] is False
+    assert failing["decisions_needed_for_the_observed_effect"] is None
+    assert failing["accounts_needed_for_the_observed_effect"] is None
+    assert failing["settled_accounts_needed_for_the_observed_effect"] is None
+    # ...AND SAYS SO, rather than leaving an absence to read as a missing measurement.
+    assert "no finite number" in failing["decisions_needed_unavailable_because"]
+    # ...AND KEEPS THE ARITHMETIC under a name that is not a plan.
+    assert failing["decisions_at_the_point_estimate_for_the_observed_effect"] > 0
+    # ...AND PUBLISHES THE PRICE'S OWN INTERVAL, whose endpoints are NOT a range.
+    interval = failing["decisions_needed_interval"]
+    assert interval["has_no_upper_bound"] is True
+    assert "not the ends of the" in interval["these_two_are_not_a_range"]
+    assert interval["denominator_one_error_low"] < 0 < interval["denominator_one_error_high"]
+
+    # THE CLEARING SIDE IS REACHABLE, which is what stops this being a guard that refuses
+    # everything. A reading well past its own detectable excess prices a real book.
+    clearing = _block(observed=0.95)["the_book_this_would_need"]
+    assert clearing["the_reading_clears_its_own_null"] is True
+    assert clearing["decisions_needed_for_the_observed_effect"] > 0
+    assert clearing["decisions_needed_unavailable_because"] is None
+    assert clearing["decisions_needed_interval"] is None
+    # THE POINT ESTIMATE AGREES WITH THE PUBLISHED COUNT where one is published, so the two names
+    # can never come to carry two different answers.
+    assert (clearing["decisions_at_the_point_estimate_for_the_observed_effect"]
+            == clearing["decisions_needed_for_the_observed_effect"])
+
+
+def test_the_floor_rows_separate_a_CHOSEN_departure_from_this_runs_ESTIMATE():
+    """DEFECT: one key, one formula, two opposite epistemic statuses, and nothing saying which.
+
+    The `FLOOR_EXCESSES` rows price a departure somebody CHOSE -- 0.15, 0.10, 0.05 -- whose
+    denominator cannot drift towards zero without an edit, so their counts are bounded and honest
+    under a `needed` name. The `is_the_observed_effect` row prices THIS RUN'S ESTIMATE and is the
+    unbounded quotient. Published in one list under one key, a reader has no way to tell them
+    apart, and the dangerous row is the one that looks most relevant.
+
+    Fires on: withholding the chosen-departure rows too (which would make the table useless and
+    the gate unfalsifiable), or publishing the observed row's count while it fails its null.
+    """
+    floor = _block()["floor"]
+    chosen = [row for row in floor if row["this_row_prices_a_chosen_departure"]]
+    observed = [row for row in floor if not row["this_row_prices_a_chosen_departure"]]
+    assert chosen and observed, "both kinds must be present or this controls nothing"
+    # EVERY CHOSEN ROW STILL CARRIES ITS COUNT...
+    assert all(row["decisions_needed"] > 0 for row in chosen)
+    assert all(row["decisions_needed_unavailable_because"] is None for row in chosen)
+    # ...AND THE OBSERVED ROW DOES NOT, on a reading that fails its own null.
+    assert all(row["decisions_needed"] is None for row in observed)
+    assert all(row["accounts_needed"] is None for row in observed)
+    assert all("no finite number" in row["decisions_needed_unavailable_because"]
+               for row in observed)
+    assert all(row["decisions_at_the_point_estimate"] > 0 for row in observed)
