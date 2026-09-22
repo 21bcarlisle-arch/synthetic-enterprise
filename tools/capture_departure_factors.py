@@ -114,9 +114,10 @@ Findings on the foreign artefact:
 `docs/staging/WORKER_FINDING_AN_EMPTY_SVT_SIBLING_WOULD_HAVE_CERTIFIED_THE_RENEWAL_ROUTE_AS_THE_WHOLE_BOOK_2026-08-31.md`,
 `docs/staging/WORKER_FINDING_A_FOREIGN_SVT_SIBLING_IS_WHAT_MAKES_THE_ACCOUNT_DENOMINATOR_CONTROL_PASS_2026-08-31.md`.
 
-Usage:  python3 -m tools.capture_departure_factors [output_path]
+Usage:  python3 -m tools.capture_departure_factors [output_path] [--roll-seed N]
 """
 import json
+import random
 import sys
 from pathlib import Path
 
@@ -125,9 +126,62 @@ from tools.departure_population import svt_sibling
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
 
+#: Namespaces a re-seeded renewal roll so it can never collide with the real stream of some other
+#: account+term. Lifted verbatim in SHAPE from `run_value_cycle_ab._churn_roll_redraw_patch`, whose
+#: own comment records why the prefix exists: without it, seed 11111 re-rolling account `A` at term
+#: `T` would hand it the untouched roll of an account literally named `11111_A`, which shows up as
+#: a suspiciously well-behaved leg and nothing else.
+_RESEED_PREFIX = "recapture{}_"
 
-def main(out_path: Path) -> int:
+
+def reseeded_churn_roll(real, seed: int):
+    """A WHOLE-BOOK re-draw of the renewal dice — same distribution, different stream.
+
+    WHAT THIS IS FOR, AND WHY IT IS NOT A SECOND WORLD. A rank statistic taken once carries no
+    evidence about how much of it was the draw. `renewal_churn_belief` reads 0.6706 against a null
+    whose upper end is 0.6328 — a clear of 0.038 on 384 same-stratum pairs — and this repository
+    has spent a whole stretch learning to distrust exactly that width from exactly one draw. The
+    control is the same book, the same world, the same company code, rolled again.
+
+    `Random(<any string>).random()` is uniform on [0, 1) for every seed string, so every household
+    is re-drawn from the SAME distribution. Nothing about the world moves: not a tariff, not a
+    price, not a hazard, not a company belief. What moves is which side of its own hazard each
+    household landed on — which is precisely the quantity a second draw is supposed to vary, and
+    the only one.
+
+    WHOLE-BOOK, NOT PER-HOUSEHOLD, and that is the difference from the noise floor's use of this
+    same shape. `run_value_cycle_ab` re-draws ONE household and holds the rest, because it is
+    pricing a per-household contribution. Here the question is about a statistic over the whole
+    book, so holding any household fixed would leave part of the reading un-re-drawn and the
+    spread would understate itself.
+
+    NOT THREADED INTO THE PRODUCTION SIGNATURE, deliberately. `churn_roll_for_renewal` takes no
+    `base_seed` and its docstring says why one must not be added: it would move every roll in the
+    2016–2025 record, which is a baseline decision and not a harness convenience. So a re-draw
+    REPLACES the function, exactly as the floor does, and the substitute is what carries the seed.
+    """
+    prefix = _RESEED_PREFIX.format(seed)
+
+    def patched(billing_account, term_start_str):
+        return random.Random("{}{}_{}".format(prefix, billing_account, term_start_str)).random()
+    return patched
+
+
+def main(out_path: Path, roll_seed: int | None = None) -> int:
+    # `ce` IS PATCHED IN THE DEFINING MODULE BECAUSE THAT IS WHERE THE CALL IS.
+    # `roll_lifecycle_event` calls `churn_roll_for_renewal` as a module-global inside
+    # `customer_events` itself -- it is not imported into `run_phase2b` -- so rebinding it on
+    # `run_phase2b` would capture nothing and the run would come back byte-identical while
+    # reporting that it had been re-seeded. That is the flattering failure and it reads as a
+    # spread of zero. The opposite trap, one frame out, is what `capturing` below records.
+    import simulation.customer_events as ce
     import simulation.run_phase2b as rp2b
+
+    original_roll = ce.churn_roll_for_renewal
+    if roll_seed is not None:
+        ce.churn_roll_for_renewal = reseeded_churn_roll(original_roll, roll_seed)
+        print(f"RE-SEEDED RENEWAL ROLL: every renewal dice re-drawn under seed {roll_seed}. "
+              "Same world, same book, same company code — a second draw, not a second world.")
 
     captured: list[dict] = []
     # PATCH THE CALLER'S NAMESPACE, NOT THE DEFINING MODULE'S. `run_phase2b` does
@@ -195,6 +249,7 @@ def main(out_path: Path) -> int:
         result = rp2b.main()
     finally:
         rp2b.roll_lifecycle_event = original
+        ce.churn_roll_for_renewal = original_roll
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(captured, indent=1))
@@ -296,5 +351,20 @@ def emit_svt_sibling(result: object, out_path: Path) -> int:
 
 
 if __name__ == "__main__":
-    target = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUT
-    raise SystemExit(main(target))
+    argv = sys.argv[1:]
+    seed = None
+    if "--roll-seed" in argv:
+        i = argv.index("--roll-seed")
+        seed = int(argv[i + 1])
+        del argv[i:i + 2]
+    target = Path(argv[0]) if argv else DEFAULT_OUT
+    # A RE-SEEDED RUN MUST NOT LAND ON THE DEFAULT STEM, and this refuses rather than warns. The
+    # two files under one stem would be joined as one capture by every reader downstream --
+    # `svt_companion` finds the sibling by NAME -- and a second draw silently overwriting the first
+    # destroys the only thing the second draw was taken for: the pair.
+    if seed is not None and target == DEFAULT_OUT:
+        print("REFUSED: a re-seeded capture must be written to a stem of its own, not over "
+              f"{DEFAULT_OUT.name}. Two draws under one name is not a repetition, it is a "
+              "replacement.", file=sys.stderr)
+        raise SystemExit(2)
+    raise SystemExit(main(target, roll_seed=seed))

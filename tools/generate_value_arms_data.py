@@ -7472,6 +7472,103 @@ _RENEWAL_SEEDED_FIELD = "churn_probability"
 _RENEWAL_BILL_SHOCK_FACTOR = "sim_bill_shock_base"
 
 
+def _renewal_stratification(arm: dict, route: dict) -> dict:
+    """WHICH OF THE TWO CONCORDANCES THIS BLOCK IS PUBLISHING, and on how much of the book.
+
+    THE ASK THAT PRODUCED THIS BLOCK ASSUMED THE OPPOSITE AND THE ROWS SAID SO. The lane drew it as
+    *"the within-year decomposition its 384 pairs do not carry"* — publish the same-year split the
+    way `decisions.discrimination_auc_within_year` does, because a pooled AUC on this book is
+    substantially a year effect and this page withdrew a claim on 2026-09-10 for exactly that. The
+    premise is wrong at the root: `measure_churn_heterogeneity` computes EVERY reading inside
+    `by_year_and_route`, so the 384 pairs already ARE same-year pairs and the published 0.6706 is
+    already the within-year figure. The twin that was missing is the POOLED one.
+
+    THAT IS NOT A SMALLER FINDING THAN THE ONE ASKED FOR. It is the same defect from the other
+    side, and the direction matters because the numbers do not agree. On this capture, stratifying
+    moves the belief UP (0.5940 pooled to 0.6706 within-year) and the ceiling DOWN (0.6717 to
+    0.5911). The block's headline verdict — the belief ordered these departures and the world's own
+    hazard did not — is therefore a property of the STRATIFICATION as much as of the book: pool the
+    routes and years back in and the two swap sides. A reader given one of those two numbers, with
+    nothing saying which or what fraction of the book it stands on, cannot see that.
+
+    SO THE ROBUSTNESS IS DERIVED, NOT NARRATED. `the_verdict_survives_pooling` asks whether the
+    belief is on the same side of the ceiling both ways. It is a comparison of two numbers this
+    block already holds, keyed to the property: the day the two agree, nobody edits a sentence.
+
+    FAIL CLOSED ON AN OLD ARTEFACT. A grade taken before the producer carried `stratification` gets
+    `available: False` and the re-take command, never a silently omitted paragraph — an absent
+    caveat and a discharged one look identical to a reader.
+    """
+    belief = arm.get("stratification")
+    ceiling = route.get("stratification")
+    if not isinstance(belief, dict) or not isinstance(ceiling, dict):
+        return {
+            "available": False,
+            "why": ("this grade was taken before the reading carried its own stratification, so "
+                    "which of the two concordances the figures above are — and what share of the "
+                    "route's comparable pairs they stand on — cannot be stated from it. Re-take "
+                    "it with `python3 -m tools.measure_churn_heterogeneity "
+                    "--out=docs/observability/svt_drift_belief_grade.json`"),
+        }
+    b_strat, b_pool = _f(belief.get("auc_stratified")), _f(belief.get("auc_pooled"))
+    c_strat, c_pool = _f(ceiling.get("auc_stratified")), _f(ceiling.get("auc_pooled"))
+    # THE VERDICT'S OWN ROBUSTNESS, as a side rather than a difference. Which of the two is larger
+    # is the whole content of this block's headline; how much larger is a quantity neither reading
+    # supports on 384 pairs, and publishing it would invite the subtraction.
+    survives = (None if None in (b_strat, b_pool, c_strat, c_pool)
+                else (b_strat > c_strat) == (b_pool > c_pool))
+    return {
+        "available": True,
+        "the_published_figures_are": belief.get("stratified_by"),
+        "what_that_means": (
+            "Every AUC above is computed only between decisions taken in the SAME calendar year on "
+            "the SAME route. Pairs spanning two years are not compared at all, because a year-level "
+            "effect — 2022 — would otherwise be scored as the company knowing something about a "
+            "household."),
+        "same_stratum_pairs": belief.get("same_stratum_pairs"),
+        "comparable_pairs_pooled": belief.get("comparable_pairs_pooled"),
+        "same_stratum_share": belief.get("same_stratum_share"),
+        "belief_auc_pooled": b_pool,
+        "ceiling_auc_pooled": c_pool,
+        "the_verdict_survives_pooling": survives,
+        "why_both_are_published": (
+            "Neither is the right answer on its own. The stratified reading is the conservative one "
+            "for the question this page asks — whether the company reads HOUSEHOLDS — and it is the "
+            "one published. The pooled reading is what the same rows say with the year and route "
+            "put back in. Where they disagree, the disagreement is the finding, and a page that "
+            "showed one of them would have hidden it."),
+    }
+
+
+def _stratification_clause(strat: dict) -> str:
+    """The stratification, in the HEADLINE sentence, because a footnote is where this goes to die.
+
+    The page renders `sentence` as the one bold line of the panel and the table beneath it in 11px
+    grey. A caveat that changes which of two numbers the reader is holding does not belong in the
+    grey. Three states, each derived from the block above rather than chosen here.
+    """
+    if not strat.get("available"):
+        return " " + (strat.get("why") or "")
+    share, pairs = strat.get("same_stratum_share"), strat.get("same_stratum_pairs")
+    pooled = strat.get("comparable_pairs_pooled")
+    where = ("" if None in (share, pairs, pooled) else
+             " It is computed only between decisions taken in the same year and on the same route "
+             "— {:,} of the {:,} comparable pairs on this route, {:.0f}%.".format(
+                 pairs, pooled, 100.0 * share))
+    if strat.get("the_verdict_survives_pooling") is True:
+        return where + (" Putting the years and routes back in does not change which of the two is "
+                        "larger, so the verdict is not an artefact of that choice.")
+    if strat.get("the_verdict_survives_pooling") is False:
+        return where + (
+            " AND IT DOES NOT SURVIVE POOLING: with the years and routes put back in the belief "
+            "reads {:.4f} against a ceiling of {:.4f} — the other way round. Which of the two "
+            "orders these departures better is decided by the stratification, not by the book, so "
+            "on this capture we cannot tell.".format(
+                strat.get("belief_auc_pooled"), strat.get("ceiling_auc_pooled")))
+    return where + (" Whether that choice decides the verdict could not be computed on this "
+                    "capture, so it is not claimed either way.")
+
+
 def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     """WHETHER THE COMPANY'S BELIEF ORDERS WHO LEAVES ON THE ROUTE WHERE IT PRICES.
 
@@ -7705,13 +7802,20 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             "carries_a_permutation_null": carries_a_null,
             "names_the_world_it_was_measured_in": "world_identity" in second,
             "quotable_here": False,
+            # A NAME, NOT A DIRECTION (2026-09-22). The last clause said "the reading published
+            # above" from the day this block landed (eff979da5, hours earlier), and the tied-pointer
+            # rung caught it as a direction it cannot judge. The repair this repository has already
+            # chosen for this shape four times over is to NAME the subject rather than point up at
+            # it -- a feed string has more homes than its producer can know, so "above" is a claim
+            # about a layout nobody here can see. The subject is the renewal route of the belief
+            # grade, which is what this same block quotes, so it is called that.
             "why_not": (
                 "A second grade of this same question exists on a larger and different book, and "
                 "it is named here rather than left for a reader to find. No figure is taken from "
                 "it: it carries no permutation null, and a rank statistic with no null is not a "
                 "reading -- it is a number that cannot be told from chance. It also names no "
-                "world. The reading published above is the one with an interval, a ceiling on its "
-                "own rows and a stated population."),
+                "world. The renewal-route reading this block quotes from the belief grade is the "
+                "one with an interval, a ceiling on its own rows and a stated population."),
             "never_averaged_because": (
                 "The two are different books measured by different instruments. An average of "
                 "them would describe neither population, and the difference between them is not "
@@ -7753,16 +7857,25 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             # THE READABLE HALF IS STILL STATED, and only the JOIN is withheld. The size block is
             # a fact about the belief whether or not the world's side of the chain resolves, and
             # dropping it here would withhold a measurement for the failure of a different one.
+            #
+            # A NAME, NOT A DIRECTION (2026-09-22), the second of two in this producer. This said
+            # "the reason is the table above" and, later in the SAME literal, "the belief's own
+            # reading above" -- two directions in one string, and only the first was red, because
+            # `reading` is not a noun the tied-pointer vocabulary carries and `table` is. Both are
+            # repaired, and the unjudged one deliberately so: a claim that is wrong in the same way
+            # is not made right by the detector being unable to see it yet, and the day `reading`
+            # enters that vocabulary this sentence must not be what reds.
             chain = (
                 "The join between these two panels is NOT stated on this capture, and the reason "
-                "is the table above: not one of the world's renewal factors clears its own null "
-                "on its own here, so there is no single dimension this book can show departures "
-                "are ordered by. The belief's side is unchanged and still readable — it reaches a "
-                "household's bill through a single term that is identically zero for {} of {} "
-                "supply legs. What cannot be drawn from this capture is the link that made those "
-                "two facts one argument: that the world orders departures by the very dimension "
-                "the belief is flat in. The belief's own reading above stands on its own null and "
-                "is unaffected by any of this.".format(below, legs)
+                "is the world's per-factor decomposition: not one of the world's renewal factors "
+                "clears its own null on its own here, so there is no single dimension this book "
+                "can show departures are ordered by. The belief's side is unchanged and still "
+                "readable — it reaches a household's bill through a single term that is "
+                "identically zero for {} of {} supply legs. What cannot be drawn from this "
+                "capture is the link that made those two facts one argument: that the world "
+                "orders departures by the very dimension the belief is flat in. The belief's own "
+                "reading stands on its own null and is unaffected by any of this.".format(
+                    below, legs)
                 if below is not None and legs is not None else None)
         else:
             chain = (
@@ -7781,6 +7894,12 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     sentence = cannot_tell_sentence(
         subject="whether the company's belief orders who leaves at renewal",
         observed=observed, null_low=low, null_high=high, n=route.get("decisions"))
+    # THE STRATIFICATION, AND IT IS COMPUTED BEFORE THE SENTENCE BECAUSE IT CHANGES IT. On this
+    # capture the belief clears its null, `cannot_tell_sentence` returns `None`, and the fallback
+    # below is the flat claim "the belief clears the interval a signal carrying no information
+    # reaches" -- which is the sentence that most needs the qualification, and the only one that
+    # would have shipped without it.
+    strat = _renewal_stratification(arm, route)
     return {
         "available": True,
         "why": None,
@@ -7905,11 +8024,16 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             "itself."),
         "chain_to_the_flat_belief": chain,
         "second_grade": second_grade,
+        # WHICH OF THE TWO CONCORDANCES EVERY FIGURE ABOVE IS, and on what share of the route's
+        # pairs. Beside the readings rather than in the artefact's foot, because this block is what
+        # the page lifts and the artefact's foot is not.
+        "stratification": strat,
         # THE SENTENCE IS THE PAYLOAD. Derived from the belief's own three numbers, so the prose
-        # and the table beside it cannot disagree.
-        "sentence": sentence or (
+        # and the table beside it cannot disagree -- and from the stratification, because on this
+        # capture that is what decides whether the first clause may be said at all.
+        "sentence": (sentence or (
             "The company's belief about who leaves at renewal clears the interval a signal "
-            "carrying no information reaches."),
+            "carrying no information reaches.")) + _stratification_clause(strat),
         "not_a_target": (
             "No figure here is a target. This says what the belief did on one graded book; it "
             "does not price the gap and it is not an instruction to tune the belief until it "

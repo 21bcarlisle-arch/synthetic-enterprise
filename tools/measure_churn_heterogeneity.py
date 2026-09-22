@@ -143,6 +143,12 @@ DEFAULT_PERMUTATIONS = 2000
 #: is a null nobody can quote.
 SEED = 20260831
 
+#: What EVERY AUC in this artefact is computed inside, in one place so the top-level declaration
+#: and the per-reading one cannot drift into saying different things. It was a literal typed once
+#: at the foot of `report`, four hundred lines from the figures it governs, which is why the blocks
+#: a downstream page lifts carried no trace of it -- see `stratification`.
+STRATIFIED_BY = "calendar year AND departure route"
+
 
 class Unreadable(Exception):
     """The table cannot support a reading. Raised, never swallowed into a number."""
@@ -211,6 +217,56 @@ def within_strata_auc(rows: list[dict], score, stratum=by_year_and_route) -> tup
 def within_year_auc(rows: list[dict], score) -> tuple[float | None, int]:
     """Year-only stratification. Kept as the name every caller already uses."""
     return within_strata_auc(rows, score, by_year)
+
+
+def stratification(rows: list[dict], score, observed: float | None, pairs: int) -> dict:
+    """The SAME reading with the strata REMOVED, beside the stratified one that gets published.
+
+    WHY THIS RIDES ON EVERY READING RATHER THAN SITTING IN A NOTE. Every AUC this tool publishes is
+    computed inside `by_year_and_route`, and the count printed beside it -- `pairs` -- is
+    SAME-STRATUM pairs, not all comparable pairs. A reader who takes `0.6706 on 384 pairs` for a
+    pooled concordance has BOTH the statistic and the population wrong, the second by an order of
+    magnitude (2,501 pairs are comparable on that route), and nothing on the surface said so. The
+    stratification is declared once at the top of the artefact, four hundred lines from the figures
+    it governs, and the block a downstream page actually lifts carries no trace of it.
+
+    THIS IS THE 2026-09-10 WITHDRAWAL'S REPAIR, ARRIVING FROM THE OTHER SIDE. That day a household
+    claim was withdrawn because a POOLED AUC was published where a stratified one was owed, and only
+    12% of its pairs compared two households in the same year. The remedy there -- `decisions.
+    discrimination_auc_within_year`, `method_skill.churn_auc_within_year` -- was to publish the
+    stratified twin beside the pooled headline with its own pair count and share. Here the
+    stratified figure is already the published one, so the twin that is missing is the POOLED one.
+    Same defect, same remedy, mirrored: a reader must be able to see which of the two they hold and
+    what fraction of the book it was computed on, without inferring it from a key name.
+
+    THE DIRECTION IS DERIVED, NEVER ASSUMED, and that is the load-bearing line. Stratifying removes
+    a year effect that was INFLATING a pooled reading and it equally removes one that was DRAGGING
+    it, and only the rows decide which. A block that said "the stratified figure is the conservative
+    one" would be a claim keyed to the day it was written; this carries the signed difference and
+    names the side, so the day it flips nobody edits a sentence.
+
+    `None` propagates rather than collapsing: a pooled AUC that cannot be computed is not a zero
+    difference, and a share over no pairs is not 0.0.
+    """
+    pooled, pooled_pairs = auc([(score(r), _label(r)) for r in rows])
+    moved = None if None in (observed, pooled) else observed - pooled
+    return {
+        "stratified_by": STRATIFIED_BY,
+        "the_published_reading_is_the_stratified_one": True,
+        "same_stratum_pairs": pairs,
+        "comparable_pairs_pooled": pooled_pairs,
+        # THE SHARE THE 2026-09-10 WITHDRAWAL TURNED ON. Small is not by itself a defect here --
+        # the stratified reading is the honest one and a small share is what stratifying COSTS --
+        # but it is the number that says how much book is behind the figure, and it belongs
+        # wherever the figure goes.
+        "same_stratum_share": (pairs / pooled_pairs) if pooled_pairs else None,
+        "auc_pooled": pooled,
+        "auc_stratified": observed,
+        "stratification_moved_the_reading": moved,
+        "the_stratified_reading_is": (
+            None if moved is None
+            else "higher" if moved > 0 else "lower" if moved < 0 else "the same"),
+    }
 
 
 def tie_fraction(rows: list[dict], field: str, stratum=by_year_and_route) -> float:
@@ -792,6 +848,10 @@ def belief_readings(rows: list[dict], route: str, permutations: int) -> list[dic
             "distinct_values": len({r[field] for r in rows}),
             "mean_believed": statistics.fmean(r[field] for r in rows),
             "realised_rate": sum(_label(r) for r in rows) / len(rows),
+            # ON THE ARM, NOT ONLY AT THE TOP OF THE ARTEFACT. `belief_auc` and `pairs` are a
+            # STRATIFIED reading on SAME-STRATUM pairs, and this block is what the page's renewal
+            # panel lifts wholesale -- so the stratification travelled with neither of them.
+            "stratification": stratification(rows, score, observed, pairs),
         }
         # THE OFFSET BINDS THE BELIEF, NOT ONLY THE FACTOR TABLE. Keyed to the route CARRYING
         # exposure rather than to the route's name, so a route that gains the field inherits this
@@ -1351,6 +1411,11 @@ def report(
             "null": route_null,
             "clears_the_null": route_observed is not None and route_observed > route_null["high"],
             "per_factor": _factor_decomposition(sub, factors, score_with, route_null, route_observed),
+            # THE CEILING'S OWN STRATIFICATION, so the two figures a reader is invited to compare
+            # carry the same declaration. A belief that named its strata beside a ceiling that did
+            # not would read as the two being on different footings, which is the opposite of what
+            # `belief_readings` exists to guarantee.
+            "stratification": stratification(sub, score_with, route_observed, route_pairs),
         }
         entry["route"] = route
         # THE COMPANY LEG, ON THE SAME ROWS AND THE SAME STRATA AS THE CEILING DIRECTLY ABOVE IT.
@@ -1401,7 +1466,7 @@ def report(
             "of_total": sum(_label(r) for r in rows),
             "routes": [r for r in per_route if r not in ROUTES_WITH_A_COMPANY_BELIEF],
         },
-        "stratified_by": "calendar year AND departure route",
+        "stratified_by": STRATIFIED_BY,
         "structural_terms_excluded_by_construction": list(YEAR_FACTORS) + ["route"],
     }
 

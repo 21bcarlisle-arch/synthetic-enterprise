@@ -1,5 +1,5 @@
 {
-  "table": "docs/reports/ladder_churn_factors.json",
+  "table": "/tmp/origtree/docs/reports/ladder_churn_factors.json",
   "world_identity": {
     "digest": "39a192ce04c1eda8",
     "unavailable_because": null,
@@ -23,8 +23,8 @@
     "what_this_does_not_cover": "the years the capture never reaches (none), which cannot move one pair in this reading; and the HOMES, which `world_level_identity` keys separately and which no captured column records."
   },
   "run_instant": {
-    "generated_at": "2026-09-22T18:12:57Z",
-    "producing_commit": "df8d21725bd646a5dc1889ec8b6c2643d49e8086",
+    "generated_at": "2026-09-22T22:20:33Z",
+    "producing_commit": "45ac60fbaf90753969e01f2302eb662df3f5d648",
     "unavailable_because": null,
     "what_it_times": "the GRADING, not the capture. The capture's own instant is not recorded in the table and this field must never be read as it."
   },
@@ -120,6 +120,17 @@
           "inside_null_alone": true
         }
       },
+      "stratification": {
+        "stratified_by": "calendar year AND departure route",
+        "the_published_reading_is_the_stratified_one": true,
+        "same_stratum_pairs": 384,
+        "comparable_pairs_pooled": 2501,
+        "same_stratum_share": 0.15353858456617353,
+        "auc_pooled": 0.6717313074770092,
+        "auc_stratified": 0.5911458333333334,
+        "stratification_moved_the_reading": -0.08058547414367578,
+        "the_stratified_reading_is": "lower"
+      },
       "route": "renewal",
       "company_belief": [
         {
@@ -145,7 +156,18 @@
           "tie_fraction": 0.4427083333333333,
           "distinct_values": 13,
           "mean_believed": 0.18823529411764706,
-          "realised_rate": 0.4019607843137255
+          "realised_rate": 0.4019607843137255,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 384,
+            "comparable_pairs_pooled": 2501,
+            "same_stratum_share": 0.15353858456617353,
+            "auc_pooled": 0.5609756097560976,
+            "auc_stratified": 0.5911458333333334,
+            "stratification_moved_the_reading": 0.030170223577235755,
+            "the_stratified_reading_is": "higher"
+          }
         },
         {
           "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
@@ -170,7 +192,18 @@
           "tie_fraction": 0.0390625,
           "distinct_values": 81,
           "mean_believed": 0.25970196078431373,
-          "realised_rate": 0.4019607843137255
+          "realised_rate": 0.4019607843137255,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 384,
+            "comparable_pairs_pooled": 2501,
+            "same_stratum_share": 0.15353858456617353,
+            "auc_pooled": 0.5939624150339864,
+            "auc_stratified": 0.6705729166666666,
+            "stratification_moved_the_reading": 0.07661050163268024,
+            "the_stratified_reading_is": "higher"
+          }
         },
         {
           "belief": "company.crm.churn_desk.estimate_svt_drift v2 JOINT (years on SVT, cap-period length, own payment record)",
@@ -286,6 +319,17 @@
           "superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
         }
       },
+      "stratification": {
+        "stratified_by": "calendar year AND departure route",
+        "the_published_reading_is_the_stratified_one": true,
+        "same_stratum_pairs": 10567,
+        "comparable_pairs_pooled": 99274,
+        "same_stratum_share": 0.10644277454318352,
+        "auc_pooled": 0.7403851965267845,
+        "auc_stratified": 0.6719030945396044,
+        "stratification_moved_the_reading": -0.06848210198718008,
+        "the_stratified_reading_is": "lower"
+      },
       "route": "svt_segment",
       "company_belief": [
         {
@@ -328,6 +372,17 @@
           "distinct_values": 259,
           "mean_believed": 0.03274626506024096,
           "realised_rate": 0.023614457831325302,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 10567,
+            "comparable_pairs_pooled": 99274,
+            "same_stratum_share": 0.10644277454318352,
+            "auc_pooled": 0.6939631726333179,
+            "auc_stratified": 0.6622030850761805,
+            "stratification_moved_the_reading": -0.03176008755713733,
+            "the_stratified_reading_is": "lower"
+          },
           "exposure_offset": {
             "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
             "belief_auc_per_exposure_day": 0.5678527491246332,
@@ -370,6 +425,17 @@
           "distinct_values": 151,
           "mean_believed": 0.031062698795180723,
           "realised_rate": 0.023614457831325302,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 10567,
+            "comparable_pairs_pooled": 99274,
+            "same_stratum_share": 0.10644277454318352,
+            "auc_pooled": 0.6755897818159841,
+            "auc_stratified": 0.6272357338885208,
+            "stratification_moved_the_reading": -0.04835404792746323,
+            "the_stratified_reading_is": "lower"
+          },
           "exposure_offset": {
             "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
             "belief_auc_per_exposure_day": 0.4580297151509416,
@@ -412,6 +478,17 @@
           "distinct_values": 212,
           "mean_believed": 0.0395350843373494,
           "realised_rate": 0.023614457831325302,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 10567,
+            "comparable_pairs_pooled": 99274,
+            "same_stratum_share": 0.10644277454318352,
+            "auc_pooled": 0.6540886838447126,
+            "auc_stratified": 0.6411942840919845,
+            "stratification_moved_the_reading": -0.012894399752728103,
+            "the_stratified_reading_is": "lower"
+          },
           "exposure_offset": {
             "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
             "belief_auc_per_exposure_day": 0.5314658843569603,
