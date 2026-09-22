@@ -1469,8 +1469,81 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
         # is stale needs exactly the two runs the ordering is between, and a third stamp makes the
         # pair unreadable. "the point estimate's own run" is true from anywhere and adds no stamp.
         "size of this instrument's seed sensitivity; re-running the noise floor on the point "
-        "estimate's own run is owed work."
-    ).format(floor_at=floor_at, point_at=point_at, between=between)
+        "estimate's own run is owed work{priced}."
+    ).format(floor_at=floor_at, point_at=point_at, between=between,
+             priced=_what_the_owed_rerun_would_buy())
+
+
+def _what_the_owed_rerun_would_buy(path=None) -> str:
+    """What the nearest floor on the FIGURE'S OWN BOOK returned -- so the owed re-run is priced.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-22). The sentence above ended "re-running the noise floor
+    on the point estimate's own run is owed work", and stopped. That is an honest statement of what
+    is missing and a silent one about what it is worth: a reader meeting "owed work" reasonably
+    reads it as "and then the page could say something", which is the reading the evidence now
+    bears against. It was not priceable when it was written. It is now, because
+    `AUC_FAMILY_FLOOR_PATH`'s widened prohibition licenses reading `next12` on its own book -- and
+    `next12` IS a floor on book 154, which is the book the point estimate prices.
+
+    THE SENTENCE IS NOT BEING CALLED FALSE AND IS NOT BEING DELETED. The owed re-run is still owed
+    and it is still strictly better evidence: the published arms span books 154 and 155, so the
+    point estimate's OWN run is narrower than next12's single book, and a floor drawn on exactly
+    that run is the only thing that answers the question outright. What is added is what the
+    closest available answer was, because "owed work" with no price attached is how a page invites
+    a reader to wait for a measurement that is unlikely to settle anything.
+
+    KEYED TO THE PROPERTY, NOT TO NEXT12'S CURRENT ANSWER. The clause is composed from whether
+    that family clears its own bar at this repo's live rule. The day a floor on this book pins its
+    mean, the optimistic half becomes true and this returns the sentence saying so, with nobody
+    editing a string -- and the day the artefact goes missing or unreadable it returns the empty
+    string and the sentence reverts to exactly what it said before, which is the fail-closed
+    direction: an unpriceable remedy reads as unpriced rather than as cheap.
+    """
+    path = AUC_FAMILY_FLOOR_PATH if path is None else path
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return ""
+    spread = loaded.get("selection_gbp_spread") or {}
+    mean, stdev = _f(spread.get("mean")), _f(spread.get("stdev"))
+    sem, n = _f(loaded.get("selection_sem_gbp")), spread.get("n")
+    if mean is None or stdev is None or sem is None or not sem > 0 or not isinstance(n, int):
+        return ""
+    bar = _f(sems_to_state_a_sign(n))
+    if bar is None:
+        return ""
+    sems_from_zero = abs(mean) / sem
+    if sems_from_zero > bar:
+        # THE FLATTERING BRANCH, AND IT IS REACHABLE -- see the control, which drives BOTH out of
+        # one function by moving the family's own mean and never by stubbing this one.
+        return (", and it is worth doing: the nearest floor on this figure's own book ({source}) "
+                "does clear its own sign bar at {have:.3f} of the {need:.3f} errors it needs, so a "
+                "floor drawn on the run itself could carry a direction".format(
+                    source=AUC_FAMILY_SOURCE, have=sems_from_zero, need=bar))
+    return (", though the nearest floor on this figure's own book ({source}, {n} seeds on the same "
+            "{book} settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE "
+            "-- {have:.3f} of the {need:.3f} errors from zero, and the seed count that would close "
+            "that gap divides by an estimate whose own interval contains zero, so it has no upper "
+            "bound. The owed re-run is still strictly better evidence, because the arms span two "
+            "books and that floor covers one; but the closest thing to an answer already on disk "
+            "is that more draws of this instrument do not buy a direction".format(
+                source=AUC_FAMILY_SOURCE, n=n, have=sems_from_zero, need=bar,
+                book=_the_book_this_floor_was_drawn_on(loaded) or "same"))
+
+
+def _the_book_this_floor_was_drawn_on(loaded: dict) -> int | None:
+    """The one settled-account count every seed in a floor family agrees on, or `None`.
+
+    READ, NEVER PINNED. `154` is in a comment on `AUC_FAMILY_FLOOR_PATH` and must not become a
+    literal in a rendered sentence: the family is admitted on its draws, so the day it is replaced
+    by a family on another book the sentence has to follow it. Seeds that DISAGREE about their book
+    return `None` -- a family spanning two books is not "the figure's own book" and the sentence
+    above then says "same" rather than naming a number no seed would recognise.
+    """
+    books = {row.get("billing_accounts_settled_in_window") for row in (loaded.get("seeds") or [])
+             if isinstance(row, dict)}
+    books.discard(None)
+    return books.pop() if len(books) == 1 else None
 
 
 #: WHICH AUTHORITY ADMITTED THE FLOOR THIS PAGE IS STANDING ON. Two named values and never a
@@ -4946,6 +5019,22 @@ def _seed_price_interval(mean, sem, stdev, clears_bar) -> dict | None:
     straddles_zero = low <= 0.0 <= high
     band = ((min(high, unpriceable_below) - max(low, -unpriceable_below)) / (2.0 * sem_f)
             if sem_f > 0 else None)
+    # AND WHEN THE DENOMINATOR'S INTERVAL SWALLOWS THE UNPRICEABLE BAND WHOLE, `band` IS A FUNCTION
+    # OF `n` ALONE (found 2026-09-22, correcting the field this function landed with three commits
+    # ago). In that regime the min/max above both bind on the band, so it collapses to
+    # `2·U / 2·sem` = `t(ceiling-1) · sqrt(n / ceiling)` -- the mean cancels and so does the spread.
+    # The book-154 family published 6.79% and the shared-population family returns 0.0679033636330581,
+    # identical to thirteen digits, and NOT because the two families resemble each other: both are
+    # n = 12. A reader who took that 6.79% as a property of the family it sat beside was reading a
+    # restatement of the seed count. So the share is still published -- it is the right quantity when
+    # the interval is narrow enough to bind -- and it now travels with the flag that says which of
+    # those two things it is, keyed to the containment rather than to `n == 12`.
+    band_is_n_alone = (low <= -unpriceable_below and high >= unpriceable_below)
+    # `n` IS NOT A PARAMETER HERE AND IS NOT ADDED AS ONE. `sem = sd / sqrt(n)` by definition of the
+    # two arguments already passed, so the seed count is recoverable exactly; taking it as a fourth
+    # argument would give this function a second, independent spelling of a quantity it can derive,
+    # and the day a caller passed the two that disagree there would be no way to tell which was right.
+    n_implied = int(round((stdev_f / sem_f) ** 2)) if sem_f > 0 else None
     return {
         "at_the_point_estimate": point,
         "denominator_gbp": mean_f,
@@ -4961,6 +5050,14 @@ def _seed_price_interval(mean, sem, stdev, clears_bar) -> dict | None:
             .format("" if straddles_zero else "at its own sign bar ")),
         "has_no_upper_bound": True,
         "share_of_the_interval_the_search_cannot_price": band,
+        "that_share_is_a_function_of_the_seed_count_alone": band_is_n_alone,
+        "that_share_carries_no_information_about_this_family_because": (
+            "this denominator's one-error interval contains the whole unpriceable band, so the "
+            "share reduces to t(ceiling-1) x sqrt(n / ceiling) -- the mean and the spread both "
+            "cancel. It is {share:.2%} for EVERY {n}-seed family in this regime, and reading it as "
+            "a property of this one restates the seed count back to the reader."
+            .format(share=band, n=n_implied)
+            if band_is_n_alone and band is not None and n_implied else None),
         "search_ceiling_seeds": _SEEDS_SEARCH_CEILING,
         "withheld_because": (
             "NO SEED COUNT IS PUBLISHED FOR THIS LEG AND NO LARGER FAMILY WOULD CHANGE THAT. The "
@@ -11118,6 +11215,38 @@ def _sign_on_the_shared_population(path=None) -> dict:
     returns `available: False` WITH a `why_not` the caller composes into the clause, because the
     alternative -- silence -- restores exactly the state this block was built to end: a reader
     told the figure is biased downward and left to guess what removing the bias does.
+
+    THE SEED PRICE IS DERIVED HERE AND NO LONGER REPUBLISHED (2026-09-22). Until today this block
+    copied `sems_needed_to_state_a_sign`, `seeds_needed_to_state_a_sign` and `sems_from_zero`
+    straight out of the artefact's own `distance_to_a_sign`, and the page therefore published
+    `seeds_needed_to_state_a_sign: 1744` beside `sems_from_zero: 0.166`. That is the SAME defect
+    `_seed_price_interval` exists for -- a count whose denominator is an estimate asked only in
+    the state where that estimate's interval contains zero -- surviving on the republish path
+    because the control that killed it is written over the BUILDER and cannot reach a field copied
+    off disk. Copying was the defect's carrier, so copying is what stopped: the price now goes
+    through `_seed_price_interval` on the artefact's own mean, spread and error, and the page
+    publishes the withheld reason and the interval in place of the count.
+
+    AND THE BAR IS RE-DERIVED RATHER THAN CARRIED, FOR A SECOND REASON THE BYTES MAKE PLAIN. The
+    admissible artefact was produced by `18327d977`, a tree that predates the 2026-09-18 deletion
+    of `SEMS_TO_STATE_A_SIGN = 2.0`. Its `distance_to_a_sign` says `sems_needed_to_state_a_sign:
+    2.0` -- this repo's RETIRED rule, the one deleted as "short at every family this instrument
+    has ever drawn and short by MORE as the family shrinks" -- and it carries no
+    `sems_needed_is_derived_from_the_family_size` field at all, so a consumer reading that block
+    has nothing that can tell it the bar was pinned. Republishing 2.0 put a deleted constant on
+    the live page wearing the live rule's key name. The bar published here is now
+    `sems_to_state_a_sign(n)`, the one home, and the artefact's own bar is published BESIDE it
+    under a name that says whose it is.
+
+    THE VERDICT STILL COMES FROM THE PRODUCER, AND IS NOW AND-ED WITH THIS REPO'S RULE. The
+    original choice -- read `selection_distinguishable_from_zero` rather than recompute it -- is
+    right and is kept: recomputing a question the artefact answered would be a second opinion that
+    drifts the first time either side's rule moves. But the producer answered it at 2.0, and a
+    verdict taken at a bar this repo has retired may not silently stand in for one taken at the
+    live rule. So both are published and `sign_is_stateable` is true only if BOTH say so. They
+    agree today (0.166 clears neither 2.0 nor 2.201) and `the_two_rules_agree` is the field that
+    would say if they ever stopped -- an agreement between two spellings is evidence, and this one
+    is now checkable by anyone holding the page.
     """
     path = POPULATION_REPAIR_SIGN_PATH if path is None else path
     try:
@@ -11145,23 +11274,62 @@ def _sign_on_the_shared_population(path=None) -> dict:
 
     spread = loaded.get("selection_gbp_spread") or {}
     distance = loaded.get("distance_to_a_sign") or {}
-    mean = spread.get("mean")
-    sem = loaded.get("selection_sem_gbp")
+    n = spread.get("n")
+    mean, stdev = _f(spread.get("mean")), _f(spread.get("stdev"))
+    sem = _f(loaded.get("selection_sem_gbp"))
     # THE PRODUCER'S OWN VERDICT, NOT THIS MODULE'S RE-DERIVATION OF IT. `noise_floor` writes
     # `selection_distinguishable_from_zero` from the same spread it publishes; recomputing the
     # comparison here would be a second opinion on a question the artefact already answered, and
     # the two would drift the first time either side's rule changed.
-    stateable = loaded.get("selection_distinguishable_from_zero")
+    producers_verdict = loaded.get("selection_distinguishable_from_zero")
+    if mean is None or stdev is None or sem is None or not isinstance(n, int) or n < 2:
+        return {
+            "available": False,
+            "why_not": (
+                "the family at `{name}` does not carry a readable mean, spread, standard error "
+                "and seed count for its selection leg, so the choosing on a shared population "
+                "cannot be graded against a sign bar here.".format(name=path.name)),
+        }
+    # THIS REPO'S LIVE RULE, at the bar this family's own size earns -- never the artefact's, for
+    # the reason in the docstring. `2.0` in those bytes is the constant deleted on 2026-09-18.
+    bar = _f(sems_to_state_a_sign(n))
+    artefacts_bar = _f(distance.get("sems_needed_to_state_a_sign"))
+    sems_from_zero = abs(mean) / sem if sem > 0 else None
+    at_this_repos_bar = (None if sems_from_zero is None or bar is None
+                         else sems_from_zero > bar)
+    # FAILS CLOSED ON DISAGREEMENT. Stateable only if BOTH rules say so; an unreadable answer on
+    # either side is not an answer, so it cannot carry the pair.
+    stateable = (producers_verdict is True and at_this_repos_bar is True)
+    # THE PRICE AS AN INTERVAL, THROUGH THE SAME DOOR THE BUILDER USES. `clears_bar` is the third
+    # argument and it is the live-rule verdict, which IS the test of whether the denominator's
+    # interval contains zero -- so this returns `None`, and the count comes back, on exactly the
+    # day this family pins its mean past its own bar, with nobody editing a string here.
+    interval = _seed_price_interval(mean, sem, stdev, stateable if stateable else False)
     return {
         "available": True,
-        "n": spread.get("n"),
+        "n": n,
         "mean_gbp": mean,
         "sem_gbp": sem,
-        "sems_from_zero": distance.get("sems_from_zero"),
-        "sems_needed_to_state_a_sign": distance.get("sems_needed_to_state_a_sign"),
-        "seeds_needed_to_state_a_sign": distance.get("seeds_needed_to_state_a_sign"),
+        "stdev_gbp": stdev,
+        "sems_from_zero": sems_from_zero,
+        "sems_needed_to_state_a_sign": bar,
+        "sems_needed_is_derived_from_the_family_size": True,
+        # WHOSE BAR THE ARTEFACT'S OWN VERDICT WAS TAKEN AT, named as the artefact's rather than
+        # published under the live rule's key. A reader comparing the two can see that the file on
+        # disk was graded by a rule this repo no longer holds.
+        "the_artefacts_own_bar": artefacts_bar,
+        "the_artefacts_bar_is_this_repos_rule": (
+            artefacts_bar is not None and bar is not None and abs(artefacts_bar - bar) < 1e-9),
         "sign_is_stateable": stateable,
+        "sign_is_stateable_at_the_artefacts_own_bar": producers_verdict,
+        "sign_is_stateable_at_this_repos_bar": at_this_repos_bar,
+        "the_two_rules_agree": producers_verdict is at_this_repos_bar,
         "sign_if_it_were_stateable": distance.get("sign_if_it_were_stateable"),
+        # NO `seeds_needed_to_state_a_sign`. The artefact carries one -- 1,744 at its retired 2.0
+        # bar -- and it is the unbounded quotient `_seed_price_interval` exists to refuse. What
+        # stands in its place is the reason it is withheld and the evidence behind that reason.
+        "seeds_needed_unavailable": (interval or {}).get("withheld_because"),
+        "seeds_needed_interval": interval,
         "measured_on_commit": _POPULATION_REPAIR_BIAS_INSTRUMENT,
         "is_this_pages_run": False,
         "may_be_netted_against_the_published_figure": False,
@@ -11218,13 +11386,25 @@ def _population_repair_bias(artefact: dict | None) -> dict:
         # sentence carrying this page's most careful refusal read "0.16591746236761307 of the 2.0
         # SEMs". A refusal that looks unproofed is read as unconsidered.
         mean = shared.get("mean_gbp") or 0.0
+        # AND NO SEED COUNT IS IN THIS SENTENCE ANY MORE (2026-09-22). It read "1,744 seeds away at
+        # today's spread", which is the single most misleading clause this defect produced: 1,744 is
+        # large enough to read as a considered price rather than as what it is, an estimate a sixth
+        # of a standard error from zero sitting in a denominator. The phrase that replaces it is
+        # composed from the block's OWN `seeds_needed_interval`, so it cannot outlive the withholding
+        # -- and the `or 0` that used to backstop the count is gone with it, because "0 seeds away"
+        # is the one reading worse than 1,744: it says the sign is free.
+        price = shared.get("seeds_needed_interval") or {}
         shared_sentence = (
             " AND HERE IS WHAT THE SAME INSTRUMENT SAYS ITS OWN REPAIRED BOOK IS WORTH, which is "
             "the question the size above makes a reader ask and does not answer. The {n} seeds "
             "drawn on `{inst}` -- where both arms refuse at one frontier, so the populations "
             "match by construction and not by restriction -- put `selection_gbp` at a mean of "
             "{mean}, and THE SIGN IS NOT STATEABLE: {have} of the {need} SEMs it would "
-            "need, {seeds:,} seeds away at today's spread. So the answer to what the choosing is "
+            "need, and NO NUMBER OF SEEDS IS THE PRICE OF CLOSING THAT GAP. The count divides by "
+            "the very estimate whose interval contains zero, so it has no upper bound: the "
+            "arithmetic at this family's point estimate gives {point}, one standard error either "
+            "side of the denominator gives {lo} and {hi}, and those are not a range because the "
+            "quantity diverges between them. So the answer to what the choosing is "
             "worth on a population both arms priced is WE CANNOT TELL, and that is this page's "
             # IT NAMES `selection_gbp` RATHER THAN "the figure above", the same repair the
             # cleared branch of this very function already took and recorded (see the comment
@@ -11239,8 +11419,14 @@ def _population_repair_bias(artefact: dict | None) -> dict:
             n=shared.get("n"), inst=_POPULATION_REPAIR_BIAS_INSTRUMENT,
             mean=("-£{:,.2f}".format(abs(mean)) if mean < 0 else "£{:,.2f}".format(mean)),
             have=round(shared.get("sems_from_zero") or 0.0, 3),
-            need=shared.get("sems_needed_to_state_a_sign"),
-            seeds=shared.get("seeds_needed_to_state_a_sign") or 0,
+            # THE BAR IS ROUNDED FOR THE SAME REASON `sems_from_zero` IS, and it needs it NOW where
+            # it did not before: republishing the artefact's pinned `2.0` printed "the 2.0 SEMs",
+            # while the derived bar arrives as 2.200985160091639. Found by printing the clause at
+            # its real inputs, which is the only way this class of defect has ever been caught here.
+            need=round(shared.get("sems_needed_to_state_a_sign") or 0.0, 3),
+            point=_price_word(price.get("at_the_point_estimate")),
+            lo=_price_word(price.get("price_at_the_low_end_of_the_denominator")),
+            hi=_price_word(price.get("price_at_the_high_end_of_the_denominator")),
             gbp=_POPULATION_REPAIR_BIAS_GBP)
     else:
         shared_sentence = (
