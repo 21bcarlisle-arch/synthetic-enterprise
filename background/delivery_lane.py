@@ -3807,6 +3807,28 @@ def path_note(item: dict) -> str:
     predates a landing is often still the right work -- restoring that very revert is focus item 1
     on this record -- so a filter would suppress the item written to fix the thing it detected.
 
+    IT READS `_ITEM_PROSE_KEYS` AND NOT `what + why`, and that was its own second defect (measured
+    2026-09-22 on the live continuation store, 360 entries). 54 of them named a tracked path in
+    `done_means` or `note` that appeared in NEITHER `what` nor `why` -- 68 such paths -- and this
+    note could see none of them. The blind field is the worst one to be blind in: `done_means` is
+    where "done means the row is in `docs/design/maturity_map.yaml`" lives, so the path the tick
+    must actually touch is exactly the path the note dropped. Of the three doors asking this
+    question, two -- the orientation door and the hand-off door -- already went through
+    `direction_path_check._item_text`, which reads the canonical tuple; this one was the last
+    hand-rolled field list, and three call sites extracting "the same four keys" differently is
+    precisely what that tuple exists to prevent.
+
+    THE WIDENING MADE THE NOTE CLEANER, NOT NOISIER, AND I PREDICTED THE OPPOSITE. The expectation
+    filed before measuring was that `done_means`/`note` prose -- full of `docs/staging/` and dotted
+    module names -- would add more UNRESOLVED tokens than resolvable paths, making the "N further
+    path-shaped token(s)" sentence the loudest part of the change. Refuted on the 54 affected
+    entries: median +1 resolvable path against median +0 unresolved, means +1.26 against +0.48.
+
+    `_MAX_GRADED_PATHS` DOES NOT NEED RAISING FOR THIS and the measurement is why the constant was
+    not touched: the widest item on the live store resolves 12 paths, unchanged by the widening,
+    against a bound of 24. The bound is not near, and if it ever is the note prints what it
+    dropped rather than truncating in silence.
+
     NEVER RAISES, and an unanswerable tree yields "" -- the behaviour before this existed. Same
     fail-open direction and same argument as its three siblings: a missing annotation is visible to
     the tick that then does the work anyway, where an item withheld because git hiccuped is visible
@@ -3820,7 +3842,7 @@ def path_note(item: dict) -> str:
         return ""
     try:
         root = seat_continuation.shared_tree_dir()
-        text = "{} {}".format(item.get("what") or "", item.get("why") or "")
+        text = " ".join(str(item.get(key) or "") for key in _ITEM_PROSE_KEYS)
         found = list(dict.fromkeys(tok.rstrip(".,;:)]}-")
                                    for tok in _NAMED_PATH.findall(text)))
         if not found:
