@@ -342,6 +342,27 @@ def hand_off(
         entry["written_while_holding"] = held
     if retires:
         entry["supersedes"] = retires
+    # THE LANDING DOOR, ASKED AT THE THIRD AND LAST PLACE PROSE REACHES THE DRAW (2026-09-22).
+    # `delivery_lane.path_note` closed the READER's half and `direction_path_check` (95035ad29) the
+    # ORIENTATION's. This is the door a seat uses at the END of a turn, when it knows least about
+    # what the next lane will have landed by the time the item is drawn -- measured on the live
+    # record, two of the six reverts focus item 1 named were fixed by another lane between 07:40
+    # and 08:10, which is exactly the window a hand-off lives in.
+    #
+    # STORED AS A STAMPED MEASUREMENT AND NOT AS A VERDICT. The draw grades the tree fresh; a
+    # second opinion kept from hours earlier would rot into a stale literal beside a live one. What
+    # these rows buy is the DIFFERENCE -- `direction_path_check.drift_note` is their only reader
+    # and it reports what MOVED, which no reader of the tree alone can compute.
+    #
+    # NEVER REFUSES AND NEVER RAISES: `hand_off_reading` returns `{}` on an unanswerable tree, and
+    # a hand-off that cannot be graded is still worth far more than no hand-off.
+    try:
+        from background import direction_path_check
+        reading = direction_path_check.hand_off_reading(entry, now=stamped)
+        if reading:
+            entry["path_reading"] = reading
+    except Exception:
+        pass
     items.append(entry)
     _save(items, path)
     return items[-1]
@@ -695,6 +716,12 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
         print(f"handed off {item['id']}")
         if item.get("supersedes"):
             print(f"  retires {', '.join(item['supersedes'])}")
+        # PRINTED TO THE SEAT THAT IS STILL HERE. This is the only moment the prose can still be
+        # corrected for free: the seat has the context, the tree is in front of it, and a re-stamp
+        # under the same id replaces the entry. Once the turn ends nobody can do it but the tick
+        # that has to spend its orientation working out what was meant.
+        from background import direction_path_check
+        print(direction_path_check.hand_off_note(item, now=item.get("written_at")))
         return 0
     if args.drop:
         print("dropped" if drop(args.drop) else "not found")

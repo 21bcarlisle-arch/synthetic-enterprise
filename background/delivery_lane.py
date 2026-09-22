@@ -3361,6 +3361,23 @@ def premise_note(item: dict) -> str:
     the property is "nothing this item points at is still outstanding". A mixture of landed and
     unlanded ids is exactly the context-citation shape above, and is not a spent premise.
 
+    IT READS `what + why` AND NOT `_ITEM_PROSE_KEYS`, AND THAT IS DELIBERATE -- do not "finish"
+    the 2026-09-22 widening by copying it here. `path_note` was widened to the canonical tuple that
+    day because 54 live entries named a tracked PATH in `done_means`/`note` and nowhere else. The
+    same change here is wrong, and it was measured rather than argued: `what`/`why` is where an item
+    states what it DEPENDS ON, while `done_means`/`note` is where it states CRITERIA, ANCHORS and
+    COMPLETION MARKERS. All eleven live entries citing a sha only in those fields cite one of those
+    three -- *"Parts TWO and THREE are DISCHARGED in commit 96ec173c0"*, *"closed in 37138c44f"*,
+    *"12 unjudged strings at 9e9f4d994"*, *"producing_commit must read a178b56d6"*.
+
+    A COMPLETION MARKER HAS ARRIVED BY DEFINITION, so folding it into `all arrived` makes the
+    condition trivially true and publishes "the work may have landed already, release the claim"
+    over an item whose work has not started -- the exact false positive the paragraph above
+    designs against, hitting hardest on the six live entries that cite nothing in `what`/`why` and
+    are correctly silent today. The flip count says the opposite (6 gained against 1 lost) and it
+    is the wrong ruler: those are verdict FLIPS, not correct verdicts, and all six gains are false.
+    Guarded by `test_PREMISE_NOTE_STAYS_ON_WHAT_AND_WHY_AND_MUST_NOT_BE_WIDENED_WITH_THE_PATH_DOORS`.
+
     NEVER RAISES, and an unanswerable git yields "" -- no note, i.e. the behaviour before this
     existed. That is the fail-OPEN direction and it is chosen for the reason `_retired_ids` gives:
     a missing annotation is visible to the tick that then does the work anyway, where an item
@@ -3807,6 +3824,28 @@ def path_note(item: dict) -> str:
     predates a landing is often still the right work -- restoring that very revert is focus item 1
     on this record -- so a filter would suppress the item written to fix the thing it detected.
 
+    IT READS `_ITEM_PROSE_KEYS` AND NOT `what + why`, and that was its own second defect (measured
+    2026-09-22 on the live continuation store, 360 entries). 54 of them named a tracked path in
+    `done_means` or `note` that appeared in NEITHER `what` nor `why` -- 68 such paths -- and this
+    note could see none of them. The blind field is the worst one to be blind in: `done_means` is
+    where "done means the row is in `docs/design/maturity_map.yaml`" lives, so the path the tick
+    must actually touch is exactly the path the note dropped. Of the three doors asking this
+    question, two -- the orientation door and the hand-off door -- already went through
+    `direction_path_check._item_text`, which reads the canonical tuple; this one was the last
+    hand-rolled field list, and three call sites extracting "the same four keys" differently is
+    precisely what that tuple exists to prevent.
+
+    THE WIDENING MADE THE NOTE CLEANER, NOT NOISIER, AND I PREDICTED THE OPPOSITE. The expectation
+    filed before measuring was that `done_means`/`note` prose -- full of `docs/staging/` and dotted
+    module names -- would add more UNRESOLVED tokens than resolvable paths, making the "N further
+    path-shaped token(s)" sentence the loudest part of the change. Refuted on the 54 affected
+    entries: median +1 resolvable path against median +0 unresolved, means +1.26 against +0.48.
+
+    `_MAX_GRADED_PATHS` DOES NOT NEED RAISING FOR THIS and the measurement is why the constant was
+    not touched: the widest item on the live store resolves 12 paths, unchanged by the widening,
+    against a bound of 24. The bound is not near, and if it ever is the note prints what it
+    dropped rather than truncating in silence.
+
     NEVER RAISES, and an unanswerable tree yields "" -- the behaviour before this existed. Same
     fail-open direction and same argument as its three siblings: a missing annotation is visible to
     the tick that then does the work anyway, where an item withheld because git hiccuped is visible
@@ -3820,7 +3859,7 @@ def path_note(item: dict) -> str:
         return ""
     try:
         root = seat_continuation.shared_tree_dir()
-        text = "{} {}".format(item.get("what") or "", item.get("why") or "")
+        text = " ".join(str(item.get(key) or "") for key in _ITEM_PROSE_KEYS)
         found = list(dict.fromkeys(tok.rstrip(".,;:)]}-")
                                    for tok in _NAMED_PATH.findall(text)))
         if not found:
@@ -3872,6 +3911,18 @@ def path_note(item: dict) -> str:
         return ""
 
 
+def _drift_note(item: dict) -> str:
+    """`direction_path_check.drift_note`, deferred and fail-soft. "" for anything it cannot answer.
+
+    IMPORTED INSIDE THE CALL for `_path_verdict`'s reason: `direction_path_check` imports back from
+    this module, and a top-level import here would make the pair circular at load time."""
+    try:
+        from background import direction_path_check
+        return direction_path_check.drift_note(item)
+    except Exception:
+        return ""
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
@@ -3888,6 +3939,14 @@ def doorbell(item: dict) -> str:
     per-path table for work they are not going to do. It is also the longest of the four, and the
     three that can end the turn in one line have to be readable above it."""
     return premise_note(item) + rival_note(item) + successor_note(item) + path_note(item) + (
+        # DRIFT COMES LAST OF THE FIVE AND IMMEDIATELY AFTER THE TABLE IT REFERS TO. It is the only
+        # row here that is not answerable from the tree in front of the reader: a hand-off carries
+        # the landing door's reading from the moment it was WRITTEN, and the difference between
+        # that and `path_note`'s fresh tags says who has been working in these files while the
+        # item waited. It says nothing at all when the two readings agree, because `path_note` has
+        # just said it freshly -- and nothing on a focus item, which carries no stored reading.
+        _drift_note(item)
+    ) + (
         "LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
         "lanes because a judgement about what matters beats a weighted coin over a map whose "
         "idle atoms are all over their pass ceiling. WORK: {what} WHY: {why} "
