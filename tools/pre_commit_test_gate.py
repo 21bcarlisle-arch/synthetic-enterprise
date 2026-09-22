@@ -416,6 +416,116 @@ CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS
 # added, this entry commented out, a member re-typed as a literal.
 CONTROL_TESTS.append("tests/tools/test_pre_commit_test_gate_censused_batch.py")
 
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# THE CLASS THE CENSUS ABOVE CANNOT SEE (2026-09-22)
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# SAME DEFECT SHAPE AS THE CENSUSED BATCH -- subject is the whole tree, selector is one filename
+# stem -- and a SEPARATE list because `whole_tree_subject_census --strict-dataflow` returns 0 for
+# every one of these. It is not that they were missed; the census structurally cannot see them, in
+# two distinct ways, and both are recorded here because the next such control will be invisible the
+# same way:
+#
+#   1. THE POPULATION IS DERIVED FROM GIT, NOT FROM A FILESYSTEM WALK. `_WALK_ATTRS` is
+#      {glob, rglob, iterdir}, so a control whose subject is `git ls-files` / `git grep` /
+#      `git show :<path>` -- the committed bytes, which is the only honest subject for "what does
+#      the RECORD claim" -- matches leg 1 not at all. Four of the five below are git-oracled.
+#   2. `tests` IS EXCLUDED FROM `SOURCE_ROOTS`, on the stated reason that "a test whose subject is
+#      other tests is reached by staging those tests, which the stem selector does handle (a changed
+#      test file selects itself)". That is true of a test's own assertions and FALSE of a ratchet
+#      over the whole test corpus: staging `tests/sim/test_scenario_spine_consumption.py` selects
+#      that file, not the repo-wide ratchet the file just joined.
+#
+# THE COST OF RECORD, measured not predicted, and it is what earns these five lines. All five were
+# RED AT `origin/main` simultaneously on 2026-09-22 with no commit's selection able to reach any of
+# them -- so every lane landed green over the top of all five, for an unknown length of time. The
+# clearest instance is reason 2's: FIVE test functions matching `ast.walk` accumulated in the tree
+# while `test_no_tree_scan_passes_on_an_empty_population` was red, and each arriving commit was
+# green. Written up in
+# `docs/staging/SEAT_RESULT_THE_SEVEN_REDS_ARE_GREEN_AND_THREE_WERE_DETECTORS_OVER_MATCHING_2026-09-22.md`,
+# with the census's own two blind spots filed as their own finding rather than patched from here:
+# widening `_WALK_ATTRS` and un-excluding `tests` changes which files a PRE-REGISTERED predicate
+# counts, and doing that inside the commit that adds entries to the list the predicate discharges
+# would make the census agree with this list by construction.
+#
+# PRICED, in the file's own convention, and stated rather than glossed: ~31s wall for the five
+# measured individually here (0.7 / 1.6 / 7.1 / 8.7 / 13.4), against the ~600s gate the lint entry
+# above budgets against -- about 5%. The two expensive ones are expensive for the same reason: they
+# read every committed record in `docs/` through git and resolve every falsifier it cites against
+# the index.
+#
+# NOT ADDED TO `CENSUSED_WHOLE_DIRECTORY_SUBJECTS`, deliberately. That constant IS whatever the
+# census returns, and `test_every_member_still_earns_its_place_by_scanning_a_whole_directory` grades
+# its members with the census's predicate -- which would red on all five, correctly, because they do
+# not scan a whole directory. Folding them in would have meant weakening that control to admit them.
+#
+# test file                                                             subject | tests | secs
+GIT_ORACLED_AND_TEST_CORPUS_SUBJECTS = [
+    # The regulation commons plus `docs/staging/` at any depth: every artefact's supersession block,
+    # and the filed finding each unresolved verdict cites. Its staging half is why it belongs here
+    # rather than on a docs trigger -- an ARCHIVAL in another lane is what last falsified it.
+    "tests/architecture/test_a_commons_artefact_can_tell_when_its_source_was_revised.py",  # commons+staging|45|0.7
+    # Every `.py` under `tools/` and `simulation/` -- which is "any code change" almost exactly, so
+    # always-run is not an approximation of its subject here, it IS its subject.
+    "tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py",  # tools,simulation|16|1.6
+    # Every tracked `tests/**/test_*.py`. Reason 2 above; the five-offender accumulation is this
+    # entry's reachability evidence on real bytes.
+    "tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py",  # tests|11|7.1
+    # Every committed markdown record carrying a `**Discharged:**` claim, against the index. Rots
+    # from BOTH sides -- a new record, and a test RENAMED or DELETED elsewhere -- and the second is
+    # the one no docs trigger could ever catch. Both citations it caught on 2026-09-22 were renames.
+    "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",  # docs+index|14|8.7
+    # Every committed atom store under `docs/design/simplifications/`, against the index. Same
+    # two-sided rot as the entry above, same reason.
+    "tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py",  # stores+index|22|13.4
+]
+
+CONTROL_TESTS += GIT_ORACLED_AND_TEST_CORPUS_SUBJECTS
+
+# THE FILE THAT KEEPS THE BATCH ABOVE AND THE TWO NEW SURFACE TRIGGERS HONEST, and a separate line
+# for the same reason the censused batch's grader is: it is not a member of the batch. Its subject is
+# the gate's own selection over every commit SHAPE -- a new module, a staging record, an atom store,
+# a new test file, a module with a declared subject guard, and a pure-output commit that must still
+# select nothing. That last one is the null control, and without it a trigger widened to `docs/`
+# would pass every other leg in the file.
+#
+# Its own subject is `select_targets`, which has no filename stem a selector could map to it, so
+# leaving it stem-selected would make it the next instance of the class it guards. Asserted in the
+# file rather than trusted to this comment (`test_this_control_is_itself_on_the_always_run_list`).
+#
+# ~1.2s (8 tests), substantially all of it `select_targets` calling `git grep` for the data surface.
+CONTROL_TESTS.append("tests/tools/test_the_gate_reaches_the_git_oracled_controls.py")
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# A GUARD WHOSE SUBJECT IS ONE MODULE AND WHOSE NAME IS THE ASPECT (2026-09-22)
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# `tests_for` maps a module to tests NAMED for it -- `test_<stem>.py` and `test_<stem>_*.py`. The
+# suffix half exists because naming a test file after the ASPECT it covers is normal here. It is
+# only half the convention: a file named for the aspect and NOT prefixed with the module's stem is
+# mapped to nothing, and there is one such guard whose subject is a single module's prose.
+#
+# WHY NOT `CONTROL_TESTS`: 43s, the most expensive test file in this whole selection, because it
+# renders the real door against a built feed once per referent. Paying that on every code commit to
+# guard one module's sentences would be the wrong trade by an order of magnitude -- it is 7% of the
+# gate's entire budget for a subject that ~1 commit in 50 touches.
+#
+# WHY NOT A RENAME to `test_generate_value_arms_data_undriven_pointers.py`, which would need no gate
+# change at all and was the first choice: the path is cited by three comments in the producer, by
+# `site/test_a_producers_here_relative_pointer_has_one_home.py`, by two staging findings and by an
+# alarm log, and a record citing the old path would then red
+# `test_no_committed_discharge_cites_an_unlanded_falsifier` -- the entry four lines above. A rename
+# that trips a control this same commit is adding is not the cheap option it looks like.
+#
+# WHY NOT A DERIVED "tests naming this module's path as a literal" RULE, which would be a general
+# mechanism rather than a map: measured over ten real modules before it was believed, it costs a
+# median of +2 test files (max +22), so the cost was NOT the objection -- it simply does not reach
+# this rung, which imports the module as `gva` and never writes its path. A general rule that misses
+# the only instance it was written for is the shape this file already catalogues twice.
+SUBJECT_TESTS = {
+    "tools/generate_value_arms_data.py": [
+        "tests/tools/test_the_value_arms_pages_undriven_pointers.py",  # |10|43
+    ],
+}
+
 # A staged path under any of these = a code/config change that could break a control or its own
 # tests -> run the gate. Anything else (docs/status, docs/reports, site/data, observability) is
 # pure data and cannot break a control -> skip (keep the loop's commit cadence fast).
@@ -467,6 +577,20 @@ STORE_CONTRACT_TESTS = [
     # Mutation-proven from the DATA side (tests/tools/test_pre_commit_test_gate_selection.py):
     # one byte over the ratchet, added to the map, must RED at the commit.
     "tests/design/test_simplifications_store.py",
+    # THE FALSIFIER-CITATION HALF OF THE SAME CONTRACT (2026-09-22). This control's subject IS
+    # `docs/design/simplifications/**.yaml` -- every committed store, and every `tests/**.py` path
+    # or `::node` its notes credit, resolved against the index. It is on `CONTROL_TESTS` below via
+    # `GIT_ORACLED_AND_TEST_CORPUS_SUBJECTS`, which catches the rot direction where a CODE commit
+    # renames a credited falsifier; this line catches the other direction, which always-run on code
+    # cannot: a commit that writes a new store note and stages NO `.py` at all. Measured, not
+    # assumed -- before this line, `select_targets(['docs/design/simplifications/A51_....yaml'])`
+    # returned 3 files and this control was not among them, so a store could credit a falsifier that
+    # is in no commit and the commit writing it would be green. That was the live state: A51's note
+    # was judged an over-claim for wording, and the commit that could have refused it selected the
+    # three tests above and nothing else. ~13.4s, the most expensive entry on this list and stated
+    # rather than glossed: it reads every committed store through git and resolves every cited path
+    # against the index.
+    "tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py",
 ]
 LEVEL_SENSITIVE_TESTS = [
     # tests/background/test_fronts_reconciler.py removed 2026-08-03 with the module itself (the
@@ -682,6 +806,32 @@ MINT_HYGIENE_TESTS = [
     "tests/background/test_staging_disposition.py",
 ]
 
+# THE DISCHARGE SURFACE (2026-09-22). A `docs/staging/**.md` record is data by every prefix rule
+# here, and one of the things such a record does is CLAIM A CLOSURE -- `**Discharged:** <a test
+# path>::<a node>`. That claim is the register a level rests on, and it is checked against the git
+# index by the control named below.
+#
+# WHY A SIXTH SURFACE AND NOT ALWAYS-RUN ALONE. The control IS always-run (see
+# `GIT_ORACLED_AND_TEST_CORPUS_SUBJECTS`), which catches a citation falsified by a CODE commit
+# renaming the test it names. It cannot catch the other direction, and that direction is the common
+# one: a finding written up and archived in a pure-docs commit, citing a falsifier that was never
+# landed or was renamed months ago. Measured before this line was written --
+# `select_targets(['docs/staging/done/WORKER_FINDING_A_GAP_ROW_....md'])` returned **ZERO** test
+# files, so the gate treated a record making a closure claim as a pure docs commit that "cannot
+# break a control". Both citations found red at `origin/main` on 2026-09-22 had been written into
+# records exactly this way, and both sat for weeks.
+#
+# NARROW BY EXTENSION, NOT BY FILENAME: any `.md` under `docs/staging/` at any depth, because
+# `done/` is where an archived record lives and archived records are still committed claims. The
+# marker itself (`^\*\*Discharged:\*\*`) is deliberately NOT re-implemented here -- this trigger
+# fires on the whole directory and lets the control decide, for the reason the sibling docstring
+# gives about `data_surface_tests`: a trigger that re-derives the control's own predicate makes the
+# two agree by construction. ~8.7s, and paid only on a commit that stages such a record.
+DISCHARGE_SURFACE_PREFIX = "docs/staging/"
+DISCHARGE_SURFACE_TESTS = [
+    "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",
+]
+
 # THE CANON SURFACE (2026-08-10, atom OPS5). CLAUDE.md and the design doc beside it are data by
 # every prefix rule here, but they are the files that tell a seat what it may DO -- and one of the
 # rules they now carry (hook-bypass is a WALL, and the one legal move that replaced the sanctioned
@@ -829,6 +979,9 @@ def select_targets(files: list[str]) -> list[str]:
     site_surface_changed = any(
         f.startswith(SITE_SURFACE_PREFIX) and f.endswith(".html") for f in files
     )
+    discharge_surface_changed = any(
+        f.startswith(DISCHARGE_SURFACE_PREFIX) and f.endswith(".md") for f in files
+    )
     # THE DATA SURFACE: derived, so it is computed BEFORE the skip decision -- a data file that
     # some module reads is not a "pure docs/data commit", and deciding that from the prefix list
     # alone is the exact fail-open this closes.
@@ -837,7 +990,7 @@ def select_targets(files: list[str]) -> list[str]:
         data_targets.update(data_surface_tests(f))
     if not (code_changed or level_surface_changed or mint_marker_changed
             or canon_surface_changed or store_surface_changed or site_surface_changed
-            or data_targets):
+            or discharge_surface_changed or data_targets):
         return []  # pure docs/data commit touching no control, level surface, mint marker,
         # canon, per-atom store, page, or file any module reads
     targets: set[str] = set(data_targets)
@@ -853,8 +1006,16 @@ def select_targets(files: list[str]) -> list[str]:
         targets.update(t for t in STORE_CONTRACT_TESTS if (ROOT / t).exists())
     if site_surface_changed:
         targets.update(t for t in SITE_SURFACE_TESTS if (ROOT / t).exists())
+    if discharge_surface_changed:
+        targets.update(t for t in DISCHARGE_SURFACE_TESTS if (ROOT / t).exists())
     for f in files:
         targets.update(tests_for(f))
+        # THE ASPECT-NAMED GUARD OF ONE MODULE -- see `SUBJECT_TESTS`. Unioned with `tests_for`
+        # rather than folded into it: that function answers "which tests are NAMED FOR this
+        # module", which is a derivation, and this answers "which tests take it as their SUBJECT
+        # without being named for it", which is a declaration. Fusing them would make the
+        # derivation unfalsifiable, the same reason `data_surface_tests` is kept separate.
+        targets.update(t for t in SUBJECT_TESTS.get(f, ()) if (ROOT / t).exists())
     return sorted(targets)
 
 

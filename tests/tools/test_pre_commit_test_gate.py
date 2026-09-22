@@ -351,11 +351,26 @@ def test_staged_mint_marker_runs_the_hygiene_set():
     assert set(gate.MINT_HYGIENE_TESTS) <= set(targets)
 
 
-def test_non_mint_staging_doc_is_still_pure_data():
-    # a director/advisor SOURCE doc or a from_rich note in staging is NOT a mint marker -> stays fast
-    # assembled, not literal -- see test_a_non_store_design_doc_is_still_pure_data
-    assert gate.select_targets(["docs/staging/in_progress/" + "DIRECTOR_RULING_FOO" + ".md"]) == []
-    assert gate.select_targets(["docs/staging/" + "from_rich_123" + ".md"]) == []
+def test_non_mint_staging_doc_does_not_run_the_MINT_HYGIENE_SET():
+    # a director/advisor SOURCE doc or a from_rich note in staging is NOT a mint marker -> it must
+    # not pull in the mint-block-hygiene set. Assembled, not literal -- see
+    # test_a_non_store_design_doc_is_still_pure_data
+    #
+    # RE-KEYED TO THE PROPERTY 2026-09-22, and the old literal is worth recording because it was a
+    # control pinned to today's answer. It asserted `select_targets(...) == []` -- "stays pure data"
+    # -- which was a true description of the tree at the time and NOT this control's subject. Its
+    # subject is the MINT trigger's narrowness: a doc that is not a mint marker must not run the
+    # mint set. `DISCHARGE_SURFACE_PREFIX` now selects the discharge control for any staging `.md`,
+    # because a committed record's `**Discharged:**` claim was checked by nothing at the commit that
+    # wrote it, and the `== []` form reddened on that change -- i.e. it went red when the gate got
+    # MORE honest, which is exactly backwards. The mint claim is asserted directly now and survives
+    # any further surface being added over the same directory.
+    for doc in ("docs/staging/in_progress/" + "DIRECTOR_RULING_FOO" + ".md",
+                "docs/staging/" + "from_rich_123" + ".md"):
+        targets = set(gate.select_targets([doc]))
+        assert not (set(gate.MINT_HYGIENE_TESTS) & targets), (
+            f"{doc} is not a mint marker, so it must not run the mint-block-hygiene set -- the "
+            "MINT_MARKER_PREFIX has been widened past the parked mint docs it was written for")
 
 
 def test_mint_hygiene_test_files_all_exist():
