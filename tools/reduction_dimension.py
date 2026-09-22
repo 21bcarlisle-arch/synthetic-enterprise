@@ -296,7 +296,27 @@ def _claim_symbols(tree: ast.Module) -> list[str]:
                 found.append(node.name)
         elif isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target, ast.Name) and target.id.isupper():
+                # PUBLIC, the same rule the FunctionDef leg above applies and the same rule this
+                # module's own `CLAIM_NAME` docstring declares -- "matched on the name of a PUBLIC
+                # symbol OR ON THE MODULE'S OWN FILENAME". This leg omitted it, and `str.isupper()`
+                # is True for a leading-underscore name because `_` is uncased, so a PRIVATE
+                # constant was in class while a private function was not. One rule, two spellings,
+                # and the asymmetry was invisible because only one of them had an instance.
+                #
+                # THE INSTANCE (2026-09-22): `tools/generate_value_arms_data._CEILING_PROBE`, whose
+                # value is the string "settlement_ceiling_probe.json" -- a FILENAME. It put a
+                # 15,000-line module into the census as a claim about the household stock, and it is
+                # the only reason that module was in class at all. A settlement probe's filename is
+                # not a claim about the drawn population, which is the distinction
+                # `test_a_claim_word_outside_the_subject_is_not_in_class` already owns; this is the
+                # same distinction reached through the symbol leg instead of the word leg.
+                #
+                # NOT A NARROWING OF THE SUBJECT. A private constant that really does publish a
+                # coverage claim reaches the census through the module's filename or through the
+                # public symbol that exposes it -- a claim nothing public can reach is a claim no
+                # reader can read, and there is nothing for a declaration to be about.
+                if (isinstance(target, ast.Name) and target.id.isupper()
+                        and not target.id.startswith("_")):
                     if CLAIM_NAME.search(target.id):
                         found.append(target.id)
     return found

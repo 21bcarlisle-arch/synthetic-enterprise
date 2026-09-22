@@ -56,6 +56,25 @@ TESTS = REPO / "tests"
 #: scope: it cannot silently empty, because whoever emptied it edited the test.
 _TREE_DERIVATIONS = ("rglob", "glob", "iterdir", "walk")
 
+#: AND THE ONE RECEIVER THAT NAMES A DIFFERENT TREE ENTIRELY (2026-09-22). `ast.walk` walks a
+#: SYNTAX tree of one already-opened file; it derives no population from the filesystem and cannot
+#: silently empty the way a glob can. `walk` is in the vocabulary for `os.walk` and `Path.walk`,
+#: and matching on the bare attribute name swept the other one in with it.
+#:
+#: MEASURED, NOT ASSUMED, and this is why the repair is here rather than five floors away: on the
+#: day this was found the ratchet named exactly five offenders, ALL FIVE matched on `ast.walk` and
+#: NOTHING ELSE, and four of the five loop over a literal tuple written in the test -- the shape
+#: `test_a_loop_over_a_FIXTURE_is_not_in_scope` already declares out of scope. So the control was
+#: reporting five false positives and zero real ones, and the remedy it printed ("add a population
+#: floor") would have put a floor under `('income', 'arrears', ...)`: a guard that cannot fail,
+#: added to satisfy a guard that should not have fired. A ratchet that produces ceremony gets
+#: switched off, which is the failure mode its own docstring argues against.
+#:
+#: FAIL TOWARD FLAGGING in the one place this can be wrong: `from ast import walk` then a bare
+#: `walk(tree)` has no receiver to test, so it still counts as a derivation. That direction costs a
+#: floor nobody needed; the other direction costs a blind spot.
+_NOT_THE_FILE_TREE = ("ast",)
+
 #: This control's own floor. It must find the whole test corpus, or it is the very defect it
 #: exists to catch. Measured 2026-08-27: 1,000+ test functions across the tree.
 MIN_TEST_FUNCTIONS_SCANNED = 800
@@ -65,8 +84,14 @@ def _derives_from_tree(fn: ast.FunctionDef) -> bool:
     for node in ast.walk(fn):
         if isinstance(node, ast.Call):
             name = getattr(node.func, "attr", None) or getattr(node.func, "id", None)
-            if name in _TREE_DERIVATIONS:
-                return True
+            if name not in _TREE_DERIVATIONS:
+                continue
+            # THE RECEIVER IS PART OF THE QUESTION -- see `_NOT_THE_FILE_TREE`.
+            if (isinstance(node.func, ast.Attribute)
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id in _NOT_THE_FILE_TREE):
+                continue
+            return True
     return False
 
 
@@ -174,6 +199,53 @@ def test_a_loop_over_a_FIXTURE_is_not_in_scope():
     derives, vacuous = _judge(_NO_TREE)
     assert derives is False, "a literal list is not a tree derivation"
     assert vacuous is True, "it is vacuous-on-empty, which is why the conjunction is what matters"
+
+
+_AST_WALK_ONLY = '''
+def test_something():
+    import ast
+    tree = ast.parse(open("x.py").read())
+    names = [n.id for n in ast.walk(tree) if isinstance(n, ast.Name)]
+    for module in (mod_a, mod_b):
+        assert "company" not in names, module
+'''
+
+
+def test_an_ast_walk_is_NOT_a_tree_derivation():
+    """DEFECT: `walk` is in the vocabulary for `os.walk`, and the bare attribute name also matches
+    `ast.walk` -- which walks a SYNTAX tree of one file and derives no population from the tree.
+
+    This is the whole reason the five offenders of 2026-09-22 were false positives, and it is
+    asserted as the CONJUNCTION rather than as `derives is False` alone: the function IS
+    vacuous-on-empty (every assertion is inside a loop over a literal tuple), so a control that only
+    checked the second half would agree with the defect. Both halves, so the pair says which one
+    takes it out of scope.
+
+    MUTATION (must fire): drop the `_NOT_THE_FILE_TREE` continue from `_derives_from_tree`.
+    """
+    derives, vacuous = _judge(_AST_WALK_ONLY)
+    assert derives is False, "an ast.walk derives no population from the file tree"
+    assert vacuous is True, (
+        "it IS vacuous-on-empty, which is why the receiver and not the loop is what takes it out "
+        "of scope -- and why this assertion is here rather than the flattering half alone")
+
+
+def test_the_receiver_exclusion_does_not_blind_the_real_walk():
+    """THE OTHER DIRECTION, and the pair is the point: an exclusion narrow enough to be safe must be
+    shown not to have taken the subject with it. `os.walk` and `Path.walk` are the calls `walk` is
+    in the vocabulary FOR, and neither may be swept out by the fix above.
+
+    MUTATION (must fire): add "os" or "pathlib" to `_NOT_THE_FILE_TREE`.
+    """
+    for receiver in ("os", "pathlib.Path('x')", "self.root", "p"):
+        src = (
+            "def test_x():\n"
+            f"    for p in {receiver}.walk():\n"
+            "        assert p\n"
+        )
+        derives, _ = _judge(src)
+        assert derives is True, (
+            f"{receiver}.walk() is a real tree derivation and the ast exclusion has swept it out")
 
 
 @pytest.mark.parametrize("derivation", ["rglob", "glob", "iterdir", "walk"])
