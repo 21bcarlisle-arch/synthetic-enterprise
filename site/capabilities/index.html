@@ -1389,23 +1389,43 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return withheld;
   }
 
+  /* THE REPEAT COUNT RENDERS ON EVERY BRANCH OF THIS PANEL, INCLUDING THE ONE THAT STATES A
+     DIRECTION (2026-09-22). The producer's refusal sentence already reaches the reader inside
+     `verdict_withheld_because`, so the amber branch was never silent. What was missing is the
+     other two branches: a leg whose family repeats NOTHING said so nowhere, and a reader who only
+     ever meets this qualification when it disqualifies learns that its absence means the question
+     was not asked. "0 of 9 draws repeat another" is the fact that makes the amber branch mean
+     something.
+
+     THE COUNT, NOT THE REASONING, ON THE AMBER BRANCH. `_repetition_withholds`'s full sentence is
+     already in the paragraph above; restating it here would be one sentence in two places on one
+     panel, which is the shape `_redraw_band_clause` records the price of. So the `why` passed in
+     points at that paragraph instead of re-deriving it. */
+  function legRepetition(leg) {
+    return repetitionOfTheBound(
+      leg.repetition,
+      "That is what the refusal above is about: the bound this leg would be graded against is "
+        + "partly a count of how often the instrument pinned, so this page states no side from it.");
+  }
+
   function legVerdict(leg) {
     var withheld = withheldReason(leg);
     if (withheld) {
       return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
         + "<strong>NO DIRECTION IS STATED FOR THIS LEG.</strong> "
-        + prose(withheld) + "</p>"
+        + prose(withheld) + legRepetition(leg) + "</p>"
         + whatWouldSettleIt(leg);
     }
     if (leg.resolved === true) {
       return '<p style="margin:4px 0 0;font-size:12.5px;">'
         + "<strong>A direction IS stated for this leg</strong> &mdash; the figure clears the "
-        + "spread its own seed re-draws move it across. " + prose(leg.redraw_band || "") + "</p>";
+        + "spread its own seed re-draws move it across. " + prose(leg.redraw_band || "")
+        + legRepetition(leg) + "</p>";
     }
     return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
       + "<strong>NO DIRECTION IS STATED FOR THIS LEG, AND NO REASON IS GIVEN.</strong> The feed "
       + "carries neither a resolved verdict nor a withheld one for it, so this leg is unread "
-      + "rather than unremarkable." + "</p>"
+      + "rather than unremarkable." + legRepetition(leg) + "</p>"
       + whatWouldSettleIt(leg);
   }
 

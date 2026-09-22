@@ -6677,13 +6677,54 @@ def test_the_resolved_leg_is_not_given_the_withheld_legs_sentence():
     the same partition: this rung owns "a stated direction looks nothing like a withheld one",
     that one owns "the superseded run states none".
 
+    AND IT WAS KEYED TO TODAY'S ANSWER A SECOND TIME, WHICH THE 2026-09-22 REPETITION RULE FOUND.
+    The paragraph above names the disease and this rung still had it: it read `level_leg`
+    specifically and failed unless THAT leg resolved. When the repetition rule reached
+    `_leg_in_this_world`, the level leg's family turned out to repeat 4 of its 9 draws and it
+    correctly stopped stating a direction -- so this rung went red for the page becoming MORE
+    honest, exactly as it had in September. A control pinned to which leg resolves goes red when
+    the code improves and stays green when the claim rots.
+
+    SO THE WITNESS IS NOW WHICHEVER LEG THE PRODUCER'S OWN RULES PERMIT TO RESOLVE, and it is
+    synthesised only if none does. Promoting a leg is legitimate here because the subject of this
+    rung is the RENDERER -- `legVerdict` must not print one sentence for both states -- and it is
+    bounded: only a leg whose repetition rule PASSES may be promoted, so the state driven through
+    the renderer is one the producer could actually compose. Whether any leg can resolve at all is
+    a producer question and is owned elsewhere, by
+    `test_the_current_world_panels_leg_withholds_its_direction_for_repeated_draws`, whose clean
+    branch asserts exactly that.
+
     Fires on: ambering both legs; giving the resolved leg a refusal; swapping the two branches.
     """
     feed = _feed_whose_current_world_block_speaks()
-    level = feed["current_world"]["level_leg"]
-    if level.get("resolved") is not True:
-        pytest.fail("the paired runs no longer resolve the level leg, so the two-state claim this "
-                    "control makes has only one state on screen")
+    legs = {name: leg for name, leg in feed["current_world"].items()
+            if isinstance(leg, dict) and "verdict_withheld_because" in leg}
+    assert len(legs) >= 2, (
+        "this panel renders fewer than two legs, so 'both states on one screen' is unreachable "
+        "whatever the renderer does")
+
+    resolved_name = next((name for name, leg in legs.items() if leg.get("resolved") is True), None)
+    if resolved_name is None:
+        # NO LEG RESOLVES TODAY, SO ONE IS PROMOTED -- and only one the repetition rule clears, so
+        # this is a state the producer permits rather than one this file invented.
+        clean = [name for name, leg in legs.items()
+                 if (leg.get("repetition") or {}).get("draws_that_repeat_another") == 0
+                 and leg.get("bound_available") is True]
+        assert clean, (
+            "every bounded leg of this panel repeats a draw, so there is no leg the producer "
+            "would ever let state a direction and the resolved branch is unreachable -- which is "
+            "a finding about the floors on disk, not a renderer defect")
+        resolved_name = clean[0]
+        promoted = dict(legs[resolved_name], resolved=True, verdict_withheld_because=None,
+                        no_sign="")
+        feed = dict(feed, current_world=dict(feed["current_world"],
+                                             **{resolved_name: promoted}))
+        legs = dict(legs, **{resolved_name: promoted})
+    level = legs[resolved_name]
+    assert any(leg.get("resolved") is not True for name, leg in legs.items()
+               if name != resolved_name), (
+        "every leg on this screen states a direction, so the withheld sentence asserted below "
+        "cannot appear and this control would be measuring nothing")
 
     rendered = _render(feed)["arms-legs-first"]
     assert "A direction IS stated for this leg" in rendered
@@ -7879,3 +7920,68 @@ def test_the_HEADLINE_floors_own_repeat_count_reaches_the_reader(live):
         assert why is None, (
             "a floor that repeats nothing carries a refusal keyed to repetition, so the refusal "
             "is not keyed to the property it names")
+
+
+def test_the_CURRENT_WORLD_panels_own_legs_carry_their_repeat_counts_to_the_reader(live):
+    """THE DEFECT: the page's SECOND home for the sign verdict asked the question nowhere.
+
+    The rung above covers the headline block, whose leg builder is `_leg_over_its_own_family`. The
+    current_world panel composes its verdict through `_leg_in_this_world` instead and never
+    touches that function, so until 2026-09-22 the repetition rule reached the headline and not
+    the three legs rendering in `#arms-legs-first`. One legal requirement, two implementations, on
+    a page where the second one would have stated a side two inches under a headline withholding
+    its own for exactly this reason.
+
+    IT IS NOT A DORMANT RULE ON TODAY'S FEED. The level leg's family repeats 4 of its 9 draws and
+    its verdict is `True` the moment the rule is removed -- it clears its bound, survives a
+    re-draw and determines a sign. What keeps it off the page today is the panel's superseded-run
+    withdrawal, one gate further out and for an unrelated reason.
+
+    KEYED TO THE FEED'S OWN COUNTS AND NOT TO 4-OF-9. The day a clean floor lands in this world
+    every leg goes to zero and this control asserts THAT number arrived, on every leg, because a
+    count that renders only when it is bad news teaches a reader its absence means the question
+    was not asked.
+    """
+    panel = _live_feed().get("current_world") or {}
+    legs = {name: leg for name, leg in panel.items()
+            if isinstance(leg, dict) and "verdict_withheld_because" in leg}
+    assert legs, (
+        "the current-world panel publishes no legs at all, so this control has no subject and is "
+        "passing on absence")
+    rendered = live["arms-legs-first"]
+
+    counted = 0
+    for name, leg in legs.items():
+        rep = leg.get("repetition")
+        if leg.get("bound_available") is not True:
+            assert rep is None, (
+                "{} has no admitted floor and carries a repeat count anyway, so the page "
+                "qualifies a bound it does not have".format(name))
+            continue
+        assert rep, (
+            "{} is bounded and publishes no repeat count, so a reader cannot tell whether the "
+            "width it is graded against is partly the instrument pinning".format(name))
+        if rep.get("countable") is not True:
+            assert _door_prose(rep["why_not"]) in rendered, (
+                "{}'s floor cannot say whether it repeated a draw and the page does not tell the "
+                "reader that -- an uncounted question rendering as one answered 'none'".format(
+                    name))
+            counted += 1
+            continue
+        assert "{} of those {} draws repeat another draw".format(
+            rep["draws_that_repeat_another"], rep["draws"]) in rendered, (
+            "{}'s repeat count is in the feed and not on the page".format(name))
+        counted += 1
+        if rep["draws_that_repeat_another"] > 0:
+            # AND THE CONSEQUENCE, IN THE PRODUCER'S OWN WORDS. A bare integer is skimmed past;
+            # asserting the feed's sentence rather than a retyped one is what stops this panel
+            # growing a second wording of the rule, which is the whole subject of the repair.
+            assert _door_prose(leg["verdict_withheld_because"] or "") in rendered, (
+                "{} repeats its own draws and the reason that disqualifies it is in the feed "
+                "and not on the page".format(name))
+            assert leg.get("resolved") is None, (
+                "{} states a direction off a bound partly made of draws that pinned".format(name))
+
+    assert counted >= 2, (
+        "fewer than two legs of this panel were checkable, so a page rendering the count for one "
+        "leg and dropping it for the others would pass this control")

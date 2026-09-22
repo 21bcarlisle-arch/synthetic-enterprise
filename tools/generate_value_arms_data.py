@@ -11093,6 +11093,41 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
     IT IS THE SAME FUNCTION FOR BOTH LEGS AND THAT IS CHECKABLE, not asserted here: the verdict on
     each is `_resolvable`, the page's one gate, and each leg publishes the spread and the seed
     family it was decided against.
+
+    AND THIS BLOCK IS THE SECOND HOME FOR THE SIGN VERDICT, WHICH IS WHY THE REPETITION RULE HAD TO
+    COME HERE TOO (2026-09-22). On that date `_leg_over_its_own_family` gained a rule: a family
+    whose own re-draws return values other draws of it already returned may not state a side,
+    because the standard error the sign is graded in units of is then partly a count of how often
+    the instrument PINNED rather than a measure of how far the quantity moves. That rule landed on
+    the headline block and reached this panel nowhere. Two blocks on one page, both deciding
+    whether a direction may be stated, one of them asking the question -- and this file's own
+    docstring four paragraphs up names that shape by its cost.
+
+    IT IS THE SAME PRODUCER AND THE SAME SENTENCE, NOT A SECOND IMPLEMENTATION. `_draw_repetition`
+    counts and `_repetition_withholds` words the refusal, exactly as they do for the headline. A
+    repetition rule written afresh here would be the defect it is being installed to prevent.
+
+    IT COUNTS THE FLOOR THAT ACTUALLY SUPPLIED THE BOUND, AND ONLY WHEN ONE DID. `floor_current`
+    reaches this function before `_current_world_bound` has ruled on it, and that function refuses
+    floors from the wrong world or the wrong leg. Counting the repeats of a family whose numbers
+    were never used would qualify a bound that does not exist with evidence about a family that did
+    not produce it -- so the count is asked on the same condition the bound is published on, and
+    the rows it reads are the rows `_verdict_stability` reads: `floor_current["seeds"]`, keyed by
+    this same `contrast`.
+
+    BOTH BRANCHES ARE REACHABLE FROM ONE ARTEFACT ALREADY ON DISK, which is what makes this a
+    control rather than a refusal of everything. On `CURRENT_WORLD_NOISE_FLOOR_PATH`'s nine seeds
+    `value_advantage_gbp` and `selection_gbp` each return nine distinct values and repeat nothing;
+    `level_advantage_gbp` returns seven distinct values across nine draws, so four of its draws
+    repeat another. The passing branch and the refusing branch are the same floor and the same run,
+    one leg apart.
+
+    IT MOVES NO VERDICT TODAY AND THAT IS THE ARGUMENT FOR WRITING IT TODAY, not against. All three
+    legs are already withheld for other reasons -- the selection leg because one draw of nine
+    reverses it, the level leg because the run it is stated beside is superseded. Those refusals go
+    quiet when the work they name lands, and the level leg's four repeated draws would still be
+    underneath the sign that returned. A rule installed only once it changes a published answer is
+    a rule installed one publish too late.
     """
     bound = _current_world_bound(floor_current, current, live, contrast)
     # WHAT THE VERDICT IS ALLOWED TO BE. `None` whenever no same-world undecomposed floor has been
@@ -11126,6 +11161,13 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
     # verdict is one draw's" would delete the stronger of the two from the surface exactly when
     # both hold -- which is the state the live selection leg is in.
     no_sign = _no_sign_clause(point, stability)
+    # THE REPEAT COUNT OF THE FAMILY THAT SUPPLIED THE BOUND, and `None` for both when no floor was
+    # admitted -- see the docstring on why a refused floor's repeats are not this leg's evidence.
+    # Composed here beside `no_sign` and for the same reason: the branches below need it and a
+    # reason computed inside one of them is a reason the other branches cannot append.
+    repetition = _draw_repetition(floor_current, contrast) if bound.get(
+        "bound_available") else None
+    repeats_caveat = _repetition_withholds(repetition) if repetition else None
     if resolved is not None and stability.get("checked") and not stability.get("stable"):
         # WHERE IN THE FAMILY THE PUBLISHED DRAW FELL, not just how wide the family is. Said in
         # the same breath as the range because the range on its own is the flattering reading:
@@ -11161,6 +11203,23 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
         # `_composition_in_this_world` prepends its second refusal: a reason that replaced the
         # other is a reason deleted from the page.
         verdict_withheld_because = verdict_withheld_because + " " + no_sign
+    # AND THE THIRD GATE: A FAMILY THAT REPEATS ITS OWN DRAWS STATES NO DIRECTION. See the
+    # docstring for why this had to reach this panel and not only the headline block. It is LAST
+    # of the three deliberately -- it is the one whose subject is the BOUND rather than the
+    # figure, so a reader meets "the verdict would be one draw's" and "the family straddles zero"
+    # (both about this leg's own numbers) before "and the width they are graded against is partly
+    # the instrument pinning".
+    #
+    # APPENDED, NEVER SUBSTITUTED, and for the reason the branch above gives: these three reasons
+    # are independent and any subset can hold at once. Deleting the others when this one fires
+    # would tell a reader the sign returns the day the re-draws settle, which on a repeating
+    # family is false.
+    if repeats_caveat:
+        if resolved is not None:
+            resolved = None
+        verdict_withheld_because = (
+            verdict_withheld_because + " " + repeats_caveat
+            if verdict_withheld_because else repeats_caveat)
     # CARRIED AS A FIELD, LIKE `redraw_band` AND FOR THE SAME REASON. The headline needs this
     # sentence too, and `_leg_clause` composing its own draft of it is the third copy that
     # `_redraw_band_clause`'s docstring records the cost of. One producer, two consumers, and a
@@ -11168,6 +11227,11 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
     # file wrote.
     return {"resolved": resolved, "verdict_withheld_because": verdict_withheld_because,
             "verdict_stability": stability, "redraw_band": redraw_band,
+            # THE EVIDENCE TRAVELS WITH THE FIGURE, published on the zero branch as loudly as on
+            # the positive one. `0 of 9 draws repeat another` is a measurement; an absent key is a
+            # question a reader cannot tell was asked. Same reason the headline block carries its
+            # own count rather than pointing two inches down the page at the census.
+            "repetition": repetition,
             "no_sign": no_sign, **bound}
 
 
@@ -13180,12 +13244,26 @@ def _withdraw_a_verdict_stated_from_a_superseded_run(
     own question off the page with it. So `bound`, `verdict_stability`, `distance_to_a_sign` and
     `redraw_band` are untouched here; `resolved` alone becomes `None`, with the reason beside it.
 
-    `resolved is None` IS LEFT EXACTLY AS IT IS, on purpose. A leg that already states no verdict
-    has none to withdraw, and writing this reason over its own would replace "we measured it and
-    one draw of nine reverses it" with an ordering complaint -- a reason deleted from the page,
-    which is the failure `_leg_in_this_world` appends rather than substitutes to avoid. `False`
-    is NOT that state: "we measured it and it did not clear" is a direction stated from this run,
-    so it is withdrawn like `True`.
+    A LEG THAT ALREADY WITHHOLDS STILL GAINS THIS REASON, AND THAT IS A 2026-09-22 CORRECTION.
+    Until then this function returned early on `resolved is None`, reasoning that a leg with no
+    verdict has none to withdraw and that writing this reason over its own would replace "we
+    measured it and one draw of nine reverses it" with an ordering complaint. The first half is
+    true and the second half describes SUBSTITUTION, which the line below has never done -- it
+    appends. So the early return bought nothing and cost a reason: the ordering complaint is
+    INDEPENDENT of whatever else disqualified the leg, and a reader told only "one draw of nine
+    reverses it" is told the direction returns when the re-draws settle, which on a superseded run
+    is false. The `existing` branch below was written for this case and was unreachable until the
+    early return went, which is how the gap stayed invisible.
+
+    IT WAS FOUND BY A RED, NOT BY READING. The repetition rule reaching `_leg_in_this_world` set
+    `resolved = None` on the level leg one step before this function ran, this early return then
+    swallowed the ordering sentence, and
+    `test_no_leg_of_a_superseded_run_states_a_direction_to_the_reader` went red on the rendered
+    page. A guard whose subject is "the reason reaches the screen" is what noticed; nothing keyed
+    to the feed alone would have.
+
+    `False` IS NOT A LEG THAT WITHHOLDS: "we measured it and it did not clear" is a direction
+    stated from this run, so it is withdrawn like `True`.
 
     KEYED TO THE ORDERING AND NOT TO TODAY'S PAIR. The subject is `is_the_later_run`, computed
     from the two artefacts' own stamps, so this goes quiet of its own accord the moment a genuinely
@@ -13195,8 +13273,6 @@ def _withdraw_a_verdict_stated_from_a_superseded_run(
     `test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_currency` drives.
     """
     if is_the_later_run is not False or not isinstance(leg, dict):
-        return leg
-    if leg.get("resolved") is None:
         return leg
     withdrawn = (
         "AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at {cur} "

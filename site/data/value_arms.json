@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T19:51:42.640805Z",
+  "generated_at": "2026-09-22T20:41:00.696083Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -628,7 +628,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "510761522fdba53bd62005c3dc93f4d778ea8b5c",
+    "publishing_tree_commit": "b669bb0ce9c9e2011fffa2e66fe79d4fbce57bbc",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -640,7 +640,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 510761522 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from b669bb0ce -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -714,6 +714,14 @@
       "sign_determined": true
     },
     "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
+    "repetition": {
+      "countable": true,
+      "draws": 9,
+      "distinct_values": 9,
+      "draws_that_repeat_another": 0,
+      "redundant_draws": 0,
+      "what_this_counts": "re-draws of this floor returning a `value_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
+    },
     "no_sign": "",
     "bound_available": true,
     "floor_ran_in_world": "39a192ce04c1eda8",
@@ -754,7 +762,7 @@
     "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- it does not, the re-draws fall on both sides of zero, and no number of further seeds changes that because the spread is the world's own dispersion rather than an estimation error. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 9 re-draws. 5 of those 9 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 9 re-draws. 5 of those 9 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's. AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
       "verdict_stability": {
         "checked": true,
         "n": 9,
@@ -777,6 +785,14 @@
         "sign_determined": false
       },
       "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
+      "repetition": {
+        "countable": true,
+        "draws": 9,
+        "distinct_values": 9,
+        "draws_that_repeat_another": 0,
+        "redundant_draws": 0,
+        "what_this_counts": "re-draws of this floor returning a `selection_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
+      },
       "no_sign": "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
@@ -997,7 +1013,7 @@
     },
     "level_leg": {
       "resolved": null,
-      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
+      "verdict_withheld_because": "4 of this family's 9 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups -- so the narrowness that would let this mean clear its bar is the same phenomenon as the repetition, and not evidence about the choosing. AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
       "verdict_stability": {
         "checked": true,
         "n": 9,
@@ -1020,6 +1036,14 @@
         "sign_determined": true
       },
       "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
+      "repetition": {
+        "countable": true,
+        "draws": 9,
+        "distinct_values": 7,
+        "draws_that_repeat_another": 4,
+        "redundant_draws": 2,
+        "what_this_counts": "re-draws of this floor returning a `level_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
+      },
       "no_sign": "",
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
@@ -1340,7 +1364,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "510761522fdba53bd62005c3dc93f4d778ea8b5c",
+      "publishing_tree_commit": "b669bb0ce9c9e2011fffa2e66fe79d4fbce57bbc",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1352,7 +1376,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 510761522 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from b669bb0ce -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -4946,7 +4970,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "510761522fdba53bd62005c3dc93f4d778ea8b5c",
+    "commit": "b669bb0ce9c9e2011fffa2e66fe79d4fbce57bbc",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

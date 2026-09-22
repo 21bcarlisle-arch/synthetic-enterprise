@@ -44,6 +44,7 @@ import datetime
 import json
 import math
 import re
+import statistics
 from pathlib import Path
 
 import pytest
@@ -10168,6 +10169,263 @@ def test_both_sides_of_the_repetition_partition_exist_on_disk():
     assert any(r.get("countable") and r["draws_that_repeat_another"] == 0 for r in others), (
         "no floor in this repository repeats NOTHING, so the rule's passing branch is reachable "
         "from no artefact and it refuses everything it will ever be shown")
+
+
+# --------------------------------------------------------------------------------------------
+# AND THE SAME RULE AT THE PAGE'S SECOND HOME FOR THE SIGN VERDICT (2026-09-22). The rule above
+# lives in `_leg_over_its_own_family`, which builds the headline block. The current_world panel
+# composes its own verdict through `_leg_in_this_world` and never touches that function, so the
+# rule reached it nowhere -- one legal requirement, two implementations, which is the shape this
+# repository's CLAUDE.md prices at "fixed in one of five copies in July, still live in another in
+# August, and nothing anywhere able to notice".
+
+
+def _a_current_world_leg(floor: dict, contrast: str) -> dict:
+    """The panel's leg builder on the real run, so the only fixture is the floor handed in."""
+    current = _load(gva.CURRENT_WORLD_THREE_ARM_PATH)
+    live = (current.get("world_identity") or {}).get("digest")
+    point = (current.get("level_vs_selection") or {}).get(contrast)
+    assert point is not None, (
+        "the current-world run carries no `{}`, so this control has no figure to bound and is "
+        "measuring the fixture rather than the rule".format(contrast))
+    return gva._leg_in_this_world(point, floor, current, live, contrast)
+
+
+def _with_its_repeats_nudged_apart(floor: dict, contrast: str) -> dict:
+    """The same floor with its duplicate draws made distinct, and NOTHING else changed.
+
+    ONE VARIABLE, AND NOT A STUB. Monkeypatching `_repetition_withholds` would isolate the same
+    variable and prove the wrong thing -- a control that stubs the producer its claim is about
+    proves the stub. This moves the DATA the rule reads: each repeated value is nudged by 1e-9,
+    which is far below any figure on this page and leaves the standard deviation, the re-draw
+    stability and the sign determination identical to fifteen digits. What differs between the two
+    calls is the repeat count and only the repeat count.
+    """
+    nudged = copy.deepcopy(floor)
+    seen: set = set()
+    for seed in nudged["seeds"]:
+        value = seed[contrast]
+        while value in seen:
+            value += 1e-9
+        seen.add(value)
+        seed[contrast] = value
+    return nudged
+
+
+def test_the_current_world_panels_leg_withholds_its_direction_for_repeated_draws():
+    """THE DEFECT: the panel states a side off a family whose own draws pinned, and asks nothing.
+
+    THIS IS NOT HYPOTHETICAL AND THAT IS THE FINDING. On the real artefacts the level leg's
+    verdict is `True` the moment the repetition rule is taken away: it clears its bound, it
+    survives a re-draw, its family determines a sign -- and 4 of that family's 9 draws return a
+    `level_advantage_gbp` another of its own draws already returned. Nothing published it today
+    only because the PANEL withdraws all three legs for being stated beside a superseded run, one
+    gate further out and for an unrelated reason. A rule whose absence is masked by a neighbouring
+    gate is the rule that comes back the day the neighbour goes quiet.
+
+    ONE VARIABLE: the same floor, the same run, the same contrast, and the duplicate draws nudged
+    apart in the clean call. See `_with_its_repeats_nudged_apart` on why it moves the data rather
+    than stubbing the producer.
+
+    THE CLEAN BRANCH IS ASSERTED TO STATE A DIRECTION FIRST. A rule that withheld unconditionally
+    satisfies every assertion about the refusing branch, and this file has paid for that shape.
+
+    Fires on: deleting the `resolved = None` in `_leg_in_this_world`'s repetition gate; folding
+    that gate into either of the two above it (both are `stable`/`sign_determined` here, so a
+    folded rule never runs); dropping the append and substituting the reason instead.
+    """
+    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    contrast = gva.LEVEL_CONTRAST
+
+    clean = _a_current_world_leg(_with_its_repeats_nudged_apart(floor, contrast), contrast)
+    assert clean["repetition"]["draws_that_repeat_another"] == 0, (
+        "the nudged floor still repeats a draw, so the two calls below differ in nothing and this "
+        "control cannot fail")
+    assert clean["resolved"] is True and clean["verdict_withheld_because"] is None, (
+        "the clean branch states no direction anyway, so the refusal below withdraws something "
+        "that was never there: {!r}".format(str(clean["verdict_withheld_because"])[:200]))
+
+    real_leg = _a_current_world_leg(floor, contrast)
+    repetition = real_leg["repetition"]
+    assert repetition["countable"] is True and repetition["draws_that_repeat_another"] == 4, (
+        "the current-world floor's level leg no longer repeats 4 of its 9 draws, so this "
+        "control's refusing branch is unreachable from the published artefact -- point it at "
+        "whichever leg does repeat, or retire it and say why: {}".format(repetition))
+    assert real_leg["resolved"] is None, (
+        "the panel states a direction for a leg whose own bound is partly a count of how often "
+        "the instrument pinned -- the 2026-09-22 rule reaches the headline and not this panel")
+
+    why = real_leg["verdict_withheld_because"]
+    assert why and "4 of this family's 9" in why, (
+        "the refusal does not name the count it is keyed to, so a reader cannot check it: "
+        "{!r}".format(str(why)[:300]))
+    # THE SAME WORDS AS THE HEADLINE'S, ASSERTED AND NOT ASSUMED. This is the whole subject of the
+    # item: one requirement, one implementation. If this panel ever grows its own sentence for
+    # this refusal, the two will drift on different days for different reasons and nothing else
+    # here would notice.
+    assert gva._repetition_withholds(repetition) in why, (
+        "this panel words the repetition refusal itself instead of taking `_repetition_withholds`, "
+        "which is the second implementation the rule was brought here to prevent")
+
+
+def test_the_current_world_panel_publishes_its_repeat_count_on_the_CLEAN_legs_too():
+    """A QUALIFICATION THAT ONLY APPEARS WHEN IT DISQUALIFIES TEACHES ITS ABSENCE MEANS NOTHING.
+
+    The value and selection legs of this same floor repeat NO draw, and that is a measurement
+    worth as much as the level leg's 4 -- it is what makes the level leg's amber mean something.
+    A reader who meets the count only on the bad branch cannot tell a family that was asked and
+    passed from one nobody asked.
+
+    BOTH BRANCHES FROM ONE ARTEFACT, which is what makes this a control and not a refusal of
+    everything: same floor, same run, two legs that repeat nothing and one that repeats four.
+
+    Fires on: publishing `repetition` only when it withholds; dropping the key from the leg.
+    """
+    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    for contrast in (gva.PAGE_FIGURE_CONTRAST, gva.SELECTION_CONTRAST):
+        leg = _a_current_world_leg(floor, contrast)
+        repetition = leg["repetition"]
+        assert repetition is not None and repetition["countable"] is True, (
+            "the {} leg publishes no repeat count, so a reader cannot tell the question was "
+            "asked of it".format(contrast))
+        assert repetition["draws_that_repeat_another"] == 0, (
+            "the {} leg's family now repeats a draw, so this control's PASSING branch is "
+            "unreachable and the rule refuses every leg it will ever be shown: {}".format(
+                contrast, repetition))
+        assert gva._repetition_withholds(repetition) is None, (
+            "a family that repeats nothing is still made to withhold, which is a rule that "
+            "refuses everything and is indistinguishable from deleting the sign")
+
+
+def test_the_current_world_leg_publishes_BOTH_refusals_when_both_of_them_fire():
+    """A REASON THAT REPLACED THE OTHER IS A REASON DELETED FROM THE PAGE.
+
+    THIS CONTROL EXISTS BECAUSE A MUTATION SURVIVED (2026-09-22, and the sweep is why it was
+    found). Substituting `verdict_withheld_because` instead of appending to it passed every
+    assertion above, because no leg of the real floor has BOTH a prior withheld reason and a
+    repeat count: the level leg repeats 4 and its re-draws are stable, the selection leg is
+    unstable and repeats none. So on today's artefacts substitute and append coincide. That is an
+    equivalence of the INPUTS and not of the rule, which is a missing test and not a free pass --
+    and the state it leaves untested is the one where a reader is told the sign returns once the
+    re-draws settle, when the repeated draws would still be underneath it.
+
+    THE WITNESS IS THE REAL FLOOR WITH ONE COLLISION INTRODUCED, and its published spread block
+    recomputed to match -- `_current_world_bound` cross-checks the floor's own stated spread
+    against the rows, and a witness that failed that guard would be measuring the guard instead.
+
+    Fires on: substituting rather than appending in `_leg_in_this_world`'s repetition gate; moving
+    that gate above the stability gate so the earlier reason is the one lost.
+    """
+    contrast = gva.SELECTION_CONTRAST
+    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    floor["seeds"][1][contrast] = floor["seeds"][0][contrast]
+    values = [seed[contrast] for seed in floor["seeds"]]
+    floor["selection_gbp_spread"] = {
+        "n": len(values), "mean": statistics.mean(values), "stdev": statistics.stdev(values),
+        "min": min(values), "max": max(values), "range": max(values) - min(values)}
+
+    leg = _a_current_world_leg(floor, contrast)
+    assert leg["bound_available"] is True, (
+        "the constructed witness lost its bound, so this control measures the bound guard and "
+        "not the two refusals: {}".format(str(leg.get("why_no_bound"))[:200]))
+    assert leg["repetition"]["draws_that_repeat_another"] == 2
+    stability = leg["verdict_stability"]
+    assert stability.get("checked") and not stability.get("stable"), (
+        "the witness's re-draws no longer straddle the bound, so only ONE refusal fires and the "
+        "substitute-versus-append distinction is untested again")
+
+    why = leg["verdict_withheld_because"]
+    assert why.startswith("THE VERDICT WOULD BE ONE DRAW'S"), (
+        "the earlier refusal was overwritten by the repetition one -- a reader is told the sign "
+        "returns when the re-draws settle, and on this family that is false: {!r}".format(
+            str(why)[:300]))
+    assert gva._repetition_withholds(leg["repetition"]) in why, (
+        "the repetition refusal is dropped when an earlier one already fired, so the reader is "
+        "given an incomplete cause for a true refusal")
+    assert leg["resolved"] is None
+
+
+def test_a_leg_that_ALREADY_withholds_still_learns_it_is_on_a_superseded_run():
+    """THE DEFECT, AND IT WAS INTRODUCED BY THE REPETITION RULE ITSELF (2026-09-22).
+
+    `_withdraw_a_verdict_stated_from_a_superseded_run` used to return early on `resolved is None`,
+    on the reasoning that a leg with no verdict has none to withdraw. That held only while the
+    sole route to `resolved: None` was a gate that wrote its own reason FIRST and could be assumed
+    to have spoken. Taking the repetition rule to `_leg_in_this_world` added a route: the level
+    leg's verdict became `None` one step before this function ran, the early return swallowed the
+    ordering sentence, and the page lost a reason it had been publishing the day before.
+
+    THE TWO REASONS ARE INDEPENDENT AND BOTH MUST REACH THE READER. Repairing the repetition -- a
+    clean floor at this book -- does not make this run the later of the two; promoting a later run
+    does not un-repeat these draws. A reader given only one is told the direction returns when
+    that one is fixed, and on this leg that is false.
+
+    ONE VARIABLE: the same leg dict through the same call, with only `is_the_later_run` moving.
+
+    Fires on: restoring the `if leg.get("resolved") is None: return leg` early return;
+    substituting the ordering reason for the existing one instead of appending.
+    """
+    own_reason = "THIS LEG'S OWN REASON, WHICH MUST SURVIVE."
+    withholding = {"resolved": None, "verdict_withheld_because": own_reason}
+
+    later = gva._withdraw_a_verdict_stated_from_a_superseded_run(
+        dict(withholding), True, "2026-09-18T05:43:40Z", "2026-09-08T00:19:54Z")
+    assert later["verdict_withheld_because"] == own_reason, (
+        "a leg on the LATER run is given an ordering complaint anyway, so the reason below is not "
+        "keyed to the ordering and this control proves nothing")
+
+    superseded = gva._withdraw_a_verdict_stated_from_a_superseded_run(
+        dict(withholding), False, "2026-09-08T00:19:54Z", "2026-09-18T05:43:40Z")
+    why = superseded["verdict_withheld_because"]
+    assert own_reason in why, (
+        "the leg's own reason was replaced by the ordering complaint -- a reason deleted from the "
+        "page: {!r}".format(str(why)[:200]))
+    assert "WITHDRAWN FOR WHICH RUN THIS IS" in why, (
+        "a leg that already withholds is never told it is also on a superseded run, so a reader "
+        "is told the direction returns once that leg's own problem is fixed")
+    assert why.startswith(own_reason), (
+        "the ordering complaint is prepended, so the leg's own reason is no longer what a reader "
+        "meets first and every control keyed to the head of this string reads the wrong one")
+
+    # AND ON THE PUBLISHED FEED, not only on a constructed leg: both nested legs of the live panel
+    # withhold for their own reasons AND sit on the superseded run, which is the state that went
+    # unpublished for a day.
+    panel = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR))["current_world"]
+    if panel.get("is_the_later_run") is False:
+        legs = [leg for leg in panel.values()
+                if isinstance(leg, dict) and leg.get("verdict_withheld_because")]
+        assert legs, "the superseded panel publishes no withheld leg at all"
+        for leg in legs:
+            assert "WITHDRAWN FOR WHICH RUN THIS IS" in leg["verdict_withheld_because"], (
+                "a leg of the superseded panel withholds without telling the reader the run it "
+                "is stated beside is not the later one")
+
+
+def test_a_refused_floor_does_not_get_a_repeat_count_it_could_not_have_earned():
+    """ABSENT IS NOT ZERO, AND IT IS ALSO NOT FOUR. `_current_world_bound` refuses floors from the
+    wrong world or the wrong leg; `floor_current` reaches `_leg_in_this_world` before that ruling.
+    Counting the repeats of a family whose numbers were never used would qualify a bound that does
+    not exist with evidence about a family that did not produce it -- and on the amber branch it
+    would hand a reader a count they would read as being about the figure beside it.
+
+    Fires on: computing `repetition` unconditionally instead of on `bound_available`.
+    """
+    # THE SOLE WITNESS THE PRODUCER'S OWN DOCSTRING NAMES for the world guard: real seed rows, so
+    # a count IS computable from it, and refused all the same. A floor with no rows would pass
+    # this assertion for the wrong reason.
+    refused = _load(PROJECT / "docs" / "observability"
+                    / "value_cycle_ab_s1_noise_floor_20260831.json")
+    assert gva._draw_repetition(refused, gva.PAGE_FIGURE_CONTRAST).get("countable") is True, (
+        "this floor carries no countable rows, so the assertion below passes whether the gate "
+        "exists or not")
+
+    leg = _a_current_world_leg(refused, gva.PAGE_FIGURE_CONTRAST)
+    assert leg["bound_available"] is False, (
+        "the witness floor is no longer refused, so this control is not measuring the "
+        "refused-floor branch at all")
+    assert leg["repetition"] is None, (
+        "a floor whose numbers were never admitted still supplies this leg's repeat count, so "
+        "the page qualifies a bound it does not have with evidence from a family it did not use")
 
 
 def test_seed_spreads_does_not_let_NEVER_ASKED_pass_as_measured_contemporaneous():
