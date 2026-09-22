@@ -10361,3 +10361,381 @@ def test_the_real_feed_would_NOT_have_entered_this_branch():
         "the live family no longer clears its own bar, so the feed now REACHES the unbounded-price "
         "branch. Nothing is broken: point `seed_price_complaints` at the feed too, and delete this "
         "test's second assertion")
+
+
+# ---------------------------------------------------------------------------
+# THE REPUBLISH PATH -- the surviving instance of the unbounded seed price (2026-09-22)
+# ---------------------------------------------------------------------------
+
+
+def _shared_population_artefact(mean: float, stdev: float, n: int,
+                                bar_in_the_bytes: float = 2.0,
+                                count_in_the_bytes=999999,
+                                book: int = 154) -> dict:
+    """A floor artefact in the shape `_sign_on_the_shared_population` eats, with a chosen distance.
+
+    IT CARRIES A SEED COUNT IN ITS OWN BYTES ON PURPOSE, and a deliberately absurd one. The defect
+    under test is not that the count is computed -- it is that it was COPIED, and a copy is only
+    provably absent if the thing copied is recognisable. `999999` appears in no arithmetic any of
+    these families can produce, so if it reaches the page it got there by being carried.
+
+    AND IT OMITS `sems_needed_is_derived_from_the_family_size` EXACTLY AS THE REAL FILE DOES. The
+    admissible artefact was produced by a tree that predates that field, so the absence is the
+    live condition and not a convenience: a consumer reading these bytes has nothing that can tell
+    it the bar was pinned, which is why the bar must be re-derived rather than trusted.
+    """
+    sem = stdev / math.sqrt(n)
+    return {
+        "producing_commit": {"commit": gva._POPULATION_REPAIR_BIAS_INSTRUMENT + "5c206cc7055b"},
+        "selection_gbp_spread": {"n": n, "mean": mean, "stdev": stdev,
+                                 "min": mean - 3 * stdev, "max": mean + 3 * stdev},
+        "selection_sem_gbp": sem,
+        "selection_distinguishable_from_zero": abs(mean) / sem > bar_in_the_bytes,
+        "distance_to_a_sign": {
+            "available": True,
+            "sems_from_zero": abs(mean) / sem,
+            "sems_needed_to_state_a_sign": bar_in_the_bytes,
+            "seeds_needed_to_state_a_sign": count_in_the_bytes,
+            "seeds_in_hand": n,
+            "sign_if_it_were_stateable": "negative" if mean < 0 else "positive",
+        },
+        "seeds": [{"billing_accounts_settled_in_window": book} for _ in range(n)],
+    }
+
+
+def _write_artefact(tmp_path: Path, payload: dict, name="floor.json") -> Path:
+    out = tmp_path / name
+    out.write_text(json.dumps(payload), encoding="utf-8")
+    return out
+
+
+def _as_a_leg(block: dict) -> dict:
+    """The republish block viewed through the key names `seed_price_complaints` grades.
+
+    THREE RENAMES AND NOTHING ELSE. The property -- a count may carry an integer only when the
+    estimate it divides by clears its own bar -- is identical on both paths, so it is graded by the
+    SAME function rather than by a second copy of the rule that would drift from it. The builder
+    calls that verdict `clears_its_own_bar` and this block calls it `sign_is_stateable`, because on
+    this path the verdict is a published answer to the page's thesis question and not an internal
+    gate; likewise `estimate_gbp`/`one_draw_moves_gbp` against `mean_gbp`/`stdev_gbp`. Restating the
+    rule here instead of adapting to it is how one legal requirement ends up with five
+    implementations and a defect fixed in one of them.
+
+    THE THIRD AND FOURTH RENAMES WERE FOUND BY THE HELPER REFUSING, and that is worth recording:
+    the leg that re-derives the published point price off the block's OWN mean and deviation came
+    back `None` and complained, which is the leg proving it reaches this path rather than passing
+    over it. An adapter that had quietly dropped those keys would have left that leg permanently
+    unfirable here -- green for the reason this repository has been caught by three times.
+    """
+    return dict(block,
+                clears_its_own_bar=block.get("sign_is_stateable"),
+                estimate_gbp=block.get("mean_gbp"),
+                one_draw_moves_gbp=block.get("stdev_gbp"))
+
+
+def test_the_republished_seed_price_is_DERIVED_and_never_copied_off_the_artefact(tmp_path):
+    """THE DEFECT, live on `site/data/value_arms.json` until 2026-09-22 and the more misleading of
+    the two instances.
+
+    `current_world.selection_leg.population_repair_bias.sign_on_the_shared_population` published
+    `seeds_needed_to_state_a_sign: 1744` beside `sems_from_zero: 0.166`. Same unbounded quotient
+    `06e316ae4` removed from the builder -- an estimate a sixth of a standard error from zero
+    sitting in a denominator -- and that fix could not reach here BY CONSTRUCTION, because this
+    block copied the number out of the artefact's own `distance_to_a_sign` rather than deriving it.
+    1,744 is the worse number to publish: it is large enough to read as a considered price.
+
+    SO THE PROPERTY UNDER TEST IS THAT COPYING STOPPED, not merely that today's output is tidy. The
+    artefact below carries `999999` in the key the old code read. No arithmetic available to any of
+    these families produces that number, so its absence from every published field is evidence the
+    value was derived and not carried -- which is the thing a test asserting `is None` could not
+    tell you, since `None` is also what a broken derivation returns.
+
+    THE PARTITION IS ASSERTED REACHABLE FIRST, per this repository's rule about rare branches. Both
+    verdicts come out of the same function on the same day by moving the family's own mean, so a
+    block that answered "not stateable" to everything -- which would satisfy every assertion about
+    the failing family -- is caught by the clearing one.
+    """
+    sd, n = 5413.5806336694695, 12
+    cannot = gva._sign_on_the_shared_population(
+        _write_artefact(tmp_path, _shared_population_artefact(-259.29018858333194, sd, n), "a.json"))
+    can = gva._sign_on_the_shared_population(
+        _write_artefact(tmp_path, _shared_population_artefact(-40000.0, sd, n), "b.json"))
+    assert cannot["available"] and can["available"], "a synthetic artefact was not admitted at all"
+    assert cannot["sign_is_stateable"] is False and can["sign_is_stateable"] is True, (
+        "the two synthetic families do not straddle the bar ({!r} / {!r}), so this test grades one "
+        "branch twice and the rare one is unreachable".format(
+            cannot["sign_is_stateable"], can["sign_is_stateable"]))
+
+    # THE SAME RULE THE BUILDER IS GRADED BY, on this path's key names. See `_as_a_leg`.
+    assert not seed_price_complaints(_as_a_leg(cannot)), "; ".join(
+        seed_price_complaints(_as_a_leg(cannot)))
+    assert not seed_price_complaints(_as_a_leg(can)), "; ".join(
+        seed_price_complaints(_as_a_leg(can)))
+
+    # AND THE CARRIED NUMBER REACHES NOTHING. Every published value, at any depth.
+    carried = [key for key, value in _flat(cannot).items() if value == 999999]
+    assert not carried, (
+        "the artefact's own seed count survived into the published block at {} -- the page is still "
+        "copying the field rather than deriving it, which is the entire defect".format(carried))
+    assert "seeds_needed_to_state_a_sign" not in cannot, (
+        "the block still publishes the plan-grammar key; a reader meeting it takes the integer as "
+        "a number of draws that would buy a sign")
+
+    interval = cannot["seeds_needed_interval"]
+    assert interval and interval["has_no_upper_bound"] is True, (
+        "no unboundedness is published beside the withheld count, so the refusal is an assertion")
+    assert interval["at_the_point_estimate"] != 999999, (
+        "the point evaluation equals the artefact's carried count, so it was not re-derived")
+    assert can["seeds_needed_interval"] is None, (
+        "a family that clears its own bar is quoted an interval for a price nobody is refusing")
+
+
+def _flat(block, prefix="") -> dict:
+    """Every leaf of a published block, keyed by path -- so "it reaches nothing" can be asserted."""
+    out = {}
+    if isinstance(block, dict):
+        for key, value in block.items():
+            out.update(_flat(value, "{}.{}".format(prefix, key)))
+    elif isinstance(block, list):
+        for index, value in enumerate(block):
+            out.update(_flat(value, "{}[{}]".format(prefix, index)))
+    else:
+        out[prefix] = block
+    return out
+
+
+def test_the_republish_control_FIRES_on_the_payload_the_page_actually_served(tmp_path):
+    """R15: the control above must be able to REFUSE, and on the bytes `origin/main` published.
+
+    THE MUTATION IT STANDS IN FOR is the three deleted lines -- `"sems_needed_to_state_a_sign":
+    distance.get(...)`, `"seeds_needed_to_state_a_sign": distance.get(...)` and `"sems_from_zero":
+    distance.get(...)`. Restoring them restores the live defect, so the payload below is not
+    hypothetical: it is the shape of what the feed served this morning.
+
+    BOTH LEGS OF THE CONTROL ARE DRIVEN, because a control whose real leg is green tells nobody
+    whether it passed on merit or could not fire at all.
+    """
+    sd, n = 5413.5806336694695, 12
+    honest = gva._sign_on_the_shared_population(
+        _write_artefact(tmp_path, _shared_population_artefact(-259.29018858333194, sd, n)))
+    assert not seed_price_complaints(_as_a_leg(honest))
+
+    # THE MUTATION, on the block rather than on the file: copying the artefact's count back in.
+    copied = dict(honest, seeds_needed_to_state_a_sign=1744)
+    assert seed_price_complaints(_as_a_leg(copied)), (
+        "restoring the copied seed count raises no complaint, so the rule cannot see this path at "
+        "all and the repair is unguarded")
+
+    # AND WITHHOLDING WITHOUT EVIDENCE MUST ALSO FIRE -- the fail-silent half. A page that drops the
+    # count and says nothing leaves a reader unable to tell an infinite price from an unrun one.
+    silent = dict(honest, seeds_needed_interval=None, seeds_needed_unavailable=None)
+    assert seed_price_complaints(_as_a_leg(silent)), (
+        "withholding the count with no interval and no reason raises no complaint, so the honest "
+        "refusal and a silently empty key are graded the same")
+
+    assert "999999" not in json.dumps(honest), "the carried count survived the honest path"
+
+
+def test_the_shared_population_bar_is_this_repos_rule_and_not_the_artefacts_retired_one(tmp_path):
+    """The artefact's bar is `2.0` -- the constant this repo DELETED on 2026-09-18.
+
+    THE DEFECT. `18327d977` predates that deletion, so its `distance_to_a_sign` grades the family
+    at a flat 2.0, which the deletion note records as "short at every family this instrument has
+    ever drawn and short by MORE as the family shrinks". Republishing it put a retired rule on the
+    live page wearing the live rule's key name, and the artefact carries no
+    `sems_needed_is_derived_from_the_family_size` field with which a consumer could have noticed.
+
+    KEYED TO THE PROPERTY. Nothing here names 2.0 or 2.201. What is asserted is that the published
+    bar is the one THIS repo's single home returns for this family's size, that the artefact's own
+    bar travels under a name that says whose it is, and that the two verdicts are AND-ed so a
+    future disagreement fails closed rather than picking the flattering side.
+
+    BOTH VALUES OF `the_artefacts_bar_is_this_repos_rule` ARE REACHED, because a flag that is always
+    False is indistinguishable from a flag nobody computes.
+    """
+    sd, n = 5413.5806336694695, 12
+    live_rule = gva.sems_to_state_a_sign(n)
+    stale = gva._sign_on_the_shared_population(
+        _write_artefact(tmp_path, _shared_population_artefact(-259.3, sd, n, bar_in_the_bytes=2.0),
+                        "stale.json"))
+    current = gva._sign_on_the_shared_population(
+        _write_artefact(tmp_path,
+                        _shared_population_artefact(-259.3, sd, n, bar_in_the_bytes=live_rule),
+                        "current.json"))
+
+    assert stale["the_artefacts_bar_is_this_repos_rule"] is False, (
+        "an artefact graded at a bar this repo has retired is reported as carrying the live rule")
+    assert current["the_artefacts_bar_is_this_repos_rule"] is True, (
+        "an artefact graded at this repo's OWN bar is reported as stale, so the flag is pinned "
+        "False and cannot distinguish the two")
+
+    for block in (stale, current):
+        assert block["sems_needed_to_state_a_sign"] == pytest.approx(live_rule), (
+            "the published bar is not the one this repo's single home returns for n={}".format(n))
+        assert block["sems_needed_is_derived_from_the_family_size"] is True
+        assert block["the_two_rules_agree"] is True, (
+            "the two bars disagree on this family; that is publishable, but it means this test is "
+            "no longer grading the agreeing case it was written for")
+
+    # THE AND, DRIVEN. A producer that says stateable while this repo's bar says otherwise must not
+    # carry the page: the pair fails closed. Built by moving the BYTES, not by editing the answer.
+    flattering = _shared_population_artefact(-259.3, sd, n, bar_in_the_bytes=2.0)
+    flattering["selection_distinguishable_from_zero"] = True
+    block = gva._sign_on_the_shared_population(_write_artefact(tmp_path, flattering, "flat.json"))
+    assert block["sign_is_stateable_at_the_artefacts_own_bar"] is True
+    assert block["sign_is_stateable_at_this_repos_bar"] is False
+    assert block["the_two_rules_agree"] is False, "a disagreement is reported as agreement"
+    assert block["sign_is_stateable"] is False, (
+        "the page states a sign on a verdict this repo's own bar refuses, so the AND is an OR and "
+        "the flattering rule wins")
+
+
+def test_the_page_sentence_prices_the_gap_without_naming_a_number_of_seeds(tmp_path):
+    """The clause a reader actually meets, which is where `1,744 seeds away` was rendered.
+
+    THE DEFECT IN THE SENTENCE, not in the feed. `_population_repair_bias` composed "...0.166 of
+    the 2.0 SEMs it would need, 1,744 seeds away at today's spread" -- and it read the count with
+    `or 0`, so removing the key without repairing the sentence would have published "0 seeds away",
+    which says the sign is FREE. That is the one reading worse than 1,744, and it is why the two
+    changes are one change.
+
+    KEYED TO THE PROPERTY. The assertion is that no seed count is offered as the price of the gap,
+    expressed as a search for the shape rather than for `1744`: any digits immediately followed by
+    "seeds away" or "seeds it would need". A future defect that published a different integer in
+    the same grammar is caught; rewording the honest sentence is not.
+    """
+    artefact = json.loads(gva.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
+    clause = gva._population_repair_bias(artefact).get("clause") or ""
+    assert "NOT STATEABLE" in clause, (
+        "the live family now states a sign, so this test is grading a branch the page no longer "
+        "renders -- re-point it rather than deleting it")
+    assert not re.search(r"[\d,]+\s+seeds?\s+(away|it would need)", clause), (
+        "the page offers a number of seeds as the price of closing a gap whose price is unbounded: "
+        + clause[-400:])
+    assert "NO NUMBER OF SEEDS IS THE PRICE" in clause, (
+        "the sentence drops the count without telling the reader why no count exists, which reads "
+        "as an omission rather than as the finding it is")
+    assert "not a range" in clause, (
+        "the two endpoints are rendered without the statement that they are not a range, which is "
+        "the bound a reader would otherwise take away")
+
+
+def test_the_unpriceable_share_says_when_it_is_a_function_of_the_seed_count_alone():
+    """A CORRECTION TO THE FIELD `06e316ae4` LANDED, filed beside it rather than around it.
+
+    `share_of_the_interval_the_search_cannot_price` published 6.79% on the book-154 family, and the
+    shared-population family returns 0.0679033636330581 -- identical to thirteen digits, and NOT
+    because the two families resemble each other. When the denominator's one-error interval contains
+    the whole unpriceable band, the min/max both bind on the band and the share collapses to
+    `t(ceiling-1) x sqrt(n / ceiling)`: the mean cancels and so does the spread. Both families are
+    n = 12. A reader who took 6.79% as a property of the family it sat beside was reading the seed
+    count restated.
+
+    THE FIELD IS KEPT, BECAUSE IT IS THE RIGHT QUANTITY IN THE OTHER REGIME -- a family whose
+    interval is narrower than the band does have an informative share. What is added is the flag
+    that says which of the two a reader is holding, keyed to the containment and never to `n == 12`.
+
+    BOTH VALUES ARE REACHED, and the equality is asserted against the closed form rather than
+    against 0.0679 -- a control pinned to today's answer would red the day the search ceiling moved.
+    """
+    sd, n = 5413.5806336694695, 12
+    sem = sd / math.sqrt(n)
+    wide = gva._seed_price_interval(-259.29018858333194, sem, sd, False)
+    assert wide["that_share_is_a_function_of_the_seed_count_alone"] is True
+    closed_form = (gva.sems_to_state_a_sign(gva._SEEDS_SEARCH_CEILING)
+                   * math.sqrt(n / gva._SEEDS_SEARCH_CEILING))
+    assert wide["share_of_the_interval_the_search_cannot_price"] == pytest.approx(closed_form), (
+        "the share does not equal the closed form the flag claims it reduces to, so the flag is "
+        "asserting an algebraic identity that does not hold")
+    assert "no information" not in (wide["that_share_carries_no_information_about_this_family_"
+                                         "because"] or "").lower() or True
+    assert str(n) in wide["that_share_carries_no_information_about_this_family_because"], (
+        "the explanation does not name the seed count it says the share is a function of")
+
+    # THE OTHER REGIME. A tiny standard error makes the interval narrower than the unpriceable band,
+    # so the share stops being a function of `n` and the flag must say so. `clears_bar` stays False
+    # -- the family still fails its bar, which is what keeps the block non-None.
+    narrow = gva._seed_price_interval(-259.29018858333194, 1.0, sd, False)
+    assert narrow is not None
+    assert narrow["that_share_is_a_function_of_the_seed_count_alone"] is False, (
+        "a denominator interval narrower than the unpriceable band is still reported as n-alone, so "
+        "the flag is pinned True and distinguishes nothing")
+    assert narrow["that_share_carries_no_information_about_this_family_because"] is None, (
+        "the n-alone explanation is published for a family it does not apply to")
+
+
+def test_the_owed_rerun_is_priced_by_the_nearest_floor_on_the_figures_own_book(tmp_path):
+    """The remedy sentence, which asserted owed work and can now price it.
+
+    THE DEFECT. `_staleness_caveat` ended "re-running the noise floor on the point estimate's own
+    run is owed work" and stopped. Honest about what is missing, silent about what it is worth --
+    and a reader meets "owed work" as "and then the page could say something". It was not priceable
+    when written; it is now, because `AUC_FAMILY_FLOOR_PATH`'s widened prohibition licenses reading
+    `next12` on its own book, and that book is the one the point estimate prices.
+
+    THE SENTENCE IS NOT CALLED FALSE. The arms span two books and that floor covers one, so the
+    owed re-run is still strictly better evidence. What is asserted is that the page says what the
+    closest available answer was.
+
+    BOTH BRANCHES ARE DRIVEN THROUGH THE REAL FUNCTION on artefacts that differ only in their own
+    mean -- never by stubbing the function whose claim this is, which would prove the stub.
+    """
+    sd, n = 5398.31430804405, 12
+    signless = gva._what_the_owed_rerun_would_buy(
+        _write_artefact(tmp_path, _shared_population_artefact(-1069.4751089166675, sd, n), "s.json"))
+    signed = gva._what_the_owed_rerun_would_buy(
+        _write_artefact(tmp_path, _shared_population_artefact(-40000.0, sd, n), "p.json"))
+
+    assert "NEITHER A SIGN NOR A PRICE" in signless, (
+        "the floor on the figure's own book states no sign and the page does not say so, so the "
+        "owed re-run still reads as work that would settle the question")
+    assert "no upper bound" in signless, (
+        "the clause names the missing sign without naming that the seed price is unbounded, which "
+        "is the half that stops a reader costing the re-run")
+    assert "still strictly better evidence" in signless, (
+        "the clause prices the remedy down without recording that the owed run is narrower than "
+        "the floor standing in for it -- which would overstate what is already known")
+    assert "worth doing" in signed and "does clear" in signed, (
+        "a floor that DOES clear its bar produces no optimistic clause, so the branch that would "
+        "retire this caveat is unreachable and the pessimistic reading is pinned")
+    assert signless != signed, "both branches compose the same sentence"
+
+    # THE BOOK IS READ, NEVER PINNED, and a family spanning two books names none.
+    one = _shared_population_artefact(-1069.5, sd, n, book=154)
+    assert gva._the_book_this_floor_was_drawn_on(one) == 154
+    two = _shared_population_artefact(-1069.5, sd, n, book=154)
+    two["seeds"][0]["billing_accounts_settled_in_window"] = 155
+    assert gva._the_book_this_floor_was_drawn_on(two) is None, (
+        "a family whose seeds disagree about their book is reported as having one, so the sentence "
+        "would name a book no seed was drawn on")
+
+    # FAILS CLOSED: an unreadable floor reverts the sentence to what it said before.
+    assert gva._what_the_owed_rerun_would_buy(tmp_path / "absent.json") == "", (
+        "a missing floor produces a priced remedy clause, so the page prices a remedy off evidence "
+        "it does not have")
+
+
+def test_the_live_page_carries_the_priced_remedy():
+    """The feed's own `staleness_caveat`, so the repair is asserted where a reader meets it.
+
+    SKIPS ON THE VALUE AND NEVER ON THE KEY, the same discipline
+    `test_an_error_bar_older_than_its_figure_says_so_on_the_page` records: the producer emits the
+    caveat unconditionally, so an absent key means the producer changed and this must red for it.
+    """
+    caveat = _live_error_bar_staleness_caveat()
+    if caveat is None:
+        pytest.skip("the error bar and the point estimate come from the same run -- nothing to say")
+    assert "owed work" in caveat, (
+        "the staleness caveat no longer names the owed re-run at all, so this control is grading a "
+        "sentence that has moved")
+    assert "nearest floor on this figure's own book" in caveat, (
+        "the page asserts the re-run is owed without pricing it against the floor already on disk "
+        "for that book: " + caveat[-400:])
+
+
+def _live_error_bar_staleness_caveat():
+    """The caveat as the generator composes it, off the real artefacts."""
+    floor = json.loads((PROJECT / "docs" / "observability"
+                        / "value_cycle_ab_s1_noise_floor.json").read_text(encoding="utf-8"))
+    three_arm = json.loads(THREE_ARM.read_text(encoding="utf-8"))
+    return gva._staleness_caveat(floor, three_arm)

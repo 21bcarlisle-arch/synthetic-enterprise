@@ -318,13 +318,46 @@ def test_the_bias_size_never_reaches_the_reader_without_the_sign_on_the_shared_p
             "the page never states the result in the words the result is in. 'We cannot tell' "
             "is this leg's finding, and a finding that only appears as a small number beside a "
             "large one is not published")
+        # THE DISTANCE, AND "THERE IS NO FINITE DISTANCE" IS ONE OF ITS ANSWERS (2026-09-22).
+        # This leg read `seeds_needed_to_state_a_sign` and required an int, which made it a
+        # control keyed to TODAY'S ANSWER in the exact way this file's own docstring above
+        # disclaims: it went RED the day the producer stopped publishing 1,744 -- a count whose
+        # denominator is an estimate a sixth of a standard error from zero, so it had no upper
+        # bound and 1,744 was merely where the arithmetic happened to land. A bare count is the
+        # WEAKER publication, not the stronger one, and a door that demands it rewards the
+        # defect. The property is unchanged and is still both-sided: a refusal must carry its
+        # distance, so the reader can tell one more draws would close from one that never
+        # resolves. What changed is that the second of those is now sayable.
         needed = shared.get("seeds_needed_to_state_a_sign")
-        assert isinstance(needed, int) and needed > 0, (
-            "the shared-population block states no price for the question, so the refusal is a "
-            "shrug rather than a measurement")
-        assert "{:,}".format(needed) in rendered, (
-            "the page refuses to state a sign and never says how far it is from stating one. A "
-            "refusal without its distance cannot be told from one that will never resolve")
+        if isinstance(needed, int) and needed > 0:
+            assert "{:,}".format(needed) in rendered, (
+                "the page refuses to state a sign and never says how far it is from stating "
+                "one. A refusal without its distance cannot be told from one that will never "
+                "resolve")
+        else:
+            assert shared.get("seeds_needed_unavailable"), (
+                "the shared-population block publishes no seed price and no reason for "
+                "withholding one, so the refusal is a shrug rather than a measurement")
+            interval = shared.get("seeds_needed_interval") or {}
+            assert interval.get("has_no_upper_bound") is True, (
+                "no seed price is published and the block does not say the price is unbounded "
+                "either, so a reader cannot tell a withheld count from an uncomputed one")
+            # THE ENDPOINTS IT WAS PRICED OVER REACH THE READER. This is what stops the
+            # withholding from being silence: the day the producer drops the sentence, these
+            # numbers leave the page and this goes red. Endpoints past the search ceiling arrive
+            # as `None` -- a measurement, not a gap -- and carry no numeral to look for.
+            priced = [interval.get(k) for k in (
+                "at_the_point_estimate", "price_at_the_low_end_of_the_denominator",
+                "price_at_the_high_end_of_the_denominator")]
+            assert any(isinstance(p, int) for p in priced), (
+                "the block claims an unbounded price and priced it at no point at all, so the "
+                "claim rests on nothing a reader could check: {!r}".format(interval))
+            for count in [p for p in priced if isinstance(p, int)]:
+                assert ("{} seeds".format(count) in rendered
+                        or "{:,} seeds".format(count) in rendered), (
+                    "the block priced the question at {} seeds and the reader never meets that "
+                    "number, so the page refuses without saying what the refusal rests "
+                    "on".format(count))
 
     # THE TWO INSTRUMENTS STAY TWO. The whole point of the mean is that it is NOT this page's run,
     # and a block that let itself be netted against the published figure would rebuild the defect.

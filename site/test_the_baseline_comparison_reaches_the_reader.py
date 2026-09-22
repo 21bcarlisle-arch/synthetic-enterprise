@@ -1119,7 +1119,11 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
         assert isinstance(reason, str) and reason.strip(), (
             "the sign is withheld for a reason the producer recorded as empty, so a reader meets "
             "a band with no side and no account of why -- 'we cannot tell' belongs on the page")
-        assert reason[0].lower() + reason[1:] in rendered, (
+        # AND THROUGH THE DOOR'S TYPOGRAPHY, for the reason recorded on `_door_prose`: the reason
+        # is embedded by `_reading` and reaches the page with its ` -- ` translated, so a raw
+        # comparison holds only while no producer writes one. `_staleness_caveat` began writing
+        # one on 2026-09-22 and cut this match at the first separator.
+        assert _door_prose(reason[0].lower() + reason[1:]) in rendered, (
             "the producer withheld the side for a reason it published, and that reason reaches no "
             "reader: {!r}".format(reason[:160]))
         assert "cannot yet resolve a selection effect" not in rendered, (
@@ -1546,7 +1550,13 @@ def _graded_legs_or_the_refusal_reached_the_reader(live, panel: str = "arms-erro
         "the feed grades no leg and gives no reason either, so a reader cannot tell a refused "
         "pairing from a page that never had legs: {!r}".format(block))
     rendered = live[panel]
-    assert reason in rendered, (
+    # THROUGH THE DOOR'S OWN TYPOGRAPHY, because the reader meets the transformed text and this
+    # control is about what the reader meets. The raw comparison was green only while no producer
+    # had ever put a ` -- ` in this reason: the day `_staleness_caveat` began PRICING the owed
+    # re-run instead of merely naming it, the em-dash substitution cut the match at the first
+    # separator and three controls went red on a page carrying the refusal in full. That is the
+    # failure this file's own `_door_prose` was written for, one panel over.
+    assert _door_prose(reason) in rendered, (
         "the feed refuses to grade any leg and the page does not carry that refusal, so the "
         "reader meets silence where a result belongs. Reason withheld: {!r}".format(reason))
     return None
