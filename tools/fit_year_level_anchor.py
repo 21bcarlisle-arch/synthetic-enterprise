@@ -800,6 +800,61 @@ def _svt_factors(svt_rows_for_year: list[dict], accounts: int) -> dict[str, floa
     }
 
 
+def _composition_accounting(svt_pp: float, renewal_pp: float, lo: float,
+                            ceiling_multiple: float) -> dict:
+    """One accounting's row, with the required hazard multiple withheld above the hazard's ceiling.
+
+    WHY THIS MULTIPLE IS GATED AND `required_over_re_referenced_recent` IS NOT. Both are a required
+    hazard over a denominator and the denominators are different KINDS. That one divides by
+    `SVT_INERTIA_ANNUAL_RECENT` re-referenced -- a chosen published constant times a ratio of two
+    OBSERVED departure rates over a closed record -- and cannot approach zero. This one divides by
+    `svt_pp`, which is `100 x world_hazard x target` exactly, so the denominator IS the world's
+    MEASURED SVT hazard and it has no lower bound. As it falls the multiple has no upper bound.
+
+    `svt_pp > 0` -- what this site checked before -- is a degenerate-input guard and not a
+    statement about the interval. It fires on the single input nobody meets and passes every
+    multiple short of infinity, so it left a plan-grammar key published at 40x and at 4000x with
+    nothing to tell the reader those are different claims.
+
+    THE BAR IS THE HAZARD'S OWN CEILING, which this file already establishes and already divides by
+    in `years_a_factor_could_close_alone`: a multiple that would put the hazard above
+    `_SVT_FACTOR_CEILINGS["hazard"]` is not a plan, because no world runs that hazard. That is a
+    statement across a whole region of state rather than at one point, which is the difference
+    `tools/unbounded_quotient_census` asks for and the reason a renamed `svt_pp > 0` would not do.
+
+    Printed at real inputs before it was written (2026-09-22, `svt_composition_vs_published.json`):
+    the ceiling multiple runs 4.82 (2019) to 10.16 (2023) and every measured requirement is 0.72 to
+    1.89, so the gate is green on all twenty rows of this record and withholds nothing today. It is
+    reachable by construction and a control takes it rather than leaving that to the reader.
+    """
+    multiple = (lo - renewal_pp) / svt_pp if svt_pp > 0 else None
+    clears_the_hazard_ceiling = multiple is not None and multiple <= ceiling_multiple
+    return {
+        "renewal_pp_of_book": round(renewal_pp, 4),
+        "total_pp_of_book": round(svt_pp + renewal_pp, 4),
+        "reaches_band_low": svt_pp + renewal_pp >= lo,
+        # What the hazard would STILL have to be multiplied by, after composition has done all it
+        # can. 1.0 or below means composition alone got there.
+        "hazard_multiple_still_required_at_band_low": (
+            round(multiple, 4) if clears_the_hazard_ceiling else None),
+        # THE ARITHMETIC ON EVERY PATH THE ARITHMETIC EXISTS, under a name that is not a plan. A
+        # multiple above the ceiling is still the right answer to "how far short is composition";
+        # it is only the *plan* reading of it that the ceiling refuses.
+        "hazard_multiple_at_the_point_estimate": (
+            None if multiple is None else round(multiple, 4)),
+        "hazard_multiple_ceiling": round(ceiling_multiple, 4),
+        "hazard_multiple_unavailable_because": (
+            None if clears_the_hazard_ceiling else
+            "the SVT route carries no expected departures in this year, so there is no hazard to "
+            "multiply and no finite multiple reaches the band" if multiple is None else
+            "reaching the band needs the world's SVT hazard multiplied by {:.4g}, which puts it "
+            "above `_SVT_FACTOR_CEILINGS['hazard']` -- the ceiling multiple here is {:.4g}. The "
+            "arithmetic is kept as `hazard_multiple_at_the_point_estimate`; it is withheld under "
+            "a `_still_required_` name because no world runs that hazard, so buying it is not a "
+            "plan.".format(multiple, ceiling_multiple)),
+    }
+
+
 def svt_route_shortfall_decomposition(renewal_rows: list[dict], svt_rows: list[dict]) -> dict:
     """Which of the SVT route's three factors is short of the record, measured as a BOUND.
 
@@ -989,6 +1044,16 @@ def svt_route_shortfall_decomposition(renewal_rows: list[dict], svt_rows: list[d
                         per_year[str(y)]["required_hazard"]["at_band_low"]
                         / SVT_INERTIA_ANNUAL_RECENT, 4
                     ),
+                    #: DENOMINATOR BOUNDED: both legs are chosen or observed, neither is an
+                    #: estimate that can drift to zero. `SVT_INERTIA_ANNUAL_RECENT` is a published
+                    #: constant, and the re-referencing factor is a ratio of two OBSERVED market
+                    #: departure rates over the closed 2016-2025 record. Measured floor across the
+                    #: whole record is 0.0388, at 2022 (0.20 x 0.2671 / 1.3758) -- the crisis
+                    #: trough, and still two orders off zero. Reaching zero would need an observed
+                    #: GB departure rate of exactly zero in a year of the record, which is not a
+                    #: state the record can enter. Contrast `hazard_multiple_still_required_at_
+                    #: band_low` in `svt_route_composition_counterfactual`, the same required
+                    #: hazard over the world's MEASURED hazard, which is gated for that reason.
                     "required_over_re_referenced_recent": round(
                         per_year[str(y)]["required_hazard"]["at_band_low"]
                         / (SVT_INERTIA_ANNUAL_RECENT
@@ -1089,6 +1154,11 @@ def published_composition_counterfactual(renewal_rows: list[dict], svt_rows: lis
         world_share = factors["reach"] * factors["exposure"]
         renewal_pp = 100.0 * _sum_probability(by_year[year], NO_LEVEL_CORRECTION) / accounts
         lo, hi = bands[year]
+        # THE MOST THE HAZARD COULD EVER BE MULTIPLIED BY in this year, taken from this file's own
+        # `_SVT_FACTOR_CEILINGS` rather than from a bar invented here -- the same quantity
+        # `years_a_factor_could_close_alone` already divides by. `_composition_accounting` withholds
+        # the required multiple above it.
+        ceiling_multiple = _SVT_FACTOR_CEILINGS["hazard"] / factors["hazard"]
 
         bases: dict[str, dict] = {}
         for basis in ("all_domestic", "as_published"):
@@ -1107,24 +1177,13 @@ def published_composition_counterfactual(renewal_rows: list[dict], svt_rows: lis
                     "published_svt_account_day_share": round(target, 4),
                     "composition_multiple": round(target / world_share, 4),
                     "svt_pp_of_book": round(svt_pp, 4),
-                    "renewal_rescaled": {
-                        "renewal_pp_of_book": round(rescaled, 4),
-                        "total_pp_of_book": round(svt_pp + rescaled, 4),
-                        "reaches_band_low": svt_pp + rescaled >= lo,
-                        # What the hazard would STILL have to be multiplied by, after composition
-                        # has done all it can. 1.0 or below means composition alone got there.
-                        "hazard_multiple_still_required_at_band_low": (
-                            round((lo - rescaled) / svt_pp, 4) if svt_pp > 0 else None
-                        ),
-                    },
-                    "renewal_held": {
-                        "renewal_pp_of_book": round(renewal_pp, 4),
-                        "total_pp_of_book": round(svt_pp + renewal_pp, 4),
-                        "reaches_band_low": svt_pp + renewal_pp >= lo,
-                        "hazard_multiple_still_required_at_band_low": (
-                            round((lo - renewal_pp) / svt_pp, 4) if svt_pp > 0 else None
-                        ),
-                    },
+                    # COMPOSITION LEAVES THE HAZARD ALONE (see this function's docstring), so the
+                    # ceiling multiple is the year's and not the endpoint's, and both accountings
+                    # are graded against the same one.
+                    "renewal_rescaled": _composition_accounting(
+                        svt_pp, rescaled, lo, ceiling_multiple),
+                    "renewal_held": _composition_accounting(
+                        svt_pp, renewal_pp, lo, ceiling_multiple),
                 }
             bases[basis] = endpoints
 
