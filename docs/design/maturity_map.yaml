@@ -2276,11 +2276,14 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 60
   provenance: director_ruling
   blocked_on: null
-  block_reason: null
+  block_reason: "BUILT AND LANDED 8a7f9377e; the LEVEL is what is held, not the work. L2 is what the
+    evidence supports and `record_level_up_self_certified` REFUSES it (OPS11): the lane holds a live
+    BLOCKING finding whose own closing repair is written and in no commit. Re-ask the moment the HDD
+    leg lands. Do NOT redraw this as a build item."
   depends_on: []
   couples_with: [W1_14_weather_cells_for_household_heat_load, W2_18_the_housing_joint_the_sample_and_the_ceiling]
   file_scope:
