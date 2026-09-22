@@ -710,6 +710,11 @@ def test_the_census_states_when_its_own_base_is_behind_the_trunk(repo: Path) -> 
     ahead = _commit(repo, "m.py", LANDED, "the trunk moves on")
     _run(repo, "reset", "--hard", "-q", head)
     _trunk_at(repo, ahead)
+    # THE FIXTURE OWED A DIRTY PATH AND DID NOT HAVE ONE (repaired 2026-09-22). `reset --hard`
+    # leaves the census with NO population, so there was nothing a behind base could mis-grade and
+    # this leg was asserting the full-force caveat over an empty subject. It passed because the old
+    # caveat fired on `behind > 0` alone -- the very blanket `behind_overlap` exists to narrow.
+    (repo / "m.py").write_text(LANDED + "\ndef mine():\n    return 1\n")
     caveat = scr.base_caveat(repo)
     assert caveat, "HEAD is behind the trunk and the census said nothing about its own base"
     assert "1 commit(s) behind" in caveat, (
@@ -717,6 +722,58 @@ def test_the_census_states_when_its_own_base_is_behind_the_trunk(repo: Path) -> 
     assert "surgical_land --content" in caveat, (
         "the caveat must name the door the inverted reading sends the lane through, because that "
         "is the door that writes over the trunk")
+
+
+def test_the_caveat_voids_a_reading_only_where_the_trunks_moves_touch_what_it_walked(
+        repo: Path) -> None:
+    """ONE CONTROL OVER THE WHOLE PARTITION -- contested, uncontested, unmeasurable -- because the
+    defect here is a guard that fires on every tree forever, and a leg-per-branch test of a guard
+    that refuses EVERYTHING passes all of them.
+
+    The live cost: three consecutive readings of "finished work does not reach history" (17, 22, 25)
+    were each discarded as taken through a stale base, while the one-variable control on 2026-09-22
+    gave 25 against BOTH the 4-behind base and the advanced one, with identical path sets. Grading a
+    class while its instrument declines to answer is how a defect stops being listed without ever
+    being fixed."""
+    head = _run(repo, "rev-parse", "HEAD").strip()
+    trunk = _commit(repo, "m.py", LANDED, "the trunk lands on m.py")
+    _run(repo, "reset", "--hard", "-q", head)
+    # A SECOND TRACKED PATH THE TRUNK NEVER TOUCHED. Without it the uncontested leg below would be
+    # asserting over an EMPTY population -- `git diff --name-only HEAD` does not list an untracked
+    # file -- and "no contested path" would read as vouched when the truth is "nothing was walked".
+    _commit(repo, "elsewhere.py", "def elsewhere():\n    return 2\n", "a path off the trunk's line")
+    _trunk_at(repo, trunk)
+    assert (_run(repo, "rev-list", "--count", "HEAD..refs/remotes/origin/main").strip() == "1"), (
+        "the fixture must leave HEAD genuinely BEHIND the trunk, or every leg below is vacuous")
+
+    (repo / "m.py").write_text(LANDED + "\ndef mine():\n    return 1\n")
+    contested = scr.behind_overlap(repo)
+    assert contested == ("m.py",), (
+        "the trunk moved on m.py and the census is walking m.py -- that is the one shape a behind "
+        "base can invert, and the overlap must name it: " + repr(contested))
+    assert "surgical_land --content" in scr.base_caveat(repo), (
+        "a CONTESTED path must still get the full-force caveat, or narrowing the blanket has "
+        "disarmed it")
+
+    _run(repo, "checkout", "-q", "HEAD", "--", "m.py")
+    (repo / "elsewhere.py").write_text("def elsewhere():\n    return 2\n\ndef mine():\n    return 1\n")
+    assert [p for p in _run(repo, "diff", "--name-only", "HEAD").split()] == ["elsewhere.py"], (
+        "the population must be NON-EMPTY and off the trunk's line -- an empty one would make the "
+        "next assert pass for the wrong reason")
+    assert scr.behind_overlap(repo) == (), (
+        "the census is walking only an untracked-then-written path the trunk never touched, so no "
+        "verdict below can have been computed against a blob the trunk moved on")
+    uncontested = scr.base_caveat(repo)
+    assert "1 commit(s) behind" in uncontested, (
+        "the reader is still owed the LAG -- narrowing the void is not hiding the state")
+    assert "STILL STAND" in uncontested and "surgical_land --content" not in uncontested, (
+        "with no contested path the caveat must stop voiding the reading; it said: " + uncontested)
+
+    _trunk_at(repo, head)
+    _run(repo, "update-ref", "-d", "refs/remotes/origin/main")
+    assert scr.behind_overlap(repo) is None, (
+        "no trunk to diff against is the ABSENCE of a measurement, and returning () there would "
+        "make an unreadable repo read as a vouched one")
 
 
 def test_a_copy_the_trunk_supersedes_reads_as_holder_work_when_the_base_is_behind(repo: Path):
@@ -992,6 +1049,55 @@ def test_a_census_that_cannot_import_its_own_siblings_ANSWERS_and_never_raises(
     # -- and this one needs no fast-forward and cannot touch another lane's bytes.
     assert "--root" in said and "origin/main" in said, (
         "the refusal names no way out: {}".format(said))
+
+
+def test_a_row_whose_remedy_names_the_refresh_door_is_GRADED_against_that_door(
+        repo: Path) -> None:
+    """THE DEFECT: `door_verdicts` graded the named door for `is_rival` rows only, and `is_rival`
+    is False for every clock-only loss -- which is the whole `.md`/`.yaml` population, the one that
+    CANNOT be read by a symbol reader and therefore reaches the `by_clock` branch of `remedy()`.
+    That branch names `refresh_to_head` exactly as loudly as the rival branch does, and
+    `refresh_to_head` answers `refused_no_reader` for those suffixes BY CONSTRUCTION. So the census
+    printed a permanently-shut door as the remedy, and the grader built to catch precisely that was
+    scoped past it by its own population filter.
+
+    KEYED TO THE PROPERTY AND NOT TO A SUFFIX: the oracle is the remedy text the reader actually
+    meets. If `remedy()` names the tool, `door_verdicts` must have asked it. That stays true when
+    `READABLE` moves and when the live census count changes, and it is why this cannot be satisfied
+    by listing `.md` anywhere.
+
+    THE MUTATION IT IS WRITTEN FOR: `names_the_refresh_door` -> `is_rival` reds this leg alone.
+    """
+    _clock_fixture(repo)
+    loss = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE)
+
+    # The rare branch must be REACHABLE before anything is asserted about what it does: a fixture
+    # that stopped producing a clock-only loss would pass every assertion below by vacancy.
+    assert loss is not None and loss.gains is None and not loss.is_rival, (
+        "the fixture stopped producing the clock-only loss this leg is about")
+    assert "refresh_to_head" in loss.remedy(), (
+        "the branch under test no longer names the door, so this leg proves nothing")
+
+    out = scr.door_verdicts([loss], repo)
+    assert "note.md" in out, (
+        "the census named `refresh_to_head` as this row's remedy and never asked whether that door "
+        "would take it -- which is the claim the grader exists to check")
+    assert "SHUT" in out["note.md"] and "no_reader" in out["note.md"], (
+        "the door is shut for this suffix by construction and the reader is not told: {}".format(
+            out["note.md"]))
+
+
+def test_a_holder_work_row_is_NOT_sent_to_the_refresh_door(repo: Path) -> None:
+    """The other half of the partition, and the leg that keeps the one above from being satisfied
+    by a grader that says yes to everything. A copy supplying a genuinely new name is holder work:
+    its remedy names `isolate_hunks`/`--content`, NOT `refresh_to_head`, and sending it to a tool
+    that overwrites bytes would destroy the work. `names_the_refresh_door` -> `True` reds here."""
+    holder = scr.Loss(path="m.py", rule=scr.PREDATES, detail=("a landed line",),
+                      commit="abc123456", gains=("a_name_head_lacks",))
+    assert holder.novel and not holder.is_rival, "the fixture is not holder work"
+    assert "isolate_hunks" in holder.remedy() and "refresh_to_head" not in holder.remedy()
+    assert not holder.names_the_refresh_door, (
+        "holder work was routed to the door that OVERWRITES the working copy")
 
 
 def test_the_sentinel_key_cannot_be_mistaken_for_a_censused_path(repo: Path) -> None:
