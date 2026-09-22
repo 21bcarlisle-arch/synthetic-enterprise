@@ -1,6 +1,21 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `SITE13_the_baseline_comparison_carries_its_bound`
 
-**Discharged:** `tests/tools/test_generate_value_arms_data.py::test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim` — the independence half. The publish-lane question this document raises is NOT discharged and is restated below.
+**Discharged:** `tests/tools/test_generate_value_arms_data.py::test_every_input_to_the_published_supplier_claim_IS_IN_THE_PUBLISH_SURFACE`,
+`tests/tools/test_generate_value_arms_data.py::test_the_published_supplier_claim_answers_THE_SAME_from_HEADs_committed_bytes`,
+`tests/tools/test_generate_value_arms_data.py::test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in` — the independence half. The publish-lane question this document raises is NOT discharged and is restated below.
+
+**Citation corrected 2026-09-22, and the correction is beside the claim.** This line named
+`test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim`, which is in no tree. It
+was not renamed — it was SUPERSEDED on 2026-09-10, when `_is_the_published_supplier`'s whole subject
+moved off `docs/reports/run_output_latest.json` and onto `site/data/dashboard.json`. That is the
+repair this document asked for: the tautology was that the check read a file the A/B run itself wrote,
+and a file that is in no publish is exactly the shape that let the verdict alternate by which tree
+regenerated the feed. The three falsifiers now named are what carry the independence claim against
+the new subject, and they are STRONGER than the one cited: one requires every input to be inside the
+publish surface, and one requires the same verdict from HEAD's committed bytes as from the working
+tree, which is the oscillation killed where it can be proved dead. Found by
+`tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`, red at `origin/main`
+on this citation with no commit's gate selection able to reach it.
 
 # The "supplier on this site IS the baseline" check passes only against a file the A/B run itself wrote
 
