@@ -1620,15 +1620,14 @@ def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book):
 # direction, must not red these; raising the value past the evidence, or shrinking the guest under
 # it, must.
 
-#: The CGROUP peak systemd recorded for `sim-runner.service` at the previous ceiling of 1,200
-#: customer-years: 5,734.4 MB across 8 runs in 24h, read 2026-09-22 via
-#: `resource_headroom.weight_drift("sim_run")`, whose source is systemd's own `MemoryPeak` and
-#: therefore neither this repo nor the job. It is deliberately NOT the probe's 5,507.4 MB: that is
-#: `ru_maxrss` of the ONE child the probe spawned and omits the 227.0 MB `sim_runner.py` parent
-#: that the kernel always counts and `admit()` always has to find. Dated because it is a
-#: measurement, and re-asked from the journal by the second test below whenever the journal answers.
-CGROUP_PEAK_MB_AT_THE_ANCHOR = 5734.4
-CGROUP_PEAK_ANCHOR_CUSTOMER_YEARS = 1200.0
+#: NO ANCHOR LITERAL LIVES HERE ANY MORE, and its deletion is the point. Until 2026-09-22 this
+#: file carried `CGROUP_PEAK_MB_AT_THE_ANCHOR = 5734.4` and `CGROUP_PEAK_ANCHOR_CUSTOMER_YEARS =
+#: 1200.0` -- the cgroup correction, hand-copied into the control because
+#: `load_whole_run_rss_curve` did not apply it and still returned the probe's single-child
+#: `ru_maxrss`. That made the test right about the world and the loader wrong about it, with the
+#: site publishing the loader's number: a control agreeing with a corrected copy of a quantity
+#: whose one home was uncorrected. The loader now anchors on the cgroup, so the anchor is READ
+#: OFF THE CURVE below and the two cannot drift apart by hand.
 
 
 def _memory_ceiling_customer_years(*, total_mb=None, anchor_peak_mb=None):
@@ -1653,8 +1652,19 @@ def _memory_ceiling_customer_years(*, total_mb=None, anchor_peak_mb=None):
     slope = float(curve["mb_per_customer_year"])
     assert slope > 0, f"a non-positive slope ({slope} MB/cy) would make the book unbounded"
     budget_mb = float(total_mb) * float(share)
-    anchor = CGROUP_PEAK_MB_AT_THE_ANCHOR if anchor_peak_mb is None else float(anchor_peak_mb)
-    return CGROUP_PEAK_ANCHOR_CUSTOMER_YEARS + (budget_mb - anchor) / slope
+    # THE ANCHOR IS THE CURVE'S, BOTH COORDINATES. Taking the y from the curve and the x from a
+    # literal here is how the two came to disagree by 3.0 customer-years in the first place --
+    # the probe committed 1,197.0 at a budget of 1,200 and only the committed figure is a
+    # measurement. `anchor_peak_mb` overrides the y so the journal leg below can re-price the
+    # same line on today's peak; there is no override for the x because there is no second
+    # instrument for it.
+    anchor = float(curve["anchor_peak_rss_mb"]) if anchor_peak_mb is None else float(anchor_peak_mb)
+    assert float(curve["production_parent_rss_mb"]) > 0, (
+        "the curve reports no production parent, so its anchor is the probe's single child "
+        "again and this control is back to comparing the constant against a bound the run "
+        "cannot hold -- the defect repaired on 2026-09-22"
+    )
+    return float(curve["anchor_customer_years"]) + (budget_mb - anchor) / slope
 
 
 def test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve():
