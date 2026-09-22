@@ -149,6 +149,50 @@ def artefact_paths(root: Path = COMMONS) -> list[Path]:
     return sorted(p for p in root.rglob("*.json"))
 
 
+#: Where a filed finding lives. The ROOT is the work queue and `done/` is the archive, but for the
+#: question this module asks -- "was an act performed" -- they are one directory.
+STAGING_ROOT = COMMONS.parent.parent / "docs" / "staging"
+
+
+def resolve_open_finding(finding: str) -> Path | None:
+    """The filed document an `open_finding` names, WHEREVER it now sits under `docs/staging/`, or
+    `None` if no such document is in the tree at all.
+
+    WHY THIS IS NOT `(root / finding).exists()`, which is what it was until 2026-09-22. The staging
+    protocol ARCHIVES a finding by moving it to `docs/staging/done/`, and nothing updates the
+    artefacts that cite it by path. So an artefact that did everything right went red the day an
+    unrelated lane tidied the queue, and the refusal said the finding "is not in the tree" -- which
+    was FALSE: the file was tracked, committed, and one directory down. A refusal whose stated
+    reason is false is worse than no refusal, because the reason is the part a reader acts on, and
+    this one sent them hunting for a deleted file that was sitting in `done/`. Diagnosed in
+    `docs/staging/SEAT_FINDING_ARCHIVING_A_FINDING_FALSIFIES_A_COMMONS_ARTEFACTS_POINTER_AND_THE_
+    CONTROL_SAYS_NOT_IN_THE_TREE_WHEN_IT_MOVED_2026-09-22.md`; repaired here.
+
+    AND WHY AN ARCHIVED FINDING IS NOT A REFUSAL AT ALL, which is the judgement in this function and
+    is stated rather than glossed. The leg's property is *an unresolved verdict must name a finding
+    that was actually filed* -- it demands an ACT, because a stuck block can always supply another
+    sentence and cannot supply that. Archival does not un-perform the act. Refusing it anyway would
+    make `cannot_tell` expensive again for a reason its author cannot act on inside the commit that
+    trips it, and "the honest verdict must not be the expensive one" is the entire argument this
+    module was built on. Keyed to the property: an archival is now invisible to this leg, and a
+    citation to a document that does not exist is still refused -- in those words.
+
+    RESOLUTION IS BY BASENAME, and the cited path is asked FIRST so the exact answer wins. The
+    basename route can in principle match a different document sharing a name; these are
+    date-stamped SHOUTING_CASE finding names, and the alternative -- a pointer that rots on every
+    archival -- is the failure actually observed rather than the one imagined.
+    """
+    if not isinstance(finding, str) or not finding.strip():
+        return None
+    exact = COMMONS.parent.parent / finding
+    if exact.is_file():
+        return exact
+    name = Path(finding).name
+    if not name:
+        return None
+    return next((p for p in sorted(STAGING_ROOT.rglob(name)) if p.is_file()), None)
+
+
 def _iso(value: object) -> date | None:
     if not isinstance(value, str):
         return None
@@ -313,13 +357,14 @@ def check_artefact(path: Path, today: date) -> list[Refusal]:
                     f"recorded `{found_verdict}` and names no `open_finding` -- {why}",
                 )
             )
-        elif not (COMMONS.parent.parent / finding).exists():
+        elif resolve_open_finding(finding) is None:
             out.append(
                 Refusal(
                     name,
                     leg,
                     f"recorded `{found_verdict}` and its `open_finding` names {finding}, which is "
-                    "not in the tree",
+                    f"in no directory under {STAGING_ROOT.name}/ at any depth -- the citation is "
+                    "unsupported, so no act discharges the obligation",
                 )
             )
 

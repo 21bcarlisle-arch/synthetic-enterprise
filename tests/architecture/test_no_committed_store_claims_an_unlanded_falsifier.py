@@ -113,7 +113,13 @@ _DISCLAIMS = re.compile(
     # (a) located outside the index
     r"untracked|uncommitted|unmerged|un-?landed|absent|absence|missing|"
     r"does not exist|do not exist|neither exists?|never exist(?:s|ed)?|"
-    r"no commit|not (?:yet )?(?:committed|merged|landed|written)|nowhere else|"
+    # `existing` added 2026-09-22. `not yet written` was already here and `not yet existing` is the
+    # same statement about the same index; A51's store says "named in file_scope and not yet
+    # existing" and was judged an over-claim for choosing the second spelling. That is exactly the
+    # failure the `_DISCLAIMS_SYMBOL` note below records -- a record's honesty becoming a function
+    # of which true wording its author reached for -- so it is repaired the same way and the cost
+    # stays bounded by `_DECLARED_HONEST_ABSENCE`, which no widening can fail open past.
+    r"no commit|not (?:yet )?(?:committed|merged|landed|written|existing)|nowhere else|"
     r"off-?main|rescued?|working tree|on disk|git log --all|"
     # (b) located in the future
     r"a new |to be written|will be|would be|must be|should be|"
@@ -312,6 +318,18 @@ _DECLARED_HONEST_ABSENCE: dict[str, str] = {
         "their own branches -- 'a NEW 423-line tests/background/test_run_marker_sweep.py that "
         "exists nowhere else ... NEITHER IS MERGED AND THAT IS DELIBERATE'. The record states "
         "the non-landing as the decision."
+    ),
+    "A51_the_plain_english_report_on_the_use_case_register_reaches_the_director::"
+    "tests/design/test_the_use_case_report_reached_the_director.py": (
+        "2026-09-22. An EXIT-TO-L1 specification naming the control the build will write: 'THE "
+        "CONTROL THIS BUILD WILL WRITE, named in file_scope and not yet existing: "
+        "tests/design/test_the_use_case_report_reached_the_director.py. It must key on the four "
+        "REQUIRED SECTIONS being present and each naming its subject, NOT on the file existing'. "
+        "The atom is `level_current: 0`, `level_target: 1`, `loop_stage: build` -- so nothing is "
+        "credited and the clause is a design deliverable, which the sibling docstring names as "
+        "what design work IS. Checked against the map, not read off the prose. Delete this entry "
+        "when the control lands; a declaration that a landed file is absent describes nothing and "
+        "would silence a real future over-claim on this path."
     ),
 }
 

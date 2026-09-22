@@ -68,10 +68,48 @@ from tools.build_weather_world import (  # noqa: E402
     extract_temperature,
     level_of,
 )
+from tools.reduction_dimension import declare  # noqa: E402
 
 #: The store rounds to three decimals, so two derivations of the same value may differ by half a
 #: unit in the last place from each side. Anything above this is a real disagreement, not rounding.
 TOLERANCE_C = 0.001
+
+#: WHAT `check_era5_coverage` REDUCES OVER, per the demand-vector canon's rule that a coverage claim
+#: names the axes it varies over and accounts for every component of its subject as reduced or
+#: explicitly blind. Enforced by `tests/architecture/test_a_coverage_claim_declares_what_it_reduces
+#: _over.py`, which had been red at `origin/main` on this module with no commit's gate selection able
+#: to reach it.
+#:
+#: THE DECLARATION IS WHERE A CONFLATION BECOMES VISIBLE, and writing this one surfaced a real one
+#: rather than tidying a red away. The leg is NAMED "every cell carries the ERA5 columns" and what it
+#: computes is `any(field non-empty, over any row, over any field)`, so:
+#:
+#:   * THE FIELD COLLAPSE. A cell holding wind and NO cloud is not counted bare, and the leg passes
+#:     it -- while this module's own header says the fabric path reads cloud cover and "a cell with
+#:     temperature and no cloud cannot drive it". Declared as `any_era5_column_present`, derived from
+#:     all three fields, so `Declaration.collapsed` states it in the banner as arithmetic on the
+#:     declaration rather than as a confession somebody has to remember to write.
+#:   * THE TIME COLLAPSE. One non-empty row passes the whole cell, so how MUCH of a cell's series
+#:     carries the columns is not in the figure at all. `within_cell_time_coverage`, blind.
+#:
+#: WHETHER `any` SHOULD BE `all` IS NOT DECIDED HERE, and that is deliberate. It is a question about
+#: what partial ERA5 coverage means for the fabric path, the weather lane owns it, and changing a
+#: world-fidelity verdict inside a commit whose subject is clearing reds is how one lane's judgement
+#: gets made by another lane's tidying. Filed as a finding instead. The canon's own sentence about
+#: this class applies exactly: it "flatters in a consistent direction -- always making the sample
+#: look smaller and the coverage look better -- which is why it must be looked for rather than
+#: waited for".
+REDUCES_OVER = (
+    declare(
+        "the share of store cells holding any ERA5 archive column at all",
+        kind="coverage",
+        of=ERA5_FIELDS,
+        reduces_over=("any_era5_column_present",),
+        derived_from={"any_era5_column_present": ERA5_FIELDS},
+        blind_to=("within_cell_time_coverage",),
+        joint=True,
+    ),
+)
 
 
 class Leg:
