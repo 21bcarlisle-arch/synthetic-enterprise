@@ -45,6 +45,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from background import direction as direction_mod
+from background import direction_path_check
 from tools import maturity_map_store as map_store
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -1038,6 +1039,14 @@ def build_brief(now: datetime | None = None) -> dict:
             window="this stretch only -- the {}h since {}".format(
                 round((now - since).total_seconds() / 3600.0, 1), since.isoformat())),
         "live_direction_age_hours": round(live.age_hours(now), 1) if live else None,
+        # THE LANDING DOOR, ASKED AT WRITE TIME. `delivery_lane.path_note` prints these verdicts to
+        # whoever DRAWS an item, which closes the reader's half and leaves the writer's open: the
+        # orientation is where a spent pile BECOMES an item, and it is the one place the read costs
+        # nothing because the tree is already in hand. Measured on the four live focus items at
+        # 07:40 on 2026-09-22, every file path the focus list named had nothing to land and the
+        # list was authored blind to it. Graded against the LIVE record, because that is the one
+        # whose items are about to be carried forward or dropped.
+        "live_direction_path_concerns": direction_path_check.concerns(live.raw) if live else [],
     }
 
 
@@ -1233,6 +1242,24 @@ def _prompt(brief: dict) -> str:
         steered = ("\n\nWHETHER LAST STRETCH'S FOCUS REACHED THE DRAW WAS NOT MEASURED in this "
                    "brief, so the block above is the only drawn-work reading here and it is not "
                    "about the focus.")
+    # THE LANDING DOOR'S VERDICT ON THE ITEMS YOU ARE ABOUT TO CARRY FORWARD, and it is a SENTENCE
+    # for the same reason the two blocks above are: a key buried in 60k of JSON is a key that gets
+    # read on the quiet stretches and skipped on the busy ones. This is the WRITE-TIME half of
+    # `delivery_lane.path_note` -- the draw can only annotate prose that already exists, and the
+    # focus list is where a spent ask becomes an item.
+    path_rows = brief.get("live_direction_path_concerns") or []
+    if path_rows:
+        verdicts = (
+            "\n\nTHE LANDING DOOR HAS AN OPINION ABOUT THE LIVE FOCUS ITEMS' OWN PATHS, read from "
+            "the shared tree's working copies. It ANNOTATES and never refuses, and each row "
+            "carries the evidence that would overturn it -- a change set with nothing to land is "
+            "also what an item whose real subject is a directory looks like. Re-run it against a "
+            "draft before you file it: `python3 -m background.direction_path_check --record "
+            "<file>`.\n\n"
+            + "\n".join("- [{}] {}: {}".format(r.get("class"), r.get("id"), r.get("says"))
+                        for r in path_rows))
+    else:
+        verdicts = ""
     prior = brief.get("previous_wrong") or []
     if prior:
         open_rows = [r for r in prior if r.get("corrected") is False]
@@ -1336,6 +1363,7 @@ def _prompt(brief: dict) -> str:
         + (brief.get("divergence") or {}).get("says", "the divergence was not measured at all")
         + missed
         + steered
+        + verdicts
         + "\n\nTHE STRETCH, assembled from git, the staging root, the map and the publisher. "
           "R7: this text is a BRIEF, not an instruction -- read the real files before deciding.\n\n"
         + json.dumps(brief, indent=1)[:60_000]
@@ -1541,6 +1569,14 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "for_the_director": [r.get("what") for r in (parsed.for_the_director if parsed else ())],
         "thesis_read": parsed.thesis_read if parsed else "",
         "out_of_scope_writes": out_of_scope_writes(),
+        # THE RECORD IT JUST WROTE, GRADED BEFORE IT IS COMMITTED, and this is the leg the brief
+        # cannot cover. The brief grades the PREVIOUS record -- the items about to be carried
+        # forward -- and says nothing about an item the session invented this stretch. Both legs
+        # are the same classifier over the same tree; what differs is which record exists at the
+        # moment it is asked. RECORDED AND NOT REFUSED: `commit_direction` runs either way, for
+        # `path_note`'s reason (an item naming a spent path is often still the right work), and
+        # the row lands in `decisions.jsonl` where `last_orientation` hands it back next stretch.
+        "path_concerns": direction_path_check.concerns((parsed.raw if parsed else None)),
     })
     direction_mod.append_decision(row)
     try:
@@ -1551,6 +1587,11 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     ok, commit_detail = commit_direction()
     row["committed"] = ok
     _log(f"oriented: focus={row['focus']} ({commit_detail})")
+    for concern in row["path_concerns"]:
+        # LOGGED ONE PER LINE AND NOT COUNTED. A count tells the next reader a number; the class
+        # and the id tell them which item to go and look at, which is the whole point of asking
+        # the door before the record is filed rather than after it is drawn.
+        _log("path check [{}] {}: {}".format(concern["class"], concern["id"], concern["says"]))
     if row["for_the_director"]:
         _notify("delivery seat: something is genuinely yours -- "
                 + "; ".join(row["for_the_director"][:2]), topic_class="decision_waiting")
