@@ -1,0 +1,633 @@
+{
+  "table": "docs/observability/renewal_belief_recapture_seed20260922.json",
+  "world_identity": {
+    "digest": "39a192ce04c1eda8",
+    "unavailable_because": null,
+    "live_world": "39a192ce04c1eda8",
+    "checked_on": "the capture's own `sim_level_anchor`, every row, against `simulation.departure_level_anchor.world_level_identity()` read at grading time",
+    "years_covered": [
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "years_not_covered": [],
+    "years_disagreeing": {},
+    "what_this_identifies": "the departure LEVEL every year of this capture was drawn at, checked row by row against the live world's `year_level_anchor`. It carries the live digest because agreement on the covered years is what makes THIS reading's world the live one.",
+    "what_this_does_not_cover": "the years the capture never reaches (none), which cannot move one pair in this reading; and the HOMES, which `world_level_identity` keys separately and which no captured column records."
+  },
+  "run_instant": {
+    "generated_at": "2026-09-22T22:43:18Z",
+    "producing_commit": "13b02eafd25508055c7bce73726f25785fced42b",
+    "unavailable_because": null,
+    "what_it_times": "the GRADING, not the capture. The capture's own instant is not recorded in the table and this field must never be read as it."
+  },
+  "decisions": 2284,
+  "departures": 92,
+  "pairs": 11547,
+  "route_coverage": {
+    "causes": {
+      "bill_shock": 30,
+      "price_position": 8,
+      "dissatisfaction": 4,
+      "svt_inertia": 50
+    },
+    "routes": {
+      "renewal": 138,
+      "svt_segment": 2146
+    },
+    "departures_by_route": {
+      "renewal": 42,
+      "svt_segment": 50
+    },
+    "covers_svt_route": true,
+    "population": "renewal decisions + SVT segment decisions"
+  },
+  "oracle_auc": 0.6719927253832164,
+  "oracle_auc_year_only_route_pooled_in": 0.7881844380403458,
+  "null": {
+    "low": 0.4229237031263532,
+    "high": 0.5772495020351607,
+    "median": 0.49896076903091713,
+    "permutations": 2000
+  },
+  "clears_the_null": true,
+  "verdict": "the world carries per-customer churn signal",
+  "variance": {
+    "between_strata": 0.7874026025627046,
+    "within_strata": 0.6035194436334334,
+    "total": 1.3909220461961378,
+    "between_strata_share": 0.5661011734741537,
+    "strata": 20
+  },
+  "variance_year_only": {
+    "between_strata": 0.43408830713112273,
+    "within_strata": 0.9568337390650153,
+    "total": 1.390922046196138,
+    "between_strata_share": 0.31208672572144325,
+    "strata": 10
+  },
+  "per_route": {
+    "renewal": {
+      "decisions": 138,
+      "departures": 42,
+      "pairs": 555,
+      "oracle_auc": 0.6486486486486487,
+      "null": {
+        "low": 0.38198198198198197,
+        "high": 0.618018018018018,
+        "median": 0.5027027027027027,
+        "permutations": 2000
+      },
+      "clears_the_null": true,
+      "per_factor": {
+        "sim_bill_shock_base": {
+          "alone": 0.6342342342342342,
+          "held_out": 0.5657657657657658,
+          "contribution": 0.08288288288288292,
+          "tie_fraction": 0.2594594594594595,
+          "distinct_values": 18,
+          "inside_null_alone": false
+        },
+        "sim_price_response": {
+          "alone": 0.45855855855855854,
+          "held_out": 0.6396396396396397,
+          "contribution": 0.009009009009009028,
+          "tie_fraction": 0.03063063063063063,
+          "distinct_values": 119,
+          "inside_null_alone": true
+        },
+        "sim_dissatisfaction_response": {
+          "alone": 0.4774774774774775,
+          "held_out": 0.6567567567567567,
+          "contribution": -0.008108108108108025,
+          "tie_fraction": 0.0036036036036036037,
+          "distinct_values": 132,
+          "inside_null_alone": true
+        },
+        "sim_action_propensity": {
+          "alone": 0.5918918918918918,
+          "held_out": 0.6144144144144145,
+          "contribution": 0.03423423423423422,
+          "tie_fraction": 0.3261261261261261,
+          "distinct_values": 7,
+          "inside_null_alone": true
+        }
+      },
+      "stratification": {
+        "stratified_by": "calendar year AND departure route",
+        "the_published_reading_is_the_stratified_one": true,
+        "same_stratum_pairs": 555,
+        "comparable_pairs_pooled": 4032,
+        "same_stratum_share": 0.13764880952380953,
+        "auc_pooled": 0.7125496031746031,
+        "auc_stratified": 0.6486486486486487,
+        "stratification_moved_the_reading": -0.06390095452595446,
+        "the_stratified_reading_is": "lower"
+      },
+      "route": "renewal",
+      "company_belief": [
+        {
+          "belief": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT), logged per renewal",
+          "field": "churn_probability",
+          "available": true,
+          "seeds_the_world_roll": true,
+          "independent_of_the_outcome": false,
+          "decomposition_arm": false,
+          "reading": "`simulation.customer_events.roll_lifecycle_event` seeds the world's `effective_p_retain` FROM this number and then multiplies it through the passive cap, the market-year switching multiplier, the price-position multiplier, income stress and satisfaction. Grading it against the outcome is therefore NOT a forecast against an unrelated tally: it measures whether the world's own adjustment chain preserves the ordering of the base rate it was handed. A weaker claim, and the honest one.",
+          "decisions": 138,
+          "departures": 42,
+          "pairs": 555,
+          "belief_auc": 0.6468468468468469,
+          "null": {
+            "low": 0.4,
+            "high": 0.6018018018018018,
+            "median": 0.5018018018018018,
+            "permutations": 2000
+          },
+          "clears_the_null": true,
+          "verdict": "the belief orders who leaves",
+          "tie_fraction": 0.2810810810810811,
+          "distinct_values": 13,
+          "mean_believed": 0.19326086956521737,
+          "realised_rate": 0.30434782608695654,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 555,
+            "comparable_pairs_pooled": 4032,
+            "same_stratum_share": 0.13764880952380953,
+            "auc_pooled": 0.6349206349206349,
+            "auc_stratified": 0.6468468468468469,
+            "stratification_moved_the_reading": 0.011926211926212016,
+            "the_stratified_reading_is": "higher"
+          }
+        },
+        {
+          "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
+          "field": "company_churn_estimate",
+          "available": true,
+          "seeds_the_world_roll": false,
+          "independent_of_the_outcome": true,
+          "decomposition_arm": false,
+          "reading": "This one does NOT feed the roll -- `roll_lifecycle_event` computes it, stamps it on the event and never multiplies it into `effective_p_retain`. It is the independent leg on the renewal route, and the only renewal-route reading that can be compared to the ceiling without the tautology above.",
+          "decisions": 138,
+          "departures": 42,
+          "pairs": 555,
+          "belief_auc": 0.5846846846846847,
+          "null": {
+            "low": 0.3927927927927928,
+            "high": 0.6216216216216216,
+            "median": 0.5009009009009009,
+            "permutations": 2000
+          },
+          "clears_the_null": false,
+          "verdict": "we cannot tell",
+          "tie_fraction": 0.02702702702702703,
+          "distinct_values": 108,
+          "mean_believed": 0.23282463768115944,
+          "realised_rate": 0.30434782608695654,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 555,
+            "comparable_pairs_pooled": 4032,
+            "same_stratum_share": 0.13764880952380953,
+            "auc_pooled": 0.6021825396825397,
+            "auc_stratified": 0.5846846846846847,
+            "stratification_moved_the_reading": -0.017497854997854945,
+            "the_stratified_reading_is": "lower"
+          }
+        },
+        {
+          "belief": "company.crm.churn_desk.estimate_svt_drift v2 JOINT (years on SVT, cap-period length, own payment record)",
+          "field": "company_svt_drift_estimate",
+          "available": false,
+          "not_defined_on_this_route": true,
+          "reason": "`company_svt_drift_estimate` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
+          "seeds_the_world_roll": false
+        },
+        {
+          "belief": "estimate_svt_drift v1 HELD-OUT ARM (payment record withheld)",
+          "field": "company_svt_drift_estimate_calendar_only",
+          "available": false,
+          "not_defined_on_this_route": true,
+          "reason": "`company_svt_drift_estimate_calendar_only` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
+          "seeds_the_world_roll": false
+        },
+        {
+          "belief": "estimate_svt_drift PAYMENT TERM ALONE (band held out)",
+          "field": "company_svt_drift_estimate_payment_only",
+          "available": false,
+          "not_defined_on_this_route": true,
+          "reason": "`company_svt_drift_estimate_payment_only` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
+          "seeds_the_world_roll": false
+        }
+      ],
+      "ceiling_vs_belief": {
+        "route": "renewal",
+        "readings": [
+          {
+            "belief": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT), logged per renewal",
+            "field": "churn_probability",
+            "ceiling_auc": 0.6486486486486487,
+            "belief_auc": 0.6468468468468469,
+            "one_population": true,
+            "independent": false,
+            "clears_its_null": true,
+            "clears_its_null_after_exposure_offset": true,
+            "excess_over_chance_captured": null,
+            "refused_because": "the belief seeds the world's own roll, so a captured fraction would be the world reading back its own input"
+          },
+          {
+            "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
+            "field": "company_churn_estimate",
+            "ceiling_auc": 0.6486486486486487,
+            "belief_auc": 0.5846846846846847,
+            "one_population": true,
+            "independent": true,
+            "clears_its_null": false,
+            "clears_its_null_after_exposure_offset": true,
+            "excess_over_chance_captured": null,
+            "refused_because": "the belief reads 0.5847 INSIDE its null [0.3928, 0.6216] \u2014 a fraction of the ceiling computed from a cannot-tell is a percentage that reads as a finding"
+          },
+          {
+            "belief": "company.crm.churn_desk.estimate_svt_drift v2 JOINT (years on SVT, cap-period length, own payment record)",
+            "field": "company_svt_drift_estimate",
+            "ceiling_auc": 0.6486486486486487,
+            "belief_auc": null,
+            "excess_over_chance_captured": null,
+            "refused_because": "`company_svt_drift_estimate` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
+          },
+          {
+            "belief": "estimate_svt_drift v1 HELD-OUT ARM (payment record withheld)",
+            "field": "company_svt_drift_estimate_calendar_only",
+            "ceiling_auc": 0.6486486486486487,
+            "belief_auc": null,
+            "excess_over_chance_captured": null,
+            "refused_because": "`company_svt_drift_estimate_calendar_only` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
+          },
+          {
+            "belief": "estimate_svt_drift PAYMENT TERM ALONE (band held out)",
+            "field": "company_svt_drift_estimate_payment_only",
+            "ceiling_auc": 0.6486486486486487,
+            "belief_auc": null,
+            "excess_over_chance_captured": null,
+            "refused_because": "`company_svt_drift_estimate_payment_only` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
+          }
+        ]
+      },
+      "oracle_auc_with_level_anchor_flattened": 0.6486486486486487
+    },
+    "svt_segment": {
+      "decisions": 2146,
+      "departures": 50,
+      "pairs": 10992,
+      "oracle_auc": 0.6731713973799127,
+      "null": {
+        "low": 0.42003275109170307,
+        "high": 0.5847434497816594,
+        "median": 0.5003639010189228,
+        "permutations": 2000
+      },
+      "clears_the_null": true,
+      "per_factor": {
+        "sim_svt_inertia": {
+          "alone": 0.6349617903930131,
+          "held_out": 0.5921579330422125,
+          "contribution": 0.08101346433770018,
+          "tie_fraction": 0.17530931586608442,
+          "distinct_values": 613,
+          "inside_null_alone": false,
+          "superseded_by": "exposure_offset.per_factor",
+          "superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
+        },
+        "sim_action_propensity": {
+          "alone": 0.5921579330422125,
+          "held_out": 0.6349617903930131,
+          "contribution": 0.03820960698689957,
+          "tie_fraction": 0.4013828238719068,
+          "distinct_values": 9,
+          "inside_null_alone": false,
+          "superseded_by": "exposure_offset.per_factor",
+          "superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
+        }
+      },
+      "stratification": {
+        "stratified_by": "calendar year AND departure route",
+        "the_published_reading_is_the_stratified_one": true,
+        "same_stratum_pairs": 10992,
+        "comparable_pairs_pooled": 104800,
+        "same_stratum_share": 0.10488549618320611,
+        "auc_pooled": 0.7476288167938931,
+        "auc_stratified": 0.6731713973799127,
+        "stratification_moved_the_reading": -0.07445741941398043,
+        "the_stratified_reading_is": "lower"
+      },
+      "route": "svt_segment",
+      "company_belief": [
+        {
+          "belief": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT), logged per renewal",
+          "field": "churn_probability",
+          "available": false,
+          "not_defined_on_this_route": true,
+          "reason": "`churn_probability` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
+          "seeds_the_world_roll": true
+        },
+        {
+          "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
+          "field": "company_churn_estimate",
+          "available": false,
+          "not_defined_on_this_route": true,
+          "reason": "`company_churn_estimate` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
+          "seeds_the_world_roll": false
+        },
+        {
+          "belief": "company.crm.churn_desk.estimate_svt_drift v2 JOINT (years on SVT, cap-period length, own payment record)",
+          "field": "company_svt_drift_estimate",
+          "available": true,
+          "seeds_the_world_roll": false,
+          "independent_of_the_outcome": true,
+          "decomposition_arm": false,
+          "reading": "The company's belief about the route carrying 61% of this book's departures, with the one observable that VARIES ACROSS HOUSEHOLDS AT THE SAME INSTANT. v1 carried two observables and both were calendar, so it could only order the billing calendar, and it did: 0.4691 per exposure-day, inside its null. v2 adds the company's own collections record -- on-time rate and returned Direct Debits, off its own bank feed -- which places the account inside the published band whose stated basis is engagement variation. It carries NO action-propensity term: income stress is SIM truth and housing tenure is a segment label, so the company must INFER the link from its own book rather than be handed it, which is the claim under test. Computed AFTER the roll and reaching no hazard, which is what makes it gradable. Read this beside the two arms below -- the joint alone cannot say what the new term did.",
+          "decisions": 2146,
+          "departures": 50,
+          "pairs": 10992,
+          "belief_auc": 0.6644377729257642,
+          "null": {
+            "low": 0.42076055312954874,
+            "high": 0.5823780931586608,
+            "median": 0.5005913391557496,
+            "permutations": 2000
+          },
+          "clears_the_null": true,
+          "verdict": "the belief orders who leaves",
+          "tie_fraction": 0.06777656477438136,
+          "distinct_values": 266,
+          "mean_believed": 0.03304165890027959,
+          "realised_rate": 0.023299161230195712,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 10992,
+            "comparable_pairs_pooled": 104800,
+            "same_stratum_share": 0.10488549618320611,
+            "auc_pooled": 0.6900477099236642,
+            "auc_stratified": 0.6644377729257642,
+            "stratification_moved_the_reading": -0.02560993699789993,
+            "the_stratified_reading_is": "lower"
+          },
+          "exposure_offset": {
+            "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
+            "belief_auc_per_exposure_day": 0.561089883551674,
+            "null": {
+              "low": 0.4198508005822416,
+              "high": 0.5847889374090247,
+              "median": 0.5015920669577875,
+              "permutations": 2000
+            },
+            "pairs": 10992,
+            "clears_the_null": false,
+            "verdict": "we cannot tell",
+            "reading": "THIS is the quotable reading for this belief. The difference from the uncorrected one above is the part of its apparent discrimination that was how long the segment ran rather than anything about the household."
+          },
+          "belief_auc_superseded_by": "exposure_offset.belief_auc_per_exposure_day",
+          "belief_auc_superseded_because": "this reading does not carry the exposure offset its route requires: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so this figure credits the belief with what the billing calendar was doing",
+          "clears_the_null_superseded_by": "exposure_offset.clears_the_null"
+        },
+        {
+          "belief": "estimate_svt_drift v1 HELD-OUT ARM (payment record withheld)",
+          "field": "company_svt_drift_estimate_calendar_only",
+          "available": true,
+          "seeds_the_world_roll": false,
+          "independent_of_the_outcome": true,
+          "decomposition_arm": true,
+          "reading": "THE HELD-OUT ARM, not a belief anyone ships. Same function, same population, same null, with `payment_behaviour` omitted -- which IS v1, because the estimator returns the band midpoint for an absent record by construction. Its whole job is to make the joint reading attributable: the difference between this and the joint is what the payment observable bought, measured on ONE capture rather than quoted across two runs.",
+          "decisions": 2146,
+          "departures": 50,
+          "pairs": 10992,
+          "belief_auc": 0.6324144832605532,
+          "null": {
+            "low": 0.41721251819505095,
+            "high": 0.5769650655021834,
+            "median": 0.5010462154294032,
+            "permutations": 2000
+          },
+          "clears_the_null": true,
+          "verdict": "the belief orders who leaves",
+          "tie_fraction": 0.17530931586608442,
+          "distinct_values": 151,
+          "mean_believed": 0.031307875116495805,
+          "realised_rate": 0.023299161230195712,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 10992,
+            "comparable_pairs_pooled": 104800,
+            "same_stratum_share": 0.10488549618320611,
+            "auc_pooled": 0.6712356870229008,
+            "auc_stratified": 0.6324144832605532,
+            "stratification_moved_the_reading": -0.038821203762347656,
+            "the_stratified_reading_is": "lower"
+          },
+          "exposure_offset": {
+            "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
+            "belief_auc_per_exposure_day": 0.47143377001455605,
+            "null": {
+              "low": 0.42107896652110627,
+              "high": 0.5838336972343523,
+              "median": 0.5002274381368268,
+              "permutations": 2000
+            },
+            "pairs": 10992,
+            "clears_the_null": false,
+            "verdict": "we cannot tell",
+            "reading": "THIS is the quotable reading for this belief. The difference from the uncorrected one above is the part of its apparent discrimination that was how long the segment ran rather than anything about the household."
+          },
+          "belief_auc_superseded_by": "exposure_offset.belief_auc_per_exposure_day",
+          "belief_auc_superseded_because": "this reading does not carry the exposure offset its route requires: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so this figure credits the belief with what the billing calendar was doing",
+          "clears_the_null_superseded_by": "exposure_offset.clears_the_null"
+        },
+        {
+          "belief": "estimate_svt_drift PAYMENT TERM ALONE (band held out)",
+          "field": "company_svt_drift_estimate_payment_only",
+          "available": true,
+          "seeds_the_world_roll": false,
+          "independent_of_the_outcome": true,
+          "decomposition_arm": true,
+          "reading": "THE NEW TERM ON ITS OWN, published only as the third leg of the decomposition and NEVER as the belief's score. Every row is placed inside the recent band regardless of tenure, so the only thing varying is the payment grade. It separates two very different outcomes a joint figure cannot tell apart: a term that reads at chance alone and still lifts the joint is an interaction, and a term that reads well alone but does not lift the joint is a redundancy.",
+          "decisions": 2146,
+          "departures": 50,
+          "pairs": 10992,
+          "belief_auc": 0.6293668122270742,
+          "null": {
+            "low": 0.4185771470160116,
+            "high": 0.5802401746724891,
+            "median": 0.49945414847161573,
+            "permutations": 2000
+          },
+          "clears_the_null": true,
+          "verdict": "the belief orders who leaves",
+          "tie_fraction": 0.09042940320232896,
+          "distinct_values": 220,
+          "mean_believed": 0.03954151910531221,
+          "realised_rate": 0.023299161230195712,
+          "stratification": {
+            "stratified_by": "calendar year AND departure route",
+            "the_published_reading_is_the_stratified_one": true,
+            "same_stratum_pairs": 10992,
+            "comparable_pairs_pooled": 104800,
+            "same_stratum_share": 0.10488549618320611,
+            "auc_pooled": 0.6443034351145038,
+            "auc_stratified": 0.6293668122270742,
+            "stratification_moved_the_reading": -0.014936622887429585,
+            "the_stratified_reading_is": "lower"
+          },
+          "exposure_offset": {
+            "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
+            "belief_auc_per_exposure_day": 0.5174217612809315,
+            "null": {
+              "low": 0.4171670305676856,
+              "high": 0.5811499272197962,
+              "median": 0.5007278020378457,
+              "permutations": 2000
+            },
+            "pairs": 10992,
+            "clears_the_null": false,
+            "verdict": "we cannot tell",
+            "reading": "THIS is the quotable reading for this belief. The difference from the uncorrected one above is the part of its apparent discrimination that was how long the segment ran rather than anything about the household."
+          },
+          "belief_auc_superseded_by": "exposure_offset.belief_auc_per_exposure_day",
+          "belief_auc_superseded_because": "this reading does not carry the exposure offset its route requires: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so this figure credits the belief with what the billing calendar was doing",
+          "clears_the_null_superseded_by": "exposure_offset.clears_the_null"
+        }
+      ],
+      "ceiling_vs_belief": {
+        "route": "svt_segment",
+        "readings": [
+          {
+            "belief": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT), logged per renewal",
+            "field": "churn_probability",
+            "ceiling_auc": 0.6731713973799127,
+            "belief_auc": null,
+            "excess_over_chance_captured": null,
+            "refused_because": "`churn_probability` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
+          },
+          {
+            "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
+            "field": "company_churn_estimate",
+            "ceiling_auc": 0.6731713973799127,
+            "belief_auc": null,
+            "excess_over_chance_captured": null,
+            "refused_because": "`company_churn_estimate` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
+          },
+          {
+            "belief": "company.crm.churn_desk.estimate_svt_drift v2 JOINT (years on SVT, cap-period length, own payment record)",
+            "field": "company_svt_drift_estimate",
+            "ceiling_auc": 0.6731713973799127,
+            "belief_auc": 0.6644377729257642,
+            "one_population": true,
+            "independent": true,
+            "clears_its_null": true,
+            "clears_its_null_after_exposure_offset": false,
+            "excess_over_chance_captured": null,
+            "refused_because": "the belief clears its null only BEFORE the exposure offset its route requires: 0.6644 uncorrected, but 0.5611 per exposure-day, inside [0.4199, 0.5848]. The ceiling still clears offset, so there is signal here and this belief is not finding it \u2014 what it orders is how long the segment ran"
+          },
+          {
+            "belief": "estimate_svt_drift v1 HELD-OUT ARM (payment record withheld)",
+            "field": "company_svt_drift_estimate_calendar_only",
+            "ceiling_auc": 0.6731713973799127,
+            "belief_auc": 0.6324144832605532,
+            "one_population": true,
+            "independent": true,
+            "clears_its_null": true,
+            "clears_its_null_after_exposure_offset": false,
+            "excess_over_chance_captured": null,
+            "refused_because": "this is a DECOMPOSITION ARM, not a belief the company forms: it exists only to make the joint reading attributable, and a fraction-of-the-ceiling computed from it would describe a scoring rule nothing ships and nobody could act on; the belief clears its null only BEFORE the exposure offset its route requires: 0.6324 uncorrected, but 0.4714 per exposure-day, inside [0.4211, 0.5838]. The ceiling still clears offset, so there is signal here and this belief is not finding it \u2014 what it orders is how long the segment ran"
+          },
+          {
+            "belief": "estimate_svt_drift PAYMENT TERM ALONE (band held out)",
+            "field": "company_svt_drift_estimate_payment_only",
+            "ceiling_auc": 0.6731713973799127,
+            "belief_auc": 0.6293668122270742,
+            "one_population": true,
+            "independent": true,
+            "clears_its_null": true,
+            "clears_its_null_after_exposure_offset": false,
+            "excess_over_chance_captured": null,
+            "refused_because": "this is a DECOMPOSITION ARM, not a belief the company forms: it exists only to make the joint reading attributable, and a fraction-of-the-ceiling computed from it would describe a scoring rule nothing ships and nobody could act on; the belief clears its null only BEFORE the exposure offset its route requires: 0.6294 uncorrected, but 0.5174 per exposure-day, inside [0.4172, 0.5811]. The ceiling still clears offset, so there is signal here and this belief is not finding it \u2014 what it orders is how long the segment ran"
+          }
+        ]
+      },
+      "exposure_offset": {
+        "offset": "hazard divided by segment days, i.e. a per-exposure-day rate",
+        "oracle_auc_per_exposure_day": 0.579466885007278,
+        "null": {
+          "low": 0.4198053129548763,
+          "high": 0.5831968704512372,
+          "median": 0.5004548762736536,
+          "permutations": 2000
+        },
+        "clears_the_null": false,
+        "pairs": 10992,
+        "segment_length_alone": 0.585971615720524,
+        "segment_length_null": {
+          "low": 0.41803129548762735,
+          "high": 0.5758733624454149,
+          "median": 0.4991357350800582,
+          "permutations": 2000
+        },
+        "segment_length_clears": true,
+        "per_factor": {
+          "sim_svt_inertia": {
+            "alone": 0.4652019650655022,
+            "held_out": 0.47439046579330424,
+            "contribution": 0.10507641921397382,
+            "tie_fraction": 0.17530931586608442,
+            "distinct_values": 613,
+            "inside_null_alone": true
+          },
+          "sim_action_propensity": {
+            "alone": 0.47439046579330424,
+            "held_out": 0.4652019650655022,
+            "contribution": 0.11426491994177584,
+            "tie_fraction": 0.4013828238719068,
+            "distinct_values": 9,
+            "inside_null_alone": true
+          }
+        },
+        "reading": "Per-factor figures on the SVT route are quoted from THIS table, not from the uncorrected one above. The difference between the two oracle readings is the part of the route's discrimination that was the billing calendar rather than the household."
+      },
+      "per_factor_superseded_by": "exposure_offset.per_factor",
+      "per_factor_superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
+    }
+  },
+  "company_belief_provenance": {
+    "joined": false,
+    "reason": "the capture already carries the field",
+    "replayed": {
+      "derived": {
+        "company_svt_drift_estimate_calendar_only": 2146,
+        "company_svt_drift_estimate_payment_only": 2146
+      },
+      "how": "replayed by calling the company's own estimator on observables the capture already records; the stamped value always wins where the run wrote one"
+    }
+  },
+  "departures_on_routes_the_company_has_no_belief_for": {
+    "departures": 0,
+    "of_total": 92,
+    "routes": []
+  },
+  "stratified_by": "calendar year AND departure route",
+  "structural_terms_excluded_by_construction": [
+    "sim_level_anchor",
+    "sim_market_opportunity",
+    "route"
+  ]
+}

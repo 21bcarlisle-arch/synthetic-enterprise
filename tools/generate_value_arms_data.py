@@ -7569,6 +7569,156 @@ def _stratification_clause(strat: dict) -> str:
                     "capture, so it is not claimed either way.")
 
 
+#: SECOND AND LATER DRAWS OF THE SAME BOOK, discovered by shape rather than named one at a time. A
+#: repeat grade is `<recapture stem>_grade.json` beside its capture. A GLOB and not a constant per
+#: seed: the question "does this leg reproduce" is asked of however many draws exist, and a third
+#: draw must reach this surface without anyone editing this file. `sorted()` so two runs of the
+#: generator order the draws identically — a list that reshuffles under the reader is a list nobody
+#: can quote.
+_RENEWAL_BELIEF_REPEAT_GLOB = "renewal_belief_recapture_*_grade.json"
+
+
+def _renewal_belief_repetition(first: dict, measured_in_world) -> dict:
+    """DOES THE LEG HOLD ON A SECOND DRAW OF THE SAME WORLD — the control for a narrow clear.
+
+    WHY A REPETITION AND NOT A WIDER INTERVAL. `company_churn_estimate` clears its permutation null
+    on the production capture by **0.038** (0.6706 against a 0.6328 upper end) on 384 same-stratum
+    pairs. A permutation null asks "could this ORDERING of these fixed rows have arisen by
+    chance"; it does not ask "would these rows have come out this way again". Those are different
+    questions, and the second is the one a claim about what the company KNOWS depends on. This
+    project has published a sign off a width that narrow before and spent the stretch learning to
+    distrust it — `SEAT_FINDING_THE_NARROW_WIDTH_BEHIND_THE_PUBLISHED_SELECTION_SIGN_IS_A_REPEATED_
+    DRAW_2026-09-22` is the same shape one surface over.
+
+    SO THE CONTROL IS THE SAME WORLD, ROLLED AGAIN. `capture_departure_factors --roll-seed` re-draws
+    every renewal dice from the same distribution: not a tariff, not a price, not a hazard, not a
+    company belief moves. Only which side of its own hazard each household landed on — which is
+    precisely and only the quantity a repetition is supposed to vary.
+
+    A DRAW IN A DIFFERENT WORLD IS NOT A REPETITION AND IS EXCLUDED BY NAME. If the digests
+    disagree, the two are measurements of two things and their disagreement says nothing about
+    reproducibility. Excluded with its reason on the surface rather than silently skipped: a reader
+    must be able to see that a draw was found and set aside, and why.
+
+    NEVER AVERAGED, and the verdict is a SIDE rather than a spread. Two AUCs on two different books
+    — the draws do not even carry the same number of decisions, because who leaves decides who
+    reaches a later renewal — have no mean that describes anything. What they have is whether each
+    one cleared its OWN null on its OWN rows, and whether those answers agree. That is the whole
+    reading and it is three states, enumerated before any of them was computed.
+    """
+    path_field = _RENEWAL_BELIEF_FIELD
+    draws, excluded = [], []
+    for path in sorted(OBSERVABILITY_DIR.glob(_RENEWAL_BELIEF_REPEAT_GLOB)):
+        grade = _read(path)
+        if not isinstance(grade, dict):
+            excluded.append({"path": _cited_path(path),
+                             "why": "it could not be read as the JSON object a grade is"})
+            continue
+        digest = (grade.get("world_identity") or {}).get("digest")
+        if digest != measured_in_world:
+            excluded.append({
+                "path": _cited_path(path), "world": digest,
+                "why": ("it was drawn in world `{}` and the reading above in `{}`. Two worlds are "
+                        "two measurements, not one repeated — excluded rather than compared"
+                        .format(digest, measured_in_world))})
+            continue
+        route = (grade.get("per_route") or {}).get("renewal") or {}
+        arm = next((b for b in (route.get("company_belief") or [])
+                    if isinstance(b, dict) and b.get("field") == path_field
+                    and b.get("available")), None)
+        if arm is None:
+            excluded.append({"path": _cited_path(path),
+                             "why": "it carries no available `{}` reading on the renewal route"
+                                    .format(path_field)})
+            continue
+        draws.append({
+            "source": _cited_path(path),
+            "decisions": route.get("decisions"),
+            "departures": route.get("departures"),
+            "pairs": arm.get("pairs"),
+            "auc": _f(arm.get("belief_auc")),
+            "null_95_low": _f((arm.get("null") or {}).get("low")),
+            "null_95_high": _f((arm.get("null") or {}).get("high")),
+            "clears_its_own_null": arm.get("clears_the_null"),
+            "ceiling_auc": _f(route.get("oracle_auc")),
+            "ceiling_clears_its_own_null": route.get("clears_the_null"),
+        })
+    if not draws:
+        return {
+            "available": False,
+            "draws": [first],
+            "excluded": excluded,
+            "why": ("this leg has been drawn ONCE. Its clear is {:.3f} wide on {} pairs, which a "
+                    "permutation null cannot speak to: that null asks whether this ORDERING of "
+                    "these rows could have arisen by chance, not whether these rows would have "
+                    "come out this way again. Take a second draw with `python3 -m "
+                    "tools.capture_departure_factors docs/observability/"
+                    "renewal_belief_recapture_<seed>.json --roll-seed <seed>` and grade it to "
+                    "`docs/observability/renewal_belief_recapture_<seed>_grade.json`".format(
+                        abs((first.get("auc") or 0.0) - (first.get("null_95_high") or 0.0)),
+                        first.get("pairs"))),
+        }
+    every = [first] + draws
+    sides = {d["clears_its_own_null"] for d in every}
+    if None in sides or len(every) < 2:
+        holds, verdict = None, "cannot_tell_across_draws"
+    elif len(sides) > 1:
+        holds, verdict = False, "it_does_not_hold_across_draws"
+    elif sides == {True}:
+        holds, verdict = True, "it_holds_on_every_draw"
+    else:
+        holds, verdict = False, "it_clears_on_no_draw"
+    return {
+        "available": True,
+        "draws": every,
+        "excluded": excluded,
+        "the_leg_holds_across_draws": holds,
+        "verdict": verdict,
+        "what_was_varied": (
+            "The renewal dice, and nothing else. Same world digest, same 2016–2025 record, same "
+            "tariffs, same hazards, same company code. `churn_roll_for_renewal` was replaced by a "
+            "substitute drawing from the same uniform distribution on a different stream, so the "
+            "only thing that moves is which side of its own hazard each household landed on."),
+        "why_the_books_are_different_sizes": (
+            "Who leaves decides who reaches a later renewal at all, so a second draw does not "
+            "produce the same rows. That is a property of the world and not a fault in the "
+            "control: the question is whether the LEG reproduces, not whether the book does."),
+        "never_averaged_because": (
+            "Two AUCs over two different books have no mean that describes anything. What they "
+            "have is whether each cleared its OWN null on its OWN rows, and whether those answers "
+            "agree. A mean of them would be a figure of neither draw."),
+    }
+
+
+def _repetition_clause(rep: dict) -> str:
+    """The repetition, in the HEADLINE sentence. Three states, each derived, none chosen here."""
+    if not rep.get("available"):
+        return " " + (rep.get("why") or "")
+    holds = rep.get("the_leg_holds_across_draws")
+    n = len(rep.get("draws") or [])
+    if holds is True:
+        return (" It was drawn {} times in this world and cleared its own null on every draw, so "
+                "the reading is not one roll of the dice.".format(n))
+    if holds is False and rep.get("verdict") == "it_clears_on_no_draw":
+        return (" It was drawn {} times in this world and cleared its own null on none of "
+                "them.".format(n))
+    if holds is False:
+        cleared = [d for d in rep["draws"] if d["clears_its_own_null"]]
+        did_not = [d for d in rep["draws"] if not d["clears_its_own_null"]]
+        return (
+            " AND IT DOES NOT SURVIVE A SECOND DRAW. Rolling the same world's renewal dice again — "
+            "nothing else changed — the belief reads {:.4f} inside its null against a ceiling of "
+            "{:.4f} that now CLEARS: the exact mirror of the first draw, where the belief read "
+            "{:.4f} clear and the ceiling did not. Which of the two orders these departures is "
+            "decided by the roll, so across draws we cannot tell."
+            .format(did_not[0]["auc"], did_not[0]["ceiling_auc"],
+                    cleared[0]["auc"])
+            if cleared and did_not else
+            " It does not clear its own null on every draw of this world.")
+    return (" Whether it survives a second draw could not be established from the captures "
+            "present, so it is not claimed either way.")
+
+
 def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     """WHETHER THE COMPANY'S BELIEF ORDERS WHO LEAVES ON THE ROUTE WHERE IT PRICES.
 
@@ -7900,6 +8050,23 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     # reaches" -- which is the sentence that most needs the qualification, and the only one that
     # would have shipped without it.
     strat = _renewal_stratification(arm, route)
+    # THE REPETITION, fed the reading this block already computed as its FIRST draw rather than
+    # re-reading the artefact, so the draw the page shows and the draw the verdict counts cannot
+    # come to be different numbers.
+    repetition = _renewal_belief_repetition({
+        "source": _cited_path(SVT_BELIEF_GRADE),
+        "decisions": route.get("decisions"),
+        "departures": route.get("departures"),
+        "pairs": route.get("pairs"),
+        "auc": observed,
+        "null_95_low": low,
+        "null_95_high": high,
+        # THE ARTEFACT'S OWN VERDICT ON ITS OWN DRAW, not `belief_inside` inverted. They agree
+        # today; if they ever stop, the grader's is the one computed on the rows.
+        "clears_its_own_null": arm.get("clears_the_null"),
+        "ceiling_auc": ceiling,
+        "ceiling_clears_its_own_null": route.get("clears_the_null"),
+    }, measured_in_world)
     return {
         "available": True,
         "why": None,
@@ -8028,12 +8195,17 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
         # pairs. Beside the readings rather than in the artefact's foot, because this block is what
         # the page lifts and the artefact's foot is not.
         "stratification": strat,
+        # THE SAME QUESTION ASKED OF A SECOND ROLL OF THIS WORLD'S DICE. Both draws published side
+        # by side with their own nulls and their own books; never averaged, for the reason the
+        # block itself states.
+        "repetition": repetition,
         # THE SENTENCE IS THE PAYLOAD. Derived from the belief's own three numbers, so the prose
         # and the table beside it cannot disagree -- and from the stratification, because on this
         # capture that is what decides whether the first clause may be said at all.
-        "sentence": (sentence or (
+        "sentence": ((sentence or (
             "The company's belief about who leaves at renewal clears the interval a signal "
-            "carrying no information reaches.")) + _stratification_clause(strat),
+            "carrying no information reaches."))
+            + _stratification_clause(strat) + _repetition_clause(repetition)),
         "not_a_target": (
             "No figure here is a target. This says what the belief did on one graded book; it "
             "does not price the gap and it is not an instruction to tune the belief until it "

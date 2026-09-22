@@ -192,6 +192,137 @@ def test_the_reseeded_roll_moves_the_dice_and_nothing_else():
     assert drawn != [reseeded_churn_roll(churn_roll_for_renewal, 1)(a, term) for a in accounts]
 
 
+def _repeat_grade(tmp_path, name, *, world, auc, high, clears, ceiling=0.6, ceiling_clears=True):
+    """A minimal grade artefact of the shape `_renewal_belief_repetition` reads."""
+    import json as _json
+
+    from tools.generate_value_arms_data import _RENEWAL_BELIEF_FIELD
+    path = tmp_path / f"renewal_belief_recapture_{name}_grade.json"
+    path.write_text(_json.dumps({
+        "world_identity": {"digest": world},
+        "per_route": {"renewal": {
+            "decisions": 120, "departures": 40, "pairs": 400,
+            "oracle_auc": ceiling, "clears_the_null": ceiling_clears,
+            "company_belief": [{
+                "field": _RENEWAL_BELIEF_FIELD, "available": True, "pairs": 400,
+                "belief_auc": auc, "null": {"low": 0.38, "high": high},
+                "clears_the_null": clears,
+            }],
+        }},
+    }))
+    return path
+
+
+_FIRST_CLEARS = {"source": "first", "decisions": 102, "departures": 41, "pairs": 384,
+                 "auc": 0.6706, "null_95_low": 0.3685, "null_95_high": 0.6328,
+                 "clears_its_own_null": True, "ceiling_auc": 0.5911,
+                 "ceiling_clears_its_own_null": False}
+_WORLD = "39a192ce04c1eda8"
+
+
+def test_all_three_repetition_verdicts_are_reachable(tmp_path, monkeypatch):
+    """THE DEFECT: the repetition verdict is pinned to the answer this book happened to give.
+
+    "It holds", "it does not hold" and "it clears on no draw" are three findings and a control that
+    only ever saw the middle one would pass against a constant returning it. ONE control over the
+    WHOLE partition, per this project's own rule — a hardcoded verdict reds on the two branches it
+    was not hardcoded to.
+    """
+    import tools.generate_value_arms_data as gvad
+
+    monkeypatch.setattr(gvad, "OBSERVABILITY_DIR", tmp_path)
+    first_no = dict(_FIRST_CLEARS, clears_its_own_null=False)
+
+    _repeat_grade(tmp_path, "a", world=_WORLD, auc=0.71, high=0.63, clears=True)
+    assert gvad._renewal_belief_repetition(
+        _FIRST_CLEARS, _WORLD)["verdict"] == "it_holds_on_every_draw"
+    assert gvad._renewal_belief_repetition(
+        first_no, _WORLD)["verdict"] == "it_does_not_hold_across_draws"
+
+    (tmp_path / "renewal_belief_recapture_a_grade.json").unlink()
+    _repeat_grade(tmp_path, "b", world=_WORLD, auc=0.58, high=0.62, clears=False)
+    assert gvad._renewal_belief_repetition(
+        first_no, _WORLD)["verdict"] == "it_clears_on_no_draw"
+    assert gvad._renewal_belief_repetition(
+        _FIRST_CLEARS, _WORLD)["verdict"] == "it_does_not_hold_across_draws"
+
+
+def test_a_draw_from_another_world_is_excluded_by_name_and_not_silently_skipped(
+        tmp_path, monkeypatch):
+    """THE DEFECT: a draw taken in a different world is counted as a repetition of this one.
+
+    Two worlds are two measurements. Their disagreement says nothing about whether a leg
+    reproduces, and folding one in would manufacture a "does not hold" out of a comparison nobody
+    made. Excluded — and VISIBLY, because a reader must be able to see that a draw was found and
+    set aside, and why. A silent skip and an absent file look identical.
+    """
+    import tools.generate_value_arms_data as gvad
+
+    monkeypatch.setattr(gvad, "OBSERVABILITY_DIR", tmp_path)
+    _repeat_grade(tmp_path, "elsewhere", world="ffffffffffffffff", auc=0.58, high=0.62,
+                  clears=False)
+    rep = gvad._renewal_belief_repetition(_FIRST_CLEARS, _WORLD)
+
+    assert rep["available"] is False, "a foreign-world draw must not count as a repetition"
+    assert len(rep["excluded"]) == 1
+    assert "ffffffffffffffff" in rep["excluded"][0]["why"]
+    assert _WORLD in rep["excluded"][0]["why"]
+
+
+def test_one_draw_publishes_its_own_width_and_the_command_that_would_settle_it(
+        tmp_path, monkeypatch):
+    """THE DEFECT: a single draw's clear is published with nothing saying it is a single draw.
+
+    A withdrawal with no route out is where an inferential claim goes quietly to die. The
+    unavailable branch carries the measured width AND the exact command, so the next reader can
+    take the second draw rather than rediscover that one is owed.
+    """
+    import tools.generate_value_arms_data as gvad
+
+    monkeypatch.setattr(gvad, "OBSERVABILITY_DIR", tmp_path)
+    rep = gvad._renewal_belief_repetition(_FIRST_CLEARS, _WORLD)
+
+    assert rep["available"] is False
+    assert rep["draws"] == [_FIRST_CLEARS], "the one draw taken is still published"
+    assert "--roll-seed" in rep["why"]
+    # THE WIDTH IS MEASURED FROM THE DRAW, not typed. 0.6706 - 0.6328 = 0.038.
+    assert "0.038" in rep["why"]
+
+
+def test_the_two_draws_are_published_whole_and_never_reduced_to_one_number(
+        tmp_path, monkeypatch):
+    """THE DEFECT: two AUCs over two different books are averaged into a figure of neither.
+
+    The draws do not even carry the same decisions — who leaves decides who reaches a later
+    renewal — so a mean of them describes no population. This leg pins that each draw keeps its own
+    book, its own null and its own verdict, and that no aggregate figure appears beside them.
+    """
+    import tools.generate_value_arms_data as gvad
+
+    monkeypatch.setattr(gvad, "OBSERVABILITY_DIR", tmp_path)
+    _repeat_grade(tmp_path, "c", world=_WORLD, auc=0.5847, high=0.6216, clears=False)
+    rep = gvad._renewal_belief_repetition(_FIRST_CLEARS, _WORLD)
+
+    assert len(rep["draws"]) == 2
+    for draw in rep["draws"]:
+        assert draw["auc"] is not None and draw["null_95_high"] is not None
+        assert draw["clears_its_own_null"] in (True, False)
+    assert rep["draws"][0]["pairs"] != rep["draws"][1]["pairs"], \
+        "the fixture must exercise two DIFFERENT books or this leg is vacuous"
+    # AND NO AGGREGATE OF THE TWO APPEARS ANYWHERE IN THE BLOCK. Asked of the VALUES rather than
+    # the key names: a first draft of this leg banned keys spelled "mean" or "average" and reds on
+    # `never_averaged_because`, the sentence doing the refusing — a control that fires on the
+    # remedy and not on the defect. The defect is a NUMBER equal to the mean or the spread of the
+    # two AUCs reaching a reader, whatever it is called.
+    aucs = [d["auc"] for d in rep["draws"]]
+    forbidden = [sum(aucs) / len(aucs), abs(aucs[0] - aucs[1])]
+    scalars = [v for k, v in rep.items() if isinstance(v, (int, float))
+               and not isinstance(v, bool)]
+    for bad in forbidden:
+        assert not any(abs(v - bad) < 1e-9 for v in scalars), \
+            f"an aggregate of the two draws ({bad}) reached the block"
+
+
 def test_the_live_artefact_carries_the_block_wherever_it_carries_an_auc():
     """THE DEFECT: the repair holds in the function and not in the file the page actually reads.
 
