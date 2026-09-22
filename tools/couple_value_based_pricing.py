@@ -102,6 +102,7 @@ from simulation.customer_events import _price_differential_vs_market
 from simulation.market_switching_propensity import (
     _CALIBRATED_SAVINGS_CEILING_GBP,
     CALIBRATION_ANNUAL_BILL_GBP,
+    bill_scale_for,
     churn_position_multiplier,
 )
 from tools import maturity_map_store as map_store
@@ -693,6 +694,37 @@ def _legs(book: dict) -> dict:
     return out
 
 
+def _household_annual_bill_gbp(book: dict) -> dict:
+    """What each leg's HOUSEHOLD spends a year, across all of its legs. cid -> GBP, or absent.
+
+    SUMMED ACROSS THE LEGS, and that is the whole reason this is not `revenue_gbp / years` read off
+    the leg at the call site. A dual-fuel home's bill is its electricity AND its gas, and the world
+    is explicit about it (`simulation/customer_events._annual_bill_gbp`: "scoring it on the
+    electricity leg alone would understate the money at stake by roughly a third"). This tool's
+    rows are LEGS -- `_legs` keys the book by `cid` -- so every dual-fuel household appears twice
+    and each row must still be scored on the household's whole spend, not on its own third.
+
+    ABSENT RATHER THAN ZERO when a customer's legs carry no revenue. Zero would be handed to the
+    world's curve as a household that spends nothing, whose every price differential is worth
+    GBP 0 and who therefore never leaves -- a fabricated retention, and the flattering direction.
+    `belief_versus_truth` takes None and falls back to the market-average scale, which is wrong in
+    a bounded and already-published way rather than in a new invented one.
+    """
+    out: dict[str, float] = {}
+    for customer in book.get("customers") or []:
+        legs = [leg for leg in (customer.get("legs") or {}).values() if leg.get("cid")]
+        total = 0.0
+        for leg in legs:
+            bills = float(leg.get("bill_count") or 0.0)
+            years = max(1.0, bills / BILLS_PER_YEAR)
+            total += float(leg.get("revenue_gbp") or 0.0) / years
+        if total <= 0.0:
+            continue
+        for leg in legs:
+            out[leg["cid"]] = total
+    return out
+
+
 def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict,
                  how: dict | None = None) -> dict:
     """WHICH TWO FILES this comparison priced, snapshotted BY THE CALLER as it read them.
@@ -920,13 +952,33 @@ def book_identity(data: dict, at_read: dict | None = None) -> dict:
 
 
 def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_years: float,
-                        eac_kwh: float, segment: str, term_start: str) -> dict | None:
+                        eac_kwh: float, segment: str, term_start: str,
+                        annual_bill_gbp: float | None = None) -> dict | None:
     """What the COMPANY believes would happen at its own chosen price, against what the WORLD
     would actually do. The coupled-triad measurement, at the price the decision picks.
 
     HARNESS ONLY, and this file is where that is allowed: `tools/` sits outside the wall and is
     the one layer permitted to hold the company's belief and the world's outcome side by side
     (COUPLED_TRIAD_DESIGN 1.3). Nothing here is reachable from `company/`.
+
+    `annual_bill_gbp` IS THE HOUSEHOLD'S OWN SPEND, AND UNTIL 2026-09-09 IT WAS NOT PASSED.
+    `churn_position_multiplier` takes it and defaults to `CALIBRATION_ANNUAL_BILL_GBP` (GBP 1,700)
+    when it is absent, so every row this function produced scored the world's response for a
+    market-average household wearing THIS household's price differential. The world the A/B
+    actually runs has not worked that way since 2026-08-27: `simulation/customer_events.py` passes
+    `bill_scale_for(segment, _annual_bill_gbp(...))`, because Ofgem/BMG 2024 found households value
+    savings in ABSOLUTE terms and "a small flat and a large house at the same percentage were
+    modelled as facing the same money". This probe never got that repair, so its `world_would_
+    p_leave` was not the world's, and the error was not random with respect to what it is read for:
+    the arm's own selection is on household size, so the bias pointed straight at the population
+    under study.
+
+    None is still accepted and still means the market-average scale -- that is what
+    `bill_scale_for` returns for a non-domestic segment or an unknown one, and passing a
+    4 GWh industrial site's bill into a domestic switching curve is the GBP 500,000 / x599.6
+    failure that function exists to refuse. A CALLER THAT SIMPLY OMITS IT gets the old behaviour,
+    which is why the caller's omission was invisible for two weeks; `bill_scale_used_gbp` is
+    published on every row below so a reader of one row can tell which scale it was scored on.
 
     WHY IT IS WORTH MEASURING NOW AND WAS NOT THIS MORNING. Until `baec3efb2` the world's churn
     did not read the supplier's own price at all, so both sides were blind and the gap was
@@ -945,14 +997,34 @@ def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_year
     # so the comparison isolates the PRICE response and not the rest of the chain.
     base = float(enriched_churn_estimate(current_rate, current_rate, tenure_years,
                                          float(eac_kwh), segment=segment))
-    actual = min(base * churn_position_multiplier(differential), WORLD_MAX_CHURN_PROBABILITY)
+    # THE SCALE THE WORLD FEELS THIS DIFFERENTIAL AGAINST. `bill_scale_for` is the world's own
+    # gate, imported rather than restated: it hands back the household's bill for a domestic
+    # segment and None -- the market average -- for anything the domestic curve does not govern.
+    scale = bill_scale_for(segment, annual_bill_gbp)
+    actual = min(base * churn_position_multiplier(differential, scale),
+                 WORLD_MAX_CHURN_PROBABILITY)
+    # THE SAME ROW ON THE SCALE THIS PROBE USED BEFORE 2026-09-09, published beside the repaired
+    # one rather than replaced by it. A repair that only overwrites leaves a reader unable to tell
+    # how much of any move is the repair -- and the pre-repair figure is the one already quoted in
+    # `docs/observability/value_based_pricing_arms.json` and everything that has read it. Equal to
+    # `world_would_p_leave` by construction wherever the segment is non-domestic, because there
+    # the market average IS the scale the world uses.
+    actual_market_scale = min(base * churn_position_multiplier(differential),
+                              WORLD_MAX_CHURN_PROBABILITY)
     # WHERE ON THE WORLD'S CURVE THIS ACCOUNT WAS SCORED, per account, because the curve stops
     # being a measurement partway along it. `churn_position_multiplier` reads the differential as
-    # an annual shortfall against a GBP 1,700 bill and the DESNZ series informs it only to
-    # GBP 400 of that; past there the world continues the LAST INFORMED SLOPE, which is a named
-    # simplification and not an observation. An account scored out there is being compared against
-    # an extrapolation, and a reader of one row cannot tell unless the row says so.
-    shortfall_gbp = differential * CALIBRATION_ANNUAL_BILL_GBP
+    # an annual shortfall in POUNDS and the DESNZ series informs it only to GBP 400 of that; past
+    # there the world continues the LAST INFORMED SLOPE, which is a named simplification and not an
+    # observation. An account scored out there is being compared against an extrapolation, and a
+    # reader of one row cannot tell unless the row says so.
+    #
+    # ON THE SAME SCALE THE MULTIPLIER USED, and that is the whole point of computing it here
+    # rather than restating GBP 1,700. Before 2026-09-09 both lines held the market average and
+    # agreed by accident; a repair that moved only the multiplier would have left this flag
+    # describing a household the multiplier no longer scored -- an extrapolation warning about
+    # somebody else's bill, which is worse than none.
+    bill_scale_used = CALIBRATION_ANNUAL_BILL_GBP if scale is None else scale
+    shortfall_gbp = differential * bill_scale_used
     beyond = differential > 0.0 and shortfall_gbp > _CALIBRATED_SAVINGS_CEILING_GBP
     if beyond:
         basis = ("EXTRAPOLATED -- GBP {:.0f}/yr past the GBP {:.0f} the series informs, on the "
@@ -973,7 +1045,15 @@ def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_year
         "company_believes_p_leave": round(believed, 4),
         "world_would_p_leave": round(actual, 4),
         "belief_error_pp": round(100.0 * (believed - actual), 1),
+        "world_would_p_leave_market_average_scale": round(actual_market_scale, 4),
+        "belief_error_pp_market_average_scale": round(100.0 * (believed - actual_market_scale), 1),
         "world_annual_shortfall_gbp": round(shortfall_gbp, 2),
+        #: WHICH BILL THE WORLD'S RESPONSE WAS SCALED BY, on the row, because the two possible
+        #: answers -- this household's own spend, or the GBP 1,700 market average when the
+        #: domestic curve does not govern the segment -- are different measurements and a reader
+        #: given only the result cannot tell them apart.
+        "bill_scale_used_gbp": round(bill_scale_used, 2),
+        "bill_scale_is_this_household": scale is not None,
         "world_calibration_ceiling_gbp": _CALIBRATED_SAVINGS_CEILING_GBP,
         "world_curve_beyond_calibration": beyond,
         "world_curve_basis": basis,
@@ -1050,6 +1130,7 @@ def _average_player_summary(rows: list[dict]) -> dict:
 def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
     """Both arms over every account the company has enough of its own record to price."""
     legs = _legs(book)
+    household_bills = _household_annual_bill_gbp(book)
     per_account, skipped = [], collections.Counter()
 
     for cid, record in (run.get("per_customer_lifetime") or {}).items():
@@ -1163,7 +1244,11 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             "belief_vs_truth": belief_versus_truth(
                 offered_rate=common["base_rate_gbp_per_mwh"] + value.margin_gbp_per_mwh,
                 current_rate=avg_rate, tenure_years=years, eac_kwh=eac,
-                segment=common["segment"], term_start=f"{as_of_year}-01-01"),
+                segment=common["segment"], term_start=f"{as_of_year}-01-01",
+                # The household's whole annual spend, which is the scale the world feels a price
+                # differential against. Omitting it -- what this call did until 2026-09-09 --
+                # silently scores every row as a GBP 1,700 household.
+                annual_bill_gbp=household_bills.get(cid)),
         })
 
     chosen = collections.Counter(r["value_margin_gbp_per_mwh"] for r in per_account)
