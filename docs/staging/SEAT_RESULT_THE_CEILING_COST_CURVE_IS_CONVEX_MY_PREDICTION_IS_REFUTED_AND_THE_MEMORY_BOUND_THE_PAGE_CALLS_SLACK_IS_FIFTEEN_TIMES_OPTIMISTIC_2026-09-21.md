@@ -291,6 +291,48 @@ size be built" is NO on two independent legs, one of them not an engineering lim
 That is the measured *"this world cannot reach it"* the drawn item named as a complete answer. It
 is complete.
 
+---
+
+### WITHDRAWN 2026-09-22 — it was not complete, and the section above is left unedited so this has something to stand beside
+
+**The section's own header says "the one that closes the item", and closing was the error.** The
+gap is 28.4 customer-years on 3,163.9 — **0.9%** — and neither figure was published with the error
+it had earned. Both have now been priced. Both errors are bigger than the gap, one of them without
+bound, and the answer is **we cannot tell**.
+
+| | what it counts | 95% interval |
+|---|---|---|
+| **3,135.5** funnel supply | ONE run of a stochastic funnel: 500 wins × 6.271 cy, never repeated | **[2,867, 3,423]** cy — exact Poisson on the win count alone, **±278** |
+| **3,163.9** requirement | `V/c²` × 1,122.0 — spread AND centre from the SAME nine seeds | **[670, ∞)** cy — unbounded above |
+
+**Why the requirement has no upper bound.** `V/c²` with both terms from one n=9 sample is
+algebraically `n/t²`, t = 1.7865 on 8 df, **two-sided p = 0.112**. That is the leg's sign being
+undetermined — which the page already states — restated as arithmetic. A requirement *divided by*
+a centre whose interval straddles zero inherits an interval with no top: a true effect of zero
+needs an infinite book. Inverting the noncentral t gives [670, ∞). A 200,000-draw parametric
+bootstrap in the producer's own iid model agrees: 2.5/50/97.5 = **422 / 2,979 / 413,482**.
+
+**The number that settles it: the requirement exceeds the funnel's supply in 48.4% of draws.** The
+comparison this section rests on is a coin flip. In **21.4%** of draws the requirement is *below*
+the 1,250 capacity binding today — so "this book is too small" is itself not established.
+
+Even granting the requirement as exact, the funnel's own Poisson half-width is ±278 cy and the
+claimed 28.4 is **10.2% of it**.
+
+**And a reason needing no statistics at all.** In **four of ten years** (2020, 2021, 2024, 2025)
+the campaign was bound by `PROSPECTS_PER_YEAR = 400` — *our* constant, sized when the company could
+afford tens. `book_growth.json` says so itself: *"those years understate what this supplier would
+have done."* So 3,135.5 is a lower bound on **our own instrument's** supply, and a lower bound
+cannot be the ceiling a shortfall is measured from. 40% of the binding was ours, not the world's.
+
+**What this costs and what it buys.** It does not establish the opposite — the two figures are the
+same size to within their error and the reach is undetermined. But it re-points the work: the
+section above licensed stopping on the funnel and continuing on the ceiling, and that is backwards.
+Neither error shrinks by measuring RSS again.
+
+Full derivation, both rulers, and what is still owed:
+`SEAT_RESULT_THE_TWENTY_EIGHT_CUSTOMER_YEAR_SHORTFALL_IS_A_COIN_FLIP_AND_FOUR_OF_TEN_YEARS_WERE_BOUND_BY_OUR_OWN_PROSPECT_CAP_2026-09-22.md`.
+
 ## My filed prediction, scored
 
 > *"the marginal cost is ≈0.67s per customer-year on a ≈215s fixed component … I predict wall clock

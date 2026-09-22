@@ -773,6 +773,60 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:    short of it, and 1,312.3 is where this box stops long before that. "This world cannot reach
 #:    it" is the complete answer, and it is now measured on both legs rather than asserted.
 #:
+#:    ── WITHDRAWN 2026-09-22, AND THE PARAGRAPH ABOVE IS KEPT UNEDITED SO THE CORRECTION HAS
+#:    SOMETHING TO BE BESIDE. **The last sentence is the defect: "the complete answer" was stated
+#:    on a 28.4-customer-year margin — 0.9% — between two figures NEITHER of which was carrying
+#:    the error it had earned.** Both were then measured. Both errors are larger than the gap, one
+#:    of them without bound, and the honest answer is WE CANNOT TELL.
+#:
+#:    **FIRST, SAY WHAT EACH NUMBER COUNTS, because they are not the same kind of thing and the
+#:    subtraction above treated them as if they were.** 3,135.5 is an OBSERVATION: one run of a
+#:    stochastic funnel, 500 wins at 6.271 customer-years each. 3,163.9 is a REQUIREMENT INVERTED
+#:    FROM A NINE-SEED SPREAD: `smallest × this_book_customer_years` = 2.8199 × 1,122.0, where the
+#:    multiple is `V/c²` on the selection leg's own floor — 1,810.50² over 1,078.17², the spread
+#:    and the centre of the SAME nine re-draws. A ratio of two statistics from nine draws is not a
+#:    constant, and nothing published it as one.
+#:
+#:    **THE REQUIREMENT'S ERROR IS UNBOUNDED ABOVE, AND THE REASON IS ARITHMETIC RATHER THAN
+#:    PESSIMISM.** `V/c²` with both terms from the same n=9 sample is algebraically `n/t²`, with
+#:    t = 1.7865 on 8 df — **two-sided p = 0.112**, which is the leg's sign being undetermined,
+#:    restated. The page already says the centre "is itself an estimate and is not established to
+#:    be non-zero"; what nobody carried through is that a requirement DIVIDED BY that centre
+#:    inherits a denominator whose interval straddles zero. Inverting the noncentral t for the
+#:    scale parameter gives a 95% interval on the requirement of **[670, ∞) customer-years** — the
+#:    upper end is not large, it is absent, because a true effect of zero needs an infinite book.
+#:    A 200,000-draw parametric bootstrap in the producer's own iid model agrees: 2.5/50/97.5 =
+#:    **422 / 2,979 / 413,482**.
+#:
+#:    **THE FUNNEL'S ERROR ALONE ALREADY SWALLOWS THE GAP TEN TIMES OVER.** Treat the requirement
+#:    as exact and price only the 500-win count: an exact Poisson interval is [457.1, 545.8] wins,
+#:    so **[2,867, 3,423] customer-years, ±278**. The 28.4 claimed is **10.2% of one half-width**.
+#:    One draw of a stochastic funnel, never repeated, was differenced against a requirement to
+#:    three decimal places.
+#:
+#:    **THE ONE NUMBER THAT SETTLES IT: under the producer's own model the requirement exceeds the
+#:    funnel's supply in 48.4% of draws.** The comparison this paragraph rests on is a coin flip.
+#:    And in **21.4%** of draws the requirement is below the 1,250 capacity that binds today —
+#:    so it is not established that this book is too small, let alone by how much.
+#:
+#:    **A SEPARATE AND SUFFICIENT REASON THE FUNNEL FIGURE CANNOT BEAR THE WORD "TOPS OUT",
+#:    which needs no statistics at all:** in FOUR of its ten years (2020, 2021, 2024, 2025) the
+#:    campaign was bound by `PROSPECTS_PER_YEAR = 400` — OUR constant, sized when the company
+#:    could afford tens, not the GB switching market. `book_growth.json` says so itself in
+#:    `prospect_ceiling_statement`: *"those years understate what this supplier would have done"*.
+#:    3,135.5 is therefore a LOWER BOUND ON OUR OWN INSTRUMENT'S SUPPLY, and a lower bound cannot
+#:    be the ceiling a shortfall is measured from. The word "world" was doing work the figure
+#:    could not support: 40% of the binding was ours.
+#:
+#:    **WHAT REPLACES IT.** Not "the world cannot reach it", and not its negation either — the
+#:    two figures are the same size to within their error, and this world's reach relative to the
+#:    requirement is UNDETERMINED on the evidence in hand. Which also re-points the work: the
+#:    paragraph above licensed stopping, and the leg that actually needs attention is the FUNNEL
+#:    and the nine-seed floor, not the compute ceiling. Neither error shrinks by measuring RSS
+#:    again. Derivation and both rulers:
+#:    `docs/staging/SEAT_RESULT_THE_TWENTY_EIGHT_CUSTOMER_YEAR_SHORTFALL_IS_A_COIN_FLIP_AND_
+#:    FOUR_OF_TEN_YEARS_WERE_BOUND_BY_OUR_OWN_PROSPECT_CAP_2026-09-22.md`.
+#:
 #: WAS OWED, AND IS NOW CLOSED BY ANOTHER LANE — kept rather than deleted, because the reason it
 #: closed is a fact about THIS constant. It read: *"Two live constants both declare themselves the
 #: publish cadence and they differ by 112x"* — `publish_freshness` at 604,800s (the director's,
