@@ -467,6 +467,76 @@ def test_A_MUTE_DAEMONS_ESTABLISHED_CAUSE_REACHES_THE_BRIEF_AND_AN_UNESTABLISHED
     assert "MUTE HERE MEANS DEFINITION B" in text
 
 
+def test_A_WEDGED_DAEMON_READS_DIFFERENTLY_FROM_A_FRESHLY_STARTED_ONE(monkeypatch):
+    """THE PAIR IN ONE CONTROL, because separately each half is trivially passable: a reading that
+    prints the wait channel unconditionally passes any test that only shows it a wedged daemon,
+    and one that prints nothing passes any test that only shows it a healthy one.
+
+    THE DEFECT IT IS WRITTEN AGAINST (2026-09-22, lane 0). `mute` says nothing has been written in
+    this run. It cannot say WHY, and it collapses two opposite answers: a daemon sleeping between
+    polls, and a daemon wedged on something that will never return. Both are `active (running)`
+    under systemd and both are counted present by the census. Worse on THIS box, the wedge is the
+    harder read of the two: `deploy_restart.py` restarts these units every ~10 minutes, so their
+    mute AGE never grows past a few minutes and a permanently-broken daemon looks exactly like a
+    fresh start forever. Age could not separate them. The wait channel can.
+
+    WHY NO THRESHOLD IS ASSERTED HERE, and this is the load-bearing half of the design. There is
+    no allow-list of healthy channels -- `hrtimer_nanosleep` for a sleeper, `do_sys_poll` for a
+    socket listener, `0` for a task on CPU are all ordinary -- so the control asserts that the
+    channel REACHES THE READER, never that some value is good. A test pinning "hrtimer_nanosleep
+    means healthy" would be keyed to today's answer and would red the day a daemon legitimately
+    changed how it sleeps, which is exactly backwards.
+
+    MUTATION: drop `wait_channel` from the row dict and both daemons render without a channel --
+    the DIFFER assert fails because the two lines become identical. Drop the `_channel(r)` call
+    from the unexplained branch and the same assert fails. Make `_wait_channel` return "" on
+    success and the "could not be read" leg swallows a real reading -- the NOT-EVIDENCE assert
+    fires, because a blank must never be rendered as though the daemon had been cleared.
+    """
+    entries = [{k: v for k, v in e.items() if k != "log_silence"} for e in _enabled_rows()]
+    # BOTH MUTE, BOTH AT THE SAME AGE. Age is deliberately held constant so it cannot be what
+    # separates them -- on the real box it never could, and a fixture that let it would flatter.
+    monkeypatch.setattr(seat, "_unit_last_write", lambda s: (28, "", False))
+    channels = {"supervisor": "futex_wait_queue_me", "deadmans-switch": "hrtimer_nanosleep"}
+    rows = seat.declared_daemon_health({e["match"] for e in entries}, entries=entries,
+                                       wait_channel=lambda s: channels.get(s, "do_sys_poll"))
+    text = seat._mute_sentence(rows)
+    wedged = [ln for ln in text.splitlines() if "futex_wait_queue_me" in ln]
+    sleeping = [ln for ln in text.splitlines() if "hrtimer_nanosleep" in ln]
+    assert wedged and sleeping, "both channels must reach the reader"
+    assert wedged != sleeping, \
+        "DIFFER -- two daemons mute for the same 28s must not render as the same row"
+
+    # A FILED CAUSE MUST NOT BECOME A REASON TO STOP LOOKING. The cause was established once,
+    # against a pid that no longer exists; a daemon carrying one can wedge tomorrow. So the
+    # channel is re-asked LIVE for the explained rows too, and a control that only rendered it
+    # for the uncaused list would go blind on exactly the daemons it had already been told about.
+    caused = [{k: v for k, v in e.items() if k != "log_silence"} for e in _enabled_rows()]
+    for e in caused:
+        e["log_silence"] = "established once, long ago"
+    text_caused = seat._mute_sentence(seat.declared_daemon_health(
+        {e["match"] for e in caused}, entries=caused,
+        wait_channel=lambda s: "futex_wait_queue_me"))
+    assert "NO CAUSE ON FILE" not in text_caused, "every row here has a cause -- no actionable list"
+    assert "futex_wait_queue_me" in text_caused, \
+        "a mute daemon with a cause on file is still asked for its wait channel, every brief"
+
+    # A CHANNEL THAT COULD NOT BE READ IS NOT A CLEARANCE. The blank must say so in words, or a
+    # reader scanning the list takes a silent row for an investigated one -- the fail-open shape.
+    blank = seat._mute_sentence(
+        seat.declared_daemon_health({e["match"] for e in entries}, entries=entries,
+                                    wait_channel=lambda s: ""))
+    assert "NOT evidence that it is fine" in blank
+
+    # AND IT IS ASKED ONLY OF THE MUTE. A daemon that spoke has already proved it is not wedged,
+    # and paying a subprocess per daemon per brief for that would be a cost with no reading in it.
+    asked = []
+    seat.declared_daemon_health({e["match"] for e in entries}, entries=entries,
+                                last_write=lambda s: (28, "", True),
+                                wait_channel=lambda s: asked.append(s) or "x")
+    assert asked == [], "a daemon that spoke in this run is never asked for its wait channel"
+
+
 def test_THE_LOG_AGE_IS_TAKEN_ON_THE_MONOTONIC_CLOCK_NOT_THE_CORRECTABLE_WALL_CLOCK(monkeypatch):
     """The age must survive a wall-clock correction, because on this box it did not.
 

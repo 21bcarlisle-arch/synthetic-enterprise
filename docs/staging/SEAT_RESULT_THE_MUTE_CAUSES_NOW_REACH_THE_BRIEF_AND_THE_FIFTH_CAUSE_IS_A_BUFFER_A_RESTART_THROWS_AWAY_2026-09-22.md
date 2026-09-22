@@ -106,6 +106,48 @@ from the row kills the "cause reaches the brief" assert; merging the two populat
 `ACTIONABLE_ONLY` assert. The fixture is built by *stripping* the live manifest, so it cannot drift
 into asserting a cause the manifest no longer carries.
 
+## The third clause: a wedged daemon now reads differently from a freshly started one
+
+Landed separately, after `320a8d14a` closed the first two clauses. `mute` says nothing was written
+in this run; it cannot say **why**, and it collapses two opposite answers — a daemon sleeping
+between polls, and a daemon wedged on something that will never return. Both are `active
+(running)` and both are counted present.
+
+**Age could not separate them on this box.** Because `deploy_restart` restarts these units every
+~10 minutes, a permanently-broken daemon's mute age never grows past a few minutes — it looks like
+a fresh start forever. That is the finding above turned into a blind spot, and it is why this leg
+was worth doing rather than asserting.
+
+`_wait_channel` publishes `/proc/<MainPID>/wchan` verbatim on every mute row. **No threshold, no
+allow-list of healthy channels** — `hrtimer_nanosleep` (sleeper), `do_sys_poll` (socket listener)
+and `0` (on CPU) are all ordinary, so any blessed list would be picked rather than established. The
+readable signal is that the channel is *stable per daemon*: one that **changes** between two briefs
+is the reading, and that comparison needs no constant from us.
+
+Two design points that were corrections, not plans:
+
+- **It spawns nothing.** The obvious version asks `systemctl --user show -p MainPID`, and
+  `tests/conftest.py`'s G-T1 guard refuses exactly that — `systemctl` is in `_BLOCKED_SPAWN`. The
+  guard caught it on the first run, having emptied the whole declared list inside `running_now`.
+  Reading the cgroup out of `/proc/<pid>/cgroup` needs no process and is faster than the fork.
+- **The main process is found by parenthood, not by lowest pid.** The main process is the only
+  cgroup member whose parent is outside the cgroup. `min(pids)` is wrong *on this box*: pids wrap
+  (the counter passed 3.9M against a 4.19M ceiling today), so a child spawned after a wrap has a
+  lower pid than its parent. That is the same wrap that briefly made me misread a live `git push`
+  child as belonging to a dead run.
+
+**A filed cause must not become a reason to stop looking.** The channel is re-asked live for the
+rows that already carry a `log_silence`, not only the uncaused ones. Each of those causes records a
+`wchan` read *once*, against a pid that no longer exists; a daemon with a cause on file can wedge
+tomorrow, and a reading that skipped them would go blind on exactly the daemons it had been told
+about — a control pinned to the day's answer.
+
+The actionable list is currently **empty**, which is a true reading: all five mute daemons now have
+established causes. The wedge leg is therefore exercised by its control rather than by today's box,
+and the control mutates at four legs (drop `wait_channel` from the row; ask it of every row rather
+than the mute; render an unreadable channel as a clearance; render the channel only for the
+uncaused rows).
+
 ## What is left
 
 `worker-seat-manager` remains mute by construction with no write-out path at all. Its row already
