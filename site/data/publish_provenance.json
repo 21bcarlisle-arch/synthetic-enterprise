@@ -23,7 +23,7 @@
     "run_retained": true,
     "verified_at": "2026-09-22T05:21:20Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=34b2f16df; blocking tests: FAILED tests/background/test_publish_step_ledger.py::TestWiredIntoThePublishPath::test_the_publish_path_actually_uses_the_ledger",
+  "paused_reason": "scoped publish-path suite red at git=166021f0c; blocking tests: FAILED tests/background/test_publish_step_ledger.py::TestWiredIntoThePublishPath::test_the_publish_path_actually_uses_the_ledger, FAILED tests/background/test_publish_step_ledger.py::TestWiredIntoThePublishPath::test_the_five_evidenced_failures_are_all_covered, FAILED tests/background/test_the_site_publish_pipeline_is_contained.py::te",
   "paused_since": "2026-09-22T07:48:04Z",
   "schema": 1,
   "showing_run": {
@@ -39,5 +39,5 @@
     "verified_at": "2026-09-22T05:21:20Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-22T09:55:33Z"
+  "written_at": "2026-09-22T10:41:10Z"
 }
