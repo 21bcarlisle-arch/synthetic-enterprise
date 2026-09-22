@@ -34,6 +34,46 @@ fixed BEFORE the first count was run). A test file is an UNREACHABLE WHOLE-TREE 
 Leg 3 is the selection defect. Legs 1-2 are what make the defect SILENT rather than merely narrow:
 a bound compared to a literal is a claim about a population that grows behind it.
 
+## LEG 1 WAS WIDENED ON 2026-09-23, AND THE ORIGINAL WORDING IS LEFT ABOVE ON PURPOSE.
+
+Leg 1 as pre-registered required a FILESYSTEM WALK. A control whose subject is the COMMITTED bytes
+-- `git ls-files`, `git grep`, `git show :<path>` -- matched it not at all, and `tests` was excluded
+outright. Both were blind spots rather than scope, and the cost was paid: `--strict-dataflow`
+returned **0** while five controls with exactly this class's defect were red at `origin/main`, and
+`test_the_strict_census_stays_discharged` reads that 0 as "no such control exists" and converts it
+into a commit-time refusal. That is R15's FAIL-SILENT killer one level up from where the catalogue
+usually finds it -- not a control that cannot fail, but a census whose EMPTINESS IS READ AS ABSENCE
+when it is scope. Filed as
+`docs/staging/done/SEAT_FINDING_THE_WHOLE_TREE_SUBJECT_CENSUS_IS_BLIND_TO_A_GIT_ORACLED_POPULATION_AND_TO_THE_TEST_CORPUS_2026-09-22.md`.
+
+So leg 1 now reads: **an AST-visible read of a population, by WALK or by GIT** (`_is_population_call`),
+in a module naming a source root; plus `tests` when it is read as a POPULATION rather than named as
+one file (`_test_corpus_population` -- the exclusion was SPLIT, not deleted, and its docstring says
+why). Legs 2 and 3 are UNTOUCHED, so the widening is attributable on its own.
+
+**Graded, and the pre-registered prediction was REFUTED on its count while confirmed on its
+mechanism** (`docs/staging/SEAT_RESULT_THE_CENSUS_CAN_NOW_SEE_A_GIT_ORACLED_POPULATION_AND_THE_
+PREDICTION_IT_WAS_GRADING_IS_REFUTED_BY_A_THIRD_BLIND_SPOT_2026-09-23.md`). Predicted strict > 5;
+measured strict = 1, loose 99 -> 113, transitive 0 -> 4. Leg 1 now passes for four of the five
+members the finding named; the one new strict member it surfaced was a STANDING one nothing could
+see, not a new arrival.
+
+**AND THE REMAINING BLIND SPOT IS LEG 2, WHICH THAT PREDICTION DID NOT SUSPECT.** Leg 2 requires the
+bound be an INTEGER LITERAL, so this is in class:
+
+    assert len(cited) >= 120
+
+and this, the SAME claim about the SAME growing population, is invisible:
+
+    _MIN_CITED_PATHS = 120
+    assert len(cited) >= _MIN_CITED_PATHS
+
+The named floor is the more honest spelling -- it has a name, a home, and somewhere to carry its
+provenance -- and the census counts only the other one. Two known members of the class sit behind
+exactly this. It is RECORDED rather than repaired, for the same reason the widening above was not
+folded into the commit that discharged its five: it would move a second thing and make the next
+measurement unattributable. Whoever takes it should pre-register the count first.
+
 IT OVER-COUNTS, AND THAT IS THE SAFE DIRECTION. Legs 1 and 2 are proximity-in-a-module, not
 dataflow: a file that globs `company/` for one reason and asserts `== 3` about something else
 counts. Some members also have a legitimate non-stem route (the site lane runs `pytest site/`
