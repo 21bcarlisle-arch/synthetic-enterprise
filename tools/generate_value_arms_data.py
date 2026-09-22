@@ -13125,20 +13125,24 @@ def _churn_belief_size_response(path: Path | None = None) -> dict:
     through one term, `bill_stress`, which is identically zero below the declared bill threshold.
     Below that the belief's derivative in household size is exactly zero -- an absent term, not a
     band with wrong edges -- while the world's own `churn_position_multiplier` scales the price
-    differential by each household's own annual spend and therefore spans 11.57x across this
-    book's legs.
+    differential by each household's own annual spend and therefore spans an order of
+    magnitude across this book's legs.
 
     THE SENTENCE IS THE ARTEFACT'S OWN `reading` AND IS NOT COMPOSED HERE. This generator reads
     artefacts and never measures, and a page that re-words a measurement's conclusion is a second
     author of it -- sitting where no control over the measurement can see it. The figures below
     are lifted for the table; the words are lifted verbatim.
 
-    THE POPULATION CAVEAT IS CARRIED, AND IT IS THE LOAD-BEARING ONE HERE. This artefact's book is
-    the 244 supply legs `site/data/customers.json` holds, which is NOT the 154-account book the
-    arms above are scored over -- the artefact says so itself in
-    `population_is_not_the_published_arms_book`, and that string is published rather than
-    paraphrased. A figure whose population is not the panel's, rendered on the panel without
-    saying so, is this page's own recurring defect (`_population_specs` exists for it).
+    THE POPULATION IS NOW THE PANEL'S OWN, AND THAT IS WHAT CHANGED (2026-09-22, second pass).
+    The first pass rendered the tree's current 164-account book here and carried a caveat saying it
+    was NOT the 154-account book the arms above are scored over -- a figure whose population is not
+    the panel's, which is this page's own recurring defect (`_population_specs` exists for it). The
+    measurement can now cut the arms' own book: `site/data/customers.json` at the commit the run
+    recorded, reconciled against the four counts the run published about its own book. So the
+    counts rendered here describe the same 154 accounts as the arms, and the caveat has inverted
+    into a provenance line. It is NOT deleted: `which_book` states which book was rendered on every
+    render, and when the arms' book cannot be identified this block falls back to the tree's and
+    says so in the same field rather than quietly answering about someone else.
 
     TWO REFUSALS, BOTH REACHABLE. An artefact whose `knee.the_knee_is_a_bill_not_a_consumption`
     is not true is refused outright, because "the knee is a BILL and it moves 2.67x in kWh" is the
@@ -13159,8 +13163,17 @@ def _churn_belief_size_response(path: Path | None = None) -> dict:
     if not isinstance(reading, str) or not reading.strip():
         return _unavailable("the artefact carries no reading, so there is no finding to publish")
     knee = loaded.get("knee") or {}
-    book = loaded.get("book") or {}
     partition = loaded.get("partition") or {}
+    # THE PANEL'S OWN BOOK WHEN THE MEASUREMENT HAS IT, and it now does (2026-09-22, second pass).
+    # The first pass could only cut the tree's current 164-account book, so this block rendered a
+    # count about a population the arms above were never scored over and carried a caveat saying
+    # so. `arms_book` is `site/data/customers.json` read at the commit the run recorded and
+    # reconciled against the four counts the run published about its own book; when it is there it
+    # IS this panel's population and the caveat inverts into a provenance line. The fallback is
+    # not silent -- `which_book` says which was rendered and `population_is_not_this_pages_book`
+    # carries the artefact's own words either way.
+    arms = loaded.get("arms_book") or {}
+    book = arms if arms.get("available") else (loaded.get("book") or {})
     if not book.get("available"):
         return _unavailable("the artefact could not cut a book against the knee, so the counts "
                             "this block is made of do not exist")
@@ -13212,8 +13225,24 @@ def _churn_belief_size_response(path: Path | None = None) -> dict:
         "the_thresholds_own_origin": knee.get("the_thresholds_own_origin"),
         "bill_is_an_upper_bound": book.get("bill_is_an_upper_bound"),
         # NOT THIS PANEL'S BOOK, SAID ON THE PANEL. See the docstring.
-        "population_is_not_this_pages_book": book.get(
-            "population_is_not_the_published_arms_book"),
+        # WHICH BOOK THIS PANEL'S COUNTS DESCRIBE, said on the panel. When the arms' own book was
+        # identified this is a provenance line; when it was not, it is the caveat it used to be.
+        # Either way the words are the artefact's -- see the docstring.
+        "which_book": (
+            "The {} accounts these arms were scored over, read from `site/data/customers.json` at "
+            "the commit the run recorded ({}) and reconciled against the four counts the run "
+            "published about its own book.".format(
+                book.get("billing_accounts"),
+                (book.get("identified_by") or {}).get("producing_commit", "")[:9])
+            if arms.get("available") else
+            "NOT THIS PANEL'S BOOK. The arms' own book could not be identified, so the counts here "
+            "describe the book this tree holds today."),
+        "population_is_not_this_pages_book": (
+            (book.get("identified_by") or {}).get("why_all_four") if arms.get("available")
+            else (book.get("population_is_not_the_published_arms_book")
+                  or arms.get("unavailable_because"))),
+        "arms_book_unavailable_because": (
+            None if arms.get("available") else arms.get("unavailable_because")),
     }
 
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T14:18:05.670293Z",
+  "generated_at": "2026-09-22T14:45:08.291037Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -130,11 +130,11 @@
     "what_it_is": "Whether the company's per-customer churn belief carries information in the dimension the world's churn response is most sensitive to -- household size -- and how this book's own accounts fall either side of the point where it starts to.",
     "what_it_cannot_say": "It does not price the gap. It says whether the belief can express a difference the world makes, not what failing to express it costs, and no figure here is a target.",
     "not_a_target": "R12. A belief that does not vary in a dimension is a diagnostic about the belief. Nothing here instructs the company to make it vary, and the epistemic wall is untouched either way: a supplier meters its own customers, which is why the world's own `churn_position_multiplier` calls consumption something the company can legitimately act on.",
-    "reading": "The company's churn belief is FLAT in household size for 235 of this book's 242 domestic supply legs. Consumption reaches `estimate_churn_probability` through one term, `bill_stress`, which is identically zero below GBP 3000 of previous annual bill -- an absent term, not saturation and not a mis-placed band edge, because the estimate still moves freely with price at every consumption. The knee is a BILL: at GBP 250/MWh it falls at 12000 kWh and it moves 2.67x in kWh across the rate deck this book was billed at. Over the same book the world's own churn multiplier spans 11.57x, because it scales the price differential by each household's OWN annual spend. And the asymmetry is exact: the world reads a household's own bill for domestic supply only, so the one segment where the company's belief DOES vary with size is the segment where the world's does not. A per-customer belief that is constant in the dimension the world reacts to is a flat rule wearing a per-customer name in that dimension -- which is the baseline the thesis has to beat. This does not price that gap and is not an instruction to close it.",
-    "supply_legs": 244,
-    "legs_below_the_knee": 235,
+    "reading": "Measured over the 154-account book the published arms were scored over. The company's churn belief is FLAT in household size for 217 of this book's 224 domestic supply legs. Consumption reaches `estimate_churn_probability` through one term, `bill_stress`, which is identically zero below GBP 3000 of previous annual bill -- an absent term, not saturation and not a mis-placed band edge, because the estimate still moves freely with price at every consumption. The knee is a BILL: at GBP 250/MWh it falls at 12000 kWh and it moves 2.67x in kWh across the rate deck this book was billed at. Over the same book the world's own churn multiplier spans 11.28x, because it scales the price differential by each household's OWN annual spend. And the asymmetry is exact: the world reads a household's own bill for domestic supply only, so the one segment where the company's belief DOES vary with size is the segment where the world's does not. A per-customer belief that is constant in the dimension the world reacts to is a flat rule wearing a per-customer name in that dimension -- which is the baseline the thesis has to beat. This does not price that gap and is not an instruction to close it.",
+    "supply_legs": 226,
+    "legs_below_the_knee": 217,
     "legs_above_the_knee": 9,
-    "share_below_the_knee": 0.9631,
+    "share_below_the_knee": 0.9602,
     "knee_gbp": 3000.0,
     "knee_kwh_spread_across_the_probe_rates": 2.67,
     "knee_by_rate": [
@@ -151,9 +151,9 @@
         "knee_kwh": 7500.6
       }
     ],
-    "world_multiplier_spread": 11.57,
+    "world_multiplier_spread": 11.28,
     "world_multiplier_low": 1.0,
-    "world_multiplier_high": 11.7,
+    "world_multiplier_high": 11.4,
     "the_belief_varies_where_the_world_does_not": true,
     "segments": [
       {
@@ -164,15 +164,17 @@
       },
       {
         "segment": "resi",
-        "legs": 242,
+        "legs": 224,
         "above_the_knee": 7,
         "world_reads_their_own_bill": true
       }
     ],
     "what_the_term_is": "An absent term below the knee, not a band with wrong edges and not saturation. `bill_stress = sens * max(0, prev_annual_bill / threshold - 1)` is the ONLY place `estimate_churn_probability` reads consumption, and below the threshold `max` returns exactly 0.0, so d(belief)/d(consumption) is exactly zero. The term models financial DISTRESS at a large bill; household SIZE has no term in this model at any value.",
     "the_thresholds_own_origin": "NOT ESTABLISHED. `BILL_STRESS_THRESHOLD_GBP` appears in `tools.domain_constant_origins --list`, i.e. this repository's own register of domain constants carrying no origin, and `churn_model`'s docstring justifies it as \"the threshold where empirically customers start actively switching\" without citing what established that. Reported, not repaired: the knee's POSITION is not what this measures, and re-picking an unsourced number would replace one invention with another.",
-    "bill_is_an_upper_bound": "Each leg's bill here is its whole annual revenue, standing charge included; the model's own input takes the standing charge back out. So this OVERSTATES the model's input and can only move legs INTO the above-knee set -- the claim that 235 legs sit below it is safe in the direction it is made.",
-    "population_is_not_this_pages_book": "NOT THE 154 ACCOUNTS BEHIND `site/data/value_arms.json`. Those per-account rows are not persisted: `value_cycle_ab_s1_three_arm_20260918.json` carries `book_identity` counts and mentions `phase2b.all_records` only inside prose, so reconstructing them means re-running the arms. This is the book this tree holds per-account, and whether the 154-account book fell differently against the knee is NOT ESTABLISHED."
+    "bill_is_an_upper_bound": "Each leg's bill here is its whole annual revenue, standing charge included; the model's own input takes the standing charge back out. So this OVERSTATES the model's input and can only move legs INTO the above-knee set -- the claim that 217 legs sit below it is safe in the direction it is made.",
+    "which_book": "The 154 accounts these arms were scored over, read from `site/data/customers.json` at the commit the run recorded (b329e702b) and reconciled against the four counts the run published about its own book.",
+    "population_is_not_this_pages_book": "The commit alone would only establish which CODE ran. These four counts were published by the run about its own book and recomputed here from the blob; all four agreeing is what makes this the arms' population rather than a roster of about the right size. The book at HEAD fails this check on every one of them.",
+    "arms_book_unavailable_because": null
   },
   "available": true,
   "contrast_bounds": {
@@ -522,7 +524,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "949f80894038a685230bb760a83cbfb6b139a70e",
+    "publishing_tree_commit": "c5b6539756d3f5b142f9a354e4cfb8a2517b1117",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -534,7 +536,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 949f80894 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from c5b653975 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1210,7 +1212,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "949f80894038a685230bb760a83cbfb6b139a70e",
+      "publishing_tree_commit": "c5b6539756d3f5b142f9a354e4cfb8a2517b1117",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1222,7 +1224,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 949f80894 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from c5b653975 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -4372,7 +4374,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "949f80894038a685230bb760a83cbfb6b139a70e",
+    "commit": "c5b6539756d3f5b142f9a354e4cfb8a2517b1117",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

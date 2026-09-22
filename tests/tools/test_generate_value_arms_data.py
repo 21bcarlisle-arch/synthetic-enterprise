@@ -10886,10 +10886,18 @@ def test_every_figure_the_block_publishes_is_the_ARTEFACTS(tmp_path):
     Fires on: deriving any figure at publish time, or reading it from a neighbouring key.
     """
     moved = copy.deepcopy(_churn_artefact())
-    moved["book"]["supply_legs"] = 9871
-    moved["book"]["legs_below_the_knee"] = 9013
-    moved["book"]["legs_above_the_knee"] = 858
-    moved["book"]["world_multiplier_spread"] = 3.14
+    # THE BOOK THE BLOCK READS, WHICHEVER ONE THAT IS. Since 2026-09-22 the block prefers
+    # `arms_book` -- the 154 accounts the arms were actually scored over -- and falls back to
+    # `book`. Driving only one of them would leave this leg green while the block read the other,
+    # so BOTH carry the same absurd figures here; WHICH one is selected is asserted separately, by
+    # the fallback leg in `test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason`.
+    for _book in ("book", "arms_book"):
+        if not isinstance(moved.get(_book), dict):
+            continue
+        moved[_book]["supply_legs"] = 9871
+        moved[_book]["legs_below_the_knee"] = 9013
+        moved[_book]["legs_above_the_knee"] = 858
+        moved[_book]["world_multiplier_spread"] = 3.14
     moved["knee"]["declared_threshold_gbp"] = 4321.0
     path = tmp_path / "moved.json"
     path.write_text(json.dumps(moved), encoding="utf-8")
@@ -10925,7 +10933,13 @@ def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_
                           encoding="utf-8")
 
     no_book = copy.deepcopy(live)
+    # NEITHER BOOK, because since 2026-09-22 there are two and the block reads whichever it can
+    # get: `arms_book` (the 154 accounts the arms were scored over) by preference, `book` (the
+    # tree's own) as a visible fallback. Killing only one leaves the block correctly publishing
+    # from the other, which is not the refusal this leg is about. The refusal is "no book at all".
     no_book["book"] = {"available": False, "why": "the customer book could not be read"}
+    no_book["arms_book"] = {"available": False,
+                            "unavailable_because": "the arms' own book could not be read either"}
     no_book_path = tmp_path / "no_book.json"
     no_book_path.write_text(json.dumps(no_book), encoding="utf-8")
 
@@ -10933,6 +10947,19 @@ def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_
     diverged["knee"]["the_knee_is_a_bill_not_a_consumption"] = False
     diverged_path = tmp_path / "diverged.json"
     diverged_path.write_text(json.dumps(diverged), encoding="utf-8")
+
+    # AND THE FALLBACK IS NOT A REFUSAL. Losing the arms' book alone must still publish -- from
+    # the tree's book, saying so -- or a page that could have told the reader something true goes
+    # dark instead. This is the leg that stops the repair above from being a widened refusal.
+    tree_only = copy.deepcopy(live)
+    tree_only["arms_book"] = {"available": False, "unavailable_because": "no run artefact"}
+    tree_only_path = tmp_path / "tree_only.json"
+    tree_only_path.write_text(json.dumps(tree_only), encoding="utf-8")
+    fell_back = gva._churn_belief_size_response(tree_only_path)
+    assert fell_back["available"] is True
+    assert fell_back["supply_legs"] == live["book"]["supply_legs"]
+    assert fell_back["arms_book_unavailable_because"] == "no run artefact"
+    assert "NOT THIS PANEL'S BOOK" in fell_back["which_book"]
 
     refusals = {name: gva._churn_belief_size_response(path) for name, path in (
         ("unreadable", unreadable), ("no reading", no_reading),
