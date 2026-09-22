@@ -96,13 +96,18 @@ import math
 import random
 import statistics
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
+from background.boot_sha import current_head
+from simulation.departure_level_anchor import world_level_identity
 from tools.inference_claim import CANNOT_TELL
 
 PROJECT = Path(__file__).resolve().parent.parent
-#: The two-route capture taken for the ladder assessment. `c2_departure_factors.json` is the older,
-#: renewal-only table and is still readable with `whole_book=False`.
+#: The two-route capture taken for the ladder assessment. `c2_departure_factors.json` is a second
+#: two-route capture since it was re-run on 2026-08-31 and grew its SVT sibling; before then it was
+#: renewal-only, which is what this note used to say. Either is readable here, and `whole_book`
+#: still decides which population the reading is taken on rather than which file it opens.
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "ladder_churn_factors.json"
 #: The finished run the independent company belief is joined from -- see `attach_company_beliefs`,
 #: which refuses unless it is the same run that produced the capture.
@@ -1068,6 +1073,184 @@ def _factor_decomposition(rows: list[dict], factors, score_with, null: dict, obs
     return out
 
 
+#: The precision the digest itself canonicalises at (`world_level_identity`: `f"{value:.6f}"`).
+#: The comparison below is keyed to THAT and not to a tolerance somebody chose, so two anchors this
+#: check calls equal are exactly two anchors that would digest the same.
+_ANCHOR_DP = 6
+
+
+def capture_world_identity(rows: list[dict]) -> dict:
+    """WHICH WORLD THE CAPTURED ROWS WERE DRAWN IN — measured off the rows, never off the clock.
+
+    THE DEFECT THIS CLOSES, and the reason it could not be closed by stamping the live world.
+    `site/data/value_arms.json` published a ceiling of 0.6091 outside its no-information interval
+    and `ceiling_clears: null`, because `_svt_drift_belief` in `tools/generate_value_arms_data.py`
+    will not state a DIRECTION whose world is unknown and this artefact named no world. The
+    obvious repair — call `world_level_identity()` at assembly and write the answer out — is the
+    fail-open one and would have been wrong in the flattering direction: this tool reads a capture
+    that was written weeks earlier, so the live block names the world the GRADER ran in and says
+    nothing whatever about the world the FIGURES were measured in. That is precisely the error
+    `world_level_identity` exists to prevent, arriving one artefact further downstream.
+
+    SO THE CAPTURE IS ASKED, AND IT CAN ANSWER. `sim_level_anchor` is one of the two year-level
+    factors every captured row carries (`YEAR_FACTORS`), and it is `year_level_anchor(year)` as it
+    stood when the row was drawn — the same accessor, year for year, that `world_level_identity`
+    digests. So the capture carries its own departure-level identity implicitly, and this compares
+    it against the live world for every year the reading is actually taken over.
+
+    AND THE COVERED YEARS ARE THE RIGHT SUBJECT, not digest equality. The digest spans every year
+    inside the published switching record; this book spans nine of them. A re-fit of a year no
+    decision touches moves the digest and cannot move one pair in this reading, so keying the
+    verdict to the digest would withhold on a change that provably does not reach the figures —
+    the pinned-to-today's-answer shape. Agreement year by year over the covered years is the
+    property, and `years_not_covered` names what this therefore does not speak for.
+
+    THREE OUTCOMES AND THEY ARE DISTINGUISHABLE, which is the whole point of the block:
+
+      * every covered year agrees -> `digest` is the live world's, and a consumer may state a
+        direction read off these figures.
+      * some covered year disagrees -> `digest` is `None` and `years_disagreeing` prices the gap.
+        This is a MEASUREMENT, not an absence, and a consumer refusing on it is refusing for a
+        reason a reader can check. **Re-running this grader cannot change it** — only a fresh
+        capture can — and the refusal says so, because the withheld sentence on the page named a
+        remedy (re-run the grader) that could never have worked.
+      * the rows cannot say -> `digest` is `None` with its own reason. "We asked and the answer was
+        no" and "we could not ask" are different states and collapsing them into one falsy value
+        is the shape this repository keeps paying for.
+
+    RESOLVED AT CALL, DELIBERATELY UNLIKE `run_value_cycle_ab.PRODUCING_COMMIT`. That constant is
+    bound at process start because its run takes hours and the tree moves under it. Here the
+    quantity wanted is *the world that is live now*, compared against rows that are already fixed
+    on disk — so the later it is read the truer it is, and nothing this process does can move it.
+    """
+    live = world_level_identity()
+    live_anchors = {int(y): v for y, v in (live.get("anchors") or {}).items()}
+
+    def _unavailable(why: str, **extra) -> dict:
+        return dict({
+            "digest": None,
+            "unavailable_because": why,
+            "live_world": live.get("digest"),
+            "checked_on": _CHECKED_ON,
+        }, **extra)
+
+    unstamped = sum(
+        1 for r in rows
+        if not isinstance(r.get("sim_level_anchor"), (int, float))
+        or not isinstance(r.get("market_year"), int)
+    )
+    if unstamped:
+        return _unavailable(
+            "{} of {} captured rows carry no readable `sim_level_anchor`/`market_year` pair, so "
+            "these figures cannot be shown to have been measured over any particular departure "
+            "level. The capture, not this grader, is what would have to change: re-take it with "
+            "`python3 -m tools.capture_departure_factors`.".format(unstamped, len(rows)))
+
+    by_year: dict[int, set[float]] = {}
+    for r in rows:
+        by_year.setdefault(r["market_year"], set()).add(round(r["sim_level_anchor"], _ANCHOR_DP))
+    split = {y: sorted(v) for y, v in by_year.items() if len(v) > 1}
+    if split:
+        # ONE YEAR, ONE ANCHOR is what makes `sim_level_anchor` a world stamp at all. A capture
+        # holding two values for a year is not one world's book, and averaging them to get a
+        # comparison would manufacture a world that never ran.
+        return _unavailable(
+            "the capture holds more than one departure-level anchor for {} — {} — so it is not "
+            "one world's book and no single world can be named for it".format(
+                ", ".join(str(y) for y in sorted(split)),
+                "; ".join("{}: {}".format(y, split[y]) for y in sorted(split))),
+            years_disagreeing={})
+
+    missing = sorted(y for y in by_year if y not in live_anchors)
+    if missing:
+        return _unavailable(
+            "the live world declares no `year_level_anchor` for {}, which this capture takes {} of "
+            "its decisions in, so those rows cannot be placed in it at all".format(
+                ", ".join(str(y) for y in missing),
+                sum(1 for r in rows if r["market_year"] in set(missing))))
+
+    disagreeing = {}
+    for year, values in sorted(by_year.items()):
+        captured = values.pop()
+        current = round(live_anchors[year], _ANCHOR_DP)
+        if captured != current:
+            disagreeing[year] = {
+                "captured": captured,
+                "live": current,
+                "difference": round(current - captured, _ANCHOR_DP),
+                "decisions": sum(1 for r in rows if r["market_year"] == year),
+            }
+
+    covered = sorted(by_year)
+    not_covered = sorted(y for y in live_anchors if y not in by_year)
+    if disagreeing:
+        worst = max(disagreeing.values(), key=lambda d: abs(d["difference"]))
+        return _unavailable(
+            "THIS CAPTURE WAS TAKEN IN A DIFFERENT WORLD, and that is measured here rather than "
+            "assumed: its own per-year departure-level anchors disagree with the live world on "
+            "{} of the {} years it covers, by up to {:+.6f} against a captured {:.6f} (a {:.0%} "
+            "move on the level the whole reading sits over). The figures are what was measured "
+            "and stay; the DIRECTION read off them is not stated, because how much book there is "
+            "to lose is what decides how much signal there is to find. RE-RUNNING THIS GRADER "
+            "CANNOT CHANGE THIS -- it reads a capture and the capture is where the world is. The "
+            "only remedy is a fresh capture in the live world: `python3 -m "
+            "tools.capture_departure_factors`.".format(
+                len(disagreeing), len(covered), worst["difference"], worst["captured"],
+                abs(worst["difference"]) / worst["captured"] if worst["captured"] else 0.0),
+            years_disagreeing=disagreeing,
+            years_covered=covered,
+            years_not_covered=not_covered)
+
+    return {
+        "digest": live.get("digest"),
+        "unavailable_because": None,
+        "live_world": live.get("digest"),
+        "checked_on": _CHECKED_ON,
+        "years_covered": covered,
+        "years_not_covered": not_covered,
+        "years_disagreeing": {},
+        "what_this_identifies": (
+            "the departure LEVEL every year of this capture was drawn at, checked row by row "
+            "against the live world's `year_level_anchor`. It carries the live digest because "
+            "agreement on the covered years is what makes THIS reading's world the live one."),
+        "what_this_does_not_cover": (
+            "the years the capture never reaches ({}), which cannot move one pair in this "
+            "reading; and the HOMES, which `world_level_identity` keys separately and which no "
+            "captured column records.".format(
+                ", ".join(str(y) for y in not_covered) or "none")),
+    }
+
+
+#: Said identically on every branch above, so the three outcomes differ in their VERDICT and never
+#: in how much they explain themselves.
+_CHECKED_ON = (
+    "the capture's own `sim_level_anchor`, every row, against "
+    "`simulation.departure_level_anchor.world_level_identity()` read at grading time")
+
+
+def run_instant() -> dict:
+    """WHEN this grade was taken and by WHAT CODE, as a block a consumer can fail closed on.
+
+    Separate from `capture_world_identity` above and never folded into it, because they answer
+    different questions and only one of them is about this process. The world block says whether
+    the FIGURES still describe the live world; this says when the READING over them was taken and
+    which commit took it. A consumer that conflates the two gets the defect this pair was written
+    to close: an artefact whose date is fresh and whose world is six re-fits old.
+    """
+    commit = current_head()
+    return {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "producing_commit": commit,
+        "unavailable_because": (
+            None if commit else
+            "`git rev-parse HEAD` did not answer in this process, so this grade cannot name the "
+            "code that took it"),
+        "what_it_times": (
+            "the GRADING, not the capture. The capture's own instant is not recorded in the table "
+            "and this field must never be read as it."),
+    }
+
+
 def report(
     path: Path = DEFAULT_TABLE,
     permutations: int = DEFAULT_PERMUTATIONS,
@@ -1190,6 +1373,11 @@ def report(
 
     return {
         "table": str(path.relative_to(PROJECT)) if path.is_relative_to(PROJECT) else str(path),
+        # FIRST TWO KEYS, AND THAT IS NOT DECORATION. Every consumer of this artefact is deciding
+        # whether a direction read off the figures below may be stated; the answer is here, ahead
+        # of the numbers it governs, rather than at the foot of a 400-line document.
+        "world_identity": capture_world_identity(rows),
+        "run_instant": run_instant(),
         "decisions": len(rows),
         "departures": sum(_label(r) for r in rows),
         "pairs": pairs,
@@ -1221,6 +1409,18 @@ def report(
 def _print(r: dict) -> None:
     cover = r["route_coverage"]
     print(f"subject: {r['table']}")
+    # THE WORLD LINE PRINTS BEFORE THE POPULATION, loudest when it cannot answer. A reader who
+    # meets the AUCs first has already formed the view the refusal exists to stop.
+    world = r.get("world_identity") or {}
+    if world.get("digest"):
+        print(f"world: {world['digest']} — {world.get('what_this_identifies', '')}")
+    else:
+        print(f"⚠ WORLD: CANNOT BE NAMED — {world.get('unavailable_because', 'no world block')}")
+        for year, gap in sorted((world.get("years_disagreeing") or {}).items()):
+            print(f"    {year}: captured {gap['captured']:.6f}  live {gap['live']:.6f}  "
+                  f"({gap['difference']:+.6f} over {gap['decisions']} decisions)")
+    instant = r.get("run_instant") or {}
+    print(f"graded: {instant.get('generated_at')} at {instant.get('producing_commit')}")
     print(
         f"population: {cover['population']} — {r['decisions']} decisions, "
         f"{r['departures']} departures, {r['pairs']} within-stratum pairs"

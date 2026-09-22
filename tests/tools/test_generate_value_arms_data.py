@@ -11147,59 +11147,230 @@ def test_the_within_capture_verdict_is_keyed_to_the_PROPERTY_not_to_todays_answe
 
     Fires on: hard-coding the verdict string.
     """
+    # EVERY STATE IS DRIVEN BY AN EXPLICIT MUTATION, none of them by whatever the live artefact
+    # happens to say (2026-09-22). This test opened by pinning `within_this_capture` to
+    # "the_world_ordered_these_departures_and_the_belief_did_not" and then reached its other three
+    # states by nudging ONE number away from that starting point -- so the partition was only
+    # whole while the live capture sat where it sat. On the first re-capture in the live world the
+    # belief cleared (0.6706) and the ceiling did not (0.5911): the live state flipped to the
+    # OPPOSITE corner, all three nudges landed on that same corner, and `seen` collapsed to a
+    # singleton. A control whose own title is "keyed to the PROPERTY not to todays answer" was
+    # keyed to today's answer in its first line and in the construction of every leg under it.
+    #
+    # 0.99 clears any null this block can draw and 0.5 sits inside one; the pair is what makes
+    # each corner reachable from either side, so no leg depends on where the capture starts.
+    CLEARS, INSIDE = 0.99, 0.5
+
+    def _corner(belief_auc, oracle_auc):
+        def mutate(grade):
+            _renewal_arm(grade)["belief_auc"] = belief_auc
+            grade["per_route"]["renewal"]["oracle_auc"] = oracle_auc
+        _renewal_grade_with(tmp_path, monkeypatch, mutate)
+        return gva._renewal_churn_belief()["within_this_capture"]
+
+    seen = {
+        _corner(INSIDE, CLEARS),
+        _corner(CLEARS, CLEARS),
+        _corner(INSIDE, INSIDE),
+        _corner(CLEARS, INSIDE),
+    }
+    # THE LIVE READING IS ASSERTED TO BE IN THE PARTITION, NOT TO BE ANY PARTICULAR CORNER OF IT.
+    # That is the claim this test exists to make -- the block names a state a reader can act on --
+    # and unlike an equality it cannot rot when the world moves.
     live = gva._renewal_churn_belief()
-    assert live["within_this_capture"] == (
-        "the_world_ordered_these_departures_and_the_belief_did_not")
-
-    seen = {live["within_this_capture"]}
-    _renewal_grade_with(tmp_path, monkeypatch,
-                        lambda g: _renewal_arm(g).__setitem__("belief_auc", 0.99))
-    seen.add(gva._renewal_churn_belief()["within_this_capture"])
-    _renewal_grade_with(tmp_path, monkeypatch,
-                        lambda g: g["per_route"]["renewal"].__setitem__("oracle_auc", 0.5))
-    seen.add(gva._renewal_churn_belief()["within_this_capture"])
-
-    def _both(grade):
-        _renewal_arm(grade)["belief_auc"] = 0.99
-        grade["per_route"]["renewal"]["oracle_auc"] = 0.5
-    _renewal_grade_with(tmp_path, monkeypatch, _both)
-    seen.add(gva._renewal_churn_belief()["within_this_capture"])
     assert seen == {
         "the_world_ordered_these_departures_and_the_belief_did_not",
         "both_ordered_these_departures",
         "neither_ordered_these_departures",
         "the_belief_ordered_these_departures_and_the_world_did_not",
     }, "the partition is not reachable: {}".format(sorted(seen))
+    assert live["within_this_capture"] in seen, (
+        "the live block names a state outside the partition this test can reach, so the states a "
+        "reader actually meets are not the states under control here: {}".format(
+            live["within_this_capture"]))
 
 
 def test_the_live_world_claim_is_WITHHELD_while_the_within_capture_one_is_not(
         tmp_path, monkeypatch):
     """THE SPLIT CAVEAT, and neither half may be taken for the other.
 
-    The capture names no world, so how much signal the LIVE book holds is not stated. The contrast
-    between two orderings of the SAME rows is, because it is not a claim about a world. A block
-    that resolved both, or withheld both, would be wrong in opposite directions.
+    When the capture names no world, how much signal the LIVE book holds is not stated. The
+    contrast between two orderings of the SAME rows is, because it is not a claim about a world. A
+    block that resolved both, or withheld both, would be wrong in opposite directions.
 
     `None` and not `False`: "we cannot say which world this was graded in" and "the ceiling does
     not clear" are different states.
 
+    WHICH HALF COMES FROM THE LIVE ARTEFACT AND WHICH FROM A MUTATION WAS SWAPPED ON 2026-09-22,
+    and that is the point of this note. Until then the capture named no world, so the WITHHELD
+    half was read off the live grade and the RESOLVED half was reached by mutating a digest in.
+    The re-capture in the live world made the live artefact name `39a192ce04c1eda8`, which
+    inverted every one of those live assertions at once -- including `ceiling.clears_on_these_rows
+    is True`, a pin on an answer that had no business being fixed here at all and is now asked as
+    a partition below. The PROPERTY is unchanged and both states are still reachable; only which
+    one needs manufacturing moved. So the withheld half is manufactured now, by stripping the
+    block, and neither leg depends on where the live capture happens to sit.
+
     Fires on: resolving `ceiling_is_the_live_worlds_signal` unconditionally, or withholding
     `within_this_capture` when the world is unknown.
     """
+    # THE RESOLVED HALF, from the live artefact, which now names its world.
     live = gva._renewal_churn_belief()
-    assert live["measured_in_world"] is None
-    assert live["ceiling_is_the_live_worlds_signal"] is None
-    assert live["live_world_claim_withheld_because"]
+    assert live["measured_in_world"], (
+        "the live grade names no world, so the resolved half of this split cannot be read from "
+        "it -- re-take the capture with `python3 -m tools.capture_departure_factors "
+        "docs/reports/ladder_churn_factors.json`")
+    assert live["ceiling_is_the_live_worlds_signal"] is not None
+    assert live["live_world_claim_withheld_because"] is None
     assert live["within_this_capture"] != "cannot_be_stated", (
         "the within-capture contrast was withheld for a world it does not depend on")
-    assert live["ceiling"]["clears_on_these_rows"] is True
+    # BOTH VERDICTS ARE REACHABLE rather than one of them being today's answer written down. A
+    # ceiling that clears on every capture and a ceiling that clears on none look identical to an
+    # equality assertion, and this block has now published each of them.
+    assert live["ceiling"]["clears_on_these_rows"] in (True, False)
+    reached = set()
+    for auc in (0.99, 0.5):
+        _renewal_grade_with(tmp_path, monkeypatch,
+                            lambda g, a=auc: g["per_route"]["renewal"].__setitem__(
+                                "oracle_auc", a))
+        reached.add(gva._renewal_churn_belief()["ceiling"]["clears_on_these_rows"])
+    assert reached == {True, False}, (
+        "the ceiling's verdict is not reachable both ways: {}".format(sorted(reached)))
 
-    # ...AND IT RESOLVES when the grade names a world, so the withholding is not unconditional.
-    _renewal_grade_with(tmp_path, monkeypatch, lambda g: g.__setitem__(
-        "world_identity", {"digest": "39a192ce04c1eda8"}))
-    named = gva._renewal_churn_belief()
-    assert named["ceiling_is_the_live_worlds_signal"] is True
-    assert named["live_world_claim_withheld_because"] is None
+    # ...AND IT IS WITHHELD when the grade names no world, so the resolution is not unconditional.
+    _renewal_grade_with(tmp_path, monkeypatch, lambda g: g.pop("world_identity", None))
+    unnamed = gva._renewal_churn_belief()
+    assert unnamed["measured_in_world"] is None
+    assert unnamed["ceiling_is_the_live_worlds_signal"] is None
+    assert unnamed["live_world_claim_withheld_because"]
+    assert unnamed["within_this_capture"] != "cannot_be_stated", (
+        "the within-capture contrast was withheld for a world it does not depend on")
+
+
+def test_the_SEEDED_leg_is_published_BESIDE_the_reading_and_never_as_it(tmp_path, monkeypatch):
+    """BOTH RENEWAL NUMBERS REACH THE READER, and only one of them is called a forecast.
+
+    The route carries two company numbers. `company_churn_estimate` is a forecast;
+    `churn_probability` SEEDS `effective_p_retain`, so grading it against the outcome measures the
+    world reading back its own input -- access wearing inference's clothes, which is the one thing
+    the thesis forbids. Publishing only the admissible leg leaves a reader unable to check that
+    the other was excluded for its PROPERTY rather than for its READING.
+
+    THE EXCLUSION IS KEYED TO THE CHAIN, AND 2026-09-22 IS WHY THAT MATTERS. On the superseded
+    capture the seeded leg was the HIGHER of the two (0.6815 against 0.4988); on the first
+    re-capture in the live world it is the LOWER (0.5911 against 0.6706). A rule that quietly
+    excluded whichever number flattered would have been indistinguishable from this one until the
+    pair swapped -- so this asserts the seeded leg is present and disclaimed WHICHEVER side of the
+    reading it falls, and both sides are reached here rather than argued about.
+
+    Fires on: dropping `seeded_leg`, pointing the published reading at the seeded field, or
+    marking the seeded leg a forecast.
+    """
+    live = gva._renewal_churn_belief()
+    assert live["belief"]["field"] == "company_churn_estimate"
+    seeded = live["seeded_leg"]
+    assert seeded["field"] == "churn_probability"
+    assert seeded["available"] is True
+    assert seeded["is_a_forecast"] is False
+    assert seeded["auc"] is not None
+    assert "seeded from this number" in seeded["what_it_is"].lower()
+    assert seeded["field"] != live["belief"]["field"], (
+        "the published reading and the seeded leg are the same number, so the tautology guard has "
+        "been routed around rather than enforced")
+
+    # THE DISCLAIMER HOLDS ON BOTH SIDES OF THE READING. Drive the seeded leg above and below the
+    # forecast and assert nothing about how it is labelled changes.
+    for seeded_auc in (0.99, 0.01):
+        _renewal_grade_with(tmp_path, monkeypatch,
+                            lambda g, a=seeded_auc: [
+                                b for b in g["per_route"]["renewal"]["company_belief"]
+                                if b.get("field") == "churn_probability"][0].__setitem__(
+                                    "belief_auc", a))
+        moved = gva._renewal_churn_belief()
+        assert moved["seeded_leg"]["auc"] == seeded_auc
+        assert moved["seeded_leg"]["is_a_forecast"] is False, (
+            "the seeded leg stopped being disclaimed at auc={}".format(seeded_auc))
+        assert moved["belief"]["field"] == "company_churn_estimate", (
+            "the published reading followed the seeded leg when it moved")
+
+
+def test_the_ceilings_sentence_names_the_ROUTES_OWN_decision_count(tmp_path, monkeypatch):
+    """A COUNT IN PROSE IS DERIVED OR IT ROTS, and this one did.
+
+    `ceiling.what_it_is` read "these same 144 decisions" from the day it was written until
+    2026-09-22, when the first re-capture in the live world brought the renewal route to 102 and
+    the sentence went on saying 144 beside a `decisions` field that said otherwise. Its sibling
+    `within_this_capture_holds_because` took the same figure from `route` and moved correctly --
+    two sentences, one surface, one source each, and only the typed one could rot.
+
+    Fires on: putting any literal back in that sentence.
+    """
+    for count in (102, 77):
+        _renewal_grade_with(tmp_path, monkeypatch,
+                            lambda g, c=count: g["per_route"]["renewal"].__setitem__(
+                                "decisions", c))
+        block = gva._renewal_churn_belief()
+        assert block["decisions"] == count
+        assert "these same {} decisions".format(count) in block["ceiling"]["what_it_is"], (
+            "the ceiling's sentence does not name the count the block itself publishes: {}".format(
+                block["ceiling"]["what_it_is"]))
+
+
+def test_the_chains_first_clause_is_ASKED_of_the_factor_table_not_asserted(
+        tmp_path, monkeypatch):
+    """THE JOIN IS ONLY DRAWN WHEN THE ROWS SUPPLY ITS FIRST LINK, and all three states fire.
+
+    `chain_to_the_flat_belief` argues: the world orders renewal departures by bill shock, the
+    belief is flat in bill shock, therefore the choosing has nothing to choose with. The first
+    link is a reading off the factor table -- and until 2026-09-22 it was a SENTENCE, published
+    unconditionally whenever the size block could be read. The first re-capture in the live world
+    returned `signal_is_concentrated_in: []`: not one factor cleared its null alone, and the
+    paragraph would have gone out asserting bill shock was "the only one that clears its own null
+    on its own" directly beneath a table showing nothing did.
+
+    One control over the WHOLE partition rather than a leg per branch, because a chain that
+    withheld the join on EVERY capture would pass any per-branch refusal test written for it --
+    and withholding is the state the live artefact is in, so that is the easy mistake here.
+
+    Fires on: restoring the unconditional sentence, or widening the guard to any non-empty
+    `carrying` (which would state the bill-shock join off a different factor's reading).
+    """
+    handed = {"available": True, "legs_below_the_knee": 991, "supply_legs": 993}
+
+    def _with_clearing(*factors):
+        """The live grade with exactly `factors` clearing their null alone."""
+        def mutate(grade):
+            per_factor = grade["per_route"]["renewal"]["per_factor"]
+            for name, row in per_factor.items():
+                row["inside_null_alone"] = name not in factors
+        _renewal_grade_with(tmp_path, monkeypatch, mutate)
+        return gva._renewal_churn_belief(handed)
+
+    joined = _with_clearing("sim_bill_shock_base")
+    assert joined["signal_is_concentrated_in"] == ["sim_bill_shock_base"]
+    assert "is concentrated in bill shock" in joined["chain_to_the_flat_belief"]
+    assert "991 of 993 supply legs" in joined["chain_to_the_flat_belief"]
+
+    # NOTHING CLEARS -- the first link is absent, so the join is not drawn. The readable half is
+    # still stated, because it is a fact about the belief and not about the world.
+    none_clearing = _with_clearing()
+    assert none_clearing["signal_is_concentrated_in"] == []
+    assert "is concentrated in bill shock" not in none_clearing["chain_to_the_flat_belief"]
+    assert "NOT stated" in none_clearing["chain_to_the_flat_belief"]
+    assert "991 of 993 supply legs" in none_clearing["chain_to_the_flat_belief"]
+
+    # A DIFFERENT FACTOR CARRIES IT -- the belief's flat term speaks to bill shock and to nothing
+    # else, so the join still may not be drawn from it.
+    other = _with_clearing("sim_price_response")
+    assert other["signal_is_concentrated_in"] == ["sim_price_response"]
+    assert "is concentrated in bill shock" not in other["chain_to_the_flat_belief"]
+    assert "sim_price_response" in other["chain_to_the_flat_belief"]
+
+    # AND BILL SHOCK SHARING THE CARRYING IS NOT THE JOIN EITHER: "the ONLY one that clears its
+    # own null on its own" is the claim, and two factors clearing refutes it.
+    shared = _with_clearing("sim_bill_shock_base", "sim_price_response")
+    assert len(shared["signal_is_concentrated_in"]) == 2
+    assert "is concentrated in bill shock" not in shared["chain_to_the_flat_belief"]
 
 
 def test_the_chain_sentence_uses_the_SIZE_BLOCKS_OWN_counts(tmp_path, monkeypatch):

@@ -230,11 +230,20 @@ def test_a_belief_that_CLEARS_its_null_renders_the_other_words(live_block):
     # "a control's own filters empty the evidence" shape, inverted. Driving a feed where the ONLY
     # possible source of those words is the belief row is what makes the assertion mean what it
     # says.
+    # AND THE CEILING ROW IS CLEARED FOR THE SAME REASON AS THE FACTORS (2026-09-22). The comment
+    # above enumerated the other sources of these words and neutralised them -- but it was written
+    # when the ceiling CLEARED, so the ceiling row was not on the list. On the first re-capture in
+    # the live world the ceiling stopped clearing (0.5911 inside [0.3620, 0.6380]) and began
+    # rendering "we cannot tell" quite correctly, and this leg failed on a page that was right.
+    # The rule the comment states is the one applied here: drive a feed in which the ONLY possible
+    # source of the words is the belief row, and enumerate EVERY other source rather than the ones
+    # that happened to be speaking on the day.
     feed = _mutate(
         belief=clearing,
         sentence="The company's belief about who leaves at renewal clears the interval a signal "
                  "carrying no information reaches.",
         within_this_capture="both_ordered_these_departures",
+        ceiling=dict(live_block["ceiling"], auc=0.9500, clears_on_these_rows=True),
         factors=[dict(f, clears_its_null_alone=True) for f in live_block["factors"]])
     rendered = _render(feed)
     assert "we cannot tell" not in rendered.lower(), (
@@ -254,16 +263,28 @@ def test_the_within_capture_verdict_is_read_from_the_feed_and_its_branches_are_r
     A verdict rendered unconditionally is not a verdict. Each of the four values the producer can
     emit must produce a different sentence, or the cell is decoration.
     """
-    assert "the world ordered its departures and the company’s belief did not" in live.lower(), (
-        "the live within-capture verdict did not reach the page.\nrendered: {}".format(live[:800]))
+    # ALL FOUR ARE DRIVEN, AND THE LIVE ONE IS CHECKED AGAINST ITS OWN DRIVEN TWIN (2026-09-22).
+    # This opened by asserting the live verdict was "the world ordered its departures and the
+    # company's belief did not" -- today's answer, written down. The first re-capture in the live
+    # world moved it to the opposite corner and the leg failed on a page rendering the feed
+    # perfectly. What this test is for is that the cell READS the feed; so every state is driven,
+    # and the live feed's own value is asserted to render the same words its driven twin does.
     seen = {}
-    for value in ("both_ordered_these_departures",
+    for value in ("the_world_ordered_these_departures_and_the_belief_did_not",
+                  "both_ordered_these_departures",
                   "neither_ordered_these_departures",
                   "the_belief_ordered_these_departures_and_the_world_did_not",
                   "cannot_be_stated"):
         seen[value] = _render(_mutate(within_this_capture=value))
-    assert len({_text(v) for v in seen.values()}) == 4, (
-        "two of the four within-capture states rendered the same words, so the page is not "
+    live_value = _live_feed().get(BLOCK, {}).get("within_this_capture")
+    assert live_value in seen, (
+        "the live block names a within-capture state this control cannot drive, so the words a "
+        "reader actually meets are not under test here: {}".format(live_value))
+    assert _text(seen[live_value]) == _text(live), (
+        "the page a reader gets does not match the page this control drives from the feed's own "
+        "verdict, so the rendered cell is not reading the feed.\nrendered: {}".format(live[:800]))
+    assert len({_text(v) for v in seen.values()}) == 5, (
+        "two of the five within-capture states rendered the same words, so the page is not "
         "reading the feed's verdict")
     assert "could not be stated" in seen["cannot_be_stated"].lower()
 
@@ -277,16 +298,49 @@ def test_the_live_world_claim_is_WITHHELD_with_its_reason(live, live_block):
     find. The page must render the first and withhold the second, with the reason a reader can
     expand -- a refusal without its reason is the shape CLAUDE.md calls worse than no figure.
     """
-    assert live_block["ceiling_is_the_live_worlds_signal"] is None, (
-        "the published feed now states the ceiling as the LIVE world's signal; if the grade has "
-        "gained a world this leg's premise has moved and the block must be re-read")
-    assert _prose(live_block["live_world_claim_withheld_because"]) in live, (
+    # WHICH HALF IS LIVE AND WHICH IS DRIVEN WAS SWAPPED ON 2026-09-22, and the premise this leg
+    # named as the thing to watch for is exactly what happened: "if the grade has gained a world
+    # this leg's premise has moved and the block must be re-read". The grade gained a world --
+    # `39a192ce04c1eda8`, the live one, after the capture was re-taken -- so the WITHHELD state is
+    # manufactured here and the RESOLVED state is read from the page a reader gets. The property
+    # is unchanged: the two claims do not share a fate. Only which of them the live feed shows.
+    withheld = _render(_mutate(
+        ceiling_is_the_live_worlds_signal=None,
+        measured_in_world=None,
+        live_world_claim_withheld_because=(
+            "THIS GRADE NAMES NO WORLD, so how much signal the live book holds is not stated."),
+        world_gap={"2019": {"captured": 3.228064, "live": 6.637286,
+                            "difference": 3.409222, "decisions": 124}}))
+    assert "this grade names no world" in withheld.lower(), (
         "the page withheld the live-world claim without giving the reason.\nrendered: {}".format(
-            live[:900]))
-    assert "separate claim and it is not made here" in live.lower()
-    # THE WITHIN-CAPTURE CLAIM IS STILL MADE. Dropping the caveat wholesale and inheriting it
-    # wholesale are both wrong, and this is the half that must survive.
-    assert "property of the list" in live.lower() or "same 144" in live
+            withheld[:900]))
+    assert "separate claim and it is not made here" in withheld.lower()
+    # THE WITHIN-CAPTURE CLAIM IS STILL MADE in that same render. Dropping the caveat wholesale
+    # and inheriting it wholesale are both wrong, and this is the half that must survive.
+    assert "property of the list" in withheld.lower()
+    # ...AND THE RESOLVED STATE IS REACHABLE TOO, so this is not a page that always refuses.
+    named = _render(_mutate(ceiling_is_the_live_worlds_signal=False,
+                            measured_in_world="39a192ce04c1eda8",
+                            live_world_claim_withheld_because=None, world_gap=None))
+    assert "separate claim and it is not made here" not in named.lower(), (
+        "a grade taken in the live world still rendered the refusal, so the refusal is "
+        "unconditional and establishes nothing")
+
+    # AND THE LIVE PAGE RENDERS WHICHEVER OF THE TWO ITS OWN FEED DECLARES -- asserted against
+    # that feed's `measured_in_world` rather than against either answer. Both "the capture agrees
+    # with the live world" and "it does not" are legitimate states of this book: the first is what
+    # a fresh capture gives, the second is what an ageing one gives, and a control that demanded
+    # either would go red on the day the other became true. What must hold in both is that the
+    # page's words follow the feed.
+    if live_block["measured_in_world"]:
+        assert live_block["live_world_claim_withheld_because"] is None
+        assert "separate claim and it is not made here" not in live.lower(), (
+            "the published grade names the live world and the page withheld the claim anyway")
+    else:
+        assert live_block["live_world_claim_withheld_because"], (
+            "the page withholds the live-world claim without a reason a reader can check")
+        assert _prose(live_block["live_world_claim_withheld_because"]) in live
+        assert "separate claim and it is not made here" in live.lower()
 
     # ...AND THE THIRD STATE IS REACHABLE. A grade that names its world publishes the direction,
     # so this is not a page that always refuses.
@@ -326,9 +380,18 @@ def test_the_signal_concentration_table_is_the_FEEDS_and_is_three_valued(live, l
     assert "sim_bill_shock_base" in live, (
         "the factor the route's signal is concentrated in did not reach the page")
     factors = copy.deepcopy(live_block["factors"])
-    assert any(f["clears_its_null_alone"] is True for f in factors)
-    assert any(f["clears_its_null_alone"] is False for f in factors)
-    assert "orders them alone" in live and "we cannot tell" in live.lower()
+    assert len(factors) >= 2, "the decomposition carries too few factors to be three-valued about"
+    # THE THREE VALUES ARE DRIVEN, NOT READ OFF WHATEVER THE CAPTURE HAPPENED TO SAY (2026-09-22).
+    # This asserted the LIVE table carried both a True and a False -- true of the superseded
+    # capture, where bill shock cleared alone, and false of the first re-capture in the live world,
+    # where not one factor clears its null alone. That is a fact about this book and not a defect
+    # in the page, and a control that reds on it is pinned to yesterday's answer. What this test
+    # is for is that the CELL renders three distinct words for three distinct verdicts.
+    mixed = copy.deepcopy(factors)
+    mixed[0]["clears_its_null_alone"] = True
+    mixed[1]["clears_its_null_alone"] = False
+    rendered_mixed = _render(_mutate(factors=mixed))
+    assert "orders them alone" in rendered_mixed and "we cannot tell" in rendered_mixed.lower()
     unknown = copy.deepcopy(factors)
     unknown[0]["clears_its_null_alone"] = None
     assert "not stated" in _render(_mutate(factors=unknown)).lower(), (
