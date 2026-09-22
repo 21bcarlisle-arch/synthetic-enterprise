@@ -6996,9 +6996,18 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     # the very tolerance this artefact prints two fields above.
     growth_on_published = None
     decisions_needed_on_published = None
+    # THE SAME SIGN BAR AS `resolvable_at_any_book`, IN THE PUBLISHED-FLOOR BASIS, and it is named
+    # rather than left as a bare `> 0` because it is a grade and not a degenerate-input guard:
+    # `headroom_all` IS this price's denominator, so clearing it is the statement that the
+    # denominator's interval excludes zero, and failing it is the statement that the published
+    # +-figure's irreducible part already covers the contrast. The two bars can disagree -- they
+    # are priced on `total` and on `v_all` respectively, and the reconciliation ratio is how far
+    # apart those sit -- so this one carries its own name and its own reason.
+    resolvable_on_the_published_floor = False
     if v_all > 0:
         headroom_all = contrast * contrast - (1.0 - priced_share) * v_all
-        if headroom_all > 0:
+        resolvable_on_the_published_floor = headroom_all > 0
+        if resolvable_on_the_published_floor:
             growth_on_published = priced_share * v_all / headroom_all
             decisions_needed_on_published = math.ceil(priced * growth_on_published)
 
@@ -7206,8 +7215,27 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         #: independent draws respectively, and they are published together because quoting either
         #: one alone against the funnel invites the comparison the units do not license.
         "times_this_book": growth,
-        "priced_decisions_needed": decisions_needed,
-        "independent_draws_needed": accounts_needed,
+        #: THE GATE RESTATED AT THE SITE, and it is not ceremony. `growth` divides by
+        #: `contrast^2 - v_except`, a MEASURED denominator with no lower bound: the bar
+        #: `resolvable_at_any_book` is exactly the statement that it is positive, and as the
+        #: contrast closes on the irreducible floor the count has no upper bound. That bar is
+        #: decided 230 lines above this dict, where a reader meeting the plan-grammar key cannot
+        #: see it, and where an edit that computed the counts unconditionally would publish an
+        #: infinity under a name promising a reader that buying that many settles the question.
+        #: Written here the withholding travels with the key it withholds.
+        #:
+        #: NO `_at_the_point_estimate` SIBLING, and the absence is deliberate rather than an
+        #: omission of the canonical form: below the bar the denominator is non-positive, so there
+        #: is no point estimate to keep -- the arithmetic does not exist, as against existing and
+        #: being unsafe to call a plan.
+        "priced_decisions_needed": decisions_needed if resolvable_at_any_book else None,
+        "independent_draws_needed": accounts_needed if resolvable_at_any_book else None,
+        "priced_decisions_needed_unavailable_because": (
+            None if resolvable_at_any_book else
+            "this book's {} contrast ({:.4g}) does not clear the irreducible floor the rest-of-book "
+            "half measures ({:.4g}), so the remedy's denominator is non-positive and no book size "
+            "resolves it. A count here would be a plan that no number can keep."
+            .format(contrast_field, contrast, irreducible_sd)),
         #: THE ASSUMPTION THAT LETS THE MULTIPLIER WEAR THE DECISION UNIT, named because this file
         #: publishes `priced_decisions_needed` beside a prose paragraph saying decisions are NOT
         #: the sample size, and has done so with `independent_draws_this_book` sitting at `null`.
@@ -7233,7 +7261,17 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         #: the pair above exactly when the reconciliation is 1.0, and further from it the further
         #: that ratio is from 1.0 -- which is the only honest way to carry a 0.66x into a price.
         "times_this_book_on_the_published_floor": growth_on_published,
-        "priced_decisions_needed_on_the_published_floor": decisions_needed_on_published,
+        #: GATED AT THE SITE on its own bar, for the reason the pair above carries. This price is
+        #: the one the consumer is told to quote, so it is the one where an unbounded count would
+        #: reach a reader first.
+        "priced_decisions_needed_on_the_published_floor": (
+            decisions_needed_on_published if resolvable_on_the_published_floor else None),
+        "priced_decisions_needed_on_the_published_floor_unavailable_because": (
+            None if resolvable_on_the_published_floor else
+            "the published +-figure's own irreducible part already covers this book's {} contrast, "
+            "so the remedy's denominator on that basis is non-positive and no book size brings the "
+            "PUBLISHED bound under the contrast -- whatever the legs' own total says."
+            .format(contrast_field)),
         "which_floor_the_price_is_against": (
             "`times_this_book` prices the remedy against the two legs' summed variance; "
             "`times_this_book_on_the_published_floor` prices it against `undecomposed_sd_gbp`, "

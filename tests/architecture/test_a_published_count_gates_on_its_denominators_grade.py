@@ -55,12 +55,23 @@ from tools import unbounded_quotient_census as census
 #: `generate_value_arms_data` republishes from it. Lowered here in the same commit as the repair,
 #: because a ceiling left at the old number is a licence for ten more.
 #:
-#: WHAT IS LEFT, and it is a real list rather than a residue: three sites in
+#: AND TO ZERO ON 2026-09-22, when the last six were repaired: three in
 #: `tools/fit_year_level_anchor.py` and three in `tools/run_value_cycle_ab.py`.
-UNDECLARED_DEBT_CEILING = 6
+#:
+#: ZERO IS NOT "FINISHED" AND THE DISTINCTION IS LOAD-BEARING. The census module's own docstring
+#: names what it cannot reach -- a count assembled across two functions, or through a dict
+#: round-trip, is INVISIBLE here rather than clean. `scored_decisions_needed` is one such site and
+#: it is repaired; there will be others that are not. A zero on this ratchet says every site the
+#: scan CAN see has been classified, which is the claim it is entitled to make and no more.
+UNDECLARED_DEBT_CEILING = 0
 
 #: AND A FLOOR UNDER THE WHOLE POPULATION. 23 sites found; a walk that finds materially fewer has
 #: broken rather than been fixed, because no single commit retires a third of them.
+#:
+#: NOT RAISED WHEN THE DEBT WENT TO ZERO, and deliberately. The population moved 27 -> 26 in that
+#: commit because two sites in `fit_year_level_anchor` collapsed into ONE shared helper, which is a
+#: repair shrinking the population rather than a walk losing sites. A floor pinned to today's 26
+#: would red the next honest de-duplication; this one is keyed to "the walk still works".
 POPULATION_FLOOR = 19
 
 #: THE SITES THE FOUR COMMITS REPAIRED, pinned by (file, key) and NOT by line -- a line number
@@ -87,6 +98,25 @@ REPAIRED = {
     ("tools/generate_value_arms_data.py", "same_year_pairs_needed"),
     ("tools/generate_value_arms_data.py", "priced_renewals_needed"),
     ("tools/generate_value_arms_data.py", "renewals_the_world_must_offer"),
+    # THE LAST SIX, repaired 2026-09-22, taking the ratchet to zero. Five of them gate; the sixth
+    # is BOUNDED and is pinned separately below, because the two declarations are different claims
+    # and a set that mixed them would pass a site that swapped one for the other.
+    ("tools/fit_year_level_anchor.py", "hazard_multiple_still_required_at_band_low"),
+    ("tools/run_value_cycle_ab.py", "priced_decisions_needed"),
+    ("tools/run_value_cycle_ab.py", "independent_draws_needed"),
+    ("tools/run_value_cycle_ab.py", "priced_decisions_needed_on_the_published_floor"),
+}
+
+#: THE SITES THAT DECLARE A BOUNDED DENOMINATOR, pinned for the reason `REPAIRED` is: a `#:
+#: DENOMINATOR BOUNDED:` comment is a claim about the world that a reader can delete in a tidy-up
+#: without the debt count moving -- the site would simply vanish from the census's DEBT list by
+#: becoming ungraded, or worse, stay BOUNDED on a marker that drifted into a neighbour's function.
+#:
+#: A SEPARATE SET AND NOT A MERGE WITH `REPAIRED`. Swapping a gate for a bounded declaration is
+#: exactly the silent weakening this file exists to catch: the gate withholds a figure and the
+#: declaration publishes it, so a control that accepted either would grade that swap as no change.
+DECLARED_BOUNDED = {
+    ("tools/fit_year_level_anchor.py", "required_over_re_referenced_recent"),
 }
 
 
@@ -119,6 +149,19 @@ def test_the_repaired_sites_are_an_EXACT_SET():
         "against its own bar must be withheld where that grade fails, with a sibling key naming "
         "why -- and the value must actually be able to reach None.".format(
             sorted(REPAIRED - gated)))
+
+
+def test_a_bounded_declaration_cannot_quietly_become_a_gate_OR_VANISH():
+    """DEFECT: a `#: DENOMINATOR BOUNDED:` claim deleted, or swapped for a withholding."""
+    sites, _ = _sites()
+    bounded = {(s.path, s.key) for s in sites if s.grade == "BOUNDED"}
+    assert DECLARED_BOUNDED <= bounded, (
+        "these sites declared their denominator BOUNDED and no longer grade BOUNDED: {}. Either "
+        "the `#: DENOMINATOR BOUNDED:` comment was removed -- in which case the claim that the "
+        "denominator cannot approach zero is gone and the count is undeclared again -- or the "
+        "site now GATES instead, which is a different and weaker statement: a gate withholds the "
+        "figure, a bounded declaration publishes it on every path.".format(
+            sorted(DECLARED_BOUNDED - bounded)))
 
 
 def test_the_scan_has_not_lost_its_SUBJECTS():
