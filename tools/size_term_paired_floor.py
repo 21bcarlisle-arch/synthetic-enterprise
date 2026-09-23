@@ -18,6 +18,10 @@ INDEX: searched "noise floor", "floor", "seed", "spread", "paired", "contrast", 
        matching no call site) and whose pooling rules are not the same. Folding it in would have
        put a second meaning on `seeds` inside a file whose own artefacts are pooled by that key.
        `tools/run_frozen_baseline.py` was read: it is two arms at ONE seed and states so.
+       The per-leg peak is `tools/scale_probe_10k._vm_hwm_bytes` IMPORTED, not a third reading of
+       `/proc/self/status`: that file already carries the reason VmHWM is the right question and a
+       point-in-time VmRSS the wrong one, and two spellings of a high-water mark is how the two
+       drift apart.
 
 WHY THIS EXISTS
 ---------------
@@ -78,8 +82,32 @@ WHAT IT REFUSES TO DO. It states no verdict on a row whose family is too small t
 bar is `t(n-1)` through `run_value_cycle_ab.distance_to_a_sign`, never a constant. An unresolvable
 row is published as unresolvable; it is not a cue to draw until a seed agrees (R12).
 
+ONE LEG PER PROCESS, AND WHY THAT IS THE SHAPE RATHER THAN ONE PAIR. The first run of this tool ran
+the whole family -- both configurations, every seed -- in a single process, peaked at 7,878 MB, and
+was OOM-killed at 1h 26m having written NOTHING. Two separate things were wrong with that shape and
+only one of them is the seeds. A pair holds BOTH configurations' retained state at once, which is
+the 1,478 MB by which `PAIRED_FLOOR_RUN_PEAK_MB` exceeds a single-configuration
+`FLOOR_RUN_PEAK_MB`; so running one PAIR per process would still carry two worlds and cap the peak
+at nothing lower than what already died. The unit that caps the peak at ONE configuration's is the
+LEG, so the leg is the unit this spawns.
+
+Each leg runs in its own process, writes a shard, and exits -- so the peak is one leg's, an OOM
+costs ONE leg rather than the family, and a killed run leaves every completed leg on disk to be
+resumed rather than re-run. The orchestrator holds no simulation state at all: it spawns, waits,
+reads shards, and rebuilds the whole artefact from the pairs it can assemble after every pair, which
+is what `run()` already did and what `build_report` needs no change to support.
+
+WHAT A LEG'S PEAK ACTUALLY IS, IS NOT YET ESTABLISHED, AND THIS DOES NOT PICK IT. The only measured
+number in hand is the 7,878 MB the PAIR reached. A leg is contained in the pair that ran it, so that
+figure is a sound UPPER BOUND on a leg and an unknown overestimate -- and `PAIRED_FLOOR_LEG_PEAK_MB`
+is therefore set to the pair's peak, with its reason, rather than to the sibling's 6,400 MB, which
+would be a number chosen because a number was wanted. Every leg records its own `VmHWM` into its
+shard and the artefact publishes them, so the first family to run REPLACES the bound with a
+measurement instead of inheriting this one.
+
 Run:  python3 -m tools.size_term_paired_floor --seeds 5101,5102,5103,5104,5105
       python3 -m tools.size_term_paired_floor --report docs/observability/<artefact>.json
+      python3 -m tools.size_term_paired_floor --leg-only 5101 --configuration blind   (one process)
 """
 from __future__ import annotations
 
@@ -87,6 +115,7 @@ import argparse
 import importlib
 import json
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -94,13 +123,14 @@ from pathlib import Path
 from tools.run_value_cycle_ab import (
     CHURN_ROLL_MODULE,
     CHURN_ROLL_SYMBOL,
-    PAIRED_FLOOR_RUN_PEAK_MB,
+    PAIRED_FLOOR_LEG_PEAK_MB,
     PROJECT_DIR,
     _churn_roll_redraw_patch,
     distance_to_a_sign,
     floor_run_headroom_refusal,
     run_value_cycle_ab,
 )
+from tools.scale_probe_10k import _vm_hwm_bytes
 
 CHURN_MODEL_MODULE = "company.crm.churn_model"
 
@@ -257,6 +287,13 @@ def _one_leg(seed: int | None, blind: bool, report_end: str | None, runner) -> d
         "seed": seed,
         "configuration": "blind" if blind else "seeing",
         "elapsed_s": round(elapsed, 1),
+        #: THIS PROCESS'S HIGH-WATER MARK, WHICH IS THE POINT OF RUNNING ONE LEG IN IT. The
+        #: admission price for a leg is currently the PAIR's measured peak used as an upper bound
+        #: (see `PAIRED_FLOOR_LEG_PEAK_MB`), because no leg had ever been weighed on its own. This
+        #: is what replaces that bound with a measurement. In the in-process test path it is the
+        #: harness's own footprint and means nothing, which is why it is published per leg beside
+        #: the leg's elapsed time rather than folded into a single family-level number.
+        "peak_rss_mb": round(_vm_hwm_bytes() / (1024 * 1024), 1),
         "realised_delta": {row: delta.get(row) for row in DELTA_ROWS},
         "accounts_the_arm_priced": len(priced),
         "size_term_reached_calls": tally["reached"],
@@ -270,14 +307,93 @@ def _one_leg(seed: int | None, blind: bool, report_end: str | None, runner) -> d
     }
 
 
-def _pair(seed: int | None, report_end: str | None, runner) -> dict:
+def _leg_name(seed: int | None, blind: bool) -> str:
+    """The shard's identity, and it is keyed by BOTH coordinates on purpose.
+
+    A shard named for its seed alone would have the blind and seeing legs of one seed overwrite each
+    other, and the pair assembled from it would be a leg differenced against ITSELF -- every row
+    exactly zero, the flattering answer, arrived at by measuring nothing. That is the same
+    fail-silent shape `_assert_the_variable_bit` exists for, reached through the filesystem instead
+    of through the rebind, so it is keyed out here rather than guarded downstream.
+    """
+    return "{}_{}".format("base" if seed is None else seed, "blind" if blind else "seeing")
+
+
+def _shard_path(leg_dir: Path, seed: int | None, blind: bool) -> Path:
+    return leg_dir / "leg_{}.json".format(_leg_name(seed, blind))
+
+
+def leg_dir_for(out: Path) -> Path:
+    """Derived from the artefact, never a constant: the tests' `tmp_path` isolation depends on it."""
+    return out.parent / "{}_legs".format(out.stem)
+
+
+def run_leg_to_shard(seed: int | None, blind: bool, report_end: str | None, leg_dir: Path,
+                     runner=None) -> dict:
+    """Run ONE leg in THIS process, write its shard, return it. The unit a process is spawned for."""
+    runner = runner or (lambda report_end: run_value_cycle_ab(report_end=report_end,
+                                                              level_arm=False))
+    leg = _one_leg(seed, blind, report_end, runner)
+    leg_dir.mkdir(parents=True, exist_ok=True)
+    path = _shard_path(leg_dir, seed, blind)
+    path.write_text(json.dumps(leg, indent=2, default=str), encoding="utf-8")
+    return leg
+
+
+def _spawn_leg(seed: int | None, blind: bool, report_end: str | None, leg_dir: Path) -> None:
+    """Run one leg in a CHILD PROCESS and wait for it, so its peak dies with it.
+
+    Blocking, and deliberately not a detached session or a transient unit: the orchestrator must
+    stay the thing that knows whether a leg finished, and a leg that outlived its parent would be
+    invisible to the headroom census the next leg runs. `tools/launch_shape_census` reads this
+    shape and it is not a launch.
+    """
+    argv = [sys.executable, "-m", "tools.size_term_paired_floor",
+            "--leg-only", "base" if seed is None else str(seed),
+            "--configuration", "blind" if blind else "seeing",
+            "--leg-dir", str(leg_dir)]
+    if report_end:
+        argv += ["--end-year", report_end.split("-")[0]]
+    completed = subprocess.run(argv, cwd=PROJECT_DIR, check=False)
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "the {} leg at seed {} exited {}. Its shard was NOT written, so this pair is absent "
+            "from the artefact rather than wrong in it; every leg already on disk is still usable "
+            "and re-running this command resumes from them.".format(
+                "blind" if blind else "seeing", seed, completed.returncode))
+
+
+def _load_leg(leg_dir: Path, seed: int | None, blind: bool) -> dict | None:
+    path = _shard_path(leg_dir, seed, blind)
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _pair(seed: int | None, report_end: str | None, runner, leg_dir: Path,
+          leg_executor=None) -> dict:
     """Both legs at ONE seed, blind first, and the per-row difference between them.
 
     Blind first on purpose: it is the leg whose witness can only refuse (`scales` must be empty), so
     a rebind that failed to take costs one pass to find out rather than two.
+
+    A leg whose shard is already on disk is NOT re-run. That is what makes a killed family resumable
+    rather than repeatable, and it is the only reason writing shards buys anything over holding the
+    legs in memory.
     """
-    blind = _one_leg(seed, True, report_end, runner)
-    seeing = _one_leg(seed, False, report_end, runner)
+    legs = {}
+    for blind in (True, False):
+        existing = _load_leg(leg_dir, seed, blind)
+        if existing is None:
+            leg_executor(seed, blind, report_end, leg_dir)
+            existing = _load_leg(leg_dir, seed, blind)
+            if existing is None:
+                raise RuntimeError(
+                    "the {} leg at seed {} reported success and left no shard at {}. Refusing to "
+                    "assemble a pair from a leg that did not write.".format(
+                        "blind" if blind else "seeing", seed, _shard_path(leg_dir, seed, blind)))
+        legs[blind] = existing
+    blind, seeing = legs[True], legs[False]
     differences = {}
     for row in DELTA_ROWS:
         b, s = blind["realised_delta"].get(row), seeing["realised_delta"].get(row)
@@ -432,25 +548,60 @@ def build_report(pairs: list[dict], report_end: str | None, commit: str | None) 
         "seeds": [p for p in pairs if p["seed"] is not None],
         "paired_difference": rows,
         "pairing_bought": _pairing_bought(pairs, rows),
+        #: WHAT A LEG ACTUALLY COST, which is the quantity `PAIRED_FLOOR_LEG_PEAK_MB` is currently
+        #: only BOUNDED by. Published as the observed max across legs so the next session can
+        #: replace that bound with a measurement rather than inherit an overestimate. `None` while
+        #: no leg has recorded one -- an honest gap, not a zero.
+        "leg_peak_rss_mb": _observed_leg_peak(pairs),
+    }
+
+
+def _observed_leg_peak(pairs: list[dict]) -> dict:
+    peaks = [leg["peak_rss_mb"] for p in pairs for leg in (p["blind"], p["seeing"])
+             if leg.get("peak_rss_mb") is not None]
+    return {
+        "admission_price_used_mb": PAIRED_FLOOR_LEG_PEAK_MB,
+        "admission_price_is_a_bound_not_a_measurement": True,
+        "observed_max_mb": max(peaks) if peaks else None,
+        "observed_min_mb": min(peaks) if peaks else None,
+        "legs_weighed": len(peaks),
+        "how_to_read_this": (
+            "`admission_price_used_mb` is the PAIR's measured peak used as an upper bound on a leg, "
+            "because no leg had been weighed alone when this instrument was split. If "
+            "`observed_max_mb` is materially below it over a full family, that bound is loose and "
+            "`PAIRED_FLOOR_LEG_PEAK_MB` should be lowered to the measurement. These figures are "
+            "meaningless for legs run in-process by a test harness."),
     }
 
 
 def run(seeds: list[int], report_end: str | None = None, out: Path = OUTPUT_PATH,
-        runner=None, include_reconciliation: bool = True) -> dict:
-    """Run the family, writing the artefact after EVERY pair.
+        runner=None, include_reconciliation: bool = True, leg_dir: Path | None = None,
+        leg_executor=None) -> dict:
+    """Orchestrate the family, writing the artefact after EVERY pair. Runs NO leg in this process.
 
     Incremental on purpose. A floor leg on this machine runs for hours and the recorded failure mode
     is an OOM kill that writes nothing and reads exactly like a run still going. A partial family on
     disk is a usable family; a killed whole one is nothing at all.
+
+    THE FORK ON `runner` IS REAL AND IS NOT A TEST BACKDOOR. With no runner this spawns one CHILD
+    PROCESS PER LEG, which is the production shape and the whole point of the file: the peak dies
+    with the child. A test cannot afford three decade passes per leg, so an injected `runner` runs
+    the legs in-process instead -- exercising the same shards, the same resume, the same assembly,
+    with only the process boundary stubbed. That boundary is controlled separately by asserting the
+    argv `_spawn_leg` builds, because a control that stubbed the spawn AND checked the spawn would
+    be proving the stub.
     """
-    runner = runner or (lambda report_end: run_value_cycle_ab(report_end=report_end,
-                                                              level_arm=False))
+    leg_dir = leg_dir if leg_dir is not None else leg_dir_for(out)
+    if leg_executor is None:
+        leg_executor = (
+            _spawn_leg if runner is None
+            else (lambda s, b, re_, ld: run_leg_to_shard(s, b, re_, ld, runner=runner)))
     commit = _producing_commit()
     out.parent.mkdir(parents=True, exist_ok=True)
     pairs: list[dict] = []
     todo: list[int | None] = ([None] if include_reconciliation else []) + list(seeds)
     for index, seed in enumerate(todo, start=1):
-        pairs.append(_pair(seed, report_end, runner))
+        pairs.append(_pair(seed, report_end, runner, leg_dir, leg_executor))
         report = build_report(pairs, report_end, commit)
         out.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
         latest = pairs[-1]
@@ -503,6 +654,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--end-year", help="truncate the window, e.g. 2019 (a DIFFERENT instrument: "
                                        "the published move is a full-window figure)")
     ap.add_argument("--out", type=Path, default=OUTPUT_PATH)
+    ap.add_argument("--leg-dir", type=Path,
+                    help="where per-leg shards live; defaults beside --out. A leg already "
+                         "sharded here is NOT re-run, which is how a killed family resumes.")
+    ap.add_argument("--leg-only", metavar="SEED|base",
+                    help="LEG MODE: run exactly ONE leg in this process, write its shard and "
+                         "exit. This is what the orchestrator spawns, and what caps the peak at "
+                         "one configuration's. `base` is the reconciliation leg.")
+    ap.add_argument("--configuration", choices=("blind", "seeing"),
+                    help="which configuration --leg-only runs")
     ap.add_argument("--report", type=Path,
                     help="REPORT mode: re-print an artefact already on disk. Runs nothing.")
     ap.add_argument("--no-reconciliation", action="store_true",
@@ -516,8 +676,30 @@ def main(argv: list[str] | None = None) -> int:
     if args.report:
         print_report(json.loads(args.report.read_text(encoding="utf-8")))
         return 0
+
+    report_end = f"{args.end_year}-12-31" if args.end_year else None
+    leg_dir = args.leg_dir if args.leg_dir is not None else leg_dir_for(args.out)
+
+    if args.leg_only:
+        if not args.configuration:
+            ap.error("--configuration is required with --leg-only: a leg that did not say which "
+                     "belief it ran cannot be paired with anything")
+        # THE LEG IS WHAT COSTS, so the leg is what is priced -- and it is re-asked here, in the
+        # child, rather than inherited from the parent's check. A leg admitted an hour ago against
+        # an idle guest is not admitted now if another family started beside it.
+        refusal = floor_run_headroom_refusal(own_peak_mb=PAIRED_FLOOR_LEG_PEAK_MB)
+        if refusal and not args.ignore_headroom:
+            print("size-term paired floor leg REFUSED -- {}".format(refusal))
+            return 2
+        seed = None if args.leg_only == "base" else int(args.leg_only)
+        leg = run_leg_to_shard(seed, args.configuration == "blind", report_end, leg_dir)
+        print("[size_term_paired_floor] leg seed={} {} elapsed={}s peak_rss={} MB wrote {}".format(
+            seed, leg["configuration"], leg["elapsed_s"], leg["peak_rss_mb"],
+            _shard_path(leg_dir, seed, args.configuration == "blind")), flush=True)
+        return 0
+
     if not args.seeds:
-        ap.error("--seeds is required unless --report is given")
+        ap.error("--seeds is required unless --report or --leg-only is given")
     seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
     if len(seeds) < 2:
         raise SystemExit(
@@ -525,16 +707,14 @@ def main(argv: list[str] | None = None) -> int:
             "spread, and it would restate the single-seed figure this exists to bound."
             .format(len(seeds)))
 
-    # ITS OWN SHAPE'S PEAK, not the sibling's. The first run of this tool was admitted against a
-    # noise-floor leg's 6,400 MB, peaked at 7,878 MB and was OOM-killed at 1h 26m with nothing on
-    # disk; passing the default here is what made that a silent 1h 26m rather than a refusal.
-    refusal = floor_run_headroom_refusal(own_peak_mb=PAIRED_FLOOR_RUN_PEAK_MB)
-    if refusal and not args.ignore_headroom:
-        print("size-term paired floor REFUSED -- {}".format(refusal))
-        return 2
-
-    report = run(seeds, report_end=f"{args.end_year}-12-31" if args.end_year else None,
-                 out=args.out, include_reconciliation=not args.no_reconciliation)
+    # NO HEADROOM CHECK HERE, AND THAT IS THE CHANGE RATHER THAN AN OMISSION. This process now
+    # spawns legs and holds no simulation state, so pricing it at a floor leg's peak would charge
+    # the guest twice for one leg -- the orchestrator at 7,800 MB and its own child at 7,800 MB --
+    # and refuse a family this machine can comfortably hold. Each leg re-asks the question for
+    # itself in `--leg-only` above, immediately before it is the thing spending the memory, which
+    # is also the only place that can see a rival leg that started since the family began.
+    report = run(seeds, report_end=report_end, out=args.out, leg_dir=leg_dir,
+                 include_reconciliation=not args.no_reconciliation)
     print_report(report)
     print("  wrote {}".format(args.out))
     return 0
