@@ -11499,12 +11499,30 @@ def test_every_figure_the_block_publishes_is_the_ARTEFACTS(tmp_path):
         moved[_book]["legs_below_the_knee"] = 9013
         moved[_book]["legs_above_the_knee"] = 858
         moved[_book]["world_multiplier_spread"] = 3.14
+        # THE DEAFNESS CENSUS IS WHAT THE SENTENCE IS MADE OF SINCE 2026-09-23, so it is what this
+        # leg must drive. `legs_below_the_knee` is still computed and still true of `bill_stress`'s
+        # declared threshold; it stopped being the count of legs the belief cannot hear the size
+        # of when `fc390b918` gave the belief a second route from consumption. Driving only the
+        # old pair would leave this leg green over a block reading the new keys -- the exact
+        # "pinning the reader is blind to the writer" shape, with the fixture's own key set
+        # doing the hiding.
+        moved[_book]["size_deafness"] = {
+            "legs_graded": 4242, "legs_the_belief_hears": 4200,
+            "legs_the_belief_is_deaf_to": 42, "share_the_belief_hears": 0.9901,
+            "the_deaf_legs_are_the_BIGGEST": False}
     moved["knee"]["declared_threshold_gbp"] = 4321.0
+    moved["knee"]["deaf_edge_kwh_spread_across_the_probe_rates"] = 7.77
     path = tmp_path / "moved.json"
     path.write_text(json.dumps(moved), encoding="utf-8")
     block = gva._churn_belief_size_response(path)
-    assert (block["supply_legs"], block["legs_below_the_knee"], block["legs_above_the_knee"]) == (
-        9871, 9013, 858)
+    assert block["supply_legs"] == 9871
+    assert (block["legs_graded"], block["legs_the_belief_hears"],
+            block["legs_the_belief_is_deaf_to"]) == (4242, 4200, 42)
+    assert block["share_the_belief_hears"] == 0.9901
+    # THE BOOLEAN IS DRIVEN FALSE ON PURPOSE. The live artefact says True, so a block that
+    # hard-coded or defaulted it would pass on the live file and red only here.
+    assert block["the_deaf_legs_are_the_biggest"] is False
+    assert block["deaf_edge_kwh_spread_across_the_probe_rates"] == 7.77
     assert block["world_multiplier_spread"] == 3.14
     assert block["knee_gbp"] == 4321.0
 
@@ -11517,10 +11535,14 @@ def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_
     the partition, so a reader of this file cannot be shown three green branches of a block that
     has gone dark.
 
-    THE SECOND REFUSAL IS THE INTERESTING ONE. `the_knee_is_a_bill_not_a_consumption` is the
-    framing every sentence the page renders from this block rests on -- "the knee is a BILL and it
-    moves 2.67x in kWh across the rate deck". If the measurement stops saying that, the surface's
-    account of it has diverged from it and a reader cannot see which one won. Same grammar as
+    THE SECOND REFUSAL IS THE INTERESTING ONE, AND IT WAS RE-KEYED ON 2026-09-23. It used to
+    fire on `the_knee_is_a_bill_not_a_consumption` being anything but True -- keyed to the ANSWER
+    the measurement was giving, not to the question. `fc390b918` gave the belief a sourced size
+    term, the artefact stopped saying the knee was a bill because there is no knee any more, and
+    this refusal took the whole block off the page for ten publisher cycles: red exactly when the
+    code became more honest, which is the shape CLAUDE.md names. It now fires on the artefact
+    being unable to STATE `the_belief_is_flat_below_a_knee` at all, which is the property every
+    sentence here actually rests on. Both answers to it render. Same grammar as
     `_svt_drift_belief`'s `belief_auc_superseded_by` check.
 
     Fires on: dropping any of the three guards, or returning the flattering branch from one.
@@ -11545,9 +11567,24 @@ def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_
     no_book_path.write_text(json.dumps(no_book), encoding="utf-8")
 
     diverged = copy.deepcopy(live)
-    diverged["knee"]["the_knee_is_a_bill_not_a_consumption"] = False
+    diverged["knee"].pop("the_belief_is_flat_below_a_knee", None)
     diverged_path = tmp_path / "diverged.json"
     diverged_path.write_text(json.dumps(diverged), encoding="utf-8")
+
+    # AND THE OLD KEY'S ANSWER IS NOT A REFUSAL ANY MORE, which is the half of the re-key that
+    # can fail. Refusing on a missing key is easy to widen back into refusing on the answer, and
+    # a widened refusal looks identical from outside to a correct one -- it was ten publisher
+    # cycles of blank page last time. This drives the artefact to the state that USED to be
+    # refused and asserts it publishes.
+    old_answer = copy.deepcopy(live)
+    old_answer["knee"]["the_knee_is_a_bill_not_a_consumption"] = False
+    old_answer["knee"]["the_belief_is_flat_below_a_knee"] = False
+    old_answer_path = tmp_path / "old_answer.json"
+    old_answer_path.write_text(json.dumps(old_answer), encoding="utf-8")
+    still_published = gva._churn_belief_size_response(old_answer_path)
+    assert still_published["available"] is True, (
+        "the refusal is still keyed to the knee's ANSWER rather than to the question: {}".format(
+            still_published.get("why")))
 
     # AND THE FALLBACK IS NOT A REFUSAL. Losing the arms' book alone must still publish -- from
     # the tree's book, saying so -- or a page that could have told the reader something true goes
@@ -11564,7 +11601,8 @@ def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_
 
     refusals = {name: gva._churn_belief_size_response(path) for name, path in (
         ("unreadable", unreadable), ("no reading", no_reading),
-        ("no book", no_book_path), ("the knee stopped being a bill", diverged_path))}
+        ("no book", no_book_path),
+        ("the artefact cannot say whether the belief is flat", diverged_path))}
 
     # EVERY REFUSAL FIRES...
     assert all(block["available"] is False for block in refusals.values()), (
@@ -11577,7 +11615,7 @@ def test_the_three_refusals_are_ALL_REACHABLE_and_each_names_its_own_reason(tmp_
         "two refusals give the same reason, so a reader cannot tell which fired: {}".format(whys))
     assert "tools.churn_belief_size_response" in whys["unreadable"], (
         "the unreadable branch does not say how to rebuild the artefact")
-    assert "BILL" in whys["the knee stopped being a bill"]
+    assert "flat below a knee" in whys["the artefact cannot say whether the belief is flat"]
     # ...AND THE GUARD IS NOT REFUSING EVERYTHING, which is what makes the four above evidence.
     assert gva._churn_belief_size_response()["available"] is True, (
         "the live artefact is refused too, so the refusals above prove nothing")
@@ -11945,7 +11983,12 @@ def test_the_chains_first_clause_is_ASKED_of_the_factor_table_not_asserted(
     Fires on: restoring the unconditional sentence, or widening the guard to any non-empty
     `carrying` (which would state the bill-shock join off a different factor's reading).
     """
-    handed = {"available": True, "legs_below_the_knee": 991, "supply_legs": 993}
+    # THE DEAFNESS CENSUS, WHICH IS WHAT THE SENTENCE IS MADE OF SINCE 2026-09-23. This fixture
+    # carried `legs_below_the_knee`/`supply_legs` and the writer moved to the census keys; a
+    # fixture whose KEY SET is the old one leaves every assertion below green over a chain that
+    # silently withheld itself, which is exactly what happened on the first run of this repair.
+    handed = {"available": True, "legs_the_belief_is_deaf_to": 2,
+              "legs_graded": 993, "legs_the_belief_hears": 991}
 
     def _with_clearing(*factors):
         """The live grade with exactly `factors` clearing their null alone."""
@@ -11960,6 +12003,7 @@ def test_the_chains_first_clause_is_ASKED_of_the_factor_table_not_asserted(
     assert joined["signal_is_concentrated_in"] == ["sim_bill_shock_base"]
     assert "is concentrated in bill shock" in joined["chain_to_the_flat_belief"]
     assert "991 of 993 supply legs" in joined["chain_to_the_flat_belief"]
+    assert "deaf to it for 2" in joined["chain_to_the_flat_belief"]
 
     # NOTHING CLEARS -- the first link is absent, so the join is not drawn. The readable half is
     # still stated, because it is a fact about the belief and not about the world.
@@ -11989,9 +12033,15 @@ def test_the_chain_sentence_uses_the_SIZE_BLOCKS_OWN_counts(tmp_path, monkeypatc
     Fires on: re-reading the size artefact inside `_renewal_churn_belief` instead of taking the
     block it is handed, or composing the sentence from literals.
     """
-    handed = {"available": True, "legs_below_the_knee": 991, "supply_legs": 993}
+    handed = {"available": True, "legs_the_belief_is_deaf_to": 2,
+              "legs_graded": 993, "legs_the_belief_hears": 991}
     block = gva._renewal_churn_belief(handed)
     assert "991 of 993 supply legs" in block["chain_to_the_flat_belief"]
+    # THE DEAF COUNT IS THE THIRD FIGURE AND IT IS DRIVEN SEPARATELY, so a sentence that derived
+    # it as legs_graded - legs_the_belief_hears would red here rather than agree with itself.
+    # (This capture takes the "NOT stated" branch -- no factor clears its null alone in the live
+    # grade -- which words the same three figures differently from the joined branch above.)
+    assert "is deaf to 2" in block["chain_to_the_flat_belief"]
     # ...AND IT IS WITHHELD IN WORDS, not invented, when the other half could not be read.
     for unreadable in (None, {"available": False, "why": "gone"}):
         withheld = gva._renewal_churn_belief(unreadable)

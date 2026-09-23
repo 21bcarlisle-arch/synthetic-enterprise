@@ -18,25 +18,35 @@ segment where the belief varies. A guard that reports "flat" for everything fail
 a guard that reports "varies" for everything fails the first; an instrument that has stopped
 reading the world at all fails the third.
 
+MUTATION RECORD RE-READ 2026-09-23, AND WHAT SURVIVES IT. The sweep below was run against the
+belief as it stood before `fc390b918` gave it a size term, and the two legs it names have been
+re-derived rather than re-pointed, so the NAMES in it are current and the OUTCOMES are history.
+Two entries are known to have changed meaning and are not re-run here: the
+`BILL_STRESS_SENSITIVITY -> 0.0` and `max -> abs` mutations both worked by removing or widening
+the ONLY route from consumption to the belief, and there are two routes now -- so each would now
+be caught by the saturation leg rather than by the knee leg, and neither would leave the belief
+flat. Recorded as owed rather than claimed: re-running this sweep against the re-derived legs is
+the next thing this file needs, and no line below should be read as evidence about today's code.
+
 MUTATION RECORD (2026-09-22), per `docs/design/CONTROLS_THAT_CANNOT_FAIL.md`. Each mutation was
 applied to an INJECTED copy of the subject module, never to the shared tree, and an unmutated
 baseline run is recorded first so a leg that fires on everything would be visible:
 
   * baseline, no mutation — SILENT. Nothing fires without a mutation.
   * `BILL_STRESS_SENSITIVITY = 0.25 -> 0.0` — CAUGHT by
-    `test_the_belief_is_flat_in_size_exactly_where_the_world_is_not` (leg 3) and by
-    `test_the_knee_is_a_bill_and_not_a_consumption`. The belief goes flat at every consumption,
+    `test_the_belief_HEARS_size_where_the_world_DOES_and_goes_deaf_only_at_the_TOP` (leg 3) and by
+    `test_the_DEAF_EDGE_is_at_a_DIFFERENT_consumption_at_every_rate`. The belief goes flat at every consumption,
     so the partition collapses AND `knee_kwh` correctly returns None at every rate.
   * `BILL_STRESS_THRESHOLD_GBP = 3000.0 -> 500.0` — CAUGHT by
-    `test_the_belief_is_flat_in_size_exactly_where_the_world_is_not` (leg 1) alone. The knee drops
+    `test_the_belief_HEARS_size_where_the_world_DOES_and_goes_deaf_only_at_the_TOP` (leg 1) alone. The knee drops
     below the probe pair and the two domestic households stop agreeing. The knee control does NOT
     fire, and correctly so: a knee at GBP 500 is still a bill and still moves in kWh with rate.
   * `max(0.0, ...) -> abs(...)` in `churn_model`'s bill-stress line — CAUGHT by
-    `test_the_belief_is_flat_in_size_exactly_where_the_world_is_not` (leg 1) and by
-    `test_the_knee_is_a_bill_and_not_a_consumption`. A two-sided hinge makes the belief vary below
+    `test_the_belief_HEARS_size_where_the_world_DOES_and_goes_deaf_only_at_the_TOP` (leg 1) and by
+    `test_the_DEAF_EDGE_is_at_a_DIFFERENT_consumption_at_every_rate`. A two-sided hinge makes the belief vary below
     the knee, and leaves no flat arm for the bisection to find.
   * `bill_scale_for` non-domestic branch `None -> bill_gbp` — CAUGHT by
-    `test_the_belief_is_flat_in_size_exactly_where_the_world_is_not` (leg 4). This is the leg that
+    `test_the_belief_HEARS_size_where_the_world_DOES_and_goes_deaf_only_at_the_TOP` (leg 4). This is the leg that
     stops the mirror claim being asserted about a world that no longer has the asymmetry.
   * `PROBE_DIFFERENTIAL_PCT = 0.12 -> 0.30` — SILENT, and it is an EQUIVALENCE, not a missing leg.
     Every world leg here is a strict comparison BETWEEN two bills at ONE differential, and
@@ -54,6 +64,7 @@ from __future__ import annotations
 
 import pytest
 
+from company.crm import churn_model as cm
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from simulation.market_switching_propensity import bill_scale_for, churn_position_multiplier
 from tools import churn_belief_size_response as cb
@@ -76,53 +87,124 @@ def _world(kwh: float, segment: str = "resi") -> float:
     return churn_position_multiplier(cb.PROBE_DIFFERENTIAL_PCT, bill_scale_for(segment, bill))
 
 
-def test_the_belief_is_flat_in_size_exactly_where_the_world_is_not():
-    """The whole partition. Catches a belief that is flat everywhere AND one that varies everywhere.
+def test_the_belief_HEARS_size_where_the_world_DOES_and_goes_deaf_only_at_the_TOP():
+    """The whole partition, re-derived 2026-09-23 when the finding INVERTED under it.
 
-    Four legs, and each one kills a different degenerate instrument:
-      1. flat below the knee          -- the finding itself
-      2. the world varies there       -- so the flatness is a real difference, not an equivalence
-      3. the belief MOVES above it    -- so "flat" is not what this instrument says about everything
-      4. the world is flat for SME    -- so the mirror claim is about a world that has the asymmetry
+    WHAT THIS ASSERTED UNTIL TODAY, and it was true: the belief was EXACTLY flat between two
+    domestic households four times apart in size, while the world told them apart. `fc390b918`
+    gave `estimate_churn_probability` a size term sourced to Ofgem/BMG, so leg 1 is now false of
+    the model and asserting it would pin this file to a belief the company no longer holds.
+
+    THE PARTITION IS THE SAME SHAPE AND THAT IS WHY THIS IS A RE-DERIVATION AND NOT A NEW TEST.
+    It still has to kill both degenerate instruments -- one that reports "the belief hears size"
+    for everything, and one that reports "deaf" for everything -- and it still has to show the
+    remaining gap is a real difference the world makes rather than an equivalence. What moved is
+    WHERE the deafness lives: it was the bottom of the book and it is the top of it now, because
+    both of the belief's consumption terms are ceilinged.
+
+    Four legs, each killing a different degenerate instrument:
+      1. the belief now SEPARATES two domestic households   -- the landing, asserted not assumed
+      2. the world separates them too                       -- so the belief moved toward the world
+      3. the belief is FLAT above both ceilings             -- the gap that is left, and it is real
+      4. the world is flat for SME and the belief is not    -- the mirror, unchanged by the landing
     """
-    # 1. Two domestic households, four times apart in size, both below the knee. The company's
-    #    belief cannot tell them apart -- not approximately, exactly.
-    assert _belief(_SMALL_KWH) == _belief(_LARGE_KWH)
+    # 1. Two domestic households four times apart in size. The belief tells them apart now. This
+    #    is the leg that was inverted by the landing, and it is asserted rather than assumed
+    #    because it is the whole of what `fc390b918` claimed to do.
+    assert _belief(_SMALL_KWH) != _belief(_LARGE_KWH), (
+        "the belief is flat between two domestic households four times apart in size; the size "
+        "term landed at fc390b918 is not reaching this segment")
 
-    # 2. And that is a difference the world makes, in the direction size predicts. Without this
-    #    leg the flatness could be an equivalence -- two routes to one correct answer.
+    # 2. And the world separates them in the same direction, so the belief moved TOWARD the world
+    #    rather than merely acquiring a wiggle. Without this the new term could be noise.
     assert _world(_SMALL_KWH) < _world(_LARGE_KWH)
+    assert _belief(_SMALL_KWH) < _belief(_LARGE_KWH)
 
-    # 3. The belief is NOT constant in consumption at every input: above the knee it moves. An
-    #    estimator that had stopped reading consumption altogether fails here, which is what stops
-    #    leg 1 from being passed by a guard that reports "flat" for everything.
-    assert _belief(_ABOVE_KNEE_KWH) > _belief(_LARGE_KWH)
+    # 3. THE GAP THAT IS LEFT: the size term SATURATES, so the belief's response per kWh above
+    #    its cap is strictly weaker than below it, while the world's keeps going. This is what
+    #    stops leg 1 being passed by an instrument that reports "hears size" for everything.
+    #
+    #    WHY THE SATURATION AND NOT A FLAT PAIR OF HOUSEHOLDS. The first draft asserted the
+    #    belief was EQUAL at two large consumptions, which is true in the shared working tree
+    #    and false at HEAD -- the difference is an uncommitted `BILL_STRESS_MAX_RATIO` ceiling
+    #    in another lane's copy of `churn_model`. A leg keyed to that would be green for whoever
+    #    ran it in the shared tree and red in every gate. The size term's cap is committed, is
+    #    what this module is about, and binds either way.
+    cap_kwh = cm.MAX_SIZE_SCALE * cm.SIZE_REFERENCE_KWH_ELEC
+    below = _belief(cap_kwh - 600.0) - _belief(cap_kwh - 1_100.0)
+    above = _belief(cap_kwh + 600.0) - _belief(cap_kwh + 100.0)
+    assert below > 0.0, "the belief does not respond to size below the size term's own cap"
+    assert above < below, (
+        "the belief responds as strongly above the size term's cap as below it, so the cap is "
+        "not binding and `MAX_SIZE_SCALE` reaches nothing: below={!r} above={!r}".format(
+            below, above))
+    assert _world(_ABOVE_KNEE_KWH) < _world(_ABOVE_KNEE_KWH + 5_000.0), (
+        "the world is flat up there too, so the remaining gap is an equivalence rather than a "
+        "difference the belief cannot express")
 
-    # 4. The mirror, and it is the sharper half of the finding: the world scales by the
-    #    household's own bill for DOMESTIC supply only, so for a non-domestic account the world is
-    #    flat in size by construction -- and that is the one segment where the belief does vary.
+    # 4. The mirror, and the landing did not touch it: the world scales by the household's own
+    #    bill for DOMESTIC supply only, so for a non-domestic account it is flat in size by
+    #    construction while `bill_stress` still moves the belief there.
     assert _world(_SMALL_KWH, "SME") == _world(_ABOVE_KNEE_KWH, "SME")
     assert _belief(_ABOVE_KNEE_KWH, "SME") > _belief(_SMALL_KWH, "SME")
 
 
-def test_the_knee_is_a_bill_and_not_a_consumption():
-    """Keyed to the PROPERTY, not to 12,000 kWh — which is only the knee at GBP 250/MWh.
+def test_the_DEAF_EDGE_is_at_a_DIFFERENT_consumption_at_every_rate():
+    """Keyed to the PROPERTY, and the property outlived the measurement it was written about.
 
-    A control pinned to the kWh location goes red the next time the price deck moves and stays
-    green while the mechanism rots. What is durable is that the knee sits at a fixed number of
-    POUNDS and therefore at a DIFFERENT number of kilowatt-hours at every rate.
+    THIS LEG RETIRED ITSELF, IN WRITING, BEFORE THE EVENT. It used to assert that the knee sat at
+    a fixed number of POUNDS and therefore a different number of kWh at every rate, and its own
+    last line said: "this is the leg that fails if the knee ever becomes a kWh constant -- at
+    which point the belief WOULD be a size term and this finding would be spent." `fc390b918`
+    made the belief a size term and the leg went red exactly as predicted. Re-derived on that
+    instruction rather than deleted, because the property it guards did not go anywhere.
+
+    THE PROPERTY. The edge this module is about is a bill dressed as a consumption: it sits at a
+    fixed number of pounds, so it lands at a different meter reading at every unit rate, and a
+    reader shown one number believes the belief turns on a meter reading. That was true of the
+    switch-ON edge and it is true of the switch-OFF edge, because the ceiling that binds is
+    `bill_stress`'s -- a bill. A control pinned to 13,358 kWh would red the next time the price
+    deck moved; this one reds when the edge stops travelling with the deck.
     """
-    derived = [cb.knee_kwh(rate) for rate in cb.PROBE_RATES_GBP_PER_MWH]
-    assert all(kwh is not None for kwh in derived), "the belief never moves at any consumption"
+    rows = cb.knee()["by_rate"]
+    edges = [r["the_belief_goes_deaf_to_size_above_kwh"] for r in rows]
+    found = [kwh for kwh in edges if kwh is not None]
 
-    bills = [rate * kwh / 1000.0
-             for rate, kwh in zip(cb.PROBE_RATES_GBP_PER_MWH, derived)]
-    # One bill, to within the bisection's own resolution.
-    assert max(bills) - min(bills) < 10.0
-    # Three different consumptions. This is the leg that fails if the knee ever becomes a kWh
-    # constant -- at which point the belief WOULD be a size term and this finding would be spent.
-    assert len(set(round(kwh) for kwh in derived)) == len(derived)
-    assert max(derived) / min(derived) > 2.0
+    # BOTH BRANCHES ARE REACHABLE AND THE TREE DECIDES WHICH, WHICH IS WHY THIS IS ONE CONTROL
+    # AND NOT TWO. Whether the belief EVER stops responding depends on `bill_stress` being
+    # ceilinged, and that ceiling is a real, sourced change that is uncommitted in another lane
+    # as this is written. With it, three terminal edges exist and the property below is the one
+    # that matters. Without it `bill_stress` grows without bound and there is no terminal edge at
+    # all -- which is not a broken instrument, it is the belief genuinely still responding, and
+    # asserting an edge exists would red every gate while passing for whoever ran it in the
+    # shared tree. So the question asked is "did the artefact answer consistently", which has a
+    # right answer in both trees.
+    assert len(found) in (0, len(rows)), (
+        "the belief goes deaf at some probe rates and not others, which no ceiling in this model "
+        "can produce -- the scan is hitting its breakpoint cap at some rates: {}".format(
+            dict(zip(cb.PROBE_RATES_GBP_PER_MWH, edges))))
+
+    if not found:
+        # AND THE ABSENCE IS NOT SILENT. A `None` edge everywhere must still leave the census
+        # able to grade the book, or "no edge" and "nothing measured" would look identical.
+        assert cb.knee()["the_belief_goes_deaf_above_a_saturation"] is False
+        assert cb.knee()["the_belief_is_flat_below_a_knee"] is False, (
+            "no deaf edge AND a knee below would mean the belief reads consumption nowhere")
+        return
+
+    # DIFFERENT CONSUMPTIONS AT DIFFERENT RATES -- the property. If these ever collapse to one
+    # number the binding ceiling has become a pure consumption, at which point the edge is no
+    # longer a bill in disguise and the sentence built on it must be re-derived again.
+    assert len(set(round(kwh) for kwh in found)) == len(found), (
+        "the deaf edge is the same consumption at every rate, so it no longer travels with the "
+        "price deck and this module's account of it has gone stale")
+    assert max(found) / min(found) > 2.0
+
+    # AND IT RUNS THE RIGHT WAY. A higher unit rate reaches the bill ceiling at a LOWER meter
+    # reading; an edge that rose with the rate would be some other mechanism wearing this name.
+    assert found == sorted(found, reverse=True), (
+        "the deaf edge does not fall as the unit rate rises, so it is not the bill ceiling that "
+        "is binding: {}".format(dict(zip(cb.PROBE_RATES_GBP_PER_MWH, edges))))
 
 
 def test_the_book_census_counts_every_leg_on_one_side_or_the_other():
@@ -323,16 +405,20 @@ def test_the_arms_book_is_identified_and_a_near_miss_is_refused(monkeypatch):
     tree = cb.book_distribution(json.loads(cb.BOOK_PATH.read_text(encoding="utf-8")), knee_bill)
     arms_reading = cb._reading(k, part, tree, real)
     assert "154-account book the published arms were scored over" in arms_reading
-    arms_resi = real["by_segment"]["resi"]
+    # THE COUNT THE SENTENCE IS MADE OF IS THE DEAFNESS CENSUS, FROM 2026-09-23. It used to be
+    # `resi legs - above the knee`, which was the count of legs the belief could not hear while
+    # the knee was the only route from consumption to the belief. `fc390b918` added a second, so
+    # those are different sets and the sentence quotes the census.
+    arms_deaf = real["size_deafness"]
     assert "{} of this book's {}".format(
-        arms_resi["legs"] - arms_resi["above_the_knee"], arms_resi["legs"]) in arms_reading
+        arms_deaf["legs_the_belief_hears"], arms_deaf["legs_graded"]) in arms_reading
     assert "{}x".format(real["world_multiplier_spread"]) in arms_reading
 
     fallback = cb._reading(k, part, tree, {"available": False, "unavailable_because": "probe"})
     assert "the book this tree holds today" in fallback
-    tree_resi = tree["by_segment"]["resi"]
+    tree_deaf = tree["size_deafness"]
     assert "{} of this book's {}".format(
-        tree_resi["legs"] - tree_resi["above_the_knee"], tree_resi["legs"]) in fallback
+        tree_deaf["legs_the_belief_hears"], tree_deaf["legs_graded"]) in fallback
     # And the two are genuinely different sentences — a fallback nobody can detect is the whole
     # defect this leg is written for.
     assert arms_reading != fallback
@@ -369,9 +455,9 @@ def test_the_artefact_publishes_both_books_and_says_which_one_the_reading_quotes
     assert data["which_book_the_reading_quotes"].strip()
     quoted = data["arms_book"] if data["arms_book"].get("available") else data["book"]
     assert quoted is not data["book"] or not data["arms_book"].get("available")
-    resi = quoted["by_segment"]["resi"]
+    deafness = quoted["size_deafness"]
     assert "{} of this book's {}".format(
-        resi["legs"] - resi["above_the_knee"], resi["legs"]) in data["reading"]
+        deafness["legs_the_belief_hears"], deafness["legs_graded"]) in data["reading"]
     # DELIBERATELY NOT "the two books differ". They do today -- 164 against 154 -- but that is a
     # fact about when the roster was last regenerated, not a property, and a control pinned to it
     # would go red the day the tree's book and the arms' book legitimately coincide. What must
