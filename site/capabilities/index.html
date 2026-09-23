@@ -889,11 +889,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        this" and is registered against `.method_skill.cannot_tell`, so a page rendering a copy
        points a reader at something this door does not render. One sentence, one home, resolved
        here. */
+    /* THE OWNER IS RESOLVED, NOT JUST THE SENTENCE, because the styling is a fact about the
+       verdict and only the owning object knows it — see `qualifies` below. */
     var verdictFor = function (r) {
       if (!r.verdict_key) { return null; }
-      var node = msk || {}, parts = String(r.verdict_key).split(".");
-      for (var i = 0; i < parts.length && node != null; i++) { node = node[parts[i]]; }
-      return typeof node === "string" && node ? node : null;
+      var owner = msk || {}, parts = String(r.verdict_key).split(".");
+      for (var i = 0; i < parts.length - 1 && owner != null; i++) { owner = owner[parts[i]]; }
+      var sentence = owner == null ? null : owner[parts[parts.length - 1]];
+      if (typeof sentence !== "string" || !sentence) { return null; }
+      /* AMBER QUALIFIES A FIGURE; IT DOES NOT DECORATE ONE. This paragraph was amber for every
+         row, which makes the colour furniture: a run whose reading CLEARS its own null — "reads
+         BETTER than chance", the one state in which the figure may be taken at face value — wore
+         the same caveat colour as "we cannot tell" and as the inverted reading. On a page whose
+         whole subject is whether there is a baseline to beat, that paints the win in the colour
+         of doubt.
+
+         THE RULE IS `verdict()`'s, VERBATIM, and that is the point rather than an economy: the
+         estimand's verdict has two render sites — here when it travels in the lead, and in
+         `fixedHorizonBlock` when it does not — and the same sentence styled by two rules is the
+         two-homes-for-one-claim shape this block was built to repair one rung up. Fails closed:
+         only a `concordance_reading` owner saying `better_than_chance` clears, so a bare
+         `cannot_tell` string, an unknown reading, or an owner that went missing is a caveat. */
+      return {sentence: sentence, qualifies: owner.reading !== "better_than_chance"};
     };
     return ro.readings.map(function (r, i) {
       var verdict = verdictFor(r);
@@ -901,10 +918,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + (i === 0 ? "font-weight:600;" : "") + '">' + prose(r.sentence) + "</p>"
         /* THE VERDICT TRAVELS WITH THE FIGURE, never three paragraphs from it. "We cannot tell"
            is the result, and a figure that reaches a reader ahead of its own refusal is a figure
-           they have already taken. */
+           they have already taken. The WEIGHT stays on either way — a verdict travelling with
+           the lead figure is read at the same size whichever way it points, and only the colour
+           says whether it qualifies. */
         + (verdict
             ? '<p style="margin:0 0 10px;font-size:12.5px;font-weight:600;'
-              + 'color:var(--amber);">' + prose(verdict) + "</p>"
+              + (verdict.qualifies ? "color:var(--amber);" : "color:var(--muted);")
+              + '">' + prose(verdict.sentence) + "</p>"
             : "");
     }).join("")
       /* THE REFUSAL BRANCH RENDERS TOO. A run supplying no unconditioned cut leads with the

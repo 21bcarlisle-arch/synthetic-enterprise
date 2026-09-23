@@ -4610,42 +4610,67 @@ def test_a_reading_that_CLEARS_its_null_does_not_say_it():
     `prose(null)` is the empty string, so an always-true branch emits an empty paragraph and no
     phrase. Established rather than assumed.
 
-    SCOPED TO THE SURVIVOR CUT'S OWN REGION (2026-09-18), for the same reason and by the same
-    partition as the sibling above -- and found the same way, by a run actually landing rather
-    than by reasoning. This leg drives ONE reading and then read the WHOLE panel for the phrase,
-    so it was green only while `method_skill` was the panel's sole source of it. Promoting the
-    support-bounded three-arm run made the estimand's cut -- a DIFFERENT population, 0.440 on 85
-    decisions -- sit inside its own null and honestly say so, and this went red on a page that had
-    become MORE truthful. That is the shape CLAUDE.md prices: keyed to today's answer, red when
-    the code gets honest, green when the claim rots. The absence being asserted is the SURVIVOR
-    cut's, so the region is everything above the estimand's own heading.
+    KEYED TO THE SUBJECT, NOT TO A REGION (2026-09-23), and the region is what had to go. This
+    leg was scoped on 2026-09-18 by splitting the panel at the estimand's own heading and reading
+    only what came above it -- "the absence being asserted is the SURVIVOR cut's, so the region is
+    everything above the estimand's own heading". That sentence was a claim about PARAGRAPH ORDER,
+    and `_skill_reading_order` landed the same week and made the order the FEED's: the estimand
+    now leads, so its reading and its "we cannot tell" render ABOVE that heading and inside what
+    this called the survivor region. The control went red naming the renderer, and the renderer
+    was not the defect -- the page had become more honest and the partition was stale, which is
+    the second time this same leg has been caught keyed to today's layout.
+
+    A REGION CANNOT NAME A POPULATION; A SUBJECT CAN. "We cannot tell" is one phrase over two
+    cuts, and `cannot_tell_sentence` composes it WITH its subject -- "GIVEN the household stayed"
+    for this one. So the absence asserted is the live run's own survivor sentence, verbatim, and
+    a third cut taking a place in the reading order cannot make this leg red for being third.
+
+    DRIVEN THROUGH `_skill_reading_order`, because the survivor figure no longer has a second home
+    for a test to poke. The page renders the row's composed sentence, so setting `msk.concordance`
+    alone drives nothing and the old precondition -- "the driven reading did not reach the page at
+    all" -- was true of a correct page. The producer recomposes the row over the driven numbers,
+    which makes this control one over the producer and the page together rather than over a field
+    the page stopped reading.
+
+    AND `inside_the_null` IS STILL LEFT STALE AT TRUE, for the reason above: `verdict_key` is set
+    from the composed sentence and not from the flag, and the two disagreeing is what tells them
+    apart.
     """
+    from tools.generate_value_arms_data import _skill_reading_order
+
     feed = copy.deepcopy(_live_feed())
     msk = feed.get("method_skill") or {}
     if not msk.get("available"):
         pytest.skip("the live feed carries no method-skill reading to drive")
+    #: THE SENTENCE THIS RUN ACTUALLY PRINTS for the survivor cut, captured before it is driven
+    #: away. Asserting a phrase this file typed would test the phrase; asserting the live one
+    #: tests that the page stopped saying the thing it was saying.
+    said_when_it_could_not_tell = msk.get("cannot_tell")
+    if not said_when_it_could_not_tell:
+        pytest.skip("this run's survivor cut already clears its own null, so there is no sentence "
+                    "for the driven reading to drive away")
     msk.update({"concordance": 0.94, "null_95_low": 0.133, "null_95_high": 0.867,
                 "inside_the_null": True, "cannot_tell": None})
+    msk["reading_order"] = _skill_reading_order(msk, msk.get("survivorship"),
+                                                msk.get("fixed_horizon"))
 
     rendered = _render(feed)["arms-method"]
-    #: The estimand's block opens with this heading, so what precedes it is the survivor cut's.
-    below = "And the same question over every decision the arm priced?"
-    survivor_region = rendered.split(below)[0]
 
-    assert "0.940" in survivor_region, "the driven reading did not reach the page at all"
-    assert "we cannot tell" not in survivor_region.lower(), (
+    assert "0.940" in rendered, "the driven reading did not reach the page at all"
+    assert said_when_it_could_not_tell not in rendered, (
         "the page says we cannot tell about a reading that clears its own null, which makes the "
         "phrase a constant rather than a verdict")
-    #: THE SPLIT HAS TO BE LOAD-BEARING, or the scoping is furniture that happens to pass -- the
-    #: whole-panel read is what this leg used to do, and it is what went red. When the estimand's
-    #: cut cannot tell either, its sentence IS on the page, so the phrase is present in the panel
-    #: and absent from this region, and only the partition can tell "the block I blanked came
-    #: back" from "a second subject appeared". When that cut clears its null there is no second
-    #: subject, and then the two reads agree and there is nothing for the partition to do.
-    if below in rendered and "we cannot tell" in rendered.lower():
-        assert "0.940" not in rendered.split(below, 1)[1], (
-            "the estimand's region cites the SURVIVOR cut's driven reading, so the split is not "
-            "the partition this scoping claims it is")
+    #: THE ABSENCE HAS TO BE THIS CUT'S AND NOT A BLANKED PANEL, and only the other side of the
+    #: partition can tell those apart. The estimand is a DIFFERENT population that on this run
+    #: does sit inside its own null, so its refusal is owed and must still be on the page -- a
+    #: control asserting "we cannot tell" is absent everywhere would go green on a door that
+    #: rendered nothing at all, and would go red the day the estimand honestly cannot tell.
+    estimand_verdict = ((msk.get("fixed_horizon") or {}).get("reading_of_the_estimand")
+                        or {}).get("sentence")
+    if estimand_verdict and "we cannot tell" in estimand_verdict.lower():
+        assert estimand_verdict in rendered, (
+            "the survivor cut's refusal went away and so did the estimand's, so what this leg "
+            "measured is a panel that stopped rendering rather than a verdict that cleared")
 
 
 # ── the OTHER leg: independence, and whether it reaches anyone ────────────────────────────────
