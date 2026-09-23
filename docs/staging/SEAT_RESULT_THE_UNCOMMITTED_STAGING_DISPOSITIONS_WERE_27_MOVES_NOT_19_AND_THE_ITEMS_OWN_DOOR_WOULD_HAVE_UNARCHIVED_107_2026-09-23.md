@@ -1,4 +1,19 @@
-**Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** RECORDED · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+
+> **CLOSED 2026-09-23 — §5's three open items are all discharged, which is what this was BLOCKING
+> on.** §5.1: the ghosts are out of the shared index — **134 of them, not 107**, and the 107 was
+> exact when written; the other 27 were minted by `6bd209c0b`, this document's own landing, because
+> an archival that removes a root copy at HEAD converts every root copy still staged into an `AD`
+> ghost. §5.2: **3 deletions survive nowhere, not 10** — the other 7 are on disk at their own paths,
+> byte-identical to HEAD, and "survives nowhere" turned out to name three absences that come apart.
+> The 3 are restored, and `RECORDS_DIRNAME` had already ruled on them, so no exception was recorded.
+> §5.3 was spent before the draw by the reconcile merge `fd5301b3f`.
+>
+> Severity dropped here rather than in the successor, so this document and the lane's books cannot
+> disagree. Measurements, the per-file content-direction check that licensed the reset, and one new
+> BLOCKING defect found on the way (the `records/` floor was keyed to the literal `38` against a room
+> of 377, and printed `0 violation(s)` while three documents were missing — fixed in `57229702e`):
+> `SEAT_RESULT_THE_GHOST_COUNT_IS_MINTED_BY_THE_LANDING_THAT_FIXES_IT_AND_SURVIVES_NOWHERE_WAS_THREE_ABSENCES_2026-09-23.md`.
 
 *Lane, stated because the choice is load-bearing and the alternative was available. This document
 classifies into `uncommitted_and_orphaned_work`, whose register is `H_harness`. It is filed

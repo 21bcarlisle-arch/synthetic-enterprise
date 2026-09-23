@@ -1,4 +1,9 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+
+*Filed BLOCKING on §7 and dropped to RECORDED in `57229702e`, later the same turn, with the sentence
+below left standing rather than edited: it was true when written and the turn did not end where it
+said it would. Dropped HERE and not in a second document, so this claim and the lane's books cannot
+disagree. §7's own "not landed here" is corrected in place at the end of that section.*
 
 *BLOCKING on §7 alone, which is new here and not inherited: the control that exists to make a
 deletion from `records/` loud reported `0 violation(s)` while three documents were missing from it.
@@ -165,6 +170,38 @@ here — it is a `background/` change with its own gate selection and it needs a
 when mutated, and this document's landing is the record. `--check` already exits 1 today (one
 stranded archival, one sediment violation) and is not in the blocking hook chain, so a room-keyed
 floor cannot wedge another lane.
+
+> **DISCHARGED in `57229702e`, later the same turn. The paragraph above is left standing rather than
+> revised, for the reason it names one section earlier: a prediction edited after its answer is not a
+> prediction, and "not landed here" was true when written.**
+>
+> `room_shrinkage_violations()` keys the floor to HEAD, names what went missing rather than counting
+> it, and is wired into `render()` and the `--check` exit. `head_room_documents()` is a sibling of
+> `head_root_documents()` 140 lines above it — same subprocess shape, same `readable`/`why` contract,
+> one directory level down, which is exactly what that function discards. **The literal floors stay**,
+> because HEAD dropping below the migration baseline is a loss that has already LANDED and a ruler
+> made of HEAD cannot see that by construction. Two subjects, neither derivable from the other.
+>
+> Four controls, each mutation run and reverted. The load-bearing one asserts **both legs on one
+> tree state** — the full room silent in the same call the robbed room is loud — because a version
+> that flagged every room would pass a one-leg test, which is this repo's most-repeated trap.
+> Mutating its ruler from HEAD to `POPULATION_FLOORS` reds it, and that mutation *is* the defect
+> this section reports. Two more close the fail-open legs: an empty read of a floored room, and an
+> unreadable git. Proven against the real defect and not only in a tmp tree — removing exactly
+> today's three documents from `records/` on the live tree prints `Population floors: 0 violation(s)`
+> beside `ROOM SHRINKING records/: 3 document(s) ... (374 on disk, 377 at HEAD)`, all three named.
+>
+> **One mutation came back green and was not accepted as an equivalence.** The unreadable-git
+> mutation was first written `return [] or [...]`, which is a no-op — `[]` is falsy, so the
+> expression evaluates to the original list. The control was never exercised. Re-run as a real
+> replacement of the branch body, it fires. Recorded because CLAUDE.md's rule is that a silent
+> mutation is a missing test or an equivalence and *never* the flattering one — and here it was
+> neither: it was a defect in the mutation.
+>
+> **No live-tree assertion, deliberately.** `console/DIRECTOR_CONSOLE_2026-08-30.md` is genuinely
+> absent from the shared tree's disk right now (§8), so a live assert would red every lane for a
+> condition this turn did not cause. The advisory `--check` already exits 1, so the doorbell shouts
+> without wedging anybody. That deletion is now the leg's first live subject.
 
 ## 8. What remains, named rather than left to be noticed
 
