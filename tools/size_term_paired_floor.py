@@ -97,13 +97,19 @@ resumed rather than re-run. The orchestrator holds no simulation state at all: i
 reads shards, and rebuilds the whole artefact from the pairs it can assemble after every pair, which
 is what `run()` already did and what `build_report` needs no change to support.
 
-WHAT A LEG'S PEAK ACTUALLY IS, IS NOT YET ESTABLISHED, AND THIS DOES NOT PICK IT. The only measured
-number in hand is the 7,878 MB the PAIR reached. A leg is contained in the pair that ran it, so that
-figure is a sound UPPER BOUND on a leg and an unknown overestimate -- and `PAIRED_FLOOR_LEG_PEAK_MB`
-is therefore set to the pair's peak, with its reason, rather than to the sibling's 6,400 MB, which
-would be a number chosen because a number was wanted. Every leg records its own `VmHWM` into its
-shard and the artefact publishes them, so the first family to run REPLACES the bound with a
-measurement instead of inheriting this one.
+WHAT A LEG'S PEAK ACTUALLY IS, MEASURED 2026-09-23 -- AND THE BOUND IT REPLACED WAS TOO LOW, NOT TOO
+HIGH. This paragraph used to say the leg's peak was not established, that the only number in hand
+was the 7,878 MB the PAIR reached, and that since a leg is contained in the pair that ran it, that
+figure was a sound UPPER BOUND and an unknown OVERestimate. The containment step is valid; its input
+was not. 7,878 was the MemoryPeak of a pair the OOM killer took at 1h 26m, so that pair never
+reached its own peak and 7,878 was a FLOOR on its requirement -- which bounds nothing from above.
+Four legs have now run to completion and recorded their own `VmHWM`: 7,989.7, 8,094.1, 8,291.8 and
+8,280.6 MB. Every one of them EXCEEDS the bound they were admitted against, by up to 491.8 MB, in
+the direction that OOM-kills. `PAIRED_FLOOR_LEG_PEAK_MB` is now 8,400 -- measured, and set from the
+cgroup's 8,361.1 MB rather than the leg's 8,291.8 because the cgroup is what does the killing and
+the orchestrator shares it. The correction is kept beside the claim it replaces because the shape --
+a conservative-sounding bound derived from a truncated measurement -- is the reusable lesson, and it
+read exactly like caution.
 
 Run:  python3 -m tools.size_term_paired_floor --seeds 5101,5102,5103,5104,5105
       python3 -m tools.size_term_paired_floor --report docs/observability/<artefact>.json
@@ -287,10 +293,10 @@ def _one_leg(seed: int | None, blind: bool, report_end: str | None, runner) -> d
         "seed": seed,
         "configuration": "blind" if blind else "seeing",
         "elapsed_s": round(elapsed, 1),
-        #: THIS PROCESS'S HIGH-WATER MARK, WHICH IS THE POINT OF RUNNING ONE LEG IN IT. The
-        #: admission price for a leg is currently the PAIR's measured peak used as an upper bound
-        #: (see `PAIRED_FLOOR_LEG_PEAK_MB`), because no leg had ever been weighed on its own. This
-        #: is what replaces that bound with a measurement. In the in-process test path it is the
+        #: THIS PROCESS'S HIGH-WATER MARK, WHICH IS THE POINT OF RUNNING ONE LEG IN IT. This is the
+        #: reading that replaced the admission price with a measurement on 2026-09-23 -- and it
+        #: raised it, because the bound it replaced came from an OOM-killed pair that never reached
+        #: its own peak (see `PAIRED_FLOOR_LEG_PEAK_MB`). In the in-process test path it is the
         #: harness's own footprint and means nothing, which is why it is published per leg beside
         #: the leg's elapsed time rather than folded into a single family-level number.
         "peak_rss_mb": round(_vm_hwm_bytes() / (1024 * 1024), 1),
@@ -559,18 +565,38 @@ def build_report(pairs: list[dict], report_end: str | None, commit: str | None) 
 def _observed_leg_peak(pairs: list[dict]) -> dict:
     peaks = [leg["peak_rss_mb"] for p in pairs for leg in (p["blind"], p["seeing"])
              if leg.get("peak_rss_mb") is not None]
+    observed_max = max(peaks) if peaks else None
+    #: THE READING IS TWO-DIRECTIONAL, AND THAT IS THE DEFECT THIS CARRIES A SCAR FROM. Until
+    #: 2026-09-23 it said only that a materially-lower observation meant the bound was loose and
+    #: should be LOWERED. It had no sentence for the case that occurred -- every leg coming in
+    #: ABOVE the price it was admitted against -- so the instrument built to replace the bound was
+    #: structurally unable to report the one answer that mattered, and a field that cannot express
+    #: an outcome agrees with every other one. `exceeds_admission_price` is the leg that can fail.
+    exceeds = (observed_max is not None and observed_max > PAIRED_FLOOR_LEG_PEAK_MB)
     return {
         "admission_price_used_mb": PAIRED_FLOOR_LEG_PEAK_MB,
-        "admission_price_is_a_bound_not_a_measurement": True,
-        "observed_max_mb": max(peaks) if peaks else None,
+        "observed_max_mb": observed_max,
         "observed_min_mb": min(peaks) if peaks else None,
         "legs_weighed": len(peaks),
+        "exceeds_admission_price": exceeds if peaks else None,
+        "verdict": (
+            "NO LEG WEIGHED -- an honest gap, not a zero" if not peaks else
+            "UNDER-PRICED: a leg reached {:.1f} MB against an admission price of {:.1f}. The guard "
+            "is admitting legs this machine may not hold, which is the direction that OOM-kills, "
+            "and `PAIRED_FLOOR_LEG_PEAK_MB` must be RAISED past the cgroup peak of the unit that "
+            "ran them -- not past this figure, which omits the orchestrator sharing that cgroup."
+            .format(observed_max, PAIRED_FLOOR_LEG_PEAK_MB) if exceeds else
+            "LOOSE: no leg came within 10% of the {:.1f} MB admission price, so it refuses runs "
+            "this machine would have finished and should be lowered to the measurement."
+            .format(PAIRED_FLOOR_LEG_PEAK_MB) if observed_max < 0.9 * PAIRED_FLOOR_LEG_PEAK_MB else
+            "PRICED: the admission price sits above every leg weighed and within 10% of the "
+            "largest, so it neither admits a leg it cannot hold nor refuses one it could."),
         "how_to_read_this": (
-            "`admission_price_used_mb` is the PAIR's measured peak used as an upper bound on a leg, "
-            "because no leg had been weighed alone when this instrument was split. If "
-            "`observed_max_mb` is materially below it over a full family, that bound is loose and "
-            "`PAIRED_FLOOR_LEG_PEAK_MB` should be lowered to the measurement. These figures are "
-            "meaningless for legs run in-process by a test harness."),
+            "`admission_price_used_mb` is `PAIRED_FLOOR_LEG_PEAK_MB`, the price a leg is admitted "
+            "at. Read `verdict`, not the numbers: it is stated over ALL THREE states because the "
+            "first version of this field could only say 'loose', which is not what happened. "
+            "`legs_weighed` bounds all of it -- these are the legs on disk, not the family. These "
+            "figures are meaningless for legs run in-process by a test harness."),
     }
 
 
