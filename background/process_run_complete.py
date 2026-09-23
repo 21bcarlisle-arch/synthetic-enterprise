@@ -4099,6 +4099,210 @@ def red_at_head_verdict(node_ids, blocking_hash, census, head_sha):
             "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
 
 
+# ── ...AND DOES THE CITATION STILL REPRODUCE? RE-ASK IT, DO NOT PRESERVE IT (2026-09-23) ─────
+#
+# `red_at_head_verdict` above settles WHICH TREE the named red was measured on, and it is
+# scrupulous about answering `not_established` when that tree was not HEAD. What it never does
+# is ask the question AGAIN. So `blocking_tests` -- the field every reader reaches for first --
+# goes on naming node ids from a red measured somewhere else, beside a `red_at_head_reason`
+# that disclaims them in the same object. The disclaimer loses: the citation is the concrete
+# thing on the page, so the citation is what gets acted on.
+#
+# MEASURED 2026-09-23. `.publish_gate_state.json` named
+# `tests/design/test_atom_notes_store.py::test_declarations_match_the_store`, which passes in
+# 0.53s, while `red_at_head_reason` in the same file read "the red was measured at
+# git=6e984858f and HEAD is now git=5e078b4d8" and the live refusal sat in a different field
+# entirely. A wedge whose recorded cause is stale is worse than a wedge with no recorded cause,
+# because the recorded one is believed: it cost one seat invocation a diagnosis before this.
+#
+# THE RULE IS ALREADY THIS MODULE'S OWN -- "NO GREEN TEST MAY APPEAR IN A BLOCKING LIST"
+# (2026-08-30, see the suppression in `record_publish_gate_failure`). Until now it was upheld by
+# an ARGUMENT ABOUT THE CAUSE: on a failure where nothing was judged, drop the list. That cannot
+# see a citation which was honestly judged, on a tree that has since moved. This measures the
+# tests instead of reasoning about the cause that named them.
+#
+# KEYED TO THE PROPERTY -- does a citation a reader is sent at reproduce at HEAD? -- never to
+# today's node ids. It asks exactly when the record does not ALREADY establish the citation at
+# HEAD: `RED_AT_HEAD_YES` means the publisher's own scoped gate graded a clean checkout of
+# exactly HEAD, so the citation reproduces by construction and a re-run buys nothing but
+# minutes off the publish path's allowance.
+#
+# EVERY REFUSAL KEEPS THE CITATION WHOLE. An entry that is not a runnable node id, a checkout
+# that will not materialise, a timeout, an id the run returned no verdict for -- each reads as
+# `not_established` and changes nothing. Only a POSITIVE reading that a cited id PASSED retires
+# that id, because retiring a citation is the fail-open direction here: it is the
+# accusation-with-no-accused shape, inverted, and this module has already paid for that one.
+CITATION_REPRODUCES = "reproduces"
+CITATION_DEAD = "dead"
+CITATION_NOT_ASKED = "not_asked"
+CITATION_NOT_ESTABLISHED = "not_established"
+
+#: The whole re-ask -- HEAD checkout plus the run -- sits inside the publish path's own budget
+#: (PUBLISH_PATH_ALLOWANCE_SECONDS). Outrunning it records `not_established`, never a dead
+#: citation: a question that timed out is a question nobody answered.
+CITATION_REASK_TIMEOUT_SECONDS = 240
+
+#: `pytest -v` reports one line per node id: `tests/x.py::test_y PASSED  [100%]`. The
+#: short-summary `FAILED tests/x.py::test_y - ...` lines start with the OUTCOME, so they cannot
+#: match this and the two readings can never be confused.
+_CITATION_VERBOSE_LINE = re.compile(
+    r"^(?P<nid>\S+::\S+)\s+(?P<outcome>PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS)\b")
+
+#: The outcomes under which a reader sent at this node id finds something. SKIPPED is not one:
+#: a skipped test blocks nothing and shows the reader nothing, so a citation made only of
+#: skips is as dead as one made only of passes.
+_CITATION_STILL_RED = ("FAILED", "ERROR")
+
+
+def bare_node_id(raw):
+    """A recorded blocking entry as a pytest node id. `FAILED a.py::b` -> `a.py::b`.
+
+    The record keeps pytest's short-summary form verbatim (that is what `_parse_failed_node_ids`
+    harvests), so every consumer that wants to RUN an entry has to undo it. One definition, so
+    the runner and `blocking_test_files` can never disagree about what was cited."""
+    s = str(raw or "").strip()
+    for prefix in ("FAILED ", "ERROR "):
+        if s.startswith(prefix):
+            s = s[len(prefix):].strip()
+    return s.split(" ")[0].strip()
+
+
+def parse_citation_outcomes(out, node_ids):
+    """`{recorded entry: True if it is STILL RED}` from a `pytest -v` run. Pure.
+
+    Only ids the run actually reported a verdict for appear. An id pytest never reached -- a
+    collection error, a rename, a `-p` plugin refusing the whole session -- is an id this cannot
+    speak for, and the caller reads a MISSING key as unknown, never as green. That asymmetry is
+    the whole fail-safe direction: unknown keeps the citation, green retires it."""
+    wanted = {}
+    for n in (node_ids or []):
+        wanted.setdefault(bare_node_id(n), n)
+    outcomes = {}
+    for ln in (out or "").splitlines():
+        m = _CITATION_VERBOSE_LINE.match(ln.strip())
+        if m and m.group("nid") in wanted:
+            outcomes[wanted[m.group("nid")]] = m.group("outcome") in _CITATION_STILL_RED
+    return outcomes
+
+
+def citation_at_head_verdict(node_ids, red_at_head, outcomes, unavailable_reason=None):
+    """Does the citation a reader is sent at still reproduce at HEAD?
+
+    `{"verdict": ..., "reason": ..., "live_node_ids": [...]}`, never raises, and PURE for the
+    same reason `red_at_head_verdict` one function up is: the running is somebody else's job,
+    so this is the part that can be argued with in a test without a checkout.
+
+    `live_node_ids` is what the record should CITE after this reading -- the input list on every
+    refusal, the still-red subset on a positive one."""
+    ids = [str(n) for n in (node_ids or [])]
+    if not ids:
+        return {"verdict": CITATION_NOT_ESTABLISHED, "live_node_ids": [],
+                "reason": "no red is named on this failure, so there is no citation to re-ask. "
+                          "This is not evidence that HEAD is green."}
+    if str(red_at_head) == RED_AT_HEAD_YES:
+        return {"verdict": CITATION_NOT_ASKED, "live_node_ids": ids,
+                "reason": "the publisher's own scoped gate graded a clean checkout of exactly "
+                          "HEAD, so the {} cited red(s) reproduce there by construction and "
+                          "were not re-run.".format(len(ids))}
+    if unavailable_reason:
+        return {"verdict": CITATION_NOT_ESTABLISHED, "live_node_ids": ids,
+                "reason": "the {} cited red(s) were NOT re-run at HEAD -- {} -- so nothing here "
+                          "says they still reproduce. Read the citation as "
+                          "unchecked.".format(len(ids), unavailable_reason)}
+    unknown = [i for i in ids if i not in (outcomes or {})]
+    if unknown:
+        return {"verdict": CITATION_NOT_ESTABLISHED, "live_node_ids": ids,
+                "reason": "the re-run at HEAD returned no verdict for {} of the {} cited "
+                          "red(s) -- {} -- so the citation is not established either way and "
+                          "is kept whole.".format(
+                              len(unknown), len(ids),
+                              "; ".join(unknown[:GATE_MAX_CITED_BLOCKING_TESTS]))}
+    live = [i for i in ids if outcomes[i]]
+    gone = [i for i in ids if not outcomes[i]]
+    if not live:
+        return {"verdict": CITATION_DEAD, "live_node_ids": [],
+                "reason": "re-run at HEAD, all {} cited red(s) PASS -- {} -- so this citation "
+                          "is DEAD. It is recorded here rather than in `blocking_tests`, where "
+                          "it would send the next reader at green tests.".format(
+                              len(ids), "; ".join(ids[:GATE_MAX_CITED_BLOCKING_TESTS]))}
+    if not gone:
+        return {"verdict": CITATION_REPRODUCES, "live_node_ids": live,
+                "reason": "re-run at HEAD, all {} cited red(s) are still red, so the citation "
+                          "is live and repairing it is the unblock.".format(len(ids))}
+    return {"verdict": CITATION_REPRODUCES, "live_node_ids": live,
+            "reason": "re-run at HEAD, {} of the {} cited red(s) are still red; the other {} "
+                      "now PASS and were dropped from the citation -- {}.".format(
+                          len(live), len(ids), len(gone),
+                          "; ".join(gone[:GATE_MAX_CITED_BLOCKING_TESTS]))}
+
+
+def _reask_citation_at_head(node_ids, timeout=None):
+    """Run the cited node ids against a clean checkout of HEAD. `(outcomes, unavailable_reason)`.
+
+    A non-None `unavailable_reason` means the question was never put, which the verdict above
+    reads as `not_established` -- NEVER as a dead citation.
+
+    THE SUBJECT IS `_head_checkout()`, the same door the gate's own subject comes through
+    (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09). Re-asking in PROJECT_DIR would answer
+    about whatever the lanes have uncommitted right now, which is not the tree the citation is
+    written against -- and answering the wrong question confidently is the defect this closes,
+    not a smaller version of it.
+
+    Defensive throughout: a diagnostic may cost its own field and may never cost the record."""
+    entries = list(node_ids or [])
+    bare = [bare_node_id(n) for n in entries]
+    unrunnable = [n for n, b in zip(entries, bare) if "::" not in b]
+    if unrunnable:
+        # `ERROR tests/x.py - ImportError` is a real recorded shape: a collection failure names
+        # a FILE, not a test. Running the file would answer a wider question than the one cited,
+        # so this refuses and says which entry refused it.
+        return {}, ("{} of the {} recorded entries is not a runnable node id -- `{}`".format(
+            len(unrunnable), len(entries), str(unrunnable[0])[:120]))
+    budget = float(timeout or CITATION_REASK_TIMEOUT_SECONDS)
+    try:
+        with _head_checkout() as head_dir:
+            if head_dir is None:
+                return {}, "a clean checkout of HEAD could not be materialised"
+            try:
+                _repair_derived_artefacts_in(head_dir)
+            except Exception as exc:  # noqa: BLE001 - the repair is the gate's, not ours
+                log("Citation re-ask: derived-artefact repair skipped ({})".format(exc))
+            env = dict(os.environ)
+            env["SIM_FAST_MODE"] = "1"
+            argv = ([sys.executable, "-m", "pytest", "-v", "--tb=no", "--no-header",
+                     "-p", "no:cacheprovider"] + bare)
+            result = subprocess.run(argv, cwd=str(head_dir), env=env, timeout=budget,
+                                    capture_output=True, text=True, errors="replace")
+            return parse_citation_outcomes(
+                (result.stdout or "") + (result.stderr or ""), entries), None
+    except subprocess.TimeoutExpired:
+        return {}, "the re-run outran its {:.0f}s budget".format(budget)
+    except Exception as exc:  # noqa: BLE001 - a monitoring step may never break publishing
+        return {}, "the re-run raised {}".format(type(exc).__name__)
+
+
+def _citation_reading(blocking, red_at_head, reask_fn=None):
+    """The `citation_at_head` reading for this failure, re-running the citation when it needs it.
+
+    The one place that decides WHETHER to ask, so the condition is inspectable rather than
+    scattered through the alarm path.
+
+    Under pytest with no runner injected this declines to ask, and says so in the reason: a
+    test process must not spawn a real HEAD checkout and a real suite. That is not a stub of the
+    subject -- the controls over this path inject a runner and therefore drive the SAME call
+    site the publisher uses, rather than a copy of it."""
+    if not blocking or str(red_at_head) == RED_AT_HEAD_YES:
+        return citation_at_head_verdict(blocking, red_at_head, {}, None)
+    reask = reask_fn
+    if reask is None:
+        if os.environ.get("PYTEST_CURRENT_TEST"):
+            return citation_at_head_verdict(blocking, red_at_head, {},
+                                            "no re-run was attempted in this process")
+        reask = _reask_citation_at_head
+    outcomes, unavailable = reask(blocking)
+    return citation_at_head_verdict(blocking, red_at_head, outcomes, unavailable)
+
+
 # ── AND WHICH TREE IS *THAT*? THE RED'S SUBJECT MAY NOT BE ORIGIN'S (2026-09-17) ─────────────
 #
 # `red_at_head_verdict` above settles HEAD's red against the commit COMMIT would create. It
@@ -8262,6 +8466,14 @@ def _read_publish_gate_state():
         st.setdefault("red_at_head_reason",
                       "this record predates the attribution field, so which tree its red was "
                       "measured on was never written down.")
+        # WAS THE CITATION RE-ASKED (2026-09-23)? Same shape again, one question further on: an
+        # old record never re-ran its own node ids, and `reproduces` -- the one answer that tells
+        # a reader the citation is safe to act on -- is exactly what it must never inherit by
+        # default. `not_asked` is wrong here too: that claims the scoped gate graded HEAD.
+        st.setdefault("citation_at_head", CITATION_NOT_ESTABLISHED)
+        st.setdefault("citation_at_head_reason",
+                      "this record predates the re-ask, so whether its citation still "
+                      "reproduces at HEAD was never measured.")
         # AND WHICH BRANCH (2026-09-17). Same shape, same reasoning one axis over: an old record
         # never counted the fork, and `level` -- which tells the reader the citation is safe to
         # quote -- is the one answer it must never inherit by default.
@@ -8340,6 +8552,13 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
            "red_at_head_reason": state.get(
                "red_at_head_reason",
                "no writer proposed an attribution for this record."),
+           # AND WHETHER THAT CITATION WAS RE-ASKED. Rides the same fixed key list for the same
+           # reason the two above do: a key absent from this list is a field the next heartbeat
+           # lands on and erases, which this module has already paid for twice.
+           "citation_at_head": state.get("citation_at_head", CITATION_NOT_ESTABLISHED),
+           "citation_at_head_reason": state.get(
+               "citation_at_head_reason",
+               "no writer proposed a re-ask for this record."),
            # WHICH BRANCH THAT TREE WAS. Rides the same fixed key list for the same reason: the
            # liveness writers hand this a full `_read_publish_gate_state()` dict, so a key absent
            # from this list is a field a heartbeat lands on and erases.
@@ -8597,11 +8816,10 @@ def blocking_test_files(node_ids):
     than guessed at."""
     files = []
     for raw in node_ids or []:
-        s = str(raw).strip()
-        for prefix in ("FAILED ", "ERROR "):
-            if s.startswith(prefix):
-                s = s[len(prefix):].strip()
-        s = s.split("::")[0].split(" ")[0].strip()
+        # ONE definition of "the entry as a node id", shared with the citation re-ask
+        # (`bare_node_id`): two readings of the recorded form would eventually disagree about
+        # what was cited, and then the blame trail and the re-run would be about different tests.
+        s = bare_node_id(raw).split("::")[0].strip()
         if s.endswith(".py") and s not in files:
             files.append(s)
     return files
@@ -9109,7 +9327,7 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
 
 
 def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None, send_ntfy_fn=None,
-                                kind=None, cause=None, cause_evidence=None):
+                                kind=None, cause=None, cause_evidence=None, reask_fn=None):
     """Record ONE publish-gate failure and fire a single [ACTION NEEDED] alert
     once N failures accumulate within the window (re-armed by a cooldown so a
     persistently-wedged pipeline can't spam). Returns a small result dict for
@@ -9227,12 +9445,6 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
             # `blocking_tests: []` would be the accusation-with-no-accused shape inverted, and
             # a depth claim about reds that were never this cycle's is still a claim.
             census, total_red = CENSUS_FAIL_FAST_ONLY, 0
-        # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
-        # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
-        # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
-        # never the recency fallback this replaced.
-        suspects = wedge_suspects(blocking)
-        cited = linked_findings(suspects)
         # WHOSE RED IS IT (2026-09-16). Computed from the SAME `blocking`/`census` pair just
         # read and suppressed above, at the same moment, so the attribution can never describe a
         # different red than the node ids beside it -- the property `last_red_census` is placed
@@ -9251,10 +9463,41 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         graded_sha = last_graded_sha(now=now) if blocking else None
         red_at_head = red_at_head_verdict(blocking, graded_sha or blocking_hash, census,
                                           _head_sha_for_attribution())
+        # ...AND DOES THE CITATION STILL REPRODUCE THERE (2026-09-23)? The attribution above
+        # disclaims a citation it cannot place at HEAD and then writes it out unchanged, so the
+        # disclaimer and the node ids sit in one object saying opposite things -- and the node
+        # ids win, because they are the concrete part. Asked here, from the SAME `blocking` the
+        # attribution just described, and BEFORE the suspects trail is derived: a blame trail
+        # built from a dead citation is a dead blame trail. See `_citation_reading`.
+        citation = _citation_reading(blocking, red_at_head["verdict"], reask_fn=reask_fn)
+        entry["citation_at_head"] = citation["verdict"]
+        entry["citation_at_head_reason"] = citation["reason"]
+        log("Publish gate: the citation is `{}` -- {}".format(
+            citation["verdict"], citation["reason"]))
+        if list(citation["live_node_ids"]) != list(blocking):
+            blocking = list(citation["live_node_ids"])
+            if not blocking:
+                # Symmetric with the cause-side suppression above, and for its reason: leaving
+                # `total_red: 3` beside an empty list is the accusation-with-no-accused shape,
+                # and a subject SHA for a citation nobody is making is a claim about a
+                # different cycle. The dead ids are not lost -- they are in the reason.
+                census, total_red = CENSUS_FAIL_FAST_ONLY, 0
+                blocking_hash = None
+            # The attribution is a claim ABOUT the citation, so it is re-asked FROM the citation
+            # rather than left describing node ids this record no longer makes.
+            red_at_head = red_at_head_verdict(blocking, graded_sha or blocking_hash, census,
+                                              _head_sha_for_attribution())
         entry["red_at_head"] = red_at_head["verdict"]
         entry["red_at_head_reason"] = red_at_head["reason"]
         log("Publish gate: the named red is `{}` -- {}".format(
             red_at_head["verdict"], red_at_head["reason"]))
+        # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
+        # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
+        # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
+        # never the recency fallback this replaced. Derived from the RE-ASKED citation, so a
+        # test that has gone green can no longer put its imports on the blame trail.
+        suspects = wedge_suspects(blocking)
+        cited = linked_findings(suspects)
         # AND WHICH BRANCH WAS THAT TREE (2026-09-17)? Read from the SAME record, at the same
         # moment, so the fork claim can never describe a different tree from the node ids beside
         # it -- and suppressed by the SAME condition, because a fork reading attached to a red
@@ -9289,6 +9532,8 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                    "red_census": census, "total_red": total_red,
                                    "red_at_head": red_at_head["verdict"],
                                    "red_at_head_reason": red_at_head["reason"],
+                                   "citation_at_head": citation["verdict"],
+                                   "citation_at_head_reason": citation["reason"],
                                    "fork_state": fork["verdict"],
                                    "fork_state_reason": fork["reason"],
                                    "suspects": suspects})
@@ -9435,6 +9680,14 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
                                    "red_at_head_reason":
                                        "the gate passed, so there is no named red to attribute "
                                        "to a tree.",
+                                   # Retired with the red it was about, for the reason directly
+                                   # above. NOT `dead`: nothing was re-run here, and a citation
+                                   # recorded dead on the strength of a green gate would be the
+                                   # measurement this whole field exists to stop being skipped.
+                                   "citation_at_head": CITATION_NOT_ESTABLISHED,
+                                   "citation_at_head_reason":
+                                       "the gate passed, so there is no citation left to "
+                                       "re-ask.",
                                    # Symmetric, and NOT `level`: a green gate says nothing about
                                    # the fork, and publishing `level` here would be an
                                    # affirmative claim about origin bought with a passing test
