@@ -7045,6 +7045,154 @@ def test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_cur
                     where, key))
 
 
+# ONE CONTROL OVER THE WHOLE PARTITION AND KEYED TO THE SHAPE, not to today's answer. The control
+# above drives both sides of a BOOLEAN, and it passed for years on a field whose `True` meant three
+# different things. A partition control asserting N states over N+1 shapes is blind to exactly the
+# collapse this repair is about, so `seen` below is keyed by SHAPE and the states are asserted
+# DISTINCT rather than merely present.
+
+
+def test_the_two_runs_ordering_has_a_state_for_every_shape_two_stamps_can_take():
+    """Four shapes, four states, none of them collapsing into the flattering one.
+
+    THE DEFECT (2026-09-23, Lane 0, measured in
+    `SEAT_RESULT_THE_CORRECTED_ARMS_FLOOR_EXISTS_AND_IS_ADMISSIBLE_AND_THIS_BOOK_CANNOT_SETTLE_THE_SIGN_BY_A_FACTOR_OF_436_2026-09-23.md`).
+    `is_the_later_run` was `not (current_at and superseded_at and current_at < superseded_at)`, so
+    its `True` covered THREE shapes: genuinely later, the same instant, and a stamp that could not
+    be read. Only the first is what the name says. The tie is not hypothetical -- `756a86272`
+    promoted the corrected 09-18 book onto the canonical path, and the two files asserted equal
+    below are the state the next publish enters.
+
+    THE TIE IS DRIVEN FROM TWO DIFFERENT FILES, never one file against itself, because a function
+    handed the same dict twice would answer `same_stamp` for a reason that has nothing to do with
+    a promotion and the control would prove its own fixture.
+
+    AND IT ASSERTS THE TIE DOES NOT TAKE THE SUPERSEDED-RUN WITHDRAWAL, which is the half that
+    makes this a split and not a widening. "It is not the later of the two this page carries" is
+    FALSE of a run compared with itself -- our run would not be superseded, it would be the other
+    panel -- so publishing that sentence on the tie would replace a wrong flag with a wrong
+    sentence. `resolved` must survive the tie exactly as it survives the later branch.
+
+    Fires on: restoring the two-valued flag; letting `same_stamp` or `unstated` answer
+    `is_the_later_run: True`; giving two shapes one state; withdrawing a verdict on the tie;
+    composing `why_the_headline_omits_it` on a branch where the headline is not omitted.
+    """
+    obs = PROJECT / "docs" / "observability"
+    corrected = _load(obs / "value_cycle_ab_s1_three_arm_20260918.json")
+    promoted = _load(obs / "value_cycle_ab_s1_three_arm.json")
+    earlier = _load(obs / "value_cycle_ab_s1_three_arm_20260831.json")
+    assert corrected["generated_at"] == promoted["generated_at"], (
+        "the canonical path no longer holds the 09-18 run, so the TIE this control exists for "
+        "cannot be driven from two files and the partition is short a state")
+    assert corrected is not promoted, "the tie is being driven from one object against itself"
+    assert earlier["generated_at"] < corrected["generated_at"]
+
+    # FOUR SHAPES, NAMED BY WHAT MAKES THEM DIFFERENT rather than by the answer expected.
+    shapes = {
+        "current stamped after the panel below": (corrected["generated_at"],
+                                                  earlier["generated_at"]),
+        "current stamped before the panel below": (earlier["generated_at"],
+                                                   corrected["generated_at"]),
+        "two files at one stamp": (corrected["generated_at"], promoted["generated_at"]),
+        "the panel below carries no stamp": (corrected["generated_at"], None),
+    }
+    answers = {shape: gva._how_the_two_runs_order(*stamps)
+               for shape, stamps in shapes.items()}
+
+    # DISTINCTNESS FIRST, because "all four states appear" is satisfied by a function that maps
+    # two shapes onto one state and invents a fourth elsewhere.
+    states = {shape: a["ordering"] for shape, a in answers.items()}
+    assert len(set(states.values())) == len(shapes), (
+        "two of the four shapes two stamps can take share one ordering state, which is the "
+        "collapse this control exists for: {}".format(states))
+    sentences = {shape: a["how_the_two_runs_order"] for shape, a in answers.items()}
+    assert len(set(sentences.values())) == len(shapes), (
+        "two shapes reach one sentence, so a reader meets one state where there are two: "
+        "{}".format(sorted(sentences)))
+    for shape, sentence in sentences.items():
+        assert sentence, shape + ": a state reached the reader with nothing said about it"
+
+    # AND THE DERIVED FLAG IS THREE-VALUED, with `True` reachable ONLY from the one shape that
+    # earns it. A flag that were never True would make the page permanently silent about its own
+    # current-world run and would satisfy every assertion about the refusal.
+    flags = {shape: a["is_the_later_run"] for shape, a in answers.items()}
+    assert flags["current stamped after the panel below"] is True
+    assert flags["current stamped before the panel below"] is False
+    assert flags["two files at one stamp"] is None, (
+        "a run compared against a panel carrying its own stamp claims to be the LATER of the "
+        "two, which is the flattering reading of a promotion and the defect this repair names")
+    assert flags["the panel below carries no stamp"] is None, (
+        "an unread stamp answers the ordering question in the flattering direction")
+
+    # THE TIE, THROUGH THE PRODUCER, and what it must NOT do to the verdicts.
+    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    tied = gva._current_world_contrast(corrected, {}, floor, superseded_run=promoted)
+    assert tied["available"], (
+        "the corrected 09-18 run no longer names the live world, so every leg below would pass "
+        "by refusing: {}".format(tied.get("why_not")))
+    assert tied["run_ordering"] == gva.RUN_STAMPS_ARE_EQUAL
+    assert tied["is_the_later_run"] is None
+    assert tied["why_the_headline_omits_it"] is None, (
+        "the page states a reason for omitting a headline it does not omit, and the reason it "
+        "states says this run is not the later of the two -- which is false of a tie")
+    assert "SAME STAMP" in tied["how_the_two_runs_order"]
+    against_earlier = gva._current_world_contrast(corrected, {}, floor, superseded_run=earlier)
+    for where in ("selection_leg", "level_leg"):
+        assert tied[where].get("resolved") == against_earlier[where].get("resolved"), (
+            "{}: the tie and the later branch disagree about the verdict, so the ordering is "
+            "doing more than the one thing it established".format(where))
+        withheld = tied[where].get("verdict_withheld_because") or ""
+        assert "WITHDRAWN FOR WHICH RUN THIS IS" not in withheld, (
+            "{}: the tie published the superseded-run withdrawal, whose words -- 'it is not the "
+            "later of the two this page carries' -- are false of a run beside its own "
+            "stamp".format(where))
+
+
+def test_two_runs_that_agree_on_the_advantage_are_not_called_one_run_printed_twice():
+    """Equal figures are arithmetic; one run is identity. The sentence may only claim the first.
+
+    THE DEFECT (2026-09-23, Lane 0). `_against_the_panels_figure`'s equal branch said "the two
+    panels are one run's figure printed twice, not two measurements to compare" on `point == old`
+    alone -- a claim about which RUN a figure came from, read off two floats. Two different runs
+    agreeing on the advantage is the state this page enters the moment the floor stops moving, and
+    it is the STRONGEST evidence the page could carry: a figure that held across two draws. The
+    sentence deleted it and told the reader there was nothing to compare.
+
+    ONE VARIABLE. The two figures are identical in both legs below and only `run_ordering` moves,
+    so the sentence is attributable to the ordering and to nothing else.
+
+    Fires on: reading run identity off the arithmetic again; dropping the ordering from the
+    payload the sentence reads; letting the unordered state assert either answer.
+    """
+    def clause(ordering):
+        return gva._against_the_panels_figure(
+            17_452.61, {"superseded_value_advantage_gbp": 17_452.61, "run_ordering": ordering})
+
+    same = clause(gva.RUN_STAMPS_ARE_EQUAL)
+    two_runs = clause(gva.RUN_IS_EARLIER)
+    unordered = clause(gva.RUN_ORDER_UNSTATED)
+    for name, sentence in (("same", same), ("two runs", two_runs), ("unordered", unordered)):
+        assert "SAME advantage" in sentence, (
+            name + ": the arithmetic stopped being stated, which is the half that is established")
+    assert "printed twice" in same
+    assert "printed twice" not in two_runs, (
+        "two runs the page can ORDER, agreeing on the advantage, are still called one figure "
+        "printed twice -- so the reader loses the one pair that is genuinely two measurements "
+        "agreeing")
+    assert "DIFFERENT run" in two_runs and "HELD across two measurements" in two_runs, (
+        "the ordered branch states no reading for two runs that agree, so the evidence a "
+        "held figure carries is on the page as an absence")
+    assert "not established" in unordered, (
+        "the page picked one of the two answers on stamps that order nothing")
+    assert len({same, two_runs, unordered}) == 3, (
+        "two of the three ordering states reach one sentence")
+    # AND THE COLLAPSE IS NOT MERELY RENAMED. The phrase must be absent from the ordered branch
+    # rather than negated in it: a reader skimming takes the phrase, not the "not" in front of
+    # it, which is how a wrong reading survives the repair written to remove it. That is what
+    # this assertion caught on this function's own first draft.
+    assert "printed twice" not in two_runs and "one run" not in two_runs
+
+
 def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens():
     """`sources[]` is derived from the constants `generate` reads, never typed beside them.
 

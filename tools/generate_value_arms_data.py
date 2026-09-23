@@ -13891,6 +13891,92 @@ def _population_repair_bias(artefact: dict | None) -> dict:
     }
 
 
+#: THE FOUR STATES TWO RUNS' STAMPS CAN BE IN. Named rather than spelled at each site, because the
+#: defect below was a comparison written twice and collapsed once.
+RUN_IS_LATER = "later"
+RUN_IS_EARLIER = "earlier"
+RUN_STAMPS_ARE_EQUAL = "same_stamp"
+RUN_ORDER_UNSTATED = "unstated"
+
+
+def _how_the_two_runs_order(current_at, superseded_at) -> dict:
+    """Which of the two runs on this page is the later one — as FOUR states, never as a boolean.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-23, Lane 0, measured in
+    `SEAT_RESULT_THE_CORRECTED_ARMS_FLOOR_EXISTS_AND_IS_ADMISSIBLE_AND_THIS_BOOK_CANNOT_SETTLE_THE_SIGN_BY_A_FACTOR_OF_436_2026-09-23.md`).
+    The ordering used to be one line -- `not (current_at and superseded_at and current_at <
+    superseded_at)` -- and its `True` meant any of THREE things: this run is genuinely later, the
+    two stamps are the same instant, or a stamp could not be read at all. Only the first is what
+    the field's name says, and the other two are the flattering reading of it. This is not
+    hypothetical arithmetic: `756a86272` promoted the corrected 09-18 book onto the canonical path,
+    so `value_cycle_ab_s1_three_arm.json` and `value_cycle_ab_s1_three_arm_20260918.json` are two
+    files at ONE stamp, and the next publish that points both panel constants at that run gets
+    `is_the_later_run: true` for a run that is not later than anything -- it IS the other panel.
+    A strict `<` puts `same` in the branch that licences a currency claim.
+
+    WHY A THIRD STATE RATHER THAN A WIDER REFUSAL. `_withdraw_a_verdict_stated_from_a_superseded_run`
+    publishes "this block was measured at X and the run published beside it at Y, so it is not the
+    later of the two" -- words that are FALSE of a run compared with itself. Our run would not be
+    superseded; it would be the same run. Withdrawing on the tie would put a wrong sentence on the
+    page in place of a wrong flag, which is not a repair. So the tie gets its own state and its own
+    sentence, and the two readers that gate on `is False` keep the behaviour they have.
+
+    `is_the_later_run` IS DERIVED HERE AND STAYS THREE-VALUED: `True` only on `later`, `False` only
+    on `earlier`, `None` on both states where the question has no answer. `None` is what every
+    reader of this field already treats as "not the refusal branch", so the tie and the unreadable
+    stamp keep today's behaviour exactly -- what changes is that the page stops CLAIMING to be the
+    later run when it has not established that it is. An honest `None` cannot be read as an answer
+    and `True` could not be read as anything else.
+
+    EQUAL STAMPS ARE NOT ASSERTED TO BE THE SAME RUN, and that is the line this function will not
+    cross. It compares two timestamps; whether the two artefacts are one run is a question over
+    every identity field and `_what_differs_between_two_runs` is what answers it. What is
+    established here is that the stamps DO NOT ORDER these two runs, which is all a stamp can say.
+
+    THE OTHER RUN IS NAMED BY ITS STAMP AND NEVER BY WHERE IT SITS. The first draft of these four
+    sentences said "the panel below", and the pointer census refused them -- correctly, and with
+    the symbol named. Registering a referent was the other move and it would have been the wrong
+    one: this field has no door yet, so "below" would be a direction about a layout nobody has
+    built, judged against a render site that does not exist. A stamp identifies the other run from
+    the payload alone and cannot rot when the page is laid out. This is the same repair
+    `_renewal_stratification` and `_skill_sample_size_explanation` took, arrived at before the
+    sentence was ever published rather than after.
+    """
+    if not current_at or not superseded_at:
+        return {
+            "ordering": RUN_ORDER_UNSTATED, "is_the_later_run": None,
+            "how_the_two_runs_order": (
+                "WHICH OF THESE TWO RUNS IS THE LATER ONE IS NOT ESTABLISHED. This block was "
+                "measured at {cur} and the run it is published against states {sup}, so the two "
+                "cannot be put in order at all. Nothing here is claimed to be the more recent of "
+                "the two, and nothing here is withdrawn for being the older: an unread stamp is "
+                "not evidence either way."
+            ).format(cur=current_at or "no stamp this page could read",
+                     sup=superseded_at or "no stamp this page could read"),
+        }
+    if current_at == superseded_at:
+        return {
+            "ordering": RUN_STAMPS_ARE_EQUAL, "is_the_later_run": None,
+            "how_the_two_runs_order": (
+                "THE TWO RUNS THIS PAGE CARRIES BOTH STATE THE SAME STAMP, {cur}, so neither is "
+                "the later of the two and this page states no order between them. It does not "
+                "follow that they are one run -- that is a question about every field the two "
+                "runs declare, and what differs between them is counted where their shares are "
+                "compared. What does follow is that a difference between them cannot be read as "
+                "a revision, because there is no later reading here to have revised an earlier."
+            ).format(cur=current_at),
+        }
+    later = current_at > superseded_at
+    return {
+        "ordering": RUN_IS_LATER if later else RUN_IS_EARLIER,
+        "is_the_later_run": later,
+        "how_the_two_runs_order": (
+            "THIS BLOCK IS THE {which} OF THE TWO RUNS THIS PAGE CARRIES: it was measured at "
+            "{cur}, and the run it is published against states {sup}."
+        ).format(which="LATER" if later else "EARLIER", cur=current_at, sup=superseded_at),
+    }
+
+
 def _withdraw_a_verdict_stated_from_a_superseded_run(
         leg: dict, is_the_later_run, current_at, superseded_at) -> dict:
     """A run this page marks superseded may publish its measurement and may not publish a VERDICT.
@@ -14060,9 +14146,16 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # level leg is 98% of the advantage. What is wrong when the runs invert is the CURRENCY CLAIM,
     # not the figures: they were honestly measured, they name this world, and their composition is
     # as readable as it ever was. So the claim goes and the measurement stays.
+    #
+    # AND THE ORDERING IS FOUR-VALUED, NOT TWO (2026-09-23). The line that stood here was
+    # `not (current_at and superseded_at and current_at < superseded_at)`, and its True covered
+    # `later`, `same stamp` and `no stamp` alike. See `_how_the_two_runs_order` for the promotion
+    # that makes the tie a live state rather than a hypothetical, and for why the tie gets its own
+    # sentence instead of the superseded-run withdrawal, whose words are false about it.
     current_at = current.get("generated_at")
     superseded_at = (superseded_run or {}).get("generated_at")
-    is_the_later_run = not (current_at and superseded_at and current_at < superseded_at)
+    ordering = _how_the_two_runs_order(current_at, superseded_at)
+    is_the_later_run = ordering["is_the_later_run"]
     contrast = current.get("level_vs_selection") or {}
     if not contrast.get("available"):
         return {"available": False, "resolved": None, "live_world": live,
@@ -14143,13 +14236,27 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "renewals_offered": funnel.get("renewals_the_world_offered"),
         # WHETHER THIS RUN IS ACTUALLY THE LATER OF THE TWO ON THIS PAGE, and it is published on
         # the branch where it is TRUE as well as the branch where it is not -- a field that only
-        # appears when something is wrong is a field a reader never learns to look for.
+        # appears when something is wrong is a field a reader never learns to look for. THREE-
+        # VALUED since 2026-09-23: `None` where the stamps do not order the two runs, so that a
+        # tie can no longer arrive as a claim to be the later one. `run_ordering` beside it names
+        # WHICH of the two unorderable states it is, which a `None` alone cannot.
         "is_the_later_run": is_the_later_run,
+        "run_ordering": ordering["ordering"],
+        # ...AND THE ORDERING IN WORDS, ON EVERY BRANCH. `why_the_headline_omits_it` is `None`
+        # wherever the headline is not omitted, so on three of the four states the payload said
+        # nothing at all about the ordering and a reader had one unexplained boolean. This field
+        # is the same fact as a sentence and it is never `None`.
+        "how_the_two_runs_order": ordering["how_the_two_runs_order"],
         # THE OTHER PANEL'S STAMP, CARRIED SO THE ORDERING IS CHECKABLE FROM THE PAYLOAD rather
         # than from the prose above it. `why_the_headline_omits_it` states both dates in a
         # sentence, and a sentence is not something a control can compare.
         "superseded_generated_at": superseded_at,
-        "why_the_headline_omits_it": (None if is_the_later_run else (
+        # ONLY ON THE BRANCH THAT ACTUALLY OMITS IT, and the test is `is not False` rather than a
+        # truthiness check because `is_the_later_run` stopped being a boolean on 2026-09-23. A
+        # falsy test here would have put "THIS RUN IS NOT THE LATER OF THE TWO" on the tie and on
+        # the unread stamp -- a withdrawal sentence on two states that withdraw nothing, which is
+        # the same class of defect as the flag this repair was written for.
+        "why_the_headline_omits_it": (None if is_the_later_run is not False else (
             "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the run "
             "this page marks superseded was taken at {sup}. Both name this world, so nothing "
             "here is stale and "
@@ -14289,6 +14396,17 @@ def _against_the_panels_figure(advantage, current_world: dict) -> str:
     EQUAL IS ITS OWN BRANCH, because it is the state the page enters the moment one run is promoted
     to both the canonical and the current-world path -- and "SMALLER" would then be a falsehood
     about a figure compared with itself.
+
+    AND EQUAL FIGURES DO NOT ESTABLISH ONE RUN (2026-09-23). Until this repair the equal branch
+    said "the two panels are one run's figure printed twice" on `point == old` alone -- an
+    assertion about run IDENTITY read off two floats. Two genuinely different runs that agree on
+    the advantage are the commonest thing this page could meet once a floor stops moving, and they
+    would have been told they were one run; a reader is then handed "not two measurements to
+    compare" about the one pair that IS two measurements agreeing, which is the strongest evidence
+    the page could carry and the sentence deletes it. The identity claim now rests on
+    `run_ordering`, which is derived from the two runs' own stamps, and the arithmetic branch says
+    only what arithmetic can say. Two shapes were collapsed into one state; the fix is to key the
+    sentence to the state, not to the shape.
     """
     point = _f(advantage)
     old = _f((current_world or {}).get("superseded_value_advantage_gbp"))
@@ -14296,8 +14414,25 @@ def _against_the_panels_figure(advantage, current_world: dict) -> str:
         return ("The panel below states no advantage this figure could be compared against, so "
                 "this page states no comparison between them. ")
     if point == old:
-        return ("It is the SAME advantage as the {old} below -- the two panels are one run's "
-                "figure printed twice, not two measurements to compare. ").format(old=_gbp(old))
+        ordering = (current_world or {}).get("run_ordering")
+        if ordering == RUN_STAMPS_ARE_EQUAL:
+            return ("It is the SAME advantage as the {old} below, and the panel below carries the "
+                    "SAME STAMP as this one -- so this is one figure printed twice, not two "
+                    "measurements to compare. ").format(old=_gbp(old))
+        if ordering in (RUN_IS_LATER, RUN_IS_EARLIER):
+            # THE NEGATION IS NOT WRITTEN OUT, and that is not fussiness. The first draft of this
+            # branch said "two runs agreeing is not one run printed twice"; the control went red
+            # on it, correctly, because a reader skimming a sentence takes the phrase and not the
+            # negation -- which is how the wrong reading survives a repair written to remove it.
+            return ("It is the SAME advantage as the {old} below, and the panel below is a "
+                    "DIFFERENT run with a different stamp -- so this figure HELD across two "
+                    "measurements rather than being stated once. That the two runs differ is "
+                    "read from their stamps, never from their figures being equal. "
+                    ).format(old=_gbp(old))
+        return ("It is the SAME advantage as the {old} below. Whether the panel below is a "
+                "different run or this same one is not established here, because the two stamps "
+                "do not order them -- so this page states neither that the figure held across two "
+                "runs nor that it is one figure printed twice. ").format(old=_gbp(old))
     direction = "SMALLER" if point < old else "LARGER"
     return (
         "It is a {dir} advantage than the {old} below. WHY it differs is not stated here: more than "
