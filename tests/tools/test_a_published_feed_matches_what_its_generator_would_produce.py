@@ -21,13 +21,25 @@ week, which is worse than no control. So the assertion is scoped to the feeds th
 of their commit, and the rest are reported by the instrument as named gaps rather than quietly
 dropped.
 
-THE COVERED SET IS NOT ALLOWED TO BE TODAY'S ANSWER. A list of eight feeds pinned to what passed on
-the day it was written is exactly the shape this project has been burned by — it goes green when the
-claim rots. Two legs stop that here. `test_a_feed_that_became_checkable_must_be_promoted` sweeps
+THE COVERED SET IS NOT ALLOWED TO BE TODAY'S ANSWER. A list of feeds pinned to what passed on the
+day it was written is exactly the shape this project has been burned by — it goes green when the
+claim rots. Three legs stop that here. `test_a_feed_that_became_checkable_must_be_promoted` sweeps
 every cheap generator and reds if ANY feed outside the covered set now reproduces, so the set can
-only ever grow and the exclusion can never be silently kept. And
+only ever grow and the exclusion can never be silently kept.
+`test_a_covered_feed_that_is_not_a_function_of_its_commit_must_be_demoted` is the same question in
+the direction the promotion leg cannot see, and it is the one that was missing: membership can be
+wrong by a feed being IN the set that never belonged. And
 `test_the_instrument_can_return_all_three_verdicts` asserts over the whole partition, because an
 instrument that answered AGREES to everything would pass every other test in this file.
+
+WHY A DEMOTION LEG HAD TO EXIST — MEASURED 2026-09-23, and it is the defect three of this file's
+tests reddened for. `knowledge_review.json` was covered for four days and was never a function of
+its commit: it publishes `age_days`, which is `date.today()` minus a committed date. It got in
+because the determinism probe is ordinarily only built when the first tree DISAGREES, so a feed
+whose committed bytes are fresh is promoted without the one question that would have refused it —
+and because both probe runs happen seconds apart, which cannot see a quantity that changes once a
+day. The module now displaces the probe's clock by 400 days and the fixture here forces the probe
+even on agreement, so the membership rule is measured rather than inherited.
 
 WHAT IS NOT COVERED, stated rather than left to be discovered. Three generators sit outside the
 promotion sweep on cost alone, and `TOO_SLOW_TO_SWEEP` carries each one's measured seconds rather
@@ -43,11 +55,13 @@ import subprocess
 
 import pytest
 
+from tools import provenance_stamp
 from tools.published_feed_regeneration_check import (
     _SCRATCH_NEEDS_MB,
     CANDIDATES_AT_THEIR_OWN_COMMIT,
     COVERED_AT_THEIR_OWN_COMMIT,
     COVERED_FEEDS,
+    NOT_A_FUNCTION_OF_ITS_COMMIT,
     RegenerationCheckRefused,
     _free_mb,
     _verdict,
@@ -79,9 +93,50 @@ TOO_SLOW_TO_SWEEP = {
 }
 
 
+def _committed_feed_doc(feed: str) -> dict:
+    """A published feed as HEAD holds it — never as the working tree holds it.
+
+    Several lanes hold dirty copies of `site/data/` at any moment in the shared tree, so a leg that
+    read disk would be asking about another lane's unfinished edit. Same baseline as the module
+    under test, reached independently of it.
+    """
+    return json.loads(subprocess.run(
+        ["git", "-C", str(PROJECT), "show", f"HEAD:site/data/{feed}"],
+        capture_output=True, text=True, check=True).stdout)
+
+
+def _account_in(block) -> str | None:
+    """The reason a provenance block gives for its feed having no standpoint, or None.
+
+    WHY THIS IS NOT A RESTATEMENT OF THE MODULE. `recorded_publication_commit` composes the same
+    facts and returns a prose reason; asserting that its prose contains a phrase would be a control
+    typed against its own subject's current output. This reads the reserved provenance block
+    directly — a different route to the same property — so the two can disagree, which is the only
+    way either of them can be wrong.
+
+    A feed that says its stamped commit DOES describe its inputs is not self-explaining an absent
+    standpoint; it is contradicting one, and that must stay red. Kept pure and separate from the
+    git read below so the whole partition can be driven —
+    `test_a_self_explained_refusal_is_told_apart_from_an_unexplained_one`.
+    """
+    if not isinstance(block, dict) or provenance_stamp.describes_its_inputs(block):
+        return None
+    reason = block.get("reason")
+    return reason if isinstance(reason, str) and reason.strip() else None
+
+
+def _the_feeds_own_account_of_having_no_standpoint(feed: str) -> str | None:
+    """`_account_in` over a feed's COMMITTED provenance block."""
+    return _account_in(_committed_feed_doc(feed).get(provenance_stamp.STAMP_KEY))
+
+
 @pytest.fixture(scope="module")
 def covered_rows():
-    return check(covered_generators())
+    # DETERMINISM IS PROBED EVEN WHERE THE FIRST TREE AGREED, which is what membership in `COVERED`
+    # actually claims. `knowledge_review.json` was covered for four days because the second tree is
+    # ordinarily only built on disagreement, so the one question that would have refused it was
+    # never asked of it. Doubles this fixture's cost and is the point of it.
+    return check(covered_generators(), always_probe_determinism=True)
 
 
 def test_every_covered_feed_is_what_its_generator_produces(covered_rows):
@@ -112,11 +167,57 @@ def test_every_covered_feed_was_actually_reached(covered_rows):
     )
 
 
+def test_a_covered_feed_that_is_not_a_function_of_its_commit_must_be_demoted(covered_rows):
+    """THE DEFECT THIS CATCHES, and it is the one that actually happened — membership in `COVERED`
+    being wrong in the DIRECTION the promotion leg cannot see.
+
+    `test_a_feed_that_became_checkable_must_be_promoted` makes the set unable to shrink silently.
+    Nothing made it unable to GROW wrongly, and on 2026-09-19 it did: `knowledge_review.json`
+    publishes `date.today()` minus a committed date, agreed with its fresh committed bytes on the
+    day it was added, and reds two days later for no fault of anybody's. A control that must be
+    re-greened daily is not a control.
+
+    Keyed to the property the table claims — "this feed is a function of its commit" — and measured
+    by the fixture's displaced-clock probe rather than by knowing which feed it was."""
+    not_a_function = {
+        r["feed"]: r["detail"].get("run_to_run")
+        for r in covered_rows
+        if r["feed"] in COVERED and r["verdict"] == "NONDETERMINISTIC"
+    }
+    assert not not_a_function, (
+        f"{len(not_a_function)} covered feed(s) are not a function of their commit, so comparing "
+        "them against committed bytes says nothing and they will red on a clock nobody edited. "
+        "Demote them and record the reason in `NOT_A_FUNCTION_OF_ITS_COMMIT`:\n"
+        + json.dumps(not_a_function, indent=1)
+    )
+
+
 def test_the_feed_the_defect_happened_on_is_covered():
     """A covered set that shrank to the feeds nobody edits would pass every test here. The feed the
-    SLC-27B edit was actually made on is the one that must be in it."""
+    SLC-27B edit was actually made on is the one that must be in it.
+
+    THE FLOOR, RE-DERIVED 2026-09-23 RATHER THAN DECREMENTED. It used to read `len(COVERED) >= 8`,
+    which was a count of what passed on 2026-09-19. When `knowledge_review.json` was correctly
+    demoted — for a measured reason, by the leg above — the only way to keep that line green was to
+    edit the 8 down to a 7, and a floor you edit to fit is not a floor: it would have gone green for
+    a set gutted one feed at a time.
+
+    What the count was standing in for is that the set may only shrink through a NAMED door. Covered
+    plus named-and-explained demotions is monotone non-decreasing whatever happens to either side,
+    so this ratchet never needs editing downward — which is the property, rather than today's 7."""
     assert "simplified.json" in COVERED
-    assert len(COVERED) >= 8, "the covered set has shrunk — a set that can only shrink is not a control"
+    assert len(COVERED) + len(NOT_A_FUNCTION_OF_ITS_COMMIT) >= 8, (
+        "the covered set shrank without the departing feed being recorded — a set that can shrink "
+        "silently is not a control"
+    )
+    both = sorted(set(COVERED) & set(NOT_A_FUNCTION_OF_ITS_COMMIT))
+    assert not both, f"a feed is both covered and recorded as uncheckable: {both}"
+    unexplained = sorted(f for f, why in NOT_A_FUNCTION_OF_ITS_COMMIT.items()
+                         if not (isinstance(why, str) and why.strip()))
+    assert not unexplained, (
+        f"a feed left the covered set with no reason beside it, which is indistinguishable from a "
+        f"feed deleted to make a red go away: {unexplained}"
+    )
 
 
 def test_a_hand_edit_to_a_covered_feed_is_caught():
@@ -169,17 +270,34 @@ def test_a_feed_that_became_checkable_must_be_promoted():
     feed is checkable and leaving it out is a gap nobody would ever notice. This sweeps every cheap
     generator and reds if any feed outside `COVERED` now reproduces, so the set can only grow.
 
-    It asks for AGREES only, which the first tree settles on its own, so the determinism tree is
-    switched off here: it would double the sweep to tell apart two verdicts this leg treats alike.
+    THE SWEEP IS CHEAP AND THE PROMOTION IS NOT. The wide pass runs with the determinism tree off,
+    because AGREES is settled on the first tree and paying for a second over 51 generators to tell
+    apart two verdicts this pass treats alike is not worth the wall clock. But AGREES from that
+    pass is exactly what promoted `knowledge_review.json` on 2026-09-19 — a clock-dependent feed
+    whose committed bytes happened to be fresh — so anything it proposes is CONFIRMED against the
+    displaced-clock probe before it is demanded. The confirmation runs over whatever the wide pass
+    found, which is normally nothing.
     """
     cheap = sorted(
         p.stem for p in (PROJECT / "tools").glob("generate_*.py")
         if p.stem not in TOO_SLOW_TO_SWEEP
     )
     rows = check(cheap, separate_nondeterminism=False)
-    promotable = sorted({
-        r["feed"] for r in rows
+    # NON-VACUITY. A sweep that reached nothing proposes nothing and agrees with every claim ever
+    # made, which is how the assertion below would go green on a broken clone or an emptied glob.
+    reached = {r["feed"] for r in rows if r["feed"]}
+    assert set(COVERED) <= reached, (
+        f"the sweep did not even reach the covered feeds, so it can propose nothing and says "
+        f"nothing: {sorted(set(COVERED) - reached)}"
+    )
+    proposed = sorted({
+        r["generator"] for r in rows
         if r["feed"] and r["verdict"] == "AGREES" and r["feed"] not in COVERED
+    })
+    confirmed = check(proposed, always_probe_determinism=True) if proposed else []
+    promotable = sorted({
+        r["feed"] for r in confirmed
+        if r["verdict"] == "AGREES" and r["feed"] not in COVERED
     })
     assert not promotable, (
         f"{len(promotable)} feed(s) now reproduce from their commit but are not in COVERED, so "
@@ -320,13 +438,65 @@ def test_a_feed_naming_many_commits_or_none_yields_no_standpoint():
 def test_a_candidate_standpoint_is_observed_from_the_feed_not_asserted():
     """A feed→commit table written down here would be a record of where things were published on
     the day it was typed. The standpoint is re-derived from each candidate's committed bytes, so
-    this asserts the PROPERTY that makes it a candidate rather than today's sha."""
+    this asserts the PROPERTY that makes it a candidate rather than today's sha.
+
+    WHAT THAT PROPERTY IS, CORRECTED 2026-09-23. This used to demand a resolved sha, and it reddened
+    when the code got MORE honest: `d181b062d` taught both producers to publish a provenance stamp
+    saying whether the commit they name describes the bytes they read, and both now answer no
+    (they read `site/data/customers.json` off a dirty working tree). `recorded_publication_commit`
+    correctly refuses to stand at a commit that was never going to reproduce, and this leg failed it
+    for that.
+
+    Being a candidate is about HAVING SAID, not about the answer being yes: the feed names one
+    commit of this repository in the reserved place, and then either that commit describes its
+    inputs — a standpoint — or the feed itself says why it does not. A feed that stops stamping, or
+    stamps a sha that is not a commit here, still reds."""
     if not head_resolves(PROJECT):
         pytest.skip("no HEAD here — nothing to resolve a standpoint against")
     for feed in CANDIDATES_AT_THEIR_OWN_COMMIT:
-        doc = json.loads((PROJECT / "site" / "data" / feed).read_text())
+        doc = _committed_feed_doc(feed)
+        block = doc.get(provenance_stamp.STAMP_KEY)
+        assert isinstance(block, dict) and block.get("commit"), (
+            f"{feed} is a candidate but its committed bytes carry no "
+            f"{provenance_stamp.STAMP_KEY!r} commit, so nothing observed from the feed says where "
+            f"it came from: {block!r}"
+        )
         sha, why = recorded_publication_commit(doc)
-        assert sha, f"{feed} is a candidate but records no single commit: {why}"
+        if sha:
+            continue
+        assert _the_feeds_own_account_of_having_no_standpoint(feed), (
+            f"{feed} has no standpoint and does not say why — an unexplained refusal is "
+            f"indistinguishable from a dead stamp: {why}"
+        )
+
+
+def test_a_self_explained_refusal_is_told_apart_from_an_unexplained_one():
+    """THE CONTROL OVER THE WHOLE PARTITION for the clause the two legs above lean on.
+
+    Both of them now accept a candidate that has no standpoint PROVIDED the feed says why. That
+    acceptance is only worth having if it can refuse — a discriminator that returned a reason for
+    everything would make `WROTE_NOTHING`, a dead generator and an emptied filter all read as
+    honest refusals, which is the fail-open those legs were written to prevent and exactly what
+    accepting them naively would have reintroduced.
+
+    So every shape a block can take is driven here rather than a leg per branch, because a
+    discriminator that refused EVERYTHING would also pass a per-branch test of each refusal."""
+    explains = {"inputs_are_the_committed_bytes": False, "tree_was_clean": False,
+                "reason": "read off the working tree, not out of this commit: site/data/x.json"}
+    assert _account_in(explains) == explains["reason"]
+
+    # Each of these is a DIFFERENT way of not having said, and every one must read as silence.
+    assert _account_in({**explains, "inputs_are_the_committed_bytes": True,
+                        "tree_was_clean": True}) is None, (
+        "a stamp claiming its commit DOES describe its inputs is contradicting an absent "
+        "standpoint, not explaining one"
+    )
+    assert _account_in({**explains, "reason": ""}) is None
+    assert _account_in({**explains, "reason": "   "}) is None
+    assert _account_in({k: v for k, v in explains.items() if k != "reason"}) is None
+    assert _account_in({**explains, "reason": None}) is None
+    assert _account_in(None) is None
+    assert _account_in("the tree was dirty") is None, "a bare string is not a provenance block"
 
 
 def test_a_feed_checkable_at_its_own_commit_is_promoted():
@@ -346,17 +516,31 @@ def test_a_feed_checkable_at_its_own_commit_is_promoted():
     if not head_resolves(PROJECT):
         pytest.skip("no HEAD here — this is the landing checkout, which has no commit to stand at")
     rows = check_at_its_own_commit(dict(CANDIDATES_AT_THEIR_OWN_COMMIT))
-    # REACHED MEANS COMPARED, NOT MENTIONED. A row exists for every candidate whatever happens —
-    # `WROTE_NOTHING`, `NO_STANDPOINT`, a generator that died — and every one of those leaves
-    # `promotable` empty below. Checking only that a row came back would make this green by the
-    # control's own filters emptying its evidence, which is the failure it is here to prevent.
+    # REACHED MEANS COMPARED OR SELF-EXPLAINED, NOT MENTIONED. A row exists for every candidate
+    # whatever happens — `WROTE_NOTHING`, `NO_STANDPOINT`, a generator that died — and every one of
+    # those leaves `promotable` empty below. Checking only that a row came back would make this
+    # green by the control's own filters emptying its evidence, which is the failure it is here to
+    # prevent.
+    #
+    # CORRECTED 2026-09-23: demanding every candidate be GRADED reddened when the tree got more
+    # honest. A feed whose provenance stamp says its commit does not describe the bytes it read has
+    # answered the question — the answer is "there is no standpoint here, and here is which input
+    # moved" — and no comparator can improve on that. Accepting it keeps the whole defect this
+    # guards: an ungraded candidate that does NOT self-explain (a dead generator, an emptied
+    # filter, a stamp that vanished) is still a red, and the account is read off the feed's own
+    # bytes rather than out of the refusal's prose.
     graded = {r["feed"] for r in rows if r["verdict"] in {
         "AGREES_AT_ITS_OWN_COMMIT", "DIVERGES_AT_ITS_OWN_COMMIT", "NONDETERMINISTIC"}}
+    self_explained = {
+        r["feed"] for r in rows
+        if r["feed"] not in graded and r["verdict"] == "NO_STANDPOINT"
+        and _the_feeds_own_account_of_having_no_standpoint(r["feed"])
+    }
     ungraded = {r["feed"]: (r["verdict"], r["detail"].get("reason") or r["detail"].get("stderr"))
-                for r in rows if r["feed"] not in graded}
-    assert not ungraded and graded == set(CANDIDATES_AT_THEIR_OWN_COMMIT), (
-        "a candidate was never compared against its published bytes, so the sweep below is over an "
-        f"empty set and says nothing: {json.dumps(ungraded, indent=1)}"
+                for r in rows if r["feed"] not in graded | self_explained}
+    assert not ungraded and graded | self_explained == set(CANDIDATES_AT_THEIR_OWN_COMMIT), (
+        "a candidate was neither compared against its published bytes nor able to say why not, so "
+        f"the sweep below is over an empty set and says nothing: {json.dumps(ungraded, indent=1)}"
     )
     promotable = sorted({
         r["feed"] for r in rows
