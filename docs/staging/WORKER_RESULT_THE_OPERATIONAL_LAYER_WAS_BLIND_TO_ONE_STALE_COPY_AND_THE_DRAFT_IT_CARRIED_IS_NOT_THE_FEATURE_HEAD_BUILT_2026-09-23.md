@@ -89,11 +89,19 @@ these two functions get wired or deleted. Neither answer should be taken from th
 
 ## Two things found in passing, neither mine to sweep
 
-**The static quality ratchet is red and it is not this change.** `F401` stands at 269 against a
-baseline of 264. Attributing per dirty file against each file's own HEAD blob puts all five on
-`tools/refresh_to_head.py` (work=5, head=0, mtime 05:54 — fifteen hours before this tick, and not
-caused by the survey run above). It reds `tests/architecture/test_static_quality_ratchet.py` for
-every lane until its holder lands or drops it.
+**The static quality ratchet is red in the shared worktree and it is not this change.** `F401`
+stands at 269 against a baseline of 264. Attributing per dirty file against each file's own HEAD
+blob puts all five on `tools/refresh_to_head.py` (work=5, head=0, mtime 05:54 — fifteen hours
+before this tick, and not caused by the survey run above).
+
+**CORRECTION, beside the claim: I first wrote that this "reds that gate for every lane until its
+holder lands or drops it". That is wrong, and my own commit is the one-variable control that
+refutes it** — `224ca2b0a` landed with `gate-rc 0` while the worktree read 269. The ratchet is
+measured per-file against `git show HEAD:` and the gate runs a `git archive HEAD` extract, so
+another lane's *dirty* file is invisible to it. The red is **worktree-local**: it costs any lane
+that runs the suite in the shared tree a false red and an investigation, and it blocks no commit.
+That is a smaller and differently-shaped problem than the one I published, and the difference is
+exactly the shared-worktree-vs-extract locality this project already banks as a class.
 
 **The build figure in `CLAUDE.md` is stale again.** It reads 36,838; collection is now **37,048**,
 clean, zero errors. Correct it at the next phase close, per the rule on that line.
