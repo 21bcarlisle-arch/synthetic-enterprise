@@ -4704,25 +4704,31 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         # generate() no longer mkdirs the door's directory and writes the page only if that
         # directory already exists, so this call cannot bring /evidence/ back. That is the
         # order this project keeps having to relearn -- the caller is not the fix.
-        from tools.generate_evidence_data import generate as gen_evidence
-        _ev = gen_evidence()
-        log("Refreshed site/data/evidence.json ({} citations; no page -- /evidence/ retired)"
-            .format(_ev["totals"]["citations"]))
+        # SITE7 IS PUBLISHED IN THE SAME STEP AND FROM A CLEAN TREE, 2026-09-23. Both generators
+        # used to run right here, in the SHARED working tree, and stamp `git rev-parse HEAD`
+        # beside content read off disk -- so the commit each feed named never described the bytes
+        # it read, and `check_at_its_own_commit` (the only thing here that can catch a hand-edit
+        # made to a published feed AFTER publication) had no standpoint to stand at for either of
+        # them. That is a PRODUCER defect and no comparator repairs it, so the producer moved:
+        # `tools/publish_from_a_clean_tree` runs both in one clean checkout of HEAD, where every
+        # input they read IS that commit's bytes, and refuses to write any feed whose own stamp
+        # does not say so. See that module's docstring for what it costs -- the door's figures lag
+        # the cycle's uncommitted siblings by one cycle, which is the price of being checkable.
+        #
+        # ONE try/except FOR BOTH because it is one clone (~2s) rather than two, and the ROWS
+        # carry the per-feed outcome that the two separate blocks used to carry: a refused feed
+        # leaves the previous honest one live and says why, exactly as both generators' own
+        # fail-closed raises did.
+        from tools.publish_from_a_clean_tree import publish as publish_clean
+        for _row in publish_clean():
+            log("{} site/data/{} <- {}: {}".format(
+                "Published" if _row["published"] else "REFUSED",
+                _row["feed"], _row["generator"], _row["reason"]))
+            if _row["also_changed"]:
+                log("  {} also changed {} in the clean tree -- NOT published, nobody named them"
+                    .format(_row["generator"], _row["also_changed"]))
     except Exception as exc:
-        log("Evidence step failed: {}".format(exc))
-    try:
-        # SITE7: the Capabilities door. Every status on it is DERIVED from the work record
-        # and the boundary walker, so a feed not regenerated here is a page that silently
-        # freezes at whatever was true the day it was built -- the same orphan-transition
-        # defect the evidence page directly above was wired in to close. Fail-closed by
-        # construction: generate() raises CapabilitySourceUnavailable BEFORE writing on a
-        # missing source or a phantom citation, so a bad source leaves the PREVIOUS feed
-        # live rather than replacing it with a plausible blank.
-        from tools.generate_capabilities_door import generate as gen_capabilities_door
-        gen_capabilities_door()
-        log("Generated site/data/capabilities_door.json (SITE7 Capabilities door)")
-    except Exception as exc:
-        log("Capabilities door generation failed: {}".format(exc))
+        log("Clean-tree feed publication failed: {}".format(exc))
     try:
         # SITE5: which Knowledge pages are due for review. The rule itself is
         # site/knowledge/review_state.py; running it here is what stops it being a rule

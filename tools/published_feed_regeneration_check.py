@@ -376,14 +376,31 @@ CANDIDATES_AT_THEIR_OWN_COMMIT = {
 }
 
 #: Promoted out of the candidates above: reproduces at its own recorded commit, so a hand-edit to
-#: the published bytes reds. EMPTY IS THE MEASURED ANSWER, NOT AN UNFINISHED LIST — and it is why
-#: the empty set is never swept as evidence: `test_a_feed_checkable_at_its_own_commit_is_promoted`
-#: asserts over the CANDIDATES and reds when one starts reproducing, so nothing here is graded by
-#: an empty set agreeing with everything.
-COVERED_AT_THEIR_OWN_COMMIT: dict[str, str] = {}
+#: the published bytes reds.
+#:
+#: BOTH CANDIDATES PROMOTED 2026-09-23, and the thing that changed was the PRODUCER, not this
+#: table. `background/process_run_complete` no longer runs these two generators in the shared
+#: working tree: `tools/publish_from_a_clean_tree` runs them in a clean checkout of HEAD, so every
+#: input they read IS that commit's bytes and the stamp is true by construction. Measured before
+#: promoting — each feed regenerated in TWO independent clones standing at the commit it records,
+#: `98a02bd18`, and `_verdict` returned AGREES on both, twice.
+#:
+#: `test_a_feed_checkable_at_its_own_commit_is_promoted` reds on a candidate that reproduces and is
+#: NOT here, so this set can only grow. The leg that reds on a member that STOPS reproducing — a
+#: hand-edit made to a published feed after publication, which is the point of the whole relation
+#: and has had nothing to run on until today — is `test_a_promoted_feed_still_reproduces_at_the
+#: _commit_it_records`, and it lands in the commit AFTER this one ON PURPOSE: it grades the bytes
+#: HEAD carries, and HEAD does not carry a clean-tree publication until this commit is in. Written
+#: here before it exists so that a reader who finds it missing knows it is owed rather than
+#: assuming the set is unguarded.
+COVERED_AT_THEIR_OWN_COMMIT: dict[str, str] = {
+    "capabilities_door.json": "generate_capabilities_door",
+    "evidence.json": "generate_evidence_data",
+}
 
-#: WHY A FEED'S GIT STAMP IS NOT A DESCRIPTION OF WHAT PRODUCED IT — measured 2026-09-19, and the
-#: reason the "stand at the commit it records" route promotes nothing today.
+#: WHY A FEED'S GIT STAMP IS NOT A DESCRIPTION OF WHAT PRODUCED IT — measured 2026-09-19. **The
+#: producer was moved on 2026-09-23 and this is now the record of a closed defect, not a live
+#: one**; the correction is at the foot of this comment, beside the claim it corrects.
 #:
 #: `generate_capabilities_door` stamps `git rev-parse HEAD` and reads `site/data/customers.json`
 #: from the WORKING TREE. In this shared tree several lanes hold dirty copies at any moment, so the
@@ -402,6 +419,16 @@ COVERED_AT_THEIR_OWN_COMMIT: dict[str, str] = {}
 #: at a commit that was never going to reproduce and reporting the difference as a divergence. A
 #: feed published from a clean tree becomes checkable here with nobody editing a list; a feed
 #: published from a dirty one is uncheckable and now names which input moved.
+#:
+#: AND ON 2026-09-23 THE PUBLISH PATH STOPPED PUBLISHING FROM A DIRTY ONE, which is what the
+#: sentence above was waiting for. The claim that "no comparator or standpoint can repair it" still
+#: stands and was never wrong — the repair was never available to a comparator. It was available to
+#: the producer, and `tools/publish_from_a_clean_tree` is it: the generators run in a clean checkout
+#: of HEAD, the stamp comes out `inputs_are_the_committed_bytes: true`, and the publisher refuses to
+#: write any feed whose own stamp does not say that. What this constant describes is therefore a
+#: state the publish path can no longer reach for these two feeds — it is kept because it is still
+#: the right refusal for any OTHER feed produced the old way, and because the reasoning is what
+#: makes the promotion above readable.
 PROVENANCE_IS_NOT_THE_INPUT_DESCRIPTION = (
     "a feed that stamps `git rev-parse HEAD` beside content read from the working tree records a "
     "commit that does not describe its inputs, so standing at that commit cannot reproduce it"
@@ -992,6 +1019,25 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
         return rows
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def clean_tree_at(commit: str, tmp: Path, root: Path = PROJECT, ordinal: int = 1) -> "_Tree":
+    """A private, clean checkout of `commit` that a generator can be run in. The PUBLISHER's door.
+
+    WHY THIS IS PUBLIC AND WHY IT IS ONE LINE. `tools/publish_from_a_clean_tree` produces the two
+    candidate feeds by running their generators HERE instead of in the shared working tree, which
+    is what gives them a standpoint at all. If it built its own clean tree, there would be two
+    implementations of "clean checkout of a commit" and the checker could be clean in a way the
+    publisher was not — the publisher would vouch for inputs the checker would then find moved,
+    and the divergence would be attributed to the generator. One implementation, so the two cannot
+    disagree about what a clean tree is.
+
+    It is NOT a shared control surface: the publisher does not trust this tree to be clean. It
+    reads the provenance stamp out of the bytes the generator produced and refuses to publish
+    unless the stamp itself says the commit describes what was read. A broken `_Tree` therefore
+    fails closed at the publisher rather than being vouched for by it.
+    """
+    return _Tree(root, tmp, ordinal, at_commit=commit)
 
 
 def _committed_feed(root: Path, name: str) -> bytes | None:

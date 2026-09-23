@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-09-21T17:47:28Z",
- "git_commit": "a8e63a7117b5d44909797693916702efa3ecdad9",
+ "generated_at": "2026-09-23T15:08:06Z",
+ "git_commit": "98a02bd18ba8bf520ee3a4681f29028240907149",
  "published_from": {
-  "commit": "a8e63a7117b5d44909797693916702efa3ecdad9",
-  "tree_was_clean": false,
-  "inputs_are_the_committed_bytes": false,
+  "commit": "98a02bd18ba8bf520ee3a4681f29028240907149",
+  "tree_was_clean": true,
+  "inputs_are_the_committed_bytes": true,
   "inputs": [
    {
     "path": "site/data/maturity_map.json",
-    "state": "modified"
+    "state": "committed"
    },
    {
     "path": "site/data/moap_node_atoms.json",
@@ -16,22 +16,22 @@
    },
    {
     "path": "site/data/customers.json",
-    "state": "modified"
+    "state": "committed"
    },
    {
     "path": "site/data/dashboard.json",
-    "state": "modified"
+    "state": "committed"
    },
    {
     "path": "site/data/evidence.json",
-    "state": "modified"
+    "state": "committed"
    },
    {
     "path": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
     "state": "committed"
    }
   ],
-  "reason": "read off the working tree, not out of this commit: site/data/customers.json, site/data/dashboard.json, site/data/evidence.json, site/data/maturity_map.json \u2014 standing at this commit will not reproduce this feed"
+  "reason": "every input read here is byte-identical to what this commit holds, and nothing else in the tree differed from it either"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -1440,7 +1440,7 @@
     "value": 154,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-21T17:06:54Z"
+    "as_of": "2026-09-21T17:47:48Z"
    },
    {
     "value": 224,
