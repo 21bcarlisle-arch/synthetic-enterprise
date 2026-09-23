@@ -25,6 +25,27 @@ WHAT THESE TESTS PIN, and the order matters:
 
 These are not tests that the arm earns more. Whether the repair moves the A/B is a measurement,
 taken separately, with the expected direction recorded before the run (R12).
+
+**CLAIM 1 IS SUPERSEDED AS OF 2026-09-23, corrected here beside it rather than over it.** The
+saturation was REAL when it was measured and it is now GONE, and neither the routing repair nor
+this file caused that: `bill_stress` was unbounded in consumption, so a 3.9 GWh account carried a
+£236,166 previous-year bill and the term alone asserted 19.5 of churn uplift. That is what pinned
+the SME path at 1.0000 at every candidate margin. `BILL_STRESS_MAX_RATIO` now bounds the term to
+the only published measurement of distress-driven switching (Ofgem CIM w6 Table 56, arrears
+1.28x), and at that bound the SME path at C_IC3's volume spreads 0.063 -> 0.968 across the same
+margins. **Three tests in section 1 were keyed to the literal 1.0 and went red when the model
+became more honest, which is exactly backwards; they are re-keyed to the property below.**
+
+AND THE CORRECTION GOES FURTHER THAN THE NUMBER: claim 1 said the saturation was *a property of
+volume, not of the account being industrial*. Measured under the bound, that is no longer true.
+The SME/I&C gap at C_IC3's volume (-0.085 at a £8/MWh margin) is essentially the same as the gap
+at a household's volume (-0.101), so what now separates the two branches is the SEGMENT LABEL --
+the I&C arm's higher rate sensitivity -- and not the volume at all. **The routing repair is still
+correct and its mechanism has changed**: an industrial account on the SME branch is no longer
+given an uninformative curve, it is given one that materially UNDERSTATES its price response, and
+an arm that underestimates churn overprices. What has NOT been re-measured is whether the
+£94,314 realised loss is still attributable to the routing rather than to the runaway; that is an
+A/B, it is not this file, and it is filed with the ceiling's own record.
 """
 
 import inspect
@@ -61,19 +82,44 @@ def _p_leave(segment, margin, kwh):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("margin", [0.5, 2.0, 8.0, 20.0, 46.0, 80.0])
-def test_the_sme_path_saturates_at_industrial_volume(margin):
-    """The measured defect. Every candidate margin returns certainty of leaving, so the
-    curve carries no information for the optimiser to use."""
-    assert _p_leave(SME_SEGMENT, margin, INDUSTRIAL_KWH) == pytest.approx(1.0)
+def test_the_sme_path_no_longer_saturates_at_industrial_volume(margin):
+    """The measured defect, and the bound that retired it (2026-09-23).
+
+    This assertion read `== pytest.approx(1.0)` from 2026-08-26 until the `bill_stress` term was
+    bounded. It was pinned to the answer of the day, so it went RED when the model stopped
+    claiming that a large bill alone makes an industrial account certain to leave.
+
+    MUTATION (must fire): delete the `min(..., bill_stress_uplift_ceiling(base_rate))` in
+    `estimate_churn_probability` and every margin here returns 1.0000 again. The certainty was
+    the unbounded knee, not the segment.
+    """
+    p = _p_leave(SME_SEGMENT, margin, INDUSTRIAL_KWH)
+    assert p < 1.0, (
+        f"the SME path returned certainty of leaving at a £{margin}/MWh margin on a "
+        f"{INDUSTRIAL_KWH:,.0f} kWh account — the unbounded bill-size knee is back"
+    )
 
 
-def test_the_saturation_covers_a_margin_BELOW_what_the_company_already_charges():
-    """The sharpest form of it, and the reason the arm went to the FLOOR rather than
-    merely mispricing: the model says a discount does not help either, so there is no
-    margin at which the customer is worth keeping."""
-    control_margin, floor_margin = 2.0, 0.5
-    assert _p_leave(SME_SEGMENT, control_margin, INDUSTRIAL_KWH) == pytest.approx(1.0)
-    assert _p_leave(SME_SEGMENT, floor_margin, INDUSTRIAL_KWH) == pytest.approx(1.0)
+def test_the_industrial_curve_carries_information_for_the_optimiser():
+    """What the defect actually cost, re-keyed to the property rather than to 1.0000.
+
+    The arm fell to the FLOOR because `p_retain` was flat at zero across every candidate margin:
+    with nothing to maximise, the optimiser has no reason to prefer one price to another. That is
+    a statement about the SPREAD of the curve, and it stays true however the calibration moves.
+
+    MUTATION (must fire): remove the ceiling and the spread collapses to 0.0 — flat at certainty,
+    including at a margin BELOW what the company already charges, which is the sharpest form of
+    the original finding (the model said a discount does not help either).
+    """
+    floor_margin, control_margin, high_margin = 0.5, 2.0, 80.0
+    at_floor = _p_leave(SME_SEGMENT, floor_margin, INDUSTRIAL_KWH)
+    at_control = _p_leave(SME_SEGMENT, control_margin, INDUSTRIAL_KWH)
+    at_high = _p_leave(SME_SEGMENT, high_margin, INDUSTRIAL_KWH)
+    assert at_high - at_floor > 0.5, (
+        f"the SME curve spans only {at_high - at_floor:.4f} across the candidate margins on an "
+        "industrial account; a curve this flat is what sent the arm to the floor"
+    )
+    assert at_control < at_high, "raising the margin must not reduce the modelled churn"
 
 
 def test_the_ic_path_is_not_saturated_and_responds_to_price():
@@ -86,15 +132,79 @@ def test_the_ic_path_is_not_saturated_and_responds_to_price():
     assert at_high > at_floor
 
 
-def test_the_saturation_is_caused_by_VOLUME_not_by_the_segment_label():
-    """R4 -- the nearest working analogue, stated as a test. The resi path at DOMESTIC
-    volume gives the same answer as the I&C path at industrial volume, so the curve is
-    correct for households and is being applied outside its calibrated domain. Without
-    this, "use the I&C branch" would be a preference rather than a correction."""
-    domestic = _p_leave(RESI_SEGMENT, 0.5, DOMESTIC_KWH)
-    industrial_on_its_own_branch = _p_leave(IC_SEGMENT, 0.5, INDUSTRIAL_KWH)
-    assert domestic == pytest.approx(industrial_on_its_own_branch, rel=1e-6)
-    assert _p_leave(RESI_SEGMENT, 0.5, INDUSTRIAL_KWH) == pytest.approx(1.0)
+def test_the_wrong_branch_now_UNDERSTATES_an_industrial_accounts_price_response():
+    """WHY THE ROUTING IS STILL A CORRECTION, AND MY OWN PREDICTION HERE WAS WRONG (2026-09-23).
+
+    This test used to assert the opposite of its own name: that the saturation was caused by
+    VOLUME and not by the segment label, evidenced by the resi path at industrial volume reading
+    1.0000. Under the bound that reading is 0.0630, and the measurement says the old claim was an
+    artefact of the runaway. The SME/I&C gap at C_IC3's volume is -0.085 at a £8/MWh margin; at a
+    household's volume it is -0.101. **Nearly the same gap. It is the label, not the volume.**
+
+    So the correction is now a different one, and it is the one that survives: an industrial
+    account scored on the SME branch is not handed an uninformative curve, it is handed one that
+    materially understates how much price moves it — and an arm that underestimates churn
+    overprices. The load-bearing claim is the SIGN and the MATERIALITY of that gap, across the
+    margins where the curve is live.
+
+    MUTATION, RUN RATHER THAN ASSERTED, AND THE FIRST TWO I NAMED WERE BOTH WRONG.
+    `IC_BASE_CHURN_RATE = BASE_CHURN_RATE` fires here; so does `IC_TENURE_DISCOUNT_PER_YEAR =
+    TENURE_DISCOUNT_PER_YEAR`. Those two constants, not the rate sensitivity, are what hold the
+    branches apart at a renewal. Collapsing `segments_for` does NOT fire here -- this test calls
+    the two branches directly, so it is about the branches DISAGREEING and not about the routing
+    reaching them, and section 2 is what covers the routing. Setting `IC_RATE_SENSITIVITY` to the
+    SME value does not fire here either, and that one is a MISSING TEST rather than an
+    equivalence: the gap merely stops widening with the margin instead of closing.
+    `test_the_ic_branch_is_the_STEEPER_curve_and_not_merely_the_higher_one` is that missing test.
+    """
+    live_margins = [8.0, 20.0, 46.0]
+    for margin in live_margins:
+        on_sme = _p_leave(SME_SEGMENT, margin, INDUSTRIAL_KWH)
+        on_own_branch = _p_leave(IC_SEGMENT, margin, INDUSTRIAL_KWH)
+        assert on_sme < on_own_branch - 0.05, (
+            f"at a £{margin}/MWh margin the SME branch scores C_IC3 at {on_sme:.4f} against "
+            f"{on_own_branch:.4f} on its own branch — the branches have stopped disagreeing, so "
+            "routing by segment has become a preference rather than a correction"
+        )
+
+    # And the gap is the LABEL: the same two branches disagree by a comparable amount at a
+    # household's volume, which is what refutes the volume explanation this test used to carry.
+    gap_industrial = (_p_leave(IC_SEGMENT, 8.0, INDUSTRIAL_KWH)
+                      - _p_leave(SME_SEGMENT, 8.0, INDUSTRIAL_KWH))
+    gap_domestic = (_p_leave(IC_SEGMENT, 8.0, DOMESTIC_KWH)
+                    - _p_leave(SME_SEGMENT, 8.0, DOMESTIC_KWH))
+    assert gap_domestic > 0.0 and gap_industrial > 0.0
+    assert abs(gap_industrial - gap_domestic) < 0.5 * max(gap_industrial, gap_domestic), (
+        f"the branch gap is {gap_industrial:.4f} at industrial volume and {gap_domestic:.4f} at "
+        "domestic volume; if these have diverged, volume is doing the work again and the "
+        "paragraph above this test is the thing that is now wrong"
+    )
+
+
+def test_the_ic_branch_is_the_STEEPER_curve_and_not_merely_the_higher_one():
+    """The leg the mutation sweep said was missing (2026-09-23).
+
+    `IC_RATE_SENSITIVITY = 1.5` is the constant that says an industrial account punishes a rise
+    HARDER, not just that it shops more often — and halving it to the SME value reddened nothing
+    in this file. Every other leg here compares LEVELS, and the I&C branch keeps a higher level
+    from `IC_BASE_CHURN_RATE` alone, so the sensitivity could be quietly retuned to the household
+    value while the file stayed green and the arm's whole reason for routing rotted underneath it.
+
+    So this asks about the SLOPE: across the live margins the I&C curve must RISE FASTER than the
+    SME curve, which is what a higher rate sensitivity means and what a higher base rate cannot
+    fake.
+
+    MUTATION (run, fires): `IC_RATE_SENSITIVITY = RATE_SENSITIVITY` — the I&C rise falls to
+    0.5550 against SME's 0.5779, so the branch stops being the steeper one at all.
+    """
+    low, high = 8.0, 46.0
+    ic_rise = _p_leave(IC_SEGMENT, high, INDUSTRIAL_KWH) - _p_leave(IC_SEGMENT, low, INDUSTRIAL_KWH)
+    sme_rise = _p_leave(SME_SEGMENT, high, INDUSTRIAL_KWH) - _p_leave(SME_SEGMENT, low, INDUSTRIAL_KWH)
+    assert ic_rise > sme_rise, (
+        f"over £{low}–£{high}/MWh the I&C curve rises {ic_rise:.4f} against the SME curve's "
+        f"{sme_rise:.4f}; the branch is no longer the more price-sensitive one, so "
+        "IC_RATE_SENSITIVITY has stopped doing the job it is named for"
+    )
 
 
 def test_the_ic_branch_exists_precisely_to_switch_bill_stress_off():

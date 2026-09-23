@@ -3,6 +3,7 @@ import pytest
 
 from company.crm.churn_model import (
     BASE_CHURN_RATE,
+    BILL_STRESS_MAX_RATIO,
     BILL_STRESS_SENSITIVITY,
     BILL_STRESS_THRESHOLD_GBP,
     CRISIS_HANGOVER_BASE_UPLIFT,
@@ -15,6 +16,7 @@ from company.crm.churn_model import (
     MAX_CHURN_PROBABILITY,
     RATE_SENSITIVITY,
     TENURE_DISCOUNT_PER_YEAR,
+    bill_stress_uplift_ceiling,
     estimate_churn_probability,
 )
 
@@ -119,10 +121,23 @@ def test_bill_above_threshold_adds_stress():
 
 
 def test_bill_stress_quantified():
-    """Verify bill stress formula: SENSITIVITY × (bill/threshold - 1)."""
+    """Verify bill stress formula: min(SENSITIVITY × (bill/threshold - 1), the evidence ceiling).
+
+    THE CEILING IS NOW PART OF THE FORMULA (2026-09-23) and this test asserted the formula
+    without it. At £11,250 the raw term is 0.6875 — twenty-four times what the only published
+    measurement of distress-driven switching supports — so the ceiling is what actually decides
+    this case, and a test of the arithmetic that stops before the deciding step is a test of a
+    term the model no longer has. Why the ceiling is 1.28x and not a picked number:
+    `company/crm/churn_model.BILL_STRESS_MAX_RATIO`.
+    """
     # £250/MWh × 45,000 kWh / 1000 = £11,250 prev annual bill
     prev_bill = 250.0 * 45000.0 / 1000.0  # £11,250
-    expected_stress = BILL_STRESS_SENSITIVITY * (prev_bill / BILL_STRESS_THRESHOLD_GBP - 1.0)
+    raw_stress = BILL_STRESS_SENSITIVITY * (prev_bill / BILL_STRESS_THRESHOLD_GBP - 1.0)
+    expected_stress = min(raw_stress, bill_stress_uplift_ceiling(BASE_CHURN_RATE))
+    assert raw_stress > expected_stress, (
+        "this case is meant to exercise the CEILING; if the raw term is already below it the "
+        "assertion below passes without the bound existing at all"
+    )
     # With flat rate (no rate increase), 5yr tenure
     p = estimate_churn_probability(250.0, 250.0, tenure_years=5.0, annual_consumption_kwh=45000.0)
     expected_p = max(0.0, min(MAX_CHURN_PROBABILITY,
@@ -140,16 +155,36 @@ def test_c6_scenario_falling_rate_high_consumption_detectable():
     test was scoring it through the `segment="resi"` default -- which went unnoticed until the
     domestic size term landed and the resi branch started scaling a 45,000 kWh account by the
     domestic survey's response. The size term is domestic-only, so with C6's real segment the
-    estimate is unchanged at 0.4175; mislabelled resi it is 0.0. **The test was describing a
+    estimate was unchanged at 0.4175; mislabelled resi it is 0.0. **The test was describing a
     different account from the one it names**, and the mislabel was invisible while every branch
     treated size identically.
+
+    THE 30% WAS THE REFUTED TERM, AND IT IS GONE (2026-09-23). This assertion used to read
+    `p_with_burden > 0.30`, and that 0.30 was produced ENTIRELY by the unbounded `bill_stress`
+    knee: 0.25 x (11,250/3,000 - 1) = 0.6875 of churn uplift, twenty-four times the only published
+    measurement of distress-driven switching (CIM w6 Table 56, arrears 1.28x). With the term
+    bounded to its evidence the C6 account reads 0.0000, and this test's original premise — that
+    a large bill is what makes a falling-rate account detectable — is the thing
+    `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md` refutes.
+
+    SO THE TEST NOW ASSERTS THE PROPERTY AND NOT THE NUMBER: consumption may not be what rescues
+    a falling-rate account. That stays true when the replacement lands. The replacement is a
+    per-household hazard against the supplier's OWN arrears ledger — keyed to a STATE, not to a
+    bill level — and C6's detectability is meant to come from there. Until it does, **the C6
+    failure mode is genuinely not detectable by this model, and that is the honest reading rather
+    than a regression**: what used to detect it was measuring house size and calling it distress.
     """
     p_rate_only = estimate_churn_probability(250.0, 150.0, tenure_years=8.0,
                                              annual_consumption_kwh=0.0, segment="SME")
     p_with_burden = estimate_churn_probability(250.0, 150.0, tenure_years=8.0,
                                                annual_consumption_kwh=45000.0, segment="SME")
     assert p_rate_only == 0.0, "Rate-only model should return 0 for falling rate + long tenure"
-    assert p_with_burden > 0.30, f"Bill burden should push estimate above 30% threshold, got {p_with_burden:.3f}"
+    # Consumption may move this account by at most the published distress ratio, and no further.
+    # Delete the `min(...)` in `estimate_churn_probability` and this goes red at 0.4175.
+    assert p_with_burden - p_rate_only <= bill_stress_uplift_ceiling(BASE_CHURN_RATE) + 1e-12, (
+        f"consumption moved a falling-rate account by {p_with_burden - p_rate_only:.4f} — more "
+        f"than the arrears banner supports, which is the refuted claim this test used to encode"
+    )
 
 
 def test_small_resi_unaffected_by_bill_burden_in_normal_years():
@@ -160,10 +195,27 @@ def test_small_resi_unaffected_by_bill_burden_in_normal_years():
 
 
 def test_bill_stress_caps_at_max_churn_probability():
-    """Extreme bill burden doesn't push probability above MAX_CHURN_PROBABILITY."""
+    """Extreme bill burden doesn't push probability above MAX_CHURN_PROBABILITY.
+
+    AND THE WAY IT USED TO PASS WAS THE DEFECT (2026-09-23). This test asserted
+    `p == MAX_CHURN_PROBABILITY` at 100,000 kWh and £1,000/MWh — i.e. it asserted that the
+    refuted `bill_stress` knee, with NO RATE MOVE AT ALL, drove the company's churn belief to
+    certainty. It was green for that whole time, because it was keyed to the clamp holding rather
+    than to the term being defensible: a control pinned to today's answer stays green while the
+    claim underneath it rots, which is exactly backwards.
+
+    The clamp claim is still worth asserting and is kept. What is added is the reason the clamp is
+    no longer what saves this case: the term is bounded to the published arrears ratio, so
+    100,000 kWh at crisis prices now reads base x 1.28 instead of 1.0. The saturation machinery
+    is exercised by the rate-driven tests, which is where a 300% rate rise actually belongs.
+    """
     p = estimate_churn_probability(1000.0, 1000.0, tenure_years=0.0, annual_consumption_kwh=100000.0)
-    assert p == pytest.approx(MAX_CHURN_PROBABILITY)
     assert p <= MAX_CHURN_PROBABILITY
+    # The bound, not the clamp, is what decides this input now.
+    assert p == pytest.approx(BASE_CHURN_RATE * BILL_STRESS_MAX_RATIO)
+    assert p < MAX_CHURN_PROBABILITY, (
+        "an unsourced term with no price move behind it reached the model's certainty ceiling"
+    )
 
 
 # ── Gas fuel tests (Phase 14b) ───────────────────────────────────────────────

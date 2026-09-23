@@ -7,7 +7,8 @@ and hedge fraction from the company's own hedging records.
 Algorithm: base_rate
            + effective_rate_sensitivity × rate_increase_pct
            - tenure_discount × min(tenure_years, 5)
-           + bill_stress_sensitivity × max(0, prev_annual_bill / threshold - 1)
+           + min(bill_stress_sensitivity × max(0, prev_annual_bill / threshold - 1),
+                 base_rate × (BILL_STRESS_MAX_RATIO - 1))
            clamped to [0.0, 0.95].
 
 Where effective_rate_sensitivity = rate_sensitivity × (1 - hedge_fraction × HEDGE_SENSITIVITY_REDUCTION)
@@ -37,7 +38,8 @@ The bill burden term was built to capture what the rate-change-only model misses
   - The company can observe this: it issued those bills and knows the
     customer's metered consumption (annual_consumption_kwh from meter reads)
   - bill_stress = (old_rate × annual_kwh / 1000) / THRESHOLD -- 1
-    activates only when the PREVIOUS year's bill exceeded £3,000 GBP
+    activates only when the PREVIOUS year's bill exceeded £3,000 GBP,
+    and is CEILINGED at the published arrears ratio (`BILL_STRESS_MAX_RATIO`)
 
 **AND THE LAST LINE OF THAT ARGUMENT IS REFUTED, corrected here beside the claim rather than
 over it (2026-09-22).** It used to end *"(the threshold where empirically customers start
@@ -52,6 +54,22 @@ deliberately NOT re-picked: `docs/market_research/is_there_a_bill_level_at_which
 **READ IT BEFORE TRUSTING ANY BILL-LEVEL REASONING IN THIS MODULE.** The paragraph above and the
 2022 correction in `estimate_churn_probability`'s own docstring disagree with each other, and the
 2022 one is the one with a source.
+
+**AND THE TERM IS NOW BOUNDED TO WHAT THAT SOURCE SUPPORTS (2026-09-23).** Being refuted did not
+stop it being the LARGEST term in the model: `max(0, bill/3000 - 1)` grows without limit in
+consumption, so at 100,000 kWh on the Jan-Mar 2023 cap it returned 5.37 and pinned the estimate at
+1.0 with no rate move at all -- and that reading is what made the neighbouring SOURCED size term's
+saturation control red and read exactly like the new term running away. It is now ceilinged at
+`BILL_STRESS_MAX_RATIO`, the only published measurement of distress-driven switching (Ofgem CIM
+wave 6, Table 56: arrears 1.28x). See that constant for why a ratio may cross where a six-month
+rate may not, and why bounding is not the same as re-picking.
+
+**WHAT IS STILL OWED, so the bound is not mistaken for a repair:** the term is bounded, not
+retired. Retiring it needs the replacement the research names -- a per-household hazard against
+the supplier's OWN arrears ledger, keyed to a STATE rather than to a bill level. That hazard's
+magnitude is already established (it is the same 1.28x); what it needs is the ledger wiring and
+the downstream publishers that still describe this term. Filed at
+`docs/staging/SEAT_RESULT_THE_REFUTED_KNEE_IS_BOUNDED_TO_ITS_EVIDENCE_AND_TWO_PUBLISHERS_STILL_CALL_THE_BELIEF_FLAT_2026-09-23.md`.
 """
 from __future__ import annotations
 
@@ -122,6 +140,53 @@ BILL_STRESS_SENSITIVITY = 0.25
 #: standing as the historical value with its provenance now reconstructible — which is exactly the
 #: difference between a named gap and the GBP 150 CAC.
 BILL_STRESS_THRESHOLD_GBP = 3000.0
+
+#: THE ONLY ESTABLISHED MAGNITUDE FOR DISTRESS-DRIVEN SWITCHING, AND THEREFORE THE CEILING ON A
+#: TERM THAT CLAIMS TO BE ONE (2026-09-23). Ofgem *Consumer Impacts of Market Conditions* wave 6,
+#: Table 56: households whose ARREARS are "getting harder" switched at 6.8% in six months against a
+#: 5.3% population base — 1.28x. That banner is the supplier's OWN ledger, it is the variable the
+#: research above shows carries the association, and 1.28x is the largest number the published
+#: record puts on financial distress as a driver of switching.
+#:
+#: WHY IT IS A RATIO AND NOT A RATE. 6.8% counts switches in SIX MONTHS; this model's base rate is
+#: per renewal. Importing the level would be a units error of exactly the kind this project keeps
+#: paying for, so only the unit-free ratio crosses — the same normalisation, on the same table, that
+#: `enriched_churn_estimate._CIM_SWITCH_RATE_BY_METHOD` already applies to the payment-method banner.
+#:
+#: WHAT IT BOUNDS AND WHY THAT IS NOT GOAL-SEEKING. `bill_stress` is refuted in SHAPE (a knee) and
+#: in VARIABLE (bill level) — see the block above — but it is still in the model, and it was
+#: UNBOUNDED: `max(0, bill/3000 - 1)` grows without limit in consumption, so at 100,000 kWh and the
+#: Jan-Mar 2023 cap the term alone returned 5.37 and pinned the estimate at the 1.0 ceiling with no
+#: rate move at all. That is not a small error at the tail; it is the refuted term overwhelming every
+#: sourced term in the model, and it is what made the neighbouring size term's saturation control red
+#: and read exactly like the NEW term running away.
+#:
+#: The ceiling is not chosen for what it does to any count. It is the statement that **a term
+#: claiming to measure financial distress may not assert more distress-driven switching than the
+#: only published measurement of distress-driven switching**. Everything the term produced above
+#: this ceiling was never the distress claim — it was the CONSUMPTION claim wearing its name, and
+#: the consumption claim already has a properly-shaped, separately-sourced home fifteen lines down
+#: (the size term, which is a ratio on the rate response and saturates at MAX_SIZE_SCALE).
+#:
+#: IT IS A CEILING ON THE UPLIFT, EXPRESSED AGAINST EACH SEGMENT'S OWN BASE RATE, because 1.28x is
+#: a ratio on a switching rate and the base rate is what this model calls that. resi/SME: 0.10 x
+#: 0.283 = 0.0283. gas: 0.08 x 0.283 = 0.0226. I&C is unaffected — its sensitivity is already 0.0.
+#:
+#: THIS BOUNDS THE TERM; IT DOES NOT RETIRE IT. Retirement needs the replacement the research names
+#: — a per-household hazard against the arrears ledger, keyed to the state rather than to the level
+#: — and that is a different term against a different observable. Filed, with this ratio already
+#: established as its magnitude.
+_CIM_W6_ARREARS_SWITCH_RATE = 0.068
+#: THE BASE THE ROW ABOVE IS QUOTED AGAINST, and it must be this one or the ratio means nothing.
+#: Ofgem *Consumer Impacts of Market Conditions* wave 6, Table 56 (question C4, base n=3,458,
+#: reported behaviour over the past six months): 5.3% of the surveyed population switched supplier.
+#: Read in `docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md`,
+#: which is also where the banner's tautology traps are named. Normalising on the survey's own base
+#: rather than on this book's is what makes the result a RATIO the company may carry rather than a
+#: level it may not: see `BILL_STRESS_MAX_RATIO`.
+_CIM_W6_POPULATION_SWITCH_RATE = 0.053
+BILL_STRESS_MAX_RATIO = _CIM_W6_ARREARS_SWITCH_RATE / _CIM_W6_POPULATION_SWITCH_RATE
+
 HEDGE_SENSITIVITY_REDUCTION = 0.4
 #: THE ASYMPTOTE, AND IT IS 1.0 BECAUSE NOBODY IS UNCONDITIONALLY CAPTIVE. It was 0.95 until
 #: 2026-08-25, and that five points was a floor of customers modelled as STAYING WHATEVER THEY
@@ -286,6 +351,24 @@ def estimate_passive_churn_probability(
     return max(0.0, min(MAX_CHURN_PROBABILITY, p))
 
 
+def bill_stress_uplift_ceiling(base_rate: float) -> float:
+    """The most churn uplift the REFUTED bill-stress term is allowed to assert, for one segment.
+
+    `base_rate x (BILL_STRESS_MAX_RATIO - 1)`. See `BILL_STRESS_MAX_RATIO` for the source (Ofgem
+    CIM wave 6, Table 56, arrears banner) and for why a ratio crosses where a six-month rate
+    cannot.
+
+    EXPORTED RATHER THAN INLINED so the one other place that re-derives this term independently
+    in order to measure it -- `tools/churn_belief_size_response.py` -- CAN ask the model for the
+    bound rather than carry a second copy of it. It does not yet: at the time of writing it
+    composes its deafness clause from a per-run census precisely because this constant was
+    uncommitted, so what lands here is the door and not the wiring. Two modules answering one
+    question is how they drift apart without either looking wrong, and this particular pair exists
+    precisely to be compared against each other.
+    """
+    return max(0.0, float(base_rate)) * (BILL_STRESS_MAX_RATIO - 1.0)
+
+
 def estimate_churn_probability(
     old_rate_gbp_per_mwh: float,
     new_rate_gbp_per_mwh: float,
@@ -380,7 +463,10 @@ def estimate_churn_probability(
     tenure_discount = tenure_discount_per_year * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
 
     prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
-    bill_stress = bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0)
+    bill_stress = min(
+        bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0),
+        bill_stress_uplift_ceiling(base_rate),
+    )
 
     # THE SIZE TERM (2026-09-23). A percentage is not a quantity a household responds to; POUNDS
     # are, and the same percentage is more pounds to a bigger consumer. Ofgem/BMG, *Understanding
