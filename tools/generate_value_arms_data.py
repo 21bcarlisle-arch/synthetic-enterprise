@@ -8515,8 +8515,15 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     # THE CHAIN. Built from the size block's OWN counts so the two panels cannot disagree, and
     # withheld in words when that block could not be read -- see the docstring.
     if isinstance(size_block, dict) and size_block.get("available"):
-        below = size_block.get("legs_below_the_knee")
-        legs = size_block.get("supply_legs")
+        # THE CENSUS, NOT THE KNEE CUT (2026-09-23). `legs_below_the_knee` was the count of legs
+        # the belief could not hear the size of, and the block has stopped publishing it because
+        # those stopped being the same set when `fc390b918` gave the belief a second route from
+        # consumption. Reading a key the block no longer carries made `below` None and withheld
+        # this whole chain sentence in silence -- the join went missing with no reason given,
+        # which is the one outcome every branch below was written to prevent.
+        below = size_block.get("legs_the_belief_is_deaf_to")
+        legs = size_block.get("legs_graded")
+        heard = size_block.get("legs_the_belief_hears")
         # THE FIRST CLAUSE IS NOW ASKED OF `carrying`, NOT TYPED FROM THE DAY IT WAS WRITTEN.
         # Until 2026-09-22 this sentence asserted flatly that the world's orderable renewal signal
         # "is concentrated in bill shock — it is the only one of the four world factors that
@@ -8528,13 +8535,16 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
         # Keyed to the property, so the day bill shock carries it again nobody edits a sentence.
         if carrying == [_RENEWAL_BILL_SHOCK_FACTOR] and below is not None and legs is not None:
             chain = (
-                "These two panels are one chain. The orderable signal in this world's renewal "
-                "departures is concentrated in bill shock — it is the only one of the world "
-                "factors that clears its own null on its own. And the company's belief reaches a "
-                "household's bill through a single term that is identically zero for {} of {} "
-                "supply legs. The belief is flat in the one dimension the world orders departures "
-                "by, which is why the choosing has nothing to choose with. Neither panel is an "
-                "instruction to make the belief discriminate.".format(below, legs))
+                "These two panels are one chain, and what the chain SAYS changed on 2026-09-23. "
+                "The orderable signal in this world's renewal departures is concentrated in bill "
+                "shock — it is the only one of the world factors that clears its own null on its "
+                "own. Until `fc390b918` the company's belief was flat in that dimension for "
+                "almost every leg on the book, and that was the account of why the choosing had "
+                "nothing to choose with. It is not the account any more: the belief now hears "
+                "household size for {} of {} supply legs, and is deaf to it for {}. The join "
+                "that remains is narrower and is stated as such — where the belief is still deaf, "
+                "it is deaf in the dimension the world orders departures by. Neither panel is an "
+                "instruction to make the belief discriminate.".format(heard, legs, below))
         elif not carrying:
             # THE READABLE HALF IS STILL STATED, and only the JOIN is withheld. The size block is
             # a fact about the belief whether or not the world's side of the chain resolves, and
@@ -8551,25 +8561,25 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
                 "The join between these two panels is NOT stated on this capture, and the reason "
                 "is the world's per-factor decomposition: not one of the world's renewal factors "
                 "clears its own null on its own here, so there is no single dimension this book "
-                "can show departures are ordered by. The belief's side is unchanged and still "
-                "readable — it reaches a household's bill through a single term that is "
-                "identically zero for {} of {} supply legs. What cannot be drawn from this "
+                "can show departures are ordered by. The belief's side is still readable — it "
+                "hears household size for {} of {} supply legs and is deaf to {}. What cannot be drawn from this "
                 "capture is the link that made those two facts one argument: that the world "
-                "orders departures by the very dimension the belief is flat in. The belief's own "
-                "reading stands on its own null and is unaffected by any of this.".format(
-                    below, legs)
+                "orders departures by the very dimension the belief is still deaf in. The "
+                "belief's own reading stands on its own null and is unaffected by any of "
+                "this.".format(heard, legs, below)
                 if below is not None and legs is not None else None)
         else:
             chain = (
                 "The join between these two panels is NOT stated on this capture. The world's "
                 "orderable renewal signal here is carried by {} rather than by bill shock alone, "
-                "and the half of the chain that can be read — the belief's bill term is "
-                "identically zero for {} of {} supply legs — speaks only to bill shock. Stating "
+                "and the half of the chain that can be read — the belief hears household size "
+                "for {} of {} supply legs and is deaf to {} — speaks only to bill shock. Stating "
                 "the join from one side is how a reader is handed a mechanism the rows do not "
-                "show.".format(", ".join("`{}`".format(f) for f in carrying), below, legs)
+                "show.".format(", ".join("`{}`".format(f) for f in carrying), heard, legs, below)
                 if below is not None and legs is not None else None)
     else:
-        chain = ("The other half of this chain — how flat the belief is in household size — could "
+        chain = ("The other half of this chain — how much of the belief's household-size hearing "
+                 "reaches this book — could "
                  "not be read on this publish, so the join is not stated rather than stated from "
                  "one side.")
 
@@ -15452,11 +15462,28 @@ def _churn_belief_size_response(path: Path | None = None) -> dict:
     if not book.get("available"):
         return _unavailable("the artefact could not cut a book against the knee, so the counts "
                             "this block is made of do not exist")
-    if knee.get("the_knee_is_a_bill_not_a_consumption") is not True:
+    # RE-KEYED TO THE PROPERTY, 2026-09-23, AND THE OLD KEY IS WHY. This refused on
+    # `knee.the_knee_is_a_bill_not_a_consumption is not True` -- which was the right instinct
+    # (refuse rather than render against a measurement that moved) pinned to the wrong thing: a
+    # particular ANSWER the measurement happened to be giving. `fc390b918` gave the churn belief a
+    # sourced size term, the artefact stopped saying the knee was a bill because there is no knee
+    # any more, and this withdrew the entire block for ten publisher cycles -- taking the best
+    # thing built that stretch off the page along with the stale sentence. A control keyed to
+    # today's answer goes red exactly when the code becomes more honest; CLAUDE.md names this
+    # shape and this is an instance of it.
+    #
+    # WHAT IT KEYS TO INSTEAD: that the artefact answered the question at all. `knee()` states
+    # `the_belief_is_flat_below_a_knee` as a measured boolean either way, so BOTH answers render
+    # and only a missing or unanswerable measurement refuses. That is the property this block's
+    # sentences actually rest on -- they rest on the reading being a live account of the belief,
+    # not on which account it is.
+    if knee.get("the_belief_is_flat_below_a_knee") not in (True, False):
         return _unavailable(
-            "the artefact no longer says the knee is a BILL rather than a consumption, which is "
-            "the framing every sentence here rests on. Refused rather than rendered against a "
-            "measurement that has moved under it")
+            "the artefact does not state whether the belief is flat below a knee, which is the "
+            "question every sentence here reports the answer to. Refused rather than rendered "
+            "against a measurement that could not answer it. If the artefact predates "
+            "2026-09-23 it states the superseded `the_knee_is_a_bill_not_a_consumption` instead; "
+            "rebuild it with `python3 -m tools.churn_belief_size_response`")
     return {
         "available": True,
         "what_it_is": loaded.get("what_this_is"),
@@ -15466,16 +15493,35 @@ def _churn_belief_size_response(path: Path | None = None) -> dict:
         # second author of a conclusion it did not measure.
         "reading": reading,
         "supply_legs": book.get("supply_legs"),
-        "legs_below_the_knee": book.get("legs_below_the_knee"),
-        "legs_above_the_knee": book.get("legs_above_the_knee"),
-        "share_below_the_knee": _f(book.get("share_below_the_knee")),
+        # THE COUNTS THE SENTENCE IS MADE OF, AND THEY ARE THE DEAFNESS CENSUS FROM 2026-09-23.
+        # `legs_below_the_knee` stood here and was the count of legs whose size the belief could
+        # not hear, because while there was one knee those were the same set. They are not the
+        # same set any more -- `legs_below_the_knee` is still computed and still true OF
+        # `bill_stress`'s declared threshold, and is no longer true of the belief's deafness --
+        # so rendering it under the old sentence would be one field with two homes, which is
+        # this page's own recurring defect. These ask the estimator once per leg.
+        "legs_the_belief_hears": (book.get("size_deafness") or {}).get("legs_the_belief_hears"),
+        "legs_the_belief_is_deaf_to": (
+            book.get("size_deafness") or {}).get("legs_the_belief_is_deaf_to"),
+        "legs_graded": (book.get("size_deafness") or {}).get("legs_graded"),
+        "share_the_belief_hears": _f((book.get("size_deafness") or {}).get("share_the_belief_hears")),
+        "the_deaf_legs_are_the_biggest": (
+            book.get("size_deafness") or {}).get("the_deaf_legs_are_the_BIGGEST"),
         "knee_gbp": _f(knee.get("declared_threshold_gbp")),
-        "knee_kwh_spread_across_the_probe_rates": _f(
-            knee.get("kwh_spread_across_the_probe_rates")),
-        "knee_by_rate": [
+        # WHERE THE BELIEF GOES DEAF, WHICH IS THE EDGE THAT IS LOAD-BEARING NOW. The old pair of
+        # fields described where its response BEGAN; there is no such point any more and the
+        # artefact withdraws them by name rather than leaving a number that would still render.
+        "deaf_edge_kwh_spread_across_the_probe_rates": _f(
+            knee.get("deaf_edge_kwh_spread_across_the_probe_rates")),
+        "deaf_edge_by_rate": [
             {"old_rate_gbp_per_mwh": _f(row.get("old_rate_gbp_per_mwh")),
-             "knee_kwh": _f(row.get("knee_kwh"))}
+             "deaf_above_kwh": _f(row.get("the_belief_goes_deaf_to_size_above_kwh"))}
             for row in (knee.get("by_rate") or []) if isinstance(row, dict)],
+        # THE WITHDRAWAL, CARRIED ONTO THE SURFACE RATHER THAN LEFT IN THE ARTEFACT. A reader who
+        # met the old sentence is owed the news that it was retired and why, in the artefact's own
+        # words -- this generator does not author conclusions, including retracted ones.
+        "what_was_withdrawn_and_why": knee.get("what_was_withdrawn_and_why"),
+        "the_belief_is_flat_below_a_knee": knee.get("the_belief_is_flat_below_a_knee"),
         "world_multiplier_spread": _f(book.get("world_multiplier_spread")),
         "world_multiplier_low": _f((book.get("world_multiplier_over_this_book") or {}).get("min")),
         "world_multiplier_high": _f((book.get("world_multiplier_over_this_book") or {}).get("max")),

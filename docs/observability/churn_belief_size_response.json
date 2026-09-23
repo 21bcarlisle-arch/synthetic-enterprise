@@ -6,26 +6,48 @@
   "by_rate": [
    {
     "old_rate_gbp_per_mwh": 150.0,
-    "knee_kwh": 20000.5,
-    "knee_prev_annual_bill_gbp": 3000.1
+    "response_breakpoints_kwh": [
+     9999.0,
+     19999.0,
+     22263.7
+    ],
+    "the_belief_goes_deaf_to_size_above_kwh": 22263.7,
+    "the_deaf_edge_as_a_bill_gbp": 3339.6,
+    "first_departure_from_flat_kwh": 1.0
    },
    {
     "old_rate_gbp_per_mwh": 250.0,
-    "knee_kwh": 12000.1,
-    "knee_prev_annual_bill_gbp": 3000.0
+    "response_breakpoints_kwh": [
+     9999.0,
+     11999.0,
+     13358.4
+    ],
+    "the_belief_goes_deaf_to_size_above_kwh": 13358.4,
+    "the_deaf_edge_as_a_bill_gbp": 3339.6,
+    "first_departure_from_flat_kwh": 1.0
    },
    {
     "old_rate_gbp_per_mwh": 400.0,
-    "knee_kwh": 7500.6,
-    "knee_prev_annual_bill_gbp": 3000.3
+    "response_breakpoints_kwh": [
+     7499.0,
+     8348.7,
+     9999.0
+    ],
+    "the_belief_goes_deaf_to_size_above_kwh": 9999.0,
+    "the_deaf_edge_as_a_bill_gbp": 3999.6,
+    "first_departure_from_flat_kwh": 1.0
    }
   ],
-  "the_knee_is_a_bill_not_a_consumption": true,
-  "kwh_spread_across_the_probe_rates": 2.67,
+  "the_belief_is_flat_below_a_knee": false,
+  "the_belief_goes_deaf_above_a_saturation": true,
+  "deaf_edge_kwh_spread_across_the_probe_rates": 2.23,
+  "the_knee_is_a_bill_not_a_consumption": null,
+  "kwh_spread_across_the_probe_rates": null,
+  "what_was_withdrawn_and_why": "WITHDRAWN 2026-09-23, not failed. `the_knee_is_a_bill_not_a_consumption` and `kwh_spread_across_the_probe_rates` both described a single step at which the belief's response to household size BEGAN, and there is no such step any more: `fc390b918` gave `estimate_churn_probability` a size term sourced to Ofgem/BMG *Understanding Consumers' Energy Tariff Choices*, so the belief responds to consumption from the first metered kWh at every rate. The probe that found the old step, `knee_kwh`, now returns the bottom of its bracket at every rate -- which is the instrument going blind, NOT the knee moving to 1 kWh. What replaced them is `response_breakpoints_kwh` and `the_belief_goes_deaf_to_size_above_kwh`: `bill_stress` and its published ceiling are both still in the model and both still make kinks, so the same question is still answerable -- it is asked of a kink now rather than of a departure from flat.",
   "declared_threshold_gbp": 3000.0,
   "declared_sensitivity": 0.25,
-  "the_thresholds_own_origin": "NOT ESTABLISHED. `BILL_STRESS_THRESHOLD_GBP` appears in `tools.domain_constant_origins --list`, i.e. this repository's own register of domain constants carrying no origin, and `churn_model`'s docstring justifies it as \"the threshold where empirically customers start actively switching\" without citing what established that. Reported, not repaired: the knee's POSITION is not what this measures, and re-picking an unsourced number would replace one invention with another.",
-  "what_the_term_is": "An absent term below the knee, not a band with wrong edges and not saturation. `bill_stress = sens * max(0, prev_annual_bill / threshold - 1)` is the ONLY place `estimate_churn_probability` reads consumption, and below the threshold `max` returns exactly 0.0, so d(belief)/d(consumption) is exactly zero. The term models financial DISTRESS at a large bill; household SIZE has no term in this model at any value."
+  "the_thresholds_own_origin": "NOT ESTABLISHED, and now for a stated reason rather than for none. No published source gives a bill level at which GB domestic switching activity rises: Ofgem publishes switching cut seven ways -- tariff type, payment method, supplier size, debt, bill difficulty, satisfaction and prior switching -- and never by bill size. What IS established refutes the SHAPE rather than the level. Ofgem/BMG \"Understanding Consumers' Energy Tariff Choices\" (n=3,235, fieldwork Mar-Apr 2024) puts the correlation between a household's energy SPEND and its switching propensity at -0.07 to +0.05, a band that does not clear zero in either direction, and reports that spending has \"a very limited impact on how consumers evaluate prospective deals\". A knee asserts the strongest available form of dependence on that variable -- identically absent below, rising above -- and the closest published source puts the dependence at approximately none. So the term selects on CONSUMPTION, not distress, which is why its position in kWh moves 4.1x across the price record with nothing about any household changing. 3,000 stands as a NAMED GAP, not re-picked: every candidate would be chosen for how many of this book's legs it puts either side of it, which is goal-seeking against a published figure. The working, and the seven places searched first, are in docs/market_research/is_there_a_bill_level_at_which_switching_rises.md.",
+  "what_the_term_is": "A SOURCED SIZE TERM WITH A CEILING, where until 2026-09-23 there was no size term at all. `estimate_churn_probability` now reads consumption twice. First through `size_scale = min(own_kwh / reference_kwh, MAX_SIZE_SCALE)`, which multiplies the RATE RESPONSE -- the same percentage is worth more pounds to a bigger household, which Ofgem/BMG \"Understanding Consumers' Energy Tariff Choices\" (n=3,235) establishes positively, and the reference is the published Ofgem TDCV Medium band rather than a picked number. Second through `bill_stress`, unchanged and still identically zero below its declared threshold and now CEILINGED above it: `bill_stress = min(sens * max(0, prev_annual_bill / threshold - 1), base_rate * (BILL_STRESS_MAX_RATIO - 1))`, where `BILL_STRESS_MAX_RATIO` is Ofgem CIM wave 6 Table 56's arrears-banner switching rate over the population rate -- the only published measurement of distress-driven switching, and a bound on a term whose SHAPE the same evidence refutes. So the belief is no longer flat in household size, and the defect the old reading named has MOVED rather than closed: `size_scale` saturates at MAX_SIZE_SCALE and `bill_stress` saturates at that ceiling, so above the top of those two the derivative returns to exactly zero. The belief is now deaf to size at the TOP of this book instead of across the bottom of it, and that is a smaller population and a different remedy."
  },
  "partition": {
   "available": true,
@@ -36,7 +58,7 @@
     "annual_kwh": 3000.0,
     "segment": "resi",
     "prev_annual_bill_gbp": 750.0,
-    "company_belief": 0.166,
+    "company_belief": 0.1852,
     "world_multiplier": 1.36,
     "world_reads_this_households_own_bill": true
    },
@@ -44,7 +66,7 @@
     "annual_kwh": 25000.0,
     "segment": "resi",
     "prev_annual_bill_gbp": 6250.0,
-    "company_belief": 0.436833,
+    "company_belief": 0.482302,
     "world_multiplier": 8.6,
     "world_reads_this_households_own_bill": true
    },
@@ -64,7 +86,7 @@
     "annual_kwh": 25000.0,
     "segment": "SME",
     "prev_annual_bill_gbp": 6250.0,
-    "company_belief": 0.436833,
+    "company_belief": 0.194302,
     "world_multiplier": 2.232,
     "world_reads_this_households_own_bill": false
    },
@@ -85,26 +107,26 @@
   "knee_used_gbp": 3000.0,
   "leg_annual_bill_gbp": {
    "min": 9.1,
-   "p10": 394.3,
-   "p50": 739.3,
-   "p90": 1630.7,
-   "max": 13174.9
+   "p10": 394.5,
+   "p50": 742.2,
+   "p90": 1648.7,
+   "max": 13128.6
   },
   "leg_annual_kwh": {
-   "min": 35.0,
-   "p10": 1622.5,
-   "p50": 3759.6,
-   "p90": 12976.2,
-   "max": 41575.5
+   "min": 55.0,
+   "p10": 1638.7,
+   "p50": 3834.8,
+   "p90": 12976.5,
+   "max": 41430.8
   },
   "world_multiplier_over_this_book": {
    "min": 1.0,
    "p10": 1.2,
    "p50": 1.6,
    "p90": 2.7,
-   "max": 11.7
+   "max": 11.6
   },
-  "world_multiplier_spread": 11.57,
+  "world_multiplier_spread": 11.48,
   "by_segment": {
    "SME": {
     "legs": 2,
@@ -117,13 +139,93 @@
     "world_reads_their_own_bill": true
    }
   },
+  "size_deafness": {
+   "legs_graded": 244,
+   "legs_the_belief_hears": 235,
+   "legs_the_belief_is_deaf_to": 9,
+   "share_the_belief_hears": 0.9631,
+   "deaf_leg_annual_kwh": {
+    "min": 11338.8,
+    "p10": 11338.8,
+    "p50": 12949.5,
+    "p90": 39690.0,
+    "max": 41430.8
+   },
+   "the_deaf_legs_are_the_BIGGEST": true,
+   "the_deaf_legs": [
+    {
+     "cid": "PROS-2024-0082",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 41431.0,
+     "bill_upper_bound_gbp": 13129.0
+    },
+    {
+     "cid": "C4g",
+     "segment": "resi",
+     "fuel": "gas",
+     "annual_kwh": 39690.0,
+     "bill_upper_bound_gbp": 1770.0
+    },
+    {
+     "cid": "C6",
+     "segment": "SME",
+     "fuel": "electricity",
+     "annual_kwh": 25067.0,
+     "bill_upper_bound_gbp": 4610.0
+    },
+    {
+     "cid": "C5",
+     "segment": "SME",
+     "fuel": "electricity",
+     "annual_kwh": 20423.0,
+     "bill_upper_bound_gbp": 4309.0
+    },
+    {
+     "cid": "C7",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 12950.0,
+     "bill_upper_bound_gbp": 2642.0
+    },
+    {
+     "cid": "PROS-2016-0042",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 12938.0,
+     "bill_upper_bound_gbp": 2580.0
+    },
+    {
+     "cid": "C9",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 12300.0,
+     "bill_upper_bound_gbp": 2367.0
+    },
+    {
+     "cid": "C8",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 11459.0,
+     "bill_upper_bound_gbp": 3372.0
+    },
+    {
+     "cid": "PROS-2019-0302",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 11339.0,
+     "bill_upper_bound_gbp": 4041.0
+    }
+   ],
+   "each_leg_at_its_own_rate": "Each leg is probed at the rate it was billed at (its own revenue over its own kWh), not at a common probe rate. The bill-stress ceiling that makes the belief deaf sits at a consumption set by the price deck, so a common rate would put the whole book on one side of an edge no household is actually on."
+  },
   "the_legs_above_the_knee": [
    {
     "cid": "PROS-2024-0082",
     "segment": "resi",
     "fuel": "electricity",
-    "annual_kwh": 41576.0,
-    "bill_upper_bound_gbp": 13175.0
+    "annual_kwh": 41431.0,
+    "bill_upper_bound_gbp": 13129.0
    },
    {
     "cid": "C6",
@@ -151,14 +253,14 @@
     "segment": "resi",
     "fuel": "electricity",
     "annual_kwh": 11339.0,
-    "bill_upper_bound_gbp": 4040.0
+    "bill_upper_bound_gbp": 4041.0
    },
    {
     "cid": "C8",
     "segment": "resi",
     "fuel": "electricity",
     "annual_kwh": 11459.0,
-    "bill_upper_bound_gbp": 3373.0
+    "bill_upper_bound_gbp": 3372.0
    },
    {
     "cid": "PROS-2018-0192",
@@ -228,6 +330,93 @@
     "above_the_knee": 7,
     "world_reads_their_own_bill": true
    }
+  },
+  "size_deafness": {
+   "legs_graded": 226,
+   "legs_the_belief_hears": 216,
+   "legs_the_belief_is_deaf_to": 10,
+   "share_the_belief_hears": 0.9558,
+   "deaf_leg_annual_kwh": {
+    "min": 10603.0,
+    "p10": 10603.0,
+    "p50": 12949.5,
+    "p90": 40604.8,
+    "max": 40654.5
+   },
+   "the_deaf_legs_are_the_BIGGEST": true,
+   "the_deaf_legs": [
+    {
+     "cid": "PROS-2024-0082",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 40654.0,
+     "bill_upper_bound_gbp": 12880.0
+    },
+    {
+     "cid": "C4g",
+     "segment": "resi",
+     "fuel": "gas",
+     "annual_kwh": 40605.0,
+     "bill_upper_bound_gbp": 1812.0
+    },
+    {
+     "cid": "C6",
+     "segment": "SME",
+     "fuel": "electricity",
+     "annual_kwh": 28013.0,
+     "bill_upper_bound_gbp": 5132.0
+    },
+    {
+     "cid": "C5",
+     "segment": "SME",
+     "fuel": "electricity",
+     "annual_kwh": 21858.0,
+     "bill_upper_bound_gbp": 4602.0
+    },
+    {
+     "cid": "PROS-2018-0192",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 17260.0,
+     "bill_upper_bound_gbp": 3825.0
+    },
+    {
+     "cid": "C7",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 12950.0,
+     "bill_upper_bound_gbp": 2645.0
+    },
+    {
+     "cid": "PROS-2016-0042",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 12484.0,
+     "bill_upper_bound_gbp": 2493.0
+    },
+    {
+     "cid": "C9",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 12300.0,
+     "bill_upper_bound_gbp": 2367.0
+    },
+    {
+     "cid": "C8",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 11459.0,
+     "bill_upper_bound_gbp": 3356.0
+    },
+    {
+     "cid": "PROS-2019-0302",
+     "segment": "resi",
+     "fuel": "electricity",
+     "annual_kwh": 10603.0,
+     "bill_upper_bound_gbp": 3785.0
+    }
+   ],
+   "each_leg_at_its_own_rate": "Each leg is probed at the rate it was billed at (its own revenue over its own kWh), not at a common probe rate. The bill-stress ceiling that makes the belief deaf sits at a consumption set by the price deck, so a common rate would put the whole book on one side of an edge no household is actually on."
   },
   "the_legs_above_the_knee": [
    {
@@ -320,6 +509,6 @@
   }
  },
  "which_book_the_reading_quotes": "`arms_book` when it is available -- the 154 accounts the published arms were scored over, which is the population the page's selection leg is a statement about. `book` is the tree's book today and is kept beside it because the two differ.",
- "reading": "Measured over the 154-account book the published arms were scored over. The company's churn belief is FLAT in household size for 217 of this book's 224 domestic supply legs. Consumption reaches `estimate_churn_probability` through one term, `bill_stress`, which is identically zero below GBP 3000 of previous annual bill -- an absent term, not saturation and not a mis-placed band edge, because the estimate still moves freely with price at every consumption. The knee is a BILL: at GBP 250/MWh it falls at 12000 kWh and it moves 2.67x in kWh across the rate deck this book was billed at. Over the same book the world's own churn multiplier spans 11.28x, because it scales the price differential by each household's OWN annual spend. And the asymmetry is exact: the world reads a household's own bill for domestic supply only, so the one segment where the company's belief DOES vary with size is the segment where the world's does not. A per-customer belief that is constant in the dimension the world reacts to is a flat rule wearing a per-customer name in that dimension -- which is the baseline the thesis has to beat. This does not price that gap and is not an instruction to close it.",
+ "reading": "Measured over the 154-account book the published arms were scored over. The company's churn belief HEARS household size for 216 of this book's 226 supply legs. That is an inversion of what this measurement published until 2026-09-23, and the landing that caused it is `fc390b918`: `estimate_churn_probability` gained a size term scaling the rate response by the household's own consumption against the published Ofgem TDCV Medium band, on the same Ofgem/BMG survey the world's own multiplier cites. Before it the belief returned one number across a six-fold span of household size. Over this book the world's own churn multiplier spans 11.28x. It is still deaf to size for 10 of them, so the defect has MOVED rather than closed. Those 10 reach the largest households on the book, where a per-customer belief has the most to win and the least room left to express it. At GBP 250/MWh the belief stops responding above 13358.4 kWh, and that edge moves 2.23x in kWh across the rate deck this book was billed at. This does not price that gap and is not an instruction to close it.",
  "not_a_target": "R12. A belief that does not vary in a dimension is a diagnostic about the belief. Nothing here instructs the company to make it vary, and the epistemic wall is untouched either way: a supplier meters its own customers, which is why the world's own `churn_position_multiplier` calls consumption something the company can legitimately act on."
 }

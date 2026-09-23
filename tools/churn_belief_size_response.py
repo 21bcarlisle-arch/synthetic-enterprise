@@ -56,11 +56,62 @@ exactly zero there. Three readings were available and only one survives:
     so the flatness is a real difference the belief cannot express, not two routes to one answer.
 
 So: **an absent term**, and the module carries a distress term that happens to take consumption as
-its input. The threshold's own position is unsourced -- `BILL_STRESS_THRESHOLD_GBP` is on this
-repo's own no-origin debt list (`tools/domain_constant_origins --list`), and the docstring's
-"the threshold where empirically customers start actively switching" cites nothing. That is
-reported as a field here rather than repaired: the knee's position is not what this measures, and
-a number invented to fill a slot is a finding to file, not a value to re-pick.
+its input. The threshold's own position is unsourced -- reported as a field here rather than
+repaired, because the knee's position is not what this measures and a number invented to fill a
+slot is a finding to file, not a value to re-pick.
+
+THAT WAS TRUE WHEN IT WAS WRITTEN AND IT IS FALSE NOW. 2026-09-23, kept beside itself
+--------------------------------------------------------------------------------------
+`fc390b918` -- *"the churn belief hears household size now, on a published basis"* -- gave
+`estimate_churn_probability` a SECOND route from consumption to the belief: a size term scaling
+the rate response by the household's own consumption against the published Ofgem TDCV Medium
+band. Everything above is a correct account of the belief as it stood, and the paragraph is kept
+rather than overwritten because the prediction it contains is what the landing refuted, and a
+prediction quietly revised after its answer is known is not evidence of anything.
+
+What is true now, measured rather than reasoned about, and the working is in the artefact:
+
+  * **There is no knee.** The belief responds to consumption from the first metered kWh at every
+    probe rate. `knee_kwh` returns the bottom of its bracket -- the instrument going blind, not a
+    knee at 1 kWh -- and `response_breakpoints_kwh` is what answers the question now.
+  * **The finding MOVED; it did not close.** This bullet said until 2026-09-23 that which of
+    those two it was "depends on a term that is not committed yet" -- the `BILL_STRESS_MAX_RATIO`
+    ceiling, then sitting in another lane's working copy of `company/crm/churn_model.py`, with
+    which `bill_stress` stops growing and the belief flattens above the higher of the two
+    ceilings, and without which `bill_stress` grows unbounded and the belief responds until
+    saturation. `3b01193a8` landed it, so the ambiguity is spent: the two trees are one tree and
+    the ceilinged reading is the only one there is. The belief is deaf to household size for a
+    handful of DOMESTIC legs and they are the BIGGEST households on the book -- deaf across the
+    top of it where it used to be deaf across the bottom. **The count is deliberately not written
+    here.** It is a property of the book the run reads and it moved 7 -> 10 on the arms' book
+    between two runs a day apart with nothing about the model changing; `reading()` composes the
+    deafness clause from the per-run census for the same reason, and an earlier draft of this
+    file hard-coded the ceilinged version while the ceiling was uncommitted and would have
+    published a sentence true of no commit.
+  * **The asymmetry did NOT invert, and I predicted that it had.** Written here because the
+    prediction was made in this file before `partition` was re-run and the run refuted it.
+    `the_belief_varies_where_the_world_does_not` is still `True`: `bill_stress` still reaches SME,
+    the world's `bill_scale_for` still returns `None` off-domestic, and neither of those is what
+    `fc390b918` touched. What actually changed is weaker and is the accurate claim -- the belief
+    now varies with size in the domestic segment TOO, so that field is no longer the sharp
+    "exactly where the world does not" it was published as. It is a true statement about SME that
+    used to also be an exhaustive one and is not any more. The sentence the page renders no longer
+    makes the exhaustive claim; the field keeps reporting its own live value.
+
+The BILL_STRESS paragraph above still describes `bill_stress`, which is untouched by the landing.
+What changed is that it is no longer the only thing the belief hears consumption through, which
+is why a probe built to find its knee can no longer see it.
+
+WHAT CHANGED UNDER THAT SENTENCE, 2026-09-22, and it is corrected here beside itself rather than
+over it. This paragraph used to ground the field on `BILL_STRESS_THRESHOLD_GBP` being "on this
+repo's own no-origin debt list (`tools/domain_constant_origins --list`)". **It is no longer on that
+list**, so that ground is gone -- but the FIELD's verdict is unchanged, because what the constant
+now carries is a NAMED GAP and not a source. The pass that went looking found that no published
+source gives a bill level at which GB domestic switching activity rises, and that the closest one
+refutes the SHAPE: Ofgem/BMG *Understanding Consumers' Energy Tariff Choices* (n=3,235, Mar-Apr
+2024) puts the SPEND-to-switching correlation at -0.07 to +0.05. So "unsourced" is still the right
+word for the LEVEL and 3,000 was deliberately not re-picked. Reading, and the seven places searched
+first: `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`.
 
 THE KNEE IS IN POUNDS, NOT KILOWATT-HOURS, AND THAT MATTERS
 ------------------------------------------------------------
@@ -143,6 +194,18 @@ def knee_kwh(old_rate_gbp_per_mwh: float, *, segment: str = "resi",
     the estimate never moves across the whole bracket -- which is the correct answer for a segment
     with the bill-stress sensitivity switched off (I&C), and is a reachable branch rather than a
     defensive one: `IC_BILL_STRESS_SENSITIVITY` is 0.0.
+
+    THIS PROBE WENT BLIND ON 2026-09-23 AND ITS ANSWER MUST NOT BE READ AS A KNEE. Said here, at
+    the function, because the number it returns is still a float and still looks like one. It asks
+    "where does the belief FIRST depart from its value at zero consumption", which located
+    `bill_stress`'s knee only while `bill_stress` was the ONLY route from consumption to the
+    belief. `fc390b918` added a second, sourced route -- a size term on the rate response -- so the
+    belief now departs from flat at the bottom of any bracket and this returns
+    `_KNEE_TOLERANCE_KWH` at every rate. That is not "the knee moved to 1 kWh"; it is this
+    instrument no longer being able to see a knee at all. `response_breakpoints_kwh` is what
+    answers the original question now, because a kink is still a kink once the arm below it stops
+    being flat -- and `knee()` reports both so the blindness is on the artefact rather than in a
+    reader's head.
     """
     rate = float(old_rate_gbp_per_mwh)
     offer = rate * 1.12
@@ -163,47 +226,224 @@ def knee_kwh(old_rate_gbp_per_mwh: float, *, segment: str = "resi",
     return hi
 
 
+#: The finite-difference step the slope is read at, in kWh, and the grid the scan walks. The belief
+#: is piecewise-LINEAR in consumption -- every term it reads consumption through is a ratio, a
+#: `max` or a `min` -- so a slope read anywhere inside a piece is the whole piece's slope and the
+#: only question is whether the grid can straddle two breakpoints at once. The narrowest gap any
+#: probe rate produces is 1,500 kWh (400 GBP/MWh: the bill knee at 7,500 and its ceiling at 8,500),
+#: six grid steps, so it cannot.
+_SLOPE_PROBE_KWH: float = 1.0
+_BREAKPOINT_SCAN_KWH: float = 250.0
+#: Two slopes count as one slope below this. Read against the live values rather than picked: the
+#: slopes this separates are 0.0 and 0.0125-0.0717 per 1,000 kWh, nine orders of magnitude clear.
+_SLOPE_EQUAL: float = 1e-12
+
+#: WHERE THE PIECEWISE-LINEAR ASSUMPTION STOPS HOLDING, AND THIS IS A REAL BOUND ON THE
+#: INSTRUMENT RATHER THAN A DEFENSIVE CAP. `_saturate_churn_probability` is a SMOOTH function, not
+#: a hard clamp, so once a belief is large enough to be inside it the composition is CURVED and
+#: every grid step registers a fresh slope change. Measured, not reasoned about: at HEAD's model,
+#: probing 250 GBP/MWh past ~33,400 kWh yields 68 "breakpoints" in a row, one per grid step, all
+#: of them the curve and none of them a term switching. A scan that reported those would publish
+#: an instrument artefact as a property of the belief.
+#:
+#: FOUR IS THE HONEST CEILING: the belief has at most three terms that can kink in consumption
+#: (the size term's cap, `bill_stress`'s knee, and its own ceiling where one is configured), so a
+#: FOURTH is already evidence the scan has walked into the curve. `knee()` reports whether the cap
+#: bound, so a reader is never shown a truncated list as though it were complete.
+_MAX_BREAKPOINTS: int = 4
+
+
+def response_breakpoints_kwh(old_rate_gbp_per_mwh: float, *, segment: str = "resi",
+                             fuel: str = "electricity", lo_kwh: float = 1.0,
+                             hi_kwh: float = 50_000.0) -> list[float]:
+    """Every consumption at which the belief's RESPONSE to consumption changes, in order.
+
+    WHY THIS REPLACES `knee_kwh` AS THE INSTRUMENT AND NOT AS A SECOND OPINION. The question this
+    module exists to answer -- "does the belief distinguish households by size, and where does that
+    stop" -- was answerable by bisecting on "has the value moved at all" only while the belief had
+    exactly one consumption term with a flat arm underneath it. It has three routes now, and a
+    departure-from-flat probe answers about whichever starts lowest while saying nothing about the
+    other two. A KINK is what a term switching on or saturating actually is, and a kink survives
+    having a sloped arm underneath it, so this asks the same question of a belief that changed
+    shape rather than a different question of the same belief.
+
+    IT FINDS SATURATIONS AS WELL AS SWITCH-ONS, DELIBERATELY. A breakpoint where the slope drops to
+    zero is the belief going deaf to size above that consumption, which is the same defect the old
+    reading named and it is now at the TOP of the book rather than the bottom. Reporting only
+    switch-ons would publish the flattering half.
+
+    Returns [] when the belief is linear in consumption across the whole bracket -- reachable, and
+    it is what a segment with no size term and no bill stress returns (`SME`, I&C).
+
+    THE SCAN STARTS ABOVE ZERO AND THE REASON IS NOT TIDINESS. `estimate_churn_probability` guards
+    its size term with `annual_consumption_kwh > 0` and hands the zero case an UNSCALED 1.0, on
+    purpose -- "an account with no consumption on record gets the unscaled response rather than a
+    guessed one". That is a genuine discontinuity at exactly 0, and a scan whose left edge is 0
+    straddles it and reports a breakpoint at 1 kWh at every rate. It is real and it is not a size
+    response: it separates KNOWN-AND-TINY from NOT-KNOWN, which is a different question from the
+    one this asks. Starting at `lo_kwh` reports the belief's response over consumptions the company
+    has actually metered, and the zero branch is controlled where it belongs, in the churn model's
+    own tests.
+    """
+    rate = float(old_rate_gbp_per_mwh)
+    offer = rate * 1.12
+
+    def slope(kwh: float) -> float:
+        here = estimate_churn_probability(
+            rate, offer, 3.0, kwh, fuel=fuel, segment=segment)
+        there = estimate_churn_probability(
+            rate, offer, 3.0, kwh + _SLOPE_PROBE_KWH, fuel=fuel, segment=segment)
+        return (there - here) / _SLOPE_PROBE_KWH
+
+    found: list[float] = []
+    left, left_slope = float(lo_kwh), slope(float(lo_kwh))
+    probe = float(lo_kwh) + _BREAKPOINT_SCAN_KWH
+    while probe <= hi_kwh and len(found) < _MAX_BREAKPOINTS:
+        here_slope = slope(probe)
+        if abs(here_slope - left_slope) > _SLOPE_EQUAL:
+            lo, hi = left, probe
+            while hi - lo > _KNEE_TOLERANCE_KWH:
+                mid = (lo + hi) / 2.0
+                if abs(slope(mid) - left_slope) <= _SLOPE_EQUAL:
+                    lo = mid
+                else:
+                    hi = mid
+            found.append(round(hi, 1))
+            left_slope = here_slope
+        left = probe
+        probe += _BREAKPOINT_SCAN_KWH
+    return found
+
+
 def knee() -> dict:
-    """Where the step is, derived at each probe rate, in pounds and in kilowatt-hours."""
+    """Where the belief's response to household size starts, stops and saturates, at each rate.
+
+    RE-DERIVED 2026-09-23, AND THE ANSWER INVERTED RATHER THAN THE QUESTION CHANGING. What this
+    returned until today was the position of a single step and a verdict that the step was at a
+    fixed BILL and a moving kWh. `fc390b918` landed a sourced size term on the rate response, so
+    there is no single step any more: the belief responds to consumption from the first metered
+    kWh, and what it does instead is go DEAF above a saturation this reports. The module's question
+    -- does the belief distinguish households by size, where the world's does -- is unchanged, so
+    the instrument is re-derived to keep answering it and not re-pointed at something easier.
+
+    THE OLD FIELDS ARE WITHDRAWN BY NAME, NOT DELETED. `the_knee_is_a_bill_not_a_consumption` and
+    `kwh_spread_across_the_probe_rates` were the framing every rendered sentence rested on, and a
+    consumer that stops finding them can tell "this measurement was withdrawn and here is what
+    replaced it" from "the artefact is malformed" only if the withdrawal says so in the artefact.
+    They carry `None` and a reason rather than a number that would still parse.
+    """
     rows = []
     for rate in PROBE_RATES_GBP_PER_MWH:
-        kwh = knee_kwh(rate)
+        breaks = response_breakpoints_kwh(rate)
+        first_move = knee_kwh(rate)
+        # A FLAT BAND IS NOT A DEAF EDGE, AND THE FIRST DRAFT OF THIS CONFLATED THEM. It walked
+        # the breakpoints from the top and took the first one with a zero slope above it, which
+        # at HEAD's model returns the size term's cap (9,999 kWh) -- and the belief starts
+        # responding again 2,000 kWh higher when `bill_stress` switches on. "Stops responding
+        # above 9,999 kWh" would have been published, and it is false: what sits there is a flat
+        # BAND between two terms, not the end of the belief's hearing. Caught by running the
+        # producer against HEAD as well as against the working tree and reading the sentence.
+        #
+        # SO THE EDGE IS TERMINAL BY CONSTRUCTION: only the LAST breakpoint can be one, and only
+        # when the belief never moves again above it. When the scan hit its cap the list is
+        # truncated and the last entry is not known to be last, so no edge is claimed.
+        deaf_above = None
+        if breaks and len(breaks) < _MAX_BREAKPOINTS:
+            offer = rate * 1.12
+            top = breaks[-1]
+            probes = [top + step for step in (10.0, 100.0, 1_000.0, 5_000.0)]
+            flat_above = all(
+                estimate_churn_probability(rate, offer, 3.0, kwh)
+                == estimate_churn_probability(rate, offer, 3.0, top + 1.0)
+                for kwh in probes)
+            if flat_above:
+                deaf_above = top
         rows.append({
             "old_rate_gbp_per_mwh": rate,
-            "knee_kwh": None if kwh is None else round(kwh, 1),
-            # THE SAME KNEE IN THE UNITS THE MECHANISM IS ACTUALLY IN. If these agree across the
-            # rates and the kWh column does not, the knee is a bill and not a consumption.
-            "knee_prev_annual_bill_gbp": None if kwh is None else round(rate * kwh / 1000.0, 1),
+            "response_breakpoints_kwh": breaks,
+            "the_belief_goes_deaf_to_size_above_kwh": deaf_above,
+            "the_deaf_edge_as_a_bill_gbp": (
+                None if deaf_above is None else round(rate * deaf_above / 1000.0, 1)),
+            "first_departure_from_flat_kwh": (
+                None if first_move is None else round(first_move, 1)),
         })
-    bills = [r["knee_prev_annual_bill_gbp"] for r in rows if r["knee_prev_annual_bill_gbp"]]
-    kwhs = [r["knee_kwh"] for r in rows if r["knee_kwh"]]
+    deaf = [r["the_belief_goes_deaf_to_size_above_kwh"] for r in rows
+            if r["the_belief_goes_deaf_to_size_above_kwh"]]
     return {
-        "available": bool(bills),
+        "available": bool(rows),
         "by_rate": rows,
-        # THE PROPERTY, NOT TODAY'S ANSWER. "The knee is at a fixed BILL and a moving kWh" is what
-        # makes this a step in the wrong dimension to be a size term, and it is what the control
-        # keys to -- not the literal 3,000 or the literal 12,000.
-        "the_knee_is_a_bill_not_a_consumption": (
-            bool(bills) and max(bills) - min(bills) <= 2.0 * BILL_STRESS_THRESHOLD_GBP / 100.0
-            and len(set(kwhs)) == len(kwhs)),
-        "kwh_spread_across_the_probe_rates": (
-            None if len(kwhs) < 2 else round(max(kwhs) / min(kwhs), 2)),
+        # THE PROPERTY, ANSWERED, NOT ASSUMED EITHER WAY. This is the field a control keys to, and
+        # it is written so that it can say YES again: if the size term were removed the belief
+        # would be flat below a knee once more and this would return True without an edit.
+        "the_belief_is_flat_below_a_knee": all(
+            r["first_departure_from_flat_kwh"] is not None
+            and r["first_departure_from_flat_kwh"] > _KNEE_TOLERANCE_KWH * 2.0
+            for r in rows),
+        "the_belief_goes_deaf_above_a_saturation": bool(deaf) and len(deaf) == len(rows),
+        # WHERE THE DEAFNESS SITS IN kWh ACROSS THE DECK. The old `kwh_spread` asked this of the
+        # switch-ON edge; the same question of the switch-OFF edge is what is load-bearing now,
+        # and it is still the test of whether the edge is a consumption or a price artefact.
+        "deaf_edge_kwh_spread_across_the_probe_rates": (
+            None if len(deaf) < 2 else round(max(deaf) / min(deaf), 2)),
+        "the_knee_is_a_bill_not_a_consumption": None,
+        "kwh_spread_across_the_probe_rates": None,
+        "what_was_withdrawn_and_why": (
+            "WITHDRAWN 2026-09-23, not failed. `the_knee_is_a_bill_not_a_consumption` and "
+            "`kwh_spread_across_the_probe_rates` both described a single step at which the "
+            "belief's response to household size BEGAN, and there is no such step any more: "
+            "`fc390b918` gave `estimate_churn_probability` a size term sourced to Ofgem/BMG "
+            "*Understanding Consumers' Energy Tariff Choices*, so the belief responds to "
+            "consumption from the first metered kWh at every rate. The probe that found the old "
+            "step, `knee_kwh`, now returns the bottom of its bracket at every rate -- which is "
+            "the instrument going blind, NOT the knee moving to 1 kWh. What replaced them is "
+            "`response_breakpoints_kwh` and `the_belief_goes_deaf_to_size_above_kwh`: "
+            "`bill_stress` and its published ceiling are both still in the model and both still "
+            "make kinks, so the same question is still answerable -- it is asked of a kink now "
+            "rather than of a departure from flat."),
         "declared_threshold_gbp": BILL_STRESS_THRESHOLD_GBP,
         "declared_sensitivity": BILL_STRESS_SENSITIVITY,
+        # NOT ESTABLISHED, AND THAT IS STILL THE VERDICT — but as of 2026-09-22 it is a verdict
+        # with a reason rather than the absence of one, so this sentence changed and the door leg
+        # over it was re-derived rather than re-pointed. What the page must not do is let a reader
+        # take 3,000 as established; what it now also does is say what the looking FOUND.
         "the_thresholds_own_origin": (
-            "NOT ESTABLISHED. `BILL_STRESS_THRESHOLD_GBP` appears in "
-            "`tools.domain_constant_origins --list`, i.e. this repository's own register of domain "
-            "constants carrying no origin, and `churn_model`'s docstring justifies it as \"the "
-            "threshold where empirically customers start actively switching\" without citing what "
-            "established that. Reported, not repaired: the knee's POSITION is not what this "
-            "measures, and re-picking an unsourced number would replace one invention with "
-            "another."),
+            "NOT ESTABLISHED, and now for a stated reason rather than for none. No published "
+            "source gives a bill level at which GB domestic switching activity rises: Ofgem "
+            "publishes switching cut seven ways -- tariff type, payment method, supplier size, "
+            "debt, bill difficulty, satisfaction and prior switching -- and never by bill size. "
+            "What IS established refutes the SHAPE rather than the level. Ofgem/BMG "
+            "\"Understanding Consumers' Energy Tariff Choices\" (n=3,235, fieldwork Mar-Apr 2024) "
+            "puts the correlation between a household's energy SPEND and its switching propensity "
+            "at -0.07 to +0.05, a band that does not clear zero in either direction, and reports "
+            "that spending has \"a very limited impact on how consumers evaluate prospective "
+            "deals\". A knee asserts the strongest available form of dependence on that variable "
+            "-- identically absent below, rising above -- and the closest published source puts "
+            "the dependence at approximately none. So the term selects on CONSUMPTION, not "
+            "distress, which is why its position in kWh moves 4.1x across the price record with "
+            "nothing about any household changing. 3,000 stands as a NAMED GAP, not re-picked: "
+            "every candidate would be chosen for how many of this book's legs it puts either side "
+            "of it, which is goal-seeking against a published figure. The working, and the seven "
+            "places searched first, are in "
+            "docs/market_research/is_there_a_bill_level_at_which_switching_rises.md."),
         "what_the_term_is": (
-            "An absent term below the knee, not a band with wrong edges and not saturation. "
-            "`bill_stress = sens * max(0, prev_annual_bill / threshold - 1)` is the ONLY place "
-            "`estimate_churn_probability` reads consumption, and below the threshold `max` returns "
-            "exactly 0.0, so d(belief)/d(consumption) is exactly zero. The term models financial "
-            "DISTRESS at a large bill; household SIZE has no term in this model at any value."),
+            "A SOURCED SIZE TERM WITH A CEILING, where until 2026-09-23 there was no size term at "
+            "all. `estimate_churn_probability` now reads consumption twice. First through "
+            "`size_scale = min(own_kwh / reference_kwh, MAX_SIZE_SCALE)`, which multiplies the "
+            "RATE RESPONSE -- the same percentage is worth more pounds to a bigger household, "
+            "which Ofgem/BMG \"Understanding Consumers' Energy Tariff Choices\" (n=3,235) "
+            "establishes positively, and the reference is the published Ofgem TDCV Medium band "
+            "rather than a picked number. Second through `bill_stress`, unchanged and still "
+            "identically zero below its declared threshold and now CEILINGED above it: "
+            "`bill_stress = min(sens * max(0, prev_annual_bill / threshold - 1), base_rate * "
+            "(BILL_STRESS_MAX_RATIO - 1))`, where `BILL_STRESS_MAX_RATIO` is Ofgem CIM wave 6 "
+            "Table 56's arrears-banner switching rate over the population rate -- the only "
+            "published measurement of distress-driven switching, and a bound on a term whose "
+            "SHAPE the same evidence refutes. So the belief is no longer flat in household size, "
+            "and the defect the old reading named has MOVED rather than closed: `size_scale` "
+            "saturates at MAX_SIZE_SCALE and `bill_stress` saturates at that ceiling, so above "
+            "the top of those two the derivative returns to exactly zero. The belief is now deaf "
+            "to size at the TOP of this book instead of across the bottom of it, and that is a "
+            "smaller population and a different remedy."),
     }
 
 
@@ -313,6 +553,66 @@ def partition(below_kwh: float = 3_000.0, above_kwh: float = 25_000.0,
     }
 
 
+def _legs_the_belief_is_deaf_to(rows: list[dict]) -> dict:
+    """How many of this book's legs the belief CANNOT hear the size of, each at its OWN rate.
+
+    THE DIRECT SUCCESSOR TO `legs_below_the_knee`, AND THE COUNT IT REPLACES IS THE SAME CLAIM.
+    "The belief is flat in household size for N of this book's M legs" is what this module has
+    always published; until 2026-09-23 the N could be got from a single knee bill because there
+    was a single knee. There is not one now -- the saturation that makes the belief deaf sits at a
+    different consumption at every rate (the bill-stress ceiling moves with the price deck, the
+    size ceiling does not) -- so the only honest way to count is to ask the estimator itself, once
+    per leg, at the rate that leg was actually billed at.
+
+    ASKED AS A DERIVATIVE, NOT AS A COMPARISON AGAINST AN EDGE. `belief(kwh + 1) == belief(kwh)`
+    is the property the sentence claims; deriving each leg's edge and then comparing would put a
+    second implementation of the saturation rule here, which is the VAT-rule shape CLAUDE.md names.
+    """
+    deaf, heard = [], 0
+    for r in rows:
+        if r["annual_kwh"] <= 0:
+            continue
+        rate = r["bill_upper_bound_gbp"] / r["annual_kwh"] * 1000.0
+        if rate <= 0:
+            continue
+        offer, kwh = rate * 1.12, r["annual_kwh"]
+        here = estimate_churn_probability(
+            rate, offer, 3.0, kwh, fuel=r["fuel"], segment=r["segment"])
+        there = estimate_churn_probability(
+            rate, offer, 3.0, kwh + 1.0, fuel=r["fuel"], segment=r["segment"])
+        if here == there:
+            deaf.append(r)
+        else:
+            heard += 1
+    return {
+        "legs_graded": heard + len(deaf),
+        "legs_the_belief_hears": heard,
+        "legs_the_belief_is_deaf_to": len(deaf),
+        "share_the_belief_hears": (
+            round(heard / (heard + len(deaf)), 4) if (heard + len(deaf)) else None),
+        "deaf_leg_annual_kwh": _quantiles([r["annual_kwh"] for r in deaf]),
+        # THE FLAG MEANS WHAT THE SENTENCE SAYS, WHICH IT DID NOT ON ITS FIRST DRAFT. It was
+        # `min(deaf) > p50`, and the words it licenses are "the largest households on the book" --
+        # a set sitting anywhere in the upper half clears that test while containing none of the
+        # biggest accounts. Measured at HEAD's model the deaf set is a flat BAND at 10,000-12,000
+        # kWh on a book whose largest leg is 40,654, and the old flag called it "the largest".
+        # The claim is now what it says: the deaf set reaches the top of the book.
+        "the_deaf_legs_are_the_BIGGEST": bool(deaf) and max(
+            r["annual_kwh"] for r in deaf) >= max(
+                r["annual_kwh"] for r in rows if r["annual_kwh"] > 0),
+        "the_deaf_legs": [
+            {"cid": r["cid"], "segment": r["segment"], "fuel": r["fuel"],
+             "annual_kwh": round(r["annual_kwh"], 0),
+             "bill_upper_bound_gbp": round(r["bill_upper_bound_gbp"], 0)}
+            for r in sorted(deaf, key=lambda x: -x["annual_kwh"])],
+        "each_leg_at_its_own_rate": (
+            "Each leg is probed at the rate it was billed at (its own revenue over its own kWh), "
+            "not at a common probe rate. The bill-stress ceiling that makes the belief deaf sits "
+            "at a consumption set by the price deck, so a common rate would put the whole book on "
+            "one side of an edge no household is actually on."),
+    }
+
+
 def book_distribution(book: dict, knee_bill_gbp: float) -> dict:
     """How many of this book's legs sit either side of the knee, and the world's spread over it."""
     rows = _leg_rows(book)
@@ -353,6 +653,10 @@ def book_distribution(book: dict, knee_bill_gbp: float) -> dict:
         "world_multiplier_spread": (
             round(max(multipliers) / min(multipliers), 2) if multipliers else None),
         "by_segment": by_segment,
+        # THE COUNT THE PUBLISHED SENTENCE IS MADE OF, from 2026-09-23. `legs_below_the_knee`
+        # above is still computed and still true of the bill-stress threshold, but it is no
+        # longer the count of legs whose size the belief cannot hear -- that is this block.
+        "size_deafness": _legs_the_belief_is_deaf_to(rows),
         "the_legs_above_the_knee": [
             {"cid": r["cid"], "segment": r["segment"], "fuel": r["fuel"],
              "annual_kwh": round(r["annual_kwh"], 0),
@@ -504,11 +808,14 @@ def arms_book(knee_bill_gbp: float) -> dict:
 def report(book: dict) -> dict:
     """Every reading, each carrying its own refusal rather than an absence."""
     k = knee()
+    # THE BILL THE BOOK IS CUT AT IS THE DECLARED THRESHOLD, AND FROM 2026-09-23 ONLY THAT.
+    # It used to prefer a knee bill derived from the estimator, which was the better source while
+    # the estimator had a knee to derive. It has none now, and the derived column collapsed to
+    # 0.1-0.4 -- so preferring it would cut this book at forty pence and report every leg above
+    # the knee, a figure that would still render. `legs_below_the_knee` is a statement about
+    # `bill_stress`'s declared threshold and is labelled as one; the count the published sentence
+    # rests on is `size_deafness`, which asks the estimator per leg and needs no cut at all.
     knee_bill = k["declared_threshold_gbp"]
-    derived = [r["knee_prev_annual_bill_gbp"] for r in k["by_rate"]
-               if r["knee_prev_annual_bill_gbp"]]
-    if derived:
-        knee_bill = min(derived)
     part = partition()
     dist = book_distribution(book, knee_bill)
     arms = arms_book(knee_bill)
@@ -550,30 +857,61 @@ def _reading(k: dict, part: dict, dist: dict, arms: dict | None = None) -> str:
     quoted, which = ((arms, "the 154-account book the published arms were scored over")
                      if (arms or {}).get("available")
                      else (dist, "the book this tree holds today"))
-    resi = quoted["by_segment"].get("resi") or {}
-    flat = (resi.get("legs") or 0) - (resi.get("above_the_knee") or 0)
-    return "Measured over {}. ".format(which) + (
-        "The company's churn belief is FLAT in household size for {flat} of this book's {legs} "
-        "domestic supply legs. Consumption reaches `estimate_churn_probability` through one term, "
-        "`bill_stress`, which is identically zero below GBP {knee:.0f} of previous annual bill -- "
-        "an absent term, not saturation and not a mis-placed band edge, because the estimate still "
-        "moves freely with price at every consumption. The knee is a BILL: at GBP 250/MWh it falls "
-        "at {kwh:.0f} kWh and it moves {spread}x in kWh across the rate deck this book was billed "
-        "at. Over the same book the world's own churn multiplier spans {world}x, because it scales "
-        "the price differential by each household's OWN annual spend. And the asymmetry is exact: "
-        "the world reads a household's own bill for domestic supply only, so the one segment where "
-        "the company's belief DOES vary with size is the segment where the world's does not. "
-        "A per-customer belief that is constant in the dimension the world reacts to is a flat "
-        "rule wearing a per-customer name in that dimension -- which is the baseline the thesis "
-        "has to beat. This does not price that gap and is not an instruction to close it."
-    ).format(
-        flat=flat, legs=resi.get("legs"),
-        knee=quoted["knee_used_gbp"],
-        kwh=next((r["knee_kwh"] for r in k["by_rate"]
-                  if r["old_rate_gbp_per_mwh"] == 250.0 and r["knee_kwh"]), float("nan")),
-        spread=k.get("kwh_spread_across_the_probe_rates"),
-        world=quoted.get("world_multiplier_spread"),
-    )
+    deafness = quoted.get("size_deafness") or {}
+    at_250 = next((r for r in k["by_rate"] if r["old_rate_gbp_per_mwh"] == 250.0), {})
+    # THE SENTENCE IS CORRECTED BESIDE ITS OWN PREDECESSOR, 2026-09-23. What stood here said the
+    # belief was FLAT in household size for the great majority of this book, below a knee at a
+    # declared bill. That was measured correctly and it is now false: `fc390b918` landed a size
+    # term sourced to the same survey the world's own multiplier cites. The finding has not
+    # closed, it has MOVED -- to the top of the book, where both of the belief's consumption
+    # terms are saturated -- and the sentence says which way it moved rather than dropping the
+    # old claim silently, because a reader who met the old one is owed that.
+    # THE SENTENCE IS COMPOSED FROM WHAT WAS MEASURED, NOT FROM A NARRATIVE ABOUT THE MODEL.
+    # Learned the expensive way on 2026-09-23: the first draft of this hard-coded "both terms
+    # that read consumption are ceilinged", which is a true sentence about the shared working
+    # tree and a FALSE one about every commit, because the `bill_stress` ceiling it names is
+    # another lane's uncommitted edit. A reading that asserts a mechanism it did not measure
+    # publishes whichever tree the author happened to run in. The deafness clause therefore
+    # appears only when the census actually found deaf legs, and the edge clause only when an
+    # edge was found -- both of which are `None` at HEAD and present with that lane's ceiling.
+    deaf_n = deafness.get("legs_the_belief_is_deaf_to") or 0
+    deaf_kwh = at_250.get("the_belief_goes_deaf_to_size_above_kwh")
+    common = (
+        "The company's churn belief HEARS household size for {heard} of this book's {graded} "
+        "supply legs. That is an inversion of what this measurement published until 2026-09-23, "
+        "and the landing that caused it is `fc390b918`: `estimate_churn_probability` gained a "
+        "size term scaling the rate response by the household's own consumption against the "
+        "published Ofgem TDCV Medium band, on the same Ofgem/BMG survey the world's own "
+        "multiplier cites. Before it the belief returned one number across a six-fold span of "
+        "household size. Over this book the world's own churn multiplier spans {world}x."
+    ).format(heard=deafness.get("legs_the_belief_hears"),
+             graded=deafness.get("legs_graded"),
+             world=quoted.get("world_multiplier_spread"))
+    if deaf_n:
+        tail = (
+            " It is still deaf to size for {deaf} of them, so the defect has MOVED rather than "
+            "closed.".format(deaf=deaf_n)
+            + (" Those {deaf} reach the largest households on the book, where a per-customer "
+               "belief has the most to win and the least room left to express it.".format(
+                   deaf=deaf_n)
+               if deafness.get("the_deaf_legs_are_the_BIGGEST") else
+               " They sit in a flat BAND rather than at the top of the book -- between the size "
+               "term's cap and the consumption at which `bill_stress` switches on -- so this is "
+               "a gap in the middle of the belief's range and not the end of its hearing.")
+            + (" At GBP 250/MWh the belief stops responding above {kwh} kWh, and that edge moves "
+               "{spread}x in kWh across the rate deck this book was billed at.".format(
+                   kwh=deaf_kwh, spread=k.get("deaf_edge_kwh_spread_across_the_probe_rates"))
+               if deaf_kwh and k.get("deaf_edge_kwh_spread_across_the_probe_rates") else ""))
+    else:
+        tail = (
+            " No leg on this book is one the belief cannot hear the size of -- the flat arm this "
+            "measurement was built to report is gone rather than moved. What is NOT established "
+            "here is whether the belief's response is the right SIZE: this counts legs where the "
+            "derivative is non-zero, which is a weaker claim than matching the world's "
+            "{world}x, and no figure here licenses the stronger one.".format(
+                world=quoted.get("world_multiplier_spread")))
+    return ("Measured over {}. ".format(which) + common + tail
+            + " This does not price that gap and is not an instruction to close it.")
 
 
 def generate(out_path: Path | None = None) -> dict:
