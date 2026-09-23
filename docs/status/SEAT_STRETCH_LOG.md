@@ -75,6 +75,32 @@ Both arm sets re-run, one variable — same book, same world, only the size scal
 by pricing well. Seeing, gross margin is **+£12,152** and the bad-debt edge is gone. A £21,450 swing
 in composition under a £634 move in the headline.
 
+> **CORRECTED 2026-09-23, same day, and the correction is mine twice over.**
+>
+> **First, the framing was wrong.** The director's CLV merit order puts **PAYS first** — ahead of
+> stays, ahead of margin. So an arm winning on bad-debt avoidance is winning on the **highest** rung,
+> not a lesser one, and "stops winning by avoiding bad customers and starts winning on gross margin"
+> reads as an improvement when it describes no such thing. Declining on observable payment
+> behaviour, credit position or arrears history is ordinary supplier practice. What would not be is
+> using something a supplier should not see, or shifting cost onto prepayment customers.
+>
+> **Second, and worse, it was not selection at all.** The whole £7,505 bad-debt difference traces to
+> ONE account, `PROS-2018-0142`, and the two arms declined the same number of renewals (1 each):
+>
+> | | net margin |
+> |---|---|
+> | control arm | **£2,900.05** |
+> | blind value arm | £761.43 — churned out |
+> | seeing value arm | £3,323.31 — retained |
+>
+> The blind arm did not decline a bad payer. It **priced a profitable account away**, lost £2,139 of
+> net margin doing it, and the avoided bad debt is the by-product of the loss rather than a saving
+> it chose. Reading that as "winning on the PAYS rung" would have been as wrong as reading it as a
+> lesser win, in the opposite direction.
+>
+> The sentence above is left standing because a wrong reading kept beside its correction is the only
+> evidence the second reading was earned rather than assumed.
+
 And the decision itself is more differentiated: **68 distinct margins against 57**, six more accounts
 priced, median margin £13/MWh lower. That is the choosing finally having something per-customer to
 choose on, which is the thing the director said was missing.
