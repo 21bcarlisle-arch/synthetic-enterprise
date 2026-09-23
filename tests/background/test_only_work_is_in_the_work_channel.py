@@ -88,6 +88,115 @@ def test_a_preregistration_never_reaches_the_draw(tmp_path):
 
 
 # --------------------------------------------------------------------------- #
+# A RESULT is the other half of the record, and it was 74 of 96 root documents  #
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("name", [
+    "SEAT_RESULT_THE_CLOCK_CAN_NOW_REFUSE_WITH_ITS_OWN_CAUSE_2026-09-23.md",
+    "WORKER_RESULT_THE_TWO_SIBLING_CENSUSES_MATCH_THE_CALL_NOW_2026-09-23.md",
+    "A_FUTURE_CHANNELS_RESULT_OF_SOMETHING_2027-01-01.md",
+])
+def test_a_RESULT_is_not_work_whatever_channel_wrote_it(name):
+    """THE DEFECT, measured 2026-09-23 while attributing the sediment alarm's own seven-day window
+    by producer family: 198 of the 266 documents filed into the work channel were RESULT
+    documents, `SEAT_RESULT_` carried net +26 of the +8 overall, and every one of them classified
+    `KIND_UNKNOWN` and drew at rank 50 as a real ask. A result describes work that has already
+    happened — drawing one can only produce a second write-up of the same turn — so it has no exit
+    from a queue, which is the pre-registration's argument one document kind further on.
+
+    Three name shapes, and the third is the point: a tuple of the two live channels is the mistake
+    `_FINDING_PREFIXES` made and `_PREREGISTRATION_TOKEN` paid for.
+
+    MUTATION (must fire): make `_RESULT_TOKEN` a prefix tuple of the two live channels.
+    """
+    assert sr.kind_of(name) == sr.KIND_RESULT
+    assert sr.kind_of(name) in sr.NOT_WORK
+
+
+def test_a_result_and_its_preregistration_are_in_ONE_room():
+    """*"A prediction made before a measurement belongs beside the result, not in a queue."* If the
+    two halves land in different rooms, "was this prediction filed before its answer was known" —
+    the only evidence the experiment was designed before the answer — becomes a question about two
+    rooms, and this module's own history is controls going quiet when the structure they were
+    keyed to moved.
+
+    MUTATION (must fire): route `KIND_RESULT` to `done/`.
+    """
+    assert sr.room_for(sr.KIND_RESULT) == sr.room_for(sr.KIND_PREREGISTRATION)
+    assert sr.room_for(sr.KIND_RESULT) == sr.RECORDS_DIRNAME
+    assert sr.RECORDS_DIRNAME != sr.ARCHIVE_DIRNAME
+
+
+def test_a_result_never_reaches_the_draw(tmp_path):
+    """The queue, not just the classifier — a `NOT_WORK` kind that `work_queue` still enumerated
+    would be a classification that changed nothing.
+
+    MUTATION (must fire): drop `KIND_RESULT` from `NOT_WORK`.
+    """
+    (tmp_path / "SEAT_RESULT_THE_CEILING_IS_ANCHORED_ON_THE_CGROUP_NOW_2026-09-22.md").write_text("x")
+    (tmp_path / "WORKER_FINDING_A_REAL_ONE_2026-09-03.md").write_text("x")
+
+    names = [i.name for i in sr.work_queue(tmp_path)]
+
+    assert names == ["WORKER_FINDING_A_REAL_ONE_2026-09-03.md"]
+
+
+#: One row per SHAPE the result token can appear in, keyed by shape and not by expected kind, so a
+#: two-shapes-one-state collapse is visible. `distinct` names the answers that must not coincide.
+_RESULT_TOKEN_SHAPES = [
+    ("result names a finding in its title",
+     "SEAT_RESULT_THE_ITEMS_DIAGNOSIS_WAS_RIGHT_ABOUT_ONE_FINDING_2026-09-23.md", "result"),
+    ("finding about a result",
+     "SEAT_FINDING_THE_RESULT_DOCUMENTS_HAVE_NO_ROOM_2026-09-23.md", "finding"),
+    ("alarm naming a result",
+     "WORKER_FINDING_REPEATING_ALARM_RUN_MARKER_SWEEP_RESULT_2026-09-21.md", "alarm"),
+    ("director instruction naming a result",
+     "DIRECTOR_RULING_ON_THE_RESULT_OF_THE_ARMS_RUN_2026-09-20.md", "directive"),
+    ("pre-registration ahead of the result token",
+     "SEAT_PREREG_WHAT_THE_RESULT_MUST_SHOW_2026-09-23.md", "preregistration"),
+    ("result about a pre-registration",
+     "SEAT_RESULT_THE_PREREGISTRATION_WAS_FILED_FIRST_2026-09-23.md", "result"),
+]
+
+
+def test_the_result_token_partitions_FIVE_DISTINCT_KINDS_and_not_fewer():
+    """ONE CONTROL OVER THE WHOLE PARTITION, because a leg per branch is how this repo has three
+    times shipped a rule that refuses everything and passes every test written for it. Six name
+    shapes all carrying the RESULT token; the classifier must answer five *different* kinds, and a
+    rule that collapsed two of them would still pass a per-branch assertion on the survivor.
+
+    The two directions are not symmetric and both are here. Classifying a result as work costs a
+    draw; classifying an ALARM or a DIRECTIVE as a result takes live work OUT of the queue and
+    nothing would say so — that is the only direction this change can lose something, and it is
+    why `KIND_RESULT` is tested after the alarm, mint and directive prefixes.
+
+    MUTATION (must fire): move the `KIND_RESULT` branch above the alarm prefix test — the alarm row
+    collapses onto the result row and `distinct` drops to four.
+    """
+    got = {shape: sr.kind_of(name) for shape, name, _ in _RESULT_TOKEN_SHAPES}
+    expected = {shape: getattr(sr, "KIND_" + want.upper()) for shape, _, want in _RESULT_TOKEN_SHAPES}
+
+    assert got == expected, f"shape -> kind disagreed: {got}"
+    assert len(set(got.values())) == 5, (
+        f"six shapes must reach five distinct kinds; reached {sorted(set(got.values()))}"
+    )
+
+
+def test_the_relocation_and_the_draw_cannot_disagree_about_a_result(tmp_path):
+    """A document the queue has stopped offering must be the same document the migration moves.
+    `tools/staging_migrate_rooms.relocate` asks `room_for(kind_of(name))` and the draw asks
+    `NOT_WORK`; if a kind were in one and not the other, a result would either sit in the root
+    forever undrawable (invisible sediment) or be moved out while still being offered.
+
+    MUTATION (must fire): give `KIND_RESULT` a room without putting it in `NOT_WORK`.
+    """
+    for kind in sorted(sr.NOT_WORK):
+        assert kind not in sr.ORDER, f"{kind} is not work and must not carry a draw rank"
+    assert sr.room_for(sr.KIND_RESULT) is not None
+    assert sr.KIND_RESULT in sr.NOT_WORK
+
+
+# --------------------------------------------------------------------------- #
 # A finding is a finding whoever filed it                                      #
 # --------------------------------------------------------------------------- #
 

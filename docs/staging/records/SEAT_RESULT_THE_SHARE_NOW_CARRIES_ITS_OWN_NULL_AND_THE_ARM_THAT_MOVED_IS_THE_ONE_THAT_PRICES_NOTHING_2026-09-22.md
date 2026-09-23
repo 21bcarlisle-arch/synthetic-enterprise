@@ -4,7 +4,8 @@
 
 **Claim:** `the-share-the-page-leads-with-has-seed-noise-ten-times-the-gap-it-explains`
 **Filed:** 2026-09-22. Drawn as Lane 0 delivery. Prior result this builds on:
-`docs/staging/SEAT_RESULT_THE_EIGHTEEN_TIMES_IS_THE_CONTROL_ARM_AND_THE_SHARES_OWN_SEED_NOISE_IS_TEN_TIMES_THE_GAP_2026-09-22.md`.
+`docs/staging/records/SEAT_RESULT_THE_EIGHTEEN_TIMES_IS_THE_CONTROL_ARM_AND_THE_SHARES_OWN_SEED_NOISE_IS_TEN_TIMES_THE_GAP_2026-09-22.md`
+(repointed 2026-09-23 when the RESULT family was routed to `records/`; the document is the same one).
 
 ---
 

@@ -178,6 +178,30 @@ KIND_FINDING = "finding"
 #: A prediction filed BEFORE the measurement it predicts. A RECORD, never work — see
 #: `RECORDS_DIRNAME` for why it has no exit and therefore cannot sit in a queue.
 KIND_PREREGISTRATION = "preregistration"
+#: The ANSWER half of the pair whose question half is `KIND_PREREGISTRATION`: what a turn found,
+#: written after the measurement. A RECORD, never work, and for the pre-registration's reason
+#: rather than a weaker one — it describes work that has ALREADY HAPPENED, so there is nothing to
+#: action; drawing one can only produce a second write-up of the same turn.
+#:
+#: THIS IS D2 FOR THE FOURTH TIME (2026-09-23), after a register, a transcript and a
+#: pre-registration, and the measurement that found it is the reason the sediment alarm was the
+#: last staging leg still red. Attributing the alarm's own window by producer family:
+#:
+#:     SEAT_RESULT_      116 filed   90 dispositioned   net +26
+#:     WORKER_RESULT_     82 filed   87 dispositioned   net  -5
+#:     ...                                              net  +8 overall
+#:
+#: 198 of the 266 documents filed into the work channel in seven days were RESULT documents, and
+#: every one of them classified `KIND_UNKNOWN` and drew at rank 50 as a real ask — the same silent
+#: mis-rank `SEAT_FINDING_` had, one document kind further on. The negative families are drawing
+#: down a stock that arrived BEFORE the window (85 of the 258 dispositions), which is finite; the
+#: two positive families are the flow.
+#:
+#: THE ROOM IS `records/`, BESIDE THE PREDICTION, and the director's own sentence puts it there:
+#: *"a prediction made before a measurement belongs beside the result, not in a queue."* A result
+#: filed anywhere else makes "was this prediction written before its answer was known" — the one
+#: epistemic control this project runs on itself — a question about two rooms.
+KIND_RESULT = "result"
 #: A minted work batch awaiting consumption.
 KIND_MINT = "mint"
 #: Kind could not be determined. Fail-safe: an unrecognised file is WORK, and it is drawn
@@ -228,7 +252,8 @@ ORDER: dict[str, int] = {
 #: which room the file is sitting in, so a CLASS register that has not yet been moved is
 #: already out of the queue — the classification does the work, the move only makes it
 #: legible to a reader.
-NOT_WORK = frozenset({KIND_REFERENCE, KIND_CONSOLE, KIND_DOORBELL, KIND_PREREGISTRATION})
+NOT_WORK = frozenset({KIND_REFERENCE, KIND_CONSOLE, KIND_DOORBELL, KIND_PREREGISTRATION,
+                      KIND_RESULT})
 
 _ALARM_PREFIX = "WORKER_FINDING_REPEATING_ALARM_"
 _CLASS_PREFIX = "CLASS_"
@@ -271,6 +296,12 @@ _FINDING_PREFIXES = ("WORKER_ALARM_",)
 #: under `controls keyed to a structure that moved`. The kind is what the document IS, and every
 #: one of those four says so in its own name.
 _PREREGISTRATION_TOKEN = "PREREG"
+#: A TOKEN AND NOT A PREFIX, by the same argument, and read by PRECEDENCE against the finding
+#: token in exactly the way the pre-registration rule is. Both channels that file results name
+#: themselves in one segment (`SEAT_RESULT_`, `WORKER_RESULT_`), but a tuple of those two is the
+#: mistake `_FINDING_PREFIXES` already made and `_PREREGISTRATION_TOKEN` already paid for: the
+#: THIRD channel would classify UNKNOWN and draw as work, and nothing would say so.
+_RESULT_TOKEN = "RESULT"
 
 
 def kind_of(name: str) -> str:
@@ -307,7 +338,17 @@ def kind_of(name: str) -> str:
     _finding_at = next(
         (i for i, seg in enumerate(_segments) if seg.startswith(_FINDING_TOKEN.rstrip("_"))), None
     )
-    if _prereg_at is not None and (_finding_at is None or _prereg_at < _finding_at):
+    _result_at = next(
+        (i for i, seg in enumerate(_segments) if seg.startswith(_RESULT_TOKEN)), None
+    )
+    # THE RIVAL IS WHICHEVER OTHER TYPE TOKEN COMES FIRST, not the finding token alone. When
+    # `KIND_RESULT` was added (2026-09-23) this read `_prereg_at < _finding_at`, which would have
+    # classified `SEAT_RESULT_..._THE_PREREGISTRATION_WAS_...` as a pre-registration by the exact
+    # laundering the paragraph below was written against, one token further on: a result ABOUT a
+    # prediction is a result. Generalising the comparison is what stops the next type token having
+    # to remember to edit this line.
+    _rival_at = min((i for i in (_finding_at, _result_at) if i is not None), default=None)
+    if _prereg_at is not None and (_rival_at is None or _prereg_at < _rival_at):
         # BEFORE THE FINDING AND DIRECTIVE TESTS, for the same reason `DIRECTOR_CONSOLE_` is
         # tested before `DIRECTOR_`: `SEAT_PREREGISTRATION_...` and `WORKER_PREREGISTRATION_...`
         # both begin with strings that classify as work, and `DIRECTOR_` is a live prefix too. A
@@ -353,6 +394,15 @@ def kind_of(name: str) -> str:
         return KIND_MINT
     if name.startswith(_DIRECTIVE_PREFIXES):
         return KIND_DIRECTIVE
+    if _result_at is not None and (_finding_at is None or _result_at < _finding_at):
+        # AFTER the alarm, mint and directive tests and BEFORE the finding test, and each side of
+        # that position is load-bearing. Before it: a repeating alarm and a director instruction
+        # both routinely carry RESULT deeper in the name, and either reaching this test first
+        # would take live work out of the queue — the one direction a not-work classification can
+        # lose something. After it: nearly every result document in the root names a finding in
+        # its own title (`..._AND_THE_ITEMS_DIAGNOSIS_WAS_WRONG_...`), so the finding test would
+        # swallow the whole family and they would go on drawing as work.
+        return KIND_RESULT
     if name.startswith(_FINDING_PREFIXES) or _FINDING_TOKEN in name.upper():
         # AFTER the alarm test above, which is what keeps `WORKER_FINDING_REPEATING_ALARM_` an
         # alarm: a repeating alarm carries the finding token in its name and is not a finding.
@@ -371,7 +421,11 @@ def room_for(kind: str) -> str | None:
         return REFERENCE_DIRNAME
     if kind == KIND_CONSOLE:
         return CONSOLE_DIRNAME
-    if kind == KIND_PREREGISTRATION:
+    if kind in (KIND_PREREGISTRATION, KIND_RESULT):
+        # ONE ROOM FOR BOTH HALVES OF THE PAIR. A result in `done/` and its prediction in
+        # `records/` would make "was the prediction filed before the answer" a question about two
+        # rooms, and this module's own history says a control keyed to a structure that moved goes
+        # quiet rather than loud.
         return RECORDS_DIRNAME
     return None
 
