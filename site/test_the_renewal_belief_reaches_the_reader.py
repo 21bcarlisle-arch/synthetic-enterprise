@@ -187,16 +187,59 @@ def test_the_renewal_belief_reading_reaches_the_rendered_page(live, live_block):
         "panel without the reading it exists for.\nrendered: {}".format(live[:600]))
 
 
+def _retire_figure(block: dict, old: float, new: float) -> None:
+    """Replace a figure in EVERY home it has in the block, in place -- numbers AND prose.
+
+    A MUTATION THAT REACHES ONE HOME OF AN OVER-DETERMINED OBSERVABLE CANNOT TELL THE TWO ANSWERS
+    APART. `belief.auc` used to live in exactly one field. Since `d533d9a93` the producer derives
+    `sentence` from the repetition block, and that sentence quotes the first draw's AUC back to the
+    reader in words ("the belief read 0.6706 clear and the ceiling did not") -- so the same figure
+    now has a numeric home and a prose home, and `repetition.draws[].auc` is a third. The page
+    renders `sentence` verbatim from the feed, which the leg below this one proves. Mutating only
+    the numeric home therefore left the old figure legitimately on the page and the "old ones are
+    gone" assertion read that as the page appending a literal.
+
+    So the fix is to make the mutation TOTAL rather than to drop the assertion. The property is
+    worth keeping exactly as it was -- a page that renders both the old and the new figure is a
+    page that appended -- and it is only testable if every copy of the old figure in the feed is
+    retired first. Anything surviving in the render after this is the PAGE's own literal, which is
+    the defect the leg exists for.
+
+    Keyed to the property, not to today's field list: this walks whatever the block holds, so a
+    producer that gives the figure a FOURTH home does not silently blind the leg the way the third
+    one did.
+    """
+    old_text, new_text = "{:.4f}".format(old), "{:.4f}".format(new)
+
+    def walk(node):
+        if isinstance(node, dict):
+            return {k: walk(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [walk(v) for v in node]
+        if isinstance(node, float) and abs(node - old) < 1e-9:
+            return new
+        if isinstance(node, str):
+            return node.replace(old_text, new_text)
+        return node
+
+    block.update(walk(block))
+
+
 def test_every_figure_in_the_block_is_the_FEEDS(live_block):
     """MUTATE THE NUMBERS AND THE PAGE MUST FOLLOW. A literal reds here and passes on the feed.
 
     All four figures at once, deliberately: the defect this catches is a page that hard-codes what
     it saw once, and it does not hard-code one number at a time.
+
+    The mutation is applied through `_retire_figure` so it reaches every home each figure has --
+    see there for what a one-home mutation could not tell apart.
     """
     feed = _mutate(
         belief=dict(live_block["belief"], auc=0.1234, null_95_low=0.1111, null_95_high=0.2222),
         ceiling=dict(live_block["ceiling"], auc=0.9876, null_95_low=0.3333, null_95_high=0.4444),
     )
+    _retire_figure(feed[BLOCK], live_block["belief"]["auc"], 0.1234)
+    _retire_figure(feed[BLOCK], live_block["ceiling"]["auc"], 0.9876)
     rendered = _render(feed)
     for figure in ("0.1234", "0.1111", "0.2222", "0.9876", "0.3333", "0.4444"):
         assert figure in rendered, (

@@ -89,6 +89,7 @@ from tools.stale_copy_refusal import (
     Dead,
     Unparseable,
     blob_at,
+    clock_judge,
     cuts_among,
     dead_among,
     judge,
@@ -321,14 +322,73 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         supplies = tuple(sorted(work_names - head_names))
         drops = tuple(sorted(head_names - work_names))
         if supplies:
+            # `--base-wins` MUST BE CONSULTED HERE TOO, AND IT WAS NOT -- so the flag was shut for
+            # the whole population it was built for. This branch returned unconditionally on
+            # `supplies`, several screens ABOVE the Python branch's `base_wins` consultation, so a
+            # `.json` path never reached it. And a leaf name carries its own value, so a REGENERATED
+            # data artefact -- same schema, every figure moved -- "supplies" every leaf it holds by
+            # construction. A stale regeneration is exactly the copy `--base-wins` exists to
+            # discard, and it was the one copy that could never get there.
+            #
+            # Measured 2026-09-23 on the three feed inputs the capabilities publisher reads:
+            # `svt_drift_belief_grade.json` and the two `ladder_churn_factors*.json`. All three
+            # graded `predates_landing` by the clock, all three refused here, and `--base-wins`
+            # refused them byte-identically -- which is what a flag that is never read looks like.
+            # The two ladder copies carry ZERO structurally novel keys; every "supplied name" is a
+            # changed value of a key the base already has.
+            #
+            # THE CONDITION IS THE CLOCK'S, NOT THE OPERATOR'S, exactly as in the Python branch: a
+            # file older than the landing it would revert cannot be carrying work built on that
+            # landing. Nothing below takes the operator's word for it, and the copy is preserved on
+            # a ref before any byte is written.
+            #
+            # AND IT ASKS `clock_judge`, NOT `judge`, WHICH IS THE SECOND HALF OF THE SAME DEFECT.
+            # `judge` opens with `Path(path).suffix not in READABLE -> None`, and READABLE is
+            # `.html/.js/.py`. It is STRUCTURALLY UNABLE to have a complaint about a `.json`, so
+            # gating a data path on it agrees with every answer by returning None to all of them --
+            # the branch above would have been as unreachable as the flag it was restoring. The
+            # module docstring says this flag "is gated on the CLOCK (`BASE_WINS_RULES`)", and
+            # `clock_judge` is the oracle that name refers to: it reads the three paths measured
+            # here as `predates_landing_by_clock` / `predates_landing_carrying_some` where `judge`
+            # reads all three as no complaint.
+            #
+            # `BASE_WINS_RULES` IS NOT WIDENED TO MATCH. It admits PREDATES and CLOCK and still
+            # excludes PARTIAL (`predates_landing_carrying_some`), so the two `ladder_churn_factors`
+            # copies are still refused, by name. Whether "carries some of the landing's distinctive
+            # lines" means anything about a JSON document -- where a line is a value, not a
+            # statement -- is a real question and not one to answer silently inside a door that
+            # DISCARDS bytes. It is filed rather than assumed.
+            clock = clock_judge(root, path, head_text, work_text, parent=base) if base_wins else None
+            if clock is not None and clock.rule in BASE_WINS_RULES:
+                return Verdict(path, REFRESHABLE,
+                               "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
+                               "refuses this data copy [{}] against {} ({}), so the clock -- not "
+                               "the operator -- has established it cannot be carrying work built "
+                               "on that landing. The {} leaf/leaves it supplies are the older "
+                               "draft of the {} it drops. No landing door applies to a regenerated "
+                               "data artefact -- there is no hunk that takes the work without the "
+                               "revert -- so discarding it is the only enactment of the base "
+                               "winning.".format(
+                                   clock.rule, base,
+                                   clock.commit[:9] if clock.commit else "no commit",
+                                   len(supplies), len(drops)),
+                               gains=supplies, drops=drops,
+                               discarded=_discarded_lines(head_text, work_text))
             return Verdict(path, SUPPLIES_NEW,
                            "this copy supplies {} JSON leaf/leaves {} does not have (e.g. {}), so "
                            "it is NOT a copy {} supersedes. A leaf name carries its own value, so "
                            "this counts a key the base lacks and a key whose VALUE was edited "
                            "alike -- both are content the refresh would destroy. Decide which "
-                           "document wins and land it deliberately.".format(
+                           "document wins and land it deliberately.{}".format(
                                len(supplies), base,
-                               ", ".join(s.split("=")[0] for s in supplies[:3]), base),
+                               ", ".join(s.split("=")[0] for s in supplies[:3]), base,
+                               "" if not base_wins else
+                               " `--base-wins` DOES NOT REACH THIS COPY: the stale-copy control's "
+                               "verdict on it is [{}], not one of {}, so nothing but your word "
+                               "says the copy is the older draft -- and that word is what the flag "
+                               "exists not to take.".format(
+                                   "no complaint" if clock is None else clock.rule,
+                                   "/".join(BASE_WINS_RULES))),
                            gains=supplies)
         if not drops:
             return Verdict(path, NOT_SUPERSEDED,

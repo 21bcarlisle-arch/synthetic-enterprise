@@ -246,15 +246,20 @@ class TestPublishedShape:
 
 
 class TestWiredIntoThePublishPath:
-    def test_the_publish_path_actually_uses_the_ledger(self):
+    def test_the_publish_path_actually_uses_the_ledger(self, publish_path_body):
         """R11's shape on a mechanism: a ledger nothing calls measures nothing. If the
-        conversion in `generate_dashboard_json` is ever reverted to a bare `except
-        Exception: log(...)`, this goes red."""
+        conversion in the publish path is ever reverted to a bare `except
+        Exception: log(...)`, this goes red.
+
+        THE SUBJECT IS RESOLVED, NOT NAMED, and this leg is why. It read
+        `getsource(generate_dashboard_json)` until 2026-09-23; `cc5cc0032` wrapped that entry
+        point and moved the body one function down, so this read four lines of wrapper that
+        contain no ledger and went red at HEAD with the property fully intact. It was one of the
+        four reds holding the publisher at `episode_clean_publishes: 0`. See the
+        `publish_path_body` fixture in `tests/conftest.py`."""
         import inspect
 
-        from background import process_run_complete as prc
-
-        src = inspect.getsource(prc.generate_dashboard_json)
+        src = inspect.getsource(publish_path_body)
         assert "_ledger = PublishStepLedger(" in src
         assert "_ledger.write()" in src
         assert "_ledger.notify_on_transition()" in src
@@ -263,15 +268,14 @@ class TestWiredIntoThePublishPath:
                      "Portfolio event stream generation"):
             assert '_ledger.step("{}"'.format(step) in src, step
 
-    def test_the_five_evidenced_failures_are_all_covered(self):
+    def test_the_five_evidenced_failures_are_all_covered(self, publish_path_body):
         """The finding's evidence table names five steps that actually fired (130/131/32/
         31/31 times). Each must be wrapped, or the class fix does not reach the instances
-        that proved the class."""
+        that proved the class. Subject resolved past the entry point's wrapper -- see the leg
+        above."""
         import inspect
 
-        from background import process_run_complete as prc
-
-        src = inspect.getsource(prc.generate_dashboard_json)
+        src = inspect.getsource(publish_path_body)
         for step in ("Customer data generation", "Customer sample generation",
                      "Billing ledger generation", "Invoice data generation"):
             assert '_ledger.step("{}"'.format(step) in src, step

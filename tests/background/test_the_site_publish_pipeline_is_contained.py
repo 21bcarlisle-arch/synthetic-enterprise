@@ -136,14 +136,21 @@ def test_the_published_feed_dirs_are_the_ones_that_were_actually_polluted():
 # blind to whether production wires it).
 # ===========================================================================
 
-def test_the_publish_pipeline_actually_calls_the_guard_first():
+def test_the_publish_pipeline_actually_calls_the_guard_first(publish_path_body):
     """POSITION IS THE PROPERTY, not merely presence. The coverage gate on the next
     line writes too, so a guard placed after it still leaks. This asserts the call is
     the FIRST statement of the function body after its docstring.
 
     MUTATION: move the call below `_cohort_coverage_gate_permits_publish()`, or delete
-    it -- both red."""
-    fn = ast.parse(textwrap.dedent(inspect.getsource(prc.generate_dashboard_json))).body[0]
+    it -- both red.
+
+    THE SUBJECT IS THE RESOLVED BODY, not the entry point by name. `cc5cc0032` wrapped
+    `generate_dashboard_json` in `with refuse_stale_producers():` and moved the body down; this
+    then measured the position of a statement inside a four-line wrapper and went red at HEAD
+    while the guard was still, correctly, the first statement of the path. The `publish_path_body`
+    fixture in `tests/conftest.py` follows the delegation, so the question stays "is the guard
+    first in what actually runs" across any future re-wrapping."""
+    fn = ast.parse(textwrap.dedent(inspect.getsource(publish_path_body))).body[0]
     body = [n for n in fn.body if not (isinstance(n, ast.Expr)
                                        and isinstance(n.value, ast.Constant)
                                        and isinstance(n.value.value, str))]
@@ -153,6 +160,60 @@ def test_the_publish_pipeline_actually_calls_the_guard_first():
     assert getattr(first.value.func, "id", None) == "guard_site_publish_pipeline", (
         "generate_dashboard_json does not call guard_site_publish_pipeline first; "
         f"it starts with {ast.dump(first.value.func)}")
+
+
+def test_the_delegation_resolver_follows_a_wrapper_and_STOPS_at_real_work():
+    """THE RESOLVER IS ITSELF A CONTROL AND MUST BE ABLE TO FAIL BOTH WAYS.
+
+    Three controls over the publish path now ask `resolve_through_delegation` what their subject
+    is, so a resolver that walked too far would move all three onto the wrong function and they
+    would pass while measuring nothing -- the fail-OPEN direction, and worse than the red it
+    replaced. Under-walking is fail-closed (the caller reads the wrapper, finds the property
+    absent and reds: exactly the wedge this repaired), so the legs are weighted at over-walking.
+
+    The live leg is the one that matters and is asserted first: on today's tree it must land on
+    the function that actually holds the body, not on the entry point."""
+    from tests.conftest import resolve_through_delegation as resolve
+
+    # LIVE: the wrapper is followed to the body.
+    body = resolve(prc.generate_dashboard_json, prc)
+    assert body is not prc.generate_dashboard_json, (
+        "the resolver did not follow generate_dashboard_json's wrapper -- the three controls "
+        "that depend on it are measuring four lines of delegation")
+    assert "_cohort_coverage_gate_permits_publish" in inspect.getsource(body)
+
+    # NULL CONTROL: a function that is ALREADY the body resolves to itself, so the leg above is
+    # about following a wrapper and not about the resolver simply always moving.
+    assert resolve(body, prc) is body
+
+    # AND IT STOPS AT REAL WORK. Each of these is a shape that must NOT be followed.
+    import types
+
+    def _one_liner():
+        return 1
+
+    module = types.ModuleType("fixture")
+    module.target = _one_liner
+    cases = {
+        "does work before delegating":
+            "def f():\n    log('x')\n    return target()\n",
+        "delegates but also returns elsewhere":
+            "def f():\n    if x:\n        return target()\n    return None\n",
+        "returns something that is not a call":
+            "def f():\n    return target\n",
+    }
+    for why, src in cases.items():
+        ns = {}
+        exec(compile(src, "<{}>".format(why), "exec"), ns)  # noqa: S102 -- fixture source
+        fn = ns["f"]
+        # `inspect.getsource` cannot read an exec'd function, and the resolver's own except
+        # clause returns `fn` for that -- which would pass this loop for the WRONG reason. So the
+        # source is supplied the way inspect finds it, via linecache.
+        import linecache
+        name = "<{}>".format(why)
+        linecache.cache[name] = (len(src), None, src.splitlines(True), name)
+        fn.__code__ = fn.__code__.replace(co_filename=name)
+        assert resolve(fn, module) is fn, why
 
 
 def test_the_site_publish_guard_is_imported_at_top_level_with_no_try():

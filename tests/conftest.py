@@ -205,6 +205,80 @@ def sample_ssp_series():
 def sample_date_range():
     return ("2016-01-01", "2016-03-31")
 
+def resolve_through_delegation(fn, module):
+    """The function that actually holds `fn`'s BODY, following thin wrappers that only delegate.
+
+    THE DEFECT THIS SERVES, and it cost the publisher a wedge. Four controls over the publish path
+    each did `inspect.getsource(process_run_complete.generate_dashboard_json)` and asked something
+    of the text: that it constructs the step ledger, that it wraps four named generator steps, that
+    the test-process guard is the FIRST statement, and that the function ends by returning the
+    accumulated verdict rather than a literal. Every one of those properties is real and every one
+    of them is still true. `cc5cc0032` wrapped the entry point so the refusal it installs can be
+    lifted again on the way out, moving the body to `_generate_dashboard_json` and leaving
+
+        def generate_dashboard_json(json_path, git_hash="unknown"):
+            with refuse_stale_producers():
+                return _generate_dashboard_json(json_path, git_hash=git_hash)
+
+    behind it. All four controls then read four lines that contain none of what they check, and all
+    four went red AT HEAD -- graded in a clean extract of `c50ea7f0b`, 2026-09-23. That red is what
+    `.publish_gate_state.json` carried as `episode_clean_publishes: 0` across 26 failures: one
+    refactor, four blind controls, and a publisher that could not publish.
+
+    SO THE SUBJECT IS RESOLVED, NOT NAMED. Re-pointing the four at `_generate_dashboard_json` would
+    fix today and re-arm the identical trap for the next seat that has a good reason to wrap the
+    entry point again -- and there was a good reason this time. This asks the question the controls
+    mean: whatever `generate_dashboard_json` ULTIMATELY RUNS.
+
+    A delegation is recognised narrowly, so that a function doing real work is never mistaken for a
+    wrapper and silently skipped: the whole body, docstring aside, must be ONE statement, and it
+    must contain exactly one `return <same-module function>(...)`. `with` blocks count, which is
+    the shape above; a body with two statements, a bare call, or a return of anything else stops
+    the walk. Stopping is the FAIL-CLOSED direction -- the caller then reads the wrapper, finds the
+    property absent and reds, which is what happened here. Following too far is the dangerous one,
+    and the narrowness is aimed at that.
+    """
+    import ast
+    import inspect
+    import textwrap
+    import types
+
+    seen = set()
+    while True:
+        try:
+            tree = ast.parse(textwrap.dedent(inspect.getsource(fn))).body[0]
+        except (OSError, TypeError, SyntaxError, IndexError):
+            return fn
+        body = [n for n in tree.body
+                if not (isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant)
+                        and isinstance(n.value.value, str))]
+        if len(body) != 1:
+            return fn
+        returns = [n for n in ast.walk(body[0]) if isinstance(n, ast.Return)]
+        if len(returns) != 1 or not isinstance(returns[0].value, ast.Call):
+            return fn
+        called = returns[0].value.func
+        if not isinstance(called, ast.Name):
+            return fn
+        nxt = getattr(module, called.id, None)
+        if not isinstance(nxt, types.FunctionType) or nxt is fn or nxt in seen:
+            return fn
+        seen.add(fn)
+        fn = nxt
+
+
+@pytest.fixture
+def publish_path_body():
+    """`process_run_complete`'s publish path, resolved past its wrapper.
+
+    The subject of every source-shape control over the publish path. See
+    `resolve_through_delegation` for the wedge that produced it.
+    """
+    from background import process_run_complete as prc
+
+    return resolve_through_delegation(prc.generate_dashboard_json, prc)
+
+
 @pytest.fixture(autouse=True, scope="session")
 def fast_mode():
     """Set SIM_FAST_MODE=1 for all tests by default (session-level).
