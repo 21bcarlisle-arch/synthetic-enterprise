@@ -38,7 +38,7 @@ WHAT STOPS THIS BEING `git checkout` WITH A NICER NAME. Three things, and they a
      THE PERSON THEN HAD ONE ANSWER THEY COULD NOT ENACT. "The copy wins" is a landing; "the base
      wins" is a discard, and nothing legal here discarded anything, so a REPLACEMENT resolved for
      the base sat in the tree permanently and the stale-copy door refused every landing over it.
-     `--base-wins` is that enactment, and it is gated on the CLOCK (`BASE_WINS_RULES`) and not on
+     `--base-wins` is that enactment, and it is gated on the CLOCK (`base_wins_rules`) and not on
      the person, because the person's word is what `git checkout <path>` already takes.
   2. HEAD MUST ACTUALLY SUPERSEDE IT. `stale_copy_refusal.judge` must have a complaint about this
      copy. Keyed to the PROPERTY (this copy would revert a landing), not to a path anyone listed:
@@ -84,6 +84,7 @@ from pathlib import Path
 from tools.stale_copy_refusal import (
     CLOCK,
     DATA_SUFFIXES,
+    PARTIAL,
     PREDATES,
     READABLE,
     Dead,
@@ -128,10 +129,53 @@ REPLACEMENT = "refused_replacement_no_landable_hunk"
 #: `UNPARSEABLE` is a failed check. `None` -- no complaint at all -- is the one this must refuse
 #: hardest: that is an ordinary edit, and admitting it makes the flag `git checkout <path>`.
 BASE_WINS_RULES = (PREDATES, CLOCK)
+#: AND THE SAME SET PLUS `PARTIAL` FOR A DOCUMENT WHOSE LINES ARE VALUES -- see `base_wins_rules`,
+#: which is where the measurement that licenses the difference is written down.
+BASE_WINS_DATA_RULES = BASE_WINS_RULES + (PARTIAL,)
 #: Supplies names, but NOT ONE of them can run against the base -- see `stale_copy_refusal.Dead`.
 #: A refusal by default and writable only under `--superseded`, because a test-first lane looks
 #: exactly like this and the difference is intent, which is not on disk.
 SUPERSEDED_DEAD = "refused_supplies_only_dead_names"
+
+
+def base_wins_rules(path: str) -> tuple[str, ...]:
+    """Which clock verdicts license `--base-wins` on THIS path. `PARTIAL` is admitted for a data
+    document and refused for code, and the difference is measured rather than argued.
+
+    WHAT `PARTIAL` CLAIMS, AND WHY IT IS ONLY TRUE OF CODE. The verdict says the copy is older than
+    its own last landing AND carries some of that landing's distinctive lines, and `BASE_WINS_RULES`
+    excludes it because carrying some of the landing means the copy *may be built on it*. That is an
+    argument about DERIVATION, and it holds only where a shared line is unlikely to arise any other
+    way. For a `.py` a distinctive line is a STATEMENT and two lanes writing the same non-trivial
+    statement independently is rare. For a generated `.json` a line is a KEY AND ITS VALUE, and two
+    runs of one report share a line **whenever the figure did not move** -- which is arithmetic, not
+    derivation.
+
+    MEASURED 2026-09-23, pre-registered in `SEAT_PREREGISTRATION_WHETHER_A_CARRIED_LINE_IS_EVIDENCE_
+    OF_DERIVATION_FOR_A_DATA_ARTEFACT_2026-09-23`. The coincidence rate of a line class = the share
+    of one document's non-trivial, within-document-unique lines that also appear in a second
+    document provably in NO derivation relation with it (a sibling report from the same generator
+    over different inputs). Data arm 20.6% and 24.9%; `.py` control arm 0.3%-6.3% over four unrelated
+    module pairs. And on the two live copies this was commissioned for, directly rather than by
+    population: `ladder_churn_factors.json` carries 57 of its landing's 864 distinctive lines and
+    **57 of those 57** appear verbatim in a sibling report that cannot have been derived from that
+    landing; `ladder_churn_factors_svt_segment_decisions.json` carries 1060 of 4187 and 1032 of them
+    do. The carry is coincidence, measured on the files themselves.
+
+    THE CLOCK GUARD IS UNTOUCHED AND IS WHAT KEEPS THIS HONEST. `clock_judge` reaches `PARTIAL` only
+    through `taken_before`, which requires the result blob to BE the file on disk and that file's
+    mtime to predate the landing commit. Widening here does not admit one copy the clock has not
+    already called older than the landing it would revert; it stops a coincidental line-share
+    vouching for a document where the share means nothing. The leaf-level question -- what this copy
+    supplies and drops -- is asked separately and in the document's own terms by `_json_leaf_names`,
+    and it is unchanged.
+
+    THE ORDERING THIS EXPOSES, which is the reason it reads better than it looked. `PREDATES`
+    (carries ZERO of the landing) is admitted and always was; `PARTIAL` (carries a handful by
+    coincidence) was refused. So the data copy sharing NOTHING with the landing was discardable and
+    the one sharing 6.6% was protected -- and if the share is coincidence those are the same copy in
+    two states, split by noise. Fixing it makes the door's behaviour monotone in the evidence."""
+    return BASE_WINS_DATA_RULES if Path(path).suffix in DATA_SUFFIXES else BASE_WINS_RULES
 
 
 class RefreshError(RuntimeError):
@@ -258,7 +302,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     ENACTS_THE_BASE_WINNING_2026-09-22` names two files that had sat in the shared tree wedging
     every lane that touches them, with the door working correctly and the tree stuck anyway.
     Rules 2 and 3 are unchanged in full: `judge` must still refuse the copy -- and now with a rule
-    from `BASE_WINS_RULES`, which is strictly stronger than rule 2's "has a complaint" -- and the
+    from `base_wins_rules`, which is strictly stronger than rule 2's "has a complaint" -- and the
     bytes are still preserved and the recovery still verified before one is written.
 
     THE WRITE IS STILL HEAD'S BYTES, AND THAT IS NOT AN INCONSISTENCY. `refresh` clears a path by
@@ -347,19 +391,22 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
             # `.html/.js/.py`. It is STRUCTURALLY UNABLE to have a complaint about a `.json`, so
             # gating a data path on it agrees with every answer by returning None to all of them --
             # the branch above would have been as unreachable as the flag it was restoring. The
-            # module docstring says this flag "is gated on the CLOCK (`BASE_WINS_RULES`)", and
+            # module docstring says this flag "is gated on the CLOCK (`base_wins_rules`)", and
             # `clock_judge` is the oracle that name refers to: it reads the three paths measured
             # here as `predates_landing_by_clock` / `predates_landing_carrying_some` where `judge`
             # reads all three as no complaint.
             #
-            # `BASE_WINS_RULES` IS NOT WIDENED TO MATCH. It admits PREDATES and CLOCK and still
-            # excludes PARTIAL (`predates_landing_carrying_some`), so the two `ladder_churn_factors`
-            # copies are still refused, by name. Whether "carries some of the landing's distinctive
-            # lines" means anything about a JSON document -- where a line is a value, not a
-            # statement -- is a real question and not one to answer silently inside a door that
-            # DISCARDS bytes. It is filed rather than assumed.
+            # AND THE RULE SET IS THE DATA ONE, WHICH IS THE QUESTION THAT WAS LEFT OPEN HERE.
+            # Until 2026-09-23 this read `BASE_WINS_RULES`, excluding PARTIAL, with the note that
+            # whether "carries some of the landing's distinctive lines" means anything about a
+            # document where a line is a VALUE and not a statement was a real question and not one
+            # to answer silently inside a door that DISCARDS bytes. It was measured instead of
+            # assumed -- see `base_wins_rules`, which carries the numbers -- and the answer is that
+            # for these two files 57/57 and 1032/1060 of the carried lines appear verbatim in a
+            # sibling report that cannot have been derived from the landing. So it is coincidence,
+            # and `base_wins_rules` admits PARTIAL for `DATA_SUFFIXES` and for nothing else.
             clock = clock_judge(root, path, head_text, work_text, parent=base) if base_wins else None
-            if clock is not None and clock.rule in BASE_WINS_RULES:
+            if clock is not None and clock.rule in base_wins_rules(path):
                 return Verdict(path, REFRESHABLE,
                                "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
                                "refuses this data copy [{}] against {} ({}), so the clock -- not "
@@ -388,7 +435,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "says the copy is the older draft -- and that word is what the flag "
                                "exists not to take.".format(
                                    "no complaint" if clock is None else clock.rule,
-                                   "/".join(BASE_WINS_RULES))),
+                                   "/".join(base_wins_rules(path)))),
                            gains=supplies)
         if not drops:
             return Verdict(path, NOT_SUPERSEDED,
@@ -450,7 +497,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
             # the copy, which `git checkout <path>` is and which is walled. So the copy stayed,
             # and the stale-copy door refused every landing over it forever.
             clock = judge(root, path, head_text, work_text, parent=base) if base_wins else None
-            if clock is not None and clock.rule in BASE_WINS_RULES:
+            if clock is not None and clock.rule in base_wins_rules(path):
                 return Verdict(path, REFRESHABLE,
                                "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
                                "refuses this copy [{}] against {} ({}), so the clock -- not the "
@@ -477,7 +524,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "says the copy is the older draft -- and that word is what the "
                                "flag exists not to take.".format(
                                    "no complaint" if clock is None else clock.rule,
-                                   "/".join(BASE_WINS_RULES))),
+                                   "/".join(base_wins_rules(path)))),
                            gains=live, drops=drops)
         return Verdict(path, SUPPLIES_NEW,
                        "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
