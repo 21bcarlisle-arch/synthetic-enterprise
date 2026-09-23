@@ -78,6 +78,37 @@ exactly as `tests/tools/test_a_published_surface_is_reproducible_from_its_commit
 it. Any OTHER git failure is a refusal, not a fallback: a control over what is committed must not go
 green because it could not find out.
 
+AND WHAT THAT MADE THIS MODULE BLIND TO — measured 2026-09-23, after it had held the publisher for
+two days. Standing at HEAD is the right baseline for the question "were these committed bytes
+hand-edited", and it is STRUCTURALLY unable to see the opposite defect: **a producer edited in the
+working tree whose derived artefact was never re-run.** At HEAD that edit does not exist, so the
+producer and the artefact agree there and the check reports a clean sweep — about a tree nobody is
+about to commit.
+
+The instance. `tools/churn_belief_size_response.py` was edited in place with a new origin sentence;
+`docs/observability/churn_belief_size_response.json` was never regenerated and stayed exactly at
+HEAD; `site/data/value_arms.json` was then regenerated FROM that stale intermediate and carried the
+old caveat under a fresh `generated_at`. The lane's own new site leg
+(`site/test_the_flat_churn_belief_reaches_the_reader.py::test_the_unsourced_threshold_is_MARKED_where
+_a_reader_meets_it`) failed against the lane's own stale output, and a red `site/**` test refuses
+EVERY commit in the site lane — including the publisher's, which is nobody's commit.
+`episode_clean_publishes` sat at 0 and `last_clean_publish` was frozen from 2026-09-21 19:15.
+
+THE PUBLISHER GATES THE WORKING TREE AND THIS CHECK GATED HEAD. Two trees, and only one of them can
+refuse a commit. So `check(working_tree=True)` grades the OTHER one: a `--shared` clone at HEAD
+(keeping the `.git` five generators need) with the working tree's own dirty, added, untracked and
+deleted paths laid over it, and the baseline taken from those same bytes. The shared tree is still
+never written. The two modes answer different questions and neither replaces the other — HEAD mode
+asks "were the committed bytes edited downstream of their source", working-tree mode asks "is what
+this tree is about to commit self-consistent" — so a caller must pick, and `check()` defaults to
+HEAD exactly as before.
+
+WHAT IS WATCHED IS WIDER THAN `site/data` FOR THE SAME REASON. The stale file in that chain was
+`docs/observability/churn_belief_size_response.json`, an INTERMEDIATE: a published feed's input, not
+a published feed. Watching only `site/data` would have seen `value_arms.json` diverge and named the
+wrong producer. `WATCHED_DERIVED_ARTEFACTS` names such artefacts by path; which generator owns one
+is still OBSERVED by running it, never declared.
+
 ────────────────────────────────────────────────────────────────────────────────────────────────
 THE SECOND RELATION KIND: A DERIVED ARTEFACT AND THE PRODUCER THAT WRITES IT
 ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -285,6 +316,52 @@ NOT_A_FUNCTION_OF_ITS_COMMIT = {
 }
 
 
+#: Derived artefacts that are an INPUT to a published feed and do NOT live in `site/data`, and the
+#: producer of each. This is the POPULATION the comparison can see — not a claim that any of them
+#: reproduces. What each one actually does is measured; `COVERED_DERIVED_ARTEFACTS` below is the
+#: subset that has earned a red.
+#:
+#: WHY THIS EXISTS AT ALL, 2026-09-23. `site/data/value_arms.json` is a published feed and
+#: `docs/observability/churn_belief_size_response.json` is where its churn-belief block comes from,
+#: copied through by `tools/generate_value_arms_data._churn_belief_size_response`. A stale
+#: intermediate republishes as a fresh-looking feed: `generated_at` moves, the caveat under it does
+#: not. Watching only `site/data` would have shown `value_arms.json` diverging and pointed at
+#: `generate_value_arms_data`, which was working perfectly.
+#:
+#: KEYED BY PATH, NOT BY DIRECTORY, because `docs/observability/` holds 134 JSON files and most are
+#: daemon state that changes under any reader. A directory glob would make the baseline a moving
+#: target. Naming the artefact keeps the POPULATION a property of this table and keeps OWNERSHIP a
+#: property of what the generator was observed to write, which is the split the rest of the module
+#: is built on.
+WATCHED_DERIVED_ARTEFACTS = {
+    "docs/observability/churn_belief_size_response.json": "churn_belief_size_response",
+}
+
+#: The subset of `WATCHED_DERIVED_ARTEFACTS` that IS a function of its commit, so a divergence
+#: there is a defect rather than a fact about the world. Read by `covered_generators`, so this is
+#: what the commit-time control reds on and what the publish path in
+#: `background/process_run_complete` runs every cycle.
+#:
+#: EMPTY IS THE MEASURED ANSWER, NOT AN UNFINISHED LIST — and the measurement is worth more than
+#: the emptiness. Regenerated in a clone at HEAD on 2026-09-23,
+#: `churn_belief_size_response.json` diverges on 35 keys, and only one of them is the
+#: working-tree edit this mode was built for. The rest is the artefact being STALE against its own
+#: code: `/knee/by_rate[*]/knee_kwh` is 20000.5 / 12000.1 / 7500.6 in the committed bytes and 1.0
+#: at every probe rate now, so the published "the knee is a bill at GBP 3,000 and the belief is
+#: flat below it" is refuted by the tree it is published from —
+#: `the_knee_is_a_bill_not_a_consumption` regenerates FALSE. Putting it in the covered set today
+#: would red every commit in every lane for a defect in neither, which is the shape this module's
+#: own docstring refuses. Filed instead:
+#: `docs/staging/SEAT_FINDING_THE_PUBLISHED_CHURN_KNEE_IS_GBP_3000_AND_THE_CODES_KNEE_IS_GBP_0_1_2026-09-23.md`.
+#:
+#: It is not swept as evidence of anything:
+#: `tests/tools/test_the_feed_check_can_grade_the_working_tree.py
+#: ::test_a_watched_derived_artefact_that_reproduces_must_be_promoted` asserts over
+#: `WATCHED_DERIVED_ARTEFACTS` and reds the moment one starts reproducing, so this set can only
+#: grow and cannot quietly stay a record of what was true today.
+COVERED_DERIVED_ARTEFACTS: dict[str, str] = {}
+
+
 #: The feeds asked the SECOND question below — "does this reproduce at the commit it says it was
 #: published from?" — and the generator that writes each. A CANDIDATE list, not a covered set:
 #: membership here says only that the feed records exactly one commit, which is a property of its
@@ -332,8 +409,8 @@ PROVENANCE_IS_NOT_THE_INPUT_DESCRIPTION = (
 
 
 def covered_generators() -> list[str]:
-    """The generators behind `COVERED_FEEDS`, deduplicated and ordered."""
-    return sorted(set(COVERED_FEEDS.values()))
+    """The generators behind `COVERED_FEEDS` and `COVERED_DERIVED_ARTEFACTS`, deduped and ordered."""
+    return sorted(set(COVERED_FEEDS.values()) | set(COVERED_DERIVED_ARTEFACTS.values()))
 
 
 def _is_ancestor_commit(root: Path, sha: str) -> bool:
@@ -516,16 +593,103 @@ def _why_the_clone_failed(stderr: str, tmp: Path) -> str:
     return f"could not clone the tree under test ({free} MB free in {tmp}): {said}"
 
 
+#: Per-file ceiling on what the working-tree overlay copies, and the reason there has to be one.
+#: Measured in this tree on 2026-09-23: 605 dirty or untracked files totalling 600 MB, of which
+#: 540 MB is SEVENTEEN append-only logs — `docs/observability/supervisor-log.md` alone is 350 MB.
+#: Copying those into every private tree would cost a minute and a gigabyte to overlay files no
+#: generator reads. Under the cap it is 588 files and 60 MB, and the overlay takes about a second.
+#:
+#: THE CAP DOES NOT APPLY TO A WATCHED ARTEFACT. `site/data/simplified.json` is 3.5 MB and dirty
+#: right now. Leaving that one at HEAD's bytes would take the baseline from a different tree than
+#: the regeneration and report the difference as a divergence — the population being graded is
+#: never skipped, whatever it weighs.
+#:
+#: AND NOTHING IS SKIPPED SILENTLY. `_Tree.skipped_overlay` carries every path with its size and
+#: `check(working_tree=True)` emits them as a `WORKING_TREE_PARTIAL` row, because a bound nobody
+#: states reads as a sweep that covered everything.
+_OVERLAY_FILE_CAP_BYTES = 2 * 1024 * 1024
+
+
+def _is_watched(rel: str) -> bool:
+    """Is this repo-relative path part of the population being graded?
+
+    A PROPERTY OF THE PATH, never of what the clone happens to carry. Asking the clone — "is there
+    a file of this name in its `site/data` already" — was the first draft and it was wrong in the
+    one direction that matters: an untracked NEW feed does not exist at HEAD, so the clone has no
+    copy, so it read as not-watched and the size cap applied to the very file the mode was built to
+    grade. Caught by `test_a_file_the_overlay_skipped_is_reported_and_never_silent`'s second half.
+    """
+    return (rel in WATCHED_DERIVED_ARTEFACTS
+            or (rel.startswith(f"{FEED_DIR}/") and rel.endswith(".json")))
+
+
+def _working_tree_paths(root: Path) -> list[str]:
+    """Every repo-relative path where the working tree differs from HEAD.
+
+    `git status --porcelain -z -uall` rather than a diff, for two reasons measured rather than
+    assumed. An UNTRACKED producer is exactly the shape this mode exists for and no diff against
+    HEAD can see one; and `-uall` is needed because the default collapses an untracked directory
+    to `dir/`, which is not a path anything can copy.
+
+    Renames arrive as two entries and both are returned — the old path and the new one — because
+    what each MEANS is settled downstream by whether it exists on disk, not by parsing the status
+    letters. That is the whole rule the overlay uses, and it is why no status code is enumerated
+    anywhere here: a code table would have to grow a row every time git learned a new combination,
+    and `AD` (added to the index, deleted in the tree) is already a combination that reads as an
+    addition and means the file is gone.
+    """
+    done = _git(root, "status", "--porcelain", "-z", "-uall")
+    if done.returncode != 0:
+        raise RegenerationCheckRefused(
+            "could not read the working tree's changes, so a working-tree grade would be a grade "
+            f"of HEAD under another name: {done.stderr.strip()[-300:]}"
+        )
+    fields = [f for f in done.stdout.split("\0") if f]
+    paths: list[str] = []
+    index = 0
+    while index < len(fields):
+        entry = fields[index]
+        index += 1
+        if len(entry) < 4:
+            continue
+        status, path = entry[:2], entry[3:]
+        paths.append(path)
+        if status[0] in "RC" and index < len(fields):
+            # The rename's source, which git emits as a bare path in the next field.
+            paths.append(fields[index])
+            index += 1
+    return paths
+
+
 class _Tree:
     """A private, writable copy of the tree under test, at the committed bytes.
 
     A clone when HEAD resolves; a file copy of the working tree when it does not (see the module
     docstring's named exception). Either way, writing in it cannot reach the shared tree.
+
+    With `working_tree=True` the clone is then made to BE the working tree — every path git reports
+    as changed is copied in, or deleted if it is gone from disk. See `_overlay_working_tree`.
     """
 
-    def __init__(self, root: Path, tmp: Path, ordinal: int, at_commit: str | None = None):
+    def __init__(self, root: Path, tmp: Path, ordinal: int, at_commit: str | None = None,
+                 working_tree: bool = False):
         self.path = tmp / f"tree{ordinal}"
         self._cloned = head_resolves(root)
+        self.working_tree = working_tree
+        #: Repo-relative paths this tree carries the WORKING copy of, and what the overlay left
+        #: behind. Both empty in HEAD mode, and both read by `restore_feeds` and by `check`.
+        self.overlaid: set[str] = set()
+        self.skipped_overlay: list[dict] = []
+        #: Set only once the overlay has run, and the flag `restore_feeds` reads to decide whether
+        #: the baseline is HEAD's bytes or the working tree's. A separate field from `working_tree`
+        #: on purpose: a no-HEAD checkout IS the working tree and has nothing to re-overlay.
+        self._overlay_root: Path | None = None
+        if working_tree and at_commit:
+            raise RegenerationCheckRefused(
+                f"asked for the working tree AND the standpoint {at_commit[:9]} — those are two "
+                "different trees and answering one question under the other's name is the defect "
+                "this mode was built for"
+            )
         if at_commit and not self._cloned:
             raise RegenerationCheckRefused(
                 f"asked to stand at {at_commit} in a checkout with no resolvable HEAD — there is "
@@ -550,23 +714,110 @@ class _Tree:
                 raise RegenerationCheckRefused(
                     f"could not stand at {at_commit}: {done.stderr.strip()[-300:]}"
                 )
+        #: Which derived artefacts `git checkout` can actually restore here. An artefact that is
+        #: untracked at this standpoint would make the restore command fail as a whole and take
+        #: `FEED_DIR` down with it, so it is asked rather than assumed.
+        self._tracked_derived = [
+            rel for rel in sorted(WATCHED_DERIVED_ARTEFACTS)
+            if self._cloned and _git(self.path, "ls-files", "--error-unmatch", rel).returncode == 0
+        ]
+        if working_tree and self._cloned:
+            self._overlay_working_tree(root)
         if not (self.path / FEED_DIR).is_dir():
             raise RegenerationCheckRefused(
                 f"the tree under test has no {FEED_DIR}/ — refusing to measure an empty feed "
                 "set, because an empty set agrees with every claim ever made"
             )
 
+    def _overlay_working_tree(self, root: Path) -> None:
+        """Make this clone BE the working tree: copy in what changed, remove what is gone.
+
+        EXISTENCE ON DISK DECIDES, and nothing else. A path git reports as changed either has bytes
+        in the working tree — in which case those bytes are the tree being graded — or it does not,
+        in which case the tree being graded does not have that file. That single rule covers every
+        status code including the ones that read as their own opposite (`AD` is an addition to the
+        index and a file that is not there), and it cannot go stale the way a code table would.
+
+        WHAT IT DOES NOT REACH, stated rather than left to be found. A `.gitignore`d input is
+        invisible to `git status` and absent from the clone, exactly as it is in HEAD mode — the
+        module docstring's `sim_data.json` gap is unchanged here, not widened and not repaired.
+        And `_OVERLAY_FILE_CAP_BYTES` skips a large file that is not itself a watched artefact;
+        every one is recorded in `skipped_overlay` with its size and surfaces as a row.
+        """
+        self._overlay_root = root
+        for rel in _working_tree_paths(root):
+            source, target = root / rel, self.path / rel
+            if not source.is_file():
+                # Gone from the working tree — a delete, a rename's source, or an `AD`. The tree
+                # being graded does not have it, so neither does this one.
+                if target.is_file():
+                    target.unlink()
+                    self.overlaid.add(rel)
+                continue
+            size = source.stat().st_size
+            if size > _OVERLAY_FILE_CAP_BYTES and not _is_watched(rel):
+                self.skipped_overlay.append({"path": rel, "bytes": size})
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            self.overlaid.add(rel)
+
     def restore_feeds(self) -> None:
-        """Put the feed directory back to the committed bytes."""
-        if self._cloned:
-            done = _git(self.path, "checkout", "--", FEED_DIR)
-            if done.returncode != 0:
-                raise RegenerationCheckRefused(
-                    f"could not restore {FEED_DIR} in the tree under test: {done.stderr.strip()}"
-                )
+        """Put the watched artefacts back to the bytes this tree is being graded against.
+
+        In HEAD mode that is `git checkout`, and in working-tree mode it is `git checkout` FOLLOWED
+        BY the overlay again — because the baseline in that mode is the working copy, and restoring
+        to HEAD between generators would hand the next generator an input from the other tree and
+        then grade its output against this one.
+
+        The derived artefacts are restored by path alongside `FEED_DIR`. They were not restored at
+        all before this module watched anything outside `site/data`, and leaving them out would let
+        one generator's write become the next one's input silently.
+        """
+        if not self._cloned:
+            return
+        done = _git(self.path, "checkout", "--", FEED_DIR, *self._tracked_derived)
+        if done.returncode != 0:
+            raise RegenerationCheckRefused(
+                f"could not restore {[FEED_DIR, *self._tracked_derived]} in the tree under test: "
+                f"{done.stderr.strip()}"
+            )
+        if self._overlay_root is None:
+            return
+        for rel in sorted(self.overlaid):
+            if not (rel.startswith(f"{FEED_DIR}/") or rel in WATCHED_DERIVED_ARTEFACTS):
+                continue
+            source, target = self._overlay_root / rel, self.path / rel
+            if not source.is_file():
+                if target.is_file():
+                    target.unlink()
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
 
     def feeds(self) -> dict[str, bytes]:
-        return {p.name: p.read_bytes() for p in sorted((self.path / FEED_DIR).glob("*.json"))}
+        """The watched artefacts, keyed by BARE NAME.
+
+        The key is the file name and not the path because two readers outside this module — the
+        commit-time control and the publish path in `background/process_run_complete` — key rows by
+        feed name, and a path-keyed row would read as a feed nobody had ever heard of. A collision
+        between a derived artefact and a `site/data` feed of the same name would silently grade one
+        as the other, so it is refused rather than resolved.
+        """
+        found: dict[str, bytes] = {}
+        for path in sorted((self.path / FEED_DIR).glob("*.json")):
+            found[path.name] = path.read_bytes()
+        for rel in sorted(WATCHED_DERIVED_ARTEFACTS):
+            name = rel.rsplit("/", 1)[-1]
+            if name in found:
+                raise RegenerationCheckRefused(
+                    f"{rel} and {FEED_DIR}/{name} share a file name, so one would be graded as the "
+                    "other and the row would name the wrong producer"
+                )
+            artefact = self.path / rel
+            if artefact.is_file():
+                found[name] = artefact.read_bytes()
+        return found
 
     def run(self, generator: str, timeout_s: int,
             displace_clock: bool = False) -> tuple[dict[str, bytes], str]:
@@ -651,9 +902,9 @@ def _second_observation(second: "_Tree", generator: str, timeout_s: int,
 
 
 def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
-          separate_nondeterminism: bool = True,
+          separate_nondeterminism: bool = True, working_tree: bool = False,
           always_probe_determinism: bool = False) -> list[dict]:
-    """Regenerate each generator's feeds in a private tree and grade them against committed bytes.
+    """Regenerate each generator's feeds in a private tree and grade them against the baseline.
 
     Returns one row per FEED the generator actually wrote — observed, not declared. A generator that
     writes nothing gets a single `WROTE_NOTHING` row, which is a gap and not a pass.
@@ -670,6 +921,15 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
     it is how `knowledge_review.json` got into `COVERED_FEEDS` unasked — see
     `_CLOCK_DISPLACEMENT_DAYS`. It doubles the sweep, so it is off for the ordinary grading pass
     and on wherever membership itself is being decided.
+
+    `working_tree=True` MOVES THE BASELINE AND THE PRODUCERS TOGETHER, which is the whole point:
+    both the generator that runs and the bytes it is graded against come from the working tree.
+    Moving only one would compare this tree's output against the other tree's file and call every
+    uncommitted edit a divergence. DIVERGES in this mode means "a producer in this tree has been
+    edited and its artefact has not been re-run" — the shape that wedged the publisher on
+    2026-09-21, which HEAD mode is structurally unable to see. It is NOT interchangeable with the
+    default: a hand-edit to committed bytes that the working tree has already repaired agrees here
+    and reds there, and that is correct in both.
     """
     generators = list(generators)
     if not generators:
@@ -677,15 +937,27 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
             "no generators named — refusing to report a clean sweep over an empty set"
         )
     rows: list[dict] = []
+    by_name = {rel.rsplit("/", 1)[-1]: rel for rel in WATCHED_DERIVED_ARTEFACTS}
     tmp = Path(tempfile.mkdtemp(prefix="feed-regen-", dir=scratch_root()))
     try:
-        first = _Tree(root, tmp, 1)
+        first = _Tree(root, tmp, 1, working_tree=working_tree)
         second: _Tree | None = None
         committed = first.feeds()
+        if first.skipped_overlay:
+            # NO SILENT CAPS. The tree being graded is the working tree MINUS these, and a reader
+            # who is not told that reads the sweep as having covered everything.
+            rows.append({
+                "generator": "(working-tree overlay)", "feed": None,
+                "verdict": "WORKING_TREE_PARTIAL",
+                "detail": {"skipped": sorted(first.skipped_overlay,
+                                             key=lambda s: -s["bytes"])[:20],
+                           "n_skipped": len(first.skipped_overlay),
+                           "cap_bytes": _OVERLAY_FILE_CAP_BYTES},
+            })
         for generator in generators:
             written, err = first.run(generator, timeout_s)
             if not written:
-                rows.append({"generator": generator, "feed": None,
+                rows.append({"generator": generator, "feed": None, "path": None,
                              "verdict": "WROTE_NOTHING", "detail": {"stderr": err}})
                 continue
             # Only pay for the determinism tree when something actually disagrees — unless
@@ -697,12 +969,15 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
             probe_degraded: str | None = None
             if needs_second:
                 if second is None:
-                    second = _Tree(root, tmp, 2)
+                    second = _Tree(root, tmp, 2, working_tree=working_tree)
                 again, probe_degraded = _second_observation(
                     second, generator, timeout_s, set(written))
             for name in sorted(written):
+                # Where the artefact lives, because a row keyed by bare name cannot say whether it
+                # is a published feed or an intermediate on the way to one.
+                where = by_name.get(name, f"{FEED_DIR}/{name}")
                 if name not in committed:
-                    rows.append({"generator": generator, "feed": name,
+                    rows.append({"generator": generator, "feed": name, "path": where,
                                  "verdict": "NOT_COMMITTED", "detail": {}})
                     continue
                 verdict, detail = _verdict(committed[name], written[name], again.get(name))
@@ -712,7 +987,7 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
                     detail = {**detail, "probe": probe_degraded or (
                         f"a second tree at the same commit with the wall clock displaced by "
                         f"{_CLOCK_DISPLACEMENT_DAYS} days")}
-                rows.append({"generator": generator, "feed": name,
+                rows.append({"generator": generator, "feed": name, "path": where,
                              "verdict": verdict, "detail": detail})
         return rows
     finally:
@@ -1050,12 +1325,26 @@ def main(argv=None) -> int:
     parser.add_argument("--at-its-own-commit", action="store_true",
                         help="stand at the commit each candidate feed records rather than at HEAD. "
                              "Takes feed names, or defaults to CANDIDATES_AT_THEIR_OWN_COMMIT.")
+    parser.add_argument("--working-tree", action="store_true",
+                        help="grade the WORKING TREE rather than HEAD: the producers that run and "
+                             "the bytes they are graded against both come from the tree on disk. "
+                             "DIVERGES here means a producer was edited and its artefact was never "
+                             "re-run -- the shape HEAD mode cannot see. The shared tree is still "
+                             "never written.")
     parser.add_argument("--derived-artefacts", action="store_true",
                         help=f"the second relation: has each {DERIVED_DIR}/*.json been regenerated "
                              "since the producer that writes it changed? Working-tree standpoint, "
                              "no clone, nothing is run.")
     args = parser.parse_args(argv)
 
+    if args.at_its_own_commit and args.working_tree:
+        parser.error("--working-tree and --at-its-own-commit name two different trees; asking one "
+                     "question under the other's name is the defect --working-tree exists for")
+
+    if args.derived_artefacts and (args.at_its_own_commit or args.working_tree):
+        parser.error("--derived-artefacts is its own standpoint -- the working tree, with\n"
+                     "nothing run and nothing cloned -- so pairing it with another tree's\n"
+                     "flag would silently grade one question under the other's name")
     if args.derived_artefacts:
         rows = check_derived_artefacts()
         gaps = derived_artefact_producers()[1]
@@ -1087,13 +1376,16 @@ def main(argv=None) -> int:
                       f"at {row['recorded_commit'] or '-'}")
         return 1 if any(r["verdict"] == "DIVERGES_AT_ITS_OWN_COMMIT" for r in rows) else 0
 
-    names = args.generators or sorted(p.stem for p in (PROJECT / "tools").glob("generate_*.py"))
-    rows = check(names, timeout_s=args.timeout)
+    names = args.generators or sorted(
+        {p.stem for p in (PROJECT / "tools").glob("generate_*.py")}
+        | set(WATCHED_DERIVED_ARTEFACTS.values()))
+    rows = check(names, timeout_s=args.timeout, working_tree=args.working_tree)
     if args.json:
         print(json.dumps(rows, indent=1))
     else:
         for row in rows:
-            print(f"{row['verdict']:<16} {row['feed'] or '-':<28} {row['generator']}")
+            print(f"{row['verdict']:<22} {row.get('path') or row['feed'] or '-':<44} "
+                  f"{row['generator']}")
         counts: dict[str, int] = {}
         for row in rows:
             counts[row["verdict"]] = counts.get(row["verdict"], 0) + 1
