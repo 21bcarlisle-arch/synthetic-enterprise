@@ -657,3 +657,329 @@ def test_still_live_and_instance_lines_land_under_their_OWN_headings(tmp_path):
     inst_at = text.index(ar.INSTANCES_HEADING)
     assert live_at < inst_at
     assert text.index("— still live.") < inst_at, "a still-live line filed under Instances"
+
+
+# =============================================================================================
+# THE RE-ASK (director direction, Lane 0, 2026-09-23)
+# =============================================================================================
+# Everything above this line is driven by an alarm FIRING. The re-ask is the only thing in this
+# module driven by an alarm NOT firing, and that inverts which mutation matters. For escalation the
+# dangerous direction is silencing a page; here it is ARCHIVING A LIVE CONDITION -- removing a work
+# item from the director's queue because nobody happened to annotate it, which loses the finding
+# and leaves no trace that it was lost.
+#
+# The fixture documents are all written by `escalate()` itself rather than hand-typed. That is
+# load-bearing: the re-ask parses the lines `_note_still_live` and `_note_instance` produce, so a
+# hand-typed fixture would let the parser and the writer drift apart and every test here would keep
+# passing while the real documents stopped being readable.
+
+_REASK_TODAY = calendar.timegm(time.strptime("2026-09-23", "%Y-%m-%d")) + 12 * 3600
+_LONG_AGO = _REASK_TODAY - 30 * 86_400
+
+
+def _file_alarm(staging_dir, *, key, message, when):
+    """One alarm document, filed by the production filing path at `when`."""
+    return ar.escalate(message, key=key, repeats=3, first_ts=when - 600,
+                       staging_dir=staging_dir, now=when)
+
+
+def _point_transitions_at(monkeypatch, tmp_path, payload):
+    """Make the re-ask read a REAL transition store file through its REAL reader.
+
+    Injecting a dict into `reask()` would have been shorter and would have proved the injection:
+    `_read_transitions_for_reask` does a late import of `notify.TRANSITIONS_FILE` precisely because
+    `notify` imports this module, and that late import is the part most likely to break.
+    """
+    from background import notify
+    store = tmp_path / ".notify_transitions.json"
+    store.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(notify, "TRANSITIONS_FILE", store)
+    return store
+
+
+def _population(tmp_path, monkeypatch, *, transitions=None):
+    """One room holding all three answers at once, so the partition can be asserted whole."""
+    _point_transitions_at(monkeypatch, tmp_path, transitions or {})
+    room = tmp_path / "staging"
+    room.mkdir()
+    _file_alarm(room, key="still-burning", message="[X] the thing is still on fire",
+                when=_REASK_TODAY)
+    _file_alarm(room, key="long-quiet", message="[X] the thing was on fire a month ago",
+                when=_LONG_AGO)
+    # No signature line, no date in the filename: nothing to date the silence from.
+    (room / f"{ar.ALARM_DOCUMENT_STEM}NO_DATE_IN_THIS_NAME.md").write_text(
+        "**Severity:** LATENT\n\n# an alarm document with nothing datable in it\n", encoding="utf-8")
+    return room
+
+
+def test_the_re_ask_reaches_ALL_THREE_VERDICTS_and_they_are_DISTINCT(tmp_path, monkeypatch):
+    """THE PARTITION, as one control over the whole thing rather than a leg per branch.
+
+    A re-ask that returned `still_holds` for everything would satisfy every individual "does it
+    hold this one correctly" assertion below, and would be the whole mechanism not working: the
+    defect it exists to fix is documents that sit unchanged forever. Equally, a re-ask that could
+    only ever say `cannot_tell` refuses everything and passes every safety leg. So the reachability
+    of all three, and their being three rather than two shapes sharing a name, is asserted FIRST
+    and in one place -- CLAUDE.md's "assert it CAN be taken before asserting what it does".
+    """
+    results = ar.reask(staging_dir=_population(tmp_path, monkeypatch), now=_REASK_TODAY)
+    assert len(results) == 3, [r.path.name for r in results]
+    by_verdict = {r.verdict: r for r in results}
+    assert set(by_verdict) == set(ar.REASK_VERDICTS), (
+        "the re-ask returned {} over a population built to produce all three. A verdict that "
+        "cannot be reached is a branch no test below is really testing".format(sorted(by_verdict)))
+    # DISTINCTNESS, not just three names: three verdicts over three documents is blind to two
+    # documents collapsing onto one verdict while a third name goes unused.
+    assert len({r.path.name for r in results}) == 3
+    # And each verdict must say WHY. A verdict with an empty reason is the unrankable document
+    # the whole direction was about, wearing a machine's clothes.
+    assert all(len(r.reason) > 20 for r in results), [(r.verdict, r.reason) for r in results]
+
+
+def test_a_CLEARED_condition_ARCHIVES_ITSELF_CARRYING_THE_EVIDENCE(tmp_path, monkeypatch):
+    """The director's words: *"archives itself WITH the evidence it re-ran"*.
+
+    Both halves are the test. An archival that moved the file and said nothing would leave a reader
+    in `done/` unable to tell a diagnosed disposition from a machine's guess -- and this project
+    has already paid for archival moves whose diff read as content-neutral and were not.
+    """
+    room = _population(tmp_path, monkeypatch)
+    cleared = [r for r in ar.reask(staging_dir=room, now=_REASK_TODAY)
+               if r.verdict == ar.CLEARED]
+    assert len(cleared) == 1, [(r.verdict, r.path.name) for r in cleared]
+    original = cleared[0].path
+
+    applied = [r for r in ar.reask(staging_dir=room, now=_REASK_TODAY, apply=True)
+               if r.verdict == ar.CLEARED]
+    assert applied[0].applied is True
+    assert not original.exists(), "the cleared document is still in the queue"
+    archived = room / ar.ARCHIVE_ROOM / original.name
+    assert archived.exists(), sorted(p.name for p in (room / ar.ARCHIVE_ROOM).glob("*"))
+    text = archived.read_text(encoding="utf-8")
+    assert "## Re-asked and cleared, 2026-09-23" in text
+    assert "**Last observation:**" in text
+    assert "long-quiet" in text, "the archived document does not name the condition it re-asked"
+    # THE EVIDENCE MUST NOT OVERCLAIM. Nothing diagnosed this; saying so is what stops the next
+    # reader treating an archived guess as a resolved fault.
+    assert "What this does NOT claim" in text
+
+
+def test_a_STILL_HOLDING_condition_GAINS_A_LINE_rather_than_SITTING_UNCHANGED(tmp_path, monkeypatch):
+    """The other half of the direction, and the half that makes the queue rankable.
+
+    THE DEFECT: before this, a document that was re-checked and found still burning was
+    byte-identical to one nobody had looked at since it was filed. Nine of them sat at ORDER 60
+    with no reading that could separate them.
+    """
+    room = _population(tmp_path, monkeypatch)
+    live = [r for r in ar.reask(staging_dir=room, now=_REASK_TODAY)
+            if r.verdict == ar.STILL_HOLDS][0]
+    before = live.path.read_text(encoding="utf-8")
+    ar.reask(staging_dir=room, now=_REASK_TODAY, apply=True)
+    after = live.path.read_text(encoding="utf-8")
+    assert after != before, "a re-asked document is unchanged, which is the defect itself"
+    assert ar.REASK_HEADING in after
+    assert f"- **2026-09-23** — re-asked: **{ar.STILL_HOLDS}**." in after
+    assert live.path.exists(), "a still-holding condition must NEVER be archived"
+
+
+def test_the_re_ask_DOES_NOT_READ_ITS_OWN_LINES_AS_AN_OBSERVATION(tmp_path, monkeypatch):
+    """THE TAUTOLOGY THIS MECHANISM IS ONE LINE AWAY FROM, and the mutation that matters most.
+
+    The re-ask stamps a dated line. `last_observed()` reads dated lines. If it read the re-ask's
+    own line, the FIRST re-ask would refresh every document's apparent age and nothing could ever
+    clear again -- a control reading its own output and agreeing with itself, green forever while
+    the queue silted up exactly as before.
+
+    MUTATION RESULT, RECORDED BECAUSE IT DID NOT FIRE: `_without_reask_section` -> `return text`
+    leaves THIS leg green, and that is an EQUIVALENCE rather than a gap. Established, not assumed:
+    the re-ask writes `- **<date>** — re-asked: ...`, and both observation patterns are narrower
+    than that -- `_STILL_LIVE_DATE` requires the literal `— still live.` and `_INSTANCE_DATE`
+    requires a backticked name followed by `(first seen <date>)`. Neither can match a re-ask line,
+    so on today's line format the section-exclusion is defence in depth and not the thing holding
+    this up. `test_MUTATION_a_STILL_LIVE_SHAPED_LINE_under_the_re_ask_heading...` below is the leg
+    that makes it load-bearing, and it is the one that reds under that mutation.
+    """
+    # A room where the machinery is QUIET, so the stale document lands on `cannot_tell` and is
+    # ANNOTATED rather than archived -- the only verdict that leaves a re-ask line on a document
+    # the next pass must still judge stale.
+    _point_transitions_at(monkeypatch, tmp_path, {})
+    room = tmp_path / "staging"
+    room.mkdir()
+    doc = _file_alarm(room, key="long-quiet", message="[X] quiet for a month", when=_LONG_AGO)
+
+    first = ar.reask(staging_dir=room, now=_REASK_TODAY, apply=True)
+    assert [r.verdict for r in first] == [ar.CANNOT_TELL], [r.reason for r in first]
+    assert f"- **2026-09-23** — re-asked: **{ar.CANNOT_TELL}**." in doc.read_text(encoding="utf-8")
+
+    # The line is now in the document, dated TODAY. The condition was still last observed a month
+    # ago and the verdict must not have moved.
+    assert ar.last_observed(doc) == "2026-08-24", (
+        "the re-ask's own line is being read as an observation of the condition")
+    again = ar.reask(staging_dir=room, now=_REASK_TODAY)
+    assert [r.verdict for r in again] == [ar.CANNOT_TELL]
+
+
+def test_SILENT_OBSERVERS_ARE_CANNOT_TELL_AND_NEVER_CLEARED(tmp_path, monkeypatch):
+    """FAIL CLOSED, in the one situation where failing open destroys the most.
+
+    If every observer is down -- a frozen WSL2 guest, a dead supervisor -- then no document gains a
+    line, every document looks quiet, and a re-ask that read quiet as cleared would archive THE
+    ENTIRE QUEUE at exactly the moment the queue mattered most. Nothing else in this module can
+    catch that: each document, judged alone, looks exactly like a genuine clear.
+    """
+    _point_transitions_at(monkeypatch, tmp_path, {})
+    room = tmp_path / "staging"
+    room.mkdir()
+    for n in range(3):
+        _file_alarm(room, key=f"quiet-{n}", message=f"[X] condition {n} went quiet",
+                    when=_LONG_AGO - n * 86_400)
+    results = ar.reask(staging_dir=room, now=_REASK_TODAY, apply=True)
+    assert len(results) == 3
+    assert {r.verdict for r in results} == {ar.CANNOT_TELL}, [(r.verdict, r.reason) for r in results]
+    assert all(r.path.exists() for r in results), "a queue was archived on the observers' silence"
+    # And it must SAY so on the surface, not in a footnote: "we cannot tell" is a result.
+    assert all("evidence about the observers" in r.reason for r in results)
+
+
+def test_A_FIRING_IN_THE_STORE_CONTRADICTS_A_STALE_LOOKING_DOCUMENT(tmp_path, monkeypatch):
+    """The store's one permitted use, and the direction is the whole point.
+
+    MEASURED, 2026-09-23: `deadman_origin_fork` had a still-live line stamped 1.5h earlier and was
+    ABSENT from `.notify_transitions.json`, because `deadmans_switch` calls `clear_transition()`
+    (which DELETES the key) every time the fork closes and the condition oscillates. So absence in
+    that store is a snapshot of an oscillating condition, NOT a clear -- the first draft of this
+    re-ask read it as one and would have archived a condition that fired the same afternoon.
+    A firing may therefore OVERRULE a stale document; an absence may never clear one.
+    """
+    room = _population(tmp_path, monkeypatch, transitions={
+        "long-quiet:an-instance": {"state": "x", "ts": _REASK_TODAY - 3600,
+                                   "last_seen": _REASK_TODAY - 3600},
+    })
+    results = {r.family: r for r in ar.reask(staging_dir=room, now=_REASK_TODAY)}
+    assert results["long-quiet"].verdict == ar.STILL_HOLDS, results["long-quiet"].reason
+    assert "contradicts the silence" in results["long-quiet"].reason
+    assert ar.CLEARED not in {r.verdict for r in results.values()}
+
+
+def test_MUTATION_an_ABSENT_key_ALONE_never_clears_a_RECENTLY_OBSERVED_document(tmp_path, monkeypatch):
+    """The inverse of the leg above, keyed to the PROPERTY and not to today's answer.
+
+    The population that made this concrete: FOUR of the ten live alarm families have no key in the
+    transition store at all, and only one of the four is absent because anything cleared. Three of
+    them -- `seat-continuity`, `seat-claim:*`, `delivery-lane-stranded:*` -- call `escalate()`
+    directly and have never written that store in their lives. A store-keyed re-ask would have
+    archived three live conditions out of ten, in the fail-open direction.
+    """
+    room = _population(tmp_path, monkeypatch, transitions={})
+    live = [r for r in ar.reask(staging_dir=room, now=_REASK_TODAY)
+            if r.family == "still-burning"]
+    assert len(live) == 1
+    assert live[0].verdict == ar.STILL_HOLDS
+    assert ar._family_last_seen("still-burning", {}) is None, (
+        "the fixture no longer exercises the absent-key path this test is about")
+
+
+def test_an_archival_NEVER_OVERWRITES_AN_EARLIER_EPISODE_in_done(tmp_path, monkeypatch):
+    """A file already in `done/` under this name is a PREVIOUS episode of the same family.
+
+    Clobbering it would destroy the only record that this condition has returned before, which is
+    the R3 two-strike signal the no-searching-`done/` rule exists to preserve -- and it would do it
+    inside a diff that reads as a routine archival.
+    """
+    room = _population(tmp_path, monkeypatch)
+    cleared = [r for r in ar.reask(staging_dir=room, now=_REASK_TODAY)
+               if r.verdict == ar.CLEARED][0]
+    earlier = room / ar.ARCHIVE_ROOM / cleared.path.name
+    earlier.parent.mkdir(parents=True, exist_ok=True)
+    earlier.write_text("AN EARLIER EPISODE, ARCHIVED BY A PERSON\n", encoding="utf-8")
+
+    ar.reask(staging_dir=room, now=_REASK_TODAY, apply=True)
+    assert earlier.read_text(encoding="utf-8") == "AN EARLIER EPISODE, ARCHIVED BY A PERSON\n"
+    siblings = sorted(p.name for p in (room / ar.ARCHIVE_ROOM).glob("*.md"))
+    assert len(siblings) == 2, siblings
+    assert any("_REASK_2" in n for n in siblings), siblings
+
+
+def test_the_re_ask_line_is_IDEMPOTENT_PER_DAY(tmp_path, monkeypatch):
+    """Forty-eight ticks must not turn one document into forty-eight lines -- the collapsed pile
+    rebuilt inside one file, which is the defect `_note_still_live` learned the same way."""
+    room = _population(tmp_path, monkeypatch)
+    for _ in range(5):
+        ar.reask(staging_dir=room, now=_REASK_TODAY, apply=True)
+    live = next(p for p in room.glob("*STILL*.md"))
+    text = live.read_text(encoding="utf-8")
+    assert text.count(f"- **2026-09-23** — re-asked: **{ar.STILL_HOLDS}**.") == 1, text
+
+
+def test_A_TEST_RUN_CANNOT_ARCHIVE_THE_DIRECTORS_REAL_QUEUE(tmp_path, monkeypatch):
+    """The same hard guard `escalate()` carries, for a sharper reason: escalate can only ADD a
+    document to his queue and this can REMOVE one. Five real findings once appeared in
+    `docs/staging/` from a test run quoting a fixture filename; the removing version of that
+    accident would be silent."""
+    assert ar.reask() == [], (
+        "reask() reached the REAL docs/staging under pytest. It may archive documents, so an "
+        "unguarded call is a test run deleting the director's work queue")
+
+
+def test_MUTATION_a_STILL_LIVE_SHAPED_LINE_under_the_re_ask_heading_is_NOT_an_observation(
+        tmp_path, monkeypatch):
+    """What `_without_reask_section` is actually for, and the case that makes it load-bearing.
+
+    The re-ask's OWN line shape cannot be mistaken for an observation -- see the equivalence
+    recorded on the test above. The hole the section-exclusion really closes is a line in the
+    observation SHAPE appearing under the re-ask heading, which is not hypothetical: these
+    documents are hand-annotated (`DEADMAN_ORIGIN_FORK` carries a prose note a seat wrote), the
+    still-live shape is the most copy-pasteable line in the file, and `_append_under` will happily
+    put a line under whichever heading it is handed.
+
+    If that line counted, a single mis-filed annotation would freeze one document as permanently
+    live -- and the reader would have no way to see why, because the line says "still live" and
+    that is exactly what the verdict would then say too.
+    """
+    _point_transitions_at(monkeypatch, tmp_path, {})
+    room = tmp_path / "staging"
+    room.mkdir()
+    doc = _file_alarm(room, key="long-quiet", message="[X] quiet for a month", when=_LONG_AGO)
+    doc.write_text(ar._append_under(
+        doc.read_text(encoding="utf-8"), ar.REASK_HEADING,
+        "- **2026-09-23** — still live. 3 repeats over 0.1h without the state changing."),
+        encoding="utf-8")
+
+    assert "still live" in doc.read_text(encoding="utf-8").split(ar.REASK_HEADING)[1], (
+        "the fixture did not land the line under the re-ask heading, so this proves nothing")
+    assert ar.last_observed(doc) == "2026-08-24", (
+        "a still-live-shaped line under the RE-ASK heading is being counted as an observation of "
+        "the condition, so anything written there freezes the document as permanently live")
+
+
+def test_THE_CHAIN_the_staging_watcher_LOOP_actually_REACHES_the_re_ask():
+    """A mechanism with a CLI and no caller is the consumed-not-absorbed shape.
+
+    Every control above this one drives `reask()` directly, and all of them stay green forever if
+    nothing in production ever calls it -- this project's own rule, learned the expensive way: a
+    control on a rule proves nothing until the CHAIN to a production caller is controlled too.
+
+    The loop it must be in is `staging_watcher.main()`, which is an infinite `while True`, so this
+    asserts over the loop's SOURCE rather than by running it. That is a weaker instrument than
+    executing the call and this test says so rather than implying otherwise -- but it is not
+    vacuous: it fails if the call is deleted, if it is moved out of the loop body into
+    module scope or a helper nothing calls, or if `apply=True` is dropped so the re-ask decides
+    everything and writes nothing.
+    """
+    import inspect
+
+    from background import staging_watcher
+
+    src = inspect.getsource(staging_watcher.main)
+    assert "alarm_repetition.reask(apply=True)" in src, (
+        "staging_watcher.main() no longer calls the re-ask. Every other control in this file "
+        "drives reask() directly and would stay green with nothing in production reaching it")
+    # INSIDE the loop, not before it. A call above `while True` runs once at boot and then never
+    # again, which for a mechanism whose whole subject is the passage of time is the same as absent.
+    assert "while True" in src and src.index("while True") < src.index("alarm_repetition.reask"), (
+        "the re-ask call is outside the watcher's loop, so it would run once at boot only")
+    # And it must be guarded like its neighbours: staging hygiene may never take the watcher down.
+    tail = src[src.index("alarm_repetition.reask"):]
+    assert "except Exception" in tail[:600], (
+        "the re-ask call is unguarded; a staging-hygiene failure would stop the watcher")

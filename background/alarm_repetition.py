@@ -59,10 +59,12 @@ is the work item, not another message at 4am.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import time
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -465,3 +467,412 @@ def _note_still_live(path: Path, *, today: str, repeats: int, window_h: float) -
         path.write_text(_append_under(text, "## Still live", line), encoding="utf-8")
     except OSError:
         return
+
+
+# ---------------------------------------------------------------------------------------------
+# THE RE-ASK
+# ---------------------------------------------------------------------------------------------
+# DIRECTOR DIRECTION, 2026-09-23 (Lane 0): *"an alarm document whose condition no longer holds
+# archives itself WITH the evidence it re-ran; one whose condition still holds gains an instance
+# line rather than sitting unchanged."*
+#
+# WHAT WAS MISSING. Everything above this line is written by an alarm FIRING. Nothing is written
+# by an alarm NOT firing. So a condition that self-clears leaves its document in the staging root
+# byte-for-byte identical to one that is still burning, and the nine (now ten) documents in the
+# root at ORDER 60 cannot be ranked against each other at all: there is no reading of any of them
+# that says whether anyone has looked since it was filed.
+#
+# WHAT I EXPECTED THE SIGNAL TO BE, AND WHY THAT WAS WRONG. `notify()` stamps `last_seen` into
+# `.notify_transitions.json` on every FIRING, so the obvious re-ask is "how long since this
+# family's key last moved". MEASURED, 2026-09-23, against the ten live documents: FOUR of the ten
+# families have no key in that store at all -- and only ONE of the four is absent because the
+# condition cleared (`deadman_origin_fork`; `deadmans_switch` calls `clear_transition()`, which
+# DELETES the key, so absence there is a positive clear written by the observer that owns the
+# condition). The other three -- `seat-continuity`, `seat-claim:*`, `delivery-lane-stranded:*` --
+# call `escalate()` DIRECTLY and never go through `notify()`, so they have never written that
+# store and never will. `seat-continuity` stamped a still-live line yesterday and is absent from
+# the store; a store-only re-ask would have read it as eight days quiet and archived live work.
+# Three of ten, in the fail-open direction. The pre-registration for this is in
+# `docs/staging/SEAT_PREREG_WHICH_OF_THE_NINE_ALARM_CONDITIONS_A_RE_ASK_WOULD_FIND_CLEARED_2026-09-23.md`
+# and it was refuted on both the split and the mechanism.
+#
+# THE SIGNAL BOTH POPULATIONS DO WRITE is the document itself. `_note_still_live` and
+# `_note_instance` are reached on EVERY call where the document already exists, whether the caller
+# came through `notify()` or straight into `escalate()`. So the newest machine-written dated line
+# in a document IS the last time that condition was observed to hold, for every family, with no
+# registry of observers to keep in step with the code.
+#
+# THE STORE IS STILL READ, but only ever to CONTRADICT staleness, never to confirm it -- a key
+# that fired recently proves the condition holds even if nobody annotated the document, and a key
+# that is absent proves nothing either way.
+
+
+#: How long an alarm document may go with NO observation of its condition before the re-ask reads
+#: the silence as the condition having cleared.
+#:
+#: ORIGIN: measured, 2026-09-23, over the whole live population rather than chosen. All ten
+#: documents in `docs/staging/` carry consecutive DAILY still-live lines while their condition
+#: holds -- the widest gap any of them shows between two observations is `tree_divergence` at
+#: 36.1h. Three days of silence is therefore at least three of that family's own missed cycles,
+#: for every family in the population. Deliberately not tighter: a document filed late in the day
+#: and re-asked early the next has "yesterday" as its newest line, and one day would archive it.
+#:
+#: The bar can afford to be this low because archiving is REVERSIBLE BY DESIGN and not by luck:
+#: `escalate()` deliberately does not search `done/`, so a condition that returns after being
+#: archived files a fresh document and is an R3 two-strike signal. A wrong archive costs one
+#: re-filing; a wrong hold costs a permanent unrankable queue item, which is the defect.
+REASK_QUIET_DAYS = 3
+
+#: How recently the alarm-filing machinery must have observed SOMETHING for silence to be
+#: evidence of anything at all.
+#:
+#: This is the fail-open leg and it is the whole reason the re-ask has a third verdict. If every
+#: observer is down -- a frozen guest, a dead supervisor -- then NO document gains a line, every
+#: document looks quiet, and a re-ask without this check would archive the entire queue at exactly
+#: the moment the queue was most load-bearing. One day is the same bar as the daily cadence the
+#: population demonstrably keeps.
+REASK_HEARTBEAT_DAYS = 1
+
+#: Where the re-ask records itself. A SEPARATE section from "Still live" on purpose, and the
+#: distinction is load-bearing rather than cosmetic: `_last_observed()` must never read a line the
+#: re-ask itself wrote, or the first re-ask would refresh the document's apparent age and nothing
+#: could ever clear again -- a control reading its own output and agreeing with itself. Only an
+#: alarm FIRING may write "Still live"; only the re-ask may write here.
+REASK_HEADING = "## Re-asked"
+
+#: The document stem every alarm document carries, and the population the re-ask asks about.
+ALARM_DOCUMENT_STEM = "WORKER_FINDING_REPEATING_ALARM_"
+
+STILL_HOLDS = "still_holds"
+CLEARED = "cleared"
+CANNOT_TELL = "cannot_tell"
+
+#: The three verdicts, as a closed set, so a caller can assert the partition rather than a leg.
+REASK_VERDICTS = (STILL_HOLDS, CLEARED, CANNOT_TELL)
+
+_STILL_LIVE_DATE = re.compile(r"^- \*\*(\d{4}-\d{2}-\d{2})\*\* — still live\.", re.M)
+_INSTANCE_DATE = re.compile(r"^- `.*` \(first seen (\d{4}-\d{2}-\d{2})\)", re.M)
+_FILENAME_DATE = re.compile(r"_(\d{4}-\d{2}-\d{2})\.md$")
+_SIGNATURE_LINE = re.compile(r"^- Signature: `([^`]+)`", re.M)
+
+
+@dataclass(frozen=True)
+class Reask:
+    """One document's re-ask: the verdict AND the evidence it was reached from.
+
+    `reason` is not decoration. A verdict with no stated basis is exactly the shape that made the
+    ten documents unrankable in the first place -- the point of the re-ask is that a reader can
+    see what was asked and what answered, so `reason` is carried on every verdict including the
+    ones nobody will argue with.
+    """
+    path: Path
+    key: str
+    family: str
+    verdict: str
+    last_observed: str | None
+    reason: str
+    applied: bool = False
+
+
+def alarm_documents(staging_dir: Path | None = None) -> list[Path]:
+    """Every live alarm document: the staging root and `in_progress/`, never `done/`.
+
+    The same two rooms `_live_finding_for` searches and for the same reason -- a document in
+    `done/` has been dispositioned and is not the re-ask's business.
+    """
+    root = staging_dir or STAGING_DIR
+    out: list[Path] = []
+    for room in (root, root / "in_progress"):
+        try:
+            out.extend(sorted(room.glob(f"{ALARM_DOCUMENT_STEM}*.md")))
+        except OSError:
+            continue  # an unreadable room is not evidence that nothing is filed
+    return out
+
+
+def _without_reask_section(text: str) -> str:
+    """`text` with the re-ask's own section removed -- see REASK_HEADING."""
+    lines = text.splitlines()
+    try:
+        start = lines.index(REASK_HEADING)
+    except ValueError:
+        return text
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("## "):
+            end = i
+            break
+    return "\n".join(lines[:start] + lines[end:])
+
+
+def last_observed(path: Path, text: str | None = None) -> str | None:
+    """The newest date on which this condition was OBSERVED TO HOLD, as `YYYY-MM-DD`, or None.
+
+    Read ONLY from lines a machine wrote -- still-live lines, instance lines, and the filing date
+    in the filename, which is the first firing. Deliberately NOT any ISO date in the prose: a
+    human note added today saying "drawn, being worked" is an observation that somebody is
+    LOOKING, which is a different fact from the condition holding, and letting it count would let
+    attention masquerade as the thing attention was paid to.
+    """
+    if text is None:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
+    body = _without_reask_section(text)
+    dates = set(_STILL_LIVE_DATE.findall(body)) | set(_INSTANCE_DATE.findall(body))
+    filed = _FILENAME_DATE.search(path.name)
+    if filed:
+        dates.add(filed.group(1))
+    return max(dates) if dates else None
+
+
+def _read_transitions_for_reask() -> dict:
+    """The notify transition store, or `{}` -- imported late because `notify` imports this module.
+
+    Returns `{}` on ANY failure. That is the safe direction here and only here: the store is used
+    exclusively to CONTRADICT a stale-looking document, so an empty read can never manufacture a
+    clear, only fail to prevent one -- and the heartbeat leg below still has to pass.
+    """
+    try:
+        from background.notify import TRANSITIONS_FILE
+        data = json.loads(Path(TRANSITIONS_FILE).read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _family_last_seen(fam: str, transitions: dict) -> float | None:
+    """When any member of `fam` last FIRED, from the transition store, or None if it holds none."""
+    seen = [float(v.get("last_seen") or v.get("ts") or 0)
+            for k, v in transitions.items()
+            if isinstance(v, dict) and family(k) == fam]
+    return max(seen) if seen else None
+
+
+def machinery_heartbeat(documents: list[Path], transitions: dict,
+                        *, now: float | None = None) -> str | None:
+    """The newest DATE on which the alarm-filing machinery observed ANYTHING, or None.
+
+    WHAT THIS PROVES AND WHAT IT DOES NOT, stated here rather than left for a reader to assume:
+    it proves that SOME observer reached `escalate()` or `notify()` recently, so silence about one
+    family is silence against a working background, not against a stopped one. It does NOT prove
+    that the specific observer owning any one family ran. That is a real gap and it is why
+    `REASK_QUIET_DAYS` is three of a family's own cycles and not one -- a single observer down for
+    a day cannot reach the bar on its own.
+
+    A DATE AND NOT AN EPOCH, deliberately, because the documents can only supply a date. Mixing
+    the two was the first draft's defect and it failed in the fail-CLOSED direction rather than
+    harmlessly: a date floors to midnight UTC, so a document annotated at 23:00 yesterday read as
+    47h old against a 24h bar, and every stale document in the room came back `cannot_tell`
+    because the machinery looked dead. Printing the verdicts at the real inputs is what caught it.
+    """
+    dates: set[str] = set()
+    for v in transitions.values():
+        if not isinstance(v, dict):
+            continue
+        stamp = float(v.get("last_seen") or v.get("ts") or 0)
+        if stamp > 0:
+            dates.add(datetime.fromtimestamp(stamp, timezone.utc).strftime("%Y-%m-%d"))
+    for path in documents:
+        observed = last_observed(path)
+        if observed:
+            dates.add(observed)
+    return max(dates) if dates else None
+
+
+def reask(*, staging_dir: Path | None = None, now: float | None = None,
+          apply: bool = False) -> list[Reask]:
+    """Re-ask every live alarm document whether its condition still holds.
+
+    Three verdicts, and the third is the point:
+      STILL_HOLDS  -- observed within `REASK_QUIET_DAYS`, or the transition store says it fired.
+                      The document gains a dated re-ask line, so "somebody looked and it is still
+                      burning" becomes readable instead of being indistinguishable from nobody
+                      having looked.
+      CLEARED      -- quiet past the bar, no contradicting firing, and the machinery demonstrably
+                      alive. The document archives itself to `done/` carrying the evidence.
+      CANNOT_TELL  -- the machinery is quiet, or the document carries no machine-written date at
+                      all. Fails CLOSED: the document stays in the queue and gains a line naming
+                      the reason, because "we cannot tell" is a result and belongs on the surface.
+
+    `apply=False` (the default) decides everything and writes nothing, so the verdicts can be read
+    before they are acted on. Nothing about the decision changes between the two.
+    """
+    # THE SAME HARD PYTEST GUARD `escalate()` CARRIES, and for a sharper reason: escalate can only
+    # ADD a document to the director's queue, and this can REMOVE one. A test run that archived
+    # his live queue would be the worst version of the defect this whole module exists to fix.
+    target = Path(staging_dir) if staging_dir is not None else STAGING_DIR
+    if (os.environ.get("PYTEST_CURRENT_TEST") is not None
+            and target.resolve() == (PROJECT_DIR / "docs" / "staging").resolve()):
+        return []
+
+    now = time.time() if now is None else now
+    today = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d")
+    quiet_before = (datetime.fromtimestamp(now, timezone.utc)
+                    - timedelta(days=REASK_QUIET_DAYS)).strftime("%Y-%m-%d")
+    heartbeat_before = (datetime.fromtimestamp(now, timezone.utc)
+                        - timedelta(days=REASK_HEARTBEAT_DAYS)).strftime("%Y-%m-%d")
+
+    documents = alarm_documents(target)
+    transitions = _read_transitions_for_reask()
+    heartbeat = machinery_heartbeat(documents, transitions, now=now)
+    machinery_alive = heartbeat is not None and heartbeat >= heartbeat_before
+
+    out: list[Reask] = []
+    for path in documents:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        sig = _SIGNATURE_LINE.search(text)
+        key = sig.group(1) if sig else ""
+        fam = family(key) if key else ""
+        observed = last_observed(path, text)
+        fired = _family_last_seen(fam, transitions) if fam else None
+        fired_h = None if fired is None else (now - fired) / 3600.0
+
+        if observed is None:
+            verdict, reason = CANNOT_TELL, (
+                "no machine-written observation date in this document and none in its filename, "
+                "so there is nothing to date the silence from")
+        elif observed > quiet_before:
+            verdict, reason = STILL_HOLDS, (
+                f"observed {observed}, within the {REASK_QUIET_DAYS}-day bar")
+        elif fired_h is not None and fired_h <= REASK_QUIET_DAYS * 24:
+            # THE STORE CONTRADICTING THE DOCUMENT. Only ever in this direction: a firing proves
+            # the condition holds, so it overrules a stale-looking document. The reverse -- an
+            # absent key read as a clear -- is the fail-open move this leg exists instead of.
+            verdict, reason = STILL_HOLDS, (
+                f"document last annotated {observed}, but `{fam}` fired {fired_h:.1f}h ago in the "
+                "notify transition store, which contradicts the silence")
+        elif not machinery_alive:
+            verdict, reason = CANNOT_TELL, (
+                f"quiet since {observed}, but the alarm-filing machinery itself last observed "
+                f"anything on {heartbeat or 'no date at all'} (bar is {heartbeat_before}), so "
+                "this silence is not evidence about the condition — it is evidence about the "
+                "observers")
+        else:
+            verdict, reason = CLEARED, (
+                f"no observation since {observed}, past the {REASK_QUIET_DAYS}-day bar; "
+                + (f"`{fam}` last fired {fired_h:.1f}h ago" if fired_h is not None
+                   else f"no key for `{fam}` in the notify transition store")
+                + f"; and the machinery observed other conditions on {heartbeat}, so the "
+                  "silence is the observers running and not seeing it")
+
+        r = Reask(path=path, key=key, family=fam, verdict=verdict,
+                  last_observed=observed, reason=reason)
+        if apply:
+            r = _apply_reask(r, today=today)
+        out.append(r)
+    return out
+
+
+def _apply_reask(r: Reask, *, today: str) -> Reask:
+    """Act on one verdict. Never raises: a re-ask that cannot write is not a re-ask that lies."""
+    try:
+        if r.verdict == CLEARED:
+            return Reask(**{**r.__dict__, "applied": _archive_cleared(r, today=today)})
+        return Reask(**{**r.__dict__, "applied": _note_reask(r, today=today)})
+    except OSError:
+        return r
+
+
+def _note_reask(r: Reask, *, today: str) -> bool:
+    """Record that the condition WAS re-asked today, and what the answer was.
+
+    Idempotent per day per verdict: a re-ask that runs every tick must not turn one document into
+    forty-eight lines, which is the pile rebuilt inside one file -- the exact defect
+    `_note_still_live` learned the same way. Keyed on the verdict as well as the date so a
+    document that changes answer within a day records BOTH, because that transition is the news.
+    """
+    marker = f"- **{today}** — re-asked: **{r.verdict}**."
+    try:
+        text = r.path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    if marker in text:
+        return False
+    r.path.write_text(_append_under(text, REASK_HEADING, f"{marker} {r.reason}."),
+                      encoding="utf-8")
+    return True
+
+
+def _archive_cleared(r: Reask, *, today: str) -> bool:
+    """Move a cleared document to `done/` carrying the evidence the re-ask ran.
+
+    NEVER OVERWRITES. A file already in `done/` under this name is an EARLIER EPISODE of the same
+    family, and an archival that clobbered it would destroy the only record that the condition has
+    returned before -- which is the R3 two-strike signal the whole no-searching-`done/` rule
+    exists to preserve. A collision gets a suffix, never a silent replacement.
+    """
+    try:
+        text = r.path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    body = _append_under(text, REASK_HEADING, (
+        f"- **{today}** — re-asked: **{CLEARED}**. {r.reason}.\n"
+        f"\n"
+        f"## Re-asked and cleared, {today}\n"
+        f"\n"
+        f"Archived by `background/alarm_repetition.reask()`, not by a person, and not because "
+        f"anybody diagnosed it.\n"
+        f"\n"
+        f"- **What was asked:** has the condition behind `{r.key or 'an unparseable signature'}` "
+        f"been observed to hold since it was last annotated?\n"
+        f"- **Last observation:** {r.last_observed}\n"
+        f"- **The answer, and what carried it:** {r.reason}.\n"
+        f"- **What this does NOT claim:** that the condition was fixed, or why it stopped. Only "
+        f"that nothing has observed it for {REASK_QUIET_DAYS} days while the observers were "
+        f"demonstrably running. If it returns it files a FRESH document — `escalate()` does not "
+        f"search `done/` — and that fresh document is an R3 two-strike signal worth more than "
+        f"this one was.\n"))
+    archive = r.path.parent / ARCHIVE_ROOM if r.path.parent.name != "in_progress" \
+        else r.path.parent.parent / ARCHIVE_ROOM
+    archive.mkdir(parents=True, exist_ok=True)
+    dest = archive / r.path.name
+    n = 2
+    while dest.exists():
+        dest = archive / f"{r.path.stem}_REASK_{n}{r.path.suffix}"
+        n += 1
+    dest.write_text(body, encoding="utf-8")
+    r.path.unlink()
+    return True
+
+
+#: The archive room. Named here rather than imported from `background.staging_rooms`
+#: (`ARCHIVE_DIRNAME`) only because that module imports heavily and this one is reached from
+#: inside `notify()`, which must stay cheap and must never fail for a reason of its own.
+ARCHIVE_ROOM = "done"
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+    p = argparse.ArgumentParser(description="Re-ask whether each alarm document's condition holds")
+    p.add_argument("--reask", action="store_true", help="report a verdict per alarm document")
+    p.add_argument("--apply", action="store_true",
+                   help="with --reask, act: annotate the live ones, archive the cleared ones")
+    a = p.parse_args(argv)
+    if not a.reask:
+        p.print_help()
+        return 2
+    results = reask(apply=a.apply)
+    if not results:
+        print("no alarm documents")
+        return 0
+    width = max(len(r.path.name) for r in results)
+    for r in sorted(results, key=lambda r: (REASK_VERDICTS.index(r.verdict), r.path.name)):
+        print(f"{r.verdict:<12} {r.path.name:<{width}}  {r.reason}")
+    counts = {v: sum(1 for r in results if r.verdict == v) for v in REASK_VERDICTS}
+    print("\n" + " · ".join(f"{v}: {counts[v]}" for v in REASK_VERDICTS)
+          + (f" · applied: {sum(1 for r in results if r.applied)}" if a.apply else " (reported only)"))
+    return 0
+
+
+if __name__ == "__main__":
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/alarm_repetition.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("alarm_repetition")
+    raise SystemExit(main())
