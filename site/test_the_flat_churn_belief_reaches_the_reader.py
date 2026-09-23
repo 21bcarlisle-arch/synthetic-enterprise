@@ -11,6 +11,24 @@ below a declared bill threshold, so the belief is EXACTLY flat in household size
 book's 244 supply legs, over a book where the world's own churn response spans 11.57x in that same
 dimension. Until this block the reading lived in `docs/observability/` and reached no reader.
 
+THAT PARAGRAPH IS THE DEFECT'S HISTORY AND NO LONGER ITS STATE (2026-09-23). `fc390b918` gave the
+belief a size term sourced to the same Ofgem/BMG survey the world's multiplier cites, and the
+finding INVERTED: the belief now hears the size of 216 of the arms' book's 226 legs and is deaf to
+10, and those 10 are the largest households on it. The account the page owes a reader is
+unchanged in KIND -- why a per-customer arm has little to win -- so this file's subject is
+unchanged and its legs are re-derived rather than re-pointed, one by one, each saying what moved
+under it. The paragraph above is kept rather than rewritten because it is what the legs below were
+built against, and a history rewritten to match today's answer is how a door comes to look like it
+always knew.
+
+WHAT THE INVERSION COST, AND IT IS THE REASON THIS FILE NOW HAS A WITHDRAWAL LEG. The producer's
+consumer, `_churn_belief_size_response`, refused to publish the block at all when the artefact
+stopped saying "the knee is a BILL" -- a fail-closed refusal keyed to a particular ANSWER rather
+than to the question being answered. It was right to refuse a stale sentence and wrong about what
+made it stale, so the page withdrew the whole block for ten publisher cycles and a reader met
+nothing where the best thing built that stretch should have been. The refusal is re-keyed to
+`the_belief_is_flat_below_a_knee`, which the artefact states either way.
+
 That is the same shape `site/test_the_baseline_comparison_reaches_the_reader.py` and
 `_svt_drift_belief` were built out of and the same one CLAUDE.md names: a measurement that is
 correct, landed, tested and invisible is a measurement nobody is held by.
@@ -256,7 +274,7 @@ def test_every_figure_in_the_block_is_the_FEEDS(live, live_block):
 
     Fires on: rendering any of these as a literal, or reading one from a different field.
     """
-    assert str(live_block["legs_below_the_knee"]) in live
+    assert str(live_block["legs_the_belief_hears"]) in live
     # THE MULTIPLICATION SIGN IS PART OF THE SUBJECT. The artefact's own reading
     # carries the same number as plain text ("spans 11.57x"), so a bare "11.57"
     # would match the SENTENCE and say nothing about whether the page derived the
@@ -266,10 +284,10 @@ def test_every_figure_in_the_block_is_the_FEEDS(live, live_block):
 
     moved = copy.deepcopy(_live_feed())
     block = moved["churn_belief_size"]
-    block["supply_legs"] = 9871
-    block["legs_below_the_knee"] = 9013
-    block["legs_above_the_knee"] = 858
-    block["share_below_the_knee"] = 0.9131
+    block["legs_graded"] = 9871
+    block["legs_the_belief_hears"] = 9013
+    block["legs_the_belief_is_deaf_to"] = 858
+    block["share_the_belief_hears"] = 0.9131
     block["world_multiplier_spread"] = 3.14
     block["world_multiplier_low"] = 1.2
     block["world_multiplier_high"] = 3.77
@@ -287,23 +305,76 @@ def test_every_figure_in_the_block_is_the_FEEDS(live, live_block):
         "the live spread survived a feed that no longer carries it -- it is a literal")
 
 
-def test_the_knee_is_rendered_as_a_BILL_with_its_kWh_at_EVERY_probed_rate(live, live_block):
-    """A knee quoted in kWh alone is a different claim from the one that was measured.
+def test_the_DEAF_EDGE_is_rendered_at_EVERY_probed_rate_with_its_spread(live, live_block):
+    """The edge above which the belief stops hearing size, at every rate, never at one.
 
-    WHY THIS IS ITS OWN LEG. The threshold is a previous ANNUAL BILL, so the consumption it
-    corresponds to moves 2.67x across the rate deck this book was billed at. A page that rendered
-    "12,000 kWh" and stopped would have a reader believe the company's belief turns on a meter
-    reading, which is the frame the artefact explicitly refuses -- and the generator refuses to
-    publish at all when the artefact stops saying so.
+    RE-DERIVED 2026-09-23, ON THIS LEG'S OWN INSTRUCTION, AND THE SUBJECT IT HAD IS GONE. It used
+    to assert that the page rendered the knee as a BILL and not a consumption, at every probed
+    rate, with its spread. `fc390b918` gave `estimate_churn_probability` a sourced size term, so
+    the belief responds to consumption from the first metered kWh and there is no knee to render
+    -- the probe that found it returns the bottom of its bracket at every rate, and the artefact
+    withdraws `the_knee_is_a_bill_not_a_consumption` by name.
 
-    Fires on: rendering one rate row, rendering the knee in kWh without its rate, or dropping the
-    spread across rates.
+    WHAT SURVIVED THE RE-DERIVATION IS THE DEFECT, NOT THE FIGURE. The leg existed because a page
+    that quotes ONE rate has a reader believe the belief turns on a meter reading, when the edge
+    it is really about travels with the price deck. That is still true and it is still the edge
+    this block is about -- it has moved from where the response BEGINS to where it STOPS, because
+    both of the belief's consumption terms are ceilinged. So the leg asks the same question of the
+    edge that is load-bearing now: every rate, and the spread across them.
+
+    Fires on: rendering one rate row, rendering the edge without its rate, dropping the spread.
     """
-    assert "BILL" in live and "not a consumption" in live
-    for row in live_block["knee_by_rate"]:
-        assert _kwh(row["knee_kwh"]) in live, (
-            "the knee at £{}/MWh is not on the page".format(row["old_rate_gbp_per_mwh"]))
-    assert "{:.2f}".format(live_block["knee_kwh_spread_across_the_probe_rates"]) in live
+    for row in live_block["deaf_edge_by_rate"]:
+        assert _kwh(row["deaf_above_kwh"]) in live, (
+            "the deaf edge at £{}/MWh is not on the page".format(row["old_rate_gbp_per_mwh"]))
+    assert "{:.2f}".format(live_block["deaf_edge_kwh_spread_across_the_probe_rates"]) in live
+
+
+def test_the_page_does_NOT_still_call_the_belief_flat_below_a_knee(live, live_block):
+    """The retired claim is gone from the page, and the page says the retirement happened.
+
+    THE DEFECT, AND IT RAN FOR TEN PUBLISHER CYCLES. `site/data/value_arms.json` carried a reading
+    measured against code that no longer existed, under a fresh `generated_at` -- a stale
+    intermediate republishing as a current feed. The two halves of the remedy are separable and
+    only one of them is the obvious one: removing the false sentence is necessary, and a reader
+    who met it and comes back to find a DIFFERENT sentence in the same place has been silently
+    revised at. So both are asserted.
+
+    WHY THE CONTROL IS A MUTATED FEED AND NOT AN `else` ON THE LIVE VERDICT. I wrote the else
+    first -- "if the artefact says the belief IS flat below a knee, assert the page says so" --
+    and it is a branch that can never pass, which is worse than one that is merely never taken.
+    The flat-belief sentence does not exist anywhere any more: `reading()` composes ONE sentence
+    from the deafness census, so a belief that went flat again would publish "hears ... for 0 of
+    226", not the retired wording. An else keyed to a string no producer can emit is a leg that
+    would red on the very change it claims to license. The reachable control is the withdrawal's
+    own null: drive the feed with no withdrawal and assert the paragraph goes, and the block
+    stays -- the same grammar as the threshold caveat's null control below.
+
+    Fires on: reinstating the flat-belief sentence; publishing the new reading with no account of
+    what it replaced; rendering the withdrawal unconditionally.
+    """
+    assert live_block["the_belief_is_flat_below_a_knee"] is False, (
+        "this leg assumes the live artefact's verdict is that the belief is NOT flat below a "
+        "knee. It now says {!r}, so the subject has changed and this must be re-derived rather "
+        "than re-pointed".format(live_block["the_belief_is_flat_below_a_knee"]))
+    assert "FLAT in household size" not in live, (
+        "the page still tells a reader the belief is flat in household size, and the artefact's "
+        "own verdict is that it is not")
+    assert live_block["what_was_withdrawn_and_why"], (
+        "the artefact withdrew a published claim and carries no account of it")
+    assert _prose(live_block["what_was_withdrawn_and_why"]) in live, (
+        "the withdrawal is in the feed and not on the page, so a reader who met the old sentence "
+        "meets its replacement with no sign that anything was retracted")
+
+    silent = copy.deepcopy(_live_feed())
+    silent["churn_belief_size"]["what_was_withdrawn_and_why"] = None
+    rendered = _render(silent)
+    assert _prose(live_block["what_was_withdrawn_and_why"]) not in rendered, (
+        "the withdrawal survived a feed that no longer carries it -- the page is printing a "
+        "literal, and it will go on announcing a retraction after the retraction is old news")
+    assert "Why the choosing has so little to find" in rendered, (
+        "dropping the withdrawal took the block with it; this is a silenced paragraph, not a "
+        "silenced page")
 
 
 def test_the_reader_is_told_WHICH_book_these_counts_are_over(live, live_block):
@@ -372,21 +443,41 @@ def test_a_book_that_is_NOT_the_arms_own_is_rendered_as_a_WARNING(live_block):
 
 
 def test_the_unsourced_threshold_is_MARKED_where_a_reader_meets_it(live, live_block):
-    """The knee's position is set by a constant this repo's own register lists as unsourced.
+    """The knee's position is not established, and the page must say so where a reader meets it.
 
     CLAUDE.md: an honest `None` with a named reason is worth more than a plausible number, because
     the number will be read as established. The same applies at the surface -- an unsourced figure
     rendered unmarked IS read as established.
 
-    Fires on: dropping `the_thresholds_own_origin` from the render.
+    RE-DERIVED 2026-09-23, on this leg's own instruction. It used to ground itself on "a constant
+    this repo's own register lists as unsourced", and that ground is gone: the register now carries
+    an origin for `BILL_STRESS_THRESHOLD_GBP`. The VERDICT did not move -- no published source
+    gives a bill level at which GB switching rises, and 3,000 was deliberately not re-picked -- so
+    the assertion below survives, and it would have survived on rot alone. That is exactly the
+    failure this leg warned about, so the subject is restated: the page must mark the LEVEL as not
+    established AND send the reader to the reading that refuted the SHAPE. Either half alone is a
+    caveat with nowhere to go, or a citation that reads as a source for the number.
+
+    Fires on: dropping `the_thresholds_own_origin` from the render; publishing the caveat with no
+    reading behind it.
     """
     origin = live_block.get("the_thresholds_own_origin")
     assert origin, "the feed carries no origin statement for the threshold"
     assert "NOT ESTABLISHED" in origin, (
-        "this leg assumes the live threshold is unsourced; the artefact now says {!r}, so the "
-        "leg's subject has changed and it must be re-derived rather than re-pointed".format(
-            origin[:200]))
-    assert _text(origin) in live
+        "this leg assumes the live threshold's LEVEL is unestablished; the artefact now says {!r}. "
+        "If a source has since been found, this leg's subject has changed and it must be "
+        "re-derived rather than re-pointed".format(origin[:200]))
+    assert "is_there_a_bill_level_at_which_switching_rises" in origin, (
+        "the caveat names no reading. A gap filed and then orphaned is a gap nobody can act on, "
+        "and this repository's recurring shape is a sourced anchor that reaches no reader; the "
+        "artefact says {!r}".format(origin[:200]))
+    # `_prose`, NOT `_text`, AND THE DIFFERENCE IS THE HOUSE-STYLE DASH. This read `_text(origin)`
+    # and passed for as long as the origin sentence happened to contain no ` -- `. The sentence
+    # gained one when the caveat was rewritten to name its reading, and the door typesets that to
+    # a real em dash before a reader sees it -- so the comparison was against a string the page
+    # cannot emit, and it went red on a correct render. Exactly the defect `_prose` was written
+    # for, entered here through a feed edit rather than a door edit.
+    assert _prose(origin) in live
 
 
 def test_a_feed_that_establishes_its_threshold_renders_NO_caveat():
@@ -401,7 +492,7 @@ def test_a_feed_that_establishes_its_threshold_renders_NO_caveat():
     origin = sourced["churn_belief_size"]["the_thresholds_own_origin"]
     sourced["churn_belief_size"]["the_thresholds_own_origin"] = None
     rendered = _render(sourced)
-    assert _text(origin) not in rendered
+    assert _prose(origin) not in rendered
     # ...and the block itself is still there, so this is a silenced caveat and not a silenced page.
     assert "Why the choosing has so little to find" in rendered
 
@@ -417,15 +508,15 @@ def test_the_asymmetry_verdict_is_read_from_the_feed_and_BOTH_branches_are_reach
     Fires on: rendering the sentence unconditionally, or on a two-branch read of a three-valued
     verdict.
     """
-    assert "where the belief varies, the world does not" in live
+    assert "is the one segment the world does not read a bill for" in live
 
     feed = _live_feed()
     off = copy.deepcopy(feed)
     off["churn_belief_size"]["the_belief_varies_where_the_world_does_not"] = False
     unknown = copy.deepcopy(feed)
     unknown["churn_belief_size"]["the_belief_varies_where_the_world_does_not"] = None
-    assert "where the belief varies, the world does not" not in _render(off)
-    assert "where the belief varies, the world does not" not in _render(unknown)
+    assert "is the one segment the world does not read a bill for" not in _render(off)
+    assert "is the one segment the world does not read a bill for" not in _render(unknown)
 
 
 def test_a_segment_the_artefact_cannot_answer_for_is_NOT_rendered_as_a_no(live):

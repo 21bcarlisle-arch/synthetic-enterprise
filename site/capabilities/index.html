@@ -2900,29 +2900,43 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + (cb.available
             ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
               + 'color:var(--amber);">' + prose(cb.reading) + "</p>"
-              + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">The knee is a '
-              + "BILL and not a consumption: " + esc(gbp(cb.knee_gbp))
-              + " of previous annual bill, which lands at a different meter reading for every "
-              + "unit rate &mdash; "
-              + (cb.knee_by_rate || []).map(function (k) {
-                  return esc(Number(k.knee_kwh).toLocaleString("en-GB", {
-                    maximumFractionDigits: 0 })) + "&nbsp;kWh at "
-                    + esc(gbp(k.old_rate_gbp_per_mwh)) + "/MWh";
+              /* THE DECLARED THRESHOLD IS STILL RENDERED, AND IT HAS TO BE. It used to appear as
+                 "the knee is a BILL... £3,000 of previous annual bill"; that sentence went when
+                 the knee did. But the amber caveat below is ABOUT this number -- it says the
+                 level is not established -- and a caveat whose subject is not on the page is a
+                 warning about a figure the reader never met. `bill_stress` is still in the model
+                 and still has this threshold, so the figure is still true; what it is no longer
+                 is the point where the belief starts hearing size. */
+              + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+              + "The distress term `bill_stress` still switches on at " + esc(gbp(cb.knee_gbp))
+              + " of previous annual bill, and it is no longer where the belief starts hearing "
+              + "household size &mdash; a second, sourced term does that from the first metered "
+              + "kWh. What the belief does instead is go DEAF to size above a saturation, and "
+              + "that edge lands at a different meter reading for every unit rate &mdash; "
+              + (cb.deaf_edge_by_rate || []).map(function (k) {
+                  return esc(k.deaf_above_kwh === null || k.deaf_above_kwh === undefined
+                      ? "not reached"
+                      : Number(k.deaf_above_kwh).toLocaleString("en-GB", {
+                          maximumFractionDigits: 0 }) + " kWh")
+                    + " at " + esc(gbp(k.old_rate_gbp_per_mwh)) + "/MWh";
                 }).join(", ")
-              + (cb.knee_kwh_spread_across_the_probe_rates === null
-                 || cb.knee_kwh_spread_across_the_probe_rates === undefined
+              + (cb.deaf_edge_kwh_spread_across_the_probe_rates === null
+                 || cb.deaf_edge_kwh_spread_across_the_probe_rates === undefined
                   ? ""
                   : ", a spread of "
-                    + esc(Number(cb.knee_kwh_spread_across_the_probe_rates).toFixed(2))
+                    + esc(Number(cb.deaf_edge_kwh_spread_across_the_probe_rates).toFixed(2))
                     + "&times; in kWh across the rates this book was billed at")
               + ". Of "
-              + esc(cb.supply_legs) + " supply legs, <strong>" + esc(cb.legs_below_the_knee)
-              + "</strong> sit below it"
-              + (cb.share_below_the_knee === null || cb.share_below_the_knee === undefined
+              + esc(cb.legs_graded) + " supply legs, the belief hears the size of <strong>"
+              + esc(cb.legs_the_belief_hears) + "</strong>"
+              + (cb.share_the_belief_hears === null || cb.share_the_belief_hears === undefined
                   ? ""
-                  : " (" + esc((Number(cb.share_below_the_knee) * 100).toFixed(1)) + "%)")
-              + " and " + esc(cb.legs_above_the_knee) + " above, while the world's own churn "
-              + "response spans "
+                  : " (" + esc((Number(cb.share_the_belief_hears) * 100).toFixed(1)) + "%)")
+              + " and is deaf to " + esc(cb.legs_the_belief_is_deaf_to)
+              + (cb.the_deaf_legs_are_the_biggest === true
+                  ? " &mdash; the largest households on the book"
+                  : "")
+              + ", while the world's own churn response spans "
               + esc(Number(cb.world_multiplier_spread).toFixed(2))
               + "&times; across the same legs ("
               + esc(Number(cb.world_multiplier_low).toFixed(1)) + "&ndash;"
@@ -2939,14 +2953,35 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               /* THE ASYMMETRY IS STATED, NOT LEFT TO THE TABLE. Two columns a reader has to
                  difference for themselves is the shape this project publishes misleading things
                  through. Read from the feed's own verdict, three-valued. */
+              /* THE SECOND CLAUSE WAS RETIRED ON 2026-09-23 AND THE FIRST WAS NOT. This read
+                 "...so where the belief varies, the world does not, and where the world varies,
+                 the belief does not." The feed's verdict is still true and still says what the
+                 first clause says: the belief moves for every leg of the one segment the world
+                 reads no bill for. The converse was an EXHAUSTIVE reading of the same field --
+                 true only while the belief varied NOWHERE else -- and `fc390b918` gave it a
+                 domestic size term, so it now varies where the world varies too. One field,
+                 two claims, and only one of them was ever the field's. */
               + (cb.the_belief_varies_where_the_world_does_not === true
                   ? '<p style="margin:4px 0 0;font-size:11px;color:var(--amber);">The one segment '
                     + "whose every leg the belief can move for is the one segment the world does "
-                    + "not read a bill for &mdash; so where the belief varies, the world does "
-                    + "not, and where the world varies, the belief does not.</p>"
+                    + "not read a bill for. That is no longer the whole of the asymmetry: the "
+                    + "belief now varies with size in the domestic segment as well, where the "
+                    + "world varies too, and what it cannot do there is hear the largest "
+                    + "households.</p>"
                   : "")
               + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
               + prose(cb.what_the_term_is || "") + "</p>"
+              /* WHAT THIS BLOCK USED TO SAY, AND WHY IT NO LONGER SAYS IT. A reader who met the
+                 old sentence -- "the belief is FLAT in household size", under a knee at a
+                 declared bill -- is owed the news that it was retired and which measurement
+                 moved under it, rather than finding a different sentence in the same place. The
+                 words are the artefact's; this page does not author retractions any more than it
+                 authors conclusions. Rendered only when the artefact carries one, so it
+                 disappears by itself once the withdrawal is old news. */
+              + (cb.what_was_withdrawn_and_why
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+                    + prose(cb.what_was_withdrawn_and_why) + "</p>"
+                  : "")
               /* THE UNSOURCED NUMBER, MARKED WHERE A READER MEETS IT. The knee's position is set
                  by a constant this repository's own register lists as carrying no origin, and an
                  unsourced figure rendered unmarked is read as established. */
