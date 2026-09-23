@@ -125,3 +125,22 @@ empty.
 - Not that the ORDER 60 ranking will now move. The finding's claim that understatement is what
   kept these documents unranked is **still a plausible partial answer and still unchecked** —
   checkable against the draw log now that the counts are honest, which is a later measurement.
+
+## Two gate refusals worth the next session's time
+
+**The frozen ruff census is an EQUALITY, not a ceiling, so it reds on an IMPROVEMENT.** While
+editing `tests/background/test_alarm_repetition.py` I reordered two stdlib imports that ruff's
+`I001` already flagged at HEAD — a free tidy in a file I was touching anyway. That took the census
+from `I001: 1306` to `1305` and
+`test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census` refused the commit,
+costing a full nine-minute cycle. The drift message names the direction (`changed: {'I001': (1306,
+1305)}`) but reads like any other drift. **Do not tidy unrelated lint in a file you are landing**:
+either leave it, or lower the baseline deliberately as its own commit. The reorder was reverted.
+
+**A delegation makes the substring-scan floor go STALE, not just grow.** Moving `last_observed`'s
+read-and-match into the shared `_observation_dates` retired its frozen row while creating three,
+and the floor is shrink-only in BOTH directions — the first repair added three rows and went red
+naming `last_observed`. Net 376 → 378, added and deleted by hand rather than by `--freeze`, which
+rewrites every row from the shared tree and drops rows other lanes added. This is the
+`declared_class_of` shape of 2026-09-15 and the baseline's own `why_this_count` now records it as
+the fourth instance of the same warning.
