@@ -247,3 +247,82 @@ def test_the_real_feed_publishes_the_null_beside_the_figure():
     assert arms.get("available") is True, arms.get("why_not")
     assert arms["numerator_delta_gbp"] == pytest.approx(
         arms["level_arm_net_gbp"]["delta"] - arms["control_net_gbp"]["delta"])
+
+
+# --- the zero gap: two causes, neither of them an agreement --------------------------------------
+
+def _zero_gap(tmp_path, same_run):
+    """Both panels reporting the SAME share, with the two runs' identity block as the only input
+    that moves. `_family(0.0, 2.7)` is the wide null the legs above already use."""
+    path = tmp_path / "family.json"
+    path.write_text(json.dumps(_family(0.0, 2.7)), encoding="utf-8")
+    return g._the_shares_own_null(0.5, 0.5, (164, 165), path,
+                                  differences={"the_same_run": same_run})
+
+
+def test_both_causes_of_a_zero_gap_are_reachable_and_say_different_things(tmp_path):
+    """The partition over `observed == 0`, asserted reachable before either leg is read.
+
+    THE DEFECT THIS GUARDS (2026-09-23, Lane 0). `times_the_observed_disagreement` guards
+    `observed > 0`; the `statement` branch three lines under it did not, and evaluated
+    `null_range / observed` unconditionally. So the first pair of panels whose shares matched
+    exactly did not publish a wrong figure -- it raised ZeroDivisionError out of `generate()` and
+    produced NO FEED AT ALL. One legal rule, two implementations, and the guard on only one of
+    them. Found by building the feed on the 2026-09-18 corrected one-book run, where the two panel
+    constants resolve to a single artefact.
+
+    AND IT IS REACHED WITHOUT ANYONE EDITING A CONSTANT. `value_cycle_ab_s1_three_arm.json` is the
+    path the release machinery PROMOTES the newest run onto, so a promotion alone can point
+    `THREE_ARM_PATH` and `CURRENT_WORLD_THREE_ARM_PATH` at the same file.
+
+    ZERO HAS TWO CAUSES AND THEY MUST NOT COLLAPSE. One run compared with itself replicated
+    nothing; two runs that happened to return the same share are a coincidence inside a wide null.
+    A reader told only "the shares are equal" would take either for a replication, and it is
+    neither. So the two are driven out of ONE call site here, with the identity block as the only
+    moving part -- a single-cause version of this test would pass against a function that answered
+    the same way whatever produced the zero.
+    """
+    same = _zero_gap(tmp_path, True)
+    coincide = _zero_gap(tmp_path, False)
+    assert same["statement"] != coincide["statement"]
+    assert "NO SECOND RUN" in same["statement"]
+    assert "EXACTLY EQUAL" in coincide["statement"]
+    # NEITHER MAY BE DIVIDED BY, and neither may read as the instrument having replicated.
+    for block in (same, coincide):
+        assert block["available"] is True
+        assert block["observed_disagreement"] == 0
+        assert block["times_the_observed_disagreement"] is None
+        assert block["null_is_wider_than_the_disagreement"] is True
+        assert "replicat" in block["statement"] or "coincidence" in block["statement"]
+
+
+def test_a_zero_gap_refuses_the_share_through_the_production_caller(tmp_path):
+    """The rule is reached by the function that builds the block, not only by a direct call.
+
+    A control that only ever types the helper stays green while no production caller reaches it.
+    `_composition_in_this_world` is the caller, and this drives it with the two panels carrying
+    one share -- the state that used to raise before any block was built.
+    """
+    same = _zero_gap(tmp_path, True)
+    block = g._composition_in_this_world(
+        {"level_share_of_advantage": 0.5}, None, 0.5, "a-world",
+        later_runs=[], shares_own_null=same)
+    assert block["readable"] is False
+    assert block["why_not_readable"].startswith(same["statement"])
+
+
+def test_the_zero_gap_branch_is_what_stops_the_divide_and_not_a_caller_check(tmp_path):
+    """Driven with NO identity block at all, which is how a stale caller would reach it.
+
+    `differences=None` is the shape every caller written before 2026-09-23 passes. It must still
+    return a block rather than raise: a guard that only holds when its caller remembers to supply
+    an argument is a guard the next caller removes by omission.
+    """
+    path = tmp_path / "family.json"
+    path.write_text(json.dumps(_family(0.0, 2.7)), encoding="utf-8")
+    block = g._the_shares_own_null(0.5, 0.5, (164, 165), path)
+    assert block["available"] is True
+    assert block["times_the_observed_disagreement"] is None
+    # Unknown identity falls to the COINCIDENCE wording, never to "there is no second run":
+    # claiming one artefact when nothing established it is the flattering reading of an absence.
+    assert "EXACTLY EQUAL" in block["statement"]

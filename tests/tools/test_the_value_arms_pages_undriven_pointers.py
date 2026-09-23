@@ -357,6 +357,43 @@ def _repair_already_made(sentence, real):
     return driven
 
 
+def _stratification_not_carried(sentence, real):
+    """`_renewal_stratification`'s fail-closed branch, reached by stripping the key it reads.
+
+    RED AT HEAD AND REACHED ONLY BY A COMMIT THAT TOUCHES THE PRODUCER, which is why it sat
+    unrecipe'd. `pre_commit_test_gate` selects this file by its subject module's stem, so the rung
+    fires only for a lane editing `generate_value_arms_data.py` -- and then it blocks that lane for
+    a sentence it did not write. It is one of the seven named in
+    `docs/staging/SEAT_FINDING_ORIGIN_MAIN_CARRIES_SEVEN_REDS_THAT_NO_COMMITS_GATE_SELECTION_REACHES_2026-09-22.md`.
+
+    WHY IT LOOKS GREEN IN THE SHARED WORKTREE AND IS NOT. Measured one variable at a time, holding
+    the producer at HEAD and swapping only `site/data/value_arms.json`: on the COMMITTED feed the
+    sentence is untied and this rung reds; on the feed sitting dirty in the shared tree it is tied
+    and the rung passes. The census classifies tied/untied against whatever feed is on disk, so a
+    lane with a stale-in-either-direction working copy sees the opposite verdict from the gate,
+    which builds HEAD plus its own hunks. Regenerating the feed does NOT clear it -- tried, and it
+    reds with a feed generated seconds earlier. A recipe is the fix; a fresher artefact is not.
+
+    THE BRANCH IS THE ARTEFACT'S AGE, so the drive is the artefact's own shape and not a patched
+    verdict: `stratification` is the key `measure_churn_heterogeneity` began writing, and a grade
+    taken before it carries neither side. Stripping it from the BELIEF side alone is the weakest
+    input the branch admits -- it refuses on either side missing, so forcing both would not prove
+    it reads the one it names.
+    """
+    def driven(arm, route, *rest, **kwargs):
+        stripped = {key: value for key, value in (arm or {}).items()
+                    if key != "stratification"}
+        out = real(stripped, route, *rest, **kwargs)
+        assert out.get("available") is False, (
+            "stripping `stratification` no longer reaches the fail-closed branch -- it returned "
+            "available={!r} -- so this recipe is driving the published branch and judging the "
+            "refusal's sentence over a page the producer never composed".format(out.get(
+                "available")))
+        return dict(out, why=sentence)
+
+    return driven
+
+
 def _departure_unavailable_constant(sentence, _real):
     """`_DEPARTURE_UNAVAILABLE` is a constant, and patching it does NOT drive its branch.
 
@@ -411,6 +448,12 @@ _RECIPES = {
     "_family_discrimination": _family_never_asked,
     "_skill_sample_size_explanation": _skill_size_refuted,
     "_population_repair_bias": _repair_already_made,
+    # THE FOURTH OF THAT SHAPE, and red at HEAD for the same reason the three above were: a dict on
+    # every branch, so the generic recipe cannot drive it. Registered 2026-09-23 by the lane that
+    # met it -- this rung only fires for a commit touching the producer, so it blocks whichever
+    # lane arrives next for a sentence that lane did not write. See the recipe's own docstring for
+    # the one-variable measurement of why the shared worktree reads green and the gate does not.
+    "_renewal_stratification": _stratification_not_carried,
 }
 
 #: The symbols whose branch needs something OUTSIDE the producer made to fail. Keyed to the module
@@ -619,6 +662,13 @@ _REFERENTS = {
     # gave the sentence a home at all: it had reached a field NO door rendered since the
     # current-world block was written, so its direction was unjudged rather than wrong.
     ("_current_world_contrast", "figures above"): (".headline", "above"),
+    # THE TWO CONCORDANCES THE CAVEAT IS ABOUT. `_renewal_stratification`'s refusal says a reader
+    # cannot tell "which of the two concordances the figures above are", and the two are the
+    # belief's AUC and the ceiling's on the renewal route -- so the referent is the belief's own
+    # figure, which is the first of the pair a reader meets. Registered 2026-09-23 with the recipe,
+    # and registering it is what caught the producer saying "above" about its OWN region.
+    ("_renewal_stratification", "beside this"): (
+        ".renewal_churn_belief.belief.auc", "same"),
     # ...AND THE SECOND DIRECTION IN THE SAME SENTENCE, which nothing in this tree could see until
     # the census learned `finditer` on 2026-09-19. The not-the-later-run branch says "the figures
     # above" and then, a clause later, "the run above it was taken at {when}" -- one literal, two

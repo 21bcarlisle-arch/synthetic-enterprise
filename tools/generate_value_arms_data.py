@@ -7504,10 +7504,16 @@ def _renewal_stratification(arm: dict, route: dict) -> dict:
     if not isinstance(belief, dict) or not isinstance(ceiling, dict):
         return {
             "available": False,
+            # "BESIDE THIS" AND NOT "ABOVE", corrected 2026-09-23 when the pointer was registered
+            # and probed for the first time. The two concordances this names render in
+            # `#arms-renewal-belief` -- the SAME region this refusal lands in, not one above it --
+            # so "above" told a reader to look back past a panel they had not passed. Same repair
+            # and same cause as `_against_the_superseded_panel`'s in 2026-09-09: found by
+            # registering the referent in `_REFERENTS`, never by reading the prose.
             "why": ("this grade was taken before the reading carried its own stratification, so "
-                    "which of the two concordances the figures above are — and what share of the "
-                    "route's comparable pairs they stand on — cannot be stated from it. Re-take "
-                    "it with `python3 -m tools.measure_churn_heterogeneity "
+                    "which of the two concordances the figures beside this are — and what share "
+                    "of the route's comparable pairs they stand on — cannot be stated from it. "
+                    "Re-take it with `python3 -m tools.measure_churn_heterogeneity "
                     "--out=docs/observability/svt_drift_belief_grade.json`"),
         }
     b_strat, b_pool = _f(belief.get("auc_stratified")), _f(belief.get("auc_pooled"))
@@ -12061,7 +12067,7 @@ def _the_books_a_run_priced(run: dict | None) -> tuple | None:
 
 
 def _the_shares_own_null(share, superseded_share, share_books: tuple | None = None,
-                         path: Path | None = None) -> dict:
+                         path: Path | None = None, differences: dict | None = None) -> dict:
     """What `level_share_of_advantage` does when ONLY the seed moves -- the ruler it never had.
 
     THE DEFECT THIS EXISTS FOR (2026-09-22, Lane 0). This page published 98.5% for the share
@@ -12184,6 +12190,44 @@ def _the_shares_own_null(share, superseded_share, share_books: tuple | None = No
             "This page could not form the gap between its own two draws of the share, so the "
             "seed-redraw null read from {source} is published without a comparison.{book}".format(
                 source=AUC_FAMILY_SOURCE, book=book_clause))
+        return block
+    if observed == 0:
+        # A ZERO GAP IS NOT AN AGREEMENT, AND DIVIDING BY IT IS HOW THAT WENT UNNOTICED
+        # (2026-09-23). `times_the_observed_disagreement` above already guards `observed > 0`;
+        # this branch did not, so the first pair of panels whose shares matched exactly took the
+        # whole generator down with a ZeroDivisionError rather than publishing anything. One rule,
+        # two implementations, and only one of them carries the guard -- the shape CLAUDE.md names.
+        #
+        # REACHED BY POINTING THE TWO PANEL CONSTANTS AT ONE RUN, which is not hypothetical: the
+        # canonical `value_cycle_ab_s1_three_arm.json` is the path the release machinery PROMOTES
+        # the newest run onto, so a promotion alone can make `THREE_ARM_PATH` and
+        # `CURRENT_WORLD_THREE_ARM_PATH` resolve to the same artefact without either constant
+        # being edited. Found by building the feed on the 2026-09-18 corrected one-book run.
+        #
+        # AND THE REASON IT IS ZERO IS THE READING, not a footnote to it. `the_same_run` is
+        # computed by `_what_differs_between_two_runs`, whose own docstring predicted this exact
+        # state -- "pointing both constants at ONE run makes all three false, so the page tells a
+        # reader that a figure differs from itself because more than one thing changed". When the
+        # two panels ARE one artefact there is no gap to attribute and no second draw to compare;
+        # publishing "the null is wider than the disagreement" would be true arithmetic about a
+        # comparison that was never made. The two causes are separated here because a reader told
+        # the shares agree would conclude the instrument replicated, and on the same-run branch
+        # nothing was replicated at all.
+        one_run = bool((differences or {}).get("the_same_run"))
+        block["statement"] = (
+            ("THERE IS NO GAP HERE BECAUSE THERE IS NO SECOND RUN. Both panels on this page "
+             "resolve to the SAME artefact, so the {rng:.3f} span this statistic covers under "
+             "re-draw alone is the only thing measured, and the difference between the panels is "
+             "zero by identity rather than by agreement. Nothing replicated: a share compared "
+             "with itself cannot corroborate the instrument, and this page states no reading of "
+             "the share for that reason.{book}")
+            if one_run else
+            ("THE TWO DRAWS OF THIS SHARE ARE EXACTLY EQUAL, which is not evidence that the "
+             "statistic is stable: re-running this world {n} times with nothing moved but the "
+             "per-household elasticity draw spans {lo:.3f} to {hi:.3f}. A gap of exactly zero "
+             "inside a null that wide is a coincidence of one draw, not a replication, so no "
+             "reading is taken from it.{book}")
+        ).format(n=n, lo=lo, hi=hi, rng=null_range, book=book_clause)
         return block
     if null_range > observed:
         block["statement"] = (
@@ -12476,7 +12520,7 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     # SCANNED BY DEFAULT, INJECTABLE FOR A CONTROL, for the reason `later_runs` carries: the two
     # branches of this refusal both need a witness and neither may be bought by writing an
     # artefact onto the real disk.
-    null = (_the_shares_own_null(share, superseded_share, share_books)
+    null = (_the_shares_own_null(share, superseded_share, share_books, differences=differences)
             if shares_own_null is None else shares_own_null)
     block["the_shares_own_null"] = null
     statement = null.get("statement")
