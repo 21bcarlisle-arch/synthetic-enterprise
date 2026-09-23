@@ -123,8 +123,43 @@ The prediction the item's own reasoning implies, filed before the run:
 **Done:** the split, its controls, the census correction, and the honest bound. The instrument can
 now run the family in seven ~1h units that fit, where an OOM costs one leg and leaves the rest.
 
-**Not done, and it is the larger half:** the family has not run, so the five predictions in
+**Not done, and it is the larger half:** the family has not finished, so the five predictions in
 `SEAT_PREREG_THE_PAIRED_SIZE_TERM_FLOOR_2026-09-23.md` are still ungraded and the **£634 net-margin
-move remains unfloored.** That is ~13.5 hours of wall clock and cannot fit in this turn. The run is
-launched from here and handed on; the artefact accumulates after every pair, so whatever it reaches
-is readable by the next session rather than lost.
+move remains unfloored.** That is ~14 hours of wall clock and cannot fit in this turn.
+
+## The run is in flight, and these are its addresses
+
+Launched 2026-09-23 15:16Z through `background/launch_long_job` (cgroup VERIFIED as its own, out of
+reach of the launching seat's teardown):
+
+| | |
+|---|---|
+| unit | `longjob-size-term-paired-floor-legs-20260923` |
+| worktree | `/var/tmp/se-floorrun-paired-20260923` (locked, at `a35c798a2`) |
+| log | `/var/tmp/size-term-paired-floor-legs-20260923.log` |
+| artefact | `<worktree>/docs/observability/value_cycle_size_term_paired_floor.json` |
+| shards | `<worktree>/docs/observability/value_cycle_size_term_paired_floor_legs/` |
+| command | `--seeds 5101,5102,5103,5104,5105,5106` — 7 pairs, 14 legs |
+
+It runs in a dedicated worktree rather than the shared tree because the shared tree is 798 paths
+dirty with other lanes' live work and one commit behind `origin/main`, so it does not yet have this
+code; and rather than the executor's worktree, because that is reclaimed when the turn ends.
+`sim/cache` is symlinked to the shared 705 MB cache — gitignored, so it cannot pollute either tree.
+
+**The artefact is rebuilt after every pair**, so a kill at any point leaves a readable family, and
+every completed leg's shard survives to be resumed rather than re-run. Re-running the same command
+in that worktree picks up exactly where it stopped.
+
+### The control chain, verified in production rather than only in tests
+
+45 seconds after launch, with one leg running:
+
+```
+leg process   pid 3794376  --leg-only  rss 1,129 -> 1,642 MB and growing
+running_floor_legs()  ->  legs seen: 1
+                          pid=3794376 rss=1642MB priced_at=7800MB
+```
+
+One leg seen, priced at `PAIRED_FLOOR_LEG_PEAK_MB`, and **the orchestrator not counted** — which is
+the partition the census control asserts, holding on the live process table and not only against a
+fabricated `/proc`. This is the exact visibility whose absence admitted the run that died.
