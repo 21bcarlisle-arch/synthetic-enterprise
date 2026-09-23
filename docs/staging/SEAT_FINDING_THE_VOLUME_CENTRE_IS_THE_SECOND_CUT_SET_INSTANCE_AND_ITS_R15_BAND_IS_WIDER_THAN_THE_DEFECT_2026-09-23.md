@@ -62,8 +62,16 @@ rot the day the book changes.
 
 ## What this BLOCKS, and on what
 
-**No lane may wire `DEFAULT_CHILDREN_COUNT` to `premise_trace`'s children draw until
-`CHILDREN_WITHIN_SIZE_REFERENCE` has a source.** That delegation is the obvious next step — it is
+**BLOCK LIFTED 2026-09-23, by its own terms** — `CHILDREN_WITHIN_SIZE_REFERENCE` was sourced
+from ONS Census 2021 the same day, and `dwelling_records.children_count_for` now draws that
+conditional for both paths, so nothing was wired to `premise_trace`'s uniform: the uniform was
+deleted. See `SEAT_RESULT_THE_CHILDREN_DRAW_IS_THE_CENSUS_CONDITIONAL_AND_THE_CODES_OWN_CENTRE_
+WAS_STALE_2026-09-23.md`, which also corrects the instance stated below — the uniform put a
+child in NONE of the 2-person homes (it was guarded `if people_count >= 3`), not half.
+The original block, kept beside its lift:
+
+> **No lane may wire `DEFAULT_CHILDREN_COUNT` to `premise_trace`'s children draw until
+> `CHILDREN_WITHIN_SIZE_REFERENCE` has a source.** That delegation is the obvious next step — it is
 literally the next field along from the pensioner/employment one that landed hours earlier — and
 it is the wrong move today for a reason the field does not advertise: `premise_trace`'s draw is
 `randint(0, people_count − 1)`, uniform and uncited, so centring the response on it would be

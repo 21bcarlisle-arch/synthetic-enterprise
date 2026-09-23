@@ -330,3 +330,185 @@ def test_the_pre_delegation_composition_draw_has_no_production_callers():
         f"the pre-delegation composition draw has production callers again: {offenders}. Every "
         "one of them is a second answer about who lives in a house that already has one."
     )
+
+
+# ===========================================================================
+# AND THE THIRD FIELD, ONE ALONG AGAIN (2026-09-23)
+#
+# `children_count` failed the same way as the two cuts above and for one more
+# reason. The property record answered `DEFAULT_CHILDREN_COUNT` on all 144
+# homes under a STATED R10 gap — honest, because no reference population for
+# children-within-size existed — while `premise_trace.behaviour_profile_for`
+# drew `randint(0, people_count - 1)` above a size guard of 3, uncited. One
+# home, two answers, and this time one of them had a written reason to be
+# silent and the other had none to be uniform.
+#
+# The reference landed the same day (`demand_model.CHILDREN_WITHIN_SIZE_
+# REFERENCE`, ONS Census 2021), which is what made the delegation legal: the
+# finding that blocked it blocked it "until the reference has a source", and
+# these legs could not have been written before that. The absence was the
+# defect, not an oversight — the same sentence as the composition block above.
+#
+# WHAT THE OLD DRAW ACTUALLY DID, measured over 20,000 ids before the change,
+# because the finding that unblocked this got its own instance wrong. It said
+# the uniform "puts a child in half of all 2-person homes". It puts a child in
+# NONE of them — the `>= 3` guard — against the Census's 8.7%. And it
+# disagreed in BOTH directions: short at sizes 2, 4 and 5, long at 3, 6, 7
+# and 8 (a 7-person home averaged 2.98 children against the Census's 2.32).
+# ===========================================================================
+
+#: Sizes at which the Census conditional has more than one outcome, so a leg over them can fail.
+_SIZES_WITH_A_CHOICE = (2, 3, 4, 5, 6, 7, 8)
+
+
+def test_one_home_has_one_children_count_whoever_asks():
+    """Keyed to AGREEMENT, like the two legs above — re-anchoring the Census shares or re-seeding
+    the draw keeps this green, and a second children draw reappearing anywhere reds it.
+
+    BOTH PATHS ARE ASKED AT THE SAME HEADCOUNT, deliberately. `behaviour_profile_for` draws its
+    own `people_count` from bedrooms when a caller supplies none, so comparing the two at their
+    own sizes would conflate a children disagreement with a headcount one — and the headcount has
+    its own legs at the top of this file. What must hold here is that one home of a GIVEN size
+    has one children count whichever path asks.
+    """
+    disagreements = []
+    for cid in IDS:
+        for n in _SIZES_WITH_A_CHOICE:
+            record = dr.children_count_for(cid, n)
+            traced = pt.behaviour_profile_for(cid, _household_for(cid), people_count=n)
+            if traced.children_count != record:
+                disagreements.append((cid, n, record, traced.children_count))
+    assert not disagreements, (
+        f"{len(disagreements)} of {len(IDS) * len(_SIZES_WITH_A_CHOICE)} (home, size) pairs have "
+        f"two children counts: {disagreements[:5]}. The fabric path would trace a family with a "
+        "child's evening routine and the property record would volume-scale the same house as "
+        "all adults."
+    )
+
+
+def test_the_children_draw_can_reach_every_state_the_census_publishes():
+    """REACHABILITY BEFORE BEHAVIOUR. A draw that returned 0 for every home would satisfy every
+    mean and every share leg written below at some tolerance, and would be the exact defect this
+    delegation exists to remove — the old draw's own 2-person answer. So this asserts the
+    partition is ENTERED before anything asserts what it contains.
+
+    Asserted as DISTINCTNESS over the whole partition in one control rather than a leg per size,
+    because a leg per size is what lets two sizes collapse onto one state unnoticed: a draw that
+    ignored `people_count` entirely would pass seven independent "this size reaches some state"
+    legs and fail this one.
+    """
+    ids = [f"CHILD-REACH-{i:05d}" for i in range(2000)]
+    reached = {n: {dr.children_count_for(cid, n) for cid in ids} for n in _SIZES_WITH_A_CHOICE}
+
+    # A 2-person home CAN carry a child. Under the draw this replaces it never could.
+    assert reached[2] == {0, 1}, (
+        f"a 2-person household reaches {sorted(reached[2])}; the Census puts a dependent child in "
+        "8.7% of them and the uniform draw this replaces could reach none at all"
+    )
+    # Every size reaches its own published ceiling, and the ceilings differ.
+    assert max(reached[3]) == 2 and max(reached[4]) == 3, (
+        f"size 3 reaches up to {max(reached[3])} and size 4 up to {max(reached[4])}"
+    )
+    # The sizes do not collapse onto one another: the reachable SETS are not all identical.
+    assert len({frozenset(v) for v in reached.values()}) > 1, (
+        f"every household size reaches the identical set of children counts {reached[2]} — the "
+        "draw is not conditional on size at all"
+    )
+    # And no size can exceed the source's own top band, which is published as "three or more".
+    assert max(max(v) for v in reached.values()) == 3, (
+        "the Census publishes its top band as three and this draw carries it AS three, so no "
+        "household may reach four"
+    )
+
+
+def test_the_children_conditional_the_two_paths_share_is_the_published_one():
+    """The agreement leg above is satisfied by both paths being wrong together, so this is the leg
+    that says WHICH answer they agree on.
+
+    Keyed to `CHILDREN_WITHIN_SIZE_REFERENCE` itself rather than to today's numbers, so correcting
+    the Census derivation moves the target with it and this stays green — and reverting the draw
+    to the uniform reds it at sizes 2, 3, 6, 7 and 8 at once.
+
+    SAMPLED THROUGH THE FABRIC PATH for the reason the composition leg above learned the hard way:
+    a leg that samples only the delegate cannot see the old draw being restored in `premise_trace`,
+    because the old draw is not what the delegate calls.
+    """
+    from simulation.demand_model import CHILDREN_WITHIN_SIZE_REFERENCE
+
+    assert CHILDREN_WITHIN_SIZE_REFERENCE is not None, (
+        "R10 GAP (a)'s population half has been withdrawn; the draw falls back to the all-adult "
+        "reading and this leg's subject no longer exists"
+    )
+    published = {}
+    for n, k, share in CHILDREN_WITHIN_SIZE_REFERENCE:
+        published.setdefault(n, {})[k] = share
+    for n, row in published.items():
+        total = sum(row.values())
+        published[n] = {k: s / total for k, s in row.items()}
+
+    ids = [f"CHILD-SHARE-{i:05d}" for i in range(4000)]
+    worst = (0.0, None)
+    for n in _SIZES_WITH_A_CHOICE:
+        drawn = [pt.behaviour_profile_for(cid, _household_for(cid), people_count=n).children_count
+                 for cid in ids]
+        for k, expected in published[n].items():
+            got = sum(1 for d in drawn if d == k) / len(drawn)
+            if abs(got - expected) > worst[0]:
+                worst = (abs(got - expected), (n, k, expected, got))
+    # 3 sigma at n=4000 and the worst-case p=0.5 is 0.024; 0.03 is outside sampling noise and
+    # well inside the smallest disagreement the uniform draw creates (0.087 at size 2, and
+    # 0.20 at size 4 where the Census is bimodal and a uniform cannot be).
+    assert worst[0] <= 0.03, (
+        f"the fabric path's children conditional is {worst[1][3]:.4f} at (size {worst[1][0]}, "
+        f"{worst[1][1]} children) where the Census publishes {worst[1][2]:.4f}"
+    )
+
+
+def test_the_pre_delegation_children_draw_has_no_production_callers():
+    """Checked by CALLER, like the two legs above: what must hold is that no shipped module draws
+    this for itself again. The old draw's fingerprint is a `_substream(..., "children")` call.
+
+    MATCHED ON THE CALL, NOT ON THE WORD, and the first draft was not. A bare `'"children")'`
+    substring reds `tools/sample_gate_rss_premium.py`, which reads the cgroup file
+    `<task>/children` and has nothing to do with who lives in a house. A control that names an
+    innocent file is a control someone eventually silences.
+    """
+    import pathlib
+    import re
+    fingerprint = re.compile(r'_substream\([^)]*"children"\)')
+    root = pathlib.Path(__file__).resolve().parents[2]
+    offenders = []
+    for folder in ("simulation", "company", "saas", "tools", "background"):
+        for path in (root / folder).rglob("*.py"):
+            if fingerprint.search(path.read_text()):
+                offenders.append(str(path.relative_to(root)))
+    assert not offenders, (
+        f"the pre-delegation children draw has production callers again: {offenders}. Every one "
+        "of them is a second answer about who lives in a house that already has one."
+    )
+
+
+def test_the_property_record_declares_the_children_it_draws():
+    """The delegation is worth nothing if the record still writes the constant. Keyed to the
+    RECORD matching the delegate per home — not to a count of children on the live book, which
+    would go red the day the Census derivation is corrected.
+
+    The `{0: 144}` this replaces is in `PREREG_the_volume_normaliser_is_the_second_cut_set_
+    instance.md`: children were present-and-zero on every home in the book, so no production
+    caller supplied the cut at all and the volume response was latent rather than live.
+    """
+    customers = [
+        {"customer_id": f"CHILD-REC-{i:04d}", "segment": "resi", "commodity": "electricity",
+         "home_type": "semi_detached", "epc_rating": "D", "bedrooms": 3}
+        for i in range(120)
+    ]
+    properties = dr.build_properties(customers)
+    mismatches = [
+        (cid, p["children_count"], dr.children_count_for(cid, p["people_count"]))
+        for cid, p in properties.items()
+        if p["children_count"] != dr.children_count_for(cid, p["people_count"])
+    ]
+    assert not mismatches, f"the record and the delegate disagree for {mismatches[:5]}"
+    assert any(p["children_count"] for p in properties.values()), (
+        "no record in a 120-home book declares a child; the record is writing the constant again"
+    )

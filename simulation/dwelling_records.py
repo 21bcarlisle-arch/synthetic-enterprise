@@ -155,19 +155,18 @@ assert abs(sum(share for _, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017) - 1.0) < 1e
 # 2021, so the aggregate functions no longer refuse a book that declares
 # children: they centre it on that population. The 1.5% cut measured on the
 # live 144 homes was 1.3 points centre and 0.2 points children — against the
-# sourced centre the same book reads 1.01601 with children and 1.01799 without.
+# sourced centre that book read 1.01601 carrying the OLD uniform children and
+# 1.01799 read as all adults. (It now reads 1.01321, drawing this field: see
+# below. Both of those figures are measurements of a book this field no longer
+# describes, and they are kept because the repair was designed against them.)
 #
-# SO WHAT STILL BLOCKS THIS FIELD IS NOT THE POPULATION — IT IS THE DRAW.
-# `premise_trace` draws `randint(0, people_count - 1)`, uniform and uncited,
-# which puts a child in half of all 2-person homes where the Census puts one
-# in 8.7% of them. Setting this field from THAT draw would make the world's
-# record disagree with the world's own published anchor, and the volume
-# response would then be centred on a population the book does not resemble —
-# the same "one home, two answers" shape `composition_cuts_for` below exists
-# to close, committed one field along. The remaining work is a single sourced
-# draw from `CHILDREN_WITHIN_SIZE_REFERENCE`'s conditional, answering here and
-# in `premise_trace` both; until it lands, 0 is the honest all-adult reading
-# NEED itself publishes on rather than a placeholder.
+# AND THE DRAW THAT BLOCKED IT NEXT IS CLOSED TOO (2026-09-23, same day).
+# `children_count_for` below draws from that reference's conditional and both
+# paths read it, so this constant is no longer the field's ANSWER — it is the
+# FALLBACK that function returns when the reference is withdrawn, and 0 stays
+# the honest all-adult reading NEED itself publishes on rather than a
+# placeholder. Withdrawing the source therefore restores exactly the world
+# this constant used to describe, instead of inventing a third one.
 DEFAULT_CHILDREN_COUNT = 0
 
 
@@ -259,6 +258,73 @@ def composition_cuts_for(customer_id: str) -> tuple[bool, bool]:
     employed = _random.Random(f"someone_employed_{customer_id}").random()
     return (pensioner < PENSIONER_PRESENT_POPULATION_SHARE,
             employed < SOMEONE_EMPLOYED_POPULATION_SHARE)
+
+
+def children_count_for(customer_id: str, people_count: int) -> int:
+    """Dependent children in THIS home. ONE draw, wherever it is asked.
+
+    THE DEFECT THIS CLOSES (measured 2026-09-23, 20,000 synthetic ids).
+    `premise_trace.behaviour_profile_for` drew this for itself as
+    `randint(0, people_count - 1)` for households of 3+ and 0 below that, uncited, while this
+    module's record answered `DEFAULT_CHILDREN_COUNT` on all 144 homes. One home, two answers —
+    the third and last field of the segmentation set to carry that shape, after
+    `people_count_for_area` and `composition_cuts_for`.
+
+    AND THE UNIFORM DRAW DISAGREED WITH THE CENSUS IN BOTH DIRECTIONS, which is worth stating
+    because the finding that unblocked this said it disagreed in one. It was SHORT at sizes 2, 4
+    and 5 (a 2-person home could never have a child under the `>= 3` guard, against the Census's
+    8.7%) and LONG at 3, 6, 7 and 8 (mean 2.98 children in a 7-person home against 2.32). It was
+    also the wrong SHAPE: the Census conditional is strongly bimodal at size 4 — 61.4% of
+    4-person households have exactly two children — where a uniform is flat by construction. So
+    the remedy is the conditional itself and not a corrected point estimate.
+
+    THE DRAW. Inverse-CDF over `demand_model.CHILDREN_WITHIN_SIZE_REFERENCE`'s conditional
+    `P(children | size)` — the sourced ONS Census 2021 joint, whose derivation and the single
+    assumption behind it are in `docs/market_research/children_within_household_size_census_2021.md`.
+    Deterministic per customer on its own named substream (`children_count_<id>`) so it cannot
+    shift any other draw's sequence (C-S2), exactly as `_derive_people_count` and
+    `composition_cuts_for` are.
+
+    THE TOP BAND IS THE SOURCE'S, NOT A CLAMP. The Census publishes "three or more" and this
+    reference carries it AS three, so this function cannot return 4+ children where the uniform
+    could. A 6-person household of 3 children and 3 adults is reachable; one of 5 children is
+    not, and that is a stated property of the instrument rather than a bound chosen here.
+
+    SIZES ABOVE THE REFERENCE'S TOP ROW read that top row's conditional, because 8 IS "8 or more"
+    in the source — a 9-person household is inside the published band, not outside the table.
+
+    FAILS TO THE STATED ALL-ADULT READING, LOUDLY IN THE DOCSTRING RATHER THAN SILENTLY IN THE
+    RETURN. With no reference (the constant withdrawn, R10 GAP (a) re-opened) this returns
+    `DEFAULT_CHILDREN_COUNT` — 0, the all-adult reading NEED itself publishes on. That is the
+    honest answer to "we have no population", and it is the SAME answer the field gave before
+    this function existed, so withdrawing the source restores the previous world rather than
+    inventing a third one. It is a fallback with a reason, not a default that looks like one.
+
+    A BASELINE FIDELITY CHANGE, DECIDED BLIND TO P&L (R13). The argument for it is fidelity
+    alone: the world's record drew a household composition from an uncited uniform where the
+    Census publishes the conditional.
+    """
+    from simulation.demand_model import CHILDREN_WITHIN_SIZE_REFERENCE
+
+    people_count = max(1, int(people_count))
+    if not CHILDREN_WITHIN_SIZE_REFERENCE:
+        return DEFAULT_CHILDREN_COUNT
+
+    size = min(people_count, max(n for n, _, _ in CHILDREN_WITHIN_SIZE_REFERENCE))
+    conditional = sorted(
+        (k, share) for n, k, share in CHILDREN_WITHIN_SIZE_REFERENCE if n == size and share > 0.0
+    )
+    total = sum(share for _, share in conditional)
+    if not conditional or total <= 0.0:
+        return DEFAULT_CHILDREN_COUNT
+
+    roll = _random.Random(f"children_count_{customer_id}").random()
+    cumulative = 0.0
+    for k, share in conditional:
+        cumulative += share / total
+        if roll < cumulative:
+            return min(k, people_count - 1)
+    return min(conditional[-1][0], people_count - 1)  # float-rounding fallback
 
 
 def people_count_source(output_area: str | None) -> str:
@@ -408,6 +474,10 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
                 f"simulation.live_population.live_dwellings()."
             )
         pensioner_present, someone_employed = composition_cuts_for(cid)
+        # Bound ONCE and read twice below: the children draw is conditional on the headcount, so
+        # a second call here would be a second chance for the two fields to describe different
+        # households if `people_count_for_area` ever stopped being deterministic.
+        people_count = people_count_for_area(cid, phys.get("output_area"))
         properties[cid] = {
             "customer_id": cid,
             "property_type": phys["property_type"],
@@ -418,8 +488,11 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
             # ONE FUNCTION ANSWERS THIS, for every reader. It applies authored-then-area-then-
             # national itself, so this record cannot hold a different headcount from the one the
             # fabric path traces the same house on.
-            "people_count": people_count_for_area(cid, phys.get("output_area")),
-            "children_count": DEFAULT_CHILDREN_COUNT,
+            "people_count": people_count,
+            # AND THE THIRD, on the same rule: the Census conditional rather than the uncited
+            # uniform `premise_trace` used to draw for itself. Read through the headcount this
+            # record just set, so the two fields cannot describe different households.
+            "children_count": children_count_for(cid, people_count),
             # THE OTHER TWO CUTS THE DAYTIME RATE IS KEYED ON, absent from every record in the
             # book until 2026-09-23 and absent for no stated reason. Same one-function rule as
             # the headcount above: `composition_cuts_for` is what the fabric path is to be read

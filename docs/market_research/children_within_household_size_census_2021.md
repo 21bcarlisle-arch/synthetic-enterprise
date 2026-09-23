@@ -145,7 +145,14 @@ being cut by declaring children; it was being measured against the wrong populat
 
 ## What remains owed
 
-`dwelling_records.DEFAULT_CHILDREN_COUNT` still cannot be wired, and the reason has changed.
-It is no longer the population — it is the DRAW. `premise_trace` draws `randint(0, n−1)`, uniform
-and uncited, which puts a child in half of all 2-person homes where the Census puts one in 8.7%.
-The remaining work is one sourced draw from this conditional, answering in both places.
+**Wired the same day.** `dwelling_records.children_count_for` draws this conditional by inverse
+CDF on its own named substream, keyed on the customer id, and both `build_properties` and
+`premise_trace.behaviour_profile_for` read it; the uniform draw is deleted rather than centred on.
+The live book moved from `{0: 144}` to 46 of 144 declaring a child, mean 0.549 per household, and
+its volume factor to 1.01321 electricity / 1.00819 gas.
+
+**One correction to what this section used to say.** The uniform was guarded `if people_count >= 3`,
+so it put a child in **none** of the 2-person homes, not half, and it disagreed with this table in
+BOTH directions — short at sizes 2, 4 and 5, long at 3, 6, 7 and 8 — and in shape, being flat where
+this conditional is bimodal. The mechanism was right and the instance was not; the remedy is the
+same either way. `docs/staging/SEAT_RESULT_THE_CHILDREN_DRAW_IS_THE_CENSUS_CONDITIONAL_AND_THE_CODES_OWN_CENTRE_WAS_STALE_2026-09-23.md`.

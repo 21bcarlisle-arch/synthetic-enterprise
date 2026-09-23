@@ -584,9 +584,17 @@ def volume_factor_normaliser(
 
     THE TWO CENTRES, now that both exist. All-adult (`children_reference is
     None`): 1.4456452584044155 electricity, 1.2512721741165458 gas. Over
-    `CHILDREN_WITHIN_SIZE_REFERENCE`: 1.4009133872553938 electricity,
-    1.2206949489351744 gas — 3.09% and 2.44% lower, because a child weighs
+    `CHILDREN_WITHIN_SIZE_REFERENCE`: 1.4047186532865028 electricity,
+    1.224679820805055 gas — 2.83% and 2.13% lower, because a child weighs
     less than an adult in the numerator and 28.5% of households have one.
+    *(Corrected 2026-09-23. This docstring said 1.4009133872553938 / 3.09%
+    and 1.2206949489351744 / 2.44%, which were the centres over an EARLIER
+    draft of the reference constant; the same day's refinement moved the
+    constant and not this sentence. `docs/market_research/children_within_
+    household_size_census_2021.md` and the knowledge map both carried the
+    right pair throughout — the code's own statement about itself was the
+    one that was wrong, which is the direction that is hardest to notice.
+    Found by reading the two against each other while wiring the draw.)*
 
     `children_reference is None` is the size-only cut-set and returns exactly
     the float this function has always returned — byte-identical, which is
@@ -1050,9 +1058,40 @@ def build_demand_shape(
         # applied BEFORE the asset terms below: EV charging and solar export
         # are asset-driven, not people-driven, and must not be scaled by
         # headcount.
+        #
+        # AND THE CENTRE IS PER CUT-SET HERE TOO, which became load-bearing the moment the
+        # property record started declaring children (2026-09-23). `occupancy_volume_factor`
+        # with a `children_count` and no `children_reference` divides by the ALL-ADULT centre,
+        # and that is not a small deviation — it is the divisor being wrong. Measured on the
+        # live book at the time the field was still 0 everywhere, supplying children against
+        # the all-adult centre read 0.9846: a 1.5% silent cut to the whole book's volume,
+        # sitting comfortably INSIDE `VOLUME_FACTOR_BIAS_TOL`, so no band could have told
+        # anyone. `population_mean_volume_factor` resolves the same reference for the same
+        # reason; this is the one-household call site of that identical rule.
+        #
+        # IT IS KEYED ON THE RECORD DECLARING THE FIELD, NOT ON ITS VALUE, and the difference
+        # matters. Keying on `children_count > 0` would make the DIVISOR a function of the
+        # household — two homes in one book divided by two different centres — which is the
+        # variable-numerator-against-a-fixed-denominator defect this whole cut-set rule exists
+        # to close, merely turned around. A record that declares the field is a member of the
+        # Census population whether its own answer is 0 or 3, and is centred on it either way.
+        # A record that does NOT declare it (SME defaults, pre-W2_13 fixtures) keeps the
+        # all-adult centre and therefore the byte-identical result this docstring promises it.
+        #
+        # THIS DIVERGES FROM `population_mean_volume_factor` ON ONE REACHABLE-IN-TESTS-ONLY
+        # BOOK: one that declares `children_counts` and whose every entry is 0. That function
+        # keys on `any(children_counts)`, so it centres such a book on the all-adult reference
+        # where this keys on declaration and centres it on the Census one. The live book cannot
+        # be that book — `build_properties` draws the Census conditional, which puts children in
+        # roughly a third of homes — and the divergence is filed rather than fixed here because
+        # `any(...)` also governs that function's REFUSAL, which is a guard with its own
+        # argument and does not get changed as a side effect of this one.
         volume_factor = occupancy_volume_factor(
             people_count, commodity,
             children_count=children_count, household_key=household_key,
+            children_reference=(
+                CHILDREN_WITHIN_SIZE_REFERENCE if "children_count" in property else None
+            ),
         )
         shape = [s * volume_factor for s in shape]
 

@@ -868,3 +868,104 @@ def test_need_volume_index_is_relative_to_a_one_adult_household():
     assert need_volume_index(1, "electricity") == pytest.approx(1.0)
     assert need_volume_index(1, "gas") == pytest.approx(1.0)
     assert volume_factor_normaliser("electricity") > 1.0
+
+
+# ===========================================================================
+# THE PRODUCTION CALL SITE IS CENTRED PER CUT-SET TOO (2026-09-23)
+#
+# `population_mean_volume_factor` was made cut-set-keyed when the children
+# reference landed, and that closed the AGGREGATE claim. `build_demand_shape`
+# is the ONE-HOUSEHOLD call site of the same rule, and it was still dividing
+# by the all-adult centre — harmless while `children_count` was 0 on every
+# record in the book, and a silent 1.5% cut to the whole book's volume from
+# the moment `dwelling_records` started drawing the Census conditional.
+#
+# Which is why these legs land in the same commit as that draw. A control
+# written after the field is wired is a control written after the defect.
+# ===========================================================================
+
+def _volume_probe(children_count, *, declare=True, people_count=4):
+    prop = {"heating_system": "electric_storage", "occupancy_pattern": "single",
+            "assets": {"ev": False, "solar": False, "smart_meter": True},
+            "people_count": people_count, "customer_id": "VOL-CUTSET-0001"}
+    if declare:
+        prop["children_count"] = children_count
+    return sum(build_demand_shape(FLAT_SHAPE, MILD_TEMP, "electricity", prop))
+
+
+def _centre_ratio():
+    """all-adult centre / Census-children centre. The EXACT factor by which a household's volume
+    moves when the call site resolves the reference, and the thing these legs measure."""
+    return (dm.volume_factor_normaliser("electricity")
+            / dm.volume_factor_normaliser("electricity", dm.CHILDREN_WITHIN_SIZE_REFERENCE))
+
+
+def test_a_record_declaring_children_is_centred_on_the_children_population(monkeypatch):
+    """The defect: `occupancy_volume_factor` with a `children_count` and no `children_reference`
+    divides by the ALL-ADULT centre. That is not a small deviation, it is the divisor being wrong
+    — measured 0.9846 on the live book, a 1.5% cut sitting INSIDE `VOLUME_FACTOR_BIAS_TOL`, so no
+    band could ever have caught it.
+
+    MEASURED BY WITHDRAWING THE SOURCE, not by predicting a kWh. Every other term in
+    `build_demand_shape` — the occupancy SHAPE multiplier, the heating load, the child weight
+    draw — is identical across the two runs, so their ratio is the divisor and nothing else. That
+    also keys this to the PROPERTY (the call site reads the reference) rather than to today's
+    answer, so re-deriving the Census population moves the target with it.
+    """
+    assert dm.CHILDREN_WITHIN_SIZE_REFERENCE is not None, (
+        "R10 GAP (a)'s population half has been withdrawn; this leg's subject does not exist"
+    )
+    expected = _centre_ratio()
+    assert expected > 1.0, (
+        "a child weighs less than an adult, so the children centre must sit BELOW the all-adult "
+        "one; if these are equal the reference is not being read at all"
+    )
+    with_ref = _volume_probe(2)
+    monkeypatch.setattr(dm, "CHILDREN_WITHIN_SIZE_REFERENCE", None)
+    without_ref = _volume_probe(2)
+    assert with_ref / without_ref == pytest.approx(expected, rel=1e-9), (
+        f"withdrawing the reference moved this home by {with_ref / without_ref:.6f} where the two "
+        f"centres differ by {expected:.6f} — the call site is not dividing by the one it declares"
+    )
+
+
+def test_the_centre_is_keyed_on_declaring_the_field_not_on_having_a_child(monkeypatch):
+    """THE DIVISOR IS A POPULATION PROPERTY, NOT A HOUSEHOLD ONE. Keying the reference on
+    `children_count > 0` would put two homes in one book on two different centres — the
+    variable-numerator-against-a-fixed-denominator defect turned around — so a record that
+    DECLARES 0 children must move by the same factor as one that declares 2.
+
+    This is the leg that fails if someone 'optimises' the call site to skip the reference when
+    there is no child to weight, which looks like a free short-circuit and is not one.
+    """
+    expected = _centre_ratio()
+    with_ref = _volume_probe(0, declare=True)
+    monkeypatch.setattr(dm, "CHILDREN_WITHIN_SIZE_REFERENCE", None)
+    without_ref = _volume_probe(0, declare=True)
+    assert with_ref / without_ref == pytest.approx(expected, rel=1e-9), (
+        "a record declaring zero children was not centred on the Census population; it is a "
+        "zero-children MEMBER of that population and is centred on it exactly as a 2-child one is"
+    )
+
+
+def test_a_record_that_never_declares_children_keeps_the_pre_w2_13_centre(monkeypatch):
+    """The other side of the same partition, and the promise `build_demand_shape`'s docstring
+    makes to SME defaults and pre-W2_13 fixtures: a record with no `children_count` key at all is
+    byte-identical to what it always was, reference or no reference.
+
+    Asserted TOGETHER with the DISTINCTNESS of the two branches rather than in isolation, because
+    a call site that resolved the reference for NOBODY would pass this leg alone — and that is
+    precisely the defect the three legs here exist to catch.
+    """
+    undeclared_with_ref = _volume_probe(0, declare=False)
+    monkeypatch.setattr(dm, "CHILDREN_WITHIN_SIZE_REFERENCE", None)
+    assert _volume_probe(0, declare=False) == pytest.approx(undeclared_with_ref, rel=1e-12), (
+        "withdrawing the reference moved a record that never declared the field; the pre-W2_13 "
+        "path is supposed to be untouched by it"
+    )
+    monkeypatch.undo()
+    # And the two branches are genuinely DISTINCT — declaring zero is not the same as not saying.
+    assert _volume_probe(0, declare=True) != pytest.approx(undeclared_with_ref, rel=1e-6), (
+        "declaring zero children and omitting the field give the identical answer, so no leg "
+        "here can tell whether the reference is ever resolved"
+    )
