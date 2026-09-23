@@ -1028,6 +1028,101 @@ def population_floor_violations(root: Path | str = DEFAULT_STAGING_ROOT) -> list
     return out
 
 
+def head_room_documents(root: Path | str = DEFAULT_STAGING_ROOT) -> dict:
+    """The `.md` names the COMMITTED RECORD holds in each FLOORED ROOM, or why it could not say.
+
+    Sibling of `head_root_documents`, which asks this of the root and discards every path with a
+    `/` left in it — i.e. it discards exactly the rooms. Same reading for the same reason (HEAD
+    and not the index, because this repo lands by plumbing that never opens the shared index), one
+    directory level down.
+    """
+    import subprocess
+
+    try:
+        proc = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", "HEAD", "--", "docs/staging/"],
+            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"readable": False, "why": f"git could not be asked ({exc!r})"}
+    if proc.returncode != 0:
+        return {"readable": False,
+                "why": f"git ls-tree exited {proc.returncode}: {proc.stderr.strip()[:200]}"}
+    names: dict[str, set[str]] = {dirname: set() for dirname in POPULATION_FLOORS}
+    for line in proc.stdout.splitlines():
+        path = line.strip()
+        if not path.startswith("docs/staging/"):
+            continue
+        rest = path[len("docs/staging/"):]
+        dirname, _, leaf = rest.partition("/")
+        if dirname in names and leaf and "/" not in leaf and leaf.endswith(".md"):
+            names[dirname].add(leaf)
+    return {"readable": True, "names": names}
+
+
+def room_shrinkage_violations(root: Path | str = DEFAULT_STAGING_ROOT,
+                              *, head_names: dict[str, set[str]] | None = None) -> list[str]:
+    """A floored room holding FEWER documents than the committed record does.
+
+    WHY THIS EXISTS BESIDE `population_floor_violations` AND DOES NOT REPLACE IT. That control's
+    own docstring states the property — *"rooms holding fewer documents than they held when the
+    floor was set"* — and `POPULATION_FLOORS` states it harder still: *"a pre-registration is never
+    deleted and never archived, so this can only rise. A drop means the machine's own falsifiability
+    record is being tidied away, which is the one thing in this folder that must never happen
+    quietly."* What it CHECKS is a literal written on the day it was true. `records/` was 38 on
+    2026-09-03 and is 377 today, so the room had to lose **340 documents** before that control said
+    a word — and on 2026-09-23 three documents went missing from `records/` (two of them
+    pre-registrations) and `--check` printed `Population floors: 0 violation(s)`. The one thing that
+    must never happen quietly happened quietly, and was found by hand. This is CLAUDE.md's *"key a
+    control to the property, not to today's answer"*: a bound the system exceeds by 10x is not a
+    weak control, it is an absent one that still prints a number reading like a pass.
+
+    So the ruler here is HEAD, which moves with the room and needs no maintenance. The literal
+    floors stay because they answer the OTHER question: HEAD dropping below the migration baseline
+    is a loss that has already LANDED, and a ruler made of HEAD cannot see that by construction.
+    Two controls, two subjects, neither derivable from the other.
+
+    NAMES AND NOT A COUNT, and AN EMPTY READ IS A VIOLATION. A count would report the size of the
+    loss and not its subject, and the subject is the whole value of a falsifiability record. The
+    empty case is the fail-open trap this file has paid for elsewhere: a floored room reading zero
+    at HEAD means the path filter above matched nothing, not that the room is fine, because
+    `POPULATION_FLOORS` asserts every one of them was non-empty when it was written. Silence there
+    would be a control whose own filter emptied its evidence.
+
+    `head_names` is injectable so both legs can be driven without a git repository, the idiom
+    `stranded_dispositions` already uses one function above.
+    """
+    root = Path(root)
+    if head_names is None:
+        head = head_room_documents(root)
+        if not head.get("readable"):
+            return [f"SHRINKAGE UNREADABLE: {head.get('why')}. This leg cannot answer whether a "
+                    f"floored room lost a document, and a check that cannot answer is not a pass."]
+        head_names = head["names"]
+    out: list[str] = []
+    for dirname in sorted(POPULATION_FLOORS):
+        at_head = head_names.get(dirname, set())
+        if not at_head:
+            out.append(
+                f"SHRINKAGE UNREADABLE {dirname}/: the committed record shows 0 document(s) in a "
+                f"room POPULATION_FLOORS says held {POPULATION_FLOORS[dirname]}. Either the room "
+                f"moved or this reader's path filter matched nothing; an empty read is not a pass."
+            )
+            continue
+        room = root / dirname
+        on_disk = {p.name for p in room.iterdir()
+                   if p.is_file() and p.suffix == ".md"} if room.is_dir() else set()
+        gone = sorted(at_head - on_disk)
+        if gone:
+            out.append(
+                f"ROOM SHRINKING {dirname}/: {len(gone)} document(s) the committed record holds "
+                f"are absent from disk ({len(on_disk)} on disk, {len(at_head)} at HEAD). This room "
+                f"can only rise, so each of these is a loss and not a disposition: "
+                f"{', '.join(gone[:5])}{' ...' if len(gone) > 5 else ''}"
+            )
+    return out
+
+
 # ---------------------------------------------------------------------------
 # REPORT
 # ---------------------------------------------------------------------------
@@ -1059,6 +1154,11 @@ def render(root: Path | str = DEFAULT_STAGING_ROOT) -> str:
     violations = population_floor_violations(root)
     lines.append(f"Population floors: {len(violations)} violation(s)")
     for v in violations:
+        lines.append(f"  ! {v}")
+    lines.append("")
+    shrinkage = room_shrinkage_violations(root)
+    lines.append(f"Room shrinkage vs HEAD: {len(shrinkage)} violation(s)")
+    for v in shrinkage:
         lines.append(f"  ! {v}")
     lines.append("")
     recorded = recorded_findings(root)
@@ -1095,6 +1195,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     print(render(args.root))
     if args.check and (population_floor_violations(args.root)
+                       or room_shrinkage_violations(args.root)
                        or stranded_disposition_violations(args.root)
                        or sediment_violations(args.root)):
         return 1

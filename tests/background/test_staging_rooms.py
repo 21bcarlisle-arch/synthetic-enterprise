@@ -249,6 +249,90 @@ def test_a_full_room_passes(tmp_path):
     assert sr.population_floor_violations(tmp_path) == []
 
 
+def test_MUTATION_a_room_ABOVE_its_literal_floor_that_LOST_a_document_is_LOUD(tmp_path):
+    """The defect the literal floor cannot see, and the reason `room_shrinkage_violations` exists.
+
+    `records/` was floored at 38 on 2026-09-03 and held 377 by 2026-09-23, so it had to lose 340
+    documents before `population_floor_violations` said a word. Three went missing that day -- two
+    of them pre-registrations, the artefact class whose whole value is that it cannot be revised
+    after the answer is known -- and `--check` printed `Population floors: 0 violation(s)`.
+
+    BOTH LEGS ON ONE TREE STATE, because a control that flagged EVERY room would pass a
+    one-leg version of this: the full room must be silent in the same call that the robbed room is
+    loud. That is this file's own standing shape (`assert plan["restart"] and plan["defer"]`).
+
+    MUTATION (must fire): key the new leg to `POPULATION_FLOORS[dirname]` instead of to HEAD --
+    i.e. make it a second copy of the literal floor. The robbed room is still 40 documents clear of
+    38, so it goes silent and this test reds on the `gone` assertion.
+    """
+    head_names = {}
+    for room in sr.POPULATION_FLOORS:
+        (tmp_path / room).mkdir()
+        # Deliberately WELL ABOVE every literal floor, which is the whole point: the loss below
+        # is invisible to a bound written as a number on the day it was true.
+        names = {f"CLASS_X{i}_2026-08-12.md" for i in range(max(sr.POPULATION_FLOORS.values()) + 3)}
+        head_names[room] = names
+        for name in names:
+            _write(tmp_path / room, name)
+
+    assert sr.population_floor_violations(tmp_path) == []
+    assert sr.room_shrinkage_violations(tmp_path, head_names=head_names) == []
+
+    robbed = sr.RECORDS_DIRNAME
+    stolen = sorted(head_names[robbed])[0]
+    (tmp_path / robbed / stolen).unlink()
+
+    # The literal floor is still silent -- the room is far above 38. That is the defect, asserted.
+    assert sr.population_floor_violations(tmp_path) == []
+
+    out = sr.room_shrinkage_violations(tmp_path, head_names=head_names)
+    assert len(out) == 1, f"exactly the robbed room must speak, not every room: {out}"
+    assert robbed in out[0] and "ROOM SHRINKING" in out[0]
+    assert stolen in out[0], f"the message must NAME what went missing, not just count it: {out[0]}"
+
+
+def test_MUTATION_an_EMPTY_read_of_a_floored_room_is_a_VIOLATION_and_not_a_pass(tmp_path):
+    """The fail-open leg. If the path filter matches nothing, every room reads zero and every
+    room is therefore 'not shrinking' -- a control whose own filter emptied its evidence, which
+    is a shape this repo has paid for repeatedly.
+
+    MUTATION (must fire): `if not at_head: continue` instead of appending. Both asserts below go
+    red, because an unreadable room and a healthy one become indistinguishable.
+    """
+    for room in sr.POPULATION_FLOORS:
+        (tmp_path / room).mkdir()
+    out = sr.room_shrinkage_violations(tmp_path, head_names={r: set() for r in sr.POPULATION_FLOORS})
+    assert len(out) == len(sr.POPULATION_FLOORS)
+    assert all("SHRINKAGE UNREADABLE" in v for v in out)
+
+
+def test_MUTATION_an_UNREADABLE_git_is_a_VIOLATION_and_not_a_pass(tmp_path, monkeypatch):
+    """`head_room_documents` failing must not read as 'no room shrank'. The sibling
+    `sediment_violations` has this exact leg; without it a machine with no git is fully green.
+
+    MUTATION (must fire): `return []` on the unreadable branch.
+    """
+    import subprocess
+
+    def _boom(*a, **k):
+        raise OSError("no git here")
+
+    monkeypatch.setattr(subprocess, "run", _boom)
+    assert sr.head_room_documents(tmp_path)["readable"] is False
+    out = sr.room_shrinkage_violations(tmp_path)
+    assert len(out) == 1 and "SHRINKAGE UNREADABLE" in out[0]
+
+
+def test_the_check_EXITS_NONZERO_on_room_shrinkage_too():
+    """A measurement printed and not gated is a receipt.
+
+    MUTATION (must fire): drop `room_shrinkage_violations(args.root)` from `main`.
+    """
+    import inspect
+
+    assert "room_shrinkage_violations(args.root)" in " ".join(inspect.getsource(sr.main).split())
+
+
 # ---------------------------------------------------------------------------
 # THE LIVE TREE
 # ---------------------------------------------------------------------------
