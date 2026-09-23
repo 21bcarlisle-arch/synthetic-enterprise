@@ -2342,7 +2342,12 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         {"n": n, "mean_gbp": _f(spread.get("mean")), "stdev_gbp": stdev,
          "min_gbp": lo, "max_gbp": hi, "sem_gbp": _f(floor.get("selection_sem_gbp"))},
         point_estimate, point_clock, _staleness_caveat(floor, three_arm or {}),
-        _draw_repetition(floor, SELECTION_CONTRAST))
+        _draw_repetition(floor, SELECTION_CONTRAST),
+        # AND WHAT THAT COUNT IS WORTH, from the same floor and the same contrast. Since
+        # 2026-09-23: a repeat count is a bias DIRECTION, and a direction published without a SIZE
+        # asks the reader to finish the arithmetic. See `_width_over_distinct_draws` -- including
+        # for why the answer on this floor refuted what I expected of it.
+        _width_over_distinct_draws(floor, SELECTION_CONTRAST))
     # Whether the ONE published run is even inside the range the family was drawn over. `None`
     # when either end is missing -- an unknown relationship must not read as a comfortable one.
     inside = leg.get("single_run_inside_the_family")
@@ -3934,6 +3939,105 @@ def _draw_repetition(floor: dict | None, key: str | None = None) -> dict:
                 "added nothing the family did not already hold, which is two fewer for that same "
                 "value. A bound computed across repeated draws measures how often the instrument "
                 "pinned, not how far the quantity moves.".format(key))}
+
+
+def _width_over_distinct_draws(floor: dict | None, key: str | None = None) -> dict:
+    """The SAME interval, recomputed counting each returned value once instead of once per draw.
+
+    WHY THIS EXISTS AND WHAT IT IS NOT (2026-09-23). The page has carried a repeat count beside
+    its narrowest bound since 2026-09-22 -- 5 of 18 draws implicated, 3 redundant -- and a rule
+    that withholds the sign because of it. But a count is a bias DIRECTION with no SIZE: a reader
+    handed "5 of these 18 repeat" and "the bound is GBP 384.62" was being asked to do the
+    arithmetic themselves, and nothing on the page said what the arithmetic comes to. This is that
+    number, published beside the one it qualifies.
+
+    IT IS A DECLARED SENSITIVITY AND NEVER THE PUBLISHED WIDTH. Dropping repeated values is not an
+    unbiased estimator of anything -- if the instrument pins, the values it pinned ARE draws and
+    discarding them throws away the evidence of the pinning along with the pinning. This answers
+    exactly one question and no other: how much of the published interval's narrowness is the
+    repeats. `estimate_gbp` and `bound_gbp` on the leg block remain what the page states; this
+    block is read beside them and replaces neither.
+
+    THE ANSWER ON THE PUBLISHED FLOOR IS "ALMOST NONE OF THE BAR-CLEARING", AND THAT WAS NOT WHAT
+    I EXPECTED. Printed at real inputs before this function was written: the standard error widens
+    384.62 -> 406.56 (+5.7%) exactly as expected, but the mean moves AWAY from zero at the same
+    time, -959.78 -> -1013.98, because the two repeated values sit on opposite sides of it. The
+    bar rises too, 2.110 -> 2.145, on three fewer degrees of freedom. The three moves very nearly
+    cancel: 2.4954 standard errors from zero becomes 2.4941, and the family still clears. The
+    repeats are real and the pinning is real; what is refuted is the narrower claim that THIS
+    family's bar-clearing is made of them.
+
+    WHICH IS WHY THE VERDICT IS DERIVED AND NOT WRITTEN DOWN. `changes_the_bar_verdict` is computed
+    from the two comparisons, so the day a family lands whose verdict DOES flip when its repeats
+    are counted once, this block says so with nobody editing a sentence -- and the day one lands
+    that repeats nothing, every figure here equals the published one and the key is `False` for
+    the honest reason rather than by never having been reachable.
+    """
+    key = SELECTION_CONTRAST if key is None else key
+    repetition = _draw_repetition(floor, key)
+    if repetition.get("countable") is not True:
+        return {"available": False, "why_not": repetition.get("why_not"),
+                "what_this_would_have_been": (
+                    "the published interval recomputed counting each returned `{}` once. It cannot "
+                    "be formed on a floor whose rows do not carry that key, and an uncomputed "
+                    "sensitivity is not a sensitivity that came back clean.".format(key))}
+    seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
+    values = sorted({_f(seed.get(key)) for seed in seeds})
+    # TWO DRAWS IS THE FLOOR FOR A DEVIATION AND ONE DISTINCT VALUE IS REACHABLE IN PRINCIPLE -- a
+    # family that pinned every draw. It refuses rather than dividing by zero, and it refuses with
+    # the count, because "the instrument returned one value eighteen times" is the most damning
+    # reading this block could ever produce and it must not arrive as a crash.
+    if len(values) < 2:
+        return {"available": False,
+                "why_not": ("this family returned {n} distinct value(s) across {d} draws, which is "
+                            "too few to form a deviation at all -- the strongest possible evidence "
+                            "that its width is the instrument, and not a width this page can "
+                            "state.").format(n=len(values), d=repetition.get("draws")),
+                "distinct_values": len(values), "draws": repetition.get("draws")}
+    n = len(values)
+    mean = sum(values) / n
+    stdev = (sum((v - mean) ** 2 for v in values) / (n - 1)) ** 0.5
+    sem = stdev / (n ** 0.5)
+    bar = sems_to_state_a_sign(n)
+    sems = None if sem == 0 else abs(mean) / sem
+    clears = None if sems is None or bar is None else bool(sems > bar)
+    return {
+        "available": True,
+        "draws": repetition.get("draws"),
+        "distinct_values": n,
+        "estimate_gbp": mean,
+        "bound_gbp": sem,
+        "bound_statistic": "sem_gbp",
+        "one_draw_moves_gbp": stdev,
+        "sems_from_zero": sems,
+        "sems_needed_to_state_a_sign": bar,
+        "clears_its_own_bar": clears,
+        "what_this_is": (
+            "the published interval for `{key}` recomputed over this family's {n} DISTINCT returned "
+            "values rather than its {d} draws. It is a declared sensitivity and not the published "
+            "width: the page states the figures on `selection_leg` itself, over all {d}. Counting a "
+            "pinned value once is not an unbiased estimate of anything -- it is the answer to one "
+            "question, which is how much of the published bound's narrowness the repeats "
+            "account for.").format(key=key, n=n, d=repetition.get("draws")),
+    }
+
+
+def _distinct_width_changes_the_verdict(distinct: dict | None, published_clears) -> bool | None:
+    """Does counting each returned value once flip whether this family clears its own bar?
+
+    SEPARATE FROM THE BLOCK IT GRADES so the comparison has one home. `_width_over_distinct_draws`
+    knows nothing about what the page published; this is the only place the two verdicts meet.
+
+    `None` IS "CANNOT TELL" AND IS NOT `False`. A family whose sensitivity could not be formed, or
+    whose own bar-clearing is unknown, has not been shown to be unmoved by its repeats -- and
+    `False` would read exactly as if it had.
+    """
+    if not isinstance(distinct, dict) or distinct.get("available") is not True:
+        return None
+    theirs = distinct.get("clears_its_own_bar")
+    if not isinstance(theirs, bool) or not isinstance(published_clears, bool):
+        return None
+    return theirs != published_clears
 
 
 #: THE WIDTHS THE TWO GROUPS REACH, as the page's own words for what separates them. Kept here
@@ -5801,8 +5905,16 @@ def _price_word(count) -> str:
     return "no count under the search ceiling" if count is None else "{} seeds".format(count)
 
 
-def _repetition_withholds(repetition: dict | None) -> str | None:
+def _repetition_withholds(repetition: dict | None, distinct_width: dict | None = None,
+                          published_clears=None, published_sem=None) -> str | None:
     """This family's own reason its bound cannot state a side, or `None` if it has none.
+
+    THE LAST THREE ARGUMENTS PRICE THE REFUSAL AND DEFAULT TO ABSENT. A caller that holds the
+    recomputed interval passes it and the sentence carries what the repeats are worth; a caller
+    that does not gets the refusal ending on the claim that is established without it. They are
+    optional because two of the three call sites grade a family they hold no published verdict
+    for, and a default that invented one would put a number in a reader's hands that nothing
+    computed. See `_repetition_price`.
 
     A STRING IS A REFUSAL AND `None` IS A PASS, which is the way round that lets the caller write
     `if reason:` and lets the reason itself be what reaches the reader. The alternative -- a bool
@@ -5834,13 +5946,58 @@ def _repetition_withholds(repetition: dict | None) -> str | None:
             "partly a count of how often this instrument PINNED rather than a measure of how far "
             "the quantity moves. Across every family on this disk the ones that repeat a draw are "
             "bounded more tightly than every one that does not, with no overlap between the two "
-            "groups -- so the narrowness that would let this mean clear its bar is the same "
-            "phenomenon as the repetition, and not evidence about the choosing.").format(
-                repeats=repeats, draws=repetition.get("draws"))
+            "groups.{sized}").format(
+                repeats=repeats, draws=repetition.get("draws"),
+                sized=_repetition_price(distinct_width, published_clears, published_sem))
+
+
+def _repetition_price(distinct: dict | None, published_clears, published_sem) -> str:
+    """What the repeats are WORTH, appended to the refusal that names them, or nothing.
+
+    THIS CLAUSE REPLACED AN ASSERTION THAT THE MEASUREMENT REFUTES (2026-09-23). The refusal used
+    to end "so the narrowness that would let this mean clear its bar is the same phenomenon as the
+    repetition, and not evidence about the choosing." The first half of that is a true statement
+    about the CENSUS -- across families, the repeating ones are the narrow ones. The second half is
+    a claim about THIS family, that its bar-clearing is made of its repeats, and it was never
+    measured. Recomputing the interval over the distinct values measures it, and on the published
+    floor it is false: 2.4954 errors from zero becomes 2.4941 against a bar that rises with the
+    lost degrees of freedom, and the family still clears.
+
+    THE REFUSAL IS UNMOVED AND THAT IS THE POINT. The sign stays withheld, because a bound built
+    across values the instrument pinned cannot be read as dispersion whichever side of the bar it
+    lands -- that is an argument about what the number MEANS, not about how big it is. What is
+    withdrawn is a stronger claim the page was making for free beside the true one.
+
+    EMPTY WHEN THE PRICE IS UNKNOWN, never a reassuring default. A sensitivity that could not be
+    formed leaves the refusal ending on the census sentence, which is the claim that is still
+    established.
+    """
+    if not isinstance(distinct, dict) or distinct.get("available") is not True:
+        return ""
+    flips = _distinct_width_changes_the_verdict(distinct, published_clears)
+    if flips is None or not isinstance(published_sem, (int, float)):
+        return ""
+    return (" WHAT THE REPEATS ARE WORTH, MEASURED: counting each returned value once leaves {n} "
+            "distinct values, a standard error of GBP {sem:,.2f} against the published GBP "
+            "{pub_sem:,.2f}, and {sems:.4f} errors from zero against a bar of {bar:.3f} on the "
+            "{df} degrees of freedom that many buys. {verdict} This is a declared sensitivity and "
+            "not a second published width -- and it does not lift the refusal, because a bound "
+            "built across pinned values cannot be read as dispersion whichever side of its bar it "
+            "falls.").format(
+                n=distinct.get("distinct_values"), sem=distinct.get("bound_gbp"),
+                pub_sem=published_sem, sems=distinct.get("sems_from_zero"),
+                bar=distinct.get("sems_needed_to_state_a_sign"),
+                df=(distinct.get("distinct_values") or 1) - 1,
+                verdict=("The bar verdict FLIPS when the repeats are counted once, so on this "
+                         "family the narrowness and the repetition are the same phenomenon."
+                         if flips else
+                         "The bar verdict does NOT flip, so on this family the repeats are not "
+                         "what the bar-clearing is made of."))
 
 
 def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
-                             staleness_caveat: str | None, repetition: dict | None) -> dict:
+                             staleness_caveat: str | None, repetition: dict | None,
+                             distinct_width: dict | None = None) -> dict:
     """ONE contrast's estimate and ONE contrast's bound, both over the SAME population.
 
     THE DEFECT IT SERVES, and it is the thesis of the page rather than a detail of it. Until
@@ -6001,7 +6158,12 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
     # how often the instrument pinned. This is the 2026-09-22 refusal and it is independent of the
     # one above: see the docstring for why folding the two would leave the sign to return silently
     # the day the book re-run lands.
-    repeats_caveat = _repetition_withholds(repetition)
+    # WHAT THE REPEATS COST THE INTERVAL, CARRIED IN BESIDE THE COUNT THAT NAMES THEM. This
+    # function holds no floor -- `repetition` is handed to it already counted, for the reason the
+    # census gives: a consumer that re-asked would be a second home for the answer. The size the
+    # repeats are worth arrives the same way and from the same floor, so the count and its price
+    # can never be picked up from different families.
+    repeats_caveat = _repetition_withholds(repetition, distinct_width, clears_bar, sem)
     if stateable and repeats_caveat:
         stateable = False
     # WHY THE PAGE WITHHELD, WHEN THE STATISTICS DID NOT. `None` when nothing was withheld, so the
@@ -6092,6 +6254,15 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
         # zero against this family's own bar of 2.11" with nothing beside it saying 5 of those 18
         # draws repeat another. The evidence that qualifies a figure has to travel with it.
         "repetition": repetition,
+        # AND WHAT THAT COUNT IS WORTH, IN THE UNITS THE INTERVAL ABOVE IS STATED IN. `repetition`
+        # says five of eighteen draws repeat; this says what the interval becomes when each
+        # returned value is counted once. A reader holding only the count cannot tell whether it
+        # is worth a pound or a thousand, and the page knew and did not say.
+        "width_if_each_value_counted_once": distinct_width,
+        # WHETHER IT MATTERS TO THE ONE VERDICT THE PAGE TURNS ON, derived from the two blocks
+        # rather than asserted beside them. `None` is "cannot tell" and is not `False`.
+        "repeats_change_the_bar_verdict": _distinct_width_changes_the_verdict(
+            distinct_width, clears_bar),
         "sign_is_stateable": stateable,
         # THE REPETITION REFUSAL ON ITS OWN, so which of the two reasons fired is readable from the
         # payload rather than only by matching substrings of the composed caveat. It is published
@@ -6159,14 +6330,47 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock,
              "that same family's standard error over the same {n}. They are one population, which "
              "is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is "
              "the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never "
-             "divided into the mean. `single_run.gbp` is one member of the {n}.") if one_book else
+             "divided into the mean. `single_run.gbp` is one member of the {n}.{draws}")
+            if one_book else
             ("`estimate_gbp` is the MEAN of this contrast across {n} seed re-draws and `bound_gbp` "
              "is that same family's standard error over the same {n}: those two ARE one population "
              "and bound each other. `single_run.gbp` is NOT among them -- it comes from a "
              "different book -- so this family states no direction about it and no figure here "
              "qualifies it. `one_draw_moves_gbp` is the family's standard deviation and is never "
-             "divided into the mean.")).format(n=n),
+             "divided into the mean.{draws}")).format(n=n, draws=_over_how_many_distinct(
+                 repetition, distinct_width)),
     }
+
+
+def _over_how_many_distinct(repetition: dict | None, distinct: dict | None) -> str:
+    """The clause that says the {n} above is a DRAW count and not a count of distinct answers.
+
+    THE KEY WHOSE WHOLE JOB IS NAMING WHAT EACH NUMBER WAS COMPUTED OVER WAS NOT NAMING IT
+    (2026-09-23). `what_each_number_is_over` said "across 18 seed re-draws" and stopped, and every
+    word of that is true; what it left out is that those 18 draws returned 15 answers. A reader
+    who got as far as this key was reading the page's own statement of its denominator and was
+    still not told the denominator repeats. The count lived two keys up, in a block about
+    repetition, which is exactly the shape where evidence fails to travel with its figure.
+
+    THE CLAUSE IS DERIVED AND EMPTY WHEN THERE IS NOTHING TO SAY. A family whose draws are all
+    distinct adds nothing here -- it would be noise on every honest family, and a sentence that
+    fires on every family is a sentence nobody reads by the time it matters.
+    """
+    if not isinstance(repetition, dict) or repetition.get("countable") is not True:
+        return ""
+    draws, distinct_n = repetition.get("draws"), repetition.get("distinct_values")
+    if not isinstance(draws, int) or not isinstance(distinct_n, int) or distinct_n >= draws:
+        return ""
+    sized = ""
+    if isinstance(distinct, dict) and distinct.get("available") is True:
+        sized = (" Counting each returned value once instead gives GBP {sem:,.2f}, published as "
+                 "`width_if_each_value_counted_once` -- a declared sensitivity, not this "
+                 "page's width.").format(sem=distinct.get("bound_gbp"))
+    return (" THOSE {n} DRAWS RETURNED {d} DISTINCT VALUES: `estimate_gbp`, `bound_gbp` and "
+            "`one_draw_moves_gbp` are each computed over "
+            "the {n}, repeats included, which is what a standard error over re-draws means and is "
+            "not a correction that was skipped.{sized}").format(
+                n=draws, d=distinct_n, sized=sized)
 
 
 def _resolvable(value, spread) -> bool | None:

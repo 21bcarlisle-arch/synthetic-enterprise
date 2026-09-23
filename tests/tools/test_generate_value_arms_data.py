@@ -8340,6 +8340,18 @@ _CLEARS_ZERO_KEYS = {
     # live -- which matters because one of them (the book) has owed work against it and the other
     # does not go away when that work lands.
     ("selection_leg", "sign_withheld_because_the_family_repeats_draws"): "REASON",
+    # A SENSITIVITY, AND THE ONE CLASS THAT MUST NOT BE POOLED WITH `STATISTICAL` (2026-09-23).
+    # `width_if_each_value_counted_once` answers the clears-zero question over a DIFFERENT
+    # population on purpose -- this family's 15 distinct returned values rather than its 18 draws
+    # -- so that a reader handed "5 of these 18 repeat" is also handed what the repeats are worth.
+    # It happens to agree with the published answer today. Classifying it STATISTICAL would make
+    # that agreement a requirement, and the day a family lands whose verdict DOES flip when its
+    # repeats are counted once this control would red for the page reporting the flip correctly:
+    # a control keyed to today's answer, going red exactly when the page becomes more honest.
+    # The SENSITIVITY leg below asserts the property that actually matters instead -- that the
+    # block says what it is over, and that its relationship to the published answer is published
+    # rather than left for the reader to work out by comparing two numbers.
+    ("selection_leg", "width_if_each_value_counted_once", "clears_its_own_bar"): "SENSITIVITY",
     ("distinguishable_reconciliation", "agree"): "META",
     ("distinguishable_reconciliation", "the_two_rules_are_one_rule"): "META",
     ("distinguishable_reconciliation", "sign_stated_despite_disagreement"): "META",
@@ -8461,6 +8473,34 @@ def clears_zero_complaints(error_bar: dict) -> list:
             leg.get("clears_its_own_bar") is not False):
         out.append("a seed count is quoted at a family that already clears its own bar, so the "
                    "page prices machine-hours against a refusal more seeds cannot buy off")
+
+    # A SENSITIVITY IS ALLOWED TO DISAGREE -- THAT IS WHAT IT IS FOR -- BUT NOT TO ARRIVE BARE.
+    # Two correct figures answering one question with nothing stating their relationship is this
+    # project's most expensive recurring shape, and a second clears-zero verdict dropped into the
+    # payload beside the published one is that shape exactly. So each sensitivity must say what
+    # population it is over, and the payload must state whether it agrees with the published
+    # answer. Not that it DOES agree: that it SAYS which.
+    for path, kind in _CLEARS_ZERO_KEYS.items():
+        if kind != "SENSITIVITY":
+            continue
+        block = _at(error_bar, path[:-1])
+        if not isinstance(block, dict) or block.get("available") is not True:
+            continue
+        if not block.get("what_this_is"):
+            out.append("`{}` publishes a second clears-zero verdict with no statement of what it "
+                       "was computed over, so a reader cannot tell it from the page's "
+                       "answer".format("/".join(path)))
+        if "repeats_change_the_bar_verdict" not in leg:
+            out.append("the payload carries a sensitivity verdict at `{}` and nothing saying "
+                       "whether it agrees with the published one, leaving the reader to compare "
+                       "two booleans and guess which is the page's".format("/".join(path)))
+        elif leg["repeats_change_the_bar_verdict"] is not (
+                block["clears_its_own_bar"] is not leg.get("clears_its_own_bar")):
+            out.append("`repeats_change_the_bar_verdict` ({!r}) does not follow the two verdicts "
+                       "it is a comparison of ({!r} against {!r}), so the page states an "
+                       "agreement its own numbers refuse".format(
+                           leg["repeats_change_the_bar_verdict"], block["clears_its_own_bar"],
+                           leg.get("clears_its_own_bar")))
     return out
 
 
@@ -8523,7 +8563,17 @@ def test_the_control_FIRES_on_a_payload_whose_two_homes_disagree():
                                        # longer publishes" -- a true complaint about the WITNESS
                                        # rather than about any of the five defects below, and it
                                        # would mask every one of them.
-                                       "sign_withheld_because_the_family_repeats_draws": None},
+                                       "sign_withheld_because_the_family_repeats_draws": None,
+                                       # AND THE SENSITIVITY BLOCK, CARRIED FOR THE SAME REASON.
+                                       # The sound witness must be sound on every declared key or
+                                       # its complaint is about itself. It agrees with the
+                                       # published verdict here, so `repeats_change_the_bar_
+                                       # verdict` is False -- and the DISAGREEING witness below
+                                       # is what proves this leg has a second branch at all.
+                                       "width_if_each_value_counted_once": {
+                                           "available": True, "clears_its_own_bar": True,
+                                           "what_this_is": "a constructed sensitivity"},
+                                       "repeats_change_the_bar_verdict": False},
                                       **leg),
                 "distinguishable_reconciliation": {
                     "the_floors_rule": {"says": True}, "the_pages_rule": {"says": True},
@@ -8564,6 +8614,38 @@ def test_the_control_FIRES_on_a_payload_whose_two_homes_disagree():
     assert any("nothing has classified" in c for c in clears_zero_complaints(fifth)), (
         "a fifth home for this question appeared in the payload and the registry did not notice, "
         "which is the defect that made this question have two homes in the first place")
+
+    # AND THE TWO SENSITIVITY DEFECTS (2026-09-23), each its own branch of the leg above.
+    #
+    # A BARE SECOND VERDICT. The sensitivity answers the clears-zero question over a deliberately
+    # different population; dropped into the payload without saying so it is indistinguishable
+    # from the page's own answer, which is the two-correct-figures shape this module is named for.
+    bare = payload()
+    bare["selection_leg"]["width_if_each_value_counted_once"].pop("what_this_is")
+    assert any("no statement of what it was computed over" in c
+               for c in clears_zero_complaints(bare)), (
+        "a second clears-zero verdict arrived with nothing saying what population it is over and "
+        "the control accepted it as a figure a reader could place")
+
+    # A COMPARISON THAT DOES NOT FOLLOW ITS OWN TWO NUMBERS. This is the branch that matters most,
+    # because it is the one that survives when the sensitivity is right and the summary of it is
+    # wrong -- a reader who takes only `repeats_change_the_bar_verdict` is told the repeats cost
+    # nothing while the two verdicts beside it disagree.
+    lying = payload()
+    lying["selection_leg"]["width_if_each_value_counted_once"]["clears_its_own_bar"] = False
+    assert any("does not follow the two verdicts" in c for c in clears_zero_complaints(lying)), (
+        "the sensitivity flipped the verdict and the payload still said the repeats change "
+        "nothing, and the control agreed with it")
+
+    # AND THE HONEST FLIP IS NOT A COMPLAINT -- the branch that proves the check above is about
+    # the SUMMARY and not about the sensitivity daring to disagree.
+    honest = payload()
+    honest["selection_leg"]["width_if_each_value_counted_once"]["clears_its_own_bar"] = False
+    honest["selection_leg"]["repeats_change_the_bar_verdict"] = True
+    assert not clears_zero_complaints(honest), (
+        "a payload reporting a flipped sensitivity correctly is refused, so this leg forbids the "
+        "disagreement rather than forbidding the silence about it: {}".format(
+            clears_zero_complaints(honest)))
 
 
 def test_the_two_homes_WOULD_disagree_if_either_re_froze_its_bar():
@@ -10317,6 +10399,158 @@ def test_both_sides_of_the_repetition_partition_exist_on_disk():
     assert any(r.get("countable") and r["draws_that_repeat_another"] == 0 for r in others), (
         "no floor in this repository repeats NOTHING, so the rule's passing branch is reachable "
         "from no artefact and it refuses everything it will ever be shown")
+
+
+# --------------------------------------------------------------------------------------------
+# AND WHAT THE COUNT IS WORTH (2026-09-23). Everything above establishes that the repeats are
+# counted and that the count reaches the reader. A count is a bias DIRECTION; until these controls
+# the page published no SIZE, so a reader met "5 of these 18 repeat" beside "±£384.62" and had to
+# finish the arithmetic themselves -- which is this repository's named failure of publishing a
+# direction without the unbiased value beside it.
+
+
+def _distinct_width_on_the_published_floor() -> tuple:
+    """The published leg and its recomputed sensitivity, both off the real floor. No fixture."""
+    floor = json.loads(gva.NOISE_FLOOR_PATH.read_text(encoding="utf-8"))
+    return floor, gva._width_over_distinct_draws(floor, gva.SELECTION_CONTRAST)
+
+
+def test_the_published_interval_names_how_many_distinct_values_its_draws_returned():
+    """THE DEFECT: the key whose whole job is naming the denominator does not name that it repeats.
+
+    `what_each_number_is_over` said "across 18 seed re-draws" and stopped. Every word true, and a
+    reader who read as far as the page's own statement of what its bound was computed over was
+    still not told those 18 draws returned 15 answers. The count existed two keys up, inside a
+    block about repetition -- the exact shape where evidence fails to travel with the figure it
+    qualifies, which is what the 2026-09-22 finding was raised about in the first place.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S NUMBERS. It asserts that BOTH counts the family holds
+    appear in the sentence, read from the family's own block, so a floor with different counts
+    keeps this green and a sentence that stops naming either goes red.
+
+    Fires on: dropping the `{draws}` slot from either branch of `what_each_number_is_over`;
+    returning `""` unconditionally from `_over_how_many_distinct`; naming the draw count alone.
+    """
+    floor, _ = _distinct_width_on_the_published_floor()
+    leg = gva._error_bar(floor, None, {}, None, None)["selection_leg"]
+    repetition, over = leg["repetition"], leg["what_each_number_is_over"]
+    assert repetition["distinct_values"] < repetition["draws"], (
+        "the published floor no longer repeats a draw, so this control is asserting over a "
+        "clause that can no longer fire -- point it at whichever floor repeats, or retire it")
+    assert str(repetition["draws"]) in over and str(repetition["distinct_values"]) in over, (
+        "the page's own statement of what its interval was computed over names {d} draws without "
+        "naming that they returned {n} distinct values: {over}".format(
+            d=repetition["draws"], n=repetition["distinct_values"], over=over))
+
+
+def test_the_repeat_count_is_published_with_its_price_and_not_only_its_direction():
+    """THE DEFECT: the page says the bound is partly the instrument and never says by how much.
+
+    The sensitivity has to be a DIFFERENT number from the published bound or it is not a
+    sensitivity -- a key that quietly echoed `bound_gbp` would satisfy every naive assertion about
+    its presence while telling the reader nothing. So the control asserts the two differ, and
+    asserts the sensitivity is computed over strictly fewer values than the published width.
+
+    Fires on: `width_if_each_value_counted_once` returning the leg's own `bound_gbp`; computing it
+    over `seeds` rather than the distinct set; publishing the block only when it flatters.
+    """
+    floor, distinct = _distinct_width_on_the_published_floor()
+    leg = gva._error_bar(floor, None, {}, None, None)["selection_leg"]
+    published = leg["width_if_each_value_counted_once"]
+    assert published == distinct, (
+        "the leg publishes a different sensitivity from the one `_width_over_distinct_draws` "
+        "derives, so there are two homes for one number and they can drift")
+    assert published["available"] is True, published
+    assert published["distinct_values"] < published["draws"], published
+    assert published["bound_gbp"] != leg["bound_gbp"], (
+        "the sensitivity equals the published bound to the last digit, which on a family that "
+        "repeats draws means it was not computed over the distinct values at all")
+    assert published["bound_gbp"] > leg["bound_gbp"], (
+        "counting {d} draws' worth of evidence as {n} values made the standard error SMALLER, "
+        "which no fewer-observations recomputation can do -- the arithmetic is wrong".format(
+            d=published["draws"], n=published["distinct_values"]))
+
+
+def test_the_bar_verdict_under_distinct_counting_walks_its_whole_partition():
+    """THE DEFECT: `repeats_change_the_bar_verdict` could be a branch nothing ever enters.
+
+    On the published floor it is `False` -- recomputing over the distinct values moves 2.4954
+    standard errors from zero to 2.4941 against a bar that RISES on the lost degrees of freedom,
+    and the family still clears. A control that only ever saw that answer would be green forever
+    and would be green just as loudly if the key were hard-wired to `False`.
+
+    SO THE PARTITION IS ASSERTED BEFORE ANY MEMBER OF IT IS. All three states are reached -- flips,
+    does not flip, and cannot tell -- and the assertion is that they are DISTINCT, which is what
+    catches two shapes collapsing into one state. This is the shape CLAUDE.md names: a guard that
+    refuses everything passes every per-branch test written for it.
+
+    Fires on: returning `False` where the sensitivity is unavailable (the flattering `None`
+    collapse); comparing the two verdicts with `==`; hard-wiring either answer.
+    """
+    _, real = _distinct_width_on_the_published_floor()
+
+    # THE FLIPPING BRANCH, BUILT because no floor on this disk reaches it -- which is the finding,
+    # not a gap in the fixture. A family that clears its bar on all its draws and fails it on the
+    # distinct ones is arithmetically ordinary and this page has simply never held one.
+    flips = dict(real, clears_its_own_bar=False)
+    unavailable = {"available": False, "why_not": "constructed"}
+
+    seen = {
+        "does_not_flip": gva._distinct_width_changes_the_verdict(real, True),
+        "flips": gva._distinct_width_changes_the_verdict(flips, True),
+        "cannot_tell": gva._distinct_width_changes_the_verdict(unavailable, True),
+    }
+    assert len(set(map(repr, seen.values()))) == 3, (
+        "three distinct shapes reach {n} distinct verdicts, so at least two of them collapse and "
+        "a reader cannot tell which happened: {seen}".format(
+            n=len(set(map(repr, seen.values()))), seen=seen))
+    assert seen["does_not_flip"] is False and seen["flips"] is True, seen
+    assert seen["cannot_tell"] is None, (
+        "an unavailable sensitivity reports the family as UNMOVED by its repeats, which reads "
+        "exactly as if it had been measured and found unmoved")
+
+
+def test_the_refusal_states_what_the_repeats_cost_and_no_longer_asserts_what_it_never_measured():
+    """THE DEFECT, AND IT IS MINE: the refusal made a claim the measurement refutes.
+
+    Until 2026-09-23 `_repetition_withholds` ended "so the narrowness that would let this mean
+    clear its bar is the same phenomenon as the repetition, and not evidence about the choosing."
+    The first half is about the CENSUS and is established -- across families the repeating ones
+    are the narrow ones. The second half is about THIS family, says its bar-clearing is made of
+    its repeats, and was never measured. Recomputing the interval over the distinct values
+    measures it and it is false: the family still clears.
+
+    THE REFUSAL ITSELF IS UNMOVED, which is why the repair is a correction and not a retreat. A
+    bound built across values the instrument pinned cannot be read as dispersion whichever side of
+    the bar it lands -- an argument about what the number MEANS. What is withdrawn is a stronger
+    claim the page was making for free beside a true one.
+
+    Fires on: restoring the withdrawn clause; dropping `_repetition_price` from the sentence;
+    letting the price default to a reassuring string when the sensitivity is unavailable.
+    """
+    floor, distinct = _distinct_width_on_the_published_floor()
+    leg = gva._error_bar(floor, None, {}, None, None)["selection_leg"]
+    caveat = leg["sign_withheld_because_the_family_repeats_draws"]
+    assert caveat, "the published floor no longer withholds on repetition"
+    assert "would let this mean clear its bar is the same phenomenon" not in caveat, (
+        "the withdrawn clause is back on the page, asserting about this family what the "
+        "sensitivity beside it refutes: {}".format(caveat))
+    assert "{:,.2f}".format(distinct["bound_gbp"]) in caveat, (
+        "the refusal names how many draws repeat and not what they are worth, so the reader is "
+        "handed a direction with no size: {}".format(caveat))
+    assert "does NOT flip" in caveat, (
+        "the refusal does not state which way the measured comparison came out, which is the "
+        "whole point of having measured it: {}".format(caveat))
+
+    # AND THE PRICE IS SILENT RATHER THAN REASSURING WHEN IT COULD NOT BE FORMED. A caller holding
+    # no sensitivity must not have one implied for it -- the three other call sites of
+    # `_repetition_withholds` are exactly that caller.
+    unpriced = gva._repetition_withholds(leg["repetition"])
+    assert unpriced and "WHAT THE REPEATS ARE WORTH" not in unpriced, (
+        "a caller that computed no sensitivity is handed one anyway: {}".format(unpriced))
+    assert "would let this mean clear its bar is the same phenomenon" not in unpriced, (
+        "the withdrawn clause survives on the branch that carries no measurement, which is the "
+        "branch least entitled to it: {}".format(unpriced))
 
 
 # --------------------------------------------------------------------------------------------
