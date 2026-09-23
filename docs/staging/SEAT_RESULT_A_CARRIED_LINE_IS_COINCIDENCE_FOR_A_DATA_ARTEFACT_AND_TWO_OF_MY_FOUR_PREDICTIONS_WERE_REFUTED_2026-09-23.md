@@ -133,3 +133,13 @@ python3 -m tools.refresh_to_head --root /home/rich/synthetic-enterprise --write 
 
 It preserves the bytes on a `refs/preserved/refresh-to-head/` ref and runs the `git log --all -S`
 recovery lookup before it writes one byte. Handed off.
+
+**AND THE SURVEY ABOVE IS ALREADY STALE — RE-RUN IT WITHOUT `--write` FIRST.** Every verdict here is
+HEAD-relative, and the shared tree's HEAD moved from `c50ea7f0b` to `b36b9cc3d` between the survey
+and this sentence: it is ahead of origin by one local commit and behind by five, with a lane live in
+it. That is also why I did not enact it from here, and it corrects the reason I first wrote down. My
+argument was that the shared tree *could never* run the door because these two files wedge its
+fast-forward, so somebody with the code had to reach in. The premise is wrong — the tree is not
+stuck behind, it is moving under an active writer, which makes reaching in the collision the
+isolation exists to prevent rather than the deadlock-break I took it for. The door is at origin; the
+tree will reach it by the ordinary route.
