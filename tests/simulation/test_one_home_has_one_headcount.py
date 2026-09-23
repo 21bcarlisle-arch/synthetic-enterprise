@@ -28,6 +28,9 @@ their own tests and were never in doubt.
 """
 from __future__ import annotations
 
+import pathlib
+import re
+
 from simulation import dwelling_records as dr
 from simulation import household_physical_layer as hpl
 from simulation import premise_trace as pt
@@ -313,19 +316,39 @@ def test_the_shares_the_two_paths_share_are_the_published_ones():
     )
 
 
+#: The three pre-delegation draws are censused by CALLER, and the call is what the fingerprint
+#: matches — NOT the bare word. The children leg was written with a `'"children")'` substring and
+#: reddened on `tools/sample_gate_rss_premium.py`, which reads the cgroup file `<task>/children` and
+#: has nothing to do with who lives in a house. Its two siblings kept the substring: green on
+#: 2026-09-23 by luck of vocabulary, one `record["employed"]` away from naming an innocent file, and
+#: a control that names an innocent file is a control someone eventually silences. One shape for all
+#: three, because three copies of one census is how the siblings were left behind in the first place.
+_CENSUS_ROOTS = ("simulation", "company", "saas", "tools", "background")
+
+
+def _pre_delegation_fingerprint(*names: str) -> re.Pattern:
+    """A `_substream(..., "<name>")` CALL for any of these draw names."""
+    return re.compile(r'_substream\([^)]*"(?:' + "|".join(names) + r')"\)')
+
+
+def _production_callers_drawing(*names: str) -> list[str]:
+    root = pathlib.Path(__file__).resolve().parents[2]
+    fingerprint = _pre_delegation_fingerprint(*names)
+    return [
+        str(path.relative_to(root))
+        for folder in _CENSUS_ROOTS
+        for path in sorted((root / folder).rglob("*.py"))
+        if fingerprint.search(path.read_text())
+    ]
+
+
 def test_the_pre_delegation_composition_draw_has_no_production_callers():
     """Checked by CALLER, like the headcount leg above: what must hold is that no shipped module
     draws these two for itself again. The old draw's fingerprint is a `_substream(..., "pensioner")`
-    or `"employed"` call, which is what a re-introduced second answer would look like.
+    or `_substream(..., "employed")` call, which is what a re-introduced second answer would look
+    like. Matched on the CALL — see `_pre_delegation_fingerprint` for why the word is not enough.
     """
-    import pathlib
-    root = pathlib.Path(__file__).resolve().parents[2]
-    offenders = []
-    for folder in ("simulation", "company", "saas", "tools", "background"):
-        for path in (root / folder).rglob("*.py"):
-            text = path.read_text()
-            if '"pensioner")' in text or '"employed")' in text:
-                offenders.append(str(path.relative_to(root)))
+    offenders = _production_callers_drawing("pensioner", "employed")
     assert not offenders, (
         f"the pre-delegation composition draw has production callers again: {offenders}. Every "
         "one of them is a second answer about who lives in a house that already has one."
@@ -473,19 +496,46 @@ def test_the_pre_delegation_children_draw_has_no_production_callers():
     `<task>/children` and has nothing to do with who lives in a house. A control that names an
     innocent file is a control someone eventually silences.
     """
-    import pathlib
-    import re
-    fingerprint = re.compile(r'_substream\([^)]*"children"\)')
-    root = pathlib.Path(__file__).resolve().parents[2]
-    offenders = []
-    for folder in ("simulation", "company", "saas", "tools", "background"):
-        for path in (root / folder).rglob("*.py"):
-            if fingerprint.search(path.read_text()):
-                offenders.append(str(path.relative_to(root)))
+    offenders = _production_callers_drawing("children")
     assert not offenders, (
         f"the pre-delegation children draw has production callers again: {offenders}. Every one "
         "of them is a second answer about who lives in a house that already has one."
     )
+
+
+def test_the_draw_census_still_sees_the_call_it_was_built_for_and_not_the_bare_word():
+    """The narrowing is worth nothing unless the pattern still SEES the defect, and both halves of
+    that fail SILENTLY on their own: a fingerprint that matches nothing greens all three censuses
+    for ever, and one that matches the bare word reds an innocent file until someone deletes the
+    control. So both directions are asserted here, over the whole partition rather than a leg each.
+
+    The positive fixtures are the `_substream` call each of the three draws actually made before
+    the delegation (`simulation/premise_trace.py` at 263b57ac0^ and at 7b792426d^), with the
+    expression around the call trimmed to fit. The children negative is the live line at
+    `tools/sample_gate_rss_premium.py`; the other two are the ordinary dict reads that the
+    substring version was one file away from reddening on.
+    """
+    drew = {
+        "pensioner": '        pensioner_present = _substream(base, "pensioner").random() < 0.22',
+        "employed": '        someone_employed = _substream(base, "employed").random() < 0.25',
+        "children": '            _substream(base, "children").randint(0, people_count - 1)',
+    }
+    for name, call in drew.items():
+        assert _pre_delegation_fingerprint(name).search(call), (
+            f"the {name} fingerprint no longer matches the call it was built for -- its census "
+            f"is green on every tree, including one that re-introduced {call.strip()}"
+        )
+    any_draw = _pre_delegation_fingerprint(*drew)
+    innocent = (
+        '            kids.extend(int(p) for p in (task / "children").read_text().split())',
+        '    if household_profile.get("pensioner"):',
+        '        return record["employed"]',
+    )
+    for line in innocent:
+        assert not any_draw.search(line), (
+            f"the fingerprint matches the WORD and not the call: {line.strip()} is not a second "
+            "answer about who lives in a house, and a census that says it is gets silenced"
+        )
 
 
 def test_the_property_record_declares_the_children_it_draws():
