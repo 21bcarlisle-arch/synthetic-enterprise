@@ -448,22 +448,101 @@ class UnanchoredReferencePopulation(ValueError):
     """
 
 
-#: The reference population for the CHILDREN cut-set: `((people_count,
-#: children_count, share), ...)`, summing to 1. **`None` — NOT ESTABLISHED,
-#: and that is the honest state rather than a gap waiting on tidying.**
-#:
-#: R10 GAP (a), the POPULATION half. `CHILD_ADULT_EQUIVALENT_RANGE` above
-#: closes the *response* half — how much of an adult's volume a child
-#: contributes — by sampling, because NEED publishes no adults-x-children
-#: cross-tabulation. This is the other half: how many children a household of
-#: a given size CONTAINS. `dwelling_records.DEFAULT_CHILDREN_COUNT` refuses to
-#: fabricate it for the same reason, and the W2_13 research pass filed it as
-#: `R10-DISTRIBUTION-CANDIDATE` rather than answering it.
-#:
-#: Assign a SOURCED distribution here and every children-cut centre below
-#: becomes computable, with no other edit. Until then the centre for that
-#: cut-set does not exist and the functions that need it refuse by name.
-CHILDREN_WITHIN_SIZE_REFERENCE: tuple[tuple[int, int, float], ...] | None = None
+# --- R10 GAP (a), the POPULATION half: children WITHIN household size -------
+#
+# SOURCE: ONS Census 2021, England and Wales, fetched 2026-09-23 from the
+# custom dataset API `api.beta.ons.gov.uk/v1/population-types/UR_HH/census-
+# observations?area-type=nat&dimensions=hh_size_9a,hh_dependent_children`.
+# 58,555,848 usual residents in households, cross-tabulated by household size
+# (`hh_size_9a`) against dependent children in the household
+# (`hh_dependent_children`, 21 categories: none / all non-dependent / one /
+# two / three-or-more, each by youngest child's age).
+#
+# WHY THAT TABLE AND NOT A READY-MADE ONE. No published table states this
+# joint distribution at household level. `hh_size_9a` x `hh_adults_and_
+# children_11a` is REFUSED by the API (ONS blocks the pair), `hh_dependent_
+# children_3a` on the household base is a presence INDICATOR with no count,
+# and `hh_adults_num_3a` splits only "1 adult" from "no adults, or more than
+# 1". The person-based table above is the only route that carries the count,
+# and it is converted to households EXACTLY: every household of size n
+# contributes exactly n residents to its cell, so households(n, d) =
+# persons(n, d) / n.
+#
+# THAT CONVERSION IS CONTROLLED, not asserted. Summing it back over d
+# reproduces the household counts published on the separate `HH` population
+# type (`hh_size_9a` x `hh_family_composition_37a`, 24,783,195 households) to
+# within 5 households at every size 1-7 out of 24.8 million — two independent
+# Census products agreeing. Size 8 is the one band that does not reconcile
+# (106,769 vs 95,153) and the reason is stated rather than smoothed: the band
+# is "8 OR MORE people", so dividing by 8 overcounts households whose true
+# size is larger. It is 0.4% of the population and falls inside the 5+ band
+# below regardless. `test_the_children_reference_reconciles_across_two_census_
+# population_types` is the control.
+#
+# WHAT IS ASSUMED, ONCE, AND WHAT IT IS WORTH. The Census stops at "three or
+# more dependent children". Those cells are published here at THREE — the
+# only count the source actually asserts — which understates a household at
+# the tail. Resolving every one of them at the opposite extreme instead (every
+# remaining member a child, one adult left) moves the electricity centre by
+# 0.259%, so the assumption is bounded and small rather than load-bearing.
+# 4.674% of households sit in those cells. Two further clamps, both named:
+# d is capped at n-1 because `adult_equivalents` refuses a household with no
+# adult (it removes 4,739 households, 0.019%, which are cell-key perturbation
+# artefacts such as a 2-person household recorded with two dependent
+# children), and the 5+ band caps d at 4 for the same reason.
+#
+# ONLY THE CONDITIONAL P(children | size) IS TAKEN FROM THAT TABLE. The size
+# MARGINAL multiplied through it is `dwelling_records.HOUSEHOLD_SIZE_SHARE_
+# ONS_TS017` — the distribution the world actually DRAWS, at 1..8+ rather than
+# the 1..5+ of `HOUSEHOLD_SIZE_POPULATION_SHARE` below. Written as literals
+# rather than imported, for the reason that constant already states: so the
+# volume normaliser cannot be re-levelled by an unrelated edit elsewhere.
+#
+# THAT CHOICE DOES NOT CONFOUND THE COMPARISON, and it was checked rather than
+# assumed. Reading this reference as ALL ADULTS reproduces the all-adult
+# centre to 9e-08 (the 7-dp rounding of the shares below) — and at full
+# precision the two are EXACTLY equal, bit for bit, because `need_volume_
+# index` is FLAT at and above 5 adults, so how the 5+ band is split cannot
+# move the all-adult centre at all. The difference between this centre and the
+# all-adult one is therefore attributable to CHILDREN alone, which is the
+# whole point of centring per cut-set. `test_reading_the_children_reference_as_
+# all_adults_reproduces_the_all_adult_centre` is the control, and it is the
+# one that fires if the marginal here ever drifts from the world's draw.
+#
+# The flatness is also why the finer tail is worth carrying HERE and not
+# there: a 6-person household of 6 adults sits in the flat region and a
+# 6-person household with 3 children does NOT (3 + 3w adult-equivalents, below
+# 5), so pooling 6/7/8 onto 5 is an exact equivalence for the all-adult centre
+# and a 0.272% error for this one.
+#
+# Mean dependent children per household: 0.4927 — 12.2m across 24.8m
+# households, against the ~12.3m dependent children Census 2021 counts in
+# England and Wales. It reads LOW by construction, because "three or more" is
+# published here as three.
+#
+# THE RESPONSE HALF OF R10 GAP (a) IS STILL SAMPLED, not closed by this.
+# `CHILD_ADULT_EQUIVALENT_RANGE` above is still an interval drawn per
+# household, because NEED still publishes no adults-x-children consumption
+# cross-tabulation. This constant answers HOW MANY children a household of a
+# given size contains; it says nothing about what one costs.
+CHILDREN_WITHIN_SIZE_REFERENCE: tuple[tuple[int, int, float], ...] | None = (
+    # (people_count, dependent_children, share of ALL households)
+    (1, 0, 0.3010000),
+    (2, 0, 0.3104367), (2, 1, 0.0295634),
+    (3, 0, 0.0689558), (3, 1, 0.0697684), (3, 2, 0.0212759),
+    (4, 0, 0.0250097), (4, 1, 0.0175532), (4, 2, 0.0792476), (4, 3, 0.0071894),
+    (5, 0, 0.0062243), (5, 1, 0.0060338), (5, 2, 0.0083433), (5, 3, 0.0250507),
+    (6, 0, 0.0018491), (6, 1, 0.0016349), (6, 2, 0.0029997), (6, 3, 0.0087337),
+    (7, 0, 0.0005373), (7, 1, 0.0005045), (7, 2, 0.0008320), (7, 3, 0.0031986),
+    # 8 stands for "8 or more", which is how TS017 publishes its final band.
+    (8, 0, 0.0004462), (8, 1, 0.0002629), (8, 2, 0.0005501), (8, 3, 0.0027988),
+)
+# The shares are quoted to 7 dp and the residual is absorbed on the largest
+# row, so this is an equality rather than a tolerance: a population whose
+# shares do not sum to 1 is not a population, and the centre over it is not a
+# mean.
+assert CHILDREN_WITHIN_SIZE_REFERENCE is None or (
+    sum(s for _, _, s in CHILDREN_WITHIN_SIZE_REFERENCE) == 1.0)
 
 
 @functools.lru_cache(maxsize=8)
@@ -490,11 +569,32 @@ def volume_factor_normaliser(
     children `premise_trace` already draws for itself — mean volume factor
     **0.98458** electricity, **0.98678** gas, a silent 1.3–1.5% cut to the
     whole book's volume.
+    **CORRECTION, same day, once the sourced centre existed to measure
+    against: that 1.5% was NOT caused by declaring children.** The same book
+    read as all adults against the all-adult centre is 1.01799, and with its
+    children against the sourced centre it is 1.01601 — so 1.3 points of it
+    were the wrong centre and 0.2 points were the children. The cut was real
+    and the cause written here was wrong; both are kept because the wrong one
+    is what the repair was designed against.
     **And the R15 band over it (`VOLUME_FACTOR_BIAS_TOL`, 0.02) stays GREEN at
     that value**, so unlike the daytime instance the existing control could
     not have caught it. That is why the repair here is a REFUSAL rather than a
     wider band: a tolerance chosen before the defect was measured is not
     evidence about the defect.
+
+    THE TWO CENTRES, now that both exist. All-adult (`children_reference is
+    None`): 1.4456452584044155 electricity, 1.2512721741165458 gas. Over
+    `CHILDREN_WITHIN_SIZE_REFERENCE`: 1.4047186532865028 electricity,
+    1.224679820805055 gas — 2.83% and 2.13% lower, because a child weighs
+    less than an adult in the numerator and 28.5% of households have one.
+    *(Corrected 2026-09-23. This docstring said 1.4009133872553938 / 3.09%
+    and 1.2206949489351744 / 2.44%, which were the centres over an EARLIER
+    draft of the reference constant; the same day's refinement moved the
+    constant and not this sentence. `docs/market_research/children_within_
+    household_size_census_2021.md` and the knowledge map both carried the
+    right pair throughout — the code's own statement about itself was the
+    one that was wrong, which is the direction that is hardest to notice.
+    Found by reading the two against each other while wiring the draw.)*
 
     `children_reference is None` is the size-only cut-set and returns exactly
     the float this function has always returned — byte-identical, which is
@@ -716,21 +816,62 @@ def population_mean_volume_factor(people_counts: list[int], weights: list[float]
     mean factor of no households is a caller error, never a silently-passing
     1.0 (FAIL-OPEN guard, R15).
 
-    **And raises `UnanchoredReferencePopulation` when the book declares
-    children but no reference population does.** This is the one function that
-    makes the AGGREGATE claim, so it is where the cut-set has to be honoured:
-    asking "what does the volume response do to this book's total" of a book
-    with children, against a centre computed on an all-adult population, has
-    an answer that looks like a small deviation and is actually the divisor
-    being wrong. Measured on the live book it is 0.9846 — a 1.5% cut sitting
-    comfortably INSIDE the 0.02 band below, which is exactly why a band could
-    not be the mechanism here.
+    **This is the one function that makes the AGGREGATE claim, so it is where
+    the cut-set is honoured.** A caller that DECLARES `children_counts` and no
+    `children_reference` gets `CHILDREN_WITHIN_SIZE_REFERENCE` — the sourced
+    ONS Census 2021 population — rather than the all-adult centre, because
+    scoring a book with children against an all-adult divisor has an answer
+    that looks like a small deviation and is actually the divisor being wrong.
+    Measured on the live book it was 0.9846: a 1.5% cut sitting comfortably
+    INSIDE the 0.02 band, which is why a band could never have been the
+    mechanism here. Against the sourced centre the same book reads 1.01601,
+    and the same book read as ALL ADULTS against the all-adult centre reads
+    1.01799 — so declaring children moves this book by 0.2%, and the other 1.3
+    points of that original 1.5 were the centre, not the children.
+
+    DECLARATION, NOT VALUE, AND THE DISTINCTION IS THE WHOLE POINT. Keying on
+    `any(children_counts)` — which this did until 2026-09-23 — makes the
+    DIVISOR a function of the book's own realisation: two books drawn from one
+    population, one of which happens to contain no child, get two different
+    centres and neither knows it. That is the variable-divisor defect the
+    per-cut-set rule exists to close, merely moved up a level from the
+    household to the book. A book that declares the field is a member of the
+    Census population whether its realised counts are all 3 or all 0, and is
+    centred on it either way; `build_demand_shape`'s one-household call site
+    reads the same rule off `"children_count" in property`. The two resolvers
+    used to disagree for exactly one book — declared, every entry 0 — and this
+    is the line that closed it.
+
+    **And it still raises `UnanchoredReferencePopulation` when the book
+    declares children and NO reference population exists** — which is now the
+    state where the source has been withdrawn rather than never established.
+    That is the property the guard is about, and it is why the guard is keyed
+    on the resolved reference being `None` rather than on the argument being
+    omitted: the day someone retires the constant, every book that declares
+    children refuses again instead of quietly re-levelling.
+
+    THE REFUSAL WIDENED WITH THE RESOLUTION, and that is fail-CLOSED rather
+    than a capability lost. An all-zero DECLARED book with the source
+    withdrawn used to answer, against the all-adult centre, ~1.0 — "this
+    response is neutral over this book". The true statement about such a book
+    is the opposite: it is a rare draw from a population that mostly has
+    children, so it genuinely IS short of its population and should read BELOW
+    1.0 against the Census centre. Against the all-adult centre it reads 2.9%
+    (electricity) / 2.2% (gas) away from where the cut-set puts it — measured,
+    not argued — and the sign of that gap is flattering. An answer that says
+    "unbiased" about a book that is not is worth less than a refusal that says
+    which population it cannot find.
     """
     n = len(people_counts)
     if n == 0:
         raise ValueError("cannot take the mean volume factor of an empty population")
     if len(weights) != n:
         raise ValueError("people_counts and weights must be the same length")
+    # THE CUT-SET IS SET BY DECLARATION, AND THIS IS THE LINE THAT HAS TO READ
+    # IT — one statement later `children_counts` is `[0] * n` either way and
+    # the book that declared all-zero children is indistinguishable from the
+    # book that declared nothing.
+    children_declared = children_counts is not None
     if children_counts is None:
         children_counts = [0] * n
     if household_keys is None:
@@ -740,17 +881,20 @@ def population_mean_volume_factor(people_counts: list[int], weights: list[float]
     total = float(sum(weights))
     if not math.isfinite(total) or total <= 0.0:
         raise ValueError("population weights must sum to a positive finite value")
-    if children_reference is None and any(children_counts):
-        declared = sum(1 for k in children_counts if k)
-        raise UnanchoredReferencePopulation(
-            f"{declared} of {n} households in this book declare children, but the volume "
-            "response's centre is computed on an ALL-ADULT reference population "
-            "(`volume_factor_normaliser` with no `children_reference`). The mean factor "
-            "against that centre is not a neutrality reading — it is a re-levelling: "
-            "measured 0.9846 (electricity) on the live 144-home book, INSIDE the 0.02 "
-            "band, so the band cannot tell you. Supply `children_reference`, or establish "
-            "`CHILDREN_WITHIN_SIZE_REFERENCE` (R10 GAP (a), population half) and pass it."
-        )
+    if children_reference is None and children_declared:
+        children_reference = CHILDREN_WITHIN_SIZE_REFERENCE
+        if children_reference is None:
+            with_a_child = sum(1 for k in children_counts if k)
+            raise UnanchoredReferencePopulation(
+                f"this book declares children for all {n} of its households ({with_a_child} of "
+                "them carry at least one), but the volume response's centre is computed on an "
+                "ALL-ADULT reference population (`volume_factor_normaliser` with no "
+                "`children_reference`). The mean factor against that centre is not a neutrality "
+                "reading — it is a re-levelling: measured 0.9846 (electricity) on the live "
+                "144-home book, INSIDE the 0.02 band, so the band cannot tell you. Supply "
+                "`children_reference`, or establish `CHILDREN_WITHIN_SIZE_REFERENCE` (R10 GAP "
+                "(a), population half) and pass it."
+            )
     return sum(
         (weights[i] / total) * occupancy_volume_factor(
             people_counts[i], commodity, children_count=children_counts[i],
@@ -945,9 +1089,40 @@ def build_demand_shape(
         # applied BEFORE the asset terms below: EV charging and solar export
         # are asset-driven, not people-driven, and must not be scaled by
         # headcount.
+        #
+        # AND THE CENTRE IS PER CUT-SET HERE TOO, which became load-bearing the moment the
+        # property record started declaring children (2026-09-23). `occupancy_volume_factor`
+        # with a `children_count` and no `children_reference` divides by the ALL-ADULT centre,
+        # and that is not a small deviation — it is the divisor being wrong. Measured on the
+        # live book at the time the field was still 0 everywhere, supplying children against
+        # the all-adult centre read 0.9846: a 1.5% silent cut to the whole book's volume,
+        # sitting comfortably INSIDE `VOLUME_FACTOR_BIAS_TOL`, so no band could have told
+        # anyone. `population_mean_volume_factor` resolves the same reference for the same
+        # reason; this is the one-household call site of that identical rule.
+        #
+        # IT IS KEYED ON THE RECORD DECLARING THE FIELD, NOT ON ITS VALUE, and the difference
+        # matters. Keying on `children_count > 0` would make the DIVISOR a function of the
+        # household — two homes in one book divided by two different centres — which is the
+        # variable-numerator-against-a-fixed-denominator defect this whole cut-set rule exists
+        # to close, merely turned around. A record that declares the field is a member of the
+        # Census population whether its own answer is 0 or 3, and is centred on it either way.
+        # A record that does NOT declare it (SME defaults, pre-W2_13 fixtures) keeps the
+        # all-adult centre and therefore the byte-identical result this docstring promises it.
+        #
+        # `population_mean_volume_factor` NOW KEYS ON DECLARATION TOO (2026-09-23). It used to
+        # key on `any(children_counts)`, and the two resolvers therefore disagreed for exactly
+        # one book — one declaring `children_counts` whose every entry is 0, which got the
+        # all-adult centre there and the Census centre here. Unreachable on the live book
+        # (`build_properties` draws the Census conditional, which puts children in roughly a
+        # third of homes) and reachable in fixtures. Closed at the aggregate rather than here,
+        # because declaration is the side that does not make the divisor a function of the
+        # sample. If you are about to re-key either one, they are a PAIR.
         volume_factor = occupancy_volume_factor(
             people_count, commodity,
             children_count=children_count, household_key=household_key,
+            children_reference=(
+                CHILDREN_WITHIN_SIZE_REFERENCE if "children_count" in property else None
+            ),
         )
         shape = [s * volume_factor for s in shape]
 

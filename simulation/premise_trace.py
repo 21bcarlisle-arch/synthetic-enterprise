@@ -114,7 +114,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
-from simulation.dwelling_records import composition_cuts_for
+from simulation.dwelling_records import children_count_for, composition_cuts_for
 from simulation.fabric_physics import (
     DEFAULT_DEADBAND_C,
     DEFAULT_LATITUDE_DEG,
@@ -359,14 +359,16 @@ def behaviour_profile_for(
         people_count = int(_substream(base, "people").choice(_PEOPLE_BY_BEDROOMS[bedrooms]))
     people_count = max(1, int(people_count))
     if children_count is None:
-        children_count = (
-            _substream(base, "children").randint(0, max(0, people_count - 1))
-            if people_count >= 3
-            else 0
-        )
+        children_count = children_count_for(premise_id, people_count)
     children_count = max(0, min(int(children_count), people_count - 1))
-    # ONE FUNCTION ANSWERS THESE TWO, for every reader — the same rule the headcount above is
-    # under. This module used to draw them here, on its own substreams, at an uncited 0.22 and
+    # ONE FUNCTION ANSWERS THESE THREE, for every reader — the same rule the headcount above is
+    # under, and `children_count_for` just above closes the last of them (2026-09-23). The
+    # children draw this module used to do here was `randint(0, people_count - 1)` above a size
+    # guard of 3: uncited, flat where the Census conditional is bimodal, and disagreeing with it
+    # in BOTH directions — no child was possible in a 2-person home against the Census's 8.7%,
+    # and a 7-person home averaged 2.98 against 2.32. It is now the Census conditional itself.
+    #
+    # This module used to draw the two below here, on its own substreams, at an uncited 0.22 and
     # 0.25-given-a-pensioner, while `dwelling_records.build_properties` left them absent
     # altogether: one home, two answers, and the property record's answer was silence. Measured
     # over 2,000 premises before the change (2026-09-23), the local draw gave pensioner 0.2075 and
