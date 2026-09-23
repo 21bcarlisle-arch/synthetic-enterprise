@@ -14441,6 +14441,49 @@ def _against_the_panels_figure(advantage, current_world: dict) -> str:
     ).format(dir=direction, old=_gbp(old))
 
 
+def _the_two_runs_order_clause(current_world: dict) -> str:
+    """The render site for `how_the_two_runs_order` — on the states where the stamps DO NOT ORDER.
+
+    WHY THIS EXISTS (2026-09-23, Lane 0). `_how_the_two_runs_order` split the ordering into four
+    states and composed a sentence for each, and only `run_ordering` reached a reader — through
+    `_against_the_panels_figure`, and only on the branch where the two advantages are ARITHMETICALLY
+    EQUAL. So the page could carry two runs its own payload said were unorderable, print one figure
+    as SMALLER or LARGER than the other, and never tell the reader that "smaller than" is a
+    comparison the stamps do not license. The figure and the direction were both honest; what was
+    missing is the half that says a direction is all this page can offer.
+
+    ONLY THE TWO UNORDERABLE STATES, and that is the whole judgement here. On `later` the headline
+    already opens "IN THE WORLD AS IT IS NOW" and calls the panel below the older one, which says
+    the same thing in the words the page is built around; on `earlier` `_current_world_clause`
+    composes nothing at all, by design, because the currency claim is withdrawn. Rendering the
+    sentence on all four states would put a recital on the page for two states that already answer
+    it and one that is silent — the "noise a reader learns to skip on the one day it changes" this
+    module's sibling docstring names. `same_stamp` and `unstated` are the states where the page has
+    something to say and no words for it.
+
+    KEYED TO THE ORDERING, NEVER TO TODAY'S PAIR. The live publish is `earlier` today, so this
+    composes nothing on the live feed and will start speaking the moment
+    `CURRENT_WORLD_THREE_ARM_PATH` moves onto a run that ties or cannot be ordered — which is the
+    publish this was built for. A door keyed to today's answer would have to be edited by whoever
+    takes that publish, and would go red rather than live.
+
+    FAIL CLOSED WHEN THE SENTENCE IS MISSING, rather than falling silent. An ordering that says the
+    stamps do not order, with no sentence composed for it, is a producer defect — and the reader who
+    meets silence cannot tell it from a page that had nothing to say, which is this project's named
+    difference between "we cannot tell" and no result at all. So it says so, on the surface.
+    """
+    ordering = (current_world or {}).get("run_ordering")
+    if ordering not in (RUN_STAMPS_ARE_EQUAL, RUN_ORDER_UNSTATED):
+        return ""
+    sentence = (current_world or {}).get("how_the_two_runs_order")
+    if not isinstance(sentence, str) or not sentence.strip():
+        return ("THE TWO RUNS ON THIS PAGE CANNOT BE PUT IN ORDER and this page cannot say which of "
+                "the two reasons applies, because the run that states the ordering as {state!r} "
+                "composed no sentence for it. Read the comparison below as a difference between two "
+                "readings and not as a revision of one by the other. ").format(state=ordering)
+    return sentence.strip() + " "
+
+
 def _current_world_clause(current_world: dict) -> str:
     """The current-world figure IN the headline, with its refusal attached to it.
 
@@ -14483,6 +14526,12 @@ def _current_world_clause(current_world: dict) -> str:
     # one number that says the creation leg may be worth nothing.
     opening = "IN THE WORLD AS IT IS NOW, the same comparison gives {adv}, measured {when}. "\
         .format(adv=_gbp(advantage), when=when)
+    # AND WHICH OF THE TWO UNORDERABLE STATES THE PAGE IS IN, BESIDE THE FIGURE IT QUALIFIES. Here
+    # rather than at the end for the reason the docstring above gives about the refusal: a caveat
+    # that arrives after the verdict has been read is a caveat most readers never reach. And inside
+    # the advantage's own region rather than after the selection leg's figure, because what the
+    # stamps fail to order is the comparison THIS figure is about -- the leg below carries its own.
+    opening += _the_two_runs_order_clause(current_world)
     whole = _leg_clause(current_world, opening, resolved_tail=(
         ", the first bound this page has held that was measured where the figure was. "
         + _against_the_panels_figure(advantage, current_world)))

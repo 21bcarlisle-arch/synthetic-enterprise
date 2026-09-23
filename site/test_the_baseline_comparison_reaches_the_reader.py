@@ -5229,6 +5229,116 @@ def test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_the
             cw, advantage_region, "the advantage")
 
 
+def _feed_driven_to_the_ordering(state: str) -> tuple[dict, dict]:
+    """The spoken feed re-stamped so the REAL producer computes `state`, with its clause recomposed.
+
+    THE STAMPS ARE MOVED AND EVERY SENTENCE IS STILL THE PRODUCER'S. `_how_the_two_runs_order` and
+    `_current_world_clause` are both called on the module under test, so what these rungs assert
+    reaches a reader is prose this file never authored -- the distinction the sibling mutation rungs
+    record as "a mutation-proven branch that never met the producer's real prose". What this helper
+    fixes is only the two STAMPS, which is the input the four states are a function of.
+    """
+    from tools import generate_value_arms_data as gvad
+
+    feed = copy.deepcopy(_feed_whose_current_world_block_speaks())
+    cw = feed["current_world"]
+    mine = cw.get("generated_at")
+    assert mine, "the spoken block carries no stamp of its own, so no ordering can be driven from it"
+    # THE CLAUSE THE HEADLINE ALREADY CARRIES, taken BEFORE the stamps move, because the spliced
+    # headline is what the door renders. A helper that recomposed the clause and left the headline
+    # alone would drive the producer correctly and assert against the page it did not change --
+    # which is exactly the fail-open this rung's first run walked into.
+    was = gvad._current_world_clause(cw)
+    assert was and was in feed["headline"], (
+        "the headline does not contain the clause its own producer composes from the same feed, so "
+        "no ordering can be spliced into it")
+    #: The other run's stamp that PUTS the pair in `state`, read against this block's own.
+    theirs = {"later": "2016-01-01T00:00:00Z", "earlier": "2099-01-01T00:00:00Z",
+              "same_stamp": mine, "unstated": None}[state]
+    ordering = gvad._how_the_two_runs_order(mine, theirs)
+    assert ordering["ordering"] == state, (
+        "driving the pair with stamps {!r}/{!r} produced {!r} and not the {!r} this rung is "
+        "about".format(mine, theirs, ordering["ordering"], state))
+    cw.update({"run_ordering": ordering["ordering"],
+               "is_the_later_run": ordering["is_the_later_run"],
+               "how_the_two_runs_order": ordering["how_the_two_runs_order"],
+               "superseded_generated_at": theirs})
+    now = gvad._current_world_clause(cw)
+    feed["headline"] = feed["headline"].replace(was, now, 1) if now else (
+        feed["headline"].replace(was, "", 1))
+    return feed, {"clause": now, "was": was, "ordering": ordering, "cw": cw}
+
+
+def test_the_sentence_saying_WHICH_unorderable_state_the_page_is_in_reaches_the_reader():
+    """`how_the_two_runs_order` must render on both states where the stamps do not order.
+
+    THE DEFECT (2026-09-23, Lane 0). `_how_the_two_runs_order` split the ordering into four states
+    and composed a sentence per state, and only `run_ordering` ever reached a reader -- through
+    `_against_the_panels_figure`, and only on the branch where the two advantages are ARITHMETICALLY
+    EQUAL. On every other branch the page printed one figure as a SMALLER or LARGER advantage than
+    the other while its own payload said the two runs could not be ordered at all. Both halves were
+    honest; the missing half is the one that says a DIRECTION is all the stamps license. The field
+    was payload-only for the whole of its existence, and a payload field with no render site is a
+    measurement the reader never receives.
+
+    KEYED TO THE PARTITION AND NOT TO TODAY'S PAIR. The live publish is `earlier` today, so this
+    asserts nothing about the live feed's own words -- it drives all four states through the real
+    producer and the real door. The day `CURRENT_WORLD_THREE_ARM_PATH` moves onto a run that ties,
+    this rung already covers the state the page enters, rather than being the edit that publish owes.
+
+    EXACTLY ONE OF THE TWO REASONS, and this is the leg that is NOT a presence check in disguise.
+    `same_stamp` and `unstated` are different reasons a reader cannot order two runs -- two files at
+    one instant, and a stamp that could not be read -- with different remedies. Asserting merely
+    that the two sentences DIFFER was the first draft of this leg and it was mutation-proved
+    UNREACHABLE: the presence leg above already pins each state's page to that state's OWN producer
+    sentence, so two distinct sentences rendered per state follows from it, and a render site
+    collapsed to one sentence is caught by presence rather than here -- the flattering reading. That
+    distinctness is a property of `_how_the_two_runs_order` and is controlled where it can fail, in
+    `test_the_two_runs_ordering_has_a_state_for_every_shape_two_stamps_can_take`. What CANNOT be
+    caught above is a render site that prints BOTH reasons on every unorderable state: presence
+    passes on each, and the reader is handed two contradictory explanations of the same pair. So the
+    assertion is that the other state's sentence is ABSENT.
+
+    Fires on: dropping the render site; rendering it on the ordered states too (so the reader cannot
+    tell a caveat from a recital); rendering both reasons at once; composing the clause without the
+    sentence while keeping the figure.
+    """
+    seen = {}
+    for state in ("same_stamp", "unstated"):
+        feed, built = _feed_driven_to_the_ordering(state)
+        clause = built["clause"]
+        assert clause, (
+            "the producer composed no current-world clause at all on {!r}, so the figure and its "
+            "ordering both left the page".format(state))
+        rendered = _render(feed)["arms-headline"]
+        assert rendered.strip(), "the door rendered nothing where the headline goes"
+        # THE PRODUCER'S OWN SENTENCE, ON THE PAGE, through the real door. Read from the payload and
+        # never typed here, so this cannot pass against prose this file wrote.
+        sentence = _door_prose(built["ordering"]["how_the_two_runs_order"])
+        assert sentence in _door_prose(rendered), (
+            "the feed states {!r} -- so the two runs on this page cannot be ordered -- and a reader "
+            "met no sentence saying so; the page compared the two figures with nothing telling them "
+            "the comparison is not a revision".format(state))
+        seen[state] = (sentence, _door_prose(rendered))
+    # ONE REASON PER PAGE. The sentence for the state the page is NOT in must be absent from it.
+    for state, other in (("same_stamp", "unstated"), ("unstated", "same_stamp")):
+        assert seen[other][0] not in seen[state][1], (
+            "the page is in the {!r} state and also carries the sentence for {!r}, so a reader is "
+            "given two different reasons the same pair cannot be ordered and no way to tell which "
+            "one is true of the runs in front of them".format(state, other))
+    # AND IT IS A CAVEAT RATHER THAN A RECITAL. On the two states the stamps DO order, the sentence
+    # must be absent: `later` is already what "IN THE WORLD AS IT IS NOW" says, and `earlier`
+    # withdraws the clause entirely. Without this leg the rung above passes on a producer that
+    # prints the sentence unconditionally, which is a page that cries wolf on every render.
+    for state in ("later", "earlier"):
+        feed, built = _feed_driven_to_the_ordering(state)
+        sentence = _door_prose(built["ordering"]["how_the_two_runs_order"])
+        assert sentence not in _door_prose(built["clause"] or ""), (
+            "the ordering sentence rendered on {!r}, where the two runs ARE ordered, so the page "
+            "carries the caveat on every state and a reader cannot tell which ones it is about"
+            .format(state))
+
+
 def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
     """The rung above must red when the refusal is stripped from the clause but the figure stays.
 
