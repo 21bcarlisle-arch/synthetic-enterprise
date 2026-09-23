@@ -360,11 +360,19 @@ def _repair_already_made(sentence, real):
 def _stratification_not_carried(sentence, real):
     """`_renewal_stratification`'s fail-closed branch, reached by stripping the key it reads.
 
-    RED AT HEAD AND REACHED ONLY BY A COMMIT THAT TOUCHES THE PRODUCER, which is why it sat
-    unrecipe'd. `pre_commit_test_gate` selects this file by its subject module's stem, so the rung
+    REACHED ONLY BY A COMMIT THAT TOUCHES THE PRODUCER, which is why it sat unrecipe'd. The rung
     fires only for a lane editing `generate_value_arms_data.py` -- and then it blocks that lane for
     a sentence it did not write. It is one of the seven named in
-    `docs/staging/SEAT_FINDING_ORIGIN_MAIN_CARRIES_SEVEN_REDS_THAT_NO_COMMITS_GATE_SELECTION_REACHES_2026-09-22.md`.
+    `docs/staging/done/SEAT_FINDING_ORIGIN_MAIN_CARRIES_SEVEN_REDS_THAT_NO_COMMITS_GATE_SELECTION_REACHES_2026-09-22.md`.
+
+    THIS DOCSTRING SAID "RED AT HEAD" UNTIL 2026-09-24 AND THAT CLAUSE IS RETIRED, not softened:
+    the rung is green at `origin/main == 387a125dd`, measured in a linked worktree. Kept as a
+    correction beside the claim rather than deleted, because a control's docstring pinned to the
+    state of the tree on the day it was written is the shape this repository keeps paying for --
+    "RED AT HEAD" would have gone on reading as live for as long as nobody re-ran it. What replaced
+    the stem selection it describes: `SUBJECT_TESTS` in `pre_commit_test_gate`, keyed to this
+    module's SUBJECT (`9ded3a80e`), which is why the producer now selects this file explicitly
+    rather than by a stem coincidence.
 
     WHY IT LOOKS GREEN IN THE SHARED WORKTREE AND IS NOT. Measured one variable at a time, holding
     the producer at HEAD and swapping only `site/data/value_arms.json`: on the COMMITTED feed the

@@ -1,4 +1,12 @@
-**Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** `value-arms-error-bar`
+**Severity:** RECORDED · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** `value-arms-error-bar`
+
+**Discharged:** `tests/tools/test_the_gate_reaches_the_git_oracled_controls.py::test_the_module_subject_guard_is_selected_by_its_SUBJECT_and_not_by_a_stem`,
+`tests/tools/test_the_gate_reaches_the_git_oracled_controls.py::test_a_brand_new_module_selects_every_member_of_the_batch`,
+`tests/tools/test_the_gate_reaches_the_git_oracled_controls.py::test_a_staging_record_on_its_own_selects_the_discharge_control`,
+`tests/tools/test_the_gate_reaches_the_git_oracled_controls.py::test_an_atom_store_on_its_own_selects_the_store_falsifier_control`,
+`tests/tools/test_the_gate_reaches_the_git_oracled_controls.py::test_a_new_test_file_selects_the_ratchet_over_the_whole_test_CORPUS`,
+`tests/tools/test_the_gate_reaches_the_git_oracled_controls.py::test_a_commit_that_can_break_nothing_still_selects_nothing`
+— re-graded 2026-09-24 against `origin/main == 387a125dd`; see **The re-grade** at the foot.
 
 # origin/main carries seven reds that no commit's gate selection reaches — and one of them landed today
 
@@ -97,3 +105,51 @@ grade rather than point up at it, but which name is right is the owning lane's c
 **What done means:** the pointer names its subject, `test_every_tied_here_relative_pointer_is_true_from_the_region_it_lands_in`
 is green on origin/main, and — the load-bearing half — the gate's selection reaches the rung, so the
 next one of these is caught at the commit that writes it rather than by a passer-by.
+
+---
+
+## The re-grade (2026-09-24, a second seat, re-measured not re-read)
+
+This finding was drawn again on 2026-09-24, two days and two trunk commits after
+`SEAT_RESULT_THE_SEVEN_REDS_ARE_GREEN_AND_THREE_WERE_DETECTORS_OVER_MATCHING_2026-09-22.md` claimed
+to close it. **That note is a past-tense staging record and is no evidence a commit exists**, so
+nothing below is taken from it. Every reading is against a **linked** worktree at
+`origin/main == 387a125dd` — linked, not a `git archive` extract, for the reason this finding itself
+established: six of the seven are git-oracled and an extract has no `.git`.
+
+**Both halves hold.**
+
+*The seven:* all six files run green — 42 passed, 1 skipped, 0 failed. The single skip is
+`test_no_committed_discharge_cites_an_unlanded_falsifier.py:683`, a declared conditional arm
+("no live violation is present on disk here") whose sibling arm ran and is the proof. So the skip is
+the control working, not a red hiding.
+
+*The selection half,* measured by calling `select_targets` directly at that base:
+
+| commit shape | targets | of the six control files |
+|---|---|---|
+| the value-arms producer alone | 48 | **6 of 6** |
+| producer + its own test + the site door | 52 | **6 of 6** |
+| a staging record alone | 1 | the discharge control |
+| a pure regenerated-output commit | 0 | none — the fast path is intact |
+
+*And the production layer, which `select_targets` alone does not establish* — the two-layer trap
+this repository has filed before, where a conditional reading and a production reading answer
+opposite ways. `SUBJECT_TESTS` entered at `9ded3a80e`; since then **nine real commits have staged
+`tools/generate_value_arms_data.py`** and reached `targets = select_targets(staged)` at line 2094.
+The mechanism has been exercised nine times against real landings, not once against a fixture, and
+the rung is green at the end of them. That is what the draw's DONE clause asked for and it is met by
+commits that already happened rather than by one written to satisfy it.
+
+Both commits the closing note named are real and ancestral to `origin/main`: `943b9b4f9`,
+`b305119b1`.
+
+**Why this document sat BLOCKING for two days with nothing owed.** The work landed on 09-22; the
+severity header did not move. `staging_rooms --check` reports *RECORDED findings in the root* as
+archivable, and `finding_severity --by-construction` names non-BLOCKING documents whose text says an
+instrument is wrong — **neither asks the opposite and more expensive question: is a BLOCKING
+document's own cited falsifier set already green?** Under OPS12 clause 3 a live BLOCKING finding
+draws ahead of its whole lane, so a stale grade froze `A_strategy_governance` behind finished work
+and spent at least one further invocation re-deriving that. The instance is closed by this re-grade;
+**the class — a discharged finding whose severity nobody lowered — is filed separately rather than
+fixed here**, because a control over it is new work and this document is not the place to mint it.
