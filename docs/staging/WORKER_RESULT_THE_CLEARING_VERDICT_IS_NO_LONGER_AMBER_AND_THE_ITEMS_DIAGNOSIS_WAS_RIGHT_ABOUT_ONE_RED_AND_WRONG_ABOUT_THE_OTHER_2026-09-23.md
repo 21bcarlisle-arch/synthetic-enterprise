@@ -75,6 +75,25 @@ leg, only that both causes measured above are sufficient and that neither is in 
 touched it; that work is untouched and rides along in the same file, as it must — a pathspec stages
 the working-tree copy.
 
+## DONE was "a clean publish", and the publish is now blocked by something else
+
+Stated plainly rather than claimed: **the two doors are green and on origin; the publish has not
+completed, and the reason is no longer this item's.** Landed `d08b1b104`, merged `59d87d588`,
+pushed — `origin/main` now contains both.
+
+The publisher's *live* refusal field, `liveness_surface_refusal`, reads `behind_origin`, refused by
+one path: `tools/run_value_cycle_ab.py`, which is the paired-size-term-floor lane's in-flight work
+and is held under a live claim by another writer right now. `background/origin_reconcile` is merging
+it in an isolated worktree as this is written. That is their landing to finish, not mine to sweep.
+
+The other refusal field, `blocking_tests`, still cites
+`tests/design/test_atom_notes_store.py::test_declarations_match_the_store` — a different subject
+again, and the field that readers of this state file have been misled by before. **Neither field
+names the two doors any more**, which is the change this item bought. Three state files
+(`publish_standing_reds.json`, `.last_gate_blocking_tests.json`, `sim-runner-log.md`) still carry
+the two names from earlier runs; they are stale copies and will refresh on the next publisher run,
+not evidence the doors are red.
+
 ## The class this belongs to
 
 `CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md` has the mirror of this: a control keyed to today's
