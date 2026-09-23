@@ -21,6 +21,7 @@ from simulation.demand_model import (
     EV_CHARGING_KWH_PER_NIGHT,
     HOUSEHOLD_SIZE_POPULATION_SHARE,
     PERIODS_PER_DAY,
+    UnanchoredReferencePopulation,
     build_demand_shape,
     child_adult_equivalence,
     daytime_rate_elasticity,
@@ -135,7 +136,7 @@ def test_unbiased_control_FIRES_when_the_normalisation_is_removed(monkeypatch):
     """R15 mutation: drop the normaliser (the classic 'anchored on a 1-adult
     home' bug) and the control must fire — raw NEED would multiply national
     electricity demand by ~1.45 overnight."""
-    monkeypatch.setattr(dm, "volume_factor_normaliser", lambda commodity: 1.0)
+    monkeypatch.setattr(dm, "volume_factor_normaliser", lambda commodity, ref=None: 1.0)
     mean = dm.population_mean_volume_factor(_POP_SIZES, _POP_WEIGHTS, "electricity")
     assert mean > 1.4
     assert not dm.volume_factor_is_unbiased(_POP_SIZES, _POP_WEIGHTS, "electricity")
@@ -395,6 +396,154 @@ def test_the_size_only_caller_is_byte_identical_to_before():
             for n, share in HOUSEHOLD_SIZE_POPULATION_SHARE.items())
     )
     assert dm._reference_daytime_rate(True, True) < dm._reference_daytime_rate(False, False)
+
+
+# --- The VOLUME centre is per cut-set too (2026-09-23, instance TWO) -------
+# The same class, one function along. `occupancy_volume_factor`'s numerator is
+# `adults + w·children` — a VARIABLE number of terms — and its denominator was
+# `volume_factor_normaliser(commodity)`, cached on commodity alone and computed
+# over households read as ALL ADULTS. So the mean-1 claim held only for the
+# all-adult cut-set, and nothing said so.
+#
+# WHAT MAKES THIS INSTANCE DIFFERENT, and it is the finding: the R15 band over
+# it (0.02) is WIDER than the defect (measured 1.5% on the live book), so the
+# control built to catch exactly this class could not catch this instance. The
+# mechanism here is therefore a named REFUSAL, not a band.
+
+#: An illustrative joint `(people_count, children_count, share)` reference.
+#: NOT an anchor and deliberately not published as one — the population split
+#: is R10 GAP (a) and `CHILDREN_WITHIN_SIZE_REFERENCE` is `None` in the module
+#: because of it. Its job here is to be A reference, so the PROPERTY below can
+#: be asserted over whatever reference a caller supplies.
+_CHILDREN_REF = ((1, 0, 0.301), (2, 0, 0.340),
+                 (3, 0, 0.100), (3, 1, 0.060),
+                 (4, 0, 0.060), (4, 2, 0.069),
+                 (5, 0, 0.030), (5, 2, 0.040))
+
+
+@pytest.mark.parametrize("commodity", ["electricity", "gas"])
+def test_every_cut_set_is_mean_one_over_its_OWN_reference_population(commodity):
+    """THE PROPERTY, asserted to the float rather than to a band.
+
+    Whatever cut-set a caller describes, the response must leave the aggregate
+    of THAT cut-set's own reference population exactly where it found it. Not
+    "within 2%" — exactly, because over the reference population this is an
+    identity, and an identity asserted at a tolerance is a claim that can rot
+    by 1.9% without anyone hearing. The band control below is for BOOKS, which
+    are samples; this is for the reference, which is not.
+
+    Keyed to the property and not to today's answer: replace the NEED curve,
+    the size shares or the children reference and this stays green; make the
+    centre disagree with the population it centres and it goes red.
+    """
+    sizes = sorted(HOUSEHOLD_SIZE_POPULATION_SHARE)
+    weights = [HOUSEHOLD_SIZE_POPULATION_SHARE[n] for n in sizes]
+    assert population_mean_volume_factor(sizes, weights, commodity) == pytest.approx(1.0, abs=1e-12)
+
+    people = [n for n, _, _ in _CHILDREN_REF]
+    kids = [k for _, k, _ in _CHILDREN_REF]
+    shares = [s for _, _, s in _CHILDREN_REF]
+    assert population_mean_volume_factor(
+        people, shares, commodity, children_counts=kids, children_reference=_CHILDREN_REF,
+    ) == pytest.approx(1.0, abs=1e-12)
+
+
+@pytest.mark.parametrize("commodity", ["electricity", "gas"])
+def test_the_volume_centre_FIRES_when_a_children_book_is_centred_all_adult(commodity):
+    """R15 mutation, and the defect this change was written for: hand the
+    children cut-set the all-adult centre — which is what every caller got
+    before today — and the book is re-levelled DOWNWARD.
+
+    The assertion is the DIRECTION and the IDENTITY, not the size: the cut's
+    magnitude is a property of whichever children reference is in play, and
+    pinning 1.5% here would key the control to one fixture. What must hold is
+    that the wrong centre is not neutral and the right one is.
+    """
+    people = [n for n, _, _ in _CHILDREN_REF]
+    kids = [k for _, k, _ in _CHILDREN_REF]
+    shares = [s for _, _, s in _CHILDREN_REF]
+    wrong = sum(
+        s * occupancy_volume_factor(n, commodity, children_count=k)
+        for n, k, s in _CHILDREN_REF
+    )
+    assert wrong < 1.0
+    assert volume_factor_normaliser(commodity, _CHILDREN_REF) < volume_factor_normaliser(commodity)
+    assert population_mean_volume_factor(
+        people, shares, commodity, children_counts=kids, children_reference=_CHILDREN_REF,
+    ) == pytest.approx(1.0, abs=1e-12)
+
+
+def test_the_band_control_CANNOT_see_this_defect_which_is_why_the_refusal_exists():
+    """The measured reason the mechanism is a refusal rather than a wider band.
+
+    On the live 144-home book with the children `premise_trace` already draws
+    for itself, the all-adult centre puts the mean volume factor at 0.9846 —
+    a real 1.5% cut, and INSIDE `VOLUME_FACTOR_BIAS_TOL`. So `volume_factor_
+    is_unbiased` would have returned True while the book was being cut.
+
+    Asserted as the relation "the defect fits inside the band", so tightening
+    the band below the defect is what turns this red — which is the state in
+    which the refusal would no longer be the only mechanism. A control pinned
+    to 0.9846 would instead go red the day the book changes, which tells you
+    nothing about the band.
+    """
+    bias = 1.0 - sum(
+        s * occupancy_volume_factor(n, "electricity", children_count=k)
+        for n, k, s in _CHILDREN_REF
+    )
+    assert 0.0 < bias < dm.VOLUME_FACTOR_BIAS_TOL
+
+
+def test_the_three_cut_set_states_are_distinct_and_the_refusal_is_reachable():
+    """One control over the WHOLE partition, because a guard that refuses
+    everything passes every per-branch test. All three states must be
+    reachable AND distinct: size-only answers, children-with-reference answers
+    a DIFFERENT number, children-without-reference refuses.
+    """
+    size_only = volume_factor_normaliser("electricity")
+    with_children = volume_factor_normaliser("electricity", _CHILDREN_REF)
+    assert size_only != with_children
+
+    # reachable: the refusal fires on a book that declares children ...
+    with pytest.raises(UnanchoredReferencePopulation):
+        population_mean_volume_factor([4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
+    with pytest.raises(UnanchoredReferencePopulation):
+        volume_factor_is_unbiased([4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
+    # ... and NOT on a book that does not, nor when a reference is supplied.
+    # The assertion is that these two ANSWER — a two-home book is not the
+    # reference population and is free to be biased; what it may not do is
+    # refuse. Asserting True here would be asserting the fixture's arithmetic,
+    # not the partition.
+    assert isinstance(
+        volume_factor_is_unbiased([4, 2], [0.5, 0.5], "electricity", children_counts=[0, 0]), bool)
+    assert population_mean_volume_factor(
+        [4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0],
+        children_reference=_CHILDREN_REF) > 0.0
+
+
+def test_the_population_half_of_R10_GAP_a_is_declared_absent_not_filled():
+    """The gap must be carried explicitly rather than by a plausible default.
+    An honest `None` cannot be read as an established distribution; a number
+    picked to fill the slot would be load-bearing within a week."""
+    assert dm.CHILDREN_WITHIN_SIZE_REFERENCE is None
+
+
+def test_a_children_reference_that_is_not_a_distribution_is_refused():
+    """FAIL-CLOSED: a reference whose shares do not sum to 1 is not a
+    population, and a centre computed over it is not a mean. Refused rather
+    than silently producing a divisor."""
+    for bad in ((), ((2, 0, 0.5), (3, 1, 0.2)), ((2, 0, 0.5), (3, 1, 0.9))):
+        with pytest.raises(ValueError):
+            volume_factor_normaliser("electricity", bad)
+
+
+def test_the_size_only_volume_caller_is_byte_identical_to_before():
+    """P5. The legacy path must not move at all — these are the exact floats
+    the module returned before the cut-set key was added, so every existing
+    caller in the world is unchanged."""
+    assert volume_factor_normaliser("electricity") == 1.4456452584044155
+    assert volume_factor_normaliser("gas") == 1.2512721741165458
+    assert volume_factor_normaliser("electricity", None) == volume_factor_normaliser("electricity")
 
 
 def test_shape_control_is_not_fail_open():
