@@ -93,6 +93,7 @@ from tools.stale_copy_refusal import (
     clock_judge,
     cuts_among,
     dead_among,
+    json_leaf_delta,
     judge,
     landable_hunks,
     symbols,
@@ -111,6 +112,17 @@ NO_READER = "refused_no_reader"
 UNPARSEABLE = "refused_unparseable"
 SUPPLIES_NEW = "refused_supplies_names_head_lacks"
 NOT_SUPERSEDED = "refused_head_does_not_supersede_it"
+#: THE STATE `SUPPLIES_NEW` WAS ABSORBING FOR EVERY DATA DOCUMENT IN THE TREE. The copy binds no key
+#: path the base lacks; it disagrees with the base about the VALUE at keys they both bind. That is a
+#: choice between two drafts, not work to land -- there is no hunk that takes a changed number
+#: without the revert -- so `isolate_hunks`, the door `SUPPLIES_NEW` names, has nothing to select.
+#: Since a leaf name carries its own value, every regenerated artefact reached `SUPPLIES_NEW` by
+#: construction: same schema, every figure moved, "supplies" every leaf it holds. The class could
+#: not be got out of, whichever document was genuinely newer. Splitting the state does not move the
+#: refusal -- a value-level rival is still refused, and `--base-wins` still reaches it on exactly
+#: the same clock evidence -- it makes the refusal TRUE, which is the precondition for anyone
+#: acting on it.
+RIVAL_VALUES = "refused_rival_values_no_key_the_base_lacks"
 STAGED = "refused_holder_has_it_staged"
 #: THE THIRD STATE THE TWO DOORS DID NOT HAVE. The copy supplies names, AND every hunk that carries
 #: one also deletes a name the base has -- so `--keep` has no legal selection and `--content` lands
@@ -220,6 +232,10 @@ class Verdict:
     discarded: tuple[str, ...] = ()   # lines the copy has that HEAD does not
     dead: tuple[Dead, ...] = ()       # of `gains`, the ones that cannot run against the base
     drops: tuple[str, ...] = ()       # names HEAD has that the copy does not
+    #: Key paths BOTH documents bind, disagreeing about the value. NOT a subset of `gains` and
+    #: deliberately not rendered with the same marker: `gains` is content the base does not hold,
+    #: and reading an edited figure as one is the whole of the defect this field was cut for.
+    edited: tuple[str, ...] = ()
 
     @property
     def refused(self) -> bool:
@@ -240,6 +256,10 @@ class Verdict:
                 "" if not gone.elsewhere else
                 " (but {} did bind it -- `git show {}:{}`)".format(
                     gone.elsewhere[:9], gone.elsewhere[:9], gone.module))
+        for name in self.edited[:8]:
+            body += "        ~ {}  <- BOTH BIND THIS KEY; THE VALUE DIFFERS\n".format(name[:90])
+        if len(self.edited) > 8:
+            body += "        (+{} more key(s) whose value differs)\n".format(len(self.edited) - 8)
         for name in self.drops[:8]:
             body += "        - {}  <- HEAD HAS THIS AND THE COPY DOES NOT\n".format(name[:96])
         if len(self.drops) > 8:
@@ -363,9 +383,24 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         # about a JSON leaf, and running them here would dress a vacuous answer as a measured one.
         # So the subset question is asked directly -- which is all rules 1 and 2 ever were for a
         # document whose every leaf carries its own value (see `_json_leaf_names`).
-        supplies = tuple(sorted(work_names - head_names))
+        #
+        # AND THE QUESTION IS ASKED TWICE, BECAUSE IT IS TWO QUESTIONS. The set difference over
+        # value-bearing names answers *are these the same document* and must stay the gate -- keyed
+        # on key paths alone, a copy that rewrote every figure reads as a strict subset and the
+        # refresh destroys an edit while looking checked (`_json_leaf_names` carries that argument,
+        # and two legs in `test_a_json_blocker_...py` are destructive proofs of it). `json_leaf_delta`
+        # answers the other one -- *what does this copy hold that the base does not* -- and until
+        # 2026-09-23 nothing did. THE BRANCH BOUNDARY DOES NOT MOVE, which is why this is a repair
+        # to a GRADE and not a widening of a door that destroys bytes: an edited key path
+        # contributes `k=<new digest>` to `work_names - head_names`, and a novel one contributes
+        # its own, so that difference is non-empty exactly when `novel or edited` is. The condition
+        # below is the same partition the old `if supplies:` cut. `--base-wins` reaches precisely
+        # the copies it reached before. What moves is which of the two states the copy is told it
+        # is in -- and `test_base_wins_reaches_a_DATA_replacement_...` asserts that reachability
+        # against the DEFAULT in one test, so a boundary that DID move reds rather than passes.
+        delta = json_leaf_delta(head_text, work_text, path)
         drops = tuple(sorted(head_names - work_names))
-        if supplies:
+        if delta.novel or delta.edited:
             # `--base-wins` MUST BE CONSULTED HERE TOO, AND IT WAS NOT -- so the flag was shut for
             # the whole population it was built for. This branch returned unconditionally on
             # `supplies`, several screens ABOVE the Python branch's `base_wins` consultation, so a
@@ -411,32 +446,49 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
                                "refuses this data copy [{}] against {} ({}), so the clock -- not "
                                "the operator -- has established it cannot be carrying work built "
-                               "on that landing. The {} leaf/leaves it supplies are the older "
-                               "draft of the {} it drops. No landing door applies to a regenerated "
-                               "data artefact -- there is no hunk that takes the work without the "
-                               "revert -- so discarding it is the only enactment of the base "
-                               "winning.".format(
+                               "on that landing. It binds {} key path(s) {} does not, disagrees "
+                               "with it about {} more, and drops {} it holds. No landing door "
+                               "applies to a regenerated data artefact -- there is no hunk that "
+                               "takes a changed figure without the revert -- so discarding it is "
+                               "the only enactment of the base winning.".format(
                                    clock.rule, base,
                                    clock.commit[:9] if clock.commit else "no commit",
-                                   len(supplies), len(drops)),
-                               gains=supplies, drops=drops,
+                                   len(delta.novel), base, len(delta.edited), len(delta.dropped)),
+                               gains=delta.novel, edited=delta.edited, drops=drops,
                                discarded=_discarded_lines(head_text, work_text))
-            return Verdict(path, SUPPLIES_NEW,
-                           "this copy supplies {} JSON leaf/leaves {} does not have (e.g. {}), so "
-                           "it is NOT a copy {} supersedes. A leaf name carries its own value, so "
-                           "this counts a key the base lacks and a key whose VALUE was edited "
-                           "alike -- both are content the refresh would destroy. Decide which "
-                           "document wins and land it deliberately.{}".format(
-                               len(supplies), base,
-                               ", ".join(s.split("=")[0] for s in supplies[:3]), base,
-                               "" if not base_wins else
-                               " `--base-wins` DOES NOT REACH THIS COPY: the stale-copy control's "
-                               "verdict on it is [{}], not one of {}, so nothing but your word "
-                               "says the copy is the older draft -- and that word is what the flag "
-                               "exists not to take.".format(
-                                   "no complaint" if clock is None else clock.rule,
-                                   "/".join(base_wins_rules(path)))),
-                           gains=supplies)
+            # WHICH OF THE TWO REFUSALS, and this is the split the whole change exists for. Only
+            # `novel` is content the base does not hold; `edited` is a disagreement about a value,
+            # and calling it a supply is what named `isolate_hunks` at a document with no hunk to
+            # select. The counts are printed BOTH WAYS ROUND in each branch, so a reader can see
+            # which quantity the verdict rests on rather than take the verdict's word for it.
+            unreached = ("" if not base_wins else
+                         " `--base-wins` DOES NOT REACH THIS COPY: the stale-copy control's "
+                         "verdict on it is [{}], not one of {}, so nothing but your word says the "
+                         "copy is the older draft -- and that word is what the flag exists not to "
+                         "take.".format("no complaint" if clock is None else clock.rule,
+                                        "/".join(base_wins_rules(path))))
+            if delta.novel:
+                return Verdict(path, SUPPLIES_NEW,
+                               "this copy binds {} JSON key path(s) {} does not have (e.g. {}), so "
+                               "it is NOT a copy {} supersedes -- the refresh would destroy "
+                               "structure that is in no other document. It also disagrees with {} "
+                               "about the value at {} key(s) they both bind, which is a separate "
+                               "question and not a supply. Decide which document wins and land it "
+                               "deliberately.{}".format(
+                                   len(delta.novel), base, ", ".join(delta.novel[:3]), base,
+                                   base, len(delta.edited), unreached),
+                               gains=delta.novel, edited=delta.edited)
+            return Verdict(path, RIVAL_VALUES,
+                           "this copy binds NO key path {} lacks. It is the same document with {} "
+                           "value(s) changed (e.g. {}) and {} key(s) dropped -- a choice between "
+                           "two drafts, not work to land, so `isolate_hunks` has no hunk that takes "
+                           "a changed figure without the revert. Either this copy is the later "
+                           "regeneration, in which case land it whole with `surgical_land "
+                           "--content {}=<file>`, or {} is, in which case `--base-wins` enacts the "
+                           "discard once the clock agrees.{}".format(
+                               base, len(delta.edited), ", ".join(delta.edited[:3]),
+                               len(delta.dropped), path, base, unreached),
+                           gains=(), edited=delta.edited, drops=drops)
         if not drops:
             return Verdict(path, NOT_SUPERSEDED,
                            "every JSON leaf in this copy is present in {} with an equal value and "

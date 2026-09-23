@@ -143,30 +143,51 @@ def test_a_superseded_json_copy_is_refreshed_and_the_bytes_become_the_bases(repo
 def test_the_json_verdict_partition_is_reachable_every_way_on_one_tree_state(repo: Path) -> None:
     """ONE CONTROL OVER THE WHOLE PARTITION. A guard that refuses everything -- or one stuck on any
     single verdict -- passes each single-branch leg in this file and fails here. Per CLAUDE.md:
-    assert the rare branch CAN be taken before asserting what it does."""
+    assert the rare branch CAN be taken before asserting what it does.
+
+    AND THE FOURTH SHAPE IS WHY THIS IS A FOUR-WAY ASSERTION NOW, not the three it shipped with.
+    *supplies a row HEAD lacks* and *same keys, one value rewritten* are DIFFERENT FACTS about a
+    document -- one is structure that exists nowhere else, the other is a disagreement about a
+    figure -- and until 2026-09-23 they both came out `SUPPLIES_NEW`, because a leaf name carries
+    its own value and a set difference over those names cannot tell them apart. This leg passed
+    throughout, on three distinct states out of four shapes, which is exactly the reading a
+    same-state-for-two-shapes collapse is invisible to. Asserting FOUR DISTINCT STATES is what
+    makes it visible: revert `json_leaf_delta` out of `judge_copy` and this is the leg that reds.
+
+    THE COST OF THE COLLAPSE was not cosmetic. `SUPPLIES_NEW` names `isolate_hunks --keep N` as the
+    remedy, and a document whose every line is a value has no hunk that takes a changed figure
+    without the revert -- so every regenerated artefact in the tree was sent to a door that cannot
+    open, whichever document was genuinely the newer one."""
     seen = {}
 
     _stale_copy(repo)
-    seen[rth.judge_copy(repo, "reg.json").state] = "drops a row, supplies nothing"
+    seen["drops a row, supplies nothing"] = rth.judge_copy(repo, "reg.json").state
 
     supplies = json.loads(_run(repo, "show", "HEAD:reg.json"))
     supplies["dispositions"][".delta.json"] = {"verdict": "benign", "why": "this lane's own work"}
     _write(repo, supplies)
-    seen[rth.judge_copy(repo, "reg.json").state] = "supplies a row HEAD lacks"
+    seen["supplies a row HEAD lacks"] = rth.judge_copy(repo, "reg.json").state
 
     rewritten = json.loads(_run(repo, "show", "HEAD:reg.json"))
     rewritten["dispositions"][".alpha.json"]["why"] = "re-graded here and nowhere else"
     _write(repo, rewritten)
-    seen[rth.judge_copy(repo, "reg.json").state] = "same keys, one value rewritten"
+    seen["same keys, one value rewritten"] = rth.judge_copy(repo, "reg.json").state
 
     reformatted = json.loads(_run(repo, "show", "HEAD:reg.json"))
     (repo / "reg.json").write_text(json.dumps(reformatted, indent=8, sort_keys=True) + "\n\n")
-    seen[rth.judge_copy(repo, "reg.json").state] = "identical leaves, different whitespace"
+    seen["identical leaves, different whitespace"] = rth.judge_copy(repo, "reg.json").state
 
-    assert rth.REFRESHABLE in seen and rth.SUPPLIES_NEW in seen and rth.NOT_SUPERSEDED in seen, (
-        "the JSON judgement did not reach all three of refreshable / supplies-new / "
-        "not-superseded on one tree state, so it is not partitioning anything -- it reached only "
-        "{}".format(seen))
+    assert len(set(seen.values())) == 4, (
+        "four structurally different documents were graded with {} distinct verdict(s), so at "
+        "least two of them are being told the same thing about themselves: {}".format(
+            len(set(seen.values())), seen))
+    assert seen["supplies a row HEAD lacks"] != seen["same keys, one value rewritten"], (
+        "a copy holding a row that exists nowhere else and a copy that merely re-graded a value "
+        "were given the SAME verdict [{}] -- so the door cannot tell a key the base lacks from a "
+        "value that changed, and it sends a regenerated artefact to `isolate_hunks`, which has no "
+        "hunk to select on it".format(seen["supplies a row HEAD lacks"]))
+    assert set(seen.values()) == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.RIVAL_VALUES,
+                                  rth.NOT_SUPERSEDED}, seen
 
 
 # --------------------------------------------------- the refusals, each naming what it protects
@@ -180,9 +201,13 @@ def test_a_copy_that_only_rewrote_a_value_is_refused(repo: Path) -> None:
     rewritten["dispositions"][".beta.json"]["why"] = "a different grading of the same carrier"
     _write(repo, rewritten)
     verdict = rth.judge_copy(repo, "reg.json")
-    assert verdict.state == rth.SUPPLIES_NEW, (
+    assert verdict.state == rth.RIVAL_VALUES, (
         "a copy whose keys all match HEAD but whose VALUE was edited was judged {} -- refreshing "
         "it destroys the edit".format(verdict.state))
+    assert verdict.refused and not verdict.gains and verdict.edited, (
+        "the refusal does not carry the ONE fact that makes it true -- no key the base lacks, a "
+        "value that moved -- so it is the old undifferentiated verdict under a new name: "
+        "gains={} edited={}".format(verdict.gains, verdict.edited))
     rc, _ = rth.refresh(repo, ["reg.json"], "value-rewrite", write=True)
     assert rc == 1
     assert json.loads((repo / "reg.json").read_text()) == rewritten, (
@@ -205,9 +230,13 @@ def test_a_stale_copy_carrying_a_rewritten_value_does_not_lose_the_rewrite(repo:
     stale_and_edited["dispositions"][".alpha.json"]["why"] = "MY UNLANDED RE-GRADING"
     _write(repo, stale_and_edited)
     verdict = rth.judge_copy(repo, "reg.json")
-    assert verdict.state == rth.SUPPLIES_NEW, (
+    assert verdict.state != rth.REFRESHABLE, (
         "a copy that is stale AND carries an unlanded edit was graded {} -- the refresh would "
         "write the base over the edit and report success".format(verdict.state))
+    # KEYED TO THE PROPERTY (the edit survives) AND THEN TO THE STATE, in that order. The state
+    # name moved on 2026-09-23 when `SUPPLIES_NEW` was split; what must never move is the line
+    # below it and the byte check at the end of this function.
+    assert verdict.state == rth.RIVAL_VALUES, verdict.state
     rc, _ = rth.refresh(repo, ["reg.json"], "stale-and-edited", write=True)
     assert rc == 1
     assert json.loads((repo / "reg.json").read_text())["dispositions"][".alpha.json"]["why"] == (

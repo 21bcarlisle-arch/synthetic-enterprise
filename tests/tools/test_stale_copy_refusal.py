@@ -1517,3 +1517,66 @@ def test_the_clock_leg_holds_the_same_vouch_as_the_readable_one(repo: Path) -> N
     assert partial.carried == 1 and any("1.09x" in line for line in partial.detail), (
         "the refusal must name the landed sentence it would delete and the share it was reached on")
     assert vouched is None, "the carries-all exemption is unreachable on the clock leg"
+
+
+# ------------------------------------- a key the base lacks is not a value that changed (2026-09-23)
+#
+# `_json_leaf_names` welds a key path to a digest of its value, which is right for the question it
+# was cut for -- ARE THESE THE SAME DOCUMENT -- and wrong for the one its callers asked it, WHAT
+# DOES THIS COPY HOLD THAT THE BASE DOES NOT. Every value in a regenerated artefact is edited, so
+# under the welded reading a regeneration "supplies" every leaf it holds and can never be graded
+# superseded, whichever document is genuinely newer. Measured on the shared tree the day this
+# landed: `self_clearing_alarm_census.json` read as 1,778 leaves HEAD lacks and holds 7 key paths;
+# `domestic_shift_response_arc.json` read as 5 and holds none at all.
+
+
+def test_a_changed_value_is_not_counted_as_a_key_the_base_lacks(repo: Path) -> None:
+    """THE CONFLATION ITSELF, at the level of the function rather than the door.
+
+    `novel` and `edited` are DIFFERENT FACTS and the whole repair is that they are asked
+    separately. A delta that folded a changed value into `novel` would satisfy every
+    'is it refused' assertion in the tree and still send a regenerated artefact to
+    `isolate_hunks`, which has no hunk that takes a changed figure without the revert."""
+    base = '{"kept": 1, "moved": 2, "gone": 3}'
+    copy = '{"kept": 1, "moved": 99, "fresh": 4}'
+    delta = scr.json_leaf_delta(base, copy, "r.json")
+
+    assert delta.novel == ("fresh",), (
+        "a key path the base does not bind at all is the ONLY thing `novel` may hold; it holds "
+        "{}".format(delta.novel))
+    assert delta.edited == ("moved",), (
+        "a key both documents bind with different values is a disagreement, not a supply: "
+        "edited={}".format(delta.edited))
+    assert delta.dropped == ("gone",), delta.dropped
+    assert "moved" not in delta.novel and "kept" not in delta.edited, (
+        "the three categories overlap, so a caller counting them gets a number that is not a "
+        "count of anything")
+    # AND THE WELDED READING STILL SAYS WHAT IT ALWAYS SAID, which is why it stays the gate: the
+    # value-bearing difference is 2 where the structural one is 1, and that gap is the conflation.
+    supplied = scr.symbols(copy, "r.json") - scr.symbols(base, "r.json")
+    assert len(supplied) == 2 and len(delta.novel) == 1, (
+        "the two readings agree, so this fixture cannot show the difference between them")
+
+
+def test_the_delta_survives_a_key_that_contains_an_equals_sign(repo: Path) -> None:
+    """THE RE-DERIVATION THIS FORBIDS. `keypath=<digest>` is unambiguous to build and ambiguous to
+    take apart, and the cheap way to get key paths -- split `_json_leaf_names`'s strings -- is
+    correct for every key in this repository today and silently wrong for the first one that holds
+    an `=`. Both readings come off ONE walk (`_json_leaves`) so that route is closed rather than
+    watched; this leg is what reds if someone re-opens it."""
+    base = '{"a=b": 1, "plain": 2}'
+    copy = '{"a=b": 7, "plain": 2}'
+    delta = scr.json_leaf_delta(base, copy, "r.json")
+    assert delta.novel == () and delta.edited == ("a=b",) and delta.dropped == (), (
+        "a key containing '=' was mis-parsed, so the edited value read as a key the base lacks: "
+        "novel={} edited={} dropped={}".format(delta.novel, delta.edited, delta.dropped))
+
+
+def test_the_delta_fails_closed_on_an_unparseable_side(repo: Path) -> None:
+    """AN UNAVAILABLE CHECK IS A FAILED CHECK, and the flattering failure here is an empty delta:
+    `novel=() edited=()` reads as 'nothing to lose' and licenses a write. It must raise."""
+    import pytest
+    with pytest.raises(scr.Unparseable):
+        scr.json_leaf_delta('{"a": 1}', '{"a": ', "r.json")
+    with pytest.raises(scr.Unparseable):
+        scr.json_leaf_delta('{"a": ', '{"a": 1}', "r.json")
