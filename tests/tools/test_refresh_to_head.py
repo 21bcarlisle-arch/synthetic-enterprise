@@ -930,17 +930,26 @@ def test_no_caller_in_this_module_asks_the_oracle_that_is_BLIND_to_the_suffix_it
 
     `judge` opens with `Path(path).suffix not in READABLE -> None`, so it is STRUCTURALLY UNABLE to
     have a complaint about a `.json` -- and a field unable to answer a question agrees with every
-    answer to it. `judge_copy`'s two remaining `judge` calls are safe for data today ONLY because
-    the `DATA_SUFFIXES` branch returns several screens above them. That is an ordering fact about
-    one function, not a guard: move the branch, or add a suffix to `DATA_SUFFIXES` without moving
-    it, and the blindness comes back silently -- exactly as it arrived the first time.
+    answer to it. `judge_copy`'s `judge` calls were safe for data ONLY because the `DATA_SUFFIXES`
+    branch returned several screens above them. That is an ordering fact about one function, not a
+    guard: move the branch, or add a suffix to `DATA_SUFFIXES` without moving it, and the blindness
+    comes back silently -- exactly as it arrived the first time.
+
+    THE SPY MOVED TO THE ORACLE ITSELF (2026-09-23) AND THE PROPERTY DID NOT. `judge_copy` no
+    longer imports `judge` at all: it asks `scr.opinion`, whose suffix dispatch is
+    `scr.judgement_for` -- the same one `violations()` uses, called rather than re-cut, which is
+    what removed the second copy of this conditional that got it wrong in the first place. Watching
+    `rth.judge` after that change would be watching a name nothing binds, and a spy on a name
+    nobody calls records zero calls and passes this test *perfectly* however blind the tool got.
+    So the subject is `scr.judge`, which is the thing the claim is actually about and is reachable
+    from whichever caller routes to it.
 
     A SPY AND NOT AN AST READ, because the claim is about which calls RUN and a source scan would
     grade a call in dead code the same as one on the live path. And the spy is PROVEN ABLE TO FIRE
     on the `.py` fixture in this same test, because a spy that records nothing satisfies a
     zero-calls assertion perfectly while measuring nothing at all."""
     seen: list[str] = []
-    real = rth.judge
+    real = scr.judge
 
     def spy(root, path, head_text, new_text, parent="HEAD"):
         seen.append(path)
@@ -948,7 +957,7 @@ def test_no_caller_in_this_module_asks_the_oracle_that_is_BLIND_to_the_suffix_it
 
     _data_repo_with_a_stale_regeneration(repo, carries_some=True)
     (repo / "m.py").write_text(RIVAL_KIND_B)
-    rth.judge = spy
+    scr.judge = spy
     try:
         # Every `.json` state that reaches a decision: the flag off, the flag on, and the
         # leaf-subset branch with nothing supplied. One state per door the data branch has.
@@ -958,7 +967,7 @@ def test_no_caller_in_this_module_asks_the_oracle_that_is_BLIND_to_the_suffix_it
         rth.judge_copy(repo, "m.py", base_wins=True)
         code_calls = seen[len(data_calls):]
     finally:
-        rth.judge = real
+        scr.judge = real
     assert code_calls, (
         "the spy recorded NOTHING even on a `.py` copy, so it is not on the path it claims to "
         "watch and the zero-calls assertion below would pass however blind the tool got")

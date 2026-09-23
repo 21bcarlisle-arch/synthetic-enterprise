@@ -90,12 +90,11 @@ from tools.stale_copy_refusal import (
     Dead,
     Unparseable,
     blob_at,
-    clock_judge,
     cuts_among,
     dead_among,
     json_leaf_delta,
-    judge,
     landable_hunks,
+    opinion,
     symbols,
 )
 
@@ -148,6 +147,17 @@ BASE_WINS_DATA_RULES = BASE_WINS_RULES + (PARTIAL,)
 #: A refusal by default and writable only under `--superseded`, because a test-first lane looks
 #: exactly like this and the difference is intent, which is not on disk.
 SUPERSEDED_DEAD = "refused_supplies_only_dead_names"
+#: THE CLOCK WAS ASKED AND COULD NOT ANSWER -- a git call its verdict rests on FAILED. Its own
+#: state, and the reason it has to be one is that this tool had no way to say it: `judge` and
+#: `clock_judge` returned a bare `None` for "no complaint" and for "could not tell" alike, and
+#: every one of the three sites below read that `None` as the first. So a copy the clock had never
+#: managed to look at was printed a CONTENT verdict -- "this copy supplies 2706 JSON leaves
+#: origin/main does not have ... decide which document wins" -- with a clause beside it saying
+#: `--base-wins` does not reach it because the stale-copy verdict is "[no complaint]". Both
+#: sentences were about a question nobody had answered, and the door named by the first cannot
+#: open on a regenerated artefact at all. See `stale_copy_refusal.ClockUnanswered` for the
+#: measurement and for what is NOT claimed about the two live refusals that commissioned this.
+CLOCK_UNANSWERED = "refused_clock_could_not_answer"
 
 
 def base_wins_rules(path: str) -> tuple[str, ...]:
@@ -376,6 +386,31 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         return Verdict(path, NO_READER,
                        "no symbol reader for this path, so 'supplies nothing HEAD lacks' is "
                        "unestablished and the refresh is not licensed.")
+    # THE CLOCK IS ASKED ONCE, HERE, AND BEFORE ANY CONTENT VERDICT CAN BE PRINTED.
+    #
+    # It used to be asked in three places -- twice under `if base_wins`, once unconditionally at
+    # the foot of the Python branch -- and each site spelled the same expression for what to tell
+    # the reader: `"no complaint" if clock is None else clock.rule`. That is right for two of the
+    # clock's three states and silently wrong for the third, so a git call that FAILED was rendered
+    # as the clock having looked and found nothing to say. `opinion()` returns the three, and the
+    # dispatch between `judge` and `clock_judge` is `judgement_for`'s rather than a second copy
+    # here -- a copy that had already been got wrong once, asking the `.py` oracle about a `.json`.
+    #
+    # AND IT IS ASKED WHETHER OR NOT `--base-wins` IS SET, which the two per-branch sites were not.
+    # The refusal below is not about what the flag may do; it is about what this tool may SAY. A
+    # survey that prints a content grade while the clock is unreadable is the run the operator acts
+    # on, and the live instance is exactly that: one deliberate invocation became three.
+    clock = opinion(root, path, head_text, work_text, parent=base)
+    if clock.unanswered:
+        return Verdict(path, CLOCK_UNANSWERED,
+                       "the stale-copy CLOCK could not answer for this path: a git call its "
+                       "verdict rests on FAILED, so whether this copy predates its own last "
+                       "landing in {} is UNKNOWN -- and unknown is not 'no complaint'. Nothing "
+                       "about the copy's CONTENT is printed here on purpose: that grade would "
+                       "have carried a clause saying the clock has no objection, which is the one "
+                       "reading the evidence does not support, and the door such a grade names "
+                       "may be one that cannot open. The call that failed: {}  Re-run when it "
+                       "answers.".format(base, clock.cause))
     if Path(path).suffix in DATA_SUFFIXES:
         # A DATA DOCUMENT IS ANSWERED IN ITS OWN TERMS AND NOT IN PYTHON'S. `cuts_among` and
         # `dead_among` are both arguments about Python: whether the base DELETED a name on purpose,
@@ -440,8 +475,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
             # for these two files 57/57 and 1032/1060 of the carried lines appear verbatim in a
             # sibling report that cannot have been derived from the landing. So it is coincidence,
             # and `base_wins_rules` admits PARTIAL for `DATA_SUFFIXES` and for nothing else.
-            clock = clock_judge(root, path, head_text, work_text, parent=base) if base_wins else None
-            if clock is not None and clock.rule in base_wins_rules(path):
+            if base_wins and clock.loss is not None and clock.rule in base_wins_rules(path):
                 return Verdict(path, REFRESHABLE,
                                "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
                                "refuses this data copy [{}] against {} ({}), so the clock -- not "
@@ -452,7 +486,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "takes a changed figure without the revert -- so discarding it is "
                                "the only enactment of the base winning.".format(
                                    clock.rule, base,
-                                   clock.commit[:9] if clock.commit else "no commit",
+                                   clock.loss.commit[:9] if clock.loss.commit else "no commit",
                                    len(delta.novel), base, len(delta.edited), len(delta.dropped)),
                                gains=delta.novel, edited=delta.edited, drops=drops,
                                discarded=_discarded_lines(head_text, work_text))
@@ -465,8 +499,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                          " `--base-wins` DOES NOT REACH THIS COPY: the stale-copy control's "
                          "verdict on it is [{}], not one of {}, so nothing but your word says the "
                          "copy is the older draft -- and that word is what the flag exists not to "
-                         "take.".format("no complaint" if clock is None else clock.rule,
-                                        "/".join(base_wins_rules(path))))
+                         "take.".format(clock.rule, "/".join(base_wins_rules(path))))
             if delta.novel:
                 return Verdict(path, SUPPLIES_NEW,
                                "this copy binds {} JSON key path(s) {} does not have (e.g. {}), so "
@@ -548,8 +581,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
             # base wins" had no move: there is nothing to land, and the act required is discarding
             # the copy, which `git checkout <path>` is and which is walled. So the copy stayed,
             # and the stale-copy door refused every landing over it forever.
-            clock = judge(root, path, head_text, work_text, parent=base) if base_wins else None
-            if clock is not None and clock.rule in base_wins_rules(path):
+            if base_wins and clock.loss is not None and clock.rule in base_wins_rules(path):
                 return Verdict(path, REFRESHABLE,
                                "REPLACEMENT admitted under `--base-wins`: the stale-copy control "
                                "refuses this copy [{}] against {} ({}), so the clock -- not the "
@@ -558,8 +590,8 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "of the {} it drops. Neither landing door applies to it, so "
                                "discarding it is the only enactment of the base winning.".format(
                                    clock.rule, base,
-                                   clock.commit[:9] if clock.commit else "no commit", len(live),
-                                   len(drops)),
+                                   clock.loss.commit[:9] if clock.loss.commit else "no commit",
+                                   len(live), len(drops)),
                                gains=live, drops=drops,
                                discarded=_discarded_lines(head_text, work_text))
             return Verdict(path, REPLACEMENT,
@@ -575,8 +607,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "verdict on it is [{}], not one of {}, so nothing but your word "
                                "says the copy is the older draft -- and that word is what the "
                                "flag exists not to take.".format(
-                                   "no complaint" if clock is None else clock.rule,
-                                   "/".join(base_wins_rules(path)))),
+                                   clock.rule, "/".join(base_wins_rules(path)))),
                            gains=live, drops=drops)
         return Verdict(path, SUPPLIES_NEW,
                        "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
@@ -592,7 +623,13 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                            "destroy work a door could have saved. The flag only enacts the base "
                            "winning where no door applies at all."),
                        gains=live)
-    loss = judge(root, path, head_text, work_text, parent=base)
+    # THE SAME `clock` THE TOP OF THIS FUNCTION ASKED FOR, not a second call. This site ran `judge`
+    # again on identical arguments -- so the tool asked the clock twice about the same path and
+    # could in principle have printed two different verdicts from one invocation. It is also the
+    # site whose `None` reads WORST: `NOT_SUPERSEDED` asserts in its own words that the control
+    # "has NO complaint", which is a positive claim about a question that may never have been
+    # answered. The unanswered case can no longer arrive here at all -- it returned above.
+    loss = clock.loss
     if loss is None:
         return Verdict(path, NOT_SUPERSEDED,
                        "the stale-copy control has NO complaint about this copy against {}: it "

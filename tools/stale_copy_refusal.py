@@ -267,6 +267,9 @@ SUBSET = "strict_symbol_subset"
 UNPARSEABLE = "unparseable"
 CLOCK = "predates_landing_by_clock"
 PARTIAL = "predates_landing_carrying_some"
+#: The clock was asked and COULD NOT ANSWER -- a git call its verdict rests on failed. Its own
+#: rule, never folded into "no complaint": see `ClockUnanswered`.
+UNANSWERED = "clock_could_not_answer"
 
 
 class Unparseable(Exception):
@@ -274,9 +277,79 @@ class Unparseable(Exception):
     blob that will not parse is a finding in its own right, never a skip."""
 
 
+class ClockUnanswered(Exception):
+    """A git call THIS VERDICT RESTS ON failed, so the clock has no answer -- which is a THIRD
+    state, and until 2026-09-23 it was folded into the second and read as the flattering one.
+
+    THE DEFECT THIS OWNS. `_git` is `check=False` everywhere in this module and that default is
+    right where it was chosen: absence is the ORDINARY answer at both ends of `blob_at`, and a
+    non-zero rc from `git show` is how a tree says "no such path". The cost was paid one function
+    further up, where a FAILING git call prints nothing on stdout and every reader turned "nothing"
+    into the same falsy value a real negative produces:
+
+      * `last_commit_touching` -> `None`, which also means *no commit has ever touched this path*;
+      * `committed_at`         -> `None`, DECLARED as "git will not answer" and indistinguishable
+                                  from a `%ct` that came back unparseable;
+      * `distinctive_lines`    -> `()`, which also means *this landing added no evidence*.
+
+    All three collapse into `clock_judge`'s single bare `None`, `judge`'s single bare `None`, and
+    `refresh_to_head.judge_copy` reads that `None` as NO COMPLAINT -- then prints a CONTENT verdict
+    with a clause saying the clock has no objection to the copy.
+
+    THAT WAS LIVE AND IT CHANGED OPERATOR BEHAVIOUR (2026-09-22, the hand-off this exists for). The
+    base-wins door refused the same enactment twice, HEAD stable either side and the files
+    byte-identical, naming `isolate_hunks --keep N` at a regenerated data artefact -- the one door
+    that cannot help. The seat could not attribute those two refusals and did not pretend to. What
+    a control DID establish is that `committed_at`'s declared `None` and `distinctive_lines`'
+    silent `()` both produce output byte-identical to what was seen, so the cause was not merely
+    unknown, it was UNKNOWABLE FROM THE OUTPUT. One deliberate invocation became a volley of three,
+    which is why the permanent preservation ref from that stretch is named `probe-a`.
+
+    Fail-closed on bytes, fail-SILENT on cause, on a door whose whole job is discarding bytes.
+
+    SO THE CAUSE IS CARRIED, NOT INFERRED. Every git call the clock's verdict rests on now goes
+    through `_git_answer`, which raises this with the argv and the stderr that failed, and the
+    three-answer shape is `Opinion`. `judge` and `clock_judge` keep their two-answer signatures and
+    let this PROPAGATE rather than catching it, so no existing caller silently acquires a third
+    state it does not handle -- `violations()` renders it as rule `UNANSWERED` and
+    `refresh_to_head.judge_copy` as its own refusal.
+
+    WHAT THIS IS NOT. It is not a claim that the two live refusals had this cause -- that remains
+    unattributed, and a prediction filed after the answer is not a prediction. It is the narrower
+    and checkable claim that the OUTPUT could not have told you either way, and now can.
+    """
+
+
 def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=str(root), capture_output=True, text=True,
                           check=False)
+
+
+def _git_answer(root: Path, *args: str) -> str:
+    """`git args`' stdout -- or `ClockUnanswered`, NEVER an empty string standing in for a failure.
+
+    THE EXCEPTION TYPE IS THE WHOLE DIFFERENCE from `_git_text` beside it, and it is not tidying.
+    `RuntimeError` says *this tool is broken*; a caller that sees one has nothing to print but a
+    traceback. `ClockUnanswered` says *the QUESTION is unanswered*, which is a verdict a door can
+    render, a reader can act on, and a re-run can clear. The same failure, told apart by what the
+    receiver can do about it.
+
+    THE ARGV GOES IN THE MESSAGE IN FULL, not `args[:2]`. `_git_text`'s two-word form is fine for
+    "the tool is broken"; here the whole point is that the reader can RUN the failing call again
+    and see the failure for themselves, and `git log` is not a call anyone can re-run.
+
+    AND THE STDERR IS KEPT FROM THE FRONT, where `_git_text` keeps the last 300 characters. Git
+    prints the CAUSE first and the consequence last: `error: unable to open loose object <sha>:
+    Permission denied` / `error: Could not read <sha>` / `fatal: cannot simplify commit <sha>`.
+    Tailing that keeps the sentence naming a commit nobody asked about and drops the one naming the
+    object and the reason -- which is the only line anyone can act on. Caught by a leg asserting
+    the cause survives, which the first draft of this failed."""
+    out = _git(root, *args)
+    if out.returncode != 0:
+        raise ClockUnanswered("`git {}` rc={}: {}".format(
+            " ".join(args)[:200], out.returncode,
+            " / ".join(ln.strip() for ln in out.stderr.strip().splitlines() if ln.strip())[:240]))
+    return out.stdout
 
 
 def _git_text(root: Path, *args: str) -> str:
@@ -319,7 +392,12 @@ def _trivial(line: str, *, comments_are_evidence: bool = False) -> bool:
 
 
 def last_commit_touching(root: Path, path: str, upto: str = "HEAD") -> str | None:
-    sha = _git(root, "log", "-1", "--format=%H", upto, "--", path).stdout.strip()
+    """The last commit in `upto` touching `path`, or `None` when NO commit ever has.
+
+    `None` NOW MEANS ONLY THAT. It used to mean that OR "the `git log` failed", because a failing
+    log prints nothing and `"" or None` is `None` either way -- and `upto` is caller-supplied, so a
+    ref that does not resolve took the same exit as a brand-new file. See `ClockUnanswered`."""
+    sha = _git_answer(root, "log", "-1", "--format=%H", upto, "--", path).strip()
     return sha or None
 
 
@@ -350,16 +428,32 @@ def distinctive_lines(root: Path, path: str, commit: str) -> tuple[str, ...]:
     reachable only where the strong set is already empty, so it cannot change a verdict that has
     evidence -- measured over the 47 modified readable files on the tree of 2026-09-16, it moves
     two, and both genuinely predate their own landing by mtime."""
+    # THE REV ITSELF IS VERIFIED BEFORE ITS PARENTAGE IS, and that ordering is the repair rather
+    # than a nicety. `rev-parse --verify <commit>^` fails with the same rc for "this is a ROOT
+    # commit" and for "this is not a commit at all", so the `return ()` below -- which says *there
+    # was no before, so there is no evidence* -- was also the answer for a sha git could not
+    # resolve. That is the same collapse `ClockUnanswered` exists for, one rev deeper: an honest
+    # "no evidence" and an unasked question sharing an exit.
+    _git_answer(root, "rev-parse", "--verify", "{}^{{commit}}".format(commit))
     parent = _git(root, "rev-parse", "--verify", "{}^".format(commit))
     if parent.returncode != 0:
         # The commit that CREATED the file. There is no "before" to have landed over, and a copy
         # containing none of a file's creating commit is a file you have not got at all.
         return ()
-    diff = _git(root, "diff", "--unified=0", "{}^".format(commit), commit, "--", path).stdout
+    diff = _git_answer(root, "diff", "--unified=0", "{}^".format(commit), commit, "--", path)
     added = [ln[1:].strip() for ln in diff.splitlines()
              if ln.startswith("+") and not ln.startswith("+++")]
-    version = blob_at(root, commit, path) or ""
-    freq = Counter(ln.strip() for ln in version.splitlines())
+    version = blob_at(root, commit, path)
+    if version is None and added:
+        # The commit ADDED lines to this path and its own blob will not read. A commit that DELETED
+        # the path legitimately has no blob here -- and adds no lines either, so it never reaches
+        # this. Anything else is a read that failed, and `or ""` made the frequency table empty,
+        # which drops every added line for `freq[ln] == 1` and returns the same `()` an
+        # evidence-free landing does.
+        raise ClockUnanswered(
+            "`git show {}:{}` gave no blob for a commit that added {} line(s) to it".format(
+                commit[:9], path, len(added)))
+    freq = Counter(ln.strip() for ln in (version or "").splitlines())
     strong = tuple(ln for ln in added if not _trivial(ln) and freq[ln] == 1)
     if strong:
         return strong
@@ -795,6 +889,16 @@ class Loss:
                        for c in self.cuts)
 
     def remedy(self) -> str:
+        if self.rule == UNANSWERED:
+            # NO DOOR IS NAMED, AND THAT IS THE POINT. Both doors this module can name are keyed to
+            # evidence the clock was supposed to supply and did not, so printing either would be
+            # the same guess the unanswered `None` was already making -- with the added cost that
+            # one of them overwrites bytes. A refusal whose honest content is "ask again" says
+            # that.
+            return ("      REMEDY: none is licensed -- the clock was ASKED and could not answer, "
+                    "so whether\n      this copy predates its own last landing is UNKNOWN. Re-run "
+                    "the call above; if it\n      keeps failing, that is a finding about this "
+                    "checkout and not about this path.")
         if self.by_clock and self.gains is None:
             # The door is NOT in doubt here, which is why this branch precedes the `gains is None`
             # one that would otherwise claim it. `gains` is None for every CLOCK loss because these
@@ -869,8 +973,12 @@ class Loss:
                          self.commit[:9], len(self.detail),
                          len(self.detail) + self.carried, self.carried),
             UNPARSEABLE: "      {}".format(self.detail[0] if self.detail else "did not parse"),
+            UNANSWERED: "      the clock COULD NOT ANSWER for this path -- this call failed, so "
+                        "whether your copy\n      predates its own last landing is unknown, and "
+                        "unknown is not 'no complaint':\n      {}".format(
+                            self.detail[0] if self.detail else "cause not recorded"),
         }[self.rule]
-        shown = list(self.detail[:6]) if self.rule != UNPARSEABLE else []
+        shown = list(self.detail[:6]) if self.rule not in (UNPARSEABLE, UNANSWERED) else []
         tail = "" if len(self.detail) <= 6 else "        (+{} more)\n".format(len(self.detail) - 6)
         remedy = "" if self.rule == UNPARSEABLE or merge else self.remedy() + "\n"
         return "  {}  [{}]\n{}\n{}{}{}".format(
@@ -883,15 +991,21 @@ def taken_before(root: Path, path: str, new_text: str, commit: str) -> bool:
 
     THE SAME TWO GUARDS `clock_judge` CARRIES, lifted out so the readable leg can ask them too. An
     mtime is a fact about a file, so it says nothing about bytes supplied by `--content`; the
-    identity check is what keeps this honest, and it is the only honest width."""
+    identity check is what keeps this honest, and it is the only honest width.
+
+    THE `OSError` EXIT IS A MEASURED NO AND NOT AN UNANSWERED QUESTION, which is why it is still a
+    bare `False` while `committed_at` below is not. Its commonest shape by far is that the path is
+    not on disk at all -- a `--content` landing, a deletion, a path read out of a tree -- and that
+    is precisely the case this rule declines to have an opinion about: these bytes are not the
+    working copy, so no working copy's clock can speak for them. `committed_at`'s failure is the
+    opposite: the question WAS this rule's to answer and git would not say, so it raises through."""
     try:
         if (root / path).read_text(encoding="utf-8", errors="replace") != new_text:
             return False
         mtime = (root / path).stat().st_mtime
     except OSError:
         return False
-    landed = committed_at(root, commit)
-    return landed is not None and landed > mtime
+    return committed_at(root, commit) > mtime
 
 
 def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
@@ -961,16 +1075,26 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
 # --------------------------------------------- rule 4: predates the landing, by the file's own clock
 
 
-def committed_at(root: Path, commit: str) -> int | None:
-    """`commit`'s COMMITTER epoch seconds, or `None` if git will not answer.
+def committed_at(root: Path, commit: str) -> int:
+    """`commit`'s COMMITTER epoch seconds. `ClockUnanswered` if git will not say.
 
     COMMITTER AND NOT AUTHOR, because the question is *when did these bytes appear in this
     repository* and not *when were they written*. A cherry-pick, a rebase and a `surgical_land`
     re-derivation all keep the author date of the original -- which can be days before a working
-    copy that is nonetheless stale against the landing."""
-    out = _git(root, "log", "-1", "--format=%ct", commit)
-    text = out.stdout.strip()
-    return int(text) if out.returncode == 0 and text.isdigit() else None
+    copy that is nonetheless stale against the landing.
+
+    THIS RETURNED `None` FOR "GIT WILL NOT ANSWER" AND THE DOCSTRING SAID SO, which is exactly why
+    it is worth naming as the defect rather than filing as an oversight: the `None` was DECLARED,
+    documented, and still fail-silent, because `taken_before` -- its only caller -- reads it as
+    `landed is not None`, and the one thing a `False` from `taken_before` means downstream is *the
+    copy is not older than the landing*. A declared "cannot tell" and a measured "no" collapse at
+    the first `is not None` after them. See `ClockUnanswered`; the return type is now total, so
+    there is no longer a falsy value here for a caller to misread."""
+    text = _git_answer(root, "log", "-1", "--format=%ct", commit).strip()
+    if not text.isdigit():
+        raise ClockUnanswered("`git log -1 --format=%ct {}` returned {!r}, not an epoch".format(
+            commit[:9], text[:60]))
+    return int(text)
 
 
 def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | None,
@@ -1045,6 +1169,81 @@ def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | No
                 carried=len(distinctive) - len(missing))
 
 
+# ------------------------------------------ the THREE answers the two verdicts above can give
+#
+# `judge` and `clock_judge` each return `Loss | None`, which is two answers over three states, and
+# the third has been silently taking the second's exit since both were written. `Opinion` is that
+# third state given a name and a cause; `opinion()` is the only surface that produces it, so there
+# is exactly one place where a failed git call becomes a verdict rather than a traceback.
+#
+# WHY THE TWO VERDICTS THEMSELVES ARE NOT CHANGED TO RETURN THIS. Every existing caller reads
+# `Loss | None` and branches on `is None`. Widening their return type would put a THIRD value
+# through code written for two, and the branch it would fall into is `is None` -- which is the
+# flattering one, and the exact defect being repaired. Raising instead means a caller that has not
+# been taught the third state CANNOT silently mis-read it: it gets an exception it must handle.
+
+COMPLAINT = "complaint"
+NO_COMPLAINT = "no_complaint"
+COULD_NOT_ANSWER = "could_not_answer"
+
+
+@dataclass(frozen=True)
+class Opinion:
+    """What the clock said, in three states, with the cause when it said nothing.
+
+    `rule` IS WHAT A READER MAY BE TOLD, and the reason this property exists rather than each
+    caller formatting its own is that every caller formatted the same wrong thing: `"no complaint"
+    if clock is None else clock.rule`, three times in `refresh_to_head.judge_copy` alone. That
+    expression is correct for two of the three states and silently wrong for the one it cannot
+    see."""
+    answer: str
+    loss: Loss | None = None
+    #: The failing git call, verbatim enough to re-run. Empty unless `answer` is COULD_NOT_ANSWER.
+    cause: str = ""
+
+    @property
+    def unanswered(self) -> bool:
+        return self.answer == COULD_NOT_ANSWER
+
+    @property
+    def rule(self) -> str:
+        """The verdict name to print. Never "no complaint" unless the question was ASKED and
+        ANSWERED -- which is the whole of this class."""
+        if self.answer == COMPLAINT and self.loss is not None:
+            return self.loss.rule
+        return "no complaint" if self.answer == NO_COMPLAINT else UNANSWERED
+
+
+def judgement_for(path: str):
+    """Which of the two verdicts owns `path` -- `judge` for a suffix with a symbol reader, and
+    `clock_judge` for everything else.
+
+    THE SINGLE DISPATCH, CALLED AND NOT RE-CUT, and the reason is banked in this repository twice
+    over. `violations()` has had this conditional since `clock_judge` was written;
+    `refresh_to_head.judge_copy` grew a SECOND copy of it, spelled as two hard-coded call sites in
+    two branches, and got it wrong in one of them -- it asked `judge` about a `.json` path, an
+    oracle STRUCTURALLY unable to have a complaint about that suffix, so it agreed with every
+    answer by returning `None` to all of them and shut `--base-wins` for the whole population it
+    was built for. One question, one implementation."""
+    return judge if Path(path).suffix in READABLE else clock_judge
+
+
+def opinion(root: Path, path: str, head_text: str | None, new_text: str | None,
+            parent: str = "HEAD") -> Opinion:
+    """The clock's verdict on one path as THREE answers rather than two.
+
+    THE ONLY PLACE `ClockUnanswered` IS CAUGHT. Everywhere else it propagates, so a caller that
+    wants the third state has to ask for it here and a caller that has not been taught about it
+    gets a traceback rather than the flattering branch. That asymmetry is deliberate: the failure
+    mode being repaired is a `None` quietly meaning two things, and the repair is worth nothing if
+    the new state can quietly become one of them somewhere else."""
+    try:
+        loss = judgement_for(path)(root, path, head_text, new_text, parent=parent)
+    except ClockUnanswered as exc:
+        return Opinion(COULD_NOT_ANSWER, cause=str(exc))
+    return Opinion(COMPLAINT, loss) if loss is not None else Opinion(NO_COMPLAINT)
+
+
 def adopted_from_merge(root: Path, parent: str, ref: str,
                        paths: list[str]) -> frozenset[str]:
     """The paths in `paths` a merge of `ref` into `parent` adopts WITHOUT this side losing anything:
@@ -1104,12 +1303,20 @@ def violations(root: Path, parent: str, result: str, paths: list[str],
             continue
         before, after = blob_at(root, parent, path), blob_at(root, result, path)
         # `judge` owns READABLE and `clock_judge` owns everything else; each returns None outside
-        # its own population, so the two can never hold a second opinion about one path.
-        loss = (judge(root, path, before, after, parent=parent)
-                if Path(path).suffix in READABLE
-                else clock_judge(root, path, before, after, parent=parent))
-        if loss is not None:
-            out.append(loss)
+        # its own population, so the two can never hold a second opinion about one path. The
+        # dispatch is `judgement_for`'s -- this site is where it was written and where the second
+        # copy in `refresh_to_head` diverged from it.
+        #
+        # AND A GIT CALL THAT FAILED IS A REFUSAL HERE, not a clean path. This module's own
+        # doctrine, stated for `Unparseable` and true for the same reason: an unavailable check is
+        # a failed check. On a healthy repository this is unreachable -- every call `opinion()`
+        # makes is either rc 0 or a `blob_at` absence that is an ANSWER -- so it costs no honest
+        # commit anything; on a broken one it names the call instead of waving the path through.
+        verdict = opinion(root, path, before, after, parent=parent)
+        if verdict.unanswered:
+            out.append(Loss(path, UNANSWERED, (verdict.cause,)))
+        elif verdict.loss is not None:
+            out.append(verdict.loss)
     return out
 
 
