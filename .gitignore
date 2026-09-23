@@ -18,6 +18,13 @@ docs/observability/.tmux_relay.lock
 background/.open_agenda.json
 background/.agenda_last_nudge.json
 docs/observability/.last_processed_fingerprint.json
+# Per-leg shards from `tools/size_term_paired_floor`. INTERMEDIATE, and ignored rather than
+# committed because everything in them is folded into the artefact beside them -- the witness
+# counts, the elapsed times and each leg's own peak RSS all reach
+# `value_cycle_size_term_paired_floor.json`, which IS tracked. Their job is to let a family that
+# loses a leg to the OOM killer resume from the legs already run instead of paying for all seven
+# again, and a resume store is state about one machine's interrupted run, not a record.
+docs/observability/value_cycle_size_term_paired_floor_legs/
 # The delivery lane's live claim store and its draw ledger. RUNTIME STATE, never tracked: a claim
 # is about what is in hand right now, and a committed one would be three lanes' merge conflict.
 #

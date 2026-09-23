@@ -6579,6 +6579,27 @@ FLOOR_RUN_PEAK_MB = 6400.0
 #: flattering direction.
 PAIRED_FLOOR_RUN_PEAK_MB = 7800.0
 
+#: WHAT ONE LEG OF THAT PAIR COSTS -- AND THIS IS A BOUND, NOT A MEASUREMENT, WHICH IS WHY IT SAYS
+#: SO HERE RATHER THAN READING AS AN ESTABLISHED FIGURE.
+#:
+#: Since 2026-09-23 `tools.size_term_paired_floor` spawns one process per LEG rather than running a
+#: whole family in one, precisely because a pair carries two configurations' retained state and a
+#: leg carries one. So the guard needs a leg's price, and NO LEG HAS EVER BEEN WEIGHED ON ITS OWN:
+#: every number in hand comes from processes that ran both configurations.
+#:
+#: The tempting value is the sibling's 6,400 MB, on the reasoning that a noise-floor leg is also one
+#: configuration. That would be a number picked because a number was needed: the two legs run
+#: different arms (`level_arm=False` here) over different retained books, and 6,400 was measured on
+#: the other one. Under-pricing is the direction that kills -- it is exactly what admitted the run
+#: this file's history is about.
+#:
+#: So the bound used is the one thing the evidence does establish: a leg is CONTAINED IN the pair
+#: that ran it, so the pair's measured peak is an upper bound on the leg's. It is knowingly an
+#: overestimate, it refuses conservatively, and it is labelled so the next reader does not cite it
+#: as a measurement. Each leg now records its own `VmHWM` into its shard and the artefact publishes
+#: them, so the first completed family REPLACES this with a measured figure.
+PAIRED_FLOOR_LEG_PEAK_MB = PAIRED_FLOOR_RUN_PEAK_MB
+
 #: HOW A FLOOR LEG IS RECOGNISED, and what one of that shape was measured to cost.
 #:
 #: THE DEFECT THIS EXISTS FOR. Until 2026-09-23 this was not a table: the census matched exactly
@@ -6597,9 +6618,17 @@ PAIRED_FLOOR_RUN_PEAK_MB = 7800.0
 #: census already learned the hard way: a sibling shell carries the whole pipeline as one argv
 #: element, so an exact-token test on the flag rejects it while a substring test counts a leg
 #: that does not exist.
+#: THE PAIRED ROW MOVED FROM `--seeds` TO `--leg-only` ON 2026-09-23 AND THAT IS A CORRECTION, NOT
+#: A WIDENING. `--seeds` is now the ORCHESTRATOR: it spawns a child per leg, waits, and holds no
+#: simulation state -- tens of megabytes, not thousands. Leaving it in this table would price a
+#: family at its orchestrator's peak PLUS its child leg's, charging the guest twice for the one leg
+#: actually running and refusing families this machine can hold. The token that marks a process
+#: which will really grow to gigabytes is `--leg-only`, so that is the token counted. A `--seeds`
+#: process is now invisible here and SHOULD be, because it is no longer a floor leg; the control
+#: that keeps that true is the one asserting the orchestrator runs no leg in its own process.
 FLOOR_LEG_SHAPES = (
     ("run_value_cycle_ab", "--noise-floor-seeds", FLOOR_RUN_PEAK_MB),
-    ("size_term_paired_floor", "--seeds", PAIRED_FLOOR_RUN_PEAK_MB),
+    ("size_term_paired_floor", "--leg-only", PAIRED_FLOOR_LEG_PEAK_MB),
 )
 
 
