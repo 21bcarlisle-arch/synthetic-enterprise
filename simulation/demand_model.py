@@ -817,7 +817,7 @@ def population_mean_volume_factor(people_counts: list[int], weights: list[float]
     1.0 (FAIL-OPEN guard, R15).
 
     **This is the one function that makes the AGGREGATE claim, so it is where
-    the cut-set is honoured.** A caller that supplies `children_counts` and no
+    the cut-set is honoured.** A caller that DECLARES `children_counts` and no
     `children_reference` gets `CHILDREN_WITHIN_SIZE_REFERENCE` — the sourced
     ONS Census 2021 population — rather than the all-adult centre, because
     scoring a book with children against an all-adult divisor has an answer
@@ -829,19 +829,49 @@ def population_mean_volume_factor(people_counts: list[int], weights: list[float]
     1.01799 — so declaring children moves this book by 0.2%, and the other 1.3
     points of that original 1.5 were the centre, not the children.
 
+    DECLARATION, NOT VALUE, AND THE DISTINCTION IS THE WHOLE POINT. Keying on
+    `any(children_counts)` — which this did until 2026-09-23 — makes the
+    DIVISOR a function of the book's own realisation: two books drawn from one
+    population, one of which happens to contain no child, get two different
+    centres and neither knows it. That is the variable-divisor defect the
+    per-cut-set rule exists to close, merely moved up a level from the
+    household to the book. A book that declares the field is a member of the
+    Census population whether its realised counts are all 3 or all 0, and is
+    centred on it either way; `build_demand_shape`'s one-household call site
+    reads the same rule off `"children_count" in property`. The two resolvers
+    used to disagree for exactly one book — declared, every entry 0 — and this
+    is the line that closed it.
+
     **And it still raises `UnanchoredReferencePopulation` when the book
     declares children and NO reference population exists** — which is now the
     state where the source has been withdrawn rather than never established.
     That is the property the guard is about, and it is why the guard is keyed
     on the resolved reference being `None` rather than on the argument being
-    omitted: the day someone retires the constant, every book with children
-    refuses again instead of quietly re-levelling.
+    omitted: the day someone retires the constant, every book that declares
+    children refuses again instead of quietly re-levelling.
+
+    THE REFUSAL WIDENED WITH THE RESOLUTION, and that is fail-CLOSED rather
+    than a capability lost. An all-zero DECLARED book with the source
+    withdrawn used to answer, against the all-adult centre, ~1.0 — "this
+    response is neutral over this book". The true statement about such a book
+    is the opposite: it is a rare draw from a population that mostly has
+    children, so it genuinely IS short of its population and should read BELOW
+    1.0 against the Census centre. Against the all-adult centre it reads 2.9%
+    (electricity) / 2.2% (gas) away from where the cut-set puts it — measured,
+    not argued — and the sign of that gap is flattering. An answer that says
+    "unbiased" about a book that is not is worth less than a refusal that says
+    which population it cannot find.
     """
     n = len(people_counts)
     if n == 0:
         raise ValueError("cannot take the mean volume factor of an empty population")
     if len(weights) != n:
         raise ValueError("people_counts and weights must be the same length")
+    # THE CUT-SET IS SET BY DECLARATION, AND THIS IS THE LINE THAT HAS TO READ
+    # IT — one statement later `children_counts` is `[0] * n` either way and
+    # the book that declared all-zero children is indistinguishable from the
+    # book that declared nothing.
+    children_declared = children_counts is not None
     if children_counts is None:
         children_counts = [0] * n
     if household_keys is None:
@@ -851,18 +881,19 @@ def population_mean_volume_factor(people_counts: list[int], weights: list[float]
     total = float(sum(weights))
     if not math.isfinite(total) or total <= 0.0:
         raise ValueError("population weights must sum to a positive finite value")
-    if children_reference is None and any(children_counts):
+    if children_reference is None and children_declared:
         children_reference = CHILDREN_WITHIN_SIZE_REFERENCE
         if children_reference is None:
-            declared = sum(1 for k in children_counts if k)
+            with_a_child = sum(1 for k in children_counts if k)
             raise UnanchoredReferencePopulation(
-                f"{declared} of {n} households in this book declare children, but the volume "
-                "response's centre is computed on an ALL-ADULT reference population "
-                "(`volume_factor_normaliser` with no `children_reference`). The mean factor "
-                "against that centre is not a neutrality reading — it is a re-levelling: "
-                "measured 0.9846 (electricity) on the live 144-home book, INSIDE the 0.02 "
-                "band, so the band cannot tell you. Supply `children_reference`, or establish "
-                "`CHILDREN_WITHIN_SIZE_REFERENCE` (R10 GAP (a), population half) and pass it."
+                f"this book declares children for all {n} of its households ({with_a_child} of "
+                "them carry at least one), but the volume response's centre is computed on an "
+                "ALL-ADULT reference population (`volume_factor_normaliser` with no "
+                "`children_reference`). The mean factor against that centre is not a neutrality "
+                "reading — it is a re-levelling: measured 0.9846 (electricity) on the live "
+                "144-home book, INSIDE the 0.02 band, so the band cannot tell you. Supply "
+                "`children_reference`, or establish `CHILDREN_WITHIN_SIZE_REFERENCE` (R10 GAP "
+                "(a), population half) and pass it."
             )
     return sum(
         (weights[i] / total) * occupancy_volume_factor(
@@ -1078,14 +1109,14 @@ def build_demand_shape(
         # A record that does NOT declare it (SME defaults, pre-W2_13 fixtures) keeps the
         # all-adult centre and therefore the byte-identical result this docstring promises it.
         #
-        # THIS DIVERGES FROM `population_mean_volume_factor` ON ONE REACHABLE-IN-TESTS-ONLY
-        # BOOK: one that declares `children_counts` and whose every entry is 0. That function
-        # keys on `any(children_counts)`, so it centres such a book on the all-adult reference
-        # where this keys on declaration and centres it on the Census one. The live book cannot
-        # be that book — `build_properties` draws the Census conditional, which puts children in
-        # roughly a third of homes — and the divergence is filed rather than fixed here because
-        # `any(...)` also governs that function's REFUSAL, which is a guard with its own
-        # argument and does not get changed as a side effect of this one.
+        # `population_mean_volume_factor` NOW KEYS ON DECLARATION TOO (2026-09-23). It used to
+        # key on `any(children_counts)`, and the two resolvers therefore disagreed for exactly
+        # one book — one declaring `children_counts` whose every entry is 0, which got the
+        # all-adult centre there and the Census centre here. Unreachable on the live book
+        # (`build_properties` draws the Census conditional, which puts children in roughly a
+        # third of homes) and reachable in fixtures. Closed at the aggregate rather than here,
+        # because declaration is the side that does not make the divisor a function of the
+        # sample. If you are about to re-key either one, they are a PAIR.
         volume_factor = occupancy_volume_factor(
             people_count, commodity,
             children_count=children_count, household_key=household_key,

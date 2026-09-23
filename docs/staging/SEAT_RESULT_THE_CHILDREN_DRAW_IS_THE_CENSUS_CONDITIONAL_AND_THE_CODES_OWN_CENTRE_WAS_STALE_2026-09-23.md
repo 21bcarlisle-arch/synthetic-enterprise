@@ -93,6 +93,16 @@ Found only by reading the two against each other while wiring a caller of that f
 
 ## FILED, NOT FIXED — one narrow divergence between the two centre-resolvers
 
+> **CLOSED 2026-09-23, later the same day**, by the recommendation this section makes, under claim
+> `centre-resolvers-key-on-different-tests-so-an-all-zero-children-book-gets-two-centres`.
+> `population_mean_volume_factor` now keys on `children_counts is not None`, the refusal widened
+> with it, and the partition control counts five shapes instead of four. The one thing this section
+> got wrong is in its last sentence: it calls the remedy *"a one-line change to a guard"*. The
+> resolution is one line; the guard is not a second line but a second ARGUMENT, and widening it
+> changes behaviour for a book that used to answer. Result:
+> `SEAT_RESULT_BOTH_CENTRE_RESOLVERS_KEY_ON_DECLARATION_NOW_AND_THE_REFUSAL_WIDENED_WITH_THEM_2026-09-23.md`.
+
+
 `population_mean_volume_factor` keys its reference on `any(children_counts)`; the production call
 site now keys on the record **declaring** `children_count`. These differ for exactly one book: one
 that declares the field and whose every entry is 0. That book gets the all-adult centre from the

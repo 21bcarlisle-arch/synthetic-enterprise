@@ -494,26 +494,33 @@ def test_the_band_control_CANNOT_see_this_defect_which_is_why_the_refusal_exists
     assert 0.0 < bias < dm.VOLUME_FACTOR_BIAS_TOL
 
 
-def test_the_four_cut_set_states_are_distinct_and_the_refusal_is_reachable(monkeypatch):
+def test_the_five_cut_set_shapes_are_distinct_and_the_refusal_is_reachable(monkeypatch):
     """One control over the WHOLE partition, because a guard that refuses
     everything passes every per-branch test.
 
-    THE PARTITION GREW A SHAPE when `CHILDREN_WITHIN_SIZE_REFERENCE` was
-    sourced, and the shapes are counted here rather than the states, because
-    N states asserted over N+1 shapes is blind to two shapes collapsing into
-    one:
+    THE PARTITION GREW A SHAPE TWICE — once when `CHILDREN_WITHIN_SIZE_
+    REFERENCE` was sourced, and again when the resolution was re-keyed from
+    the book's VALUES to its DECLARATION (2026-09-23). The shapes are counted
+    here rather than the states, because N states asserted over N+1 shapes is
+    blind to two shapes collapsing into one:
 
-      1. no children               -> the size-only centre
-      2. children + EXPLICIT ref   -> that reference's centre
-      3. children + NO ref, source present -> the SOURCED centre (2 and 3
+      1. does NOT declare children -> the size-only centre
+      2. declares + EXPLICIT ref   -> that reference's centre
+      3. declares + NO ref, source present -> the SOURCED centre (2 and 3
          agree only when the explicit ref IS the sourced one — asserted
          distinct here by passing a different one)
-      4. children + NO ref, source WITHDRAWN -> refuses
+      4. declares + NO ref, source WITHDRAWN -> refuses
+      5. declares ALL-ZERO counts  -> shape 3 or 4 by the source, NEVER shape
+         1. This is the shape the function was blind to until the re-key: it
+         keyed on `any(children_counts)`, which collapsed 5 into 1 while the
+         production call site in `build_demand_shape` read it as 3. Two
+         resolvers, one book, two centres — 2.9% apart on electricity.
 
     Shapes 2 and 3 are the pair that would silently collapse if the resolution
-    ignored an explicit argument, and 3 and 4 are the pair that collapses if
-    the guard is keyed on the argument being omitted rather than on the
-    resolved reference being absent.
+    ignored an explicit argument; 3 and 4 are the pair that collapses if the
+    guard is keyed on the argument being omitted rather than on the resolved
+    reference being absent; and 5 and 1 are the pair that collapses the moment
+    anyone keys either resolver back on the realised counts.
     """
     size_only = volume_factor_normaliser("electricity")
     with_children = volume_factor_normaliser("electricity", _CHILDREN_REF)
@@ -532,19 +539,40 @@ def test_the_four_cut_set_states_are_distinct_and_the_refusal_is_reachable(monke
         for n, k, w in zip(book[0], kids, book[1])
     )
 
+    # shape 5 != shape 1 -- an all-zero DECLARED book reaches the Census
+    # centre, where the book that declares nothing keeps the size-only one.
+    # Asserted as a DISTINCTNESS between two readings computed here, not as a
+    # pin on either: re-deriving the reference moves both and this still holds.
+    all_zero_declared = population_mean_volume_factor(*book, children_counts=[0, 0])
+    never_declared = population_mean_volume_factor(*book, children_counts=None)
+    assert all_zero_declared != never_declared
+    # ... and it is shape 3's centre it reaches, not a third one of its own
+    assert all_zero_declared == population_mean_volume_factor(
+        *book, children_counts=[0, 0], children_reference=dm.CHILDREN_WITHIN_SIZE_REFERENCE)
+
     # shape 4 -- reachable: withdraw the source and the refusal fires again
     monkeypatch.setattr(dm, "CHILDREN_WITHIN_SIZE_REFERENCE", None)
     with pytest.raises(UnanchoredReferencePopulation):
         population_mean_volume_factor([4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
     with pytest.raises(UnanchoredReferencePopulation):
         volume_factor_is_unbiased([4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
-    # ... and NOT on a book that does not, nor when a reference is supplied.
-    # The assertion is that these two ANSWER — a two-home book is not the
-    # reference population and is free to be biased; what it may not do is
-    # refuse. Asserting True here would be asserting the fixture's arithmetic,
-    # not the partition.
+    # shape 5 under withdrawal is shape 4, NOT shape 1: the refusal widened
+    # with the resolution, and this is the leg that says so.
+    with pytest.raises(UnanchoredReferencePopulation):
+        population_mean_volume_factor([4, 2], [0.5, 0.5], "electricity", children_counts=[0, 0])
+    # ... and NOT on a book that does not DECLARE the field, nor when a
+    # reference is supplied. The assertion is that these two ANSWER — a
+    # two-home book is not the reference population and is free to be biased;
+    # what it may not do is refuse. Asserting True here would be asserting the
+    # fixture's arithmetic, not the partition.
+    #
+    # `children_counts=None` IS THE NON-DECLARING BOOK, and it has to be
+    # spelled that way. This leg used to pass `[0, 0]` and call it "a book
+    # without children" — which is the conflation the shape-5 leg below now
+    # separates: an all-zero DECLARED book is a member of the Census
+    # population that drew no child, not a book outside the cut-set.
     assert isinstance(
-        volume_factor_is_unbiased([4, 2], [0.5, 0.5], "electricity", children_counts=[0, 0]), bool)
+        volume_factor_is_unbiased([4, 2], [0.5, 0.5], "electricity", children_counts=None), bool)
     assert population_mean_volume_factor(
         [4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0],
         children_reference=_CHILDREN_REF) > 0.0
@@ -641,10 +669,13 @@ def test_the_refusal_is_still_REACHABLE_when_the_source_is_withdrawn(monkeypatch
     with pytest.raises(UnanchoredReferencePopulation):
         dm.volume_factor_is_unbiased(
             [4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
-    # ... and a book WITHOUT children is unaffected by the withdrawal: the
-    # all-adult cut-set never needed this reference.
+    # ... and a book that does not DECLARE children is unaffected by the
+    # withdrawal: the all-adult cut-set never needed this reference. That is
+    # `children_counts=None`. It is NOT `[0, 0]` — an all-zero declared book
+    # is inside the Census cut-set and refuses with the rest of it, which the
+    # shape-5 leg in the partition control above asserts directly.
     assert isinstance(dm.volume_factor_is_unbiased(
-        [4, 2], [0.5, 0.5], "electricity", children_counts=[0, 0]), bool)
+        [4, 2], [0.5, 0.5], "electricity", children_counts=None), bool)
 
 
 #: ONS Census 2021 England and Wales, the HOUSEHOLD-based products — a
