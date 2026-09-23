@@ -172,3 +172,23 @@ only file repaired; `test_the_value_arms_pages_undriven_pointers.py` is byte-ide
 **Green on the landed bytes, and this time the phrase is checked rather than asserted:**
 `tests/tools/test_generate_value_arms_data.py` + `test_the_value_arms_pages_undriven_pointers.py`
 = 323 passed; `site/test_a_producers_here_relative_pointer_has_one_home.py` = 9 passed.
+
+## WHAT A READER CAN SEE TODAY, asked of the feed rather than assumed from the producer
+
+Landed as `6cad55bfc`, verified at HEAD by the check this document's first draft skipped: all six
+new symbols return non-zero from `git show HEAD:tools/generate_value_arms_data.py`, and the two
+repaired pointer phrases return zero.
+
+**The producer composes the price; `site/data/value_arms.json` does not carry it yet.**
+`width_if_each_value_counted_once` and `repeats_change_the_bar_verdict` are both absent from the
+committed feed, whose last landing is `caabe0165` — a publish predating this commit. So the reader
+still meets the unpriced refusal until the next publish regenerates that feed.
+
+**This is stated rather than fixed here on purpose.** Regenerating a watched artefact makes its
+promotion owed in the same commit, and the control that grades it clones the still-stale HEAD — so
+the regeneration is green in a worktree and the commit carrying it creates the red. The publisher
+owns that path and runs on its own cadence. What this note must not do is what its own first draft
+did: let a producer-side landing read as a reader-side one.
+
+**So the item is done at the producer and pending at the feed**, and the one-line check for whoever
+picks it up is whether `width_if_each_value_counted_once` is in `site/data/value_arms.json`.
