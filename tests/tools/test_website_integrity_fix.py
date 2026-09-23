@@ -376,7 +376,7 @@ def test_generate_dashboard_json_refuses_to_publish_from_a_test_process(tmp_path
     assert "Mock this entry point" in str(exc.value)
 
 
-def test_the_gate_verdict_is_what_generate_dashboard_json_returns():
+def test_the_gate_verdict_is_what_generate_dashboard_json_returns(publish_path_body):
     """The consistency-gate verdict must reach the caller, which NTFYs on it --
     an unconditional `return True` would silently retire the alarm.
 
@@ -385,14 +385,18 @@ def test_the_gate_verdict_is_what_generate_dashboard_json_returns():
     the function's LAST return is the accumulated verdict name, so it stays green
     if the gate grows more checks and reds if anyone returns a literal.
 
-    MUTATION: change the trailing `return ok` to `return True` -- this reds."""
+    MUTATION: change the trailing `return ok` to `return True` -- this reds.
+
+    AND THE SUBJECT IS RESOLVED RATHER THAN NAMED, because keying to the property was not enough
+    on its own. `cc5cc0032` wrapped the entry point; this then found a `With` where it expected a
+    `Return` and went red at HEAD with the accumulated verdict still reaching the caller exactly
+    as required. A control keyed to a property of THE WRONG FUNCTION is pinned after all. The
+    `publish_path_body` fixture in `tests/conftest.py` follows the delegation to the body."""
     import ast
     import inspect
     import textwrap
 
-    from background import process_run_complete as prc
-
-    fn = ast.parse(textwrap.dedent(inspect.getsource(prc.generate_dashboard_json))).body[0]
+    fn = ast.parse(textwrap.dedent(inspect.getsource(publish_path_body))).body[0]
     # `fn.body[-1]`, NOT `ast.walk(...)[-1]`: walk is breadth-first, so its last
     # Return is the DEEPEST one -- the coverage gate's early `return False`,
     # nested inside an `if`. Caught by this test failing on its first run, which
