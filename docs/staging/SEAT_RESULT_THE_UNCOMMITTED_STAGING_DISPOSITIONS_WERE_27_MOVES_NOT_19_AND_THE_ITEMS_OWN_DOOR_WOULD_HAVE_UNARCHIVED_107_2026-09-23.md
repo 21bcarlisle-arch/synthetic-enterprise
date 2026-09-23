@@ -137,3 +137,77 @@ prediction.** This one named a number (19), a kind ("deletions and archival move
 inversion (107 of the 116 staged entries run the archive *backwards*), and the door by consequence.
 None of that cost anything to check: four `git status` reads and a basename join, before any of it
 was believed.
+
+---
+
+# ADDENDUM — the door I said was hypothetical has a name, and the flag that arms it has been on since July
+
+Everything above was written before the 27 landed. §2 ended on a hedge — *"a bare `git commit`
+after any `git add`, or any door that commits the index as it stands, does not [drop the ghosts].
+The hazard is live and it is one command away"* — and named no such door. **I then went and asked
+whether one exists. It does, and "one command away" understates it: it is a daemon step on an armed
+path, and the flag has been present since 2026-07-18.**
+
+## The door
+
+`background/executor_governor.py::_default_fold()`, the F1 atom_status fold, lines 304–313:
+
+```python
+subprocess.run(
+    ["git", "add", "--", "docs/design/maturity_map.yaml", "docs/design/atom_status"],
+    check=True, capture_output=True,
+)
+subprocess.run(
+    ["git", "commit", "-m", f"Fold atom_status inbox -> map (F1): {', '.join(folded)}"],
+    check=True, capture_output=True,
+)
+```
+
+**The `add` is scoped and the `commit` is not.** A pathspec on the `add` scopes what that one
+command stages; it does nothing about what is *already* staged. `git commit` with no pathspec
+commits the index as it stands — so this commits the two map paths it meant to, **and all 107 `AD`
+ghosts with them**, under a message that reads `Fold atom_status inbox -> map (F1): <atom ids>`.
+
+That message is the whole of the harm. A reader of the log, or of the commit's own subject, has no
+route to the fact that it re-added 107 dispositioned findings to the staging root. The queue would
+grow by 107 overnight and the commit that did it would be filed under the maturity map.
+
+## It is not gated behind anything that is currently off
+
+I expected to close this as reachable-but-dark, because `tools/executor_cli.py` says so in its own
+docstring: *"`--daemon` ... DARK by default — it dispatches nothing unless the director's
+console-only enable flag (`docs/observability/.build_executor_enabled`) is present."* **The flag is
+present.** `-rw-rw-r-- 183 Jul 18 09:37 docs/observability/.build_executor_enabled` — two months.
+
+And the ordering inside `run_loop` puts nothing else in the way: `kill_switch()` is checked at line
+418, `fold_fn()` fires at 439, and the fold's own docstring places it *"TOP of each cycle, BEFORE
+the F2 reconcile check"*. With the flag on, the only remaining condition is that a foldable
+atom_status inbox exists — which is the routine case the fold was built for, not an edge.
+
+The honest bound on this: I have not caught the loop in the act, and no `executor_governor` process
+was running when I looked. What is established is that the code path is live, the flag that arms it
+is on, and nothing between the two would stop it. **That is enough. A hazard whose every
+precondition is satisfied does not need to have fired yet to be worth closing.**
+
+## The class, which is the reason this is an addendum and not a separate finding
+
+CLAUDE.md states the rule as **"Commit by pathspec, never `-A`."** This is that defect wearing a
+shape the rule's wording does not cover: there is no `-A` here, and the author plainly knew the rule
+— **the scoping is right there, it is just attached to the wrong command.** A scoped `git add`
+followed by an unscoped `git commit` is not a scoped commit, and it reads like one at a glance.
+The remedy is one token: `"commit", "-m", msg, "--", "docs/design/maturity_map.yaml",
+"docs/design/atom_status"`, which is exactly what `background/process_run_complete.py:8057` already
+does (`["git", "commit", "-m", msg, "--"] + list(paths)`). The two doors sit in the same tree and
+disagree.
+
+**Correcting §2 rather than revising it:** "one command away" is what I wrote before asking, and it
+is wrong in the direction that flatters the tree. The question cost one `grep` and one `ls`, and I
+had already published the hedge by the time I ran either. A finding whose own subject is *an
+un-re-asked prediction about the tree* had one of those in it.
+
+## What this adds to §5
+
+4. **`background/executor_governor.py::_default_fold()` commits the whole index.** Fix is the
+   pathspec, and it is owed independently of the 107 — the next lane to leave anything staged
+   inherits the same door. Not landed here because it is a `background/` code change with its own
+   gate selection, and this document's landing is the staging tree.
