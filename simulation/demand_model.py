@@ -437,25 +437,96 @@ def eac_scaled_shape_fn(base_shape_fn, eac_kwh: float):
     return scaled
 
 
+class UnanchoredReferencePopulation(ValueError):
+    """Raised when a response is asked to certify itself aggregate-neutral for
+    a cut-set whose REFERENCE POPULATION is not established.
+
+    The alternative is the defect this exception exists to stop: answering
+    from the centre of a DIFFERENT cut-set, which reads as neutral and is not.
+    A refusal that names its reason is how the refusal itself gets corrected
+    — a plausible number is not.
+    """
+
+
+#: The reference population for the CHILDREN cut-set: `((people_count,
+#: children_count, share), ...)`, summing to 1. **`None` — NOT ESTABLISHED,
+#: and that is the honest state rather than a gap waiting on tidying.**
+#:
+#: R10 GAP (a), the POPULATION half. `CHILD_ADULT_EQUIVALENT_RANGE` above
+#: closes the *response* half — how much of an adult's volume a child
+#: contributes — by sampling, because NEED publishes no adults-x-children
+#: cross-tabulation. This is the other half: how many children a household of
+#: a given size CONTAINS. `dwelling_records.DEFAULT_CHILDREN_COUNT` refuses to
+#: fabricate it for the same reason, and the W2_13 research pass filed it as
+#: `R10-DISTRIBUTION-CANDIDATE` rather than answering it.
+#:
+#: Assign a SOURCED distribution here and every children-cut centre below
+#: becomes computable, with no other edit. Until then the centre for that
+#: cut-set does not exist and the functions that need it refuse by name.
+CHILDREN_WITHIN_SIZE_REFERENCE: tuple[tuple[int, int, float], ...] | None = None
+
+
 @functools.lru_cache(maxsize=8)
-def volume_factor_normaliser(commodity: str) -> float:
-    """The share-weighted mean RAW NEED index over the ONS TS017 reference
-    population — the divisor that makes `occupancy_volume_factor` mean-1.
+def volume_factor_normaliser(
+    commodity: str,
+    children_reference: tuple[tuple[int, int, float], ...] | None = None,
+) -> float:
+    """The share-weighted mean RAW NEED index over the reference population —
+    the divisor that makes `occupancy_volume_factor` mean-1.
 
     WHY normalise at all: the NEED index is anchored on a 1-adult household,
     so applying it raw would multiply national demand by ~1.45 (electricity)
     overnight. The occupancy response must REDISTRIBUTE volume between
     households of different size, not re-level the aggregate — an unannounced
     baseline shift would be an R13 breach dressed up as a fidelity gain.
+
+    **THE REFERENCE IS PER CUT-SET** — the same correctness `_reference_
+    daytime_rate` carries, and the second instance of that class found. This
+    divisor is the mean of `need_volume_index` over households read as ALL
+    ADULTS. But the index it divides has a numerator assembled from a VARIABLE
+    number of terms (`adults + w·children`), so scoring a household that
+    declares children against the all-adult centre is not a neutral response:
+    it is a cut. Measured 2026-09-23 on the live 144-home book with the
+    children `premise_trace` already draws for itself — mean volume factor
+    **0.98458** electricity, **0.98678** gas, a silent 1.3–1.5% cut to the
+    whole book's volume.
+    **And the R15 band over it (`VOLUME_FACTOR_BIAS_TOL`, 0.02) stays GREEN at
+    that value**, so unlike the daytime instance the existing control could
+    not have caught it. That is why the repair here is a REFUSAL rather than a
+    wider band: a tolerance chosen before the defect was measured is not
+    evidence about the defect.
+
+    `children_reference is None` is the size-only cut-set and returns exactly
+    the float this function has always returned — byte-identical, which is
+    what makes this safe to land under every existing caller. A supplied
+    reference is the joint `(size, children, share)` distribution, and the
+    centre is computed over it with the R10 GAP (a) child weight at its
+    interval MIDPOINT: the reference is a population quantity, and drawing it
+    per household would make the aggregate itself random. That midpoint is a
+    stated approximation, not an equality — the NEED curve is concave, so the
+    mean of the draws sits marginally below the draw at the mean.
     """
+    if children_reference is None:
+        return sum(
+            share * need_volume_index(n, commodity)
+            for n, share in HOUSEHOLD_SIZE_POPULATION_SHARE.items()
+        )
+    total = sum(share for _, _, share in children_reference)
+    if not children_reference or not math.isfinite(total) or abs(total - 1.0) > 1e-9:
+        raise ValueError(
+            "a children reference population must be non-empty and its shares must sum "
+            f"to 1.0, got {len(children_reference)} rows summing to {total!r}"
+        )
     return sum(
-        share * need_volume_index(n, commodity)
-        for n, share in HOUSEHOLD_SIZE_POPULATION_SHARE.items()
+        share * need_volume_index(n, commodity, children_count=k)
+        for n, k, share in children_reference
     )
 
 
 def occupancy_volume_factor(people_count: int, commodity: str, *, children_count: int = 0,
-                            household_key: str = "", seed: int | None = None) -> float:
+                            household_key: str = "", seed: int | None = None,
+                            children_reference: tuple[tuple[int, int, float], ...] | None = None,
+                            ) -> float:
     """**The VOLUME response** — how much a household of this size uses,
     relative to the population average, following the DESNZ NEED 2023
     per-adult SUBLINEAR curve.
@@ -469,14 +540,20 @@ def occupancy_volume_factor(people_count: int, commodity: str, *, children_count
     variance W1_5 currently absorbs as noise; neither re-derives the other.
 
     Mean-1 over the ONS TS017 reference population by construction (see
-    `volume_factor_normaliser`), so switching it on redistributes demand
-    between households without moving the aggregate.
+    `volume_factor_normaliser`) **FOR THE CUT-SET THE CENTRE WAS COMPUTED
+    ON** — households read as all adults. That qualification is the whole of
+    the correctness and it used to be absent: with `children_count` supplied
+    and no `children_reference`, this factor is a well-defined RELATIVE
+    quantity (a 4-person household with two children sits between a 2-adult
+    and a 4-adult one, whatever the divisor) and its LEVEL is not neutral.
+    Which is why the aggregate claim is refused rather than answered — see
+    `population_mean_volume_factor`.
     """
     child_weight = child_adult_equivalence(household_key, seed) if children_count else None
     raw = need_volume_index(
         people_count, commodity, children_count=children_count, child_weight=child_weight
     )
-    return raw / volume_factor_normaliser(commodity)
+    return raw / volume_factor_normaliser(commodity, children_reference)
 
 
 def _daytime_occupancy_rate(people_count: int, pensioner_present: bool | None,
@@ -630,12 +707,24 @@ DAYTIME_SHAPE_BIAS_TOL = 0.02
 def population_mean_volume_factor(people_counts: list[int], weights: list[float],
                                   commodity: str, *, children_counts: list[int] | None = None,
                                   household_keys: list[str] | None = None,
-                                  seed: int | None = None) -> float:
+                                  seed: int | None = None,
+                                  children_reference: tuple[tuple[int, int, float], ...] | None
+                                  = None) -> float:
     """The weight-normalised mean occupancy volume factor over a book.
 
     Raises on empty input, length mismatch, or non-positive total weight — the
     mean factor of no households is a caller error, never a silently-passing
     1.0 (FAIL-OPEN guard, R15).
+
+    **And raises `UnanchoredReferencePopulation` when the book declares
+    children but no reference population does.** This is the one function that
+    makes the AGGREGATE claim, so it is where the cut-set has to be honoured:
+    asking "what does the volume response do to this book's total" of a book
+    with children, against a centre computed on an all-adult population, has
+    an answer that looks like a small deviation and is actually the divisor
+    being wrong. Measured on the live book it is 0.9846 — a 1.5% cut sitting
+    comfortably INSIDE the 0.02 band below, which is exactly why a band could
+    not be the mechanism here.
     """
     n = len(people_counts)
     if n == 0:
@@ -651,10 +740,22 @@ def population_mean_volume_factor(people_counts: list[int], weights: list[float]
     total = float(sum(weights))
     if not math.isfinite(total) or total <= 0.0:
         raise ValueError("population weights must sum to a positive finite value")
+    if children_reference is None and any(children_counts):
+        declared = sum(1 for k in children_counts if k)
+        raise UnanchoredReferencePopulation(
+            f"{declared} of {n} households in this book declare children, but the volume "
+            "response's centre is computed on an ALL-ADULT reference population "
+            "(`volume_factor_normaliser` with no `children_reference`). The mean factor "
+            "against that centre is not a neutrality reading — it is a re-levelling: "
+            "measured 0.9846 (electricity) on the live 144-home book, INSIDE the 0.02 "
+            "band, so the band cannot tell you. Supply `children_reference`, or establish "
+            "`CHILDREN_WITHIN_SIZE_REFERENCE` (R10 GAP (a), population half) and pass it."
+        )
     return sum(
         (weights[i] / total) * occupancy_volume_factor(
             people_counts[i], commodity, children_count=children_counts[i],
             household_key=household_keys[i], seed=seed,
+            children_reference=children_reference,
         )
         for i in range(n)
     )
@@ -664,15 +765,24 @@ def volume_factor_is_unbiased(people_counts: list[int], weights: list[float], co
                               children_counts: list[int] | None = None,
                               household_keys: list[str] | None = None,
                               seed: int | None = None,
+                              children_reference: tuple[tuple[int, int, float], ...] | None = None,
                               tol: float = VOLUME_FACTOR_BIAS_TOL) -> bool:
     """R15-failable control: True iff the occupancy VOLUME response leaves
     aggregate demand where it found it (population mean factor within ``tol``
     of 1.0). FIRES when the normaliser is dropped or mis-levelled — dropping
-    it alone puts the electricity mean at ~1.45."""
+    it alone puts the electricity mean at ~1.45.
+
+    It does NOT return False for a children book with no reference: it RAISES,
+    through the call below. A False there would read as "the response is
+    biased", and the true statement is "you asked a question whose centre does
+    not exist". Those are different results and only one of them is fixable by
+    looking at the response.
+    """
     return abs(
         population_mean_volume_factor(
             people_counts, weights, commodity, children_counts=children_counts,
             household_keys=household_keys, seed=seed,
+            children_reference=children_reference,
         ) - 1.0
     ) <= tol
 

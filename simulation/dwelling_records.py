@@ -149,6 +149,16 @@ assert abs(sum(share for _, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017) - 1.0) < 1e
 # (`child_adult_equivalence`, sampled per household from a range, never a
 # point estimate) for callers that do know a composition — the gap is the
 # population-level split, not the response.
+#
+# AND WIRING THIS FIELD OWES A REFERENCE POPULATION, which is not obvious and
+# is why it is written here rather than only at the mechanism. `demand_model.
+# volume_factor_normaliser` centres the volume response on an ALL-ADULT
+# population; a book that declares children scored against that centre is cut
+# 1.5% (measured 2026-09-23 with `premise_trace`'s own children draw on the
+# live 144 homes), and the R15 band over it is 0.02, so it stays green. The
+# aggregate functions now REFUSE that combination by name rather than
+# answering it — so the field and `demand_model.CHILDREN_WITHIN_SIZE_REFERENCE`
+# have to be established together, in one move, by whoever closes this gap.
 DEFAULT_CHILDREN_COUNT = 0
 
 
