@@ -8,6 +8,115 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-23 — the churn belief hears household size now, on a published basis -- and the choosing stops winning by avoiding bad customers and starts winning on gross margin
+
+<!-- head: 2f8f6a8fdd80 -->
+
+**Written 2026-09-23 ~08:20 BST.** The churn belief's size term, the arms re-run, and the overhead
+question answered in one pass.
+
+## The belief was flat where the world spans 11.57x, and now it is not
+
+Measured before touching anything: `estimate_churn_probability` returned **identically 0.150000**
+from 1,500 to 9,000 kWh. A six-fold span of household size, one number. The world's response over
+the same book spans **11.57x**.
+
+**The published basis, and the distinction that makes this term sourced where the old one is not.**
+Ofgem/BMG, *Understanding Consumers' Energy Tariff Choices* (n=3,235, Mar–Apr 2024), already cited
+in the world's own `churn_position_multiplier`:
+
+- *"consumers value savings in absolute terms rather than in proportion to their bill"* — the same
+  percentage is worth more **pounds** to a bigger consumer, and moves them more. **This term.**
+- Table 3: Spearman correlation between energy **spend** and switching propensity is **−0.07 to
+  +0.05** — a big bill barely changes how eagerly a household chases a given number of pounds.
+  **Not** this term, and exactly what the pre-existing `bill_stress` knee asserts.
+
+Those are the same survey pointing different ways about different quantities, and it reconciles the
+apparent contradiction with my own research of 2026-09-22, which refuted a bill-level knee. That
+research was right: spend does not drive propensity. What spend changes is **how many pounds a
+percentage is worth**, which is a different claim the same source establishes positively.
+
+So the term scales the **rate response** by the household's own consumption against the published
+TDCV Medium band, and touches nothing else. Consequences, each deliberate:
+
+- **At parity, size does not matter.** No price move, no saving to weigh, and a large house is not
+  more flighty — which is what −0.07..+0.05 says. Putting size in the base rate would implement the
+  refuted finding, and the control reds on exactly that mutation.
+- **A price CUT is scaled too.** Pounds cut both ways; a term that only ever raises the estimate is
+  a pessimism dial.
+- **The rate cancels.** Scaling by kWh ratio rather than bill ratio means the price deck cannot move
+  the term. The refuted knee's worst property was that its position swung 18,160 → 4,446 kWh across
+  the record with nothing about any household changing.
+- **Domestic only.** It is a survey of households; the world refuses the same way, and a domestic
+  curve on a 4 GWh plant returned ×599.6.
+
+Belief now spans **3.83x** across 1,500–15,000 kWh. Not 11.57x, and I am not claiming it should be —
+the world's spread includes segments and a max of 11.7 at one account.
+
+## What the choosing is worth once it can see size
+
+Both arm sets re-run, one variable — same book, same world, only the size scale differs.
+
+| | blind | seeing | move |
+|---|---|---|---|
+| net margin advantage | £14,074 | £13,440 | **−£634** |
+| **gross margin advantage** | **−£9,299** | **+£12,152** | **+£21,450** |
+| enterprise value advantage | £6,143 | £7,642 | +£1,499 |
+| bad debt | −£7,508 | −£3 | +£7,505 |
+| accounts priced | 119 | 125 | +6 |
+| **distinct margins** | **57** | **68** | **+11** |
+| median margin | £40.25/MWh | £27.25/MWh | −£13.00 |
+
+**The headline net advantage is unchanged, and I will not claim otherwise** — £13,440 against
+£14,074 at one seed is not a difference this instrument can resolve.
+
+**What changed is where the advantage comes from.** Blind, the value arm beat the flat rule with a
+*negative* gross margin and a £7,508 bad-debt saving: it was winning by avoiding bad customers, not
+by pricing well. Seeing, gross margin is **+£12,152** and the bad-debt edge is gone. A £21,450 swing
+in composition under a £634 move in the headline.
+
+And the decision itself is more differentiated: **68 distinct margins against 57**, six more accounts
+priced, median margin £13/MWh lower. That is the choosing finally having something per-customer to
+choose on, which is the thing the director said was missing.
+
+**Enterprise value is up 24%** (£6,143 → £7,642), and that is the figure I would watch next, because
+it is the one that should move if the book is being priced better rather than merely differently.
+
+## The overhead question, answered in one pass
+
+66 of 234 commits since Monday are merges; **37 are the reconciler**. It already runs in an isolated
+worktree and exists because of a measured 3.2-hour stale site and five local-only landings. **It is
+the mitigation, not the waste.**
+
+**A theory of mine was refuted by the code.** I found 9 merges whose tree equals a parent's and was
+about to call them pure waste — my own memory carries that rule. `surgical_land` reasons about that
+case and is right: *"the other history's content is all here, but its COMMITS are not, so the merge
+is still worth making."* A tree-identical merge carries **reachability**, which is what a push needs.
+
+**The cause is one line:** several writers share one working tree, which holds **124 staged entries
+and 546 modified files** right now. The reconciler, the origin-ahead guard, the stale-copy refusal,
+`isolate_hunks` and `--content` all exist only because of that.
+
+**Stopping it means making the shared checkout read-only** — every writer in its own worktree, the
+shared tree only ever fast-forwarding. That changes how every daemon and lane launches and needs 670
+files of in-flight state drained first. **Not cheap, not started.**
+
+**The cheap part is mine and I am taking it.** The worker executor already runs delivery turns in
+linked worktrees; the interactive seat does not, and I have landed from the shared tree all week.
+That is one of the three lanes the reconciler's own docstring names, removed at no cost. This piece
+lands from here because it is in flight; the next one does not.
+
+## Minted, not reported
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — the knee is still in
+  the model, still unsourced, and unbounded in consumption: at 100,000 kWh it alone drives the
+  estimate to the ceiling. It is what made my first saturation control red, and I nearly read that
+  as the new term running away.
+- `the-arms-delta-needs-a-noise-floor-before-634-pounds-means-anything` — £13,440 against £14,074 is
+  one seed. The tool has `--noise-floor-seeds` and the difference should be read against it.
+
+---
+
 ## 2026-09-18 — the gas half of the shape switch settled money and reached no reader -- it was carried into a print, and its own docstring said otherwise
 
 <!-- head: 531d869285f2 -->

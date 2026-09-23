@@ -135,9 +135,19 @@ def test_c6_scenario_falling_rate_high_consumption_detectable():
 
     C6 in 2024: old_rate ~£250/MWh (crisis-era), new_rate ~£150/MWh (falling),
     45,000 kWh/year. Rate-only model returns 0. With bill burden: detectable.
+
+    IT NOW PASSES THE SEGMENT IT MEANS (2026-09-23). C6 is `segment="SME"` in the book, and this
+    test was scoring it through the `segment="resi"` default -- which went unnoticed until the
+    domestic size term landed and the resi branch started scaling a 45,000 kWh account by the
+    domestic survey's response. The size term is domestic-only, so with C6's real segment the
+    estimate is unchanged at 0.4175; mislabelled resi it is 0.0. **The test was describing a
+    different account from the one it names**, and the mislabel was invisible while every branch
+    treated size identically.
     """
-    p_rate_only = estimate_churn_probability(250.0, 150.0, tenure_years=8.0, annual_consumption_kwh=0.0)
-    p_with_burden = estimate_churn_probability(250.0, 150.0, tenure_years=8.0, annual_consumption_kwh=45000.0)
+    p_rate_only = estimate_churn_probability(250.0, 150.0, tenure_years=8.0,
+                                             annual_consumption_kwh=0.0, segment="SME")
+    p_with_burden = estimate_churn_probability(250.0, 150.0, tenure_years=8.0,
+                                               annual_consumption_kwh=45000.0, segment="SME")
     assert p_rate_only == 0.0, "Rate-only model should return 0 for falling rate + long tenure"
     assert p_with_burden > 0.30, f"Bill burden should push estimate above 30% threshold, got {p_with_burden:.3f}"
 

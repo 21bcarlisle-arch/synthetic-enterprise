@@ -28,7 +28,7 @@ Gas fuel uses separate constants (Phase 14b):
     independently; base rate lower than electricity.
   Bill stress term is not applied to gas (pass annual_consumption_kwh=0).
 
-The bill burden term captures what the rate-change-only model misses:
+The bill burden term was built to capture what the rate-change-only model misses:
   - When rates fall from crisis peaks, rate_increase_pct turns negative
     and can push the estimate to 0 even for high-risk large customers
   - But a customer who spent £11,000/year last year at crisis prices is
@@ -38,7 +38,20 @@ The bill burden term captures what the rate-change-only model misses:
     customer's metered consumption (annual_consumption_kwh from meter reads)
   - bill_stress = (old_rate × annual_kwh / 1000) / THRESHOLD -- 1
     activates only when the PREVIOUS year's bill exceeded £3,000 GBP
-    (the threshold where empirically customers start actively switching)
+
+**AND THE LAST LINE OF THAT ARGUMENT IS REFUTED, corrected here beside the claim rather than
+over it (2026-09-22).** It used to end *"(the threshold where empirically customers start
+actively switching)"*, which cited nothing and is contradicted by the sources this repository
+already holds. Ofgem/BMG *Understanding Consumers' Energy Tariff Choices* (n=3,235, Mar-Apr
+2024) puts the Spearman correlation between household energy SPEND and switching propensity at
+-0.07 to +0.05 and says in words that *"reported household spending on energy has a very limited
+impact on how consumers evaluate prospective deals"*. The whole finding, with what IS established
+about affordability and arrears, what the term measures instead, and why the number is
+deliberately NOT re-picked: `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`.
+
+**READ IT BEFORE TRUSTING ANY BILL-LEVEL REASONING IN THIS MODULE.** The paragraph above and the
+2022 correction in `estimate_churn_probability`'s own docstring disagree with each other, and the
+2022 one is the one with a source.
 """
 from __future__ import annotations
 
@@ -52,7 +65,62 @@ GAS_BASE_CHURN_RATE = 0.08
 GAS_RATE_SENSITIVITY = 0.6
 TENURE_DISCOUNT_PER_YEAR = 0.01
 MAX_TENURE_DISCOUNT_YEARS = 5
+#: THE SIZE TERM'S REFERENCE SCALE — Ofgem TDCV Medium bands, which this company already holds in
+#: `company/compliance/domain_invariants` (`TDCV_ELEC_MEDIUM` 2,300–2,700, `TDCV_GAS_MEDIUM`
+#: 9,000–10,000 kWh/yr, source "Ofgem TDCV 2026 review"). The midpoints are used, and nothing is
+#: picked: a reference is needed to say "bigger than typical" at all, and the published typical
+#: value is what typical means. A company observable — a supplier meters its own customers and
+#: Ofgem publishes the band.
+SIZE_REFERENCE_KWH_ELEC = 2500.0
+SIZE_REFERENCE_KWH_GAS = 9500.0
+
+#: How far the size scale is allowed to run. The world's own response over this book spans 11.57x
+#: (p50 1.6, p90 2.7, max 11.7); this caps the BELIEF's scale at the same order so a single
+#: enormous account cannot dominate the book's expected churn. Not a calibration of the effect —
+#: the effect is the ratio itself — but a refusal to extrapolate a domestic survey past the
+#: domestic range. The world caps the same way, by handing non-domestic segments a market-average
+#: scale rather than their own (`bill_scale_for` returns None off-domestic).
+MAX_SIZE_SCALE = 4.0
+
 BILL_STRESS_SENSITIVITY = 0.25
+#: A NAMED GAP, NOT A THRESHOLD ANYONE PUBLISHED — and it was searched for before this was written
+#: (2026-09-22, Lane 0). Full working, with the seven places looked and what each holds:
+#: `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`.
+#:
+#: NOT ESTABLISHED: any bill level at which GB domestic switching activity rises. Ofgem publishes
+#: switching cut by tariff type, payment method, supplier size, debt, bill difficulty, satisfaction
+#: and prior switching (CIM wave 6, Table 56) and does NOT publish it cut by bill size.
+#:
+#: ESTABLISHED, AND IT REFUTES THE SHAPE RATHER THAN THE LEVEL: Ofgem/BMG *Understanding
+#: Consumers' Energy Tariff Choices* (n=3,235, fieldwork Mar-Apr 2024, published Jul 2025) — its
+#: Table 3 puts the Spearman correlation between household energy SPEND and switching propensity
+#: at **-0.07 to +0.05**, a band that does not clear zero in either direction, and the publisher
+#: states outright that *"reported household spending on energy has a very limited impact on how
+#: consumers evaluate prospective deals."* A knee asserts the STRONGEST form of dependence on that
+#: variable — identically absent below, linear above — and the closest published source puts the
+#: dependence at approximately none. So a knee is the wrong SHAPE and the bill LEVEL is the wrong
+#: VARIABLE; this is a finding about the model, not a calibration.
+#:
+#: WHICH WAY THE ERROR RUNS, MEASURED rather than reasoned about. At Ofgem's own benchmark
+#: electricity consumption (3,100 kWh) this term is IDENTICALLY ZERO in every published cap window
+#: 2019-2025 — including the Jan-Mar 2023 peak of 674.7 GBP/MWh, which puts the benchmark
+#: household at GBP 2,092. It has never expressed crisis distress because the crisis never reached
+#: it. What it does select on is CONSUMPTION, and where it starts is set by the price deck: the
+#: knee moves 18,160 kWh -> 4,446 kWh across the record, 4.1x, with nothing about any household
+#: changing. Within the GB domestic population a large electricity bill is a large house, so a term
+#: named for financial distress selects, if anything, AGAINST the households Table 56 shows are
+#: more likely to switch (arrears 1.28x, bill difficulty 1.26x against a 5.3% base).
+#:
+#: WHAT IT WOULD TAKE TO DO IT PROPERLY: a per-household hazard against the supplier's OWN arrears
+#: and payment-difficulty ledger — a company observable, inside the wall, and the variable the CIM
+#: banner shows carries the association. That is a different term keyed to a different quantity,
+#: and building it was not in this pass's scope.
+#:
+#: WHY THE NUMBER IS NOT RE-PICKED, said plainly because it is the tempting move: every candidate
+#: would be chosen for how many supply legs it puts either side of it, which is goal-seeking
+#: against a published figure, and none would be better sourced than this one. 3000.0 is left
+#: standing as the historical value with its provenance now reconstructible — which is exactly the
+#: difference between a named gap and the GBP 150 CAC.
 BILL_STRESS_THRESHOLD_GBP = 3000.0
 HEDGE_SENSITIVITY_REDUCTION = 0.4
 #: THE ASYMPTOTE, AND IT IS 1.0 BECAUSE NOBODY IS UNCONDITIONALLY CAPTIVE. It was 0.95 until
@@ -314,6 +382,49 @@ def estimate_churn_probability(
     prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
     bill_stress = bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0)
 
+    # THE SIZE TERM (2026-09-23). A percentage is not a quantity a household responds to; POUNDS
+    # are, and the same percentage is more pounds to a bigger consumer. Ofgem/BMG, *Understanding
+    # Consumers' Energy Tariff Choices* (n=3,235, fieldwork Mar-Apr 2024): *"consumers value savings
+    # in absolute terms rather than in proportion to their bill... it may benefit suppliers to frame
+    # savings in cash rather than percentage terms, i.e. GBP 150 and not a 3% saving - particularly
+    # for customers with higher energy outgoings"*.
+    #
+    # THAT IS NOT THE REFUTED TERM ABOVE, and the distinction is the whole of why this is sourced
+    # and that is not. The same survey's Table 3 puts the Spearman correlation between energy SPEND
+    # and switching propensity at -0.07 to +0.05 -- a big bill barely changes how eagerly a
+    # household chases a given number of pounds. What it changes is HOW MANY POUNDS A GIVEN
+    # PERCENTAGE IS WORTH. `bill_stress` asserts the first (spend -> propensity, refuted, and on
+    # this repository's no-origin debt list: see
+    # docs/market_research/is_there_a_bill_level_at_which_switching_rises.md). This asserts the
+    # second, which the same source establishes positively.
+    #
+    # WHY IT MULTIPLIES THE RATE RESPONSE AND NOTHING ELSE. It scales the term that converts a price
+    # move into a decision, because that is the only place pounds-versus-percent can be expressed.
+    # It does not touch the base rate: a household with no price move has no saving to weigh, and a
+    # larger house is not more flighty at parity -- which is exactly what the -0.07..+0.05
+    # correlation says.
+    #
+    # THE RATE CANCELS, DELIBERATELY. Scaling by own-kWh / reference-kWh rather than by
+    # own-bill / reference-bill means the price DECK cannot move this term. The refuted knee's worst
+    # property was that its position swung 18,160 -> 4,446 kWh across the record with nothing about
+    # any household changing; a consumption ratio has no year in it.
+    #
+    # WALL: consumption is a company observable -- a supplier meters its own customers -- which is
+    # why the world's own `churn_position_multiplier` calls it "something the company can
+    # legitimately act on". Nothing here reads a world internal; the company derives its own scale
+    # from its own meter reads and a published band.
+    size_reference_kwh = SIZE_REFERENCE_KWH_GAS if fuel == "gas" else SIZE_REFERENCE_KWH_ELEC
+    if segment == "resi" and annual_consumption_kwh > 0 and size_reference_kwh > 0:
+        size_scale = min(annual_consumption_kwh / size_reference_kwh, MAX_SIZE_SCALE)
+    else:
+        # OFF-DOMESTIC AND UNKNOWN BOTH GET 1.0, for different reasons that land in the same place.
+        # The survey is a DOMESTIC survey, so extrapolating it onto an I&C account is the ×599.6
+        # mistake the world already documents and refuses. And an account with no consumption on
+        # record gets the unscaled response rather than a guessed one -- a zero would silence the
+        # rate term entirely, which is a louder error than not scaling it.
+        size_scale = 1.0
+
     hangover_uplift = CRISIS_HANGOVER_BASE_UPLIFT if hangover_periods_remaining > 0 else 0.0
-    p = base_rate + effective_rate_sensitivity * own_move_pct - tenure_discount + bill_stress + hangover_uplift
+    p = (base_rate + effective_rate_sensitivity * size_scale * own_move_pct
+         - tenure_discount + bill_stress + hangover_uplift)
     return _saturate_churn_probability(p)
