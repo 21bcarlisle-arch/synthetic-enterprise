@@ -662,6 +662,12 @@
       "subject": "python"
     },
     {
+      "path": "tests/company/test_the_bill_stress_threshold_carries_its_origin.py",
+      "function": "test_the_named_gap_POINTS_AT_A_READING_THAT_EXISTS",
+      "subject": "unknown",
+      "why_frozen": "THE SUBJECT IS MARKDOWN, NOT PYTHON SOURCE (2026-09-23). This leg asserts that the finding `BILL_STRESS_THRESHOLD_GBP`'s origin block sends a reader to is on disk AND still about that constant, so the read it makes is of docs/market_research/is_there_a_bill_level_at_which_switching_rises.md -- a prose document, where `CONSTANT in text` is exactly the right question and there is no parse tree to ask instead. tools/python_code_text.py cannot route it: `searchable()` parses Python and would return the markdown unchanged (its fail-closed path), so the row would survive the routing while nothing about the read had improved. The census grades the subject `unknown` rather than dismissing it because the module also carries MODULE = 'company/crm/churn_model.py', which `_row()` needs to select the constant's scan row; the .py literal is never read, and the leg that DOES concern that module now asks tools.domain_constant_origins.scan for the comment block instead of re-reading and regexing the file, which is what cleared this same row's first, genuine refusal."
+    },
+    {
       "path": "tests/controls/test_no_pane_injection.py",
       "function": "_raw_line_scan",
       "subject": "unknown"

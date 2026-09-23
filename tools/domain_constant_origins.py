@@ -237,6 +237,16 @@ def scan(root: Path | None = None) -> list[dict]:
                         "line": node.lineno,
                         "value": literal,
                         "origin": _classify(comment),
+                        # THE BLOCK ITSELF, not just its verdict (2026-09-23). A control asking
+                        # what a constant's origin block SAYS -- which reading it sends you to --
+                        # otherwise has to re-read the module and regex for the block, and that is
+                        # two parsers of the same comments that can drift apart. It is also a
+                        # substring scan over Python source, which `tools/python_code_text.py`
+                        # exists to refuse and which cannot be routed through `searchable()` here
+                        # because `searchable()` blanks comments and the comment IS the subject.
+                        # `_comment_block` is anchored to the assignment's AST lineno, so it reads
+                        # the block the origin was classified from and no other.
+                        "comment": comment,
                     })
     return found
 
