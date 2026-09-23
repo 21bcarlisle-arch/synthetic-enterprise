@@ -97,6 +97,65 @@ def test_the_orchestrator_runs_no_leg_in_its_own_process(monkeypatch, tmp_path: 
                        (9002, True), (9002, False)]
 
 
+def test_the_leg_peak_reading_can_say_the_admission_price_is_too_LOW(monkeypatch, tmp_path: Path):
+    """THE DEFECT, AND IT IS THE ONE THAT HAPPENED. A field that cannot express an outcome agrees
+    with every other one.
+
+    `leg_peak_rss_mb` exists to replace `PAIRED_FLOOR_LEG_PEAK_MB` -- a BOUND -- with a
+    measurement. Until 2026-09-23 its `how_to_read_this` had exactly one remedy in it: if the
+    observation is materially BELOW the price, the bound is loose and should be lowered. That is
+    the flattering half. The half that occurred is the other one: the first four legs ever weighed
+    came in at 7,989.7-8,291.8 MB against a 7,800 MB price, so every leg exceeded the bound it was
+    admitted against, in the direction that OOM-kills, and the instrument built to notice had no
+    sentence for it. The bound came from a pair the OOM killer took at 1h 26m -- a FLOOR on that
+    pair's requirement, used as an UPPER bound on a leg's.
+
+    ASSERTED OVER THE WHOLE PARTITION IN ONE PLACE, not a leg per branch. A verdict wedged on any
+    single state passes any one of these three on its own; only the three together, over the same
+    assembly, require the field to discriminate. Distinctness is asserted for the same reason --
+    two states collapsing onto one string is exactly the failure being repaired.
+
+    TAKEN AT THE ARTEFACT, not at `_observed_leg_peak`. The refusal a reader acts on is a field in
+    the published file, and a control that typed the helper directly would agree with itself while
+    the field never reached the report.
+
+    Fires on: deleting `exceeds_admission_price`; comparing with `<` instead of `>`; restoring a
+    one-directional `how_to_read_this`; wiring the verdict to a constant.
+    """
+    seen = {}
+    for label, peak in (("under", floor.PAIRED_FLOOR_LEG_PEAK_MB + 500.0),
+                        ("loose", floor.PAIRED_FLOOR_LEG_PEAK_MB * 0.5),
+                        ("priced", floor.PAIRED_FLOOR_LEG_PEAK_MB - 1.0)):
+        def execute(seed, blind, report_end, leg_dir, _peak=peak):
+            leg_dir.mkdir(parents=True, exist_ok=True)
+            payload = _leg_payload(seed, "blind" if blind else "seeing", 100.0)
+            payload["peak_rss_mb"] = _peak
+            floor._shard_path(leg_dir, seed, blind).write_text(
+                json.dumps(payload), encoding="utf-8")
+
+        monkeypatch.setattr(floor, "_spawn_leg", execute)
+        report = floor.run([9001, 9002], out=tmp_path / label / "floor.json")
+        seen[label] = report["leg_peak_rss_mb"]
+
+    assert seen["under"]["exceeds_admission_price"] is True, (
+        "a leg ABOVE the price it was admitted against did not register as over it -- the reading "
+        "that let a 7,800 MB bound admit 8,291.8 MB legs: " + repr(seen["under"]))
+    assert seen["loose"]["exceeds_admission_price"] is False
+    assert seen["priced"]["exceeds_admission_price"] is False, (
+        "a leg just UNDER the price was called an exceedance; the comparison is inverted")
+
+    verdicts = {label: reading["verdict"] for label, reading in seen.items()}
+    assert len({v.split(":")[0] for v in verdicts.values()}) == 3, (
+        "two of the three states share a verdict, so the field cannot tell them apart: "
+        + repr(verdicts))
+    assert verdicts["under"].startswith("UNDER-PRICED"), verdicts["under"]
+    assert "RAISED" in verdicts["under"], (
+        "the under-priced verdict does not name the remedy, so the reader is left to infer a "
+        "direction from a number -- which is how the one-directional version read as caution")
+    assert verdicts["loose"].startswith("LOOSE"), verdicts["loose"]
+    assert verdicts["priced"].startswith("PRICED"), verdicts["priced"]
+
+
 def test_a_leg_already_on_disk_is_not_run_again(monkeypatch, tmp_path: Path):
     """RESUME, which is the only thing writing shards buys over holding the legs in memory.
 

@@ -827,18 +827,35 @@ def test_the_leg_census_sees_a_paired_floor_leg_and_prices_it_at_its_own_peak(tm
     line, that this guard was landed to prevent.
 
     TWO LEGS OF DIFFERENT SHAPES, which is the part a count cannot express. The census must
-    return the paired leg's own 7,800 MB and the noise-floor leg's own 6,400 MB, because the
-    caller sums them; pricing both at one peak is what the arithmetic did before.
+    return the paired leg's own price and the noise-floor leg's own 6,400 MB, because the caller
+    sums them; pricing both at one peak is what the arithmetic did before.
+
+    THE FIXTURE WAS STALE AND THIS TEST WAS RED ON THE TRUNK, found 2026-09-23 while raising the
+    paired leg's price. a35c798a2 moved the paired row of `FLOOR_LEG_SHAPES` from `--seeds` to
+    `--leg-only` -- correctly, because `--seeds` became an orchestrator that holds no simulation
+    state -- and made the orchestrator deliberately INVISIBLE to the census. This fixture kept
+    spawning a `--seeds` argv and asserting it was seen, so it asserted the exact behaviour its
+    sibling `test_the_leg_census_prices_a_leg_and_not_its_orchestrator` asserts must NOT happen.
+    Two controls over one census disagreeing with each other is how long a red can sit unread.
+
+    AND THE PRICE IS NO LONGER PINNED AS A LITERAL. It read `pytest.approx(7800.0)`, so raising
+    the constant to the measured figure reddened a control that was supposed to be about the two
+    shapes having DIFFERENT prices. A control keyed to today's answer goes red when the number
+    becomes more honest; the claim here is the relation, and the relation is what is asserted.
 
     Fires on: dropping the paired entry from FLOOR_LEG_SHAPES (the leg vanishes); giving both
-    entries the same peak (the paired leg is under-priced by 1,400 MB); matching the paired leg's
-    module without requiring its flag as a token.
+    entries the same peak (the paired leg is under-priced); matching the paired leg's module
+    without requiring its flag as a token.
     """
-    from tools.run_value_cycle_ab import running_floor_legs
+    from tools.run_value_cycle_ab import (
+        FLOOR_RUN_PEAK_MB,
+        PAIRED_FLOOR_LEG_PEAK_MB,
+        running_floor_legs,
+    )
 
     entries = {
         999010: ["python3", "-m", "tools.size_term_paired_floor",
-                 "--seeds", "5101,5102,5103"],
+                 "--leg-only", "5101", "--configuration", "blind"],
         999011: ["python3", "-m", "tools.run_value_cycle_ab",
                  "--noise-floor-seeds", "11111,22222"],
     }
@@ -852,9 +869,9 @@ def test_the_leg_census_sees_a_paired_floor_leg_and_prices_it_at_its_own_peak(tm
     assert 999010 in census, (
         "the paired floor leg was invisible to the census that exists to stop it being "
         "OOM-killed: " + repr(census))
-    assert census[999010] == pytest.approx(7800.0), (
-        "the paired leg was priced at something other than its own measured peak")
-    assert census[999011] == pytest.approx(6400.0), (
+    assert census[999010] == pytest.approx(PAIRED_FLOOR_LEG_PEAK_MB), (
+        "the paired leg was priced at something other than the leg constant")
+    assert census[999011] == pytest.approx(FLOOR_RUN_PEAK_MB), (
         "the noise-floor leg's own price moved when the paired shape was added")
     assert census[999010] > census[999011], (
         "the two leg shapes collapsed to one price, which is the conflation that admitted the "

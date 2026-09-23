@@ -6579,26 +6579,40 @@ FLOOR_RUN_PEAK_MB = 6400.0
 #: flattering direction.
 PAIRED_FLOOR_RUN_PEAK_MB = 7800.0
 
-#: WHAT ONE LEG OF THAT PAIR COSTS -- AND THIS IS A BOUND, NOT A MEASUREMENT, WHICH IS WHY IT SAYS
-#: SO HERE RATHER THAN READING AS AN ESTABLISHED FIGURE.
+#: WHAT ONE LEG OF THAT PAIR COSTS -- NOW MEASURED, AND IT WENT UP. Until 2026-09-23 19:50Z this
+#: was `PAIRED_FLOOR_RUN_PEAK_MB` (7,800) used as an UPPER BOUND, on the reasoning that a leg is
+#: contained in the pair that ran it. **THE CONTAINMENT ARGUMENT WAS SOUND AND ITS INPUT WAS NOT.**
+#: The 7,878 MB it bounded from was the MemoryPeak of a pair that the OOM killer took at 1h 26m --
+#: so that pair never reached its own peak, 7,878 was a FLOOR on the pair's requirement (the comment
+#: on `PAIRED_FLOOR_RUN_PEAK_MB` says so in as many words), and a floor cannot bound anything from
+#: above. The tree carried a refusal threshold BELOW the cost it existed to refuse, in the one
+#: direction that kills, for the whole life of the split.
 #:
-#: Since 2026-09-23 `tools.size_term_paired_floor` spawns one process per LEG rather than running a
-#: whole family in one, precisely because a pair carries two configurations' retained state and a
-#: leg carries one. So the guard needs a leg's price, and NO LEG HAS EVER BEEN WEIGHED ON ITS OWN:
-#: every number in hand comes from processes that ran both configurations.
+#: WHAT IS MEASURED NOW. `longjob-size-term-paired-floor-legs-20260923`, one leg per process, four
+#: legs run to completion and each recording its own `VmHWM` into its shard:
 #:
-#: The tempting value is the sibling's 6,400 MB, on the reasoning that a noise-floor leg is also one
-#: configuration. That would be a number picked because a number was needed: the two legs run
-#: different arms (`level_arm=False` here) over different retained books, and 6,400 was measured on
-#: the other one. Under-pricing is the direction that kills -- it is exactly what admitted the run
-#: this file's history is about.
+#:     base blind 7,989.7 | base seeing 8,094.1 | 5101 blind 8,291.8 | 5101 seeing 8,280.6 MB
 #:
-#: So the bound used is the one thing the evidence does establish: a leg is CONTAINED IN the pair
-#: that ran it, so the pair's measured peak is an upper bound on the leg's. It is knowingly an
-#: overestimate, it refuses conservatively, and it is labelled so the next reader does not cite it
-#: as a measurement. Each leg now records its own `VmHWM` into its shard and the artefact publishes
-#: them, so the first completed family REPLACES this with a measured figure.
-PAIRED_FLOOR_LEG_PEAK_MB = PAIRED_FLOOR_RUN_PEAK_MB
+#: Max 8,291.8 MB -- 491.8 MB ABOVE the bound that was admitting these very legs. The first three
+#: rose monotonically and the fourth did not, so this is spread around ~8,100-8,300 and not a leak
+#: climbing with leg index; n=4 of 14, and the figure is re-read when the family closes.
+#:
+#: WHY 8,400 AND NOT 8,292, which is the part a leg's own VmHWM cannot say. What OOM-kills is the
+#: CGROUP, not the process, and the same unit's `MemoryPeak` is 8,767,266,816 B = 8,361.1 MB --
+#: 69.3 MB more than the biggest leg in it, because the orchestrator sits in that cgroup alongside
+#: its child. The census deliberately does NOT count the orchestrator as a leg (it holds ~125 MB of
+#: argv and shards, and counting it would charge the guest a full leg twice), so folding its
+#: footprint into the leg's price is the ONLY place in this arithmetic it can be counted at all.
+#: 8,400 is the first round hundred above the cgroup figure that actually does the killing.
+#:
+#: AND THE ROUNDING GOES UP HERE WHERE ITS SIBLINGS ROUND DOWN, which is a difference in the
+#: evidence and not a change of convention. 6,400 and 7,800 were both rounded DOWN from OOM-killed
+#: runs -- already-underestimates, where rounding further down only widened a known-permissive gap
+#: and the stated worry was refusing runs that would have finished. This is the first figure taken
+#: from processes that RAN TO COMPLETION, so it is a true peak rather than a floor, and the residual
+#: uncertainty is the other way: it is the max over 4 legs of a 14-leg family. Under-pricing is what
+#: killed the 2026-09-23 run; over-pricing by 39 MB on a 24 GB guest costs nothing.
+PAIRED_FLOOR_LEG_PEAK_MB = 8400.0
 
 #: HOW A FLOOR LEG IS RECOGNISED, and what one of that shape was measured to cost.
 #:
@@ -6697,6 +6711,10 @@ def _peak_provenance(own_peak_mb: float) -> str:
     refused at 7,800 MB cited a run that never reached 7,800 and was 20 days older than the
     evidence. The number and the run that measured it must move together.
     """
+    if own_peak_mb == PAIRED_FLOOR_LEG_PEAK_MB:
+        return ("The 2026-09-23 leg family that established this peak ran its legs to COMPLETION "
+                "-- max leg VmHWM 8,291.8 MB over 4 legs, cgroup MemoryPeak 8,361.1 MB -- so "
+                "unlike its siblings this price is a measured peak and not a floor from a kill")
     if own_peak_mb == PAIRED_FLOOR_RUN_PEAK_MB:
         return ("The 2026-09-23 paired run that established this peak reached 7,878 MB RSS and "
                 "2,358 MB of swap before the OOM killer took it at 1h 26m, having written NOTHING")
