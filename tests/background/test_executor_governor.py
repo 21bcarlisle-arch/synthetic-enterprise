@@ -16,6 +16,16 @@ from background import agent_status, build_executor, executor_governor
 # fail-closed-on-error test can exercise the genuine fallback logic.
 _ORIG_DEFAULT_RECONCILE = executor_governor._default_reconcile_check
 
+# ...and the REAL fold, for the same reason and a worse one. `_isolate` rebinds
+# `executor_governor._default_fold` to `lambda: []` so the LOOP tests never run a real
+# merge()/git-commit — correct for them, and fatal for any test of the fold ITSELF: a test
+# that calls `executor_governor._default_fold()` from inside this file gets the STUB, and
+# the stub returns `[]`, which is exactly what the fold's error path is supposed to return.
+# `test_default_fold_swallows_errors_and_returns_empty` was green on that coincidence and
+# stayed green with the real function mutated to raise unconditionally. Every test of the
+# real fold goes through this name.
+_ORIG_DEFAULT_FOLD = executor_governor._default_fold
+
 
 # ---------------------------------------------------------------------------
 # Isolation: side-effect files -> tmp; NTFY/action-needed -> captured (no network)
@@ -493,7 +503,10 @@ def test_default_fold_swallows_errors_and_returns_empty(monkeypatch):
         raise RuntimeError("map unwritable")
 
     monkeypatch.setattr(mas, "merge", _boom)
-    assert executor_governor._default_fold() == []
+    # `_ORIG_DEFAULT_FOLD`, not `executor_governor._default_fold` — see the module-level note.
+    # Called through the module attribute this asserted `[] == []` against the autouse stub and
+    # survived the real function being mutated to raise unconditionally.
+    assert _ORIG_DEFAULT_FOLD() == []
 
 
 def test_executor_prompt_contract_is_atomic_inbox_write_not_free_text():
@@ -647,3 +660,65 @@ def test_loop_runs_N_turns_unattended_zero_input(tmp_path):
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+def test_the_f1_fold_commits_only_its_own_paths_and_never_the_rest_of_the_index(
+    tmp_path, monkeypatch
+):
+    """DEFECT: `_default_fold` ran a SCOPED `git add -- <map paths>` and then an UNSCOPED
+    `git commit -m ...`. A pathspec on the `add` scopes only what that call stages — it says
+    nothing about what is ALREADY in the index — so the commit took the index as it stood and
+    carried any other lane's staged work under a subject reading "Fold atom_status inbox ->
+    map (F1)". Found live with 107 staged staging-root entries one fold away from landing.
+
+    This is behavioural, not a source grep: it stages a BYSTANDER file and asserts the fold's
+    commit does not contain it. It reds on the unscoped form and greens on the pathspec, and
+    the bystander is the only thing distinguishing them.
+    """
+    import contextlib
+    import subprocess
+
+    import background.tree_lock as tl
+    import tools.merge_atom_status as mas
+
+    repo = tmp_path / "repo"
+    (repo / "docs" / "design" / "atom_status").mkdir(parents=True)
+
+    def git(*args):
+        return subprocess.run(["git", "-C", str(repo), *args], check=True,
+                              capture_output=True, text=True)
+
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    (repo / "seed").write_text("seed\n")
+    git("add", "seed")
+    git("commit", "-q", "-m", "seed")
+
+    # The fold's own subject, and a BYSTANDER staged by some other lane.
+    (repo / "docs" / "design" / "maturity_map.yaml").write_text("atoms: {}\n")
+    (repo / "docs" / "design" / "atom_status" / "A1.json").write_text("{}\n")
+    (repo / "another_lanes_file").write_text("not the fold's business\n")
+    git("add", "--", "another_lanes_file")
+
+    monkeypatch.setattr(tl, "tree_lock", lambda *a, **k: contextlib.nullcontext())
+    monkeypatch.setattr(mas, "merge", lambda *a, **k: ["A1"])
+    monkeypatch.chdir(repo)
+
+    folded = _ORIG_DEFAULT_FOLD()
+
+    # The rare branch CAN be taken: assert the fold actually committed before asserting what
+    # it left out. A fold that silently did nothing would pass the exclusion leg on its own.
+    assert folded == ["A1"]
+    committed = git("show", "--name-only", "--format=", "HEAD").stdout.split()
+    assert "docs/design/maturity_map.yaml" in committed, (
+        f"the fold did not commit its own paths, so this control proves nothing: {committed}"
+    )
+
+    # THE DEFECT: the bystander must not have ridden along, and must still be staged.
+    assert "another_lanes_file" not in committed, (
+        "the F1 fold committed the whole index: another lane's staged file landed inside a "
+        f"commit whose subject is about the maturity map ({committed})"
+    )
+    still_staged = git("diff", "--cached", "--name-only").stdout.split()
+    assert "another_lanes_file" in still_staged
