@@ -707,11 +707,15 @@ def test_base_wins_refuses_a_copy_that_carries_SOME_of_its_landing(repo: Path) -
     `PARTIAL` says it holds some of the landing's own lines, so it MAY have been written on top of
     it and edited -- the clock has not established it is the older draft, only that it is older
     than the commit. Widening `BASE_WINS_RULES` to any complaint at all discards a lane's edit to
-    a landed file, and every other leg here stays green while it does."""
+    a landed file, and every other leg here stays green while it does.
+
+    AND IT IS STILL TRUE OF CODE AFTER 2026-09-23, when `PARTIAL` was admitted for DATA. The licence
+    is `refresh_to_head.base_wins_rules`, asked here BY PATH rather than read off the raw tuple, so
+    a widening applied to the wrong suffix class reds this leg instead of sliding past it."""
     (repo / "m.py").write_text(PARTIAL_CARRY_REPLACEMENT)
     os.utime(repo / "m.py", (time.time() - 99_999, time.time() - 99_999))
     loss = judge(repo, "m.py", LANDED, PARTIAL_CARRY_REPLACEMENT)
-    assert loss is not None and loss.rule not in rth.BASE_WINS_RULES, (
+    assert loss is not None and loss.rule not in rth.base_wins_rules("m.py"), (
         "the fixture is not in the PARTIAL state, so the narrowing is not exercised: {}".format(
             None if loss is None else loss.rule))
     verdict = rth.judge_copy(repo, "m.py", base_wins=True)
@@ -804,7 +808,7 @@ def test_the_flag_is_off_by_default_everywhere_the_tool_is_called(repo: Path) ->
 #      STRUCTURALLY UNABLE to have a complaint about a `.json`, so gating a data path on it agrees
 #      with every answer by returning None to all of them. Simply routing data paths to the same
 #      gate would have restored an equally unreachable branch. The module docstring says the flag
-#      "is gated on the CLOCK (`BASE_WINS_RULES`)", and `clock_judge` is the oracle that name
+#      "is gated on the CLOCK (`base_wins_rules`)", and `clock_judge` is the oracle that name
 #      refers to -- it reads all three live files as predates_landing_by_clock /
 #      predates_landing_carrying_some where `judge` reads all three as no complaint.
 
@@ -852,23 +856,113 @@ def test_base_wins_reaches_a_DATA_replacement_the_clock_says_predates_its_landin
     assert rth.CLOCK in text, "the verdict does not say which clock rule licensed the write"
 
 
-def test_base_wins_on_a_DATA_path_refuses_a_copy_that_carries_SOME_of_its_landing(
+def test_base_wins_on_a_DATA_path_ADMITS_a_copy_that_carries_SOME_of_its_landing(
         repo: Path) -> None:
-    """THE OTHER SIDE OF THE PARTITION, so the leg above is not 'the flag admits everything'.
+    """THE QUESTION THIS FILE LEFT OPEN ON 2026-09-23, NOW MEASURED AND ANSWERED THE OTHER WAY.
 
-    `BASE_WINS_RULES` is deliberately NOT widened to PARTIAL for data. Whether "carries some of
-    the landing's distinctive lines" means anything about a document where a line is a value and
-    not a statement is a real question, and answering it silently inside a door that DISCARDS bytes
-    is how a lane's work gets destroyed. It is refused BY NAME instead."""
+    The version of this test it replaces asserted the opposite and said why: `BASE_WINS_RULES` was
+    deliberately NOT widened to PARTIAL for data, because whether "carries some of the landing's
+    distinctive lines" means anything about a document where a line is a VALUE and not a statement
+    was a real question, and answering it silently inside a door that DISCARDS bytes is how a
+    lane's work gets destroyed. It was filed rather than assumed. It has now been measured -- see
+    `refresh_to_head.base_wins_rules` for the numbers and the pre-registration that fixed them
+    before the answer was known -- and the carry is coincidence: on the two live files this was
+    commissioned for, 57 of 57 and 1032 of 1060 carried lines appear verbatim in a sibling report
+    that cannot have been derived from the landing. The prediction is kept beside the result rather
+    than the test quietly flipped.
+
+    THE CLOCK GUARD IS WHAT THIS DOES NOT RELAX, and `test_base_wins_on_a_DATA_path_still_refuses_
+    a_copy_the_clock_has_NO_complaint_about` is the leg that says so."""
     _data_repo_with_a_stale_regeneration(repo, carries_some=True)
+    head_text = _run(repo, "show", "HEAD:report.json")
+    work_text = (repo / "report.json").read_text()
+    clock = scr.clock_judge(repo, "report.json", head_text, work_text)
+    assert clock is not None and clock.rule == scr.PARTIAL, (
+        "the fixture is not in the PARTIAL state, so the widening this test is about is not "
+        "exercised at all: {}".format(None if clock is None else clock.rule))
+    assert scr.PARTIAL not in rth.base_wins_rules("m.py"), (
+        "PARTIAL was admitted for CODE too, where a distinctive line is a statement and a share is "
+        "evidence of derivation -- the measurement licenses this for data and for nothing else")
+    verdict = rth.judge_copy(repo, "report.json", base_wins=True)
+    assert verdict.state == rth.REFRESHABLE, (
+        "a data copy the clock says predates its own landing, whose entire carry is the figures "
+        "that did not move, is still refused -- so the two `ladder_churn_factors` copies this was "
+        "commissioned for cannot be cleared: [{}] {}".format(verdict.state, verdict.reason))
+    assert scr.PARTIAL in verdict.reason, (
+        "the verdict does not name the clock rule that licensed the write, so a reader cannot tell "
+        "which of the three admitted it: {}".format(verdict.reason))
+
+
+def test_base_wins_on_a_DATA_path_still_refuses_a_copy_the_clock_has_NO_complaint_about(
+        repo: Path) -> None:
+    """THE LEG THAT STOPS THE WIDENING ABOVE BEING `git checkout <path>` FOR EVERY `.json`.
+
+    Admitting PARTIAL removes one vouch; it must not remove the clock. This copy is a regeneration
+    written AFTER its landing -- an ordinary edit someone is mid-way through, same leaf arithmetic,
+    opposite clock -- and if the flag keyed on the suffix rather than on `taken_before` it would
+    discard live work and read as correct."""
+    _data_repo_with_a_stale_regeneration(repo, carries_some=True)
+    now = time.time()
+    os.utime(repo / "report.json", (now, now))  # NEWER than the landing: the clock says nothing
+    head_text = _run(repo, "show", "HEAD:report.json")
+    work_text = (repo / "report.json").read_text()
+    assert scr.clock_judge(repo, "report.json", head_text, work_text) is None, (
+        "the clock still complains about a copy newer than its landing, so this fixture cannot "
+        "show that the clock is what the flag rests on")
     verdict = rth.judge_copy(repo, "report.json", base_wins=True)
     assert verdict.state == rth.SUPPLIES_NEW, (
-        "a data copy carrying part of its own landing was admitted under `--base-wins`, so the "
-        "flag is a revert button for every stale-looking JSON: [{}]".format(verdict.state))
-    assert scr.PARTIAL in verdict.reason, (
-        "the refusal does not name the clock verdict that caused it, so the operator cannot tell "
-        "this apart from the flag being ignored -- which is the defect this whole section is "
-        "about: {}".format(verdict.reason))
+        "a data copy the clock has NO complaint about was discarded under `--base-wins`, so "
+        "widening the rule set turned the flag into a revert button for any stale-looking JSON: "
+        "[{}]".format(verdict.state))
+    assert "no complaint" in verdict.reason, (
+        "the refusal does not say WHY the flag did not reach it, so the operator cannot tell a "
+        "missing precondition from a tool ignoring its own flag: {}".format(verdict.reason))
+
+
+def test_no_caller_in_this_module_asks_the_oracle_that_is_BLIND_to_the_suffix_it_holds(
+        repo: Path) -> None:
+    """THE ORDERING INVARIANT NOTHING PINNED, and it is the second defect of 2026-09-23 wearing a
+    later date.
+
+    `judge` opens with `Path(path).suffix not in READABLE -> None`, so it is STRUCTURALLY UNABLE to
+    have a complaint about a `.json` -- and a field unable to answer a question agrees with every
+    answer to it. `judge_copy`'s two remaining `judge` calls are safe for data today ONLY because
+    the `DATA_SUFFIXES` branch returns several screens above them. That is an ordering fact about
+    one function, not a guard: move the branch, or add a suffix to `DATA_SUFFIXES` without moving
+    it, and the blindness comes back silently -- exactly as it arrived the first time.
+
+    A SPY AND NOT AN AST READ, because the claim is about which calls RUN and a source scan would
+    grade a call in dead code the same as one on the live path. And the spy is PROVEN ABLE TO FIRE
+    on the `.py` fixture in this same test, because a spy that records nothing satisfies a
+    zero-calls assertion perfectly while measuring nothing at all."""
+    seen: list[str] = []
+    real = rth.judge
+
+    def spy(root, path, head_text, new_text, parent="HEAD"):
+        seen.append(path)
+        return real(root, path, head_text, new_text, parent=parent)
+
+    _data_repo_with_a_stale_regeneration(repo, carries_some=True)
+    (repo / "m.py").write_text(RIVAL_KIND_B)
+    rth.judge = spy
+    try:
+        # Every `.json` state that reaches a decision: the flag off, the flag on, and the
+        # leaf-subset branch with nothing supplied. One state per door the data branch has.
+        rth.judge_copy(repo, "report.json")
+        rth.judge_copy(repo, "report.json", base_wins=True)
+        data_calls = list(seen)
+        rth.judge_copy(repo, "m.py", base_wins=True)
+        code_calls = seen[len(data_calls):]
+    finally:
+        rth.judge = real
+    assert code_calls, (
+        "the spy recorded NOTHING even on a `.py` copy, so it is not on the path it claims to "
+        "watch and the zero-calls assertion below would pass however blind the tool got")
+    assert not data_calls, (
+        "`judge_copy` asked `judge` about {}, and `judge` returns None for every suffix outside "
+        "READABLE ({}) -- so that gate agrees with every answer and whatever it guards is "
+        "unreachable. Route the data path to `clock_judge`.".format(
+            data_calls, "/".join(scr.READABLE)))
 
 
 def test_base_wins_on_a_DATA_path_is_not_gated_on_an_oracle_that_cannot_ANSWER(repo: Path) -> None:
