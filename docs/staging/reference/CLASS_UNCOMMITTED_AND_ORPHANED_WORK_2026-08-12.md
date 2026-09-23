@@ -68,6 +68,12 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_RESULT_THE_BELIEFS_SPREAD_IS_12X_AGAINST_THE_WORLDS_11_6X_AND_THE_PREDICTION_HELD_ONLY_IN_ONE_RATE_DIRECTION_2026-09-23.md` — lane `A_strategy_governance`
+
 ## Disposition
 
 **Decision:** OPEN
