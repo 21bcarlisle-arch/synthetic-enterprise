@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T21:01:16.739735Z",
+  "generated_at": "2026-09-23T00:07:32.189434Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -277,7 +277,54 @@
       "why_not": "A second grade of this same question exists on a larger and different book, and it is named here rather than left for a reader to find. No figure is taken from it: it carries no permutation null, and a rank statistic with no null is not a reading -- it is a number that cannot be told from chance. It also names no world. The renewal-route reading this block quotes from the belief grade is the one with an interval, a ceiling on its own rows and a stated population.",
       "never_averaged_because": "The two are different books measured by different instruments. An average of them would describe neither population, and the difference between them is not a movement in anything."
     },
-    "sentence": "The company's belief about who leaves at renewal clears the interval a signal carrying no information reaches.",
+    "stratification": {
+      "available": true,
+      "the_published_figures_are": "calendar year AND departure route",
+      "what_that_means": "Every AUC above is computed only between decisions taken in the SAME calendar year on the SAME route. Pairs spanning two years are not compared at all, because a year-level effect \u2014 2022 \u2014 would otherwise be scored as the company knowing something about a household.",
+      "same_stratum_pairs": 384,
+      "comparable_pairs_pooled": 2501,
+      "same_stratum_share": 0.15353858456617353,
+      "belief_auc_pooled": 0.5939624150339864,
+      "ceiling_auc_pooled": 0.6717313074770092,
+      "the_verdict_survives_pooling": false,
+      "why_both_are_published": "Neither is the right answer on its own. The stratified reading is the conservative one for the question this page asks \u2014 whether the company reads HOUSEHOLDS \u2014 and it is the one published. The pooled reading is what the same rows say with the year and route put back in. Where they disagree, the disagreement is the finding, and a page that showed one of them would have hidden it."
+    },
+    "repetition": {
+      "available": true,
+      "draws": [
+        {
+          "source": "docs/observability/svt_drift_belief_grade.json",
+          "decisions": 102,
+          "departures": 41,
+          "pairs": 384,
+          "auc": 0.6705729166666666,
+          "null_95_low": 0.3684895833333333,
+          "null_95_high": 0.6328125,
+          "clears_its_own_null": true,
+          "ceiling_auc": 0.5911458333333334,
+          "ceiling_clears_its_own_null": false
+        },
+        {
+          "source": "docs/observability/renewal_belief_recapture_seed20260922_grade.json",
+          "decisions": 138,
+          "departures": 42,
+          "pairs": 555,
+          "auc": 0.5846846846846847,
+          "null_95_low": 0.3927927927927928,
+          "null_95_high": 0.6216216216216216,
+          "clears_its_own_null": false,
+          "ceiling_auc": 0.6486486486486487,
+          "ceiling_clears_its_own_null": true
+        }
+      ],
+      "excluded": [],
+      "the_leg_holds_across_draws": false,
+      "verdict": "it_does_not_hold_across_draws",
+      "what_was_varied": "The renewal dice, and nothing else. Same world digest, same 2016\u20132025 record, same tariffs, same hazards, same company code. `churn_roll_for_renewal` was replaced by a substitute drawing from the same uniform distribution on a different stream, so the only thing that moves is which side of its own hazard each household landed on.",
+      "why_the_books_are_different_sizes": "Who leaves decides who reaches a later renewal at all, so a second draw does not produce the same rows. That is a property of the world and not a fault in the control: the question is whether the LEG reproduces, not whether the book does.",
+      "never_averaged_because": "Two AUCs over two different books have no mean that describes anything. What they have is whether each cleared its OWN null on its OWN rows, and whether those answers agree. A mean of them would be a figure of neither draw."
+    },
+    "sentence": "The company's belief about who leaves at renewal clears the interval a signal carrying no information reaches. It is computed only between decisions taken in the same year and on the same route \u2014 384 of the 2,501 comparable pairs on this route, 15%. AND IT DOES NOT SURVIVE POOLING: with the years and routes put back in the belief reads 0.5940 against a ceiling of 0.6717 \u2014 the other way round. Which of the two orders these departures better is decided by the stratification, not by the book, so on this capture we cannot tell. AND IT DOES NOT SURVIVE A SECOND DRAW. Rolling the same world's renewal dice again \u2014 nothing else changed \u2014 the belief reads 0.5847 inside its null against a ceiling of 0.6486 that now CLEARS: the exact mirror of the first draw, where the belief read 0.6706 clear and the ceiling did not. Which of the two orders these departures is decided by the roll, so across draws we cannot tell.",
     "not_a_target": "No figure here is a target. This says what the belief did on one graded book; it does not price the gap and it is not an instruction to tune the belief until it ranks. A belief that cannot order its departures is a complete answer."
   },
   "available": true,
@@ -628,7 +675,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "f640b6c256ab5ad31e6c54a782f6c162a422e464",
+    "publishing_tree_commit": "c50ea7f0bd086050c3be0faef67611b24ed8a531",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -640,7 +687,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from f640b6c25 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from c50ea7f0b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1364,7 +1411,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "f640b6c256ab5ad31e6c54a782f6c162a422e464",
+      "publishing_tree_commit": "c50ea7f0bd086050c3be0faef67611b24ed8a531",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1376,7 +1423,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from f640b6c25 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from c50ea7f0b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -4970,7 +5017,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "f640b6c256ab5ad31e6c54a782f6c162a422e464",
+    "commit": "c50ea7f0bd086050c3be0faef67611b24ed8a531",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
