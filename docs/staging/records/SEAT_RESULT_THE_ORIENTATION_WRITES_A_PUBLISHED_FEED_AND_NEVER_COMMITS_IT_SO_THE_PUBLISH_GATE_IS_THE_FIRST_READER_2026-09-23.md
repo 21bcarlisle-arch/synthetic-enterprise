@@ -116,10 +116,38 @@ be overwritten. Both green: 13 and 14 legs.
 Worth noting for the tool: `refused_no_base` on a path that EXISTS at HEAD and not on disk is the
 one case where writing HEAD's bytes is unambiguously safe, and it is the case the tool declines.
 
-## What this leaves
+## WHAT THIS LEAVES, and the caveat two records have ended on is now retired
 
-`last_clean_publish` is still `2026-09-21 19:15`, `episode_clean_publishes: 0`. The two reds this
-record clears were the ones the state file named; the gate runs 258 blocking files and a red it
-never reached is still a red, which is the same caveat the previous record ended on and it has not
-been retired. `tools/enumerate_publish_gate_reds.py` is the instrument that would settle it in one
-pass at a clean HEAD, and it has not been run at this base.
+**`last_clean_publish` has not moved. It is still `2026-09-21 19:15`, `episode_clean_publishes: 0`,
+and I am not dressing that up.** But the reason has changed, and the change is the point.
+
+Both previous records ended on the same honest hedge — *the gate runs 258 blocking files and a red
+it never reached is still a red*. **That hedge is now retired, and not by me arguing it away.** The
+publisher graded the tree twice more while this work was landing and wrote its own verdict:
+
+| `.publish_gate_state.json` after | |
+|---|---|
+| `total_red` | **0** |
+| `blocking_tests` | **empty** |
+| latest failure `kind` | `commit_did_not_land`, **not** `test_regression` |
+| latest failure `reason` | *"the publisher's own scoped suite was **GREEN**. Cause: `behind_origin`"* |
+
+**The wedge is no longer a red. It is a cadence deadlock**, and that is a different problem with a
+different owner — `origin/main` was 4 ahead while the tree carried 2 commits already writing the
+publish surface, so the publisher refused its own green run for being behind. `episode_failures`
+went 27 → 29 on two failures neither of which names a test.
+
+This is the shape already in the seat's memory — *the publish gate's run lock and the reconciler's
+cadence deadlock because the gate is red for being behind* — arriving with the test half finally
+clear underneath it, which is the first time that has been true this episode.
+
+Acted on rather than filed: merged `origin/main` at `ba7b29583` so the tree is level. All three of
+this turn's landings are ancestors of `origin/main` — `d93c76825`, `38741b94a`, `cdb1db0ab` — and
+`origin/main:site/data/value_arms.json` carries `available: True`, both clauses in the headline
+sentence, `the_verdict_survives_pooling: false`, `the_leg_holds_across_draws: false`. The door
+agrees: 13 legs green reading the published copy.
+
+**So the withdrawal is at origin and correct, and the only thing between it and a reader is a
+publisher cycle that has not yet run level.** `tools/enumerate_publish_gate_reds.py` was the
+instrument I expected to need and did not have to run — the publisher answered the question itself
+by going green. It remains the right instrument if `total_red` leaves zero again.
