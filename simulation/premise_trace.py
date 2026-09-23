@@ -114,6 +114,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
+from simulation.dwelling_records import composition_cuts_for
 from simulation.fabric_physics import (
     DEFAULT_DEADBAND_C,
     DEFAULT_LATITUDE_DEG,
@@ -364,10 +365,22 @@ def behaviour_profile_for(
             else 0
         )
     children_count = max(0, min(int(children_count), people_count - 1))
-    if pensioner_present is None:
-        pensioner_present = _substream(base, "pensioner").random() < 0.22
-    if someone_employed is None:
-        someone_employed = not pensioner_present or _substream(base, "employed").random() < 0.25
+    # ONE FUNCTION ANSWERS THESE TWO, for every reader — the same rule the headcount above is
+    # under. This module used to draw them here, on its own substreams, at an uncited 0.22 and
+    # 0.25-given-a-pensioner, while `dwelling_records.build_properties` left them absent
+    # altogether: one home, two answers, and the property record's answer was silence. Measured
+    # over 2,000 premises before the change (2026-09-23), the local draw gave pensioner 0.2075 and
+    # employed 0.8445 — and neither reproduces EFUS's own published all-household daytime headline
+    # when fed back through its own cut rates (0.4002 and 0.3889 against a published 0.43), so the
+    # book's composition was systematically less at-home-in-the-day than GB is. The delegate's
+    # shares ARE that headline inverted, so both cuts reproduce it by construction.
+    # A BASELINE FIDELITY CHANGE, DECIDED BLIND TO P&L (R13).
+    if pensioner_present is None or someone_employed is None:
+        drawn_pensioner, drawn_employed = composition_cuts_for(premise_id)
+        if pensioner_present is None:
+            pensioner_present = drawn_pensioner
+        if someone_employed is None:
+            someone_employed = drawn_employed
 
     rise = _substream(base, "rise")
     # Weekday rise 05:30–08:30, retire 21:30–24:00 (half-hour indices).

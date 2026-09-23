@@ -1,4 +1,18 @@
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `W2_13`
+**Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `W2_13`
+
+**Discharged:** 2026-09-23, lane 0 delivery, on items (1) and (2) of this finding's own list — the fabric path now delegates to the one function, so the two paths cannot disagree about a house. Falsifiers,
+`tests/simulation/test_one_home_has_one_headcount.py::test_one_home_has_one_composition_whoever_asks`,
+`tests/simulation/test_one_home_has_one_headcount.py::test_the_shares_the_two_paths_share_are_the_published_ones`,
+`tests/simulation/test_one_home_has_one_headcount.py::test_the_pre_delegation_composition_draw_has_no_production_callers`,
+`tests/simulation/test_one_home_has_one_headcount.py::test_a_caller_supplied_composition_still_wins_over_the_draw`,
+`tests/simulation/test_w2_13_occupancy_volume_shape.py::test_shape_neutrality_control_FIRES_on_a_three_cut_book_centred_size_only`.
+
+Reverting the delegation reds four of those five, verified rather than assumed; the fifth is the
+cut-set leg and reds on its own mutation. **Item (3) is NOT discharged and is not a defect** — the
+unpublished JOINT of the two cuts is a knowledge gap, recorded in `simulation/demand_model.py` at
+the shares and in
+`docs/staging/records/PREREG_routing_the_fabric_path_through_the_one_composition_function.md` §Q5.
+That is why this reads RECORDED (a known limitation, accepted) rather than closed.
 
 # The daytime reference was one number for three incompatible scales, and the property record's two silent cuts were what would have found it
 
@@ -59,7 +73,31 @@ is measured against, and its daytime shape had two of three cuts silent, so the 
 inside every advantage figure we publish. Grading my own finding LATENT to keep my own lane open is
 the anti-pattern `background/finding_severity.py` names in its own docstring.
 
-## What is owed, and this severity holds until it lands
+## Closed the same day — what the second increment found
+
+Both owed items below landed. Measurements and the predictions they were made against:
+`docs/staging/records/PREREG_routing_the_fabric_path_through_the_one_composition_function.md`.
+Three things came out of it that were not predicted:
+
+1. **The fabric draw was wrong on BOTH cuts against EFUS's own headline**, not just uncited. Fed
+   back through EFUS's published cut rates, its 0.2075 pensioner share implies an all-household
+   daytime rate of 0.400 and its 0.8445 employed share implies 0.389 — against a published 0.430.
+   The book's composition was systematically less at-home-in-the-day than GB is.
+2. **Raising the pensioner share LOWERED the fully-retired-at-home population**, 15.55% → 10.35%,
+   which is the opposite of what I predicted and of what the change looks like. The conditional
+   structure being removed (`not pensioner or 0.25`) was far stronger than the marginal being
+   preserved. I predicted the sum from one of two parameters that moved in opposite directions —
+   and anchored it on the wrong cell of a two-by-two I had already measured and printed.
+3. **Zero existing tests red across the blast radius** (125 passed). Every test in the fabric and
+   shape suites was keyed to a relation rather than to a drawn value, which is this repo's own
+   "key a control to the property, not to today's answer" rule already paid for.
+
+And one control shipped wrong and caught by mutating it: the shares leg first sampled
+`composition_cuts_for` while its docstring claimed it was proof against the fabric draw. Reverting
+that draw left it GREEN. A control pinned to the reader is blind to the writer, and a docstring
+asserting otherwise would have been read as evidence. It now samples the fabric path.
+
+## What was owed (both items now landed)
 
 1. **`premise_trace.behaviour_profile_for` still draws its own 0.22 / 0.25.** So one home still has
    two answers — no longer symmetrically, since the property record's is now EFUS-derived and
