@@ -255,14 +255,76 @@ def test_an_ordinary_edit_the_stale_copy_control_does_not_refuse_is_refused_here
 
 
 def test_a_suffix_with_no_symbol_reader_is_refused_rather_than_waved_through(repo: Path) -> None:
-    """FAIL-CLOSED. 'Supplies nothing HEAD lacks' is UNESTABLISHED for a `.md` file, and an
-    unestablished precondition is a failed one -- folding it to 'no names either side' would make
-    every prose file eligible while looking checked."""
-    (repo / "notes.md").write_text("# notes\n\nthis lane's rewrite of the prose\n")
-    verdict = rth.judge_copy(repo, "notes.md")
+    """FAIL-CLOSED. 'Supplies nothing HEAD lacks' is UNESTABLISHED for a suffix nothing reads, and
+    an unestablished precondition is a failed one -- folding it to 'no names either side' would
+    make every such file eligible while looking checked.
+
+    THE EXAMPLE MOVED OFF `.md` ON 2026-09-23 AND THE RULE DID NOT. Prose acquired a line reader
+    (`stale_copy_refusal.PROSE_SUFFIXES`) because this verdict was the ONLY one `.md` and `.yaml`
+    could ever get, and the census was naming this tool as the remedy for 7 of its 18 rows: an
+    honest refusal that refuses everything is still a door nobody can walk through. So the state
+    is still reachable and still fail-closed -- `.csv` and `.rst` carry it now -- and what changed
+    is that a suffix leaves this class by GAINING A READER rather than by being excused."""
+    (repo / "notes.csv").write_text("subject,count\nthis lane's rewrite,1\n")
+    verdict = rth.judge_copy(repo, "notes.csv")
     assert verdict.state == rth.NO_READER
-    rc, _ = rth.refresh(repo, ["notes.md"], "prose", write=True)
-    assert rc == 1 and "this lane's rewrite" in (repo / "notes.md").read_text()
+    rc, _ = rth.refresh(repo, ["notes.csv"], "data", write=True)
+    assert rc == 1 and "this lane's rewrite" in (repo / "notes.csv").read_text()
+
+
+def test_a_prose_copy_gets_a_verdict_the_reader_can_act_on_rather_than_no_reader(
+        repo: Path) -> None:
+    """THE DEFECT THIS OWNS, and it is the one the 2026-09-22 door grader measured and did not
+    close. `stale_copy_refusal`'s census names THIS TOOL as the remedy for every clock-stale
+    prose row, and this tool's first act was to answer `refused_no_reader` for `.md`/`.yaml` --
+    by construction, and it could never answer anything else. Measured on the shared tree
+    2026-09-23, before this: 7 of 18 census rows, all of them `.md` or `.yaml`.
+
+    THE THREE ANSWERS ASSERTED TOGETHER, because the repair is faked by refusing all three with a
+    prettier word. A prose copy that supplies nothing is REFRESHABLE; one that supplies a line no
+    hunk can take without the revert is a REPLACEMENT that `--base-wins` enacts; and a suffix
+    nothing reads is still NO_READER. Each is a different door, and `refused_no_reader` is not
+    among the first two."""
+    landed = "# notes\n\nprose\nthe line as minted, long enough to be evidence on its own.\n"
+    (repo / "notes.md").write_text(landed)
+    _run(repo, "add", "notes.md")
+    _run(repo, "commit", "-qm", "the note gains a paragraph")
+    (repo / "notes.md").write_text(
+        landed + "\nCORRECTED: the bound is 1.09x and not 4.5x at all.\n")
+    _run(repo, "add", "notes.md")
+    _run(repo, "commit", "-qm", "lane B lands a correction")
+
+    sha = _run(repo, "rev-parse", "HEAD").strip()
+    landed_at = int(_run(repo, "log", "-1", "--format=%ct", sha).strip())
+
+    (repo / "notes.md").write_text(landed)  # a pure revert: supplies nothing, drops the correction
+
+    # THE CLOCK IS STILL THE TRIGGER, AND THIS ASSERTION IS WHY THE READER IS NOT `git checkout`.
+    # Outside `READABLE` the line evidence alone would refuse an ordinary edit -- prose changes by
+    # being rewritten, so "contains not one line of the landing" is not by itself a complaint.
+    # With a mtime NEWER than the landing this exact copy must be refused, and only backdating it
+    # makes the door open. Drop `taken_before` from `clock_judge` and this leg reds.
+    assert rth.judge_copy(repo, "notes.md").state == rth.NOT_SUPERSEDED, (
+        "a prose copy written AFTER the landing was judged stale on its content alone, which "
+        "makes this tool `git checkout <path>` for every `.md` in the tree")
+
+    os.utime(repo / "notes.md", (landed_at - 60, landed_at - 60))
+    rival = rth.judge_copy(repo, "notes.md")
+    assert rival.state == rth.REFRESHABLE, (
+        "a prose copy that supplies NOTHING and drops a landed line is the exact shape this tool "
+        "was built for, and it still could not say so: {} {}".format(rival.state, rival.reason))
+
+    # The copy holds a line HEAD lacks AND drops one HEAD has, in one hunk -- so `--keep` has no
+    # selection that takes the work without the revert. That is `REPLACEMENT`, and on a prose file
+    # it was unreachable: the suffix gate returned before `landable_hunks` was ever asked.
+    (repo / "notes.md").write_text(
+        landed + "\nThe older draft of that sentence, which the correction replaced.\n")
+    os.utime(repo / "notes.md", (landed_at - 60, landed_at - 60))
+    replacement = rth.judge_copy(repo, "notes.md")
+    assert replacement.state in (rth.REPLACEMENT, rth.SUPPLIES_NEW), (
+        "a prose copy holding a line HEAD lacks got {}, so the reader is told nothing about "
+        "WHICH door: {}".format(replacement.state, replacement.reason))
+    assert replacement.state != rth.NO_READER
 
 
 def test_a_path_the_holder_has_staged_is_refused(repo: Path) -> None:
@@ -384,7 +446,10 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
     """ONE CONTROL OVER THE WHOLE PARTITION. Each leg above proves its own branch; this proves no
     later edit can collapse them onto one another -- a tool that answers REFUSED to every shape
     passes every refusal test in this file."""
-    (repo / "notes.md").write_text("# notes\n\nrewritten prose\n")
+    # `.csv` AND NOT `.md`, since 2026-09-23: prose has a line reader now, so a `.md` file can no
+    # longer reach NO_READER and using one here would have quietly dropped a state from the
+    # partition while the assertion below still listed it.
+    (repo / "notes.csv").write_text("subject,count\nrewritten,1\n")
     (repo / "brand_new.py").write_text("def novel():\n    return 1\n")
     states = set()
     for content, state in ((RIVAL_KIND_A, rth.REFRESHABLE), (HOLDER_APPENDS, rth.SUPPLIES_NEW),
@@ -394,7 +459,7 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
         got = rth.judge_copy(repo, "m.py").state
         assert got == state, "{} was judged {}, not {}".format(state, got, state)
         states.add(got)
-    states.add(rth.judge_copy(repo, "notes.md").state)
+    states.add(rth.judge_copy(repo, "notes.csv").state)
     states.add(rth.judge_copy(repo, "brand_new.py").state)
     (repo / "d.py").write_text(DEAD_DRAFT)
     states.add(rth.judge_copy(repo, "d.py").state)

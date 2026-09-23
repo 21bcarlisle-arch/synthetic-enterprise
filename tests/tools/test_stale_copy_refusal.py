@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+from tools import refresh_to_head as rth
 from tools import stale_copy_refusal as scr
 from tools import surgical_land
 from tools.python_code_text import searchable
@@ -135,9 +136,21 @@ def test_an_unreadable_suffix_yields_no_opinion_and_never_an_empty_set(repo: Pat
     to a suffix that is genuinely unread, and the interesting question for `.json` became the one
     below: an EMPTY document must still not be the empty set, or the vacuity this leg exists to
     forbid walks straight back in through the new reader.
+
+    `.md` MOVED THE SAME WAY ON 2026-09-23, and for the same kind of reason. `PROSE_SUFFIXES` gave
+    prose a line reader because the census was naming `refresh_to_head` for 7 of its 18 rows and
+    that tool answers `refused_no_reader` for `.md`/`.yaml` BY CONSTRUCTION -- a door nobody could
+    walk through. The example moved on again; the RULE is untouched, and `.csv` now carries it.
+    A reader arriving for a suffix is the ordinary way this leg's examples retire. What must never
+    happen is the rule retiring with them, which is why it is asserted over a suffix nothing reads
+    and over the empty-document case that would sneak vacuity back in through any new reader.
     """
-    assert scr.symbols("anything at all", "docs/x.md") is None
     assert scr.symbols("subject,count\na,1\n", "docs/x.csv") is None
+    assert scr.symbols("anything at all", "docs/x.rst") is None
+    assert scr.symbols("", "docs/x.md") == frozenset(), (
+        "an EMPTY prose document must read as the empty set of lines and not as `None`: `None` is "
+        "'this control cannot read the suffix', which is now false for `.md` and would make the "
+        "reader's own arrival invisible")
     assert scr.symbols("{}", "site/data/dashboard.json") not in (None, frozenset()), (
         "an empty JSON document read as the empty set compares equal to every other empty "
         "document, so a truncated-to-`{}` ledger would be graded a strict subset of anything")
@@ -1066,15 +1079,29 @@ def test_a_row_whose_remedy_names_the_refresh_door_is_GRADED_against_that_door(
     `READABLE` moves and when the live census count changes, and it is why this cannot be satisfied
     by listing `.md` anywhere.
 
-    THE MUTATION IT IS WRITTEN FOR: `names_the_refresh_door` -> `is_rival` reds this leg alone.
+    AND THE GRADER DID NOT CLOSE IT -- WHICH IS WHAT THIS LEG NOW ASSERTS (2026-09-23). The
+    version above shipped, went green, and the live measurement the next day still read 7 of 18:
+    the grader printed "THE DOOR THIS REFUSAL NAMES IS SHUT [refused_no_reader]" on every prose
+    row and the remedy went on naming it. The leg's own assertion was `"SHUT" in out[...]` -- it
+    PINNED the defect as the expected answer, so the only way to make it red was to fix the
+    census, and nothing made anyone. A control that watches your control and is satisfied by the
+    fault is worse than no control: it converts an open defect into a passing test.
+
+    SO THE ORACLE IS INVERTED. A row whose remedy names the door must be graded against it AND the
+    door must be OPEN. That is the property -- name a door the reader can walk through -- and it
+    cannot be satisfied by the census going quiet either, which is what the reachability assertion
+    below is for: the branch has to fire before its verdict means anything.
+
+    THE MUTATION IT IS WRITTEN FOR: `names_the_refresh_door` -> `False` reds the grading leg;
+    dropping `PROSE_SUFFIXES` from `judge_copy`'s gate reds the open-door leg.
     """
-    _clock_fixture(repo)
-    loss = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE)
+    _clock_fixture(repo, stale=NOTE_MINTED)  # a pure revert: supplies nothing, so it IS a rival
+    loss = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_MINTED)
 
     # The rare branch must be REACHABLE before anything is asserted about what it does: a fixture
-    # that stopped producing a clock-only loss would pass every assertion below by vacancy.
-    assert loss is not None and loss.gains is None and not loss.is_rival, (
-        "the fixture stopped producing the clock-only loss this leg is about")
+    # that stopped producing a rival clock loss would pass every assertion below by vacancy.
+    assert loss is not None and loss.by_clock and loss.gains == () and loss.is_rival, (
+        "the fixture stopped producing the rival clock loss this leg is about: {}".format(loss))
     assert "refresh_to_head" in loss.remedy(), (
         "the branch under test no longer names the door, so this leg proves nothing")
 
@@ -1082,9 +1109,119 @@ def test_a_row_whose_remedy_names_the_refresh_door_is_GRADED_against_that_door(
     assert "note.md" in out, (
         "the census named `refresh_to_head` as this row's remedy and never asked whether that door "
         "would take it -- which is the claim the grader exists to check")
-    assert "SHUT" in out["note.md"] and "no_reader" in out["note.md"], (
-        "the door is shut for this suffix by construction and the reader is not told: {}".format(
-            out["note.md"]))
+    assert "IS OPEN" in out["note.md"] and "SHUT" not in out["note.md"], (
+        "the census named a door that refuses this path. An honest refusal that refuses "
+        "everything is still a door nobody can walk through: {}".format(out["note.md"]))
+    assert rth.judge_copy(repo, "note.md").state == rth.REFRESHABLE, (
+        "the grader said OPEN while the door itself does not take this copy, so the two readings "
+        "of one question have drifted apart")
+
+
+def test_the_prose_line_floor_decides_a_door_in_BOTH_directions(repo: Path) -> None:
+    """THE MUTATION THAT DID NOT FIRE, and the answer was a missing test rather than an
+    equivalence. `PROSE_LINE_FLOOR` -> 0 left the whole suite green, because no fixture differed
+    by a SHORT line, so the constant was load-bearing in production and unmeasured here.
+
+    WHY IT IS LOAD-BEARING, and which way round the danger runs. Raising the floor is the
+    DESTRUCTIVE direction: a line the copy holds and HEAD lacks stops being evidence, the copy
+    grades `is_rival`, and the remedy sends it to `refresh_to_head` -- the door that OVERWRITES
+    those bytes. Lowering it only makes the tool more conservative. So the leg is written from
+    both ends: a long line must count and a short one must not, and either mutation reds exactly
+    one of them. `_trivial`'s floor is the same number by the same argument -- a line too short to
+    be distinctive is coincidence, not content -- and prose inherits the module's existing width
+    rather than picking its own.
+
+    WHAT THIS DOES NOT CLAIM: that 12 is the right number. It is the module's number, used here
+    for consistency rather than established for prose. What is established is that the number
+    decides a door, which is why it is not free to drift."""
+    long_line = "a sentence this lane wrote and HEAD has never carried at all"
+    short_line = "ok then"
+    assert len(short_line) < scr.PROSE_LINE_FLOOR <= len(long_line)
+
+    base = "# note\n\nthe paragraph both copies share, long enough to be evidence.\n"
+    assert scr.prose_lines(base + long_line + "\n") - scr.prose_lines(base) == {long_line}, (
+        "a line longer than the floor is not being read as content, so a copy holding real work "
+        "grades as a rival and the remedy hands it to the door that overwrites it")
+    assert scr.prose_lines(base + short_line + "\n") - scr.prose_lines(base) == set(), (
+        "a line shorter than the floor counts as content, so two documents that coincide on a "
+        "`---` or a bare date read as holder work and the refresh door is withheld from a copy "
+        "that has nothing to keep")
+
+
+def test_the_three_clock_remedies_are_distinct_and_each_names_a_door_that_answers(
+        repo: Path) -> None:
+    """ONE CONTROL OVER THE WHOLE PARTITION, written because the repair above can be faked by
+    silence. "No row names a shut door" is satisfied by a census that names no door at all, and
+    that is the cheap way to make the live count read 0 of 18 without helping one reader.
+
+    THE THREE SHAPES A CLOCK ROW CAN HAVE, and they must map to three DIFFERENT remedies -- a
+    partition control asserting N states over N shapes is blind to a two-shapes-one-state
+    collapse, so the distinctness is asserted and not merely the count:
+
+      * supplies NOTHING          -> a rival copy; `refresh_to_head` takes it.
+      * supplies a line, CLOCK    -> `isolate_hunks --keep`, and `--base-wins` if none are yours.
+      * supplies a line, PARTIAL  -> the clock does NOT license discarding it; decide by hand.
+
+    The third is the leg that keeps the second honest. `BASE_WINS_RULES` excludes PARTIAL, so a
+    remedy that named the flag unconditionally would rebuild this item's own defect one rule to
+    the left -- and on the live tree that is exactly one path, `docs/data-sources/weather.md`."""
+    # THE BYTES MUST BE THE ONES ON DISK before each ask -- `clock_judge` yields no opinion when
+    # the text it is handed is not the working copy, which is the `--content` guard in
+    # `taken_before`. Handing it a constant while a different file sits on disk returns `None` and
+    # every assertion below would then pass by vacancy.
+    sha = _clock_fixture(repo, stale=NOTE_STALE)
+    head = scr.blob_at(repo, "HEAD", "note.md")
+    holder = scr.clock_judge(repo, "note.md", head, NOTE_STALE)
+
+    landed_at = scr.committed_at(repo, sha)
+    (repo / "note.md").write_text(NOTE_MINTED)
+    os.utime(repo / "note.md", (landed_at - 60, landed_at - 60))
+    rival = scr.clock_judge(repo, "note.md", head, NOTE_MINTED)
+
+    partial = scr.Loss(path="note.md", rule=scr.PARTIAL, detail=("a line it lacks",), commit=sha,
+                       gains=("a line this lane wrote",), by_clock=True, carried=1)
+
+    assert rival is not None and holder is not None
+    assert rival.rule == scr.CLOCK and rival.gains == ()
+    assert holder.rule == scr.CLOCK and holder.gains, "the holder fixture supplies nothing"
+
+    remedies = {"rival": rival.remedy(), "holder": holder.remedy(), "partial": partial.remedy()}
+    assert len(set(remedies.values())) == 3, (
+        "two of the three clock shapes collapsed onto one remedy, so a reader in one of them is "
+        "being handed the other's door: {}".format(remedies))
+
+    # KEYED TO THE RECOMMENDATION, NOT TO A SUBSTRING, and that distinction cost three drafts of
+    # this leg. Every one of these remedies MENTIONS the door it is ruling out -- the rival's says
+    # `isolate_hunks` has nothing to select, the partial's says `--base-wins` refuses it -- so
+    # `"--base-wins" not in text` reds on the sentence that exists to keep the reader OUT of that
+    # door. What is asked instead is what the reader is told to TYPE: a `python3 -m ...` command
+    # line is a recommendation, and a tool named in prose beside the word "refuses" is not.
+    # THE MODULE NAME IS TAKEN ACROSS A LINE BREAK, because the remedy wraps at 100 columns and
+    # `tools.isolate_hunks\n      --survey ...` is one command to a reader and two tokens to a
+    # naive split. A leg that read the wrapped form as a different tool would go green on a
+    # remedy naming nothing at all.
+    typed = {k: {m.strip() for m in re.findall(r"`python3 -m (\S+)", v)}
+             for k, v in remedies.items()}
+
+    assert typed["rival"] == {"tools.refresh_to_head"}, (
+        "the rival copy supplies nothing, so the ONLY door is the refresh; anything else here "
+        "sends the reader to a tool that will correctly refuse: {}".format(typed["rival"]))
+    assert typed["holder"] == {"tools.isolate_hunks", "tools.refresh_to_head"}, (
+        "a CLOCK row holding a line HEAD lacks has two moves in order -- keep the hunk that is "
+        "yours, else enact the base winning -- and it was handed {}".format(typed["holder"]))
+    assert "--base-wins" in remedies["holder"], "the second move is unenactable without the flag"
+    assert typed["partial"] == {"tools.isolate_hunks"}, (
+        "a PARTIAL copy may have been built on the landing, so `--base-wins` refuses it: handing "
+        "the reader that command is this defect exactly, one rule to the left. Got {}".format(
+            typed["partial"]))
+
+    # AND EVERY DOOR NAMED IS ASKED. The remedy text is a claim about what a tool will do; the
+    # only way to know is to run it, which is what the grader does for the live census.
+    assert rth.judge_copy(repo, "note.md").state == rth.REFRESHABLE, "the rival's door is shut"
+    (repo / "note.md").write_text(NOTE_STALE)
+    assert rth.judge_copy(repo, "note.md").state != rth.NO_READER, (
+        "the holder row's door answers `refused_no_reader`, which is the state this whole repair "
+        "exists to remove: it can never answer anything else for this suffix")
 
 
 def test_a_holder_work_row_is_NOT_sent_to_the_refresh_door(repo: Path) -> None:
@@ -1176,7 +1313,20 @@ def test_the_content_rules_alone_have_no_opinion_on_that_copy(repo: Path) -> Non
     fires. If `judge` ever answers here, the test above stops demonstrating why rule 4 exists."""
     _clock_fixture(repo)
     assert scr.judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE) is None
-    assert scr.symbols(NOTE_STALE, "note.md") is None
+    # CORRECTED 2026-09-23, beside the claim rather than instead of it. This asserted
+    # `symbols(...) is None` -- "`.md` has no symbol reader and never will" -- and that is now
+    # false: `PROSE_SUFFIXES` reads prose as lines, because the census was sending 7 of 18 rows to
+    # a door that refuses those suffixes by construction. The SENTENCE THIS LEG IS ABOUT survives
+    # intact and is the line above: `judge` -- rule 1, the COMMIT guard -- still has no opinion
+    # here, because `READABLE` did not move and must not. That is the whole reason `clock_judge`
+    # exists, and it is what this control protects. What the prose reader gives is the DOOR's
+    # answer, never the commit guard's.
+    assert scr.symbols(NOTE_STALE, "note.md") is not None, (
+        "the prose reader is gone; if that is deliberate, the door for `.md` is shut again and "
+        "`names_the_refresh_door` must stop being reachable for it")
+    assert scr.PROSE_SUFFIXES and ".md" not in scr.READABLE, (
+        "prose entered `READABLE`, which re-reds every lane for the ordinary churn of a shared "
+        "checkout -- the exact trade `clock_judge`'s docstring measured and refused")
 
 
 def test_a_clock_stale_copy_that_carries_the_landing_is_not_refused(repo: Path) -> None:
@@ -1258,18 +1408,43 @@ def test_the_two_judgements_never_both_speak_for_one_path(repo: Path) -> None:
 
 
 def test_the_clock_refusal_names_the_commit_and_a_door_that_exists(repo: Path) -> None:
-    """A refusal whose stated remedy the tool would refuse is the pressure toward bypass. `gains` is
-    None for every CLOCK loss -- no symbol reader can read a `.md` -- and the `gains is None` branch
-    says "cannot tell which door", which is FALSE here: the clock has established the copy predates
-    the landing, so it cannot be holder work over it and `isolate_hunks` has nothing to select."""
+    """A refusal whose stated remedy the tool would refuse is the pressure toward bypass.
+
+    REWRITTEN 2026-09-23, AND THE OLD ASSERTION WAS THE DEFECT WEARING A CONTROL'S CLOTHES. It
+    read: `gains` is None for every CLOCK loss, so name `refresh_to_head` and assert
+    `isolate_hunks` is ABSENT -- "the copy predates the landing, so isolate_hunks has nothing
+    legitimate to select". The first clause was an artefact of there being no prose reader, not a
+    fact about the copy; `NOTE_STALE` carries a sentence HEAD does not have, so `isolate_hunks
+    --survey` offers a real selection and `refresh_to_head` was the tool that would refuse. This
+    leg asserted the wrong door and went green for it.
+
+    THE PROPERTY IT NOW KEYS TO, which survives any suffix list moving: the remedy names the door
+    that WOULD TAKE THIS COPY, and the evidence for which door is the copy's own content. The
+    grading half is `test_a_row_whose_remedy_names_the_refresh_door_is_GRADED_against_that_door`;
+    this half is that the refusal names the commit and a door, and that the door named is not the
+    one this copy's content rules out."""
     sha = _clock_fixture(repo)
     loss = scr.clock_judge(repo, "note.md", scr.blob_at(repo, "HEAD", "note.md"), NOTE_STALE)
+    assert loss.gains, (
+        "the fixture stopped supplying a line HEAD lacks, so the branch under test is not the one "
+        "running and every assertion below would pass by vacancy")
     text = scr.refusal_text([loss])
     assert sha[:9] in text, "a refusal that does not name the commit cannot be checked by its reader"
-    assert "refresh_to_head" in text
-    assert "isolate_hunks" not in text, (
-        "the copy predates the landing, so isolate_hunks has nothing legitimate to select -- naming "
-        "it sends the lane to a tool that will correctly refuse")
+    assert "isolate_hunks" in text, (
+        "this copy holds a line HEAD lacks and `--keep` reaches prose, so the one door that can "
+        "take it without the revert went unnamed")
+    # ASSERTED ON THE RECOMMENDATION AND NOT ON THE STRING. `--content` is PRESENT in this remedy,
+    # as the thing NOT to do, and a bare `"--content" not in text` reds on that warning -- which is
+    # a control that fires when the text becomes more helpful. The property is that the copy is
+    # not called holder work, because that verdict is what sends a reader to the landing door.
+    assert "HOLDER WORK" not in text and "would land the revert" in text, (
+        "the clock says the copy predates the landing, so `surgical_land --content` would land "
+        "the revert along with the line -- recommending it is how a remedy destroys the landing "
+        "it is protecting")
+    assert "--base-wins" in text, (
+        "a CLOCK row whose hunks the reader recognises as none of theirs has exactly one "
+        "enactment left, and a remedy that stops at `isolate_hunks` leaves them where the "
+        "2026-09-22 finding found them: a resolved judgement with no legal move")
 
 
 def test_the_clock_leg_is_wired_into_the_landing_door(repo: Path) -> None:

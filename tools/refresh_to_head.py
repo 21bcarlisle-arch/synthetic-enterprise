@@ -82,13 +82,18 @@ from pathlib import Path
 # `judge()` is refusal 2 entire. Re-deriving either would be a second opinion about what a stale
 # copy is, and two answers to that question is the defect this class already banked.
 from tools.stale_copy_refusal import (
-    CLOCK,
+    BASE_WINS_RULES as BASE_WINS_RULES,  # noqa: PLC0414 -- re-export; typed by this tool's suite
+)
+from tools.stale_copy_refusal import (
+    CLOCK as CLOCK,  # noqa: PLC0414 -- re-export; typed by this tool's suite
+)
+from tools.stale_copy_refusal import (
     DATA_SUFFIXES,
-    PARTIAL,
-    PREDATES,
+    PROSE_SUFFIXES,
     READABLE,
     Dead,
     Unparseable,
+    base_wins_rules,
     blob_at,
     cuts_among,
     dead_among,
@@ -96,6 +101,9 @@ from tools.stale_copy_refusal import (
     landable_hunks,
     opinion,
     symbols,
+)
+from tools.stale_copy_refusal import (
+    PREDATES as PREDATES,  # noqa: PLC0414 -- re-export; typed by this tool's suite
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -131,18 +139,13 @@ STAGED = "refused_holder_has_it_staged"
 #: implementations of one property is a judgement, and a refusal that says so is worth more than a
 #: verdict that picks the flattering side of it.
 REPLACEMENT = "refused_replacement_no_landable_hunk"
-#: THE ONLY RULES THAT LICENSE `--base-wins`, and the point is that the CLOCK returned them rather
-#: than the operator. Both say the copy contains not one of its own landing's distinctive lines, so
-#: it cannot have been derived from that landing -- which is what makes "these names are the older
-#: draft" a measurement instead of a preference. Every other rule is excluded on purpose: `SUBSET`
-#: never reaches here (a strict subset supplies nothing, so `REPLACEMENT` cannot be its verdict),
-#: `PARTIAL` says the copy carries SOME of the landing and therefore may be built on it, and
-#: `UNPARSEABLE` is a failed check. `None` -- no complaint at all -- is the one this must refuse
-#: hardest: that is an ordinary edit, and admitting it makes the flag `git checkout <path>`.
-BASE_WINS_RULES = (PREDATES, CLOCK)
-#: AND THE SAME SET PLUS `PARTIAL` FOR A DOCUMENT WHOSE LINES ARE VALUES -- see `base_wins_rules`,
-#: which is where the measurement that licenses the difference is written down.
-BASE_WINS_DATA_RULES = BASE_WINS_RULES + (PARTIAL,)
+#: IMPORTED, NOT DECLARED (moved to `stale_copy_refusal` 2026-09-23). All three are statements
+#: about what THAT module's verdicts mean -- which rules say the copy carries none of its own
+#: landing -- and `Loss.remedy` has to read the same answer to know whether naming `--base-wins`
+#: sends the reader to a door that will take them. It could not import this module to ask (the
+#: dependency runs the other way), so the alternative was a second copy of the rule on the
+#: printing side: one requirement, two implementations, which is the shape that put the VAT rule
+#: in five places. Re-exported under these names because every caller and test already types them.
 #: Supplies names, but NOT ONE of them can run against the base -- see `stale_copy_refusal.Dead`.
 #: A refusal by default and writable only under `--superseded`, because a test-first lane looks
 #: exactly like this and the difference is intent, which is not on disk.
@@ -158,46 +161,6 @@ SUPERSEDED_DEAD = "refused_supplies_only_dead_names"
 #: open on a regenerated artefact at all. See `stale_copy_refusal.ClockUnanswered` for the
 #: measurement and for what is NOT claimed about the two live refusals that commissioned this.
 CLOCK_UNANSWERED = "refused_clock_could_not_answer"
-
-
-def base_wins_rules(path: str) -> tuple[str, ...]:
-    """Which clock verdicts license `--base-wins` on THIS path. `PARTIAL` is admitted for a data
-    document and refused for code, and the difference is measured rather than argued.
-
-    WHAT `PARTIAL` CLAIMS, AND WHY IT IS ONLY TRUE OF CODE. The verdict says the copy is older than
-    its own last landing AND carries some of that landing's distinctive lines, and `BASE_WINS_RULES`
-    excludes it because carrying some of the landing means the copy *may be built on it*. That is an
-    argument about DERIVATION, and it holds only where a shared line is unlikely to arise any other
-    way. For a `.py` a distinctive line is a STATEMENT and two lanes writing the same non-trivial
-    statement independently is rare. For a generated `.json` a line is a KEY AND ITS VALUE, and two
-    runs of one report share a line **whenever the figure did not move** -- which is arithmetic, not
-    derivation.
-
-    MEASURED 2026-09-23, pre-registered in `SEAT_PREREGISTRATION_WHETHER_A_CARRIED_LINE_IS_EVIDENCE_
-    OF_DERIVATION_FOR_A_DATA_ARTEFACT_2026-09-23`. The coincidence rate of a line class = the share
-    of one document's non-trivial, within-document-unique lines that also appear in a second
-    document provably in NO derivation relation with it (a sibling report from the same generator
-    over different inputs). Data arm 20.6% and 24.9%; `.py` control arm 0.3%-6.3% over four unrelated
-    module pairs. And on the two live copies this was commissioned for, directly rather than by
-    population: `ladder_churn_factors.json` carries 57 of its landing's 864 distinctive lines and
-    **57 of those 57** appear verbatim in a sibling report that cannot have been derived from that
-    landing; `ladder_churn_factors_svt_segment_decisions.json` carries 1060 of 4187 and 1032 of them
-    do. The carry is coincidence, measured on the files themselves.
-
-    THE CLOCK GUARD IS UNTOUCHED AND IS WHAT KEEPS THIS HONEST. `clock_judge` reaches `PARTIAL` only
-    through `taken_before`, which requires the result blob to BE the file on disk and that file's
-    mtime to predate the landing commit. Widening here does not admit one copy the clock has not
-    already called older than the landing it would revert; it stops a coincidental line-share
-    vouching for a document where the share means nothing. The leaf-level question -- what this copy
-    supplies and drops -- is asked separately and in the document's own terms by `_json_leaf_names`,
-    and it is unchanged.
-
-    THE ORDERING THIS EXPOSES, which is the reason it reads better than it looked. `PREDATES`
-    (carries ZERO of the landing) is admitted and always was; `PARTIAL` (carries a handful by
-    coincidence) was refused. So the data copy sharing NOTHING with the landing was discardable and
-    the one sharing 6.6% was protected -- and if the share is coincidence those are the same copy in
-    two states, split by noise. Fixing it makes the door's behaviour monotone in the evidence."""
-    return BASE_WINS_DATA_RULES if Path(path).suffix in DATA_SUFFIXES else BASE_WINS_RULES
 
 
 class RefreshError(RuntimeError):
@@ -348,7 +311,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     # question is only ever asked of a path already HOLDING a fast-forward, and answering it
     # "no reader" made that path PERMANENTLY unresolvable -- which, under the all-or-nothing rule in
     # `origin_reconcile.advance_shared_tree`, is fatal to every other blocker beside it.
-    if Path(path).suffix not in READABLE + DATA_SUFFIXES:
+    if Path(path).suffix not in READABLE + DATA_SUFFIXES + PROSE_SUFFIXES:
         return Verdict(path, NO_READER,
                        "this control has no reader for {} files, so it CANNOT establish that the "
                        "copy has nothing to lose. An unavailable check is a failed check.".format(
@@ -547,9 +510,28 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     # substring_source_scan_census.py` reads `not in` over anything reachable from file text as a
     # substring-shaped interrogation of Python source, and it is right to -- these names came out of
     # `symbols()`. The difference says the same thing without asking that question of a string.
-    cuts = cuts_among(root, path, tuple(sorted(work_names - head_names)), parent=base)
-    gains = tuple(sorted(work_names - head_names - frozenset(c.name for c in cuts)))
-    dead = dead_among(root, path, gains, work_text, parent=base)
+    if Path(path).suffix in PROSE_SUFFIXES:
+        # A PROSE DOCUMENT IS ANSWERED IN ITS OWN TERMS TOO, for the reason the data branch above
+        # states and with the same two exclusions. `cuts_among` asks whether the base DELETED a
+        # NAME on purpose and `dead_among` asks whether a name could RUN against the base's
+        # module; neither sentence means anything about a paragraph, and running them here would
+        # dress a vacuous answer as a measured one.
+        #
+        # WHAT IS *NOT* EXCLUDED IS `landable_hunks`, and that is the whole reason this branch
+        # falls through rather than returning its own verdict. `--keep` selects hunks, not
+        # symbols, and it reaches prose -- measured before this was written rather than assumed:
+        # `isolate_hunks --survey docs/institutional/knowledge_map.md` returns 3 selectable hunks.
+        # So the same three-way split the Python path gets applies here unchanged: a hunk that
+        # adds without deleting is holder work with a door, a copy where no such hunk exists is a
+        # REPLACEMENT whose only enactment is `--base-wins`, and a copy that supplies nothing is
+        # REFRESHABLE. Before this, all three answered `refused_no_reader` and could not answer
+        # anything else -- which is what the census was naming as the remedy for 7 of its 18 rows.
+        cuts, dead = (), ()
+        gains = tuple(sorted(work_names - head_names))
+    else:
+        cuts = cuts_among(root, path, tuple(sorted(work_names - head_names)), parent=base)
+        gains = tuple(sorted(work_names - head_names - frozenset(c.name for c in cuts)))
+        dead = dead_among(root, path, gains, work_text, parent=base)
     # THE NAME COUNT WAS THE WHOLE TEST AND IT GRADED THREE DIFFERENT COPIES THE SAME WAY. Two
     # 2026-09-08 findings each named half of that (`..._THE_HOLDER_WORK_RULE_COUNTS_NAMES_...` and
     # `..._THE_R1_COPYS_MISSING_PARTNER_IS_IN_A_SALVAGE_COMMIT_...`) and froze `H_harness` for nine

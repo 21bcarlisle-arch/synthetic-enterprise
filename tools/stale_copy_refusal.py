@@ -159,6 +159,47 @@ READABLE = PY_SUFFIXES + PAGE_SUFFIXES
 #: fast-forward, 6 got this answer and only the generated-output oracle rescued 5 of them.
 DATA_SUFFIXES = (".json",)
 
+#: Suffixes whose document unit is the LINE, read for the same reason `DATA_SUFFIXES` is and kept
+#: out of `READABLE` for the same reason too. These are the map, the knowledge layer, the
+#: simplification notes and the staging record -- the population `clock_judge` was built to reach,
+#: and the one population the 2026-09-22 door-grading repair did not close. That repair built a
+#: GRADER for a mis-named door and left the door shut: measured on the shared tree 2026-09-23,
+#: 7 of 18 census rows named `refresh_to_head` and got `refused_no_reader` back, which it answers
+#: for these suffixes BY CONSTRUCTION and can never answer anything else. An honest refusal that
+#: refuses everything is still a door nobody can walk through.
+#:
+#: THE UNIT IS THE LINE AND NOT THE LEAF, including for YAML, which `_json_leaves` could parse.
+#: A leaf reading says two documents differ when a VALUE changed; a line reading says so when any
+#: non-trivial line did. For prose the line is what a reader recognises as "mine" and what
+#: `isolate_hunks --survey` selects over, so it is the unit a remedy can be stated in. It is also
+#: the conservative direction: a reformat reads as content, so the copy is REFUSED rather than
+#: waved through, and a reformat is not a thing prose does without a person doing it.
+PROSE_SUFFIXES = (".md", ".yaml", ".yml")
+
+#: A prose line short enough that its presence in two documents is coincidence rather than
+#: evidence. The same floor `_trivial` uses, by the same argument -- stated once and shared so the
+#: two readings of "this line carries nothing" cannot drift apart.
+PROSE_LINE_FLOOR = 12
+
+
+def prose_lines(text: str) -> frozenset[str]:
+    """The non-trivial stripped lines of a prose document -- its `symbols()`.
+
+    NO COMMENT FILTER, AND THAT IS THE DIFFERENCE FROM `_trivial` BESIDE IT. `_trivial` drops a
+    line beginning `#` because in Python source a comment is commentary. In Markdown `#` is a
+    HEADING and in YAML it is the only place a row's reasoning lives, so reusing that filter here
+    would drop precisely the lines that carry the document's structure -- `## What is still owed`
+    is 19 characters, it is one of the four lines a live census row supplies over HEAD, and a
+    filter that took it would have emptied the evidence for that row and read the copy as clean.
+    Filtering to nothing is a silent fail-open; see `distinctive_lines` for the same trap costing
+    the suite.
+
+    A FROZENSET AND NOT A LIST, so a line moved within a document is not read as content gained
+    and lost. Order in prose is real, but this reader's whole question is whether the copy HOLDS
+    something the base does not, and a re-ordering holds nothing new."""
+    return frozenset(s for s in (ln.strip() for ln in text.splitlines())
+                     if len(s) >= PROSE_LINE_FLOOR)
+
 
 def _json_leaves(text: str, path: str) -> dict[str, str]:
     """A JSON document as `key path -> a token standing for the value at it`.
@@ -270,6 +311,58 @@ PARTIAL = "predates_landing_carrying_some"
 #: The clock was asked and COULD NOT ANSWER -- a git call its verdict rests on failed. Its own
 #: rule, never folded into "no complaint": see `ClockUnanswered`.
 UNANSWERED = "clock_could_not_answer"
+
+
+#: THE ONLY RULES THAT LICENSE `refresh_to_head --base-wins`, and the point is that the CLOCK returned them rather
+#: than the operator. Both say the copy contains not one of its own landing's distinctive lines, so
+#: it cannot have been derived from that landing -- which is what makes "these names are the older
+#: draft" a measurement instead of a preference. Every other rule is excluded on purpose: `SUBSET`
+#: never reaches here (a strict subset supplies nothing, so `REPLACEMENT` cannot be its verdict),
+#: `PARTIAL` says the copy carries SOME of the landing and therefore may be built on it, and
+#: `UNPARSEABLE` is a failed check. `None` -- no complaint at all -- is the one this must refuse
+#: hardest: that is an ordinary edit, and admitting it makes the flag `git checkout <path>`.
+BASE_WINS_RULES = (PREDATES, CLOCK)
+#: AND THE SAME SET PLUS `PARTIAL` FOR A DOCUMENT WHOSE LINES ARE VALUES -- see `base_wins_rules`,
+#: which is where the measurement that licenses the difference is written down.
+BASE_WINS_DATA_RULES = BASE_WINS_RULES + (PARTIAL,)
+def base_wins_rules(path: str) -> tuple[str, ...]:
+    """Which clock verdicts license `--base-wins` on THIS path. `PARTIAL` is admitted for a data
+    document and refused for code, and the difference is measured rather than argued.
+
+    WHAT `PARTIAL` CLAIMS, AND WHY IT IS ONLY TRUE OF CODE. The verdict says the copy is older than
+    its own last landing AND carries some of that landing's distinctive lines, and `BASE_WINS_RULES`
+    excludes it because carrying some of the landing means the copy *may be built on it*. That is an
+    argument about DERIVATION, and it holds only where a shared line is unlikely to arise any other
+    way. For a `.py` a distinctive line is a STATEMENT and two lanes writing the same non-trivial
+    statement independently is rare. For a generated `.json` a line is a KEY AND ITS VALUE, and two
+    runs of one report share a line **whenever the figure did not move** -- which is arithmetic, not
+    derivation.
+
+    MEASURED 2026-09-23, pre-registered in `SEAT_PREREGISTRATION_WHETHER_A_CARRIED_LINE_IS_EVIDENCE_
+    OF_DERIVATION_FOR_A_DATA_ARTEFACT_2026-09-23`. The coincidence rate of a line class = the share
+    of one document's non-trivial, within-document-unique lines that also appear in a second
+    document provably in NO derivation relation with it (a sibling report from the same generator
+    over different inputs). Data arm 20.6% and 24.9%; `.py` control arm 0.3%-6.3% over four unrelated
+    module pairs. And on the two live copies this was commissioned for, directly rather than by
+    population: `ladder_churn_factors.json` carries 57 of its landing's 864 distinctive lines and
+    **57 of those 57** appear verbatim in a sibling report that cannot have been derived from that
+    landing; `ladder_churn_factors_svt_segment_decisions.json` carries 1060 of 4187 and 1032 of them
+    do. The carry is coincidence, measured on the files themselves.
+
+    THE CLOCK GUARD IS UNTOUCHED AND IS WHAT KEEPS THIS HONEST. `clock_judge` reaches `PARTIAL` only
+    through `taken_before`, which requires the result blob to BE the file on disk and that file's
+    mtime to predate the landing commit. Widening here does not admit one copy the clock has not
+    already called older than the landing it would revert; it stops a coincidental line-share
+    vouching for a document where the share means nothing. The leaf-level question -- what this copy
+    supplies and drops -- is asked separately and in the document's own terms by `_json_leaf_names`,
+    and it is unchanged.
+
+    THE ORDERING THIS EXPOSES, which is the reason it reads better than it looked. `PREDATES`
+    (carries ZERO of the landing) is admitted and always was; `PARTIAL` (carries a handful by
+    coincidence) was refused. So the data copy sharing NOTHING with the landing was discardable and
+    the one sharing 6.6% was protected -- and if the share is coincidence those are the same copy in
+    two states, split by noise. Fixing it makes the door's behaviour monotone in the evidence."""
+    return BASE_WINS_DATA_RULES if Path(path).suffix in DATA_SUFFIXES else BASE_WINS_RULES
 
 
 class Unparseable(Exception):
@@ -506,6 +599,8 @@ def symbols(text: str, path: str) -> frozenset[str] | None:
         return frozenset(found)
     if suffix in DATA_SUFFIXES:
         return _json_leaf_names(text, path)
+    if suffix in PROSE_SUFFIXES:
+        return prose_lines(text)
     return None
 
 
@@ -877,12 +972,23 @@ class Loss:
         built to catch exactly that was scoped past them. Measured on the shared tree the same day:
         27 rows, and the door the census named took ZERO of them.
 
+        AND THE GRADER DID NOT CLOSE IT (2026-09-23, this edit). A day after that repair the same
+        measurement read 7 of 18 -- the grader correctly printed "THE DOOR THIS REFUSAL NAMES IS
+        SHUT" on every one of them and the remedy went on naming it. A control that only watches
+        your own control is the thing CLAUDE.md says is usually not worth having; this was the
+        instance. The close is upstream of here: `symbols()` reads prose, `clock_judge` reads the
+        gains, and `remedy()` picks the door from the copy's content. This property shrinks to the
+        rows where the door is genuinely open, and the grader above stays as the control that says
+        so rather than as the repair.
+
         KEYED TO WHICH BRANCH `remedy()` TAKES, not to a suffix list. A suffix list here would rot
         the moment `READABLE` moves, and it would be a second implementation of the branch
         condition above it -- the one-requirement-two-implementations shape this repository pays
-        for most. The two conditions are the two branches that print the tool's name; if a third is
-        ever added, this returns False for it and the row goes ungraded rather than mis-graded."""
-        return self.is_rival or (self.by_clock and self.gains is None)
+        for most. `is_rival` is now the ONE condition that prints the tool's name unqualified: the
+        `by_clock` branches that used to reach it either supply content (and name
+        `isolate_hunks`) or cannot be read at all (and name no door). If a third is ever added,
+        this returns False for it and the row goes ungraded rather than mis-graded."""
+        return self.is_rival
 
     def _cut_lines(self) -> str:
         return "".join("        - {}  <- REMOVED by {}\n".format(c.name[:90], c.commit[:9])
@@ -899,27 +1005,55 @@ class Loss:
                     "so whether\n      this copy predates its own last landing is UNKNOWN. Re-run "
                     "the call above; if it\n      keeps failing, that is a finding about this "
                     "checkout and not about this path.")
-        if self.by_clock and self.gains is None:
-            # The door is NOT in doubt here, which is why this branch precedes the `gains is None`
-            # one that would otherwise claim it. `gains` is None for every CLOCK loss because these
-            # are the paths no symbol reader can read -- but the clock has already established the
-            # thing `gains` exists to guess at: this copy was taken before the landing, so it cannot
-            # be holder work over it, and `isolate_hunks` has nothing legitimate to select.
+        if self.by_clock and self.gains:
+            # THE BRANCH THE SHUT DOOR USED TO TAKE, and the clock is why it is not the holder-work
+            # one below. A copy whose mtime predates its own last landing CANNOT have been built on
+            # it, so the lines it holds that HEAD lacks are the OLDER DRAFT of what that commit
+            # replaced -- not work to land whole. `surgical_land --content` is therefore never
+            # named here, where the `self.gains` branch below would name it: on a clock row that
+            # door lands the revert along with the line.
             #
-            # KEYED TO `by_clock` AND NOT TO `rule == CLOCK`, because PARTIAL is also a clock
-            # verdict and a READABLE one, so it arrives here with `gains` READ rather than guessed
-            # at. Where the names could be read they decide the door, and this branch must not
-            # claim them: a copy can predate one landing and still hold work HEAD lacks from
-            # before it.
-            return ("      REMEDY: your copy of this file is OLDER than {} -- it was taken before "
-                    "that\n      landing, so it cannot be carrying work built ON it. Re-open the "
-                    "file at HEAD\n      (`python3 -m tools.refresh_to_head {}` surveys it; "
-                    "`--write --slug NAME`\n      preserves these bytes and writes HEAD's over "
-                    "them) and re-apply your edit.".format(self.commit[:9], self.path))
+            # `isolate_hunks` IS NAMED BECAUSE IT REACHES PROSE, which was measured before this was
+            # written rather than assumed: `--survey docs/institutional/knowledge_map.md` returns
+            # 3 selectable hunks. Its `--keep` is the only door that can take one line without the
+            # 32 the same copy reverts, and if the reader recognises none of them as theirs the
+            # copy has nothing to keep and `--base-wins` enacts the base winning -- licensed by
+            # THIS clock verdict (`BASE_WINS_RULES`) and not by anybody's word.
+            # AND THE FALLBACK IS NAMED ONLY WHERE THE CLOCK LICENSES IT. `--base-wins` reads
+            # `BASE_WINS_RULES`, which admits CLOCK and PREDATES and refuses PARTIAL -- a copy
+            # carrying SOME of its landing may have been built on it, so nothing here may enact
+            # the base winning over it. Printing the flag on a PARTIAL row would rebuild this
+            # item's own defect one rule to the left: a named door that refuses by construction.
+            fallback = (
+                "If none are,\n      the copy has nothing to keep: `python3 -m "
+                "tools.refresh_to_head --base-wins {}`.".format(self.path)
+                if self.rule in base_wins_rules(self.path) else
+                "If none are, this copy still\n      has NO automatic exit: it carries {} of "
+                "{}'s distinctive lines, so it MAY have been\n      built on that landing and "
+                "`--base-wins` refuses it. Decide it by hand.".format(
+                    self.carried, self.commit[:9]))
+            return ("      REMEDY: your copy is OLDER than {} and holds {} line(s)/name(s) HEAD "
+                    "lacks ({}),\n      so those are the OLDER DRAFT of what that commit replaced, "
+                    "NOT work built on it --\n      `surgical_land --content` would land the revert "
+                    "with them. `python3 -m tools.isolate_hunks\n      --survey {}` and `--keep N` "
+                    "ONLY the hunk(s) you recognise as yours. {}".format(
+                        self.commit[:9], len(self.gains),
+                        ", ".join(g[:48] for g in self.gains[:2])
+                        + ("..." if len(self.gains) > 2 else ""), self.path, fallback))
         if self.gains is None:
-            return ("      REMEDY: cannot tell which door -- this copy's names could not be read, "
-                    "so\n      neither `refresh_to_head` nor `isolate_hunks` is licensed until "
-                    "that is fixed.")
+            # NO DOOR IS NAMED WHERE NOTHING READ THE COPY, and that is the repair rather than a
+            # loss of service. This branch used to be preceded by a `by_clock` one that named
+            # `refresh_to_head` for every unreadable suffix -- a tool whose FIRST act is to answer
+            # `refused_no_reader` for exactly those suffixes, so the remedy sent every reader to a
+            # permanently shut door and the census's own grader printed "SHUT" beside it without
+            # changing the sentence. Prose and JSON are read now; whatever is left here genuinely
+            # is not, and the honest remedy is the manual survey and not a tool that overwrites
+            # bytes on a guess.
+            return ("      REMEDY: cannot tell which door -- this copy's content could not be read, "
+                    "so\n      neither `refresh_to_head` (which will answer `refused_no_reader` "
+                    "for this\n      suffix) nor `isolate_hunks` is licensed. "
+                    "`git diff HEAD -- {}` is the survey;\n      decide by hand which copy "
+                    "wins.".format(self.path))
         if self.cuts and not self.novel:
             return ("      REMEDY: every name HEAD \"lacks\" here is a RE-CREATION OF A DELIBERATE "
                     "DELETION, so\n      this copy is NOT holder work -- landing it puts back what "
@@ -1163,9 +1297,21 @@ def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | No
     missing = tuple(d for d in distinctive if d not in present)
     if not missing:
         return None
+    # THE GAINS ARE READ WHERE A READER EXISTS, AND THAT IS WHAT DECIDES THE DOOR. `gains=None`
+    # used to be unconditional here, and `remedy()`'s `by_clock` branch reads a bare `None` as
+    # *nothing to keep*, so it named `refresh_to_head` -- which overwrites bytes -- for every one
+    # of these rows, INCLUDING the ones holding content HEAD lacks and including the suffixes that
+    # door refuses outright. `symbols()` now answers for JSON and for prose, so the copy's own
+    # content decides which door is printed instead of the suffix's silence.
+    #
+    # `cuts_among` IS NOT ASKED OF THEM, for the reason `refresh_to_head`'s data branch states:
+    # "was this name DELETED on purpose" is an argument about Python, and running it over a JSON
+    # leaf or a prose line would dress a vacuous answer as a measured one. So a clock row's gains
+    # carry no `cuts`, `novel` equals `gains`, and `is_rival` means exactly what it says.
+    gains = gains_over(head_text, new_text, path)
     if len(missing) == len(distinctive):
-        return Loss(path, CLOCK, distinctive, commit, by_clock=True)
-    return Loss(path, PARTIAL, missing, commit, by_clock=True,
+        return Loss(path, CLOCK, distinctive, commit, gains, by_clock=True)
+    return Loss(path, PARTIAL, missing, commit, gains, by_clock=True,
                 carried=len(distinctive) - len(missing))
 
 
