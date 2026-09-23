@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T01:22:32.544242Z",
+  "generated_at": "2026-09-23T02:50:27.171149Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -182,7 +182,7 @@
     "available": true,
     "why": null,
     "route": "renewal",
-    "what_it_is": "The most direct test this company has of its own claim. On the route where the priced per-customer decisions are actually made, does the company's own belief about who will leave put the accounts that left above the accounts that stayed? The ceiling beside it is the world's own hazard scored the same way on the same rows.",
+    "what_it_is": "The most direct test this company has of its own claim. On the route where the priced per-customer decisions are actually made, does the company's own belief about who will leave put the accounts that left above the accounts that stayed? The second reading is the world's own departure probability scored the same way on the same rows \u2014 the number the world actually rolled against. It is NOT a bound on the company's belief, and it carries its own account of why.",
     "decisions": 102,
     "departures": 41,
     "pairs": 384,
@@ -215,7 +215,33 @@
       "null_95_low": 0.3619791666666667,
       "null_95_high": 0.6380208333333334,
       "clears_on_these_rows": false,
-      "what_it_is": "The world's own hazard over these same 102 decisions, scored by the same statistic against the same outcomes."
+      "what_it_is": "`realized_churn_probability`: the world's own fully-adjusted departure probability for each of these 102 renewals -- the number `roll_lifecycle_event` actually rolled against, AFTER the passive cap, market switching, income stress and satisfaction, and before any retention offer. The grader recomputes it from the capture's four world factors rather than reading the column, and the recomputation reproduces the logged column's ordering on every pair of this capture.",
+      "crossings": [
+        {
+          "crossing": "the_belief_reads_above_it_on_the_published_rows",
+          "what_happened": "The company's belief scores HIGHER than it on the same graded decisions.",
+          "observed": true
+        },
+        {
+          "crossing": "it_failed_its_own_null_on_a_draw_the_belief_cleared",
+          "what_happened": "It could not be told from chance on rows where the belief could.",
+          "observed": true
+        },
+        {
+          "crossing": "pooling_reverses_which_of_the_two_is_higher",
+          "what_happened": "Pooling the years back in puts the two on opposite sides of each other.",
+          "observed": true
+        },
+        {
+          "crossing": "it_cleared_on_a_draw_where_the_belief_did_not",
+          "what_happened": "On a second roll of the same world's dice the two swapped which of them cleared.",
+          "observed": true
+        }
+      ],
+      "crossings_observed": 4,
+      "is_a_bound": false,
+      "the_name_it_has_earned": "the world's own departure probability, scored on one draw",
+      "not_a_bound_because": "It did 4 things on this page's own rows that a bound cannot do: The company's belief scores HIGHER than it on the same graded decisions. It could not be told from chance on rows where the belief could. Pooling the years back in puts the two on opposite sides of each other. On a second roll of the same world's dice the two swapped which of them cleared. An ordering by the true probability is the best ordering IN EXPECTATION, not on one draw of 102 decisions -- the realised concordance of the true probability is itself a random variable, and its spread is the 0.276-wide permutation interval printed beside it. A reading that scores higher than it is a draw and not a discovery. It is published because it is what was measured, and it is no longer called a ceiling."
     },
     "within_this_capture": "the_belief_ordered_these_departures_and_the_world_did_not",
     "within_this_capture_holds_because": "The belief and the ceiling are graded on the same 102 decisions, the same 41 departures and the same 384 comparable pairs, each against a permutation null drawn from those same rows. Whether one ordering beat chance on this list while another did not is a property of the list.",
@@ -323,6 +349,75 @@
       "what_was_varied": "The renewal dice, and nothing else. Same world digest, same 2016\u20132025 record, same tariffs, same hazards, same company code. `churn_roll_for_renewal` was replaced by a substitute drawing from the same uniform distribution on a different stream, so the only thing that moves is which side of its own hazard each household landed on.",
       "why_the_books_are_different_sizes": "Who leaves decides who reaches a later renewal at all, so a second draw does not produce the same rows. That is a property of the world and not a fault in the control: the question is whether the LEG reproduces, not whether the book does.",
       "never_averaged_because": "Two AUCs over two different books have no mean that describes anything. What they have is whether each cleared its OWN null on its OWN rows, and whether those answers agree. A mean of them would be a figure of neither draw."
+    },
+    "what_would_settle_this": {
+      "available": true,
+      "what_this_is": "What book would settle whether the per-customer decision discriminates between households -- the question this page's withdrawal register leaves open. Priced on the draws this world has actually been rolled, and published as a refusal where the arithmetic refuses.",
+      "the_question_is_two_questions": "\"Does the belief discriminate\" is not one quantity. It is whether the belief beats CHANCE, and whether it reaches what the WORLD orders by. They have different subjects, different evidence and different answers on this book, and a single number covering both would be a figure of neither.",
+      "questions": [
+        {
+          "question": "does_the_belief_order_departures_at_all",
+          "asks": "Does the company's belief put the accounts that left above the ones that stayed?",
+          "the_quantity": "the belief's own concordance measured against 0.5 -- the statistic this page already publishes, and the one its permutation null was drawn for",
+          "carries_a_permutation_null_of_its_own": true,
+          "per_draw": [
+            {
+              "source": "docs/observability/svt_drift_belief_grade.json",
+              "decisions": 102,
+              "value": 0.17057291666666663,
+              "decisions_needed": 62,
+              "decisions_at_the_point_estimate": 62,
+              "count_is_on_a_borrowed_width": false,
+              "withheld_because": null
+            },
+            {
+              "source": "docs/observability/renewal_belief_recapture_seed20260922_grade.json",
+              "decisions": 138,
+              "value": 0.08468468468468471,
+              "decisions_needed": null,
+              "decisions_at_the_point_estimate": 252,
+              "count_is_on_a_borrowed_width": false,
+              "withheld_because": "NO BOOK SIZE IS PUBLISHED FOR THE OBSERVED EFFECT AND NO LARGER BOOK WOULD CHANGE THAT. The count scales as (scale constant / |departure from no-information|)^2, so this run's own estimate sits in the DENOMINATOR of its own price, and it is asked only when that estimate has failed its null -- which is the statement that its interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of decisions. The observed departure is 0.0847 against a detectable 0.1144, so it fails. The arithmetic is kept as `decisions_at_the_point_estimate_for_the_observed_effect`; it is not a plan a reader could buy. The honest remedy is a different instrument, not more decisions of this one."
+            }
+          ],
+          "the_sign_is_determined_across_draws": true,
+          "settled_by_a_finite_book": null,
+          "why": "Both draws put this quantity on the same side of zero (+0.1706, +0.0847), so its sign is not what is unresolved here. What the draws disagree on is whether it CLEARS: the larger draw does not, and the producer's own rule withholds a count wherever a reading fails its own null. So this question is not settled either -- but it is short of a book rather than short of a sign, which is the reachable kind of not-settled."
+        },
+        {
+          "question": "does_the_belief_reach_what_the_world_orders_by",
+          "asks": "Does the belief find what the world's own ordering finds?",
+          "the_quantity": "the belief's concordance MINUS the world's own departure probability's on the same rows -- the quantity this page used to call a gap to a ceiling",
+          "carries_a_permutation_null_of_its_own": false,
+          "per_draw": [
+            {
+              "source": "docs/observability/svt_drift_belief_grade.json",
+              "decisions": 102,
+              "value": 0.07942708333333326,
+              "decisions_needed": null,
+              "decisions_at_the_point_estimate": 283,
+              "count_is_on_a_borrowed_width": true,
+              "withheld_because": null
+            },
+            {
+              "source": "docs/observability/renewal_belief_recapture_seed20260922_grade.json",
+              "decisions": 138,
+              "value": -0.06396396396396398,
+              "decisions_needed": null,
+              "decisions_at_the_point_estimate": 442,
+              "count_is_on_a_borrowed_width": true,
+              "withheld_because": null
+            }
+          ],
+          "the_sign_is_determined_across_draws": false,
+          "settled_by_a_finite_book": false,
+          "why": "The two draws put this quantity on OPPOSITE sides of zero (+0.0794, -0.0640). The count scales as `(scale constant / value)^2`, so an estimate whose own sign is undetermined sits in the denominator and the requirement has NO UPPER BOUND. No book size settles it, because the two draws differ only in the renewal dice and a larger book does not make two rolls agree."
+        }
+      ],
+      "verdict": "no_finite_book_settles_this_from_this_estimate",
+      "why": "No finite book settles this from this estimate. 1 of the two questions has a sign that is undetermined across the draws of this world, and a requirement of the form `(k / value)^2` whose denominator can be either sign has no upper bound -- the arithmetic does not produce a large number, it produces no number.",
+      "what_binds_is_not_the_book": "Read the counts before reading the refusal. At each draw's OWN gap magnitude the requirement is 283 and 442 scored decisions -- two to four times this book, and plainly reachable on this world. The book is not what binds. What binds is that the two draws disagree on the SIGN, and they differ in the renewal dice and nothing else: same world digest, same record, same tariffs, same hazards, same company code. No book size makes two rolls of one world agree with each other. That is a finding about the whole programme and not about this panel.",
+      "the_counts_are_not_a_plan": "R12: every count here is a bound on the INSTRUMENT and never a book to grow towards. A book enlarged until this page returns a direction is the failure this arm exists to be able to report."
     },
     "sentence": "The company's belief about who leaves at renewal clears the interval a signal carrying no information reaches. It is computed only between decisions taken in the same year and on the same route \u2014 384 of the 2,501 comparable pairs on this route, 15%. AND IT DOES NOT SURVIVE POOLING: with the years and routes put back in the belief reads 0.5940 against a ceiling of 0.6717 \u2014 the other way round. Which of the two orders these departures better is decided by the stratification, not by the book, so on this capture we cannot tell. AND IT DOES NOT SURVIVE A SECOND DRAW. Rolling the same world's renewal dice again \u2014 nothing else changed \u2014 the belief reads 0.5847 inside its null against a ceiling of 0.6486 that now CLEARS: the exact mirror of the first draw, where the belief read 0.6706 clear and the ceiling did not. Which of the two orders these departures is decided by the roll, so across draws we cannot tell.",
     "not_a_target": "No figure here is a target. This says what the belief did on one graded book; it does not price the gap and it is not an instruction to tune the belief until it ranks. A belief that cannot order its departures is a complete answer."
@@ -667,7 +762,76 @@
         "retraction_refused_because": "The 2026-09-11 fork close opens the sign gate on this leg -- the nine-seed family's mean sits 2.9 standard errors from zero against a derived bar of 2.31 -- and the composer's negative branch emits these words verbatim. That is NOT this claim re-passing its own test. What was withdrawn was a direction measured on a different seed family against a different bar: the 2026-08-29 sentence was a one-run -\u00a39,627 against an \u00a38,781 range with no bar derived at all, and the figure now clearing 2.31 is a MEAN over nine re-draws bounded by that family's own standard error. Two figures agreeing on a sign is evidence of identity and is not identity, and the population, the statistic and the bar are all different. So the words stay withdrawn and the page says the same finding in fresh words that name the bar and the standard-error count it actually cleared. Re-publishing the withdrawn sentence belongs to whoever can show it is the SAME claim -- which is a measurement nobody has made -- and not to a fork close."
       }
     ],
-    "withdrawals": 6
+    "withdrawals": 6,
+    "what_would_settle_the_question_this_leaves_open": {
+      "available": true,
+      "what_this_is": "What book would settle whether the per-customer decision discriminates between households -- the question this page's withdrawal register leaves open. Priced on the draws this world has actually been rolled, and published as a refusal where the arithmetic refuses.",
+      "the_question_is_two_questions": "\"Does the belief discriminate\" is not one quantity. It is whether the belief beats CHANCE, and whether it reaches what the WORLD orders by. They have different subjects, different evidence and different answers on this book, and a single number covering both would be a figure of neither.",
+      "questions": [
+        {
+          "question": "does_the_belief_order_departures_at_all",
+          "asks": "Does the company's belief put the accounts that left above the ones that stayed?",
+          "the_quantity": "the belief's own concordance measured against 0.5 -- the statistic this page already publishes, and the one its permutation null was drawn for",
+          "carries_a_permutation_null_of_its_own": true,
+          "per_draw": [
+            {
+              "source": "docs/observability/svt_drift_belief_grade.json",
+              "decisions": 102,
+              "value": 0.17057291666666663,
+              "decisions_needed": 62,
+              "decisions_at_the_point_estimate": 62,
+              "count_is_on_a_borrowed_width": false,
+              "withheld_because": null
+            },
+            {
+              "source": "docs/observability/renewal_belief_recapture_seed20260922_grade.json",
+              "decisions": 138,
+              "value": 0.08468468468468471,
+              "decisions_needed": null,
+              "decisions_at_the_point_estimate": 252,
+              "count_is_on_a_borrowed_width": false,
+              "withheld_because": "NO BOOK SIZE IS PUBLISHED FOR THE OBSERVED EFFECT AND NO LARGER BOOK WOULD CHANGE THAT. The count scales as (scale constant / |departure from no-information|)^2, so this run's own estimate sits in the DENOMINATOR of its own price, and it is asked only when that estimate has failed its null -- which is the statement that its interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of decisions. The observed departure is 0.0847 against a detectable 0.1144, so it fails. The arithmetic is kept as `decisions_at_the_point_estimate_for_the_observed_effect`; it is not a plan a reader could buy. The honest remedy is a different instrument, not more decisions of this one."
+            }
+          ],
+          "the_sign_is_determined_across_draws": true,
+          "settled_by_a_finite_book": null,
+          "why": "Both draws put this quantity on the same side of zero (+0.1706, +0.0847), so its sign is not what is unresolved here. What the draws disagree on is whether it CLEARS: the larger draw does not, and the producer's own rule withholds a count wherever a reading fails its own null. So this question is not settled either -- but it is short of a book rather than short of a sign, which is the reachable kind of not-settled."
+        },
+        {
+          "question": "does_the_belief_reach_what_the_world_orders_by",
+          "asks": "Does the belief find what the world's own ordering finds?",
+          "the_quantity": "the belief's concordance MINUS the world's own departure probability's on the same rows -- the quantity this page used to call a gap to a ceiling",
+          "carries_a_permutation_null_of_its_own": false,
+          "per_draw": [
+            {
+              "source": "docs/observability/svt_drift_belief_grade.json",
+              "decisions": 102,
+              "value": 0.07942708333333326,
+              "decisions_needed": null,
+              "decisions_at_the_point_estimate": 283,
+              "count_is_on_a_borrowed_width": true,
+              "withheld_because": null
+            },
+            {
+              "source": "docs/observability/renewal_belief_recapture_seed20260922_grade.json",
+              "decisions": 138,
+              "value": -0.06396396396396398,
+              "decisions_needed": null,
+              "decisions_at_the_point_estimate": 442,
+              "count_is_on_a_borrowed_width": true,
+              "withheld_because": null
+            }
+          ],
+          "the_sign_is_determined_across_draws": false,
+          "settled_by_a_finite_book": false,
+          "why": "The two draws put this quantity on OPPOSITE sides of zero (+0.0794, -0.0640). The count scales as `(scale constant / value)^2`, so an estimate whose own sign is undetermined sits in the denominator and the requirement has NO UPPER BOUND. No book size settles it, because the two draws differ only in the renewal dice and a larger book does not make two rolls agree."
+        }
+      ],
+      "verdict": "no_finite_book_settles_this_from_this_estimate",
+      "why": "No finite book settles this from this estimate. 1 of the two questions has a sign that is undetermined across the draws of this world, and a requirement of the form `(k / value)^2` whose denominator can be either sign has no upper bound -- the arithmetic does not produce a large number, it produces no number.",
+      "what_binds_is_not_the_book": "Read the counts before reading the refusal. At each draw's OWN gap magnitude the requirement is 283 and 442 scored decisions -- two to four times this book, and plainly reachable on this world. The book is not what binds. What binds is that the two draws disagree on the SIGN, and they differ in the renewal dice and nothing else: same world digest, same record, same tariffs, same hazards, same company code. No book size makes two rolls of one world agree with each other. That is a finding about the whole programme and not about this panel.",
+      "the_counts_are_not_a_plan": "R12: every count here is a bound on the INSTRUMENT and never a book to grow towards. A book enlarged until this page returns a direction is the failure this arm exists to be able to report."
+    }
   },
   "run_generated_at": "2026-09-18T05:43:40Z",
   "producing_commit": {
@@ -675,7 +839,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "7d0c8ded742e9c30a1a99d17b4de4d1131c9d92b",
+    "publishing_tree_commit": "8f315e53fcb2bdffb0207aab0a47ff08983ca592",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -687,7 +851,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 7d0c8ded7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 8f315e53f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1396,7 +1560,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "7d0c8ded742e9c30a1a99d17b4de4d1131c9d92b",
+      "publishing_tree_commit": "8f315e53fcb2bdffb0207aab0a47ff08983ca592",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1408,7 +1572,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 7d0c8ded7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 8f315e53f -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1472,11 +1636,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 166440.11,
       "run_identity": {
-        "dashboard_run_id": "run_output_db52e050a_20260922T232045Z.json",
-        "dashboard_commit": "db52e050a",
+        "dashboard_run_id": "run_output_d93c76825_20260923T010555Z.json",
+        "dashboard_commit": "d93c76825",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_b2b233ef7_20260922T043219Z.json",
-        "last_verified_commit": "b2b233ef7",
+        "last_verified_run_id": "run_output_d93c76825_20260923T010555Z.json",
+        "last_verified_commit": "d93c76825",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -5003,7 +5167,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "7d0c8ded742e9c30a1a99d17b4de4d1131c9d92b",
+    "commit": "8f315e53fcb2bdffb0207aab0a47ff08983ca592",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

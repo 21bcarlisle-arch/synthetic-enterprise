@@ -2973,8 +2973,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                       ? '<span style="color:var(--amber);font-weight:600;">we cannot tell</span>'
                       : '<span style="color:var(--green);">orders who leaves</span>'))
               + "</td></tr>"
-              + '<tr><td style="padding:1px 10px 1px 0;">The world’s own hazard '
-              + "(the ceiling), same rows</td>"
+              /* THE LABEL IS THE FEED'S NAME FOR THE QUANTITY, not "the ceiling". This row read
+                 "The world's own hazard (the ceiling)" and the word was doing work no figure on
+                 this page supports: it is `realized_churn_probability`, the probability the
+                 world's own dice rolled against, and on these rows the belief sits ABOVE it. A
+                 bound that the thing it bounds outscores is not a bound, and a reader who took
+                 the word away had been told the opposite of what the table shows. Read from the
+                 feed so the day it does bound something the label changes itself. */
+              + '<tr><td style="padding:1px 10px 1px 0;">'
+              + esc(rb.ceiling.the_name_it_has_earned
+                    || "The world’s own departure probability, same rows") + "</td>"
               + '<td style="text-align:right;padding:1px 10px 1px 0;">'
               + (rb.ceiling.auc === null || rb.ceiling.auc === undefined
                   ? "&mdash;" : Number(rb.ceiling.auc).toFixed(4))
@@ -2995,6 +3003,18 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                       ? '<span style="color:var(--green);">orders who leaves</span>'
                       : '<span style="color:var(--muted);">we cannot tell</span>'))
               + "</td></tr></table></div>"
+              /* WHAT THE SECOND ROW IS, AND THAT IT IS NOT A BOUND. The page called it a ceiling
+                 and a reader is entitled to be told why it is not called one any more -- the
+                 crossings are counted in the feed, so this sentence disappears on its own on a
+                 capture where none of them holds. Amber, because it is a correction to what this
+                 same table said. */
+              + (rb.ceiling.is_a_bound === false && rb.ceiling.not_a_bound_because
+                  ? '<p style="margin:6px 0 0;font-size:11px;color:var(--amber);">'
+                    + "<strong>It is not a ceiling.</strong> "
+                    + prose(rb.ceiling.not_a_bound_because) + "</p>"
+                  : "")
+              + '<p style="margin:4px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(rb.ceiling.what_it_is || "") + "</p>"
               /* THE CONTRAST, NAMED. Two rows a reader has to difference for themselves is the
                  shape this project publishes misleading things through. Four states, from the
                  feed, so the day the belief starts ranking its departures this sentence changes
@@ -3768,6 +3788,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          is that it publishes the unflattering direction -- which is worth nothing if it can also
          un-publish one silently. Read from the feed, not typed here. */
       var wd = d.withdrawn_claim || {};
+      /* WHAT WOULD SETTLE THE QUESTION THE WITHDRAWALS LEAVE OPEN. Two of them take away a
+         reading of whether the per-customer decision discriminates between households and put
+         nothing in its place -- correct, because the opposite is not claimed, and incomplete: a
+         reader told the belief cannot be shown to order departures asks whether that is the
+         company's failure or the BOOK'S. The answer is a refusal with arithmetic behind it, and
+         a refusal a reader cannot see is one they cannot check. Both halves are rendered -- the
+         reachable counts FIRST, because "no finite book" read alone says "we need an enormous
+         book" when the truth is that the book is not what binds. */
+      var st = wd.what_would_settle_the_question_this_leaves_open || {};
+      var settleClause = st.available
+        ? " WHAT WOULD SETTLE IT: " + (st.the_question_is_two_questions || "")
+          + " " + (st.what_binds_is_not_the_book || "") + " " + (st.why || "")
+        : " What would settle it is not stated on this publish: "
+          + (st.why || "no reason was carried") + " ";
       /* WHICH CODE MADE THIS RUN, beside the run's own timestamp -- because `generated_at` is the
          one clock on the artefact guaranteed NOT to be when the numbers were decided. A run of
          these arms takes an hour and fifty minutes against a tree that lands population changes
@@ -3796,7 +3830,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       $("arms-note").textContent =
         "From the A/B run generated " + (d.run_generated_at || "at an unknown time")
         + bookClause + objClause + " " + d.provisional_note + " " + d.not_a_target
-        + (wd.note ? " " + wd.note : "");
+        + (wd.note ? " " + wd.note : "") + settleClause;
     })
     .catch(function (err) {
       $("arms-note").textContent =

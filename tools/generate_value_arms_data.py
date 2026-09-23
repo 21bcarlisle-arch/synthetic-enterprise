@@ -5381,7 +5381,7 @@ WITHDRAWN_CLAIMS = [{
 }]
 
 
-def _withdrawn() -> dict:
+def _withdrawn(settlement: dict | None = None) -> dict:
     """The withdrawal block the page renders: the newest correction, with every earlier one kept.
 
     THE RENDERED `note` IS THE WHOLE RECORD, joined, and that is the point. The surface prints one
@@ -5389,12 +5389,27 @@ def _withdrawn() -> dict:
     the page while the feed still carried it, and a reader would see a page that had corrected
     itself once. `also_withdrawn` carries the earlier entries structurally for anything that wants
     to render them apart.
+
+    AND IT CARRIES WHAT WOULD SETTLE THE QUESTION IT LEAVES OPEN (2026-09-23). Two of these
+    withdrawals take away a reading of whether the per-customer decision discriminates between
+    households and put nothing in its place, which is correct -- the opposite is not claimed -- and
+    incomplete. A reader told the belief cannot be shown to order departures asks immediately
+    whether that is the company's failure or the BOOK'S, and a withdrawal that leaves that unasked
+    hands them a verdict on the company for what may be a property of the instrument. The answer
+    is computed once, in `_renewal_belief_settlement`, where the draws are; this block renders it
+    and never recomputes it. `None` in renders the absence and its reason, never a silent omission:
+    an unasked question and an unanswerable one read identically on a page.
     """
     newest, *older = WITHDRAWN_CLAIMS
     return dict(newest,
                 note=" ".join(claim["note"] for claim in WITHDRAWN_CLAIMS),
                 also_withdrawn=older,
-                withdrawals=len(WITHDRAWN_CLAIMS))
+                withdrawals=len(WITHDRAWN_CLAIMS),
+                what_would_settle_the_question_this_leaves_open=(
+                    settlement if isinstance(settlement, dict) else
+                    {"available": False,
+                     "why": ("the renewal belief panel could not be produced on this publish, so "
+                             "the draws that would price a requirement are not in hand")}))
 
 
 def _recorded_retraction(claim: dict) -> dict | None:
@@ -7725,6 +7740,297 @@ def _repetition_clause(rep: dict) -> str:
             "present, so it is not claimed either way.")
 
 
+#: THE FOUR THINGS A BOUND CANNOT DO, enumerated before any of them was looked up. Each is a
+#: PROPERTY asked of the draws, never a sentence typed from today's answer: on a capture where
+#: none of them holds, `is_a_bound` comes back True and the prose beside it changes itself.
+_CEILING_CROSSINGS = (
+    # NO DIRECTION WORD IN THIS SENTENCE, and it is not a style choice. It renders in two homes --
+    # its own crossing row and the joined `not_a_bound_because` -- and "scores ABOVE it on the
+    # rows" pairs a direction word with a page-element noun, which the site-wide here-relative rung
+    # fails closed on and is right to: "above" beside "rows" cannot be told from a layout claim by
+    # anything that reads the string. The comparison is stated in words that carry no direction.
+    ("the_belief_reads_above_it_on_the_published_rows",
+     "The company's belief scores HIGHER than it on the same graded decisions."),
+    ("it_failed_its_own_null_on_a_draw_the_belief_cleared",
+     "It could not be told from chance on rows where the belief could."),
+    ("pooling_reverses_which_of_the_two_is_higher",
+     "Pooling the years back in puts the two on opposite sides of each other."),
+    ("it_cleared_on_a_draw_where_the_belief_did_not",
+     "On a second roll of the same world's dice the two swapped which of them cleared."),
+)
+
+
+def _ceiling_is_not_a_bound(*, belief_auc, belief_inside, ceiling_auc, ceiling_clears,
+                            ceiling_null_width, decisions, strat: dict,
+                            repetition: dict) -> dict:
+    """WHAT THE QUANTITY THIS PANEL CALLS A CEILING ACTUALLY IS, and whether it bounds anything.
+
+    THE DEFECT. This surface published `realized_churn_probability` under the word "ceiling" and
+    under the gloss "what a perfect reader of this world would get". The first half is right and
+    the second is the error: it is the world's own fully-adjusted departure probability -- the
+    number `roll_lifecycle_event` actually rolled against, after the passive cap, market
+    switching, income stress and satisfaction, and before any retention offer
+    (`simulation/customer_events.py`, `realized_churn_probability = 1 - effective_p_retain_pre_
+    offer`). Established, not assumed: the grader recomputes it from the capture's four world
+    factors rather than reading the column, and the recomputation reproduces the logged column's
+    ORDERING on all 5,151 pairs of this capture -- zero discordant, zero tied.
+
+    WHY THAT IS NOT A BOUND, which is the whole content of this block. An ordering by the true
+    probability maximises concordance IN EXPECTATION. It does not maximise the concordance
+    REALISED on one draw of 102 decisions carrying 41 departures, because that realisation is
+    itself a random variable -- and this page prints its spread already, in the ceiling's own
+    permutation interval, which is 0.276 wide. Any reading inside a width that size can sit above
+    it without anybody having beaten the world. So a company reading above it is a draw, not a
+    discovery, and the word "ceiling" invited exactly the opposite reading.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER, which is why the four crossings are asked
+    rather than asserted. Each is a question about the draws in hand. `is_a_bound` is the
+    conjunction's negation and nothing else: on a capture where none of the four holds this
+    function says so, and no sentence anywhere needs editing for it to.
+
+    NOTHING IS RENAMED IN THE FEED. `ceiling` stays the key it has always been, because a feed
+    key is read by surfaces this producer cannot see and a rename is a silent break in every one
+    of them. What changes is what the key SAYS about itself, and the page's own label.
+    """
+    def _sign(a, b):
+        return None if None in (a, b) else (a > b)
+
+    strat = strat if isinstance(strat, dict) else {}
+    draws = (repetition.get("draws") or []) if isinstance(repetition, dict) else []
+    # THE POOLED PAIR IS ASKED OF `strat`'s OWN TWO KEYS, so the crossing is read off the same
+    # numbers the stratification block publishes rather than a second copy of them. The STRATIFIED
+    # pair is the published reading itself -- `stratification.the_published_figures_are` says so --
+    # so it is the two figures already in hand and not a third copy under another name.
+    higher_stratified = _sign(belief_auc, ceiling_auc)
+    higher_pooled = _sign(strat.get("belief_auc_pooled"), strat.get("ceiling_auc_pooled"))
+    asked = {
+        "the_belief_reads_above_it_on_the_published_rows": _sign(belief_auc, ceiling_auc),
+        # `belief_inside is False` IS THE BELIEF CLEARING. The double negative is the artefact's
+        # grammar, not a preference, and inverting it here would be a second opinion about it.
+        "it_failed_its_own_null_on_a_draw_the_belief_cleared": (
+            None if None in (ceiling_clears, belief_inside)
+            else (ceiling_clears is False and belief_inside is False)),
+        "pooling_reverses_which_of_the_two_is_higher": (
+            None if None in (higher_stratified, higher_pooled)
+            else higher_stratified != higher_pooled),
+        "it_cleared_on_a_draw_where_the_belief_did_not": (
+            any(d.get("ceiling_clears_its_own_null") and not d.get("clears_its_own_null")
+                for d in draws)
+            if draws else None),
+    }
+    crossings = [{"crossing": key, "what_happened": words, "observed": asked[key]}
+                 for key, words in _CEILING_CROSSINGS]
+    held = [row for row in crossings if row["observed"] is True]
+    undecidable = [row for row in crossings if row["observed"] is None]
+    is_a_bound = None if undecidable and not held else not held
+    return {
+        "crossings": crossings,
+        "crossings_observed": len(held),
+        "is_a_bound": is_a_bound,
+        "the_name_it_has_earned": (
+            "the world's own departure probability, scored on one draw"
+            if is_a_bound is False else "the world's own departure probability, on these rows"),
+        "not_a_bound_because": None if is_a_bound is not False else (
+            "It did {} things on this page's own rows that a bound cannot do: {} An ordering by "
+            "the true probability is the best ordering IN EXPECTATION, not on one draw of {} "
+            "decisions -- the realised concordance of the true probability is itself a random "
+            "variable, and its spread is the {:.3f}-wide permutation interval printed beside it. "
+            "A reading that scores higher than it is a draw and not a discovery. It is published "
+            "because it is what "
+            "was measured, and it is no longer called a ceiling.".format(
+                len(held), " ".join(row["what_happened"] for row in held),
+                decisions, (ceiling_null_width or 0.0))),
+    }
+
+
+#: WHAT "PER-CUSTOMER DISCRIMINATION" SPLITS INTO, named before either half is priced. They have
+#: different subjects, different evidence and -- on this book -- different verdicts, and a concept
+#: differenced before it was defined is this project's most expensive recurring shape.
+_SETTLEMENT_QUESTIONS = (
+    ("does_the_belief_order_departures_at_all",
+     "Does the company's belief put the accounts that left above the ones that stayed?",
+     "the belief's own concordance measured against 0.5 -- the statistic this page already "
+     "publishes, and the one its permutation null was drawn for",
+     "excess"),
+    ("does_the_belief_reach_what_the_world_orders_by",
+     "Does the belief find what the world's own ordering finds?",
+     "the belief's concordance MINUS the world's own departure probability's on the same rows -- "
+     "the quantity this page used to call a gap to a ceiling",
+     "gap"),
+)
+
+
+def _renewal_belief_settlement(repetition: dict) -> dict:
+    """WHAT BOOK WOULD SETTLE PER-CUSTOMER DISCRIMINATION HERE, and why no finite one does.
+
+    WHAT THE WITHDRAWAL OWES ITS READER. Told that the belief cannot be shown to order departures,
+    the first question is whether that is the company's failure or the BOOK'S -- and 102 to 138
+    renewal decisions carrying 41 departures may be a book that cannot answer either way. A
+    withdrawal that leaves that unasked hands the reader a verdict on the company for what may be
+    a property of the instrument.
+
+    THE QUESTION IS TWO QUESTIONS AND THEY DO NOT SHARE A FATE. "Does the belief discriminate"
+    resolves to "does it beat chance" and "does it reach what the world orders by", and on this
+    book those have different evidence and different answers. Differencing them into one figure
+    is the failure this repository names in its own instructions; they are enumerated in
+    `_SETTLEMENT_QUESTIONS` before either is priced.
+
+    THE ARITHMETIC IS `inference_claim.detectability`, CALLED AND NOT COPIED, for the reason
+    `_within_year_book` gives one screen down: that function reads the permuted interval the run
+    already published, takes its half-width as the smallest callable departure, fits the scale
+    constant `k = half_width * sqrt(n)` and inverts it. Its gate is carried too -- it withholds a
+    count wherever the reading fails its own null, because the run's own estimate sits in the
+    DENOMINATOR of `(k / excess)^2` and a denominator whose interval contains zero has no upper
+    bound.
+
+    AND THE SECOND QUESTION HAS NO NULL AT ALL, which is a separate refusal and the graver one.
+    Both readings carry a permutation interval; their DIFFERENCE does not, and differencing two
+    figures that each carry an interval does not produce an interval. So the count for the second
+    question is stated only at each draw's own magnitude, under a BORROWED scale constant that is
+    named as borrowed, and never as a requirement.
+
+    THE FINDING IS THAT THE BOOK IS NOT WHAT BINDS. At either draw's own gap magnitude the count
+    is a few hundred scored decisions -- two to four times this book, and plainly reachable. What
+    is not reachable is a determined SIGN: the two draws differ in the renewal dice and nothing
+    else, and they put the gap on opposite sides of zero. No book size buys agreement between two
+    rolls of the same world. That is a statement about the whole programme and not about one
+    panel, and it is why "no finite book settles this from this estimate" is the honest
+    publication rather than a number.
+    """
+    if not isinstance(repetition, dict) or not repetition.get("available"):
+        return {"available": False,
+                "why": ("the draws of this world could not be read, so there is no evidence to "
+                        "price a requirement against")}
+    draws = repetition.get("draws") or []
+    if len(draws) < 2:
+        return {"available": False,
+                "why": ("fewer than two draws of this world are on disk, so whether either "
+                        "quantity's SIGN is determined cannot be asked -- and a requirement "
+                        "priced from a single draw is the shape this block exists to refuse")}
+
+    priced = []
+    for draw in draws:
+        reading = detectability(observed=draw.get("auc"), null_low=draw.get("null_95_low"),
+                                null_high=draw.get("null_95_high"), n=draw.get("decisions"))
+        book = (reading.get("the_book_this_would_need") or {}) if reading.get("available") else {}
+        auc, ceiling_auc = _f(draw.get("auc")), _f(draw.get("ceiling_auc"))
+        k = _f(reading.get("scale_constant")) if reading.get("available") else None
+        gap = None if None in (auc, ceiling_auc) else auc - ceiling_auc
+        priced.append({
+            "source": draw.get("source"),
+            "decisions": draw.get("decisions"),
+            "departures": draw.get("departures"),
+            "scale_constant": k,
+            "excess": None if auc is None else auc - 0.5,
+            "gap": gap,
+            "clears_its_own_null": draw.get("clears_its_own_null"),
+            "decisions_needed": book.get("decisions_needed_for_the_observed_effect"),
+            "decisions_at_the_point_estimate": book.get(
+                "decisions_at_the_point_estimate_for_the_observed_effect"),
+            "withheld_because": book.get("decisions_needed_unavailable_because"),
+            # THE BORROWED COUNT, and the borrowing is in the key name so it cannot be quoted
+            # without it. See the docstring's fourth paragraph.
+            "decisions_at_this_draws_gap_on_a_borrowed_width": (
+                int(math.ceil((k / abs(gap)) ** 2)) if k and gap else None),
+        })
+
+    questions = []
+    for key, asks, quantity, field in _SETTLEMENT_QUESTIONS:
+        values = [row[field] for row in priced]
+        # THE SIGN IS THE SUBJECT, so it is asked of the draws and never of a mean. Two draws have
+        # a mean; what they do not have is a t-interval with any power -- t(1) is 12.706, and an
+        # interval that wide contains zero for every quantity on this page, which is why it is not
+        # the instrument here. Whether the two draws AGREE is the whole evidence in hand.
+        signs = [None if v is None else v > 0 for v in values]
+        determined = None if None in signs else len(set(signs)) == 1
+        questions.append({
+            "question": key,
+            "asks": asks,
+            "the_quantity": quantity,
+            "carries_a_permutation_null_of_its_own": field == "excess",
+            "per_draw": [{"source": row["source"], "decisions": row["decisions"],
+                          "value": row[field],
+                          "decisions_needed": (row["decisions_needed"] if field == "excess"
+                                               else None),
+                          "decisions_at_the_point_estimate": (
+                              row["decisions_at_the_point_estimate"] if field == "excess"
+                              else row["decisions_at_this_draws_gap_on_a_borrowed_width"]),
+                          "count_is_on_a_borrowed_width": field != "excess",
+                          "withheld_because": (row["withheld_because"] if field == "excess"
+                                               else None)}
+                         for row in priced],
+            "the_sign_is_determined_across_draws": determined,
+            "settled_by_a_finite_book": False if determined is not True else None,
+            "why": (
+                "The two draws put this quantity on OPPOSITE sides of zero ({}). The count scales "
+                "as `(scale constant / value)^2`, so an estimate whose own sign is undetermined "
+                "sits in the denominator and the requirement has NO UPPER BOUND. No book size "
+                "settles it, because the two draws differ only in the renewal dice and a larger "
+                "book does not make two rolls agree.".format(
+                    ", ".join("{:+.4f}".format(v) for v in values if v is not None))
+                if determined is False else
+                "Both draws put this quantity on the same side of zero ({}), so its sign is not "
+                "what is unresolved here. What the draws disagree on is whether it CLEARS: the "
+                "larger draw does not, and the producer's own rule withholds a count wherever a "
+                "reading fails its own null. So this question is not settled either -- but it is "
+                "short of a book rather than short of a sign, which is the reachable kind of "
+                "not-settled.".format(
+                    ", ".join("{:+.4f}".format(v) for v in values if v is not None))
+                if determined is True else
+                "One of the draws carries no value for this quantity, so whether its sign is "
+                "determined cannot be asked and no requirement is stated from it."),
+        })
+
+    # THE VERDICT IS THE CONJUNCTION, derived. A finite book settles per-customer discrimination
+    # here only if it settles BOTH halves; one half unbounded is the whole thing unbounded.
+    settled = [q["settled_by_a_finite_book"] for q in questions]
+    unbounded = [q for q in questions if q["the_sign_is_determined_across_draws"] is False]
+    reachable = [row["decisions_at_this_draws_gap_on_a_borrowed_width"] for row in priced
+                 if row["decisions_at_this_draws_gap_on_a_borrowed_width"]]
+    return {
+        "available": True,
+        "what_this_is": (
+            # A NAME, NOT A DIRECTION, for the reason this producer has now been repaired for four
+            # times: this block renders in two regions and "above" is true in neither reliably.
+            "What book would settle whether the per-customer decision discriminates between "
+            "households -- the question this page's withdrawal register leaves open. Priced on "
+            "the draws this world has actually been rolled, and published as a refusal where the "
+            "arithmetic refuses."),
+        "the_question_is_two_questions": (
+            "\"Does the belief discriminate\" is not one quantity. It is whether the belief beats "
+            "CHANCE, and whether it reaches what the WORLD orders by. They have different "
+            "subjects, different evidence and different answers on this book, and a single number "
+            "covering both would be a figure of neither."),
+        "questions": questions,
+        "verdict": ("no_finite_book_settles_this_from_this_estimate" if False in settled
+                    else "undecided" if None in settled else "a_finite_book_would_settle_it"),
+        "why": (
+            "No finite book settles this from this estimate. {} of the two questions has a sign "
+            "that is undetermined across the draws of this world, and a requirement of the form "
+            "`(k / value)^2` whose denominator can be either sign has no upper bound -- the "
+            "arithmetic does not produce a large number, it produces no number.".format(
+                len(unbounded)) if unbounded else
+            "Both halves carry a determined sign, so each requirement has an upper bound and the "
+            "counts beside them are it."),
+        # THE PART THAT IS ABOUT THE PROGRAMME. Published whenever the counts exist, because it is
+        # what stops "unbounded" being read as "we need an enormous book".
+        "what_binds_is_not_the_book": (
+            "Read the counts before reading the refusal. At each draw's OWN gap magnitude the "
+            "requirement is {} scored decisions -- two to four times this book, and plainly "
+            "reachable on this world. The book is not what binds. What binds is that the two "
+            "draws disagree on the SIGN, and they differ in the renewal dice and nothing else: "
+            "same world digest, same record, same tariffs, same hazards, same company code. No "
+            "book size makes two rolls of one world agree with each other. That is a finding "
+            "about the whole programme and not about this panel.".format(
+                " and ".join("{:,}".format(c) for c in reachable))
+            if len(reachable) >= 2 else None),
+        "the_counts_are_not_a_plan": (
+            "R12: every count here is a bound on the INSTRUMENT and never a book to grow towards. "
+            "A book enlarged until this page returns a direction is the failure this arm exists "
+            "to be able to report."),
+    }
+
+
 def _renewal_churn_belief(size_block: dict | None = None) -> dict:
     """WHETHER THE COMPANY'S BELIEF ORDERS WHO LEAVES ON THE ROUTE WHERE IT PRICES.
 
@@ -8080,8 +8386,12 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
         "what_it_is": (
             "The most direct test this company has of its own claim. On the route where the "
             "priced per-customer decisions are actually made, does the company's own belief about "
-            "who will leave put the accounts that left above the accounts that stayed? The "
-            "ceiling beside it is the world's own hazard scored the same way on the same rows."),
+            "who will leave put the accounts that left above the accounts that stayed? The second "
+            "reading is the world's own departure probability scored the same way on the same "
+            "rows — the number the world actually rolled against. It is NOT a bound on the "
+            # A NAME, NOT A DIRECTION. "the row above it" is a claim about a layout this producer
+            # cannot see; the subject is the company's belief, so it is called that.
+            "company's belief, and it carries its own account of why."),
         "decisions": route.get("decisions"),
         "departures": route.get("departures"),
         "pairs": route.get("pairs"),
@@ -8147,9 +8457,24 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
             # field that said otherwise. Its sibling `within_this_capture_holds_because` was
             # derived from `route` all along and moved correctly, which is the whole argument: on
             # one surface, one of these two sentences rotted and the other could not.
-            "what_it_is": ("The world's own hazard over these same {} decisions, scored by the "
-                           "same statistic against the same outcomes.".format(
-                               route.get("decisions"))),
+            #
+            # AND IT SAYS WHICH QUANTITY IT IS (2026-09-23). "The world's own hazard" named no
+            # column, and the gloss beside it -- "what a perfect reader of this world would get"
+            # -- was the error, not the vagueness. See `_ceiling_is_not_a_bound`.
+            "what_it_is": (
+                "`realized_churn_probability`: the world's own fully-adjusted departure "
+                "probability for each of these {} renewals -- the number `roll_lifecycle_event` "
+                "actually rolled against, AFTER the passive cap, market switching, income stress "
+                "and satisfaction, and before any retention offer. The grader recomputes it from "
+                "the capture's four world factors rather than reading the column, and the "
+                "recomputation reproduces the logged column's ordering on every pair of this "
+                "capture.".format(route.get("decisions"))),
+            **_ceiling_is_not_a_bound(
+                belief_auc=observed, belief_inside=belief_inside, ceiling_auc=ceiling,
+                ceiling_clears=ceiling_clears_here,
+                ceiling_null_width=(None if None in (ceiling_low, ceiling_high)
+                                    else ceiling_high - ceiling_low),
+                decisions=route.get("decisions"), strat=strat, repetition=repetition),
         },
         # (2) THE CLAIM THAT SURVIVES THE CAPTURE'S WORLD, and it is marked as the within-capture
         # one in the field name itself.
@@ -8205,6 +8530,10 @@ def _renewal_churn_belief(size_block: dict | None = None) -> dict:
         # by side with their own nulls and their own books; never averaged, for the reason the
         # block itself states.
         "repetition": repetition,
+        # WHAT BOOK WOULD SETTLE THE QUESTION THE WITHDRAWAL LEAVES OPEN. Computed here, where
+        # the draws are, and rendered beside the withdrawal, which is where the reader meets the
+        # question. One home, two render sites -- never two computations.
+        "what_would_settle_this": _renewal_belief_settlement(repetition),
         # THE SENTENCE IS THE PAYLOAD. Derived from the belief's own three numbers, so the prose
         # and the table beside it cannot disagree -- and from the stratification, because on this
         # capture that is what decides whether the first clause may be said at all.
@@ -14964,7 +15293,10 @@ def build(three_arm: dict | None, floor: dict | None,
                              else {"available": False,
                                    "why_not": ("no floor decomposition artefact was readable, so "
                                                "this page states no remedy")}),
-        withdrawn_claim=_withdrawn(),
+        # THE SETTLEMENT STATEMENT IS THE PANEL'S, PASSED AND NOT RECOMPUTED. Two homes for one
+        # arithmetic is how this page has come to state two answers for one quantity before.
+        withdrawn_claim=_withdrawn(
+            (base.get("renewal_churn_belief") or {}).get("what_would_settle_this")),
         run_generated_at=three_arm.get("generated_at"),
         # WHICH CODE MADE THE RUN, in the payload rather than the commit message, and above the
         # counts it decides the fate of. See `_producing_commit`.

@@ -11747,17 +11747,35 @@ def test_the_ceilings_sentence_names_the_ROUTES_OWN_decision_count(tmp_path, mon
     `within_this_capture_holds_because` took the same figure from `route` and moved correctly --
     two sentences, one surface, one source each, and only the typed one could rot.
 
+    KEYED TO THE PROPERTY AND NOT TO THE WORDING (2026-09-23). This asserted the literal phrase
+    "these same {} decisions", which is a claim about today's sentence rather than about the count
+    being derived -- and it went red when that sentence was REPLACED by a more honest one that
+    names the quantity (`realized_churn_probability`, and that it is not a bound) while still
+    deriving the count from `route`. A control pinned to the current wording reds when the code
+    becomes more honest and stays green when the claim rots, which is exactly backwards. What is
+    asserted now is the property itself, at two drives: the driven count appears in the sentence
+    and the OTHER driven count does not. No typed literal can satisfy both drives.
+
     Fires on: putting any literal back in that sentence.
     """
-    for count in (102, 77):
+    counts = (102, 77)
+    for count in counts:
+        other = next(c for c in counts if c != count)
         _renewal_grade_with(tmp_path, monkeypatch,
                             lambda g, c=count: g["per_route"]["renewal"].__setitem__(
                                 "decisions", c))
         block = gva._renewal_churn_belief()
         assert block["decisions"] == count
-        assert "these same {} decisions".format(count) in block["ceiling"]["what_it_is"], (
+        sentence = block["ceiling"]["what_it_is"]
+        assert str(count) in sentence, (
             "the ceiling's sentence does not name the count the block itself publishes: {}".format(
-                block["ceiling"]["what_it_is"]))
+                sentence))
+        # THE OTHER HALF, WHICH IS WHAT MAKES A LITERAL FIRE. A sentence carrying a typed count
+        # passes the first assertion on exactly one of the two drives and fails this one on the
+        # other; a derived count passes both.
+        assert str(other) not in sentence, (
+            "the ceiling's sentence carries {}, a count this route does not publish, so it is "
+            "typed rather than derived: {}".format(other, sentence))
 
 
 def test_the_chains_first_clause_is_ASKED_of_the_factor_table_not_asserted(
