@@ -7136,6 +7136,226 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
     }
 
 
+#: The two payload keys the reading order is over, named as a reader would check them. Written
+#: down because the order is the whole subject: a row that cannot say WHICH key it came from is a
+#: number a reader has no route back from.
+UNCONDITIONED_READING_KEY = "method_skill.fixed_horizon." + UNCONDITIONED_LEG
+SURVIVOR_READING_KEY = "method_skill.concordance"
+
+
+def _p_two_sided(p) -> str:
+    """A two-sided p as a reader can weigh it, and never as a rounded zero.
+
+    `"{:.2f}".format(0.0004)` is `0.00`, which reads as "exactly zero" -- a certainty nobody
+    measured, on the one figure this block exists to bound. Below the second decimal the phrase
+    states the bound instead of the value.
+    """
+    p = _f(p)
+    if p is None:
+        return "no two-sided p on this cut"
+    return "two-sided p below 0.01" if p < 0.01 else "two-sided p {:.2f}".format(p)
+
+
+#: WHY THE TWO FIGURES MAY NOT BE DIFFERENCED, said once and carried by every branch. The two are
+#: permuted over different decisions in different units, so their gap is not a quantity -- and
+#: "before dividing two numbers, say out loud what each one counts" is the rule this page has paid
+#: for more than any other.
+_READINGS_NOT_COMBINED = (
+    "These are two populations and two permutations, not two readings of one number. Each "
+    "interval is computed on its own decisions, neither is a correction of the other, and "
+    "nothing on this page differences them: one is scale-free over a population selected by "
+    "survival, the other is unselected and denominated in pounds, so their gap is not a quantity."
+)
+
+
+def _survivor_cut_subject(survivorship: dict) -> str:
+    """What the published concordance's "we cannot tell" is a "we cannot tell" ABOUT.
+
+    THE SUBJECT IS THE POPULATION, and getting it from the split rather than typing it is the
+    whole point: the day the drop-outs stop being the departures this sentence stops carrying the
+    caveat, and the day the split goes missing it says the question was not asked. A literal here
+    would go on asserting whichever of the three was true when it was typed.
+    """
+    split = survivorship if isinstance(survivorship, dict) else {}
+    if not split.get("available"):
+        return ("whether this method carries any information -- over a population this run never "
+                "checked for survivor conditioning")
+    if split.get("the_concordance_is_conditioned_on_survival"):
+        return "whether this method carries any information GIVEN the household stayed"
+    return "whether this method carries any information"
+
+
+def _skill_reading_order(published: dict, survivorship: dict, fixed_horizon: dict) -> dict:
+    """The two concordances IN THE ORDER A READER MEETS THEM, each naming its own population.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-23, Lane 0). `method_skill.concordance` led this block for
+    a month, captioned "does the method work?" -- and `_skill_survivorship` beside it establishes
+    that EVERY decision that figure could not score is a renewal the world recorded as a departure
+    and not one scored decision is. So the published headline answers "GIVEN the household stayed,
+    did the arm's price rank the joint value?" while the caption asks the unconditional question,
+    and the block's own text says a larger book does not fix it. The estimand that DOES answer the
+    caption was already computed, already in the payload one key away, and pointed the unflattering
+    way -- 0.4396 on 85 decisions against 0.4394 for a coin. Publishing the flattering cut as the
+    headline with the estimand one key away is this project's named recurring failure: one concept,
+    two populations, the split chosen before the definition.
+
+    THE ORDER IS DATA, NOT LAYOUT, and that is the load-bearing half. The page used to decide
+    which figure led by which paragraph was typed first, so "the reader meets the unconditioned
+    cut first" was a property of an HTML file that no control over this producer could see. It is
+    now a list this function returns in publication order, which makes the property measurable
+    where the populations are known. A third cut added later takes a place in this list rather
+    than a place in a paragraph.
+
+    EACH ROW CARRIES ITS OWN NULL, ITS OWN n AND ITS OWN POPULATION, and the two are NEVER
+    combined. They are two permutations over two populations, not two readings of one number, and
+    a page that differenced them would be committing the defect it is repairing one rung up.
+
+    FAILS CLOSED, and the refusal is the interesting branch. When the run supplies no estimand
+    the survivor cut leads by default -- there is nothing else -- so the block says SO, naming
+    `fixed_horizon`'s own reason. A page that silently reverted to the flattering cut and looked
+    identical to one that had checked is exactly what this is here to prevent.
+
+    THE CONDITIONING CLAUSE IS READ, NEVER ASSERTED. `the_concordance_is_conditioned_on_survival`
+    is three-valued on purpose: true, false, and never-measured. A run whose survivorship split is
+    absent gets the sentence saying the question was not asked, not the flattering silence and not
+    the unflattering label -- neither of which that run earned.
+    """
+    # THE SURVIVOR CUT'S NUMBERS COME FROM THE BLOCK THAT PUBLISHES THEM, never a second read of
+    # the run. `_method_skill` has already applied the fail-closed rule (no interval, no number)
+    # to those fields; reaching past it into `three_arm` would give this row a route to a figure
+    # that block withheld, which is the withheld-number-through-another-door shape this file
+    # records against itself twice.
+    pub = published if isinstance(published, dict) else {}
+    split = survivorship if isinstance(survivorship, dict) else {}
+    horizon = fixed_horizon if isinstance(fixed_horizon, dict) else {}
+    if not pub.get("available"):
+        return {"available": False,
+                "readings": [],
+                "the_estimand_verdict_is_in_the_lead": False,
+                "reason": ("the survivor cut itself is not published on this run, so there is no "
+                           "pair of readings to order: " + str(pub.get("reason") or "no reason "
+                                                               "was given")),
+                "not_combined": _READINGS_NOT_COMBINED}
+
+    # WHAT THE SURVIVOR CUT IS CONDITIONED ON, IN THE SENTENCE THAT CARRIES ITS FIGURE. The split
+    # already publishes this as a flag and a paragraph of its own; what was missing is the words
+    # travelling WITH the number, because a caveat a few hundred pixels from its figure is a
+    # caveat the figure gets quoted without.
+    if not split.get("available"):
+        conditioning = (" -- and whether that population is the households that STAYED was not "
+                        "measured on this run, so read it as a figure over the decisions that "
+                        "settled and as nothing wider than that -- ")
+        conditioned = None
+    elif split.get("the_concordance_is_conditioned_on_survival"):
+        conditioning = (
+            " -- every one of them a renewal the household stayed for, because all {dropped} "
+            "decisions this cut could NOT score are renewals the world recorded as departures "
+            "and not one scored decision is, which is what makes this figure conditional on "
+            "survival -- "
+        ).format(dropped=split.get("decisions_dropped_for_no_settled_row"))
+        conditioned = True
+    else:
+        conditioning = (" -- which this run's own survivorship split records is NOT a survivor "
+                        "population, so nothing here conditions on the household having "
+                        "stayed -- ")
+        conditioned = False
+
+    survivor = {
+        "key": SURVIVOR_READING_KEY,
+        "concordance": _f(pub.get("concordance")),
+        "null_95_low": _f(pub.get("null_95_low")),
+        "null_95_high": _f(pub.get("null_95_high")),
+        "p_two_sided": _f(pub.get("p_two_sided")),
+        "decisions": pub.get("decisions_scored"),
+        "accounts": pub.get("accounts"),
+        "conditioned_on_survival": conditioned,
+        # WHERE ITS VERDICT LIVES, NOT A COPY OF IT. The sentence has ONE home in the payload and
+        # the row NAMES it, relative to `method_skill`; the page resolves the key at render. A copy
+        # here is the two-homes-for-one-claim shape this file has paid for repeatedly, and the
+        # pointer census proves it is not theoretical: `_skill_sample_size_explanation` says "the
+        # figure beside this", registered against `.method_skill.cannot_tell`, and a page rendering
+        # a COPY leaves that field rendering nowhere while the reader is still being pointed at it.
+        "verdict_key": "cannot_tell" if pub.get("cannot_tell") else None,
+    }
+    if (survivor["concordance"] is None or survivor["null_95_low"] is None
+            or survivor["null_95_high"] is None):
+        # THE SAME FAIL-CLOSED RULE ONE RUNG DOWN. A row whose figure or interval is missing is
+        # not rendered as a row with gaps in it -- that is the bare number this block exists to
+        # refuse, arriving through the ordering instead of through the figure.
+        return {"available": False,
+                "readings": [],
+                "the_estimand_verdict_is_in_the_lead": False,
+                "reason": ("the survivor cut reaches this page without a figure or without the "
+                           "interval its own decisions earn, so it is not given a row to lead "
+                           "or to follow."),
+                "not_combined": _READINGS_NOT_COMBINED}
+    survivor["sentence"] = (
+        "Over the {n} decisions whose term settled a row this cut could score{conditioning}the "
+        "arm's own price ranks the joint value it produced at {c:.3f}, against 0.5 for a signal "
+        "carrying no information, and between {lo:.3f} and {hi:.3f} is where a signal carrying "
+        "no information lands on those {n} decisions across {a} accounts ({p})."
+    ).format(n=survivor["decisions"], conditioning=conditioning, c=survivor["concordance"],
+             lo=survivor["null_95_low"], hi=survivor["null_95_high"], a=survivor["accounts"],
+             p=_p_two_sided(survivor["p_two_sided"]))
+
+    leg = (horizon.get("legs") or {}).get(UNCONDITIONED_LEG) or {}
+    if not horizon.get("available") or _f(horizon.get("concordance")) is None:
+        return {
+            "available": True,
+            "readings": [survivor],
+            "the_estimand_verdict_is_in_the_lead": False,
+            # THE REFUSAL, ON THE SURFACE, because a page that quietly led with the survivor cut
+            # is indistinguishable from one that asked and was told no.
+            "reason": (
+                "the reading a reader meets first is the survivor-conditioned one, and not "
+                "because it is the better estimand: this run supplies no unconditioned cut to "
+                "lead with. " + str(horizon.get("reason")
+                                    or "`method_skill.fixed_horizon` is absent from this run.")),
+            "not_combined": _READINGS_NOT_COMBINED,
+        }
+
+    unconditioned = {
+        "key": UNCONDITIONED_READING_KEY,
+        "concordance": _f(horizon.get("concordance")),
+        "null_95_low": _f(horizon.get("null_95_low")),
+        "null_95_high": _f(horizon.get("null_95_high")),
+        "p_two_sided": _f(horizon.get("p_two_sided")),
+        "decisions": horizon.get("decisions_scored"),
+        # THIS LEG'S OWN ACCOUNT COUNT, never `ms.accounts`. That one belongs to the survivor cut,
+        # and quoting it over this leg's decisions would be a decisions-per-account figure built
+        # from two populations -- the shape this whole block is being repaired for.
+        "accounts": leg.get("accounts"),
+        "conditioned_on_survival": False,
+        "verdict_key": ("fixed_horizon.reading_of_the_estimand.sentence"
+                        if (horizon.get("reading_of_the_estimand") or {}).get("sentence")
+                        else None),
+    }
+    unconditioned["sentence"] = (
+        "Over EVERY decision the arm priced -- {n} of them, scored on the joint pounds each one "
+        "actually produced within {days} days of its own term start, a household that left "
+        "counting the nothing its term produced rather than dropping out of the sample -- the "
+        "arm's own price ranks that value at {c:.3f}, against 0.5 for a signal carrying no "
+        "information, and between {lo:.3f} and {hi:.3f} is where a signal carrying no "
+        "information lands on those {n} decisions across {a} accounts ({p})."
+    ).format(n=unconditioned["decisions"], days=horizon.get("horizon_days"),
+             c=unconditioned["concordance"], lo=unconditioned["null_95_low"],
+             hi=unconditioned["null_95_high"], a=unconditioned["accounts"],
+             p=_p_two_sided(unconditioned["p_two_sided"]))
+
+    return {
+        "available": True,
+        # THE UNCONDITIONED CUT FIRST. Not because it is the flattering one -- it is not, it reads
+        # below chance -- but because it is the one the caption's question is about.
+        "readings": [unconditioned, survivor],
+        # THE ESTIMAND'S VERDICT TRAVELS WITH ITS FIGURE AND THEREFORE LEAVES THE BRIDGE. Rendering
+        # it in both places would put the same sentence on the page twice, which is the defect
+        # being repaired in this file's headline in the same change.
+        "the_estimand_verdict_is_in_the_lead": bool(unconditioned["verdict_key"]),
+        "reason": None,
+        "not_combined": _READINGS_NOT_COMBINED,
+    }
+
+
 def _skill_leg_conditioning(horizon: dict) -> dict:
     """WHICH LEGS ADMIT THE DEPARTURES, read off the run and NEVER recomputed here.
 
@@ -8662,7 +8882,13 @@ def _method_skill(three_arm: dict) -> dict:
                 "run carries `method_skill.null_spread`: " + str(
                     spread.get("reason") or "the spread is absent")),
         }
-    return {
+    # COMPUTED BEFORE THE BLOCK AND NOT INSIDE IT, because `_skill_reading_order` is a statement
+    # ABOUT these two and has to be handed both. Reading them back out of the payload afterwards
+    # would work; taking them as arguments is what makes it impossible for the ordering to
+    # describe a survivorship split or an estimand other than the ones published.
+    survivorship = _skill_survivorship(ms)
+    fixed_horizon = _skill_fixed_horizon(ms)
+    block = {
         "available": True,
         "concordance": _f(ms.get("concordance")),
         "null_point": _f(ms.get("null_constant_signal_concordance")),
@@ -8678,8 +8904,16 @@ def _method_skill(three_arm: dict) -> dict:
         # three numbers by `tools.inference_claim` rather than from the `inside_the_null` flag
         # beside it, so a stale flag cannot silence it. None when the figure clears its null,
         # so the render has nothing to decide.
+        # ...AND THE SUBJECT NAMES THE POPULATION IT IS ASKED OVER (2026-09-23, Lane 0). It read
+        # "whether this method carries any information" for a month, which is the UNCONDITIONAL
+        # question -- and `survivorship` beside it establishes that this figure is scored over
+        # households that stayed, so the sentence was putting the wide question on the narrow
+        # cut. The clause is READ off the split's own three-valued flag, never typed: a run whose
+        # split is absent gets a subject that says the question was not asked, because "not
+        # conditioned" and "we did not look" are the two readings this whole block exists to
+        # keep apart, and the flattering one is not the safe default here.
         "cannot_tell": cannot_tell_sentence(
-            subject="whether this method carries any information",
+            subject=_survivor_cut_subject(survivorship),
             observed=_f(ms.get("concordance")),
             null_low=_f((spread.get("null_95_interval") or [None, None])[0]),
             null_high=_f((spread.get("null_95_interval") or [None, None])[1]),
@@ -8721,13 +8955,13 @@ def _method_skill(three_arm: dict) -> dict:
         # wait for a bigger book; this says the class IS the departures, so a bigger book buys
         # none of them back. Published beside it deliberately: the two answer the same reader's
         # question and only one of them has been measured against the world's event log.
-        "survivorship": _skill_survivorship(ms),
+        "survivorship": survivorship,
         # ...AND THE CUT THAT DOES NOT DROP THEM. `survivorship` says the concordance above is
         # computed over survivors and that no book size fixes it; this is the estimand that scores
         # every priced decision instead, a departure at the small-or-zero value it produced. BOTH
         # POPULATIONS ARE NAMED ON THE PAGE -- a rung reported alone is a rung chosen, and the
         # survivor-only rung is the flattering one.
-        "fixed_horizon": _skill_fixed_horizon(ms),
+        "fixed_horizon": fixed_horizon,
         "churn_auc_for_contrast": _f(
             ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
         # THE CONTRAST FIGURE CARRIES ITS OWN NULL, for the same reason the concordance beside it
@@ -8762,6 +8996,12 @@ def _method_skill(three_arm: dict) -> dict:
             "confidently and using the ranking to extract."),
         "reading": spread.get("reading"),
     }
+    # AND WHICH OF THE TWO A READER MEETS FIRST, as a property of this payload rather than of a
+    # paragraph order in an HTML file. Attached after the block is built, so it can only ever
+    # describe the figures this block actually publishes -- see `_skill_reading_order` for the
+    # defect that makes the ordering load-bearing.
+    block["reading_order"] = _skill_reading_order(block, survivorship, fixed_horizon)
+    return block
 
 
 #: WHAT THE HOUSEHOLD-SIDE FIGURE DOES NOT COVER, stated on the page beside the number rather
@@ -15706,7 +15946,12 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # than flat rules while the published headline said it earned more. The selection direction
     # had been made derived for exactly this reason and the arm-vs-control direction was left
     # behind, which is a half-finished repair rather than an oversight of a different kind.
-    opening = _arm_vs_control_clause(advantage, advantage_spread, spreads)
+    # ONE WHY PER PARAGRAPH, TAKEN BY WHICHEVER LEG REFUSES FIRST. Both legs can be withheld on
+    # one run and they are withheld for the same reason -- `_seed_spreads` withholds per clock,
+    # not per contrast -- so handing the same token to both is what stops `headline` carrying a
+    # thousand identical characters twice. See `_once` for why this is a take and not a flag.
+    reason_once = _once(_withheld_spread_reason(spreads))
+    opening = _arm_vs_control_clause(advantage, advantage_spread, spreads, reason_once)
 
     # THE ESTIMATE THE READER MEETS, OVER THE SAME POPULATION AS ITS BOUND (2026-09-10). Until
     # this date the sentence below led with `selection` -- the ONE published run -- and qualified
@@ -15738,7 +15983,7 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
              "alone would have earned, £{:,.0f} separates the two on the single run this page "
              "publishes").format(abs(selection)),
             "whether the per-customer choosing is worth anything at all, in either direction",
-            spreads)
+            spreads, reason_once)
     elif leg.get("sign_is_stateable") is not True:
         body = _cannot_tell_from_the_family(leg)
     elif leg["estimate_gbp"] < 0:
@@ -15943,7 +16188,57 @@ def _cannot_tell_from_the_family(leg: dict) -> str:
              else "{:.2f}".format(leg["sems_needed_to_state_a_sign"])))
 
 
-def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) -> str:
+def _withheld_spread_reason(spreads) -> str | None:
+    """Why `_seed_spreads` withheld every bound on this clock, or `None` when it withheld none.
+
+    ONE READER OF THAT FIELD, because the branch it selects and the words it prints have to be
+    the same decision. Asking `spreads.get("reason")` directly is how a caller ends up with a
+    reason it cannot use and a branch that says no floor was ever run -- which is a refusal
+    naming a cause nobody observed, the 2026-08-31 defect `_cannot_resolve` records against
+    itself.
+    """
+    spreads = spreads or {}
+    return spreads.get("reason") if not spreads.get("available", True) else None
+
+
+def _once(text: str | None):
+    """A clause that belongs in a paragraph ONCE, handed to whichever refusal reaches it first.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-23). `_seed_spreads` withholds every bound on a clock for
+    ONE reason, and `_selection_sentence` composes TWO refusals from it -- the arm-versus-control
+    leg and the selection leg. Both were withheld on the published run, so `headline` went out
+    carrying the same ~1,000-character paragraph ("THE ERROR BAR IS OLDER THAN THE FIGURE IT
+    BOUNDS...") twice, verbatim, in one field. It was not two claims: it was one reason, printed
+    once per leg that needed it.
+
+    THE SAME RULE THE REMEDY HAS HAD SINCE 2026-08-29, and `_cannot_resolve`'s own docstring
+    already argues it in those words: "a remedy stapled to each printed the same forty words
+    twice in one paragraph, which is how a sentence a reader needs becomes one they skip". The
+    remedy was lifted to the caller and the reason was left behind, which is a half-finished
+    repair rather than an oversight of a different kind.
+
+    A TAKE, NOT A FLAG, and that is the load-bearing part. A boolean would have to be computed by
+    re-deriving which branch the FIRST refusal took -- a second copy of `_arm_vs_control_clause`'s
+    gate, in the caller, drifting from it the first time either is touched. Handing out the text
+    is the same decision as printing it, so the two cannot disagree.
+
+    EXHAUSTION IS NOT THE SAME AS ABSENCE. A caller that takes `None` because another leg got
+    there first must NOT fall through to "no floor has been run" -- that is the fail-open reading
+    this function's subject exists to refuse -- so the caller asks `_withheld_spread_reason` for
+    whether a reason exists and asks this only for whether it is still unsaid.
+    """
+    remaining = [text]
+
+    def take():
+        value = remaining[0]
+        remaining[0] = None
+        return value
+
+    return take
+
+
+def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None,
+                    reason_once=None) -> str:
     """The sentence a contrast inside its own floor gets: the SIZE, the BOUND, and the refusal to
     state a sign. On the surface, never in a footnote.
 
@@ -15963,9 +16258,17 @@ def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) ->
     been run, and hides that the bound on disk is simply from the wrong book. `_seed_spreads`
     withholds those bounds and says why; this sentence repeats the why rather than inventing one.
     """
-    withheld_because = (spreads or {}).get("reason") if not (spreads or {}).get(
-        "available", True) else None
+    withheld_because = _withheld_spread_reason(spreads)
     if _f((spread or {}).get("stdev_gbp")) is None and withheld_because:
+        # THE REASON IS THE PARAGRAPH'S, NOT THIS LEG'S (2026-09-23). Both legs of the headline
+        # can be withheld on one run -- both were on the run this page publishes -- and they are
+        # withheld for the SAME reason, because `_seed_spreads` withholds per clock and not per
+        # contrast. Printing it in each refusal put a thousand identical characters in `headline`
+        # twice. The leg still states its own refusal; only the why is shared. See `_once`.
+        said = withheld_because if reason_once is None else reason_once()
+        if not said:
+            return ("{size}. Its DIRECTION is not stated here either, and for the same "
+                    "reason.".format(size=size_clause))
         # THE REASON IS TERMINATED HERE AND NOT AT ITS AUTHOR. `_seed_spreads` composes these as
         # clauses -- "...so no contrast is bounded from them" -- and this is the one place they
         # become a sentence with another sentence after them. Without this the headline read
@@ -15975,8 +16278,8 @@ def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) ->
         # month cannot reintroduce it.
         return ("{size}. Its DIRECTION is not stated here, and the reason is not that no floor "
                 "has been run: {why}{stop}".format(
-                    size=size_clause, why=withheld_because,
-                    stop="" if withheld_because.rstrip().endswith((".", "!", "?")) else "."))
+                    size=size_clause, why=said,
+                    stop="" if said.rstrip().endswith((".", "!", "?")) else "."))
     if _f((spread or {}).get("stdev_gbp")) is None:
         return ("{size}. No seed spread has been measured for that contrast on this clock, so its "
                 "DIRECTION is not stated here: on a comparison this size an unbounded sign is a "
@@ -15997,7 +16300,7 @@ def _clears_its_floor(spread) -> str:
         stdev, (spread or {}).get("n"))
 
 
-def _arm_vs_control_clause(advantage, spread=None, spreads=None) -> str:
+def _arm_vs_control_clause(advantage, spread=None, spreads=None, reason_once=None) -> str:
     """Did the per-customer arm beat flat rules, or not? Stated in the direction it came out --
     and ONLY when the gap is bigger than the gap seeds alone produce.
 
@@ -16022,7 +16325,7 @@ def _arm_vs_control_clause(advantage, spread=None, spreads=None) -> str:
             advantage, spread,
             ("Running the same book through the per-customer decision engine came out £{:,.0f} "
              "from flat rules").format(abs(advantage)),
-            "which of the two earned more", spreads)
+            "which of the two earned more", spreads, reason_once)
     if advantage > 0:
         return ("Running the same book through the per-customer decision engine earned "
                 "£{:,.0f} MORE than flat rules{}.".format(advantage, _clears_its_floor(spread)))

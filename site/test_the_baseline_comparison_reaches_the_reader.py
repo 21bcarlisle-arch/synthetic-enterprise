@@ -3508,6 +3508,123 @@ def test_the_oracle_ceiling_reaches_the_reader_as_a_number_not_a_verdict(live):
     assert str(grade["renewals"]) in rendered
 
 
+# ── which of the two concordances a reader meets first ────────────────────────────────────────
+#
+# THE DEFECT (2026-09-23, Lane 0). This block led with `method_skill.concordance` — 0.482 on 54
+# decisions — under the caption "Does the method work?", while the survivorship split further down
+# the same block established that every decision that figure could NOT score is a renewal the world
+# recorded as a departure and that not one scored decision is. So the number a reader met first
+# answers "given the household stayed, did the price rank the joint value?" against a caption
+# asking the unconditional question, and the split's own text says a larger book does not fix it.
+# The estimand that DOES answer the caption was in the payload one key away, scored on 85
+# decisions, and reads BELOW chance. Publishing the flattering cut as the headline is this
+# project's named recurring failure: one concept, two populations, the split chosen before the
+# definition.
+#
+# DRIVEN THROUGH THE REAL PRODUCER, never through a dict this file wrote. `_skill_reading_order`
+# composes the rows and their sentences; a synthetic order authored here would prove the door can
+# render a list and would say nothing about what the page publishes. Same discipline as
+# `_consequence_feed` below.
+
+
+def _reading_order_feed():
+    """The live feed with its reading order composed by the REAL producer, from its own blocks.
+
+    The PUBLISHED feed predates the ordering, so the live rung exercises the door's fallback and
+    the ordered branch would ship unseen — a render nobody has looked at, waiting for the first
+    regeneration. This closes that gap the only honest way: the producer builds the order from the
+    published block's own survivorship split and estimand, and the door renders what it built.
+    """
+    from tools import generate_value_arms_data as gvad
+
+    feed = copy.deepcopy(_live_feed())
+    msk = feed["method_skill"]
+    msk["reading_order"] = gvad._skill_reading_order(
+        msk, msk.get("survivorship"), msk.get("fixed_horizon"))
+    return feed, msk["reading_order"]
+
+
+def test_the_reader_meets_the_UNCONDITIONED_cut_before_the_survivor_cut():
+    """THE ORDERING, IN THE RENDERED DOM, and keyed to the conditioning rather than to a key name.
+
+    Fires on: the page choosing its own paragraph order again; the survivor cut being restored to
+    the head of the list; either figure losing the population it is scored over.
+    """
+    feed, order = _reading_order_feed()
+    if not order.get("available") or len(order.get("readings") or []) < 2:
+        pytest.fail("the producer composed no ordering from the published block ({}), so this "
+                    "control is measuring an absence".format(order.get("reason")))
+    lead, second = order["readings"][0], order["readings"][1]
+    assert lead["conditioned_on_survival"] is False, (
+        "the producer leads with a survivor-conditioned reading, which is the defect itself")
+
+    rendered = _text(_render(feed)["arms-method"])
+    first_at = rendered.find("{:.3f}".format(lead["concordance"]))
+    second_at = rendered.find("{:.3f}".format(second["concordance"]))
+    assert first_at >= 0 and second_at >= 0, (
+        "one of the two concordances does not reach the reader at all")
+    assert first_at < second_at, (
+        "the survivor-conditioned figure reaches the reader before the unconditioned estimand")
+
+    # AND EACH NAMES ITS OWN POPULATION WHERE A READER SEES IT, which is the half that makes the
+    # ordering readable: two numbers in order, over populations a reader cannot name, is the same
+    # defect rearranged.
+    assert _door_prose(lead["sentence"])[:120] in rendered
+    assert _door_prose(second["sentence"])[:120] in rendered
+    assert "conditional on survival" in rendered, (
+        "the survivor cut reaches the reader without the conditioning its own split records")
+    assert _door_prose(order["not_combined"])[:80] in rendered, (
+        "the page publishes two populations and says nothing about differencing them")
+
+
+def test_the_estimands_verdict_reaches_the_reader_once_and_not_twice():
+    """ONE SENTENCE, ONE HOME. Fires on the bridge printing a verdict the lead already carried.
+
+    `readingOrder` renders the estimand's "we cannot tell" beside its own figure, so
+    `fixedHorizonBlock` must stop rendering it — the same duplication being repaired in this
+    producer's `headline` in the same change, arriving through the other door. The page gates on
+    the FEED's flag, so the day the lead stops carrying the sentence the bridge renders it again
+    with nobody editing the page.
+    """
+    feed, order = _reading_order_feed()
+    verdict = ((feed["method_skill"].get("fixed_horizon") or {})
+               .get("reading_of_the_estimand") or {}).get("sentence")
+    if not verdict or not order["readings"][0].get("verdict_key"):
+        pytest.skip("the estimand clears its null on this run, so there is no verdict to double")
+
+    rendered = _text(_render(feed)["arms-method"])
+    needle = _door_prose(verdict)[:90]
+    assert rendered.count(needle) == 1, (
+        "the estimand's verdict reaches the reader {} times in one block".format(
+            rendered.count(needle)))
+
+    # THE TEETH: the bridge must still print it when the lead does NOT. A page that simply dropped
+    # the sentence would pass the count above and publish a figure with no verdict at all.
+    feed["method_skill"]["reading_order"]["the_estimand_verdict_is_in_the_lead"] = False
+    feed["method_skill"]["reading_order"]["readings"][0]["verdict_key"] = None
+    assert needle in _text(_render(feed)["arms-method"]), (
+        "with the lead carrying no verdict the bridge does not print one either, so the estimand "
+        "reaches the reader unqualified")
+
+
+def test_a_feed_with_no_reading_order_still_renders_its_figure_with_its_interval():
+    """THE FALLBACK, WHICH IS NOT DECORATION. Fires on the ordered branch taking the block over.
+
+    Feeds generated before the ordering existed carry one concordance and no list. A page that
+    rendered nothing for them would drop the method figure entirely on every published copy until
+    the next regeneration, which is a blank where a bound number belongs.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["method_skill"].pop("reading_order", None)
+    rendered = _text(_render(feed)["arms-method"])
+    msk = feed["method_skill"]
+    assert "{:.3f}".format(msk["concordance"]) in rendered
+    assert "{:.3f}".format(msk["null_95_low"]) in rendered, (
+        "the fallback renders the figure without the range a random signal produces")
+    assert "{} decisions on {} accounts".format(
+        msk["decisions_scored"], msk["accounts"]) in rendered
+
+
 # ── the 20 → 6 funnel, and the code that drew the book it was measured on ─────────────────────
 
 

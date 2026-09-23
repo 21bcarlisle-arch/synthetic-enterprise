@@ -855,6 +855,69 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + prose(sv.reading) + "</p>";
   }
 
+  /* THE TWO CONCORDANCES, IN THE FEED'S ORDER AND NOT IN THIS FILE'S.
+
+     THE DEFECT (2026-09-23, Lane 0). This block led with `method_skill.concordance` — 0.482 on
+     54 decisions — under the caption "Does the method work?". The survivorship split further
+     down establishes that every decision that figure could not score is a renewal the world
+     recorded as a DEPARTURE and not one scored decision is, so the number a reader met first
+     answers "given the household stayed, did the price rank the joint value?" while the caption
+     asks the unconditional question. The estimand that does answer the caption was already in
+     the payload one key away, scored on 85 decisions, and it reads BELOW chance. A page that
+     leads with the flattering cut and explains why it is flattering three paragraphs later has
+     chosen the rung in front of the reader.
+
+     THE ORDER IS THE FEED'S, which is the part that cannot rot. Deciding it here would make
+     "the reader meets the unconditioned cut first" a property of paragraph order in an HTML
+     file, invisible to every control over the producer; `_skill_reading_order` returns the rows
+     in publication order and this renders whatever it is handed. A third cut takes a place in
+     that list, not a place in this function.
+
+     EVERY SENTENCE IS THE FEED'S TOO. Each row names its own population, its own n and its own
+     interval, composed where the populations are known. Nothing here differences the two — see
+     `not_combined`, which is why that line is rendered and not summarised.
+
+     EMPTY STRING WHEN THE FEED CARRIES NO ORDER, so the caller falls back to the single-figure
+     render rather than showing a reader nothing. */
+  function readingOrder(ro, msk) {
+    if (!ro || !ro.available || !ro.readings || !ro.readings.length) { return ""; }
+    /* THE VERDICT IS RESOLVED FROM THE FIELD THAT OWNS IT, never read out of the row.
+
+       Each row NAMES where its "we cannot tell" lives, relative to `method_skill`, and this walks
+       to it. A copy on the row would render the same words and leave the owning field rendering
+       nowhere — which is not cosmetic: `_skill_sample_size_explanation` says "the figure beside
+       this" and is registered against `.method_skill.cannot_tell`, so a page rendering a copy
+       points a reader at something this door does not render. One sentence, one home, resolved
+       here. */
+    var verdictFor = function (r) {
+      if (!r.verdict_key) { return null; }
+      var node = msk || {}, parts = String(r.verdict_key).split(".");
+      for (var i = 0; i < parts.length && node != null; i++) { node = node[parts[i]]; }
+      return typeof node === "string" && node ? node : null;
+    };
+    return ro.readings.map(function (r, i) {
+      var verdict = verdictFor(r);
+      return '<p style="margin:0 0 4px;font-size:13px;'
+        + (i === 0 ? "font-weight:600;" : "") + '">' + prose(r.sentence) + "</p>"
+        /* THE VERDICT TRAVELS WITH THE FIGURE, never three paragraphs from it. "We cannot tell"
+           is the result, and a figure that reaches a reader ahead of its own refusal is a figure
+           they have already taken. */
+        + (verdict
+            ? '<p style="margin:0 0 10px;font-size:12.5px;font-weight:600;'
+              + 'color:var(--amber);">' + prose(verdict) + "</p>"
+            : "");
+    }).join("")
+      /* THE REFUSAL BRANCH RENDERS TOO. A run supplying no unconditioned cut leads with the
+         survivor one by default, and a page that did that silently is indistinguishable from
+         one that checked. */
+      + (ro.reason
+          ? '<p style="margin:0 0 6px;font-size:11.5px;font-weight:600;color:var(--amber);">'
+            + prose(ro.reason) + "</p>"
+          : "")
+      + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+      + prose(ro.not_combined) + "</p>";
+  }
+
   /* THE SECOND CUT, AND IT IS PUBLISHED BESIDE THE FIRST RATHER THAN INSTEAD OF IT.
 
      The block above tells the reader the concordance is computed over SURVIVORS — the decisions
@@ -880,7 +943,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      THE VERDICT IS NOT WRITTEN HERE, for the same reason the survivorship verdict is not:
      `_fixed_horizon_reading` composes it from the legs' own numbers, so the day admitting the
      departures stops lowering the figure this page says so without anybody editing it. */
-  function fixedHorizonBlock(fh) {
+  function fixedHorizonBlock(fh, verdictIsInTheLead) {
     if (!fh || !fh.available) {
       /* TWO DIFFERENT ABSENCES, told apart — the same three-state problem the survivorship block
          was corrected for. A feed generated before this producer existed carries no key at all
@@ -1083,7 +1146,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          reader arriving at 0.4209 has to be told whether it is distinguishable from a signal
          carrying nothing BEFORE being told what the legs decompose into, or the decomposition
          reads as an account of a real effect that may not be one. */
-      + verdict(fh.reading_of_the_estimand)
+      /* ...UNLESS IT ALREADY TRAVELLED WITH THE FIGURE. Since the estimand leads this block, its
+         verdict is rendered beside its own number by `readingOrder` — printing it here as well
+         would put the identical sentence on the page twice, which is the defect being repaired
+         in this producer's `headline` in the same change. The flag is the FEED's
+         (`reading_order.the_estimand_verdict_is_in_the_lead`), so the day the lead stops
+         carrying the sentence this renders it again with nobody editing the page. */
+      + (verdictIsInTheLead ? "" : verdict(fh.reading_of_the_estimand))
       /* ...AND WHAT THE INVERSION IS MADE OF, IN THE SAME BREATH AS THE FIGURE (2026-09-09,
          Lane 0). The sentence above says the ranking is real and inverted. Until this block the
          page then left the reader to guess what produced it, while rendering the count of
@@ -3540,17 +3609,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 
       var msk = d.method_skill || {};
       if (msk.available) {
-        $("arms-method").innerHTML =
-          '<p style="margin:16px 0 6px;font-size:13px;"><strong>Does the method work?</strong> '
-          + prose(msk.what_it_is) + "</p>"
-          + '<p style="margin:0 0 6px;font-size:13px;">The arm\u2019s own price ranks jointly '
-          + "created value at <strong>" + msk.concordance.toFixed(3)
-          + "</strong>, against <strong>0.5</strong> for a signal carrying no information. "
-          + '<span style="color:var(--amber);font-weight:600;">A random signal lands between '
-          + msk.null_95_low.toFixed(3) + " and " + msk.null_95_high.toFixed(3)
-          + " on this many decisions</span> (" + esc(msk.decisions_scored)
-          + " decisions on " + esc(msk.accounts) + " accounts, two-sided p "
-          + msk.p_two_sided.toFixed(2) + ").</p>"
+        /* WHICH FIGURE A READER MEETS FIRST IS THE FEED'S CALL, see `readingOrder`. The
+           fallback below is not decoration: a feed generated before the ordering existed carries
+           one concordance and no list, and it must still render that figure WITH its interval
+           rather than going blank. Same three-state discipline as every other block here. */
+        var lead = readingOrder(msk.reading_order, msk);
+        if (!lead) {
+          lead =
+            '<p style="margin:0 0 6px;font-size:13px;">The arm\u2019s own price ranks jointly '
+            + "created value at <strong>" + msk.concordance.toFixed(3)
+            + "</strong>, against <strong>0.5</strong> for a signal carrying no information. "
+            + '<span style="color:var(--amber);font-weight:600;">A random signal lands between '
+            + msk.null_95_low.toFixed(3) + " and " + msk.null_95_high.toFixed(3)
+            + " on this many decisions</span> (" + esc(msk.decisions_scored)
+            + " decisions on " + esc(msk.accounts) + " accounts, two-sided p "
+            + msk.p_two_sided.toFixed(2) + ").</p>"
           /* THE WORDS, WHEN THE READING CANNOT BE TOLD FROM CHANCE. Director, 2026-08-30: "If
              the concordance sits inside its null, the page says we cannot tell, in those words."
              The interval was already here and so was the artefact's own reading — "does not
@@ -3558,10 +3631,15 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
              language a reader carries away as a near-miss. The feed computes the sentence from
              the three numbers and sends null when the figure clears its null, so there is
              nothing to decide here and no second place the phrase can drift. */
-          + (msk.cannot_tell
-              ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
-                + 'color:var(--amber);">' + prose(msk.cannot_tell) + "</p>"
-              : "")
+            + (msk.cannot_tell
+                ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
+                  + 'color:var(--amber);">' + prose(msk.cannot_tell) + "</p>"
+                : "");
+        }
+        $("arms-method").innerHTML =
+          '<p style="margin:16px 0 6px;font-size:13px;"><strong>Does the method work?</strong> '
+          + prose(msk.what_it_is) + "</p>"
+          + lead
           /* AND WHAT IT COULD HAVE DETECTED — the other half of "we cannot tell". A null result
              from an instrument with no power to return anything else produces exactly the line
              above, and for four days this page carried "0.517 sits inside 0.429–0.572" with
@@ -3630,7 +3708,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           /* AND THE CUT THAT DOES NOT DROP THEM. Immediately after the split that says the figure
              above conditions on survival, because a page that names the selection and then shows
              only the selected figure has chosen the flattering rung in front of the reader. */
-          + fixedHorizonBlock(msk.fixed_horizon)
+          + fixedHorizonBlock(msk.fixed_horizon,
+                              (msk.reading_order || {}).the_estimand_verdict_is_in_the_lead)
           // THE CONTRAST FIGURE CARRIES ITS OWN NULL TOO. This line put a bounded 0.333 beside a
           // bare 0.130 and invited the reader to compare them; one of the two was a number they
           // could weigh and the other was not.
