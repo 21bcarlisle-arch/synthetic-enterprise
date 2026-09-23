@@ -1062,6 +1062,15 @@ def extract_report_data(run_output: dict) -> dict:
         # back. Third recorded instance of the silent-drop class in this dict.
         "demand_provider_by_customer": phase2b.get("demand_provider_by_customer", {}),
         "fabric_eligibility": phase2b.get("fabric_eligibility", []),
+        # THE GAS HALF OF THE SAME GUARANTEE, and the FOURTH instance of the class the comment
+        # above names (2026-09-23). `run_phase2b` was taught to return
+        # `gas_shape_provider_by_customer` and `gas_shape_refusals` on 2026-09-18 -- who settles on
+        # their own seasonal gas shape and who keeps the population 70/30 split -- with a control
+        # asserting the runner RETURNS them. It does. They still reached no artefact, because this
+        # dict is a WHITELIST and returned is not published. The run of 2026-09-23T10:15Z carried
+        # the code and published neither key.
+        "gas_shape_provider_by_customer": phase2b.get("gas_shape_provider_by_customer", {}),
+        "gas_shape_refusals": phase2b.get("gas_shape_refusals", []),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         # WHAT THAT COUNT COUNTS, beside it rather than in a note (2026-08-29,
