@@ -5858,6 +5858,104 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
     }
 
 
+def arm_population_pair(result: dict) -> dict:
+    """What each arm MET, as the pair that decides which quantity `selection_gbp` is.
+
+    WHY THIS IS ON EVERY SEED ROW. `level_vs_selection`'s own docstring says `flat_at_level`
+    "applies ONE uplift to EXACTLY the renewals the value arm priced, so the two arms differ by
+    the CHOOSING and by nothing else". That sentence is the whole warrant for reading the residual
+    as the worth of choosing -- and on 2026-09-18 it was measured false: the value arm declines
+    renewals the level arm prices, so the residual has been carrying a population difference as
+    well as the choosing. The check at `level_arm_decision_shape` was described as "reported, not
+    raised on" and then reported to nothing: no artefact on disk carried it, so no consumer and no
+    fold could see it.
+
+    IT IS THE PAIR, NOT A RECONSTRUCTED PRICED COUNT. `arm_decision_shape` returns `priced` as
+    `len(log)` -- every renewal the arm SAW -- with the refusals counted separately in `declined`,
+    and its two early-return branches do not hold `priced - declined` as an identity. Subtracting
+    them here would publish a negative population on the branch where an arm declined everything.
+    Two arms met the same population when both counts match, and that is decidable on every branch
+    without arithmetic on either.
+
+    FAILS CLOSED TO None, NEVER TO True. A run with no level arm, or one predating this block, has
+    not been measured equal -- it has not been measured. `None` is the answer that keeps a fold
+    from pooling it with a run that WAS measured, which is the point of carrying it at all.
+    """
+    value = result.get("decision_shape") or {}
+    level = result.get("level_arm_decision_shape") or {}
+    if not value or not level:
+        return {
+            "same_population": None,
+            "value_arm": None,
+            "level_arm": None,
+            "unavailable_because": (
+                "this run produced no {} decision shape, so the two arms' populations were never "
+                "compared".format("value arm" if not value else "level arm")),
+        }
+    pair = {
+        "value_arm": {"priced": value.get("priced"), "declined": value.get("declined", 0)},
+        "level_arm": {"priced": level.get("priced"), "declined": level.get("declined", 0)},
+    }
+    return {
+        "same_population": pair["value_arm"] == pair["level_arm"],
+        "value_arm": pair["value_arm"],
+        "level_arm": pair["level_arm"],
+        "unavailable_because": None,
+    }
+
+
+def arm_population_instrument(rows: list[dict]) -> dict:
+    """The family's own answer to "which instrument were these seeds drawn on", off the seed rows.
+
+    FOUR ANSWERS AND NOT THREE, and the fourth is why this is a function rather than an `all()`.
+    A family whose seeds DISAGREE is not a family on either instrument -- but if it reported the
+    same `None` an un-instrumented artefact reports, the fold would pool a mixed family with a
+    legacy one and call the two "agreed". `mixed-across-seeds` is a distinct value so that the
+    pairing key in `FOLD_MUST_AGREE` separates them; the absent key on an artefact written before
+    2026-09-18 stays `None`, which is the only thing silence can honestly mean.
+
+    THIS IS KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. It does not know which side of the
+    `FLAT_AT_LEVEL` repair it is on and must not: when the two arms are made to meet one
+    population this reads `one-population` without being edited, and a later change that parts
+    them again reads `two-populations` without being edited. A constant naming the repair would
+    go stale the first time anything else moved the arms apart.
+    """
+    if not rows:
+        return {"instrument": None, "seeds_measured": 0,
+                "unavailable_because": "this family has no seed rows"}
+    answers = [((row.get("arm_populations") or {}).get("same_population")) for row in rows]
+    unmeasured = sum(1 for a in answers if a is None)
+    if unmeasured:
+        return {
+            "instrument": None,
+            "seeds_measured": len(answers) - unmeasured,
+            "unavailable_because": (
+                "{} of {} seed(s) never compared the two arms' populations, so this family cannot "
+                "say which instrument it was drawn on".format(unmeasured, len(answers))),
+        }
+    distinct = set(answers)
+    instrument = ("one-population" if distinct == {True}
+                  else "two-populations" if distinct == {False}
+                  else "mixed-across-seeds")
+    return {
+        "instrument": instrument,
+        "seeds_measured": len(answers),
+        "means": {
+            "one-population": (
+                "every seed's level arm met exactly the renewals the value arm met, so "
+                "`selection_gbp` is the worth of the CHOOSING and nothing else"),
+            "two-populations": (
+                "on every seed the arms met different renewal populations, so `selection_gbp` "
+                "carries that difference as well as the choosing. A real reading of a real "
+                "instrument -- but not the same instrument as the line above"),
+            "mixed-across-seeds": (
+                "the seeds disagree about whether the arms met one population, so this family is "
+                "not one instrument and its spread is not an error bar on one quantity"),
+        }[instrument],
+        "unavailable_because": None,
+    }
+
+
 def noise_floor(seeds: list[int], report_end: str | None = None,
                 runner=None, symbol: str | None = None,
                 redraw_accounts: list[str] | None = None,
