@@ -111,8 +111,13 @@ That belongs on the existing finding, which now has the second instance it neede
 
 ## Left open, deliberately
 
-* **The alarm family's +7.** Separate finding; it is the "fewer channels" half and `collapse_alarms`
-  already exists unrun.
+* **The alarm family's +7 is neither of the control's two remedies.** Ran the one-variable control
+  after landing the above: the nine alarm documents in the root are **nine distinct families, one
+  document each**, so `alarm_repetition`'s one-document-per-firing is working and `collapse_alarms`
+  is a no-op. The family does not re-file itself, which refutes both my own prediction and the
+  drawn item's framing of it as "a channel, not a backlog" — it is a backlog of nine live
+  conditions. Corrected in place on the finding, beside the recommendation it replaces. The real
+  remedy there is a producer-side re-ask, and it is a separate turn.
 * **`POPULATION_FLOORS["records"]` is 38 against a room now holding 453.** Deliberately *not*
   bumped: a literal raised to today's population is the control-keyed-to-today's-answer failure
   this repo has paid for, and the property-keyed sibling (`room shrinkage vs HEAD`) is live and
