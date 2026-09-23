@@ -398,6 +398,65 @@ def test_the_LIVE_queue_carries_no_reference_or_console_WORK():
     assert sr.KIND_REFERENCE not in kinds and sr.KIND_CONSOLE not in kinds
 
 
+def test_an_archive_twin_NEVER_holds_turns_its_record_room_copy_lacks():
+    """DEFECT: the thinner copy of a console transcript wins, and the director's words go with it.
+
+    THE RECORD ROOM IS `console/`. That is not a preference, it is a decision already taken and
+    already written down: on 2026-09-07 a backfill recovered eight turns of 30 August that no room
+    held, hit the gate's two-rooms condition, and resolved it -- *"Consolidated into `console/`,
+    and the root copy's deletion staged so the move completes rather than sitting half-staged"*
+    (`docs/staging/console/SEAT_REPLY_2026-09-07.md`). `done/` is where a transcript rests after
+    that; it is never the copy that arbitrates what was said.
+
+    WHY THIS IS A TEST AND NOT A THIRD PARAGRAPH OF PROSE. The decision has now been re-asked
+    three times, because the state it produces -- a document present in `console/` whose name also
+    sits in `done/` -- reads from outside as a half-finished move whose deletion completes it:
+
+        2026-09-07  the gate flagged the two-rooms condition; consolidated into `console/`.
+        2026-09-22  an archival pass was handed the same file and HELD THE DELETION BACK, having
+                    found 243 of 279 lines absent from the `done/` copy (32,798B -> 2,505B),
+                    among them the director's verbatim ruling on suspending I&C.
+        2026-09-23  a delivery item named it again as *"source side of a move whose done/ copy is
+                    ALREADY at HEAD, so these are half-landed and the deletion completes them"*.
+
+    Each of the first two decisions was correct, recorded in `docs/staging/`, and bought exactly
+    nothing, because a finding cannot refuse a commit. Landing that deletion would have left the
+    2,505-byte one-turn capture as the only surviving copy of a nine-turn day.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. The subject is the SUPERSET RELATION between
+    the two rooms' copies, not the byte counts either of them happens to have today: the twin may
+    grow, the record copy may grow, and this stays green while `console/` holds every turn `done/`
+    does. It reds the moment that inverts -- which is what both a deletion and a re-thinning of
+    the record copy look like from here.
+
+    THE NON-EMPTY GUARD IS THE OTHER HALF, and it is this module's own documented fail-open: a
+    comparison whose filter matches no pair passes identically whether the rooms agree or the
+    record copy is gone. If the last pair is ever legitimately retired, this reds and names why,
+    so retiring it is a decision someone takes rather than one that happens quietly.
+    """
+    import re
+
+    root = sr.DEFAULT_STAGING_ROOT
+    console, archive = root / sr.CONSOLE_DIRNAME, root / sr.ARCHIVE_DIRNAME
+    def turns(p):
+        return set(re.findall(r"^### (\S+)$", p.read_text(), flags=re.M))
+
+    pairs = [(p, archive / p.name) for p in sorted(console.glob("DIRECTOR_CONSOLE_*.md"))
+             if (archive / p.name).is_file()]
+    assert pairs, (
+        "no console transcript is held in BOTH rooms, so the superset comparison below ran over "
+        "nothing and passed for that reason alone. This is the fail-open this file names "
+        "elsewhere ('an empty read is not a pass'). If the last twin was retired deliberately, "
+        "re-key this control to the decision that retired it; if it was not, a record-room copy "
+        "has gone missing and that is the loss this test exists to refuse.")
+
+    thinner = [f"{c.name}: {len(missing)} turn(s) held ONLY by the done/ twin ({sorted(missing)})"
+               for c, a in pairs if (missing := turns(a) - turns(c))]
+    assert thinner == [], (
+        "the archive twin holds turns the record room's copy does not, so the thinner copy is the "
+        "one a reader arbitrating this day would find authoritative: " + "; ".join(thinner))
+
+
 def test_a_finding_about_a_preregistration_is_a_finding():
     """DEFECT: a live finding is filed into the room that means "this was never work".
 
