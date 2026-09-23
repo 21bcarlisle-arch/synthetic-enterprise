@@ -494,17 +494,46 @@ def test_the_band_control_CANNOT_see_this_defect_which_is_why_the_refusal_exists
     assert 0.0 < bias < dm.VOLUME_FACTOR_BIAS_TOL
 
 
-def test_the_three_cut_set_states_are_distinct_and_the_refusal_is_reachable():
+def test_the_four_cut_set_states_are_distinct_and_the_refusal_is_reachable(monkeypatch):
     """One control over the WHOLE partition, because a guard that refuses
-    everything passes every per-branch test. All three states must be
-    reachable AND distinct: size-only answers, children-with-reference answers
-    a DIFFERENT number, children-without-reference refuses.
+    everything passes every per-branch test.
+
+    THE PARTITION GREW A SHAPE when `CHILDREN_WITHIN_SIZE_REFERENCE` was
+    sourced, and the shapes are counted here rather than the states, because
+    N states asserted over N+1 shapes is blind to two shapes collapsing into
+    one:
+
+      1. no children               -> the size-only centre
+      2. children + EXPLICIT ref   -> that reference's centre
+      3. children + NO ref, source present -> the SOURCED centre (2 and 3
+         agree only when the explicit ref IS the sourced one — asserted
+         distinct here by passing a different one)
+      4. children + NO ref, source WITHDRAWN -> refuses
+
+    Shapes 2 and 3 are the pair that would silently collapse if the resolution
+    ignored an explicit argument, and 3 and 4 are the pair that collapses if
+    the guard is keyed on the argument being omitted rather than on the
+    resolved reference being absent.
     """
     size_only = volume_factor_normaliser("electricity")
     with_children = volume_factor_normaliser("electricity", _CHILDREN_REF)
     assert size_only != with_children
 
-    # reachable: the refusal fires on a book that declares children ...
+    book = ([4, 2], [0.5, 0.5], "electricity")
+    kids = [2, 0]
+    explicit = population_mean_volume_factor(
+        *book, children_counts=kids, children_reference=_CHILDREN_REF)
+    resolved = population_mean_volume_factor(*book, children_counts=kids)
+    # shape 2 != shape 3: an explicit reference is honoured, not overridden
+    assert explicit != resolved
+    # ... and neither is the size-only reading
+    assert resolved != sum(
+        w * occupancy_volume_factor(n, "electricity", children_count=k)
+        for n, k, w in zip(book[0], kids, book[1])
+    )
+
+    # shape 4 -- reachable: withdraw the source and the refusal fires again
+    monkeypatch.setattr(dm, "CHILDREN_WITHIN_SIZE_REFERENCE", None)
     with pytest.raises(UnanchoredReferencePopulation):
         population_mean_volume_factor([4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
     with pytest.raises(UnanchoredReferencePopulation):
@@ -521,11 +550,236 @@ def test_the_three_cut_set_states_are_distinct_and_the_refusal_is_reachable():
         children_reference=_CHILDREN_REF) > 0.0
 
 
-def test_the_population_half_of_R10_GAP_a_is_declared_absent_not_filled():
-    """The gap must be carried explicitly rather than by a plausible default.
-    An honest `None` cannot be read as an established distribution; a number
-    picked to fill the slot would be load-bearing within a week."""
-    assert dm.CHILDREN_WITHIN_SIZE_REFERENCE is None
+def test_the_population_half_of_R10_GAP_a_is_a_distribution_or_an_honest_absence():
+    """The constant must be EITHER an honest `None` OR a real distribution —
+    never a plausible fill.
+
+    THIS CONTROL USED TO BE `assert CHILDREN_WITHIN_SIZE_REFERENCE is None`,
+    and that was keyed to the day's answer rather than to the property: it
+    would have gone RED the moment the gap was CLOSED, which is the one thing
+    it should have welcomed. It is rewritten here as the property that holds
+    on both sides of that event — the shape is a valid population or it is
+    absent, and there is no third state where something shaped like an answer
+    sits in the slot without being one.
+    """
+    ref = dm.CHILDREN_WITHIN_SIZE_REFERENCE
+    if ref is None:
+        return
+    assert all(isinstance(r, tuple) and len(r) == 3 for r in ref)
+    assert all(0 <= k < n for n, k, _ in ref), "every household needs at least one adult"
+    assert sum(s for _, _, s in ref) == pytest.approx(1.0, abs=1e-9)
+    # A distribution, not a point: a single row would be a fill wearing a
+    # population's shape.
+    assert len({n for n, _, _ in ref}) > 1 and any(k for _, k, _ in ref)
+
+
+def test_the_sourced_centre_makes_its_OWN_population_an_identity():
+    """The finding's own lesson, asserted at the strength it earns.
+
+    Neutrality over a BOOK is an estimate and any tolerance wide enough for
+    sampling is wide enough to hide a re-levelling (which is how the 1.5% cut
+    sat inside the 0.02 band). Neutrality over the REFERENCE POPULATION is an
+    IDENTITY, so it is asserted at 1e-12 — and it is the only place that
+    strength is available.
+
+    FIRES when the reference and the centre come apart: change a share, a
+    children count, or the child weight the normaliser uses, and this goes red
+    while every band-shaped control stays green.
+    """
+    ref = dm.CHILDREN_WITHIN_SIZE_REFERENCE
+    if ref is None:
+        pytest.skip("gap re-opened; the honest-absence control above covers that state")
+    for commodity in ("electricity", "gas"):
+        assert dm.population_mean_volume_factor(
+            [n for n, _, _ in ref], [s for _, _, s in ref], commodity,
+            children_counts=[k for _, k, _ in ref], children_reference=ref,
+        ) == pytest.approx(1.0, abs=1e-12)
+
+
+def test_a_book_with_children_reaches_the_sourced_centre_without_being_told():
+    """The constant must be REACHED by the aggregate path, not merely exist.
+
+    A sourced number sitting unwired beside the live one is this project's
+    most expensive recurring shape (the £55/£150 acquisition cost). So the
+    assertion is not "the constant parses" but "a caller who supplies children
+    and says nothing about a reference is scored against the SOURCED centre" —
+    i.e. the same answer as passing it explicitly, and a DIFFERENT answer from
+    the all-adult centre.
+    """
+    ref = dm.CHILDREN_WITHIN_SIZE_REFERENCE
+    if ref is None:
+        pytest.skip("gap re-opened")
+    people, kids, weights = [4, 3, 2], [2, 1, 0], [0.4, 0.35, 0.25]
+    implicit = dm.population_mean_volume_factor(
+        people, weights, "electricity", children_counts=kids)
+    explicit = dm.population_mean_volume_factor(
+        people, weights, "electricity", children_counts=kids, children_reference=ref)
+    all_adult = sum(
+        w * dm.occupancy_volume_factor(n, "electricity", children_count=k)
+        for n, k, w in zip(people, kids, weights)
+    )
+    assert implicit == explicit
+    assert implicit != all_adult
+
+
+def test_the_refusal_is_still_REACHABLE_when_the_source_is_withdrawn(monkeypatch):
+    """The guard's subject is the RESOLVED reference, not the omitted argument.
+
+    Wiring the constant turned the old refusal branch into one that no book
+    can reach any more — and a guard nothing can reach is a deleted guard that
+    still reads like a control. It is re-keyed to the property it was always
+    about: a book that declares children is never scored against a centre that
+    does not cover them. Withdraw the source and it must refuse again.
+
+    MUTATION: resolving to `HOUSEHOLD_SIZE_POPULATION_SHARE` instead, or
+    dropping the inner `if`, makes this the only red.
+    """
+    monkeypatch.setattr(dm, "CHILDREN_WITHIN_SIZE_REFERENCE", None)
+    with pytest.raises(UnanchoredReferencePopulation):
+        dm.population_mean_volume_factor(
+            [4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
+    with pytest.raises(UnanchoredReferencePopulation):
+        dm.volume_factor_is_unbiased(
+            [4, 2], [0.5, 0.5], "electricity", children_counts=[2, 0])
+    # ... and a book WITHOUT children is unaffected by the withdrawal: the
+    # all-adult cut-set never needed this reference.
+    assert isinstance(dm.volume_factor_is_unbiased(
+        [4, 2], [0.5, 0.5], "electricity", children_counts=[0, 0]), bool)
+
+
+#: ONS Census 2021 England and Wales, the HOUSEHOLD-based products — a
+#: DIFFERENT population type from the person-based table
+#: `CHILDREN_WITHIN_SIZE_REFERENCE` is derived from, fetched the same day.
+#:
+#: `P(any dependent child | size)` from `HH` x (`hh_size_9a`,
+#: `hh_dependent_children_3a`), and `P(exactly one dependent child | size)`
+#: from `HH` x (`hh_size_9a`, `hh_family_composition_37a`). Between them they
+#: pin the d=0 and d=1 mass at every size, and therefore the d>=2 mass too —
+#: leaving only the split WITHIN "two or more", which is the one thing the
+#: Census does not publish and the constant's comment names as its assumption.
+_CENSUS_ANY_CHILD_BY_SIZE = {
+    1: 0.000482, 2: 0.086951, 3: 0.569026, 4: 0.806125,
+    5: 0.863657, 6: 0.878488, 7: 0.894076, 8: 0.894046,
+}
+_CENSUS_ONE_CHILD_BY_SIZE = {
+    1: 0.000000, 2: 0.086481, 3: 0.435679, 4: 0.135876,
+    5: 0.131937, 6: 0.106335, 7: 0.098924, 8: 0.067155,
+}
+
+
+def test_the_conditional_children_split_agrees_with_two_INDEPENDENT_census_products():
+    """The control over the CONDITIONAL, which is the constant's whole content.
+
+    THE HOLE THIS FILLS, found by mutation and not by reading. Every other
+    control here is invariant to moving mass BETWEEN children counts within a
+    size: the identity holds because centre and population move together, the
+    all-adult read holds because the children column is zeroed, and the size
+    marginal is untouched by construction. So `(3, 2, s) -> (3, 1, s)` — the
+    reference silently disagreeing with its source — passed all of them. A
+    mutation nothing catches is a missing test, and this is it.
+
+    It is keyed to SEPARATE Census products rather than to the table the
+    reference came from, because a figure checked against its own source
+    agrees with itself by construction.
+
+    The two disagreements are the derivation's two documented clamps, and they
+    are asserted as bounded rather than waived:
+      * size 1 — 3,606 one-person households are recorded WITH a dependent
+        child; `adult_equivalents` refuses a household with no adult, so they
+        are clamped to zero children here.
+      * size 8 — the band is "8 OR MORE", so the person-based conversion
+        (persons / 8) overcounts households whose true size is larger.
+    """
+    ref = dm.CHILDREN_WITHIN_SIZE_REFERENCE
+    if ref is None:
+        pytest.skip("gap re-opened")
+    by_size, any_child, one_child = {}, {}, {}
+    for n, k, s in ref:
+        by_size[n] = by_size.get(n, 0.0) + s
+        if k >= 1:
+            any_child[n] = any_child.get(n, 0.0) + s
+        if k == 1:
+            one_child[n] = one_child.get(n, 0.0) + s
+
+    for n in sorted(by_size):
+        ours = any_child.get(n, 0.0) / by_size[n]
+        published = _CENSUS_ANY_CHILD_BY_SIZE[n]
+        if n == 1:
+            # the clamp, stated as a quantity: we carry NO children at size 1
+            # and the source carries a whisker over zero.
+            assert ours == 0.0 and published < 0.001
+        elif n == 8:
+            assert abs(ours - published) < 0.005
+        else:
+            assert abs(ours - published) < 1e-5, f"size {n}: {ours} vs {published}"
+
+    for n in sorted(by_size):
+        ours = one_child.get(n, 0.0) / by_size[n]
+        # 0.25pp: the two products carry INDEPENDENT cell-key perturbation, so
+        # they are not expected to agree exactly — and a real edit to a row
+        # moves this by percentage points, not by a quarter of one.
+        assert abs(ours - _CENSUS_ONE_CHILD_BY_SIZE[n]) < 0.0025, f"size {n}"
+
+
+def test_reading_the_children_reference_as_all_adults_reproduces_the_all_adult_centre():
+    """THE ATTRIBUTABILITY CONTROL, and the reason it can be this strong.
+
+    Two centres now exist and the whole claim of the per-cut-set repair is
+    that the difference between them is CHILDREN — not a different size mix
+    smuggled in alongside. That is testable as an identity rather than argued:
+    zero out the children column of the reference and the centre it produces
+    must be the all-adult centre, which it shares no code path with.
+
+    It holds to 9e-08 — the 7-dp rounding of the published shares — and at
+    full precision it is exact, because `need_volume_index` is FLAT at and
+    above five adults, so the reference's finer 6/7/8 tail cannot move the
+    all-adult centre however it is split.
+
+    FIRES the moment the size marginal here drifts from the world's own draw
+    (`dwelling_records.HOUSEHOLD_SIZE_SHARE_ONS_TS017`), which is a divergence
+    with no other symptom — and is exactly the divergence that has been live
+    between that constant and `HOUSEHOLD_SIZE_POPULATION_SHARE` since
+    2026-09-17 without changing any centre.
+    """
+    ref = dm.CHILDREN_WITHIN_SIZE_REFERENCE
+    if ref is None:
+        pytest.skip("gap re-opened")
+    for commodity in ("electricity", "gas"):
+        as_all_adults = sum(
+            s * dm.need_volume_index(n, commodity, children_count=0) for n, _, s in ref)
+        assert as_all_adults == pytest.approx(
+            dm.volume_factor_normaliser(commodity), abs=1e-6)
+
+
+def test_the_children_reference_reconciles_with_the_size_distribution_the_world_draws():
+    """The derivation's own control, run on the numbers that were landed.
+
+    `CHILDREN_WITHIN_SIZE_REFERENCE` is not lifted from a published table —
+    none states it. It is converted from a PERSON-based Census cross-tab by
+    households(n, d) = persons(n, d) / n. That conversion is the step that
+    could silently be wrong, and the check on it is that summing it back over
+    d reproduces the household size marginal a SEPARATE Census product
+    publishes and the world draws households from.
+
+    Pinned at the tolerance the 7-dp rounding earns, so it fires if a row is
+    edited, dropped or re-scaled, and not merely because the shares are
+    quoted rather than computed.
+    """
+    ref = dm.CHILDREN_WITHIN_SIZE_REFERENCE
+    if ref is None:
+        pytest.skip("gap re-opened")
+    from simulation.dwelling_records import HOUSEHOLD_SIZE_SHARE_ONS_TS017
+    by_size = {}
+    for n, _, s in ref:
+        by_size[n] = by_size.get(n, 0.0) + s
+    assert by_size.keys() == {n for n, _ in HOUSEHOLD_SIZE_SHARE_ONS_TS017}
+    for n, published in HOUSEHOLD_SIZE_SHARE_ONS_TS017:
+        assert by_size[n] == pytest.approx(published, abs=1e-6)
+    # The tail the source stops at: "three or more" is published AS three, so
+    # no household in the reference carries more than three children. This is
+    # the row that says the understatement is DELIBERATE rather than a lost
+    # tail — see the constant's own comment for what it is worth (0.268%).
+    assert max(k for _, k, _ in ref) == 3
 
 
 def test_a_children_reference_that_is_not_a_distribution_is_refused():

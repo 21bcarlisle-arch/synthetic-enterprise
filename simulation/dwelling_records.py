@@ -150,15 +150,24 @@ assert abs(sum(share for _, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017) - 1.0) < 1e
 # point estimate) for callers that do know a composition — the gap is the
 # population-level split, not the response.
 #
-# AND WIRING THIS FIELD OWES A REFERENCE POPULATION, which is not obvious and
-# is why it is written here rather than only at the mechanism. `demand_model.
-# volume_factor_normaliser` centres the volume response on an ALL-ADULT
-# population; a book that declares children scored against that centre is cut
-# 1.5% (measured 2026-09-23 with `premise_trace`'s own children draw on the
-# live 144 homes), and the R15 band over it is 0.02, so it stays green. The
-# aggregate functions now REFUSE that combination by name rather than
-# answering it — so the field and `demand_model.CHILDREN_WITHIN_SIZE_REFERENCE`
-# have to be established together, in one move, by whoever closes this gap.
+# THE REFERENCE POPULATION THIS FIELD OWED NOW EXISTS (2026-09-23).
+# `demand_model.CHILDREN_WITHIN_SIZE_REFERENCE` is sourced from ONS Census
+# 2021, so the aggregate functions no longer refuse a book that declares
+# children: they centre it on that population. The 1.5% cut measured on the
+# live 144 homes was 1.3 points centre and 0.2 points children — against the
+# sourced centre the same book reads 1.01601 with children and 1.01799 without.
+#
+# SO WHAT STILL BLOCKS THIS FIELD IS NOT THE POPULATION — IT IS THE DRAW.
+# `premise_trace` draws `randint(0, people_count - 1)`, uniform and uncited,
+# which puts a child in half of all 2-person homes where the Census puts one
+# in 8.7% of them. Setting this field from THAT draw would make the world's
+# record disagree with the world's own published anchor, and the volume
+# response would then be centred on a population the book does not resemble —
+# the same "one home, two answers" shape `composition_cuts_for` below exists
+# to close, committed one field along. The remaining work is a single sourced
+# draw from `CHILDREN_WITHIN_SIZE_REFERENCE`'s conditional, answering here and
+# in `premise_trace` both; until it lands, 0 is the honest all-adult reading
+# NEED itself publishes on rather than a placeholder.
 DEFAULT_CHILDREN_COUNT = 0
 
 
