@@ -739,7 +739,7 @@ def test_a_floor_run_is_refused_when_the_legs_already_running_cannot_all_peak():
 
     refusal = floor_run_headroom_refusal(
         sample_fn=lambda: _obs(15000.0),
-        legs_fn=lambda: [(101, 1000.0), (102, 1000.0)])
+        legs_fn=lambda: [(101, 1000.0, 6400.0), (102, 1000.0, 6400.0)])
     assert refusal is not None, (
         "a third floor leg was allowed to start beside two that were already growing -- the "
         "launch that cost 1h 09m of compute and produced no artefact")
@@ -808,10 +808,96 @@ def test_the_leg_census_does_not_count_the_process_asking_the_question(tmp_path)
         (d / "status").write_text("PPid:\t1\nVmRSS:\t{} kB\n".format(rss), encoding="utf-8")
 
     census = running_floor_legs(proc_root=tmp_path)
-    assert [pid for pid, _ in census] == [999001], (
+    assert [pid for pid, _rss, _peak in census] == [999001], (
         "the census counted the process asking the question, so an idle guest reports a floor leg "
         "that does not exist: " + repr(census))
     assert census[0][1] == pytest.approx(8.0)
+
+
+def test_the_leg_census_sees_a_paired_floor_leg_and_prices_it_at_its_own_peak(tmp_path):
+    """THE 2026-09-23 OOM: a floor leg the census could not see, at a price it was not.
+
+    `tools.size_term_paired_floor` is a floor leg by every property this guard cares about --
+    hours long, multi-gigabyte, OOM-killable, and the producer of an artefact a seat is waiting
+    on -- but its argv carries neither `--noise-floor-seeds` nor `run_value_cycle_ab`. The census
+    matched on exactly those two tokens, so the leg was invisible in BOTH directions: it did not
+    count itself against what was already running, and nothing launched beside it could count it.
+    It was admitted against a 6,400 MB price on 2026-09-23, peaked at 7,878 MB, and was
+    OOM-killed at 1h 26m having written nothing -- the same failure, to the shape of the log
+    line, that this guard was landed to prevent.
+
+    TWO LEGS OF DIFFERENT SHAPES, which is the part a count cannot express. The census must
+    return the paired leg's own 7,800 MB and the noise-floor leg's own 6,400 MB, because the
+    caller sums them; pricing both at one peak is what the arithmetic did before.
+
+    Fires on: dropping the paired entry from FLOOR_LEG_SHAPES (the leg vanishes); giving both
+    entries the same peak (the paired leg is under-priced by 1,400 MB); matching the paired leg's
+    module without requiring its flag as a token.
+    """
+    from tools.run_value_cycle_ab import running_floor_legs
+
+    entries = {
+        999010: ["python3", "-m", "tools.size_term_paired_floor",
+                 "--seeds", "5101,5102,5103"],
+        999011: ["python3", "-m", "tools.run_value_cycle_ab",
+                 "--noise-floor-seeds", "11111,22222"],
+    }
+    for pid, argv in entries.items():
+        d = tmp_path / str(pid)
+        d.mkdir()
+        (d / "cmdline").write_bytes(("\x00".join(argv) + "\x00").encode())
+        (d / "status").write_text("PPid:\t1\nVmRSS:\t4096 kB\n", encoding="utf-8")
+
+    census = {pid: peak for pid, _rss, peak in running_floor_legs(proc_root=tmp_path)}
+    assert 999010 in census, (
+        "the paired floor leg was invisible to the census that exists to stop it being "
+        "OOM-killed: " + repr(census))
+    assert census[999010] == pytest.approx(7800.0), (
+        "the paired leg was priced at something other than its own measured peak")
+    assert census[999011] == pytest.approx(6400.0), (
+        "the noise-floor leg's own price moved when the paired shape was added")
+    assert census[999010] > census[999011], (
+        "the two leg shapes collapsed to one price, which is the conflation that admitted the "
+        "2026-09-23 run")
+
+
+def test_a_paired_leg_beside_a_noise_floor_leg_is_refused_on_the_sum_not_a_multiple(tmp_path):
+    """THE ARITHMETIC, on the two shapes rather than on a count.
+
+    SOLE WITNESS FOR THE MIXED-SHAPE SUM. A guest offering 14,000 MB with one noise-floor leg
+    running at 6,400 MB: a paired leg needs 6,400 + 7,800 = 14,200 MB and must be refused, while
+    the old `peak x (n+1)` arithmetic asks for 12,800 MB and waves it through. The 200 MB margin
+    is deliberate -- it is inside the 1,400 MB the old arithmetic under-counted by, so ONLY the
+    per-shape sum can produce this verdict.
+
+    THE PASS BRANCH IS ASSERTED BESIDE IT over the same shapes, because a guard that refused
+    every paired run would satisfy the refusal leg above and make the instrument unrunnable --
+    which is indistinguishable from the defect this exists to prevent.
+
+    Fires on: restoring `FLOOR_RUN_PEAK_MB * (len(legs) + 1)`; ignoring `own_peak_mb` and
+    defaulting the caller to the noise-floor peak; summing the legs but pricing the caller at the
+    sibling's constant.
+    """
+    from tools.run_value_cycle_ab import (
+        PAIRED_FLOOR_RUN_PEAK_MB,
+        floor_run_headroom_refusal,
+    )
+
+    one_noise_leg = [(101, 500.0, 6400.0)]
+
+    refused = floor_run_headroom_refusal(
+        sample_fn=lambda: _obs(13500.0), legs_fn=lambda: one_noise_leg,
+        own_peak_mb=PAIRED_FLOOR_RUN_PEAK_MB)
+    assert refused is not None, (
+        "a paired leg was admitted beside a noise-floor leg on a guest that can hold neither "
+        "pair of peaks -- the 2026-09-23 launch, which died at 1h 26m writing nothing")
+    assert "14,200" in refused, refused
+
+    assert floor_run_headroom_refusal(
+        sample_fn=lambda: _obs(20000.0), legs_fn=lambda: one_noise_leg,
+        own_peak_mb=PAIRED_FLOOR_RUN_PEAK_MB) is None, (
+        "the paired leg is refused even where both peaks fit, so the instrument can never run "
+        "and its bound can never be measured")
 
 
 def test_the_leg_census_does_not_count_a_sibling_shell_quoting_the_command(tmp_path):
@@ -846,7 +932,7 @@ def test_the_leg_census_does_not_count_a_sibling_shell_quoting_the_command(tmp_p
         (d / "status").write_text("PPid:\t1\nVmRSS:\t4096 kB\n", encoding="utf-8")
 
     census = running_floor_legs(proc_root=tmp_path)
-    assert [pid for pid, _ in census] == [999003], (
+    assert [pid for pid, _rss, _peak in census] == [999003], (
         "a sibling shell quoting the command was counted as a running floor leg, so the refusal "
         "fires on a guest that has room: " + repr(census))
 

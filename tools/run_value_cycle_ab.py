@@ -6562,9 +6562,54 @@ def where_the_priced_decisions_come_from(three_arm: dict) -> dict:
 #: runs that would have finished.
 FLOOR_RUN_PEAK_MB = 6400.0
 
+#: THE SAME QUANTITY FOR THE PAIRED LEG, AND IT IS NOT THE SAME NUMBER. systemd's accounting for
+#: `longjob-size-term-paired-floor-20260923` (2026-09-23, `--seeds 5101..5106`): MemoryPeak
+#: 8,261,423,104 B = 7,878 MB, MemorySwapPeak 2,472,112,128 B = 2,358 MB, "Consumed 1h 25min
+#: 41.672s CPU time over 1h 26min 944ms wall clock time", killed by the OOM killer -- so like its
+#: sibling above this is a FLOOR on the requirement, not a peak. Rounded DOWN to 7,800 MB on the
+#: same convention, and stated in RSS rather than RSS+swap because the quantity it is compared
+#: against is `available_mb`, which is MemAvailable and counts no swap; the swap peak is recorded
+#: here so the next reader does not re-derive it from a log that has been rotated.
+#:
+#: WHY A PAIRED LEG IS BIGGER THAN A NOISE-FLOOR LEG, which is the whole reason this is a second
+#: constant and not a second caller of the first: a noise-floor leg runs ONE configuration per
+#: process, and a paired leg runs BOTH -- blind and seeing -- in one process so the two share a
+#: seed, which is the entire point of the instrument. It therefore carries two worlds' retained
+#: state where the sibling carries one, and 6,400 under-prices it by ~1,478 MB of RSS in the
+#: flattering direction.
+PAIRED_FLOOR_RUN_PEAK_MB = 7800.0
 
-def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float]]:
-    """Every OTHER floor leg on this machine, as `(pid, current_rss_mb)`.
+#: HOW A FLOOR LEG IS RECOGNISED, and what one of that shape was measured to cost.
+#:
+#: THE DEFECT THIS EXISTS FOR. Until 2026-09-23 this was not a table: the census matched exactly
+#: one shape -- an argv carrying BOTH `--noise-floor-seeds` and `run_value_cycle_ab` -- and the
+#: arithmetic priced every leg at `FLOOR_RUN_PEAK_MB`. `tools.size_term_paired_floor` is a floor
+#: leg by every property that matters to this guard (hours long, multi-gigabyte, OOM-killable,
+#: writes the artefact a seat is waiting on) and carries NEITHER token, so it was invisible in
+#: both directions at once: it did not count itself against the legs already running, and no
+#: leg launched beside it could see it. It was admitted on 2026-09-23 against a 6,400 MB price,
+#: peaked at 7,878 MB, and was OOM-killed at 1h 26m having written nothing -- the exact failure,
+#: to the shape of the log line, that `floor_run_headroom_refusal` was landed to prevent, walked
+#: around by a leg the population filter could not see.
+#:
+#: EACH ENTRY IS (module substring, flag token, measured peak MB). The flag must be its OWN argv
+#: token and the module is matched as a substring, which is the discriminator the 2026-09-03
+#: census already learned the hard way: a sibling shell carries the whole pipeline as one argv
+#: element, so an exact-token test on the flag rejects it while a substring test counts a leg
+#: that does not exist.
+FLOOR_LEG_SHAPES = (
+    ("run_value_cycle_ab", "--noise-floor-seeds", FLOOR_RUN_PEAK_MB),
+    ("size_term_paired_floor", "--seeds", PAIRED_FLOOR_RUN_PEAK_MB),
+)
+
+
+def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float, float]]:
+    """Every OTHER floor leg on this machine, as `(pid, current_rss_mb, its_shape_peak_mb)`.
+
+    THE PEAK IS PART OF THE CENSUS ENTRY, not applied by the caller, because the two leg shapes
+    do NOT cost the same and a census that reports only a count forces the caller to multiply one
+    peak by it. That multiplication is what admitted the 2026-09-23 paired run: three legs of two
+    different shapes priced as three of the smaller one.
 
     NOT `pgrep -f`. The pattern that identifies a floor leg is the exact string an agent's own
     prompt or shell command quotes when it talks about one, so a cmdline grep matches the process
@@ -6602,20 +6647,36 @@ def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float]]
             # direction: it refuses runs that would have fitted, which makes the bound
             # unmeasurable, which is the failure this refusal exists to prevent.
             # A real leg has `--noise-floor-seeds` as its OWN token; a shell has it inside one.
-            if "--noise-floor-seeds" not in argv:
-                continue
-            if not any("run_value_cycle_ab" in tok for tok in argv):
+            peak_mb = next((peak for module, flag, peak in FLOOR_LEG_SHAPES
+                            if flag in argv and any(module in tok for tok in argv)), None)
+            if peak_mb is None:
                 continue
             rss_kb = next(int(ln.split()[1]) for ln in
                           (entry / "status").read_text(encoding="utf-8").splitlines()
                           if ln.startswith("VmRSS:"))
         except Exception:  # noqa: BLE001 -- a process that exited mid-read is not a leg
             continue
-        legs.append((int(entry.name), rss_kb / 1024.0))
+        legs.append((int(entry.name), rss_kb / 1024.0, peak_mb))
     return legs
 
 
-def floor_run_headroom_refusal(sample_fn=None, legs_fn=None) -> str | None:
+def _peak_provenance(own_peak_mb: float) -> str:
+    """Which kill established the peak this refusal is quoting.
+
+    A refusal that names its reason is how the refusal itself gets corrected, and this one was
+    quoting the 2026-09-03 noise-floor kill whatever peak it had just priced -- so a paired leg
+    refused at 7,800 MB cited a run that never reached 7,800 and was 20 days older than the
+    evidence. The number and the run that measured it must move together.
+    """
+    if own_peak_mb == PAIRED_FLOOR_RUN_PEAK_MB:
+        return ("The 2026-09-23 paired run that established this peak reached 7,878 MB RSS and "
+                "2,358 MB of swap before the OOM killer took it at 1h 26m, having written NOTHING")
+    return ("The 2026-09-03 run that established the peak was OOM-killed after 1h 09m and wrote "
+            "NOTHING")
+
+
+def floor_run_headroom_refusal(sample_fn=None, legs_fn=None,
+                               own_peak_mb: float | None = None) -> str | None:
     """Refuse a floor run this machine cannot hold, BEFORE it spends an hour proving it.
 
     THE DEFECT THIS SERVES. On 2026-09-03 three floor legs were launched concurrently as transient
@@ -6645,21 +6706,24 @@ def floor_run_headroom_refusal(sample_fn=None, legs_fn=None) -> str | None:
     """
     sample_fn = sample_fn or _headroom_sample
     legs_fn = legs_fn or running_floor_legs
+    own_peak = float(own_peak_mb if own_peak_mb is not None else FLOOR_RUN_PEAK_MB)
     try:
         obs = sample_fn()
     except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
         return ("this machine's memory could not be read ({}), so it cannot be shown to hold a "
                 "floor run's measured {:,.0f} MB peak; refusing rather than being OOM-killed an "
-                "hour in".format(exc, FLOOR_RUN_PEAK_MB))
+                "hour in".format(exc, own_peak))
     available = obs.get("available_mb")
     if available is None:
         return ("this machine reported no MemAvailable, so it cannot be shown to hold a floor "
-                "run's measured {:,.0f} MB peak".format(FLOOR_RUN_PEAK_MB))
+                "run's measured {:,.0f} MB peak".format(own_peak))
 
     legs = legs_fn()
-    held_now = sum(rss for _, rss in legs)
-    # Every leg that is running plus this one, each at the peak one of them was measured to reach.
-    required = FLOOR_RUN_PEAK_MB * (len(legs) + 1)
+    held_now = sum(rss for _, rss, _peak in legs)
+    # Every leg that is running AT ITS OWN SHAPE'S measured peak, plus this one at its own. A
+    # single peak multiplied by a count prices a paired leg as a noise-floor leg, which is what
+    # admitted the run that was OOM-killed on 2026-09-23.
+    required = sum(peak for _pid, _rss, peak in legs) + own_peak
     headroom = float(available) + held_now
     if headroom >= required:
         return None
@@ -6668,11 +6732,10 @@ def floor_run_headroom_refusal(sample_fn=None, legs_fn=None) -> str | None:
         "running (pids {pids}, holding {held:,.0f} MB and still growing), so this guest needs "
         "{req:,.0f} MB to see them all through and can offer {have:,.0f} MB "
         "({avail:,.0f} available + {held:,.0f} already held, of {total:,.0f} total; swap free "
-        "{swap:,.0f} MB). The 2026-09-03 run that established the peak was OOM-killed after "
-        "1h 09m and wrote NOTHING -- an absent artefact reads exactly like a run still in "
+        "{swap:,.0f} MB). {provenance} -- an absent artefact reads exactly like a run still in "
         "progress. Run the legs one at a time, or pass --ignore-headroom if this guest grew."
-    ).format(need=FLOOR_RUN_PEAK_MB, n=len(legs),
-             pids=", ".join(str(p) for p, _ in legs) or "none",
+    ).format(need=own_peak, n=len(legs), provenance=_peak_provenance(own_peak),
+             pids=", ".join(str(p) for p, _rss, _peak in legs) or "none",
              held=held_now, req=required, have=headroom, avail=float(available),
              total=float(obs.get("total_mb") or 0.0),
              swap=float(obs.get("swap_free_mb") or 0.0))

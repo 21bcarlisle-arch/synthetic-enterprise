@@ -94,6 +94,7 @@ from pathlib import Path
 from tools.run_value_cycle_ab import (
     CHURN_ROLL_MODULE,
     CHURN_ROLL_SYMBOL,
+    PAIRED_FLOOR_RUN_PEAK_MB,
     PROJECT_DIR,
     _churn_roll_redraw_patch,
     distance_to_a_sign,
@@ -524,7 +525,10 @@ def main(argv: list[str] | None = None) -> int:
             "spread, and it would restate the single-seed figure this exists to bound."
             .format(len(seeds)))
 
-    refusal = floor_run_headroom_refusal()
+    # ITS OWN SHAPE'S PEAK, not the sibling's. The first run of this tool was admitted against a
+    # noise-floor leg's 6,400 MB, peaked at 7,878 MB and was OOM-killed at 1h 26m with nothing on
+    # disk; passing the default here is what made that a silent 1h 26m rather than a refusal.
+    refusal = floor_run_headroom_refusal(own_peak_mb=PAIRED_FLOOR_RUN_PEAK_MB)
     if refusal and not args.ignore_headroom:
         print("size-term paired floor REFUSED -- {}".format(refusal))
         return 2
