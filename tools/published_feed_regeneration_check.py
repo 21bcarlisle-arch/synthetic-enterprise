@@ -152,6 +152,95 @@ FEED_DIR = "site/data"
 #: `generate_provisional_plan_data` at 251s (`git log --reverse --follow` over the whole history).
 DEFAULT_TIMEOUT_S = 300
 
+#: HOW FAR THE DETERMINISM PROBE'S SECOND TREE MOVES THE WALL CLOCK, and why it has to move at all.
+#:
+#: MEASURED 2026-09-23. `knowledge_review.json` sat in `COVERED_FEEDS` for four days and reds two
+#: days after any regeneration, because it publishes `age_days` — `date.today()` minus a committed
+#: date — which is not a function of its commit at all. Two things let it in, and only the second
+#: was in the finding that named it:
+#:
+#:   * THE SECOND TREE IS ONLY BUILT WHEN THE FIRST DISAGREES. A feed whose committed bytes are
+#:     fresh AGREES on the first tree and is never asked the determinism question, so the probe that
+#:     would have refused it never ran. `always_probe_determinism=True` is that repair.
+#:   * THE PROBE'S RESOLUTION WAS SHORTER THAN THE PERIOD IT HUNTS. Both runs happen seconds apart,
+#:     and a quantity that changes once a day is byte-identical across them, so a clock-dependent
+#:     feed reads as deterministic. An instrument blind to intervals shorter than its own tick
+#:     returning a clean answer rather than "cannot tell" is this project's catalogued shape.
+#:
+#: So the second tree runs its generator under a DISPLACED clock. 400 days moves day, month, quarter
+#: and year at once, so a period of any of those lengths is caught by one extra run rather than by
+#: waiting for it. It is not a system `faketime` — nothing outside this repository is required — and
+#: it redirects no output path, which is the failure mode the module docstring already refuses.
+#:
+#: WHY THIS IS NOT JUST MEASURING THE INSTRUMENT: `artefact_rerun_diff.compare` excludes exactly one
+#: key by name, `generated_at`, whose whole purpose is to differ. So a displaced clock trips
+#: `NONDETERMINISTIC` only when the clock reaches a field that is NOT the publication timestamp —
+#: which is precisely the question `COVERED_FEEDS` membership asks.
+_CLOCK_DISPLACEMENT_DAYS = 400
+
+#: Patched as a `sitecustomize`, which CPython imports before any user module, so a generator's
+#: own `from datetime import date` binds the displaced class rather than the real one. Only
+#: pure-Python clock reads are intercepted, which is all any generator here does.
+_CLOCK_OFFSET_ENV = "SE_FEED_CHECK_CLOCK_OFFSET_S"
+
+_CLOCK_SHIM = '''"""A displaced wall clock for the feed-regeneration determinism probe.
+
+Written into a scratch directory and put on PYTHONPATH by
+`tools/published_feed_regeneration_check`. Never installed anywhere persistent.
+
+The offset comes from the environment and is NOT defaulted: a shim that silently displaced
+nothing would make every clock-dependent feed read as deterministic, which is the exact defect
+this exists to catch. Missing means the interpreter refuses to start, which is visible.
+"""
+import datetime as _dt
+import os as _os
+import time as _time
+
+_OFFSET_S = float(_os.environ["SE_FEED_CHECK_CLOCK_OFFSET_S"])
+
+_real_time = _time.time
+_real_gmtime = _time.gmtime
+_real_localtime = _time.localtime
+
+_time.time = lambda: _real_time() + _OFFSET_S
+_time.gmtime = lambda secs=None: _real_gmtime(_time.time() if secs is None else secs)
+_time.localtime = lambda secs=None: _real_localtime(_time.time() if secs is None else secs)
+
+
+class _Date(_dt.date):
+    @classmethod
+    def today(cls):
+        return cls.fromtimestamp(_time.time())
+
+
+class _DateTime(_dt.datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return cls.fromtimestamp(_time.time(), tz)
+
+    @classmethod
+    def utcnow(cls):
+        return cls.utcfromtimestamp(_time.time())
+
+    @classmethod
+    def today(cls):
+        return cls.fromtimestamp(_time.time())
+
+
+_dt.date = _Date
+_dt.datetime = _DateTime
+'''
+
+
+def _clock_shim_dir(tmp: Path) -> Path:
+    """A scratch directory holding the displaced-clock `sitecustomize`, created once per sweep."""
+    shim = tmp / "clockshim"
+    if not (shim / "sitecustomize.py").exists():
+        shim.mkdir(parents=True, exist_ok=True)
+        (shim / "sitecustomize.py").write_text(_CLOCK_SHIM, encoding="utf-8")
+    return shim
+
+
 #: The feeds that ARE a function of their commit, and the generator that writes each. Membership is
 #: a PROPERTY — "regenerating this at its own commit reproduces the committed bytes" — measured
 #: 2026-09-19 across all 61 published feeds, and re-derived on every run by
@@ -167,11 +256,32 @@ COVERED_FEEDS = {
     "company.json": "generate_company_data",
     "explore_hh_days.json": "generate_explore_hh_day",
     "fidelity.json": "generate_fidelity_data",
-    "knowledge_review.json": "generate_knowledge_review",
     "premise_demand.json": "generate_premise_demand_data",
     "regulatory.json": "generate_regulatory_data",
     "simplified.json": "generate_simplified_data",
     "world.json": "generate_world_data",
+}
+
+#: REMOVED FROM THE SET ABOVE, with the measurement that removed it — because a feed deleted from a
+#: covered set without a reason beside it is indistinguishable from a feed deleted to make a red go
+#: away, and this project has paid for that difference.
+#:
+#: MEASURED 2026-09-23 with `always_probe_determinism=True` and the clock displaced 400 days
+#: (pre-registered in `WORKER_PREREG_WHAT_A_DISPLACED_CLOCK_MEASURES_ABOUT_THE_COVERED_FEED_SET`):
+#: of the eight feeds then covered, seven still AGREE and exactly one moves —
+#: `knowledge_review.json`, whose `/topics[*]/age_days` went 26 → 426 and whose `/tally` swung
+#: 16 fresh / 0 due to 0 fresh / 16 due. It publishes `date.today()` minus a committed date, so it
+#: is not a function of its commit and never satisfied this table's membership rule.
+#:
+#: IT IS NOT LISTED AS AN EXCLUSION ANYWHERE THAT A SWEEP CONSULTS, and that is deliberate: the
+#: demotion leg re-measures it on every run, so if `generate_knowledge_review` ever stops reading
+#: the wall clock the promotion leg puts it straight back with nobody editing a list. This note is
+#: the record of why it left, not a rule that keeps it out.
+NOT_A_FUNCTION_OF_ITS_COMMIT = {
+    "knowledge_review.json": (
+        "publishes `age_days` — `date.today()` minus a committed `last_checked` — so its bytes are "
+        "a function of the day it was published on, not of the commit it was published from"
+    ),
 }
 
 
@@ -458,12 +568,23 @@ class _Tree:
     def feeds(self) -> dict[str, bytes]:
         return {p.name: p.read_bytes() for p in sorted((self.path / FEED_DIR).glob("*.json"))}
 
-    def run(self, generator: str, timeout_s: int) -> tuple[dict[str, bytes], str]:
-        """Run `tools.<generator>` inside this tree; return the feeds it CHANGED, and any error."""
+    def run(self, generator: str, timeout_s: int,
+            displace_clock: bool = False) -> tuple[dict[str, bytes], str]:
+        """Run `tools.<generator>` inside this tree; return the feeds it CHANGED, and any error.
+
+        `displace_clock` moves the generator's wall clock forward by `_CLOCK_DISPLACEMENT_DAYS`
+        via a `sitecustomize` shim, WITHOUT touching this tree's bytes or its commit. That makes
+        the pair of runs a probe of "is this feed a function of its commit" rather than only of
+        "did anything move in the last two seconds" — see `_CLOCK_DISPLACEMENT_DAYS`.
+        """
         self.restore_feeds()
         before = self.feeds()
         env = dict(os.environ)
         env["PYTHONPATH"] = str(self.path)
+        if displace_clock:
+            shim = _clock_shim_dir(self.path.parent)
+            env["PYTHONPATH"] = os.pathsep.join([str(shim), str(self.path)])
+            env[_CLOCK_OFFSET_ENV] = str(_CLOCK_DISPLACEMENT_DAYS * 86400.0)
         try:
             done = subprocess.run([sys.executable, "-m", f"tools.{generator}"],
                                   cwd=str(self.path), env=env, capture_output=True,
@@ -505,8 +626,33 @@ def _verdict(committed: bytes, first: bytes, second: bytes | None) -> tuple[str,
     }
 
 
+def _second_observation(second: "_Tree", generator: str, timeout_s: int,
+                        wanted: set[str]) -> tuple[dict[str, bytes], str | None]:
+    """The determinism tree's run, under a displaced clock, with a named fallback.
+
+    THE HAZARD THIS HANDLES, and it is the one the pre-registration called the costly one. A
+    generator that CRASHES under the displaced clock writes nothing, and the caller's
+    `again.get(name)` would then be None — which `_verdict` reads as "no determinism evidence" and
+    reports as DIVERGES. A widening of the probe must never be able to manufacture a red.
+
+    So a displaced run that did not produce every feed wanted is retried undisplaced, and the
+    probe's own degradation is RETURNED rather than swallowed: the row says the widening did not
+    run for this generator instead of quietly answering the narrower question under the same name.
+    """
+    again, _ = second.run(generator, timeout_s, displace_clock=True)
+    if wanted <= set(again):
+        return again, None
+    missed = sorted(wanted - set(again))
+    narrow, _ = second.run(generator, timeout_s)
+    return {**narrow, **again}, (
+        f"the displaced-clock probe did not reproduce {missed}, so determinism was decided by two "
+        f"runs seconds apart — which cannot see a quantity whose period is longer than that"
+    )
+
+
 def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
-          separate_nondeterminism: bool = True) -> list[dict]:
+          separate_nondeterminism: bool = True,
+          always_probe_determinism: bool = False) -> list[dict]:
     """Regenerate each generator's feeds in a private tree and grade them against committed bytes.
 
     Returns one row per FEED the generator actually wrote — observed, not declared. A generator that
@@ -518,6 +664,12 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
     where AGREES is decided on the first tree alone. It roughly halves the sweep, and it may never
     be used to justify a red: DIVERGES from this mode does not distinguish a hand-edit from a
     generator that reads the clock.
+
+    `always_probe_determinism=True` builds the second tree even when the first AGREES. That is the
+    only way to ask the membership question of a feed whose committed bytes happen to be fresh, and
+    it is how `knowledge_review.json` got into `COVERED_FEEDS` unasked — see
+    `_CLOCK_DISPLACEMENT_DAYS`. It doubles the sweep, so it is off for the ordinary grading pass
+    and on wherever membership itself is being decided.
     """
     generators = list(generators)
     if not generators:
@@ -536,14 +688,18 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
                 rows.append({"generator": generator, "feed": None,
                              "verdict": "WROTE_NOTHING", "detail": {"stderr": err}})
                 continue
-            # Only pay for the determinism tree when something actually disagrees.
-            needs_second = separate_nondeterminism and any(
-                committed.get(n) != b for n, b in written.items())
+            # Only pay for the determinism tree when something actually disagrees — unless
+            # membership itself is the question, in which case an AGREES that was never probed is
+            # the defect (see `always_probe_determinism`).
+            needs_second = separate_nondeterminism and (always_probe_determinism or any(
+                committed.get(n) != b for n, b in written.items()))
             again: dict[str, bytes] = {}
+            probe_degraded: str | None = None
             if needs_second:
                 if second is None:
                     second = _Tree(root, tmp, 2)
-                again, _ = second.run(generator, timeout_s)
+                again, probe_degraded = _second_observation(
+                    second, generator, timeout_s, set(written))
             for name in sorted(written):
                 if name not in committed:
                     rows.append({"generator": generator, "feed": name,
@@ -552,6 +708,10 @@ def check(generators, root: Path = PROJECT, timeout_s: int = DEFAULT_TIMEOUT_S,
                 verdict, detail = _verdict(committed[name], written[name], again.get(name))
                 if err:
                     detail = {**detail, "stderr": err}
+                if needs_second:
+                    detail = {**detail, "probe": probe_degraded or (
+                        f"a second tree at the same commit with the wall clock displaced by "
+                        f"{_CLOCK_DISPLACEMENT_DAYS} days")}
                 rows.append({"generator": generator, "feed": name,
                              "verdict": verdict, "detail": detail})
         return rows
@@ -636,7 +796,7 @@ def check_at_its_own_commit(feeds: dict[str, str], root: Path = PROJECT,
             again: bytes | None = None
             if committed != written[name]:
                 second = _Tree(root, tmp, len(rows) + 1000, at_commit=sha)
-                again = second.run(generator, timeout_s)[0].get(name)
+                again = _second_observation(second, generator, timeout_s, {name})[0].get(name)
             verdict, detail = _verdict(committed, written[name], again)
             verdict = {"AGREES": "AGREES_AT_ITS_OWN_COMMIT",
                        "DIVERGES": "DIVERGES_AT_ITS_OWN_COMMIT"}.get(verdict, verdict)
