@@ -15,6 +15,7 @@ from pathlib import Path
 import pytest
 
 from tools import refresh_to_head as rth
+from tools import stale_copy_refusal as scr
 from tools.stale_copy_refusal import judge
 
 
@@ -783,3 +784,110 @@ def test_the_flag_is_off_by_default_everywhere_the_tool_is_called(repo: Path) ->
     assert "--base-wins" not in text, (
         "the default refusal advertises the flag, so every reader of an ordinary REPLACEMENT is "
         "pointed at the one door that must stay a deliberate choice")
+
+
+# ------------------------------------------- `--base-wins` on a DATA path, where it never reached
+#
+# THE FLAG WAS SHUT FOR THE WHOLE POPULATION IT WAS BUILT FOR, in two independent ways, and every
+# leg above stayed green while it was: they are all `.py`. Measured 2026-09-23 on the three feed
+# inputs of the capabilities publisher (`svt_drift_belief_grade.json` and two
+# `ladder_churn_factors*.json`), which is the live instance.
+#
+#   1. `judge_copy`'s DATA_SUFFIXES branch returned on `supplies` several screens ABOVE the
+#      `base_wins` consultation, so a `.json` path never reached the flag at all. And a JSON leaf
+#      name carries its own VALUE, so a regenerated artefact -- same schema, every figure moved --
+#      "supplies" every leaf it holds by construction. A stale regeneration is precisely what
+#      `--base-wins` exists to discard and was the one copy that could never get to it.
+#
+#   2. The Python branch gates on `judge`, whose first line is
+#      `Path(path).suffix not in READABLE -> None`, and READABLE is `.html/.js/.py`. `judge` is
+#      STRUCTURALLY UNABLE to have a complaint about a `.json`, so gating a data path on it agrees
+#      with every answer by returning None to all of them. Simply routing data paths to the same
+#      gate would have restored an equally unreachable branch. The module docstring says the flag
+#      "is gated on the CLOCK (`BASE_WINS_RULES`)", and `clock_judge` is the oracle that name
+#      refers to -- it reads all three live files as predates_landing_by_clock /
+#      predates_landing_carrying_some where `judge` reads all three as no complaint.
+
+
+def _data_repo_with_a_stale_regeneration(repo: Path, carries_some: bool) -> Path:
+    """A committed JSON report, then a landing that moves every value, then a working copy that
+    PREDATES the landing -- the live shape. `carries_some` keeps one of the landing's own lines so
+    the clock reads PARTIAL rather than CLOCK, which is the other side of the partition."""
+    (repo / "report.json").write_text('{\n  "alpha": 1,\n  "beta": 2\n}\n')
+    _run(repo, "add", "report.json")
+    _run(repo, "commit", "-qm", "the report is first published")
+    (repo / "report.json").write_text('{\n  "alpha": 10,\n  "beta": 20,\n  "gamma": 30\n}\n')
+    _run(repo, "add", "report.json")
+    _run(repo, "commit", "-qm", "the report is regenerated and every figure moves")
+    # The rival: an OLDER run's output. Same schema, different values -- so it "supplies" leaves by
+    # value alone. mtime is forced behind the landing, which is what the clock reads.
+    stale = ('{\n  "alpha": 10,\n  "beta": 7\n}\n' if carries_some
+             else '{\n  "alpha": 3,\n  "beta": 7\n}\n')
+    (repo / "report.json").write_text(stale)
+    old = time.time() - 86400
+    os.utime(repo / "report.json", (old, old))
+    return repo
+
+
+def test_base_wins_reaches_a_DATA_replacement_the_clock_says_predates_its_landing(
+        repo: Path) -> None:
+    """REACHABILITY FIRST, and against the DEFAULT in the same test, exactly as the `.py` leg does.
+
+    This is the leg that did not exist, and its absence is why the flag could be shut for every
+    `.json` in the tree while the whole file above passed. Without `--base-wins` the copy must
+    still be refused -- otherwise this proves the door is open, not that the flag opened it."""
+    _data_repo_with_a_stale_regeneration(repo, carries_some=False)
+    assert rth.judge_copy(repo, "report.json").state == rth.SUPPLIES_NEW, (
+        "the fixture is not in the state the flag is about, so this proves nothing about it")
+    verdict = rth.judge_copy(repo, "report.json", base_wins=True)
+    assert verdict.state == rth.REFRESHABLE, (
+        "`--base-wins` did not reach a data path the clock says predates its own landing, so the "
+        "flag is still shut for the population it was built for: [{}] {}".format(
+            verdict.state, verdict.reason))
+    rc, text = rth.refresh(repo, ["report.json"], "base-wins-data", write=True, base_wins=True)
+    assert rc == 0, text
+    assert '"gamma": 30' in (repo / "report.json").read_text(), (
+        "the stale regeneration was not discarded, so the base still cannot win on a data "
+        "artefact: {}".format(text))
+    assert rth.CLOCK in text, "the verdict does not say which clock rule licensed the write"
+
+
+def test_base_wins_on_a_DATA_path_refuses_a_copy_that_carries_SOME_of_its_landing(
+        repo: Path) -> None:
+    """THE OTHER SIDE OF THE PARTITION, so the leg above is not 'the flag admits everything'.
+
+    `BASE_WINS_RULES` is deliberately NOT widened to PARTIAL for data. Whether "carries some of
+    the landing's distinctive lines" means anything about a document where a line is a value and
+    not a statement is a real question, and answering it silently inside a door that DISCARDS bytes
+    is how a lane's work gets destroyed. It is refused BY NAME instead."""
+    _data_repo_with_a_stale_regeneration(repo, carries_some=True)
+    verdict = rth.judge_copy(repo, "report.json", base_wins=True)
+    assert verdict.state == rth.SUPPLIES_NEW, (
+        "a data copy carrying part of its own landing was admitted under `--base-wins`, so the "
+        "flag is a revert button for every stale-looking JSON: [{}]".format(verdict.state))
+    assert scr.PARTIAL in verdict.reason, (
+        "the refusal does not name the clock verdict that caused it, so the operator cannot tell "
+        "this apart from the flag being ignored -- which is the defect this whole section is "
+        "about: {}".format(verdict.reason))
+
+
+def test_base_wins_on_a_DATA_path_is_not_gated_on_an_oracle_that_cannot_ANSWER(repo: Path) -> None:
+    """THE SECOND DEFECT, named directly, because fixing only the first restores an equally dead
+    branch and every other leg here would still pass.
+
+    `judge` returns None for a `.json` by construction -- `.json` is not in READABLE. A field
+    structurally unable to answer a question agrees with every answer to it, so a `--base-wins`
+    gated on `judge` refuses every data path no matter what the clock says. This asserts the two
+    oracles actually DISAGREE on the fixture, which is what makes the choice between them
+    load-bearing rather than cosmetic."""
+    _data_repo_with_a_stale_regeneration(repo, carries_some=False)
+    head_text = _run(repo, "show", "HEAD:report.json")
+    work_text = (repo / "report.json").read_text()
+    assert scr.judge(repo, "report.json", head_text, work_text) is None, (
+        "`judge` now has a complaint about a data path; if READABLE has grown to include `.json` "
+        "this test's premise is gone and the gate choice should be revisited, not this assertion "
+        "relaxed")
+    clock = scr.clock_judge(repo, "report.json", head_text, work_text)
+    assert clock is not None and clock.rule in rth.BASE_WINS_RULES, (
+        "the clock does not complain about the fixture either, so this file proves nothing about "
+        "which oracle the gate should ask: {}".format(clock))
