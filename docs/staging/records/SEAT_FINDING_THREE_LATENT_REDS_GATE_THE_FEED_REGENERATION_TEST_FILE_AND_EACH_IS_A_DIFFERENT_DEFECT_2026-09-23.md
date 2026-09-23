@@ -1,5 +1,21 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
 **Class:** `control_cannot_fail` (primary) · `publish_gate_and_wedge` (secondary)
+
+> **CLOSED 2026-09-23 in `6b4bfdd15`.** All three green, each keyed to its property. Result and the
+> measurement that decided it:
+> `SEAT_RESULT_A_DISPLACED_CLOCK_SEPARATES_THE_FEEDS_THAT_ARE_A_FUNCTION_OF_THEIR_COMMIT_2026-09-23.md`,
+> pre-registered in `WORKER_PREREG_WHAT_A_DISPLACED_CLOCK_MEASURES_ABOUT_THE_COVERED_FEED_SET_2026-09-23.md`.
+>
+> **AND §1 BELOW IS HALF WRONG, corrected here rather than quietly revised.** The probe's resolution
+> is real and is not the binding constraint. The determinism tree is only built when the FIRST tree
+> disagrees, so a feed whose committed bytes are fresh AGREES and is never asked the determinism
+> question at any resolution — which is what actually promoted `knowledge_review.json`. Widening
+> the probe alone would have repaired the half that was not load-bearing. Both are repaired; the
+> clock now moves 400 days AND the probe runs on the agreeing path.
+>
+> A fourth defect turned up while fixing the third and is in the result: one of these very legs read
+> `site/data/<feed>` off the WORKING TREE, four tests away from the leg that exists to refuse exactly
+> that. The producer defect under §2 is untouched and wants its own item.
 
 # Three latent reds gate the feed-regeneration test file, and each is a different defect
 
