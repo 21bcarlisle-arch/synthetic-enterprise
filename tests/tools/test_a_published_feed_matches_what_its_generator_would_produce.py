@@ -553,6 +553,47 @@ def test_a_feed_checkable_at_its_own_commit_is_promoted():
     )
 
 
+def test_a_promoted_feed_still_reproduces_at_the_commit_it_records():
+    """THE DEFECT: a hand-edit made to a published feed AFTER publication, which is the only thing
+    this whole relation exists to catch and which it caught nothing of until 2026-09-23.
+
+    The sibling above reds on a feed that reproduces and is NOT promoted, so the set can only grow.
+    This is the other direction, and it is the one with teeth: a member that STOPS reproducing.
+    With the producer honest — `tools/publish_from_a_clean_tree` runs both generators in a clean
+    checkout of HEAD — the published bytes ARE a function of the commit they name, so the only
+    things that can move them are a hand-edit to the feed and a producer that stopped publishing
+    this way. Both are defects and both land here.
+
+    THE INSTRUMENT'S ABILITY TO FAIL IS PROVEN SEPARATELY, end to end, by
+    `test_a_hand_edit_after_publication_reds_at_the_feeds_own_commit`, which edits a published feed
+    in a clone and gets DIVERGES_AT_ITS_OWN_COMMIT back. This leg is the PRODUCTION half: it points
+    that instrument at the real promoted set in this tree. Asserting over the set rather than over a
+    count means a member deleted to keep it green is caught by the promotion leg above instead.
+
+    NONDETERMINISTIC IS A RED HERE, unlike in the candidate sweep. A feed that cannot be reproduced
+    twice from the same commit is not a function of that commit, and the door out is the named one:
+    `NOT_A_FUNCTION_OF_ITS_COMMIT`, with the measurement beside it. Falling through quietly is how
+    `knowledge_review.json` sat in a covered set for a day.
+    """
+    if not head_resolves(PROJECT):
+        pytest.skip("no HEAD here — this is the landing checkout, which has no commit to stand at")
+    if not COVERED_AT_THEIR_OWN_COMMIT:
+        pytest.skip("nothing promoted yet — the promotion leg above is what reds in that state")
+    rows = check_at_its_own_commit(dict(COVERED_AT_THEIR_OWN_COMMIT))
+    assert {r["feed"] for r in rows} == set(COVERED_AT_THEIR_OWN_COMMIT), (
+        f"a promoted feed produced no row at all, so nothing graded it: {rows}"
+    )
+    broken = {r["feed"]: {"verdict": r["verdict"], "commit": r["recorded_commit"],
+                          "detail": r["detail"]}
+              for r in rows if r["verdict"] != "AGREES_AT_ITS_OWN_COMMIT"}
+    assert not broken, (
+        "a feed promoted as reproducing at the commit it records no longer does. Either the "
+        "published bytes were edited after publication — which is what this leg is for — or the "
+        "publish path stopped producing it from a clean tree, in which case the repair is at "
+        f"`tools/publish_from_a_clean_tree` and not here:\n{json.dumps(broken, indent=1)}"
+    )
+
+
 def test_the_weaker_verdict_is_never_spelled_like_the_stronger_one():
     """THE DEFECT: `AGREES_AT_ITS_OWN_COMMIT` says the bytes are what the generator produced BACK
     THERE. `AGREES` says they are what it produces NOW. A caller that switched on the verdict alone
