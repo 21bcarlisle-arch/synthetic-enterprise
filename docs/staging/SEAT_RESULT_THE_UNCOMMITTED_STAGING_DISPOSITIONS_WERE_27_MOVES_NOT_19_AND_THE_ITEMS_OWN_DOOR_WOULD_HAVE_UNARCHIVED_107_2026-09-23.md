@@ -211,3 +211,31 @@ un-re-asked prediction about the tree* had one of those in it.
    pathspec, and it is owed independently of the 107 — the next lane to leave anything staged
    inherits the same door. Not landed here because it is a `background/` code change with its own
    gate selection, and this document's landing is the staging tree.
+
+> **Owed item 4 is DISCHARGED in `9c0cd2934`, later the same turn, and the sentence above is left
+> standing rather than edited: it was true when written and the turn did not end where it said it
+> would.** `_default_fold()` now carries `"--", *_FOLD_PATHS` on the commit as well as the add.
+>
+> **Controlled by** `test_the_f1_fold_commits_only_its_own_paths_and_never_the_rest_of_the_index`,
+> which is behavioural rather than a source grep — it stages a bystander file, runs the real fold,
+> and asserts the fold committed its OWN paths before asserting the bystander is absent and still
+> staged. Mutation run and reverted: dropping the pathspec reds it with `another_lanes_file` listed
+> among the fold's own committed paths.
+>
+> **And writing that control found a second defect, which is the more general one.** The autouse
+> `_isolate` fixture rebinds `executor_governor._default_fold` to `lambda: []`, so a test calling it
+> through the module attribute gets the STUB — and the stub returns `[]`, which is exactly what the
+> fold's error path returns. `test_default_fold_swallows_errors_and_returns_empty` was asserting
+> `[] == []` against the stub and **stayed green with the real function mutated to raise
+> unconditionally.** Established as a MISSING TEST rather than an equivalence: the real error path
+> had no coverage at all. Both fold tests now go through `_ORIG_DEFAULT_FOLD`, captured at module
+> level before the fixture — the idiom this file already used for `_ORIG_DEFAULT_RECONCILE`, one
+> name above the defect, for exactly this reason.
+>
+> *The shape, because it is the reusable part: **a control whose subject an autouse fixture stubs
+> proves the stub**, and it is worst when the stub's return value coincides with the real function's
+> expected one. Nothing about that test looked wrong. It took mutating the real function to see it,
+> and I only mutated it because I needed the same function for a different control.*
+>
+> **Still open after this: §5 items 1–3.** The 107 ghosts remain in the shared index — the repair
+> above removes the daemon route by which they could have landed, and does **not** remove them.
