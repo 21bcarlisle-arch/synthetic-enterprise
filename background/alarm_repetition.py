@@ -62,6 +62,7 @@ import hashlib
 import json
 import os
 import re
+import textwrap
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -75,6 +76,42 @@ STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 #: for the same reason: sustained, not a lone flake. Deliberately NOT 1 -- a single retry that
 #: then succeeds is noise in the draw, and a draw full of noise is the treadmill.
 ESCALATE_AFTER_REPEATS = 3
+
+# THREE COUNTS, AND THEY ARE NOT THE SAME COUNT
+# ---------------------------------------------
+# SAY WHAT THE THING IS BEFORE MEASURING IT. An alarm document carries three numbers that all
+# sound like "how many times", and every defect this section exists to fix came from one of them
+# being written where another was meant.
+#
+#   repeats      CONSECUTIVE FIRINGS WITHOUT A STATE CHANGE. The caller's, and only `notify()`
+#                can know it, because only `notify()` holds the transition store that decides
+#                when the streak breaks. It is an argument, it is OPTIONAL, and a caller that
+#                does not measure it passes nothing.
+#   days         DISTINCT DATES ON WHICH THE CONDITION WAS OBSERVED TO HOLD. The document's own,
+#                read back from the machine-written lines every firing leaves behind.
+#   members      DISTINCT MEMBERS OF THE FAMILY THAT HAVE FIRED. Also the document's own, read
+#                from the instance list.
+#
+# THE MEASURED DEFECT, 2026-09-23/24 (finding `..._THREE_ALARM_FAMILIES_BYPASS_NOTIFY_AND_
+# HARDCODE_REPEATS_1_...`, `612bd9ffe`, plus the wider measurement in `..._THE_HEADER_IS_STAMPED_
+# ONCE_...`). Four call sites reach `escalate()` directly and had to supply `repeats` because it
+# was required, so all four passed the literal `1`. `SEAT_CONTINUITY` opened with "fired **1
+# times without its state changing**, over **95.9h**" above eight days of still-live lines and
+# twenty-three enumerated members; `DELIVERY_LANE_STRANDED` said the same above eighteen. Their
+# still-live lines repeated "1 repeats" verbatim every day, because a frozen constant is not a
+# measurement of anything.
+#
+# AND THE HEADER WAS STAMPED ONCE FOR EVERYONE, not only for those four: it was written into the
+# body at birth and never rewritten, so `STRETCH_LOG` led with "fired **3 times**" above a line
+# reading 2132, and four of the seven documents carrying still-live lines understated themselves
+# in their own first sentence. The literal `1` was the worst case of a defect the whole
+# population had.
+#
+# SO THE TWO COUNTS THE DOCUMENT CAN ESTABLISH ARE DERIVED FROM THE DOCUMENT, EVERY FIRING, and
+# the caller's count is reported beside them under its own name or declared absent. They are
+# never summed and never differenced: `days` and `members` grow monotonically, while `repeats`
+# is a streak counter that RESETS (`DEADMAN_WORKTREE_UNDECLARED` ran 3, 22, 51, 70, 106, 298, 3),
+# so any arithmetic across the three is arithmetic across incommensurables.
 
 #: How long an auto-keyed alarm must stay QUIET before its next firing counts as a new
 #: episode -- pages again, and files its own work item.
@@ -235,9 +272,15 @@ def finding_path(message: str, *, today: str, key: str = "auto:",
     )
 
 
-def escalate(message: str, *, key: str, repeats: int, first_ts: float,
+def escalate(message: str, *, key: str, first_ts: float, repeats: int | None = None,
              staging_dir: Path | None = None, now: float | None = None) -> Path | None:
     """File the work item for a repeating alarm. Returns the path, or None if it already exists.
+
+    `repeats` IS THE CALLER'S OWN QUANTITY AND IS OPTIONAL — see THREE COUNTS above. Pass it
+    only if you actually measure consecutive firings without a state change, which in practice
+    means `notify()`. A caller that reaches here directly passes nothing and the document says
+    so; it does not invent a number, and the two counts the document derives from itself are
+    stated whether or not this one is.
 
     IDEMPOTENT by path: the same alarm on the same day refiles nothing. That is the whole
     point -- an escalation that filed once per repetition would be the original defect wearing
@@ -296,9 +339,12 @@ def escalate(message: str, *, key: str, repeats: int, first_ts: float,
     if live is not None:
         _note_still_live(live, today=today, repeats=repeats, window_h=(now - first_ts) / 3600.0)
         _note_instance(live, instance(key, message), today=today)
+        # LAST, ALWAYS, so the counts are read back from a document that already carries today's
+        # lines. Ordering it before the two writers would restate yesterday's numbers under
+        # today's date, which is the frozen header rebuilt one day behind itself.
+        _refresh_counts(live, key=key, repeats=repeats, first_ts=first_ts, now=now)
         return None
 
-    window_h = max(0.0, (now - first_ts)) / 3600.0
     # THE CHAIN, FROM BIRTH (2026-08-28, the director's P8: "not one file carries a lane, an
     # epoch or an atom id, so the queue is disconnected from the map entirely"). Stamping it
     # HERE rather than asking a later turn to add it is the difference between a field that is
@@ -313,11 +359,6 @@ def escalate(message: str, *, key: str, repeats: int, first_ts: float,
 
 # {message.strip().splitlines()[0][:180]}
 
-**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
-fired **{repeats} times without its state changing**, over **{window_h:.1f}h**. Under the
-director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
-than being sent again, so this document exists and a {repeats}th page does not.
-
 ## The alarm, verbatim
 
 ```
@@ -329,7 +370,7 @@ than being sent again, so this document exists and a {repeats}th page does not.
 - Signature: `{key}` — the alarm text with elapsed times, counters, hashes and timestamps
   normalised away, so this is the same CONDITION recurring, not the same string.
 - First seen in this episode: {datetime.fromtimestamp(first_ts, timezone.utc).isoformat(timespec="seconds")}
-- Repeats before escalation: {repeats} (threshold `ESCALATE_AFTER_REPEATS`)
+- {_threshold_line(repeats)}
 - Paging for this signature is now SUPPRESSED. It resumes automatically the moment the
   underlying state changes — including when it clears.
 
@@ -358,6 +399,13 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
     # fifteen, and the missing one would be the earliest, which is the one whose age the
     # document's own header is about.
     _note_instance(path, instance(key, message), today=today)
+    # THE COUNTS BLOCK IS INSERTED, NEVER STAMPED, and this is the same call the live branch
+    # above makes -- one derivation point for the whole module. The birth body deliberately
+    # carries no counts paragraph of its own: a provisional one written here and corrected a
+    # line later would be a second place the numbers come from, and the second place is always
+    # the one that rots. If this cannot write, the document arrives with no counts at all --
+    # visibly incomplete, which is the direction that cannot mislead a draw.
+    _refresh_counts(path, key=key, repeats=repeats, first_ts=first_ts, now=now)
     return path
 
 
@@ -447,12 +495,19 @@ def _append_under(text: str, heading: str, line: str) -> str:
     return "\n".join(body + [line] + lines[end:]) + "\n"
 
 
-def _note_still_live(path: Path, *, today: str, repeats: int, window_h: float) -> None:
+def _note_still_live(path: Path, *, today: str, repeats: int | None, window_h: float) -> None:
     """Append one dated line recording that the condition has not changed.
 
     Idempotent per DAY: a second call on the same date rewrites nothing, so a tick that runs
     forty-eight times cannot turn one document into forty-eight lines -- which would be the
     same defect at a finer grain.
+
+    THE LINE NO LONGER OPENS WITH THE CALLER'S NUMBER. It used to read "{repeats} repeats over
+    {window_h}h", which for the four direct call sites was the literal `1` written out again
+    under a new date -- `DELIVERY_LANE_STRANDED` carried four consecutive days of "1 repeats
+    over 1.7h", identical because they were not measurements. The line now leads with what this
+    call OBSERVED (the date, and that the condition held) and carries the caller's streak
+    afterwards, named as the caller's and omitted entirely when the caller does not measure it.
     """
     marker = f"- **{today}**"
     try:
@@ -461,12 +516,220 @@ def _note_still_live(path: Path, *, today: str, repeats: int, window_h: float) -
         return  # a document we cannot read is not one we can annotate; the alarm still fires
     if marker in text:
         return
-    line = (f"{marker} — still live. {repeats} repeats over {window_h:.1f}h without the "
-            f"state changing. No second document filed: this condition already has one.")
+    line = (f"{marker} — still live. The condition was observed to hold again today. "
+            f"No second document filed: this condition already has one."
+            + (f" The observer reports {repeats} consecutive firing(s) without a state change, "
+               f"over {window_h:.1f}h — its streak, not this document's total."
+               if repeats is not None else
+               " This observer reaches `escalate()` directly and measures no streak."))
     try:
         path.write_text(_append_under(text, "## Still live", line), encoding="utf-8")
     except OSError:
         return
+
+
+# ---------------------------------------------------------------------------------------------
+# WHAT THE DOCUMENT RECORDS ABOUT ITSELF
+# ---------------------------------------------------------------------------------------------
+# The readers below are SHARED between `escalate()` and the re-ask, and that sharing is the
+# point rather than a convenience: both ask the same question -- "what has the alarm machinery
+# actually written into this document?" -- and two readers of one record would drift.
+#
+# ONLY MACHINE-WRITTEN LINES COUNT. A human note added today saying "drawn, being worked" is
+# evidence that somebody is LOOKING, which is a different fact from the condition holding, and
+# letting it count would let attention masquerade as the thing attention was paid to.
+
+_STILL_LIVE_DATE = re.compile(r"^- \*\*(\d{4}-\d{2}-\d{2})\*\* — still live\.", re.M)
+_INSTANCE_DATE = re.compile(r"^- `.*` \(first seen (\d{4}-\d{2}-\d{2})\)", re.M)
+_FILENAME_DATE = re.compile(r"_(\d{4}-\d{2}-\d{2})\.md$")
+_SIGNATURE_LINE = re.compile(r"^- Signature: `([^`]+)`", re.M)
+
+#: Where the re-ask records itself. A SEPARATE section from "Still live" on purpose, and the
+#: distinction is load-bearing rather than cosmetic: the readers here must never read a line the
+#: re-ask itself wrote, or the first re-ask would refresh the document's apparent age and nothing
+#: could ever clear again -- a control reading its own output and agreeing with itself. Only an
+#: alarm FIRING may write "Still live"; only the re-ask may write here.
+REASK_HEADING = "## Re-asked"
+
+#: The self-updating block at the head of every alarm document. Everything between these markers
+#: is DERIVED from the document's own machine-written lines and rewritten on every firing, so the
+#: first sentence a draw reads ages with the document instead of with its first firing.
+#:
+#: MARKERS RATHER THAN A HEADING, because this block sits above the first `## ` and `_append_under`
+#: -- the module's other writer -- works in terms of `## ` sections. A heading here would put the
+#: counts inside the section machinery and make every appended line land in the wrong place.
+COUNTS_BEGIN = "<!-- counts:begin -->"
+COUNTS_END = "<!-- counts:end -->"
+
+#: The opening words of the fixed paragraph this block replaced. Kept so the ten documents filed
+#: before 2026-09-24 are REPAIRED IN PLACE on their next firing rather than growing a second,
+#: contradicting header beside the frozen one.
+_LEGACY_COUNTS_OPENER = "**Filed automatically by "
+
+
+@dataclass(frozen=True)
+class DocumentCounts:
+    """The two counts an alarm document can establish about itself. See THREE COUNTS at the top.
+
+    Neither is the caller's `repeats`, and none of the three may be summed with another.
+    """
+    days: int
+    members: int
+    first: str | None
+    last: str | None
+
+
+def _without_reask_section(text: str) -> str:
+    """`text` with the re-ask's own section removed -- see REASK_HEADING."""
+    lines = text.splitlines()
+    try:
+        start = lines.index(REASK_HEADING)
+    except ValueError:
+        return text
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("## "):
+            end = i
+            break
+    return "\n".join(lines[:start] + lines[end:])
+
+
+def _observation_dates(path: Path, text: str) -> set[str]:
+    """Every date on which this condition was observed to hold, from machine-written lines only.
+
+    The filing date in the FILENAME is one of them: it is the first firing, and a document whose
+    condition has held for exactly one day would otherwise report zero observations of itself.
+    """
+    body = _without_reask_section(text)
+    dates = set(_STILL_LIVE_DATE.findall(body)) | set(_INSTANCE_DATE.findall(body))
+    filed = _FILENAME_DATE.search(path.name)
+    if filed:
+        dates.add(filed.group(1))
+    return dates
+
+
+def document_counts(path: Path, text: str | None = None) -> DocumentCounts:
+    """What this document says about itself, counted rather than asserted."""
+    if text is None:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return DocumentCounts(days=0, members=0, first=None, last=None)
+    dates = sorted(_observation_dates(path, text))
+    members = len(_INSTANCE_DATE.findall(_without_reask_section(text)))
+    return DocumentCounts(days=len(dates), members=members,
+                          first=dates[0] if dates else None,
+                          last=dates[-1] if dates else None)
+
+
+def _threshold_line(repeats: int | None) -> str:
+    """What to say about `ESCALATE_AFTER_REPEATS` for this document, including when it did not apply.
+
+    AN HONEST ABSENCE, NAMED. The old line read "Repeats before escalation: 1 (threshold
+    `ESCALATE_AFTER_REPEATS`)" on every document the four direct callers filed -- which states a
+    number BELOW the bar the constant exists to set, next to the constant, as though the bar had
+    been cleared. Saying the threshold was never applied is both true and more useful: it tells a
+    reader the document's existence is not evidence of sustained repetition, so they should read
+    the derived counts above instead of trusting this line.
+    """
+    if repeats is None:
+        return (f"Repeats before escalation: **not measured**. This condition's observer calls "
+                f"`escalate()` directly rather than through `notify()`, so there is no transition "
+                f"store to count a streak against and `ESCALATE_AFTER_REPEATS` "
+                f"(= {ESCALATE_AFTER_REPEATS}) was never applied to it. What the document can "
+                f"establish about itself is counted at the top; this is a stated absence, not a "
+                f"zero.")
+    return (f"Repeats before escalation: {repeats} (threshold `ESCALATE_AFTER_REPEATS` = "
+            f"{ESCALATE_AFTER_REPEATS}, applied by `notify()`)")
+
+
+def _counts_paragraph(counts: DocumentCounts, *, key: str, repeats: int | None,
+                      window_h: float) -> str:
+    """The derived opening paragraph. Every number in it is read back off the document."""
+    if counts.first and counts.last and counts.first != counts.last:
+        span = f", between **{counts.first}** and **{counts.last}**"
+    elif counts.first:
+        span = f", on **{counts.first}**"
+    else:
+        span = ""
+    streak = (
+        f"Separately, the observer that last filed reported **{repeats} consecutive firing(s) "
+        f"without a state change**, over **{window_h:.1f}h**. That is `notify()`'s streak "
+        f"counter, which resets; it is not a total and does not combine with the two counts above."
+        if repeats is not None else
+        f"This condition's observer calls `escalate()` directly rather than through `notify()`, "
+        f"so no consecutive-firing count exists for it and `ESCALATE_AFTER_REPEATS` "
+        f"(= {ESCALATE_AFTER_REPEATS}) was never applied. That absence is stated rather than "
+        f"filled with a placeholder count."
+    )
+    derived = (
+        f"**Filed automatically by `background/alarm_repetition.py`, not by a person.** This "
+        f"condition has been **observed to hold on {counts.days} separate day(s)**{span}, and "
+        f"**{counts.members} member(s)** of the family `{family(key) if key else 'unknown'}` have "
+        f"fired. Both counts are DERIVED from this document's own dated lines every time the "
+        f"alarm fires again, so they age with the document rather than with its first firing."
+    )
+    # WRAPPED, because these documents are read as RAW TEXT in a draw prompt rather than
+    # rendered, and the rest of the body is hand-wrapped at this width.
+    return "\n\n".join(textwrap.fill(p, width=95) for p in (derived, streak))
+
+
+def _refresh_counts(path: Path, *, key: str, repeats: int | None, first_ts: float,
+                    now: float) -> bool:
+    """Rewrite the counts block from the document's own content. Never raises.
+
+    THE ONE PLACE THE HEADER NUMBERS COME FROM, reached at birth and on every later firing. The
+    old code stamped them into the body once and nothing ever touched them again: `STRETCH_LOG`
+    led with "fired **3 times**" above a still-live line reading 2132, and four of the seven
+    documents carrying still-live lines understated themselves in their own first sentence.
+
+    Three placements, in order, and the third is what makes the repair automatic:
+      1. Between the markers, if this document already has them.
+      2. Over the legacy fixed paragraph, if it has that instead -- so a document filed before
+         2026-09-24 is repaired the next time its condition is observed, with no migration to
+         run and nothing to remember.
+      3. Immediately after the title, if it has neither. This is the BIRTH path, so the insert
+         branch is exercised by every new document rather than only by old ones -- a branch that
+         only ran during a migration would be dead code the day the migration finished.
+    """
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    counts = document_counts(path, text)
+    window_h = max(0.0, now - first_ts) / 3600.0
+    paragraph = _counts_paragraph(counts, key=key, repeats=repeats, window_h=window_h)
+    block = f"{COUNTS_BEGIN}\n{paragraph}\n{COUNTS_END}"
+
+    if COUNTS_BEGIN in text and COUNTS_END in text:
+        head, _, rest = text.partition(COUNTS_BEGIN)
+        _, _, tail = rest.partition(COUNTS_END)
+        updated = head + block + tail
+    else:
+        lines = text.splitlines()
+        start = next((i for i, ln in enumerate(lines)
+                      if ln.startswith(_LEGACY_COUNTS_OPENER)), None)
+        if start is not None:
+            end = start
+            while end < len(lines) and lines[end].strip():
+                end += 1
+        else:
+            title = next((i for i, ln in enumerate(lines) if ln.startswith("# ")), None)
+            if title is None:
+                return False
+            start = end = title + 1
+            while start < len(lines) and not lines[start].strip():
+                start = end = start + 1
+        tail = lines[end:]
+        while tail and not tail[0].strip():
+            tail.pop(0)  # the blank that closed the paragraph we replaced, not a second one
+        updated = "\n".join(lines[:start] + block.splitlines() + [""] + tail) + "\n"
+
+    try:
+        path.write_text(updated, encoding="utf-8")
+    except OSError:
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------------------------
@@ -533,13 +796,6 @@ REASK_QUIET_DAYS = 3
 #: population demonstrably keeps.
 REASK_HEARTBEAT_DAYS = 1
 
-#: Where the re-ask records itself. A SEPARATE section from "Still live" on purpose, and the
-#: distinction is load-bearing rather than cosmetic: `_last_observed()` must never read a line the
-#: re-ask itself wrote, or the first re-ask would refresh the document's apparent age and nothing
-#: could ever clear again -- a control reading its own output and agreeing with itself. Only an
-#: alarm FIRING may write "Still live"; only the re-ask may write here.
-REASK_HEADING = "## Re-asked"
-
 #: The document stem every alarm document carries, and the population the re-ask asks about.
 ALARM_DOCUMENT_STEM = "WORKER_FINDING_REPEATING_ALARM_"
 
@@ -549,12 +805,6 @@ CANNOT_TELL = "cannot_tell"
 
 #: The three verdicts, as a closed set, so a caller can assert the partition rather than a leg.
 REASK_VERDICTS = (STILL_HOLDS, CLEARED, CANNOT_TELL)
-
-_STILL_LIVE_DATE = re.compile(r"^- \*\*(\d{4}-\d{2}-\d{2})\*\* — still live\.", re.M)
-_INSTANCE_DATE = re.compile(r"^- `.*` \(first seen (\d{4}-\d{2}-\d{2})\)", re.M)
-_FILENAME_DATE = re.compile(r"_(\d{4}-\d{2}-\d{2})\.md$")
-_SIGNATURE_LINE = re.compile(r"^- Signature: `([^`]+)`", re.M)
-
 
 @dataclass(frozen=True)
 class Reask:
@@ -590,40 +840,20 @@ def alarm_documents(staging_dir: Path | None = None) -> list[Path]:
     return out
 
 
-def _without_reask_section(text: str) -> str:
-    """`text` with the re-ask's own section removed -- see REASK_HEADING."""
-    lines = text.splitlines()
-    try:
-        start = lines.index(REASK_HEADING)
-    except ValueError:
-        return text
-    end = len(lines)
-    for i in range(start + 1, len(lines)):
-        if lines[i].startswith("## "):
-            end = i
-            break
-    return "\n".join(lines[:start] + lines[end:])
-
-
 def last_observed(path: Path, text: str | None = None) -> str | None:
     """The newest date on which this condition was OBSERVED TO HOLD, as `YYYY-MM-DD`, or None.
 
-    Read ONLY from lines a machine wrote -- still-live lines, instance lines, and the filing date
-    in the filename, which is the first firing. Deliberately NOT any ISO date in the prose: a
-    human note added today saying "drawn, being worked" is an observation that somebody is
-    LOOKING, which is a different fact from the condition holding, and letting it count would let
-    attention masquerade as the thing attention was paid to.
+    The NEWEST of exactly the dates the counts block COUNTS -- one reader, `_observation_dates`,
+    for both. Two readers of the same record would drift, and a re-ask that archived on a
+    different set of dates from the one the document's own header reports would be unarguable
+    with.
     """
     if text is None:
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             return None
-    body = _without_reask_section(text)
-    dates = set(_STILL_LIVE_DATE.findall(body)) | set(_INSTANCE_DATE.findall(body))
-    filed = _FILENAME_DATE.search(path.name)
-    if filed:
-        dates.add(filed.group(1))
+    dates = _observation_dates(path, text)
     return max(dates) if dates else None
 
 

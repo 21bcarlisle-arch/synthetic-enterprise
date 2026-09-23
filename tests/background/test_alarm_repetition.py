@@ -77,9 +77,11 @@ def test_escalate_files_a_finding_naming_the_alarm_and_its_count(tmp_path):
     assert p is not None and p.is_file()
     body = p.read_text(encoding="utf-8")
     assert "**Severity:**" in body and "**Lane:**" in body, "not a classifiable finding"
-    assert "6 times" in body, "the repetition count is the finding; it must be stated"
+    assert "6 consecutive firing(s)" in body, "the caller's streak is the finding; state it"
     assert "net_margin_gbp" in body, "the diagnostic payload was dropped (R5)"
     assert "1.0h" in body, "the window the repeats covered is missing"
+    assert "observed to hold on 1 separate day(s)" in body, (
+        "the document must state what IT can establish, not only what the caller reported")
 
 
 def test_MUTATION_the_SAME_alarm_on_the_same_day_files_nothing_further(tmp_path):
@@ -403,7 +405,7 @@ def test_the_continuing_condition_is_RECORDED_on_the_one_document(tmp_path):
     text = p.read_text(encoding="utf-8")
     assert "## Still live" in text
     assert "2026-08-23" in text and "2026-08-24" in text
-    assert "90 repeats" in text
+    assert "90 consecutive firing(s)" in text, "the caller's latest streak is not recorded"
 
 
 def test_MANY_calls_on_ONE_day_add_ONE_line(tmp_path):
@@ -657,6 +659,193 @@ def test_still_live_and_instance_lines_land_under_their_OWN_headings(tmp_path):
     inst_at = text.index(ar.INSTANCES_HEADING)
     assert live_at < inst_at
     assert text.index("— still live.") < inst_at, "a still-live line filed under Instances"
+
+
+# =============================================================================================
+# THE COUNTS THE DOCUMENT DERIVES FROM ITSELF (2026-09-24)
+# =============================================================================================
+# THE DEFECT, MEASURED, in two halves that turned out to be one.
+#
+# Half one (finding `612bd9ffe`): four call sites reach `escalate()` directly, `repeats` was
+# REQUIRED, so all four passed the literal `1`. `SEAT_CONTINUITY` opened with "fired **1 times
+# without its state changing**" above eight days of still-live lines and twenty-three members;
+# `DELIVERY_LANE_STRANDED` carried four consecutive days of "1 repeats over 1.7h", identical
+# because a frozen constant measures nothing.
+#
+# Half two (measured while fixing half one, pre-registered in
+# `docs/staging/records/SEAT_PREREG_WHETHER_THE_FROZEN_HEADER_IS_THREE_FAMILIES_OR_THE_WHOLE_
+# POPULATION_2026-09-24.md` and partly refuted there): the header was stamped at birth for EVERYONE, so
+# `STRETCH_LOG` led with "fired **3 times**" above a line reading 2132. Four of the seven live
+# documents carrying still-live lines understated themselves in their own first sentence.
+#
+# So the mutation that matters here is a COUNT THAT DOES NOT MOVE. Every control below is keyed
+# to the header CHANGING as the document accrues evidence -- the property -- rather than to any
+# number it happens to show today, because a control pinned to today's answer goes red when the
+# code becomes more honest and stays green when the claim rots.
+
+
+def _fire_on_days(tmp_path, *, key_for, message_for, days, repeats=None):
+    """Fire one family on `days` consecutive days, one new member each day. Returns the doc.
+
+    OMITS `repeats` ENTIRELY when there is none, rather than passing `repeats=None`. Those are
+    different calls and only one of them is what the four direct call sites make. Caught by a
+    mutation that went GREEN: setting the default back to `1` passed every test here, because
+    every test was naming the argument and nothing exercised the default at all.
+    """
+    extra = {} if repeats is None else {"repeats": repeats}
+    for i in range(days):
+        ar.escalate(message_for(i), key=key_for(i), first_ts=_DAY1,
+                    staging_dir=tmp_path, now=_DAY1 + i * 86_400 + 60, **extra)
+    return sorted(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))[0]
+
+
+def test_MUTATION_the_HEADER_COUNT_MOVES_as_the_document_accrues_evidence(tmp_path):
+    """THE DEFECT ITSELF. Eight days of evidence under a header that says one.
+
+    Keyed to the property -- the header must equal what the test CAUSED (eight distinct days,
+    eight distinct members) -- and not to the string the current code emits on day one. Stamping
+    the header at birth again, from any source, fails this on both numbers.
+    """
+    doc = _fire_on_days(tmp_path, days=8,
+                        key_for=lambda i: f"seat-claim:work-{i}",
+                        message_for=lambda i: f"[SEAT] work-{i} was claimed and has not moved")
+    body = doc.read_text(encoding="utf-8")
+    head = body[body.index(ar.COUNTS_BEGIN):body.index(ar.COUNTS_END)]
+    assert "8 separate day(s)" in head, f"the header did not age with the document:\n{head}"
+    assert "8 member(s)" in head, f"the header lost members of its own family:\n{head}"
+    assert head.count("day(s)") == 1, "two counts in one header is two places for them to rot"
+
+
+def test_MUTATION_the_header_is_REWRITTEN_not_APPENDED(tmp_path):
+    """The obvious wrong fix: append a fresh count each firing and leave the stale one above it.
+
+    A document with two headers is worse than one with a stale header, because now a reader has
+    to decide which to believe and the first one they meet is the wrong one.
+    """
+    doc = _fire_on_days(tmp_path, days=6, repeats=3,
+                        key_for=lambda i: "deadman-worktree",
+                        message_for=lambda i: f"worktree undeclared after {i}s")
+    body = doc.read_text(encoding="utf-8")
+    assert body.count(ar.COUNTS_BEGIN) == 1 and body.count(ar.COUNTS_END) == 1
+    assert body.count("**Filed automatically by ") == 1, "a second header was grown beside the first"
+
+
+def test_MUTATION_a_caller_that_measures_NO_streak_never_has_one_INVENTED_for_it(tmp_path):
+    """`repeats` is the CALLER'S quantity and a direct caller cannot know it. An honest absence
+    with a named reason is worth more than a `1`, because the `1` is read as established.
+
+    Also asserts the threshold is named as NOT APPLIED. The old line read "Repeats before
+    escalation: 1 (threshold `ESCALATE_AFTER_REPEATS`)" -- a number BELOW the bar, printed next
+    to the bar, as though the bar had been cleared.
+    """
+    doc = _fire_on_days(tmp_path, days=3,
+                        key_for=lambda i: f"seat-claim:work-{i}",
+                        message_for=lambda i: f"[SEAT] work-{i} was claimed and has not moved")
+    body = doc.read_text(encoding="utf-8")
+    assert "consecutive firing(s)" not in body, "a streak was reported for a caller that has none"
+    assert "not measured" in body and "was never applied" in body, (
+        "the absence must be STATED, with its reason, not left to look like a zero")
+    assert f"= {ar.ESCALATE_AFTER_REPEATS}" in body, "the bar that did not apply is not named"
+    # And the document still says what it CAN establish -- an absence is not an excuse for silence.
+    assert "3 separate day(s)" in body and "3 member(s)" in body
+
+
+def test_MUTATION_a_caller_that_DOES_measure_a_streak_gets_its_LATEST_one_not_its_FIRST(tmp_path):
+    """The other half of the partition, and the one the refuted pre-registration was about.
+
+    `notify()` families were not spared: their header held the birth streak forever. This fires
+    a growing streak and asserts the header carries the last, not the first.
+    """
+    for n, day in ((3, _DAY1), (298, _DAY1 + 5 * 86_400)):
+        ar.escalate(f"worktree undeclared after {n}s", key="deadman-worktree", repeats=n,
+                    first_ts=_DAY1, staging_dir=tmp_path, now=day + 60)
+    body = sorted(tmp_path.glob("*.md"))[0].read_text(encoding="utf-8")
+    head = body[body.index(ar.COUNTS_BEGIN):body.index(ar.COUNTS_END)]
+    assert "298 consecutive firing(s)" in head, f"the header froze at the first streak:\n{head}"
+    assert "3 consecutive firing(s)" not in head
+
+
+def test_MUTATION_the_counts_block_IS_NOT_READ_BACK_AS_AN_OBSERVATION(tmp_path):
+    """A control reading its own output agrees with itself. This one must not.
+
+    The block prints dates -- the first and last observation. If `_observation_dates` ever
+    matched them, a refresh would be an observation, the document would look freshly observed
+    every time anything touched it, and `reask()` could never clear anything again. Refreshing
+    at a far-future `now` must move NEITHER the day count NOR `last_observed`.
+    """
+    doc = _fire_on_days(tmp_path, days=3,
+                        key_for=lambda i: f"seat-claim:work-{i}",
+                        message_for=lambda i: f"[SEAT] work-{i} was claimed and has not moved")
+    before = (ar.document_counts(doc), ar.last_observed(doc))
+    for i in range(5):
+        ar._refresh_counts(doc, key="seat-claim:work-0", repeats=None,
+                           first_ts=_DAY1, now=_DAY1 + (90 + i) * 86_400)
+    assert (ar.document_counts(doc), ar.last_observed(doc)) == before, (
+        "refreshing the header aged the document, so the re-ask can never clear it")
+
+
+def test_the_THREE_PLACEMENTS_of_the_counts_block_are_ALL_REACHABLE(tmp_path):
+    """One control over the whole partition, not a leg each.
+
+    `_refresh_counts` places the block three ways -- between existing markers, over the LEGACY
+    fixed paragraph, and after the title when there is neither. A placer that refused everything
+    would pass a leg-per-branch suite; asserting all three land, with distinct starting shapes,
+    cannot be passed by refusing.
+    """
+    legacy = (
+        "**Severity:** LATENT · **Lane:** H_harness\n\n"
+        "# [SEAT] something was claimed and has not moved\n\n"
+        "**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has\n"
+        "fired **1 times without its state changing**, over **95.9h**. Under the\n"
+        "director's instruction of 2026-08-20 a repeating alert escalates itself into the draw.\n\n"
+        "## Still live\n"
+        "- **2026-09-16** — still live. The condition was observed to hold again today.\n\n"
+        "## Instances seen\n"
+        "- `alpha` (first seen 2026-09-15)\n")
+    bare = legacy.replace(legacy[legacy.index("**Filed"):legacy.index("## Still live")], "")
+
+    shapes = {}
+    for name, text in (("legacy", legacy), ("bare", bare)):
+        p = tmp_path / f"WORKER_FINDING_REPEATING_ALARM_{name.upper()}_2026-09-15.md"
+        p.write_text(text, encoding="utf-8")
+        assert ar._refresh_counts(p, key="seat-continuity", repeats=None, first_ts=_DAY1,
+                                  now=_DAY1), f"{name} was refused"
+        shapes[name] = p.read_text(encoding="utf-8")
+        # SECOND pass: now the markers exist, so this is the third placement.
+        assert ar._refresh_counts(p, key="seat-continuity", repeats=None, first_ts=_DAY1,
+                                  now=_DAY1), f"{name} was refused on its second pass"
+        shapes[name + "-again"] = p.read_text(encoding="utf-8")
+
+    for name, body in shapes.items():
+        assert body.count(ar.COUNTS_BEGIN) == 1, f"{name}: {body.count(ar.COUNTS_BEGIN)} blocks"
+        assert "2 separate day(s)" in body, f"{name} did not count its own two dated lines"
+        assert "1 member(s)" in body, f"{name} did not count its own instance"
+    assert "fired **1 times" not in shapes["legacy"], "the frozen paragraph survived the repair"
+    assert shapes["legacy"] == shapes["legacy-again"], "the repair is not idempotent"
+    assert shapes["bare"] == shapes["bare-again"]
+
+
+def test_the_FOUR_DIRECT_CALL_SITES_PASS_NO_REPETITION_COUNT():
+    """The control that stops the literal coming back, on the real call sites.
+
+    BOTH LEGS, because an offender census with an empty result is green whether the pattern is
+    right or the population is empty. The first leg asserts the call sites are still FOUND -- if
+    a refactor moves them this goes red rather than silently passing on nothing.
+    """
+    import re as _re
+    from pathlib import Path
+    root = Path(ar.__file__).resolve().parent
+    calls, offenders = 0, []
+    for name in ("seat_continuity.py", "seat_work_in_hand.py", "delivery_lane.py"):
+        src = (root / name).read_text(encoding="utf-8")
+        for m in _re.finditer(r"alarm_repetition\.escalate\((.*?)\n\s*\)", src, _re.S):
+            calls += 1
+            if "repeats=" in m.group(1):
+                offenders.append(f"{name}: {m.group(1).strip()[:80]}")
+    assert calls >= 4, f"only {calls} direct escalate() call sites found; the census is blind"
+    assert not offenders, (
+        "a direct caller cannot know a consecutive-firing count and must not invent one: "
+        + "; ".join(offenders))
 
 
 # =============================================================================================
