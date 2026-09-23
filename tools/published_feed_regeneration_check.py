@@ -77,10 +77,61 @@ the tree being graded, so they are the baseline — the same property reached by
 exactly as `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input` handles
 it. Any OTHER git failure is a refusal, not a fallback: a control over what is committed must not go
 green because it could not find out.
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+THE SECOND RELATION KIND: A DERIVED ARTEFACT AND THE PRODUCER THAT WRITES IT
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+WHY THE RELATION ABOVE CANNOT SEE THE DEFECT THIS ONE EXISTS FOR. Everything above compares a feed
+against ITS OWN GENERATOR, which means the pair is only ever as fresh as the weakest link BETWEEN
+them. On 2026-09-21 `tools/churn_belief_size_response.py` was edited in place with a new origin
+sentence; `docs/observability/churn_belief_size_response.json` was never re-run;
+`site/data/value_arms.json` was then regenerated FROM that stale intermediate. The publisher was
+refused every cycle for two days (`episode_clean_publishes` 0, `wedge_since` 2026-09-21T20:40).
+
+The obvious fix — "give this module a working-tree mode and add the chain" — was filed as settled,
+measured, and REFUTED before it was built (`SEAT_RESULT_THE_REMEDY_A_LIVE_CONTINUATION_NAMES_WOULD_
+HAVE_BEEN_GREEN_THROUGHOUT_THE_OUTAGE_IT_IS_MEANT_TO_CATCH_2026-09-23.md`, landed `be6b67b98`).
+`generate_value_arms_data` derives that sentence with a bare `knee.get(...)` pass-through, so
+regenerating the feed from ANY standpoint in ANY tree re-reads the same stale intermediate and
+reproduces byte-identical output. Feed and generator AGREE. A working-tree mode would have been
+GREEN for the whole outage it was meant to catch — a control that cannot fail, built on purpose.
+The broken relation is ONE LINK UPSTREAM of any pair the first relation compares.
+
+WHAT THIS RELATION ACTUALLY DECIDES, AND WHAT IT REFUSES TO CLAIM. It does NOT claim staleness.
+Whether a producer edit would change the artefact's bytes is undecidable without running the
+producer, and running 100+ producers is not a commit-time control. What IS decidable is strictly
+weaker and is what the verdict is named for: `NOT_REGENERATED_SINCE_ITS_PRODUCER_CHANGED`. A
+comment-only edit to a producer trips it and re-running is a no-op — that is a true positive for
+the property actually asserted, and the remedy (run the producer) is cheap and total either way.
+Naming it `STALE` would have been the overclaim this repository files under "before dividing two
+numbers, say out loud what each one counts".
+
+THE PAIR IS OBSERVED FROM THE PRODUCER'S SOURCE, NEVER DECLARED — same rule as `COVERED_FEEDS`
+above, reached by a different route because this one may not run anything. `_artefact_roles` walks
+each `tools/*.py` with `ast`, resolves `PROJECT / "docs" / "observability" / "<name>.json"` chains
+and their module-level aliases, and classifies each by HOW THE PATH IS USED: `.write_text` /
+`open(…, "w")` is a WRITER, `.read_text` / `json.load` is a READER.
+
+THAT DISCRIMINATION IS THE WHOLE DESIGN, AND A NAMING CONVENTION WAS MEASURED AND REJECTED. Measured
+2026-09-23 (pre-registered in `SEAT_PREREG_HOW_IS_A_DERIVED_ARTEFACTS_PRODUCER_OBSERVED…`, all
+predictions confirmed): the stem convention `tools/<x>.py ↔ docs/observability/<x>.json` finds 20
+pairs, the source walk finds 57, 39 of which the convention cannot see — and 2 of the convention's
+own 20 are same-stem coincidences it would have named an innocent file for. Worse, 16 artefacts are
+NAMED by more than one module, because READERS name the path too: `generate_value_arms_data.py`
+names the churn artefact precisely because it reads it. A name match is not a producer. With the
+role walk, 18 artefacts resolve to exactly one writer and NONE resolve to two.
+
+THE OTHER 36 ARE A NAMED GAP AND NEVER A PASS. A module whose write target this walk cannot resolve
+(built at runtime, passed in as an argument, written through a helper) yields
+`NO_PRODUCER_RESOLVED`, which is reported and is not green. An artefact named by two writers yields
+`AMBIGUOUS_PRODUCER`. Neither is silent, because a control over what is regenerated must not go
+green because it could not find out — the same rule the first relation states above.
 """
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import shutil
@@ -597,6 +648,238 @@ def check_at_its_own_commit(feeds: dict[str, str], root: Path = PROJECT,
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+#: Where the second relation kind looks for derived artefacts. Not `FEED_DIR`: the defect this
+#: relation exists for lives in an INTERMEDIATE, one link upstream of anything published.
+DERIVED_DIR = "docs/observability"
+
+#: Attribute calls that decide a path's role. The classification is by USE, not by name, because 16
+#: artefacts are named by a module that only reads them (see the module docstring).
+_WRITE_CALLS = frozenset({"write_text", "write_bytes"})
+_READ_CALLS = frozenset({"read_text", "read_bytes"})
+
+
+def _artefact_path(node: ast.AST) -> str | None:
+    """The `docs/observability/*.json` path an AST node denotes, or None.
+
+    Handles the two shapes producers actually use: a `PROJECT / "docs" / "observability" / "x.json"`
+    division chain, and a bare string. A chain with any non-literal segment resolves to None rather
+    than to a guess — an unresolvable path is a gap this module reports, never one it invents.
+    """
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        parts: list[str | None] = []
+        cur: ast.AST = node
+        while isinstance(cur, ast.BinOp) and isinstance(cur.op, ast.Div):
+            right = cur.right
+            parts.append(right.value if isinstance(right, ast.Constant)
+                         and isinstance(right.value, str) else None)
+            cur = cur.left
+        if None in parts:
+            return None
+        joined = "/".join(reversed([p for p in parts if p is not None]))
+        marker = f"{DERIVED_DIR}/"
+        if marker in joined and joined.endswith(".json"):
+            return joined[joined.index(marker):]
+        return None
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        value = node.value
+        if value.startswith(f"{DERIVED_DIR}/") and value.endswith(".json"):
+            return value
+    return None
+
+
+def _artefact_roles(source: Path) -> dict[str, set[str]]:
+    """Every derived-artefact path this module NAMES, mapped to how it uses it: `W` and/or `R`.
+
+    A path named with neither role resolved maps to an empty set, which is a gap and not a pass.
+    """
+    try:
+        tree = ast.parse(source.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeDecodeError):
+        return {}
+
+    bound: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            path = _artefact_path(node.value)
+            if path:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        bound[target.id] = path
+    # Alias chains — `dest = DEFAULT_ARTEFACT if out is None else out` is the idiom producers use,
+    # so a walk that only saw direct assignment would resolve no role for the commonest shape.
+    for _ in range(3):
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+            value = node.value
+            candidates: list[str] = []
+            if isinstance(value, ast.Name):
+                candidates = [value.id]
+            elif isinstance(value, ast.IfExp):
+                candidates = [b.id for b in (value.body, value.orelse) if isinstance(b, ast.Name)]
+            resolved = [bound[c] for c in candidates if c in bound]
+            if resolved:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        bound.setdefault(target.id, resolved[0])
+
+    def denoted(node: ast.AST) -> str | None:
+        direct = _artefact_path(node)
+        if direct:
+            return direct
+        return bound.get(node.id) if isinstance(node, ast.Name) else None
+
+    roles: dict[str, set[str]] = {}
+    for path in bound.values():
+        roles.setdefault(path, set())
+    for node in ast.walk(tree):
+        path = _artefact_path(node)
+        if path:
+            roles.setdefault(path, set())
+        if not isinstance(node, ast.Call):
+            continue
+        if isinstance(node.func, ast.Attribute):
+            target = denoted(node.func.value)
+            if target and node.func.attr in _WRITE_CALLS:
+                roles.setdefault(target, set()).add("W")
+            if target and node.func.attr in _READ_CALLS:
+                roles.setdefault(target, set()).add("R")
+        name = (node.func.id if isinstance(node.func, ast.Name)
+                else node.func.attr if isinstance(node.func, ast.Attribute) else None)
+        if name == "open" and node.args:
+            target = denoted(node.args[0])
+            mode = "r"
+            if len(node.args) > 1 and isinstance(node.args[1], ast.Constant):
+                mode = str(node.args[1].value)
+            for kw in node.keywords:
+                if kw.arg == "mode" and isinstance(kw.value, ast.Constant):
+                    mode = str(kw.value.value)
+            if target:
+                roles.setdefault(target, set()).add(
+                    "W" if ("w" in mode or "a" in mode) else "R")
+    return roles
+
+
+def derived_artefact_producers(root: Path = PROJECT) -> tuple[dict[str, str], dict[str, str]]:
+    """`(artefact -> the one module that writes it, artefact -> why no producer was resolved)`.
+
+    Observed from source, never declared. Both halves are returned because the gaps are reported
+    beside the covered set rather than dropped: an artefact nothing here can attribute is a thing
+    this control cannot speak about, and silence would read as a pass.
+    """
+    named: dict[str, set[str]] = {}
+    writers: dict[str, list[str]] = {}
+    for source in sorted((root / "tools").glob("*.py")):
+        for path, roles in _artefact_roles(source).items():
+            named.setdefault(path, set()).update(roles)
+            if "W" in roles:
+                writers.setdefault(path, []).append(source.relative_to(root).as_posix())
+
+    producers: dict[str, str] = {}
+    gaps: dict[str, str] = {}
+    for artefact in sorted(p.relative_to(root).as_posix()
+                           for p in (root / DERIVED_DIR).glob("*.json")):
+        found = writers.get(artefact, [])
+        if len(found) == 1:
+            producers[artefact] = found[0]
+        elif len(found) > 1:
+            gaps[artefact] = (f"AMBIGUOUS_PRODUCER: {len(found)} modules write it — "
+                              + ", ".join(sorted(found)))
+        elif artefact in named:
+            gaps[artefact] = ("NO_PRODUCER_RESOLVED: named in tools/ but only ever read, or its "
+                              "write target is built at runtime")
+        else:
+            gaps[artefact] = "NO_PRODUCER_RESOLVED: no tools/*.py names this path literally"
+    return producers, gaps
+
+
+def _differs_from_head(root: Path, rel: str) -> bool | None:
+    """Does the working-tree copy of `rel` differ from HEAD's? None when git cannot say."""
+    done = _git(root, "diff", "--quiet", "HEAD", "--", rel)
+    if done.returncode == 0:
+        return False
+    if done.returncode == 1:
+        return True
+    return None
+
+
+def check_derived_artefacts(root: Path = PROJECT,
+                            producers: dict[str, str] | None = None) -> list[dict]:
+    """Has each derived artefact been regenerated since the producer that writes it last changed?
+
+    THE WORKING TREE IS THE SUBJECT HERE, AND DELIBERATELY SO — the opposite standpoint to `check()`
+    above, for a reason that is the whole point of this relation. The publisher gates the WORKING
+    TREE; `check()` gates HEAD. Two trees, and only one of them can refuse a commit. A producer
+    edited in place and not yet committed does not exist at HEAD, so at HEAD everything agrees while
+    the publisher is refused every cycle. That is not a tuning choice, it is the defect.
+
+    Two legs, spelled differently because they establish different things and the weaker one must
+    not be read as the stronger:
+
+      NOT_REGENERATED_SINCE_ITS_PRODUCER_CHANGED  the producer differs from HEAD and the artefact is
+                                                  byte-identical to HEAD. DECIDED BY CONTENT, so a
+                                                  checkout's mtime churn cannot fabricate it. RED.
+      PRODUCER_NEWER_BY_CLOCK                     both differ from HEAD and the producer's mtime is
+                                                  the later. Evidence, not proof — mtime is the only
+                                                  ordering available once both sides are dirty.
+
+    THE CLOCK LEG CANNOT ORDER TWO WRITES IN THE SAME KERNEL TIMESTAMP TICK, measured here rather
+    than assumed: a file written and a second file written immediately after it come back with
+    BYTE-IDENTICAL `st_mtime_ns` on this box, because the inode timestamp is taken from a coarse
+    kernel clock and not from a fresh reading. The comparison is therefore strict (`>`), and an
+    equal pair falls to `REGENERATED_AFTER_ITS_PRODUCER` — the FORGIVING side, deliberately, since
+    the leg is evidence that never refuses a commit. Real instances are minutes apart (the wedge's
+    were 45), so this costs nothing that matters; it is stated because a leg whose resolution
+    nobody names reads as one that can order anything.
+
+    Neither claims the artefact's CONTENT is wrong; see the module docstring. `git` failing to
+    answer is `UNDECIDABLE`, never a pass.
+    """
+    producers = derived_artefact_producers(root)[0] if producers is None else producers
+    if not producers:
+        raise RegenerationCheckRefused(
+            "no derived artefacts resolved to a producer — refusing to report a clean sweep over "
+            "an empty set"
+        )
+    rows: list[dict] = []
+    for artefact in sorted(producers):
+        producer = producers[artefact]
+        row = {"artefact": artefact, "producer": producer}
+        artefact_dirty = _differs_from_head(root, artefact)
+        producer_dirty = _differs_from_head(root, producer)
+        if artefact_dirty is None or producer_dirty is None:
+            rows.append({**row, "verdict": "UNDECIDABLE",
+                         "detail": {"reason": "git could not compare one of the pair against HEAD"}})
+            continue
+        if not producer_dirty:
+            rows.append({**row, "verdict": "PRODUCER_UNCHANGED", "detail": {}})
+            continue
+        if not artefact_dirty:
+            rows.append({**row, "verdict": "NOT_REGENERATED_SINCE_ITS_PRODUCER_CHANGED",
+                         "detail": {"remedy": f"python3 -m {producer[:-3].replace('/', '.')}"}})
+            continue
+        try:
+            producer_mtime = (root / producer).stat().st_mtime
+            artefact_mtime = (root / artefact).stat().st_mtime
+        except OSError as exc:
+            rows.append({**row, "verdict": "UNDECIDABLE", "detail": {"reason": str(exc)[:200]}})
+            continue
+        if producer_mtime > artefact_mtime:
+            rows.append({**row, "verdict": "PRODUCER_NEWER_BY_CLOCK",
+                         "detail": {"producer_mtime": producer_mtime,
+                                    "artefact_mtime": artefact_mtime,
+                                    "remedy": f"python3 -m {producer[:-3].replace('/', '.')}"}})
+            continue
+        rows.append({**row, "verdict": "REGENERATED_AFTER_ITS_PRODUCER", "detail": {}})
+    return rows
+
+
+#: The verdicts of the second relation that refuse a commit. `PRODUCER_NEWER_BY_CLOCK` is NOT here:
+#: it is evidence from a clock that a `git checkout` can reorder, and this control gates the
+#: publisher — the failure mode it exists to end is a red nobody can discharge.
+DERIVED_RED_VERDICTS = frozenset({"NOT_REGENERATED_SINCE_ITS_PRODUCER_CHANGED"})
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("generators", nargs="*",
@@ -607,7 +890,30 @@ def main(argv=None) -> int:
     parser.add_argument("--at-its-own-commit", action="store_true",
                         help="stand at the commit each candidate feed records rather than at HEAD. "
                              "Takes feed names, or defaults to CANDIDATES_AT_THEIR_OWN_COMMIT.")
+    parser.add_argument("--derived-artefacts", action="store_true",
+                        help=f"the second relation: has each {DERIVED_DIR}/*.json been regenerated "
+                             "since the producer that writes it changed? Working-tree standpoint, "
+                             "no clone, nothing is run.")
     args = parser.parse_args(argv)
+
+    if args.derived_artefacts:
+        rows = check_derived_artefacts()
+        gaps = derived_artefact_producers()[1]
+        if args.json:
+            print(json.dumps({"rows": rows, "gaps": gaps}, indent=1))
+        else:
+            for row in rows:
+                print(f"{row['verdict']:<44} {row['artefact']:<52} {row['producer']}")
+            counts: dict[str, int] = {}
+            for row in rows:
+                counts[row["verdict"]] = counts.get(row["verdict"], 0) + 1
+            print("\n" + "  ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+            # The gaps are printed with the verdicts, never under a separate flag: an artefact this
+            # walk cannot attribute is the part of the tree the control is silent about, and a
+            # reader who saw only the covered rows would read that silence as coverage.
+            print(f"unattributed={len(gaps)} "
+                  f"(of {len(rows) + len(gaps)} artefacts in {DERIVED_DIR}/)")
+        return 1 if any(r["verdict"] in DERIVED_RED_VERDICTS for r in rows) else 0
 
     if args.at_its_own_commit:
         feeds = ({n: CANDIDATES_AT_THEIR_OWN_COMMIT[n] for n in args.generators}
