@@ -160,6 +160,43 @@ READABLE = PY_SUFFIXES + PAGE_SUFFIXES
 DATA_SUFFIXES = (".json",)
 
 
+def _json_leaves(text: str, path: str) -> dict[str, str]:
+    """A JSON document as `key path -> a token standing for the value at it`.
+
+    THE ONE WALK BOTH READINGS COME FROM. `_json_leaf_names` welds the two halves together and
+    `json_leaf_delta` holds them apart; deriving either by splitting the other's strings would be a
+    second implementation of this naming, and the first thing to rot would be a key that contains
+    an `=` sign.
+
+    LIST POSITION IS PART OF THE PATH, so a reordering or an insertion reads as a changed document.
+    Conservative on purpose: this decides whether a file is written over, and an ordering nobody
+    proved irrelevant is not one this control may flatten.
+    """
+    try:
+        doc = json.loads(text)
+    except ValueError as exc:
+        raise Unparseable("{} does not parse as JSON: {}".format(path, exc)) from exc
+    leaves: dict[str, str] = {}
+
+    def walk(node, trail: str) -> None:
+        if isinstance(node, dict):
+            if not node:
+                leaves[trail] = "{}"
+            for key, value in node.items():
+                walk(value, "{}.{}".format(trail, key) if trail else str(key))
+        elif isinstance(node, list):
+            if not node:
+                leaves[trail] = "[]"
+            for index, value in enumerate(node):
+                walk(value, "{}[{}]".format(trail, index))
+        else:
+            leaves[trail] = hashlib.sha256(
+                json.dumps(node, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+
+    walk(doc, "")
+    return leaves
+
+
 def _json_leaf_names(text: str, path: str) -> frozenset[str]:
     """A JSON document's leaves as `key.path=<digest of value>` names.
 
@@ -170,33 +207,50 @@ def _json_leaf_names(text: str, path: str) -> frozenset[str]:
     any changed leaf reads as BOTH a name supplied and a name dropped, so the copy refuses; only a
     copy whose every leaf is present AND equal in the base can be strictly superseded by it.
 
-    LIST POSITION IS PART OF THE PATH, so a reordering or an insertion refuses. Conservative on
-    purpose: this decides whether a file is written over, and an ordering nobody proved irrelevant
-    is not one this control may flatten.
+    AND THAT IS ALSO WHY IT MAY NOT BE THE ONLY READING -- use `json_leaf_delta` to say WHY a copy
+    refuses. A set difference over these names answers "are the two documents the same?" correctly
+    and answers "what does this copy supply that the base lacks?" wrongly, because a key whose
+    NUMBER MOVED lands in the difference beside a key the base never had. Every value in a
+    regenerated artefact is edited, so that second reading grades every regeneration as work to
+    land -- structurally, whichever document is genuinely newer. Measured on the shared tree
+    2026-09-23: `docs/observability/self_clearing_alarm_census.json` read as 1,778 "leaves HEAD
+    does not have" and holds 7; `docs/market_research/domestic_shift_response_arc.json` read as 5
+    and holds none at all.
     """
-    try:
-        doc = json.loads(text)
-    except ValueError as exc:
-        raise Unparseable("{} does not parse as JSON: {}".format(path, exc)) from exc
-    names: set[str] = set()
+    return frozenset("{}={}".format(trail, token)
+                     for trail, token in _json_leaves(text, path).items())
 
-    def walk(node, trail: str) -> None:
-        if isinstance(node, dict):
-            if not node:
-                names.add("{}={{}}".format(trail))
-            for key, value in node.items():
-                walk(value, "{}.{}".format(trail, key) if trail else str(key))
-        elif isinstance(node, list):
-            if not node:
-                names.add("{}=[]".format(trail))
-            for index, value in enumerate(node):
-                walk(value, "{}[{}]".format(trail, index))
-        else:
-            names.add("{}={}".format(trail, hashlib.sha256(
-                json.dumps(node, sort_keys=True).encode("utf-8")).hexdigest()[:16]))
 
-    walk(doc, "")
-    return frozenset(names)
+@dataclass(frozen=True)
+class LeafDelta:
+    """The three ways two JSON documents can differ, told apart. `_json_leaf_names` cannot: a leaf
+    name carries its own value, so `novel` and `edited` arrive in one undifferentiated set there.
+
+    `novel` is the only one of the three that is CONTENT THE BASE DOES NOT HOLD. `edited` is a
+    disagreement about a value at a key both documents bind -- which is a decision between two
+    drafts, never a supply of anything, and no `--keep` selection can take it without the revert.
+    `dropped` is what the base holds and the copy does not."""
+    novel: tuple[str, ...]
+    edited: tuple[str, ...]
+    dropped: tuple[str, ...]
+
+
+def json_leaf_delta(head_text: str, work_text: str, path: str) -> LeafDelta:
+    """Which key paths the copy ADDS, which it EDITS, and which it DROPS -- separately.
+
+    THE DISTINCTION THIS EXISTS FOR is the one `_json_leaf_names` structurally cannot make, and the
+    honest refusal built on it had been refusing every regenerated artefact in the tree while
+    naming a door -- `isolate_hunks --keep N` -- that has nothing to select on a document whose
+    every line is a value. An honest refusal that refuses everything is still a door nobody can
+    walk through.
+
+    Raises `Unparseable` from either side, which is the same fail-closed contract as `symbols`."""
+    before, after = _json_leaves(head_text, path), _json_leaves(work_text, path)
+    return LeafDelta(
+        novel=tuple(sorted(k for k in after if k not in before)),
+        edited=tuple(sorted(k for k in after if k in before and after[k] != before[k])),
+        dropped=tuple(sorted(k for k in before if k not in after)),
+    )
 
 #: The name-bearing anchors of a page. NOT "every symbol" -- an id and a function declaration are
 #: what another lane's landed work adds to a page and a stale copy silently removes. Narrow on

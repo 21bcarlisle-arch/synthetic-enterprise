@@ -841,7 +841,11 @@ def test_base_wins_reaches_a_DATA_replacement_the_clock_says_predates_its_landin
     `.json` in the tree while the whole file above passed. Without `--base-wins` the copy must
     still be refused -- otherwise this proves the door is open, not that the flag opened it."""
     _data_repo_with_a_stale_regeneration(repo, carries_some=False)
-    assert rth.judge_copy(repo, "report.json").state == rth.SUPPLIES_NEW, (
+    # THE FIXTURE'S OWN STATE, and it is `RIVAL_VALUES` and not `SUPPLIES_NEW` since 2026-09-23:
+    # a stale regeneration binds no key path the base lacks, and the two used to be one verdict.
+    # Asserting the narrower one is the point -- it is the state `--base-wins` has to reach for
+    # the flag to mean anything for the population it was built for.
+    assert rth.judge_copy(repo, "report.json").state == rth.RIVAL_VALUES, (
         "the fixture is not in the state the flag is about, so this proves nothing about it")
     verdict = rth.judge_copy(repo, "report.json", base_wins=True)
     assert verdict.state == rth.REFRESHABLE, (
@@ -910,7 +914,7 @@ def test_base_wins_on_a_DATA_path_still_refuses_a_copy_the_clock_has_NO_complain
         "the clock still complains about a copy newer than its landing, so this fixture cannot "
         "show that the clock is what the flag rests on")
     verdict = rth.judge_copy(repo, "report.json", base_wins=True)
-    assert verdict.state == rth.SUPPLIES_NEW, (
+    assert verdict.state == rth.RIVAL_VALUES, (
         "a data copy the clock has NO complaint about was discarded under `--base-wins`, so "
         "widening the rule set turned the flag into a revert button for any stale-looking JSON: "
         "[{}]".format(verdict.state))
