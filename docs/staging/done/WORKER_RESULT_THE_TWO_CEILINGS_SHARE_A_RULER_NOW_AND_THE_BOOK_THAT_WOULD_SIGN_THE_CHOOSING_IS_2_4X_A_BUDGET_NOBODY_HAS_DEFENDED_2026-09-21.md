@@ -78,6 +78,36 @@ year's `binding` reason names when it reads `settlement_engine`.
 The last row against the second: **the requirement is 2.42x the capacity.** The honest answer to
 *"can a book that size be built"* is **no**, and it is now published as one.
 
+> ### CORRECTION, 2026-09-21, later the same day — the last row crosses two runs
+>
+> **2,902 and 2.42x are wrong, and not because either denominator is stale.** The row above takes
+> `what_would_settle_the_sign`'s multiple — **2.8198526** — and multiplies it by **1,029**. But that
+> multiple is not a free scalar: it comes off the book the block was computed on, which is the
+> `current_world` panel run of **2026-09-08T00:19:54Z** (164 accounts, 214 priced decisions of 2,035
+> renewals, **1,122 customer-years**). The 1,029 is the **promoted** run of 2026-09-18T05:43:40Z (154
+> accounts). The product asks how many customer-years of one book equal 2.82x of a *different* book,
+> and that is not a quantity — the same shape this project's own rule names: *before dividing two
+> numbers, say out loud what each one counts.*
+>
+> **The figures on the panel the multiple belongs to are 3,163.9 customer-years and 2.64x**, and
+> `site/data/value_arms.json` has been publishing exactly those the whole time. The feed was never
+> the stale half; this table was the cross-run half.
+>
+> **What made it easy to get wrong, and what changed.** The page names both panels' stamps
+> elsewhere (`superseded_generated_at`), so carrying the multiple to the newer book looked like a
+> freshness repair. The block gave no sign which book its own multiple belonged to. It does now:
+> `can_a_book_that_size_be_built.the_book_these_figures_are_denominated_in` stamps the run, the
+> accounts and the customer-years, and `why_the_multiple_cannot_be_re_denominated` says in words
+> that a later run needs the multiple **re-computed**, never re-scaled. Controlled by
+> `test_the_requirement_names_WHICH_RUNS_BOOK_it_is_denominated_in`, which asserts the stamp takes
+> both runs' values before asserting what it does, and which reds on exactly the product published
+> here. Three declared mutations run and reverted — re-denominate onto 1,029, hard-wire the stamp,
+> drop the stamp — and each fired on the leg written for it.
+>
+> **The conclusion of this document is unchanged and is strengthened.** Whichever book is read, the
+> requirement is between 2.4x and 2.7x a capacity of 1,200, no leg is reachable, and what stands in
+> the way is not memory. The correction moves the size of the gap, not its direction.
+
 Note the third row against the fourth: at the probe's rate the memory ceiling is 632 customer-years
 and would bind *below* the budget; at the rate the book actually retains it is 37,763 and binds
 nowhere near it. Which of the two ceilings governs this company was decided by an unexamined
@@ -94,6 +124,31 @@ record-population assumption, and it decided wrong.
 Today's work is the second, independent confirmation of that slack, from a different direction
 (records retained rather than peak observed) and on a different instrument. Memory is not what stops
 this book growing to 2,902 customer-years. **A publish cadence nobody has named is.**
+
+> ### SECOND CORRECTION, same day — the cadence HAS been named, and this document quoted a note
+> ### that was 17 days out of date
+>
+> The block quote above is `SETTLEMENT_CUSTOMER_YEAR_BUDGET`'s own note, and it was accurate on
+> 2026-08-29. **The director named the interval on 2026-09-04**, verbatim in
+> `background/publish_freshness.py`: *"The site publishes numbers and runs once a week, thoroughly
+> and robustly, not every half hour ... The reason is cost."* — `PUBLISH_CADENCE_SECONDS = 604800`,
+> in a module that calls itself the single source of truth for that cadence.
+>
+> So this document's closing sentence is false, and so was the note it quoted. Both have been
+> corrected beside their claims. The reasoning in each was right — it located the interval as the
+> director's to name rather than inventing one — and what failed was that nothing re-asked the
+> sentence after he named it.
+>
+> **And there is a live 112x disagreement underneath it.** `suite_duration_watch
+> .PUBLISH_CADENCE_SECONDS` is 5,400s and its own comment still describes itself as *"a measurement
+> of how often runs actually arrive"* — the circular constant this chain records as removed. It is
+> what `settlement_ceiling_probe.publisher_context()` reads, via the `cadence_seconds` field
+> stamped into `publish_gate_duration.jsonl`. The probe's `recommend()` was built for exactly this
+> and flags `chosen: false` when it falls back — **and no caller had ever passed a chosen interval**,
+> so every ceiling reading this probe has produced was taken against the circular ruler.
+>
+> The measurement is now in flight against the declared one (`--publish-interval 604800`, producer
+> held down, `docs/observability/settlement_ceiling_slope_20260921.json`).
 
 ## A second open clause closed, and it inverted
 

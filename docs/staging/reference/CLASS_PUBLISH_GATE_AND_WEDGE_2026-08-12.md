@@ -151,7 +151,6 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_ORIGIN_MAIN_CARRIES_SEVEN_REDS_THAT_NO_COMMITS_GATE_SELECTION_REACHES_2026-09-22.md` — lane `A_strategy_governance`
-- `WORKER_RESULT_THE_WEDGE_WAS_A_LANDING_THAT_NEVER_HAPPENED_AND_THE_SITE_HALF_WAS_SPENT_BY_ROTATION_2026-09-21.md` — lane `A_strategy_governance`
 
 ## Disposition
 

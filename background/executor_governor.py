@@ -302,13 +302,25 @@ def _default_fold() -> list[str]:
             if folded:
                 import subprocess
 
+                # The pathspec belongs on BOTH commands, and the `add` is the one where it
+                # does nothing durable: it scopes only what THAT call stages, never what is
+                # already in the index. An unscoped `git commit` here took the index as it
+                # stood, so anything another lane had left staged rode along under a subject
+                # reading "Fold atom_status inbox -> map (F1)" — invisible in the log.
+                # Found live: 107 staged `AD` staging-root entries, the residue of an
+                # archival that had already landed, one fold away from being re-added to the
+                # queue (SEAT_RESULT_THE_UNCOMMITTED_STAGING_DISPOSITIONS_WERE_27_MOVES_NOT_19
+                # _AND_THE_ITEMS_OWN_DOOR_WOULD_HAVE_UNARCHIVED_107_2026-09-23.md, addendum).
+                _FOLD_PATHS = ["docs/design/maturity_map.yaml", "docs/design/atom_status"]
                 subprocess.run(
-                    ["git", "add", "--", "docs/design/maturity_map.yaml", "docs/design/atom_status"],
+                    ["git", "add", "--", *_FOLD_PATHS],
                     check=True,
                     capture_output=True,  # H30: else CalledProcessError arrives empty
                 )
                 subprocess.run(
-                    ["git", "commit", "-m", f"Fold atom_status inbox -> map (F1): {', '.join(folded)}"],
+                    ["git", "commit", "-m",
+                     f"Fold atom_status inbox -> map (F1): {', '.join(folded)}",
+                     "--", *_FOLD_PATHS],
                     check=True,
                     capture_output=True,
                 )
