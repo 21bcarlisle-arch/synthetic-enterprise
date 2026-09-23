@@ -313,10 +313,88 @@ def test_shape_neutrality_control_FIRES_when_centred_on_the_wrong_rate(monkeypat
     """R15 mutation: centring on EFUS's headline all-household 43% instead of
     this population's own mean daytime rate silently lifts daytime demand ~5%.
     The control must catch it."""
-    monkeypatch.setattr(dm, "_reference_daytime_rate", lambda: 0.43)
+    monkeypatch.setattr(dm, "_reference_daytime_rate", lambda *a, **k: 0.43)
     mean = dm.population_mean_daytime_multiplier(_POP_SIZES, _POP_WEIGHTS, period=_MIDDAY)
     assert mean > 1.02
     assert not dm.daytime_shape_is_mean_neutral(_POP_SIZES, _POP_WEIGHTS, period=_MIDDAY)
+
+
+# --- The reference is PER CUT-SET (2026-09-23) -----------------------------
+# The defect: `_daytime_occupancy_rate` averages the cuts it was GIVEN, so a
+# size-only rate and a three-cut rate sit on different scales with different
+# population means (0.470 and 0.443). While every caller supplied size alone
+# that was invisible. The property record now supplies all three, and a single
+# constant centre would score them against the wrong one.
+
+def _three_cut_population():
+    """The TS017 sizes crossed with both composition cuts at their EFUS-implied
+    shares — the population the property record actually produces now."""
+    sizes, weights, pens, emp = [], [], [], []
+    for n in _POP_SIZES:
+        w = HOUSEHOLD_SIZE_POPULATION_SHARE[n]
+        for p, pw in ((True, dm.PENSIONER_PRESENT_POPULATION_SHARE),
+                      (False, 1.0 - dm.PENSIONER_PRESENT_POPULATION_SHARE)):
+            for e, ew in ((True, dm.SOMEONE_EMPLOYED_POPULATION_SHARE),
+                          (False, 1.0 - dm.SOMEONE_EMPLOYED_POPULATION_SHARE)):
+                sizes.append(n)
+                weights.append(w * pw * ew)
+                pens.append(p)
+                emp.append(e)
+    return sizes, weights, pens, emp
+
+
+def test_the_marginal_shares_are_efus_own_headline_inverted():
+    """Not picked. EFUS publishes each cut's two rates AND the 43% headline they
+    average to, which DETERMINES the share. Asserted as the relation, not as
+    today's number, so correcting a rate against the source moves the share
+    with it instead of reddening this."""
+    p = dm.PENSIONER_PRESENT_POPULATION_SHARE
+    e = dm.SOMEONE_EMPLOYED_POPULATION_SHARE
+    assert (dm.EFUS_DAYTIME_RATE_PENSIONER_PRESENT * p
+            + dm.EFUS_DAYTIME_RATE_NO_PENSIONER * (1 - p)
+            == pytest.approx(dm.EFUS_DAYTIME_RATE_ALL_HOUSEHOLDS))
+    assert (dm.EFUS_DAYTIME_RATE_SOMEONE_EMPLOYED * e
+            + dm.EFUS_DAYTIME_RATE_ALL_UNEMPLOYED * (1 - e)
+            == pytest.approx(dm.EFUS_DAYTIME_RATE_ALL_HOUSEHOLDS))
+
+
+def test_a_three_cut_population_is_also_mean_neutral():
+    sizes, weights, pens, emp = _three_cut_population()
+    mean = population_mean_daytime_multiplier(
+        sizes, weights, period=_MIDDAY, pensioners_present=pens, someone_employed=emp)
+    assert mean == pytest.approx(1.0, abs=0.02)
+    assert daytime_shape_is_mean_neutral(
+        sizes, weights, period=_MIDDAY, pensioners_present=pens, someone_employed=emp)
+
+
+def test_shape_neutrality_control_FIRES_on_a_three_cut_book_centred_size_only(monkeypatch):
+    """R15 mutation, and it is the defect this change was written for: pin the
+    reference back to the single size-only constant it was before, and the
+    three-cut book the property record now produces is re-levelled DOWNWARD —
+    measured at 0.9587 on the live 144-home book, a 4.1% silent cut to daytime
+    demand wearing a composition response's clothes. The control must fire.
+
+    Note the direction: the older mutation above pushes the mean ABOVE 1.0 and
+    this one BELOW it, so a control that only ever caught inflation would pass
+    this and is not what is asserted."""
+    size_only = dm._reference_daytime_rate(False, False)
+    monkeypatch.setattr(dm, "_reference_daytime_rate", lambda *a, **k: size_only)
+    sizes, weights, pens, emp = _three_cut_population()
+    mean = dm.population_mean_daytime_multiplier(
+        sizes, weights, period=_MIDDAY, pensioners_present=pens, someone_employed=emp)
+    assert mean < 0.98
+    assert not dm.daytime_shape_is_mean_neutral(
+        sizes, weights, period=_MIDDAY, pensioners_present=pens, someone_employed=emp)
+
+
+def test_the_size_only_caller_is_byte_identical_to_before():
+    """The legacy path must not move at all. A caller who knows only the
+    headcount is centred on 0.470 exactly as it was pre-2026-09-23."""
+    assert dm._reference_daytime_rate(False, False) == pytest.approx(
+        sum(share * dm._daytime_occupancy_rate(n, None, None)
+            for n, share in HOUSEHOLD_SIZE_POPULATION_SHARE.items())
+    )
+    assert dm._reference_daytime_rate(True, True) < dm._reference_daytime_rate(False, False)
 
 
 def test_shape_control_is_not_fail_open():

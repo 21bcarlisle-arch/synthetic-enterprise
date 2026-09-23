@@ -160,6 +160,48 @@ EFUS_DAYTIME_RATE_NO_PENSIONER = 0.34
 EFUS_DAYTIME_RATE_PENSIONER_PRESENT = 0.63
 EFUS_DAYTIME_RATE_SOMEONE_EMPLOYED = 0.35
 EFUS_DAYTIME_RATE_ALL_UNEMPLOYED = 0.60
+#: The all-household headline the two cuts above are cuts OF. Same report,
+#: same table, same fieldwork — 43% of all households have someone in all day.
+EFUS_DAYTIME_RATE_ALL_HOUSEHOLDS = 0.43
+
+# --- The population SHARES, and nobody here picks them ---------------------
+# EFUS publishes each cut's two rates AND the headline they average to. Those
+# three numbers DETERMINE the marginal share; it is arithmetic on the source,
+# not a choice:
+#
+#     0.63·p + 0.34·(1−p) = 0.43   ⟹   p = 0.3103   households with a pensioner
+#     0.35·e + 0.60·(1−e) = 0.43   ⟹   e = 0.6800   households with someone employed
+#
+# WHY THIS IS DERIVED IN CODE rather than written as a literal, which is the
+# opposite of what this module does with TS017 one block down. TS017 is an
+# INDEPENDENT anchor held in two places, so a literal is what stops an
+# unrelated edit re-levelling it. These two are FUNCTIONS of the rates six
+# lines up: if a rate is ever corrected against the source, the share it
+# implies changes with it, and a literal would then be quietly false. Deriving
+# it is what makes the relation un-breakable rather than merely documented.
+#
+# WHAT THIS IS NOT. It is a MARGINAL for each cut and it says nothing about
+# their JOINT. EFUS's §4.1-4.2 tables are one-way; no located source
+# cross-tabulates pensioner-presence against employment, so the two are drawn
+# INDEPENDENTLY below. That is the same reading `_daytime_occupancy_rate` has
+# always made in treating them as independent cuts — stated here rather than
+# implied, so the next reader knows the joint is a gap and not an anchor.
+# It replaces `premise_trace`'s uncited 0.22 / 0.25-given-a-pensioner, which
+# were the only figures the world had and were nobody's published number.
+_PENSIONER_RATE_SPAN = EFUS_DAYTIME_RATE_PENSIONER_PRESENT - EFUS_DAYTIME_RATE_NO_PENSIONER
+_EMPLOYMENT_RATE_SPAN = EFUS_DAYTIME_RATE_SOMEONE_EMPLOYED - EFUS_DAYTIME_RATE_ALL_UNEMPLOYED
+PENSIONER_PRESENT_POPULATION_SHARE = (
+    EFUS_DAYTIME_RATE_ALL_HOUSEHOLDS - EFUS_DAYTIME_RATE_NO_PENSIONER
+) / _PENSIONER_RATE_SPAN
+SOMEONE_EMPLOYED_POPULATION_SHARE = (
+    EFUS_DAYTIME_RATE_ALL_HOUSEHOLDS - EFUS_DAYTIME_RATE_ALL_UNEMPLOYED
+) / _EMPLOYMENT_RATE_SPAN
+# A share outside [0, 1] would mean the headline does not lie between its own
+# cut rates — i.e. the three constants above no longer come from one table.
+# That is a transcription error, and it is caught at import rather than
+# published as a probability nobody can hold.
+assert 0.0 <= PENSIONER_PRESENT_POPULATION_SHARE <= 1.0
+assert 0.0 <= SOMEONE_EMPLOYED_POPULATION_SHARE <= 1.0
 
 # The EFUS 09:00-17:00 window is settlement periods 19-34. Periods 19-20 are
 # already inside the morning ramp and 34 inside the evening peak, so the
@@ -466,23 +508,54 @@ def _daytime_occupancy_rate(people_count: int, pensioner_present: bool | None,
     return sum(rates) / len(rates)
 
 
-@functools.lru_cache(maxsize=1)
-def _reference_daytime_rate() -> float:
-    """The share-weighted mean daytime occupancy rate over the ONS TS017
-    reference population — the rate the composition response is CENTRED on.
+@functools.lru_cache(maxsize=4)
+def _reference_daytime_rate(pensioner_cut: bool = False, employment_cut: bool = False) -> float:
+    """The share-weighted mean daytime occupancy rate over the reference
+    population — the rate the composition response is CENTRED on.
 
     Centring on the population's own mean is what keeps the shape response
     aggregate-neutral: a household above the mean draws more daytime, one
-    below draws less, and the population mean multiplier stays ~1.0. (It lands
-    at 0.470 under the size cut alone, above EFUS's all-household 43%, because
-    EFUS's headline mixes in composition cuts — pensioner, employment — that
-    are not modelled at population level here. Centring on 0.43 instead would
-    silently lift daytime demand ~5%; `population_mean_daytime_multiplier`
-    below is the control that would catch exactly that.)
+    below draws less, and the population mean multiplier stays ~1.0.
+
+    **THE REFERENCE IS PER CUT-SET, and that is the correctness of it rather
+    than a convenience.** `_daytime_occupancy_rate` averages *the cuts it was
+    given*, so a size-only rate and a size+pensioner+employment rate are not
+    the same quantity on the same scale — they have different population
+    means (0.470 and 0.443). A single constant reference is therefore only
+    neutral for households carrying exactly the cut-set it was computed on.
+    That was invisible while every caller in the world supplied the size cut
+    alone; the moment the property record began supplying the other two
+    (2026-09-23), scoring 3-cut households against the size-only 0.470 centre
+    put the book's mean daytime multiplier at **0.9587** — a silent 4.1% cut
+    to daytime demand, dressed as a composition response. Measured before the
+    change, in `docs/staging/PREREG_the_property_record_composition_fields.md`.
+
+    So the arguments are which cuts the caller HAD, and each cut-set is
+    centred on its own population mean. A size-only caller gets 0.470 exactly
+    as before — byte-identical, which is what makes this safe to land under
+    the legacy path — and a fully-specified caller gets 0.443.
+
+    The pensioner/employment marginals are EFUS's own, derived from its
+    published headline (see `PENSIONER_PRESENT_POPULATION_SHARE`), and are
+    combined as INDEPENDENT of each other and of household size. The joint is
+    not published and is not invented here; independence is the stated
+    reading, and it is the same one the rate function itself makes.
     """
+    pensioner_states: tuple[tuple[bool | None, float], ...] = (
+        ((True, PENSIONER_PRESENT_POPULATION_SHARE),
+         (False, 1.0 - PENSIONER_PRESENT_POPULATION_SHARE))
+        if pensioner_cut else ((None, 1.0),)
+    )
+    employment_states: tuple[tuple[bool | None, float], ...] = (
+        ((True, SOMEONE_EMPLOYED_POPULATION_SHARE),
+         (False, 1.0 - SOMEONE_EMPLOYED_POPULATION_SHARE))
+        if employment_cut else ((None, 1.0),)
+    )
     return sum(
-        share * _daytime_occupancy_rate(n, None, None)
+        share * p_w * e_w * _daytime_occupancy_rate(n, pens, emp)
         for n, share in HOUSEHOLD_SIZE_POPULATION_SHARE.items()
+        for pens, p_w in pensioner_states
+        for emp, e_w in employment_states
     )
 
 
@@ -534,8 +607,14 @@ def occupancy_multiplier(occupancy_pattern: str, period: int, *,
         return base
 
     rate = _daytime_occupancy_rate(people_count, pensioner_present, someone_employed)
+    # The centre is chosen by WHICH CUTS THIS HOUSEHOLD HAD, not by a constant —
+    # see `_reference_daytime_rate`. Scoring a 3-cut rate against the size-only
+    # centre is a 4.1% re-levelling of the whole book's daytime demand.
+    reference = _reference_daytime_rate(
+        pensioner_present is not None, someone_employed is not None
+    )
     elasticity = daytime_rate_elasticity(household_key, seed)
-    return base * (rate / _reference_daytime_rate()) ** elasticity
+    return base * (rate / reference) ** elasticity
 
 
 # --- R15 controls: neither response may silently re-level the aggregate ----
@@ -601,10 +680,20 @@ def volume_factor_is_unbiased(people_counts: list[int], weights: list[float], co
 def population_mean_daytime_multiplier(people_counts: list[int], weights: list[float], *,
                                        occupancy_pattern: str = "single", period: int = 25,
                                        household_keys: list[str] | None = None,
+                                       pensioners_present: list[bool | None] | None = None,
+                                       someone_employed: list[bool | None] | None = None,
                                        seed: int | None = None) -> float:
     """The weight-normalised mean DAYTIME shape multiplier over a book,
     expressed relative to the category baseline (so 1.0 == "the composition
     response moved load between households without moving the total").
+
+    `pensioners_present` / `someone_employed` are per-household lists aligned
+    to `people_counts`, and THE CONTROL IS BLIND WITHOUT THEM. Omitting them
+    scores a size-only population — which is not the population the book has
+    had since the property record started carrying the two cuts, so a caller
+    that leaves them out is asking about a different world and will get a
+    neutral answer about it. They default to all-`None` so the pre-2026-09-23
+    size-only callers are unchanged.
 
     Raises on empty input / non-positive weight (FAIL-OPEN guard, R15), and on
     a period outside the composition-response window (where the ratio would be
@@ -619,8 +708,14 @@ def population_mean_daytime_multiplier(people_counts: list[int], weights: list[f
         raise ValueError("people_counts and weights must be the same length")
     if household_keys is None:
         household_keys = [""] * n
+    if pensioners_present is None:
+        pensioners_present = [None] * n
+    if someone_employed is None:
+        someone_employed = [None] * n
     if len(household_keys) != n:
         raise ValueError("household_keys must match people_counts")
+    if len(pensioners_present) != n or len(someone_employed) != n:
+        raise ValueError("pensioners_present/someone_employed must match people_counts")
     total = float(sum(weights))
     if not math.isfinite(total) or total <= 0.0:
         raise ValueError("population weights must sum to a positive finite value")
@@ -628,6 +723,8 @@ def population_mean_daytime_multiplier(people_counts: list[int], weights: list[f
     return sum(
         (weights[i] / total) * occupancy_multiplier(
             occupancy_pattern, period, people_count=people_counts[i],
+            pensioner_present=pensioners_present[i],
+            someone_employed=someone_employed[i],
             household_key=household_keys[i], seed=seed,
         ) / base
         for i in range(n)
@@ -637,17 +734,21 @@ def population_mean_daytime_multiplier(people_counts: list[int], weights: list[f
 def daytime_shape_is_mean_neutral(people_counts: list[int], weights: list[float], *,
                                   occupancy_pattern: str = "single", period: int = 25,
                                   household_keys: list[str] | None = None,
+                                  pensioners_present: list[bool | None] | None = None,
+                                  someone_employed: list[bool | None] | None = None,
                                   seed: int | None = None,
                                   tol: float = DAYTIME_SHAPE_BIAS_TOL) -> bool:
     """R15-failable control: True iff the daytime composition response is
     aggregate-neutral over the population. FIRES if the response is centred on
-    a rate the population does not actually have (e.g. EFUS's headline 43%
-    rather than this population's own 0.470 mean, which would lift daytime
-    demand ~5%)."""
+    a rate the population does not actually have — EFUS's headline 43% rather
+    than the size-only population's own 0.470 mean (which lifts daytime demand
+    ~5%), or the size-only 0.470 applied to households that carry all three
+    cuts (which CUTS it 4.1%, the defect measured on 2026-09-23)."""
     return abs(
         population_mean_daytime_multiplier(
             people_counts, weights, occupancy_pattern=occupancy_pattern, period=period,
-            household_keys=household_keys, seed=seed,
+            household_keys=household_keys, pensioners_present=pensioners_present,
+            someone_employed=someone_employed, seed=seed,
         ) - 1.0
     ) <= tol
 

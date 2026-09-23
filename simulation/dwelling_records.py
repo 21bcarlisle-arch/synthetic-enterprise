@@ -191,6 +191,57 @@ def people_count_for_area(customer_id: str, output_area: str | None) -> int:
         return _derive_people_count(customer_id)
 
 
+def composition_cuts_for(customer_id: str) -> tuple[bool, bool]:
+    """`(pensioner_present, someone_employed)` for this home. ONE draw, wherever it is asked.
+
+    THE DEFECT THIS CLOSES (measured 2026-09-23). `demand_model._daytime_occupancy_rate` is keyed
+    on three EFUS cuts — household size, pensioner presence, employment — and averages the ones it
+    is given. The property record supplied the size cut only, so on the live book of 144 homes
+    these two were absent from **all 144**, and every household of a given size took the same
+    daytime rate. Meanwhile `premise_trace.behaviour_profile_for` drew both for ITSELF, on its own
+    substreams, at 0.22 and 0.25-given-a-pensioner. One home, two answers — the exact shape
+    `people_count_for_area` above was written to close, committed again in the next two fields
+    along.
+
+    AND UNLIKE `children_count`, THIS ABSENCE HAD NO STATED REASON. `DEFAULT_CHILDREN_COUNT`
+    carries an explicit R10 GAP refusing to fabricate a distribution nobody publishes, and that
+    refusal is right. These two are not that case: EFUS publishes the marginal share, in the same
+    table as the rates the model already reads — it just publishes it as a headline that has to be
+    inverted (`demand_model.PENSIONER_PRESENT_POPULATION_SHARE`). A silent absence read like a
+    refusal and was not one.
+
+    Deterministic per customer, on substreams named for what they draw, so neither can shift any
+    other draw's sequence (C-S2) — the same convention as `_derive_people_count`. The two are
+    drawn INDEPENDENTLY because EFUS's tables are one-way; the joint is a named gap, not an
+    anchor, and `demand_model` states it at the shares.
+
+    A BASELINE FIDELITY CHANGE, DECIDED BLIND TO P&L (R13), and the direction was not looked at
+    before making it. The argument for it is fidelity alone: the world's record was silent on two
+    cuts the published evidence measures and the demand model already reads. It is also
+    AGGREGATE-NEUTRAL by construction — `demand_model._reference_daytime_rate` recentres on the
+    cut-set supplied, so the book's mean daytime multiplier stays at 0.998 and what moves is WHICH
+    households draw daytime load, not how much the book draws. Without that recentring the same
+    change would have cut daytime demand 4.1%, which is the measurement in
+    `docs/staging/PREREG_the_property_record_composition_fields.md`.
+
+    NO AUTHORED OVERRIDE EXISTS YET, deliberately. `people_count_for_area` checks
+    `PEOPLE_COUNT_BY_CUSTOMER` first because seven homes carry an authored headcount; no roster
+    anywhere authors a pensioner or an employment status, so a lookup table invented here would be
+    a precedence with nothing on either side of it. When one is authored, it is checked HERE, for
+    the reason that function gives: a precedence written at one call site is a precedence the next
+    caller does not inherit.
+    """
+    from simulation.demand_model import (
+        PENSIONER_PRESENT_POPULATION_SHARE,
+        SOMEONE_EMPLOYED_POPULATION_SHARE,
+    )
+
+    pensioner = _random.Random(f"pensioner_present_{customer_id}").random()
+    employed = _random.Random(f"someone_employed_{customer_id}").random()
+    return (pensioner < PENSIONER_PRESENT_POPULATION_SHARE,
+            employed < SOMEONE_EMPLOYED_POPULATION_SHARE)
+
+
 def people_count_source(output_area: str | None) -> str:
     """`"output_area"` or `"national"` -- which distribution a headcount actually came from.
 
@@ -337,6 +388,7 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
                 f"approximate its own ground truth (B12); fix the draw upstream in "
                 f"simulation.live_population.live_dwellings()."
             )
+        pensioner_present, someone_employed = composition_cuts_for(cid)
         properties[cid] = {
             "customer_id": cid,
             "property_type": phys["property_type"],
@@ -349,6 +401,13 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
             # fabric path traces the same house on.
             "people_count": people_count_for_area(cid, phys.get("output_area")),
             "children_count": DEFAULT_CHILDREN_COUNT,
+            # THE OTHER TWO CUTS THE DAYTIME RATE IS KEYED ON, absent from every record in the
+            # book until 2026-09-23 and absent for no stated reason. Same one-function rule as
+            # the headcount above: `composition_cuts_for` is what the fabric path is to be read
+            # through too, so this record cannot hold a different answer from the one the world
+            # traces the same house on.
+            "pensioner_present": pensioner_present,
+            "someone_employed": someone_employed,
             "heating_system": GAS_HEATING_SYSTEM if cid in gas_customer_ids else DEFAULT_HEATING_SYSTEM,
             "assets": dict(ASSET_PROFILE_BY_CUSTOMER.get(cid, DEFAULT_ASSETS)),
         }
