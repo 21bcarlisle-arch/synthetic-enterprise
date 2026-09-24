@@ -8,6 +8,96 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-24 — the prompt audit, the pricing/selection split, and the model switch that is not mine to make
+
+<!-- head: 3661d8d4e634 -->
+
+Two director changes actioned, one of them not mine to make, and the split I owed from Wednesday
+was already on disk.
+
+## The model switch is yours to type, and it is the biggest lever here
+
+Opus 5.5 is real; my bundled model catalogue is cached 2026-06-24 and predates it, so I checked the
+post rather than answer from it. $4/$20 per MTok against Opus 5's $5/$20 — and the number that
+matters on this seat is **cache reads at $0.20/MTok against $0.50**, 60% off. My own CLAUDE.md says
+*"cache reads are the bill"*, so on a long cache-heavy session that is close to the top of the 25%
+plan-limit gain, not the bottom.
+
+**I cannot switch my own model.** `/model` is a console command; there is no API or file route from
+this seat, and no `ant` CLI or API key on this box to confirm the alias string. So this one waits on
+him. Everything else in the instruction I have done.
+
+## Prompt audit: four cuts, one addition, and the surface got BIGGER
+
+His filter, not the generic one: cut what duplicates another rule, contradicts one, or has never
+caught anything; keep what has caught real defects.
+
+- **phase-close item 4 CONTRADICTED the code it cites.** It said `wc -c` — 35,000 chars / 200 lines.
+  `claude_md_integrity.py` deleted `MAX_LINES = 200` on 2026-08-28 and says so at its own constant.
+  CLAUDE.md has been 327 lines for 27 days, so the line told every closer the file was 63% over a
+  ceiling that does not exist, and the remedy it implies is cutting content nothing asked for.
+- **incident-retro told retros to append the next `R<N>` to CLAUDE.md** — into a section the
+  2026-08-28 rewrite deleted, against the 35k ratchet, in the one file resent every turn, arguing
+  with CLAUDE.md's own *"a file made of rules breeds rules"*.
+- **phase-close 6a cited `HARNESS_BEST_PRACTICE_ADOPTION.md`, which does not exist**, and its ritual
+  has no record of ever running. It is the ritual he just asked me to run by hand; re-pointed at the
+  live door.
+- **phase-close 6b restated staging-protocol step 3 verbatim**, down to the identical "~2min
+  indefinitely" clause, four lines above a pointer to that same skill.
+
+**Kept:** R15, pre-registration, verify-before-verdict, and every rule carrying a dated incident.
+The generic audit flags verify-twice scaffolding because it is provenance-free; each of these names
+the defect it was bought with. Provenance is the keep signal.
+
+**A finding of mine that did not survive its own check.** I first read 13 R-number citations as
+dangling pointers into a file that defines none of them — systemic, and wrong. Read in context, 10
+of 12 state the rule in place (*"R11 (verify to the rendered value)"*). The number is a label on a
+rule that says itself. Two did not; only those two were touched.
+
+**Net: +244 chars on CLAUDE.md, +1,091 and +621 on the two skills.** An audit that made the surface
+bigger is a strange result and I am not dressing it up: every repair carries what the line used to
+say, because a rule deleted without its reason is one a later session re-adds as an obvious
+omission — which is exactly how the 200-line limit outlived its own deletion by 27 days.
+
+Added on the same instruction: subagent model routing (search/census/log-reading to haiku or sonnet,
+code edits and evidence-weighing on Opus), on the paragraph that already holds the cache budget rule.
+
+## Pricing vs selection: the answer, and the comparison I will not make
+
+The three-arm runs finished Wednesday 13:57 and I never read them. Within each run the split is
+clean:
+
+| | blind belief | seeing belief (live) |
+|---|---|---|
+| total advantage | £14,074 | £13,440 |
+| **pricing (level)** | £9,867 — 70.1% | **£12,803 — 95.3%** |
+| **choosing (selection)** | £4,207 — 29.9% | **£638 — 4.7%** |
+
+**On the live belief, pricing carries 95% of the advantage and the choosing is worth £638.**
+
+**What I will NOT say is that the size term cut selection from £4,207 to £638.** The level arm is
+pinned to *that run's own* realised median margin — £40.25/MWh blind, £27.25/MWh seeing — so the two
+residuals are measured against two different flat books. Two true numbers whose difference is not a
+quantity, which is this project's most expensive recurring shape and very nearly its newest instance.
+The tool has no flat-level pin, so the admissible instrument is the error bar:
+`--noise-floor-seeds 11..15 --contrast selection_gbp` is running now. £638 against an unmeasured
+floor is not yet a number.
+
+**Which observables the selection rests on** — his other question, and now a control rather than a
+grep: consumption, tenure, cost to serve, segment, fuel, and the payment set he named as ordinary
+practice — `credit_risk`, `behaviour_score`, `payment_delay_days`, `collections_gbp_per_year`.
+`payment_method` is refused by construction: not a parameter of `decide_margin`, absent from the
+whole module, so a prepayment customer cannot be priced for being one.
+
+## Two commits of mine have reached no reader
+
+`455793b16` (the observables control) and `971e3680c` (the gas-shape whitelist repair) are on
+neither main nor origin — they are stranded in `/var/tmp/se-seat-worktree-20260923`. I reported the
+whitelist repair as landed five days ago. A landed fix is not a pushed one, and this is the third
+time that sentence has cost me something. Promotion is next, after the audit commit clears.
+
+---
+
 ## 2026-09-23 — the churn belief hears household size now, on a published basis -- and the choosing stops winning by avoiding bad customers and starts winning on gross margin
 
 <!-- head: 2f8f6a8fdd80 -->
