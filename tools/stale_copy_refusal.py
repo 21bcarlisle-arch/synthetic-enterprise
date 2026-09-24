@@ -465,6 +465,38 @@ def blob_at(root: Path, tree: str, path: str) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
+def blob_ids(root: Path, revs: list[str]) -> list[str | None]:
+    """Each `<rev>:<path>`'s object id in order, `None` where that tree has no such path.
+
+    ONE FORK FOR THE WHOLE LIST, which is why this exists beside `blob_at` rather than being spelled
+    as a loop over it. `blob_at`'s own docstring states the case for per-path: absence is ordinary
+    and the subject is the handful of paths one commit stages. The subject HERE is the opposite
+    shape -- one path against every stash this repository can name -- and it is asked once per path
+    of a whole-tree census, so a fork per candidate multiplies out to thousands. Batching the inner
+    loop and leaving the outer one alone is the cheap half of the same reasoning.
+
+    IDS AND NOT TEXT, and that is a correctness point rather than a saving. `blob_at` returns
+    `git show`'s stdout decoded strictly, and the only use this reader has is an IDENTITY test
+    against a file on disk. Comparing object ids asks git's own question -- are these the same blob
+    -- so a file the locale cannot decode is answered rather than raising, and any `clean` filter or
+    CRLF conversion in `.gitattributes` is applied to both sides by git instead of by us."""
+    if not revs:
+        return []
+    out = subprocess.run(["git", "cat-file", "--batch-check"], cwd=str(root), check=False,
+                         capture_output=True, text=True, input="\n".join(revs) + "\n")
+    if out.returncode != 0:
+        raise ClockUnanswered("`git cat-file --batch-check` over {} rev(s) rc={}: {}".format(
+            len(revs), out.returncode, out.stderr.strip()[:240]))
+    # `<oid> <type> <size>` when it resolves, `<query> missing` when it does not -- one line per
+    # input line, in order, which is what lets the caller zip this back onto its own list.
+    read = [None if ln.split()[-1:] == ["missing"] else ln.split()[0]
+            for ln in out.stdout.splitlines() if ln.strip()]
+    if len(read) != len(revs):
+        raise ClockUnanswered("`git cat-file --batch-check` answered {} of {} rev(s)".format(
+            len(read), len(revs)))
+    return read
+
+
 # ------------------------------------------------------------------ rule 1: predates the landing
 
 
@@ -1120,6 +1152,96 @@ class Loss:
             "".join("        - {}\n".format(n[:110]) for n in shown), tail, remedy)
 
 
+#: A stash commit's subject, which git writes itself and nothing else in this repository produces:
+#: `git stash` gives `WIP on <branch>: <sha> <subject>` and `git stash save "<msg>"` gives
+#: `On <branch>: <msg>`. Both shapes are matched because both are stash objects and this tree holds
+#: live examples of each -- ten `WIP on main:` under `refs/preserved/`, four `On main:` under
+#: `refs/tags/salvage/`. THE SUBJECT IS A PRE-FILTER AND NOT THE EVIDENCE: what licenses a snapshot
+#: to speak for a file is the blob identity below, so a commit that merely opens "On main:" by
+#: coincidence still has to hold the exact bytes before its clock is read. The branch part is
+#: `[^:]+` and not `[^ :]+` because git writes `WIP on (no branch):` from a detached HEAD, and this
+#: tree's own stash reflog holds one -- a tighter pattern silently drops the population that gets
+#: stashed during a rebase, which is when stashing on a shared tree happens most.
+STASH_SUBJECT = re.compile(r"^(?:WIP on|On) [^:]+: ")
+
+
+def stash_snapshots(root: Path) -> tuple[tuple[str, int], ...]:
+    """Every stash-shaped commit this repository can still NAME, as `(sha, committer epoch)`,
+    OLDEST FIRST.
+
+    TWO SOURCES BECAUSE A STASH LIVES IN TWO PLACES AND ONLY ONE OF THEM IS A REF. `refs/stash` is
+    the tip and `git reflog show refs/stash` is every entry under it, which is where a stash that
+    has been pushed down by a later one still is. Neither exists at all once a stash is POPPED --
+    the object goes unreachable and `git gc` will eventually take it -- so the third source is the
+    ordinary ref namespace, because this repository's habit is to write `refs/preserved/<name>` at
+    anything it is about to discard. That habit is what makes the repair reach the live case:
+    `23e9917bc` survives its own pop only as `refs/preserved/shared-tree-stash-pop-2026-09-24`.
+
+    A POPPED STASH NOBODY PRESERVED IS OUT OF REACH AND THAT IS STATED RATHER THAN HIDDEN. This
+    reader will not find it, `taken_before` falls back to the mtime, and the verdict is exactly what
+    it was before this repair -- fail-open in the same direction, no worse. `git fsck --unreachable`
+    would find it and is not used: it walks the whole object store, it is asked once per path of a
+    census, and it would make a control's answer depend on whether `gc` had run.
+
+    THE REFLOG'S ABSENCE IS ORDINARY AND NOT A FAILURE, so it is read through `_git` and its
+    non-zero rc discarded -- a repository that has never stashed has no `refs/stash` to show. The
+    ref scan is read through `_git_answer` instead: `for-each-ref` cannot legitimately fail, so if
+    it does the question is unanswered and the clock must say so rather than shrug."""
+    found: dict[str, int] = {}
+    # for-each-ref's escape is `%00`; git-log's (which `reflog show --format=` speaks) is `%x00`.
+    rows = _git_answer(root, "for-each-ref",
+                       "--format=%(objecttype)%00%(objectname)%00%(committerdate:unix)"
+                       "%00%(contents:subject)").splitlines()
+    reflog = _git(root, "reflog", "show", "--format=commit%x00%H%x00%ct%x00%s", "refs/stash")
+    if reflog.returncode == 0:
+        rows += reflog.stdout.splitlines()
+    for row in rows:
+        kind, _, rest = row.partition("\0")
+        sha, _, rest = rest.partition("\0")
+        when, _, subject = rest.partition("\0")
+        if kind == "commit" and when.isdigit() and STASH_SUBJECT.match(subject):
+            found[sha] = int(when)
+    return tuple(sorted(found.items(), key=lambda pair: (pair[1], pair[0])))
+
+
+def stashed_before(root: Path, path: str, before: int) -> int | None:
+    """The committer date of the EARLIEST stash snapshot strictly older than `before` whose blob at
+    `path` IS the file on disk -- or `None` when no such snapshot holds these bytes.
+
+    WHY THIS EXISTS: AN MTIME SHARED BY HUNDREDS OF FILES IS A WRITE EVENT, NOT AN AUTHOR. A stash
+    restore rewrites every file it touches and stamps them all with the instant of the restore, so
+    the clock `taken_before` reads is the clock of the RESTORE and not of the content. Measured on
+    the shared tree on 2026-09-24 and banked in
+    `docs/staging/SEAT_FINDING_A_STASH_POP_RESTAMPED_321_FILES_AND_DEFEATED_THE_STALE_COPY_CLOCK_BY_38_SECONDS_2026-09-24.md`:
+    the content was snapshotted at 14:01:09Z, `b3aa159dd` landed on origin at 14:01:53Z, the restore
+    wrote 321 tracked files at 14:02:31Z -- so a draft made 44 seconds BEFORE the landing read as
+    authored 38 seconds AFTER it, the older-clock leg did not fire, and no door would admit the copy.
+    The honest clock for those bytes was in the object store the whole time.
+
+    `before` IS A COST BOUND THAT CANNOT CHANGE THE VERDICT, which is why it is in the signature
+    rather than applied by the caller afterwards. The only caller asks `landed > clock` and only
+    reaches here when the mtime already answered no, so a snapshot at or after `landed` yields the
+    same False either way; filtering first means the common case -- no stash older than the landing
+    -- costs the ref scan alone and never touches the object store.
+
+    THE EARLIEST MATCH AND NOT THE LATEST, because the question is *when can these bytes be shown to
+    have existed*, and a snapshot containing them is positive evidence for that instant. A second,
+    later snapshot of the SAME bytes is not evidence they were authored later -- it is evidence
+    somebody stashed twice. The effect is `min(mtime, earliest snapshot)`, so this leg can only ever
+    move the clock BACKWARDS and can therefore only ever ADD a complaint, never withdraw one. That
+    is the direction worth being sure of: the failure this repairs is a control declining to fire.
+
+    THE FILE ON DISK IS THE SUBJECT, so the only honest caller is one that has already established
+    the bytes it is judging ARE that file. `taken_before` does exactly that, one line above, for the
+    reason its own docstring gives about `--content`."""
+    older = [(sha, when) for sha, when in stash_snapshots(root) if when < before]
+    if not older:
+        return None
+    disk = _git_answer(root, "hash-object", "--", path).strip()
+    held = blob_ids(root, ["{}:{}".format(sha, path) for sha, _ in older])
+    return next((when for (_, when), oid in zip(older, held) if oid == disk), None)
+
+
 def taken_before(root: Path, path: str, new_text: str, commit: str) -> bool:
     """Whether the bytes in `new_text` are the file ON DISK and that file is OLDER than `commit`.
 
@@ -1132,14 +1254,24 @@ def taken_before(root: Path, path: str, new_text: str, commit: str) -> bool:
     not on disk at all -- a `--content` landing, a deletion, a path read out of a tree -- and that
     is precisely the case this rule declines to have an opinion about: these bytes are not the
     working copy, so no working copy's clock can speak for them. `committed_at`'s failure is the
-    opposite: the question WAS this rule's to answer and git would not say, so it raises through."""
+    opposite: the question WAS this rule's to answer and git would not say, so it raises through.
+
+    AND THE MTIME IS NOT THE ONLY CLOCK, because it is not always a clock at all. A `git stash`
+    restore rewrites every file it touches with one fresh stamp, so for that population the mtime
+    dates the RESTORE and says nothing about when the content was written -- see `stashed_before`
+    for the live case, where it inverted the answer by 38 seconds on six paths at once. So the
+    question asked here is *the earliest instant these bytes can be shown to have existed*, which
+    is the mtime unless the object store can prove an earlier one. The stash leg can only move that
+    instant backwards, so it can only ever ADD a complaint; it reaches exactly the copies that came
+    out of a stash and not one copy some lane actually typed."""
     try:
         if (root / path).read_text(encoding="utf-8", errors="replace") != new_text:
             return False
         mtime = (root / path).stat().st_mtime
     except OSError:
         return False
-    return committed_at(root, commit) > mtime
+    landed = committed_at(root, commit)
+    return landed > mtime or stashed_before(root, path, landed) is not None
 
 
 def judge(root: Path, path: str, head_text: str | None, new_text: str | None,

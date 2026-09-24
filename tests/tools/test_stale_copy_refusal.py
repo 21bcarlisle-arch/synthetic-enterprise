@@ -1755,3 +1755,132 @@ def test_the_delta_fails_closed_on_an_unparseable_side(repo: Path) -> None:
         scr.json_leaf_delta('{"a": 1}', '{"a": ', "r.json")
     with pytest.raises(scr.Unparseable):
         scr.json_leaf_delta('{"a": ', '{"a": 1}', "r.json")
+
+
+# ------------------------------------ the clock a `git stash` restore destroys (2026-09-24)
+
+#: The live instants, kept rather than rounded, because the whole defect is a 44-second lead
+#: turning into a 38-second lag and a fixture that rounds them away cannot show it. Measured on
+#: the shared tree and banked in `SEAT_FINDING_A_STASH_POP_RESTAMPED_321_FILES_AND_DEFEATED_THE_
+#: STALE_COPY_CLOCK_BY_38_SECONDS_2026-09-24.md`: `23e9917bc` snapshotted at 14:01:09Z, `b3aa159dd`
+#: landed on origin at 14:01:53Z, the restore rewrote 321 tracked files at 14:02:31Z.
+SNAPSHOTTED_AT = 1790258469
+LANDED_AT = SNAPSHOTTED_AT + 44
+RESTORED_AT = SNAPSHOTTED_AT + 82
+
+
+def _stash_at(root: Path, when: int, *args: str) -> str:
+    """`git stash push <args>` with `when` as the stash commit's committer date, and the stash's
+    own sha back. The date must be forced: a test runs inside one second, so a fixture that let
+    git pick would have the snapshot, the landing and the restore all share a clock and could not
+    tell the repaired leg from the broken one."""
+    subprocess.run(["git", "stash", "push", "-q", *args], cwd=str(root), check=True,
+                   capture_output=True, text=True,
+                   env={**os.environ, "GIT_COMMITTER_DATE": "@{} +0000".format(when)})
+    return _run(root, "rev-parse", "refs/stash").strip()
+
+
+def test_the_clock_reads_the_stash_that_holds_the_bytes_and_not_the_stamp_of_the_restore(
+        repo: Path) -> None:
+    """THE DEFECT: an mtime shared by hundreds of files is a write event, not an author.
+
+    `git stash` on the shared tree at 14:01:09Z, another lane's landing on origin at 14:01:53Z, the
+    restore at 14:02:31Z rewriting 321 tracked files with ONE stamp. `taken_before` asked
+    `committed_at(commit) > mtime`, so a draft made 44 seconds BEFORE the landing read as authored
+    38 seconds AFTER it; `judge`'s older-clock leg did not fire, its rule-1 `any`-vouch was
+    satisfied by one shared line, and `refresh_to_head` refused the gap paths as "an ordinary edit"
+    -- which is exactly what they were not. Fail-open on the one leg written to catch a
+    pre-landing draft.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, not a leg per branch, because the trap this repository
+    has walked into three times in an afternoon is a guard that refuses everything and passes every
+    test written for it. Five copies, all judged against the SAME landing, and each answer has a
+    DIFFERENT cause:
+
+      * `a.py` -- restored from an old stash reachable only as `refs/preserved/...` -> True
+      * `e.py` -- restored from an old stash reachable only through the stash REFLOG -> True
+      * `b.py` -- an ordinary edit carrying the same restore stamp                  -> False
+      * `c.py` -- restored from a stash NEWER than the landing                       -> False
+      * `d.py` -- never stashed, and its own mtime predates the landing              -> True
+
+    Each is separately mutatable and no two share a killer, which is what stops one of them
+    standing in for the rest. Drop the stash leg from `taken_before` and `a`+`e` flip; drop
+    `stashed_before`'s `oid == disk` test and `b` flips; drop its `when < before` filter and `c`
+    flips; drop the mtime comparison and `d` flips; stop reading the stash reflog and `e` flips
+    alone.
+
+    THE TWO SOURCES ARE SPLIT ACROSS TWO PATHS ON PURPOSE, and the first draft of this test did not
+    do that: it reached both stashes through `for-each-ref` (a preserved ref and `refs/stash`), so
+    deleting the reflog reader entirely left the suite GREEN. That is the no-op mutation, not a
+    covered leg. `e`'s stash is BURIED under a later one, so `refs/stash` names somebody else and
+    the reflog is the only thing that can find it -- which is the ordinary state of any stash that
+    is not the most recent. `a`'s is dropped from the reflog and survives only as
+    `refs/preserved/...`, which is the live case: a popped stash is unreachable, and this
+    repository's habit of writing a ref at what it discards is the whole reason `23e9917bc` could
+    still be asked."""
+    for name in ("a.py", "b.py", "c.py", "d.py", "e.py"):
+        (repo / name).write_text("def base():\n    return 1\n")
+    _run(repo, "add", "a.py", "b.py", "c.py", "d.py", "e.py")
+    _run(repo, "commit", "-qm", "the five copies, before anything happened to them")
+    _run(repo, "branch", "trunk")
+
+    drafted = "def drafted_before_the_landing():\n    return 'mine'\n"
+    (repo / "a.py").write_text(drafted)
+    stashed_a = _stash_at(repo, SNAPSHOTTED_AT, "--", "a.py")
+    (repo / "e.py").write_text(drafted)
+    stashed_e = _stash_at(repo, SNAPSHOTTED_AT + 2, "--", "e.py")
+
+    # THE LANDING REACHES THE TRUNK AND NOT THIS CHECKOUT, which is the live shape and the reason
+    # the restore was clean: the shared tree's own HEAD did not have `b3aa159dd` yet, so the pop
+    # had nothing to merge against and put the snapshot back byte-for-byte.
+    _run(repo, "checkout", "-q", "trunk")
+    for name in ("a.py", "b.py", "c.py", "d.py", "e.py"):
+        (repo / name).write_text("def landed_on_the_trunk():\n    return 99\n")
+    _run(repo, "add", "a.py", "b.py", "c.py", "d.py", "e.py")
+    subprocess.run(["git", "commit", "-qm", "the landing"], cwd=str(repo), check=True,
+                   capture_output=True, text=True,
+                   env={**os.environ, "GIT_COMMITTER_DATE": "@{} +0000".format(LANDED_AT)})
+    _run(repo, "checkout", "-q", "main")
+
+    (repo / "c.py").write_text(drafted)
+    stashed_c = _stash_at(repo, LANDED_AT + 20, "--", "c.py")
+
+    _run(repo, "stash", "apply", "-q", "stash@{2}")
+    _run(repo, "update-ref", "refs/preserved/the-pop-2026-09-24", stashed_a)
+    _run(repo, "stash", "drop", "-q", "stash@{2}")
+    _run(repo, "stash", "apply", "-q", "stash@{1}")
+    _run(repo, "stash", "apply", "-q", "stash@{0}")
+    (repo / "b.py").write_text(drafted)
+    (repo / "d.py").write_text(drafted)
+    for name in ("a.py", "b.py", "c.py", "e.py"):
+        os.utime(repo / name, (RESTORED_AT, RESTORED_AT))
+    os.utime(repo / "d.py", (LANDED_AT - 500, LANDED_AT - 500))
+
+    # THE FIXTURE IS ASSERTED BEFORE THE VERDICT IS. Every one of these is a claim the partition
+    # rests on, and each has a way of being quietly false that would leave the suite green over a
+    # control that had stopped working: a git whose `stash apply` merged rather than restored, a
+    # `drop` that took the wrong entry, an `os.utime` on a path the restore never wrote, a
+    # `refs/stash` that still names the stash the reflog was supposed to be the only route to.
+    assert scr.stash_snapshots(repo) == ((stashed_a, SNAPSHOTTED_AT),
+                                         (stashed_e, SNAPSHOTTED_AT + 2),
+                                         (stashed_c, LANDED_AT + 20)), (
+        "the three stashes are not all being reached: {}".format(scr.stash_snapshots(repo)))
+    assert _run(repo, "rev-parse", "refs/stash").strip() == stashed_c, (
+        "`refs/stash` names e's stash, so `for-each-ref` finds it and the reflog leg is untested")
+    assert all((repo / n).read_text() == drafted for n in ("a.py", "c.py", "e.py")), (
+        "the restore did not put the snapshot back byte-for-byte, so this fixture is a merge and "
+        "not the pop the defect came out of")
+    landing = scr.last_commit_touching(repo, "a.py", "trunk")
+    assert landing and scr.committed_at(repo, landing) == LANDED_AT, (
+        "the landing is not where this fixture says it is, so every verdict below is about some "
+        "other commit")
+    assert (repo / "a.py").stat().st_mtime > LANDED_AT > (repo / "d.py").stat().st_mtime, (
+        "the restore stamp does not straddle the landing, so the broken clock and the repaired "
+        "one would agree here and the control could not fail")
+
+    verdicts = {name: scr.taken_before(repo, name, drafted,
+                                       scr.last_commit_touching(repo, name, "trunk"))
+                for name in ("a.py", "b.py", "c.py", "d.py", "e.py")}
+    assert verdicts == {"a.py": True, "b.py": False, "c.py": False, "d.py": True, "e.py": True}, (
+        "the five copies do not split the way their five different causes require: {}".format(
+            verdicts))
