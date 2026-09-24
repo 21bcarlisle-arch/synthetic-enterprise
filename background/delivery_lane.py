@@ -1428,8 +1428,8 @@ def _claim_subject_paths(focus_id: str, row: dict) -> list[str]:
     return [p for p in paths if p not in set(mentioned)]
 
 
-def _window_hits(focus_id: str, row: dict,
-                 drawn: float) -> tuple[list[str], list[tuple], list[tuple]]:
+def _window_hits(focus_id: str, row: dict, drawn: float, *,
+                 until: float | None = None) -> tuple[list[str], list[tuple], list[tuple]]:
     """`(paths, hits, liveness_only)` — commits on this claim's own paths inside its own window.
 
     A HEARTBEAT IS NOT A LANDING, and until 2026-09-19 it was (measured on the live ledger, which
@@ -1509,6 +1509,15 @@ def _window_hits(focus_id: str, row: dict,
     item's first three paths cannot tell whether the commit touched any of them; handed the
     intersection, one `git show` settles it. It is already computed — `--name-only` under the
     pathspec prints exactly that — so this is a field that was being thrown away.
+
+    `until` IS THE THIRD READING'S EDGE AND IT IS A PARAMETER RATHER THAN A FORK OF THIS FUNCTION
+    (2026-09-24). Both readings above ask about a window that CLOSED, so the upper edge is derived
+    from the draw. `landed_since_note` asks the same question on the way IN — between the instant
+    this row was last accounted for and NOW — and that edge cannot be derived from `drawn` at all.
+    Everything that DISCRIMINATES is shared and unchanged: the subject path set, the liveness
+    split, the raise on a git that could not be asked. Copying the query to get a different edge is
+    how the pre-draw and post-sweep readings would come to disagree about the same commit, which is
+    the drift this function was deliberately made single to prevent.
     """
     paths = _claim_subject_paths(focus_id, row)
     if not paths:
@@ -1516,7 +1525,8 @@ def _window_hits(focus_id: str, row: dict,
     # ASKED BEFORE GIT, so an unreadable declaration costs nothing and cannot be mistaken for a
     # clean window: there is no point holding an answer that cannot be judged.
     surface = _liveness_surface_or_raise()
-    window_ends = drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
+    window_ends = (drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
+                   if until is None else float(until))
     # `--name-only` UNDER THE SAME PATHSPEC IS THE INTERSECTION, FOR FREE. git filters the printed
     # filenames to the pathspec, so this one call answers both "which commits" and "which of the
     # claim's paths did each touch" -- no second query, and no chance of the two drifting.
@@ -3404,6 +3414,140 @@ def premise_note(item: dict) -> str:
         return ""
 
 
+def landed_since_note(item: dict, *, now: float | None = None,
+                      path: Path | None = None) -> str:
+    """A line for the doorbell when git shows work on this item's own paths since it was last
+    accounted for, else "". The `_landed_unbound` join, asked on the way IN.
+
+    THE OTHER HALF OF THE 2026-09-24 DEFECT. `_landed_unbound` already runs rev-list/diff over a
+    row's named paths to answer *"work landed here and nothing bound it"* — but only on the way
+    OUT, over a CLOSED window, in `_disposition`. Nothing asked it on the way in, so the cost of a
+    row whose work is already in a ref is a WHOLE WORKER TICK, and the truth arrives afterwards.
+    `8379e8e0e` made `--landed` admit when a bind cannot settle its window; that tells the truth
+    after the waste. This is the waste itself.
+
+    MEASURED, NOT ARGUED. `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term`
+    landed at `3b01193a8` on 2026-09-23 17:54 — bound, in the ledger, `last_landing_at` written
+    from the commit's own `%ct` — and was handed to a fresh worker tick at 2026-09-24 11:36:32,
+    17.7 hours later, with no check of any kind. `premise_note` could not see it: that reading
+    re-measures commit ids the item's PROSE cites, and this item's prose cited no sha. The fact was
+    in git and in this module's own ledger the whole time, and the only reader that asks for it
+    runs 100 minutes after the tick it would have saved.
+
+    TWO VOICES, AND THEY ARE NOT EQUALS. The CREDITED landing — a hit at exactly the instant this
+    row's own `last_landing_at` holds — is the strong one: this lane recorded that commit against
+    this id itself, so the claim that it is about this item needs no inference at all. It is the
+    measured instance, and the reference IS that instant, so the landing is the FIRST hit rather
+    than an excluded one. Everything else is reported as MOVEMENT with a count: these files changed
+    under you, newest first, go and look.
+
+    IT DOES NOT SPLIT THE MOVEMENT BY OWNERSHIP, AND THAT IS A REFUSAL RATHER THAN AN OMISSION —
+    do not "finish" this by reaching for `_bound_by` the way the closed-window readings do. It was
+    written that way first and the numbers killed it. `_bound_instants` only knows commits THIS
+    LANE bound to one of its own rows, which is a few hundred out of every commit in the tree, so
+    over a multi-hour reference span `unbound` is not "loose work nobody owns" — it is very nearly
+    "a commit". Measured 2026-09-24 over the live ledger's 336 rows with a landing inside git's
+    14-day horizon: 222 fired, and `unbound` appeared in 200 of them. A label that is true of
+    almost every hit discriminates nothing and reads as though it discriminates a great deal, which
+    is this project's most expensive recurring shape. The split is SOUND where `_landed_unbound`
+    applies it — a ~100-minute window on the claim's own subject paths, where a commit really is
+    likely to be the claim's work — and it does not survive being carried to this window.
+
+    IT ANNOTATES AND NEVER REFUSES, and the item that asked for it said so in those words. A false
+    positive here silences real work, and this join fires on paths several lanes commit into every
+    hour — `background/delivery_lane.py` is its own most-worked file. So it is fail-open like every
+    other reader in this module: a note the tick re-measures first, exactly the shape the PREMISE
+    CHECK block already has, and never a filter. The measured cost of being wrong in the other
+    direction is `draw`'s six-day walkover.
+
+    NO LEDGER ROW MEANS NO NOTE AND NO GIT, which is not an optimisation but the honest answer: a
+    FIRST draw cannot have been wasted on finished work, because nothing has happened to this item
+    yet. It also keeps the supervisor's ~2-minute `draw(claim=False)` read free of a `git log` for
+    the common case.
+
+    ONE SHA PER VOICE. The reference can be days old on a row drawn repeatedly without landing, and
+    a doorbell that lists thirty commits is one a tick skips. Each voice names its newest hit and
+    counts the rest, which is enough for one `git show` to settle it.
+
+    NEVER RAISES, and an unanswerable git yields "" — the behaviour before this existed, and the
+    same direction `premise_note` argues for at length: a missing annotation is visible to the tick
+    that then does the work anyway, where an item withheld because git hiccuped is visible to
+    nobody.
+    """
+    try:
+        focus_id = str(item.get("id") or "")
+        if not focus_id:
+            return ""
+        store = path or CLAIMS_FILE
+        ledger = claims_mod._load(_ledger_path(store))
+        row = ledger.get(focus_id)
+        if not isinstance(row, dict):
+            return ""
+        # THE REFERENCE IS THE LAST INSTANT THIS ROW WAS ACCOUNTED FOR. A landing is that instant
+        # when there is one -- and it is INCLUSIVE, so the landing itself is the first hit, which
+        # is the whole measured instance. With nothing bound, the item has been accounted for only
+        # by being handed out, so the first draw is the edge. Only 22 of 400 live rows take that
+        # second branch, so the fallback is the rare case and not the one the note is shaped by.
+        landed_at = float(row.get("last_landing_at") or 0.0)
+        since = landed_at or float(row.get("first_drawn_at") or 0.0)
+        if since <= 0.0:
+            return ""
+        _paths, hits, _liveness = _window_hits(focus_id, row, since,
+                                               until=float(now if now is not None else time.time()))
+        if not hits:
+            return ""
+        # THE CREDITED LANDING IS IDENTIFIED BY ITS INSTANT AND NOT THROUGH `_bound_by`.
+        # `_remember_landing` stores the commit's own `%ct`, which is the same field `_window_hits`
+        # reads back, so this equality IS the binding -- no whole-ledger scan, and nothing that can
+        # drift from the row it is about. Guarded by `landed_at` so a row with no landing cannot
+        # match its own `first_drawn_at` against a commit that merely shares the second.
+        credited = [h for h in hits if landed_at and h[1] == landed_at]
+        moved = [h for h in hits if not (landed_at and h[1] == landed_at)]
+        # A VOICE IS BUILT ONLY WHEN IT HAS MEMBERS. `_hit_phrase` takes the `max` of what it is
+        # given and an empty voice is the COMMON case -- most rows reach one of the two. Formatting
+        # both up front and filtering afterwards raises on every ordinary note, and this function's
+        # own `except` would have swallowed it into permanent silence.
+        said = [voice.format(_hit_phrase(group)) for voice, group in (
+            ("THIS ITEM IS ALREADY CREDITED WITH A LANDING -- {}", credited),
+            ("its subject paths have moved since: {}", moved),
+        ) if group]
+        return (
+            "LANDING CHECK (git, run at draw time): measured against this row's own reference of "
+            "{when} -- {said}. RE-MEASURE BEFORE YOU BUILD: read those commits first and decide "
+            "whether what you are being asked for still needs doing. If it is done, take the "
+            "disposition rather than the work -- `--premise-spent {key} <sha> <reason>` then "
+            "`--release {key}` -- and say so in docs/staging/. If it is genuinely still owed, "
+            "carry on: this is a note, not a refusal. "
+        ).format(when=_stamp(since), said="; ".join(said), key=focus_id)
+    except Exception:
+        return ""
+
+
+def _hit_phrase(hits: list[tuple]) -> str:
+    """`<sha> "<subject>" at <stamp>` for the NEWEST hit of a voice, plus a count of the rest.
+
+    NEWEST RATHER THAN FIRST, and that is the opposite of `_landed_unbound`'s choice on purpose.
+    That reading looks backwards at a closed window and takes the earliest landing as the one the
+    claim produced. This one looks at everything between the reference and now, and the commit a
+    reader wants to open first is the most recent state of the subject, not the oldest.
+    """
+    sha, when, subject, _touched = max(hits, key=lambda h: h[1])
+    more = " (+{} more)".format(len(hits) - 1) if len(hits) > 1 else ""
+    return "{} \"{}\" at {}{}".format(sha[:9], subject.strip()[:80], _stamp(when), more)
+
+
+def _stamp(when: float) -> str:
+    """A local `YYYY-MM-DD HH:MM` for a commit instant, or the bare epoch if it will not format.
+
+    The reader is comparing this against a draw they can see the clock for, so a bare epoch is a
+    fact they cannot use. The fallback keeps the note rather than losing it to a formatting error.
+    """
+    try:
+        return datetime.datetime.fromtimestamp(float(when)).strftime("%Y-%m-%d %H:%M")
+    except (ValueError, OSError, OverflowError):
+        return "@{:.0f}".format(when)
+
+
 #: A token in a work id. Two characters minimum: a single character is never distinctive and the
 #: decimal in `...-p6s-2.45-percent` would otherwise contribute a bare `2` to every comparison.
 _SUBJECT_TOKEN = re.compile(r"[a-z0-9]{2,}")
@@ -3927,18 +4071,27 @@ def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that.
 
-    `premise_note`, `rival_note`, `successor_note` and `path_note` go FIRST, ahead of the standing
-    preamble, because a tick that reads the work before it reads the checks has already started.
-    They are the same shape asked of four different stores: has this item's premise already been
-    spent, is somebody else spending it right now, did THIS ITEM'S OWN TICK already spend it and
-    write down what was left -- and, last because it is the only one about bytes rather than
-    bookkeeping, what state are the FILES this item names actually in.
+    `premise_note`, `landed_since_note`, `rival_note`, `successor_note` and `path_note` go FIRST,
+    ahead of the standing preamble, because a tick that reads the work before it reads the checks
+    has already started. They are the same shape asked of five different stores: has this item's
+    premise already been spent, has GIT already moved its own subject paths, is somebody else
+    spending it right now, did THIS ITEM'S OWN TICK already spend it and write down what was left
+    -- and, last because it is the only one about bytes rather than bookkeeping, what state are
+    the FILES this item names actually in.
 
-    `path_note` COMES AFTER THE OTHER THREE AND NOT BEFORE. The first three can retire the item
+    `landed_since_note` SITS SECOND, BESIDE `premise_note` AND NOT ELSEWHERE, because the two are
+    one question asked of two different evidences: has this work already been done? `premise_note`
+    asks it of the shas the item's PROSE cites, which is nothing at all when the prose cites none
+    -- the 2026-09-24 waste in full. This one asks it of the item's own PATHS, which every item
+    has. Prose-first, then paths: the cited sha is the author's own claim about what this depends
+    on and outranks a path join that several lanes commit into.
+
+    `path_note` COMES AFTER THE OTHER FOUR AND NOT BEFORE. The first four can retire the item
     outright, and a reader who has just been told to take a disposition should not first walk a
-    per-path table for work they are not going to do. It is also the longest of the four, and the
-    three that can end the turn in one line have to be readable above it."""
-    return premise_note(item) + rival_note(item) + successor_note(item) + path_note(item) + (
+    per-path table for work they are not going to do. It is also the longest of the five, and the
+    four that can end the turn in one line have to be readable above it."""
+    return premise_note(item) + landed_since_note(item) + rival_note(item) + successor_note(
+        item) + path_note(item) + (
         # DRIFT COMES LAST OF THE FIVE AND IMMEDIATELY AFTER THE TABLE IT REFERS TO. It is the only
         # row here that is not answerable from the tree in front of the reader: a hand-off carries
         # the landing door's reading from the moment it was WRITTEN, and the difference between
