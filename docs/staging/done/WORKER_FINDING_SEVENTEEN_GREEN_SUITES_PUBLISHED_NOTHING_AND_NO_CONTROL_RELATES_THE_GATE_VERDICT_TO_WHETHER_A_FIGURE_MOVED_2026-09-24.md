@@ -237,3 +237,72 @@ the rc it saw and the record it wrote.
 **What is NOT claimed:** that the fifth cause was the last one, that clearing it was sufficient, or
 that `last_clean_publish` will move. It has not. The claim is bounded to what the gate measured:
 the cited red is dead at HEAD, and it was this landing that killed it.
+
+## The sixth cause, found and repaired: the gate's return code was thrown away one frame below the refusal
+
+*Appended 2026-09-24 by the delivery seat, same claim as the fifth and sixth causes above. The
+question the previous section left open — "which observation is it dropping between the rc it saw
+and the record it wrote" — is answered here, with the line of code that drops it.*
+
+**The observation existed. It was written down. Then it was left behind at a door that could not
+carry it.** One cycle, four minutes, from the shared tree's own records:
+
+| when | record | what it says |
+|---|---|---|
+| 06:51:17Z | `.last_gate_blocking_tests.json` | `node_ids: [FAILED …test_a_wedged_tree_and_a_hot_origin_are_told_apart_in_the_record]`, `total_red: 1`, `graded_sha: 35f9e3462` |
+| 06:55:10Z | `.publish_gate_state.json` | `cause: "unattributed"`, `cause_evidence: "recorded with no observation attached (rc=1, kind=test_regression) — this exit path names no cause"` |
+
+And in `sim-runner-log.md` between them, verbatim: `1 failed, 1805 passed, 9 skipped, 282
+deselected` then `Scoped publish-path gate FAILED - not committing content`.
+
+**Where it is dropped.** `_run_gate_in` ends `return result.returncode == 0, False`. The suite's
+return code — the one thing that separates a judged red from a killed child — is collapsed to a
+**boolean** on that line. `_gate_refusal` therefore had one non-timeout answer, a bare `return 1`,
+and `record_publish_gate_outcome` had only its generic fall-through, which passes no cause and lets
+`_classify_gate_failure` call every non-zero `test_regression`.
+
+**Three separable things were arriving as one**, and the log shows all three live:
+
+* rc>0 with a named node — a real red at a sha we recorded. (06:51Z above.)
+* rc>0 with nothing named, or rc<0 — nothing judged. `Publish gate RED (rc=-15) — no FAILED/ERROR
+  summary line found` appears on 2026-08-14, 08-18 (twice) and 08-19; `rc=1` with the same line,
+  sixteen consecutive times on 2026-08-11.
+* no subject at all — the checkout could not be materialised, so the gate never ran.
+
+**Why this is the fifth time, not the first.** rc=77, rc=78, rc=79 and the two outer deadline kills
+were each carved out of this same bare `return 1`, each with a comment in `process_run_complete.py`
+saying "same class, own name". The 2026-08-21 carve-out took the publisher's inner *clock* out and
+left everything else in. What was left was never one thing.
+
+**The repair.** `EXIT_SCOPED_GATE_REFUSED = 81`, two causes in `publish_cause`
+(`scoped_suite_red` / `scoped_gate_unjudged`), and `_run_gate_in` recording which it saw at the
+instant it sees it — the same cross-process carrier rc=77 has used since 2026-08-30, keyed to the
+same git hash the router reads back. The judged/unjudged split rides on the **cause**, not on a
+sixth and seventh exit code: a code licenses the router to read the attribution, it is not the
+attribution. `scoped_gate_unjudged` is in `UNJUDGED_GATE_KINDS` and in the supervisor's
+`WEDGE_KINDS_NO_TEST_JUDGED`, so the RUNG-1 draw stops being sent after a red that does not exist.
+
+**Control:** `tests/background/test_the_scoped_gates_refusal_names_which_refusal_it_was.py`, nine
+legs, written over the whole partition rather than one leg per branch. Four observable shapes,
+three states, **and the collapse is asserted rather than left to the reader** — the two unjudged
+shapes share a state deliberately (the reader's instruction is the same: implicate nobody) and are
+held to *differing* evidence lines, because they send a diagnostician to different places. Eight
+mutations run, each biting the leg its docstring names, including the chain leg: delete the
+recording call from `_run_gate_in` and only the leg that drives the real `run_fast_tests` reds.
+
+### Pre-registered, before the next cycle can answer it
+
+Written now so it cannot be filed after the result. **Prediction:** the next publish-gate failure
+recorded after this lands carries `cause` ∈ {`scoped_suite_red`, `scoped_gate_unjudged`} with a
+`cause_evidence` naming a return code, and `kind` is `test_regression` **only** on the first of
+those. **What would refute it:** another `"recorded with no observation attached"` at rc=81, or an
+rc=1 record from the publish path at all — rc=1 is now reachable from `_process` only by the three
+non-gate paths (marker missing, JSON missing, report regeneration failed), and a gate refusal
+arriving as rc=1 means the router is reading a stale exit code from a daemon that has not restarted
+onto this commit.
+
+**What is NOT claimed.** Not that `last_clean_publish` will move: this names the sixth cause and
+repairs the instrument that failed to name it. Whether a seventh is behind it is the next
+observation, and on this document's own thesis — *the causes are serial, each masked by its
+predecessor* — one should be expected rather than hoped against. What *is* claimed is narrower and
+falsifiable: the publisher will no longer refuse without saying which refusal it was.
