@@ -311,6 +311,9 @@ PARTIAL = "predates_landing_carrying_some"
 #: The clock was asked and COULD NOT ANSWER -- a git call its verdict rests on failed. Its own
 #: rule, never folded into "no complaint": see `ClockUnanswered`.
 UNANSWERED = "clock_could_not_answer"
+#: Rule 1b: the copy carries the landing's CODE and has dropped the whole COMMENT BLOCK that landing
+#: wrote -- the one loss no other rule in this module can see. See `reverted_comment_block`.
+REVERTS_COMMENT = "reverts_a_landed_comment_block"
 
 
 #: THE ONLY RULES THAT LICENSE `refresh_to_head --base-wins`, and the point is that the CLOCK returned them rather
@@ -465,6 +468,38 @@ def blob_at(root: Path, tree: str, path: str) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
+def blob_ids(root: Path, revs: list[str]) -> list[str | None]:
+    """Each `<rev>:<path>`'s object id in order, `None` where that tree has no such path.
+
+    ONE FORK FOR THE WHOLE LIST, which is why this exists beside `blob_at` rather than being spelled
+    as a loop over it. `blob_at`'s own docstring states the case for per-path: absence is ordinary
+    and the subject is the handful of paths one commit stages. The subject HERE is the opposite
+    shape -- one path against every stash this repository can name -- and it is asked once per path
+    of a whole-tree census, so a fork per candidate multiplies out to thousands. Batching the inner
+    loop and leaving the outer one alone is the cheap half of the same reasoning.
+
+    IDS AND NOT TEXT, and that is a correctness point rather than a saving. `blob_at` returns
+    `git show`'s stdout decoded strictly, and the only use this reader has is an IDENTITY test
+    against a file on disk. Comparing object ids asks git's own question -- are these the same blob
+    -- so a file the locale cannot decode is answered rather than raising, and any `clean` filter or
+    CRLF conversion in `.gitattributes` is applied to both sides by git instead of by us."""
+    if not revs:
+        return []
+    out = subprocess.run(["git", "cat-file", "--batch-check"], cwd=str(root), check=False,
+                         capture_output=True, text=True, input="\n".join(revs) + "\n")
+    if out.returncode != 0:
+        raise ClockUnanswered("`git cat-file --batch-check` over {} rev(s) rc={}: {}".format(
+            len(revs), out.returncode, out.stderr.strip()[:240]))
+    # `<oid> <type> <size>` when it resolves, `<query> missing` when it does not -- one line per
+    # input line, in order, which is what lets the caller zip this back onto its own list.
+    read = [None if ln.split()[-1:] == ["missing"] else ln.split()[0]
+            for ln in out.stdout.splitlines() if ln.strip()]
+    if len(read) != len(revs):
+        raise ClockUnanswered("`git cat-file --batch-check` answered {} of {} rev(s)".format(
+            len(read), len(revs)))
+    return read
+
+
 # ------------------------------------------------------------------ rule 1: predates the landing
 
 
@@ -552,6 +587,184 @@ def distinctive_lines(root: Path, path: str, commit: str) -> tuple[str, ...]:
         return strong
     return tuple(ln for ln in added
                  if not _trivial(ln, comments_are_evidence=True) and freq[ln] == 1)
+
+
+# --------------------------------------------- rule 1b: reverts a comment block the landing added
+
+
+#: The comment openers this module reads. `*` is a continuation line inside a `/* */` block, which is
+#: why it is here and not only `#`/`//`: `PAGE_SUFFIXES` are in `READABLE` and their prose is mostly
+#: written that way.
+_COMMENT_OPENERS = ("#", "//", "*")
+
+
+def _is_comment_line(line: str) -> bool:
+    """A comment line carrying enough text to identify WHICH commit wrote it.
+
+    THE FLOOR IS `_trivial`'S OWN AND NOT A SECOND COPY OF IT. `_trivial(..., comments_are_evidence=
+    True)` is exactly "the length and bracket-noise floors, without the comment exclusion" -- see its
+    docstring -- so asking it here reuses the one definition of "too short to be evidence". A
+    re-derived floor beside it is the one-requirement-two-implementations shape that costs this
+    repository most, and the two would drift the first time either was tuned."""
+    s = line.strip()
+    return s.startswith(_COMMENT_OPENERS) and not _trivial(s, comments_are_evidence=True)
+
+
+def _landing_hunks(diff: str) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
+    """`(removed, added)` per hunk of a `--unified=0` diff, in file order.
+
+    PER HUNK AND NOT PER FILE, because the question rule 1b asks is about ONE block of prose and its
+    replacement. At `--unified=0` there is no context line, so a hunk's added lines are exactly a
+    contiguous run in the new file and its removed lines are the run they displaced -- which is what
+    lets "this block" and "the prose this block superseded" be the same question. Read file-wide, a
+    comment deleted in one place and an unrelated one added in another would answer it as a revert."""
+    out: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+    removed: list[str] = []
+    added: list[str] = []
+    started = False
+    for line in diff.splitlines():
+        if line.startswith("@@"):
+            if started:
+                out.append((tuple(removed), tuple(added)))
+            removed, added, started = [], [], True
+        elif not started or line.startswith(("---", "+++")):
+            continue
+        elif line.startswith("-"):
+            removed.append(line[1:].strip())
+        elif line.startswith("+"):
+            added.append(line[1:].strip())
+    if started:
+        out.append((tuple(removed), tuple(added)))
+    return tuple(out)
+
+
+#: How many contiguous comment lines make a BLOCK. The narrowness argument rests on this: a landing
+#: that adds a lone lint-suppression pragma or a one-line licence header has written nothing a reader
+#: would miss, and `tests/tools/test_stale_copy_refusal.py`'s own
+#: `test_the_comment_fallback_does_not_displace_code_evidence` names that churn as the reason comments
+#: must not become flat evidence. MEASURED AND NOT LOAD-BEARING ON TODAY'S TREE, which is said here
+#: rather than left for the reader to assume: across the 52 tracked-modified `.py` paths of
+#: 2026-09-24 the fire count is 7 at EVERY floor from 1 to 6, so this guard changes no live verdict
+#: and is kept for the population it is aimed at rather than for the one that happened to be there.
+#: `test_a_single_landed_comment_line_is_not_a_block` is the constructed proof that it bites.
+COMMENT_BLOCK_FLOOR = 2
+
+
+def reverted_comment_block(root: Path, path: str, commit: str, new_text: str,
+                           floor: int = COMMENT_BLOCK_FLOOR) -> tuple[str, ...]:
+    """The contiguous comment BLOCK `commit` added to `path` that this copy holds NOT ONE LINE OF,
+    or `()`. The narrow THIRD reading, and the whole of what rules 1, 1a, 2 and 4 cannot see.
+
+    THE POPULATION THIS OWNS. `distinctive_lines` filters comments out of its strong set, so a copy
+    that carries every code line a landing added and has dropped that landing's entire written
+    explanation gives `missing == 0`; rule 1's refusal leg needs `missing == len(distinctive)` and
+    its clock leg needs `missing` at all, so neither is asked. Rule 2 sees no symbol change -- prose
+    declares no name. Rule 4 returns at its first line, because `.py` is in `READABLE` and therefore
+    rule 1's. The copy is vouched for by construction and `refresh_to_head` printed "it deletes no
+    name ... an ordinary edit", which is a positive claim about a reading nothing made.
+
+    THE LIVE INSTANCE THIS IS WRITTEN FOR. `8d84c67b5` landed a six-line comment on
+    `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py` saying why
+    the stub in it was RED AT HEAD -- a BLOCKING finding's entire written record. A working copy
+    twelve minutes older carried both of that commit's distinctive code lines and reverted the block,
+    and no rule in this module could say so.
+
+    WHY THIS AND NOT `comments_are_evidence=True` AT RULE 1's CALL SITE, which is one character. It
+    was measured on the live shared tree, 52 tracked-modified `.py` paths against `origin/main`, and
+    the flat flip moves exactly ONE verdict -- so on width alone the flip wins. It is refused
+    anyway, for two reasons the verdict count hides:
+
+      * The flip loads the evidence set of **42 of 51** paths with prose, and the only thing holding
+        it to one verdict is that `taken_before` is true for **4**. The clock is doing all the
+        narrowing, so the flip is quiet exactly while the tree's copies are fresh and noisy on 9 the
+        day they are old -- which is the day this control matters. A guard whose width is bounded by
+        how lucky the tree is, is not narrow; it is untested.
+      * `test_the_comment_fallback_does_not_displace_code_evidence` already refuses the flip in
+        terms -- "the fallback must be reachable ONLY where the strong set is empty, or it is a
+        widening wearing a fallback's name" -- on the argument that comments travel with
+        cherry-picks, rewraps and reverts. That control is right, and the way to honour it is to ask
+        the comment question SEPARATELY rather than to delete the control that forbids mixing it in.
+
+    This reading's own content half fires on **7 of 52**, and 2 with the clock, of which 1 already
+    complains -- one net new verdict, the target, from a reading that leaves rules 1 and 2 untouched.
+
+    TWO GUARDS MAKE IT NARROW, AND THEY ARE DIFFERENT GUARDS.
+      1. **Wholesale.** `any(present)` disqualifies the block. A copy holding part of the prose is
+         editing it, and an edit to a comment is not this rule's business at any age.
+      2. **Not a rewrite.** Where the landing's hunk also REMOVED prose, this copy must hold ALL of
+         it -- the superseded draft, back. A rewrap supplies its own third text, which is neither the
+         landing's lines nor the ones it displaced, so it satisfies neither half. Where the landing
+         added prose over nothing, there is no superseded draft to check and the wholesale guard is
+         the whole test: a copy older than that landing which holds none of its new prose has not got
+         it. Measured on the live tree, all 7 firing paths are of that second shape, so the
+         revert-versus-rewrite half is NOT what makes today's count small -- said here because the
+         flattering reading is that both guards are earning their keep and only one of them is.
+
+    IT IS A FLOOR ROW IN `substring_source_scan_baseline.json`, AND `searchable()` IS THE WRONG
+    REMEDY HERE -- uniquely so in this repository, which is why the reason is written at the scan site
+    rather than left to the row. `tests/architecture/test_a_control_reads_python_as_code.py` offers
+    two exits: route the scan through `tools/python_code_text.searchable`, or freeze the row with a
+    stated reason. `searchable()` BLANKS COMMENTS -- that is its whole purpose, so that a control
+    cannot mistake prose describing a thing for code doing it. THIS FUNCTION'S SUBJECT IS THAT PROSE.
+    Routing it would erase the only evidence it reads and return `()` for every copy: a fail-silent
+    of exactly the class that rule exists to prevent, installed by obeying the rule. The row joins
+    `judge` and `clock_judge`, frozen for the same underlying cause -- the census fails closed when a
+    scope's only path evidence is a SUFFIX tuple rather than a tree path -- and carries their schema
+    unchanged, so a future `--freeze` cannot drop this reason the way it would drop a per-row field."""
+    _git_answer(root, "rev-parse", "--verify", "{}^{{commit}}".format(commit))
+    if _git(root, "rev-parse", "--verify", "{}^".format(commit)).returncode != 0:
+        return ()  # the commit that CREATED the file -- no landing to have reverted
+    diff = _git_answer(root, "diff", "--unified=0", "{}^".format(commit), commit, "--", path)
+    version = blob_at(root, commit, path)
+    if version is None:
+        # The same collapse `distinctive_lines` raises for one rev deeper: a failed blob read makes
+        # `freq` empty, every added line fails `freq[ln] == 1`, and the honest "no blob" returns the
+        # same `()` an evidence-free landing does. A deletion commit adds no line and never gets
+        # here, so anything that does is a read that failed.
+        raise ClockUnanswered("`git show {}:{}` gave no blob while reading its comment blocks".format(
+            commit[:9], path))
+    freq = Counter(ln.strip() for ln in version.splitlines())
+    present = {ln.strip() for ln in new_text.splitlines()}
+    for removed, added in _landing_hunks(diff):
+        block = tuple(ln for ln in added if _is_comment_line(ln) and freq[ln] == 1)
+        if len(block) < floor or any(ln in present for ln in block):
+            continue
+        superseded = tuple(ln for ln in removed if _is_comment_line(ln))
+        if superseded and not all(ln in present for ln in superseded):
+            continue  # a REWRITE: neither the landing's prose nor the prose it replaced
+        return block
+    return ()
+
+
+def unread_populations(root: Path, path: str, new_text: str, parent: str = "HEAD") -> tuple[str, ...]:
+    """The evidence populations this control did NOT read for `path`, each naming why.
+
+    A "NO COMPLAINT" IS ONLY AS HONEST AS THE LIST OF QUESTIONS BEHIND IT, and this module has now
+    banked the same fail-silent three times: `committed_at`'s declared `None`, `distinctive_lines`'
+    silent `()`, and -- the reason this function exists -- a whole population excluded at parse time
+    and reported to the operator as an answer. `refresh_to_head` said "it deletes no name ... an
+    ordinary edit" about a copy whose only loss was prose, and every word of that was true and the
+    sentence was not.
+
+    So the readings that DID NOT RUN are returned rather than assumed empty. `()` is a real claim
+    here -- everything this control can read, it read -- and it is reachable: for a copy the clock
+    calls older, rule 1b runs and this is empty.
+
+    NOT A REGISTER OF ITSELF. It names populations, not rules, and it is consulted at the one site
+    that makes a positive claim to an operator about to discard bytes. A second caller wanting a
+    general "what did you check" list is the shape CLAUDE.md warns about; there is one."""
+    if Path(path).suffix not in READABLE:
+        return ()
+    commit = last_commit_touching(root, path, parent)
+    if not commit:
+        return ()
+    if not taken_before(root, path, new_text, commit):
+        return ("the COMMENT BLOCK {} added here: rule 1b is gated on the file's own clock, and "
+                "these bytes are NOT older than that landing -- where deleting prose that has gone "
+                "stale is ordinary work, and refusing it would refuse every honest edit to a "
+                "comment. So whether this copy drops that landing's written record is UNREAD, not "
+                "answered.".format(commit[:9]),)
+    return ()
 
 
 # ------------------------------------------------------------------ rule 2: strict symbol subset
@@ -1106,6 +1319,13 @@ class Loss:
                      "would delete:".format(
                          self.commit[:9], len(self.detail),
                          len(self.detail) + self.carried, self.carried),
+            REVERTS_COMMENT: "      this file's mtime PREDATES commit {}, and your copy holds NOT ONE "
+                             "LINE of the {}-line\n      COMMENT BLOCK that commit wrote here -- while "
+                             "carrying all {} of its distinctive\n      CODE line(s), which is why no "
+                             "other rule here can see the loss. Prose declares\n      no symbol, so "
+                             "rule 2 is blind to it by construction. These are the landed lines\n"
+                             "      this copy would delete:".format(
+                                 self.commit[:9], len(self.detail), self.carried),
             UNPARSEABLE: "      {}".format(self.detail[0] if self.detail else "did not parse"),
             UNANSWERED: "      the clock COULD NOT ANSWER for this path -- this call failed, so "
                         "whether your copy\n      predates its own last landing is unknown, and "
@@ -1120,6 +1340,96 @@ class Loss:
             "".join("        - {}\n".format(n[:110]) for n in shown), tail, remedy)
 
 
+#: A stash commit's subject, which git writes itself and nothing else in this repository produces:
+#: `git stash` gives `WIP on <branch>: <sha> <subject>` and `git stash save "<msg>"` gives
+#: `On <branch>: <msg>`. Both shapes are matched because both are stash objects and this tree holds
+#: live examples of each -- ten `WIP on main:` under `refs/preserved/`, four `On main:` under
+#: `refs/tags/salvage/`. THE SUBJECT IS A PRE-FILTER AND NOT THE EVIDENCE: what licenses a snapshot
+#: to speak for a file is the blob identity below, so a commit that merely opens "On main:" by
+#: coincidence still has to hold the exact bytes before its clock is read. The branch part is
+#: `[^:]+` and not `[^ :]+` because git writes `WIP on (no branch):` from a detached HEAD, and this
+#: tree's own stash reflog holds one -- a tighter pattern silently drops the population that gets
+#: stashed during a rebase, which is when stashing on a shared tree happens most.
+STASH_SUBJECT = re.compile(r"^(?:WIP on|On) [^:]+: ")
+
+
+def stash_snapshots(root: Path) -> tuple[tuple[str, int], ...]:
+    """Every stash-shaped commit this repository can still NAME, as `(sha, committer epoch)`,
+    OLDEST FIRST.
+
+    TWO SOURCES BECAUSE A STASH LIVES IN TWO PLACES AND ONLY ONE OF THEM IS A REF. `refs/stash` is
+    the tip and `git reflog show refs/stash` is every entry under it, which is where a stash that
+    has been pushed down by a later one still is. Neither exists at all once a stash is POPPED --
+    the object goes unreachable and `git gc` will eventually take it -- so the third source is the
+    ordinary ref namespace, because this repository's habit is to write `refs/preserved/<name>` at
+    anything it is about to discard. That habit is what makes the repair reach the live case:
+    `23e9917bc` survives its own pop only as `refs/preserved/shared-tree-stash-pop-2026-09-24`.
+
+    A POPPED STASH NOBODY PRESERVED IS OUT OF REACH AND THAT IS STATED RATHER THAN HIDDEN. This
+    reader will not find it, `taken_before` falls back to the mtime, and the verdict is exactly what
+    it was before this repair -- fail-open in the same direction, no worse. `git fsck --unreachable`
+    would find it and is not used: it walks the whole object store, it is asked once per path of a
+    census, and it would make a control's answer depend on whether `gc` had run.
+
+    THE REFLOG'S ABSENCE IS ORDINARY AND NOT A FAILURE, so it is read through `_git` and its
+    non-zero rc discarded -- a repository that has never stashed has no `refs/stash` to show. The
+    ref scan is read through `_git_answer` instead: `for-each-ref` cannot legitimately fail, so if
+    it does the question is unanswered and the clock must say so rather than shrug."""
+    found: dict[str, int] = {}
+    # for-each-ref's escape is `%00`; git-log's (which `reflog show --format=` speaks) is `%x00`.
+    rows = _git_answer(root, "for-each-ref",
+                       "--format=%(objecttype)%00%(objectname)%00%(committerdate:unix)"
+                       "%00%(contents:subject)").splitlines()
+    reflog = _git(root, "reflog", "show", "--format=commit%x00%H%x00%ct%x00%s", "refs/stash")
+    if reflog.returncode == 0:
+        rows += reflog.stdout.splitlines()
+    for row in rows:
+        kind, _, rest = row.partition("\0")
+        sha, _, rest = rest.partition("\0")
+        when, _, subject = rest.partition("\0")
+        if kind == "commit" and when.isdigit() and STASH_SUBJECT.match(subject):
+            found[sha] = int(when)
+    return tuple(sorted(found.items(), key=lambda pair: (pair[1], pair[0])))
+
+
+def stashed_before(root: Path, path: str, before: int) -> int | None:
+    """The committer date of the EARLIEST stash snapshot strictly older than `before` whose blob at
+    `path` IS the file on disk -- or `None` when no such snapshot holds these bytes.
+
+    WHY THIS EXISTS: AN MTIME SHARED BY HUNDREDS OF FILES IS A WRITE EVENT, NOT AN AUTHOR. A stash
+    restore rewrites every file it touches and stamps them all with the instant of the restore, so
+    the clock `taken_before` reads is the clock of the RESTORE and not of the content. Measured on
+    the shared tree on 2026-09-24 and banked in
+    `docs/staging/SEAT_FINDING_A_STASH_POP_RESTAMPED_321_FILES_AND_DEFEATED_THE_STALE_COPY_CLOCK_BY_38_SECONDS_2026-09-24.md`:
+    the content was snapshotted at 14:01:09Z, `b3aa159dd` landed on origin at 14:01:53Z, the restore
+    wrote 321 tracked files at 14:02:31Z -- so a draft made 44 seconds BEFORE the landing read as
+    authored 38 seconds AFTER it, the older-clock leg did not fire, and no door would admit the copy.
+    The honest clock for those bytes was in the object store the whole time.
+
+    `before` IS A COST BOUND THAT CANNOT CHANGE THE VERDICT, which is why it is in the signature
+    rather than applied by the caller afterwards. The only caller asks `landed > clock` and only
+    reaches here when the mtime already answered no, so a snapshot at or after `landed` yields the
+    same False either way; filtering first means the common case -- no stash older than the landing
+    -- costs the ref scan alone and never touches the object store.
+
+    THE EARLIEST MATCH AND NOT THE LATEST, because the question is *when can these bytes be shown to
+    have existed*, and a snapshot containing them is positive evidence for that instant. A second,
+    later snapshot of the SAME bytes is not evidence they were authored later -- it is evidence
+    somebody stashed twice. The effect is `min(mtime, earliest snapshot)`, so this leg can only ever
+    move the clock BACKWARDS and can therefore only ever ADD a complaint, never withdraw one. That
+    is the direction worth being sure of: the failure this repairs is a control declining to fire.
+
+    THE FILE ON DISK IS THE SUBJECT, so the only honest caller is one that has already established
+    the bytes it is judging ARE that file. `taken_before` does exactly that, one line above, for the
+    reason its own docstring gives about `--content`."""
+    older = [(sha, when) for sha, when in stash_snapshots(root) if when < before]
+    if not older:
+        return None
+    disk = _git_answer(root, "hash-object", "--", path).strip()
+    held = blob_ids(root, ["{}:{}".format(sha, path) for sha, _ in older])
+    return next((when for (_, when), oid in zip(older, held) if oid == disk), None)
+
+
 def taken_before(root: Path, path: str, new_text: str, commit: str) -> bool:
     """Whether the bytes in `new_text` are the file ON DISK and that file is OLDER than `commit`.
 
@@ -1132,14 +1442,24 @@ def taken_before(root: Path, path: str, new_text: str, commit: str) -> bool:
     not on disk at all -- a `--content` landing, a deletion, a path read out of a tree -- and that
     is precisely the case this rule declines to have an opinion about: these bytes are not the
     working copy, so no working copy's clock can speak for them. `committed_at`'s failure is the
-    opposite: the question WAS this rule's to answer and git would not say, so it raises through."""
+    opposite: the question WAS this rule's to answer and git would not say, so it raises through.
+
+    AND THE MTIME IS NOT THE ONLY CLOCK, because it is not always a clock at all. A `git stash`
+    restore rewrites every file it touches with one fresh stamp, so for that population the mtime
+    dates the RESTORE and says nothing about when the content was written -- see `stashed_before`
+    for the live case, where it inverted the answer by 38 seconds on six paths at once. So the
+    question asked here is *the earliest instant these bytes can be shown to have existed*, which
+    is the mtime unless the object store can prove an earlier one. The stash leg can only move that
+    instant backwards, so it can only ever ADD a complaint; it reaches exactly the copies that came
+    out of a stash and not one copy some lane actually typed."""
     try:
         if (root / path).read_text(encoding="utf-8", errors="replace") != new_text:
             return False
         mtime = (root / path).stat().st_mtime
     except OSError:
         return False
-    return committed_at(root, commit) > mtime
+    landed = committed_at(root, commit)
+    return landed > mtime or stashed_before(root, path, landed) is not None
 
 
 def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
@@ -1190,6 +1510,17 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
                 partial = Loss(path, PARTIAL, missing, commit, gains,
                                cuts_among(root, path, gains or (), parent),
                                by_clock=True, carried=len(distinctive) - len(missing))
+        # RULE 1b, AND IT IS REACHABLE ONLY WHERE RULE 1 HAS NOTHING TO SAY. `partial is None` after
+        # the block above means the line evidence raised no clock complaint -- either the landing left
+        # none, or this copy carries all of it -- so this can never displace a verdict rule 1 reached,
+        # only speak where it was silent. The clock is asked FIRST because it is the sharper filter on
+        # the measured population (4 of 51 paths against 7 of 52) and it saves the diff on the rest.
+        if partial is None and taken_before(root, path, new_text, commit) \
+                and (block := reverted_comment_block(root, path, commit, new_text)):
+            gains = gains_over(head_text, new_text, path)
+            partial = Loss(path, REVERTS_COMMENT, block, commit, gains,
+                           cuts_among(root, path, gains or (), parent),
+                           by_clock=True, carried=len(distinctive_lines(root, path, commit)))
     try:
         before, after = symbols(head_text, path), symbols(new_text, path)
     except Unparseable as exc:
