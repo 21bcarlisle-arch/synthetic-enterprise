@@ -1,0 +1,3918 @@
+{
+  "generated_at": "2026-09-24T12:56:49Z",
+  "producing_commit": {
+    "commit": "3661d8d4e634a260de41ac3893f866fdab5ea50c",
+    "resolved_at": "2026-09-24T05:59:32Z",
+    "resolved_when": "at process start, when Python bound the modules this run executed -- NOT at artefact assembly, which is a later tree",
+    "unavailable_because": null,
+    "why_this_is_here": "This run takes hours and the tree moves under it. A consumer that wants to publish these counts needs to know which code drew them, and no diff between two artefacts can supply that."
+  },
+  "world_identity": {
+    "digest": "39a192ce04c1eda8",
+    "anchors": {
+      "2016": 4.259915,
+      "2017": 7.372584,
+      "2018": 2.945347,
+      "2019": 6.637286,
+      "2020": 6.359296,
+      "2021": 5.641346,
+      "2022": 1.0,
+      "2023": 2.033232,
+      "2024": 4.259915,
+      "2025": 4.259915
+    },
+    "fitted_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2023,
+      2024
+    ],
+    "declared_years": [
+      2016,
+      2022,
+      2025
+    ],
+    "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other.",
+    "what_this_does_not_cover": "the HOMES. `_published_departure_rates` is the observed switching record and does not know what houses this world contains, so a re-drawn housing stock cannot move this digest and provably has not: `39a192ce04c1eda8` spans the population of `3957ba848` and the population of this tree, which hold different homes. That question is the `homes` part beside this one, and this part alone is NOT the world.",
+    "homes": {
+      "digest": "35f8efe8ff02f245",
+      "probe_year": 2020,
+      "probe_seed": 20260911,
+      "probe_size": 96,
+      "fabric_is": "every field of simulation.fabric_physics.FabricParameters",
+      "what_this_identifies": "the HOME STOCK the world draws from -- 96 homes drawn through `net_new_acquisition.year_premise_stock`, the function a run's own homes come from, and then through the fabric physics, digested as every field of simulation.fabric_physics.FabricParameters. Two runs sharing this digest drew their homes from the same stock through the same physics; two that do not saw different houses, however close their timestamps and however well their departure levels agree.",
+      "what_this_does_not_cover": "WHICH homes a particular run drew. A run chooses its own seed, size and year mix, so two runs sharing this digest still hold different individual houses -- this says they came out of the same country, not that they are the same. It also covers only the FABRIC: a change to heating fuel, appliances or occupancy that leaves every thermal parameter alone does not move it, and the departure LEVEL is a separate part with its own digest."
+    },
+    "unavailable_because": null
+  },
+  "run_identity_fields": [
+    "generated_at",
+    "producing_commit.commit",
+    "producing_commit.resolved_at",
+    "world_identity.digest"
+  ],
+  "book_identity": {
+    "declared": {
+      "served_segments": [
+        "resi",
+        "SME"
+      ],
+      "served_segments_resolved_from": "curriculum",
+      "served_segments_override_env": null
+    },
+    "seeds_reconciled": 5,
+    "seeds_that_recorded_no_book": 0,
+    "unavailable_because": null,
+    "realised_across_seeds": {
+      "billing_accounts_settled_in_window": {
+        "min": 164,
+        "max": 164,
+        "n": 5
+      },
+      "with_an_electricity_leg": {
+        "min": 146,
+        "max": 146,
+        "n": 5
+      },
+      "with_a_gas_leg": {
+        "min": 98,
+        "max": 98,
+        "n": 5
+      },
+      "dual_fuel": {
+        "min": 80,
+        "max": 80,
+        "n": 5
+      },
+      "accounts_at_end_of_window": {
+        "min": 60,
+        "max": 60,
+        "n": 5
+      }
+    },
+    "how_a_consumer_should_pair_this": "Pair on `declared` and never on `realised_across_seeds`. The declared half is the book the run was given; the realised half is what the seed's own churn did to it, so two floors of the SAME book differ there by construction. A consumer that compared the counts would refuse every honest re-run."
+  },
+  "report_end": null,
+  "what_this_is": "The three-arm A/B re-run once per seed with ONLY the per-household elasticity assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the figure the level-vs-selection split publishes.",
+  "clock": "settled-realised",
+  "redraw_key": "elasticity",
+  "redraw_key_means": "the per-household elasticity assignment. Reached ONLY by households the value arm priced -- it sits behind an offered rate -- so the `except` half of this key is empty on this book and gets emptier as the arm prices more of it",
+  "redraw_scope": {
+    "mode": "all",
+    "accounts": [],
+    "accounts_in_roster": 0,
+    "means": "every household re-drawn -- the undecomposed floor, and the only mode whose spread bounds the published figure directly"
+  },
+  "symbol_patched": "simulation.population_draw.price_elasticity_for_customer",
+  "symbol_resolution": "read from `simulation.customer_events`'s own import statement, not written down here, so a rename disconnects this tool LOUDLY instead of silently returning a spread of zero",
+  "seeds": [
+    {
+      "seed": 11,
+      "redraw_key": "elasticity",
+      "draw_calls": 297,
+      "draws_redrawn": 297,
+      "draws_held_fixed": 0,
+      "elasticity_draws": 297,
+      "billing_accounts_settled_in_window": 164,
+      "elasticity_redrawn": 297,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 69,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 26.0,
+      "value_advantage_gbp": 13097.287331,
+      "level_advantage_gbp": 11844.607890000014,
+      "selection_gbp": 1252.6794409999857,
+      "level_share_of_advantage": 0.9043558097687132,
+      "discrimination_auc": 0.6339939024390244,
+      "auc_population": {
+        "retained": 82,
+        "left": 40
+      },
+      "auc_scored_share_of_priced": 0.976,
+      "scored_decisions": [
+        {
+          "account": "C5",
+          "term_start": "2016-12-31",
+          "believed_p_retain": 0.4005,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2017-01-01",
+          "believed_p_retain": 0.5085,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-002",
+          "term_start": "2017-01-13",
+          "believed_p_retain": 0.5472,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-008",
+          "term_start": "2017-01-26",
+          "believed_p_retain": 0.5322,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-009",
+          "term_start": "2017-02-04",
+          "believed_p_retain": 0.4898,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.5106,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.6745,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2017-02-24",
+          "believed_p_retain": 0.6047,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-018",
+          "term_start": "2017-03-08",
+          "believed_p_retain": 0.4593,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-022",
+          "term_start": "2017-03-15",
+          "believed_p_retain": 0.5176,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-023",
+          "term_start": "2017-03-18",
+          "believed_p_retain": 0.4709,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0092",
+          "term_start": "2017-03-19",
+          "believed_p_retain": 0.3526,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2017-03-23",
+          "believed_p_retain": 0.3208,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-026",
+          "term_start": "2017-03-28",
+          "believed_p_retain": 0.4885,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2017-03-30",
+          "believed_p_retain": 0.6056,
+          "retained": true
+        },
+        {
+          "account": "C6",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.3786,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.4454,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2017-04-14",
+          "believed_p_retain": 0.5076,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.6032,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.7191,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0133",
+          "term_start": "2017-04-22",
+          "believed_p_retain": 0.5522,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-044",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5392,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-045",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.544,
+          "retained": false
+        },
+        {
+          "account": "C3",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.4853,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.3592,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-053",
+          "term_start": "2017-07-05",
+          "believed_p_retain": 0.5679,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2017-08-04",
+          "believed_p_retain": 0.5501,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-062",
+          "term_start": "2017-08-31",
+          "believed_p_retain": 0.5732,
+          "retained": true
+        },
+        {
+          "account": "C5_2",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.5081,
+          "retained": true
+        },
+        {
+          "account": "C7",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.8813,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2018-01-01",
+          "believed_p_retain": 0.7142,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-004",
+          "term_start": "2018-01-16",
+          "believed_p_retain": 0.5155,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.5446,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.3554,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-007",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.4807,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.4986,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.4195,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2018-02-09",
+          "believed_p_retain": 0.4138,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2018-02-11",
+          "believed_p_retain": 0.5763,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-015",
+          "term_start": "2018-02-27",
+          "believed_p_retain": 0.4636,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2018-03-11",
+          "believed_p_retain": 0.4618,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2018-03-30",
+          "believed_p_retain": 0.7451,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2018-04-01",
+          "believed_p_retain": 0.7736,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.5479,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.4727,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-028",
+          "term_start": "2018-04-08",
+          "believed_p_retain": 0.5541,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-032",
+          "term_start": "2018-04-26",
+          "believed_p_retain": 0.4006,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2018-05-03",
+          "believed_p_retain": 0.3629,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-036",
+          "term_start": "2018-05-07",
+          "believed_p_retain": 0.4469,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-042",
+          "term_start": "2018-05-30",
+          "believed_p_retain": 0.5167,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2018-07-01",
+          "believed_p_retain": 0.6799,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2018-08-15",
+          "believed_p_retain": 0.5008,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-060",
+          "term_start": "2018-08-24",
+          "believed_p_retain": 0.4895,
+          "retained": false
+        },
+        {
+          "account": "C5_2",
+          "term_start": "2018-12-31",
+          "believed_p_retain": 0.5356,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2019-01-01",
+          "believed_p_retain": 0.9127,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0002",
+          "term_start": "2019-01-02",
+          "believed_p_retain": 0.1567,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2019-02-05",
+          "believed_p_retain": 0.9127,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2019-02-09",
+          "believed_p_retain": 0.5258,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2019-02-24",
+          "believed_p_retain": 0.877,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-014",
+          "term_start": "2019-02-26",
+          "believed_p_retain": 0.8573,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2019-03-11",
+          "believed_p_retain": 0.9127,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2019-04-01",
+          "believed_p_retain": 0.749,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2019-04-14",
+          "believed_p_retain": 0.5519,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2019-04-17",
+          "believed_p_retain": 0.5668,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2019-05-03",
+          "believed_p_retain": 0.8341,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.6738,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.7628,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2019-06-22",
+          "believed_p_retain": 0.7762,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2019-07-01",
+          "believed_p_retain": 0.9127,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2020-02-24",
+          "believed_p_retain": 0.8972,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-020",
+          "term_start": "2020-03-10",
+          "believed_p_retain": 0.8938,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2020-03-22",
+          "believed_p_retain": 0.8972,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2020-03-31",
+          "believed_p_retain": 0.8972,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2020-04-16",
+          "believed_p_retain": 0.8167,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8156,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8972,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2020-06-30",
+          "believed_p_retain": 0.8949,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2020-08-03",
+          "believed_p_retain": 0.8936,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2020-08-14",
+          "believed_p_retain": 0.8972,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0255",
+          "term_start": "2020-08-25",
+          "believed_p_retain": 0.5777,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.8172,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.9153,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9153,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9153,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9153,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9153,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2021-06-21",
+          "believed_p_retain": 0.9153,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0221",
+          "term_start": "2021-07-05",
+          "believed_p_retain": 0.3148,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0207",
+          "term_start": "2021-07-10",
+          "believed_p_retain": 0.9095,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-057",
+          "term_start": "2021-08-15",
+          "believed_p_retain": 0.9153,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2023-08-03",
+          "believed_p_retain": 0.9481,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9481,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9481,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9336,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9336,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0024",
+          "term_start": "2024-01-28",
+          "believed_p_retain": 0.9336,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0097",
+          "term_start": "2024-03-26",
+          "believed_p_retain": 0.8586,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9336,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9336,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9242,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9075,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.8972,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.929,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-048",
+          "term_start": "2024-06-18",
+          "believed_p_retain": 0.8449,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8377,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8005,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6641,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6846,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.8216,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.9336,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.6366,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.8292,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.7437,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.9301,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2025-01-10",
+          "believed_p_retain": 0.9178,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.5961,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.9301,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.5602,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.9229,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2025-05-10",
+          "believed_p_retain": 0.7115,
+          "retained": false
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.7417,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.8491,
+          "retained": true
+        }
+      ],
+      "auc_unavailable_because": null
+    },
+    {
+      "seed": 12,
+      "redraw_key": "elasticity",
+      "draw_calls": 293,
+      "draws_redrawn": 293,
+      "draws_held_fixed": 0,
+      "elasticity_draws": 293,
+      "billing_accounts_settled_in_window": 164,
+      "elasticity_redrawn": 293,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 68,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 26.0,
+      "value_advantage_gbp": 13181.187788999989,
+      "level_advantage_gbp": 11702.113829000009,
+      "selection_gbp": 1479.0739599999797,
+      "level_share_of_advantage": 0.8877890229866612,
+      "discrimination_auc": 0.6185115697310819,
+      "auc_population": {
+        "retained": 82,
+        "left": 39
+      },
+      "auc_scored_share_of_priced": 0.9758064516129032,
+      "scored_decisions": [
+        {
+          "account": "C5",
+          "term_start": "2016-12-31",
+          "believed_p_retain": 0.4005,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2017-01-01",
+          "believed_p_retain": 0.5158,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-002",
+          "term_start": "2017-01-13",
+          "believed_p_retain": 0.5588,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-008",
+          "term_start": "2017-01-26",
+          "believed_p_retain": 0.5371,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-009",
+          "term_start": "2017-02-04",
+          "believed_p_retain": 0.4948,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.5141,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.6852,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2017-02-24",
+          "believed_p_retain": 0.617,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-018",
+          "term_start": "2017-03-08",
+          "believed_p_retain": 0.465,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-022",
+          "term_start": "2017-03-15",
+          "believed_p_retain": 0.5199,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-023",
+          "term_start": "2017-03-18",
+          "believed_p_retain": 0.4764,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0092",
+          "term_start": "2017-03-19",
+          "believed_p_retain": 0.3677,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2017-03-23",
+          "believed_p_retain": 0.329,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-026",
+          "term_start": "2017-03-28",
+          "believed_p_retain": 0.492,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2017-03-30",
+          "believed_p_retain": 0.6063,
+          "retained": true
+        },
+        {
+          "account": "C6",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.3863,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.4533,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2017-04-14",
+          "believed_p_retain": 0.5115,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.6006,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.7287,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0133",
+          "term_start": "2017-04-22",
+          "believed_p_retain": 0.5568,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-044",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5414,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-045",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5467,
+          "retained": false
+        },
+        {
+          "account": "C3",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.49,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.3666,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-053",
+          "term_start": "2017-07-05",
+          "believed_p_retain": 0.569,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2017-08-04",
+          "believed_p_retain": 0.5473,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-062",
+          "term_start": "2017-08-31",
+          "believed_p_retain": 0.5744,
+          "retained": true
+        },
+        {
+          "account": "C5",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.6054,
+          "retained": false
+        },
+        {
+          "account": "C7",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.8526,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2018-01-01",
+          "believed_p_retain": 0.7277,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-004",
+          "term_start": "2018-01-16",
+          "believed_p_retain": 0.5136,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.5436,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.3565,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-007",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.4812,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.4983,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.416,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2018-02-09",
+          "believed_p_retain": 0.4113,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2018-02-11",
+          "believed_p_retain": 0.5819,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-015",
+          "term_start": "2018-02-27",
+          "believed_p_retain": 0.4633,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2018-03-11",
+          "believed_p_retain": 0.4605,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2018-03-30",
+          "believed_p_retain": 0.7589,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2018-04-01",
+          "believed_p_retain": 0.7881,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.5496,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.4727,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-028",
+          "term_start": "2018-04-08",
+          "believed_p_retain": 0.5551,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-032",
+          "term_start": "2018-04-26",
+          "believed_p_retain": 0.3978,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2018-05-03",
+          "believed_p_retain": 0.3576,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-036",
+          "term_start": "2018-05-07",
+          "believed_p_retain": 0.445,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-042",
+          "term_start": "2018-05-30",
+          "believed_p_retain": 0.5161,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2018-07-01",
+          "believed_p_retain": 0.6934,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2018-08-15",
+          "believed_p_retain": 0.4982,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-060",
+          "term_start": "2018-08-24",
+          "believed_p_retain": 0.4894,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2019-01-01",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0002",
+          "term_start": "2019-01-02",
+          "believed_p_retain": 0.1619,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2019-02-05",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2019-02-09",
+          "believed_p_retain": 0.5169,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2019-02-24",
+          "believed_p_retain": 0.879,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-014",
+          "term_start": "2019-02-26",
+          "believed_p_retain": 0.8596,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2019-03-11",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2019-04-01",
+          "believed_p_retain": 0.7442,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2019-04-14",
+          "believed_p_retain": 0.5526,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2019-04-17",
+          "believed_p_retain": 0.5667,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2019-05-03",
+          "believed_p_retain": 0.8247,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.6786,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.7498,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2019-06-22",
+          "believed_p_retain": 0.7797,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2019-07-01",
+          "believed_p_retain": 0.9139,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2020-02-24",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-020",
+          "term_start": "2020-03-10",
+          "believed_p_retain": 0.895,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2020-03-22",
+          "believed_p_retain": 0.8984,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2020-03-31",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2020-04-16",
+          "believed_p_retain": 0.8254,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8176,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2020-06-30",
+          "believed_p_retain": 0.896,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2020-08-03",
+          "believed_p_retain": 0.8948,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2020-08-14",
+          "believed_p_retain": 0.8984,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0255",
+          "term_start": "2020-08-25",
+          "believed_p_retain": 0.577,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.8189,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2021-06-21",
+          "believed_p_retain": 0.9162,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0221",
+          "term_start": "2021-07-05",
+          "believed_p_retain": 0.3163,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0207",
+          "term_start": "2021-07-10",
+          "believed_p_retain": 0.9104,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-057",
+          "term_start": "2021-08-15",
+          "believed_p_retain": 0.9162,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2023-08-03",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0024",
+          "term_start": "2024-01-28",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0097",
+          "term_start": "2024-03-26",
+          "believed_p_retain": 0.8598,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9249,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9084,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.8981,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.9296,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-048",
+          "term_start": "2024-06-18",
+          "believed_p_retain": 0.8462,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8391,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8022,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6667,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6871,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.8231,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.6393,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.8307,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.7459,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.9308,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2025-01-10",
+          "believed_p_retain": 0.9186,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.5993,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.9308,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.5635,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.9237,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2025-05-10",
+          "believed_p_retain": 0.714,
+          "retained": false
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.744,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.8505,
+          "retained": true
+        }
+      ],
+      "auc_unavailable_because": null
+    },
+    {
+      "seed": 13,
+      "redraw_key": "elasticity",
+      "draw_calls": 293,
+      "draws_redrawn": 293,
+      "draws_held_fixed": 0,
+      "elasticity_draws": 293,
+      "billing_accounts_settled_in_window": 164,
+      "elasticity_redrawn": 293,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 68,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 26.0,
+      "value_advantage_gbp": 13307.30977600001,
+      "level_advantage_gbp": 11759.04671699999,
+      "selection_gbp": 1548.263059000019,
+      "level_share_of_advantage": 0.8836531887314789,
+      "discrimination_auc": 0.6071655041217502,
+      "auc_population": {
+        "retained": 83,
+        "left": 38
+      },
+      "auc_scored_share_of_priced": 0.9758064516129032,
+      "scored_decisions": [
+        {
+          "account": "C5",
+          "term_start": "2016-12-31",
+          "believed_p_retain": 0.4005,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2017-01-01",
+          "believed_p_retain": 0.5158,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-002",
+          "term_start": "2017-01-13",
+          "believed_p_retain": 0.5588,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-008",
+          "term_start": "2017-01-26",
+          "believed_p_retain": 0.5371,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-009",
+          "term_start": "2017-02-04",
+          "believed_p_retain": 0.4948,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.5141,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.6852,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2017-02-24",
+          "believed_p_retain": 0.617,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-018",
+          "term_start": "2017-03-08",
+          "believed_p_retain": 0.465,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-022",
+          "term_start": "2017-03-15",
+          "believed_p_retain": 0.5199,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-023",
+          "term_start": "2017-03-18",
+          "believed_p_retain": 0.4764,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0092",
+          "term_start": "2017-03-19",
+          "believed_p_retain": 0.3677,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2017-03-23",
+          "believed_p_retain": 0.329,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-026",
+          "term_start": "2017-03-28",
+          "believed_p_retain": 0.492,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2017-03-30",
+          "believed_p_retain": 0.6063,
+          "retained": true
+        },
+        {
+          "account": "C6",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.3863,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.4533,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2017-04-14",
+          "believed_p_retain": 0.5115,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.6006,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.7287,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0133",
+          "term_start": "2017-04-22",
+          "believed_p_retain": 0.5568,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-044",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5414,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-045",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5467,
+          "retained": false
+        },
+        {
+          "account": "C3",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.49,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.3666,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-053",
+          "term_start": "2017-07-05",
+          "believed_p_retain": 0.569,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2017-08-04",
+          "believed_p_retain": 0.5473,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-062",
+          "term_start": "2017-08-31",
+          "believed_p_retain": 0.5744,
+          "retained": true
+        },
+        {
+          "account": "C5",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.6054,
+          "retained": false
+        },
+        {
+          "account": "C7",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.8526,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2018-01-01",
+          "believed_p_retain": 0.7277,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-004",
+          "term_start": "2018-01-16",
+          "believed_p_retain": 0.5136,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.5436,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.3565,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-007",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.4812,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.4983,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.416,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2018-02-09",
+          "believed_p_retain": 0.4113,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2018-02-11",
+          "believed_p_retain": 0.5819,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-015",
+          "term_start": "2018-02-27",
+          "believed_p_retain": 0.4633,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2018-03-11",
+          "believed_p_retain": 0.4605,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2018-03-30",
+          "believed_p_retain": 0.7589,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2018-04-01",
+          "believed_p_retain": 0.7881,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.5496,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.4727,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-028",
+          "term_start": "2018-04-08",
+          "believed_p_retain": 0.5551,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-032",
+          "term_start": "2018-04-26",
+          "believed_p_retain": 0.3978,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2018-05-03",
+          "believed_p_retain": 0.3576,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-036",
+          "term_start": "2018-05-07",
+          "believed_p_retain": 0.445,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-042",
+          "term_start": "2018-05-30",
+          "believed_p_retain": 0.5161,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2018-07-01",
+          "believed_p_retain": 0.6934,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2018-08-15",
+          "believed_p_retain": 0.4982,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-060",
+          "term_start": "2018-08-24",
+          "believed_p_retain": 0.4894,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2019-01-01",
+          "believed_p_retain": 0.9178,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0002",
+          "term_start": "2019-01-02",
+          "believed_p_retain": 0.165,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2019-02-05",
+          "believed_p_retain": 0.9178,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2019-02-09",
+          "believed_p_retain": 0.5178,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2019-02-24",
+          "believed_p_retain": 0.8839,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-014",
+          "term_start": "2019-02-26",
+          "believed_p_retain": 0.8652,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2019-03-11",
+          "believed_p_retain": 0.9178,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2019-04-01",
+          "believed_p_retain": 0.731,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2019-04-14",
+          "believed_p_retain": 0.552,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2019-04-17",
+          "believed_p_retain": 0.5667,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2019-05-03",
+          "believed_p_retain": 0.8084,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.69,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.7431,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2019-06-22",
+          "believed_p_retain": 0.7881,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2019-07-01",
+          "believed_p_retain": 0.9174,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2020-02-24",
+          "believed_p_retain": 0.9012,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-020",
+          "term_start": "2020-03-10",
+          "believed_p_retain": 0.8978,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2020-03-22",
+          "believed_p_retain": 0.9012,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2020-03-31",
+          "believed_p_retain": 0.9012,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2020-04-16",
+          "believed_p_retain": 0.8463,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8223,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.9012,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2020-06-30",
+          "believed_p_retain": 0.8988,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2020-08-03",
+          "believed_p_retain": 0.8977,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2020-08-14",
+          "believed_p_retain": 0.9012,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0255",
+          "term_start": "2020-08-25",
+          "believed_p_retain": 0.575,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.8227,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.918,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.918,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.918,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.918,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.918,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2021-06-21",
+          "believed_p_retain": 0.918,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0221",
+          "term_start": "2021-07-05",
+          "believed_p_retain": 0.3204,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0207",
+          "term_start": "2021-07-10",
+          "believed_p_retain": 0.9123,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-057",
+          "term_start": "2021-08-15",
+          "believed_p_retain": 0.918,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2023-08-03",
+          "believed_p_retain": 0.9495,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9495,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9495,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9354,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9354,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0024",
+          "term_start": "2024-01-28",
+          "believed_p_retain": 0.9354,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0097",
+          "term_start": "2024-03-26",
+          "believed_p_retain": 0.8622,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9354,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9354,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9262,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.91,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.8999,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.9309,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-048",
+          "term_start": "2024-06-18",
+          "believed_p_retain": 0.8488,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8418,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8055,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6717,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6919,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.8261,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.9354,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.6446,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.8335,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.7496,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.9319,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2025-01-10",
+          "believed_p_retain": 0.9199,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.6044,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.9319,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.5689,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.9249,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2025-05-10",
+          "believed_p_retain": 0.718,
+          "retained": false
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.7476,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.8528,
+          "retained": true
+        }
+      ],
+      "auc_unavailable_because": null
+    },
+    {
+      "seed": 14,
+      "redraw_key": "elasticity",
+      "draw_calls": 293,
+      "draws_redrawn": 293,
+      "draws_held_fixed": 0,
+      "elasticity_draws": 293,
+      "billing_accounts_settled_in_window": 164,
+      "elasticity_redrawn": 293,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 68,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 26.0,
+      "value_advantage_gbp": 13019.106816999993,
+      "level_advantage_gbp": 11540.032857000013,
+      "selection_gbp": 1479.0739599999797,
+      "level_share_of_advantage": 0.886392055861417,
+      "discrimination_auc": 0.6185115697310819,
+      "auc_population": {
+        "retained": 82,
+        "left": 39
+      },
+      "auc_scored_share_of_priced": 0.9758064516129032,
+      "scored_decisions": [
+        {
+          "account": "C5",
+          "term_start": "2016-12-31",
+          "believed_p_retain": 0.4005,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2017-01-01",
+          "believed_p_retain": 0.5158,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-002",
+          "term_start": "2017-01-13",
+          "believed_p_retain": 0.5588,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-008",
+          "term_start": "2017-01-26",
+          "believed_p_retain": 0.5371,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-009",
+          "term_start": "2017-02-04",
+          "believed_p_retain": 0.4948,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.5141,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.6852,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2017-02-24",
+          "believed_p_retain": 0.617,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-018",
+          "term_start": "2017-03-08",
+          "believed_p_retain": 0.465,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-022",
+          "term_start": "2017-03-15",
+          "believed_p_retain": 0.5199,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-023",
+          "term_start": "2017-03-18",
+          "believed_p_retain": 0.4764,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0092",
+          "term_start": "2017-03-19",
+          "believed_p_retain": 0.3677,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2017-03-23",
+          "believed_p_retain": 0.329,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-026",
+          "term_start": "2017-03-28",
+          "believed_p_retain": 0.492,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2017-03-30",
+          "believed_p_retain": 0.6063,
+          "retained": true
+        },
+        {
+          "account": "C6",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.3863,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.4533,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2017-04-14",
+          "believed_p_retain": 0.5115,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.6006,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.7287,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0133",
+          "term_start": "2017-04-22",
+          "believed_p_retain": 0.5568,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-044",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5414,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-045",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5467,
+          "retained": false
+        },
+        {
+          "account": "C3",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.49,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.3666,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-053",
+          "term_start": "2017-07-05",
+          "believed_p_retain": 0.569,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2017-08-04",
+          "believed_p_retain": 0.5473,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-062",
+          "term_start": "2017-08-31",
+          "believed_p_retain": 0.5744,
+          "retained": true
+        },
+        {
+          "account": "C5",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.6054,
+          "retained": false
+        },
+        {
+          "account": "C7",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.8526,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2018-01-01",
+          "believed_p_retain": 0.7277,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-004",
+          "term_start": "2018-01-16",
+          "believed_p_retain": 0.5136,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.5436,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.3565,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-007",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.4812,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.4983,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.416,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2018-02-09",
+          "believed_p_retain": 0.4113,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2018-02-11",
+          "believed_p_retain": 0.5819,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-015",
+          "term_start": "2018-02-27",
+          "believed_p_retain": 0.4633,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2018-03-11",
+          "believed_p_retain": 0.4605,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2018-03-30",
+          "believed_p_retain": 0.7589,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2018-04-01",
+          "believed_p_retain": 0.7881,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.5496,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.4727,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-028",
+          "term_start": "2018-04-08",
+          "believed_p_retain": 0.5551,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-032",
+          "term_start": "2018-04-26",
+          "believed_p_retain": 0.3978,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2018-05-03",
+          "believed_p_retain": 0.3576,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-036",
+          "term_start": "2018-05-07",
+          "believed_p_retain": 0.445,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-042",
+          "term_start": "2018-05-30",
+          "believed_p_retain": 0.5161,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2018-07-01",
+          "believed_p_retain": 0.6934,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2018-08-15",
+          "believed_p_retain": 0.4982,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-060",
+          "term_start": "2018-08-24",
+          "believed_p_retain": 0.4894,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2019-01-01",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0002",
+          "term_start": "2019-01-02",
+          "believed_p_retain": 0.1619,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2019-02-05",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2019-02-09",
+          "believed_p_retain": 0.5169,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2019-02-24",
+          "believed_p_retain": 0.879,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-014",
+          "term_start": "2019-02-26",
+          "believed_p_retain": 0.8596,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2019-03-11",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2019-04-01",
+          "believed_p_retain": 0.7442,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2019-04-14",
+          "believed_p_retain": 0.5526,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2019-04-17",
+          "believed_p_retain": 0.5667,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2019-05-03",
+          "believed_p_retain": 0.8247,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.6786,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.7498,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2019-06-22",
+          "believed_p_retain": 0.7797,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2019-07-01",
+          "believed_p_retain": 0.9139,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2020-02-24",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-020",
+          "term_start": "2020-03-10",
+          "believed_p_retain": 0.895,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2020-03-22",
+          "believed_p_retain": 0.8984,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2020-03-31",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2020-04-16",
+          "believed_p_retain": 0.8254,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8176,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2020-06-30",
+          "believed_p_retain": 0.896,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2020-08-03",
+          "believed_p_retain": 0.8948,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2020-08-14",
+          "believed_p_retain": 0.8984,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0255",
+          "term_start": "2020-08-25",
+          "believed_p_retain": 0.577,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.8189,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2021-06-21",
+          "believed_p_retain": 0.9162,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0221",
+          "term_start": "2021-07-05",
+          "believed_p_retain": 0.3163,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0207",
+          "term_start": "2021-07-10",
+          "believed_p_retain": 0.9104,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-057",
+          "term_start": "2021-08-15",
+          "believed_p_retain": 0.9162,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2023-08-03",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0024",
+          "term_start": "2024-01-28",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0097",
+          "term_start": "2024-03-26",
+          "believed_p_retain": 0.8598,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9249,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9084,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.8981,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.9296,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-048",
+          "term_start": "2024-06-18",
+          "believed_p_retain": 0.8462,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8391,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8022,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6667,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6871,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.8231,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.6393,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.8307,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.7459,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.9308,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2025-01-10",
+          "believed_p_retain": 0.9186,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.5993,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.9308,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.5635,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.9237,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2025-05-10",
+          "believed_p_retain": 0.714,
+          "retained": false
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.744,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.8505,
+          "retained": true
+        }
+      ],
+      "auc_unavailable_because": null
+    },
+    {
+      "seed": 15,
+      "redraw_key": "elasticity",
+      "draw_calls": 293,
+      "draws_redrawn": 293,
+      "draws_held_fixed": 0,
+      "elasticity_draws": 293,
+      "billing_accounts_settled_in_window": 164,
+      "elasticity_redrawn": 293,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 68,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 26.0,
+      "value_advantage_gbp": 13019.106816999993,
+      "level_advantage_gbp": 11540.032857000013,
+      "selection_gbp": 1479.0739599999797,
+      "level_share_of_advantage": 0.886392055861417,
+      "discrimination_auc": 0.6185115697310819,
+      "auc_population": {
+        "retained": 82,
+        "left": 39
+      },
+      "auc_scored_share_of_priced": 0.9758064516129032,
+      "scored_decisions": [
+        {
+          "account": "C5",
+          "term_start": "2016-12-31",
+          "believed_p_retain": 0.4005,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2017-01-01",
+          "believed_p_retain": 0.5158,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-002",
+          "term_start": "2017-01-13",
+          "believed_p_retain": 0.5588,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-008",
+          "term_start": "2017-01-26",
+          "believed_p_retain": 0.5371,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-009",
+          "term_start": "2017-02-04",
+          "believed_p_retain": 0.4948,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.5141,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2017-02-11",
+          "believed_p_retain": 0.6852,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2017-02-24",
+          "believed_p_retain": 0.617,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-018",
+          "term_start": "2017-03-08",
+          "believed_p_retain": 0.465,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-022",
+          "term_start": "2017-03-15",
+          "believed_p_retain": 0.5199,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-023",
+          "term_start": "2017-03-18",
+          "believed_p_retain": 0.4764,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0092",
+          "term_start": "2017-03-19",
+          "believed_p_retain": 0.3677,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2017-03-23",
+          "believed_p_retain": 0.329,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-026",
+          "term_start": "2017-03-28",
+          "believed_p_retain": 0.492,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2017-03-30",
+          "believed_p_retain": 0.6063,
+          "retained": true
+        },
+        {
+          "account": "C6",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.3863,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2017-04-01",
+          "believed_p_retain": 0.4533,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2017-04-14",
+          "believed_p_retain": 0.5115,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.6006,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2017-04-17",
+          "believed_p_retain": 0.7287,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0133",
+          "term_start": "2017-04-22",
+          "believed_p_retain": 0.5568,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-044",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5414,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-045",
+          "term_start": "2017-06-15",
+          "believed_p_retain": 0.5467,
+          "retained": false
+        },
+        {
+          "account": "C3",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.49,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2017-07-01",
+          "believed_p_retain": 0.3666,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-053",
+          "term_start": "2017-07-05",
+          "believed_p_retain": 0.569,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2017-08-04",
+          "believed_p_retain": 0.5473,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-062",
+          "term_start": "2017-08-31",
+          "believed_p_retain": 0.5744,
+          "retained": true
+        },
+        {
+          "account": "C5",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.6054,
+          "retained": false
+        },
+        {
+          "account": "C7",
+          "term_start": "2017-12-31",
+          "believed_p_retain": 0.8526,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2018-01-01",
+          "believed_p_retain": 0.7277,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-004",
+          "term_start": "2018-01-16",
+          "believed_p_retain": 0.5136,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.5436,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0036",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.3565,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-007",
+          "term_start": "2018-01-26",
+          "believed_p_retain": 0.4812,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.4983,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2018-02-05",
+          "believed_p_retain": 0.416,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2018-02-09",
+          "believed_p_retain": 0.4113,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0046",
+          "term_start": "2018-02-11",
+          "believed_p_retain": 0.5819,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-015",
+          "term_start": "2018-02-27",
+          "believed_p_retain": 0.4633,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2018-03-11",
+          "believed_p_retain": 0.4605,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-027",
+          "term_start": "2018-03-30",
+          "believed_p_retain": 0.7589,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2018-04-01",
+          "believed_p_retain": 0.7881,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.5496,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0117",
+          "term_start": "2018-04-07",
+          "believed_p_retain": 0.4727,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-028",
+          "term_start": "2018-04-08",
+          "believed_p_retain": 0.5551,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-032",
+          "term_start": "2018-04-26",
+          "believed_p_retain": 0.3978,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2018-05-03",
+          "believed_p_retain": 0.3576,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-036",
+          "term_start": "2018-05-07",
+          "believed_p_retain": 0.445,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-042",
+          "term_start": "2018-05-30",
+          "believed_p_retain": 0.5161,
+          "retained": false
+        },
+        {
+          "account": "C9",
+          "term_start": "2018-07-01",
+          "believed_p_retain": 0.6934,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2018-08-15",
+          "believed_p_retain": 0.4982,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-060",
+          "term_start": "2018-08-24",
+          "believed_p_retain": 0.4894,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-001",
+          "term_start": "2019-01-01",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0002",
+          "term_start": "2019-01-02",
+          "believed_p_retain": 0.1619,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0049",
+          "term_start": "2019-02-05",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0042",
+          "term_start": "2019-02-09",
+          "believed_p_retain": 0.5169,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2019-02-24",
+          "believed_p_retain": 0.879,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-014",
+          "term_start": "2019-02-26",
+          "believed_p_retain": 0.8596,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "term_start": "2019-03-11",
+          "believed_p_retain": 0.9142,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2019-04-01",
+          "believed_p_retain": 0.7442,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-030",
+          "term_start": "2019-04-14",
+          "believed_p_retain": 0.5526,
+          "retained": false
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2019-04-17",
+          "believed_p_retain": 0.5667,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-034",
+          "term_start": "2019-05-03",
+          "believed_p_retain": 0.8247,
+          "retained": false
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.6786,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0183",
+          "term_start": "2019-06-13",
+          "believed_p_retain": 0.7498,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2019-06-22",
+          "believed_p_retain": 0.7797,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2019-07-01",
+          "believed_p_retain": 0.9139,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-013",
+          "term_start": "2020-02-24",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-020",
+          "term_start": "2020-03-10",
+          "believed_p_retain": 0.895,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0098",
+          "term_start": "2020-03-22",
+          "believed_p_retain": 0.8984,
+          "retained": false
+        },
+        {
+          "account": "C8",
+          "term_start": "2020-03-31",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2020-04-16",
+          "believed_p_retain": 0.8254,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8176,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2020-05-07",
+          "believed_p_retain": 0.8984,
+          "retained": true
+        },
+        {
+          "account": "C9",
+          "term_start": "2020-06-30",
+          "believed_p_retain": 0.896,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2020-08-03",
+          "believed_p_retain": 0.8948,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-056",
+          "term_start": "2020-08-14",
+          "believed_p_retain": 0.8984,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0255",
+          "term_start": "2020-08-25",
+          "believed_p_retain": 0.577,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.8189,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0032",
+          "term_start": "2021-01-23",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0023",
+          "term_start": "2021-01-28",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "PROS-2017-0056",
+          "term_start": "2021-02-10",
+          "believed_p_retain": 0.9162,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-050",
+          "term_start": "2021-06-21",
+          "believed_p_retain": 0.9162,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0221",
+          "term_start": "2021-07-05",
+          "believed_p_retain": 0.3163,
+          "retained": false
+        },
+        {
+          "account": "PROS-2019-0207",
+          "term_start": "2021-07-10",
+          "believed_p_retain": 0.9104,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-057",
+          "term_start": "2021-08-15",
+          "believed_p_retain": 0.9162,
+          "retained": false
+        },
+        {
+          "account": "SYN-2016-055",
+          "term_start": "2023-08-03",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0304",
+          "term_start": "2023-09-30",
+          "believed_p_retain": 0.9485,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2024-01-11",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2019-0024",
+          "term_start": "2024-01-28",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0097",
+          "term_start": "2024-03-26",
+          "believed_p_retain": 0.8598,
+          "retained": false
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2018-0142",
+          "term_start": "2024-05-06",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9249,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2024-05-10",
+          "believed_p_retain": 0.9084,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.8981,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2024-05-31",
+          "believed_p_retain": 0.9296,
+          "retained": true
+        },
+        {
+          "account": "SYN-2016-048",
+          "term_start": "2024-06-18",
+          "believed_p_retain": 0.8462,
+          "retained": false
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8391,
+          "retained": true
+        },
+        {
+          "account": "PROS-2020-0205",
+          "term_start": "2024-06-22",
+          "believed_p_retain": 0.8022,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6667,
+          "retained": true
+        },
+        {
+          "account": "PROS-2023-0244",
+          "term_start": "2024-08-25",
+          "believed_p_retain": 0.6871,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.8231,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0279",
+          "term_start": "2024-09-09",
+          "believed_p_retain": 0.9342,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.6393,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0383",
+          "term_start": "2024-12-16",
+          "believed_p_retain": 0.8307,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.7459,
+          "retained": true
+        },
+        {
+          "account": "PROS-2024-0010",
+          "term_start": "2025-01-08",
+          "believed_p_retain": 0.9308,
+          "retained": true
+        },
+        {
+          "account": "PROS-2022-0010",
+          "term_start": "2025-01-10",
+          "believed_p_retain": 0.9186,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.5993,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0044",
+          "term_start": "2025-02-11",
+          "believed_p_retain": 0.9308,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.5635,
+          "retained": true
+        },
+        {
+          "account": "PROS-2016-0129",
+          "term_start": "2025-04-15",
+          "believed_p_retain": 0.9237,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0139",
+          "term_start": "2025-05-10",
+          "believed_p_retain": 0.714,
+          "retained": false
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.744,
+          "retained": true
+        },
+        {
+          "account": "PROS-2021-0168",
+          "term_start": "2025-05-31",
+          "believed_p_retain": 0.8505,
+          "retained": true
+        }
+      ],
+      "auc_unavailable_because": null
+    }
+  ],
+  "selection_gbp_spread": {
+    "n": 5,
+    "mean": 1447.6328759999888,
+    "stdev": 113.02532994665782,
+    "min": 1252.6794409999857,
+    "max": 1548.263059000019,
+    "range": 295.5836180000333
+  },
+  "level_share_spread": {
+    "n": 5,
+    "mean": 0.8897164266419375,
+    "stdev": 0.008320038451150287,
+    "min": 0.8836531887314789,
+    "max": 0.9043558097687132,
+    "range": 0.020702621037234303
+  },
+  "selection_sem_gbp": 50.54646418801391,
+  "selection_distinguishable_from_zero": true,
+  "selection_sems_needed_to_state_a_sign": 2.7764451051977934,
+  "distance_to_a_sign": {
+    "available": true,
+    "sems_from_zero": 28.639646694481673,
+    "sems_needed_to_state_a_sign": 2.7764451051977934,
+    "sems_needed_is_derived_from_the_family_size": true,
+    "seeds_needed_to_state_a_sign": 2,
+    "seeds_at_the_point_estimate": 2,
+    "seeds_needed_interval": null,
+    "seeds_in_hand": 5,
+    "sign_if_it_were_stateable": "positive",
+    "seeds_needed_unavailable_because": null,
+    "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+    "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+  },
+  "how_to_read_this": "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection instrument cannot yet resolve the question being asked of it, and every reading built on it carries that caveat. That is a finding about the INSTRUMENT and not about the pricing arm -- it is not a cue to re-run until a seed agrees (R12)."
+}
