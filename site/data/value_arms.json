@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T06:16:23.740778Z",
+  "generated_at": "2026-09-24T14:55:46.712904Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -984,7 +984,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "f325485b4f42ad35f5835cbaaf02994fd36c51bd",
+    "publishing_tree_commit": "aec1b64b4091da5946bace4cf6e1c68fcfe6d032",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -996,7 +996,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from f325485b4 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from aec1b64b4 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1512,6 +1512,10 @@
             "refused_because": "drawn over a different book from the run being read"
           },
           {
+            "artefact": "value_cycle_ab_s1_noise_floor_five_seed_head_20260924.json",
+            "refused_because": "drawn over a different book from the run being read"
+          },
+          {
             "artefact": "value_cycle_ab_s1_noise_floor_folded18_20260917.json",
             "refused_because": "states no realised book count this run also states, so it cannot be shown to have been drawn over this run's book -- this noise floor states no realised book counts -- neither a `realised_across_seeds` block nor a count on every seed row"
           },
@@ -1803,7 +1807,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "f325485b4f42ad35f5835cbaaf02994fd36c51bd",
+      "publishing_tree_commit": "aec1b64b4091da5946bace4cf6e1c68fcfe6d032",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1815,7 +1819,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from f325485b4 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from aec1b64b4 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1879,11 +1883,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 166705.24,
       "run_identity": {
-        "dashboard_run_id": "run_output_e664b5720_20260924T045831Z.json",
-        "dashboard_commit": "e664b5720",
+        "dashboard_run_id": "run_output_d379149cc_20260924T132958Z.json",
+        "dashboard_commit": "d379149cc",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_26d4120ab_20260924T002107Z.json",
-        "last_verified_commit": "26d4120ab",
+        "last_verified_run_id": "run_output_d379149cc_20260924T132958Z.json",
+        "last_verified_commit": "d379149cc",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1959,6 +1963,21 @@
     "available": true,
     "seeds": 18,
     "passes": 54,
+    "priced_decision_draws": {
+      "available": true,
+      "provenance": "DERIVED here from the floor's own seed rows by `fold_noise_floor_family`'s own function: this family was folded before that block existed and has not been re-folded",
+      "seeds_the_family_ran": 18,
+      "draws_the_spread_is_entitled_to": null,
+      "at_least": 15,
+      "at_most": 18,
+      "unavailable_because": "18 of this family's 18 seed rows record no decision set, so the number of distinct draws under this spread is not recorded anywhere. It is between 15 and 18: an unrecorded seed may have repeated a set already in the family or drawn a new one, and reading those unknowns as one repeat would shrink a spread that is already too narrow.",
+      "the_published_n_overstates_the_draws": null,
+      "the_floor_regrade_is_published_as": "selection_leg.width_if_each_value_counted_once",
+      "the_floor_regrade_agrees": true,
+      "the_residual_floor_holds": true,
+      "the_residual_floor_is_refuted_by": null,
+      "what_this_is": "This family was RUN 18 times. The standard error beside it is taken over 18, and between 15 and 18 distinct decision sets is what it is entitled to -- the residual cannot move unless a PRICED decision moves, so seeds that met the same priced-decision set are one draw of this instrument however many times they were run. Read the seed count as effort and this count as evidence."
+    },
     "what_was_re_drawn": "The same three arms re-run on the same world once per seed, with only the per-household price-sensitivity draw changed. Nothing about the company moved.",
     "mean_gbp": -959.7811699444428,
     "stdev_gbp": 1631.8016203113864,
@@ -5456,7 +5475,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "f325485b4f42ad35f5835cbaaf02994fd36c51bd",
+    "commit": "aec1b64b4091da5946bace4cf6e1c68fcfe6d032",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

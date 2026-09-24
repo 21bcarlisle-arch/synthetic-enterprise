@@ -1034,6 +1034,120 @@ def test_the_error_bar_reaches_the_reader_before_the_number(live):
     assert _gbp(eb["stdev_gbp"]) in rendered, "the spread is described without its width"
 
 
+def test_the_draws_the_family_is_entitled_to_reach_the_reader_beside_the_seeds_it_ran(live):
+    """The seed count is effort; the draw count is evidence; the page printed only the first.
+
+    THE DEFECT THIS CLOSES, and it is the half of the 09-24 BLOCKING finding that reaches a reader
+    who is not holding the JSON. `run_value_cycle_ab` has stamped `priced_decision_fingerprint` on
+    every seed row since `526aa4f70` and `fold_noise_floor_family` has counted distinct ones since
+    `6f040e8d2` -- and neither reached this page, so the strongest claim it makes about the
+    choosing rendered n seeds as n draws beside a standard error taken over n. `selection_gbp` is
+    `value_arm_net - level_arm_net`: the control arm cancels algebraically, so a re-draw landing
+    outside the renewals the value arm priced moves both nets identically and moves the residual
+    not at all. Seeds that met one priced-decision set are ONE draw however many times they ran.
+
+    KEYED TO THE PROPERTY AND NOT TO 15-18. What is asserted is that whatever count the feed
+    establishes reaches the rendered panel, and that the panel does not call the seed count a draw
+    count. The day a family lands that records its rosters this goes green on an EXACT number with
+    nobody editing a sentence; the day the page drops the block it reds.
+    """
+    feed = _live_feed()
+    pdd = feed["error_bar"]["priced_decision_draws"]
+    rendered = live["arms-errorbar"]
+
+    assert pdd["available"] is True, (
+        "the feed carries no draw count at all, so the page cannot state one -- the field is "
+        "recorded and unread, which is the defect this control exists against: {}".format(
+            pdd.get("why_not")))
+    assert str(pdd["seeds_the_family_ran"]) in rendered, (
+        "the panel does not state how many times the instrument was RUN, so a reader cannot pair "
+        "the draw count against it")
+    exact = pdd["draws_the_spread_is_entitled_to"]
+    if exact is not None:
+        assert "{} distinct draws".format(exact) in rendered, (
+            "the feed knows this family met exactly {} decision sets and the reader is not told "
+            "it".format(exact))
+    else:
+        assert "between {} and {} distinct draws".format(
+            pdd["at_least"], pdd["at_most"]) in rendered, (
+            "the feed bounds this family at {}-{} distinct draws and the page states neither end. "
+            "A bound nobody reads is not a bound".format(pdd["at_least"], pdd["at_most"]))
+        assert pdd["unavailable_because"][:40] in rendered, (
+            "the page states a RANGE without the reason it is a range, so a reader meets a "
+            "hedge with no way to tell what would settle it")
+
+    # THE WORD THE PAGE USED TO GET WRONG, asserted where it was wrong. `estimate_seeds` is the
+    # seed count; the bar sentence called it a draw count until 2026-09-24.
+    seeds = feed["error_bar"]["selection_leg"]["estimate_seeds"]
+    assert "{} draws set".format(seeds) not in rendered, (
+        "the panel still calls this family's {} SEEDS a draw count in the sentence stating the "
+        "bar, which is the exact conflation the block above exists to correct".format(seeds))
+
+
+def test_MUTATION_the_three_readings_of_the_draw_count_are_DISTINCT_and_all_reachable():
+    """One control over the whole partition, because each branch alone is passed by a broken page.
+
+    THE SHAPE THIS AVOIDS. `the_published_n_overstates_the_draws` is three-valued -- KNOWN to
+    overstate, KNOWN clean, and cannot-tell -- and a renderer that collapsed any two of them would
+    satisfy a per-branch assertion while telling a reader that a family which cannot answer the
+    question has answered it. So the three are driven through the real door and asserted PAIRWISE
+    DISTINCT, and each is asserted reachable rather than merely correct.
+
+    AND THE AMBER IS PART OF THE CLAIM. A cannot-tell that renders muted reads as reassurance; the
+    markup is read raw for that reason, which is the lesson this file's `raw` parameter bought.
+    """
+    live_feed = _live_feed()
+    base = live_feed["error_bar"]["priced_decision_draws"]
+    assert base["available"] is True, "the live feed cannot drive any branch of this partition"
+
+    panels, raws = {}, {}
+    for label, overstates, at_least, exact in (
+            ("overstates", True, 3, 3),
+            ("clean", False, base["seeds_the_family_ran"], base["seeds_the_family_ran"]),
+            ("cannot_tell", None, base["at_least"], None)):
+        poisoned = copy.deepcopy(live_feed)
+        block = poisoned["error_bar"]["priced_decision_draws"]
+        block["the_published_n_overstates_the_draws"] = overstates
+        block["at_least"], block["at_most"] = at_least, exact if exact is not None else base["at_most"]
+        block["draws_the_spread_is_entitled_to"] = exact
+        panels[label] = _render(poisoned)["arms-errorbar"]
+        raws[label] = _render(poisoned, raw=True)["arms-errorbar"]
+
+    for one, other in (("overstates", "clean"), ("overstates", "cannot_tell"),
+                       ("clean", "cannot_tell")):
+        assert panels[one] != panels[other], (
+            "the `{}` and `{}` readings of the draw count render the SAME text, so two states of "
+            "this partition have collapsed into one and a reader cannot tell them apart".format(
+                one, other))
+
+    assert "overstates what this family can tell you" in panels["overstates"], (
+        "a family KNOWN to have met fewer decision sets than it ran seeds does not tell the "
+        "reader its standard error is flattered -- the fail-open this block exists against")
+    assert "3 distinct draws" in panels["overstates"], (
+        "an EXACT draw count renders as something other than the number, so the branch that "
+        "needs no hedge is never reachable")
+    assert "taken over the count it is entitled to" in panels["clean"], (
+        "a family whose every seed met a fresh decision set is not credited with it, so the "
+        "`False` branch is unreachable and the two asserts above prove nothing")
+    assert "cannot be settled from what its rows record" in panels["cannot_tell"], (
+        "a family that cannot answer the question renders as one that has")
+
+    # SCOPED TO THIS BLOCK'S OWN SPAN, and the first draft was not. `arms-errorbar` opens with an
+    # unconditional amber "Read the error bar before the number", so `"var(--amber)" in raw` is
+    # true of every branch and the colour leg graded the panel's heading instead of the sentence
+    # under test -- a control that cannot fail, caught by running it.
+    def _colour_of_the_draw_sentence(raw: str) -> str:
+        head = raw.rindex("<span", 0, raw.index("The seed count is effort"))
+        return raw[head:raw.index(">", head)]
+
+    assert "var(--muted)" in _colour_of_the_draw_sentence(raws["clean"]), (
+        "the KNOWN-clean reading is rendered amber, so the colour carries no information")
+    for label in ("overstates", "cannot_tell"):
+        assert "var(--amber)" in _colour_of_the_draw_sentence(raws[label]), (
+            "the `{}` reading is rendered muted, and a qualification a reader's eye skips is a "
+            "qualification that did not reach them".format(label))
+
+
 def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
     """The PROPERTY, not the sentence: whichever case the reading is in, the page must tell the
     reader that nothing here resolves the selection effect.

@@ -131,6 +131,13 @@ from tools import provenance_stamp
 from tools.decisions_by_account_class import decisions_by_account_class
 from tools.decisions_that_existed import decisions_that_existed
 
+# THE DRAW COUNT COMES FROM THE FOLD TOOL THAT DEFINES IT, for the reason above one line down: a
+# second spelling of "how many distinct priced-decision sets is this spread entitled to" is how the
+# page and the artefact come to publish two answers. This page DERIVES with it rather than reading
+# a folded block, because no published floor has been re-folded to carry one and re-folding a
+# watched family would make its promotion owed in the same commit.
+from tools.fold_noise_floor_family import _priced_decision_draws
+
 # THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
 # one place this file derives instead of reading, and it derives by calling the same function the
 # run stores -- so the page and the artefact cannot carry two answers to one question. See that
@@ -2364,6 +2371,13 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         "available": True,
         "seeds": n,
         "passes": n * len(ARM_MEANING),
+        # HOW MANY DRAWS THOSE SEEDS BOUGHT, beside how many seeds were run (2026-09-24). The seed
+        # count above is effort; this is evidence, and until now the page printed only the first
+        # while stating a standard error the second is the earned n for. See
+        # `_draws_this_family_is_entitled_to` -- including why the published `n` can only ever be a
+        # ceiling on this family's confidence, never a floor.
+        "priced_decision_draws": _draws_this_family_is_entitled_to(
+            floor, leg.get("width_if_each_value_counted_once")),
         "what_was_re_drawn": (
             "The same three arms re-run on the same world once per seed, with only the "
             "per-household price-sensitivity draw changed. Nothing about the company moved."),
@@ -4047,6 +4061,108 @@ def _distinct_width_changes_the_verdict(distinct: dict | None, published_clears)
     if not isinstance(theirs, bool) or not isinstance(published_clears, bool):
         return None
     return theirs != published_clears
+
+
+def _draws_this_family_is_entitled_to(floor: dict | None, distinct: dict | None) -> dict:
+    """The count the page's `n` is a CEILING on, beside the seed count it has always printed.
+
+    THE HALF OF THE 09-24 FINDING THAT REACHES A READER WHO IS NOT HOLDING THE JSON.
+    `run_value_cycle_ab` began stamping `priced_decision_fingerprint` at `526aa4f70`;
+    `fold_noise_floor_family` began counting them at `6f040e8d2`. Neither reached this page, so the
+    strongest claim it makes about the choosing still printed `n` seeds as `n` draws beside a
+    standard error taken over `n`. A field nobody reads is not a control, and a count published in
+    an artefact the reader does not open is a field nobody reads.
+
+    WHY THE PAGE'S `n` IS A CEILING AND NEVER A FLOOR. `selection_gbp` is
+    `value_arm_net - level_arm_net`; the control arm cancels algebraically and the two surviving
+    arms differ by the renewal-margin rule alone, so a re-draw that moves the book OUTSIDE the
+    renewals the value arm priced lands in both nets identically and cancels. Seeds that met the
+    same priced-decision set are one draw of this instrument however many times they were run --
+    and a standard error over the seed count is therefore an upper bound on the family's
+    confidence, in the one direction that matters, because the sem is REWARDED by the pinning.
+
+    IT REPORTS THE ARTEFACT'S OWN COUNT WHEN THERE IS ONE, AND DERIVES OTHERWISE, through the fold
+    tool's own function over the floor's own rows. Deriving is not a second rule: it is the same
+    call on the same input, which is what lets this land without re-folding a published artefact --
+    regenerating a watched family would make its promotion owed in this commit and the served
+    family is the republish lane's. `provenance` says which of the two the reader is holding,
+    because a deduction and a record are not the same evidence.
+
+    THE ARITHMETIC IS NOT REPEATED HERE. `_width_over_distinct_draws` has recomputed this family's
+    interval over its distinct returned values since 2026-09-23, and on a family that records no
+    roster those distinct values ARE the floor under the entitled draw count -- same contrapositive,
+    same number, 15 of 18 on the published floor. So this block NAMES that block as the re-grade at
+    the floor rather than computing a second one, and `the_floor_regrade_agrees` witnesses that the
+    two counts still coincide. The day a family lands carrying real fingerprints they may part
+    company -- two distinct decision sets can return one residual -- and this says so instead of
+    quietly presenting one as the other.
+    """
+    rows = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
+    published = (floor or {}).get("priced_decision_draws")
+    if isinstance(published, dict) and published.get("seeds_in_family") is not None:
+        counted, provenance = published, "the floor artefact's own `priced_decision_draws` block"
+    elif rows:
+        counted, provenance = _priced_decision_draws(rows), (
+            "DERIVED here from the floor's own seed rows by `fold_noise_floor_family`'s own "
+            "function: this family was folded before that block existed and has not been re-folded")
+    else:
+        return {"available": False,
+                "why_not": ("this floor carries no seed rows, so how many distinct priced-decision "
+                            "sets its spread was taken over cannot be counted or bounded"),
+                "what_this_would_have_been": (
+                    "the number of DRAWS the published standard error is entitled to, as against "
+                    "the number of seeds it was taken over")}
+
+    seeds = counted.get("seeds_in_family")
+    exact = counted.get("draws_the_spread_is_entitled_to")
+    at_least, at_most = counted.get("at_least"), counted.get("at_most")
+    # THREE-VALUED ON PURPOSE, AND THE FIRST DRAFT OF IT WAS WRONG. Written as `at_most < seeds`
+    # it returned `False` on the published floor -- 18 seeds, between 15 and 18 draws -- which
+    # reads as "the published n does NOT overstate" when the honest answer is that it may overstate
+    # by up to three. `False` is reserved for the one case that is KNOWN clean (`at_least == seeds`:
+    # no seed can have repeated a set the family already held), `True` for KNOWN overstatement
+    # (`at_most < seeds`), and `None` for the family that cannot tell -- which is every family
+    # published to date. Derived, not written down, so each branch is reachable on a real family
+    # rather than being `False` by never having been asked.
+    if not isinstance(seeds, int) or not isinstance(at_least, int) or not isinstance(at_most, int):
+        overstates = None
+    elif at_most < seeds:
+        overstates = True
+    elif at_least >= seeds:
+        overstates = False
+    else:
+        overstates = None
+    regrade_n = (distinct or {}).get("distinct_values") if isinstance(distinct, dict) else None
+    return {
+        "available": True,
+        "provenance": provenance,
+        "seeds_the_family_ran": seeds,
+        "draws_the_spread_is_entitled_to": exact,
+        "at_least": at_least,
+        "at_most": at_most,
+        "unavailable_because": counted.get("unavailable_because"),
+        #: `True` = KNOWN to overstate; `False` = KNOWN clean; `None` = cannot tell, with the
+        #: reason on `unavailable_because` beside it. Never `False` by default -- see above.
+        "the_published_n_overstates_the_draws": overstates,
+        #: WHICH BLOCK ALREADY HOLDS THE RE-GRADE, named rather than recomputed. `None` when the
+        #: sensitivity could not be formed -- an absent re-grade must not read as an agreeing one.
+        "the_floor_regrade_is_published_as": (
+            "selection_leg.width_if_each_value_counted_once" if regrade_n is not None else None),
+        "the_floor_regrade_agrees": (
+            None if regrade_n is None or not isinstance(at_least, int) else regrade_n == at_least),
+        "the_residual_floor_holds": counted.get("the_residual_floor_holds"),
+        "the_residual_floor_is_refuted_by": counted.get("the_residual_floor_is_refuted_by"),
+        "what_this_is": (
+            "This family was RUN {s} times. The standard error beside it is taken over {s}, and "
+            "{verdict} -- the residual cannot move unless a PRICED decision moves, so seeds that "
+            "met the same priced-decision set are one draw of this instrument however many times "
+            "they were run. Read the seed count as effort and this count as evidence.".format(
+                s=seeds,
+                verdict=("{n} distinct decision sets is what it is entitled to".format(n=exact)
+                         if exact is not None else
+                         "between {lo} and {hi} distinct decision sets is what it is entitled "
+                         "to".format(lo=at_least, hi=at_most)))),
+    }
 
 
 #: THE WIDTHS THE TWO GROUPS REACH, as the page's own words for what separates them. Kept here
