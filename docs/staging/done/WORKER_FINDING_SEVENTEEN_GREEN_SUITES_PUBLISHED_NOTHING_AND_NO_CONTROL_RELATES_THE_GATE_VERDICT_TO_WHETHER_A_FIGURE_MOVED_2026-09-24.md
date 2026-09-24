@@ -192,3 +192,48 @@ way.
 
 **What is NOT claimed.** `last_clean_publish` has not moved. This clears the one red the gate cites;
 whether a publish cycle then completes is the next observation, not this one's result.
+
+## A sixth cause: the citation is DEAD, the tree is green, and the refusal names no cause at all
+
+*Appended 2026-09-24 by the delivery seat, same claim as the fifth cause above. This is the
+measured outcome of that repair, recorded whether or not it flatters it.*
+
+**The fifth cause is cleared, and the gate's own instrument says so** — not this seat. From
+`docs/observability/.publish_gate_state.json` on the shared tree, the two publish failures either
+side of the landing (`697625722`, on `origin/main` at 06:36Z):
+
+| | 06:02:19Z — before | 06:55:10Z — after |
+|---|---|---|
+| `citation_at_head` | `reproduces` | **`dead`** |
+| reason | "all 1 cited red(s) are still red, so the citation is live and repairing it is the unblock" | "all 1 cited red(s) PASS … so this citation is DEAD" |
+
+`blocking_tests: []`. `total_red: 0`. `liveness_surface_refusal: null`, and the liveness heartbeat
+published at `cd6fad764` — the surface the fifth cause's controls guard.
+
+**And the publisher still failed.** `episode_failures` went 43 → 45, `last_clean_publish` is
+unmoved at 2026-09-21T18:15Z, and the cause recorded for that 06:55 failure is:
+
+> `cause: "unattributed"` — *"recorded with no observation attached (rc=1, kind=test_regression) —
+> this exit path names no cause, so which one it was is NOT established here"*
+
+So the sixth cause is **an exit that refuses without naming why**, and it is a different kind of
+thing from the five before it. Causes 1–4 were states of the tree; cause 5 was a state of the
+instrument; **cause 6 is the absence of an instrument.** The refusal says `kind=test_regression`
+while `total_red` is 0 and every cited red passes at HEAD — three statements that cannot all be
+about the same tree.
+
+**This is the document's own thesis arriving on schedule**, and it should be read as evidence for
+it rather than as a disappointment: *"the causes are serial, each one masked by its predecessor, and
+no instrument reports the queue of them."* Five of six were only visible once their predecessor was
+cleared. The difference now is that the sixth cannot be cleared by looking at what the publisher
+said, because the publisher did not say.
+
+**What the next lane should NOT do:** re-run the cited test and conclude the publisher is fixed.
+It is green, it is dead as a citation, and the publisher is still refusing. The next item is the
+unattributed exit itself — `background/process_run_complete.py`, the rc=1 path that reaches
+`"this exit path names no cause"` — and the question is which observation it is dropping between
+the rc it saw and the record it wrote.
+
+**What is NOT claimed:** that the fifth cause was the last one, that clearing it was sufficient, or
+that `last_clean_publish` will move. It has not. The claim is bounded to what the gate measured:
+the cited red is dead at HEAD, and it was this landing that killed it.
