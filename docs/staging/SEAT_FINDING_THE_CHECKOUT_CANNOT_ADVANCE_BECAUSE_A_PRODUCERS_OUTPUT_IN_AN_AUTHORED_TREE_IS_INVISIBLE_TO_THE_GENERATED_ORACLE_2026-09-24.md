@@ -216,6 +216,21 @@ This is a control that cannot pass rather than one that cannot fail, and it is k
 answer in the same way §"the control repair" above describes: the probe is a property of the
 *commit's parent*, and it is being read off the *judgement base*.
 
+**The defect is on the TRUNK, not in this tree's stale checkout — which is the first thing a reader
+of the above should doubt, because every other finding in this family turned out to be a checkout
+gap.** Asked directly:
+
+```
+diff <(git show origin/main:tools/refresh_to_head.py | sed -n '/def verify_recoverable/,/^def _trivial/p') \
+     <(sed -n '/def verify_recoverable/,/^def _trivial/p' tools/refresh_to_head.py)
+```
+
+`verify_recoverable` and `_probe` are **byte-identical on `origin/main` and on disk**. The only
+differences in that span are additions — `_clear_index_entry`, the `staged_too` parameter and its
+CLI flag — i.e. the unlanded `--staged-too` holder work, which is remedy 3's subject and not this.
+So advancing the tree would **not** fix this, and a session that reads "stale checkout" here and
+stops will leave the door broken on the trunk.
+
 ### The remedy, smallest first
 
 1. **`_probe` must be computed against the preserved commit's actual parent (HEAD), not against the
