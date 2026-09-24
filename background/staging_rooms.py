@@ -597,11 +597,58 @@ class QueueItem:
     path: Path
     kind: str
     rank: int
-    mtime: float
+    #: The WITHIN-BAND sub-key, ascending, and never compared across ranks. It was called
+    #: `mtime` until 2026-09-24, by which time it held three different quantities -- a file's
+    #: mtime, a class register's position, an alarm's attention staleness -- and the name was
+    #: true of only one of them. A sub-key named after one of its sources is how the alarm band
+    #: came to be sorted by how recently the alarm WROTE: the docstring said "AGE decides within
+    #: it" and nothing in the code contradicted it.
+    within_band: float
 
     @property
     def name(self) -> str:
         return self.path.name
+
+
+def _within_band_key(path: Path, kind: str) -> float:
+    """The ascending sub-key that orders one document against its own band.
+
+    AGE FOR EVERY KIND BUT ONE, because a queue serves by age and mtime is what age means for a
+    document nobody's machinery rewrites.
+
+    AN ALARM IS THE EXCEPTION AND ITS mtime IS INVERTED, which is not a nuance — it is the whole
+    reason this function exists. `alarm_repetition` rewrites an alarm document on EVERY firing:
+    `_note_still_live` appends a dated line and `_refresh_counts` rewrites the header. So for
+    this population, and only this one, mtime measures how recently the alarm WROTE. Ascending
+    then serves the quietest first and the loudest LAST, and every still-live line a condition
+    earns pushes its own document further down. Measured on the live band, 2026-09-24: the old
+    and new orders correlate at Spearman −0.709 over ten documents, all ten of which move.
+    `DEADMAN_WORKTREE_UNDECLARED` — 298 repeats over 8 days, the loudest thing in the room —
+    sat 7th of 10 BECAUSE it fires most, and goes to 2nd. It also failed silently in the other
+    direction: repairing `SEAT_CONTINUITY`'s header by hand, which is attention being PAID, was
+    itself a write and moved that document DOWN.
+
+    So an alarm is ordered by how long it has gone UNLOOKED-AT — `alarm_repetition.
+    unattended_since`, which reads the re-ask channel and falls back to the filing date, and
+    which is documented there rather than paraphrased here.
+
+    FAIL-OPEN, on the same call `_with_accruing_class_registers` makes: a draw that cannot rank
+    its work must still SEE it, so an alarm this cannot price goes to the TOP of its own band
+    rather than taking the queue down. That is also the right direction on the merits — a
+    document nothing can say anything about is not one to bury — and it is deliberately NOT a
+    fallback to mtime, which would quietly restore the inversion for exactly the documents the
+    normal path could not describe.
+    """
+    if kind == KIND_ALARM:
+        try:
+            from background.alarm_repetition import unattended_since
+            return unattended_since(path)
+        except Exception:
+            return 0.0
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
 
 
 def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
@@ -613,12 +660,15 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
     are excluded because nothing in them is ever work. `done/`, `exhaust/`, `fyi/` are
     exhausted, archived and informational respectively.
 
-    Sorted by (rank, mtime, name): the KIND decides the band, AGE decides within it, and the
-    name only ever breaks a tie between two files of the same kind written in the same second
-    — which is the only job a filename ever had here.
+    Sorted by (rank, within_band, name): the KIND decides the band, `_within_band_key` decides
+    the order inside it, and the name only ever breaks an exact tie — which is the only job a
+    filename ever had here.
 
-    THE ONE EXCEPTION IS THE CLASS REGISTERS, and it is why `mtime` is not the within-band
-    tie-break for them. `kind_of` answers from the NAME alone and must keep doing so (see its
+    FOR MOST KINDS THE WITHIN-BAND TERM IS AGE, read from mtime, and a queue serves by age. Two
+    kinds are not most kinds and each says so at its own site: the class registers below, and
+    the ALARMS in `_within_band_key`.
+
+    THE CLASS REGISTERS. `kind_of` answers from the NAME alone and must keep doing so (see its
     docstring: every consumer has to be able to classify a file it cannot read). Whether a
     register is work depends on its ACCRUAL and its DISPOSITION, which are properties of the
     corpus and not of the filename, so the promotion is made here — the one place that is
@@ -651,12 +701,9 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
             # kind that had to read the file would go UNKNOWN — which ranks as work — the moment
             # the disk misbehaved.
             continue
-        try:
-            mtime = p.stat().st_mtime
-        except OSError:
-            mtime = 0.0
-        items.append(QueueItem(p, kind, ORDER.get(kind, ORDER[KIND_UNKNOWN]), mtime))
-    items.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+        items.append(QueueItem(p, kind, ORDER.get(kind, ORDER[KIND_UNKNOWN]),
+                              _within_band_key(p, kind)))
+    items.sort(key=lambda i: (i.rank, i.within_band, i.path.name))
     return _with_the_standing_red_register(
         root, _with_the_head_red_register(root, _with_accruing_class_registers(root, items)))
 
@@ -673,7 +720,7 @@ def _with_accruing_class_registers(root: Path, items: list[QueueItem]) -> list[Q
 
     The within-band order comes from `class_debt.drawable()`, which returns the registers
     already sorted, so `enumerate` preserves it through the outer sort by giving each a
-    distinct increasing sub-key in the `mtime` slot.
+    distinct increasing sub-key in the `within_band` slot.
     """
     try:
         from background import class_debt
@@ -693,7 +740,7 @@ def _with_accruing_class_registers(root: Path, items: list[QueueItem]) -> list[Q
         for position, debt in enumerate(debts)
     ]
     merged = items + promoted
-    merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+    merged.sort(key=lambda i: (i.rank, i.within_band, i.path.name))
     return merged
 
 
@@ -718,7 +765,7 @@ def _with_the_head_red_register(root: Path, items: list[QueueItem]) -> list[Queu
     except Exception:
         return items
     merged = items + [QueueItem(path, KIND_HEAD_RED, ORDER[KIND_HEAD_RED], 0.0)]
-    merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+    merged.sort(key=lambda i: (i.rank, i.within_band, i.path.name))
     return merged
 
 
@@ -743,7 +790,7 @@ def _with_the_standing_red_register(root: Path, items: list[QueueItem]) -> list[
         return items
     merged = items + [QueueItem(path, KIND_PUBLISH_STANDING_RED,
                                 ORDER[KIND_PUBLISH_STANDING_RED], 0.0)]
-    merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+    merged.sort(key=lambda i: (i.rank, i.within_band, i.path.name))
     return merged
 
 

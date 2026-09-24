@@ -857,6 +857,97 @@ def last_observed(path: Path, text: str | None = None) -> str | None:
     return max(dates) if dates else None
 
 
+#: The re-ask's own dated line, written by `_note_reask` and `_archive_cleared` and by nothing
+#: else. The MIRROR of `_STILL_LIVE_DATE`: that one reads what the ALARM wrote, this one reads
+#: what LOOKING wrote, and the two channels are kept apart at `REASK_HEADING` above.
+_REASK_DATE = re.compile(r"^- \*\*(\d{4}-\d{2}-\d{2})\*\* — re-asked:", re.M)
+
+
+def _reask_section(text: str) -> str:
+    """Just the re-ask's own section -- the exact complement of `_without_reask_section`.
+
+    THE COMPLEMENT AND NOT A GREP, so the two readers below partition the document rather than
+    overlap it. A regex run over the whole text would happen to give the same answer today,
+    because only the re-ask writes that phrase; it would stop doing so the first time anybody
+    quoted a re-ask line in a hand-written note, and the failure would be silent.
+    """
+    lines = text.splitlines()
+    try:
+        start = lines.index(REASK_HEADING)
+    except ValueError:
+        return ""
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("## "):
+            end = i
+            break
+    return "\n".join(lines[start:end])
+
+
+def last_attention(path: Path, text: str | None = None) -> str | None:
+    """The newest date on which somebody LOOKED at this document, or None if nobody ever has.
+
+    THE OTHER HALF OF `last_observed`, and the distinction is the whole point. `last_observed`
+    answers "when did this condition last hold", which for an alarm is when its own machinery
+    last WROTE. This answers "when did anybody last ask whether it still matters". The comment
+    above `_STILL_LIVE_DATE` says attention must never masquerade as the thing attention was paid
+    to; that cuts both ways, and this is the side of the cut nothing read until now.
+
+    None is a real answer and not a failure: a document with no re-ask section has never been
+    looked at since it was filed, and the caller -- `unattended_since` below -- is what decides
+    what to do about that.
+    """
+    if text is None:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
+    dates = _REASK_DATE.findall(_reask_section(text))
+    return max(dates) if dates else None
+
+
+def _midnight_utc(date: str) -> float:
+    """`YYYY-MM-DD` as a UTC epoch. Raises on anything else, which the caller catches."""
+    return datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
+
+
+def unattended_since(path: Path, text: str | None = None) -> float:
+    """The instant since which nothing has looked at this document, as a UTC epoch.
+
+    ASCENDING IS LONGEST-NEGLECTED-FIRST, which is what makes this usable directly as a queue
+    sub-key: `background/staging_rooms.work_queue` sorts the alarm band on it.
+
+    Three sources, in order, and the fallbacks are not defensive padding -- each is the honest
+    answer to "when was this last looked at" for a document the one above cannot describe:
+
+      1. The newest re-ask line. Somebody asked, on that date, whether this still matters.
+      2. Failing that, the FILING DATE in the filename. Nobody has ever re-asked, so the last
+         moment a decision was made about this document is the moment it was filed. A firing does
+         not move it, which is the entire difference from `st_mtime`.
+      3. Failing that, `0.0` -- the top of the band. A document whose own name will not say when
+         it was filed is the one least likely to have been read by anybody, and sending it to the
+         front is the direction that gets it looked at rather than the direction that buries it.
+
+    DELIBERATELY NOT `st_mtime` AT ANY STEP, including as a last resort. mtime is the term this
+    replaced and it is ANTI-correlated with attention on this population -- every firing rewrites
+    the document, so the loudest condition looks freshest. A fallback to it would restore the
+    inversion for exactly the documents the other legs could not describe, silently.
+    """
+    observed = last_attention(path, text)
+    if observed:
+        try:
+            return _midnight_utc(observed)
+        except ValueError:
+            pass
+    filed = _FILENAME_DATE.search(path.name)
+    if filed:
+        try:
+            return _midnight_utc(filed.group(1))
+        except ValueError:
+            pass
+    return 0.0
+
+
 def _read_transitions_for_reask() -> dict:
     """The notify transition store, or `{}` -- imported late because `notify` imports this module.
 

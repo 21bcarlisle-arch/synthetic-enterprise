@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import pytest
 
+from background import alarm_repetition as sr_alarm
 from background import staging_rooms as sr
 
 # Verbatim from the folder the director read.
@@ -104,6 +105,121 @@ def test_within_a_rank_the_OLDEST_is_served_first(tmp_path):
     os.utime(a, (1_000_000, 1_000_000))
     os.utime(b, (2_000_000, 2_000_000))
     assert [i.name for i in sr.work_queue(tmp_path)] == [a.name, b.name]
+
+
+def _alarm(root, name, *, mtime, reasked=None):
+    """An alarm document with its write time and its attention record set independently.
+
+    The two are what the defect confused, so the fixture has to be able to set them apart.
+    """
+    import os
+
+    body = "# alarm\n\n## Still live\n\n- **2026-09-01** — still live. Observed again.\n"
+    if reasked:
+        body += f"\n{sr_alarm.REASK_HEADING}\n\n- **{reasked}** — re-asked: **still_holds**. Asked.\n"
+    p = root / name
+    p.write_text(body, encoding="utf-8")
+    os.utime(p, (mtime, mtime))
+    return p
+
+
+def test_MUTATION_the_loudest_alarm_is_not_served_last(tmp_path):
+    """THE CASE, measured in 15e61d604 and again on the live band 2026-09-24.
+
+    An alarm document is rewritten by its own machinery on every firing, so the within-band
+    term `mtime` measured how recently the alarm WROTE. Ascending, that served the loudest
+    condition LAST: `DEADMAN_WORKTREE_UNDECLARED` -- 298 repeats over 8 days, 10 members --
+    sat 7th of 10 BECAUSE it fires most, and every still-live line it earned pushed it further
+    down. Anti-correlated, so inverted rather than merely arbitrary.
+
+    LOUD is the one filed FIRST and written LAST: longest neglected, most recently annotated.
+    Under the old term it came second; under an attention term it comes first.
+    """
+    loud = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_LOUD_2026-09-01.md",
+                  mtime=2_000_000_000)
+    quiet = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_QUIET_2026-09-20.md",
+                   mtime=1_000_000_000)
+    queue = [i.name for i in sr.work_queue(tmp_path)]
+    assert queue == [loud.name, quiet.name], (
+        "the alarm nobody has looked at for longest must draw first, however recently its own "
+        "machinery annotated it")
+
+
+def test_MUTATION_a_reask_is_attention_and_moves_an_alarm_down_the_band(tmp_path):
+    """The channel that makes the term about ATTENTION rather than about filing dates.
+
+    Both documents are equally old and equally quiet on disk. The only difference is that
+    somebody re-asked one of them yesterday. A term reading only the filing date -- which is
+    what `unattended_since`'s fallback gives when the re-ask section is absent, and which is
+    the whole live population today -- would leave `OLDER` first and pass this test for the
+    wrong reason. It must not: a document somebody looked at is not the one owed attention.
+    """
+    older = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_AAA_OLDER_2026-09-01.md",
+                   mtime=1_000_000_000, reasked="2026-09-23")
+    newer = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_ZZZ_NEWER_2026-09-10.md",
+                   mtime=1_000_000_000)
+    queue = [i.name for i in sr.work_queue(tmp_path)]
+    assert queue == [newer.name, older.name], (
+        "a re-asked alarm has been looked at; the one nobody asked about is the stale one")
+
+
+def test_an_alarm_the_term_cannot_price_goes_to_the_TOP_of_its_band(tmp_path):
+    """FAIL-OPEN, and in the direction that gets the document read.
+
+    A name carrying no filing date and a body carrying no re-ask says nothing about when it was
+    last looked at. Burying it is how a document stops being read at all, so it goes first --
+    and NOT to mtime, which would restore the inversion for exactly the documents nothing else
+    could describe.
+    """
+    undated = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_NO_DATE_IN_THIS_NAME.md",
+                     mtime=2_000_000_000)
+    dated = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_AAA_DATED_2026-09-01.md",
+                   mtime=1_000_000_000)
+    queue = [i.name for i in sr.work_queue(tmp_path)]
+    assert queue == [undated.name, dated.name]
+
+
+def test_MUTATION_when_the_attention_term_cannot_be_REACHED_the_band_does_not_fall_back_to_mtime(
+        tmp_path, monkeypatch):
+    """The fail-open branch, driven rather than assumed.
+
+    Written because mutating that branch to fall through to mtime went GREEN: no test reached
+    it, so the fail-open DIRECTION was uncontrolled while three tests watched the happy path.
+    A missing test, established, not an equivalence.
+
+    Both alarms here are unreadable to the term, so both price at the top of the band and the
+    NAME orders them -- which is the only job the name ever had. The mtimes are arranged to
+    disagree with the names, so a fallback to mtime returns the other order and this reds.
+    """
+    def _refuse(*a, **k):
+        raise RuntimeError("the term is unavailable")
+
+    monkeypatch.setattr(sr_alarm, "unattended_since", _refuse)
+    zzz = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_ZZZ_2026-09-01.md",
+                 mtime=1_000_000_000)
+    aaa = _alarm(tmp_path, "WORKER_FINDING_REPEATING_ALARM_AAA_2026-09-20.md",
+                 mtime=2_000_000_000)
+    assert [i.name for i in sr.work_queue(tmp_path)] == [aaa.name, zzz.name], (
+        "an alarm the term cannot price goes to the top of its band on its name, never to the "
+        "mtime order this replaced")
+
+
+def test_MUTATION_the_attention_term_is_scoped_to_the_alarms(tmp_path):
+    """The other half of the partition, and it can fail.
+
+    `_within_band_key` is one function over every kind, so a change written for the alarms can
+    silently re-order the bands that were never wrong. Every other kind still serves by age,
+    including a FINDING whose filename date disagrees with its mtime -- which is the shape that
+    would break if the attention term leaked out of its band.
+    """
+    import os
+
+    old_write = tmp_path / "SEAT_FINDING_NAMED_LATE_2026-09-20.md"
+    new_write = tmp_path / "SEAT_FINDING_NAMED_EARLY_2026-09-01.md"
+    for p, when in ((old_write, 1_000_000_000), (new_write, 2_000_000_000)):
+        p.write_text("# finding\n", encoding="utf-8")
+        os.utime(p, (when, when))
+    assert [i.name for i in sr.work_queue(tmp_path)] == [old_write.name, new_write.name]
 
 
 def test_MUTATION_a_doorbell_is_not_work(tmp_path):
