@@ -227,3 +227,46 @@ The control that settles it runs both readings **in one process against the same
 **A before/after survey of a shared working tree is never a one-variable experiment**, and the naive
 diff was wrong in the direction that would have read as "this change is more dangerous than I
 thought" — a false alarm that costs a turn. The in-process differential costs nine lines.
+
+---
+
+## 6. The advice is still live in the delivery lane's PATH CHECK — measured after the fix landed
+
+The door is repaired. The **instruction handed to the next session is not**, and this was met twice
+while filing the hand-off for §4 item 2, after `19f340e65` was on `origin/main`:
+
+> `[the bytes named are not what a hand-off assumes]` … `saas/reporting/annual_report.py`
+> **[predates landing]** … *"the door is `python3 -m tools.refresh_to_head <path>`"*
+
+and, when the hand-off was reworded to prescribe hunk isolation instead:
+
+> `[a remedy that would land the revert]` … *"`isolate_hunks`/`--content` separate hunks by AUTHOR
+> and not by AGE — applied as written the remedy lands the revert. The door for an out-of-date copy
+> is `python3 -m tools.refresh_to_head <path>`."*
+
+The classifier reads the stale-copy control (`judge`), not `judge_copy`, so it never sees the new
+refusal. It is now recommending, twice and in writing, the one door that `refresh_to_head` itself
+refuses — and refuses *because that door would destroy these bytes*.
+
+**And its second claim is false here, measured rather than argued:**
+
+```
+$ python3 -m tools.isolate_hunks --survey saas/reporting/annual_report.py
+saas/reporting/annual_report.py: 2 hunk(s) against HEAD. Keep the ones that are YOURS:
+    1  @@ base line 1065   -        # THE GAS HALF OF THE SAME GUARANTEE, ...
+    2  @@ base line 1154   +        # THE SECOND DEPARTURE POPULATION, ...
+```
+
+Two hunks, cleanly split: **hunk 1 is the whole revert and hunk 2 is the whole addition.**
+`--keep 2` lands the work and touches no landed byte. The classifier's rule — *predates landing ⇒
+hunk isolation lands the revert* — is sound only when every hunk carrying work also deletes, and it
+is asserted unconditionally. On a MIXED copy it is wrong, and wrong toward the destructive door.
+
+**This is the same shape as the defect above, one layer out.** `_clock_disclosure`'s own docstring
+already records that this classifier "printed 'differs from HEAD and reverts no landing' about a
+copy its own clock calls the older draft — so the defect had already propagated into the
+instructions a session is handed before it reads any code." It has propagated again. A door and the
+advice that routes traffic to it are two artefacts, and repairing one does not repair the other.
+
+**Not fixed here** — it is a different module and deserves its own measurement of how many live
+hand-offs and draws carry the same advice.
