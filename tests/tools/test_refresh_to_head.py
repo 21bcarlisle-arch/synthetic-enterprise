@@ -1419,3 +1419,66 @@ def test_staged_too_is_off_by_default_in_refresh_and_in_judge(repo: Path) -> Non
     assert rc == 1 and rth.STAGED in text
     assert (repo / "m.py").read_text() == RIVAL_KIND_A
     assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip()
+
+
+# ------------- "it deletes no name" was false one population to the left (2026-09-24)
+#
+# The defect, banked as SEAT_FINDING_THE_SAME_KEY_IS_NOT_A_SYMBOL_BLIND_SPOT_NOW_REFUSES_TO_CLEAN_A_
+# REVERT_IT_ONCE_OFFERED_TO_CREATE_2026-09-24 (`db1c8460e`): this door's two `NOT_SUPERSEDED`
+# sentences both asserted "it deletes no name", and `judge` reads SYMBOLS -- so a copy deleting two
+# entries from a publication whitelist satisfied every word of a claim that was false of the
+# artefact. Live instance while it was written: `saas/reporting/annual_report.py`, dropping
+# `gas_shape_provider_by_customer` and `gas_shape_refusals`.
+#
+# WHY THE REPAIR IS A SENTENCE HERE AND NOT A `judge` LOSS FOR THIS SHAPE. That copy also supplies
+# six comment lines the base lacks. ANY loss makes this door answer `REFRESHABLE`, and
+# `background.origin_reconcile` acts on that grade with nobody reading the discard list -- so
+# turning this into a verdict would have had a daemon destroy the writing on the first application.
+# `stale_copy_refusal.judge`'s KEY_SUBSET leg owns the copies that supply nothing at all; this owns
+# the ones where the honest answer is a refusal that says what it found.
+
+#: DROPS a key the base binds, and writes prose the base lacks -- so `judge` is silent by design and
+#: this door is the only thing standing between the copy and a claim that it deletes no name.
+W_RIVAL_DROPS_A_KEY = (
+    "def alpha():\n    return 1\n\n\n"
+    "def freshly_landed_helper(argument):\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n\n\n"
+    "# WHY THE KEY IS GOING: a line of writing that exists in no commit anywhere.\n"
+    "def extract():\n"
+    "    return {}\n"
+)
+
+
+def test_a_copy_deleting_a_whitelist_key_is_not_told_it_deletes_no_name(repo: Path) -> None:
+    """THE FALSE SENTENCE ITSELF. Three true clauses making one untrue claim, for the second time in
+    this module -- the first was prose, this is a dict key, and both were reported to an operator
+    about to discard bytes.
+
+    The verdict STAYS a refusal: the repair is what the refusal says, not which state it reaches.
+    A copy supplying prose is not one the base supersedes, and flipping it to `REFRESHABLE` would
+    hand `origin_reconcile` a licence to overwrite the writing."""
+    (repo / "w.py").write_text(W_RIVAL_DROPS_A_KEY)
+    verdict = rth.judge_copy(repo, "w.py")
+
+    assert verdict.state == rth.NOT_SUPERSEDED, (
+        "the key reading has turned a refusal into a grade that lets a daemon overwrite this "
+        "copy: {} -- {}".format(verdict.state, verdict.reason))
+    assert "landed_key" in verdict.reason, (
+        "the refusal does not name the key it read, so the operator is told only that something "
+        "is wrong: {}".format(verdict.reason))
+    assert "it deletes no name." not in verdict.reason, (
+        "the sentence that was false is still being printed about a copy deleting a whitelist "
+        "key: {}".format(verdict.reason))
+
+    # THE ANTI-TAUTOLOGY ARM, AND IT IS A DIFFERENT COPY RATHER THAN A MISSING WORD. An ordinary
+    # edit must still be told, in terms, that it deletes no name -- a door mutated to print the key
+    # clause unconditionally passes every assertion above and fails here.
+    (repo / "w.py").write_text(W_LANDED.replace("return argument * 41 + 7",
+                                                "return argument * 41 + 8"))
+    clean = rth.judge_copy(repo, "w.py")
+    assert clean.state == rth.NOT_SUPERSEDED and "deletes no name" in clean.reason, (
+        "an ordinary edit no longer gets the clean-bill sentence: {} -- {}".format(
+            clean.state, clean.reason))
+    assert "DELETES" not in clean.reason, (
+        "the key clause prints for a copy that drops no key, so it says nothing about the copy")

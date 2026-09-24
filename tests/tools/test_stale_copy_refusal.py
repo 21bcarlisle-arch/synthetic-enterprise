@@ -2191,3 +2191,160 @@ def test_the_clock_reads_the_stash_that_holds_the_bytes_and_not_the_stamp_of_the
     assert verdicts == {"a.py": True, "b.py": False, "c.py": False, "d.py": True, "e.py": True}, (
         "the five copies do not split the way their five different causes require: {}".format(
             verdicts))
+
+
+# ------------------- the key-level term, in BOTH directions, beside the symbol-level one (2026-09-24)
+#
+# The defect, banked as SEAT_FINDING_THE_SAME_KEY_IS_NOT_A_SYMBOL_BLIND_SPOT_NOW_REFUSES_TO_CLEAN_A_
+# REVERT_IT_ONCE_OFFERED_TO_CREATE_2026-09-24 (`db1c8460e`): the GAIN half of the dict-key reading
+# landed at `19f340e65` and the LOSS half did not, so within one day the same instrument refused a
+# refresh on a copy that ADDED whitelist keys and said "it deletes no name" about one that DELETED
+# two -- `saas/reporting/annual_report.py`, dropping `gas_shape_provider_by_customer` and
+# `gas_shape_refusals` from the dict `extract_report_data` returns, live on the shared tree while
+# this was written.
+#
+# THE POPULATION IS DICT KEYS AND THE WIDER ONE WAS PRICED, NOT ASSUMED AWAY. Pre-registered in
+# `docs/staging/records/SEAT_PREREG_HOW_WIDE_IS_A_KEY_LEVEL_LOSS_TERM_BESIDE_THE_SYMBOL_LEVEL_ONE_
+# 2026-09-24.md`: adding list/set/tuple elements withdraws 10 further `REFRESHABLE` verdicts across
+# the shared tree's 77 dirty `.py` paths against a decision rule of 3, catching things like a test's
+# expected-strings list. The narrow population is the measured answer.
+
+#: The base binds a two-key publication whitelist inside a function body, so no reading of SYMBOLS
+#: can see either key. `extract` is bound in both sides of every fixture below -- if it were not,
+#: the symbol reader would answer and the key reader would never be the thing under test.
+K_BASE = (
+    "def alpha():\n    return 1\n\n\n"
+    "def extract():\n"
+    '    return {"kept_key": 1, "whitelist_key": 2}\n'
+)
+
+#: DROPS a key, adds none, supplies no symbol and no prose. The only shape `judge` may refuse.
+K_DROPS_A_KEY = (
+    "def alpha():\n    return 1\n\n\n"
+    "def extract():\n"
+    '    return {"kept_key": 1}\n'
+)
+
+
+def test_the_key_level_term_answers_both_directions_from_one_population(repo: Path) -> None:
+    """ONE SET DIFFERENCE, TWO FIELDS -- which is the whole structural point and not a convenience.
+
+    The gain half shipped alone and the loss half did not, and for a day the same dict was read in
+    one direction only. Two functions over one population drift the first time either is tuned; the
+    leg that reds if they are re-split is `dict_key_gains` being the delta's own field rather than a
+    second walk of the text."""
+    delta = scr.declared_key_delta(K_BASE, K_DROPS_A_KEY, "m.py")
+    assert delta.dropped == ("whitelist_key",), (
+        "the loss direction is the half that was open; it reads {}".format(delta.dropped))
+    assert delta.gained == (), delta.gained
+
+    back = scr.declared_key_delta(K_DROPS_A_KEY, K_BASE, "m.py")
+    assert back.gained == ("whitelist_key",) and back.dropped == (), (
+        "the same population read the other way round must invert exactly: {}".format(back))
+    assert scr.dict_key_gains(K_DROPS_A_KEY, K_BASE, "m.py") == back.gained, (
+        "`dict_key_gains` is a SECOND reading of the text again, so the two directions can drift")
+    # AND SYMBOLS CANNOT SEE ANY OF IT -- without this the fixture proves nothing the symbol reader
+    # did not already answer, and every assertion above would pass on a term that was never needed.
+    assert scr.symbols(K_BASE, "m.py") == scr.symbols(K_DROPS_A_KEY, "m.py"), (
+        "the fixture moves a symbol, so it cannot show the blind spot this term exists for")
+
+
+def test_a_strict_declared_key_subset_is_a_loss_rule_2_cannot_see(repo: Path) -> None:
+    """THE VERDICT THAT DID NOT EXIST. `judge` returned `None` -- no complaint at all -- about a copy
+    deleting two publication-whitelist keys, because rule 2 differences SYMBOLS and a key inside a
+    function body binds none.
+
+    Keyed to the PROPERTY and not to today's live file: the assertion is that a strict key subset is
+    refused and that the refusal NAMES the key, so it stays right when `annual_report.py` is
+    cleaned."""
+    _commit(repo, "k2.py", K_BASE, "the whitelist lands")
+    loss = scr.judge(repo, "k2.py", K_BASE, K_DROPS_A_KEY)
+
+    assert loss is not None, (
+        "a copy that deletes a whitelist key and adds nothing gets NO complaint -- which is the "
+        "sentence `refresh_to_head` then reports as 'it deletes no name'")
+    assert loss.rule == scr.KEY_SUBSET, loss.rule
+    assert loss.detail == ("whitelist_key",), (
+        "the refusal must name the key it is about, or the reader cannot tell a whitelist entry "
+        "from a typo: {}".format(loss.detail))
+    assert "whitelist_key" in loss.render(), loss.render()
+
+    # THE ANTI-TAUTOLOGY ARM, AND IT ASSERTS `is None` RATHER THAN A MISSING WORD. A leg mutated to
+    # refuse unconditionally passes every "is it refused" assertion above and also passes a negative
+    # arm keyed to a word from the positive case; only "this copy gets NO verdict" kills it.
+    assert scr.judge(repo, "k2.py", K_BASE, K_BASE.replace("return 1", "return 2")) is None, (
+        "an ordinary edit that touches no key is refused, so this leg refuses everything")
+
+
+def test_the_key_leg_never_licenses_a_refresh_over_prose_the_base_lacks(repo: Path) -> None:
+    """THE GUARD THAT STOPS THE REPAIR DESTROYING WRITING, and it is the live case rather than a
+    hypothetical: the copy this term was commissioned for drops two whitelist keys AND adds a
+    six-line comment the base lacks.
+
+    ANY loss from `judge` is what `refresh_to_head._judge_copy` turns into `REFRESHABLE`, and
+    `background.origin_reconcile` refreshes on that grade with no person in the loop -- so an
+    unguarded leg would have had a daemon overwrite that comment on its first live application.
+    A copy supplying prose is not one the base strictly supersedes, and this leg must say nothing
+    about it; the true sentence it is owed is made in `refresh_to_head`'s refusal instead."""
+    with_prose = K_DROPS_A_KEY.replace(
+        "def extract():",
+        "# WHY THIS KEY IS GOING: a line of writing that exists in no commit anywhere.\n"
+        "def extract():")
+    _commit(repo, "k3.py", K_BASE, "the whitelist lands")
+
+    assert scr.supplied_comment_lines(K_BASE, with_prose), (
+        "the fixture supplies no comment line, so it cannot exercise the guard at all")
+    assert scr.judge(repo, "k3.py", K_BASE, with_prose) is None, (
+        "a copy that drops a key AND writes prose the base lacks is graded a pure loss, which "
+        "makes it REFRESHABLE and hands a daemon a licence to discard the writing")
+    # AND THE GUARD IS NOT A BLANKET OFF-SWITCH: the same copy without the comment is still refused,
+    # so a mutation that simply disables the leg cannot hide behind this test.
+    assert scr.judge(repo, "k3.py", K_BASE, K_DROPS_A_KEY) is not None, (
+        "the guard has swallowed the leg entirely -- nothing reaches KEY_SUBSET any more")
+    # THE FLOOR IS `_is_comment_line`'S OWN AND NOT A BARE `startswith('#')`. Below it a marker
+    # carries no writing, and if the reuse is replaced this goes red -- which is the leg that keeps
+    # a copy from escaping the term by carrying a `# x`. The floor is `_trivial`'s five characters,
+    # asserted through the function rather than restated as a number here: a second copy of it
+    # would drift the first time either is tuned, which is the reason that floor is shared at all.
+    marker = "# x"
+    assert not scr._is_comment_line(marker), (
+        "the shared floor has moved under this fixture, so the next assertion tests nothing")
+    assert not scr.supplied_comment_lines(K_BASE, K_DROPS_A_KEY.replace(
+        "def alpha():", marker + "\ndef alpha():")), (
+        "a sub-floor marker counts as prose, so a copy escapes the term by carrying three "
+        "characters of comment")
+
+
+def test_an_unreadable_key_population_is_not_no_keys_dropped(
+        repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """AN UNAVAILABLE CHECK IS A FAILED CHECK -- the third time this module has banked the shape
+    (`committed_at`'s declared `None`, `distinctive_lines`' silent `()`, and this).
+
+    Forced rather than hoped for. `symbols()` raises `Unparseable` above this leg for any `.py` that
+    will not parse, so on today's code the `None` is a proven equivalence; a fixture that merely
+    passed broken text would go green through the earlier branch and prove nothing about this one.
+    The flattering failure is falling through to `partial`, which reads 'could not be told' as 'no
+    keys dropped'."""
+    _commit(repo, "k4.py", K_BASE, "the whitelist lands")
+    monkeypatch.setattr(scr, "_dict_string_keys", lambda text, path: None)
+
+    loss = scr.judge(repo, "k4.py", K_BASE, K_DROPS_A_KEY)
+    assert loss is not None and loss.rule == scr.UNPARSEABLE, (
+        "an unreadable key population was reported as an answer: {}".format(loss))
+
+
+def test_the_key_leg_refuses_only_a_copy_that_supplies_nothing_at_either_level(
+        repo: Path) -> None:
+    """THE SYMBOL GUARD, and it is NOT redundant with rule 2 above it. Rule 2 returns on a STRICT
+    symbol subset, so a copy that GAINS a symbol while dropping a key falls straight through to
+    here -- and this verdict's own remedy reads "this copy supplies NO name HEAD lacks", which
+    would send genuine holder work to the door that overwrites it."""
+    gains_a_symbol = K_DROPS_A_KEY + "\n\ndef only_this_lane_has_me():\n    return 1\n"
+    _commit(repo, "k5.py", K_BASE, "the whitelist lands")
+
+    assert scr.gains_over(K_BASE, gains_a_symbol, "k5.py") == ("only_this_lane_has_me",), (
+        "the fixture supplies no symbol, so the guard under test is never reached")
+    loss = scr.judge(repo, "k5.py", K_BASE, gains_a_symbol)
+    assert loss is None or loss.rule != scr.KEY_SUBSET, (
+        "a copy supplying a symbol is graded a strict key subset, and its remedy tells the reader "
+        "it supplies no name HEAD lacks: {}".format(loss))

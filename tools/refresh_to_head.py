@@ -97,6 +97,7 @@ from tools.stale_copy_refusal import (
     blob_at,
     cuts_among,
     dead_among,
+    declared_key_delta,
     dict_key_gains,
     json_leaf_delta,
     landable_hunks,
@@ -767,23 +768,42 @@ def _judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
         # below is the difference between a verdict and a claim. It is the module's own list and not a
         # second copy of the branch conditions here: a rule added there appears in this text without
         # this line changing, which is the opposite of how the last three readings arrived.
+        # AND "IT DELETES NO NAME" WAS STILL FALSE AFTER ALL THAT, one population to the left. Both
+        # sentences below asserted it, and `judge` reads SYMBOLS -- a string key inside a function
+        # body binds none, so a copy deleting two entries from a publication whitelist satisfied
+        # every word. `saas/reporting/annual_report.py` is the instance and it was live while this
+        # was written: it drops `gas_shape_provider_by_customer` and `gas_shape_refusals`, and this
+        # door said it deletes no name. The keys are named here rather than turned into a `judge`
+        # loss because THIS copy also supplies six comment lines the base lacks -- any loss is a
+        # `REFRESHABLE` here, and `origin_reconcile` acts on that grade with no person in the loop,
+        # so the honest move is a refusal that says what it found and not a licence to overwrite.
+        dropped = declared_key_delta(head_text, work_text, path)
+        drops = "" if dropped is None or not dropped.dropped else (
+            " AND IT DELETES {} DECLARED KEY(S) {} BINDS: {}. A key inside a function body declares "
+            "no name, so every symbol reading above calls the two sides equal -- where that dict is "
+            "a publication whitelist, the key IS the work and this is not an ordinary edit.".format(
+                len(dropped.dropped), base, ", ".join(dropped.dropped[:5])))
+        deletes_no_name = "it deletes no name" if not drops else "it deletes no SYMBOL"
         unread = unread_populations(root, path, work_text, parent=base)
-        if unread:
+        if unread or drops:
             return Verdict(path, NOT_SUPERSEDED,
                            "the stale-copy control has no complaint it CAN make about this copy "
                            "against {}: it does not predate the last landing there by the evidence "
-                           "that was read, and it deletes no name. But that is not a clean bill -- "
-                           "{} population(s) here were NOT READ, so nothing establishes this is an "
-                           "ordinary edit: {} Refreshing it anyway is `git checkout <path>` with a "
-                           "nicer name over a question nobody asked, and is forbidden here for that "
-                           "reason.".format(base, len(unread), " ".join(unread)))
+                           "that was read, and {}.{}{} Refreshing it anyway is `git checkout "
+                           "<path>` with a nicer name over a question nobody asked, and is "
+                           "forbidden here for that reason.".format(
+                               base, deletes_no_name, drops,
+                               "" if not unread else
+                               " That is not a clean bill either -- {} population(s) here were NOT "
+                               "READ, so nothing establishes this is an ordinary edit: {}".format(
+                                   len(unread), " ".join(unread))))
         return Verdict(path, NOT_SUPERSEDED,
                        "the stale-copy control has NO complaint about this copy against {}: it "
-                       "does not predate the last landing there, it deletes no name, and it reverts "
-                       "no comment block that landing wrote. Every reading this control has was "
-                       "made. Refreshing it would discard an ordinary edit, which is `git checkout "
-                       "<path>` with a nicer name -- and that is forbidden here for this exact "
-                       "reason.".format(base))
+                       "does not predate the last landing there, it deletes no name -- symbol or "
+                       "declared key -- and it reverts no comment block that landing wrote. Every "
+                       "reading this control has was made. Refreshing it would discard an ordinary "
+                       "edit, which is `git checkout <path>` with a nicer name -- and that is "
+                       "forbidden here for this exact reason.".format(base))
     return Verdict(path, REFRESHABLE,
                    "rival copy: supplies no name {} lacks{}{}, and the stale-copy control refuses "
                    "it [{}]. {} strictly supersedes it.".format(

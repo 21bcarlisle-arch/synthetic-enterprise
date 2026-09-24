@@ -112,6 +112,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import difflib
 import hashlib
 import json
 import os
@@ -314,6 +315,10 @@ UNANSWERED = "clock_could_not_answer"
 #: Rule 1b: the copy carries the landing's CODE and has dropped the whole COMMENT BLOCK that landing
 #: wrote -- the one loss no other rule in this module can see. See `reverted_comment_block`.
 REVERTS_COMMENT = "reverts_a_landed_comment_block"
+#: Rule 2's KEY-LEVEL half: the copy drops declared string keys the base binds and adds none, while
+#: `symbols()` calls the two sides equal. See `declared_key_delta` -- one population, both
+#: directions, so the reading that REFUSES a refresh and the reading that names a LOSS cannot drift.
+KEY_SUBSET = "strict_declared_key_subset"
 
 
 #: THE ONLY RULES THAT LICENSE `refresh_to_head --base-wins`, and the point is that the CLOCK returned them rather
@@ -659,6 +664,76 @@ def _dict_string_keys(text: str, path: str) -> frozenset[str] | None:
     return frozenset(out)
 
 
+@dataclass(frozen=True)
+class KeyDelta:
+    """Which declared string keys the copy BINDS that the base does not, and which it DROPS.
+
+    BOTH DIRECTIONS OUT OF ONE READING, which is the whole reason this is a dataclass and not two
+    functions. The gain half landed alone at `19f340e65` and the loss half did not, and for a day
+    the same instrument answered "no complaint" about a copy deleting two publication-whitelist
+    keys while refusing a refresh on the copy that had added them. Two functions over one population
+    drift the first time either is tuned; a caller that wants one direction takes one field."""
+    gained: tuple[str, ...]
+    dropped: tuple[str, ...]
+
+
+def declared_key_delta(head_text: str, new_text: str, path: str) -> KeyDelta | None:
+    """The key-level supersession term, beside `symbols()`/`gains_over`. `None` if a side will not
+    parse -- which is not "no keys", for this module's usual reason.
+
+    THE POPULATION IS DICT-LITERAL STRING KEYS AND THE WIDER ONE WAS PRICED AND REFUSED. The
+    direction this was built to says a string literal in a list, a decorator and an `__all__` entry
+    are the same shape as a dict key and must not each earn a clause -- and they do not: there is
+    one clause here, and widening it is a change to `_dict_string_keys` alone. Widening it was
+    measured rather than argued, pre-registered in `SEAT_PREREG_HOW_WIDE_IS_A_KEY_LEVEL_LOSS_TERM_
+    BESIDE_THE_SYMBOL_LEVEL_ONE_2026-09-24`: adding `list`/`set`/`tuple` display elements to the
+    population withdraws **10 additional `REFRESHABLE` verdicts** across the shared tree's 77 dirty
+    `.py` paths of 2026-09-24, against a decision rule of 3, and the copies it newly catches are
+    things like a test's expected-strings list `['os', 'p', "pathlib.Path('x')"]` -- not a
+    whitelist. It buys ONE extra loss verdict for ten extra refusals. The narrow population is
+    therefore the measured answer and not a first draft.
+
+    `dropped` IS THE HALF THAT WAS OPEN, and `judge` is where it is spent. A key inside a function
+    body is not a module binding, a class member or an import, so a copy that deletes one leaves
+    `symbols()` returning the same set for both sides -- "supplies no name" and "deletes no name"
+    are then both true of SYMBOLS and the second is false of the artefact. That was live on
+    `saas/reporting/annual_report.py`, which drops `gas_shape_provider_by_customer` and
+    `gas_shape_refusals` from the dict `extract_report_data` returns while `judge` returned `None`.
+
+    NOT `symbols()`, FOR THE REASON `_dict_string_keys` STATES: a dict key binds nothing, and
+    folding it into the set `gains_over` differences would let a `{"a": 1}` in a docstring example
+    argue that a copy supplies work. This is a second reading over the same text, consulted
+    separately, and each direction of it only ever REFUSES."""
+    if Path(path).suffix not in PY_SUFFIXES:
+        return KeyDelta((), ())
+    before, after = _dict_string_keys(head_text, path), _dict_string_keys(new_text, path)
+    if before is None or after is None:
+        return None
+    return KeyDelta(tuple(sorted(after - before)), tuple(sorted(before - after)))
+
+
+def supplied_comment_lines(head_text: str, new_text: str) -> tuple[str, ...]:
+    """The comment lines this copy holds that the base does not, in file order.
+
+    THE GUARD THAT STOPS A KEY-LEVEL COMPLAINT BECOMING A DAEMON'S LICENCE TO OVERWRITE PROSE, and
+    it is here rather than at the door because it is a statement about the bytes. `judge` returning
+    ANY loss for a path is what `refresh_to_head._judge_copy` turns into `REFRESHABLE`, and
+    `background.origin_reconcile` calls `refresh` on that grade WITHOUT a person -- so a verdict
+    whose own words are "supplies nothing" must be true of prose too, or the leg that makes the
+    control honest destroys writing on its first live application.
+
+    IT IS NOT A HYPOTHETICAL. The copy this term was commissioned for drops two whitelist keys AND
+    adds a six-line comment the base lacks, explaining why `covers_svt_route: false` is live. Graded
+    `REFRESHABLE`, those six lines go to a preserved ref nothing points at.
+
+    `_is_comment_line`'s FLOOR AND NOT A SECOND COPY OF IT -- same reason that function gives for
+    reusing `_trivial`'s. A lone `# noqa` is not writing and must not wedge a refresh."""
+    diff = difflib.unified_diff(head_text.splitlines(), new_text.splitlines(), n=0, lineterm="")
+    return tuple(ln[1:].strip() for ln in diff
+                 if ln.startswith("+") and not ln.startswith("+++")
+                 and _is_comment_line(ln[1:]))
+
+
 def dict_key_gains(head_text: str, new_text: str, path: str) -> tuple[str, ...] | None:
     """The dict-literal STRING KEYS this copy binds that the base does not -- `None` if unreadable.
 
@@ -688,13 +763,14 @@ def dict_key_gains(head_text: str, new_text: str, path: str) -> tuple[str, ...] 
     somebody has to argue for by hand -- which is the affordable direction for a door that destroys
     bytes. `None` is not `()`, for this module's usual reason: an unparseable side establishes
     nothing, and the caller must refuse rather than read it as "no keys gained".
+
+    ONE FIELD OF `declared_key_delta` AND NOT A SECOND READING OF THE TEXT. This kept its name and
+    its caller because `refresh_to_head` asks exactly this question and its refusal quotes it; what
+    changed is that the loss direction is now the other field of the same set difference in the same
+    pass, so no tuning of the population can move one direction without moving the other.
     """
-    if Path(path).suffix not in PY_SUFFIXES:
-        return ()
-    before, after = _dict_string_keys(head_text, path), _dict_string_keys(new_text, path)
-    if before is None or after is None:
-        return None
-    return tuple(sorted(after - before))
+    delta = declared_key_delta(head_text, new_text, path)
+    return None if delta is None else delta.gained
 
 
 #: How many contiguous comment lines make a BLOCK. The narrowness argument rests on this: a landing
@@ -1367,6 +1443,12 @@ class Loss:
                       "reverts it:".format(len(self.detail), self.commit[:9]),
             SUBSET: "      would DELETE {} name(s) HEAD has, and adds none:".format(
                 len(self.detail)),
+            KEY_SUBSET: "      would DELETE {} declared string KEY(S) HEAD binds, and adds none -- "
+                        "while supplying\n      no symbol either. A key inside a function body "
+                        "declares no name, so `symbols()`\n      returns the same set for both "
+                        "sides and rule 2 is blind to this by construction.\n      Where that dict "
+                        "is a publication whitelist, the key IS the work:".format(
+                            len(self.detail)),
             CLOCK: "      this file's mtime PREDATES commit {}, and your copy contains not one of "
                    "the {}\n      distinctive line(s) that commit added here -- so it was taken "
                    "before that landing\n      and this commit reverts it:".format(
@@ -1593,6 +1675,48 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
         # is told: "would DELETE these 13 names" is a stronger and more actionable statement than
         # "is missing 1 of 45 lines", and `test_finding_classes.py` on the live tree is both.
         return Loss(path, SUBSET, tuple(sorted(before - after)), gains=())
+    # RULE 2's KEY-LEVEL HALF, and it is the same sentence one population to the left: drops
+    # declared keys the base binds, adds none. It is UNCONDITIONAL, exactly as `SUBSET` is and
+    # unlike rule 1b -- and that is a measurement, not a symmetry argument. Pre-registered decision
+    # rule: unconditional if the leg newly refuses <=5% of changed-`.py` path/commit pairs. Over the
+    # last 200 commits of `origin/main`, 362 such pairs, it newly refuses **0** -- every real commit
+    # that drops a key adds one, so a strict key subset is not a shape honest landings make. It is
+    # also not keyed to the one file that commissioned it: 4 of the shared tree's 77 dirty `.py`
+    # copies are in this state today and `judge` has no complaint about any of them.
+    #
+    # `after - before` EMPTY IS REQUIRED AND IS NOT REDUNDANT WITH THE BRANCH ABOVE. That branch is
+    # `after < before` -- a STRICT symbol subset -- so a copy that GAINS symbols falls through to
+    # here, and without this guard it would be handed a verdict whose own remedy reads "supplies NO
+    # name HEAD lacks". The claim this leg makes is "supplies nothing at EITHER level and deletes
+    # keys", so both levels are asked before it is made.
+    #
+    # AND THE PROSE GUARD IS THE THIRD LEVEL, WITHOUT WHICH THIS TERM DESTROYS WRITING. Any loss
+    # here is what `refresh_to_head._judge_copy` turns into `REFRESHABLE`, and that grade is a
+    # DAEMON'S -- `background.origin_reconcile` refreshes on it with no person in the loop. Measured
+    # on the copy that commissioned this term: it drops two whitelist keys and adds a six-line
+    # comment the base lacks, so an unguarded leg would have had a daemon overwrite the writing on
+    # its first live application. A copy supplying prose is not one the base strictly supersedes,
+    # and this leg says NOTHING about it -- the true statement it is owed is made where the operator
+    # is, in `refresh_to_head`'s `NOT_SUPERSEDED` text, which now names the keys instead of
+    # asserting "it deletes no name".
+    #
+    # IT OUTRANKS `partial` FOR THE REASON `SUBSET` DOES: two verdicts refusing the same copy, and
+    # naming the two whitelist keys it deletes is more actionable than naming a line it is missing.
+    keys = declared_key_delta(head_text, new_text, path)
+    if keys is None:
+        # A PROVEN EQUIVALENCE TODAY, KEPT AND SAID SO rather than left for a reader to assume it
+        # bites. `symbols()` raised `Unparseable` above for any `.py` that will not parse, and
+        # `declared_key_delta` answers an empty delta for every other suffix, so nothing reaching
+        # here can return `None` unless the two readers disagree about one text. It is kept because
+        # the alternative is falling through to `partial` -- reading "could not be told" as "no keys
+        # dropped", which is the exact fail-silent `committed_at`, `distinctive_lines` and
+        # `unread_populations` were each written to close. `test_an_unreadable_key_population_is_not_
+        # no_keys_dropped` forces it rather than hoping for it.
+        return Loss(path, UNPARSEABLE, ("{}: the declared-key population could not be read, so "
+                                        "whether this copy drops a key is UNKNOWN".format(path),))
+    if keys.dropped and not keys.gained and not (after - before) \
+            and not supplied_comment_lines(head_text, new_text):
+        return Loss(path, KEY_SUBSET, keys.dropped, gains=())
     return partial
 
 
