@@ -380,9 +380,22 @@ def _landing_clause(blocking: list[dict]) -> str:
         # missing and therefore what the reader may and may not trust about the split above.
         steps.append(oracle_failed)
     if untracked:
+        # THE TWO DOORS ARE NOT SYMMETRIC AND SAYING SO IS THE WHOLE REPAIR. `FF_UNTRACKED` MEANS
+        # ORIGIN ALREADY BRINGS A COPY -- that is the kind's definition, not a likelihood -- so
+        # "land it" REPLACES origin's file rather than adding one, and an orphan draft left in a
+        # shared tree is routinely the OLDER of the two. Measured 2026-09-24 on the live wedge: of
+        # the three untracked blockers this refusal named, two were superseded drafts of documents
+        # origin already carried, and landing either would have reverted a landed correction --
+        # one of which existed solely to retract its own earlier recommendation. Removing is the
+        # door that cannot lose, because `clear_untracked_twins` writes the bytes to a preserved
+        # ref first; landing is the door that needs a direction established.
         steps.append(
-            "the {} UNTRACKED path(s) clear by landing them (`python3 -m tools.surgical_land "
-            "<path>`) or by removing them, whichever the holding lane wants".format(len(untracked)))
+            "the {} UNTRACKED path(s) are orphan drafts of files ORIGIN ALREADY BRINGS, so landing "
+            "one REPLACES origin's copy rather than adding a file and an orphan is routinely the "
+            "OLDER of the two -- establish the direction first (`git diff <(git show "
+            "origin/main:<path>) <path>`) and land only a copy that is genuinely AHEAD. Removing "
+            "is the lossless door: the bytes go to `{}` before they are cleared".format(
+                len(untracked), ORPHAN_PRESERVED_PREFIX))
     if not steps:
         # A kind this function does not know about. Say so rather than printing a remedy that was
         # chosen for a different shape -- an unrecognised kind with a confident step attached is
