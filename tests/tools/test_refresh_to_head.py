@@ -254,6 +254,59 @@ def test_an_ordinary_edit_the_stale_copy_control_does_not_refuse_is_refused_here
     assert not verdict.gains, "the symbol test alone cannot see this one -- that is why leg 2 exists"
 
 
+#: Carries every distinctive line of the landing, declares exactly the names HEAD declares, adds
+#: none, and differs from HEAD only in a value the landing never touched. So it reaches
+#: `NOT_SUPERSEDED` by every leg -- which makes it the one fixture that can be aged without changing
+#: its verdict, and therefore the only one that can ask both of that verdict's two sentences.
+UNREMARKABLE_EDIT = LANDED.replace("    return 1\n", "    return 2\n")
+
+
+def test_the_no_complaint_verdict_does_not_claim_a_reading_it_never_made(repo: Path) -> None:
+    """MUTATION: drop the `unread` branch in `judge_copy`'s `NOT_SUPERSEDED` arm and this FIRES.
+
+    THE DEFECT, and it is this tool's half of
+    SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT
+    (2026-09-24). This branch said "it does not predate the last landing there and it deletes no name.
+    Refreshing it would discard an ordinary edit" -- every clause true, the sentence false. `judge`'s
+    rule 1 filters comments out of its evidence set, so a copy whose ONLY loss was a six-line comment
+    block landed twelve minutes earlier arrived here and was vouched for by a reading nobody had made.
+    The operator acting on that sentence discards bytes.
+
+    BOTH SENTENCES ARE ASKED OF ONE TREE, AND ASSERTED DISTINCT. A repair that printed the cautious
+    text unconditionally would pass a test of the cautious text alone while destroying the tool's
+    ability to say "everything I can read, I read" -- and a refusal that can never be cleared is a
+    footnote, not a reading. `unread_populations` is keyed to the CLOCK, so the same bytes at two
+    mtimes are the whole partition."""
+    (repo / "m.py").write_text(UNREMARKABLE_EDIT)
+    landed_at = scr.committed_at(repo, scr.last_commit_touching(repo, "m.py"))
+
+    os.utime(repo / "m.py", (landed_at + 60,) * 2)
+    fresh = rth.judge_copy(repo, "m.py")
+
+    os.utime(repo / "m.py", (landed_at - 60,) * 2)
+    aged = rth.judge_copy(repo, "m.py")
+
+    assert fresh.state == aged.state == rth.NOT_SUPERSEDED, (
+        "the clock moved the VERDICT, not just its wording -- this fixture no longer isolates the "
+        "sentence and the assertions below are about something else: {} / {}".format(
+            fresh.state, aged.state))
+    assert fresh.reason != aged.reason, (
+        "one sentence for both states, so the tool cannot distinguish 'no complaint' from 'the "
+        "question was not asked' -- which is the defect, unrepaired")
+    assert "NOT READ" in fresh.reason and "COMMENT BLOCK" in fresh.reason, (
+        "rule 1b is gated on the clock and did not run for this fresh copy, and the verdict does not "
+        "say so -- it is making a positive claim about prose it never read")
+    assert "would discard an ordinary edit" not in fresh.reason, (
+        "the verdict still asserts 'an ordinary edit' where a population went unread: that is the "
+        "exact sentence the finding is about, and it is what an operator acts on")
+    assert "Every reading this control has was made" in aged.reason, (
+        "the honest all-clear is unreachable, so this branch can only ever caution -- a door that "
+        "always hedges gets read as noise and the next lane stops reading it")
+    assert "reverts no comment block" in aged.reason, (
+        "the cleared verdict does not name the comment reading it now makes, so a reader cannot tell "
+        "this sentence from the one that was wrong")
+
+
 def test_a_suffix_with_no_symbol_reader_is_refused_rather_than_waved_through(repo: Path) -> None:
     """FAIL-CLOSED. 'Supplies nothing HEAD lacks' is UNESTABLISHED for a suffix nothing reads, and
     an unestablished precondition is a failed one -- folding it to 'no names either side' would

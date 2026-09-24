@@ -101,6 +101,7 @@ from tools.stale_copy_refusal import (
     landable_hunks,
     opinion,
     symbols,
+    unread_populations,
 )
 from tools.stale_copy_refusal import (
     PREDATES as PREDATES,  # noqa: PLC0414 -- re-export; typed by this tool's suite
@@ -613,12 +614,36 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     # answered. The unanswered case can no longer arrive here at all -- it returned above.
     loss = clock.loss
     if loss is None:
+        # AND THE "NO COMPLAINT" NOW NAMES WHAT IT READ, which is the repair this branch needed most.
+        # Its old text asserted "it deletes no name. Refreshing it would discard an ordinary edit" --
+        # three true clauses making one false sentence, because `judge`'s rule 1 filters comments out
+        # of its evidence set, so a copy whose ONLY loss was a landed comment block reached here and
+        # was vouched for by a reading nobody had made. The live instance is `8d84c67b5`'s six-line
+        # record of why a stub was red at HEAD, reverted by a copy this door called an ordinary edit.
+        #
+        # Rule 1b reads that block now, but it is GATED ON THE CLOCK -- prose that has gone stale is
+        # ordinary to delete in newer work -- so for a copy the clock calls fresh the population is
+        # still unread. `unread_populations` returns it, and the difference between the two sentences
+        # below is the difference between a verdict and a claim. It is the module's own list and not a
+        # second copy of the branch conditions here: a rule added there appears in this text without
+        # this line changing, which is the opposite of how the last three readings arrived.
+        unread = unread_populations(root, path, work_text, parent=base)
+        if unread:
+            return Verdict(path, NOT_SUPERSEDED,
+                           "the stale-copy control has no complaint it CAN make about this copy "
+                           "against {}: it does not predate the last landing there by the evidence "
+                           "that was read, and it deletes no name. But that is not a clean bill -- "
+                           "{} population(s) here were NOT READ, so nothing establishes this is an "
+                           "ordinary edit: {} Refreshing it anyway is `git checkout <path>` with a "
+                           "nicer name over a question nobody asked, and is forbidden here for that "
+                           "reason.".format(base, len(unread), " ".join(unread)))
         return Verdict(path, NOT_SUPERSEDED,
                        "the stale-copy control has NO complaint about this copy against {}: it "
-                       "does not predate the last landing there and it deletes no name. Refreshing "
-                       "it would discard an ordinary edit, which is `git checkout <path>` with a "
-                       "nicer name -- and that is forbidden here for this exact reason.".format(
-                           base))
+                       "does not predate the last landing there, it deletes no name, and it reverts "
+                       "no comment block that landing wrote. Every reading this control has was "
+                       "made. Refreshing it would discard an ordinary edit, which is `git checkout "
+                       "<path>` with a nicer name -- and that is forbidden here for this exact "
+                       "reason.".format(base))
     return Verdict(path, REFRESHABLE,
                    "rival copy: supplies no name {} lacks{}{}, and the stale-copy control refuses "
                    "it [{}]. {} strictly supersedes it.".format(
