@@ -275,3 +275,47 @@ Advance the tree; `contains_origin` is still `False`. `origin_reconcile` was **a
 leg is its work and was left to it — and it will return `NOT_ADVANCED` with `pushed: True` again,
 because the 5 residue paths above are untouched. That is the 49th time, and the reason is now named
 rather than repeated.
+
+---
+
+## 2026-09-24 20:25 — remedy step 2 is RUN. The answer is "step 1 was not the load-bearing step", and the ahead leg is a FLOW, not a state.
+
+`deploy_restart.checkout_drift()` on the shared tree, measured across one turn:
+
+| time | behind | ahead | `contains_origin` | `gap_paths` |
+|---|---|---|---|---|
+| 19:39 | 33 | 4 | `false` | 32 |
+| **20:25** | **34** | **1** | **`false`** | **46** |
+
+Step 1 landed, the ahead leg closed (the reconciler pushed it at 20:09 as `d8576cdca`, unaided),
+and **`behind` grew and `gap_paths` grew by 14**. So the question this document's step 2 was written
+to ask is answered, and the answer is the unflattering one it explicitly invited:
+
+> **"step 1 was not the load-bearing step" — that is the answer.**
+
+The ahead leg is not a state that can be closed. It is a **flow**: the shared tree commits every
+~12–60 minutes (9 commits in the 3 hours sampled) and the reconciler batches them up afterwards, so
+the leg reopens before any actor can build on its being shut. It had already reopened at 20:23
+(`cfb5f34c4`) before the 20:09 push could be observed. A one-shot action against the ahead leg
+cannot win, and the turn that tried is the proof.
+
+**Step 3 must therefore NOT be run.** Restarting the daemons now would do exactly what this document
+warned: clear the `stamp-predates-process` verdicts against a checkout that still lacks the repair,
+and blind the detector to gap 1. The precondition it named — *"only then"* — is not met.
+
+Two further defects found on the way and written up separately in
+`SEAT_FINDING_THE_SEATS_PUSH_DOOR_REFUSES_UNGATED_ANCESTORS_AND_THE_RECONCILER_PUSHES_THEM_ANYWAY_2026-09-24.md`:
+
+1. **The seat's push door and the reconciler's disagree about what is promotable.**
+   `promote_worktree_landing` refuses any leg containing a commit with no `surgical_land` receipt;
+   the reconciler pushed those same commits thirty minutes later. Work a seat is forbidden to push,
+   a daemon pushes unexamined. Whether the refused commits were genuinely ungated, or merely
+   committed by a route that leaves no receipt while still running the hook, is **NOT established**
+   and is the cheap next measurement.
+2. `promote_worktree_landing` exits **0** on that refusal.
+
+The BEHIND leg remains this document's live subject and the publisher's actual wedge: 15 blockers,
+9 of them *"modified here, and origin changes it too"*. Two are the `CLASS_` registers that step 1's
+sibling (`63356067f`, now on origin) teaches the oracle to clear; the remaining set is the
+`refresh_to_head` rework under `enact-the-four-path-base-wins-decision-on-the-shared-tree`. **That
+claim, not this one, is where the publisher's darkness ends.**
