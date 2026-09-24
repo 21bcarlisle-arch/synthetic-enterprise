@@ -37,7 +37,6 @@ from tools.publish_from_a_clean_tree import (  # noqa: E402
 )
 from tools.published_feed_regeneration_check import (  # noqa: E402
     CANDIDATES_AT_THEIR_OWN_COMMIT,
-    head_resolves,
 )
 
 A_COMMIT = "0" * 40
@@ -198,8 +197,6 @@ def test_the_published_bytes_vouch_for_the_commit_they_were_produced_at(tmp_path
 
     Runs the REAL generators in a clean checkout of the REAL HEAD and writes into `tmp_path`, so
     the claim is measured end to end without the run touching the shared tree."""
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which has no commit to stand at")
     rows = publish(root=PROJECT, dest=tmp_path)
     refused = {r["feed"]: r["reason"] for r in rows if not r["published"]}
     assert not refused, f"a feed could not be produced honestly at HEAD: {json.dumps(refused, indent=1)}"
@@ -228,8 +225,6 @@ def test_a_refused_feed_is_not_written_and_its_other_output_is_named(tmp_path):
     Arranged out of real parts rather than a stub: the door generator is asked for `evidence.json`,
     which it does not write, so the bytes left in the clean tree are the committed evidence feed —
     an honest feed stamped at an EARLIER commit, which is exactly the leftover shape."""
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which has no commit to stand at")
     sentinel = tmp_path / "site" / "data" / "evidence.json"
     sentinel.parent.mkdir(parents=True)
     sentinel.write_text('{"this": "is the feed that was already live"}\n', encoding="utf-8")

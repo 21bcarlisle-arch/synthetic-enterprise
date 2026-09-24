@@ -44,7 +44,6 @@ from tools.published_feed_regeneration_check import (
     RegenerationCheckRefused,
     _Tree,
     check,
-    head_resolves,
     main,
 )
 
@@ -231,8 +230,6 @@ def test_the_churn_belief_chain_is_actually_walked():
     DIVERGES for a reason recorded in `COVERED_DERIVED_ARTEFACTS` and asserted nowhere here.
     """
     assert "docs/observability/churn_belief_size_response.json" in WATCHED_DERIVED_ARTEFACTS
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which cannot be cloned from")
     rows = check(sorted(set(WATCHED_DERIVED_ARTEFACTS.values())), separate_nondeterminism=False)
     reached = {r["path"]: r["verdict"] for r in rows if r.get("path")}
     assert set(reached) == set(WATCHED_DERIVED_ARTEFACTS), (
@@ -256,8 +253,6 @@ def test_a_watched_derived_artefact_that_reproduces_must_be_promoted():
     would notice. So this reds on promotion being owed — the covered set can only grow, and the
     empty set is never itself the evidence.
     """
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which cannot be cloned from")
     rows = check(sorted(set(WATCHED_DERIVED_ARTEFACTS.values())), separate_nondeterminism=False)
     promotable = sorted({
         r["path"] for r in rows

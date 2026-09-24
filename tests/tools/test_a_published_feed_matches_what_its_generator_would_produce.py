@@ -52,10 +52,11 @@ from __future__ import annotations
 import json
 import pathlib
 import subprocess
+import tempfile
 
 import pytest
 
-from tools import provenance_stamp
+from tools import provenance_stamp, surgical_land
 from tools.published_feed_regeneration_check import (
     _SCRATCH_NEEDS_MB,
     CANDIDATES_AT_THEIR_OWN_COMMIT,
@@ -69,7 +70,6 @@ from tools.published_feed_regeneration_check import (
     check,
     check_at_its_own_commit,
     covered_generators,
-    head_resolves,
     recorded_publication_commit,
     scratch_root,
 )
@@ -315,8 +315,6 @@ def test_the_real_2026_09_03_hand_edit_reds_the_whole_pipeline(tmp_path):
     in a private clone, its source left alone, and the full path is asked. A control that regenerated
     into the wrong tree, or compared the output against itself, would be green here.
     """
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which cannot be cloned from")
     clone = tmp_path / "mutated"
     done = subprocess.run(["git", "clone", "--shared", "--quiet", str(PROJECT), str(clone)],
                           capture_output=True, text=True, check=False)
@@ -451,8 +449,6 @@ def test_a_candidate_standpoint_is_observed_from_the_feed_not_asserted():
     commit of this repository in the reserved place, and then either that commit describes its
     inputs — a standpoint — or the feed itself says why it does not. A feed that stops stamping, or
     stamps a sha that is not a commit here, still reds."""
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — nothing to resolve a standpoint against")
     for feed in CANDIDATES_AT_THEIR_OWN_COMMIT:
         doc = _committed_feed_doc(feed)
         block = doc.get(provenance_stamp.STAMP_KEY)
@@ -513,8 +509,6 @@ def test_a_feed_checkable_at_its_own_commit_is_promoted():
     It asserts over the whole candidate set rather than a count, so a candidate quietly deleted to
     keep this green fails `test_a_candidate_standpoint_is_observed_from_the_feed_not_asserted`.
     """
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which has no commit to stand at")
     rows = check_at_its_own_commit(dict(CANDIDATES_AT_THEIR_OWN_COMMIT))
     # REACHED MEANS COMPARED OR SELF-EXPLAINED, NOT MENTIONED. A row exists for every candidate
     # whatever happens — `WROTE_NOTHING`, `NO_STANDPOINT`, a generator that died — and every one of
@@ -575,8 +569,6 @@ def test_a_promoted_feed_still_reproduces_at_the_commit_it_records():
     `NOT_A_FUNCTION_OF_ITS_COMMIT`, with the measurement beside it. Falling through quietly is how
     `knowledge_review.json` sat in a covered set for a day.
     """
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which has no commit to stand at")
     if not COVERED_AT_THEIR_OWN_COMMIT:
         pytest.skip("nothing promoted yet — the promotion leg above is what reds in that state")
     rows = check_at_its_own_commit(dict(COVERED_AT_THEIR_OWN_COMMIT))
@@ -600,16 +592,64 @@ def test_the_weaker_verdict_is_never_spelled_like_the_stronger_one():
     would read a merely-stale feed as a current one if the two shared a word, and this project's
     most expensive recurring shape is exactly that — two correct things under one name."""
     verdicts = {r["verdict"] for r in check_at_its_own_commit(
-        dict(CANDIDATES_AT_THEIR_OWN_COMMIT), root=PROJECT)} if head_resolves(PROJECT) else set()
+        dict(CANDIDATES_AT_THEIR_OWN_COMMIT), root=PROJECT)}
     assert "AGREES" not in verdicts and "DIVERGES" not in verdicts, (
         f"the at-its-own-commit check returned `check()`'s own words: {sorted(verdicts)}"
     )
 
 
+def test_the_gate_extract_has_a_resolvable_head():
+    """THE PROPERTY THAT KILLED A FAMILY OF SKIPS, pinned here so it cannot come back unnoticed.
+
+    Four modules in this family guarded themselves with `if not head_resolves(PROJECT):
+    pytest.skip("no HEAD here — this is the landing checkout...")`. That reason was false.
+    `tools/surgical_land._make_standalone_repo` writes the PARENT commit into the extract's
+    `.git/HEAD` and reads the index from it, precisely so `git diff --cached` reads as this
+    commit — so the landing checkout resolves HEAD like any other tree, and not one of those
+    branches ever fired. Measured 2026-09-24 by building a real extract and running the family
+    inside it: 39 passed, 0 skipped for want of a HEAD. A dead skip is worse than an absent one,
+    because it reads like a handled case to the next reader who meets a red here.
+
+    KEYED TO THE PROPERTY, not to today's answer: it builds the extract through
+    `_make_standalone_repo` itself, so if that function ever stops giving the checkout a HEAD this
+    reds and names the skips that would need to come back. A control pinned to "HEAD resolves in
+    THIS tree" would instead be green everywhere and prove nothing about the gate.
+
+    MUTATION: drop the `.git/HEAD` write from `_make_standalone_repo` and this dies alone.
+    """
+    parent = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], cwd=str(PROJECT),
+                            capture_output=True, text=True, check=False)
+    assert parent.returncode == 0, "this test tree has no HEAD, so it cannot stand in for a gate"
+
+    with tempfile.TemporaryDirectory() as tmp:
+        checkout = pathlib.Path(tmp) / "extract"
+        checkout.mkdir()
+        surgical_land._make_standalone_repo(PROJECT, checkout, parent.stdout.strip())
+        resolved = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], cwd=str(checkout),
+                                  capture_output=True, text=True, check=False)
+
+    assert resolved.returncode == 0 and resolved.stdout.strip() == parent.stdout.strip(), (
+        "the gate extract no longer resolves HEAD to the parent commit. Every control in this "
+        "family now runs against a tree it cannot read, and the `no HEAD here` skips deleted on "
+        "2026-09-24 were guarding a real case after all — restore them WITH this reason recorded, "
+        f"rather than re-deriving it. git said rc={resolved.returncode}: "
+        f"{resolved.stderr.strip()[-200:]}"
+    )
+
+
 def test_standing_at_a_commit_is_refused_where_there_is_no_history(tmp_path):
-    """FAIL CLOSED. `tools/surgical_land` grades a checkout with no resolvable HEAD. There is no
-    commit to stand at there, and returning "nothing diverged" would be a control going green
-    because it could not find out — the exact shape this module refuses everywhere else."""
+    """FAIL CLOSED over a tree with no history: returning "nothing diverged" because there was no
+    commit to stand at would be a control going green because it could not find out — the exact
+    shape this module refuses everywhere else.
+
+    THE GATE IS NOT THAT TREE, and this docstring used to say it was (corrected 2026-09-24).
+    `tools/surgical_land._make_standalone_repo` writes the PARENT commit into the extract's
+    `.git/HEAD`, so the landing checkout resolves HEAD like any other. The `no HEAD here` skips
+    this family carried on the strength of that claim never once fired and are deleted; the
+    property is pinned by `test_the_gate_extract_has_a_resolvable_head` in
+    `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py`. What is
+    tested below is therefore a genuinely history-less tree — reachable by a caller pointing the
+    check at any non-repo directory, which is why the refusal still has to exist."""
     bare = tmp_path / "nohistory"
     (bare / "site" / "data").mkdir(parents=True)
     (bare / "site" / "data" / "x.json").write_text("{}")
@@ -628,8 +668,6 @@ def test_a_hand_edit_after_publication_reds_at_the_feeds_own_commit(tmp_path):
     A check that stood at the wrong commit, compared the output against itself, or took the
     standpoint from the caller rather than the bytes would be green here.
     """
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, which cannot be cloned from")
     clone = tmp_path / "stamped"
     done = subprocess.run(["git", "clone", "--shared", "--quiet", str(PROJECT), str(clone)],
                           capture_output=True, text=True, check=False)
@@ -680,8 +718,6 @@ def test_an_uncommitted_working_copy_edit_does_not_move_the_verdict(tmp_path):
     "clone": a covered feed is edited in a clone's WORKING COPY and left uncommitted. If the verdict
     moves, the control is grading disk.
     """
-    if not head_resolves(PROJECT):
-        pytest.skip("no HEAD here — this is the landing checkout, where disk IS the graded tree")
     clone = tmp_path / "dirty"
     done = subprocess.run(["git", "clone", "--shared", "--quiet", str(PROJECT), str(clone)],
                           capture_output=True, text=True, check=False)

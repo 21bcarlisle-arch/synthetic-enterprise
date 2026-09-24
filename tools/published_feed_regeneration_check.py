@@ -594,7 +594,26 @@ def _git(root: str | Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def head_resolves(root: Path = PROJECT) -> bool:
-    """Does this checkout have a commit to read? The landing checkout does not."""
+    """Does this checkout have a commit to read?
+
+    NOT A TEST FOR "am I in the gate" — it used to say the landing checkout has no commit, and that
+    was false (corrected 2026-09-24). `tools/surgical_land._make_standalone_repo` writes the parent
+    commit into the extract's `.git/HEAD`, so the landing checkout answers True like any other tree.
+    The callers that skipped on the strength of the old reading never once fired and are gone;
+    `tests/tools/test_a_published_feed_matches_what_its_generator_would_produce.py::
+    test_the_gate_extract_has_a_resolvable_head` pins the property.
+
+    ONE CALLER STILL CARRIES THE OLD SHAPE and could not be repaired in the same commit:
+    `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py` holds a
+    `_head_resolves` of its own with the same false docstring and a dead disk fallback. That
+    module has a RED at HEAD (`test_the_published_customer_book_is_reproducible...`, in
+    HEAD_RED_REGISTER since 2026-09-17), and the gate selects a changed test file as its own
+    subject — so no commit can touch that file until the red is fixed. Recorded rather than
+    silently skipped.
+
+    What remains True-or-False here is a genuinely history-less directory — a caller pointing the
+    check at a non-repo — which `check_at_its_own_commit` below turns into a named refusal.
+    """
     try:
         return _git(root, "rev-parse", "--verify", "HEAD").returncode == 0
     except (OSError, subprocess.SubprocessError):
