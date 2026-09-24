@@ -68,8 +68,40 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+# TOP LEVEL WITH NO `try`, which is `live_ledger_guard`'s own stated contract: if the guard cannot
+# be imported, the writer must not import either, because an unavailable check is a FAILED check
+# and never a silently skipped one. Safe against the import cycle this module lives inside --
+# `notify` imports this, this imports the guard, and the guard imports nothing but stdlib.
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
+
+
+def _write_document(path: Path, text: str) -> Exception | None:
+    """THE ONLY DOOR ANY WRITE IN THIS MODULE GOES THROUGH. Returns the failure, or None.
+
+    ONE DOOR RATHER THAN EIGHT, and the reason is `background/live_ledger_guard`: its refusal has
+    to be REACHED by every write, or it is a check on whichever writer happened to remember it.
+    Eight scattered `write_text` calls were eight places to forget; one is a place that cannot be,
+    because there is nowhere else in the module to write from.
+
+    THE GUARD IS A NO-OP FOR A STAGING DOCUMENT, and calling it there anyway is what makes the
+    door uniform rather than conditional. It refuses only a write whose destination resolves
+    inside `docs/observability/` -- which in this module is the state store alone -- so the two
+    kinds of write get the same door and only one of them ever sees a refusal.
+
+    NEVER RAISES, which is the module's founding rule: an exception on the way to filing a work
+    item would swallow the page that prompted it. `LiveLedgerWriteUnderTest` is caught here with
+    everything else and REPORTED rather than propagated, and every caller decides what its own
+    failure means -- `escalate` raises `EscalationUnavailable`, the annotators carry on.
+    """
+    try:
+        guard_live_ledger_write(path, writer=f"alarm_repetition writing {path.name}")
+        path.write_text(text, encoding="utf-8")
+        return None
+    except Exception as exc:
+        return exc
 
 #: How many times an unchanged alarm may recur before it stops being a message and becomes
 #: work. 3 is the same bar as RUNG 1d's `PRODUCER_STARVED_MIN_FAILURES` and rung 1's, chosen
@@ -313,6 +345,7 @@ def escalate(message: str, *, key: str, first_ts: float, repeats: int | None = N
     today = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d")
     path = finding_path(message, today=today, key=key, staging_dir=target)
     if path.exists():
+        _record(path, key=key, first_ts=first_ts, observed=today)
         _note_instance(path, instance(key, message), today=today)
         return None
 
@@ -337,6 +370,7 @@ def escalate(message: str, *, key: str, first_ts: float, repeats: int | None = N
     # episode and an R3 two-strike signal, and it must be able to file again.
     live = _live_finding_for(message, key=key, staging_dir=target)
     if live is not None:
+        _record(live, key=key, first_ts=first_ts)
         _note_still_live(live, today=today, repeats=repeats, window_h=(now - first_ts) / 3600.0)
         _note_instance(live, instance(key, message), today=today)
         # LAST, ALWAYS, so the counts are read back from a document that already carries today's
@@ -391,13 +425,22 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 """
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(body, encoding="utf-8")
     except OSError as exc:
         raise EscalationUnavailable(f"could not file {path}: {exc}") from exc
+    failure = _write_document(path, body)
+    if failure is not None:
+        raise EscalationUnavailable(f"could not file {path}: {failure}") from failure
     # THE FIRST FIRING IS AN INSTANCE TOO. Listing only the members that arrive AFTER the
     # document exists loses the one that caused it -- a sixteen-claim family would enumerate
     # fifteen, and the missing one would be the earliest, which is the one whose age the
     # document's own header is about.
+    # THE REBIRTH, AND IT IS WHAT MAKES CLEARING LOSSLESS RATHER THAN MERELY SURVIVABLE.
+    # A fresh body above carries no history at all. If the store holds any -- because this
+    # document was cleared, archived-and-returned under a stem it shares, or swept out of the
+    # tree -- it is written back here, so the document a draw reads is the same document, not a
+    # stub that happens to have the right title. The header alone would not do: a reader who
+    # cannot see the dated lines the counts are counted from has no way to check them.
+    _replay_history(path, _record(path, key=key, first_ts=first_ts), today=today)
     _note_instance(path, instance(key, message), today=today)
     # THE COUNTS BLOCK IS INSERTED, NEVER STAMPED, and this is the same call the live branch
     # above makes -- one derivation point for the whole module. The birth body deliberately
@@ -407,6 +450,37 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
     # visibly incomplete, which is the direction that cannot mislead a draw.
     _refresh_counts(path, key=key, repeats=repeats, first_ts=first_ts, now=now)
     return path
+
+
+def _replay_history(path: Path, entry: dict, *, today: str) -> bool:
+    """Write the store's dated lines back into a freshly-born document. Never raises.
+
+    THE LINES MATCH `_STILL_LIVE_DATE` AND `_INSTANCE_LINE` EXACTLY, which is not cosmetic: it is
+    what keeps the document a superset of the store rather than a summary of it, so
+    `_observation_dates` -- the pure document reader -- still returns the same set the store holds.
+    The day those two disagree is the day the store stops being falsifiable from the artefact.
+
+    THE WORDING SAYS WHERE THE LINE CAME FROM. A replayed line is a record of an observation made
+    on that date; it is NOT this firing observing anything about that date, and a reader who
+    cannot tell the two apart would read a re-derived document as forty firings of one condition.
+    """
+    observed = [d for d in entry.get("observed") or [] if d != today]
+    instances = entry.get("instances") or {}
+    if not observed and not instances:
+        return False
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for date in sorted(observed):
+            text = _append_under(text, "## Still live", (
+                f"- **{date}** — still live. The condition was observed to hold on this date. "
+                f"Restored from `{_state_file(_staging_dir_of(path)).name}` when this document "
+                f"was re-derived; the observation is that date's, not today's."))
+        for name, date in sorted(instances.items()):
+            if f"- `{name}` (" not in text:
+                text = _append_under(text, INSTANCES_HEADING, f"- `{name}` (first seen {date})")
+    except OSError:
+        return False
+    return _write_document(path, text) is None
 
 
 def _live_finding_for(message: str, *, key: str, staging_dir: Path) -> Path | None:
@@ -460,13 +534,15 @@ def _note_instance(path: Path, name: str, *, today: str) -> None:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return
+    # THE STORE FIRST, AND UNCONDITIONALLY. The early return below is about the RENDERING -- this
+    # member is already listed, so the line need not be written again -- and it must not be
+    # allowed to mean "the store need not hear about it" as well. A document re-derived after a
+    # clear would otherwise re-list a member the store had never been told about.
+    _record(path, instances={name: today})
     if f"- `{name}` (" in text:
         return
-    updated = _append_under(text, INSTANCES_HEADING, f"- `{name}` (first seen {today})")
-    try:
-        path.write_text(updated, encoding="utf-8")
-    except OSError:
-        return
+    _write_document(path, _append_under(text, INSTANCES_HEADING,
+                                       f"- `{name}` (first seen {today})"))
 
 
 def _append_under(text: str, heading: str, line: str) -> str:
@@ -510,6 +586,9 @@ def _note_still_live(path: Path, *, today: str, repeats: int | None, window_h: f
     afterwards, named as the caller's and omitted entirely when the caller does not measure it.
     """
     marker = f"- **{today}**"
+    # SAME ORDER AS `_note_instance`, same reason: the store records that the condition was
+    # observed today whether or not the rendering needs another line for it.
+    _record(path, observed=today)
     try:
         text = path.read_text(encoding="utf-8")
     except OSError:
@@ -522,10 +601,7 @@ def _note_still_live(path: Path, *, today: str, repeats: int | None, window_h: f
                f"over {window_h:.1f}h — its streak, not this document's total."
                if repeats is not None else
                " This observer reaches `escalate()` directly and measures no streak."))
-    try:
-        path.write_text(_append_under(text, "## Still live", line), encoding="utf-8")
-    except OSError:
-        return
+    _write_document(path, _append_under(text, "## Still live", line))
 
 
 # ---------------------------------------------------------------------------------------------
@@ -541,6 +617,12 @@ def _note_still_live(path: Path, *, today: str, repeats: int | None, window_h: f
 
 _STILL_LIVE_DATE = re.compile(r"^- \*\*(\d{4}-\d{2}-\d{2})\*\* — still live\.", re.M)
 _INSTANCE_DATE = re.compile(r"^- `.*` \(first seen (\d{4}-\d{2}-\d{2})\)", re.M)
+#: The same line as `_INSTANCE_DATE`, capturing the MEMBER as well as the date. Two patterns over
+#: one line rather than one, because `_INSTANCE_DATE` answers "how many members fired" for the
+#: counts block and this one answers "which ones, and when" for the store -- and a single pattern
+#: serving both would have to be read twice with the second capture discarded, which is where a
+#: later edit silently changes the count.
+_INSTANCE_LINE = re.compile(r"^- `([^`]*)` \(first seen (\d{4}-\d{2}-\d{2})\)", re.M)
 _FILENAME_DATE = re.compile(r"_(\d{4}-\d{2}-\d{2})\.md$")
 _SIGNATURE_LINE = re.compile(r"^- Signature: `([^`]+)`", re.M)
 
@@ -550,6 +632,254 @@ _SIGNATURE_LINE = re.compile(r"^- Signature: `([^`]+)`", re.M)
 #: could ever clear again -- a control reading its own output and agreeing with itself. Only an
 #: alarm FIRING may write "Still live"; only the re-ask may write here.
 REASK_HEADING = "## Re-asked"
+
+
+# ---------------------------------------------------------------------------------------------
+# THE STORE BEHIND THE DOCUMENT
+# ---------------------------------------------------------------------------------------------
+# DIRECTOR DIRECTION, Lane 0, 2026-09-24: *"give it a state store on an untracked path and derive
+# the document from it, so clearing the document is lossless."*
+#
+# THE DEFECT, AND IT IS STRUCTURAL RATHER THAN A BUG. Until this landed, the document WAS the
+# store -- its own header said so, verbatim: the counts are "DERIVED from this document's own
+# dated lines", and there was no json anywhere behind them. That made ONE FILE THREE THINGS:
+#
+#   1. the STATE STORE, rewritten in place by every firing;
+#   2. the PUBLISHED WORK ITEM a draw reads and a seat archives;
+#   3. a TRACKED PATH that origin also carries its own copy of.
+#
+# Any two of those are fine. All three are a self-refilling merge collision. MEASURED 2026-09-24:
+# the shared tree sat ten commits behind origin/main; `origin_reconcile` succeeded every five
+# minutes and the fast-forward BEHIND the merge was refused on 11-12 paths, NINE of them these
+# documents; the alarm machinery re-dirtied them within the hour, so no drain cleared it and no
+# cadence absorbed it. The daemons in that tree were running code 55 modules behind, which means
+# every landed daemon repair was inert. The fork was never the cause.
+#
+# THE SPLIT. (1) moves here, to an untracked json that nothing merges. (2) and (3) stay exactly
+# where they are, and the document becomes a RENDERING: deleting it costs the rendering only, and
+# the next firing rebuilds it complete.
+#
+# UNION, NEVER SUBTRACTION, and that is the whole safety argument. The store is SEEDED FROM THE
+# DOCUMENTS THEMSELVES on first touch, so the ten days of history already written into them is
+# absorbed rather than abandoned, and no path here removes a date. A store that could shrink would
+# be a worse home for the history than the document already was.
+#
+# THE ONE PLACE IT MAY FORGET is `_close_episode`, and that is not subtraction: an archived
+# condition that RETURNS is a new episode and an R3 two-strike signal, which is the same reason
+# `escalate()` refuses to search `done/`. The closed episode is kept beside the live one rather
+# than dropped, so the two-strike reading has something to read.
+#
+# NOT THE GENERATED-PATHS ORACLE. The cheaper fix -- declare the stem generated so
+# `advance_shared_tree` may clear the files -- was refused in the direction it fails: it lets the
+# tree delete ten days of alarm history into `refs/preserved`, which nothing reads back. Clearing
+# has to be LOSSLESS BEFORE it is PERMITTED, and this is that order, not the other one.
+
+#: The untracked store. `.gitignore`d beside `.notify_transitions.json`, which is the same kind of
+#: thing for the same reason: runtime state about what this machine has observed, not a record.
+ALARM_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".alarm_repetition_state.json"
+
+
+def _staging_dir_of(path: Path) -> Path:
+    """The staging ROOT a document belongs to, whether it sits there or in `in_progress/`.
+
+    The same rule `_archive_cleared` uses to find `done/`, and it must stay the same rule: a
+    parked document and a root one are the same document to every reader here, so they must
+    resolve to the same store.
+    """
+    return path.parent.parent if path.parent.name == "in_progress" else path.parent
+
+
+def _state_file(staging_dir: Path) -> Path:
+    """Where the store lives for `staging_dir`.
+
+    SCOPED THE SAME WAY `escalate()`'s pytest guard is scoped, and for the same measured reason: a
+    test that redirects the staging directory to a `tmp_path` is exercising the mechanism honestly
+    and gets its own store automatically, with no fixture to remember and nothing to stub. Keying
+    on "was an argument given" instead would make the store untestable or the tests dirty the real
+    one, and this module has already paid for that mistake once.
+    """
+    try:
+        if staging_dir.resolve() == (PROJECT_DIR / "docs" / "staging").resolve():
+            return ALARM_STATE_FILE
+    except OSError:
+        pass
+    return staging_dir / ".alarm_repetition_state.json"
+
+
+def document_stem(path: Path) -> str:
+    """The identity a document and its store entry share: the filename without its filing date.
+
+    NOT the filename. A document that is cleared and re-derived is born under TODAY's date, so
+    keying the store on the full name would give the reborn document an empty history -- which is
+    precisely the loss this store exists to prevent. The stem is what `_live_finding_for` already
+    treats as one condition's identity, so the store and the collapse rule agree by construction.
+    """
+    return _FILENAME_DATE.sub("", path.name) or path.stem
+
+
+def _blank_entry() -> dict:
+    """An entry that has never been written to. Every field present, so no reader needs `.get`."""
+    return {"key": None, "first_ts": None, "filed": None,
+            "observed": [], "instances": {}, "reasked": [], "episodes": []}
+
+
+def _read_state(staging_dir: Path) -> dict:
+    """The whole store, keyed by document stem, or `{}` on ANY failure.
+
+    `{}` IS SAFE HERE because every reader unions the store with the document it is about, so an
+    unreadable store can only fail to ADD history -- it can never remove what the document itself
+    still says. That is the same one-directional argument `_read_transitions_for_reask` makes, and
+    it holds for the same reason: this record is used to widen a reading, never to narrow one.
+    """
+    try:
+        data = json.loads(_state_file(staging_dir).read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    documents = data.get("documents") if isinstance(data, dict) else None
+    return documents if isinstance(documents, dict) else {}
+
+
+def _write_state(staging_dir: Path, documents: dict) -> bool:
+    """Persist the store. Never raises; returns False if it could not be written.
+
+    THE REFUSAL IS `live_ledger_guard`'s, NOT A SECOND SPELLING OF IT. The store lives under
+    `docs/observability/`, which makes it exactly the subject that guard already owns, and this
+    module had no business growing its own `PYTEST_CURRENT_TEST` test beside it -- the first draft
+    did, and it was narrower: it recognised one hard-coded path where the guard recognises the
+    whole directory, so a second store added tomorrow would have been unprotected.
+
+    IT IS NEEDED FOR A REASON `escalate()`'s OWN GUARD DOES NOT COVER. The readers seed the store
+    as a side effect of being read, so a test that merely COUNTS a real document would otherwise
+    write the live store. Under pytest the readers therefore stay pure and answer from the
+    document alone -- which is the old behaviour exactly, so no test can be made to pass by the
+    seeding.
+    """
+    target = _state_file(staging_dir)
+    try:
+        guard_live_ledger_write(target, writer="alarm_repetition._write_state")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # ATOMIC AND PID-SUFFIXED. Several daemons reach `notify()` at once on this box, and a
+        # shared temp name is how two concurrent writers produce one truncated file.
+        tmp = target.with_name(f"{target.name}.{os.getpid()}.tmp")
+        tmp.write_text(json.dumps({"documents": documents}, indent=2, sort_keys=True) + "\n",
+                       encoding="utf-8")
+        tmp.replace(target)
+        return True
+    except Exception:
+        return False
+
+
+def _merged_entry(entry: dict | None, path: Path, text: str | None = None) -> dict:
+    """`entry` widened by everything `path`'s own text establishes. Pure; never writes.
+
+    THIS IS THE MIGRATION, and it is a merge rather than a script so that there is nothing to run
+    and nothing to remember. Every document filed before the store existed seeds itself the first
+    time anything touches it, and every document filed after it re-seeds harmlessly, because union
+    with what you already hold is the identity.
+    """
+    merged = dict(_blank_entry())
+    merged.update({k: v for k, v in (entry or {}).items() if v is not None})
+    if text is None:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            text = ""  # a document we cannot read subtracts nothing; that is the point
+    body = _without_reask_section(text)
+
+    observed = set(merged["observed"]) | set(_STILL_LIVE_DATE.findall(body))
+    instances = dict(merged["instances"])
+    for name, date in _INSTANCE_LINE.findall(body):
+        instances.setdefault(name, date)
+        observed.add(date)
+    filed = _FILENAME_DATE.search(path.name)
+    if filed:
+        # THE FILING DATE IS AN OBSERVATION -- the same rule `_observation_dates` has always
+        # applied. On a re-derived document that is TODAY's date and it is still true: the firing
+        # that rebuilt the document observed the condition.
+        observed.add(filed.group(1))
+        merged["filed"] = min(filed.group(1), merged["filed"] or filed.group(1))
+    signature = _SIGNATURE_LINE.search(text)
+    if signature:
+        merged["key"] = merged["key"] or signature.group(1)
+
+    merged["observed"] = sorted(observed)
+    merged["instances"] = instances
+    merged["reasked"] = sorted(set(merged["reasked"]) | set(_REASK_DATE.findall(_reask_section(text))))
+    return merged
+
+
+def absorb(path: Path, text: str | None = None) -> dict:
+    """This document's store entry, seeded from the document itself, persisted if it grew.
+
+    READING SEEDS, deliberately, and this is the one place in the module where a read writes. The
+    alternative -- seed only on the next FIRING -- leaves a window, per family, in which clearing
+    the document still loses its history, and the window is exactly as long as that family's
+    cadence. The direction this fails in is a redundant write of a file nothing merges.
+
+    Never raises, and returns the merged entry whether or not it could be stored, so a read-only
+    filesystem degrades to the old document-only behaviour rather than to an exception inside a
+    notification path.
+    """
+    staging = _staging_dir_of(path)
+    documents = _read_state(staging)
+    stem = document_stem(path)
+    merged = _merged_entry(documents.get(stem), path, text)
+    if merged != documents.get(stem):
+        documents[stem] = merged
+        _write_state(staging, documents)
+    return merged
+
+
+def _record(path: Path, **fields) -> dict:
+    """Union `fields` into this document's entry and persist. The only writer's door.
+
+    `observed` and `reasked` take a date, `instances` a `{name: date}`, `key`/`first_ts` a scalar
+    that is only accepted if the entry does not already carry an EARLIER one -- an episode's start
+    does not move because a later observer passed a later clock.
+    """
+    staging = _staging_dir_of(path)
+    documents = _read_state(staging)
+    stem = document_stem(path)
+    entry = _merged_entry(documents.get(stem), path)
+
+    if fields.get("observed"):
+        entry["observed"] = sorted(set(entry["observed"]) | {fields["observed"]})
+    if fields.get("reasked"):
+        entry["reasked"] = sorted(set(entry["reasked"]) | {fields["reasked"]})
+    for name, date in (fields.get("instances") or {}).items():
+        entry["instances"].setdefault(name, date)
+        entry["observed"] = sorted(set(entry["observed"]) | {date})
+    if fields.get("key"):
+        entry["key"] = entry["key"] or fields["key"]
+    if fields.get("first_ts") is not None:
+        held = entry["first_ts"]
+        entry["first_ts"] = float(fields["first_ts"]) if held is None \
+            else min(float(held), float(fields["first_ts"]))
+
+    documents[stem] = entry
+    _write_state(staging, documents)
+    return entry
+
+
+def _close_episode(path: Path, *, today: str) -> None:
+    """Retire this stem's live history when its document is archived. The one forgetting path.
+
+    NOT A DELETE. The episode is moved beside the live entry, because a condition that returns
+    after being archived is the R3 two-strike signal and the second strike is only legible against
+    the first. What must NOT survive is the live history, or a fresh episode would inherit the old
+    one's dates and its header would claim continuous observation across the gap -- the same error
+    as searching `done/`, arriving through the store instead of through the filename.
+    """
+    staging = _staging_dir_of(path)
+    documents = _read_state(staging)
+    stem = document_stem(path)
+    entry = _merged_entry(documents.get(stem), path)
+    episodes = list(entry["episodes"])
+    episodes.append({"closed": today, "observed": entry["observed"],
+                     "instances": entry["instances"], "reasked": entry["reasked"],
+                     "first_ts": entry["first_ts"], "filed": entry["filed"]})
+    documents[stem] = dict(_blank_entry(), key=entry["key"], episodes=episodes)
+    _write_state(staging, documents)
 
 #: The self-updating block at the head of every alarm document. Everything between these markers
 #: is DERIVED from the document's own machine-written lines and rewritten on every firing, so the
@@ -595,10 +925,15 @@ def _without_reask_section(text: str) -> str:
 
 
 def _observation_dates(path: Path, text: str) -> set[str]:
-    """Every date on which this condition was observed to hold, from machine-written lines only.
+    """Every date on which this condition was observed to hold — the DOCUMENT's own answer.
 
     The filing date in the FILENAME is one of them: it is the first firing, and a document whose
     condition has held for exactly one day would otherwise report zero observations of itself.
+
+    KEPT PURE, and kept as the document's answer alone, even though every caller now wants the
+    union with the store. It is the seed `_merged_entry` absorbs and it is what a reader reaches
+    for to ask "what would this document say if the store vanished" — which, since the whole claim
+    of the store is that it is a SUPERSET, is the only question that can falsify it.
     """
     body = _without_reask_section(text)
     dates = set(_STILL_LIVE_DATE.findall(body)) | set(_INSTANCE_DATE.findall(body))
@@ -609,15 +944,22 @@ def _observation_dates(path: Path, text: str) -> set[str]:
 
 
 def document_counts(path: Path, text: str | None = None) -> DocumentCounts:
-    """What this document says about itself, counted rather than asserted."""
+    """What is known about this condition, counted rather than asserted.
+
+    THE NAME IS NOW HALF RIGHT AND IS KEPT ANYWAY. These are the counts the DOCUMENT PUBLISHES,
+    which is what every caller means by it; they are no longer derived from the document's own
+    text alone, because that text is a rendering that may have been cleared since the last firing.
+    The source is the store unioned with whatever the rendering still carries — a superset of the
+    old answer in every case, and identical to it for a document nothing has cleared.
+    """
     if text is None:
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
-            return DocumentCounts(days=0, members=0, first=None, last=None)
-    dates = sorted(_observation_dates(path, text))
-    members = len(_INSTANCE_DATE.findall(_without_reask_section(text)))
-    return DocumentCounts(days=len(dates), members=members,
+            text = ""
+    entry = absorb(path, text)
+    dates = entry["observed"]
+    return DocumentCounts(days=len(dates), members=len(entry["instances"]),
                           first=dates[0] if dates else None,
                           last=dates[-1] if dates else None)
 
@@ -725,11 +1067,7 @@ def _refresh_counts(path: Path, *, key: str, repeats: int | None, first_ts: floa
             tail.pop(0)  # the blank that closed the paragraph we replaced, not a second one
         updated = "\n".join(lines[:start] + block.splitlines() + [""] + tail) + "\n"
 
-    try:
-        path.write_text(updated, encoding="utf-8")
-    except OSError:
-        return False
-    return True
+    return _write_document(path, updated) is None
 
 
 # ---------------------------------------------------------------------------------------------
@@ -853,7 +1191,7 @@ def last_observed(path: Path, text: str | None = None) -> str | None:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             return None
-    dates = _observation_dates(path, text)
+    dates = absorb(path, text)["observed"]
     return max(dates) if dates else None
 
 
@@ -902,7 +1240,7 @@ def last_attention(path: Path, text: str | None = None) -> str | None:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             return None
-    dates = _REASK_DATE.findall(_reask_section(text))
+    dates = absorb(path, text)["reasked"]
     return max(dates) if dates else None
 
 
@@ -1108,15 +1446,15 @@ def _note_reask(r: Reask, *, today: str) -> bool:
     document that changes answer within a day records BOTH, because that transition is the news.
     """
     marker = f"- **{today}** — re-asked: **{r.verdict}**."
+    _record(r.path, reasked=today)
     try:
         text = r.path.read_text(encoding="utf-8")
     except OSError:
         return False
     if marker in text:
         return False
-    r.path.write_text(_append_under(text, REASK_HEADING, f"{marker} {r.reason}."),
-                      encoding="utf-8")
-    return True
+    return _write_document(r.path,
+                           _append_under(text, REASK_HEADING, f"{marker} {r.reason}.")) is None
 
 
 def _archive_cleared(r: Reask, *, today: str) -> bool:
@@ -1156,7 +1494,12 @@ def _archive_cleared(r: Reask, *, today: str) -> bool:
     while dest.exists():
         dest = archive / f"{r.path.stem}_REASK_{n}{r.path.suffix}"
         n += 1
-    dest.write_text(body, encoding="utf-8")
+    if _write_document(dest, body) is not None:
+        return False
+    # BEFORE THE UNLINK, so a crash between the two leaves the document in place with its history
+    # retired rather than the document gone with its history live -- the direction that would make
+    # a returning condition inherit the closed episode's dates.
+    _close_episode(r.path, today=today)
     r.path.unlink()
     return True
 

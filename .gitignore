@@ -57,6 +57,19 @@ docs/observability/.sanctified_consoles.json
 docs/observability/.pull_loop_health.json
 docs/observability/.daemon_boot/
 docs/observability/.notify_transitions.json
+# The alarm machinery's own state store, split out of the documents it files on 2026-09-24.
+#
+# UNTRACKED IS THE WHOLE POINT, not a convenience. A repeating-alarm document used to be three
+# things at once -- the state store, the published work item, and a tracked path origin carries
+# its own copy of -- and any two of those are fine while all three are a self-refilling
+# FF_MODIFIED collision. On 2026-09-24 the shared tree sat ten commits behind origin/main with
+# the fast-forward refused on nine of these documents, and its daemons were running code 55
+# modules behind as a result. This file is where the state went so the documents could become a
+# rendering that clearing costs nothing.
+#
+# If this line is ever dropped, the collision comes back within a day: the store is rewritten by
+# every firing of every alarm family, which on this box is several times an hour.
+docs/observability/.alarm_repetition_state.json
 docs/observability/injection-log.jsonl
 docs/staging/**/*.bak
 # Scheduled bounded invocations — runtime switches/artifacts (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md).
