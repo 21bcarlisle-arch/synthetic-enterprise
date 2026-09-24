@@ -91,7 +91,7 @@ reader-facing renderers beside it, in the same file and in its closest sibling, 
 it. A bounded tick cannot see this; it is only visible from the seat, which is where the item's own
 instruction and the instrument that produced it can be held in one view.
 
-## What is being built
+## What was built and landed
 
 `_blocking_clause` asks divergence for itself and, when the tree is diverged, leads with that and
 withholds the landing remedy — so a path list cannot be read as a cause. `_refused_advance_cause`
@@ -107,3 +107,39 @@ while `ahead = 10`, and the fork closes by the gated merge door (`origin_reconci
 / `surgical_land --merge origin/main`), which is a judgement and not a daemon's to make unattended.
 The orphan drain is working at the rate the mint rate needs; it is not the problem and the instances
 were never the work.
+
+## Landed, and what it says now
+
+`20f274008` (this record) and `e89d05840` (the mechanism), both on `origin/main`.
+`_blocking_clause` takes `ahead` as a **required** argument — an optional one would have left every
+existing caller unrepaired, which is the defect under a new name — and
+`_refused_advance_cause` asks divergence ahead of every collision branch and fails closed when git
+will not answer. `reconcile`'s post-push leg had the ahead count in hand already
+(`fork_state` returns both directions) and was discarding it; that costs no extra git call.
+
+Run against the same live shared tree after landing, `ahead = 10`:
+
+> **VERDICT:** this is NOT a dirty-tree collision at all: the tree has DIVERGED — 10 local
+> commit(s) origin does not have — so no path is holding it and landing or reverting the paths
+> below would advance nothing. Closing the fork is the gated merge door … and it is a judgement
+> rather than a daemon's to take
+>
+> **CLAUSE:** … 4 collide(s) with what origin brings, **listed only so they are not mistaken for
+> it** …
+
+The control is `tests/background/test_the_refusal_renderers_called_a_path_the_cause_while_the_advance_beside_them_called_it_a_fork.py`,
+keyed to the **property** — the advance and the two sentences describing it may not disagree about
+whether a path is the cause — rather than to today's wording, which would go green on a reword and
+say nothing about the next divergence of this kind. **Mutation-proven:** making the diverged branch
+unreachable reds 3 of the 6 legs including the cross-check, while the unreadable-ahead,
+required-argument and level-tree legs correctly stay green because that mutation does not reach
+them.
+
+## The one thing that is landed and not yet in effect
+
+The shared tree's **checkout** does not have `e89d05840` — it is 10 ahead / 11 behind and cannot
+fast-forward, which is the very fork this names. The daemons there run the checkout's copy, so the
+repaired sentence will not appear in their logs until the fork closes. **The fix is landed and
+inert**, and the next reader should not take a stale log line as evidence it did not work. Closing
+that fork is the gated merge door and a judgement — handed on rather than taken in the tail of this
+turn, where the gate is slower than the tree's own commit cadence.
