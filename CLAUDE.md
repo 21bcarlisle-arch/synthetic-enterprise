@@ -285,8 +285,11 @@ path itself.
 **A new module needs a REUSE block in the commit message** naming what the index returned and why
 you wrote new code anyway. `tools/write_time_gate.py --explain` prints the live matches.
 
-**Cache reads are the bill.** Serial by default. Do not spawn a fork unless its `file_scope` is
-genuinely disjoint and big enough to pay for a whole extra context stream. Never poll for something
+**Cache reads are the bill, and this file is resent on every turn — length is a running cost.** Serial
+by default. Do not spawn a fork unless its `file_scope` is genuinely disjoint and big enough to pay
+for a whole extra context stream. **Route the ones you do spawn by what they do: searching, census
+and log-reading take `model: "haiku"` or `"sonnet"`; code edits and anything weighing evidence stay
+on Opus.** Never poll for something
 that will notify you.
 
 **Four procedures live outside this file and are pointed at from it on purpose** — a moved-out

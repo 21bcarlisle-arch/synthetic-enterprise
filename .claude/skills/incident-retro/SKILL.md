@@ -38,9 +38,17 @@ File at `docs/retrospectives/<date>-<short-name>.md`. Real examples:
    every other caller of this pattern"), do that audit as part of writing the retro, not as a vague
    TODO — a follow-up left unstarted is exactly the kind of thing that recurs.
 
-## When this produces a new R-rule
+## When the lesson is general
 
-If the lesson is genuinely general (applies beyond this one incident), add it to CLAUDE.md as the
-next `R<N>` — with a one-line reference back to the retro doc, not a full re-explanation. This is how
-R1-R14 were produced; a retro that doesn't generalise into a rule was either too narrow to need one,
-or the generalisation step was skipped and should be reconsidered before closing.
+If the lesson applies beyond this one incident, it belongs where the class it guards is enforced —
+a control that names the defect, an invariant, a `.claude/rules/` path reminder — with a one-line
+reference back to this retro, not a full re-explanation.
+
+**Do not append a new `R<N>` to CLAUDE.md.** That instruction stood here until 2026-09-24 and had
+outlived its structure: the numbered R-rule list was deleted from CLAUDE.md in the 2026-08-28
+rewrite, so following this line meant re-creating a section the rewrite removed on purpose, against
+a 35,000-character ratchet, in the one file resent on every single turn. It also argued directly
+with CLAUDE.md's own doctrine — *"a file made of rules breeds rules"* — and with **mechanism, not
+memory**, which is this format's own item 6. R-numbers still appearing in the skills are labels on
+rules that state themselves in place (*"R11 (verify to the rendered value)"*); keep writing them
+that way, so the number is never the thing carrying the meaning.
