@@ -119,6 +119,35 @@ and no production caller. **I could not establish what wrote them.** It does not
 (the repair is that the declared command must stamp, and a control now proves it does), but it
 means some route writes boot records that nobody has enumerated.
 
+## ADDENDUM, measured after the landing: the repair is itself inert, by the mechanism it describes
+
+The landing (`7c77466ce`) is on `origin/main`. **The shared tree's checkout does not contain it**,
+so `background/boot_sha.py` on the box that actually runs the daemons still has no `__main__`, and
+running the declared `ExecStartPre` there still writes nothing. Restarting every daemon right now
+would repair nothing.
+
+Measured over ~400s, spanning two `reconcile-watch` cycles (the timer is every 5 minutes):
+
+| | at 03:57Z | after ~400s |
+|---|---|---|
+| shared tree HEAD | `1b1e820cb` | `b26362f94` (advanced — other lanes' own commits) |
+| behind `origin/main` | 5 | **5** |
+| contains `7c77466ce` | no | **no** |
+
+The checkout moved forward the whole time and never merged `origin/main`. This is the shape
+already recorded twice in this seat's memory — `reconcile-watch` exits `success` without advancing
+the shared tree, so its exit code is not evidence; `git merge-base --is-ancestor` is.
+
+**This is the same defect class as the finding above, one layer out.** The boot stamper was dead
+because a declaration (`ExecStartPre=…`) was believed instead of its effect. The reconciler is
+believed the same way: it reports success, and nothing asks whether the checkout actually contains
+what was promoted. A daemon's running code version has *two* gaps between it and a landed commit —
+the restart (which this landing now measures) and the checkout (which nothing measures). Fixing
+only the first still leaves the commit inert.
+
+Not repaired from this turn on purpose: advancing the shared tree is a write to the shared tree,
+and this turn's isolation is the reason it was allowed to run. Handed on instead.
+
 ## What is still owed
 
 - **The stamps on the box are still stale.** The repair only takes effect at each daemon's next
