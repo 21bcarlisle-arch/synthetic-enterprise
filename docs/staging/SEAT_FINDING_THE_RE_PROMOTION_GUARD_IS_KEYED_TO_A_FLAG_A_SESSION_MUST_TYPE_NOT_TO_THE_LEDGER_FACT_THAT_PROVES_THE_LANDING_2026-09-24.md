@@ -134,3 +134,13 @@ current_orientation():                                2026-09-24T08:20:24.244165
 
 That holds only until the seat next orients, and only for this one id. It is a plaster on the
 instance; the leg above is the fix for the class.
+
+**An ordering caveat, paid for in this turn.** I ran `--release` BEFORE landing, to disarm the 12:36
+derivation before it could fire. The cost is that the `--landed` afterwards bound nothing —
+*"bound NOTHING … it is NOT CLAIMED -- nothing holds a deadline for it"* — because a released row
+has no claim to inform. The doorbell's own sequence is land → `--landed` → `--release`, and it is in
+that order for this reason. Nothing was lost here: the row was ALREADY settled in its own window by
+`8379e8e0e` (`last_landing_at` 11:52:31 > `last_drawn_at` 11:36:43), so the ledger reads correctly
+either way. But a reader taking this disposition on a row that is NOT already settled would release
+it, find the bind a no-op, and leave the lane blind to the very landing it was recording — which is
+this finding's own subject wearing the other face.
