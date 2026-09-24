@@ -97,6 +97,7 @@ from tools.stale_copy_refusal import (
     blob_at,
     cuts_among,
     dead_among,
+    dict_key_gains,
     json_leaf_delta,
     landable_hunks,
     opinion,
@@ -115,6 +116,11 @@ PRESERVED_PREFIX = "refs/preserved/refresh-to-head/"
 #: says which because a refusal that does not name its reason is how you never discover it was wrong.
 REFRESHABLE = "refreshable"
 AT_HEAD = "already_at_head"
+#: The copy binds a dict-literal STRING KEY the base does not. Not a symbol, so every reading that
+#: runs above calls the two sides equal -- see `dict_key_gains`, which carries the measurement and
+#: the live instance. This state exists so the one grade that licenses destruction can be withdrawn
+#: on a population none of the other readings own.
+WHITELIST_GAIN = "refused_supplies_dict_keys_the_base_lacks"
 NO_BASE = "refused_no_base"
 NO_READER = "refused_no_reader"
 UNPARSEABLE = "refused_unparseable"
@@ -330,6 +336,57 @@ def _index_bytes(root: Path, path: str) -> bytes | None:
 def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                base: str = "HEAD", superseded: bool = False, base_wins: bool = False,
                staged_too: bool = False) -> Verdict:
+    """`_judge_copy`, with the one grade that licenses destruction withdrawn on an unread population.
+
+    ASKED ONCE, HERE, AND NOT AT THE FOUR `REFRESHABLE` RETURNS BELOW. This module has already paid
+    for the other arrangement: the clock was consulted at three sites spelling the same expression,
+    two of them right and the third rendering a FAILED git call as "nothing to say". A fifth
+    `REFRESHABLE` return added later is covered by this wrapper the day it is written, which is the
+    property that matters and not the line count.
+
+    IT ONLY EVER REFUSES. `_judge_copy`'s answer passes through untouched unless it was
+    `REFRESHABLE`, so no copy reaches `--write` that did not already. A door that destroys bytes may
+    be made stricter by a reading that is merely plausible; it may not be loosened by one. `None`
+    from `dict_key_gains` means a side did not parse -- not "no keys" -- and refuses as well.
+
+    BLAST RADIUS MEASURED, NOT ESTIMATED: across the 430 dirty paths of the shared tree on
+    2026-09-24 this changes exactly ONE verdict, and that verdict was the wrong one.
+    """
+    verdict = _judge_copy(root, path, staged, base=base, superseded=superseded,
+                          base_wins=base_wins, staged_too=staged_too)
+    if verdict.state != REFRESHABLE:
+        return verdict
+    head_text = blob_at(root, base, path)
+    if head_text is None:
+        return verdict
+    try:
+        work_text = (root / path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return verdict
+    keys = dict_key_gains(head_text, work_text, path)
+    if keys is None:
+        return Verdict(path, WHITELIST_GAIN,
+                       "this copy was graded refreshable and one side does not PARSE, so whether "
+                       "it binds a dict key {} lacks is UNKNOWN -- and unknown is not 'no keys'. "
+                       "The grade withdrawn here is the only one that overwrites bytes.".format(base))
+    if not keys:
+        return verdict
+    return Verdict(path, WHITELIST_GAIN,
+                   "this copy binds {} dict-literal string key(s) {} does not: {}. No reading above "
+                   "can see them -- a key inside a function body is not a module binding, a class "
+                   "member or an import, so `symbols()` returns the same set for both sides and "
+                   "'supplies no name' is true of SYMBOLS while false of the artefact. Where that "
+                   "dict is a publication whitelist, the key IS the work. Establish by hand which "
+                   "side is the later draft: if this copy is, `python3 -m tools.isolate_hunks "
+                   "--survey {}` and land the hunk(s) carrying those keys; if {} is, they were "
+                   "dropped from it on purpose and this is the refusal to override.".format(
+                       len(keys), base, ", ".join(keys[:5]), path, base),
+                   discarded=_discarded_lines(head_text, work_text))
+
+
+def _judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
+                base: str = "HEAD", superseded: bool = False, base_wins: bool = False,
+                staged_too: bool = False) -> Verdict:
     """The whole precondition for one path. Reads; writes nothing, ever.
 
     `base` IS THE TREE THAT MUST SUPERSEDE THE COPY, AND IT IS NOT ALWAYS `HEAD`. On a tree that is

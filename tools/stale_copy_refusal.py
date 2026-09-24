@@ -638,6 +638,65 @@ def _landing_hunks(diff: str) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], 
     return tuple(out)
 
 
+def _dict_string_keys(text: str, path: str) -> frozenset[str] | None:
+    """Every STRING key bound in a dict literal anywhere in `text`, or `None` if it does not parse.
+
+    NOT PART OF `symbols()`, DELIBERATELY. `symbols()` answers "what names does this module BIND",
+    and a dict key binds nothing -- adding one to a set compared for strict subset would let a
+    `{"a": 1}` written in a docstring example argue a copy supplies work. This population answers a
+    different question, is consulted at exactly one site, and only ever REFUSES.
+    """
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return None
+    out: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            for key in node.keys:
+                if isinstance(key, ast.Constant) and isinstance(key.value, str):
+                    out.add(key.value)
+    return frozenset(out)
+
+
+def dict_key_gains(head_text: str, new_text: str, path: str) -> tuple[str, ...] | None:
+    """The dict-literal STRING KEYS this copy binds that the base does not -- `None` if unreadable.
+
+    THE POPULATION THAT LICENSED A DESTRUCTION, and the reason it is read is a measurement and not a
+    worry. Surveying all 430 dirty paths of the shared tree on 2026-09-24 produced exactly ONE
+    `refreshable` grade -- `saas/reporting/annual_report.py` -- and that grade was wrong. The copy
+    adds `svt_departures` and `svt_decisions` to the dict `extract_report_data` returns. That dict
+    is a PUBLICATION WHITELIST: a key absent from it is not published however fully the runner
+    computes it. `origin/main` carries `svt_departures` nowhere in `saas/`, and seven `tools/`
+    modules already consume `svt_decisions` -- `covers_svt_route: false` is live on the site
+    because the producer does not emit it. So the copy was the repair, and the door offered to
+    discard it with the words "origin/main strictly supersedes it".
+
+    IT IS INVISIBLE TO EVERY READING THAT RAN. A string key inside a function body is not a
+    module-level binding, not a class member and not an import, so `symbols()` returns the same set
+    for both sides and `gains_over` returns `()`. Empty is the door's licence to overwrite. Rule 1b
+    cannot see it either: the lines are code, not a comment block. The clock agreed with the
+    destructive reading, so nothing downstream was going to catch it.
+
+    THE CLASS IS ALREADY PAID FOR, FOUR TIMES, IN THAT ONE DICT. Its own landed comments count them,
+    and `971e3680c` -- the commit this copy partly reverts -- is called "the fourth instance of a
+    class this dict already counts" in its own message. What was missing was never the knowledge; it
+    was a reader that could see a whitelist as a population.
+
+    ONE-DIRECTIONAL BY CONSTRUCTION. The caller may only turn `REFRESHABLE` into a refusal on a
+    non-empty answer. It can never admit a copy, so the worst a false positive costs is a refresh
+    somebody has to argue for by hand -- which is the affordable direction for a door that destroys
+    bytes. `None` is not `()`, for this module's usual reason: an unparseable side establishes
+    nothing, and the caller must refuse rather than read it as "no keys gained".
+    """
+    if Path(path).suffix not in PY_SUFFIXES:
+        return ()
+    before, after = _dict_string_keys(head_text, path), _dict_string_keys(new_text, path)
+    if before is None or after is None:
+        return None
+    return tuple(sorted(after - before))
+
+
 #: How many contiguous comment lines make a BLOCK. The narrowness argument rests on this: a landing
 #: that adds a lone lint-suppression pragma or a one-line licence header has written nothing a reader
 #: would miss, and `tests/tools/test_stale_copy_refusal.py`'s own

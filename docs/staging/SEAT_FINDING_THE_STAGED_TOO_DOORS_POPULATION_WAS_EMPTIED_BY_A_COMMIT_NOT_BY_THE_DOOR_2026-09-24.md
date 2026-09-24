@@ -173,9 +173,57 @@ established** and I am not asserting either — it is the next thing to measure.
 
 ### Next, in order
 
-1. Narrow the `REFRESHABLE` gate so it cannot fire on a Python copy that adds dict-literal string
-   keys the base lacks. This only ever demotes `refreshable` to a refusal — fail-closed, and the
-   blast radius measured here is **1 path in 430**.
+1. ~~Narrow the `REFRESHABLE` gate so it cannot fire on a Python copy that adds dict-literal string
+   keys the base lacks.~~ **DONE in the same turn — see §5.**
 2. Rescue `svt_departures` / `svt_decisions` into `origin/main` by hunk isolation (they have seven
-   consumers already waiting and `covers_svt_route: false` live on the site).
-3. Settle the clock discrepancy in §3.
+   consumers already waiting and `covers_svt_route: false` live on the site). **NOT DONE** — it is a
+   mixed copy and another lane is live in that file; it needs its own turn.
+3. Settle the clock discrepancy in §3. **NOT DONE.**
+
+---
+
+## 5. The fix, landed in the same turn
+
+`dict_key_gains` (`tools/stale_copy_refusal.py`) reads the new population; `judge_copy`
+(`tools/refresh_to_head.py`) consults it at **one** site — a thin wrapper over the renamed
+`_judge_copy` — and withdraws `REFRESHABLE`, giving the new state
+`refused_supplies_dict_keys_the_base_lacks`.
+
+**Asked once, not at the four `REFRESHABLE` returns.** This module has already paid for the other
+arrangement: the clock was consulted at three sites spelling the same expression and the third
+rendered a failed git call as "nothing to say". A fifth return added later is covered on the day it
+is written.
+
+**It can only ever refuse.** `_judge_copy`'s answer passes through untouched unless it was
+`REFRESHABLE`, so nothing reaches `--write` that did not already. A door that destroys bytes may be
+made stricter by a merely plausible reading; it may not be loosened by one. `None` from
+`dict_key_gains` means a side did not parse — not "no keys" — and refuses too.
+
+Controls: 8 legs in
+`tests/tools/test_a_publication_whitelist_key_is_not_a_symbol_so_the_door_offered_to_discard_the_repair.py`,
+plus `WHITELIST_GAIN` added to the existing `test_every_verdict_in_the_partition_is_reachable`
+equality — it is one dict key from `REFRESHABLE`, which is exactly the neighbour a later edit
+collapses it onto. Six mutations, all RED, and each of the two that matter caught by the leg written
+for it: *guard never fires* → the positive leg; *guard always fires* → the anti-tautology arm (and
+19 others, which is what shutting the whole door should look like).
+
+### A near-miss worth more than the fix: I almost mis-attributed the blast radius
+
+I claimed "exactly one verdict moves". The obvious check — re-run the survey and diff — said **four**
+paths moved, one of them *into* `refreshable`, which this wrapper is structurally incapable of doing.
+
+The cause was not the change. **The shared tree is live**: other lanes rewrote three of those working
+copies between the two surveys, 50 minutes apart. Two variables, no attribution.
+
+The control that settles it runs both readings **in one process against the same bytes** —
+`_judge_copy` (pre-change) beside `judge_copy` (post-change), 430 paths:
+
+```
+-- MOVED (1) --
+  saas/reporting/annual_report.py
+      refreshable -> refused_supplies_dict_keys_the_base_lacks
+```
+
+**A before/after survey of a shared working tree is never a one-variable experiment**, and the naive
+diff was wrong in the direction that would have read as "this change is more dangerous than I
+thought" — a false alarm that costs a turn. The in-process differential costs nine lines.

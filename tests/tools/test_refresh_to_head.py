@@ -32,6 +32,27 @@ LANDED = (
     "    return argument * 41 + 7\n"
 )
 
+#: A PUBLICATION WHITELIST the base already binds, so a copy that adds a key to it supplies no
+#: SYMBOL. `test_a_publication_whitelist_key_is_not_a_symbol_...` owns the argument; these two exist
+#: so the partition control below can reach `WHITELIST_GAIN` and prove it has not collapsed onto
+#: `REFRESHABLE`, which is the neighbour it is one dict key away from.
+W_LANDED = (
+    "def alpha():\n    return 1\n\n\n"
+    "def freshly_landed_helper(argument):\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n\n\n"
+    "def extract():\n"
+    '    return {"landed_key": 1}\n'
+)
+
+W_RIVAL_ADDS_A_KEY = (
+    "def alpha():\n"
+    '    """an alternative wording of exactly the same behaviour"""\n'
+    "    return 1\n\n\n"
+    "def extract():\n"
+    '    return {"landed_key": 1, "key_bound_in_no_commit": 2}\n'
+)
+
 #: KIND A -- the shape with no legal move before this tool. Another lane wrote the same file
 #: independently, worded it differently, and never pulled the landing: it supplies NO name HEAD
 #: lacks, so `isolate_hunks` has nothing legitimate to select and refuses both ways round.
@@ -176,8 +197,10 @@ def repo(tmp_path: Path) -> Path:
     (root / "dep.py").write_text(DEP_BEFORE)
     (root / "d.py").write_text(D_BASELINE)
     (root / "k.py").write_text(K_BASE)
-    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py", "k.py")
+    (root / "w.py").write_text("def alpha():\n    return 1\n")
+    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py", "k.py", "w.py")
     _run(root, "commit", "-qm", "base")
+    (root / "w.py").write_text(W_LANDED)
     (root / "m.py").write_text(LANDED)
     (root / "dep.py").write_text(DEP_AFTER)
     (root / "k.py").write_text(K_LANDED)
@@ -188,7 +211,7 @@ def repo(tmp_path: Path) -> Path:
     # which the 2026-09-16 door already admits -- and the fixture would grade green with the
     # defect still in.
     (root / "d.py").write_text(D_LANDED)
-    _run(root, "add", "m.py", "dep.py", "d.py", "k.py")
+    _run(root, "add", "m.py", "dep.py", "d.py", "k.py", "w.py")
     _run(root, "commit", "-qm", "lane B lands a helper, and dep's API moves under it")
     return root
 
@@ -517,8 +540,17 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
     states.add(rth.judge_copy(repo, "brand_new.py").state)
     (repo / "d.py").write_text(DEAD_DRAFT)
     states.add(rth.judge_copy(repo, "d.py").state)
+    # WHITELIST_GAIN JOINS THE PARTITION HERE AND NOT ONLY IN ITS OWN SUITE. It is a withdrawal of
+    # REFRESHABLE, so the shape that reaches it is one dict key from the shape that reaches the
+    # permissive branch above -- exactly the pair a later edit collapses without noticing. Both
+    # must appear in `states` or this equality goes red. `w.py` and not `m.py`: the base must
+    # ALREADY bind the whitelist, or adding the function to hold it supplies a symbol and the copy
+    # grades SUPPLIES_NEW -- which is how the first draft of this leg passed nothing.
+    (repo / "w.py").write_text(W_RIVAL_ADDS_A_KEY)
+    states.add(rth.judge_copy(repo, "w.py").state)
     assert states == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.REPLACEMENT, rth.SUPERSEDED_DEAD,
-                      rth.NOT_SUPERSEDED, rth.AT_HEAD, rth.NO_READER, rth.NO_BASE}
+                      rth.NOT_SUPERSEDED, rth.AT_HEAD, rth.NO_READER, rth.NO_BASE,
+                      rth.WHITELIST_GAIN}
 
 
 # --------------------------------------- rule 1 asks NEVER BOUND, not merely ABSENT (2026-09-16)
