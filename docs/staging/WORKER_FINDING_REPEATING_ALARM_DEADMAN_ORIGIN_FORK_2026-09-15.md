@@ -51,6 +51,26 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
   genuinely fixed by `9c2234e2c`, so this is converging: 3 red → 2 red. Full diagnosis, the six
   resolutions and the ordered remedy:
   `SEAT_FINDING_THE_MERGE_OPENS_THE_SIGN_GATE_AND_THE_HEADLINE_COMPOSER_REPUBLISHES_A_WITHDRAWN_SENTENCE_2026-09-15.md`.
-
+- **2026-09-16** — still live. 3 repeats over 0.3h without the state changing. No second document filed: this condition already has one.
+- **2026-09-17** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-09-18** — still live. 5 repeats over 2.2h without the state changing. No second document filed: this condition already has one.
+- **2026-09-19** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-09-20** — still live. 16 repeats over 2.0h without the state changing. No second document filed: this condition already has one.
+- **2026-09-21** — still live. 169 repeats over 30.7h without the state changing. No second document filed: this condition already has one.
+- **2026-09-22** — still live. 7 repeats over 2.2h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 3 repeats over 1.5h without the state changing. No second document filed: this condition already has one.
+- **2026-09-24** — still live. 6 repeats over 1.0h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/seat_preregistrat` (first seen 2026-09-15)
+- `not_advanced: the merge gated clean and was pushed, but the shared tree did not advance and is still # commit(s) behind.` (first seen 2026-09-15)
+- `not_advanced: origin is # commit(s) ahead, this machine has nothing to land, and the shared tree will not fast-forward. ` (first seen 2026-09-15)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: tests/background/test_the_liveness_sur` (first seen 2026-09-17)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/design/orphan_baseline.json tests` (first seen 2026-09-17)
+- `error: could not build an isolated worktree: another writer holds /var/tmp/se-origin-reconcile (owner marker live, or th` (first seen 2026-09-17)
+- `refused_gate: on the resulting tree (rc=#). this is the tree the commit would create, not the working tree -- a working ` (first seen 2026-09-18)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/prereg_the_publis` (first seen 2026-09-18)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: tests/background/test_a_window_that_cl` (first seen 2026-09-18)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/seat_result_a_car` (first seen 2026-09-24)
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.

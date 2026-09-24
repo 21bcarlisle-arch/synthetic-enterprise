@@ -62,3 +62,16 @@ filing a second document (2026-08-24). A condition that returns AFTER this has b
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
 ## Still live
+
+## Re-asked
+- **2026-09-24** — re-asked: **cleared**. no observation since 2026-08-25, past the 3-day bar; no key for `seat-claim` in the notify transition store; and the machinery observed other conditions on 2026-09-24, so the silence is the observers running and not seeing it.
+
+## Re-asked and cleared, 2026-09-24
+
+Archived by `background/alarm_repetition.reask()`, not by a person, and not because anybody diagnosed it.
+
+- **What was asked:** has the condition behind `seat-claim:value-arm-chooses-a-bound-not-a-customer` been observed to hold since it was last annotated?
+- **Last observation:** 2026-08-25
+- **The answer, and what carried it:** no observation since 2026-08-25, past the 3-day bar; no key for `seat-claim` in the notify transition store; and the machinery observed other conditions on 2026-09-24, so the silence is the observers running and not seeing it.
+- **What this does NOT claim:** that the condition was fixed, or why it stopped. Only that nothing has observed it for 3 days while the observers were demonstrably running. If it returns it files a FRESH document — `escalate()` does not search `done/` — and that fresh document is an R3 two-strike signal worth more than this one was.
+
