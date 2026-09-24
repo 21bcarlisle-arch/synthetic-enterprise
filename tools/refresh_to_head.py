@@ -259,6 +259,55 @@ def _discarded_lines(head_text: str, work_text: str) -> tuple[str, ...]:
                  if ln.startswith("+") and not ln.startswith("+++") and ln[1:].strip())
 
 
+def _clock_disclosure(clock, base: str) -> str:
+    """The clause a HOLDER-WORK grade must carry when the clock says the copy is the older draft.
+
+    THE GRADE AND THE CLOCK ANSWER DIFFERENT QUESTIONS AND ONLY ONE OF THEM REACHED THE READER.
+    `SUPPLIES_NEW` is a statement about SYMBOLS: this copy binds names the base does not, so a hunk
+    exists that takes the work without a revert. The clock is a statement about TIME: this copy is
+    older than the last commit to its own path. Both are true at once more often than either
+    reading suggests, and when they are, the door the grade names -- `isolate_hunks --keep` then
+    `surgical_land --content` -- puts the older draft's bytes over the newer commit.
+
+    THIS IS NOT A CONTRADICTION THE TOOL MAY RESOLVE, WHICH IS WHY IT IS A DISCLOSURE AND NOT A
+    STATE CHANGE. `--keep` really does have a selection here, so the copy is genuinely not a
+    REPLACEMENT and `--base-wins` correctly does not reach it. Re-grading it would discard work a
+    door could have saved -- the exact destruction `REPLACEMENT` exists to avoid. What was wrong
+    was never the grade; it was that the grade spoke with one voice about a path two controls
+    disagree on.
+
+    MEASURED ON THE LIVE SHARED TREE, 2026-09-24, and that instance is why this exists. Four
+    working copies all stamped 15:02:31 by one stash-pop; origin's last commit to each of their
+    paths at 16:30, 17:10, 17:10 and 18:24 -- every one of them later. Two of the four graded
+    `refused_supplies_names_head_lacks` and were told to "land hunk(s) 1, 3, 4, 7 over HEAD", with
+    `clock.rule` sitting in scope at `predates_landing` and `predates_landing_by_clock`
+    respectively: computed, then dropped on the floor. The delivery lane's own PATH CHECK reads
+    this same grade and printed "differs from HEAD and reverts no landing" about a copy its own
+    clock calls the older draft -- so the defect had already propagated into the instructions a
+    session is handed before it reads any code.
+
+    AND IT IS UNCONDITIONAL, WHICH IS THE WHOLE REPAIR. The one route by which the clock reached a
+    reader from this state was a clause appended only `if base_wins` -- available precisely to the
+    operator who had already typed the flag that proves they suspected it, and absent for every
+    automated caller and every default invocation, which is all of them.
+    """
+    rule = getattr(clock, "rule", None)
+    # `PREDATES` IS THE STEM OF THE WHOLE FAMILY, not one member of it: `predates_landing`,
+    # `predates_landing_by_clock` and `predates_landing_carrying_some` all begin with it. Keyed to
+    # the stem, a FOURTH predates rule added later is disclosed the day it is written; keyed to a
+    # tuple of today's three, it would be silently undisclosed and nothing here would go red.
+    if not rule or not rule.startswith(PREDATES):
+        return ""
+    loss = getattr(clock, "loss", None)
+    landing = loss.commit[:9] if (loss is not None and loss.commit) else "an unnamed commit"
+    return (" AND THE CLOCK DISAGREES WITH THE DOOR ABOVE: the stale-copy control's verdict on "
+            "this copy is [{}] against {} -- it is OLDER than {}, the last landing to its own "
+            "path. The hunk(s) named are genuinely landable, so this is holder work and not a "
+            "REPLACEMENT; but landing them writes bytes that predate that commit over it. Read "
+            "the landing first -- if the copy was taken before it, the hunks are the older draft "
+            "of work that is already in, and the door reverts it.".format(rule, base, landing))
+
+
 def _staged_paths(root: Path) -> frozenset[str]:
     out = _git(root, "diff", "--cached", "--name-only")
     return frozenset(p.strip() for p in out.stdout.splitlines() if p.strip())
@@ -471,9 +520,10 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                                "structure that is in no other document. It also disagrees with {} "
                                "about the value at {} key(s) they both bind, which is a separate "
                                "question and not a supply. Decide which document wins and land it "
-                               "deliberately.{}".format(
+                               "deliberately.{}{}".format(
                                    len(delta.novel), base, ", ".join(delta.novel[:3]), base,
-                                   base, len(delta.edited), unreached),
+                                   base, len(delta.edited), _clock_disclosure(clock, base),
+                                   unreached),
                                gains=delta.novel, edited=delta.edited)
             return Verdict(path, RIVAL_VALUES,
                            "this copy binds NO key path {} lacks. It is the same document with {} "
@@ -596,9 +646,10 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                        "this copy SUPPLIES {} name(s) {} does not have, so it is not a copy {} "
                        "supersedes -- it is holder work. Use `python3 -m tools.isolate_hunks "
                        "--survey {}` and land hunk(s) {} over HEAD -- those are the ones that add "
-                       "without deleting anything {} carries.{}".format(
+                       "without deleting anything {} carries.{}{}".format(
                            len(live), base, base, path,
                            ", ".join(str(h) for h in landable), base,
+                           _clock_disclosure(clock, base),
                            "" if not base_wins else
                            " `--base-wins` DOES NOT REACH A COPY WITH A LANDABLE HUNK, however "
                            "stale the clock says it is: the hunk(s) above take the work WITHOUT "

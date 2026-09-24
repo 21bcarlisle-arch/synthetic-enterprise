@@ -11,6 +11,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -878,6 +879,88 @@ def test_base_wins_does_not_reach_a_stale_copy_that_still_has_a_landable_hunk(
             verdict.state))
     assert "isolate_hunks" in verdict.reason, "the door that does apply was not named"
     assert (repo / "k.py").read_text() == K_STALE_BUT_LANDABLE
+
+
+#: The disclosure clause's own opening words. The two legs below are told apart by THIS and not by
+#: the word "predates": a clause printed unconditionally still renders the rule name it was given,
+#: so "no complaint" appears where a predates verdict would and the anti-tautology arm reads green.
+_DISCLOSURE_MARK = "AND THE CLOCK DISAGREES WITH THE DOOR ABOVE"
+
+
+def test_a_holder_work_grade_discloses_the_clock_that_disagrees_with_the_door_it_names(
+        repo: Path) -> None:
+    """MUTATION: delete the `_clock_disclosure(clock, base)` argument from `judge_copy`'s
+    `SUPPLIES_NEW` return and the first arm below FIRES.
+
+    THE DEFECT, measured on the live shared tree 2026-09-24. `SUPPLIES_NEW` prints a door --
+    "land hunk(s) 1, 3, 4, 7 over HEAD" -- and until now said nothing about the clock even when
+    `clock.rule` was sitting in scope at `predates_landing`. Four working copies stamped 15:02:31
+    against landings at 16:30, 17:10, 17:10 and 18:24: two of them were handed that door, and
+    taking it writes the older draft's bytes over the newer commit. The delivery lane's own PATH
+    CHECK reads this grade and reported "differs from HEAD and reverts no landing" about a copy
+    its own clock calls older, so the silence had already reached the instructions a session acts
+    on before it reads any code.
+
+    A DISCLOSURE AND NOT A RE-GRADE, WHICH IS WHY THE STATE IS ASSERTED UNCHANGED IN BOTH ARMS.
+    `--keep` genuinely has a selection here, so the copy is not a REPLACEMENT and `--base-wins`
+    correctly does not reach it (the test above). Re-grading would destroy work a door could have
+    saved. The contradiction is real and belongs to the operator; what was wrong was that only one
+    of the two controls spoke.
+
+    TWO ARMS, AND THE SECOND IS WHAT STOPS THIS PASSING ON A SENTENCE PRINTED UNCONDITIONALLY.
+    Both copies reach `SUPPLIES_NEW`; they differ ONLY in what the clock says about them. A repair
+    that appended the clause to every holder-work grade would pass arm one and destroy the
+    tool's ability to distinguish the two, which is the same shape as
+    `test_the_no_complaint_verdict_does_not_claim_a_reading_it_never_made`."""
+    (repo / "k.py").write_text(K_STALE_BUT_LANDABLE)
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    stale, fresh = rth.judge_copy(repo, "k.py"), rth.judge_copy(repo, "m.py")
+
+    assert stale.state == fresh.state == rth.SUPPLIES_NEW, (
+        "the two arms are not in one state, so the assertions below are a comparison of two "
+        "different verdicts rather than of one verdict's two clock readings: {} / {}".format(
+            stale.state, fresh.state))
+    stale_rule = scr.opinion(repo, "k.py", rth.blob_at(repo, "HEAD", "k.py"),
+                             K_STALE_BUT_LANDABLE, parent="HEAD").rule
+    assert stale_rule.startswith(rth.PREDATES), (
+        "the stale arm's clock no longer says the copy predates its landing [{}], so this "
+        "fixture cannot exercise the disclosure at all".format(stale_rule))
+
+    assert "isolate_hunks" in stale.reason and "isolate_hunks" in fresh.reason, (
+        "the door is not named in both arms, so a missing disclosure below could be the door "
+        "being absent rather than the clock being silent")
+    assert stale_rule in stale.reason, (
+        "the holder-work grade names a landing door on a copy its own clock calls the older "
+        "draft, and does not say so -- the operator takes the door and reverts the landing")
+    # KEYED TO THE CLAUSE'S OWN SIGNATURE, NOT TO THE WORD "predates". Written the second way this
+    # leg passed a mutation that returned the disclosure UNCONDITIONALLY -- the clause then renders
+    # as "the verdict on this copy is [no complaint]", which contains no such word, and the arm
+    # written to catch exactly that defect went green while a sibling test caught it instead.
+    assert _DISCLOSURE_MARK not in fresh.reason, (
+        "the clause is printed for a copy the clock has NO complaint about, so it carries no "
+        "information and the two states are indistinguishable to a reader")
+    assert _DISCLOSURE_MARK in stale.reason, (
+        "the stale arm carries the rule name but not the clause, so the two arms are being told "
+        "apart by something other than the disclosure this test is about")
+
+
+def test_the_disclosure_reaches_every_member_of_the_predates_family(repo: Path) -> None:
+    """KEYED TO THE STEM, NOT TO TODAY'S THREE RULES. `predates_landing`,
+    `predates_landing_by_clock` and `predates_landing_carrying_some` are one family and a fourth
+    is a normal thing to add. Written against a tuple of the three, a new member would be
+    silently undisclosed and nothing would go red -- the failure direction this project has paid
+    for repeatedly. The live tree carries one copy of each of the three right now.
+
+    MUTATION: narrow `_clock_disclosure`'s test from `rule.startswith(PREDATES)` to
+    `rule == PREDATES` and the two non-bare members below FIRE."""
+    for rule in (scr.PREDATES, scr.CLOCK, scr.PARTIAL):
+        clock = SimpleNamespace(rule=rule, loss=SimpleNamespace(commit="0123456789abcdef"))
+        clause = rth._clock_disclosure(clock, "origin/main")
+        assert rule in clause and "012345678" in clause, (
+            "[{}] is a predates-landing verdict and the grade would not disclose it".format(rule))
+    for quiet in ("no complaint", "", None):
+        assert rth._clock_disclosure(SimpleNamespace(rule=quiet, loss=None), "origin/main") == "", (
+            "a clock with nothing to say produced a disclosure: [{}]".format(quiet))
 
 
 def test_the_bytes_a_base_wins_refresh_discards_come_back_by_the_advertised_search(
