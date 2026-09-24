@@ -1292,6 +1292,13 @@ def _read_transitions_for_reask() -> dict:
     Returns `{}` on ANY failure. That is the safe direction here and only here: the store is used
     exclusively to CONTRADICT a stale-looking document, so an empty read can never manufacture a
     clear, only fail to prevent one -- and the heartbeat leg below still has to pass.
+
+    THE SAFETY ARGUMENT ABOVE IS TRUE AND IT IS NOT ENOUGH, measured 2026-09-24. Both halves were
+    checked and both are weaker than they read: the heartbeat leg's OTHER source is the graded
+    documents themselves, so an absent store does not make the machinery read dead; and "can only
+    fail to prevent a clear" is the whole hazard when a process cannot see the store at all.
+    `clearing_vantage_refusal` below is where that is now answered, because it is a question about
+    the PROCESS and not about any document, and nothing here could have asked it.
     """
     try:
         from background.notify import TRANSITIONS_FILE
@@ -1299,6 +1306,77 @@ def _read_transitions_for_reask() -> dict:
         return data if isinstance(data, dict) else {}
     except Exception:
         return {}
+
+
+#: The marker that tells a linked git worktree from the tree the daemons actually run in: in a
+#: linked worktree `.git` is a FILE pointing at the main repository, and in the main tree it is a
+#: directory. Named at module level so a control can pin it to either shape; the value is read
+#: through this name on every call rather than captured, so monkeypatching it works.
+GIT_DIR_MARKER = PROJECT_DIR / ".git"
+
+
+def clearing_vantage_refusal(*, git_marker: Path | None = None,
+                             transitions_file: Path | None = None) -> str | None:
+    """Why THIS PROCESS may not retire an alarm document, or None if it may.
+
+    A QUESTION ABOUT THE OBSERVER, WHICH NOTHING ELSE HERE ASKS. Every other leg of `reask()`
+    interrogates a document: how old are its lines, does the store contradict them, did the
+    machinery write anything. All of those read whatever copy of the world this process happens to
+    have, and all of them are confident about it. This asks the prior question -- is this process
+    standing where the alarms are actually written? -- and it is the only leg whose answer does not
+    change when the documents do.
+
+    MEASURED, 2026-09-24, and it is why this exists rather than a comment. The delivery seat runs
+    in an ISOLATED git worktree, and the drawn item's instruction was to run `--apply` there. Two
+    runs, one variable apart, over the same ten live documents:
+
+      * worktree, no store on disk: 7 `still_holds`, 3 `cannot_tell`, 0 `cleared`. Safe, but by
+        luck -- `machinery_heartbeat` fell back to the documents and read 2026-09-22, two days
+        behind a ONE-day bar, so the machinery looked dead. A checkout one day fresher would have
+        passed that bar.
+      * the same worktree with the shared tree's store copied in: **3 `cleared`**, two of which
+        (`deadman_origin_fork`, `seat-claim`) carried a still-live line stamped THAT DAY in the
+        shared tree's copy and were firing hourly. `--apply` would have archived two live
+        conditions out of the director's queue and written the evidence that it was right to.
+
+    Neither the document legs nor the store leg can catch that, and the reason is structural: the
+    stale copy and the missing store are properties of where the process is, and every existing leg
+    reads its inputs THROUGH that position. The store cannot serve as the backstop its own reader
+    claims, either -- four of the nine live families have no key in it at all, by design, because
+    they call `escalate()` directly (see `test_MUTATION_an_ABSENT_key_ALONE_never_clears...`).
+
+    TWO LEGS, AND BOTH ARE ABOUT VANTAGE RATHER THAN ABOUT FRESHNESS:
+
+      1. a linked worktree -- its `docs/staging/` is HEAD's copy, not the live queue, and HEAD is
+         behind the daemon's writes by construction rather than by accident (the daemon does not
+         commit).
+      2. no transition store ON DISK -- distinct from an empty one, which is a real reading of a
+         quiet system. An absent FILE means this process is not where `notify()` writes, so its
+         view of every family's firing history is not a reading at all.
+
+    Deliberately NOT a freshness check on the documents (their mtime is the term
+    `unattended_since` exists instead of, and it is anti-correlated with attention here), and
+    deliberately not a refusal to RUN: reporting and annotating from a worktree are useful and
+    harmless. Only the irreversible half is withheld, and it says which leg withheld it.
+    """
+    marker = GIT_DIR_MARKER if git_marker is None else git_marker
+    if marker.is_file():
+        return (f"`{marker}` is a file rather than a directory, so this is a LINKED GIT WORKTREE: "
+                "the documents read here are HEAD's copies and the daemon that annotates the live "
+                "queue does not commit, so silence in this checkout is evidence about the "
+                "checkout and not about the condition")
+    if transitions_file is None:
+        try:
+            from background.notify import TRANSITIONS_FILE
+            transitions_file = Path(TRANSITIONS_FILE)
+        except Exception:
+            return ("the notify transition store's own location could not be resolved, so there "
+                    "is no firing record for this process to read")
+    if not transitions_file.exists():
+        return (f"`{transitions_file}` does not exist, so this process holds no firing record at "
+                "all — an absent store is not the same reading as an empty one, and every "
+                "family's history is unknown here rather than quiet")
+    return None
 
 
 def _family_last_seen(fam: str, transitions: dict) -> float | None:
@@ -1349,11 +1427,14 @@ def reask(*, staging_dir: Path | None = None, now: float | None = None,
                       The document gains a dated re-ask line, so "somebody looked and it is still
                       burning" becomes readable instead of being indistinguishable from nobody
                       having looked.
-      CLEARED      -- quiet past the bar, no contradicting firing, and the machinery demonstrably
-                      alive. The document archives itself to `done/` carrying the evidence.
+      CLEARED      -- quiet past the bar, no contradicting firing, the machinery demonstrably
+                      alive, AND this process standing where the alarms are written
+                      (`clearing_vantage_refusal`). The document archives itself to `done/`
+                      carrying the evidence.
       CANNOT_TELL  -- the machinery is quiet, or the document carries no machine-written date at
-                      all. Fails CLOSED: the document stays in the queue and gains a line naming
-                      the reason, because "we cannot tell" is a result and belongs on the surface.
+                      all, or this process cannot see the live queue. Fails CLOSED: the document
+                      stays in the queue and gains a line naming the reason, because "we cannot
+                      tell" is a result and belongs on the surface.
 
     `apply=False` (the default) decides everything and writes nothing, so the verdicts can be read
     before they are acted on. Nothing about the decision changes between the two.
@@ -1377,6 +1458,12 @@ def reask(*, staging_dir: Path | None = None, now: float | None = None,
     transitions = _read_transitions_for_reask()
     heartbeat = machinery_heartbeat(documents, transitions, now=now)
     machinery_alive = heartbeat is not None and heartbeat >= heartbeat_before
+
+    # CAN THIS PROCESS RETIRE ANYTHING AT ALL -- asked once, before any document is graded, and
+    # only of the LIVE queue. A caller that NAMES a population has built it and answered for it;
+    # a caller that names none is asking about the director's real queue from wherever it happens
+    # to be standing, and that is the case `clearing_vantage_refusal` was measured against.
+    vantage = clearing_vantage_refusal() if staging_dir is None else None
 
     out: list[Reask] = []
     for path in documents:
@@ -1411,11 +1498,22 @@ def reask(*, staging_dir: Path | None = None, now: float | None = None,
                 f"anything on {heartbeat or 'no date at all'} (bar is {heartbeat_before}), so "
                 "this silence is not evidence about the condition — it is evidence about the "
                 "observers")
+        elif vantage is not None:
+            # THE ONLY LEG THAT IS NOT ABOUT THIS DOCUMENT, and it sits last on purpose: every
+            # reading above has already been taken and reported, so a re-ask run from a worktree
+            # still says everything it can. What it withholds is the irreversible half.
+            verdict, reason = CANNOT_TELL, (
+                f"quiet since {observed} and nothing here contradicts it, but this process cannot "
+                f"retire a document: {vantage}. The reading is reported; the archival is not taken")
         else:
             verdict, reason = CLEARED, (
                 f"no observation since {observed}, past the {REASK_QUIET_DAYS}-day bar; "
                 + (f"`{fam}` last fired {fired_h:.1f}h ago" if fired_h is not None
-                   else f"no key for `{fam}` in the notify transition store")
+                   # NOT "no key, therefore quiet". Four of nine live families never write this
+                   # store at all, so an absent key is an absence of evidence and the sentence
+                   # must not read as though it were evidence for the conclusion it sits inside.
+                   else f"the store holds no key for `{fam}` at all, so it can neither corroborate "
+                        "nor contradict this and the document's own lines are the only witness")
                 + f"; and the machinery observed other conditions on {heartbeat}, so the "
                   "silence is the observers running and not seeing it")
 

@@ -2,10 +2,17 @@
 
 # [WORKTREE UNDECLARED] 5 UNDECLARED worktree(s) (accretion, report-only): se-floorrun-20260910(detached), se-lane0-merge-20260911(detached), se-lane0-merge-20260911b(detached), se-l
 
-**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
-fired **5 times without its state changing**, over **95.9h**. Under the
-director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
-than being sent again, so this document exists and a 5th page does not.
+<!-- counts:begin -->
+**Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
+has been **observed to hold on 10 separate day(s)**, between **2026-09-15** and **2026-09-24**,
+and **24 member(s)** of the family `deadman_worktree_undeclared` have fired. Both counts are
+DERIVED from this document's own dated lines every time the alarm fires again, so they age with
+the document rather than with its first firing.
+
+Separately, the observer that last filed reported **16 consecutive firing(s) without a state
+change**, over **1.4h**. That is `notify()`'s streak counter, which resets; it is not a total
+and does not combine with the two counts above.
+<!-- counts:end -->
 
 ## The alarm, verbatim
 
@@ -41,6 +48,8 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - **2026-09-20** — still live. 106 repeats over 10.7h without the state changing. No second document filed: this condition already has one.
 - **2026-09-21** — still live. 298 repeats over 42.0h without the state changing. No second document filed: this condition already has one.
 - **2026-09-22** — still live. 3 repeats over 0.1h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 5 repeats over 0.3h without the state changing. No second document filed: this condition already has one.
+- **2026-09-24** — still live. 5 repeats over 0.8h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `# undeclared worktree(s) (accretion, report-only): se-floorrun-#(detached), se-lane#-merge-#(detached), se-lane#-merge-#` (first seen 2026-09-15)
 - `# undeclared worktree(s) (accretion, report-only): se-floorrun-#(detached), se-forkmerge-#(detached), se-lane#-merge-#(d` (first seen 2026-09-15)
@@ -52,3 +61,20 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `# undeclared worktree(s) (accretion, report-only): feed-regen-#db#fu(detached), regen_wt(detached), se-floorrun-#(detach` (first seen 2026-09-19)
 - `# undeclared worktree(s) (accretion, report-only): feed-regen-n#ivvmun(detached), regen_wt(detached), se-floorrun-#(deta` (first seen 2026-09-19)
 - `# undeclared worktree(s) (accretion, report-only): roster-wt(detached), se-floorrun-#(detached), se-floorrun-head-#(deta` (first seen 2026-09-19)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), se-floorrun-#(detached), se-floorrun-head-#(detached), ` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), wt(detached), se-floorrun-#(detached), se-floorrun-head` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), varms_wt(detached), se-floorrun-#(detached), se-floorru` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): churnpub(detached), wt(detached), se-floorrun-#(detached), se-floorru` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), seat_merge_wt(detached), se-floorrun-#(detached), se-fl` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), se_merge_#(detached), seat_merge_wt(detached), se-floor` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), se_wt_head(detached), se_wt_om(detached), se-floorrun-#` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), vab_base_#(detached), vab_head_#(detached), se-floorrun` (first seen 2026-09-22)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), vaw_head(detached), se-floorrun-#(detached), se-floorru` (first seen 2026-09-23)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), wt(detached), vaw_head(detached), se-floorrun-#(detache` (first seen 2026-09-23)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), wt_truthiness(detached), se-floorrun-#(detached), se-fl` (first seen 2026-09-23)
+- `# undeclared worktree(s) (accretion, report-only): cb_baseline_wt(detached), wt(detached), se-floorrun-#(detached), se-f` (first seen 2026-09-23)
+- `# undeclared worktree(s) (accretion, report-only): churn_wt(detached), wt(detached), se-floorrun-#(detached), se-floorru` (first seen 2026-09-23)
+- `# undeclared worktree(s) (accretion, report-only): wt(detached), se-rp-wt(detached), se-floorrun-#(detached), se-floorru` (first seen 2026-09-23)
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.

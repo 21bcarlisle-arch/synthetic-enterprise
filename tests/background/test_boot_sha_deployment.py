@@ -20,7 +20,10 @@ Plus a VACUITY guard: the honest path must evaluate a NON-EMPTY daemon set on th
 """
 from __future__ import annotations
 
+import json
+import os
 import subprocess
+import time
 
 import pytest
 
@@ -32,6 +35,12 @@ from background.process_reconciler import (
     loaded_code_drift,
     observed_launched_by,
 )
+
+#: For the cases that are about the OTHER three rules. Both maps empty means "no start time and no
+#: stamp time is known for this session", under which the 2026-09-24 rule makes no claim and the
+#: older rules decide — spelled out at each call site rather than defaulted, because a rule a
+#: caller can silently omit is how the stamper itself went twenty days unnoticed.
+_NOT_ABOUT_STAMP_AGE = {"boot_ts": {}, "started_at": {}}
 
 
 def test_stamp_and_read_roundtrip(tmp_path, monkeypatch):
@@ -139,7 +148,8 @@ def test_signal_is_green_when_head_moved_but_nothing_loaded_changed():
     """THE always-red mutation: revert the signal to HEAD-comparison and this reds. The daemon
     booted from an OLD sha, HEAD has moved, and a file changed — but not one it imports. GREEN."""
     d = loaded_code_drift(["a"], {"a": "OLDSHA"}, {"a": {"background/a.py"}},
-                          changed_since=lambda sha, session=None: {"docs/status/LATEST.md", "background/z.py"})
+                          changed_since=lambda sha, session=None: {"docs/status/LATEST.md", "background/z.py"},
+                          **_NOT_ABOUT_STAMP_AGE)
     assert d["stale"] == {} and d["unresolved"] == {}
 
 
@@ -147,7 +157,8 @@ def test_signal_is_red_when_a_loaded_module_changed():
     """The half that must still fire: one changed module inside the closure is stale, even though
     only that single file moved."""
     d = loaded_code_drift(["a"], {"a": "OLDSHA"}, {"a": {"background/a.py", "background/b.py"}},
-                          changed_since=lambda sha, session=None: {"background/b.py"})
+                          changed_since=lambda sha, session=None: {"background/b.py"},
+                          **_NOT_ABOUT_STAMP_AGE)
     assert d["stale"] == {"a": ["background/b.py"]}
 
 
@@ -161,7 +172,7 @@ def test_an_unanswerable_check_is_unresolved_never_a_silent_green(boot_shas, clo
     """R15 fail-silent doctrine: unknown must not read as clean. Each of the three ways the
     comparison can fail to produce an answer lands in `unresolved` WITH ITS REASON — including the
     vacuous one (an empty closure compares against nothing and would otherwise always pass)."""
-    d = loaded_code_drift(["a"], boot_shas, closures, changed)
+    d = loaded_code_drift(["a"], boot_shas, closures, changed, **_NOT_ABOUT_STAMP_AGE)
     assert d["stale"] == {}
     assert d["unresolved"] == {"a": reason}
 
@@ -197,7 +208,8 @@ def test_entry_path_handles_both_manifest_launch_forms(tmp_path):
 def test_a_missing_entry_yields_an_empty_closure_which_callers_must_treat_as_unresolved(tmp_path):
     """Pinning the contract between the two modules: empty is NOT 'nothing changed'."""
     assert code_closure.import_closure("nope/missing.py", tmp_path) == set()
-    d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": set()}, lambda s, sess=None: {"background/a.py"})
+    d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": set()}, lambda s, sess=None: {"background/a.py"},
+                          **_NOT_ABOUT_STAMP_AGE)
     assert d["unresolved"] == {"a": "closure-unknown"}
 
 
@@ -210,6 +222,129 @@ def test_generated_units_stamp_boot_sha_before_execstart():
         assert f"ExecStartPre=-/usr/bin/python3 -m background.boot_sha {session}" in text
         # G-D3: the stamp must run BEFORE the daemon starts, or it records the wrong SHA
         assert text.index("ExecStartPre") < text.index("ExecStart=")
+
+
+def test_the_units_own_declared_stamp_command_stamps(tmp_path):
+    """THE DEFECT THIS EXISTS FOR, measured 2026-09-24 — and note that the test directly above was
+    GREEN throughout it.
+
+    `3ecf355d8` (2026-09-04) deleted `boot_sha.__main__` while fixing an unrelated defect. Ten
+    generated units, and their ten installed copies, kept declaring
+    `ExecStartPre=-/usr/bin/python3 -m background.boot_sha <session>`; the command kept exiting 0;
+    the leading `-` told systemd to ignore it; and it stamped NOTHING for twenty days. Every check
+    that existed asked about the DECLARATION — is the line present, is it before ExecStart — and a
+    declaration is exactly what had not broken. `stamp()` had no production caller at all, and its
+    unit tests all monkeypatched BOOT_DIR, so they proved the function while the invocation was
+    dead.
+
+    So this control runs the command itself. The argv is PARSED OUT OF THE GENERATED UNIT rather
+    than retyped here, which keys it to the property ("whatever the unit declares, stamps") instead
+    of to today's spelling: renaming the module, moving the entrypoint or dropping `__main__` again
+    all red this one leg."""
+    from background import generate_units as G
+    units = G.regenerate()
+    fname, text = sorted(units.items())[0]
+    session = fname[: -len(".service")]
+    line = next(ln for ln in text.splitlines() if ln.startswith("ExecStartPre="))
+    argv = line.split("=", 1)[1].lstrip("-+!@").split()
+
+    boot_dir = tmp_path / "boot"
+    r = subprocess.run(argv, cwd=G._HERE.parent, capture_output=True, text=True, timeout=120,
+                       env={**os.environ, "SE_BOOT_DIR": str(boot_dir)})
+
+    record = boot_dir / f"{session}.json"
+    assert record.is_file(), (
+        f"the unit's own declared stamp command wrote no boot record.\n"
+        f"argv={argv} rc={r.returncode}\nstderr={r.stderr[-800:]}")
+    written = json.loads(record.read_text())
+    assert written["session"] == session      # it must stamp the session it was ASKED for
+    assert written.get("sha")                 # ...with a real SHA, not a None-shaped placeholder
+    assert written.get("ts")
+
+
+def test_process_start_time_reads_a_live_process_and_refuses_a_dead_one():
+    """The observation the fourth rule rests on. Our own pid must yield a plausible epoch second in
+    the past; an impossible pid must yield None, never 0 or now() — a fabricated start time would
+    make every stamp look fresh, which is fail-open in the one direction that matters."""
+    mine = R.process_start_time(os.getpid())
+    assert mine is not None and 1_500_000_000 < mine <= time.time() + 1
+    assert R.process_start_time(0) is None
+    assert R.process_start_time(2 ** 30) is None
+
+
+def test_a_stamp_from_a_previous_boot_is_unresolved_not_stale():
+    """THE 2h48m WINDOW, as a control. `465a0dfca` landed `reask()` into `staging_watcher` at
+    2026-09-23 23:12:02Z; the running watcher only applied it at 2026-09-24 02:00:23Z when
+    something restarted it. Nothing could see that, because the session read `stale` on BOTH sides
+    of the restart — its stamp was from 2026-09-17 and described a process that no longer existed,
+    and a stamp that old makes `changed_paths_since` report the daemon's own source as changed
+    whatever it is actually running.
+
+    A stamp older than the process it claims to describe says nothing about the loaded bytes, so
+    the honest verdict is a NAMED refusal, not a confident red pointing at the wrong remedy
+    (restart it — which had already happened — instead of repair the stamper)."""
+    d = loaded_code_drift(["staging-watcher"], {"staging-watcher": "OLDSHA"},
+                          {"staging-watcher": {"background/staging_watcher.py"}},
+                          lambda sha, session=None: {"background/staging_watcher.py"},
+                          boot_ts={"staging-watcher": 1000.0},
+                          started_at={"staging-watcher": 2000.0})
+    assert d["stale"] == {}, "a stamp describing a dead process must not license a `stale` verdict"
+    assert d["unresolved"] == {"staging-watcher": "stamp-predates-process"}
+
+
+def test_a_stamp_written_at_this_boot_still_reaches_the_stale_verdict():
+    """The other half, and the one that stops the new rule swallowing the signal: same inputs, the
+    stamp now POSTDATES the process start, and the daemon reads honestly stale. Without this leg a
+    rule that returned 'stamp-predates-process' unconditionally would pass the test above — the
+    guard-that-refuses-everything shape."""
+    d = loaded_code_drift(["staging-watcher"], {"staging-watcher": "OLDSHA"},
+                          {"staging-watcher": {"background/staging_watcher.py"}},
+                          lambda sha, session=None: {"background/staging_watcher.py"},
+                          boot_ts={"staging-watcher": 2000.0},
+                          started_at={"staging-watcher": 1000.0})
+    assert d["unresolved"] == {}
+    assert d["stale"] == {"staging-watcher": ["background/staging_watcher.py"]}
+
+
+def test_the_four_unresolved_reasons_are_reachable_AND_DISTINCT():
+    """One control over the whole partition, rather than a leg per branch. Four shapes must produce
+    four DIFFERENT reasons: asserting only that each is 'unresolved' is blind to two shapes
+    collapsing onto one verdict, which is precisely what happened before the fourth rule existed —
+    a stale stamp and a current one both reached `stale` and nothing could tell them apart.
+
+    Keyed by SHAPE, not by expected answer, so a collapse shows up as a duplicate reason."""
+    live = {"boot_ts": {"a": 2000.0}, "started_at": {"a": 1000.0}}
+    shapes = {
+        "unstamped": dict(boot_shas={"a": None}, closures={"a": {"background/a.py"}},
+                          changed=lambda s, sess=None: set(), **live),
+        "stamp-from-a-previous-boot": dict(boot_shas={"a": "OLD"},
+                                           closures={"a": {"background/a.py"}},
+                                           changed=lambda s, sess=None: set(),
+                                           boot_ts={"a": 1000.0}, started_at={"a": 2000.0}),
+        "closure-empty": dict(boot_shas={"a": "OLD"}, closures={"a": set()},
+                              changed=lambda s, sess=None: {"background/a.py"}, **live),
+        "diff-unresolvable": dict(boot_shas={"a": "OLD"}, closures={"a": {"background/a.py"}},
+                                  changed=lambda s, sess=None: None, **live),
+    }
+    seen: dict[str, str] = {}
+    for shape, kw in shapes.items():
+        d = loaded_code_drift(["a"], kw["boot_shas"], kw["closures"], kw["changed"],
+                              boot_ts=kw["boot_ts"], started_at=kw["started_at"])
+        assert d["stale"] == {}, shape
+        seen[shape] = d["unresolved"]["a"]
+    assert len(set(seen.values())) == len(shapes), f"two shapes collapsed onto one reason: {seen}"
+
+
+def test_an_unknown_start_time_makes_no_new_claim():
+    """The degradation rule, stated as a control. A session whose process start time cannot be read
+    must fall through to the older rules — the new refusal needs POSITIVE evidence. Inverting this
+    would make an unreadable /proc mark every daemon unresolved, which is the always-red failure
+    the 2026-08-09 rebuild exists to abolish."""
+    for missing in ({"a": None}, {}):
+        d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": {"background/a.py"}},
+                              lambda s, sess=None: {"background/a.py"},
+                              boot_ts={"a": 1000.0}, started_at=missing)
+        assert d["unresolved"] == {} and d["stale"] == {"a": ["background/a.py"]}
 
 
 # ── The named replay: the daemon that actually broke, against the state it actually ran ─────
@@ -232,7 +367,9 @@ def test_sim_runner_replayed_against_the_wedge_boot_state_is_RED():
     closure = code_closure.closure_for_session("sim-runner")
     assert closure, "sim-runner must have a resolvable closure (vacuity)"
     d = loaded_code_drift(["sim-runner"], {"sim-runner": _WEDGE_BOOT_SHA},
-                          {"sim-runner": closure}, lambda sha, session=None: boot_sha.changed_paths_since(sha))
+                          {"sim-runner": closure},
+                          lambda sha, session=None: boot_sha.changed_paths_since(sha),
+                          **_NOT_ABOUT_STAMP_AGE)
     assert "sim-runner" in d["stale"], "the daemon that broke must read RED on its own boot state"
     assert "background/sim_runner.py" in d["stale"]["sim-runner"]
 

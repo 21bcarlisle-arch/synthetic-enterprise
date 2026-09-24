@@ -1200,34 +1200,76 @@ def test_every_input_to_the_published_supplier_claim_IS_IN_THE_PUBLISH_SURFACE(r
         "property of this working tree and not of the commit: {}".format(tracked.stderr.strip()))
 
 
-def test_the_published_supplier_claim_answers_THE_SAME_from_HEADs_committed_bytes(
-        real, monkeypatch, tmp_path):
-    """The oscillation, killed at the only place it can be proved dead: run the check against the
-    bytes a CLEAN CHECKOUT would hold and require the same verdict as the shared tree gives.
+def test_the_published_supplier_claim_NAMES_ONLY_RUNS_ITS_OWN_TWO_INPUTS_NAME(
+        monkeypatch, tmp_path):
+    """The oscillation, killed at the property rather than at today's bytes: run the check against
+    HEAD's committed pair and require every run the verdict NAMES to be one that PAIR names.
 
-    Fires on: an input reverting to a path whose committed copy differs from its working copy.
-    Under the pre-2026-09-10 subject this reddened with a £16,597.44 disagreement.
+    Fires on: any input reaching this claim from outside `DASHBOARD_PATH` and
+    `PUBLISH_PROVENANCE_PATH`. Restore the pre-2026-09-10 `RUN_OUTPUT_PATH` read and the verdict
+    starts naming a run neither blob below mentions, which is this assertion.
+
+    WHY IT NO LONGER COMPARES TWO REVISIONS (2026-09-24), because the shape it replaced looked
+    strictly stronger and was in fact red by construction. It built the claim from `git show HEAD:`
+    and required the same answer as the working tree. `tools/surgical_land._make_standalone_repo`
+    extracts `result_tree` into the checkout and then writes the PARENT commit into `.git/HEAD` --
+    deliberately, so `git diff --cached` reads as this commit. So inside the gate, and ONLY inside
+    the gate, `HEAD:` is the commit BEFORE the one being graded: the control was asserting "this
+    commit does not change the feed's own inputs", which no commit can be required to satisfy and
+    which a publish commit exists to violate. Any merge of `origin/main` into a base predating the
+    value-arms landing brought a newer `publish_provenance.json` into the result tree while the
+    parent kept the older one, and the leg refused with
+    `26d4120ab_20260924T002107Z` against `b2b233ef7_20260922T043219Z` -- two honest revisions of one
+    tracked file, named at the `{v}` slot of `_withheld_statement`'s stale branch.
+
+    It was invisible to the lane that owns it (selection is by changed-module stem, and a daemon's
+    reconciliation merge moves no value-arms path) and fatal to every seat, so it wedged the only
+    door `origin_reconcile` has for three cycles. Trace and evidence:
+    `docs/staging/SEAT_FINDING_THE_GATES_EXTRACT_POINTS_HEAD_AT_THE_PARENT_SO_A_CONTROL_READING_HEAD_GRADES_THE_PREVIOUS_COMMIT_2026-09-24.md`.
+
+    AND THE REPAIR IS NOT "COMPARE A DIFFERENT REVISION". The extract offers exactly three --
+    parent (`HEAD`), result (index), result (working tree). Index-vs-working is EQUAL BY
+    CONSTRUCTION there, i.e. a control that cannot fail in the only place it is enforced; that is
+    the trap the obvious one-line repair walks into.
     """
     import subprocess
+    blobs = {}
     for name in ("DASHBOARD_PATH", "PUBLISH_PROVENANCE_PATH"):
-        live = getattr(gva, name)
-        rel = live.relative_to(PROJECT)
+        rel = getattr(gva, name).relative_to(PROJECT)
         blob = subprocess.run(["git", "show", "HEAD:{}".format(rel.as_posix())],
                               cwd=str(PROJECT), capture_output=True, text=True)
         assert blob.returncode == 0, "{} is in no commit, so this claim cannot survive a clean " \
             "checkout".format(rel)
         at_head = tmp_path / rel.name
         at_head.write_text(blob.stdout, encoding="utf-8")
+        blobs[name] = json.loads(blob.stdout)
         monkeypatch.setattr(gva, name, at_head)
 
-    from_head = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR))[
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR))[
         "realised"]["is_the_published_supplier"]
-    live = real["realised"]["is_the_published_supplier"]
-    for field in ("checked", "same_supplier", "statement"):
-        assert from_head[field] == live[field], (
-            "the published-supplier claim answers differently against HEAD's committed bytes than "
-            "against the working tree, on `{}` -- the feed oscillates by which tree regenerated "
-            "it:\n  HEAD:    {!r}\n  working: {!r}".format(field, from_head[field], live[field]))
+    identity = pub["run_identity"]
+    dashboard, provenance = blobs["DASHBOARD_PATH"], blobs["PUBLISH_PROVENANCE_PATH"]
+
+    owed = {
+        "dashboard_run_id": (dashboard.get("meta") or {}).get("source_file"),
+        "last_verified_run_id": (provenance.get("showing_run") or {}).get("run_id"),
+        "dashboard_net_gbp": (dashboard.get("portfolio") or {}).get("net_margin_gbp"),
+    }
+    for field, from_the_blob in owed.items():
+        got = identity[field] if field in identity else pub[field]
+        assert got == from_the_blob, (
+            "the published-supplier claim's `{}` is not what its own declared input says -- so it "
+            "was derived from a file outside the publish surface, and the verdict is a property "
+            "of this tree rather than of the commit:\n  claim: {!r}\n  input: {!r}".format(
+                field, got, from_the_blob))
+
+    # THE NULL RUNG, and it is the one that stops the block above being a tautology. Every
+    # assertion there compares the verdict against a blob field, so all three pass vacuously if
+    # both sides are None -- which is exactly what a dashboard that cannot name its run produces.
+    # This requires the inputs to have HAD something to say.
+    assert owed["dashboard_run_id"] and owed["last_verified_run_id"], (
+        "HEAD's committed publish surface names no run on one of its two sides, so the assertions "
+        "above compared None to None and this control proved nothing:\n  {!r}".format(owed))
 
 
 def test_a_divergent_published_run_is_reported_as_a_divergence(
