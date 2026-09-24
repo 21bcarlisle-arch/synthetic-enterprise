@@ -10,11 +10,19 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from pathlib import Path
 
 import pytest
 
-from tools.fold_noise_floor_family import FoldRefused, fold, main, summarise
+from tools.fold_noise_floor_family import (
+    REGRADABLE_LEG,
+    FoldRefused,
+    fold,
+    main,
+    regrade_over_distinct_draws,
+    summarise,
+)
 from tools.run_value_cycle_ab import priced_decision_fingerprint, sems_to_state_a_sign
 
 _REPO = Path(__file__).resolve().parent.parent.parent
@@ -963,3 +971,170 @@ def test_a_digest_that_disagrees_with_its_own_roster_refuses():
     assert got["seeds_with_an_unknown_decision_set"] == 0
     assert all(r["known_from"] == "the row's own `priced_decision_fingerprint`"
                for r in got["by_seed"])
+
+
+# ---------------------------------------------------------------------------
+# THE LEG REGRADED OVER DRAWS, as against the seed count it was taken at
+#
+# The count above says how many draws the spread is entitled to. These are about what happens when
+# that count is USED -- and about the specific wrong way to use it, which is the way the direction
+# that commissioned this asked for: substituting the draw count into the sign bar alone. That moves
+# one of the three terms a repeated draw touches and leaves a sem taken over seeds being graded at
+# a bar earned by draws.
+# ---------------------------------------------------------------------------
+
+
+def _rows_whose_collapse_flips_the_verdict() -> list:
+    """Real roster-carrying rows with `selection_gbp` set so the collapse CHANGES the sign verdict.
+
+    A CONSTRUCTED RESIDUAL ON A REAL ROSTER, and both halves are deliberate. The grouping must be
+    the real one -- three decision sets over five seeds, with the repeat where the producer
+    actually put it -- or this proves nothing about the collapse. The VALUES have to be
+    constructed, because on the family as drawn the leg clears its bar by sixteen standard errors
+    either way, so `the_verdict_changed` is False there and a control that only ever saw that
+    family could not tell a working flag from one wired to `False`.
+
+    The arithmetic, so the next reader does not have to re-derive it: with draws `[m-d, m, m+d]`
+    and the middle one run three times, the seed-count margin is `t(4) * (d/sqrt(2)) / sqrt(5)` =
+    `0.878d` and the draw-count margin is `t(2) * d / sqrt(3)` = `2.484d`. Any mean between them
+    flips. `d = 1.0, m = 1.5` sits in the middle of that window.
+    """
+    rows = copy.deepcopy(_rows_that_record_their_decision_sets())
+    by_fingerprint: dict = {}
+    for row in rows:
+        by_fingerprint.setdefault(priced_decision_fingerprint(row["scored_decisions"]), []).append(row)
+    repeated = [f for f, group in by_fingerprint.items() if len(group) > 1]
+    singles = [f for f, group in by_fingerprint.items() if len(group) == 1]
+    if len(repeated) != 1 or len(singles) != 2:
+        pytest.skip("the roster-carrying family on disk is no longer one repeat over two singles")
+    for value, fingerprint in zip((0.5, 2.5), sorted(singles)):
+        by_fingerprint[fingerprint][0]["selection_gbp"] = value
+    for row in by_fingerprint[repeated[0]]:
+        row["selection_gbp"] = 1.5
+    return rows
+
+
+def test_the_regrade_moves_all_three_terms_and_not_only_the_sign_bar():
+    """THE DEFECT: the draw count is substituted into the bar and nowhere else.
+
+    This is the change the drawn direction actually asked for -- "let `sems_to_state_a_sign` take
+    `draws_the_spread_is_entitled_to` instead of `selection['n']`" -- and taken literally it is a
+    third of the correction. A seed that repeats a decision set repeats its residual exactly, which
+    deflates the standard deviation AND inflates the `sqrt(n)` under it, as well as buying degrees
+    of freedom the family did not earn. Moving only the bar grades a sem taken over seeds at a bar
+    earned by draws: more conservative than before, and a number over a quantity that is neither.
+
+    KEYED TO THE PROPERTY. Nothing here names 3, 5, or any margin in pounds. It asserts that the
+    regraded leg's `n` IS the draw count, that its sem was recomputed from that `n` rather than
+    carried, and that the resulting margin is NOT the one the bar-only substitution produces.
+    """
+    rows = _rows_that_record_their_decision_sets()
+    got = summarise(rows)["selection_leg_regraded_over_draws"]
+    assert got["available"] is True, got["unavailable_because"]
+
+    draws, seeds = got["draws"], got["seeds_in_family"]
+    assert draws < seeds, (
+        "the family under test has no repeated decision set, so regrading over draws and over "
+        "seeds are the same computation and every assertion below is green either way")
+
+    regraded = got["regraded_leg"]
+    assert regraded["spread"]["n"] == draws, "the regraded leg was not taken over the draw count"
+    assert regraded["sem_gbp"] == pytest.approx(
+        regraded["spread"]["stdev"] / math.sqrt(draws)), (
+        "the regraded sem is not this leg's own dispersion over its own n -- it was carried")
+    assert regraded["sems_needed_to_state_a_sign"] == pytest.approx(
+        sems_to_state_a_sign(draws))
+
+    #: THE BAR-ONLY SUBSTITUTION, computed here and asserted DIFFERENT. This is the one comparison
+    #: that can tell the implemented correction from the prescribed one; without it, a regrade that
+    #: only moved the bar satisfies everything above.
+    bar_only = sems_to_state_a_sign(draws) * got["seed_count_leg"]["sem_gbp"]
+    assert got["margin_required_over_draws_gbp"] != pytest.approx(bar_only), (
+        "the regraded margin equals the bar-only substitution, so the dispersion and the sem were "
+        "left over the seed count")
+
+
+def test_the_regrade_fails_closed_when_any_seed_records_no_decision_set():
+    """THE DEFECT: a bound is regraded as though it were a number.
+
+    The SERVED family -- 18 seeds, between 15 and 18 draws -- records no rosters at all. Regrading
+    it needs a guess about which seeds repeated, and the flattering guess (fold the unknowns into
+    one repeat) shrinks a spread this instrument already errs toward narrowing. So the answer is an
+    unavailable naming the bound, and NOTHING the page publishes moves.
+
+    The refusal must name both ends of the bound: a reader told only "unavailable" cannot tell a
+    family that recorded nothing from one whose rosters disagreed.
+    """
+    rows = copy.deepcopy(_rows_that_record_their_decision_sets())
+    rows[0].pop("scored_decisions")
+    rows[0].pop("priced_decision_fingerprint", None)
+
+    got = summarise(rows)["selection_leg_regraded_over_draws"]
+    assert got["available"] is False
+    assert got["regraded_leg"] is None and got["seed_count_leg"] is None, (
+        "a refused regrade still published a leg, which a consumer will read as the answer")
+    #: THE WHOLE PHRASE, NOT THE TWO NUMBERS LOOSE. `str(at_most) in text` passes on the served
+    #: family without the bound being stated at all, because "18" is already in "18 of its 18 seed
+    #: rows" -- an assertion satisfied by the sentence that names the CAUSE, which is exactly the
+    #: fail-open this control exists to close.
+    counted = summarise(rows)["priced_decision_draws"]
+    assert "bound ({} to {})".format(counted["at_least"], counted["at_most"]) in (
+        got["unavailable_because"]), (
+        "the refusal does not state the bound it refused over")
+
+
+def test_a_leg_the_control_arm_survives_in_is_refused_and_never_averaged():
+    """THE DEFECT: the collapse is applied to a leg the coextension does not cover.
+
+    `selection_gbp` is `value_arm_net - level_arm_net` -- the control arm cancels, so the residual
+    cannot move unless a priced decision moves, and THAT is what licenses treating one decision set
+    as one draw. `level_share_of_advantage` keeps the control arm, so it can move under a re-draw
+    that changed no priced decision: on the family as drawn, three seeds share one fingerprint and
+    one residual to the last digit while disagreeing about the share. Collapsing that leg would
+    average a real difference away and publish the result as a single draw.
+
+    REACHED ON THE REAL ARTEFACT, not a fixture -- the disagreement is a property of the rows the
+    producer wrote, and a refusal that only fires on constructed input is a refusal nothing reaches.
+    """
+    rows = _rows_that_record_their_decision_sets()
+    assert regrade_over_distinct_draws(rows)["available"] is True, (
+        "the residual leg is refused on this family, so the contrast below is not about the leg")
+
+    got = regrade_over_distinct_draws(rows, key="level_share_of_advantage")
+    assert got["available"] is False, (
+        "a leg whose values differ inside one decision set was collapsed to a mean")
+    assert REGRADABLE_LEG in got["unavailable_because"]
+    #: THE OFFENDING GROUP IS NAMED. A refusal that does not say which decision set disagreed
+    #: cannot be checked against the artefact, and this one was written from that check.
+    disagreeing = {priced_decision_fingerprint(r["scored_decisions"]) for r in rows
+                   if sum(1 for o in rows
+                          if priced_decision_fingerprint(o["scored_decisions"])
+                          == priced_decision_fingerprint(r["scored_decisions"])) > 1}
+    assert any(f[:12] in got["unavailable_because"] for f in disagreeing)
+
+
+def test_the_verdict_changed_flag_is_reachable_in_both_directions():
+    """THE DEFECT: `the_verdict_changed` is `False` because nothing can make it True.
+
+    On the family as drawn the selection leg clears its bar by sixteen standard errors after the
+    collapse and by twenty-nine before it, so the flag is False -- and that False is a real and
+    useful reading (the published sign never rested on the seed/draw confusion). But a flag that
+    has only ever been observed False is indistinguishable from one wired to False, and this repo
+    has shipped that exact shape before. So BOTH values are driven out of the same function, by
+    moving the family's residuals and never by stubbing anything.
+
+    The True arm also pins the DIRECTION of the correction: the collapse may only ever take a sign
+    away, never grant one. A regrade that turned a non-sign into a sign would mean fewer draws had
+    bought more confidence, which is the defect this whole block exists to stop.
+    """
+    as_drawn = regrade_over_distinct_draws(_rows_that_record_their_decision_sets())
+    assert as_drawn["the_verdict_changed"] is False
+
+    flipped = regrade_over_distinct_draws(_rows_whose_collapse_flips_the_verdict())
+    assert flipped["available"] is True, flipped["unavailable_because"]
+    assert flipped["the_verdict_changed"] is True, (
+        "no residuals make this flag True, so its False on the real family is unfalsifiable")
+    assert flipped["seed_count_leg"]["distinguishable_from_zero"] is True
+    assert flipped["regraded_leg"]["distinguishable_from_zero"] is False, (
+        "the collapse GRANTED a sign the seed count withheld -- fewer draws bought more "
+        "confidence, which is the direction this correction must never move in")
