@@ -133,17 +133,53 @@ def test_the_evidence_travels_with_the_cause(tmp_path, monkeypatch):
 
 
 def test_a_quoted_evidence_line_that_was_cut_says_so(tmp_path, monkeypatch):
-    """MUTATION: drop the `[...]` marker and this fires. A quote that stops mid-word with no
-    marker reads as a corrupt record, and a reader who believes the record is corrupt does not
-    go and read the rest of it."""
+    """MUTATION: drop the `[...]` marker and this fires. A quote cut with no marker reads as a
+    corrupt record, and a reader who believes the record is corrupt does not go and read the
+    rest of it."""
     long_evidence = "x" * (pf.HELD_EVIDENCE_QUOTED_CHARS + 50)
     line = _summary(tmp_path, monkeypatch, citation_at_head="dead",
                     liveness_surface_refusal=_refusal(evidence=long_evidence))
 
     assert "[...]" in line
     assert "x" * (pf.HELD_EVIDENCE_QUOTED_CHARS + 1) not in line, (
-        "the bound is not being applied at all, so a 600-char evidence line lands whole in a "
+        "the bound is not being applied at all, so a 900-char evidence line lands whole in a "
         "one-line summary")
+
+
+def test_an_over_budget_quote_keeps_the_END_of_the_evidence(tmp_path, monkeypatch):
+    """A HOOK CHAIN PRINTS ITS REFUSAL LAST, so the head of its output is every gate that
+    PASSED. `_refusal_evidence_kept` keeps the last 900 characters for exactly that reason,
+    measured at 31 consecutive failures reading `unattributed` while the answer sat in the
+    dropped tail — and this clause's first version quoted the HEAD of that kept tail, putting
+    the elision marker and two green gates on the line where the verdict belongs.
+
+    MUTATION: take `[:N]` instead of `[-N:]` and this fires.
+    """
+    kept_tail = ("[...earlier output dropped; this is the TAIL...]\n"
+                 + "[test-gate] OK all targeted tests green\n" * 20
+                 + "FAILED site/test_a_here_relative_pointer_has_one_home.py::test_one_home")
+    line = _summary(tmp_path, monkeypatch, citation_at_head="dead",
+                    liveness_surface_refusal=_refusal(evidence=kept_tail))
+
+    assert "test_one_home" in line, (
+        "the verdict is the LAST thing a hook chain prints and it was dropped -- this is the "
+        "defect `_refusal_evidence_kept` already paid for, re-entered one layer up")
+    assert "earlier output dropped" not in line, (
+        "the quote is showing the writer's own elision marker instead of the evidence")
+
+
+def test_a_multi_line_evidence_is_flattened_to_one_line(tmp_path, monkeypatch):
+    """`describe()` returns ONE human line for a page, a banner or a log — the whole module
+    docstring rests on that. Hook output is multi-line, so quoting it raw would break every
+    consumer that reads a line at a time.
+
+    MUTATION: drop the whitespace collapse and this fires.
+    """
+    line = _summary(tmp_path, monkeypatch, citation_at_head="dead",
+                    liveness_surface_refusal=_refusal(evidence="rc=1\nFAILED tests/x.py::test_y"))
+
+    assert "\n" not in line, "the one-line summary is no longer one line: {!r}".format(line)
+    assert "FAILED tests/x.py::test_y" in line
 
 
 # ═════════════════════════════════════════════════════════════════════════════════════════════

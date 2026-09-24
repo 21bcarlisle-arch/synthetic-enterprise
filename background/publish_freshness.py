@@ -539,15 +539,29 @@ def is_publishing_down(snap: dict | None = None) -> bool:
 #: makes the summary look harder, which is the safe direction.
 CITATION_ANSWERS = ("reproduces",)
 
-#: How much of a held refusal's evidence line the summary quotes. These lines are written
-#: OBSERVATION-FIRST -- `"the commit was created here and git ls-remote says origin did not
-#: advance to it (push rc=1, origin=..., head=...) -- read the REF and not the push's own rc"` --
-#: so the head of the string is the actionable half and the tail is the standing explanation.
-#: That is the opposite direction from `process_run_complete._refusal_evidence_kept`, which keeps
-#: the END, and for the opposite reason: there the subject is hook OUTPUT, whose verdict is the
-#: last thing printed. Different strings, different ends, and the reason is written down here so
-#: the next reader does not "fix" one to match the other.
-HELD_EVIDENCE_QUOTED_CHARS = 200
+#: How much of a held refusal's evidence line the summary quotes, and it quotes the END.
+#:
+#: CORRECTED 2026-09-24, BESIDE THE CLAIM THAT WAS WRONG. This landed as 200 chars taken from the
+#: HEAD, on the reasoning that these lines are observation-first: *"the commit was created here
+#: and `git ls-remote` says origin did not advance to it (push rc=1, origin=..., head=...)"*.
+#: That is true of the composed-sentence causes and FALSE of the population. Within the hour the
+#: live record moved to a `gate_refusal`, whose evidence is hook OUTPUT kept by
+#: `process_run_complete._refusal_evidence_kept` -- which keeps the LAST 900 characters, for the
+#: reason its own docstring gives: *"a hook chain prints its refusal LAST, so the one part of the
+#: output the field exists to hold was the one part guaranteed to be dropped"*, measured at 31
+#: consecutive failures reading `unattributed`. Quoting the head of a deliberately-kept tail
+#: re-committed that exact error one layer up, and the rendered line proved it -- the 200
+#: characters shown were the elision marker and two green gates.
+#:
+#: So: same direction as the writer, for the writer's own reason. And the budget is set ABOVE the
+#: length of the composed-sentence evidence (224 chars, measured on the live `push_never_landed`
+#: record) so those are quoted WHOLE and the head-or-tail question does not arise for them at all.
+#: Where it does bite the subject is hook output, and there the end is the verdict.
+#:
+#: The lesson generalises past this constant: the first version reasoned from the one record that
+#: happened to be on disk and called it the population. Printing the line at a real input it had
+#: not been designed against is what caught it, in seconds.
+HELD_EVIDENCE_QUOTED_CHARS = 280
 
 
 def _cause_clause(pub: dict) -> str:
@@ -596,12 +610,13 @@ def _cause_clause(pub: dict) -> str:
         # NAME THE FIELD, not just the cause. "where it came from" is what lets a reader go and
         # check the claim -- and it is the fact whose absence made this defect survive, because
         # nobody knew there was a second field to read.
-        evidence = str(held.get("evidence"))
+        evidence = " ".join(str(held.get("evidence")).split())
         if len(evidence) > HELD_EVIDENCE_QUOTED_CHARS:
-            # SAY IT WAS CUT. A quote that stops mid-word with no marker reads as a corrupted
-            # record rather than a bounded one, and a reader who thinks the record is corrupt
-            # does not go and read the rest of it.
-            evidence = evidence[:HELD_EVIDENCE_QUOTED_CHARS].rstrip() + " [...]"
+            # THE END, NOT THE BEGINNING -- see `HELD_EVIDENCE_QUOTED_CHARS`. And SAY IT WAS CUT:
+            # a quote that starts mid-word with no marker reads as a corrupted record rather than
+            # a bounded one, and a reader who thinks the record is corrupt does not go and read
+            # the rest of it.
+            evidence = "[...] " + evidence[-HELD_EVIDENCE_QUOTED_CHARS:].lstrip()
         return (lead + ", but `{}` in the same record holds {} at git={}: {}".format(
             held.get("field"), held.get("cause"), str(held.get("git_hash"))[:9], evidence))
     why = pub.get("held_refusal_reason")
