@@ -95,10 +95,24 @@ def _marker_stamp(name: str) -> str | None:
 
 
 def _newest_published_stamp(done_dir: Path) -> str | None:
-    """The latest run stamp that actually REACHED the archive, i.e. the newest
-    run whose publish pipeline ran to completion. This is the supersession
-    frontier: any marker older than it describes a snapshot that has already
-    been overtaken on every published surface.
+    """The newest run that actually PUBLISHED. This is the supersession frontier:
+    any marker older than it describes a snapshot already overtaken on every
+    published surface.
+
+    IT ASKED THE WRONG QUESTION UNTIL 2026-09-24, and the answer was load-bearing.
+    This used to read "the latest run stamp that REACHED THE ARCHIVE", on the
+    assumption that a marker only reaches done/ at the end of a completed publish.
+    It does not: `process_run_complete` archives the marker BEFORE it commits, on
+    purpose, so the archive lands in the same commit as the run it documents. Every
+    refused, timed-out and behind-origin publish therefore archives its marker too,
+    and the frontier read those as publications. On 2026-09-24 that retired a queued
+    snapshot behind run 064310Z -- which was rc=77 `commit_did_not_land` -- and wrote
+    into the retired file that a later run "had already completed its publish
+    pipeline". The sixty-hour outage's own instrument was agreeing the outage was over.
+    So a marker now STATES its outcome and this reads the statement:
+    `staging_archive_policy.publish_did_not_land` is the reader, and its docstring
+    carries why an UNSTAMPED marker still counts as published (the corpus predates
+    the tag, and reading absence as failure reopens the livelock).
 
     Reads the UNION of done/ and the exhaust tree (AO10 moved ~4,300 markers
     out of done/ into docs/staging/exhaust/<YYYY-MM>/). Globbing done/ alone
@@ -110,6 +124,7 @@ def _newest_published_stamp(done_dir: Path) -> str | None:
         s for s in (
             _marker_stamp(p.name)
             for p in staging_archive_policy.iter_marker_paths("run_complete_", done_dir=done_dir)
+            if not staging_archive_policy.publish_did_not_land(p)
         ) if s
     ]
     return max(stamps) if stamps else None

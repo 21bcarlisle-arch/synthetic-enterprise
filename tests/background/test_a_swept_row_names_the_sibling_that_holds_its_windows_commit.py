@@ -250,8 +250,16 @@ def test_THE_TWO_GUARDS_ARE_GRADED_AT_THE_FUNCTION_BECAUSE_THE_READER_CANNOT_REA
     trap this project has walked into through three separate doors in one afternoon.
     """
     row = {"first_drawn_at": DRAWN_AT, "last_drawn_at": DRAWN_AT, "named_paths": [SUBJECT_PATH]}
+    # THE STUB TRACKS THE REAL SHAPE, and it had drifted on BOTH axes: `_window_hits` returns
+    # (paths, hits, liveness_only) and each hit is (sha, when, subject, touched). This stub still
+    # returned a 2-tuple of 3-wide hits, so the test died in `_landed_by_sibling`'s own unpack
+    # before reaching a single one of the three readings it exists to assert -- red at HEAD, which
+    # makes the whole module uneditable by any lane. A stub of the function under test is only
+    # evidence while it can still be SUBSTITUTED for that function; this one could not.
     monkeypatch.setattr(dl, "_window_hits",
-                        lambda *_a, **_k: ([SUBJECT_PATH], [(OWNED_SHA, IN_WINDOW, "the work")]))
+                        lambda *_a, **_k: ([SUBJECT_PATH],
+                                           [(OWNED_SHA, IN_WINDOW, "the work", [SUBJECT_PATH])],
+                                           []))
 
     unowned = dl._landed_by_sibling(SIBLING_OWNED_ID, row, DRAWN_AT, {})
     self_owned = dl._landed_by_sibling(SIBLING_OWNED_ID, row, DRAWN_AT,

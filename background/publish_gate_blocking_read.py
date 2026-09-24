@@ -93,6 +93,16 @@ from pathlib import Path
 DEFAULT_MAX_AGE_SECONDS = 2 * 3800
 DEFAULT_MAX_CITED = 12
 
+# OWNED HERE, not mirrored (moved from `process_run_complete` 2026-09-24). The two above are held
+# equal to the publisher's by a drift control; this one could not be, because its whole point is
+# that the WRITER and the READER of `.publish_gate_state.json` cannot disagree about what
+# "in-window" means. The writer trims the `failures` list to this bound on every write; the
+# supervisor's RUNG-1 wedge detector must apply the SAME bound on read, because the trim only runs
+# while the writer runs and the way a wedge ends is often that publishing stops altogether. Two
+# copies held equal by a control is a weaker guarantee than one object both sides import, and the
+# supervisor may not import the publisher at all — so the constant comes to the leaf.
+PUBLISH_GATE_WINDOW_SECONDS = 60 * 60       # 1h: a wedge fails every ~10min, so 3/hour is the signal
+
 
 # ── THE DECLARED LIVENESS SURFACE (moved here 2026-09-21, the THIRD cut of the same edge) ──
 #
