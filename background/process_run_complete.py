@@ -62,6 +62,7 @@ from background.publish_gate_blocking_read import (  # noqa: E402 -- needs the p
     OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS,
     OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION,
     OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT,
+    PUBLISH_GATE_WINDOW_SECONDS,
     operational_layer_timeout_named_a_test,
 )
 from background.publish_step_ledger import PublishStepLedger  # noqa: E402 -- needs the path above
@@ -578,7 +579,9 @@ def _commit_hook_env(base=None):
 # resetting the counter -- an unavailable check is a failed check.
 PUBLISH_GATE_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_gate_state.json"
 PUBLISH_GATE_FAILURE_THRESHOLD = 3          # N consecutive failures inside the window
-PUBLISH_GATE_WINDOW_SECONDS = 60 * 60       # 1h: a wedge fails every ~10min, so 3/hour is the signal
+# PUBLISH_GATE_WINDOW_SECONDS is imported from `publish_gate_blocking_read` above: the reader of
+# this file's `failures` list (supervisor's RUNG 1) must apply the same bound and may not import
+# this module. One object both sides hold, not two held equal by a control.
 PUBLISH_GATE_COOLDOWN_SECONDS = 60 * 60     # re-arm: at most one alert NTFY per hour while it stays wedged
 PUBLISH_GATE_ITEM_ID = "publish_gate_wedged"
 

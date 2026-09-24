@@ -182,6 +182,65 @@ def test_silent_when_wedge_younger_than_60_min(tmp_path, monkeypatch):
     assert supervisor._publish_gate_wedge_active(now=now) is None
 
 
+def _aged_out_state(now):
+    """The exact shape above: a sustained wedge whose failures have ALL aged past the window, with
+    the un-trimmed `wedge_since` still stamped (so the age leg is satisfied and cannot be what
+    decides these tests)."""
+    state = _wedged_state(now, n=3, wedge_since_age=3 * HOUR, alerted_age=2 * HOUR)
+    for i, f in enumerate(state["failures"]):
+        f["ts"] = now - (90 * 60 + i * 6 * 60)   # 90-102 min old: past the 1h window
+    return state
+
+
+def test_a_spent_wedge_stops_drawing_once_its_failures_age_out_of_the_window(tmp_path, monkeypatch):
+    """MUST STAY SILENT. Three failures, all over an hour old, wedge_since 3h back.
+
+    The writer trims `failures` to the window on EVERY WRITE, so for years the reader did not need
+    to -- and that is exactly why this was invisible. The trim only runs while the writer runs, and
+    the way a wedge ends is often that publishing stops altogether: no further
+    `record_publish_gate_failure` call, no further trim, and the last written list frozen on disk.
+    The reader then counts it whole, forever, and draws priority-zero unwedge work for a wedge that
+    is over. The independence cross-check does not cover it -- that clears when the gate PASSES, and
+    a gate nothing exercises never passes."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _aged_out_state(now))
+    assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+def test_the_same_state_with_the_failures_INSIDE_the_window_still_draws(tmp_path, monkeypatch):
+    """REACHABILITY (R15). The silence above must be the WINDOW and nothing else: identical state,
+    identical count, identical `wedge_since` -- only the failure timestamps move inside the hour --
+    and the draw fires. Without this leg a detector that refused everything would pass the test
+    above, which is the shape this project has entered three times through three different doors."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)
+    for i, f in enumerate(state["failures"]):
+        f["ts"] = now - (i * 6 * 60)             # same three failures, now inside the window
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "3 failures in-window" in msg
+
+
+def test_a_failure_whose_timestamp_is_unusable_counts_as_in_window(tmp_path, monkeypatch):
+    """FAIL-SAFE TOWARD DRAWING, the same direction the age block below it takes. A record with no
+    usable `ts` is CORRUPT, not old -- the writer stamps `ts` unconditionally -- so reading it as
+    "over an hour ago" would let a malformed state file silence the highest rung there is."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)
+    for f in state["failures"]:
+        f["ts"] = None
+    _write(tmp_path, monkeypatch, state)
+    assert supervisor._publish_gate_wedge_active(now=now) is not None
+
+
+def test_the_window_bound_is_the_writers_and_not_a_second_copy(tmp_path, monkeypatch):
+    """The reader and the writer must not be able to disagree about what "in-window" means. The
+    writer decides; a mirrored `60 * 60` here would drift silently and nothing would notice."""
+    from background import process_run_complete
+
+    assert supervisor.PUBLISH_GATE_WINDOW_SECONDS is process_run_complete.PUBLISH_GATE_WINDOW_SECONDS
+
+
 def test_malformed_state_is_silent_not_raising(tmp_path, monkeypatch):
     sp = tmp_path / ".publish_gate_state.json"
     sp.write_text("{ this is not json")

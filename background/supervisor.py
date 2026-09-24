@@ -168,6 +168,7 @@ from background.notify import notify  # noqa: E402
 # `test_publish_scope.py::test_the_supervisor_does_not_import_the_publish_path` fails, and names
 # the chain, the moment this line becomes `from background.process_run_complete import ...`.
 from background.publish_gate_blocking_read import (  # noqa: E402
+    PUBLISH_GATE_WINDOW_SECONDS,
     operational_layer_timeout_named_a_test,
 )
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
@@ -3939,6 +3940,23 @@ def _wedge_no_test_judged_clause(failures, payload_citable: bool) -> str:
     )
 
 
+def _failure_is_in_window(failure, now: float) -> bool:
+    """Is ONE recorded publish-gate failure inside the writer's window?
+
+    Split out rather than inlined because the two answers it gives are different KINDS of answer
+    and a reader has to be able to see both: a usable `ts` older than the bound is OLD (drop it),
+    and an absent or unparseable `ts` is CORRUPT (keep it). Folding the second into the first --
+    which `float(f.get("ts", 0))` does silently, by reading a missing stamp as 1970 -- is the
+    flattering direction here, because it SILENCES the highest rung there is on a malformed file."""
+    if not isinstance(failure, dict):
+        return False
+    try:
+        ts = float(failure["ts"])
+    except (KeyError, TypeError, ValueError):
+        return True     # corrupt, not old -- fail toward drawing
+    return now - ts <= PUBLISH_GATE_WINDOW_SECONDS
+
+
 def _publish_gate_wedge_active(
     now: float | None = None,
     head: str | None = None,
@@ -3998,7 +4016,23 @@ def _publish_gate_wedge_active(
     if not isinstance(state, dict):
         return None
     failures = state.get("failures") or []
-    if not isinstance(failures, list) or len(failures) < PUBLISH_GATE_WEDGE_MIN_FAILURES:
+    if not isinstance(failures, list):
+        return None
+    # TRIM ON READ TOO (2026-09-24). The writer trims this list to the same window on every write,
+    # so for a long time reading it whole was harmless -- and that is exactly why this was invisible.
+    # The writer's trim only runs while the writer RUNS, and the commonest way a wedge ends is that
+    # publishing stops altogether: no further `record_publish_gate_failure` call, no further trim,
+    # and the last list it wrote frozen on disk. Counted whole, that draws priority-zero unwedge
+    # work forever for a wedge that is over, and the message says "N failures in-window" -- a claim
+    # nothing here was checking. The independence cross-check below does not cover it: that clears
+    # when the gate PASSES, and a gate nothing exercises never passes.
+    #
+    # FAIL-SAFE TOWARD DRAWING, the same direction the age block below takes. A record whose `ts`
+    # is missing or unparseable is CORRUPT, not old -- the writer stamps `ts` unconditionally -- so
+    # reading it as "over an hour ago" would let a malformed state file silence the highest rung
+    # there is. The bound is the WRITER'S object, imported, never a mirrored `60 * 60`.
+    failures = [f for f in failures if _failure_is_in_window(f, now)]
+    if len(failures) < PUBLISH_GATE_WEDGE_MIN_FAILURES:
         return None
     # INDEPENDENCE (R15): cross-check against .last_tested_hash -- keyed on real cross-process state,
     # never the same source the failures came from. A pass at HEAD => stale failures => no draw.
