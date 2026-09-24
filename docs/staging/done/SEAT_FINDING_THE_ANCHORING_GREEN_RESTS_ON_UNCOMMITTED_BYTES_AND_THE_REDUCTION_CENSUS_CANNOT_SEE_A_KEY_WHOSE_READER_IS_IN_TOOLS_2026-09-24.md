@@ -162,3 +162,31 @@ A control keyed to the **function** rather than the artefact is what closes it: 
 assert that an absent `svt_decisions` arrives as `None` and not `[]`. Its mutation is the historical
 defect exactly — delete either line and it fires — and unlike the artefact control it cannot be made
 green by an uncommitted tree.
+
+**CLOSED in the follow-up commit**, in `tests/saas/reporting/test_annual_report.py` beside the
+existing `extract_report_data` forwarding pairs rather than as a new module — that file already
+holds the `_run_output()` fixture and the forwards/defaults pattern this needs.
+
+**Mutation evidence, run before landing and recorded here rather than asserted.** R15's warning
+that *a mutation caught by a different leg than the one written for it is the flattering reading*
+applies directly, because each of the two tests touches both keys — so the failing LINE was
+captured, not just the failing test:
+
+| Mutation | Fires at | Which is |
+|---|---|---|
+| drop the `svt_departures` whitelist line | `:275` (and `:305`) | the forwarding assertion written for it |
+| drop the `svt_decisions` whitelist line | `:276` (and `:299`) | the forwarding assertion written for it |
+| `.get("svt_decisions", [])` — the fail-open | `:299` only | the `is None` assertion written for it |
+
+The third is the one worth having. Deleting a key is loud; giving it an empty-list default is the
+quiet version, and it is the mutation that would have republished `covers_svt_route: true` over a
+population of zero. It is caught by exactly one leg, which is the precise reading.
+
+Both defaults are asserted in the *same* test deliberately: `svt_departures` genuinely defaults to
+`[]` and `svt_decisions` must not, so the two are pinned apart and cannot later be "tidied" into
+agreement.
+
+**Still open after this, and NOT closed by it:** the widened census over the second audience — the
+`tools/` modules that read the reduced artefact. This landing gives these two keys a control; it
+gives the *class* none. The next key whose only reader lives in `tools/` will be dropped exactly as
+these were.
