@@ -35,6 +35,16 @@ from tools import file_scope_generated_paths as fs
 STEM = "WORKER_FINDING_REPEATING_ALARM_"
 PRODUCER = "background/alarm_repetition.py"
 
+#: THE SECOND DECLARED FAMILY (2026-09-24), and the legs for it are at the foot of this file.
+#: `background/finding_classes._write_class_documents` rewrites every class register on every run
+#: and composes the name from `CLASS_DOC_PREFIX`, so it is the alarm family's shape from the same
+#: module family. What is DIFFERENT, and what its own legs are about, is that its producer can write
+#: to two directories and only one of them is declared.
+CLASS_STEM = "CLASS_"
+CLASS_PRODUCER = "background/finding_classes.py"
+CLASS_DIRECTORY = "docs/staging/reference"
+CLASS_PRODUCER_LITERAL = "CLASS_DOC_PREFIX"
+
 
 def _live_members() -> set[str]:
     """Whatever the family holds RIGHT NOW, which is the only honest subject for a real-tree leg.
@@ -267,3 +277,129 @@ def test_the_NOT_REPRODUCIBLE_carve_out_reaches_the_stem_half_too(monkeypatch):
     monkeypatch.setattr(fs, "WRITTEN_BUT_NOT_REPRODUCIBLE", frozenset({subject}))
     assert subject not in fs.written_artefacts(), (
         "the carve-out is applied before the stems are unioned in, so it cannot reach them")
+
+
+# ---------------------------------------------------------------------------
+# The SECOND declared family: `CLASS_` registers, whose producer writes to TWO rooms
+# ---------------------------------------------------------------------------
+#
+# WHAT IS NEW HERE AND WHY IT NEEDS ITS OWN LEGS RATHER THAN A SECOND PARAMETRISATION.
+# The alarm family's producer writes to exactly one directory, so declaring that directory claims
+# precisely the producer's reach. `background/finding_classes._class_doc_path` delegates to
+# `staging_rooms.class_document_path`, which returns the REFERENCE ROOM for a register that is
+# there, the staging ROOT for one that is there, and the reference room for a register that is in
+# neither. The producer's reach is therefore genuinely WIDER than what `GENERATED_STEMS` declares,
+# and the gap is deliberate: the staging root is where the seat hand-files SEAT_FINDING and
+# PLANNER_MINTED documents, and the remedy a consumer applies to a generated path is REVERT. The
+# legs below hold the under-claim in place, because the obvious "fix" -- widening the declaration to
+# the root so the clear is bigger -- is the one change that could destroy a lane's unlanded work.
+
+
+def _class_producer_tree(root: Path, *, spells: str = CLASS_STEM, present: bool = True) -> Path:
+    """A tmp tree carrying `finding_classes`' own idiom: a prefix constant spent in an f-string.
+
+    Reproduced rather than flattened to a literal for the same reason as `_producer_tree` above --
+    a fixture that spelled the whole filename would be exercising the static write-site scan and
+    passing for the wrong reason. The property under test is that the composed tail is never read.
+    """
+    (root / "background").mkdir(parents=True, exist_ok=True)
+    (root / CLASS_DIRECTORY).mkdir(parents=True, exist_ok=True)
+    if present:
+        (root / CLASS_PRODUCER).write_text(
+            "from pathlib import Path\n"
+            f'{CLASS_PRODUCER_LITERAL} = "{spells}"\n'
+            "def document_name(class_id, registered):\n"
+            f'    return f"{{{CLASS_PRODUCER_LITERAL}}}{{class_id.upper()}}_{{registered}}.md"\n',
+            encoding="utf-8")
+    return root
+
+
+def test_MUTATION_a_CLASS_register_in_the_REFERENCE_ROOM_is_found(tmp_path):
+    """The positive direction for the second family, in a tree whose contents are known."""
+    _class_producer_tree(tmp_path)
+    _doc(tmp_path, f"{CLASS_DIRECTORY}/{CLASS_STEM}CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md")
+    assert fs.stem_written_artefacts(tmp_path) == {
+        f"{CLASS_DIRECTORY}/{CLASS_STEM}CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md"}
+
+
+def test_MUTATION_a_CLASS_register_in_the_STAGING_ROOT_is_NOT_claimed(tmp_path):
+    """THE DECISION THIS FAMILY EXISTS TO PIN, and the leg that fails if someone widens the
+    declaration to `docs/staging` for a bigger clear.
+
+    `class_document_path` really does write a register to the root when one lives there, so this
+    document IS the producer's output and calling it authored is, strictly, a false negative. It is
+    the CHEAP false negative: the consumer offers a LANDING on an unclassified path, which is where
+    the module started and is never destructive. The false positive it buys off is a REVERT offered
+    on whatever else sits in that root -- and what sits there is every SEAT_FINDING the seat has not
+    landed yet. Under-claim here; the asymmetry is not close.
+    """
+    _class_producer_tree(tmp_path)
+    _doc(tmp_path, f"docs/staging/{CLASS_STEM}MEASUREMENTS_THAT_MIRROR_2026-08-12.md")
+    _doc(tmp_path, "docs/staging/SEAT_FINDING_THE_HEADER_IS_STAMPED_ONCE_2026-09-24.md")
+    found = fs.stem_written_artefacts(tmp_path)
+    assert found == set(), f"the root is claimed, so a seat's unlanded finding is one glob away: {found}"
+
+
+def test_MUTATION_the_CLASS_stem_goes_quiet_when_the_producer_STOPS_SPELLING_IT(tmp_path):
+    """Staleness, one variable, and the variable is the producer's own literal.
+
+    `CLASS_DOC_PREFIX` is spelled by EXACTLY ONE string constant in the real
+    `background/finding_classes.py` -- verified by walking its AST -- so this is a live dependency
+    and not a formality: change that value and the registers stop being regenerated under the old
+    name, which is the moment reverting one stops being free.
+    """
+    _class_producer_tree(tmp_path, spells="REGISTER_")
+    _doc(tmp_path, f"{CLASS_DIRECTORY}/{CLASS_STEM}NO_CALLER_AND_NEVER_RUNS_2026-08-12.md")
+    assert fs.stem_written_artefacts(tmp_path) == set()
+    # THE CONTROL ARM. An empty set above is worthless alone -- a fixture that simply failed to
+    # match reads identically. Same tree, same document, only the producer's literal restored.
+    _class_producer_tree(tmp_path, spells=CLASS_STEM)
+    assert fs.stem_written_artefacts(tmp_path) == {
+        f"{CLASS_DIRECTORY}/{CLASS_STEM}NO_CALLER_AND_NEVER_RUNS_2026-08-12.md"}
+
+
+def test_MUTATION_the_CLASS_stem_goes_quiet_when_the_PRODUCER_IS_GONE(tmp_path):
+    """The same failure arriving by deletion rather than rename. Nobody remakes these now, so the
+    quiet direction -- offer a landing -- is the only one that cannot lose the bytes."""
+    _class_producer_tree(tmp_path, present=False)
+    _doc(tmp_path, f"{CLASS_DIRECTORY}/{CLASS_STEM}PUBLISH_GATE_AND_WEDGE_2026-08-12.md")
+    assert fs.stem_written_artefacts(tmp_path) == set()
+
+
+def test_the_CLASS_family_IS_CLASSIFIED_in_the_real_tree():
+    """The live-tree positive direction, keyed to whatever the family holds RIGHT NOW.
+
+    NO NAMED MEMBER AND NO COUNT, for the reason `_live_members` gives: the population moves by
+    design as classes are registered and retired, and the drawn item that commissioned this stem
+    asserted `eight` documents when the tree held six. A leg pinned to either number would have gone
+    red on a tree doing exactly what it should.
+
+    Vacuity is covered elsewhere rather than here:
+    `test_every_declared_stem_is_REACHED_BY_ITS_PRODUCER_in_the_real_tree` already fails if this
+    declaration is inert furniture, whatever the directory holds today.
+    """
+    directory = fs.PROJECT_DIR / CLASS_DIRECTORY
+    on_disk = {p.relative_to(fs.PROJECT_DIR).as_posix()
+               for p in directory.glob(f"{CLASS_STEM}*")
+               if p.is_file() and p.suffix in fs.ARTEFACT_SUFFIXES}
+    missing = sorted(on_disk - fs.stem_written_artefacts())
+    assert not missing, f"a CLASS register the producer rewrites is still graded authored: {missing}"
+
+
+def test_the_CLASS_stem_claims_NOTHING_OUTSIDE_THE_REFERENCE_ROOM_in_the_real_tree():
+    """The live partner of the root leg above. Asked of the whole classified set rather than of the
+    CLASS_ family, so it also catches a widening that arrived through some OTHER declaration.
+
+    THIS LEG IS VACUOUS TODAY AND THAT IS RECORDED RATHER THAN GLOSSED. Both mutations run when the
+    stem landed (2026-09-24) -- deleting the declaration, and widening its directory to
+    `docs/staging` -- were caught by the tmp-tree legs and NOT by this one, because the live staging
+    root holds no `CLASS_` document for it to find. So it is a standing guard against a future root
+    copy, not a proof of anything now; the widening proof is
+    `test_MUTATION_a_CLASS_register_in_the_STAGING_ROOT_is_NOT_claimed`, which builds the population
+    it needs. Left in deliberately: `class_document_path` WILL write to the root for a register that
+    lands there, so the day this stops being vacuous is the day it matters.
+    """
+    offenders = sorted(p for p in fs.stem_written_artefacts()
+                       if Path(p).name.startswith(CLASS_STEM)
+                       and not p.startswith(f"{CLASS_DIRECTORY}/"))
+    assert not offenders, f"a CLASS register outside the declared room is classified: {offenders}"

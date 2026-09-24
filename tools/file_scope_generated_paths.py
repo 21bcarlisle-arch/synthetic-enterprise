@@ -1362,6 +1362,22 @@ GENERATED_STEMS: tuple[tuple[str, str, str], ...] = (
     # prefix is already the family's declared identity in two other modules, and this is the first
     # place that treats it as a PATH property.
     ("background/alarm_repetition.py", "docs/staging", "WORKER_FINDING_REPEATING_ALARM_"),
+    # `background/finding_classes._write_class_documents` rewrites EVERY class register on every
+    # run -- `derive_memberships(root)` re-derives the population from the filesystem, so the set is
+    # never a list somebody maintains -- and the name is composed exactly as the alarm family's is:
+    # `CLASS_DOC_PREFIX` at `finding_classes.py:139`, spent in the f-string at line 201. No frame of
+    # the static write-site scan can resolve that destination, which is what a stem is for.
+    #
+    # THE DIRECTORY IS THE REFERENCE ROOM ALONE, AND NARROWNESS IS THE WHOLE DECISION.
+    # `staging_rooms.class_document_path` falls back to the staging ROOT for a register that lives
+    # there, so the producer's reach is genuinely wider than what is declared here. Declaring the
+    # root would put this stem over the directory the seat hand-files SEAT_FINDING and
+    # PLANNER_MINTED documents into, and the remedy a consumer applies to a generated path is
+    # REVERT -- so the wider declaration buys a slightly larger clear at the price of offering a
+    # revert on a seat's unlanded finding. Under-claiming costs a landing offer, which is where this
+    # module started and is never destructive; over-claiming destroys work. The register that lands
+    # in the root is graded authored, deliberately.
+    ("background/finding_classes.py", "docs/staging/reference", "CLASS_"),
 )
 
 
