@@ -94,3 +94,50 @@ Advance the shared tree. It is diverged and its 9 blocking paths are another lan
 producer output; clearing them by hand is the judgement `origin_reconcile` refuses to make
 unattended, and this turn's isolation from the shared index is the reason it was allowed to run.
 The refusal's own words: *"THE STEP IS TO LAND OR REVERT THOSE PATHS, NOT TO RE-RUN THIS MODULE."*
+
+---
+
+## 2026-09-24 — remedy step 1 is LANDED. Steps 2–4 are still open and this document stays live.
+
+`GENERATED_STEMS` and `stem_written_artefacts()` are in `tools/file_scope_generated_paths.py`, folded
+into `written_artefacts()` so `origin_reconcile`'s hard-coded pair of oracle names picks them up with
+no change at the consumer. Measured on the real tree at the landing:
+
+- `stem_written_artefacts()` resolves **11** paths, every one of the live
+  `WORKER_FINDING_REPEATING_ALARM_*` family.
+- `_split_generated()` now returns those as **generated** and leaves `SEAT_FINDING_*`,
+  `PLANNER_MINTED_*` and `CLAUDE.md` **authored** — the separation the whole mechanism turns on,
+  because the remedy class five applies to a generated path is REVERT.
+- `gate_violations() == []` and the stem set is disjoint from `generated_artefacts()`, so the
+  fail-closed `file_scope` starvation gate and its `FROZEN` census did not move.
+
+**The premise this item was drawn on was spent by the time it was drawn, and not by this work.**
+The shared tree read 0 behind / 0 ahead / 0 gap paths at `ed4092d13` — the wedge that motivated the
+item had already cleared by another route. The oracle defect was still live at HEAD, so the fix is
+the durable repair rather than the wedge-clearing, and that is what was landed. It was found
+**built-and-unlanded in the shared working tree** (129 lines, mtime 06:51, test file untracked), so
+what this turn added is the verification and one control repair, not the mechanism.
+
+### The control repair, and it is this project's own recurring shape
+
+Three legs of the new test file were **keyed to today's answer**: a named live member
+(`..._SEAT_CLAIM_2026-09-15.md`) and a `len(...) > 1` floor. `alarm_repetition.reask(apply=True)`
+writes a cleared document into `done/` and then **unlinks** the staging-root copy — so an emptying
+family is the mechanism *succeeding*, and those legs would have reddened **every lane** at exactly
+the moment the repair this oracle exists to unblock did its job, naming a file the offending commit
+never touched. The file's own docstring claimed no leg pinned a count; two did.
+
+Repaired to the property: the real-tree legs now quantify over whatever the family holds, and the
+carve-out leg **injects** its subject so it asks about the ORDER of two set operations and nothing
+else. That is not fail-open, because "is this declaration worth anything" is answered without tree
+state by `test_every_declared_stem_is_REACHED_BY_ITS_PRODUCER_in_the_real_tree` — a stem whose
+producer is gone or no longer spells it fails there whether the family is empty or not.
+
+Mutation-proven rather than asserted: under the wrong order — `(scan - carve) | stems` instead of
+`(scan | stems) - carve` — the injected subject is re-admitted and the leg fails. The order is the
+only thing that leg can be green about.
+
+### Still open, unchanged by this landing
+
+Steps 2–4 above. In particular **step 4**: `GATE_RUNNING` starved the reconciler on 19 of the last
+40 cadences, which this item did not cover and this landing does not touch.

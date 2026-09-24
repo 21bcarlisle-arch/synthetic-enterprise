@@ -1295,6 +1295,117 @@ AUTHORED_UNDER_A_GENERATED_TREE: frozenset[str] = frozenset({
 })
 
 
+# THE THIRD SPELLING OF A DESTINATION, AND THE FIRST ONE THAT IS NOT A PATH AT ALL (delivery seat,
+# 2026-09-24). The two oracles above are keyed to a TREE and to a WHOLE STATIC PATH. Both assume the
+# artefact has a name a parser can read. `background/alarm_repetition.finding_path` composes its
+# destination instead:
+#
+#     (staging_dir or STAGING_DIR) / f"WORKER_FINDING_REPEATING_ALARM_{_family_slug(...)}_{today}.md"
+#
+# The filename is a runtime FUNCTION OF THE ALARM -- its family and the day it fired -- so there is
+# no literal to resolve and there never will be. Widening the static scan cannot reach it: the f-
+# string's tail is two calls, the value is RETURNED rather than written here, and the write happens a
+# second frame down in `_write_document(path, text)`. Each of those is a door `written_artefacts`'s
+# docstring declares structurally out of scope, and all three would have to be built to spell ONE
+# artefact family. So the key is what the producer actually declares: a DIRECTORY and a LITERAL
+# PREFIX, with the tail unread.
+#
+# MEASURED ON THE LIVE WEDGE, 2026-09-24. Eleven of the thirteen paths holding the shared checkout
+# behind origin/main were this one family; nine are tracked-and-modified, which is
+# `generated_output_verdicts`'s subject, and `_split_generated` called every one of them AUTHORED --
+# so the fifth blocker class never reached them, and under `advance_shared_tree`'s all-or-nothing
+# rule those nine were fatal to the four blockers beside them that every other class had already
+# proven safe. The checkout could not advance, and what it could not carry included
+# `alarm_repetition.py`'s own repair. A producer's output was blocking the producer's fix.
+#
+# THE REVERT IS LOSSLESS HERE AND IT WAS MEASURED, NOT ASSUMED -- which is the whole question,
+# because class five RESTORES a path to HEAD and the fast-forward then writes ORIGIN's bytes over
+# it. So the loss is origin-vs-DISK, never HEAD-vs-disk, and the two answer differently: HEAD is
+# 8,661 bytes behind disk on `..._SEAT_CLAIM_...` and origin only 492. Asked of all ten copies on
+# 2026-09-24, every origin->disk delta was one of exactly two things -- `notify()`'s CONSECUTIVE-
+# FIRING streak, which the document itself says in its own prose is not a total and resets, or the
+# old count paragraph restated in the reworked `<!-- counts:begin -->` form. The part that genuinely
+# ACCUMULATES, the dated `- **2026-09-NN** -- still live` line per firing and the family's instance
+# list, was byte-identical on both sides: last dated line `2026-09-24` on origin and on disk, in
+# every one. Nothing here is the append-wearing-a-rewrite shape that put `SEAT_STRETCH_LOG.md` and
+# `naive_organ_log.jsonl` in `WRITTEN_BUT_NOT_REPRODUCIBLE`, and the reason is structural rather
+# than lucky: `escalate` is IDEMPOTENT BY PATH and re-derives both counts from the document's own
+# dated lines every firing, so a day already recorded is not recorded twice and a seat's prose in
+# the body is never rewritten.
+#
+# WHY A STEM AND NOT `("docs", "staging")` IN `GENERATED_TREES`. That tree is where the seat files
+# SEAT_FINDING and PLANNER_MINTED documents -- authored work, by hand, and the single largest source
+# of them in the repository. Declaring it would classify every one as a producer's output and offer
+# the reconciler a REVERT on a seat's unlanded finding, which is the exact harm the write-keyed
+# oracle exists to avoid, arriving through the fix for it. The prefix is what separates the
+# producer's family from its authored neighbours, so the prefix is what is declared.
+#
+# NON-RECURSIVE, ON PURPOSE. `background/staging_rooms.py` MOVES a document into `in_progress/` or
+# `done/` when a lane takes custody of it, and the copy in a room has been read, ranked and often
+# annotated by whoever moved it. The producer writes to the staging ROOT and nowhere else, so that
+# is the whole extent of its claim; a document a room move has taken custody of is that lane's, and
+# the untracked half of the same wedge (`docs/staging/done/WORKER_FINDING_REPEATING_ALARM_VALUE_ARM_
+# ...`) is `untracked_orphan_verdicts`'s subject anyway, which preserves the bytes to a ref first.
+#
+# SELF-DISABLING ON STALENESS, WHICH IS THE SAFE DIRECTION. A stem contributes nothing unless its
+# declared producer is present AND still spells the prefix. If the producer is deleted or renames
+# its constant, these documents stop being regenerated -- and at that moment reverting one stops
+# being free -- so the stem must stop classifying them. The consequence of the stem going quiet is
+# that the reconciler offers a LANDING again, which is where this module started and is never
+# destructive; the consequence of it staying loud over a dead producer is a revert of something
+# nobody remakes. `tests/tools/test_a_producer_that_composes_its_filename_is_still_a_producer.py`
+# holds both directions against the live tree.
+GENERATED_STEMS: tuple[tuple[str, str, str], ...] = (
+    # `background/alarm_repetition.escalate` files one document per repeating alarm FAMILY and
+    # refiles nothing for a family that already has one. `ALARM_DOCUMENT_STEM` in that module is
+    # this same literal, and `finding_classes.SELF_CLEARING_ALARM_PREFIXES` is a third copy -- the
+    # prefix is already the family's declared identity in two other modules, and this is the first
+    # place that treats it as a PATH property.
+    ("background/alarm_repetition.py", "docs/staging", "WORKER_FINDING_REPEATING_ALARM_"),
+)
+
+
+def _producer_spells_stem(base: Path, producer: str, stem: str) -> bool:
+    """True if `producer` exists under `base` and still spells `stem` as a literal.
+
+    POSITIVE EVIDENCE OF GENERATION, the mirror of what `AUTHORED_UNDER_A_GENERATED_TREE` demands
+    for authorship. An f-string's literal parts are `Constant` children of the `JoinedStr`, so one
+    walk over every string constant sees both spellings and does not need to know which the producer
+    used -- the point is that the prefix is in the producer's own source, not how it is assembled.
+    """
+    f = base / producer
+    if not f.is_file():
+        return False
+    try:
+        mod = ast.parse(f.read_text(encoding="utf-8", errors="replace"))
+    except Exception:  # noqa: BLE001 - an unparseable producer is an absent one, not a louder stem
+        return False
+    return any(isinstance(n, ast.Constant) and isinstance(n.value, str) and stem in n.value
+               for n in ast.walk(mod))
+
+
+def stem_written_artefacts(root: Path | None = None) -> set[str]:
+    """Repo-relative paths matching a `GENERATED_STEMS` entry whose producer still spells it.
+
+    The set is the paths that EXIST, not the stem, because every consumer of the union asks
+    membership of a concrete blocking path. An empty return is a legitimate answer here and NOT an
+    oracle failure -- a tree with no alarm firings has no such documents, and `written_artefacts`
+    already raises if the write-site scan itself comes back empty.
+    """
+    base = (Path(root) if root is not None else PROJECT_DIR).resolve()
+    found: set[str] = set()
+    for producer, directory, stem in GENERATED_STEMS:
+        if not _producer_spells_stem(base, producer, stem):
+            continue
+        d = base / directory
+        if not d.is_dir():
+            continue
+        for f in sorted(d.glob(f"{stem}*")):
+            if f.is_file() and f.suffix in ARTEFACT_SUFFIXES:
+                found.add(f.relative_to(base).as_posix())
+    return found
+
+
 def _write_reached_paths(root: Path | None = None) -> set[str]:
     """The raw write-site scan, before the not-reproducible carve-out. Separate so the carve-out's
     own staleness can be measured against it."""
@@ -1421,8 +1532,25 @@ def written_artefacts(root: Path | None = None) -> set[str]:
 
     FAIL-CLOSED, like its neighbour: an oracle that cannot be computed RAISES rather than
     returning an empty set that reads exactly like a tree with no generators in it.
+
+    AND THE COMPOSED FILENAME IS FOLDED IN HERE RATHER THAN OFFERED AS A FOURTH ORACLE (delivery
+    seat, 2026-09-24). `stem_written_artefacts` answers the same question this function does -- does
+    a producer write these bytes -- for a producer whose destination is a runtime function of its
+    subject rather than a name. Both consumers in `origin_reconcile` iterate a hard-coded pair of
+    oracle names, so a third function would have been invisible to the very code that needed it
+    until both loops were edited too, and a reader of the PARTIAL-split note would have been told
+    two oracles answered when three were asked. Unioned here, the existing consumers gain it with no
+    change, and the fail-closed rule above still covers the static half: a broken write scan raises
+    before the stems are added, so a stem can never be the only thing standing between an empty
+    oracle and a clean-looking reading.
+
+    THE CARVE-OUT IS APPLIED TO BOTH HALVES, and that is deliberate rather than incidental.
+    `WRITTEN_BUT_NOT_REPRODUCIBLE` asks *does a REVERT lose content no run can recompute* -- a
+    question about the ARTEFACT, not about how its path was spelled. A stem-matched document that
+    turns out to accumulate something irreproducible must be carveable by the same door as every
+    other producer's output, or the next person to find one has to build a second hatch.
     """
-    return _write_reached_paths(root) - WRITTEN_BUT_NOT_REPRODUCIBLE
+    return (_write_reached_paths(root) | stem_written_artefacts(root)) - WRITTEN_BUT_NOT_REPRODUCIBLE
 
 
 def _tree_prefixes() -> set[str]:
