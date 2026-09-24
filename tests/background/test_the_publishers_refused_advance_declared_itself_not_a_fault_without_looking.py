@@ -55,12 +55,22 @@ def _untracked(path: str) -> dict:
 
 
 def _verdict(blocking) -> str:
-    """The verdict half of the refusal, driven by an injected blocking read."""
-    return prc._refused_advance_cause(Path("/nonexistent"), lambda _p: blocking)[0]
+    """The verdict half of the refusal, driven by an injected blocking read.
+
+    `ahead` IS PINNED TO 0 HERE ON PURPOSE. Every control in this file is about the DIRTY-TREE
+    COLLISION partition, and a fork is not one of those -- on a diverged tree no path is the cause
+    at all and `_refused_advance_cause` says so ahead of any of these readings. Left to the real
+    `commits_ahead`, these helpers would read git against `/nonexistent`, get `None`, and collapse
+    all four readings onto the unestablished-fork leg. The fork's own partition is controlled in
+    `test_the_refusal_renderers_called_a_path_the_cause_while_the_advance_beside_them_called_it_a_fork.py`.
+    """
+    return prc._refused_advance_cause(
+        Path("/nonexistent"), lambda _p: blocking, lambda _p: 0)[0]
 
 
 def _clause(blocking) -> str:
-    return prc._refused_advance_cause(Path("/nonexistent"), lambda _p: blocking)[1]
+    return prc._refused_advance_cause(
+        Path("/nonexistent"), lambda _p: blocking, lambda _p: 0)[1]
 
 
 NOT_A_FAULT = "the guard working and not a fault"
@@ -179,7 +189,7 @@ def test_the_clause_is_the_SIBLINGS_and_not_a_second_renderer():
     """
     for blocking in ([_modified("a.py")], [_untracked("b.md")],
                      [_modified("a.py"), _untracked("b.md")], [], None):
-        assert _clause(blocking) == orc._blocking_clause(blocking), \
+        assert _clause(blocking) == orc._blocking_clause(blocking, 0), \
             "the clause must BE the sibling's, not resemble it -- blocking={}".format(blocking)
 
 

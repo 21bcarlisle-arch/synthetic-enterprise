@@ -408,12 +408,35 @@ def _landing_clause(blocking: list[dict]) -> str:
             "`python3 -m background.origin_reconcile`.".format("; and ".join(steps)))
 
 
-def _blocking_clause(blocking: list[dict] | None) -> str:
+def _blocking_clause(blocking: list[dict] | None, ahead: int | None) -> str:
     """The named cause, rendered ahead of git's own words rather than after them.
 
     THE LANDING STEP IS ATTACHED ONLY TO THE LEG THAT NAMED PATHS. "I could not look" and
     "nothing collides" are not refusals a landing clears, and a remedy printed under either would
     read as a diagnosis this module never made.
+
+    `ahead` IS REQUIRED, AND THAT IS THE REPAIR RATHER THAN A STYLE CHOICE. `advance_shared_tree`
+    learned on 2026-09-05 that divergence is not a collision and that on a diverged tree NO
+    working-tree path is the cause -- and it learned it for ITSELF. This renderer, which is what
+    every reader and every daemon log line actually gets, was never told, and neither was
+    `process_run_complete._refused_advance_cause` beside it. One rule, three implementations, the
+    fix landed in one: the shape CLAUDE.md names as this project's most expensive recurring defect.
+
+    MEASURED ON THE LIVE SHARED TREE 2026-09-24 at `ahead = 10, behind = 9`. This clause said
+    *"Refused by 4 path(s) ... THE STEP IS TO LAND OR REVERT THOSE PATHS"* while
+    `advance_shared_tree`, asked about the same tree in the same second, said *"No working-tree
+    path is the cause and clearing twins would delete files and still not advance."* The delivery
+    seat was then commissioned, in those words, to clear three of those paths -- a deletion bought
+    for no advance, which is the one shape this module exists not to reach.
+
+    SO A DEFAULT WOULD HAVE BEEN THE DEFECT UNDER A NEW NAME. An optional `ahead=None` keeps every
+    existing caller compiling and keeps every existing caller wrong, and the only callers to get
+    the repair would be the ones that already knew to ask. Required means a caller that has not
+    put this question to git cannot render this sentence at all.
+
+    `None` (git would not answer) is NOT folded into `0`. "I could not tell whether these paths
+    are the cause" and "these paths ARE the cause" are different statements, and the landing
+    remedy belongs only under the second.
     """
     if blocking is None:
         return ("The paths refusing the advance could NOT be established, so this names the fork "
@@ -423,11 +446,22 @@ def _blocking_clause(blocking: list[dict] | None) -> str:
                 "dirty-tree collision and git's own words are the whole of the cause.")
     listed = blocking[:12]
     dropped = len(blocking) - len(listed)
-    return "Refused by {} path(s): {}{}. {}".format(
+    named = "{} path(s): {}{}".format(
         len(blocking),
         "; ".join("{} ({})".format(b["path"], b["kind"]) for b in listed),
-        " -- and {} further path(s) not listed here".format(dropped) if dropped else "",
-        _landing_clause(blocking))
+        " -- and {} further path(s) not listed here".format(dropped) if dropped else "")
+    if ahead is None:
+        return ("Whether this tree has DIVERGED could NOT be established, so whether any of these "
+                "paths is the cause is unestablished and no landing step is named. {} collide(s) "
+                "with what origin brings: {}.".format(len(blocking), named))
+    if ahead:
+        return ("This tree has DIVERGED -- {} local commit(s) that {}/{} does not have -- so NO "
+                "working-tree path is the cause and landing or reverting these would advance "
+                "nothing. {} collide(s) with what origin brings, listed only so they are not "
+                "mistaken for it: {}. The fork closes by landing those commits on origin (the "
+                "reconciler's own merge leg, `python3 -m background.origin_reconcile`), never by "
+                "clearing paths here.".format(ahead, REMOTE, BRANCH, len(blocking), named))
+    return "Refused by {}. {}".format(named, _landing_clause(blocking))
 
 
 def _blob_here(project: Path, path: str) -> str | None:
@@ -1609,14 +1643,20 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
                               "landing, so no commit was made and origin was not touched. "
                               "{}".format(behind, adv["reason"])}
         blocking = (blockers_fn or paths_blocking_fast_forward)(project)
+        # RE-ASKED, NOT REUSED FROM LINE ~1591. The window between that read and this one is the
+        # one `advance_shared_tree` documents as minutes wide -- several sessions commit into this
+        # tree throughout -- and the sentence being rendered is a claim about NOW. The old text
+        # ended "the tree advances when the lane holding those paths lands or reverts them", which
+        # is false of a fork and is the instruction the 2026-09-24 seat was handed.
         return {"status": NOT_ADVANCED, "behind": behind, "pushed": False,
                 "blocking_paths": blocking, "cleared_paths": adv["cleared"],
                 "detail": "origin is {} commit(s) ahead, this machine has NOTHING to land, and the "
                           "shared tree will not fast-forward. {} Nothing was committed and "
                           "nothing was pushed -- a merge with no work of ours in it would only "
-                          "widen the fork it claims to close. The tree advances when the lane "
-                          "holding those paths lands or reverts them. advance: {}".format(
-                              behind, _blocking_clause(blocking), adv["reason"])}
+                          "widen the fork it claims to close. advance: {}".format(
+                              behind,
+                              _blocking_clause(blocking, (ahead_fn or commits_ahead)(project)),
+                              adv["reason"])}
 
     ok, why = (make_worktree or _fresh_worktree)(project, worktree)
     if not ok:
@@ -1649,7 +1689,11 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         # in the DETAIL, where nothing read it. So it reported success 29 times running while the
         # fork it was reconciling grew by one each time. A control that does not re-read its
         # subject after acting cannot tell "I fixed it" from "I did the steps".
-        still_behind, _ = (state_fn or fork_state)(project)
+        # THE AHEAD COUNT WAS ALREADY HERE AND WAS BEING THROWN AWAY. `fork_state` returns both
+        # directions; this leg read the pair and discarded the one that decides whether any path
+        # below is the cause at all. It is the same post-push re-read the comment above argues for,
+        # so no extra git call buys it.
+        still_behind, still_ahead = (state_fn or fork_state)(project)
         if still_behind:
             blocking = (blockers_fn or paths_blocking_fast_forward)(project)
             return {"status": NOT_ADVANCED, "behind": still_behind, "pushed": True,
@@ -1658,7 +1702,8 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
                               "advance and is still {} commit(s) behind. {} This is NOT a closed "
                               "fork -- origin moved and this tree did not, which is precisely the "
                               "state that loops if it is retried on a cadence. advance: {}".format(
-                                  still_behind, _blocking_clause(blocking), adv["reason"])}
+                                  still_behind, _blocking_clause(blocking, still_ahead),
+                                  adv["reason"])}
         return {"status": RECONCILED, "behind": behind, "pushed": True,
                 "cleared_paths": adv["cleared"],
                 "detail": "merged {} commit(s) from origin in an isolated worktree, gated, pushed, "

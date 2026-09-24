@@ -5814,9 +5814,26 @@ FORK_ADVANCE_TIMEOUT_SECONDS = 300
 PUBLISH_ADVANCE_ATTEMPTS = 3
 
 
-def _refused_advance_cause(project, blockers_fn=None):
+def _refused_advance_cause(project, blockers_fn=None, ahead_fn=None):
     """The NAMED cause of a refused fast-forward, and whether calling it "the guard working" is
     honest. Returns `(verdict, clause)`, both sentences, never raising.
+
+    DIVERGENCE IS ASKED FIRST, BECAUSE ON A FORK NO PATH IS THE CAUSE. Every branch below this one
+    is a judgement about a DIRTY-TREE COLLISION, and a diverged tree is not one: `git merge
+    --ff-only` refuses it for a reason no working-tree path can express, while
+    `paths_blocking_fast_forward` still answers with a non-empty list of paths that are not the
+    cause. `advance_shared_tree` learned exactly this on 2026-09-05 and ordered its own divergence
+    check ahead of its path judgement; this function, its reader-facing twin, was not changed and
+    kept answering as though the fork were a collision for nineteen days.
+
+    WHAT IT ACTUALLY SAID, run against the live shared tree 2026-09-24 at `ahead = 10, behind = 9`:
+    *"a tracked file this tree has edited is HOLDING THE SHARED TREE BEHIND ORIGIN ... THE STEP IS
+    TO LAND OR REVERT THOSE PATHS"*. Not one of the four named paths was holding anything, landing
+    or reverting all four would have advanced nothing, and the delivery seat was commissioned in
+    those words to clear three of them. A wrong cause is worse than an unnamed one precisely
+    because it is actionable: `blocking_tests` was EMPTY and `total_red` 0, so this sentence was
+    the only thing anybody had to go on, and it sent the next reader at innocent files for 54
+    hours while the fork it never mentioned went on widening.
 
     BORROWED WHOLE FROM THE SIBLING, NOT RESTATED. `origin_reconcile.paths_blocking_fast_forward`
     asks this exact question and `_blocking_clause` renders this exact answer, and both carry the
@@ -5838,13 +5855,28 @@ def _refused_advance_cause(project, blockers_fn=None):
         from background.origin_reconcile import (
             FF_MODIFIED,
             _blocking_clause,
+            commits_ahead,
             paths_blocking_fast_forward,
         )
         blocking = (blockers_fn or paths_blocking_fast_forward)(project)
-        clause = _blocking_clause(blocking)
+        ahead = (ahead_fn or commits_ahead)(project)
+        clause = _blocking_clause(blocking, ahead)
     except Exception as exc:  # noqa: BLE001 -- naming the cause must never cost git's own words
         return ("whether this is a dirty-tree collision was NOT established ({}: {}), so this "
                 "names the refusal and not its cause".format(type(exc).__name__, exc), "")
+    if ahead is None:
+        # FAIL CLOSED ON THE NEW QUESTION, exactly as the `blocking is None` leg below does on the
+        # old one. "I could not tell whether this is a fork" must not read as "it is not one" --
+        # that is the reassuring verdict, and it is the one that costs a reader the orientation.
+        return ("whether this tree has DIVERGED could NOT be established, so whether any path is "
+                "the cause is unestablished and this names the refusal and not its cause", clause)
+    if ahead:
+        return ("this is NOT a dirty-tree collision at all: the tree has DIVERGED -- {} local "
+                "commit(s) origin does not have -- so no path is holding it and landing or "
+                "reverting the paths below would advance nothing. Closing the fork is the gated "
+                "merge door (`python3 -m background.origin_reconcile`, or `surgical_land --merge "
+                "origin/main`), and it is a judgement rather than a daemon's to take".format(
+                    ahead), clause)
     if blocking is None:
         # `None` is "I could not look", and `_blocking_clause` already says so. What must NOT
         # happen is that it reads as the reassuring verdict -- an unestablished cause is not a
