@@ -2,10 +2,17 @@
 
 # [stretch-log] NO STRETCH REPORT for work that has landed -- 85 commits since the last report (escalates above 80; largest gap this log has ever had is 70). The commits keep WHAT ch
 
-**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
-fired **3 times without its state changing**, over **0.1h**. Under the
-director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
-than being sent again, so this document exists and a 3th page does not.
+<!-- counts:begin -->
+**Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
+has been **observed to hold on 8 separate day(s)**, between **2026-09-17** and **2026-09-24**,
+and **1 member(s)** of the family `stretch-log` have fired. Both counts are DERIVED from this
+document's own dated lines every time the alarm fires again, so they age with the document
+rather than with its first firing.
+
+Separately, the observer that last filed reported **504 consecutive firing(s) without a state
+change**, over **17.0h**. That is `notify()`'s streak counter, which resets; it is not a total
+and does not combine with the two counts above.
+<!-- counts:end -->
 
 ## The alarm, verbatim
 
@@ -39,5 +46,10 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - **2026-09-20** — still live. 1075 repeats over 34.9h without the state changing. No second document filed: this condition already has one.
 - **2026-09-21** — still live. 1591 repeats over 66.0h without the state changing. No second document filed: this condition already has one.
 - **2026-09-22** — still live. 2132 repeats over 82.9h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 2910 repeats over 106.9h without the state changing. No second document filed: this condition already has one.
+- **2026-09-24** — still live. 434 repeats over 14.7h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `report-owed` (first seen 2026-09-17)
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.

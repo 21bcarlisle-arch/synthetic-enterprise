@@ -1172,3 +1172,129 @@ def test_THE_CHAIN_the_staging_watcher_LOOP_actually_REACHES_the_re_ask():
     tail = src[src.index("alarm_repetition.reask"):]
     assert "except Exception" in tail[:600], (
         "the re-ask call is unguarded; a staging-hygiene failure would stop the watcher")
+
+
+def _live_population_with_one_genuine_clear(tmp_path, monkeypatch, *, store=True):
+    """A room reachable as the LIVE queue -- i.e. with no `staging_dir` named at the call.
+
+    THE WIRING IS THE POINT AND IT IS NOT AN ACCIDENT OF CONVENIENCE. `clearing_vantage_refusal`
+    only applies when the caller names no population, because a caller that names one has built it
+    and answered for it. Every other control in this file passes `staging_dir=` explicitly, so none
+    of them can reach the new leg at all -- which would leave it a branch with no test, exactly the
+    shape CLAUDE.md says to assert against. Monkeypatching `ar.STAGING_DIR` and calling `reask()`
+    bare is a PRODUCTION-SHAPED call: it takes the same branch the staging watcher takes.
+
+    It also has to survive the module's hard pytest guard, which returns `[]` when the target
+    resolves to the real `docs/staging`. It does, because the target here is under `tmp_path`.
+    """
+    if store:
+        _point_transitions_at(monkeypatch, tmp_path, {})
+    else:
+        from background import notify
+        monkeypatch.setattr(notify, "TRANSITIONS_FILE", tmp_path / "there-is-no-store-here.json")
+    room = tmp_path / "staging"
+    room.mkdir()
+    # One document that keeps the machinery's heartbeat alive, and one genuinely quiet for a month.
+    _file_alarm(room, key="still-burning", message="[X] the thing is still on fire",
+                when=_REASK_TODAY)
+    quiet = _file_alarm(room, key="long-quiet", message="[X] the thing was on fire a month ago",
+                        when=_LONG_AGO)
+    monkeypatch.setattr(ar, "STAGING_DIR", room)
+    return room, quiet
+
+
+def test_a_re_ask_IN_A_LINKED_WORKTREE_REPORTS_BUT_CANNOT_ARCHIVE(tmp_path, monkeypatch):
+    """MEASURED, 2026-09-24, and the measurement is why this is a leg and not a comment.
+
+    The delivery seat runs in an isolated git worktree and the drawn item's instruction was to run
+    `--apply` there. Done with the shared tree's transition store present, that run graded THREE
+    documents `cleared`, two of which (`deadman_origin_fork`, `seat-claim`) carried a still-live
+    line stamped that same day in the shared tree's copy. The worktree's copies are HEAD's, and the
+    daemon that annotates the live queue does not commit, so HEAD is behind it by construction.
+
+    No document-reading leg can catch this, because every one of them reads its inputs through the
+    stale position. Both halves are asserted: the reading is still REPORTED (a re-ask from a
+    worktree is useful), and the archival is WITHHELD.
+    """
+    room, quiet = _live_population_with_one_genuine_clear(tmp_path, monkeypatch)
+    monkeypatch.setattr(ar, "GIT_DIR_MARKER", tmp_path / ".git")
+    (tmp_path / ".git").write_text("gitdir: /home/rich/synthetic-enterprise/.git/worktrees/x\n")
+
+    results = {r.family: r for r in ar.reask(now=_REASK_TODAY, apply=True)}
+    assert ar.CLEARED not in {r.verdict for r in results.values()}, (
+        "a linked worktree archived a document out of the director's queue on a copy of the "
+        "queue that HEAD, not the daemon, wrote")
+    assert results["long-quiet"].verdict == ar.CANNOT_TELL, results["long-quiet"].reason
+    assert "LINKED GIT WORKTREE" in results["long-quiet"].reason
+    assert quiet.exists(), "the document was archived despite the verdict"
+    # The reading is not suppressed: the quiet document still gains its dated line, and the
+    # document that IS burning is still graded normally.
+    assert "re-asked: **cannot_tell**" in quiet.read_text(encoding="utf-8")
+    assert results["still-burning"].verdict == ar.STILL_HOLDS
+
+    # THE ONE-VARIABLE LEG. Without this the test above passes for a guard that refuses
+    # EVERYTHING, and it would also pass if `long-quiet` were simply unclearable for some unrelated
+    # reason. Flip the marker to a directory -- the main tree's shape -- and nothing else, and the
+    # clear must become reachable.
+    (tmp_path / ".git").unlink()
+    (tmp_path / ".git").mkdir()
+    again = {r.family: r for r in ar.reask(now=_REASK_TODAY)}
+    assert again["long-quiet"].verdict == ar.CLEARED, (
+        "with the vantage repaired and nothing else changed, the clear is still not reachable, so "
+        "the leg above proved something other than what it claims: " + again["long-quiet"].reason)
+
+
+def test_a_re_ask_WITH_NO_TRANSITION_STORE_ON_DISK_CANNOT_ARCHIVE(tmp_path, monkeypatch):
+    """An ABSENT store is not the same reading as an EMPTY one, and the code read them alike.
+
+    `_read_transitions_for_reask` returns `{}` on any failure and argued that was safe because the
+    store is only used to CONTRADICT and "the heartbeat leg below still has to pass". Both halves
+    were checked on 2026-09-24 and the argument does not hold: `machinery_heartbeat` unions the
+    store's dates with the GRADED DOCUMENTS' own, so a population with one fresh document keeps the
+    heartbeat alive with no store at all -- and then every quiet document is clearable on a firing
+    record this process has never seen.
+
+    The fixture is built to make exactly that configuration: one fresh document, no store file.
+    """
+    room, quiet = _live_population_with_one_genuine_clear(tmp_path, monkeypatch, store=False)
+    monkeypatch.setattr(ar, "GIT_DIR_MARKER", tmp_path / ".git")
+    (tmp_path / ".git").mkdir()
+
+    # First, prove the hole is open -- otherwise this control could be passing because the
+    # heartbeat was dead, which is a different mechanism refusing for a different reason.
+    docs = ar.alarm_documents(room)
+    assert ar.machinery_heartbeat(docs, {}, now=_REASK_TODAY) == "2026-09-23", (
+        "the fixture no longer keeps the heartbeat alive from the documents alone, so this test "
+        "would pass through the silent-observers leg instead of the one it is about")
+
+    results = {r.family: r for r in ar.reask(now=_REASK_TODAY, apply=True)}
+    assert results["long-quiet"].verdict == ar.CANNOT_TELL, results["long-quiet"].reason
+    assert "does not exist" in results["long-quiet"].reason
+    assert quiet.exists()
+
+    # THE ONE-VARIABLE LEG: put the store on disk, empty, and change nothing else.
+    _point_transitions_at(monkeypatch, tmp_path, {})
+    again = {r.family: r for r in ar.reask(now=_REASK_TODAY)}
+    assert again["long-quiet"].verdict == ar.CLEARED, (
+        "an EMPTY store on disk must still permit a clear -- it is a real reading of a quiet "
+        "system. Refusing both is a guard that refuses everything: " + again["long-quiet"].reason)
+
+
+def test_the_vantage_guard_is_NOT_CONSULTED_when_the_caller_NAMES_a_population(tmp_path, monkeypatch):
+    """The scope of the new leg, asserted rather than left to be inferred from its call site.
+
+    A caller that names a `staging_dir` has built that room and is responsible for it -- every
+    other control in this file is such a caller, and so is any future tool that re-asks a copy on
+    purpose. If the guard applied to them it would fire in the gate and not in the worktree, or
+    the reverse, depending on where the test runner happened to be standing: a control giving
+    opposite verdicts in two places that are both meant to be authoritative.
+    """
+    room, _ = _live_population_with_one_genuine_clear(tmp_path, monkeypatch)
+    monkeypatch.setattr(ar, "GIT_DIR_MARKER", tmp_path / ".git")
+    (tmp_path / ".git").write_text("gitdir: somewhere\n")
+    assert ar.clearing_vantage_refusal() is not None, "the fixture is not refusing at all"
+
+    named = {r.family: r for r in ar.reask(staging_dir=room, now=_REASK_TODAY)}
+    assert named["long-quiet"].verdict == ar.CLEARED, (
+        "a named population was graded through the live-queue vantage guard: " +
+        named["long-quiet"].reason)
