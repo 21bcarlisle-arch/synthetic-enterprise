@@ -75,9 +75,24 @@ def _publish_record(state_file):
     return json.loads(state_file.read_text()).get("liveness_surface_last_publish")
 
 
+#: The tree oid `merge-tree --write-tree` hands back. Opaque on purpose: `_arriving_paths` only
+#: passes it to the diff below, so a real-looking oid would invite a reader to think it means
+#: something here.
+MERGE_TREE_OID = "t" * 40
+
+#: What origin's merge would WRITE, by default. It deliberately INCLUDES the path `_drive` publishes
+#: (`site/data/tick_heartbeat.json`), so `_publish_surface_collisions` returns a real COLLISION and
+#: `_divergence_refusal` refuses for a reason it MEASURED. Before these commands were modelled the
+#: same refusal arrived via an AssertionError -- "overlap NOT ESTABLISHED, so fail-closed" -- which
+#: is the same verdict reached by not looking, and every `ahead > 0` leg in this file was resting on
+#: it. A fixture whose refusals all come from its own blindness grades nothing.
+ARRIVING_PATHS_DEFAULT = ("site/data/tick_heartbeat.json", "background/origin_reconcile.py")
+
+
 def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, commit_tail="",
            push_rc=0, remote_head="same", local_head="same", is_ancestor=False,
-           label="Liveness heartbeat"):
+           label="Liveness heartbeat", local_commits_origin_lacks=0, fetch_rc=0,
+           arriving=ARRIVING_PATHS_DEFAULT, ff_rc=1):
     """Run `_commit_and_push_paths` to one chosen exit. Returns its boolean.
 
     THE CATCH-ALL WAS MORE PERMISSIVE THAN ITS SUBJECT, and that is why this fixture is shaped the
@@ -98,6 +113,28 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
     same direction `_commit_is_ancestor` itself takes for a question git cannot answer -- and the
     catch-all now REFUSES an unrecognised `git` call instead of blessing it, so the next predicate
     that reaches for a new subprocess is caught by this fixture rather than absorbed by it.
+
+    AND THE CATCH-ALL THEN CAUGHT FOUR MORE, WHICH IS IT WORKING (2026-09-24). The refusal above is
+    fail-CLOSED, so it cost nothing while every leg under it only asked "does this refuse?" -- but
+    the behind-origin exit's whole subject is WHICH refusal, and there the blindness was total:
+    `_refused_advance_cause` reaches `origin_reconcile.commits_ahead`, which shells `git rev-list
+    --count`, so it raised inside its own broad `except` and returned "whether this is a dirty-tree
+    collision was NOT established" for EVERY input -- discarding the one argument that differs
+    between a wedge and a hot origin before `_blocking_clause` ever saw it. Modelled here:
+
+      * `git fetch` -- `_advance_to_origin_or_say_why` and `commits_behind`. Note the two issue
+        DIFFERENT argv (`fetch --quiet origin main` against `fetch origin main --quiet`), so this
+        keys on the verb.
+      * `git rev-list --count <range>` -- keyed on the RANGE, because each range is a different
+        question and one shared answer is exactly the "say what each number counts" defect. An
+        unmodelled range refuses rather than borrowing a neighbour's count.
+      * `git merge-tree --write-tree` and the `git diff --name-only -z` that reads its tree --
+        `_arriving_paths`. Together they decide `_publish_surface_collisions`, and modelling them
+        is what turns every `ahead > 0` refusal in this file from "we could not look" into a
+        measured collision.
+      * `git merge --ff-only` -- the advance itself. DEFAULTS TO rc=1, the refusal, because a
+        fast-forward that silently succeeded would clear the fork the behind-origin legs exist to
+        describe.
     """
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
@@ -127,6 +164,43 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
             # Staging succeeds. Named rather than swept up by the catch-all, because "the add
             # worked" is a real modelled answer and the catch-all no longer has one.
             return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+        if argv[:2] == ["git", "fetch"]:
+            return types.SimpleNamespace(returncode=fetch_rc, stdout="", stderr="")
+        if argv[:3] == ["git", "merge-tree", "--write-tree"]:
+            return types.SimpleNamespace(returncode=0, stdout=MERGE_TREE_OID + "\n", stderr="")
+        if argv[:4] == ["git", "diff", "--name-only", "-z"]:
+            # `-z` is NUL-TERMINATED, not NUL-separated, and `_paths` drops the empty tail. Joining
+            # with NUL instead would still parse here and would silently lose the last path against
+            # real git -- the fixture-more-permissive-than-its-subject shape, one layer down.
+            return types.SimpleNamespace(
+                returncode=0, stdout="".join(p + "\0" for p in arriving), stderr="")
+        if argv[:3] == ["git", "rev-list", "--count"]:
+            # ONE ANSWER PER RANGE. `origin/main..HEAD` and `HEAD..origin/main` are opposite
+            # questions with opposite remedies, and a fake that answered both with one number
+            # would make the divergence branch and the behind branch indistinguishable here --
+            # which is the very collapse this file's newest leg exists to catch.
+            counts = {
+                # `origin_reconcile.commits_ahead`: commits WE hold that origin does not.
+                "origin/main..HEAD": local_commits_origin_lacks,
+                # `_unabsorbed_publish_commits`: the SAME side of the fork, narrowed to the paths
+                # this commit writes -- a subset, so it can never exceed the count above. Answered
+                # with that count rather than a smaller one: it errs toward "a copy is already
+                # stranded", which is the REFUSING direction.
+                "FETCH_HEAD..HEAD": local_commits_origin_lacks,
+                # `commits_behind` / `_commits_origin_is_ahead_by`: commits ORIGIN holds.
+                "HEAD..origin/main": ahead,
+                "HEAD..FETCH_HEAD": ahead,
+            }
+            if argv[3] not in counts:
+                raise AssertionError(
+                    "this fixture has no answer for the range `{}`, and giving it a neighbouring "
+                    "range's count would answer a different question. Model it.".format(argv[3]))
+            return types.SimpleNamespace(
+                returncode=0, stdout="{}\n".format(counts[argv[3]]), stderr="")
+        if argv[:3] == ["git", "merge", "--ff-only"]:
+            return types.SimpleNamespace(
+                returncode=ff_rc, stdout="",
+                stderr="" if ff_rc == 0 else "error: Your local changes would be overwritten")
         if argv[:1] == ["git"]:
             raise AssertionError(
                 "this fixture has no answer for `{}`, and returning rc=0 for an unknown git "
@@ -135,8 +209,19 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
-    return prc._commit_and_push_paths(["site/data/tick_heartbeat.json"], "chore(liveness)",
-                                      label=label, git_hash="abc1234")
+    # ABSOLUTE, UNDER `PROJECT_DIR`, BECAUSE THAT IS WHAT BOTH PRODUCTION CALLERS PASS -- the
+    # heartbeat builds `str(PROJECT_DIR / rel)` and the banner passes `str(_prov.PROVENANCE_FILE)`.
+    # This was `"site/data/tick_heartbeat.json"`, relative, and the difference was not cosmetic:
+    # `_our_publish_paths` does `Path(p).resolve().relative_to(PROJECT_DIR)` and returns `None` --
+    # its documented "a path outside the repo cannot be compared" exit -- for a relative path,
+    # which resolves against the CWD rather than the patched `PROJECT_DIR`. So
+    # `_publish_surface_collisions` answered `None` for EVERY test here, every `ahead > 0` leg
+    # refused on "overlap with our own paths NOT ESTABLISHED", and the 2026-09-16 disjointness
+    # narrowing had no control on it in this file at all. Found 2026-09-24 by adding the leg that
+    # requires an ADMISSION; the refusal legs could never have shown it, because the fixture's
+    # blindness and the code's judgement produce the same verdict.
+    return prc._commit_and_push_paths([str(tmp_path / "site/data/tick_heartbeat.json")],
+                                      "chore(liveness)", label=label, git_hash="abc1234")
 
 
 # ── the whole partition, before any leg claims what one exit does ────────────────────────────
@@ -221,6 +306,37 @@ def test_a_clean_no_op_banner_records_NOTHING(state_file, tmp_path, monkeypatch)
     assert _record(state_file) is None, \
         "the steady state is not a refusal worth recording, and recording it would drown the " \
         "three that are"
+
+
+def test_a_behind_origin_publish_origin_is_NOWHERE_NEAR_is_admitted_not_refused(
+        state_file, tmp_path, monkeypatch):
+    """THE REACHABILITY LEG FOR `ahead > 0`, and without it this file cannot tell a narrowing that
+    works from one that never fires.
+
+    Every other behind-origin leg here asserts a REFUSAL, so a `_publish_surface_collisions` that
+    returned `None` for every input would pass all of them -- and until 2026-09-24 that is exactly
+    what happened: the fixture had no answer for `merge-tree --write-tree`, the broad `except`
+    caught the AssertionError, and every refusal in this file arrived via *"overlap with our own
+    paths NOT ESTABLISHED, so fail-closed"*. The refusals were the fixture's blindness reported as
+    the code's judgement. This is this project's "a control that stubs its own subject proves the
+    stub", one layer down in a fake.
+
+    THE PROPERTY, from `_publish_surface_collisions` (2026-09-16, measured): origin being ahead is a
+    STATE, not a collision, and a publish whose surface origin is not touching is admitted and left
+    for the reconciler to absorb. Keyed to that, not to today's arriving set -- flip `arriving` to
+    include the published path and the refusal comes back, which is what the leg below asserts.
+
+    MUTATION: make the `merge-tree` answer rc=2 (git would not answer) and `_arriving_paths` falls
+    back to the endpoint diff; make the `diff` answer rc!=0 too and `_paths` returns `None`, which
+    is "could not look" -- this reds while every refusal leg stays green, because a fail-open that
+    refuses everything only shows up against the leg that must be ADMITTED.
+    """
+    assert _drive(monkeypatch, tmp_path, ahead=HOT_ORIGIN_AHEAD,
+                  arriving=("tools/surgical_land.py", "docs/staging/reference/A.md")) is True, \
+        "origin being 23 ahead is a STATE; a publish it cannot conflict with must still publish"
+    assert _record(state_file) is None, \
+        "an admitted publish is not a refusal, and recording one here would make every read of " \
+        "this field a false alarm"
 
 
 # ── the discrimination the finding actually asked for ────────────────────────────────────────
