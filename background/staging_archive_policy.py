@@ -366,6 +366,66 @@ def iter_marker_paths(
                 yield from sorted(sub.glob(f"{prefix}*.md"))
 
 
+# ── ARCHIVED IS NOT PUBLISHED ──────────────────────────────────────────────────
+# The publisher moves a marker into done/ BEFORE it commits, deliberately, so the
+# archive lands in the same commit as the run it documents. So the archive records
+# WHERE the marker went, and nothing at all about whether the figures it describes
+# reached a reader -- and on 2026-09-24 07:39 the publisher logged "Done, but THE
+# PUBLISH DID NOT LAND (outcome: behind_origin) ... the marker is archived", and at
+# 08:06 the supersession sweep read that same archive as a completed publish and
+# retired a queued snapshot behind it, writing into the retired file that it "had
+# already completed its publish pipeline" -- a sentence that was not true of any run
+# in the sixty-hour outage it was then closing.
+#
+# These two functions are the whole repair: the publisher STATES the outcome into the
+# file at the instant it knows it, and the frontier reads that statement instead of
+# inferring one from a directory name.
+#: The tag a marker carries when the publish that followed its archiving did NOT land.
+#: Machine-readable on purpose -- a frontier that had to parse prose would be a second
+#: inference in the place the first one was just removed from.
+PUBLISH_DID_NOT_LAND_TAG = "<!-- publish-outcome: did-not-land"
+
+
+def publish_outcome_note(reason: str | None, when: str | None = None) -> str:
+    """The exact bytes a publisher appends to a marker whose publish did not land.
+
+    ONE WRITER, ONE READER, ONE FORMAT. `publish_did_not_land()` below is the only
+    reader and this is the only writer, so the tag cannot drift between the module
+    that states the fact and the module that acts on it.
+
+    The prose deliberately avoids every string in `RECORD_MARKERS`: a note that made
+    an exhaust marker classify as RECORD would pin ~4,300 markers into done/ forever.
+    """
+    stamp = when or datetime.now(timezone.utc).isoformat()
+    return (
+        "\n\n## Publish outcome: did not land\n\n"
+        f"{PUBLISH_DID_NOT_LAND_TAG} reason={reason or 'not recorded'} at={stamp} -->\n\n"
+        f"This marker was moved into done/ before the commit, so that the archive would land "
+        f"in the same commit as the run it documents. The publish that followed did not land "
+        f"(outcome: {reason or 'not recorded'}). The figures this run produced reached no "
+        f"published surface, so no later run is overtaken by this one and this file is a "
+        f"location, not evidence of a publication.\n"
+    )
+
+
+def publish_did_not_land(path: Path) -> bool:
+    """True when this archived marker SAYS its own publish did not land.
+
+    FAIL-SAFE DIRECTION (R15), and it is the opposite of the obvious one. Absence of
+    the tag means PUBLISHED -- because every marker archived before this mechanism
+    existed lacks it, and reading absence as "did not publish" would empty the
+    frontier, classify the whole corpus as pending, and let the sweep republish stale
+    snapshots over current figures for ever. That is `OPS_run_marker_sweep_livelock`
+    (2026-08-03), which supersession exists to prevent, and it is a worse failure than
+    the one being repaired here. An unreadable file reads the same way, for the same
+    reason: only an explicit statement moves the frontier.
+    """
+    try:
+        return PUBLISH_DID_NOT_LAND_TAG in Path(path).read_text(errors="replace")
+    except OSError:
+        return False
+
+
 def verify(manifest_path: Path | None = None, exhaust_dir: Path | None = None) -> list[dict]:
     """Prove nothing was lost: every manifest entry's new_path must exist.
 

@@ -245,6 +245,39 @@ EXIT_TREE_LOCK_UNAVAILABLE = 79
 # code buys is the third answer neither of those can give — record NEITHER yet, and grade it when
 # the ref can answer.
 EXIT_PUBLISH_DELIVERY_DEFERRED = 80
+# THE SIXTH CAUSE, closed 2026-09-24, and it is the same class as the four above on the ONE
+# refusal that still had no code of its own: the publisher's OWN scoped gate.
+#
+# The 2026-08-21 carve-out (EXIT_GATE_TIMED_OUT) took the inner CLOCK out of the bare `return 1`
+# and left everything else in it. What was left is not one thing. `_run_gate_in` collapses the
+# suite's return code to `result.returncode == 0` -- a BOOLEAN -- and `_gate_refusal` then called
+# every non-zero a RED and exited 1. Three separable observations arrive at
+# `record_publish_gate_outcome`'s generic fall-through as the same rc, where `_classify_gate_
+# failure` labels all of them `test_regression` and no cause is passed at all:
+#
+#   * pytest returned non-zero AND named a failing node -- a real red, at a sha we recorded.
+#   * pytest returned non-zero and named NOTHING -- a collection error, a usage error, nothing
+#     collected, or the child KILLED (rc=-15, logged verbatim on 2026-08-14/18/19 as
+#     "Publish gate RED (rc=-15) -- no FAILED/ERROR summary line found"). Nothing was judged.
+#   * the checkout could not be materialised at all, so the gate had no subject.
+#
+# OBSERVED, not inferred (docs/observability/sim-runner-log.md + .publish_gate_state.json,
+# 2026-09-24): at 06:51:17Z the publisher wrote `.last_gate_blocking_tests.json` naming ONE red
+# node id, `total_red: 1`, `graded_sha: 35f9e3462` -- and at 06:55:10Z the record for that same
+# refusal read `"cause": "unattributed", "cause_evidence": "recorded with no observation attached
+# (rc=1, kind=test_regression) -- this exit path names no cause"`. Four minutes, one process
+# boundary, and the answer was in the publisher's own hand on both sides of it.
+#
+# NOT `commit_did_not_land` (rc=77), deliberately, and this is the distinction the code buys: that
+# one says the publisher's scoped suite was GREEN and the pre-commit hook chain refused. Here the
+# scoped suite is the thing that refused and no commit was ever attempted. Same class, own name --
+# the fifth time that sentence has had to be written in this block.
+#
+# THE JUDGED/UNJUDGED SPLIT IS CARRIED BY THE CAUSE, NOT BY A SIXTH AND SEVENTH CODE. An exit code
+# licenses the router to READ the attribution; it is not the attribution. `_run_gate_in` records
+# which of the three it saw at the moment it sees it (`_record_scoped_gate_cause`), keyed to the
+# same git hash the router reads back -- the identical carrier rc=77 has used since 2026-08-30.
+EXIT_SCOPED_GATE_REFUSED = 81
 # The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
 # the published surfaces are current. Anything that publishes nothing states so with its own
 # code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
@@ -1437,6 +1470,46 @@ def _archive_marker(marker):
         return True
 
 
+def _stamp_publish_outcome_on_archived_marker(marker_name, reason, done_dir=None):
+    """Write into the ARCHIVED marker whether the publish that followed it landed.
+
+    WHY ONLY THE FAILURES ARE WRITTEN. On a landed publish the marker is already
+    committed, the archive's own implication is true, and appending here would leave a
+    tracked file dirty in a shared tree for a fact nobody needed stated. On a publish
+    that did NOT land there is no commit to dirty -- the marker sits untracked in done/
+    either way -- and the statement is the only thing that distinguishes it from a
+    success. So the asymmetry is not laziness: the tag exists precisely where the
+    location lies. `staging_archive_policy.publish_did_not_land` reads absence as
+    "published" for the same reason, and its docstring carries the livelock argument.
+
+    Never raises. A marker that could not be stamped leaves the frontier exactly where
+    it was before this mechanism existed, which is the defect -- bad, but strictly
+    better than a publisher that dies on its bookkeeping after the publish is decided.
+
+    Returns True when a tag was written.
+    """
+    if reason in PUBLISH_LANDED_OUTCOMES:
+        return False
+    try:
+        from background import staging_archive_policy
+        archived = staging_archive_policy.locate(
+            marker_name, done_dir=Path(done_dir) if done_dir is not None else DONE_DIR)
+        if archived is None:
+            log("Publish outcome not stamped: {} is in neither done/ nor the exhaust tree, so "
+                "the supersession frontier may still read its archiving as a publication."
+                .format(marker_name))
+            return False
+        with open(archived, "a") as fh:
+            fh.write(staging_archive_policy.publish_outcome_note(reason))
+        log("Stamped {} with publish outcome '{}' -- it cannot retire a queued snapshot."
+            .format(marker_name, reason or "not recorded"))
+        return True
+    except Exception as exc:  # noqa: BLE001 -- bookkeeping may never break a decided publish
+        log("Publish outcome not stamped on {} ({}) -- the supersession frontier may read this "
+            "archiving as a publication.".format(marker_name, exc))
+        return False
+
+
 def log(msg):
     # A TEST PROCESS MAY NOT WRITE THE LIVE sim-runner-log (2026-08-21). This is the file the
     # PUBLISHING DOWN alarm sends a human to, and on 2026-08-21 it took six fabricated gate
@@ -1646,6 +1719,10 @@ def run_fast_tests(git_hash: str):
         # box, not the tree. Only the CODE under test moves to HEAD.
         with _head_checkout() as head_dir:
             if head_dir is None:
+                # The same refusal as `_run_gate_in`'s root_unavailable leg and it records the
+                # same cause, for the reason that branch's comment gives: an unavailable check
+                # is a FAILED check, and it is not a red test.
+                _record_scoped_gate_cause(None, [], git_hash, None)
                 return _checkout_unavailable_verdict()
             _repair_derived_artefacts_in(head_dir)
             return _run_gate_in(head_dir, full_env, git_hash)
@@ -2746,6 +2823,10 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     # tests to name, and naming some anyway is the defect this whole episode is made of
     # (WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN).
     if gate_scope.get("root_unavailable"):
+        # rc=None, deliberately: there is no return code because there was no run. The cause
+        # record says so in those words rather than letting the router infer a regression from
+        # an exit code the suite never produced.
+        _record_scoped_gate_cause(None, [], git_hash, graded_sha_of(cwd))
         return _checkout_unavailable_verdict()
 
     try:
@@ -2772,10 +2853,17 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
         # nothing below can change it -- the census is a REPORT run, its return code is never
         # read, and it runs here (inside the checkout, before it is torn down) purely so the
         # doorbell names every red rather than the first. See GATE_RED_CENSUS_* above.
-        census = run_red_census(gate_argv, cwd, full_env, _parse_failed_node_ids(
-            "{}\n{}".format(result.stdout or "", result.stderr or "")))
-        _log_gate_failure_payload(result, git_hash, census=census,
-                                  graded_sha=graded_sha_of(cwd))
+        fail_fast = _parse_failed_node_ids(
+            "{}\n{}".format(result.stdout or "", result.stderr or ""))
+        census = run_red_census(gate_argv, cwd, full_env, fail_fast)
+        graded = graded_sha_of(cwd)
+        _log_gate_failure_payload(result, git_hash, census=census, graded_sha=graded)
+        # THE ONLY PLACE THE RETURN CODE EXISTS (2026-09-24, EXIT_SCOPED_GATE_REFUSED). The line
+        # below this one throws `result.returncode` away and hands the caller a BOOLEAN, so a
+        # judged red and a killed child leave here indistinguishable. Recorded before that
+        # happens, against the same git hash the router reads back.
+        _record_scoped_gate_cause(result.returncode, (census[0] if census else fail_fast),
+                                  git_hash, graded)
     return result.returncode == 0, False
 
 
@@ -2932,7 +3020,69 @@ def _gate_timed_out():
     return False, True
 
 
-def _gate_refusal(timed_out, git_hash, blocking):
+def _record_scoped_gate_cause(rc, node_ids, git_hash, graded_sha=None):
+    """Record WHICH scoped-gate refusal this was, at the moment the publisher observes it.
+
+    THE OBSERVATION IS THE PAIR (rc, did it name a node id) and nothing else -- never the exit
+    code alone, which is the inference this whole module's history is made of. rc<0 is a child
+    killed by signal -rc; rc>0 with a named node is a judged red; rc>0 with nothing named is a
+    suite that refused without judging (collection error, usage error, nothing collected). An
+    ABSENT rc means the gate never ran at all, which is the third of those and not the first.
+
+    Best-effort by construction, like every other writer on this path: a record that cannot be
+    written leaves the router reading `unattributed`, which is the honest answer and the one it
+    gave before this existed. It must never be able to stop a publish cycle exiting.
+    """
+    named = [str(n) for n in (node_ids or [])]
+    if named and isinstance(rc, int) and rc > 0:
+        cause = publish_cause.SCOPED_SUITE_RED
+        evidence = ("the publisher's own scoped gate returned rc={} and named {} red test(s) in "
+                    "a checkout of graded_sha={}: {}".format(
+                        rc, len(named), (graded_sha or "unknown")[:9], "; ".join(named[:5])))
+    else:
+        cause = publish_cause.SCOPED_GATE_UNJUDGED
+        evidence = ("the publisher's own scoped gate refused with rc={} and named NO test, so "
+                    "NOTHING was judged -- {}. graded_sha={}".format(
+                        rc,
+                        "the gate never ran (no subject could be materialised)" if rc is None
+                        else "the suite child was killed by signal {}".format(-int(rc))
+                        if isinstance(rc, int) and rc < 0
+                        else "the suite exited non-zero without a FAILED/ERROR summary line "
+                             "(collection error, usage error, or nothing collected)",
+                        (graded_sha or "unknown")[:9]))
+    try:
+        publish_cause.record_cause(PUBLISH_CAUSE_FILE, cause, evidence, git_hash)
+    except Exception as exc:  # noqa: BLE001 -- an attribution must never break the cycle
+        log("Scoped-gate cause record skipped (non-fatal): {}".format(exc))
+    return cause, evidence
+
+
+def _scoped_gate_cause(git_hash, *, now=None):
+    """(cause, evidence) for THIS cycle's scoped-gate refusal. Never raises.
+
+    FILTERED TO `SCOPED_GATE_CAUSES`, and that is the load-bearing line rather than defensive
+    typing. `PUBLISH_CAUSE_FILE` is shared with the rc=77 route, which is keyed to the same git
+    hash -- so a `commit_refused` record left by an earlier cycle at an unmoved HEAD would be
+    read here as an attribution of THIS gate. Same commit, wrong subject: the carried-forward
+    evidence defect one axis over from the one `read_cause`'s hash key already closes.
+
+    A refusal that names no cause must say WHY it cannot, on this branch as on every other."""
+    try:
+        cause, evidence = publish_cause.read_cause(
+            PUBLISH_CAUSE_FILE, git_hash, now=now, max_age=GATE_BLOCKING_TESTS_MAX_AGE_SECONDS)
+    except Exception as exc:  # noqa: BLE001
+        return publish_cause.UNATTRIBUTED, (
+            "the scoped-gate cause record could not be read ({}: {}), so which refusal this was "
+            "is NOT established here".format(type(exc).__name__, exc))
+    if cause not in SCOPED_GATE_CAUSES:
+        return publish_cause.UNATTRIBUTED, (
+            "the scoped gate refused and no scoped-gate observation is on record for git={} -- "
+            "the record reads `{}`, which is about a publish COMMIT and not about this gate, so "
+            "which refusal this was is NOT established here".format(git_hash, cause))
+    return cause, evidence
+
+
+def _gate_refusal(timed_out, git_hash, blocking, *, cause=None):
     """What a refused gate is called: (exit code, log line, banner reason).
 
     ONE function because the three facts must not be able to drift apart -- the code the wedge
@@ -2945,6 +3095,14 @@ def _gate_refusal(timed_out, git_hash, blocking):
     A RED and a TIMEOUT are both refusals and both keep the wedge streak. They differ in what
     they licence a reader to do: a red names a node to run, a timeout names no node and means
     the tests are UNJUDGED. See EXIT_GATE_TIMED_OUT.
+
+    THE SAME SPLIT, ONE CASE FURTHER IN (2026-09-24, EXIT_SCOPED_GATE_REFUSED). The carve-out
+    above fixed the TIMEOUT half and left the other one open: a suite whose child was killed
+    (rc=-15), or that exited non-zero without a FAILED line, is equally unjudged and was equally
+    told the visitor it was "red at git=...". `cause` is the publisher's own observation of
+    which it was, recorded by `_run_gate_in` at the instant it happened; `blocking` is the
+    second-best answer and is used only when no cause was recorded, so the wording degrades to
+    exactly what it said before rather than to a guess.
     """
     if timed_out:
         return (
@@ -2955,8 +3113,17 @@ def _gate_refusal(timed_out, git_hash, blocking):
             "UNJUDGED, not red -- no test is implicated".format(
                 GATE_SUITE_TIMEOUT_SECONDS, git_hash),
         )
+    judged = bool(blocking) if cause is None else cause == publish_cause.SCOPED_SUITE_RED
+    if not judged:
+        return (
+            EXIT_SCOPED_GATE_REFUSED,
+            "Scoped publish-path gate REFUSED without judging a test - not committing content; "
+            "no test returned a verdict, so none is implicated",
+            "scoped publish-path gate refused at git={} and NO test returned a verdict -- the "
+            "suite is UNJUDGED, not red, and no test is implicated".format(git_hash),
+        )
     return (
-        1,
+        EXIT_SCOPED_GATE_REFUSED,
         "Scoped publish-path gate FAILED - not committing content",
         "scoped publish-path suite red at git={}; blocking tests: {}".format(
             git_hash, ", ".join(blocking or ()) or "see sim-runner-log"),
@@ -5405,6 +5572,20 @@ COMMITTED_DELIVERY_DEFERRED = "committed_delivery_deferred"
 #: is unfinished: something it produced has not been delivered, and a fingerprint would retire
 #: the marker as processed while the verdict on it is still owed.
 RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
+#: Outcomes after which the surfaces this run regenerated ARE the current ones -- committed, or
+#: already identical to what was committed. This is the SUPERSESSION question and it is a third
+#: question, not a restatement of the two above: "may a run still queued behind this one be
+#: retired unpublished?". It differs from `RETRYABLE_PUBLISH_OUTCOMES` on exactly one member and
+#: that member is why it has to exist separately. `COMMITTED_DELIVERY_DEFERRED` is deliberately
+#: NOT retryable -- the verdict on its delivery is still owed -- and just as deliberately IS
+#: landed here: the content is committed, so republishing an older snapshot over it would wind
+#: the published clock backwards, which is the fidelity regression supersession exists to stop.
+#:
+#: EVERYTHING UNLISTED IS "DID NOT LAND", including an unrecorded reason. A new failure branch
+#: added later fails toward keeping older markers queued, which costs a republish cycle; the
+#: other direction costs a snapshot retired as published when nothing published, which is the
+#: defect this set was written for (2026-09-24).
+PUBLISH_LANDED_OUTCOMES = RETRYABLE_PUBLISH_OUTCOMES | {COMMITTED_DELIVERY_DEFERRED}
 #: Outcomes that report their OWN exit code rather than the generic EXIT_PUBLISH_DID_NOT_LAND,
 #: because the reader is sent somewhere different to look. Kept as a mapping beside the closed
 #: set above so `publish_exit_code` stays the single place both answers are decided.
@@ -5443,6 +5624,23 @@ NON_TEST_REFUSAL_CAUSE = publish_cause.NON_TEST_GATE_REFUSAL
 #: it. See `grade_outstanding_delivery`.
 DEFERRED_DELIVERY_OVERDUE_CAUSE = publish_cause.LOST_PUSH_RACE
 PUBLISH_CAUSE_OVERRIDES = frozenset({NON_TEST_REFUSAL_CAUSE, DEFERRED_DELIVERY_OVERDUE_CAUSE})
+#: THE THIRD PRODUCTION ROUTE (2026-09-24, EXIT_SCOPED_GATE_REFUSED). The two sets above both
+#: describe a publish COMMIT that did not land, i.e. rc=77. These two causes are produced one
+#: step earlier, by the publisher's own scoped gate refusing before any commit is attempted, and
+#: they are declared here rather than beside that branch so the closed-set control can ask the
+#: CODE which causes are reachable instead of holding a third list of its own.
+#:
+#: `_scoped_gate_cause` reads this set as a FILTER, not only as a census: a record left by the
+#: rc=77 route at the same git hash is about a different question, and reading it here would be
+#: the carried-forward-evidence defect one axis over -- same commit, wrong subject.
+SCOPED_GATE_CAUSES = frozenset({publish_cause.SCOPED_SUITE_RED,
+                                publish_cause.SCOPED_GATE_UNJUDGED})
+#: The kind for a scoped gate that refused WITHOUT judging a test. Not `test_regression`, which is
+#: what `_classify_gate_failure(81)` would say and what sent the RUNG-1 draw hunting a red test
+#: that does not exist -- four times, per the four blocks beside EXIT_SCOPED_GATE_REFUSED. In
+#: `UNJUDGED_GATE_KINDS` and in the supervisor's `WEDGE_KINDS_NO_TEST_JUDGED`, because a label
+#: with no reader is this repo's other recurring shape and both readers switch on this field.
+SCOPED_GATE_UNJUDGED_KIND = publish_cause.SCOPED_GATE_UNJUDGED
 
 
 def publish_exit_code(reason):
@@ -8392,7 +8590,11 @@ def _classify_gate_failure(rc):
 #: innocent. This is a SET rather than three `kind != "..."` comparisons because it was two
 #: separate comparisons for nine days and the second carve-out (2026-08-30) had to find both.
 #: `tests/background/test_publish_gate_alert.py` holds it to the class.
-UNJUDGED_GATE_KINDS = frozenset({"gate_timeout", "tree_lock_unavailable"})
+#: `scoped_gate_unjudged` (2026-09-24) is the third and it arrived the same way as the second: a
+#: refusal that had been sharing an exit code with a judged red, so the carve-out had to be made
+#: at the record as well as in the alarm prose.
+UNJUDGED_GATE_KINDS = frozenset({"gate_timeout", "tree_lock_unavailable",
+                                 SCOPED_GATE_UNJUDGED_KIND})
 
 #: THE KIND FOR A COMMIT THAT LANDED AND WAS NEVER DELIVERED (2026-09-17). Deliberately NOT
 #: `commit_did_not_land`, whose label says in so many words that the commit did not land -- here
@@ -8420,6 +8622,12 @@ def _gate_failure_label(kind):
                                   "and NOT a hook refusal: nothing was judged. Contention, not "
                                   "regression; the next cycle retries"),
         "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
+        SCOPED_GATE_UNJUDGED_KIND: (
+            "the publisher's OWN scoped gate refused and NO test returned a verdict -- the suite "
+            "child was killed by a signal, or pytest exited non-zero with no FAILED/ERROR line "
+            "(collection error, usage error, nothing collected), or the gate had no subject at "
+            "all. NOT a test failure: nothing here says a test is red. Read the gate's return "
+            "code in `cause_evidence` and the output tail in the log, not the test list"),
         "commit_did_not_land": ("the publish COMMIT did not land -- the publisher's OWN scoped "
                                 "suite was GREEN, so this is NOT a publish-path regression: the "
                                 "pre-commit hook chain refused the commit (most often another "
@@ -9308,6 +9516,20 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
                "docs/observability/sim-runner-log.md. The alarm clears automatically on the "
                "next clean publish."
                ).format(GATE_SUITE_TIMEOUT_SECONDS)
+    elif kind == SCOPED_GATE_UNJUDGED_KIND:
+        # THE FOURTH MEMBER OF THE SAME CLASS (2026-09-24, see EXIT_SCOPED_GATE_REFUSED). The
+        # standing clause below is written for a suite that RETURNED A VERDICT, and this kind is
+        # the one where it did not -- a killed child, a collection or usage error, or no subject
+        # at all. The blocking list on such a cycle is whatever an earlier one left behind.
+        how = ("NO TEST WAS JUDGED -- the publisher's OWN scoped gate refused before any test "
+               "returned a verdict. Do NOT hunt a red and do NOT read the hook output: the "
+               "commit was never attempted. The gate's return code is in the ATTRIBUTED CAUSE "
+               "line above -- a NEGATIVE one is the suite child killed by that signal (check "
+               "memory headroom and the caller's deadline), a positive one with no FAILED line "
+               "is a collection or usage error in the gate's own argv, and an absent one means "
+               "no HEAD checkout could be materialised. Full output: "
+               "docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. The alarm "
+               "clears automatically on the next clean publish.")
     else:
         how = _blocking_clause(blocking, blocking_hash, census, total_red) + (
                " rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
@@ -9912,6 +10134,32 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
                 rc=rc, git_hash=git_hash, kind="gate_timeout",
             )
             return "failure"
+        if rc == EXIT_SCOPED_GATE_REFUSED:
+            # THE SIXTH CAUSE, NAMED (2026-09-24, see EXIT_SCOPED_GATE_REFUSED). This is the exit
+            # that used to be a bare `return 1` and therefore fell through to the generic branch
+            # at the bottom of this function, which passes NO cause: the record then read
+            # `"cause": "unattributed", "cause_evidence": "recorded with no observation attached
+            # (rc=1, kind=test_regression) -- this exit path names no cause"` on a cycle whose own
+            # blocking record, written four minutes earlier by the same process, named one red
+            # test, its count and the sha it was graded at.
+            #
+            # THE KIND IS TAKEN FROM THE CAUSE, NEVER FROM THE RC. `_classify_gate_failure(81)`
+            # would answer `test_regression` for both halves -- which is right for one of them
+            # and is precisely the accusation-with-no-accused for the other.
+            cause, cause_evidence = _scoped_gate_cause(git_hash)
+            judged = cause == publish_cause.SCOPED_SUITE_RED
+            record_publish_gate_failure(
+                "the publisher's own scoped publish-path gate REFUSED {} -- {}. Cause: {} "
+                "({})".format(
+                    Path(marker).name,
+                    "a test was judged RED" if judged
+                    else "NO test returned a verdict, so no test is implicated",
+                    cause, cause_evidence),
+                rc=rc, git_hash=git_hash,
+                kind="test_regression" if judged else SCOPED_GATE_UNJUDGED_KIND,
+                cause=cause, cause_evidence=cause_evidence,
+            )
+            return "failure"
         if rc == EXIT_TREE_LOCK_UNAVAILABLE:
             # NAMED for the third time and the same reason (see EXIT_TREE_LOCK_UNAVAILABLE):
             # `_classify_gate_failure` would read this as "test_regression" and send the RUNG-1
@@ -10270,7 +10518,9 @@ def _process(marker_path_str):
         # moving. 25 hours of exactly that silence is what this ruling was written from.
         # A TIMEOUT IS NOT A RED (2026-08-21, see EXIT_GATE_TIMED_OUT). Both refuse the
         # publish and both keep the streak; only one of them is entitled to say a test failed.
-        code, log_line, reason = _gate_refusal(timed_out, git_hash, last_blocking_tests()[0])
+        code, log_line, reason = _gate_refusal(
+            timed_out, git_hash, last_blocking_tests()[0],
+            cause=_scoped_gate_cause(git_hash)[0])
         log(log_line)
         _publish_provenance_banner(git_hash, reason=reason)
         return code
@@ -10335,6 +10585,13 @@ def _process(marker_path_str):
     # changed. Twenty-one consecutive timeouts, and the fingerprint kept every one of them from
     # being retried.
     reason = publish_outcome.get("reason")
+    # THE THIRD CONSEQUENCE OF THE NAMED OUTCOME (2026-09-24). The marker was moved into done/
+    # above, BEFORE the commit, so that the archive lands in the same commit as the run -- which
+    # means its location says nothing about whether this publish worked, and the supersession
+    # frontier in background_worker was reading exactly that location as proof of publication.
+    # This is the cheapest honest fix: say it in the file, at the one instant the answer is
+    # known, so the frontier reads a fact instead of inferring one.
+    _stamp_publish_outcome_on_archived_marker(marker.name, reason)
     if reason in RETRYABLE_PUBLISH_OUTCOMES:
         _write_last_fingerprint(fingerprint)
     else:

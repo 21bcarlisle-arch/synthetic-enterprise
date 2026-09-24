@@ -2599,6 +2599,59 @@ def _stated_at(stated: dict) -> float:
         return 0.0
 
 
+def landing_predates_this_window(focus_id: str, *, path: Path | None = None) -> str:
+    """The sentence `--landed` owes its caller when the bound commit is OLDER than the last draw.
+
+    Empty string when there is nothing to say, so the caller prints it only when it is true.
+
+    THE DEFECT (measured 2026-09-24 on this lane's own ledger). `--landed` writes
+    `last_landing_at` as the COMMIT's own timestamp -- deliberately, see `_remember_landing` -- and
+    `drawn_without_landing` keys its third clause to THIS draw, also deliberately, so that a stale
+    credit cannot settle a new window. Both are right. Together they mean that binding a landing to
+    an id which has since been RE-DRAWN cannot clear the row, and `--landed` said so nowhere: it
+    printed an unqualified "bound 5 path(s)" and returned 0. That is the fail-silent leg, and it
+    lands on exactly the population the bind is most often prescribed for -- an item re-offered
+    BECAUSE its landing was never bound, whose every unbound re-draw makes the commit staler
+    against the newest window.
+
+    The instance: `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` landed
+    at `3b01193a8` on 2026-09-23 17:54, was re-drawn 2026-09-24 11:36, and a seat drew a Lane 0
+    item whose whole content was "run --landed on it, finished when the row stops appearing". The
+    bind ran, reported success, and the row stayed. Only `--premise-spent` -- the one per-window
+    disposition -- could answer that window, and nothing on the success path named it.
+
+    KEYED TO THE PROPERTY, not to today's ledger: it asks whether THIS row's bound instant is older
+    than THIS row's latest draw, so it goes quiet the moment a landing of the window's own arrives,
+    and it would still fire if the horizon, the stale seconds or the disposition vocabulary moved.
+    It also goes quiet once a disposition HAS been stated for this window, because then the caller
+    has already done the thing the sentence would ask for.
+
+    Never raises, and an unreadable ledger says NOTHING: this runs after a binding that succeeded,
+    and losing the caveat must not turn a successful bind into a traceback.
+    """
+    try:
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
+        row = ledger.get(focus_id)
+        if not isinstance(row, dict):
+            return ""
+        landed = float(row.get("last_landing_at") or 0.0)
+        drawn = float(row.get("last_drawn_at") or 0.0)
+        if not landed or not drawn or landed >= drawn:
+            return ""
+        stated = row.get("premise_spent")
+        if isinstance(stated, dict) and _stated_at(stated) >= drawn:
+            return ""
+        shown = "{} (the commit) predates {} (this id's latest draw)".format(
+            datetime.datetime.fromtimestamp(landed).strftime("%Y-%m-%d %H:%M"),
+            datetime.datetime.fromtimestamp(drawn).strftime("%Y-%m-%d %H:%M"))
+        return ("BUT IT DOES NOT SETTLE THE CURRENT WINDOW: {}, so `drawn_without_landing` still "
+                "counts this row a miss and the seat will be offered it again. If the work is "
+                "done, state the disposition: python3 -m background.delivery_lane --premise-spent "
+                "{} <commit> '<why there was nothing left to deliver on>'".format(shown, focus_id))
+    except Exception:
+        return ""
+
+
 def _disposition(row: dict, drawn: float, *, focus_id: str = "",
                  bound_at: dict | frozenset = frozenset()) -> dict:
     """WHICH of the three a row whose window closed without a landing of its own is.
@@ -4533,6 +4586,14 @@ def main(argv=None) -> int:
         print("bound {} path(s) to {}: {}".format(len(scope), bound_id, ", ".join(scope[:8]))
               + (f" [the id you gave, {args.landed}, is the same claim spelt differently]"
                  if bound_id != args.landed else ""))
+        # AND WHETHER THE BIND ACTUALLY SETTLES ANYTHING, which success alone does not say. See
+        # `landing_predates_this_window`: a commit older than this id's latest draw is bound, and
+        # correctly bound, and the row stays on the seat's missed list regardless. Exit stays 0 --
+        # the binding DID happen and the caller should not retry it; what is owed is a sentence,
+        # not a failure.
+        caveat = landing_predates_this_window(bound_id)
+        if caveat:
+            print(caveat)
         return 0
     if args.landed_under:
         focus_id, other_id = args.landed_under
