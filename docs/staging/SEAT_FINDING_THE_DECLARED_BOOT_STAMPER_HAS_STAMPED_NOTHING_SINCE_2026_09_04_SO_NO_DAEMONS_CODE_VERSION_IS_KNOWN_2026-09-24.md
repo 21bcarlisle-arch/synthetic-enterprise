@@ -271,3 +271,95 @@ of any of those 12 units will write `<session>.json` with `ts` ≈ that start an
 checkout's HEAD at that moment**, with a `dirty_blobs` map of a few hundred entries. If a stamp
 mtime does not move on the next such start, arm 2 above is refuted and the cause is somewhere this
 turn did not look. Checking it costs one `stat`.
+
+## ADDENDUM 4, the scheduled worker (2026-09-24, later): arm 2 checked FIRST and still UNTESTED; the `-` STAYS and the absence is now reported
+
+**The pre-registered check, run before anything was built, because it costs one `stat`.**
+ADDENDUM 3 predicted: *the next start of any of those 12 stamper-carrying units writes
+`<session>.json` with `ts` ≈ that start.* Measured now:
+
+- No stamp mtime has moved. Newest is `supervisor.json` at 2026-09-18 03:19:46.
+- **No stamper-carrying unit has started since the fix reached disk at 07:17:51.** Newest start
+  among the 12 is `sim-runner`/`staging-watcher`/`supervisor` at 07:10:34.
+
+So the prediction is **neither confirmed nor refuted — it is still untested**, and recorded as
+untested rather than quietly dropped. The population disjunction of ADDENDUM 3 §3 is exactly why:
+the prediction can only be settled by an event that does not happen. That is the finding, not an
+obstacle to it.
+
+Two rows are *corroborating* evidence, noticed while doing the `stat` and not predicted: for the
+only two units whose last start predates the 2026-09-04 deletion window's end, the stamp mtime
+equals `ExecMainStartTimestamp` **to the second** — `token-proxy` 09-15 13:47:55 / 09-15 13:47:55,
+`worker-seat-manager` 09-17 10:27:45 / 09-17 10:27:45. The stamper did write at those starts,
+which is ADDENDUM 3 §4's "it kept running off an uncommitted copy" seen from a second angle.
+
+### The `-` decision, settled by measurement rather than argument
+
+Ran `3ecf355d8:background/boot_sha.py` — the `__main__`-less blob — exactly as the unit declares
+it, into an isolated `SE_BOOT_DIR`: **exit 0, zero files written.**
+
+`ExecStartPre=` without the `-` promotes only a NON-ZERO exit into a start failure. There was no
+non-zero exit at any point in the twenty days. **So removing the `-` would not have caught one
+minute of this defect** — and it would convert any future stamper fault into twelve daemons that
+refuse to boot, trading an observability gap for an outage while still missing this one. The `-`
+stays. The generated unit's comment already says why it is there and remains correct.
+
+### What landed instead: `probe_declared_stamper`, which needs no restart
+
+`background/process_reconciler.py` — reads the **installed** units under
+`~/.config/systemd/user/`, parses the stamp argv **out of the unit text** (systemd's `-@+!:`
+prefixes stripped), collapses the 12 spellings to the 1 distinct shape, and **runs it** against a
+throwaway `SE_BOOT_DIR`. The oracle is *a file appearing*, never the exit status — grading the
+exit status is precisely what was green for twenty days.
+
+Verdicts, one per remedy: `works` · `silent` (exit 0, wrote nothing — **the defect that had no
+name**) · `failed` · `sha-unknown` · `unreadable` · `unprobed` · `undeclared`. `ok` is derived
+from `works` alone, so a verdict added later is not-ok **by construction** rather than fail-open
+until someone remembers to extend a list.
+
+Why the *installed* side and not the generated text: the commit gate already proves the generated
+unit stamps, and it still could not see 2026-09-24, when the repair was at HEAD and the daemons
+restarted **7m18s before it reached the disk they read**. Installed-vs-repo is the only side that
+drifts without a commit.
+
+**Why a probe rather than another stamp rule.** `stamp-predates-process` can only tell a dead
+stamper from a live one *at a restart*, and ADDENDUM 3 §3 established that the stamping population
+and the restarting population are disjoint. `restart_plan` correctly HOLDs on
+`stamp-predates-process`, so nothing will ever restart those 12 on its account. A probe runs on
+its caller's cadence and would have gone red on 2026-09-04, the day of the regression.
+
+`background/health_check.py` — the verdict reaches `run_health_check` as a **problem line**, not a
+footnote, and says the thing that matters: *every staleness verdict above is derived from stamps
+nothing is writing*. Guarded with `"stamper" in _bd`, not truthiness, so a caller passing an older
+report is silent rather than read as a PASS.
+
+### Demonstrated, not argued — both arms, live
+
+| arm | probe | health surface |
+|---|---|---|
+| real installed units, real stamper | `works`, 12 declaring units, 1 probe, `stamped … at 430e5b00e` | `✓ … the declared boot stamper stamps` |
+| units declaring the `3ecf355d8` no-op blob | **`silent`**, `exited 0 and wrote no boot record` | **`✗ deployment drift: THE BOOT STAMPER THE UNITS DECLARE DOES NOT STAMP (silent)`** |
+
+**Mutation-proven** (39 green unmutated; each mutation reds the test written for it):
+
+| mutation | result |
+|---|---|
+| `ok` unconditionally `True` (fail-open) | 3 failed, incl. the named `…_is_named_silent` |
+| grade the exit code, not the written file (the historical blindness) | 4 failed, incl. the named one |
+| verdict unconditionally `silent` (the guard that refuses EVERYTHING) | 3 failed, incl. the live arm |
+| delete the health_check surfacing | 1 failed — the surface control |
+| warn unconditionally (anti-tautology arm) | 1 failed — same control, opposite leg |
+| truthiness instead of `"stamper" in` (legacy report reads as a fault) | 1 failed — same control, third leg |
+
+### Still owed, and narrowed
+
+- Arm 2 remains open and now has a cheaper settlement: the probe answers *"is the stamper alive"*
+  without waiting for it. What a natural restart would still settle is whether `ExecStartPre`
+  fires at all under systemd for these units — a strictly smaller question.
+- The 11 `stamp-predates-process` verdicts stand until those units next restart. Honest, not
+  wrong, and ADDENDUM 2's ordering constraint is spent (§ADDENDUM 3), so a restart is now correct.
+- **Not repaired, still one line:** `docs/observability/.daemon_boot/--report.json` — `stamp(sys.argv[1])`
+  accepts any argv, so a caller passing a flag mints a junk session (ADDENDUM 3 §5).
+- The ruff frozen census reds in this shared worktree (`{'I001': 1304} != 1306`) from another
+  lane's uncommitted work; my three files emit zero `I001` at HEAD and on disk alike. Already
+  filed as `WORKER_FINDING_THE_RUFF_CENSUS_REDS_IN_THE_SHARED_WORKTREE_AND_IS_CLEAN_AT_HEAD_2026-09-24.md`.

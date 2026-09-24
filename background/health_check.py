@@ -643,12 +643,24 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
         if _bd.get("misdeclared"):
             _faults.append("manifest launched_by disagrees with the observed launcher: "
                            + ", ".join(m["session"] for m in _bd["misdeclared"]))
+        # IS THE INSTRUMENT ALIVE? Every fault above is derived FROM the boot stamps, so a dead
+        # stamper makes all of them vacuous rather than clean -- and that is not hypothetical: from
+        # 2026-09-04 the units' declared ExecStartPre was a no-op that exited 0, and this check
+        # read the resulting three-week-old stamps as valid for twenty days. `"stamper" in` and not
+        # `.get("stamper")`: a caller that passes an older report must not be read as a PASS.
+        if "stamper" in _bd and not (_bd.get("stamper") or {}).get("ok"):
+            _st = _bd.get("stamper") or {}
+            _faults.append(
+                "THE BOOT STAMPER THE UNITS DECLARE DOES NOT STAMP "
+                f"({_st.get('verdict', 'unknown')}) -- every staleness verdict above is derived "
+                f"from stamps nothing is writing: {_st.get('detail', 'no detail')}")
         if _faults:
             problem_lines.append("  ✗ deployment drift: " + "; ".join(_faults))
         else:
             ok_lines.append(
                 f"  ✓ no deployment drift — {len(_bd.get('population', []))} observed systemd "
-                "daemon(s), none running a changed imported module")
+                "daemon(s), none running a changed imported module; the declared boot stamper "
+                f"stamps ({(_bd.get('stamper') or {}).get('detail', 'not probed')})")
     except Exception as exc:  # noqa: BLE001 -- a sub-check must never break the health run
         ok_lines.append(f"  ℹ boot-SHA drift check unavailable: {exc}")
 
