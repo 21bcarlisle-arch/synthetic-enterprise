@@ -132,6 +132,13 @@ NOT_SUPERSEDED = "refused_head_does_not_supersede_it"
 #: acting on it.
 RIVAL_VALUES = "refused_rival_values_no_key_the_base_lacks"
 STAGED = "refused_holder_has_it_staged"
+#: THE STAGED COPY AND THE WORKING COPY ARE TWO DIFFERENT RIVALS. `--staged-too` clears an index
+#: entry by writing the base's blob into it, and the one thing that licenses that is the index and
+#: the worktree agreeing: then ONE preservation holds both sets of bytes and the judgement that ran
+#: on the working copy is a judgement about the staged one too. When they disagree there are two
+#: copies with two different histories and this tool has judged only one of them, so it refuses --
+#: discarding an index entry nothing looked at is the failure mode the whole flag exists to avoid.
+STAGED_DISAGREES = "refused_index_and_worktree_are_different_rivals"
 #: THE THIRD STATE THE TWO DOORS DID NOT HAVE. The copy supplies names, AND every hunk that carries
 #: one also deletes a name the base has -- so `--keep` has no legal selection and `--content` lands
 #: a revert, while this tool refuses because the copy does supply names. Both existing doors are
@@ -313,8 +320,16 @@ def _staged_paths(root: Path) -> frozenset[str]:
     return frozenset(p.strip() for p in out.stdout.splitlines() if p.strip())
 
 
+def _index_bytes(root: Path, path: str) -> bytes | None:
+    """The INDEX copy's bytes, or `None` when git cannot read one. Never falls back to the file."""
+    out = subprocess.run(["git", "show", ":{}".format(path)], cwd=str(root),
+                         capture_output=True, check=False)
+    return out.stdout if out.returncode == 0 else None
+
+
 def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
-               base: str = "HEAD", superseded: bool = False, base_wins: bool = False) -> Verdict:
+               base: str = "HEAD", superseded: bool = False, base_wins: bool = False,
+               staged_too: bool = False) -> Verdict:
     """The whole precondition for one path. Reads; writes nothing, ever.
 
     `base` IS THE TREE THAT MUST SUPERSEDE THE COPY, AND IT IS NOT ALWAYS `HEAD`. On a tree that is
@@ -386,10 +401,27 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     if work_text == head_text:
         return Verdict(path, AT_HEAD, "identical to {} -- nothing to refresh.".format(base))
     if path in staged:
-        return Verdict(path, STAGED,
-                       "the holder has this path STAGED. A commit from that index makes the tree "
-                       "from the INDEX copy, not the working one, so refreshing the working copy "
-                       "would leave the revert armed while looking repaired.")
+        # A STAGED STALE COPY HAD NO EXIT AT ALL, and that is what this branch changes. The refusal
+        # below is right about the mechanism -- writing the worktree alone leaves the revert armed
+        # in the index, which is worse than not writing, because it LOOKS repaired. But it returned
+        # before the judgement ran, so no flag could ever reach the copy and no other door reaches
+        # an index entry either: the site lane stayed red for every lane in the tree with the two
+        # stale copies unreachable by construction. `--staged-too` clears BOTH, and the rest of the
+        # judgement below still has to license it in full.
+        if not staged_too:
+            return Verdict(path, STAGED,
+                           "the holder has this path STAGED. A commit from that index makes the "
+                           "tree from the INDEX copy, not the working one, so refreshing the "
+                           "working copy would leave the revert armed while looking repaired. "
+                           "`--staged-too` writes the index entry as well -- it is the only door "
+                           "to a staged revert -- and it is admitted only where the index and the "
+                           "working copy hold the SAME bytes, so this judgement covers both.")
+        if _index_bytes(root, path) != (root / path).read_bytes():
+            return Verdict(path, STAGED_DISAGREES,
+                           "the INDEX copy and the WORKING copy of this path are different bytes, "
+                           "so they are two rivals and only the working one has been judged here. "
+                           "`--staged-too` refuses rather than discard an index entry no control "
+                           "has read. Land or clear the staged copy deliberately first.")
     try:
         head_names, work_names = symbols(head_text, path), symbols(work_text, path)
     except Unparseable as exc:
@@ -808,9 +840,22 @@ def _probe(root: Path, path: str, work_bytes: bytes) -> str | None:
 # ------------------------------------------------------------------------------------ the move
 
 
+def _clear_index_entry(root: Path, path: str) -> None:
+    """Point the index entry at HEAD's blob, so a commit from this index carries no revert.
+
+    The worktree write alone is what the STAGED refusal calls "repaired-looking": this is the other
+    half of it, and it runs on the HOLDER's real index because that index is the thing armed.
+    """
+    entry = _git_ok(root, "ls-tree", "HEAD", "--", path).split()
+    if not entry:
+        raise RefreshError("{} is not in HEAD; refusing to clear its index entry".format(path))
+    _git_ok(root, "update-index", "--cacheinfo",
+            "{},{},{}".format(entry[0], entry[2], path))
+
+
 def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
             base: str = "HEAD", superseded: bool = False,
-            base_wins: bool = False) -> tuple[int, str]:
+            base_wins: bool = False, staged_too: bool = False) -> tuple[int, str]:
     """Survey, and when `write` is set and EVERY named path is refreshable, do it.
 
     `base` is the JUDGEMENT tree only -- see `judge_copy`. The bytes written are always HEAD's,
@@ -818,7 +863,7 @@ def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
     """
     staged = _staged_paths(root)
     verdicts = [judge_copy(root, path, staged, base=base, superseded=superseded,
-                           base_wins=base_wins)
+                           base_wins=base_wins, staged_too=staged_too)
                 for path in paths]
     report = "".join(v.render() for v in verdicts)
     refusals = [v for v in verdicts if v.refused]
@@ -852,10 +897,17 @@ def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
         routes.append((verdict.path,
                        verify_recoverable(root, commit, verdict.path, current[verdict.path],
                                           _probe(root, verdict.path, current[verdict.path]))))
+    cleared = []
     for path in targets:
         (root / path).write_bytes(_blob_bytes(root, "HEAD", path))
+        if path in staged:
+            _clear_index_entry(root, path)
+            cleared.append(path)
 
     lines = "".join("  {}\n      recover with: {}\n".format(p, cmd) for p, cmd in routes)
+    if cleared:
+        lines += "  INDEX ENTRIES CLEARED TO HEAD (the staged revert is disarmed too): {}\n".format(
+            ", ".join(cleared))
     return 0, ("\n[refresh-to-head] ✅ refreshed {} path(s) to HEAD at {}.\n"
                "  preserved as {} ({})\n{}\n{}".format(
                    len(targets), root, ref, commit[:9], lines, report))
@@ -883,10 +935,17 @@ def main(argv: list[str] | None = None) -> int:
                          "returned predates_landing or predates_landing_by_clock for that path: "
                          "the clock, not your word, is what establishes the copy is the older "
                          "draft. Does NOT reach a copy with a landable hunk.")
+    ap.add_argument("--staged-too", action="store_true",
+                    help="also write the INDEX entry, for a stale copy the holder has STAGED -- "
+                         "the one state with no other door, because no landing tool reaches an "
+                         "index entry and refreshing the worktree alone leaves the revert armed. "
+                         "Admitted only where the index and the working copy hold the same bytes; "
+                         "every other rule still applies in full.")
     args = ap.parse_args(argv)
     try:
         rc, text = refresh(Path(args.root), args.paths, args.slug, args.write, base=args.base,
-                           superseded=args.superseded, base_wins=args.base_wins)
+                           superseded=args.superseded, base_wins=args.base_wins,
+                           staged_too=args.staged_too)
     except RefreshError as exc:
         print("\n[refresh-to-head] ❌ {}".format(exc))
         return 1

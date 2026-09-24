@@ -1281,3 +1281,109 @@ def test_a_probe_line_head_already_carries_fails_a_sound_preservation(repo: Path
     route = rth.verify_recoverable(repo, commit, "m.py", work, probe)
     assert commit[:9] in _run(repo, "log", "--all", "--format=%H", "-S", probe, "--", "m.py")
     assert "git log --all -S" in route and ref
+
+
+# ------------------------------------- the STAGED state had no exit at all (`--staged-too`, 2026-09-22)
+#
+# The defect, measured live: `site/test_the_baseline_comparison_reaches_the_reader.py` and
+# `site/test_the_selection_legs_bias_size_reaches_the_reader.py` sat in the shared tree as older
+# drafts that were ALSO STAGED. The site lane was red for every lane in the tree, and no door
+# reached them -- `isolate_hunks` separates by author not by age, `surgical_land --content` would
+# have landed the revert, and this tool returned STAGED before the judgement ran, so no flag could
+# reach the copy either. The refusal's own reasoning names the missing half: a commit makes the
+# tree from the INDEX, so the repair has to write the index too.
+
+
+def test_staged_too_clears_the_index_entry_as_well_as_the_working_copy(repo: Path) -> None:
+    """REACHABILITY FIRST for this branch: everything else here asserts a refusal, and a flag that
+    opens nothing passes all of them while the two wedged files stay wedged."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip(), (
+        "the fixture has no staged revert, so this proves nothing about the state the flag is for")
+    rc, text = rth.refresh(repo, ["m.py"], "staged-too", write=True, staged_too=True)
+    assert rc == 0, text
+    assert (repo / "m.py").read_text() == LANDED
+    assert _run(repo, "rev-parse", ":m.py").strip() == _run(repo, "rev-parse", "HEAD:m.py").strip(), (
+        "the working copy was refreshed and the INDEX still holds the rival, which is exactly the "
+        "repaired-looking-but-not-repaired state the STAGED refusal exists to prevent")
+
+
+def test_the_commit_that_index_would_make_no_longer_carries_the_revert(repo: Path) -> None:
+    """THE PROPERTY, NOT THE BLOB ID. The STAGED refusal's claim is about a COMMIT -- `a commit from
+    that index makes the tree from the INDEX copy`. So make one and read what it carries."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    rc, text = rth.refresh(repo, ["m.py"], "staged-too", write=True, staged_too=True)
+    assert rc == 0, text
+    # `--allow-empty` because the repaired index has nothing left to commit -- which is the point,
+    # and it keeps the leg readable under the mutation where the index is NOT cleared and the
+    # commit is a real one carrying the revert.
+    _run(repo, "commit", "-q", "--allow-empty", "-m", "whatever this index held")
+    assert _run(repo, "show", "HEAD:m.py") == LANDED, (
+        "a commit taken straight after the refresh put the older draft back, so the refresh cleared "
+        "the census and not the defect")
+
+
+def test_staged_too_refuses_when_the_index_and_the_worktree_are_different_rivals(repo: Path) -> None:
+    """ONE PRESERVATION, ONE JUDGEMENT, ONE SET OF BYTES. When the two disagree there are two
+    rivals and only the working one has been read; discarding the other is a write nothing judged."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    (repo / "m.py").write_text(RIVAL_KIND_A + "\n\n# a later thought, in the worktree only\n")
+    verdict = rth.judge_copy(repo, "m.py", staged_too=True)
+    assert verdict.state == rth.STAGED_DISAGREES, (
+        "the index copy and the working copy are different bytes and the flag judged them as one")
+    rc, _ = rth.refresh(repo, ["m.py"], "staged-too", write=True, staged_too=True)
+    assert rc == 1
+    assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip(), (
+        "the index entry was cleared under a refusal")
+
+
+def test_staged_too_relaxes_the_staged_state_and_not_one_other_rule(repo: Path) -> None:
+    """THE FLAG IS NOT A WIDENING. A staged copy that SUPPLIES a name HEAD lacks is holder work
+    whether it is staged or not, and the flag must leave every such copy exactly where it was."""
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    _run(repo, "add", "m.py")
+    assert rth.judge_copy(repo, "m.py", staged_too=True).state == rth.SUPPLIES_NEW, (
+        "the flag walked a staged copy past rule 1, so it is a licence to discard holder work")
+    (repo / "m.py").write_text(ORDINARY_EDIT)
+    _run(repo, "add", "m.py")
+    assert rth.judge_copy(repo, "m.py", staged_too=True).state == rth.NOT_SUPERSEDED, (
+        "the flag walked a staged ORDINARY EDIT through, which is `git checkout <path>` with a "
+        "longer name")
+
+
+def test_the_staged_partition_stays_three_distinct_answers(repo: Path) -> None:
+    """ONE CONTROL OVER THE WHOLE STAGED PARTITION, so no later edit can collapse the three onto
+    one another -- the shape that makes every refusal test above pass with the door welded shut."""
+    states = []
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    states.append(rth.judge_copy(repo, "m.py").state)                      # flag off
+    states.append(rth.judge_copy(repo, "m.py", staged_too=True).state)     # flag on, agreeing
+    (repo / "m.py").write_text(RIVAL_KIND_A + "\n\n# worktree only\n")
+    states.append(rth.judge_copy(repo, "m.py", staged_too=True).state)     # flag on, disagreeing
+    assert states == [rth.STAGED, rth.REFRESHABLE, rth.STAGED_DISAGREES], (
+        "the three staged answers are not three: {}".format(states))
+
+
+def test_the_staged_refusal_names_the_door_out_of_it(repo: Path) -> None:
+    """A REFUSAL WITH NO EXIT IS A WEDGE. This one had none for two files for a day, and the reason
+    it stayed invisible is that the refusal read like a complete answer."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    assert "--staged-too" in rth.judge_copy(repo, "m.py").reason, (
+        "a reader hitting this refusal is told the copy is unreachable and not that a door exists")
+
+
+def test_staged_too_is_off_by_default_in_refresh_and_in_judge(repo: Path) -> None:
+    """`background.origin_reconcile` and every other caller pass no opinion, and each must still
+    get the refusal -- a relaxation that defaults on is the new behaviour, not a relaxation."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    assert rth.judge_copy(repo, "m.py").state == rth.STAGED
+    rc, text = rth.refresh(repo, ["m.py"], "staged-too", write=True)
+    assert rc == 1 and rth.STAGED in text
+    assert (repo / "m.py").read_text() == RIVAL_KIND_A
+    assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip()
