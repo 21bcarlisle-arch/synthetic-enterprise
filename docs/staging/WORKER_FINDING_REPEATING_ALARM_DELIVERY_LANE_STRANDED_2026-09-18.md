@@ -40,6 +40,7 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - **2026-09-20** — still live. 1 repeats over 1.7h without the state changing. No second document filed: this condition already has one.
 - **2026-09-21** — still live. 1 repeats over 1.7h without the state changing. No second document filed: this condition already has one.
 - **2026-09-22** — still live. 1 repeats over 1.7h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 1 repeats over 1.7h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch` (first seen 2026-09-18)
 - `the-ordinary-not-done-sweep-still-returns-an-empty-reason` (first seen 2026-09-18)
@@ -59,3 +60,12 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `widen-membership-guarded-to-see-the-early-return-guard-so-the-surveys-bare-count-means-what-it-says` (first seen 2026-09-21)
 - `ten-of-eighteen-premises-get-a-climate-normal-instead-of-the-worlds-weather` (first seen 2026-09-22)
 - `the-live-page-still-publishes-the-coin-flip-as-a-settled-no` (first seen 2026-09-22)
+- `the-arms-error-bar-is-taken-over-a-different-book-from-the-figure-it-bounds` (first seen 2026-09-22)
+- `four-declared-daemons-have-written-nothing-since-they-started` (first seen 2026-09-22)
+- `advance-the-base-read-the-census-honestly-and-enact-the-two-decided-files` (first seen 2026-09-22)
+- `how-to-read-this-is-the-one-truthiness-reader-and-it-withdraws-on-the-tie` (first seen 2026-09-23)
+- `the-regeneration-check-clones-at-head-so-it-cannot-see-the-producer-edit-that-wedges-the-publisher` (first seen 2026-09-23)
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` (first seen 2026-09-23)
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-23, within the 3-day bar.

@@ -843,3 +843,168 @@ def test_the_proxy_still_covers_a_daemon_whose_stamp_predates_the_content_field(
     assert row["modules_behind"] == 1 and row["predates_start"] == 1, (
         "the proxy was skipped for a daemon whose stamp cannot answer, which is the whole loop back"
     )
+
+
+# ---------------------------------------------------------------------------------------------
+# THE FIRST GAP: the checkout. Everything above measures the RESTART gap, against the disk --
+# so every one of those answers is bounded by whether the disk contains origin/main, and until
+# 2026-09-24 nothing asked. `docs/staging/records/
+# SEAT_PREREG_IS_THE_RESTART_GAP_DETECTOR_BLIND_TO_THE_CHECKOUT_GAP_2026-09-24.md` holds the
+# prediction and its refutation.
+# ---------------------------------------------------------------------------------------------
+
+def test_a_diverged_checkout_is_never_reported_as_containing_origin():
+    """THE DEFECT: the counts alone cannot name a DIVERGED tree, which is what the live box was.
+
+    On 2026-09-24 `/home/rich/synthetic-enterprise` was 3 AHEAD and 11 BEHIND origin/main. A
+    reader asking only "ahead?" sees a tree with its own work and reads healthy; a reader asking
+    only "behind?" sees a number that a fast-forward would clear, and no fast-forward was possible.
+    The ancestor test names the state exactly and neither count does.
+
+    MUTATION: derive `contains_origin` from `behind == 0` instead of from ancestry and this stays
+    green here -- so the leg below pins the direction the derivation gets wrong.
+    """
+    d = dr.checkout_drift(Path("/nonexistent"),
+                          fork_state_fn=lambda p: (11, 3),
+                          contains_fn=lambda p: False,
+                          gap_paths_fn=lambda p: ["background/boot_sha.py"])
+    assert d["contains_origin"] is False and d["behind"] == 11 and d["ahead"] == 3, d
+    assert d["unresolved"] is None, "a fully answered checkout must not read unresolved"
+
+
+def test_the_ancestry_question_is_asked_in_the_direction_that_can_fail(monkeypatch):
+    """`merge-base --is-ancestor origin/main HEAD` asks whether the checkout CONTAINS origin.
+
+    THE REVERSE SPELLING IS TRUE OF EVERY TREE THAT IS MERELY BEHIND, so it would have read GREEN
+    through the entire window this was built for. The argument ORDER is the question, and a control
+    that only asserts "returns a bool" cannot tell the two apart.
+
+    MUTATION: swap the two refs in `_checkout_contains_origin` and this fires.
+    """
+    seen = {}
+
+    class _P:
+        returncode = 0
+
+    def fake_run(argv, **kw):
+        seen["argv"] = argv
+        return _P()
+
+    monkeypatch.setattr(dr.subprocess, "run", fake_run)
+    assert dr._checkout_contains_origin(Path("/repo")) is True
+    argv = seen["argv"]
+    i = argv.index("--is-ancestor")
+    assert argv[i + 1] == "origin/main" and argv[i + 2] == "HEAD", (
+        "the ancestry question was asked backwards: `is-ancestor HEAD origin/main` is true of "
+        "every tree that is merely behind, which is exactly the state this exists to catch"
+    )
+
+
+def test_git_being_unable_to_answer_ancestry_is_not_the_same_as_not_contained(monkeypatch):
+    """rc 1 means NOT AN ANCESTOR. rc 128 means GIT COULD NOT SAY. Collapsing them would publish a
+    confident "missing N commits" on a repo git cannot read -- a fail-LOUD that is still a lie, and
+    the shape `_sh` would have imposed had this gone through it.
+
+    MUTATION: treat any non-zero rc as False and this fires.
+    """
+    class _P:
+        def __init__(self, rc):
+            self.returncode = rc
+
+    for rc, expected in ((0, True), (1, False), (128, None)):
+        monkeypatch.setattr(dr.subprocess, "run", lambda a, rc=rc, **k: _P(rc))
+        assert dr._checkout_contains_origin(Path("/repo")) is expected, (
+            "rc {} must map to {}".format(rc, expected))
+
+
+def test_an_unreadable_origin_is_unresolved_and_never_reported_as_level():
+    """FAIL-CLOSED. `origin_reconcile.commits_behind` returns None when it cannot fetch, and None
+    is a distinct answer from 0. A checkout drift that rendered an unreadable origin as `behind 0,
+    contains True` would announce that the box is current at exactly the moment nothing can tell.
+
+    MUTATION: `behind = behind or 0` and this fires.
+    """
+    d = dr.checkout_drift(Path("/nonexistent"), fork_state_fn=lambda p: (None, None))
+    assert d["unresolved"] == "origin-unreadable"
+    assert d["contains_origin"] is None and d["behind"] is None, d
+    assert d["gap_paths"] is None, "an unreadable origin cannot yield a path count"
+
+
+def test_every_checkout_state_renders_a_DISTINCT_line():
+    """A PARTITION CONTROL OVER SHAPES, NOT OVER STATES, because two shapes collapsing to one
+    string is the failure that a per-state assertion cannot see. Four genuinely different
+    situations -- not measured, cannot tell, contains, missing -- must not share a rendering.
+
+    AND NONE OF THEM MAY READ AS REASSURING WHEN IT IS NOT AN ANSWER: 'cannot tell' says so on the
+    surface, which is the rule this whole module exists under.
+
+    MUTATION: return "" for the unresolved branch, or fold `None` into the `contains` branch, and
+    the distinctness assertion fires.
+    """
+    shapes = {
+        "not measured": None,
+        "cannot tell": {"unresolved": "origin-unreadable", "behind": None, "ahead": None},
+        "contains": {"unresolved": None, "contains_origin": True, "ahead": 0, "behind": 0},
+        "missing": {"unresolved": None, "contains_origin": False, "behind": 11, "gap_paths": 28},
+    }
+    rendered = {name: dr.format_checkout(c) for name, c in shapes.items()}
+    assert len(set(rendered.values())) == len(shapes), (
+        "two distinct checkout states render the same line, so the surface cannot tell them "
+        "apart: {}".format(rendered))
+    assert "11" in rendered["missing"] and "28" in rendered["missing"], (
+        "the missing line must carry the size of what is missing, not just that something is")
+    for name in ("not measured", "cannot tell"):
+        assert any(w in rendered[name].upper() for w in ("CANNOT", "NOT MEASURED", "UNKNOWN")), (
+            "{!r} renders a non-answer as though it were one: {!r}".format(name, rendered[name]))
+
+
+def test_the_deployment_report_carries_the_bound_its_rows_are_subject_to(monkeypatch):
+    """THE DEFECT THIS CLOSES: eleven rows reading green on a checkout eleven commits behind were
+    indistinguishable from eleven rows on a current one. Each row answers "which modules it imports
+    changed" against THE DISK, so the table is only as good as the disk -- and a figure published
+    without the bound it earns is worse than no figure.
+
+    MUTATION: drop the `checkout` key from the report and this fires.
+    """
+    drift = {"head": "abc1234", "population": ["d"], "unresolved": {}, "vacuous": False,
+             "stale_detail": {}}
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 60.0)
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    monkeypatch.setattr("background.boot_sha.read_boot_blobs", lambda s: {})
+    monkeypatch.setattr(dr, "checkout_drift",
+                        lambda *a, **k: {"behind": 11, "ahead": 3, "contains_origin": False,
+                                         "gap_paths": 28, "unresolved": None})
+
+    report = dr.daemon_deployment_report(drift=drift, now=5000.0)
+    assert report["checkout"]["contains_origin"] is False, (
+        "the report does not say whether the checkout its rows were measured against contains the "
+        "landed code, so every row is unbounded")
+
+
+def test_stamp_predates_process_is_held_and_never_restarted():
+    """PINNING A PROPERTY THAT HOLDS TODAY BY BRANCH ORDER AND NOTHING ASSERTED.
+
+    The finding that landed the fourth drift rule recorded as still-owed that `restart_plan`
+    "restarts on stale and should learn that stamp-predates-process is not a restart-able
+    condition". MEASURED 2026-09-24: it already holds it -- `unresolved` is tested BEFORE `stale`,
+    and the new verdict routes through `unresolved`, so the rule's own landing discharged the owed
+    item incidentally. The inherited diagnosis was wrong and is corrected here rather than acted on.
+
+    It was also entirely UNPINNED: no control named the verdict, so the correct behaviour rested on
+    the order of two branches that any later edit could swap. That is the residue worth having.
+
+    MUTATION: move the `unresolved` branch below the `stale` branch and this fires.
+    """
+    plan = dr.restart_plan({"session_hosting_unresolved": None, "daemons": [
+        {"unit": "a.service", "unresolved": "stamp-predates-process", "stale": True},
+        {"unit": "b.service", "unresolved": None, "stale": True},
+    ]})
+    assert "a.service" not in plan["restart"], (
+        "a daemon whose stamp predates its own process was scheduled for restart -- a restart "
+        "re-runs ExecStartPre and clears the VERDICT without answering the question behind it")
+    assert "stamp-predates-process" in plan["hold"]["a.service"]
+    assert plan["restart"] == ["b.service"], (
+        "the honestly-stale daemon must still be restartable, or this guard refuses everything")

@@ -1,7 +1,7 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `SITE13_the_baseline_comparison_carries_its_bound`
 
 **Discharged:** `tests/tools/test_generate_value_arms_data.py::test_every_input_to_the_published_supplier_claim_IS_IN_THE_PUBLISH_SURFACE`,
-`tests/tools/test_generate_value_arms_data.py::test_the_published_supplier_claim_answers_THE_SAME_from_HEADs_committed_bytes`,
+`tests/tools/test_generate_value_arms_data.py::test_the_published_supplier_claim_NAMES_ONLY_RUNS_ITS_OWN_TWO_INPUTS_NAME`,
 `tests/tools/test_generate_value_arms_data.py::test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in` — the independence half. The publish-lane question this document raises is NOT discharged and is restated below.
 
 **Citation corrected 2026-09-22, and the correction is beside the claim.** This line named
@@ -16,6 +16,26 @@ publish surface, and one requires the same verdict from HEAD's committed bytes a
 tree, which is the oscillation killed where it can be proved dead. Found by
 `tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`, red at `origin/main`
 on this citation with no commit's gate selection able to reach it.
+
+**Citation corrected AGAIN 2026-09-24, and the paragraph above is left standing because its last
+sentence is now wrong and that is the point.** The second falsifier was
+`..._answers_THE_SAME_from_HEADs_committed_bytes`, and the claim made for it above — *"requires the
+same verdict from HEAD's committed bytes as from the working tree, which is the oscillation killed
+where it can be proved dead"* — was false in the only place it was enforced. `surgical_land`'s gate
+extract writes the PARENT commit into `.git/HEAD` while the working tree is the tree being graded,
+so inside the gate that control compared the previous commit against this one: it asserted "this
+commit does not change the feed's own inputs", which no commit can satisfy. It wedged the only door
+`origin_reconcile` has for three cycles. Replaced by
+`..._NAMES_ONLY_RUNS_ITS_OWN_TWO_INPUTS_NAME`, which asserts the property directly — every run the
+verdict names is one its two declared inputs name — and so answers the same in a clean extract and
+in any working tree, because it compares no two revisions at all. Trace, one-variable reproduction
+and both mutation proofs:
+`docs/staging/done/SEAT_FINDING_THE_GATES_EXTRACT_POINTS_HEAD_AT_THE_PARENT_SO_A_CONTROL_READING_HEAD_GRADES_THE_PREVIOUS_COMMIT_2026-09-24.md`.
+
+*Twice in three days this line has cited a falsifier the repository does not have, and both times
+the same control found it. The first was a supersession, this one a rename; neither was reachable
+by the gate selection of the commit that caused it, because a record and its falsifier share no
+module stem.*
 
 # The "supplier on this site IS the baseline" check passes only against a file the A/B run itself wrote
 

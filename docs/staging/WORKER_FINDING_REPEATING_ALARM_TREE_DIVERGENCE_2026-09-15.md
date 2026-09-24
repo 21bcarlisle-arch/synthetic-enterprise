@@ -41,8 +41,13 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - **2026-09-20** — still live. 3 repeats over 4.5h without the state changing. No second document filed: this condition already has one.
 - **2026-09-21** — still live. 12 repeats over 36.1h without the state changing. No second document filed: this condition already has one.
 - **2026-09-22** — still live. 3 repeats over 4.3h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 11 repeats over 7.8h without the state changing. No second document filed: this condition already has one.
+- **2026-09-24** — still live. 4 repeats over 6.8h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `# source files diverge from head (threshold #); head is # commit(s) behind origin/main (and # ahead), so this count is m` (first seen 2026-09-15)
 - `# source files diverge from head (threshold #); the oldest has sat #h (threshold #h): docs/staging/done/run_complete_#t#` (first seen 2026-09-15)
 - `# source files diverge from head (threshold #); the oldest has sat #h (threshold #h): tests/tools/test_settlement_ceilin` (first seen 2026-09-16)
 - `# source files diverge from head (threshold #); the oldest has sat #h (threshold #h): tests/background/test_health_check` (first seen 2026-09-17)
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
