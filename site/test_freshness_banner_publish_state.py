@@ -22,6 +22,7 @@ on a string in the file.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -68,12 +69,30 @@ def _heartbeat(state, age_hours=0.0, committed_but_unpublished=False, *,
     }
 
 
-def render(prov=VERIFIED_PROVENANCE, heartbeat=None, figures=None):
+# THE READER'S CLOCK, PINNED JUST AFTER THE FIXTURES' OWN STAMPS.
+#
+# Every heartbeat in this module is stamped 2026-08-13, and until 2026-09-24 nothing here supplied
+# a clock -- so the layer saw the REAL one and these fixtures quietly aged. They were four hours
+# old the day they were written and six weeks old by the time the frozen-feed check arrived to
+# read them, at which point nine of these tests went red on their own fixture dates rather than on
+# anything about their subjects.
+#
+# That is this file's own lesson pointed at itself: an age nobody supplied is an age keyed to the
+# day the test ran. The clock is an input, so it is passed like every other input, and these tests
+# now assert what they were written to assert for as long as they exist.
+#
+# Tests whose SUBJECT is the reader's clock pass their own `now` and live in
+# test_the_frozen_feed_cannot_report_its_own_freshness.py.
+FIXTURE_NOW = "2026-08-13T21:00:00Z"
+
+
+def render(prov=VERIFIED_PROVENANCE, heartbeat=None, figures=None, now=FIXTURE_NOW):
     """`figures="none"` renders as a page that declares it publishes no simulation figure."""
     result = subprocess.run(
         [NODE, str(HARNESS), str(ASSET)] + ([figures] if figures else []),
         input=json.dumps({PROV: prov, HEARTBEAT: heartbeat}),
         capture_output=True, text=True, timeout=60,
+        env={**os.environ, "POESYS_FRESHNESS_NOW": now},
     )
     assert result.returncode == 0, result.stderr
     return json.loads(result.stdout)
@@ -301,8 +320,12 @@ def test_an_annotation_written_before_this_field_renders_as_unrecorded():
 
 
 def _aged_annotation(days_old, **over):
+    # RELATIVE TO THE PINNED CLOCK, not to the wall clock. These dates are read by the layer
+    # against `Date.now()`, so once the reader's clock became an input (FIXTURE_NOW) a fixture
+    # still anchored on the real one was measuring the gap between two different clocks. Same
+    # defect as the one this module is about, one layer in.
     import datetime as _dt
-    at = (_dt.datetime.now(_dt.timezone.utc)
+    at = (_dt.datetime.strptime(FIXTURE_NOW, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=_dt.timezone.utc)
           - _dt.timedelta(days=days_old, hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     ann = {
         "nonblocking_reds_checked_at": at,
