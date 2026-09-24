@@ -42,6 +42,15 @@ cause is separable at the moment it happens, by a different observation:
                           plus a second, later read of the ref — one read cannot tell a race
                           from a standstill, which is why 58 races were filed as standstills.
 
+  * `scoped_suite_red` /
+    `scoped_gate_unjudged`— the publisher's OWN pytest run, made BEFORE any commit is attempted.
+                          The observation is the pair (the suite's return code, whether it named
+                          a node id): rc>0 with a FAILED line is a judged red, rc<0 or rc>0 with
+                          no FAILED line is a gate that refused without judging. Added 2026-09-24
+                          as the sixth cause of the publish outage series — this refusal was the
+                          one exit in the module that still left by a bare `return 1`, so every
+                          reader inferred `test_regression` from it whatever had happened.
+
 Five, not the three the direction named: `provenance_refused` and `behind_origin` are real paths
 to rc=77, and folding either into one of the three to make the count match would be exactly the
 invention this module exists to stop. The contract is "names EXACTLY ONE", not "one of exactly
@@ -155,19 +164,38 @@ BEHIND_ORIGIN = "behind_origin"
 #: one of these was filed as the other, which sent every reader at a push that was being issued
 #: correctly every time.
 LOST_PUSH_RACE = "lost_push_race"
+#: THE PUBLISHER'S OWN SCOPED GATE ran and at least one test came back RED. A test WAS judged, at
+#: a sha the record names, so the blocking list is evidence about THIS cycle. Distinct from
+#: `GATE_REFUSAL` on the axis of WHICH GATE: that one is the pre-commit hook chain refusing a
+#: publish COMMIT, this one is the pytest run `process_run_complete` makes for itself BEFORE any
+#: commit is attempted. Folding them together would send a reader to the hook output when the
+#: answer is in the publisher's own suite, and the two run at different shas.
+SCOPED_SUITE_RED = "scoped_suite_red"
+#: THE PUBLISHER'S OWN SCOPED GATE refused and NO test returned a verdict — the pytest child was
+#: killed by a signal (rc<0, observed rc=-15 on four separate days), pytest exited non-zero
+#: without a FAILED/ERROR summary line (collection error, usage error, nothing collected), or the
+#: gate had no subject at all because a clean HEAD checkout could not be materialised. The
+#: OBSERVATION that separates it from `SCOPED_SUITE_RED` is the pair (the suite's return code,
+#: whether any node id was named) — both held by `_run_gate_in` at the moment it happens.
+SCOPED_GATE_UNJUDGED = "scoped_gate_unjudged"
 #: Not a cause: the honest answer when no usable record exists for the failure being described.
 UNATTRIBUTED = "unattributed"
 
 #: Every cause this module will accept a write for. A write naming anything else is refused
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
 CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
-                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE})
+                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE,
+                    SCOPED_SUITE_RED, SCOPED_GATE_UNJUDGED})
 
 #: Causes on which NO test returned a verdict, so no blocking list or suspect may be attached.
 #: See the module docstring. `GATE_REFUSAL`'s absence is the content of this set, not an
 #: oversight — that is the one cause where a named red is real evidence about THIS cycle.
+#: `SCOPED_SUITE_RED` is absent for exactly the same reason and `SCOPED_GATE_UNJUDGED` is present
+#: for its mirror: the two exist BECAUSE that split was being made by an exit code that could not
+#: carry it.
 NO_TEST_JUDGED_CAUSES = frozenset({NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
-                                   PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE})
+                                   PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE,
+                                   SCOPED_GATE_UNJUDGED})
 
 #: Mirrors the publisher's blocking-record bound for the same reason that one has a default:
 #: a reader outside the publish path must not import the publisher to learn a policy. Held

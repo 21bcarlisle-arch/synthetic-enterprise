@@ -334,11 +334,25 @@ def test_the_page_publishes_no_ceiling_it_cannot_name_the_measurement_for():
         "with a justification and no evidence is the durable version of an invented constant"
     )
     for path in cited:
-        in_git = subprocess.run(["git", "-C", str(PROJECT), "cat-file", "-e", "HEAD:" + path],
-                                capture_output=True)
-        assert in_git.returncode == 0, (
+        # THE INDEX FIRST, AND `HEAD:` ONLY AS THE FALLBACK (2026-09-24). This asked `HEAD:` alone,
+        # which means "the previous commit" inside `tools/surgical_land`'s gate -- the extract's
+        # `.git/HEAD` is the PARENT while its working tree is the tree being graded. So the one
+        # commit that ever writes a measurement artefact AND the citation to it, which is the only
+        # way that pair is ever written, was refused here and nowhere else, and the refusal named
+        # the innocent new artefact. Green in every working tree by construction, since there
+        # `HEAD` IS the checkout. `:<path>` is this commit's own staged bytes in both places; the
+        # `HEAD:` leg keeps a path that was committed earlier and is untouched now. Class census
+        # and the revision semantics it rests on: `tests/tools/
+        # test_the_gate_extracts_revisions_mean_what_a_control_thinks.py`.
+        in_git = any(
+            subprocess.run(["git", "-C", str(PROJECT), "cat-file", "-e", spec + path],
+                           capture_output=True).returncode == 0
+            for spec in (":", "HEAD:")
+        )
+        assert in_git, (
             "the basis cites `{}` as the measurement behind its published ceiling, and that "
-            "path is in no commit -- the reader is sent to bytes that do not exist".format(path)
+            "path is in neither this commit nor any earlier one -- the reader is sent to bytes "
+            "that do not exist".format(path)
         )
 
 
