@@ -359,6 +359,13 @@ WEDGE_KINDS_NO_TEST_JUDGED = frozenset({
     # the same wasted priority-zero work this set was built to stop -- one lane over. The cause
     # is a lost merge-to-push race; `process_run_complete.DELIVERY_NOT_REACHED_KIND` declares it.
     "delivery_did_not_reach_origin",
+    # rc=81 (2026-09-24): the publisher's OWN scoped gate refused and NO test returned a verdict
+    # -- the suite child was killed, or pytest exited non-zero with no FAILED line, or the gate
+    # had no subject. Until that code existed this refusal WAS a bare rc=1, so it reached this
+    # reader as `test_regression` and is the sixth cause of the publish-outage series.
+    # `process_run_complete.SCOPED_GATE_UNJUDGED_KIND` declares it. Its sibling
+    # `scoped_suite_red` is deliberately absent: there a test really was judged red.
+    "scoped_gate_unjudged",
 })
 
 # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (director console P0, 2026-07-25): a daemon-lifecycle
@@ -1782,6 +1789,57 @@ def _is_frame_saturated(atom: dict) -> bool:
     return _atom_has_frame_doc(atom)
 
 
+def _under_pass_ceiling(candidates: list, where: str) -> list | None:
+    """THE PASS CEILING (director ruling, 2026-08-19): "make it impossible for the system to
+    run indefinitely on work that cannot change its own state." An atom that has taken
+    CEILING DISCOVER/FRAME passes with no level move since leaves the idle discovery draw. It
+    is not punished and discovery is not made expensive -- the ruling forbids that lever -- the
+    LANE IS MADE FINITE. Its next honest answer is promote-to-build or close, and both change
+    state; investigating again is the one answer no longer available.
+
+    Measured cause: 98 commits on 2026-08-18 produced ZERO recorded level moves, against 3
+    commits per move on 08-09. Eighty atoms sit below target and idle, and this tier feeds
+    on exactly that set, so the lane was inexhaustible BY CONSTRUCTION.
+
+    FAIL-CLOSED TOWARD STOPPING, and deliberately the OPPOSITE direction to
+    `_is_frame_saturated`. That one fails toward offering, because its risk is starving real
+    work. This one fails toward an empty tier, because its risk is the indefinite run the
+    ruling exists to end -- and it is safe to fail that way: BUILD and HARDEN work stay
+    drawable, only this tier closes, so the loop is pushed toward the work that moves state
+    rather than halted. `None` is that signal; the caller returns its own empty.
+
+    WHY THIS IS A SHARED FUNCTION AND NOT A SECOND COPY OF THE BLOCK. It lived inline in
+    `_idle_discover_frame_draw` -- which no production path calls. The three-lane self-refill
+    draws lane 3 through `_idle_discover_frame_draw_concurrent`, and that one never consulted
+    the ceiling at all, so the ruling was enforced in a function only the tests reach. Measured
+    2026-09-16 on the live map: the concurrent draw returned 17 atoms, two of them
+    (`EP16_anchored_generators`, `EP17_varied_population_draw`) over the ceiling -- and EP17
+    is the atom whose own `block_reason` records a delivery-seat disposition of 2026-08-26
+    saying no further DISCOVER pass is authorised. It was dispatched to a worker tick anyway.
+    Two implementations of one rule is how that happened, so there is now one."""
+    try:
+        from tools.discovery_pass_ceiling import saturated_ids
+
+        over_ceiling = saturated_ids()
+    except Exception as exc:  # noqa: BLE001 - an unreadable ceiling must not silently reopen the lane
+        log(
+            f"{where}: the pass ceiling could not be computed "
+            f"({exc}) -- returning empty rather than reopening an unbounded discovery lane "
+            "(director ruling 2026-08-19). BUILD and HARDEN work are unaffected."
+        )
+        return None
+    under_ceiling = [a for a in candidates if a.get("id") not in over_ceiling]
+    if candidates and not under_ceiling:
+        log(
+            f"{where}: all {len(candidates)} idle atom(s) are OVER THE PASS "
+            "CEILING -- each has been investigated repeatedly without its level moving. This "
+            "is a TRUE empty discovery set, not a spin: every one of them is now a decision "
+            "(promote to build, or close). `python3 -m tools.discovery_pass_ceiling` lists "
+            "them."
+        )
+    return under_ceiling
+
+
 def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
     """EPOCH_GATING_AND_ATOM_AUTHORSHIP.md (P0, 2026-07-12, director-prompted
     "why can't it think of its own work for future epochs"): Rule 1 --
@@ -1849,44 +1907,11 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
     candidates = non_saturated
 
 
-    # THE PASS CEILING (director ruling, 2026-08-19): "make it impossible for the system to
-    # run indefinitely on work that cannot change its own state." An atom that has taken
-    # CEILING DISCOVER/FRAME passes with no level move since leaves this draw. It is not
-    # punished and discovery is not made expensive -- the ruling forbids that lever -- the
-    # LANE IS MADE FINITE. Its next honest answer is promote-to-build or close, and both
-    # change state; investigating again is the one answer no longer available.
-    #
-    # Measured cause: 98 commits on 2026-08-18 produced ZERO recorded level moves, against 3
-    # commits per move on 08-09. Eighty atoms sit below target and idle, and this tier feeds
-    # on exactly that set, so the lane was inexhaustible BY CONSTRUCTION.
-    #
-    # FAIL-CLOSED TOWARD STOPPING, and deliberately the OPPOSITE direction to
-    # `_is_frame_saturated` above. That one fails toward offering, because its risk is
-    # starving real work. This one fails toward an empty tier, because its risk is the
-    # indefinite run the ruling exists to end -- and it is safe to fail that way: BUILD and
-    # HARDEN work stay drawable, only this tier closes, so the loop is pushed toward the work
-    # that moves state rather than halted.
-    try:
-        from tools.discovery_pass_ceiling import saturated_ids
-
-        over_ceiling = saturated_ids()
-    except Exception as exc:  # noqa: BLE001 - an unreadable ceiling must not silently reopen the lane
-        log(
-            "IDLE DISCOVER/FRAME draw: the pass ceiling could not be computed "
-            f"({exc}) -- returning empty rather than reopening an unbounded discovery lane "
-            "(director ruling 2026-08-19). BUILD and HARDEN work are unaffected."
-        )
+    # THE PASS CEILING (director ruling, 2026-08-19) -- see `_under_pass_ceiling`, which is
+    # the single implementation shared with the concurrent draw below.
+    candidates = _under_pass_ceiling(candidates, "IDLE DISCOVER/FRAME draw")
+    if candidates is None:
         return None
-    under_ceiling = [a for a in candidates if a.get("id") not in over_ceiling]
-    if candidates and not under_ceiling:
-        log(
-            f"IDLE DISCOVER/FRAME draw: all {len(candidates)} idle atom(s) are OVER THE PASS "
-            "CEILING -- each has been investigated repeatedly without its level moving. This "
-            "is a TRUE empty discovery set, not a spin: every one of them is now a decision "
-            "(promote to build, or close). `python3 -m tools.discovery_pass_ceiling` lists "
-            "them."
-        )
-    candidates = under_ceiling
 
     if not candidates:
         return None
@@ -1978,6 +2003,15 @@ def _idle_discover_frame_draw_concurrent(
             "(H23_frame_saturation_draw_marker) rather than re-handing."
         )
     candidates = non_saturated
+    # THE PASS CEILING (director ruling, 2026-08-19). THIS is the production lane-3 draw --
+    # `_self_refill_draw_ladder`, `_is_drained_and_gated` and the rest-legitimacy enumeration
+    # all call this function and none of them call the single-atom sibling -- so until now the
+    # ruling bound only the function the tests reach. Placed exactly where the sibling places
+    # it (after frame-saturation, before the stall preference) so the stall preference ranks
+    # the genuinely drawable set rather than ranking atoms that may not be offered at all.
+    candidates = _under_pass_ceiling(candidates, "IDLE DISCOVER/FRAME concurrent draw")
+    if candidates is None:
+        return []
     if exclude_stalled and candidates:
         candidates = _prefer_least_stalled(candidates, _load_atom_stall_state(), lane="DISCOVERY")
     if not candidates:

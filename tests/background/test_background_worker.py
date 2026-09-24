@@ -87,10 +87,23 @@ def _fake_success(*args, **kwargs):
 
 
 def test_no_markers_is_a_silent_noop(monkeypatch):
+    """NARROWED 2026-09-24 to the same property as its neighbours (see _record_publisher).
+
+    This recorded EVERY subprocess the sweep made and asserted the list was empty, which is a
+    claim about today's implementation rather than about the sweep. An empty queue still calls
+    `_check_zero_progress([])`, whose state save is an atomic write anchored in the shared
+    git-common-dir, so `git rev-parse --git-common-dir` arrived in the recorder and this went
+    red at HEAD -- on behaviour that is correct, for a reason this test has no opinion about.
+    Red at HEAD is not a free state: the gate selects a test module by its subject's stem, so
+    `test_background_worker.py` being red made `background/background_worker.py` uneditable by
+    every lane until someone repaired it.
+
+    The property is and always was: an empty queue launches no publisher."""
     calls = []
-    monkeypatch.setattr(background_worker.subprocess, "run", lambda *a, **k: calls.append(a) or _fake_success())
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or _fake_success())
     background_worker.process_leftover_run_markers()
-    assert calls == []
+    assert calls == [], f"an empty queue must launch no publisher, got {calls}"
 
 
 def test_single_marker_is_processed(monkeypatch):
