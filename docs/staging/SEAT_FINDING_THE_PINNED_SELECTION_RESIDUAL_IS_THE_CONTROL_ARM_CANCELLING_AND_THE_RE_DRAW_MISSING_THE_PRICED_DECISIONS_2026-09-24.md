@@ -107,6 +107,25 @@ pinned all five draws would report a spread of zero and declare itself infinitel
   beside `n` and carry that count to the reader, so a family reports the draws it is entitled to
   rather than the seeds it ran. Until it does, this field is recorded and unread — and a field
   nobody reads is not a control.
+  - **DONE at `6f040e8d2` (2026-09-24), and it answers with a BOUND rather than a number.**
+    `summarise` now publishes `priced_decision_draws`. Exact where every row carries a fingerprint;
+    elsewhere a floor from the contrapositive of the coextension recorded above — two seeds whose
+    residuals *differ* cannot have met one decision set — which is the only reading available on
+    the families that were actually published, because none of them records a roster. Measured:
+    the published eighteen is **between 15 and 18 draws**, which re-derives from the artefact the
+    "five of which repeat" this document counted by hand; `..._five_seed_head_20260924.json` is
+    **exactly 3 draws over 5 seeds**, its digests *derived* from the `scored_decisions` rosters it
+    carries, using the producer's own function — without that derivation the only family on disk
+    that records its decision sets would have read as five unknowns. Unknowns are never collapsed:
+    they add nothing at the floor and a whole draw at the ceiling. The floor carries its own
+    falsifier and is withdrawn, loudly, on any family where a fingerprint appears on two seeds
+    whose residuals differ.
+  - **STILL OWED, and this is the half that reaches a reader who is not holding the JSON:**
+    `generate_value_arms_data` does not read the new block, and no published floor artefact has
+    been re-folded to carry one — deliberately, because regenerating a watched artefact makes its
+    promotion owed in the same commit and the served family is the republish lane's. So the page
+    still prints `n` seeds as `n` draws beside a sem that is an upper bound on this family's
+    confidence. **The finding stays BLOCKING for that reason and not for the one above.**
 
 **Reversal:** `git revert`. Two additive row fields, three fixture corrections and one control
 section; no constant moves and no published figure changes.
