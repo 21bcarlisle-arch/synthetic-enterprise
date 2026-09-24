@@ -141,3 +141,122 @@ only thing that leg can be green about.
 
 Steps 2–4 above. In particular **step 4**: `GATE_RUNNING` starved the reconciler on 19 of the last
 40 cadences, which this item did not cover and this landing does not touch.
+
+---
+
+## 2026-09-24, step 2 run — step 1 WAS load-bearing and it WORKED. The gap grew anyway because the blocker set refilled from a different class, and the door that would clear THAT class fail-closes on a sound preservation.
+
+Step 2 is re-measurement, and it refutes the reading the draw was carrying (*"step 1 landed and the
+gap grew from 12 to 20 anyway"*, which invites the conclusion that step 1 missed). It did not miss.
+
+**Step 1 graded, one variable, on the shared tree:**
+
+```
+origin_reconcile._split_generated(['docs/staging/WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-09-15.md'])
+  -> (['docs/staging/WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-09-15.md'], [], '')
+```
+
+Generated, where it read **authored** before. All **9** of the `WORKER_FINDING_REPEATING_ALARM_*`
+paths that headed the blocking list are **gone from it**. `stem_written_artefacts()` is present at
+HEAD, on `origin/main` and on disk (`ef7a8f89e`), so this is the fix running, not the fix pending.
+
+**Step 2, `deploy_restart.checkout_drift()` on the shared tree:**
+
+```
+{'behind': 28, 'ahead': 3, 'contains_origin': False, 'gap_paths': 47}
+```
+
+Still diverged — and **for a different reason than the one this document was opened on.** Of the 13
+paths now blocking the fast-forward, **8 are byte-identical twins** the reconciler's own sweeps
+clear unattended (3 `identical_tracked_twins`, 5 `identical_untracked_twins`). The residue is **5**,
+and all five are one event: they are byte-for-byte identical to
+`refs/preserved/shared-tree-stash-pop-2026-09-24` (verified path by path with `git hash-object`),
+committed 15:01:09, and every one carries mtime `15:02:31` to the fraction of a second. **One stash
+pop, restored over a tree that had moved 28 commits past it, and it restamped the clock that would
+have identified it as the older draft** — the subject of
+`SEAT_FINDING_A_STASH_POP_RESTAMPED_321_FILES_AND_DEFEATED_THE_STALE_COPY_CLOCK_BY_38_SECONDS_2026-09-24.md`,
+here as a live cause rather than a note.
+
+### The door exists, is correctly gated, and REFUSES ON ITS OWN SOUND WORK
+
+`refresh_to_head --base origin/main --base-wins` is the door, and `--base origin/main` is mandatory
+here because HEAD is itself the stale base (against `--base HEAD` all 5 are refused, correctly).
+Judged that way the tool admits two of the five as REPLACEMENT copies on the clock's word, not the
+operator's. Run with `--write`, it fail-closed:
+
+```
+❌ PRESERVATION FAILED for docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md:
+   `git log --all -S` does not find ed77aa59d -- the advertised recovery route does not reach it.
+```
+
+**The preservation was sound and the verification asked the wrong parent.** `preserve()` parents the
+commit on **HEAD**, so the commit's own diff — which is what `-S` searches — is against HEAD. But
+`_probe(verdict)` picks its search line out of `verdict.discarded`, which was computed against the
+**judgement base**, `origin/main`. One variable:
+
+```
+probe = '11 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` ...'
+git show HEAD:<path>        | grep -c '<probe>'   -> 1     # HEAD ALREADY HAS IT
+git show origin/main:<path> | grep -c '<probe>'   -> 0
+git log --all -S <probe> -- <path>  -> 89e94ec5a, 9ded3a80e   # neither is ed77aa59d
+```
+
+The line was chosen because **origin** lacks it; HEAD carries it; so across `ed77aa59d`'s own diff
+the occurrence count does not change and `-S` cannot report it. The first leg — *is the stored blob
+the bytes on disk* — **passed**. `git show ed77aa59d:<path>` returns the copy exactly. The bytes are
+preserved and recoverable; only the advertised route's self-test is wrong.
+
+It is base-dependent, not universal, which is why it has never been seen: for
+`tests/tools/test_refresh_to_head.py` in the same run the probe line is absent from HEAD too, and
+`-S` **did** find `ed77aa59d`. The all-or-nothing rule then discarded that pass along with the
+failure. **So the tool's admission gate and its preservation are both right, and the one leg between
+them refuses whenever the probe line happens to exist at HEAD.**
+
+This is a control that cannot pass rather than one that cannot fail, and it is keyed to today's
+answer in the same way §"the control repair" above describes: the probe is a property of the
+*commit's parent*, and it is being read off the *judgement base*.
+
+### The remedy, smallest first
+
+1. **`_probe` must be computed against the preserved commit's actual parent (HEAD), not against the
+   judgement base.** `verify_recoverable` already knows the commit; the discarded-line set it needs
+   is `_discarded_lines(<HEAD text>, work_text)`. One call site, and the mutation that proves it is
+   a probe line present at HEAD — under the current code the leg raises, under the fix it finds the
+   commit. **Do not "fix" it by dropping the `-S` leg**: that leg is the only thing standing between
+   this tool and `git checkout <path>` with a nicer name.
+2. Then re-run the `--base origin/main --base-wins` refresh over the 5. Two are admitted outright.
+3. The other three are **not** refresh subjects and must not be forced:
+   `tools/refresh_to_head.py` (supplies `_clear_index_entry`, `_index_bytes`, `STAGED_DISAGREES` —
+   origin supplies nothing it lacks, so it is strictly additive holder work, landable hunks 1/3/4/7)
+   and `tests/background/test_publish_gate_wedge_draw.py` (landable hunk 1). The door for those is
+   `isolate_hunks --survey` + `surgical_land --content`, **and then** a refresh, because `--content`
+   does not write the working tree and the copy keeps blocking until it is refreshed.
+4. `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py` has **no
+   door at all**: its only loss against origin is a landed **comment**, so `judge_copy` returns
+   `refused_head_does_not_supersede_it` and every landing door would land the revert. That is
+   exactly `SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT_2026-09-24.md`,
+   and it is now load-bearing on the publish path rather than latent.
+
+### A sixth blocker class, same shape as step 1, found while grading it
+
+`docs/staging/reference/CLASS_*.md` is **producer output** — `background/finding_classes.py:1439`
+(`_write_class_documents` → `doc.write_text(render_class_document(...))`) rewrites it, and
+`--check` re-derives its membership from the filesystem. Step 1 taught the oracle about
+`WORKER_FINDING_REPEATING_ALARM_*`; the register family the *same module* writes is still classified
+authored, and `CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md` is one of the 5 residue paths because
+of it. Adding that stem is the same careful `GENERATED_STEMS` work step 1 was, and it clears one of
+the five without any of the above.
+
+### Not established, and recorded rather than guessed
+
+Whether remedy 1 alone makes the tree advanceable. It clears at most 2 of 5 residue paths, and the
+advance is all-or-nothing, so **the honest prediction is that it does not** — 3 and 4 above are
+required too. Written before running it, so it can refute me.
+
+### What this turn did NOT do
+
+Advance the tree; `contains_origin` is still `False`. `origin_reconcile` was **already mid-merge**
+(pid 2311389, `surgical_land --merge origin/main`, 11+ minutes) throughout this turn, so the ahead
+leg is its work and was left to it — and it will return `NOT_ADVANCED` with `pushed: True` again,
+because the 5 residue paths above are untouched. That is the 49th time, and the reason is now named
+rather than repeated.
