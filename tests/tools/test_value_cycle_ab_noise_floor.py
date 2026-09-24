@@ -35,6 +35,7 @@ from tools.run_value_cycle_ab import (
     ELASTICITY_DECISION_MODULE,
     ELASTICITY_DRAW_MODULE,
     noise_floor,
+    priced_decision_fingerprint,
     resolve_elasticity_symbol,
 )
 
@@ -96,10 +97,19 @@ def _fake_runner() -> dict:
     # elastic, so `selection_gbp` inherits the draw -- the dependency being measured.
     level_advantage = 8_000.0
     value_advantage = 8_000.0 + 30_000.0 * (mean_weight - 1.0)
+    # THE THREE NETS THE ADVANTAGES ARE DIFFERENCES OF, carried because the real block carries
+    # them unconditionally and the writer subscripts them. A fixture that published only the two
+    # differences would be a `level_vs_selection` that does not exist, and the reconciliation leg
+    # below -- the one that catches the writer copying the wrong level onto the wrong key --
+    # would have nothing to reconcile.
+    control_net = 100_000.0
     return {
         "level_vs_selection": {
             "available": True,
             "level_gbp_per_mwh": 44.5,
+            "control_net_gbp": control_net,
+            "value_arm_net_gbp": control_net + value_advantage,
+            "level_arm_net_gbp": control_net + level_advantage,
             "value_advantage_gbp": value_advantage,
             "level_advantage_gbp": level_advantage,
             "selection_gbp": value_advantage - level_advantage,
@@ -1740,6 +1750,11 @@ def _two_key_runner() -> dict:
         "level_vs_selection": {
             "available": True,
             "level_gbp_per_mwh": 44.5,
+            # The three levels, for the reason `_fake_runner` carries them: the real block
+            # publishes them unconditionally and the writer subscripts them.
+            "control_net_gbp": 100_000.0,
+            "value_arm_net_gbp": 100_000.0 + value_advantage,
+            "level_arm_net_gbp": 100_000.0 + level_advantage,
             "value_advantage_gbp": value_advantage,
             "level_advantage_gbp": level_advantage,
             "selection_gbp": value_advantage - level_advantage,
@@ -2101,6 +2116,8 @@ def test_a_seed_that_REFUSED_leaves_no_line_claiming_it_finished(capsys):
             return {
                 "level_vs_selection": {
                     "available": True, "level_gbp_per_mwh": 44.5,
+                    "control_net_gbp": 100_000.0,
+                    "value_arm_net_gbp": 108_000.0, "level_arm_net_gbp": 108_000.0,
                     "value_advantage_gbp": 8_000.0, "level_advantage_gbp": 8_000.0,
                     "selection_gbp": 0.0, "level_share_of_advantage": 1.0,
                 }
@@ -2228,3 +2245,139 @@ def test_a_seed_whose_run_measured_no_belief_writes_no_roster_and_says_why():
         "list is a real reading and must not be how 'not measured' renders")
     assert row["discrimination_auc"] is None
     assert row["auc_unavailable_because"], "the row went silent about why it carries no AUC"
+
+
+# ---------------------------------------------------------------------------
+# 14. THE ROW CAN SAY WHICH ARM MOVED, AND WHICH DECISION SET ITS RESIDUAL WAS TAKEN OVER
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THIS SECTION EXISTS FOR (2026-09-24). `selection_gbp` is
+# `value_advantage_gbp - level_advantage_gbp`, and BOTH advantages subtract the same
+# `control_net_gbp` -- so the control arm cancels and the residual is
+# `value_arm_net_gbp - level_arm_net_gbp`. The two surviving arms differ by the renewal-margin
+# rule and by nothing else, which means every pound the elasticity re-draw moves outside the
+# renewals the value arm priced lands in both nets identically, cancels in the residual, and
+# surfaces as the two advantages moving by an IDENTICAL amount. The row published only those two
+# differences and dropped all three levels, so that state was indistinguishable from "the control
+# arm moved alone" -- and a seed pair that changed no priced decision reported a residual pinned
+# to fifteen digits while looking, on the published row, like two genuinely different draws.
+#
+# WHY THAT IS NOT A SMALL NUMBER BUT A STRUCTURAL ZERO, and why the sem is rewarded by it: a
+# family whose five draws share three decision sets reports the sd of three draws under the name
+# of five, and a family that pinned all five would report a spread of zero and declare itself
+# infinitely confident. The published floor states a NEGATIVE selection sign at 2.50 sems over
+# eighteen draws, five of which repeat.
+
+
+def test_the_row_carries_the_three_nets_its_two_advantages_are_differences_OF():
+    """And they RECONCILE with the advantages on the same row, which is the leg that can fail.
+
+    KEYED TO THE IDENTITY, NOT TO THE FIXTURE'S NUMBERS. Asserting `control_net_gbp == 100_000`
+    would go green on a writer that copied the level arm's net onto the value arm's key; the two
+    subtractions cannot. This is also what makes the pinning mechanism checkable by a reader:
+    the third assertion is the whole finding, that the control arm cancels out of the residual.
+    """
+    for row in noise_floor([11111, 22222], runner=_fake_runner)["seeds"]:
+        for key in ("control_net_gbp", "value_arm_net_gbp", "level_arm_net_gbp"):
+            assert row.get(key) is not None, (
+                f"seed {row['seed']} publishes its advantages and not the levels they are "
+                f"differences of, so a lockstep move cannot be attributed to an arm: {sorted(row)}")
+
+        assert row["value_arm_net_gbp"] - row["control_net_gbp"] == pytest.approx(
+            row["value_advantage_gbp"]), "the value arm's net and its advantage disagree"
+        assert row["level_arm_net_gbp"] - row["control_net_gbp"] == pytest.approx(
+            row["level_advantage_gbp"]), "the level arm's net and its advantage disagree"
+        # THE CONTROL ARM CANCELS. This is why two advantages can move in lockstep to the last
+        # digit while the residual does not move at all.
+        assert row["value_arm_net_gbp"] - row["level_arm_net_gbp"] == pytest.approx(
+            row["selection_gbp"]), (
+            "the residual is not the two surviving arms' difference, so the control arm is not "
+            "cancelling and the whole reading of this instrument is different")
+
+
+def test_the_fingerprint_SEPARATES_a_changed_decision_set_and_JOINS_an_unchanged_one():
+    """ONE CONTROL OVER THE WHOLE PARTITION, because each leg alone is passed by a broken writer.
+
+    A fingerprint pinned to a constant joins everything and passes the "same roster, same digest"
+    leg. A fingerprint that mixed in the seed separates everything and passes the "changed
+    roster, changed digest" leg. Only both together can fail, and the field's entire purpose is
+    counting DISTINCT decision sets -- a field that is always-equal or always-distinct reports
+    the family's repeat count as 1 or as n, and both are answers arrived at by measuring nothing.
+    """
+    moved = [dict(d) for d in _ROSTER]
+    moved[0]["retained"] = not moved[0]["retained"]
+
+    same_a = noise_floor([11111, 22222], runner=_runner_believing(_ROSTER))["seeds"]
+    changed = noise_floor([33333, 44444], runner=_runner_believing(moved))["seeds"]
+
+    assert same_a[0]["priced_decision_fingerprint"] == same_a[1]["priced_decision_fingerprint"], (
+        "two seeds that met the SAME decision set were given different fingerprints, so a family "
+        "cannot count its repeats and every pinned draw reads as an independent one")
+    assert same_a[0]["priced_decision_fingerprint"] != changed[0][
+        "priced_decision_fingerprint"], (
+        "a roster whose outcome flipped kept its fingerprint, so a decision set that really did "
+        "move reads as a repeat and the family under-counts its own dispersion")
+
+
+def test_a_seed_that_MEASURED_no_belief_is_UNKNOWN_and_not_an_agreeing_draw():
+    """FAILS CLOSED TOWARD UNKNOWN, and the distinction is the one that changes a published sem.
+
+    Two un-measured seeds must not fingerprint alike: a consumer counting distinct fingerprints
+    would read them as one repeated draw and shrink the spread it is entitled to -- the exact
+    direction this instrument already errs in. A digest of the empty list would do that, which is
+    why `priced_decision_fingerprint(None)` is None while `([])` is a real digest: a seed that
+    priced NOTHING is a reading, and a seed nobody scored is not.
+    """
+    row = noise_floor([11111, 22222], runner=_fake_runner)["seeds"][0]
+
+    assert row.get("priced_decision_fingerprint", "missing") is None, (
+        "the row fingerprinted a roster it never had, so 'not measured' is about to be counted "
+        "as a repeated draw")
+    assert priced_decision_fingerprint([]) is not None, (
+        "an arm that priced nothing scorable was given the same answer as a seed nobody "
+        "measured; those are different states and a repeat count differences them")
+
+
+def test_the_landed_five_seed_family_pins_its_residual_EXACTLY_when_no_priced_decision_moved():
+    """THE EVIDENCE, on the artefact this finding was found in, not on a fixture.
+
+    Ten seed pairs. The lockstep is exactly coextensive with an unchanged roster in BOTH
+    directions -- which is the claim, and a one-directional check would be passed by an
+    instrument whose advantages happened to move together for an unrelated reason. Pair 12-vs-14
+    is the decisive row: a genuinely different world (both advantages moved 162.0809719999961)
+    with an unchanged decision set and a residual identical to fifteen digits.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S COUNT. It asserts the correspondence, never "3 of
+    10 pairs are pinned" -- a re-run of this family at a wider book should move that count and
+    must not red this, while an instrument that started pinning residuals across CHANGED
+    decisions is a different mechanism and must.
+    """
+    import itertools
+    import json as _json
+    from pathlib import Path
+
+    artefact = Path(__file__).resolve().parents[2] / "docs" / "observability" / (
+        "value_cycle_ab_s1_noise_floor_five_seed_head_20260924.json")
+    rows = _json.loads(artefact.read_text(encoding="utf-8"))["seeds"]
+    assert len(rows) >= 2, "the landed family carries no pairs to reconcile"
+
+    pinned_pairs = 0
+    for a, b in itertools.combinations(rows, 2):
+        same_decisions = a["scored_decisions"] == b["scored_decisions"]
+        lockstep = (a["value_advantage_gbp"] - b["value_advantage_gbp"]) == (
+            a["level_advantage_gbp"] - b["level_advantage_gbp"])
+        assert lockstep == same_decisions, (
+            f"seeds {a['seed']} and {b['seed']}: the two advantages moved in lockstep="
+            f"{lockstep} while their priced decision sets were identical={same_decisions}. The "
+            "mechanism behind the pinned residual is not what this control records.")
+        if same_decisions:
+            pinned_pairs += 1
+            assert a["selection_gbp"] == b["selection_gbp"], (
+                f"seeds {a['seed']} and {b['seed']} met one decision set and still differ on the "
+                "residual, so the residual carries something outside the priced renewals")
+
+    # THE RARE BRANCH IS REACHABLE. A family that pinned no pair at all would pass every
+    # assertion above vacuously, and this control's whole subject would be unobserved.
+    assert pinned_pairs > 0, (
+        "no pair in the landed family shares a decision set, so the pinning this control exists "
+        "to characterise was never exercised by it")

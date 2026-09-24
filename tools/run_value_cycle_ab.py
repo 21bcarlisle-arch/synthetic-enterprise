@@ -66,6 +66,7 @@ import argparse
 import ast
 import bisect
 import collections
+import hashlib
 import importlib
 import importlib.util
 import json
@@ -5956,6 +5957,50 @@ def arm_population_instrument(rows: list[dict]) -> dict:
     }
 
 
+def priced_decision_fingerprint(roster: list[dict] | None) -> str | None:
+    """The identity of the decision set a seed's residual was taken over.
+
+    WHY A FLOOR FAMILY NEEDS THIS, and it is the whole reason `selection_gbp` pins. The residual
+    is `value_arm_net - level_arm_net`: the control arm cancels algebraically, and the two
+    surviving arms differ by the renewal-margin rule and by NOTHING else. So every pound the
+    elasticity re-draw moves OUTSIDE the renewals the value arm priced lands in both nets
+    identically and cancels -- while both ADVANTAGES, which each subtract the same
+    `control_net_gbp`, move by exactly the same amount. A seed pair whose priced decisions did
+    not change therefore reports its two advantages moving in lockstep to the last digit and its
+    residual not moving at all. That is not a small dispersion; it is a structural zero.
+
+    MEASURED, NOT ARGUED, on the five-seed HEAD family (`..._five_seed_head_20260924.json`).
+    Across its ten seed pairs the lockstep is exactly coextensive with an unchanged roster: the
+    three pairs with identical `scored_decisions` are the three with `d(value_advantage) ==
+    d(level_advantage)` and `d(selection_gbp) == 0.0`; the seven with a changed roster are the
+    seven with neither. No exceptions in either direction. Pair 12-vs-14 is the decisive one --
+    a genuinely different world (both advantages moved 162.0809719999961) with an unchanged
+    decision set and a residual pinned to fifteen digits.
+
+    SO A FAMILY'S sd IS PART DISPERSION AND PART PINNING, and until this field existed no
+    artefact on disk could say which part. The sem is REWARDED by the pinning: a family whose
+    five draws were one decision set would report a spread of zero and declare itself infinitely
+    confident. `n` distinct fingerprints, not `n` seeds, is the count a spread over this
+    instrument is entitled to.
+
+    UNKNOWN IS NOT AGREEMENT. A seed whose run measured no belief has no roster, and a consumer
+    counting distinct fingerprints must not read those as one repeated draw -- which is why this
+    returns None rather than a digest of the empty list, and why the empty list gets a digest of
+    its own. An un-measured seed and a seed that priced nothing are different states.
+    """
+    if roster is None:
+        return None
+    #: The four keys the row already publishes, in the row's own order, keyed by
+    #: (account, term_start) as the roster itself is -- never re-sorted here, because two
+    #: orderings of one decision set are one decision set only if the writer is not free to
+    #: choose between them, and it is not: the roster is the run block's own list.
+    payload = json.dumps(
+        [[d.get("account"), d.get("term_start"), d.get("believed_p_retain"), d.get("retained")]
+         for d in roster],
+        sort_keys=False, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
 def noise_floor(seeds: list[int], report_end: str | None = None,
                 runner=None, symbol: str | None = None,
                 redraw_accounts: list[str] | None = None,
@@ -6086,6 +6131,17 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         # (`generate_value_arms_data` at `_survivorship`), and because the run refuses above
         # unless all three arms agree, so which arm is read is not a free choice being made here.
         seed_books.append(((result.get("book_identity") or {}).get("control_arm")))
+        # THE ROSTER IS BUILT ONCE AND USED TWICE -- published on the row and fingerprinted for
+        # it. A second construction for the fingerprint would let the digest and the roster it
+        # claims to identify drift apart with nothing able to notice, which is the same defect
+        # the roster's own comment below refuses for the AUC.
+        seed_roster = (
+            [{"account": d.get("account"), "term_start": d.get("term_start"),
+              "believed_p_retain": d.get("believed_p_retain"),
+              "retained": d.get("retained")}
+             for d in (bvo.get("scored_decisions") or [])
+             if isinstance(d, dict)]
+            if bvo.get("available") else None)
         rows.append({
             "seed": int(seed),
             #: THE KEY-NEUTRAL TRIO, added 2026-09-10 and always present. The three
@@ -6123,6 +6179,22 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             "level_advantage_gbp": lvs["level_advantage_gbp"],
             "selection_gbp": lvs["selection_gbp"],
             "level_share_of_advantage": lvs["level_share_of_advantage"],
+            # THE THREE NETS THE TWO ADVANTAGES ARE DIFFERENCES OF. Added 2026-09-24, and their
+            # absence is why no floor artefact on disk could attribute its own pinning. The row
+            # published `value_advantage_gbp` and `level_advantage_gbp` -- both of which subtract
+            # `control_net_gbp` -- and dropped all three levels, so a pair whose advantages moved
+            # by an identical amount was indistinguishable between "the control arm moved and
+            # neither other arm did" and "both other arms moved together". They are SUBSCRIPTED,
+            # not `.get`: `level_vs_selection` writes all three unconditionally once `available`
+            # is True, so a run reaching here without them is a changed contract and must refuse
+            # rather than write three silent Nones a consumer would difference.
+            "control_net_gbp": lvs["control_net_gbp"],
+            "value_arm_net_gbp": lvs["value_arm_net_gbp"],
+            "level_arm_net_gbp": lvs["level_arm_net_gbp"],
+            # WHICH DECISION SET THIS SEED'S RESIDUAL WAS TAKEN OVER -- see
+            # `priced_decision_fingerprint` for why a family's sd is not entitled to its seed
+            # count. None where the seed measured no belief, which is UNKNOWN and not agreement.
+            "priced_decision_fingerprint": priced_decision_fingerprint(seed_roster),
             # WHETHER THE ARM KNEW ANYTHING, ON THE SAME ROW AS WHAT IT WON. Added 2026-09-17.
             # A floor family is the only instrument in this repo that draws the advantage more
             # than once, so it is the only one that can put an error bar on the AUC -- and it
@@ -6172,13 +6244,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             # decisions, which is the size of the evidence the rank leg turns on. A family that
             # measures a rank statistic twelve times and keeps none of the rankings cannot be
             # re-read, and re-running it is six days of the only box.
-            "scored_decisions": (
-                [{"account": d.get("account"), "term_start": d.get("term_start"),
-                  "believed_p_retain": d.get("believed_p_retain"),
-                  "retained": d.get("retained")}
-                 for d in (bvo.get("scored_decisions") or [])
-                 if isinstance(d, dict)]
-                if bvo.get("available") else None),
+            "scored_decisions": seed_roster,
             "auc_unavailable_because": (
                 None if bvo.get("available")
                 else (bvo.get("why_not")
