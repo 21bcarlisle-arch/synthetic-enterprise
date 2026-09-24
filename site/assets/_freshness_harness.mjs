@@ -73,6 +73,19 @@ function fetchImpl(url) {
   return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(payload) });
 }
 
+// THE READER'S CLOCK IS AN INPUT, SO IT HAS TO BE SUPPLIABLE.
+//
+// The layer's frozen-feed check is the one verdict it does NOT read out of the feed: it asks the
+// clock in front of the reader how long ago the feed was written. A control for it that used the
+// real `Date.now()` would be keyed to today's answer -- green today, and quietly meaningless the
+// day the fixture dates fall out of range. `POESYS_FRESHNESS_NOW` makes that clock a fixture like
+// the feeds themselves.
+//
+// UNSET IS THE INTRINSIC DATE, deliberately: `vm.createContext` gives the context its own real
+// `Date`, so every test written before this one keeps the clock it already had and this shim is
+// invisible to them.
+const NOW_OVERRIDE = process.env.POESYS_FRESHNESS_NOW || null;
+
 const sandbox = {
   document,
   fetch: fetchImpl,
@@ -82,6 +95,18 @@ const sandbox = {
   String, Object, Array, JSON, Math, Number, Boolean, Error,
   location: { origin: "https://poesys.net" },
 };
+if (NOW_OVERRIDE !== null) {
+  const fixed = Date.parse(NOW_OVERRIDE);
+  if (Number.isNaN(fixed)) {
+    console.error("POESYS_FRESHNESS_NOW is not a parseable instant: " + NOW_OVERRIDE);
+    process.exit(2);
+  }
+  // `parse` stays the real one -- only NOW is under the fixture's control. Substituting the whole
+  // of Date would make the layer's date ARITHMETIC a property of this harness, which is the
+  // opposite of what a control wants to establish.
+  sandbox.Date = { now: () => fixed, parse: (s) => Date.parse(s), UTC: Date.UTC };
+}
+
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);

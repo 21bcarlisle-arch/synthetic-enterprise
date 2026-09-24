@@ -252,6 +252,104 @@
     return " The publisher names no live cause for it.";
   }
 
+  /* ------------------------------------------------------------------------
+   * A FROZEN FEED CANNOT REPORT ITS OWN FRESHNESS (2026-09-24).
+   *
+   * Everything above this point -- the as-at line, the "PUBLISHING IS DOWN"
+   * age, and the "PUBLISHING IS FAILING" refusal record landed earlier today
+   * -- is read out of `tick_heartbeat.json`. That file reaches a reader only
+   * when a publish SUCCEEDS. So the one outage none of them can see is the
+   * one where publishing stops altogether: the browser keeps serving the last
+   * copy that made it out, and every field in it is frozen at the values it
+   * held at the last SUCCESSFUL publish -- `published_age_seconds` near zero,
+   * `publisher.state` healthy, because at that instant they were.
+   *
+   * Reproduced against the real asset at origin/main on 2026-09-24, with a
+   * feed frozen on 2026-09-01 (23 days):
+   *
+   *   state : verified
+   *   text  : "Figures as at 2026-09-01 07:00Z -- numbers and runs publish
+   *            every week."
+   *
+   * Not one of the three repairs above can fire there, however long the dark
+   * runs, because each asks the frozen artefact how old the frozen artefact
+   * is. Today's repair made the publisher's refusal VISIBLE; it did not make
+   * it DELIVERABLE, and a banner that can only warn you while the channel it
+   * warns through is working is fail-open exactly where it matters.
+   *
+   * So this one verdict is not read from the feed. `ts_iso` is stamped into
+   * the file when it is WRITTEN; the clock in front of the reader is the one
+   * thing the outage cannot freeze. Their difference is the true age of the
+   * last known good publish, and it grows on its own whatever the feed says.
+   * --------------------------------------------------------------------------*/
+
+  /* The reader's clock minus the feed's own write stamp. `null` when the feed carries no
+     readable stamp -- ABSENT IS NEVER ZERO here, because a missing stamp is precisely how a
+     silent freeze would present if we let it default. */
+  function observedFeedAgeSeconds(hb) {
+    var stamp = hb && hb.ts_iso;
+    if (typeof stamp !== "string" || !stamp) { return null; }
+    var t = Date.parse(stamp);
+    if (isNaN(t)) { return null; }
+    return (Date.now() - t) / 1000;
+  }
+
+  /* What the feed itself says "too old" means. The heartbeat reaches the site on the PUBLISH
+     cadence, not on the tick cadence it is written at, so its own `stale_after_seconds`
+     (cadence + grace) is the right tolerance to hold it to -- and holding it to the feed's own
+     declared number is what keeps this keyed to the property rather than to a literal here. */
+  function declaredStaleAfterSeconds(cp) {
+    if (!cp) { return null; }
+    if (typeof cp.stale_after_seconds === "number" && cp.stale_after_seconds > 0) {
+      return cp.stale_after_seconds;
+    }
+    if (typeof cp.cadence_seconds === "number" && cp.cadence_seconds > 0) {
+      return cp.cadence_seconds;
+    }
+    return null;
+  }
+
+  /* A reader's clock can disagree with ours honestly -- a laptop an hour out is ordinary, and
+     alarming on it would train readers to ignore this line. Beyond that the disagreement is
+     itself the news, because it means no age on this page can be checked. */
+  var CLOCK_SKEW_TOLERANCE_SECONDS = 3600;
+
+  /* THIS CLAUSE SPEAKS ONLY WHEN IT CAN ESTABLISH SOMETHING, and that is a NARROWING worth
+     naming rather than dressing up as fail-closed.
+     The fail-closed instinct says an absent write stamp, an absent cadence or a reader's clock
+     that disagrees should each get a sentence. Each was drafted here and each was wrong:
+       - an absent heartbeat is ALREADY ruled on -- the layer is deliberately quiet, because one
+         missing file suppressing a true banner trades a real signal for a theoretical one;
+       - an absent cadence is the ordinary state of most fixtures and some pages, so a sentence
+         there would fire on healthy pages and train readers past the line that matters --
+         which is the 2026-08-24 noise ruling, arriving through its own repair.
+     Both absences are defects in the feed's PRODUCER and belong on its surface, not shouted at
+     a reader who can do nothing with them.
+     The narrowing is therefore load-bearing, so the live path is held by a control rather than
+     by this comment: `test_the_live_published_feed_carries_the_two_fields_this_check_needs`
+     asks the artefact a browser actually fetches whether it can be graded at all. Without it a
+     producer that quietly stopped emitting `ts_iso` would disable this sentence on the real
+     site without reddening one fixture-driven test. */
+  function feedNotArrivingSentence(hb) {
+    var cp = (hb && hb.content_publish) || null;
+    var age = observedFeedAgeSeconds(hb);
+    if (age === null) { return ""; }
+    /* A reader's clock behind the stamp cannot establish staleness -- and must not be read as
+       freshness either, which is why it returns silence rather than a healthy verdict. */
+    if (age < -CLOCK_SKEW_TOLERANCE_SECONDS) { return ""; }
+    var limit = declaredStaleAfterSeconds(cp);
+    if (limit === null) { return ""; }
+    if (age <= limit) { return ""; }
+    /* The number reported is the one the verdict rests on -- the reader's clock against the
+       stamp -- and the sentence names that, because it will not agree with the age the feed
+       reports about itself, and a reader meeting two ages deserves to know which is which. */
+    return "THIS PAGE IS NOT ARRIVING — nothing has reached the site for " +
+           (age / 86400).toFixed(1) + " days, measured on your clock against the feed's own " +
+           "write stamp, and it is meant to publish at least every " +
+           (limit / 86400).toFixed(1) + " days. Every age this page reports about itself " +
+           "stopped moving then, so treat them all as at least that old.";
+  }
+
   function annotationSentence(d) {
     var a = (d && d.annotation) || {};
     var findings = a.open_findings || 0;
@@ -341,11 +439,24 @@
     var noFigures = carriesNoFigures();
     var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
     var failing = (unknown || noFigures) ? "" : publisherFailureSentence(hb);
-    /* TWO SUBJECTS, ONE VERDICT FOR THE BAR. The age says the deadline has not come; the
-       refusal says the thing that would meet it is broken. Either is enough to make the bar
-       loud, and a reference page (which asserts no figure age) still asserts none. */
+    /* The frozen-feed check is the only one that survives the channel going dark, so it is
+       asked even though the two above have already been asked. A reference page still asserts
+       no figure age -- but it IS still served by this publisher, so "nothing is arriving" is
+       true there too and stays. */
+    /* SCOPED EXACTLY LIKE THE OTHER TWO, and it is not obvious that it should be. A reference
+       page served from a site that stopped publishing three weeks ago IS three weeks old, and
+       the argument for telling its reader is the same argument as everywhere else.
+       Against that stands the 2026-08-24 ruling that publishing status on a page carrying no
+       simulation figure is noise which undermines the honest banners elsewhere -- and that
+       ruling is recorded, while this reading of it is mine. Reversing it is a judgement about
+       what a reference page is FOR, which is not this repair's subject, so it keeps the
+       existing scope and the disagreement is filed rather than settled here. */
+    var notArriving = (unknown || noFigures) ? "" : feedNotArrivingSentence(hb);
+    /* THREE SUBJECTS, ONE VERDICT FOR THE BAR. The age says the deadline has not come; the
+       refusal says the thing that would meet it is broken; the write stamp says nothing has
+       reached the reader at all. Any of the three is enough to make the bar loud. */
     var publishIsDown = !(unknown || noFigures) &&
-      (isStalePublish(hb) || publisherIsFailing(hb));
+      (!!notArriving || isStalePublish(hb) || publisherIsFailing(hb));
     var bar = document.createElement("div");
     bar.className = "poesys-freshness";
     /* A stale publish OUTRANKS a green verification for the banner's state, because it outranks
@@ -370,8 +481,12 @@
     /* The refusal goes ABOVE the as-at line, because it changes how that line should be read:
        "figures as at Monday" means one thing beside a working publisher and another beside one
        that has failed forty-five times since. */
+    /* ABOVE the refusal, which is above the as-at line: same reasoning one turn further out.
+       "The publisher has failed 52 times" is read differently once you know that this very
+       page is a copy that stopped arriving three days ago -- including that sentence itself. */
     bar.innerHTML =
       '<span class="pf-line">' + line + "</span>" +
+      (notArriving ? '<span class="pf-notarriving">' + esc(notArriving) + "</span>" : "") +
       (failing ? '<span class="pf-failing">' + esc(failing) + "</span>" : "") +
       (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "") +
       (note ? '<span class="pf-note">' + esc(note) + "</span>" : "");
@@ -384,6 +499,7 @@
       ".poesys-freshness .pf-note{display:block;margin-top:3px}" +
       ".poesys-freshness .pf-stale{display:block;margin-top:3px;font-weight:700}" +
       ".poesys-freshness .pf-failing{display:block;margin-top:3px;font-weight:700}" +
+      ".poesys-freshness .pf-notarriving{display:block;margin-top:3px;font-weight:700}" +
       '.poesys-freshness[data-freshness-state="paused"],' +
       '.poesys-freshness[data-freshness-state="unknown"]' +
       "{background:var(--amber-soft,#fdf3e0);color:var(--text,#111);font-weight:600}" +
