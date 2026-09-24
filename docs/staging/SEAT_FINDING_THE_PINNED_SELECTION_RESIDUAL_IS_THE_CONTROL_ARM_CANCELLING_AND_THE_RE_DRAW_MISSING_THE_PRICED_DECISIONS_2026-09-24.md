@@ -120,7 +120,44 @@ pinned all five draws would report a spread of zero and declare itself infinitel
     they add nothing at the floor and a whole draw at the ceiling. The floor carries its own
     falsifier and is withdrawn, loudly, on any family where a fingerprint appears on two seeds
     whose residuals differ.
-  - **STILL OWED, and this is the half that reaches a reader who is not holding the JSON:**
+  - **CLOSED at `2ed53bcaf` (2026-09-24). The page states it.** `_error_bar` now publishes
+    `priced_decision_draws`, and the capabilities page renders "those 18 seeds are between 15 and
+    18 distinct draws of it" in amber, with the reason it is a RANGE beside it. The count is
+    DERIVED through `fold_noise_floor_family`'s own function over the floor's own seed rows, so it
+    has one home and no watched artefact was re-folded -- which is what let this land without
+    owing the served family's promotion in the same commit. The sentence stating the bar no longer
+    calls the seed count a draw count ("18 draws set" -> "18 seed re-draws set").
+    - `the_published_n_overstates_the_draws` is THREE-VALUED, and its first draft was wrong in the
+      flattering direction: written `at_most < seeds` it returned `False` on this very family --
+      18 seeds, 15 to 18 draws -- and `False` there reads as "the standard error is taken over the
+      count it is entitled to". Caught by printing the block at real inputs before shipping it,
+      not by more thinking. `False` is now reserved for the family KNOWN clean, `True` for the one
+      KNOWN to overstate, `None` for the one that cannot tell. Both reachable branches are
+      exercised on real families on disk: this floor reads `None`, and
+      `..._five_seed_head_20260924.json` reads `True` at 5 seeds and exactly 3 draws.
+    - The re-grade at the floor is NAMED, never recomputed: `width_if_each_value_counted_once` has
+      recomputed this interval over the same 15 since 2026-09-23, and `the_floor_regrade_agrees`
+      witnesses that the two counts still coincide -- a claim that can go false the day a family
+      lands carrying real fingerprints, because two distinct decision sets can return one residual.
+    - Six mutations proven to bite, three on the renderer and three on the producer, and the three
+      rendered readings are asserted PAIRWISE DISTINCT rather than leg by leg. The colour leg's own
+      first draft could not fail: `arms-errorbar` opens with an unconditional amber heading, so
+      `"var(--amber)" in raw` was true of every branch and it graded the heading instead of the
+      sentence under test. Found by running it; it is now scoped to its own span.
+
+  - **WHAT IS STILL OWED, and it is no longer the reader's half:** the headline sem is still taken
+    over 18. That is the honest figure to publish while the count is a BOUND -- substituting a
+    floor for `n` would state a confidence the evidence does not establish, and the sensitivity at
+    that floor is already published beside it (2.4954 sems -> 2.4941; the family still clears). The
+    arithmetic can only move to the entitled count on a family that RECORDS its rosters, which no
+    published floor does. So the next piece is a re-fold or re-run of the served family carrying
+    `scored_decisions`, after which `draws_the_spread_is_entitled_to` is EXACT and
+    `sems_to_state_a_sign` can take it. That is a different piece of work with a different
+    blocker, and it should be drawn on its own terms rather than inside this one.
+
+  - **WHAT THIS BULLET SAID BEFORE `2ed53bcaf`, kept beside what closed it — a claim about what was
+    owed, left next to its result, is the only evidence the order was decided before the answer was
+    known:**
     `generate_value_arms_data` does not read the new block, and no published floor artefact has
     been re-folded to carry one — deliberately, because regenerating a watched artefact makes its
     promotion owed in the same commit and the served family is the republish lane's. So the page

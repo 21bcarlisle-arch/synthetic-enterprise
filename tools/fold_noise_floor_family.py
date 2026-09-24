@@ -482,6 +482,157 @@ def _priced_decision_draws(rows: list) -> dict:
     }
 
 
+#: THE ONE LEG A DRAW REGRADE IS DEFINED FOR, and this is a fact about the arithmetic and not a
+#: scoping convenience -- `regrade_over_distinct_draws` says why, and refuses every other key
+#: rather than silently returning a number over a quantity nobody defined.
+REGRADABLE_LEG = "selection_gbp"
+
+
+def regrade_over_distinct_draws(rows: list, key: str = REGRADABLE_LEG) -> dict:
+    """The selection leg recomputed over the family's DISTINCT DRAWS instead of over its seeds.
+
+    WHY THE OBVIOUS SUBSTITUTION IS A THIRD OF THE CORRECTION. The direction that commissioned this
+    asked for `sems_to_state_a_sign` to take the draw count "instead of `selection['n']`". That
+    moves ONE of the three terms a repeated draw touches. The verdict is `|mean| > bar * sem`, with
+    `sem = stdev / sqrt(n)` and `bar = t(n - 1)`; when two seeds met the same priced-decision set
+    their residuals are identical, and that duplication
+
+      * takes `bar` at too many degrees of freedom -- the half the direction named;
+      * DEFLATES `stdev`, because an exact duplicate sits at no distance from its twin;
+      * INFLATES `sqrt(n)` in the denominator of the sem.
+
+    Moving only the first is conservative but incoherent: it grades a sem taken over seeds at a bar
+    earned by draws, and publishing that as "the draw count's answer" would state a confidence over
+    a quantity that is neither. So the whole leg is recomputed over the collapsed family, through
+    `_leg` -- the same estimator the seed-count reading uses, one call, not a second rule.
+
+    SCOPED TO THE RESIDUAL, AND THE REFUSAL IS REACHED ON REAL DATA. `selection_gbp` is
+    `value_arm_net - level_arm_net`: the control arm cancels, so the residual cannot move unless a
+    priced decision moves, which is exactly what makes "one decision set is one draw" the right
+    unit for it. That argument does NOT carry to a leg the control arm survives in. On
+    `..._five_seed_head_20260924.json` seeds 12, 14 and 15 share one fingerprint and one residual
+    to the last digit, and seed 12 disagrees with the other two about
+    `level_share_of_advantage` -- so collapsing that leg by decision set would average away a real
+    difference and call the result one draw. A key whose members disagree inside a group is
+    therefore an unavailable naming the group, never a mean.
+
+    FAILS CLOSED ON EVERY FAMILY PUBLISHED TO DATE, which is the point rather than a limitation.
+    The regrade needs an EXACT draw count, and that needs every row to record its decision set.
+    The served family (`NOISE_FLOOR_PATH`, 18 seeds, bound 15-18) recorded none, so this returns an
+    unavailable with the reason and NOTHING on the page moves. The day a floor is drawn whose rows
+    carry `scored_decisions`, the regrade appears beside the seed-count reading with nobody editing
+    a string -- keyed to the property, not to today's answer.
+
+    MEASURED, AND THE PREDICTION IT REFUTED IS KEPT HERE. Pre-registered before running (see
+    `docs/staging/records/PREREG_THE_DRAW_REGRADE_ON_THE_ONLY_ROSTER_CARRYING_FAMILY_2026-09-24.md`): I
+    predicted the collapse would flip the five-seed head's sign verdict. It does not. Five seeds
+    over three draws move the required margin from GBP 140.34 to GBP 384.05 -- x2.74, a far larger
+    correction than the bar-only substitution's x1.55 -- and the leg still clears, at 15.98 errors
+    from zero against 28.64. Two predictions held (the collapsed stdev rose, 113.03 -> 154.60; the
+    margin more than doubled) and the headline one was wrong. The useful reading is that this is a
+    large correction to a STATED CONFIDENCE that changes no verdict on the only family able to
+    answer -- so the instrument can adopt it without any published sign depending on the change.
+    """
+    counted = _priced_decision_draws(rows)
+    exact = counted["draws_the_spread_is_entitled_to"]
+    unavailable = {
+        "available": False,
+        "leg": key,
+        "draws": exact,
+        "seeds_in_family": counted["seeds_in_family"],
+        "regraded_leg": None,
+        "seed_count_leg": None,
+    }
+
+    if exact is None:
+        return dict(unavailable, unavailable_because=(
+            "this family's draw count is a bound ({} to {}) and not a number, because {} of its "
+            "{} seed rows record no decision set. Regrading over a bound would require guessing "
+            "which seeds repeated, and reading the unknowns as repeats shrinks a spread that is "
+            "already too narrow -- the direction this instrument errs in. Re-run with rows that "
+            "carry `scored_decisions`.".format(
+                counted["at_least"], counted["at_most"],
+                counted["seeds_with_an_unknown_decision_set"], counted["seeds_in_family"])))
+
+    if counted["the_residual_floor_is_refuted_by"]:
+        return dict(unavailable, unavailable_because=(
+            "the residual floor is REFUTED on this family: {} fingerprint(s) sit on seeds whose "
+            "residuals differ. A decision set that does not pin the residual is not a draw of one "
+            "value, so there is no single number to collapse those seeds to.".format(
+                len(counted["the_residual_floor_is_refuted_by"]))))
+
+    #: ONE GROUP PER DECISION SET, and a group that does not agree about `key` is a refusal rather
+    #: than a mean. See the docstring: the coextension is measured for the residual and does not
+    #: extend to legs the control arm survives in.
+    groups: dict = {}
+    for row in rows:
+        fingerprint, _, _ = _fingerprint_of(row)
+        groups.setdefault(fingerprint, []).append(row.get(key))
+
+    disagreeing = sorted(f for f, values in groups.items() if len({
+        v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)}) > 1)
+    if disagreeing:
+        return dict(unavailable, unavailable_because=(
+            "`{}` is not constant within a decision set on this family: {} fingerprint(s) "
+            "({}) carry more than one value for it. The residual cannot move unless a priced "
+            "decision moves, which is what licenses collapsing seeds by decision set; a leg the "
+            "control arm does not cancel out of carries movement this collapse would average "
+            "away. Regrade `{}`, or nothing.".format(
+                key, len(disagreeing), ", ".join(f[:12] for f in disagreeing), REGRADABLE_LEG)))
+
+    missing = sorted(f for f, values in groups.items() if not any(
+        isinstance(v, (int, float)) and not isinstance(v, bool) for v in values))
+    if missing:
+        return dict(unavailable, unavailable_because=(
+            "{} decision set(s) on this family carry no `{}` at all, so the collapsed family "
+            "would be smaller than the draw count beside it and the two would not describe the "
+            "same thing.".format(len(missing), key)))
+
+    collapsed = [{key: next(v for v in values if isinstance(v, (int, float))
+                            and not isinstance(v, bool))}
+                 for values in groups.values()]
+    regraded = _leg(collapsed, key)
+    over_seeds = _leg(rows, key)
+
+    def _margin(leg: dict):
+        bar, sem = leg["sems_needed_to_state_a_sign"], leg["sem_gbp"]
+        return None if bar is None or sem is None else bar * sem
+
+    return {
+        "available": True,
+        "leg": key,
+        "draws": exact,
+        "seeds_in_family": counted["seeds_in_family"],
+        "unavailable_because": None,
+        #: THE LEG OVER DRAWS, and the same leg over seeds beside it. BOTH, because the reader's
+        #: question is what the regrade CHANGED, and a page given only the new number cannot tell
+        #: a correction from a re-run.
+        "regraded_leg": regraded,
+        "seed_count_leg": over_seeds,
+        "margin_required_over_draws_gbp": _margin(regraded),
+        "margin_required_over_seeds_gbp": _margin(over_seeds),
+        #: WHETHER THE CORRECTION MOVED THE ANSWER, as against moving the arithmetic. `False` here
+        #: with a large margin ratio is a real and useful reading -- it says the published sign
+        #: does not depend on the seed/draw confusion -- and it is NOT the same as the correction
+        #: being small. `None` where either side could not be graded.
+        "the_verdict_changed": (
+            None if regraded["distinguishable_from_zero"] is None
+            or over_seeds["distinguishable_from_zero"] is None
+            else regraded["distinguishable_from_zero"]
+            != over_seeds["distinguishable_from_zero"]),
+        "how_to_read_this": (
+            "This family was RUN {seeds} times and met {draws} distinct priced-decision sets. "
+            "`seed_count_leg` is the leg every consumer reads today, taken over the {seeds} runs. "
+            "`regraded_leg` is the same estimator over the {draws} draws, which corrects the "
+            "standard error, its degrees of freedom AND the dispersion together -- substituting "
+            "the draw count into the bar alone would move one of the three and grade a sem taken "
+            "over seeds at a bar earned by draws. Read `the_verdict_changed` before reading "
+            "either: a correction that does not move the sign says the published claim never "
+            "rested on the difference.".format(
+                seeds=counted["seeds_in_family"], draws=exact)),
+    }
+
+
 def summarise(rows: list) -> dict:
     """The producer's own summary block, recomputed over the folded rows.
 
@@ -525,6 +676,13 @@ def summarise(rows: list) -> dict:
         #: of those seeds met a decision set the family had not already seen, and the selection
         #: leg's sem is the figure it bears on. See `_priced_decision_draws`.
         "priced_decision_draws": _priced_decision_draws(rows),
+        #: THE SELECTION LEG RECOMPUTED OVER THOSE DRAWS, or a named unavailable. It sits beside
+        #: the count rather than replacing any field above: every consumer keyed to
+        #: `selection_sem_gbp` keeps reading the seed-count answer, and a consumer that wants the
+        #: draw-count answer has to ask for it and gets told when it does not exist. Silently
+        #: swapping the published sem would change the meaning of a field under readers who
+        #: cannot see that it moved. See `regrade_over_distinct_draws`.
+        "selection_leg_regraded_over_draws": regrade_over_distinct_draws(rows),
         "how_to_read_the_two_legs": (
             "`value_leg` is what the arm beat the control by. `level_leg` is what a FLAT rule "
             "charging the same median margin, with no per-customer inference at all, beat the "
