@@ -1470,6 +1470,46 @@ def _archive_marker(marker):
         return True
 
 
+def _stamp_publish_outcome_on_archived_marker(marker_name, reason, done_dir=None):
+    """Write into the ARCHIVED marker whether the publish that followed it landed.
+
+    WHY ONLY THE FAILURES ARE WRITTEN. On a landed publish the marker is already
+    committed, the archive's own implication is true, and appending here would leave a
+    tracked file dirty in a shared tree for a fact nobody needed stated. On a publish
+    that did NOT land there is no commit to dirty -- the marker sits untracked in done/
+    either way -- and the statement is the only thing that distinguishes it from a
+    success. So the asymmetry is not laziness: the tag exists precisely where the
+    location lies. `staging_archive_policy.publish_did_not_land` reads absence as
+    "published" for the same reason, and its docstring carries the livelock argument.
+
+    Never raises. A marker that could not be stamped leaves the frontier exactly where
+    it was before this mechanism existed, which is the defect -- bad, but strictly
+    better than a publisher that dies on its bookkeeping after the publish is decided.
+
+    Returns True when a tag was written.
+    """
+    if reason in PUBLISH_LANDED_OUTCOMES:
+        return False
+    try:
+        from background import staging_archive_policy
+        archived = staging_archive_policy.locate(
+            marker_name, done_dir=Path(done_dir) if done_dir is not None else DONE_DIR)
+        if archived is None:
+            log("Publish outcome not stamped: {} is in neither done/ nor the exhaust tree, so "
+                "the supersession frontier may still read its archiving as a publication."
+                .format(marker_name))
+            return False
+        with open(archived, "a") as fh:
+            fh.write(staging_archive_policy.publish_outcome_note(reason))
+        log("Stamped {} with publish outcome '{}' -- it cannot retire a queued snapshot."
+            .format(marker_name, reason or "not recorded"))
+        return True
+    except Exception as exc:  # noqa: BLE001 -- bookkeeping may never break a decided publish
+        log("Publish outcome not stamped on {} ({}) -- the supersession frontier may read this "
+            "archiving as a publication.".format(marker_name, exc))
+        return False
+
+
 def log(msg):
     # A TEST PROCESS MAY NOT WRITE THE LIVE sim-runner-log (2026-08-21). This is the file the
     # PUBLISHING DOWN alarm sends a human to, and on 2026-08-21 it took six fabricated gate
@@ -5532,6 +5572,20 @@ COMMITTED_DELIVERY_DEFERRED = "committed_delivery_deferred"
 #: is unfinished: something it produced has not been delivered, and a fingerprint would retire
 #: the marker as processed while the verdict on it is still owed.
 RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
+#: Outcomes after which the surfaces this run regenerated ARE the current ones -- committed, or
+#: already identical to what was committed. This is the SUPERSESSION question and it is a third
+#: question, not a restatement of the two above: "may a run still queued behind this one be
+#: retired unpublished?". It differs from `RETRYABLE_PUBLISH_OUTCOMES` on exactly one member and
+#: that member is why it has to exist separately. `COMMITTED_DELIVERY_DEFERRED` is deliberately
+#: NOT retryable -- the verdict on its delivery is still owed -- and just as deliberately IS
+#: landed here: the content is committed, so republishing an older snapshot over it would wind
+#: the published clock backwards, which is the fidelity regression supersession exists to stop.
+#:
+#: EVERYTHING UNLISTED IS "DID NOT LAND", including an unrecorded reason. A new failure branch
+#: added later fails toward keeping older markers queued, which costs a republish cycle; the
+#: other direction costs a snapshot retired as published when nothing published, which is the
+#: defect this set was written for (2026-09-24).
+PUBLISH_LANDED_OUTCOMES = RETRYABLE_PUBLISH_OUTCOMES | {COMMITTED_DELIVERY_DEFERRED}
 #: Outcomes that report their OWN exit code rather than the generic EXIT_PUBLISH_DID_NOT_LAND,
 #: because the reader is sent somewhere different to look. Kept as a mapping beside the closed
 #: set above so `publish_exit_code` stays the single place both answers are decided.
@@ -10531,6 +10585,13 @@ def _process(marker_path_str):
     # changed. Twenty-one consecutive timeouts, and the fingerprint kept every one of them from
     # being retried.
     reason = publish_outcome.get("reason")
+    # THE THIRD CONSEQUENCE OF THE NAMED OUTCOME (2026-09-24). The marker was moved into done/
+    # above, BEFORE the commit, so that the archive lands in the same commit as the run -- which
+    # means its location says nothing about whether this publish worked, and the supersession
+    # frontier in background_worker was reading exactly that location as proof of publication.
+    # This is the cheapest honest fix: say it in the file, at the one instant the answer is
+    # known, so the frontier reads a fact instead of inferring one.
+    _stamp_publish_outcome_on_archived_marker(marker.name, reason)
     if reason in RETRYABLE_PUBLISH_OUTCOMES:
         _write_last_fingerprint(fingerprint)
     else:
