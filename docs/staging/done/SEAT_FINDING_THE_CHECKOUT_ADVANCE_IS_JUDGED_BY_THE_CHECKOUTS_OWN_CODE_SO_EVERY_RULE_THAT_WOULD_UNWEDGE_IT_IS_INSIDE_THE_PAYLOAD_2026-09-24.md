@@ -97,8 +97,8 @@ deliberately."*
 ## Pre-registration, scored
 
 1. **Divergence is the binding refusal, no path class reached.** ✅ CONFIRMED. `ahead == 5`.
-2. **Ahead closes without me; behind GROWS.** ⏳ NOT YET SETTLED — the reconciler's merge was still
-   in the gate when this was written (12:52 elapsed). Recorded unresolved rather than inferred.
+2. **Ahead closes without me; behind GROWS.** ✅ **CONFIRMED** — settled while this finding's own
+   commit was in the gate, and scored in the addendum below rather than back-filled here.
 3. **The comment-revert path grades `refreshable`, and rule 1b is why.** ✅ CONFIRMED, **and the
    placebo arm is what confirms it.** Without arm A this would have been the flattering reading —
    "the verdict is there, so the rule works" — with no evidence the rule was what produced it.
@@ -137,3 +137,38 @@ Advance the shared tree, or clear any of another lane's working copies in it. Th
 the ahead leg and was mid-gate; four of the thirteen blockers are judgements the machinery
 explicitly refuses to make unattended; and this invocation's isolation from the shared index is the
 only reason it was allowed to run at all.
+
+---
+
+## 2026-09-24, +50 min — prediction 2 settled, and the new field earned its keep in public
+
+The whole series, every reading from `deploy_restart.checkout_drift()` on the shared tree, taken
+across this turn while `c72c41e4c` sat in its own gate:
+
+| time | behind | ahead | contains_origin | gap_paths | stale_judges |
+|---|---|---|---|---|---|
+| 18:07 | 28 | 5 | False | 48 | *(field did not exist)* |
+| 18:38 | 28 | 6 | False | 49 | `stale_copy_refusal`, `refresh_to_head` |
+| 18:46 | 29 | **1** | False | 40 | `stale_copy_refusal`, `refresh_to_head` |
+| 19:05 | **31** | 1 | False | 45 | `stale_copy_refusal`, `refresh_to_head` |
+
+**Prediction 2 CONFIRMED, and by the exact mechanism predicted.** `ahead` fell 5 → 1 without any
+act of mine — `origin_reconcile`'s merge closed it. `behind` did not fall with it: it ROSE, 28 → 31.
+`contains_origin` was False at the start and False at the end, and the reason changed underneath it
+from *diverged* to *merely behind*. This is the shape already in this seat's memory — *the ahead leg
+closes and the behind leg grows, so `contains_origin` stays false for the opposite reason* — and it
+is now measured end-to-end in one window rather than inferred across two.
+
+It also disposes of the drawn item's framing. Closing the ahead leg was never the blocker a seat
+needed to act on; the reconciler does it unattended and did it here within the hour. What no
+cadence closes is `behind`, and what nothing at all noticed until this commit is that
+`stale_judges` never moved off two names through the entire series.
+
+**The field is not reporting a transient.** Both judges were stale at every reading, across four
+merges, two of them landed by the reconciler and one by this lane. A wedge that persists through
+three tree advances is not a race — and prior to `c72c41e4c` no surface anywhere printed it.
+
+One thing this addendum deliberately does not claim: that `behind` rising is a defect. Origin is
+being landed onto by several lanes continuously, so a growing `behind` on a checkout that never
+advances is arithmetic, not pathology. The pathology is `contains_origin: False` holding for 30+
+commits while every automatic remedy reports success — which is the finding above, not this table.
