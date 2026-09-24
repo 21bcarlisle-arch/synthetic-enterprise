@@ -626,17 +626,26 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <p id="arms-errorbar" style="margin:14px 0 0;"></p>
   <!-- WHY THE CHOOSING HAS SO LITTLE TO FIND. The two elements above say the selection leg is
        negative and refuse it a sign; neither says why a per-customer arm should have anything to
-       win in the first place. This does, and it is not a reading of any run: consumption reaches
-       the company's churn belief through ONE term that is identically zero below a declared bill
-       threshold, so the belief is exactly flat in household size for 235 of 244 supply legs --
-       over a book where the world's own churn response spans 11.57x in that same dimension.
+       win in the first place. This does, by naming the CHANNEL rather than a verdict: consumption
+       reaches the company's churn belief through one size term, and whether that term is live is
+       what decides if a per-customer arm has anything to price against a world whose own churn
+       response spans 11.57x in that same dimension.
        It sits HERE, immediately under the bar, on this page's ordering rule: a reader who meets
        the refusal and leaves has been told the measurement was inconclusive, when the mechanism
        says where the conclusion would have had to come from. Nothing is authored in this block;
        the sentence is `churn_belief_size.reading`, lifted verbatim from the artefact that
        measured it, and the population caveat beside it is that artefact's own -- this book is
        NOT the book the arms above are scored over, and the page says so rather than letting the
-       adjacency imply it. -->
+       adjacency imply it.
+
+       THIS COMMENT NO LONGER STATES THE READING, AND THAT IS THE REPAIR, 2026-09-24. It used to
+       argue the placement from "the belief is exactly flat in household size for 235 of 244
+       supply legs" -- a count copied out of the artefact and frozen here. `fc390b918` gave
+       `estimate_churn_probability` a live size term and inverted it: the artefact now reads that
+       the belief HEARS size for most of the book. The placement argument never depended on which
+       way that came out, so restating the answer beside the block that renders it bought nothing
+       and rotted silently the moment the belief changed. The rule this page is built on -- key a
+       comment to the property, never to today's answer -- is the one that was broken. -->
   <div id="arms-churn-belief-size" style="margin:14px 0 0;"></div>
   <!-- AND THE RULER UNDER IT. The block above reports what `fc390b918` CHANGED about the belief
        and quotes the movement that commit published; this says whether that movement can be told
@@ -654,7 +663,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        bar and the page says so in the same type size as the one that does. -->
   <div id="arms-size-term-floor" style="margin:14px 0 0;"></div>
   <!-- AND WHAT ACTUALLY HAPPENED. The block above is a property of the MODEL argued from the
-       code: the belief is flat in the dimension the world reacts to. This is the OUTCOME test
+       code: how far the belief moves in the dimension the world reacts to, whichever way the
+       artefact currently reads it. This is the OUTCOME test
        of the same claim, on the route where this section's arms actually price -- did that
        belief put the accounts that left above the ones that stayed. It is the most direct test
        this company has of its own thesis; it was graded with a permutation null and a ceiling
@@ -2878,9 +2888,24 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          able to soften on its way to a reader.
 
          AMBER, AND UNCONDITIONALLY SO. Every other verdict colour on this page branches, because
-         elsewhere there are two states to tell apart. There are not two here: a per-customer
-         belief that is flat in the dimension the world reacts to is the finding whenever this
-         block renders at all, and a branch would only ever be a way of rendering it quietly.
+         elsewhere there are two states to tell apart. There are not two here: whenever this block
+         renders at all, the company's per-customer belief and the world's own ordering of
+         departures have been measured against each other and found to disagree in SOME direction,
+         and a branch would only ever be a way of rendering that quietly. The colour is keyed to
+         the block rendering, not to which way the disagreement ran -- which is why `fc390b918`
+         inverting the belief from deaf to hearing did not change it.
+
+         THAT LAST SENTENCE IS A REPAIR, 2026-09-24. This note used to justify the unconditional
+         amber with "a belief that is flat in the dimension the world reacts to is the finding
+         whenever this block renders" -- one of the two states named as if it were the only one.
+         The belief is no longer flat and the amber is still right, so the old justification was
+         not merely stale: it was arguing an unconditional colour from a condition, and it would
+         have read as a licence to branch the moment anyone noticed the condition had failed.
+
+         NOT YET ASKED, and it is the open question under this block: whether amber is still the
+         right colour now the disagreement has inverted. It is a judgement about what the belief
+         now MEANS for a reader, which belongs to the lane that owns the churn belief, not to the
+         pass that repaired this comment. Filed rather than decided here.
 
          THE POPULATION LINE IS NOT DECORATION. This artefact's book is `customers.json`'s 244
          supply legs, which is NOT the book the arms comparison is scored over -- and a figure

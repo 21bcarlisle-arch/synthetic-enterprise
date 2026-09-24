@@ -108,15 +108,15 @@
   "leg_annual_bill_gbp": {
    "min": 9.1,
    "p10": 394.5,
-   "p50": 742.2,
+   "p50": 745.2,
    "p90": 1648.7,
-   "max": 13128.6
+   "max": 13129.0
   },
   "leg_annual_kwh": {
-   "min": 55.0,
+   "min": 58.0,
    "p10": 1638.7,
    "p50": 3834.8,
-   "p90": 12976.5,
+   "p90": 12976.2,
    "max": 41430.8
   },
   "world_multiplier_over_this_book": {
@@ -207,14 +207,14 @@
      "segment": "resi",
      "fuel": "electricity",
      "annual_kwh": 11459.0,
-     "bill_upper_bound_gbp": 3372.0
+     "bill_upper_bound_gbp": 3373.0
     },
     {
      "cid": "PROS-2019-0302",
      "segment": "resi",
      "fuel": "electricity",
      "annual_kwh": 11339.0,
-     "bill_upper_bound_gbp": 4041.0
+     "bill_upper_bound_gbp": 4042.0
     }
    ],
    "each_leg_at_its_own_rate": "Each leg is probed at the rate it was billed at (its own revenue over its own kWh), not at a common probe rate. The bill-stress ceiling that makes the belief deaf sits at a consumption set by the price deck, so a common rate would put the whole book on one side of an edge no household is actually on."
@@ -253,14 +253,14 @@
     "segment": "resi",
     "fuel": "electricity",
     "annual_kwh": 11339.0,
-    "bill_upper_bound_gbp": 4041.0
+    "bill_upper_bound_gbp": 4042.0
    },
    {
     "cid": "C8",
     "segment": "resi",
     "fuel": "electricity",
     "annual_kwh": 11459.0,
-    "bill_upper_bound_gbp": 3372.0
+    "bill_upper_bound_gbp": 3373.0
    },
    {
     "cid": "PROS-2018-0192",
