@@ -116,3 +116,79 @@ cause be seen at all — the publisher said why, in words, on the surface. The g
 go unnamed; it is that nothing keeps the *series*. A reader of the state file sees one `failures`
 entry of length 1 and a 54-hour clock, and cannot recover that four different preconditions failed
 in sequence. The control should append, never replace.
+
+## A fifth cause, and it is a BLIND INSTRUMENT — the fixture, not the code
+
+*Appended 2026-09-24 by the delivery seat, claim
+`the-one-red-the-publish-gate-cites-collapses-both-legs-of-its-own-discrimination`. Pre-registration:
+`docs/staging/records/SEAT_PREREG_IS_THE_COLLAPSED_WEDGE_DISCRIMINATION_A_BLIND_FIXTURE_OR_A_COLLAPSING_PRODUCTION_BRANCH_2026-09-24.md`,
+written before the fixture was touched.*
+
+The fourth cause was cleared. The publish gate then cited exactly one red, and it is a test:
+
+> `tests/background/test_the_liveness_surfaces_refusals_left_only_an_orphaned_log_line.py::
+> test_a_wedged_tree_and_a_hot_origin_are_told_apart_in_the_record`
+
+**The question this document's series makes worth asking: is the publisher blocked by a broken
+instrument, or by production code that genuinely collapses two states into one string?** The
+flattering answer is the first, so it was pre-registered before it was measured.
+
+### It is the first, and it is ONE command
+
+`_refused_advance_cause` (`background/process_run_complete.py:6021`) calls
+`origin_reconcile.commits_ahead` inside its own `try`. That shells `git rev-list --count
+origin/main..HEAD`. The fixture's catch-all — correctly fail-closed since 2026-09-17 — raised
+`AssertionError`, the function's broad `except` caught it, and it returned *"whether this is a
+dirty-tree collision was NOT established"* **for every input**, discarding `blocking` (the one
+argument that differs between a wedge and a hot origin) before `_blocking_clause` ever saw it. Both
+legs therefore ended in the same sentence and the inequality red.
+
+Production's discrimination was never reached. With the command modelled, it works:
+
+* **wedged** — *"…a tracked file this tree has edited is holding the shared tree behind origin …
+  Refused by 1 path(s): `background/process_run_complete.py` (modified here, and origin changes it
+  too)"*, 900 chars, naming the holder and the KIND.
+* **hot origin** — *"nothing local collides … NOTHING local collides with what origin brings"*,
+  728 chars.
+
+### One-variable attribution, both directions
+
+| Variant | Result |
+|---|---|
+| HEAD | 1 red — the discrimination |
+| all four commands modelled | 16 green |
+| `rev-list` alone removed, other three modelled | the **same** red returns |
+| `merge-tree`/`diff` removed, `rev-list` modelled | discrimination **green** |
+
+So `git rev-list --count` is the collapsing command and the other two are not. The prediction filed
+before the run said exactly this and is confirmed.
+
+### …and the reachability leg found a SECOND blindness the refusal legs could not
+
+The pre-registration's own warning — *"clearing the first is the flattering place to stop"* — earned
+its place. `merge-tree`/`diff` changing no verdict is not a reason to model them and move on; it is
+evidence they are unreachable. They were. `_drive` passed the publish path **relative**
+(`"site/data/tick_heartbeat.json"`) where both production callers pass it **absolute**
+(`str(PROJECT_DIR / rel)`, `str(_prov.PROVENANCE_FILE)`). `_our_publish_paths` does
+`Path(p).resolve().relative_to(PROJECT_DIR)`, which takes its documented *"a path outside the repo
+cannot be compared"* exit for a relative path — so `_publish_surface_collisions` answered `None` for
+**every test in the file**, every `ahead > 0` leg refused on *"overlap with our own paths NOT
+ESTABLISHED, so fail-closed"*, and the 2026-09-16 disjointness narrowing had no control on it here
+at all.
+
+**No refusal leg could ever have shown this**, because the fixture's blindness and the code's
+judgement produce the identical verdict — this file's own most-repeated lesson, one layer down in a
+fake. It took the leg that requires an **admission**:
+`test_a_behind_origin_publish_origin_is_NOWHERE_NEAR_is_admitted_not_refused`. That leg is now what
+makes `merge-tree`/`diff` load-bearing, and with it removed the suite goes red.
+
+### What this cause is, in the series' own terms
+
+Causes 1–4 were states of the tree. **This one is a state of the instrument**, and it is the first
+in the series that could not have been cleared by any action on the tree. It also fits the series'
+thesis exactly: it was invisible until cause 4 was cleared, and clearing it needed a pre-registered
+question because the cheap reading — "the test is red, the code must be wrong" — points the wrong
+way.
+
+**What is NOT claimed.** `last_clean_publish` has not moved. This clears the one red the gate cites;
+whether a publish cycle then completes is the next observation, not this one's result.
