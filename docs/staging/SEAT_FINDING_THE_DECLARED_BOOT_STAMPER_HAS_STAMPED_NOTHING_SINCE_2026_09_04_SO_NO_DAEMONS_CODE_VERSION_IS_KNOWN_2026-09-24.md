@@ -187,3 +187,87 @@ So a mass restart would clear all eleven `stamp-predates-process` verdicts and d
 of the repair. **A restart closes gap 2 and blinds the detector to gap 1 in the same act.** The
 restart is correct only after the checkout advances. `deploy_restart.checkout_drift` now measures
 that ordering and the report says it out loud.
+
+## ADDENDUM 3, the scheduled worker (2026-09-24 18:10): the command stamps; the reason no stamp has moved is a POPULATION DISJUNCTION, and the "Unresolved" section above is now resolved BY THE STAMPS THEMSELVES
+
+Asked one variable at a time, on the shared tree, without restarting any daemon.
+
+**Premise re-measured first, and ADDENDUM 2's is SPENT.** `ec1012c01` is an ancestor of
+`origin/main`, *and* the checkout now carries it: `git hash-object background/boot_sha.py`,
+`HEAD:background/boot_sha.py` and `ec1012c01:background/boot_sha.py` are all
+`5ee6e0728`. ADDENDUM 2 said "a restart re-runs `ExecStartPre` against a checkout that still has no
+`__main__`". That is no longer true, so the ordering it demanded is satisfied and a restart is now
+the correct act rather than a blinding one.
+
+**1. The declared command works, in both arms.** The installed units match the declaration —
+all 12 `~/.config/systemd/user/*.service` copies that carry it read
+`ExecStartPre=-/usr/bin/python3 -m background.boot_sha <session>`, exactly
+`generate_units.py:53`, and `NeedDaemonReload=no`.
+
+| arm | how | exit | wrote |
+|---|---|---|---|
+| bare shell | `SE_BOOT_DIR=$T /usr/bin/python3 -m background.boot_sha sanity-daemon` | 0 | stamp, `sha=ffa14f065`, 435 dirty blobs |
+| under systemd's own environment | `systemd-run --user --wait --working-directory=/home/rich/synthetic-enterprise --setenv=SE_BOOT_DIR=$T …` | 0 | stamp, `sha=ffa14f065`, 435 dirty blobs |
+
+The second arm is the one that mattered: it rules out "it works in a shell and something about
+systemd's environment (no `HOME`, a refusing seat guard) swallows it". It does not. Both arms wrote
+to an isolated `SE_BOOT_DIR`; no real state was touched and no daemon was restarted.
+
+**2. It ran at today's restarts and wrote nothing, and systemd records that it ran.**
+`systemctl --user show sanity-daemon -p ExecStartPre` reports
+`start_time=[Thu 2026-09-24 07:10:33 BST] … code=exited ; status=0`. The cause is not the `-`
+prefix swallowing a failure — there was no failure. **The working copy did not yet carry the
+restored block:** `background/boot_sha.py` has mtime `2026-09-24 07:17:51`, **7m18s after** the
+07:10:33 start. The daemons restarted into the no-op version, seven minutes before the repair
+reached the disk they read.
+
+**3. THE LIVE REASON, and it is not a defect in `boot_sha` at all.** Census of all 24 installed
+units, `ExecMainStartTimestamp` against the 07:17:51 fix:
+
+- **12 units carry the stamper.** The newest start among them is **07:10:34** — *not one has
+  started since the repair reached the disk*. (`token-proxy` 09-15, `worker-seat-manager` 09-17,
+  the other ten 09-24 07:00–07:10.)
+- **7 units started this evening** — `deploy-restart` 18:01, `bill-validation` 18:04,
+  `edge-traffic-capture` 18:04, `reconcile-watch` 18:05, `seat-executor` 18:06, `worker-tick`
+  18:07, `delivery-seat` 15:21 — and **not one of them carries an `ExecStartPre` stamp line.**
+
+So the item's "daemons have restarted many times since" is **true of the box and false of the
+stamped population**. The two sets are disjoint: the units that stamp are long-lived daemons that
+restart rarely, and the units that restart constantly are short jobs that do not stamp. A signal
+that can only refresh on a restart, over a population that almost never restarts, goes dark by
+construction — and `deploy_restart.restart_plan` correctly HOLDs on `stamp-predates-process`
+rather than restarting, so **nothing in the system will ever restart these 12 on account of this
+signal.** That is the standing mechanism, and it outlives today's seven-minute miss.
+
+**4. RESOLVED — what wrote the 2026-09-15/17/18 stamps.** The section above records "I could not
+establish what wrote them". The stamps answer it themselves, because a stamp records a content hash
+for every file dirty at boot, including its own source. In `staging-watcher.json` (09-17),
+`supervisor.json` (09-18) and `token-proxy.json` (09-15), `dirty_blobs["background/boot_sha.py"]`
+is `56648a39ac60d2664943bf9f40698866aa48b30d` in all three. That blob:
+
+- is in **no commit** — `git log --all --find-object=56648a39a` is empty;
+- contains **both** `def dirty_blobs` (added by `3ecf355d8`, 2026-09-04) **and** the `__main__`
+  block (deleted by `3ecf355d8`, the same commit).
+
+A working-copy-only hybrid. **The stamper did not die on 2026-09-04 when HEAD lost the block — it
+kept running for two more weeks off an uncommitted copy that still had it, and stopped when the
+CHECKOUT was refreshed to HEAD, some time after 2026-09-18 03:19:46.** So this finding's own
+headline is wrong and is corrected here rather than revised away: not *"stamped nothing since
+2026-09-04"* but *"stamped until 2026-09-18 03:19:46 off a copy in no commit, then nothing"*. The
+deployment was tracking a dirty working copy rather than HEAD, and that was invisible because the
+only evidence of it was inside the artefact the mechanism itself writes.
+
+**5. Latent, one line, not repaired here.** `docs/observability/.daemon_boot/--report.json`
+(2026-08-14) is a stamp whose session name is `--report`: `stamp(sys.argv[1])` takes any argv
+without validation, so a caller passing a flag mints a junk session that then sits in the boot
+directory looking like a daemon.
+
+### Owed, and pre-registered so the next turn can refute it
+
+The item's "DONE when a stamp file's mtime moves on a real daemon start" is **not discharged**, and
+deliberately: the item forbids restarting a daemon to test it, and no stamper-carrying unit has
+started naturally since 07:17:51. Prediction, written before the answer is known: **the next start
+of any of those 12 units will write `<session>.json` with `ts` ≈ that start and `sha` = the
+checkout's HEAD at that moment**, with a `dirty_blobs` map of a few hundred entries. If a stamp
+mtime does not move on the next such start, arm 2 above is refuted and the cause is somewhere this
+turn did not look. Checking it costs one `stat`.
