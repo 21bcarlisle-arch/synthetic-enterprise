@@ -217,6 +217,29 @@ def _refuse_if_ungated(worktree: Path, commit: str) -> None:
     isolation one layer up — a worktree is isolated from other WRITERS, not from other DAEMONS on
     the same machine — and the route is the right place to be robust to that, because it is the
     only place that has to be right about every commit rather than about its own.
+
+    IT SAID `so it was not gated`, AND THAT CLAUSE WAS FALSE FOR THE COMMONEST CASE (2026-09-24,
+    `SEAT_FINDING_A_RECEIPTLESS_COMMIT_IS_USUALLY_A_HOOK_GATED_ONE...`). What this observes is
+    `--verify` failing. What `--verify` failing MEANS splits three ways, and the refusal asserted
+    the rarest one about all of them:
+
+      * a `surgical_land` landing — receipt present and consistent.
+      * an ordinary `git commit` (`background/delivery_seat.py`, the liveness heartbeat in
+        `background/process_run_complete.py`) — **ran the full `tools/git-hooks/pre-commit`
+        chain** and left no receipt, because `RECEIPT_HEADER` is written only by `surgical_land`.
+        GATED. Receiptless. Refused in the words "it was not gated".
+      * a real bypass — `--no-verify`, or a hand-built `commit-tree`. Ungated.
+
+    Measured for the two commits that provoked this: `13203ed91` and `61b67fa0d` were both made by
+    a plain `git commit` with no bypass, and the hook chain over their own pathspec takes 232s
+    (72s test gate + 160s site lane) against the ~4.5min and ~16min windows their producers' logs
+    leave after each commit stamp. They were GATED.
+
+    SO THE REFUSAL STAYS AND THE SENTENCE CHANGES. Relaxing it is not available: a hook-gated
+    commit and a `--no-verify` one are byte-identical to this function, so accepting the first
+    accepts the second, which is the exact hole the salvage commit above walked into. Until the
+    hook chain leaves a mark of its own, `no receipt` is all this can honestly say — and saying
+    only that is what lets the next reader tell a toll from a wall.
     """
     commits = _commits_being_promoted(worktree, commit)
     for candidate in commits:
@@ -228,12 +251,29 @@ def _refuse_if_ungated(worktree: Path, commit: str) -> None:
             subject = _git(worktree, "log", "-1", "--pretty=%s", candidate).stdout.strip()
             where = ("the landing itself" if candidate == commit
                      else f"one of the {len(commits)} commits this push would add, beneath the tip")
+            # rc 1 and rc 2 are OPPOSITE findings and were reported in identical words. `verify()`
+            # returns 2 for "no receipt" — the ordinary state of every daemon commit — and 1 for
+            # "RECEIPT FALSIFIED", a receipt describing a commit it is not on, which is tampering
+            # and has never once been observed. Reading a 2 with a 1's vocabulary is what sent a
+            # seat hunting a hook bypass that was not there.
+            if proc.returncode == 1:
+                what = ("carries a surgical_land receipt that DOES NOT DESCRIBE IT — the receipt "
+                        "names a different tree, parent or path set. That is a forged or "
+                        "transplanted receipt, not a missing one")
+                remedy = ("Do not re-land over this. Establish where the receipt came from "
+                          "first: nothing in this repository writes one except a real landing.")
+            else:
+                what = ("carries no surgical_land receipt. THIS DOES NOT ESTABLISH THAT IT WAS "
+                        "UNGATED: an ordinary `git commit` runs the whole pre-commit hook chain "
+                        "and leaves no receipt, and that is how every daemon commit is made. "
+                        "What is established is only that it did not come through this door")
+                remedy = ("Only commits this route can VERIFY are promotable, because a "
+                          "hook-gated commit and a `--no-verify` one look identical from here. "
+                          "Re-land it through the door, or reset past it if it is not yours.")
             raise PromotionRefused(
-                f"{candidate[:9]} carries no verifying surgical_land receipt, so it was not "
-                f"gated — {where}: {subject[:120]!r}\n"
+                f"{candidate[:9]} {what} — {where}: {subject[:120]!r}\n"
                 f"{(proc.stdout + proc.stderr).strip()[-400:]}\n"
-                "Only gated commits are promotable. Re-land it through the door, or reset past it "
-                "if it is not yours."
+                f"{remedy}"
             )
 
 
