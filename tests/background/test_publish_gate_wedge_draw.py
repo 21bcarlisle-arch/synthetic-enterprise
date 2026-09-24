@@ -1109,28 +1109,70 @@ def _kinds_written_by(module_filename):
 
     That red was one of the 12 `blocking_tests` holding `last_clean_publish` at null.
 
-    A NAME IS RESOLVED ONLY FROM A MODULE-LEVEL `NAME = "literal"` binding. Anything else -- an
-    f-string, a dict lookup, a parameter -- resolves to nothing and the caller's assertion FAILS.
-    That is the fail-closed direction on purpose: a kind this function cannot see is a kind it
-    cannot vouch for, and the anti-drift claim is worth nothing if an unresolvable spelling reads
-    the same as a present one."""
-    tree = ast.parse((Path(supervisor.__file__).parent / module_filename).read_text())
-    consts = {t.id: n.value.value
-              for n in tree.body if isinstance(n, ast.Assign)
-              for t in n.targets
-              if isinstance(t, ast.Name) and isinstance(n.value, ast.Constant)
-              and isinstance(n.value.value, str)}
+    AND IT ACQUIRED THE SAME DEFECT AGAIN, ONE SPELLING FURTHER OUT (2026-09-24). The sixth
+    publish cause landed as `SCOPED_GATE_UNJUDGED_KIND = publish_cause.SCOPED_GATE_UNJUDGED` --
+    an alias to a constant that lives in the module every reader of these labels shares, so the
+    publisher and the supervisor cannot disagree about the spelling -- and it reaches `kind=` at
+    `process_run_complete.py:10159` as `kind="test_regression" if judged else
+    SCOPED_GATE_UNJUDGED_KIND`. Neither shape was a `NAME = "literal"` binding, so the resolver
+    saw nothing and said "the producer has moved" about a producer that had just been given the
+    kind. That red stood on origin/main, and a red here holds the publish gate shut -- which is
+    the failure this whole no-test-judged set exists to stop, arriving through the control
+    instead of the code.
+
+    SO TWO SHAPES MORE RESOLVE, AND EXACTLY TWO. A module-level `NAME = other.ATTR` is followed
+    ONE HOP, statically, into `other.py` beside this module -- no import, because importing a
+    daemon to read a label is a side effect for a string. And a `kind=` whose value is a
+    conditional contributes BOTH branches, because both are things the publisher really passes.
+
+    EVERYTHING ELSE STILL RESOLVES TO NOTHING and the caller's assertion FAILS -- an f-string, a
+    dict lookup, a parameter, a two-hop alias. That is the fail-closed direction on purpose: a
+    kind this function cannot see is a kind it cannot vouch for, and the anti-drift claim is
+    worth nothing if an unresolvable spelling reads the same as a present one. The widening is
+    of the SPELLINGS understood, never of where they are looked for: a string in a comment, a
+    docstring or a `cause=` argument is still not a written kind, which is what
+    `test_the_kind_reader_still_refuses_a_kind_the_publisher_never_passes` holds it to."""
+    here = Path(supervisor.__file__).parent
+    tree = ast.parse((here / module_filename).read_text())
+
+    def _module_level_strings(parsed):
+        return {t.id: n.value.value
+                for n in parsed.body if isinstance(n, ast.Assign)
+                for t in n.targets
+                if isinstance(t, ast.Name) and isinstance(n.value, ast.Constant)
+                and isinstance(n.value.value, str)}
+
+    consts = _module_level_strings(tree)
+    for n in tree.body:
+        if not isinstance(n, ast.Assign) or not isinstance(n.value, ast.Attribute):
+            continue
+        base = n.value.value
+        if not isinstance(base, ast.Name) or not (here / f"{base.id}.py").exists():
+            continue
+        value = _module_level_strings(
+            ast.parse((here / f"{base.id}.py").read_text())).get(n.value.attr)
+        if value is None:
+            continue
+        for t in n.targets:
+            if isinstance(t, ast.Name):
+                consts.setdefault(t.id, value)
+
+    def _strings(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return {node.value}
+        if isinstance(node, ast.Name) and node.id in consts:
+            return {consts[node.id]}
+        if isinstance(node, ast.IfExp):
+            return _strings(node.body) | _strings(node.orelse)
+        return set()
+
     found = set()
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         for kw in node.keywords:
-            if kw.arg != "kind":
-                continue
-            if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
-                found.add(kw.value.value)
-            elif isinstance(kw.value, ast.Name) and kw.value.id in consts:
-                found.add(consts[kw.value.id])
+            if kw.arg == "kind":
+                found |= _strings(kw.value)
     return found
 
 
@@ -1168,6 +1210,58 @@ def test_the_kind_reader_sees_a_named_constant_and_not_only_a_literal():
         "appeared, pick another named kind rather than deleting the assertion")
     # ...and the LITERAL spelling still resolves too.
     assert "deadline_kill" in _kinds_written_by("background_worker.py")
+
+
+def test_the_kind_reader_sees_a_conditional_and_an_alias_to_another_modules_constant():
+    """The two spellings the sixth cause arrived in, each asserted against the LIVE producer.
+
+    Written because the repair above was made once and then defeated twice by a spelling it had
+    not met. Every leg here guards its own premise: if the publisher ever writes
+    `scoped_gate_unjudged` as a plain literal or a plain module-level constant, these legs stop
+    being about the conditional and the alias, and the guard says so rather than passing
+    vacuously on a shape it was not written for."""
+    import background.process_run_complete as prc
+
+    src = (Path(supervisor.__file__).parent / "process_run_complete.py").read_text()
+    kind = prc.SCOPED_GATE_UNJUDGED_KIND
+    assert f'kind="{kind}"' not in src, (
+        "this control is only meaningful while that kind reaches `kind=` through a conditional "
+        "and an alias; a literal has appeared, so pick another kind rather than deleting it")
+    # The ALIAS: bound here to a constant that lives in `publish_cause`, never to a literal.
+    assert re.search(r"^SCOPED_GATE_UNJUDGED_KIND = \w+\.\w+$", src, re.M), (
+        "the alias has been rewritten as a literal -- see above")
+    # The CONDITIONAL: it is the `else` branch of a `kind=` ternary, not a bare argument.
+    assert "else SCOPED_GATE_UNJUDGED_KIND" in src
+    assert kind in _kinds_written_by("process_run_complete.py")
+
+
+def test_the_kind_reader_still_refuses_a_kind_the_publisher_never_passes():
+    """THE LEG THAT FAILS IF THE RESOLVER BECOMES A GREP. Every widening above buys reach at the
+    cost of discrimination, and a reader that answered "yes" to every string in the file would
+    pass the whole anti-drift suite while vouching for nothing.
+
+    Two negatives, because the widening had two halves and each could rot into a grep of its own.
+
+    `scoped_suite_red` is the first: a real `publish_cause` constant, reached for by name in the
+    very call that passes the sixth kind (`process_run_complete.py:10150`), and the sibling that
+    kind's own comment names -- yet never PASSED as a `kind=`, because where a test really was
+    judged red the publisher passes `test_regression` instead. It fails if attribute references
+    start resolving wherever they appear rather than where a kind is passed.
+
+    `PUBLISH_GATE_ITEM_ID` is the second: a module-level `NAME = "literal"` binding, so it sits
+    in the resolver's own constants table and is one careless line from being returned -- and it
+    is an item id, not a kind, and reaches no `kind=` site. It fails if the reader ever answers
+    with what the module DEFINES instead of what the publisher PASSES."""
+    import background.process_run_complete as prc
+    import background.publish_cause as publish_cause
+
+    src = (Path(supervisor.__file__).parent / "process_run_complete.py").read_text()
+    assert "publish_cause.SCOPED_SUITE_RED" in src, (
+        "the negative control's subject has left the producer -- this leg now proves nothing; "
+        "pick another constant the module reaches for but never passes as `kind=`")
+    written = _kinds_written_by("process_run_complete.py")
+    assert publish_cause.SCOPED_SUITE_RED not in written
+    assert prc.PUBLISH_GATE_ITEM_ID not in written
 
 
 # ───────────── EVERY TIMESTAMP GOES THROUGH ONE SCREEN (2026-09-04) ─────────────

@@ -288,6 +288,104 @@ def test_MUTATION_an_uncomputable_ceiling_closes_the_tier_rather_than_reopening_
 
 
 # ---------------------------------------------------------------------------
+# EVERY ENTRY POINT, not the one the control was written against
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THIS CLOSES, MEASURED 2026-09-16. Every assertion above drives
+# `supervisor._idle_discover_frame_draw` — and NO production path calls it. Lane 3 of the
+# three-lane self-refill, the rest-legitimacy enumeration and `_is_drained_and_gated` all
+# draw through `_idle_discover_frame_draw_concurrent`, which never consulted the ceiling at
+# all. The ruling of 2026-08-19 was therefore in force only inside this file. Measured on the
+# live map before the repair: the concurrent draw returned 17 atoms, two of them
+# (`EP16_anchored_generators`, `EP17_varied_population_draw`) over the ceiling. EP17 was
+# dispatched to a worker tick as LANE 3 DISCOVER/FRAME work on 2026-09-16, and its own
+# `block_reason` has recorded since 2026-08-26 that no further DISCOVER pass is authorised.
+#
+# So the control is written over the PARTITION, not over one member of it: both entry points
+# are driven through the same three rungs. A new entry point is caught by adding it here, and
+# the reason the two cannot now disagree is that there is one implementation
+# (`supervisor._under_pass_ceiling`) rather than two copies of a block.
+#
+# The ceiling itself is STUBBED, deliberately — the subject is the WIRING (does this draw
+# consult the ceiling and honour what it says), not the survey, which the tests above own.
+# It is also what makes the control distinguishable: rung 1 proves the draw offers these atoms
+# when nothing is saturated, so rung 2's disappearance is attributable to the ceiling and not
+# to a draw that returns little anyway.
+IDLE_DISCOVERY_DRAW_ENTRY_POINTS = ("single", "concurrent")
+
+
+def _offered_ids(entry: str) -> set:
+    """Ids this idle-discovery entry point will hand out, as a set.
+
+    `exclude_stalled` is left at its default False on both: the stall recorder WRITES the
+    shared atom-stall state, and a test is not a draw."""
+    import random as _random
+
+    from background import supervisor
+
+    if entry == "single":
+        out = set()
+        for seed in range(40):
+            atom = supervisor._idle_discover_frame_draw(rng=_random.Random(seed))
+            if atom:
+                out.add(atom["id"])
+        return out
+    return {
+        a["id"]
+        for seed in range(4)
+        for a in supervisor._idle_discover_frame_draw_concurrent(
+            rng=_random.Random(seed), width=64)
+    }
+
+
+@pytest.mark.parametrize("entry", IDLE_DISCOVERY_DRAW_ENTRY_POINTS)
+def test_every_idle_discovery_entry_point_honours_the_pass_ceiling(entry, monkeypatch):
+    """Saturating an atom must remove it from THIS draw, whichever draw it is."""
+    monkeypatch.setattr(ceiling, "saturated_ids", lambda *a, **k: set())
+    offered = _offered_ids(entry)
+    assert offered, f"the {entry} draw offers nothing even with an empty ceiling -- vacuous"
+
+    target = sorted(offered)[0]
+    monkeypatch.setattr(ceiling, "saturated_ids", lambda *a, **k: {target})
+    after = _offered_ids(entry)
+    assert target not in after, (
+        f"the {entry} draw handed back {target} after the ceiling saturated it"
+    )
+    assert after, "saturating one atom emptied the whole tier -- the filter is too wide"
+
+
+@pytest.mark.parametrize("entry", IDLE_DISCOVERY_DRAW_ENTRY_POINTS)
+def test_MUTATION_every_entry_point_is_empty_when_every_offered_atom_is_saturated(
+        entry, monkeypatch):
+    """The property the ruling actually asked for -- the system cannot run indefinitely --
+    asserted on the production path and not only on its sibling.
+
+    The saturated set is the whole idle POPULATION and not this entry point's own offer: the
+    single draw returns ONE dial-weighted pick per call, so forty calls are a SAMPLE, and
+    saturating a sample leaves the unsampled remainder drawable. Getting that backwards is
+    how this assertion failed on its first run -- against correct code."""
+    monkeypatch.setattr(ceiling, "saturated_ids", lambda *a, **k: set())
+    population = _offered_ids("concurrent")  # width 64 over ~17 candidates: the whole set
+    assert _offered_ids(entry) <= population, (
+        f"the {entry} draw offers atoms outside the concurrent draw's candidate set -- the "
+        "two entry points no longer share a population and this control is measuring one"
+    )
+    monkeypatch.setattr(ceiling, "saturated_ids", lambda *a, **k: set(population))
+    assert not _offered_ids(entry)
+
+
+@pytest.mark.parametrize("entry", IDLE_DISCOVERY_DRAW_ENTRY_POINTS)
+def test_MUTATION_an_uncomputable_ceiling_closes_every_entry_point(entry, monkeypatch):
+    """Fail-closed in the same direction on both. An entry point that reopened an unbounded
+    lane on an unreadable ledger would be the ruling defeated by an exception handler."""
+    def boom(*a, **k):
+        raise RuntimeError("ledger unreadable")
+
+    monkeypatch.setattr(ceiling, "saturated_ids", boom)
+    assert not _offered_ids(entry)
+
+
+# ---------------------------------------------------------------------------
 # THE THIRD ANSWER — `infeasible_here` gets its first reader
 # ---------------------------------------------------------------------------
 #
