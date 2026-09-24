@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 87 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 88 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 87 instances
+## The 88 instances
 
 - `SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md` — BLOCKING
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md` — BLOCKING
@@ -30,6 +30,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_WEDGE_DETECTORS_MIN_ADMITTED_ANY_NUMBER_SO_ONE_UNRECORDED_STAMP_COULD_DATE_AN_OUTAGE_TO_1970_2026-09-04.md` — LATENT
 - `SEAT_PREREG_WHICH_CONTROLS_MOVE_WHEN_LAST_CLEAN_PUBLISH_SURVIVES_AN_EPISODE_CLOSE_2026-09-16.md` — LATENT
 - `SEAT_RESULT_THE_CHAIN_COUNT_REPAIR_DIVIDED_CORRECTLY_AND_TOLD_NO_READER_SO_THE_SERIES_HOLDS_TWO_UNITS_INDISTINGUISHABLY_2026-09-17.md` — LATENT
+- `SEAT_RESULT_THE_CHURN_BELIEF_PREMISE_WAS_SPENT_AND_THE_WEDGE_MOVED_TO_A_REMEDY_THAT_REVERTS_CORRECTIONS_2026-09-24.md` — LATENT
 - `SEAT_RESULT_THE_PUBLISHERS_LIVE_WEDGE_WAS_NOT_THE_UNTRACKED_CONTROL_AND_THE_CONTROL_COULD_NOT_LAND_ALONE_2026-09-08.md` — LATENT
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -100,12 +101,13 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**563.9 recorded episode-hours** across 24 of the 87 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
+**617.7 recorded episode-hours** across 25 of the 88 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **146 hours** — `SEAT_FINDING_LAST_CLEAN_PUBLISH_IS_CLEARED_AT_THE_INSTANT_IT_BECOMES_TRUE_SO_A_RECOVERED_PUBLISHER_IS_INDISTINGUISHABLE_FROM_A_PLACEHOLDER_2026-09-16.md`: …blish` is most true — the publish that drained the queue and closed a 146-hour episode — it is written as `None`. The field's own comment in `_write…
 - **60 hours** — `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md`: …ixture unreachable-by-design, and that fixture wedged publishing for ~60h **Severity:** LATENT · **Lane:** H_harness **Date:** 2026-08-12 **S…
+- **53.8 hours** — `SEAT_RESULT_THE_CHURN_BELIEF_PREMISE_WAS_SPENT_AND_THE_WEDGE_MOVED_TO_A_REMEDY_THAT_REVERTS_CORRECTIONS_2026-09-24.md`: …moves on origin"*. `last_clean_publish` was **2026-09-21 18:15:57Z — 53.8 hours cold**, and `wedge_since` 2026-09-21 20:40:07Z. But the cause had cha…
 - **41 hours** — `WORKER_FINDING_A_GREEN_PUBLISH_CANNOT_CLEAR_THE_WEDGE_UNTIL_A_SECOND_SUITE_THE_DEADLINE_DOES_NOT_KNOW_ABOUT_FINISHES_2026-08-20.md`: …st_tested_hash` matching the marker's hash → must go RED. This is the 41h fail-open of 2026-08-11 and the repair must not be able to reintrod…
 - **39 hours** — `WORKER_FINDING_THE_PRESERVATION_SAYS_NOTHING_HAS_BEEN_WRITTEN_AFTER_IT_HAS_WRITTEN_THE_REF_AND_THE_ALL_OR_NOTHING_RULE_TURNS_THAT_INTO_A_BOX_WIDE_WEDGE_2026-09-21.md`: …twins beside it and held the shared tree 16 commits behind origin for 39 hours, on a file whose bytes were safe on a ref the whole time.* --- ## 1…
 - **32 hours** — `WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_CANNOT_MEET_ITS_CAP_2026-08-21.md`: …ad off disk and `ps` at 2026-08-21 16:10-16:25Z. ### 1. The wedge is 32 hours old and 43 of its 46 refusals were genuine reds `docs/observability/…
@@ -145,12 +147,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
 - `WORKER_RESULT_THE_GATES_RED_HAD_A_REPAIR_ON_ORIGIN_AND_THE_RECONCILER_THAT_CARRIES_IT_LOST_95_RACES_TO_THE_GATES_OWN_LOCK_TODAY_2026-09-18.md`
 - `WORKER_RESULT_THE_WEDGES_RED_WAS_REAL_ON_A_FORK_THAT_DIED_THREE_MINUTES_LATER_AND_THE_RECORD_COULD_NOT_SAY_SO_2026-09-18.md`
-
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_FINDING_ORIGIN_MAIN_CARRIES_SEVEN_REDS_THAT_NO_COMMITS_GATE_SELECTION_REACHES_2026-09-22.md` — lane `A_strategy_governance`
 
 ## Disposition
 

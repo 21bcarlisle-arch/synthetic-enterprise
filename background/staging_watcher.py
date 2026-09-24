@@ -130,6 +130,7 @@ INSTRUCTION_STALE_SECONDS = 48 * 3600
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from background import alarm_repetition  # noqa: E402  -- the re-ask, called from the main loop
 from background import finding_classes  # noqa: E402  -- for ROOM_DIRNAMES, the one frozen list of
 #                                       consumed rooms; see the resurrection guard in check_remote
 from background.notify import notify  # noqa: E402
@@ -863,6 +864,32 @@ def main() -> None:
             sweep_stale_instruction_docs()
         except Exception as e:
             log(f"archive-on-consumption sweep error: {e}")
+
+        # THE ALARM RE-ASK (director direction, Lane 0, 2026-09-23). The two sweeps above archive
+        # an instruction document whose ANSWER has arrived; this asks the other question, of the
+        # other population: an alarm document's condition may stop holding with nobody telling it.
+        # Every line in those documents is written by the alarm FIRING, so a condition that
+        # self-cleared leaves a document byte-identical to one still burning -- and ten of them sat
+        # in the root at ORDER 60, unrankable against each other.
+        #
+        # IT BELONGS HERE AND NOT IN AN ALARM'S OWN THREAD, which is the opposite of where
+        # `escalate()` deliberately sits. Escalation must run on the alarm's thread because the
+        # thing it reacts to IS the firing. A re-ask reacts to an ABSENCE of firing, so an alarm's
+        # thread is the one place that can never notice it -- the code does not run.
+        #
+        # Rate-limited by nothing, because it does not need to be: the verdict turns on dates, the
+        # annotation is idempotent per day per verdict, and archiving removes the document from the
+        # population it reads. A 30s cadence re-reads eleven files and writes on the first pass of
+        # each day. Guarded whole like its neighbours: staging hygiene must never take the watcher
+        # down, and this one can MOVE a document, so the failure it must not have is a partial pass
+        # that is retried thirty seconds later -- which it is, safely, because every write is
+        # idempotent and the archive never overwrites.
+        try:
+            for r in alarm_repetition.reask(apply=True):
+                if r.applied and r.verdict == alarm_repetition.CLEARED:
+                    log(f"alarm re-ask: archived {r.path.name} — {r.reason}")
+        except Exception as e:
+            log(f"alarm re-ask error: {e}")
 
         time.sleep(POLL_INTERVAL_SECONDS)
 

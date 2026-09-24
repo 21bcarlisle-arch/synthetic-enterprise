@@ -353,7 +353,7 @@ def _act_on_tree_verdict(work_id: str, *, now: float | None = None,
             "(`python3 -m tools.surgical_land -m \"...\" <paths>`), then "
             "`python3 -m background.delivery_lane --landed {}`.".format(
                 focus_id, verdict.get("evidence", ""), focus_id),
-            key=f"delivery-lane-stranded:{focus_id}", repeats=1,
+            key=f"delivery-lane-stranded:{focus_id}",
             # THE DRAW, not now: `first_ts` is when this episode began, and stamping it with the
             # moment the sweep noticed would restart the clock on every sweep and make a strand
             # that has stood for days read as new each time.
@@ -374,7 +374,7 @@ def _act_on_tree_verdict(work_id: str, *, now: float | None = None,
             "the ordinary route and run `python3 -m background.delivery_lane --landed {}`; if they "
             "are another lane's, they are not yours to commit and there is nothing to do.".format(
                 focus_id, verdict.get("evidence", ""), focus_id),
-            key=f"delivery-lane-strand-candidate:{focus_id}", repeats=1,
+            key=f"delivery-lane-strand-candidate:{focus_id}",
             first_ts=float(verdict.get("drawn_at") or 0.0), now=now)
         return verdict
     return verdict

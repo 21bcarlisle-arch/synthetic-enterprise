@@ -667,7 +667,6 @@ def _handoff_for(rec: dict, *, now: float, staging_dir: Path | None = None) -> s
     filed = alarm_repetition.escalate(
         message,
         key="seat-continuity",
-        repeats=1,
         first_ts=float(rec.get("ts", now)),
         staging_dir=staging_dir,
         now=now,

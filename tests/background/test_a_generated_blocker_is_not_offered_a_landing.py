@@ -136,6 +136,61 @@ def test_HALF_an_oracle_reports_a_PARTIAL_split_and_not_an_unsplit_one(monkeypat
     assert "PARTIAL" in clause
 
 
+def _untracked_clause(paths):
+    return orc._landing_clause([{"path": p, "kind": orc.FF_UNTRACKED} for p in paths])
+
+
+def test_an_untracked_blocker_is_not_offered_a_bare_landing_either():
+    """THE THIRD INSTANCE OF THIS FILE'S DEFECT, on the kind nobody had asked it of (2026-09-24).
+
+    The two legs above stop a MODIFIED blocker being told to land a producer's output over origin's
+    later one. The UNTRACKED step had the same shape and no control: it read *"clear by landing
+    them (`surgical_land <path>`) or by removing them, whichever the holding lane wants"* -- two
+    doors offered as equals, landing first.
+
+    They are not equals, and the asymmetry is definitional rather than statistical. `FF_UNTRACKED`
+    means ORIGIN ALREADY BRINGS A COPY of that path, so landing the local one REPLACES origin's
+    file; it does not add a new one. An orphan draft abandoned in a shared tree is routinely the
+    OLDER of the two, because the lane that wrote it went on to land a fuller version from its own
+    worktree and left the draft behind.
+
+    MEASURED ON THE LIVE WEDGE, which is why this is a defect and not a tidy. Of the three
+    untracked blockers the refusal named while the publisher sat 53.8h without a clean publish, two
+    were superseded drafts of documents origin already carried -- one missing 19 trailing lines,
+    the other missing the `## CORRECTION, same turn, kept beside the claim it replaces` section
+    that existed *solely* to retract the recommendation the older draft still made. Following the
+    refusal's own first-named remedy on either would have reverted a landed correction and
+    reinstated a claim its author had already refuted by measurement.
+
+    KEYED TO THE PROPERTY, NOT TO THOSE TWO FILES. What must hold is that the untracked step names
+    the replacement and gives a way to establish direction before landing -- not that any
+    particular path is in the set.
+    """
+    clause = _untracked_clause(["docs/staging/SOME_ORPHAN_DRAFT.md"])
+    assert "UNTRACKED path(s)" in clause
+    # (a) origin's copy exists, so this is a replacement...
+    assert "ORIGIN ALREADY BRINGS" in clause, clause
+    assert "REPLACES origin's copy" in clause, clause
+    # (b) ...and the reader is given the one command that settles which copy is ahead.
+    assert "git show origin/main:<path>" in clause, clause
+    # (c) the lossless door is named as lossless, with where the bytes go.
+    assert orc.ORPHAN_PRESERVED_PREFIX in clause, clause
+    # The MODIFIED door must not leak across: `isolate_hunks` cannot survey an untracked file.
+    assert LANDING_RECIPE not in clause, clause
+
+
+def test_both_kinds_at_once_keep_their_own_steps():
+    """The partition, asserted as a partition. A single step that swallowed both kinds would pass
+    every leg above while telling a reader with one of each to take the other one's door."""
+    clause = orc._landing_clause([
+        {"path": AUTHORED, "kind": orc.FF_MODIFIED},
+        {"path": "docs/staging/SOME_ORPHAN_DRAFT.md", "kind": orc.FF_UNTRACKED},
+    ])
+    assert "1 MODIFIED path(s)" in clause and "1 UNTRACKED path(s)" in clause, clause
+    assert LANDING_RECIPE in clause  # the modified one still gets it
+    assert "REPLACES origin's copy" in clause  # and the untracked one still gets the warning
+
+
 def test_the_unknown_kind_branch_is_still_reachable():
     """The rare branch, asserted to be TAKEABLE and not merely to refuse correctly."""
     clause = orc._landing_clause([{"path": "x", "kind": "FF_SOMETHING_ELSE"}])

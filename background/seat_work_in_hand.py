@@ -407,7 +407,7 @@ def sweep(*, path: Path | None = None, now: float | None = None,
             f"{('What the seat said it was doing: ' + note) if note else ''}"
         )
         alarm_repetition.escalate(
-            message, key=f"seat-claim:{work_id}", repeats=1,
+            message, key=f"seat-claim:{work_id}",
             first_ts=float(rec.get("claimed_at", 0)),
             staging_dir=staging_dir, now=now,
         )
