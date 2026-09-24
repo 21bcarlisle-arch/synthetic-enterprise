@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 88 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 89 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 88 instances
+## The 89 instances
 
 - `SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md` — BLOCKING
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md` — BLOCKING
@@ -51,6 +51,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS_2026-08-09.md` — LATENT
 - `WORKER_FINDING_EPISODE_MEMORY_WIPED_MID_EPISODE_2026-08-09.md` — LATENT
 - `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md` — LATENT
+- `WORKER_FINDING_SEVENTEEN_GREEN_SUITES_PUBLISHED_NOTHING_AND_NO_CONTROL_RELATES_THE_GATE_VERDICT_TO_WHETHER_A_FIGURE_MOVED_2026-09-24.md` — LATENT
 - `WORKER_FINDING_SEVEN_REDS_LIVE_AT_HEAD_BENEATH_A_SCOPED_GATE_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_COMMIT_GATE_SELECTS_TESTS_BUT_AN_IMPORTERROR_COSTS_THE_WHOLE_SUITE_2026-08-28.md` — LATENT
 - `WORKER_FINDING_THE_CONTROL_ON_THE_REPAIRERS_ROOM_SET_FROZE_THE_ANSWER_AND_A_NEW_ROOM_WEDGED_EVERY_COMMIT_2026-09-04.md` — LATENT
@@ -101,12 +102,13 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**617.7 recorded episode-hours** across 25 of the 88 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
+**672.2 recorded episode-hours** across 26 of the 89 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **146 hours** — `SEAT_FINDING_LAST_CLEAN_PUBLISH_IS_CLEARED_AT_THE_INSTANT_IT_BECOMES_TRUE_SO_A_RECOVERED_PUBLISHER_IS_INDISTINGUISHABLE_FROM_A_PLACEHOLDER_2026-09-16.md`: …blish` is most true — the publish that drained the queue and closed a 146-hour episode — it is written as `None`. The field's own comment in `_write…
 - **60 hours** — `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md`: …ixture unreachable-by-design, and that fixture wedged publishing for ~60h **Severity:** LATENT · **Lane:** H_harness **Date:** 2026-08-12 **S…
+- **54.5 hours** — `WORKER_FINDING_SEVENTEEN_GREEN_SUITES_PUBLISHED_NOTHING_AND_NO_CONTROL_RELATES_THE_GATE_VERDICT_TO_WHETHER_A_FIGURE_MOVED_2026-09-24.md`: …ause.py` names. **So a failing test accounts for 17.3 of the wedge's 54.5 hours — 32%.** Two thirds of the outage happened while the instrument that…
 - **53.8 hours** — `SEAT_RESULT_THE_CHURN_BELIEF_PREMISE_WAS_SPENT_AND_THE_WEDGE_MOVED_TO_A_REMEDY_THAT_REVERTS_CORRECTIONS_2026-09-24.md`: …moves on origin"*. `last_clean_publish` was **2026-09-21 18:15:57Z — 53.8 hours cold**, and `wedge_since` 2026-09-21 20:40:07Z. But the cause had cha…
 - **41 hours** — `WORKER_FINDING_A_GREEN_PUBLISH_CANNOT_CLEAR_THE_WEDGE_UNTIL_A_SECOND_SUITE_THE_DEADLINE_DOES_NOT_KNOW_ABOUT_FINISHES_2026-08-20.md`: …st_tested_hash` matching the marker's hash → must go RED. This is the 41h fail-open of 2026-08-11 and the repair must not be able to reintrod…
 - **39 hours** — `WORKER_FINDING_THE_PRESERVATION_SAYS_NOTHING_HAS_BEEN_WRITTEN_AFTER_IT_HAS_WRITTEN_THE_REF_AND_THE_ALL_OR_NOTHING_RULE_TURNS_THAT_INTO_A_BOX_WIDE_WEDGE_2026-09-21.md`: …twins beside it and held the shared tree 16 commits behind origin for 39 hours, on a file whose bytes were safe on a ref the whole time.* --- ## 1…

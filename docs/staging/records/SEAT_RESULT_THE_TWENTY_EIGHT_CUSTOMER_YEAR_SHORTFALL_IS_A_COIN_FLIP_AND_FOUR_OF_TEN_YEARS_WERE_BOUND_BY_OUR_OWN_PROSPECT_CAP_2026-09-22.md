@@ -147,6 +147,45 @@ the first time, and that the funnel repeated at a lifted `PROSPECTS_PER_YEAR` su
 its ten years were censored. If the second clause fails, the prospect cap was not binding in the way
 `prospect_ceiling_statement` says and that statement is the next thing to re-measure.
 
+## 8a. BOTH CLAUSES CONFIRMED, 2026-09-22 — recorded beside §8, not over it
+
+Worked as Lane 0 `the-two-legs-that-bind-the-arm-are-nine-seeds-and-one-censored-funnel`. Full
+result: `WORKER_RESULT_BOTH_LEGS_CLEARED_AND_THE_LARGER_FLOOR_WAS_ALREADY_ON_DISK_WHILE_OUR_OWN_CAP_COST_THE_FUNNEL_A_THIRD_OF_ITS_SUPPLY_2026-09-22.md`.
+
+**Clause one — CONFIRMED, at 18 seeds rather than 36, and the 18 were already on disk.**
+`NOISE_FLOOR_PATH` has pointed at an eighteen-seed single-arm family of the same world since
+2026-09-17 while the requirement went on being priced off the nine. On it: t = 2.4954, p = 0.023,
+point 3,163.9 → **3,243.3** (a factor of **1.025**, well under the predicted 2×), and the 97.5% end
+is **finite for the first time at 179,880 cy** (bootstrap 66,368). Predicted before the run, and
+both halves hold.
+
+**The prediction was right for a reason I did not state and would not have bet on.** §8 said the
+nine-seed floor was the binding leg and implied more seeds would settle it. More seeds settled the
+UPPER END but not the claim: the requirement still exceeds the control funnel's supply in 50.1% of
+draws at n=18, against 48.4% at n=9. The coin flip this document is named for survives the repair
+that was supposed to end it. And "finite" is a property of WHICH eighteen — on the pooled
+eighteen-seed family the upper end stays infinite and the point moves to 6,248.6. No 36-seed run was
+launched: the 12-seed `next12` family refutes this family's WIDTH at p = 2.3e-05, and more seeds on
+one instrument cannot settle a disagreement between two.
+
+**Clause two — CONFIRMED.** `tools/prospect_cap_probe.py` resolves the campaign at a passed
+`prospects_per_year`, never a written one; its control arm reproduces `book_growth_campaign.json`
+exactly. Supply 2,368.0 → 3,019.1 cy at a cap of 800, and **zero years are bound by our cap there**
+against four at the shipped 400 — the binding moves entirely to mandate, market and capital, all
+commercial results. A 25% lift already clears the top of the control's own Poisson interval on
+either ruler (2,585 projection / 3,423 measurement). So `prospect_ceiling_statement` is vindicated,
+not re-opened, and §5 above stands.
+
+**One correction to §1 of this document, found while pricing clause two.** The table calls 3,135.5
+"one run of a stochastic funnel: 500 wins × 6.271 cy". That is right, but it is the funnel's demand
+**measured by settling all of it at budget 3,400** — and the campaign record on disk carries a
+second figure for the same quantity, `customer_years_all_wins_would_cost` = **2,368.0** (4.736
+cy/win), a projection from the ordinary budget-1,200 run. Both sit in
+`settlement_ceiling_slope_20260921.json`, 767 cy apart, under different names. This document
+differenced the requirement against one of them without knowing the other existed. It does not
+change §4's conclusion — the comparison was a coin flip either way — but "say what each number
+counts" applies to the supply side too, and here it had two answers.
+
 ## 9. Reproduction
 
 ```python
