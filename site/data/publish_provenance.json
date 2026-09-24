@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-16T13:41:34Z",
+    "checked_at": "2026-09-23T02:18:18Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,35 +9,35 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 15
+    "open_findings": 13
   },
   "last_verified": {
-    "generated_at": "2026-09-22T05:21:20Z",
-    "git_commit": "b2b233ef7",
+    "generated_at": "2026-09-24T01:11:54Z",
+    "git_commit": "26d4120ab",
     "population": {
-      "accounts": 226,
-      "bills": 9892,
-      "total_revenue_gbp": 676335.55
+      "accounts": 244,
+      "bills": 10595,
+      "total_revenue_gbp": 717273.65
     },
-    "run_id": "run_output_b2b233ef7_20260922T043219Z.json",
+    "run_id": "run_output_26d4120ab_20260924T002107Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-22T05:21:20Z"
+    "verified_at": "2026-09-24T01:11:54Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=db52e050a; blocking tests: FAILED tests/background/test_publish_step_ledger.py::TestWiredIntoThePublishPath::test_the_publish_path_actually_uses_the_ledger, FAILED tests/background/test_publish_step_ledger.py::TestWiredIntoThePublishPath::test_the_five_evidenced_failures_are_all_covered, FAILED tests/background/test_the_site_publish_pipeline_is_contained.py::te",
-  "paused_since": "2026-09-22T07:48:04Z",
+  "paused_reason": "scoped publish-path suite red at git=98d76bce2; blocking tests: FAILED tests/background/test_the_liveness_surfaces_refusals_left_only_an_orphaned_log_line.py::test_a_wedged_tree_and_a_hot_origin_are_told_apart_in_the_record",
+  "paused_since": "2026-09-24T03:36:32Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-22T05:21:20Z",
-    "git_commit": "b2b233ef7",
+    "generated_at": "2026-09-24T01:11:54Z",
+    "git_commit": "26d4120ab",
     "population": {
-      "accounts": 226,
-      "bills": 9892,
-      "total_revenue_gbp": 676335.55
+      "accounts": 244,
+      "bills": 10595,
+      "total_revenue_gbp": 717273.65
     },
-    "run_id": "run_output_b2b233ef7_20260922T043219Z.json",
+    "run_id": "run_output_26d4120ab_20260924T002107Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-22T05:21:20Z"
+    "verified_at": "2026-09-24T01:11:54Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-23T01:04:00Z"
+  "written_at": "2026-09-24T03:36:32Z"
 }
