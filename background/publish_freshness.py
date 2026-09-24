@@ -77,6 +77,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background import publish_cause
 from background.episode_monotonic import recorded_instant_seconds
 from background.live_ledger_guard import guard_live_ledger_write
 
@@ -375,7 +376,10 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
     now = time.time() if now is None else float(now)
     p = PUBLISH_GATE_STATE_FILE if path is None else path
     unknown = {"state": "unknown", "consecutive_failures": None, "failing_for_seconds": None,
-               "clean_publishes_this_episode": None, "cited_red_at_head": None}
+               "clean_publishes_this_episode": None, "cited_red_at_head": None,
+               "held_refusal": None,
+               "held_refusal_reason": ("the publisher's state could not be read, so no refusal "
+                                       "record was inspected")}
     try:
         state = json.loads(Path(p).read_text())
     except (OSError, ValueError):
@@ -393,6 +397,14 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
     # field is legitimately written as an epoch OR as ISO-8601, and a hand-roll drops the second
     # silently (`episode_monotonic.recorded_instant_seconds` carries both arguments).
     started = recorded_instant_seconds(state.get("wedge_since"))
+    # THE CAUSE THIS RECORD IS ALREADY HOLDING, read from the file's OTHER fields rather than
+    # inferred from the citation verdict above. See `publish_cause.held_refusal`: on 2026-09-24
+    # `citation_at_head` was `not_established` with `total_red: 0` while `liveness_surface_refusal`
+    # in the same file held an attributed, stamped `push_never_landed` with its evidence intact.
+    # Carried BESIDE the citation and never folded into it -- they are answers to two different
+    # questions (does the cited red still reproduce / is any cause on record at all), and a
+    # reader is owed both.
+    held, held_reason = publish_cause.held_refusal(state, now=now)
     # A MISSING START DOES NOT VETO THE FAILURE, and getting this backwards would be the fail-open
     # shape: the count is what establishes that attempts died, the stamp only says since when.
     return {
@@ -407,6 +419,11 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
         "cited_red_at_head": (
             str(state["citation_at_head"])[:40] if isinstance(state.get("citation_at_head"), str)
             else None),
+        # The record, or None; and ALWAYS a sentence saying which refusal fields were held and
+        # why they were not enough. A consumer that finds `held_refusal` None is never left to
+        # guess whether anything was looked at.
+        "held_refusal": held,
+        "held_refusal_reason": held_reason,
     }
 
 
@@ -513,6 +530,87 @@ def is_publishing_down(snap: dict | None = None) -> bool:
     return snap.get("state") in ("stale", "unpublished")
 
 
+#: The citation readings that ARE an answer to "why did this publish not land". Only `reproduces`
+#: is: it says the named reds were re-run at HEAD and are still red, so `blocking_tests` is the
+#: answer and no further hunting is owed. `dead`, `not_asked`, `not_established` and an absent
+#: field all leave the question OPEN, and an open question is exactly the trigger for reading the
+#: refusal record beside it. Keyed to the property (is this an answer) and not to today's
+#: vocabulary: a reading added to `process_run_complete` tomorrow lands OUTSIDE this tuple and so
+#: makes the summary look harder, which is the safe direction.
+CITATION_ANSWERS = ("reproduces",)
+
+#: How much of a held refusal's evidence line the summary quotes. These lines are written
+#: OBSERVATION-FIRST -- `"the commit was created here and git ls-remote says origin did not
+#: advance to it (push rc=1, origin=..., head=...) -- read the REF and not the push's own rc"` --
+#: so the head of the string is the actionable half and the tail is the standing explanation.
+#: That is the opposite direction from `process_run_complete._refusal_evidence_kept`, which keeps
+#: the END, and for the opposite reason: there the subject is hook OUTPUT, whose verdict is the
+#: last thing printed. Different strings, different ends, and the reason is written down here so
+#: the next reader does not "fix" one to match the other.
+HELD_EVIDENCE_QUOTED_CHARS = 200
+
+
+def _cause_clause(pub: dict) -> str:
+    """The half-sentence that says WHY the publisher is refusing — or what was held instead.
+
+    THIS IS THE REPAIR (2026-09-24). What stood here was a single conditional on one value:
+
+        " and the red it cites is DEAD at HEAD, so the cause is unattributed"  if  cited == "dead"
+
+    Two things were wrong with it, and both were live in the same file on the same day.
+
+    FIRST, `unattributed` was FALSE. `liveness_surface_refusal` held `push_never_landed` at a
+    named commit with its evidence intact, in the same record the clause had just read. The
+    summary told every reader there was no named cause while a named cause sat two keys away, and
+    the here-relative red that was the real blocker went unnamed for three hours in a seat whose
+    whole job is to unblock.
+
+    SECOND, the clause was keyed to ONE reading of the citation field. When the field moved to
+    `not_established` -- which is what it says whenever no red is named at all, i.e. on EVERY
+    push failure, provenance refusal and behind-origin refusal -- the clause fell silent
+    altogether and said nothing about cause in either direction. The louder of the two defects was
+    the one that fired less often.
+
+    So the branch is on whether the citation ANSWERS the question, not on which word it holds,
+    and the fall-through is a report rather than a silence: either the held cause and where it
+    came from, or the fields that were held and why they were not enough. There is no path
+    through this function that says "unattributed" without having looked.
+
+    NOT A RE-RUN, AND THAT IS ON PURPOSE. Re-asking a citation means running pytest, which
+    `process_run_complete._reask_citation_at_head` does at failure time where the subject and the
+    budget both are. This function is quoted into banners, logs and the delivery brief; a suite
+    run behind a one-line summary would be a new way for the summary to be slow rather than a new
+    way for it to be right. What it re-asks is the STORED VERDICT'S STANDING: a verdict that does
+    not answer the question is not believed just because it is present.
+    """
+    cited = pub.get("cited_red_at_head")
+    if cited in CITATION_ANSWERS:
+        # The citation reproduces: `blocking_tests` IS the answer and adding a second cause here
+        # would give the reader two places to look for one fault.
+        return ""
+    lead = (" and the red it cites is DEAD at HEAD" if cited == "dead"
+            else f" and its citation reads {cited}" if isinstance(cited, str)
+            else " and no citation is recorded")
+    held = pub.get("held_refusal")
+    if isinstance(held, dict) and held.get("cause"):
+        # NAME THE FIELD, not just the cause. "where it came from" is what lets a reader go and
+        # check the claim -- and it is the fact whose absence made this defect survive, because
+        # nobody knew there was a second field to read.
+        evidence = str(held.get("evidence"))
+        if len(evidence) > HELD_EVIDENCE_QUOTED_CHARS:
+            # SAY IT WAS CUT. A quote that stops mid-word with no marker reads as a corrupted
+            # record rather than a bounded one, and a reader who thinks the record is corrupt
+            # does not go and read the rest of it.
+            evidence = evidence[:HELD_EVIDENCE_QUOTED_CHARS].rstrip() + " [...]"
+        return (lead + ", but `{}` in the same record holds {} at git={}: {}".format(
+            held.get("field"), held.get("cause"), str(held.get("git_hash"))[:9], evidence))
+    why = pub.get("held_refusal_reason")
+    return (lead + ", so the cause is unattributed -- "
+            + (str(why) if isinstance(why, str) and why.strip()
+               else "and no refusal record was inspected, which is not the same as there being "
+                    "none"))
+
+
 def describe(snap: dict | None = None) -> str:
     """One human line for a page, a banner or a log. Never says "fresh" without a number."""
     snap = snapshot() if snap is None else snap
@@ -547,8 +645,7 @@ def describe(snap: dict | None = None) -> str:
         since = pub.get("failing_for_seconds")
         refused = (f" -- PUBLISHER REFUSING: {n} consecutive attempt(s) failed"
                    + (f" over {since / 3600.0:.1f}h" if isinstance(since, (int, float)) else "")
-                   + (" and the red it cites is DEAD at HEAD, so the cause is unattributed"
-                      if pub.get("cited_red_at_head") == "dead" else ""))
+                   + _cause_clause(pub))
     if state == "stale":
         extra = " (content is still being committed -- the PUBLISH PATH is what stopped)" \
             if snap.get("committed_but_unpublished") else ""

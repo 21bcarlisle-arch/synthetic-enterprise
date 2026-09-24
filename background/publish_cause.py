@@ -158,6 +158,20 @@ LOST_PUSH_RACE = "lost_push_race"
 #: Not a cause: the honest answer when no usable record exists for the failure being described.
 UNATTRIBUTED = "unattributed"
 
+#: What makes a top-level field of `.publish_gate_state.json` a REFUSAL RECORD in this module's
+#: vocabulary: one cycle's attributed cause, stamped and hashed. Today `liveness_surface_refusal`
+#: is the only one. The scan in `held_refusal` is by SUFFIX rather than against a hard-coded list
+#: because the failure this module exists to stop is an answer nobody thought to look for -- a
+#: list would have to be remembered on the day the second surface starts recording its refusals,
+#: and the whole defect being repaired here is that nobody remembered to look in the field beside
+#: the one they read.
+REFUSAL_FIELD_SUFFIX = "_refusal"
+#: ...and the publish record that RETIRES a refusal of the same prefix. `liveness_surface_refusal`
+#: is a latch cleared by `_record_liveness_surface_publish`, but a latch that fails to clear is
+#: exactly the shape that would make this function cite a refusal the surface has since recovered
+#: from -- so the retirement is re-derived from the two stamps rather than trusted.
+PUBLISH_FIELD_SUFFIX = "_last_publish"
+
 #: Every cause this module will accept a write for. A write naming anything else is refused
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
 CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
@@ -261,3 +275,114 @@ def no_test_was_judged(cause) -> bool:
     misdirection the surrounding prose already labels. So only a POSITIVELY attributed
     no-test-judged cause suppresses, and "we cannot tell" never does."""
     return cause in NO_TEST_JUDGED_CAUSES
+
+
+def held_refusal(state, *, now=None, max_age=DEFAULT_MAX_AGE_SECONDS):
+    """The live attributed cause this state record is ALREADY HOLDING — or (None, why-not).
+
+    `unattributed` WAS A FALSE NEGATIVE SITTING BESIDE THE ANSWER (2026-09-24)
+    --------------------------------------------------------------------------
+    Observed in `docs/observability/.publish_gate_state.json`, 48 consecutive failures open:
+
+        citation_at_head        "not_established"
+        citation_at_head_reason "no red is named on this failure, so there is no citation to
+                                 re-ask. This is not evidence that HEAD is green."
+        total_red               0
+        liveness_surface_refusal {"cause": "push_never_landed", "git_hash": "18cc753b7...",
+                                  "evidence": "the commit was created here and `git ls-remote`
+                                  says origin did not advance to it (push rc=1, ...)"}
+
+    The front door read the first field, found nothing to cite, and said so. An attributed,
+    stamped, hash-keyed cause was two keys away in the SAME FILE. The same shape had already run
+    for three hours on the `dead` reading of the same field, where the summary's own sentence —
+    *"the red it cites is DEAD at HEAD, so the cause is unattributed"* — was false in the
+    direction that matters: a cause WAS held.
+
+    `unattributed` is this module's most valuable answer and that is exactly why it must not be
+    reachable while an attribution is in hand. "We cannot tell" is a result; "we did not look"
+    wearing its clothes is not. A module whose job is to say why a publish did not happen must
+    not be the reason a human runs pytest by hand to find out.
+
+    THE SCREENS, AND EVERY ONE OF THEM FAILS CLOSED
+    ------------------------------------------------
+    A record is only returned when all four hold, and each is an OBSERVATION rather than a trust:
+
+      * its `cause` is in `CAUSES` — the same closed set `record_cause` will accept a write for.
+      * its `ts` passes `recorded_instant_seconds` AND is inside `max_age`. Same bound and same
+        screen as `read_cause`, for the same reason: an undated record would be cited as the
+        attribution for every cycle forever.
+      * it has not been RETIRED by a later publish on its own surface. `<prefix>_refusal` is
+        cleared by `<prefix>_last_publish`, and a latch that fails to clear is the one way this
+        function could name a surface that has since recovered — so the two stamps are compared
+        here rather than the clearing being assumed to have happened.
+      * where several survive, the NEWEST wins. Not "the first found": a dict ordering is not a
+        clock, and citing the older of two live refusals is the carried-forward defect again.
+
+    NOT hash-keyed to the caller's failure, and that is the ONE relaxation from `read_cause`.
+    This is deliberate and it is the difference between the two functions. `read_cause` answers
+    "what was THIS cycle's cause" and must refuse another commit's record. This one answers "is
+    this publisher's own state holding a cause nobody surfaced", which is a question about the
+    RECORD, not about one cycle — the refusal's own `git_hash` travels back to the caller so the
+    reader sees which commit it is about and can judge for themselves. A summary that named the
+    commit would have ended the outage; silence did not.
+
+    Returns `(record, "")` on a hit, or `(None, sentence)`. The sentence is never a bare
+    "unknown": it NAMES the fields that were held and says why each was not enough, so a reader
+    who thinks the answer is in one of them can go and look. That is the second half of the
+    contract — either name the live cause, or say which inputs you had and why they failed.
+    """
+    now = time.time() if now is None else float(now)
+    if not isinstance(state, dict):
+        return None, ("the publisher's state is not an object, so no refusal record could be "
+                      "inspected -- this is NOT evidence that the failure had no cause")
+    empty, rejected, live = [], [], []
+    for field in sorted(state):
+        if not field.endswith(REFUSAL_FIELD_SUFFIX):
+            continue
+        rec = state.get(field)
+        if not isinstance(rec, dict):
+            # Held and empty is still an input that was HELD -- the why-not names it, because
+            # "the latch is clear" and "there is no latch" are different facts to a reader.
+            empty.append(field)
+            continue
+        cause = rec.get("cause")
+        if cause not in CAUSES:
+            rejected.append("{} names no recognised cause".format(field))
+            continue
+        recorded = recorded_instant_seconds(rec.get("ts"))
+        if recorded is None:
+            rejected.append("{} carries no readable stamp, so it cannot be dated at all"
+                            .format(field))
+            continue
+        if now - recorded > max_age:
+            rejected.append("{} is {:.1f}h old, past this reader's {:.1f}h bound, so it "
+                            "describes an earlier episode"
+                            .format(field, (now - recorded) / 3600.0, max_age / 3600.0))
+            continue
+        published = state.get(field[:-len(REFUSAL_FIELD_SUFFIX)] + PUBLISH_FIELD_SUFFIX)
+        cleared = (recorded_instant_seconds(published.get("ts"))
+                   if isinstance(published, dict) else None)
+        if cleared is not None and cleared >= recorded:
+            rejected.append("{} was retired by a later {}, so that surface has since published"
+                            .format(field, field[:-len(REFUSAL_FIELD_SUFFIX)]
+                                    + PUBLISH_FIELD_SUFFIX))
+            continue
+        live.append((recorded, field, rec))
+    if live:
+        recorded, field, rec = max(live, key=lambda held: held[0])
+        evidence = rec.get("evidence")
+        return {
+            "field": field,
+            "cause": str(rec.get("cause")),
+            "evidence": (str(evidence) if isinstance(evidence, str) and evidence.strip()
+                         else "recorded with no evidence line"),
+            "git_hash": str(rec.get("git_hash")),
+            "label": str(rec.get("label")) if isinstance(rec.get("label"), str) else None,
+            "ts": recorded,
+            "age_seconds": round(max(0.0, now - recorded), 1),
+        }, ""
+    if not empty and not rejected:
+        return None, ("the publisher's state carries no refusal record at all, so there is "
+                      "nothing here to name -- which is NOT evidence the failure had no cause")
+    held = ["{} is empty".format(f) for f in empty] + rejected
+    return None, "the publisher held {}".format("; ".join(held))
