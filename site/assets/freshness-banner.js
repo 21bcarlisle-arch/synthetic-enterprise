@@ -209,11 +209,47 @@
       (secs === null ? "" : ", over " + (secs / 3600).toFixed(1) + "h") +
       ". Nothing above this line will be replaced until that is fixed, whatever the " +
       "as-at date says." +
-      /* A failure whose cited red no longer reproduces is a failure with no named cause, and
-         that is worse news than a failure with one -- so it is said, not summarised away. */
-      (p.cited_red_at_head === "dead"
-        ? " The publisher names no live cause for it."
-        : "");
+      publisherCauseSentence(p);
+  }
+
+  /* THE SECOND COMPOSER OF THE SAME SENTENCE (2026-09-24).
+   *
+   * What stood here was `p.cited_red_at_head === "dead" ? " The publisher names no live
+   * cause for it." : ""`, and it was wrong the same two ways `publish_freshness._cause_clause`
+   * was -- this is the visible half of that repair, landed behind it.
+   *
+   * FIRST, "names no live cause" was FALSE. On 2026-09-24 `.publish_gate_state.json` held
+   * `liveness_surface_refusal: {"cause": "push_never_landed", "git_hash": "18cc753b7...",
+   * "evidence": "... git ls-remote says origin did not advance to it (push rc=1, ...)"}`
+   * while the field this clause read said there was nothing to cite. A cause was in hand.
+   *
+   * SECOND, it was keyed to ONE reading. `not_established` is what the citation field says
+   * whenever no red is named at all -- every push failure, provenance refusal and
+   * behind-origin refusal -- and on all of those this clause rendered nothing whatever.
+   * The louder defect fired less often.
+   *
+   * So the branch is on whether the citation ANSWERS the question. Only "reproduces" does;
+   * everything else sends the reader to the cause the record is already holding, which
+   * `publisher.held_refusal` now carries in the heartbeat. A reader who is told publishing
+   * is failing and given no cause goes and runs the suite by hand, which is exactly what
+   * happened and exactly what this exists to stop.
+   *
+   * NO CAUSE AND NO EVIDENCE IS STILL SAID OUT LOUD -- a failure with no named cause is
+   * worse news than one with a cause, which was the original clause's point and is kept.
+   * The `held_refusal_reason` is NOT rendered here: it names internal state-file fields,
+   * which belong in the log line and not on a page a customer may read. The page gets the
+   * fact; `publish_freshness.describe()` gets the fields. */
+  function publisherCauseSentence(p) {
+    /* A citation that re-ran at HEAD and is still red IS the answer, and the health page
+       carries the blocking list. Saying more here would give a reader two places to look. */
+    if (p.cited_red_at_head === "reproduces") { return ""; }
+    var held = p.held_refusal;
+    if (held && typeof held.cause === "string" && held.cause) {
+      var sha = typeof held.git_hash === "string" ? held.git_hash.slice(0, 9) : null;
+      return " The publisher's own record names the cause: " + held.cause +
+             (sha ? " at commit " + sha : "") + ".";
+    }
+    return " The publisher names no live cause for it.";
   }
 
   function annotationSentence(d) {

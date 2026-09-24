@@ -527,3 +527,153 @@ def test_a_reference_page_carries_no_publisher_failure_either():
     out = render(heartbeat=_heartbeat_with_publisher(_failing_publisher()), figures="none")
     assert "PUBLISHING IS FAILING" not in out["text"]
     assert out["state"] == "reference"
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# "NO LIVE CAUSE" WAS FALSE WHILE A CAUSE WAS HELD (2026-09-24)
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# The section above gave the publisher's refusal a sentence. This one is about what that sentence
+# said NEXT, and it was wrong the same two ways `publish_freshness._cause_clause` was -- the
+# banner is the second composer of one sentence, and it was repaired behind the Python one.
+#
+# WHAT WAS ON DISK, `.publish_gate_state.json`, 48 consecutive failures open:
+#
+#     citation_at_head         "not_established"
+#     total_red                0
+#     liveness_surface_refusal {"cause": "push_never_landed", "git_hash": "18cc753b7...",
+#                               "evidence": "... git ls-remote says origin did not advance to
+#                                it (push rc=1, origin=bd98ca395, head=6d8d7acf8) ..."}
+#
+# FIRST DEFECT: on the `dead` reading the banner rendered "The publisher names no live cause for
+# it." while an attributed, stamped, hash-keyed cause sat in the next field of the same record.
+#
+# SECOND DEFECT, louder and fired less often: the clause was keyed to `dead` ALONE, and
+# `not_established` is what the citation field says whenever no red is named at all -- i.e. on
+# every push failure, provenance refusal and behind-origin refusal. On all of those the banner
+# said nothing about cause in either direction.
+
+
+def _held(cause="push_never_landed", git_hash="18cc753b76bccf07c65cf7e7178d066d9c248dac"):
+    return {"field": "liveness_surface_refusal", "cause": cause, "git_hash": git_hash,
+            "evidence": "the commit was created here and `git ls-remote` says origin did not "
+                        "advance to it (push rc=1, origin=bd98ca395, head=6d8d7acf8)",
+            "label": "Liveness heartbeat", "ts": 1790253554.99, "age_seconds": 800.2}
+
+
+def _publisher_holding(cause_held, cited="dead"):
+    p = _failing_publisher(n=48, secs=64.2 * 3600.0, cited=cited)
+    p["held_refusal"] = cause_held
+    p["held_refusal_reason"] = "" if cause_held else "liveness_surface_refusal is empty"
+    return p
+
+
+def test_a_dead_citation_beside_a_held_cause_names_the_cause_on_the_page():
+    """THE SENTENCE THAT WAS FALSE, in the rendered DOM. MUTATION: restore
+    `p.cited_red_at_head === "dead" ? " The publisher names no live cause for it." : ""` and
+    both assertions fire."""
+    out = render(heartbeat=_heartbeat_with_publisher(_publisher_holding(_held())))
+
+    assert "push_never_landed" in out["text"], (
+        "the record holds an attributed cause and the page says nothing about it: "
+        "{!r}".format(out["text"]))
+    assert "no live cause" not in out["text"], (
+        "a cause WAS in hand -- telling a reader there is none sends them to look for "
+        "something nobody has, which is how the real blocker went unnamed for three hours")
+
+
+def test_a_citation_that_was_never_established_names_the_held_cause_too():
+    """THE LOUDER DEFECT. `not_established` is the reading on EVERY push failure, provenance
+    refusal and behind-origin refusal, and the old clause rendered nothing at all on it.
+
+    MUTATION: narrow the branch back to `cited_red_at_head === "dead"` and this fires while the
+    test above still passes. That pair IS the defect's shape.
+    """
+    out = render(heartbeat=_heartbeat_with_publisher(
+        _publisher_holding(_held(), cited="not_established")))
+
+    assert "push_never_landed" in out["text"] and "18cc753b7" in out["text"], (
+        "the cause and the commit it is about must both reach the page -- a cause a reader "
+        "cannot go and check is an unfalsifiable attribution: {!r}".format(out["text"]))
+
+
+def test_every_citation_reading_but_reproduces_reaches_a_cause_sentence():
+    """THE LEG THAT WOULD HAVE CAUGHT THIS, asserted over the WHOLE field rather than one
+    branch. A clause that answered on `dead` and fell silent on `not_established` passes every
+    per-branch control, which is exactly how this survived.
+
+    `reproduces` is swept in as the one reading that must NOT gain the sentence, so the
+    partition is asserted DISTINCT and not merely covered -- a version that rendered the cause
+    unconditionally fails this, and so does one that rendered it never.
+
+    MUTATION: drop any single reading from the branch and this fires naming it.
+    """
+    named, silent = [], []
+    for reading in ("dead", "not_asked", "not_established", "reproduces", None):
+        out = render(heartbeat=_heartbeat_with_publisher(
+            _publisher_holding(_held(), cited=reading)))
+        (named if "push_never_landed" in out["text"] else silent).append(reading)
+
+    assert silent == ["reproduces"], (
+        "only a citation that re-ran at HEAD and is still red is an answer in itself; every "
+        "other reading leaves the question open and must go to the held cause. Silent "
+        "on: {}".format(silent))
+    assert len(named) == 4
+
+
+def test_a_reproducing_citation_keeps_the_page_pointed_at_the_blocking_list():
+    """The rare branch asserted REACHABLE, then asserted about. MUTATION: delete the
+    `reproduces` early return and this fires -- two named causes for one fault give a reader
+    two places to look, and the health page already carries the blocking list."""
+    out = render(heartbeat=_heartbeat_with_publisher(
+        _publisher_holding(_held(), cited="reproduces")))
+
+    assert "PUBLISHING IS FAILING" in out["text"], (
+        "the branch is not reachable at all, so what it renders is not yet a question")
+    assert "push_never_landed" not in out["text"] and "no live cause" not in out["text"]
+
+
+def test_with_nothing_held_the_page_still_says_no_live_cause():
+    """THE ORIGINAL CLAUSE'S POINT IS KEPT. A failure with no named cause is worse news than one
+    with a cause, and suppressing that to avoid an awkward sentence would be the opposite
+    failure. MUTATION: return "" when nothing is held and this fires."""
+    out = render(heartbeat=_heartbeat_with_publisher(_publisher_holding(None)))
+
+    assert "no live cause" in out["text"], out["text"]
+
+
+def test_the_state_files_internal_field_names_do_not_reach_the_page():
+    """SCOPE, over BOTH ARMS of the branch. `held_refusal_reason` names internal fields of
+    `.publish_gate_state.json` -- useful in a log line a seat reads, noise on a page a customer
+    may read. The page gets the FACT; `publish_freshness.describe()` gets the fields.
+
+    MUTATION: render `p.held_refusal_reason` into EITHER arm and this fires.
+
+    WRITTEN THIS WAY BECAUSE THE FIRST VERSION COULD NOT FAIL. It exercised only the
+    nothing-held arm, and the mutation that leaks the reason lands naturally in the OTHER one --
+    the arm that composes a sentence is the arm a leak gets appended to. It went green on a
+    live defect. In production `held_refusal_reason` is "" whenever a cause is held, so the
+    leak would have rendered nothing and been invisible until the day that changed: keyed to
+    the property (no internal field name reaches a reader, on any path), never to today's
+    emptiness.
+    """
+    for held in (_held(), None):
+        p = _publisher_holding(held)
+        p["held_refusal_reason"] = "the publisher held liveness_surface_refusal is empty"
+        out = render(heartbeat=_heartbeat_with_publisher(p))
+
+        assert "liveness_surface_refusal" not in out["text"], (
+            "an internal state-file field name is rendered to a reader with held={!r}: "
+            "{!r}".format(bool(held), out["text"]))
+
+
+def test_a_held_cause_with_no_readable_commit_still_names_the_cause():
+    """Each clause is DROPPED rather than guessed when its value is missing -- the same rule the
+    count and duration clauses above follow. MUTATION: gate the whole sentence on the hash and
+    this fires: the cause is the news, the commit is the corroboration."""
+    out = render(heartbeat=_heartbeat_with_publisher(
+        _publisher_holding(_held(git_hash=None))))
+
+    assert "push_never_landed" in out["text"]
+    assert "at commit" not in out["text"], (
+        "a commit clause rendered from a hash that was never recorded")
