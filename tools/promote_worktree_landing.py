@@ -63,6 +63,11 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT))
 
+# AFTER the path insert, deliberately: this module is run as a bare script as well as with `-m`, and
+# in the bare case `tools` is only importable once PROJECT is on the path. The same reason
+# `_refuse_if_dirty` imports `background.seat_work_in_hand` inside the function body.
+from tools import hook_gate_mark  # noqa: E402
+
 REMOTE = "origin"
 BRANCH = "main"
 
@@ -240,6 +245,20 @@ def _refuse_if_ungated(worktree: Path, commit: str) -> None:
     accepts the second, which is the exact hole the salvage commit above walked into. Until the
     hook chain leaves a mark of its own, `no receipt` is all this can honestly say — and saying
     only that is what lets the next reader tell a toll from a wall.
+
+    THE HOOK CHAIN NOW LEAVES A MARK, SO THE MIDDLE POPULATION IS VISIBLE (2026-09-24, the same
+    day). `tools/hook_gate_mark` is written by `pre-commit` (which is the only place that knows the
+    chain passed) and stamped onto the message by `commit-msg` (the only place that can edit it),
+    bound to the tree the chain judged. `--no-verify` and `commit-tree` run no hooks — that is what
+    they MEAN — so the third population arrives with neither receipt nor mark and is refused exactly
+    as before. The second is now promotable, which is the point: one receiptless daemon commit on
+    the shared tree used to make the whole ahead leg unpromotable until a seat spent a ~10 minute
+    gate cycle finding out why, while costing the daemon that made it nothing.
+
+    WHAT THE MARK PROVES IS NARROWER THAN "GATED", and the docstring of `surgical_land.verify` says
+    it best about its own receipt: it does not prove the gate was green — nothing can, after the
+    fact — it proves the evidence is ABOUT THIS COMMIT. Both kinds are forgeable by hand and
+    neither is a cryptographic claim; what they rule out is evidence copied from another commit.
     """
     commits = _commits_being_promoted(worktree, commit)
     for candidate in commits:
@@ -247,34 +266,56 @@ def _refuse_if_ungated(worktree: Path, commit: str) -> None:
             [sys.executable, "-m", "tools.surgical_land", "--verify", candidate],
             cwd=str(worktree), capture_output=True, text=True, timeout=300,
         )
-        if proc.returncode != 0:
-            subject = _git(worktree, "log", "-1", "--pretty=%s", candidate).stdout.strip()
-            where = ("the landing itself" if candidate == commit
-                     else f"one of the {len(commits)} commits this push would add, beneath the tip")
-            # rc 1 and rc 2 are OPPOSITE findings and were reported in identical words. `verify()`
-            # returns 2 for "no receipt" — the ordinary state of every daemon commit — and 1 for
-            # "RECEIPT FALSIFIED", a receipt describing a commit it is not on, which is tampering
-            # and has never once been observed. Reading a 2 with a 1's vocabulary is what sent a
-            # seat hunting a hook bypass that was not there.
-            if proc.returncode == 1:
-                what = ("carries a surgical_land receipt that DOES NOT DESCRIBE IT — the receipt "
-                        "names a different tree, parent or path set. That is a forged or "
-                        "transplanted receipt, not a missing one")
-                remedy = ("Do not re-land over this. Establish where the receipt came from "
-                          "first: nothing in this repository writes one except a real landing.")
-            else:
-                what = ("carries no surgical_land receipt. THIS DOES NOT ESTABLISH THAT IT WAS "
-                        "UNGATED: an ordinary `git commit` runs the whole pre-commit hook chain "
-                        "and leaves no receipt, and that is how every daemon commit is made. "
-                        "What is established is only that it did not come through this door")
-                remedy = ("Only commits this route can VERIFY are promotable, because a "
-                          "hook-gated commit and a `--no-verify` one look identical from here. "
-                          "Re-land it through the door, or reset past it if it is not yours.")
-            raise PromotionRefused(
-                f"{candidate[:9]} {what} — {where}: {subject[:120]!r}\n"
-                f"{(proc.stdout + proc.stderr).strip()[-400:]}\n"
-                f"{remedy}"
-            )
+        if proc.returncode == 0:
+            continue
+        # TWO KINDS OF EVIDENCE, ONE PROPERTY. A receipt proves the commit came through
+        # `surgical_land`; a hook-gate mark proves the `pre-commit` chain ran over this exact tree.
+        # Either is sufficient because the property is "gated", not "gated by one particular door".
+        # ORDER MATTERS: the receipt is asked first and the mark is not consulted at all when it
+        # verifies, so every existing landing behaves byte-identically to before this line existed.
+        mark_rc, mark_text = hook_gate_mark.verify(worktree, candidate)
+        if mark_rc == 0:
+            continue
+        subject = _git(worktree, "log", "-1", "--pretty=%s", candidate).stdout.strip()
+        where = ("the landing itself" if candidate == commit
+                 else f"one of the {len(commits)} commits this push would add, beneath the tip")
+        # rc 1 and rc 2 are OPPOSITE findings and were reported in identical words. `verify()`
+        # returns 2 for "no receipt" — the ordinary state of every daemon commit — and 1 for
+        # "RECEIPT FALSIFIED", a receipt describing a commit it is not on, which is tampering
+        # and has never once been observed. Reading a 2 with a 1's vocabulary is what sent a
+        # seat hunting a hook bypass that was not there.
+        if proc.returncode == 1:
+            what = ("carries a surgical_land receipt that DOES NOT DESCRIBE IT — the receipt "
+                    "names a different tree, parent or path set. That is a forged or "
+                    "transplanted receipt, not a missing one")
+            remedy = ("Do not re-land over this. Establish where the receipt came from "
+                      "first: nothing in this repository writes one except a real landing.")
+        elif mark_rc == 1:
+            # THE SAME TAMPERING SHAPE ON THE OTHER KIND OF EVIDENCE, and it must not be reported
+            # as an absence: a mark describing a different tree is a claim, and a reader told only
+            # "no mark" would re-land over a message that is actively lying about what it is.
+            what = ("carries no surgical_land receipt, and a hook-gate mark that DOES NOT "
+                    "DESCRIBE IT — the mark names a different tree or parent, so the gate run it "
+                    "cites was over other bytes. That is transplanted evidence, not a missing one")
+            remedy = ("Do not re-land over this. Establish where the mark came from first: "
+                      "nothing writes one except the repo's own pre-commit and commit-msg chain.")
+        else:
+            what = ("carries no surgical_land receipt. THIS DOES NOT ESTABLISH THAT IT WAS "
+                    "UNGATED for any commit made before 2026-09-24: an ordinary `git commit` "
+                    "runs the whole pre-commit hook chain and leaves no receipt, and that is how "
+                    "every daemon commit is made. What IS established is that it carries no "
+                    "hook-gate mark either, so since that date it did not come through the hook "
+                    "chain in this tree")
+            remedy = ("Only commits this route can VERIFY are promotable — by receipt, or by the "
+                      "hook-gate mark the pre-commit chain now leaves. A commit older than that "
+                      "mark may well have been gated and simply cannot show it. "
+                      "Re-land it through the door, or reset past it if it is not yours.")
+        raise PromotionRefused(
+            f"{candidate[:9]} {what} — {where}: {subject[:120]!r}\n"
+            f"{(proc.stdout + proc.stderr).strip()[-400:]}\n"
+            f"{mark_text}\n"
+            f"{remedy}"
+        )
 
 
 def _refuse_if_not_fast_forward(worktree: Path, commit: str) -> str:
