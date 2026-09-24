@@ -359,6 +359,13 @@ WEDGE_KINDS_NO_TEST_JUDGED = frozenset({
     # the same wasted priority-zero work this set was built to stop -- one lane over. The cause
     # is a lost merge-to-push race; `process_run_complete.DELIVERY_NOT_REACHED_KIND` declares it.
     "delivery_did_not_reach_origin",
+    # rc=81 (2026-09-24): the publisher's OWN scoped gate refused and NO test returned a verdict
+    # -- the suite child was killed, or pytest exited non-zero with no FAILED line, or the gate
+    # had no subject. Until that code existed this refusal WAS a bare rc=1, so it reached this
+    # reader as `test_regression` and is the sixth cause of the publish-outage series.
+    # `process_run_complete.SCOPED_GATE_UNJUDGED_KIND` declares it. Its sibling
+    # `scoped_suite_red` is deliberately absent: there a test really was judged red.
+    "scoped_gate_unjudged",
 })
 
 # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (director console P0, 2026-07-25): a daemon-lifecycle

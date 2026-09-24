@@ -115,10 +115,22 @@ def test_every_outcome_that_exits_77_maps_to_exactly_one_cause():
     # named reds, or a non-test gate refused ahead of the test gate and nothing was judged.
     # Widening this to the UNION rather than dropping it keeps the property that matters: a cause
     # NEITHER route can produce is still a branch no reader will ever see, and still reds here.
-    producible = set(prc.PUBLISH_CAUSE_FOR_REASON.values()) | set(prc.PUBLISH_CAUSE_OVERRIDES)
+    # THREE ROUTES AS OF 2026-09-24, and the third is not an rc=77 route at all: the publisher's
+    # OWN scoped gate refuses BEFORE any commit is attempted and records its cause there
+    # (`SCOPED_GATE_CAUSES`, EXIT_SCOPED_GATE_REFUSED). Added to the union rather than carved out
+    # of the vocabulary, because the property this control protects is unchanged and is about the
+    # vocabulary as a whole: a cause NO route can produce is a branch no reader will ever see.
+    producible = (set(prc.PUBLISH_CAUSE_FOR_REASON.values())
+                  | set(prc.PUBLISH_CAUSE_OVERRIDES)
+                  | set(prc.SCOPED_GATE_CAUSES))
     assert producible == set(pc.CAUSES), (
-        "the two production routes and the cause vocabulary must be the same closed set in both "
-        "directions -- a cause nothing can produce is a branch no reader will ever see")
+        "the three production routes and the cause vocabulary must be the same closed set in "
+        "both directions -- a cause nothing can produce is a branch no reader will ever see")
+    assert not (set(prc.SCOPED_GATE_CAUSES)
+                & (set(prc.PUBLISH_CAUSE_FOR_REASON.values()) | set(prc.PUBLISH_CAUSE_OVERRIDES))), (
+        "a cause reachable from BOTH the scoped gate and the rc=77 route makes `_scoped_gate_"
+        "cause`'s filter unfalsifiable -- it exists to refuse a commit-route record left at the "
+        "same git hash, and it cannot refuse a name both routes write")
     assert not (set(prc.PUBLISH_CAUSE_OVERRIDES) & set(prc.PUBLISH_CAUSE_FOR_REASON.values())), (
         "a cause produced by BOTH routes makes the override unfalsifiable: the table would "
         "supply it anyway, so deleting the branch that overrides would not red anything")
