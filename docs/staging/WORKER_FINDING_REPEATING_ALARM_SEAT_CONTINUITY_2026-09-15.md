@@ -41,6 +41,8 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - **2026-09-20** — still live. 1 repeats over 4.1h without the state changing. No second document filed: this condition already has one.
 - **2026-09-21** — still live. 1 repeats over 4.0h without the state changing. No second document filed: this condition already has one.
 - **2026-09-22** — still live. 1 repeats over 4.0h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 1 repeats over 4.1h without the state changing. No second document filed: this condition already has one.
+- **2026-09-24** — still live. 1 repeats over 4.0h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `background, docs, saas, sim and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-15)
 - `nothing left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-16)
@@ -65,6 +67,9 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `.github, docs, tests, tools left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-20)
 - `magicmock, background, company, docs and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s` (first seen 2026-09-21)
 - `docs, simulation left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-22)
+- `simulation left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-23)
+- `company, tests left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-23)
+- `simulation, tests left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-23)
 ## Episodes — what each dead seat was holding
 
 ### 2026-09-15 07:25 UTC
@@ -27361,3 +27366,10138 @@ not in the edit; the tree state above is exactly what a healthy session would ha
 moment.
 
 Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 08:10 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-draws-path-note-reads-only-what-and-why-so-53-entries-name-paths-it-cannot-see` — claimed 0.1h ago. The seat said: Widen background/delivery_lane.path_note to build its text from _ITEM_PROSE_KEYS instead of the hand-rolled "what + why" at its line ~3823. It is the only one of the three path doors still reading a n
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/delivery_lane.py`
+- `tests/background/test_the_draw_classifies_the_paths_it_names.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash
+- Tool calls this session: 104
+- The seat's pid, now gone: `3070485`
+- Last commit on that tree: `f0bc14599 the hand-off door grades what it hands on, and the orientation's spent reading fired backwards here`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 08:20 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-draws-path-note-reads-only-what-and-why-so-53-entries-name-paths-it-cannot-see` — claimed 0.2h ago. The seat said: Widen background/delivery_lane.path_note to build its text from _ITEM_PROSE_KEYS instead of the hand-rolled "what + why" at its line ~3823. It is the only one of the three path doors still reading a n
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 46
+- The seat's pid, now gone: `3111877`
+- Last commit on that tree: `14dc33969 the canonical prose tuple is guarded at the orientation door too, and nothing guarded it before`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 08:40 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `restore-the-six-live-reverts-before-anything-regenerates-from-them` — claimed 0.1h ago. The seat said: Run `tools/stale_copy_refusal.py`'s census over the live tree, list the copies it judges as predating the last landing to their own path, and RESTORE each one from HEAD — resolving, not discarding, an
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+
+…and 45 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 111
+- The seat's pid, now gone: `3179619`
+- Last commit on that tree: `1c8e3edec chore(liveness): publish heartbeat while sim output unchanged (git=6aab5bd53104a1549670c39637815d91faee8bbd) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 08:55 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+
+…and 45 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 62
+- The seat's pid, now gone: `3225693`
+- Last commit on that tree: `166021f0c chore(base): advance to origin/main before the shared-constant census`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 09:15 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `restore-the-six-live-reverts-before-anything-regenerates-from-them` — claimed 0.2h ago. The seat said: Run `tools/stale_copy_refusal.py`'s census over the live tree, list the copies it judges as predating the last landing to their own path, and RESTORE each one from HEAD — resolving, not discarding, an
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/process_run_complete.py`
+- `tests/background/test_the_publish_path_refuses_a_stale_producer.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Read, Bash, Read, Bash, Bash, Bash, Bash, Bash, Read, ToolSearch, Bash, Read
+- Tool calls this session: 54
+- The seat's pid, now gone: `3272271`
+- Last commit on that tree: `ae59d8f2d merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 09:25 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash
+- Tool calls this session: 81
+- The seat's pid, now gone: `3291700`
+- Last commit on that tree: `36beec972 the shared-constant class is 17, not 265, and the census built to notice re-duplication cannot see a constant at all`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 09:30 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Read, Bash, Write, Bash
+- Tool calls this session: 25
+- The seat's pid, now gone: `3306769`
+- Last commit on that tree: `8c711fa70 chore(provenance): verification paused banner (git=34b2f16df) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 09:45 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-page-cannot-say-whether-the-advantage-is-choosing-or-the-price-level` — claimed 0.2h ago. The seat said: Settle, one variable at a time, why the two three-arm runs in world `39a192ce04c1eda8` disagree by eighteen times about the composition of the advantage. Pre-register the prediction before running any
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, ToolSearch, Bash, Read
+- Tool calls this session: 27
+- The seat's pid, now gone: `3401382`
+- Last commit on that tree: `027275ba0 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 10:35 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-page-cannot-say-whether-the-advantage-is-choosing-or-the-price-level` — claimed 0.5h ago. The seat said: Widen AUC_FAMILY_FLOOR_PATH's prohibition in tools/generate_value_arms_data.py to name what it actually forbids -- the FOLD (18->21 draws) and the SPREAD-AS-INTERVAL -- so next12 may be read as a floo
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Edit, Bash, Bash, Bash, Bash, ToolSearch, Monitor, Bash, Bash, Bash
+- Tool calls this session: 112
+- The seat's pid, now gone: `3570323`
+- Last commit on that tree: `06e316ae4 the seed price can only be asked in the state where it has no answer, so the page states neither the sign nor a price for one`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 10:45 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-republished-seed-price-carries-an-unbounded-count-in-every-artefacts-own-bytes` — claimed 0.1h ago. The seat said: current_world.selection_leg.population_repair_bias.sign_on_the_shared_population publishes seeds_needed_to_state_a_sign: 1744 beside sems_from_zero: 0.166 -- the same unbounded-price defect 06e316ae4 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 46 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 118
+- The seat's pid, now gone: `3610148`
+- Last commit on that tree: `ca8a67f7a chore(provenance): verification paused banner (git=166021f0c) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 11:05 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-republished-seed-price-carries-an-unbounded-count-in-every-artefacts-own-bytes` — claimed 0.5h ago. The seat said: current_world.selection_leg.population_repair_bias.sign_on_the_shared_population publishes seeds_needed_to_state_a_sign: 1744 beside sems_from_zero: 0.166 -- the same unbounded-price defect 06e316ae4 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 85
+- The seat's pid, now gone: `3698541`
+- Last commit on that tree: `a3f078c4b merge origin/main: re-gate the republished seed-price repair on the moved base`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 11:25 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-republished-seed-price-carries-an-unbounded-count-in-every-artefacts-own-bytes` — claimed 0.8h ago. The seat said: current_world.selection_leg.population_repair_bias.sign_on_the_shared_population publishes seeds_needed_to_state_a_sign: 1744 beside sems_from_zero: 0.166 -- the same unbounded-price defect 06e316ae4 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Write, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 65
+- The seat's pid, now gone: `3736295`
+- Last commit on that tree: `a3f078c4b merge origin/main: re-gate the republished seed-price repair on the moved base`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 11:45 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-republished-seed-price-carries-an-unbounded-count-in-every-artefacts-own-bytes` — claimed 0.2h ago. The seat said: LAND THE FINISHED WORK IN /var/tmp/se-seat-executor -- do not rebuild it. tools/generate_value_arms_data.py, tests/tools/test_generate_value_arms_data.py, site/data/value_arms.json and three docs/stag
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Read, Bash, Bash, Read, Read, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 111
+- The seat's pid, now gone: `3845111`
+- Last commit on that tree: `fcd9857e9 the shared-constant census found four unguarded, one read by no code at all, and the whole family blind in the widening direction`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 12:05 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-republished-seed-price-carries-an-unbounded-count-in-every-artefacts-own-bytes` — claimed 0.6h ago. The seat said: LAND THE FINISHED WORK IN /var/tmp/se-seat-executor -- do not rebuild it. tools/generate_value_arms_data.py, tests/tools/test_generate_value_arms_data.py, site/data/value_arms.json and three docs/stag
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 115
+- The seat's pid, now gone: `3922817`
+- Last commit on that tree: `d78739e5a merge origin/main: advance the base before landing the derived seed price`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 12:20 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.1h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 83
+- The seat's pid, now gone: `3957573`
+- Last commit on that tree: `7179a7087 the company's churn belief is flat in household size across 235 of 244 legs, exactly where the world's response spans 11.6x`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 12:30 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.3h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_value_cycle_ab_noise_floor.py`
+- `tools/generate_value_arms_data.py`
+- `tools/run_value_cycle_ab.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Bash, Bash, Bash, Edit, Write, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 88
+- The seat's pid, now gone: `4010071`
+- Last commit on that tree: `5742edb1c the page derives the seed price instead of copying it, and the bar it was graded at was a constant this repo had deleted`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 12:35 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.4h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Edit, Edit, Bash, Bash
+- Tool calls this session: 32
+- The seat's pid, now gone: `4033241`
+- Last commit on that tree: `de6ad1fa5 chore(liveness): publish heartbeat while sim output unchanged (git=f9add69fa7c983447814cd4104e55a2339aa906a) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 12:35 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.4h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash
+- Tool calls this session: 80
+- The seat's pid, now gone: `4027124`
+- Last commit on that tree: `de6ad1fa5 chore(liveness): publish heartbeat while sim output unchanged (git=f9add69fa7c983447814cd4104e55a2339aa906a) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 12:50 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.6h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_value_cycle_ab_noise_floor.py`
+- `tools/generate_value_arms_data.py`
+- `tools/run_value_cycle_ab.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Edit, Write, Bash, Bash, Bash, Bash, Bash, ToolSearch, Monitor, Bash, Bash
+- Tool calls this session: 53
+- The seat's pid, now gone: `4100193`
+- Last commit on that tree: `5742edb1c the page derives the seed price instead of copying it, and the bar it was graded at was a constant this repo had deleted`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 13:15 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 1.0h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 56
+- The seat's pid, now gone: `4169569`
+- Last commit on that tree: `cff89ebaf the arms page now says WHY the choosing has nothing to find, and the book that says so is not the book above it`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 13:25 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 1.2h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_churn_belief_size_response.py`
+- `tools/churn_belief_size_response.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash
+- Tool calls this session: 56
+- The seat's pid, now gone: `12660`
+- Last commit on that tree: `964036259 the seed price is bounded at the producer, and the census found a fourth instance beside the third`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 13:45 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.0h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 96
+- The seat's pid, now gone: `60666`
+- Last commit on that tree: `cff89ebaf the arms page now says WHY the choosing has nothing to find, and the book that says so is not the book above it`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 13:50 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-producer-still-writes-an-unbounded-seed-count-into-every-artefact-it-draws` — claimed 0.1h ago. The seat said: The CONSUMER now derives the seed price, but the PRODUCER still writes it: tools/run_value_cycle_ab.distance_to_a_sign emits seeds_needed_to_state_a_sign as a bare count into every artefact it draws, 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Write, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 45
+- The seat's pid, now gone: `116890`
+- Last commit on that tree: `8bea9ac90 merge origin/main: the feed is REGENERATED from the merged code, not chosen from either side`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 14:15 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-is-caught-as-a-class-by-a-control-not-as-a-fifth-instance-by-hand` — claimed 0.1h ago. The seat said: Four instances of one rule have now been found and fixed ONE AT A TIME -- 06e316ae4 and 5742edb1c on two page keys, 964036259 at the money leg's producer, 949f80894 at the rank leg's. Each was found b
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 80
+- The seat's pid, now gone: `187536`
+- Last commit on that tree: `cff89ebaf the arms page now says WHY the choosing has nothing to find, and the book that says so is not the book above it`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 14:40 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-is-caught-as-a-class-by-a-control-not-as-a-fifth-instance-by-hand` — claimed 0.6h ago. The seat said: Four instances of one rule have now been found and fixed ONE AT A TIME -- 06e316ae4 and 5742edb1c on two page keys, 964036259 at the money leg's producer, 949f80894 at the rank leg's. Each was found b
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 94
+- The seat's pid, now gone: `265071`
+- Last commit on that tree: `852fd2854 the unbounded quotient is caught as a CLASS by a control, and my first two drafts of it could not fail`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 14:40 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-is-caught-as-a-class-by-a-control-not-as-a-fifth-instance-by-hand` — claimed 0.6h ago. The seat said: Four instances of one rule have now been found and fixed ONE AT A TIME -- 06e316ae4 and 5742edb1c on two page keys, 964036259 at the money leg's producer, 949f80894 at the rank leg's. Each was found b
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 51 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, ToolSearch, Monitor
+- Tool calls this session: 111
+- The seat's pid, now gone: `278904`
+- Last commit on that tree: `c5b653975 merge origin/main: advance the base before reading the churn-belief step`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 15:05 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-is-caught-as-a-class-by-a-control-not-as-a-fifth-instance-by-hand` — claimed 1.0h ago. The seat said: Four instances of one rule have now been found and fixed ONE AT A TIME -- 06e316ae4 and 5742edb1c on two page keys, 964036259 at the money leg's producer, 949f80894 at the rank leg's. Each was found b
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 51 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, ToolSearch, Bash
+- Tool calls this session: 75
+- The seat's pid, now gone: `433713`
+- Last commit on that tree: `c5b653975 merge origin/main: advance the base before reading the churn-belief step`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 15:30 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-six-remaining-debt-sites-and-the-page-that-renders-empty` — claimed 0.2h ago. The seat said: Repair the 6 remaining undeclared-quotient sites (3 in tools/fit_year_level_anchor.py, 3 in tools/run_value_cycle_ab.py), and diagnose why the capabilities door renders 36 of 37 elements empty with sc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash
+- Tool calls this session: 22
+- The seat's pid, now gone: `558547`
+- Last commit on that tree: `bf1761043 merge origin/main: the feed is REGENERATED from the merged code, not chosen from either side`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 15:35 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-six-remaining-debt-sites-and-the-page-that-renders-empty` — claimed 0.2h ago. The seat said: Repair the 6 remaining undeclared-quotient sites (3 in tools/fit_year_level_anchor.py, 3 in tools/run_value_cycle_ab.py), and diagnose why the capabilities door renders 36 of 37 elements empty with sc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/architecture/test_a_published_count_gates_on_its_denominators_grade.py`
+- `tests/tools/test_the_required_hazard_multiple_is_withheld_above_the_hazards_own_ceiling.py`
+- `tools/fit_year_level_anchor.py`
+- `tools/run_value_cycle_ab.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 366
+- The seat's pid, now gone: `611392`
+- Last commit on that tree: `5973f923b lower the quotient debt ceiling to its new floor, and file the page that renders empty on this base`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 15:45 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-six-remaining-debt-sites-and-the-page-that-renders-empty` — claimed 0.4h ago. The seat said: Repair the 6 remaining undeclared-quotient sites (3 in tools/fit_year_level_anchor.py, 3 in tools/run_value_cycle_ab.py), and diagnose why the capabilities door renders 36 of 37 elements empty with sc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 156
+- The seat's pid, now gone: `697523`
+- Last commit on that tree: `192826ee9 merge origin/main: advance the base before reading the churn-belief grade`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 16:15 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-unbounded-quotient-six-remaining-debt-sites-and-the-page-that-renders-empty` — claimed 0.9h ago. The seat said: Repair the 6 remaining undeclared-quotient sites (3 in tools/fit_year_level_anchor.py, 3 in tools/run_value_cycle_ab.py), and diagnose why the capabilities door renders 36 of 37 elements empty with sc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 102
+- The seat's pid, now gone: `836605`
+- Last commit on that tree: `586de6ea5 merge origin/main: re-measure the capabilities page on a base that moved its html and its feed`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 16:25 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-error-bar-and-the-point-estimate-measured-different-books-and-seven-controls-assert-they-agree` — claimed 0.1h ago. The seat said: Repair the 7 reds in tests/tools/test_every_leg_of_the_advantage_reaches_a_sentence.py. gva._legs_on_one_bar returns an honest available:false naming its reason -- the seed spread was measured on the 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_manifest.yaml`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_stretch_that_committed_and_changed_nothing_is_a_finding_not_silence.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+
+…and 52 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 109
+- The seat's pid, now gone: `886148`
+- Last commit on that tree: `3e4290bc0 merge origin/main: advance the base before researching the bill-stress knee`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 16:56 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-selection-legs-sign-is-a-property-of-which-floor-was-drawn-and-four-same-world-families-disagree` — claimed 0.3h ago. The seat said: Publish the selection leg's sign as CONTESTED ACROSS FAMILIES rather than as one floor's verdict. Four same-world families now grade the same contrast: noise_floor.json (9 seeds, 09-10 23:03) reads -1
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/delivery_seat.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+
+…and 50 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Read, Bash, Read, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit
+- Tool calls this session: 124
+- The seat's pid, now gone: `1004379`
+- Last commit on that tree: `320a8d14a the mute causes now reach the brief, and the fifth cause is a buffer a restart throws away`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 17:41 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-one-variable-floor-run-that-separates-the-instrument-from-the-seed-set` — claimed 0.0h ago. The seat said: Run the twelve next12 seeds at commit 4e7938f673 -- the SAME seed set the 09-18 floor used, on the tree the 09-10 nine-seed floor was drawn from -- and add it as a fifth entry in the _REPLICATION_PAIR
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 74
+- The seat's pid, now gone: `1159700`
+- Last commit on that tree: `20eeb1484 merge origin/main: the replication census meets the renewal-belief block in the same producer`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 18:11 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-one-variable-floor-run-that-separates-the-instrument-from-the-seed-set` — claimed 0.1h ago. The seat said: Run the twelve next12 seeds at commit 4e7938f673 -- the SAME seed set the 09-18 floor used, on the tree the 09-10 nine-seed floor was drawn from -- and add it as a fifth entry in the _REPLICATION_PAIR
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 71
+- The seat's pid, now gone: `1286213`
+- Last commit on that tree: `312bd55ff the one-variable run was already on disk unlanded, and the narrow width it confirms is made of repeated draws`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 18:31 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-one-variable-floor-run-that-separates-the-instrument-from-the-seed-set` — claimed 0.4h ago. The seat said: Run the twelve next12 seeds at commit 4e7938f673 -- the SAME seed set the 09-18 floor used, on the tree the 09-10 nine-seed floor was drawn from -- and add it as a fifth entry in the _REPLICATION_PAIR
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+
+…and 51 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 153
+- The seat's pid, now gone: `1351268`
+- Last commit on that tree: `d9de978d1 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 18:36 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-one-variable-floor-run-that-separates-the-instrument-from-the-seed-set` — claimed 0.5h ago. The seat said: Run the twelve next12 seeds at commit 4e7938f673 -- the SAME seed set the 09-18 floor used, on the tree the 09-10 nine-seed floor was drawn from -- and add it as a fifth entry in the _REPLICATION_PAIR
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_the_grade_names_the_world_the_capture_was_drawn_in.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+
+…and 51 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash
+- Tool calls this session: 29
+- The seat's pid, now gone: `1364187`
+- Last commit on that tree: `d9de978d1 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 19:21 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-published-floor-still-states-a-sign-across-five-repeated-draws` — claimed 0.5h ago. The seat said: NOISE_FLOOR_PATH is the floor the page's HEADLINE selection sign is stated on, and it is the worst repeater on disk: 5 of its 18 draws repeat another draw, and the page states a NEGATIVE choosing sign
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Edit, Bash, Write, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 147
+- The seat's pid, now gone: `1626455`
+- Last commit on that tree: `0cbbf1f88 merge origin/main: the attributable census meets two empty reconciliation merges`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 19:31 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-current-world-panel-is-a-second-home-for-the-sign-verdict-and-the-repetition-rule-does-not-reach-it` — claimed 0.0h ago. The seat said: Take the repetition rule to `_leg_in_this_world`, the current_world panel's leg builder, which composes `clears_its_own_bar`/`sign_is_stateable`/`sign` through its own code path and never touches `_le
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 155
+- The seat's pid, now gone: `1651115`
+- Last commit on that tree: `1939dd871 the departure book is re-taken in the live world, and the leg the page could not grade is the one that orders who leaves`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 20:11 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-current-world-panel-is-a-second-home-for-the-sign-verdict-and-the-repetition-rule-does-not-reach-it` — claimed 0.7h ago. The seat said: Take the repetition rule to `_leg_in_this_world`, the current_world panel's leg builder, which composes `clears_its_own_bar`/`sign_is_stateable`/`sign` through its own code path and never touches `_le
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 123
+- The seat's pid, now gone: `1860841`
+- Last commit on that tree: `a315a0b73 merge origin/main: the value-arms feed is regenerated from the merged generator, not picked from one side`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 20:21 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-current-world-panel-is-a-second-home-for-the-sign-verdict-and-the-repetition-rule-does-not-reach-it` — claimed 0.9h ago. The seat said: Take the repetition rule to `_leg_in_this_world`, the current_world panel's leg builder, which composes `clears_its_own_bar`/`sign_is_stateable`/`sign` through its own code path and never touches `_le
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, ToolSearch, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 129
+- The seat's pid, now gone: `1896697`
+- Last commit on that tree: `39330677b the headline carries its own repeat count, and the key it came from was counting the other quantity`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 20:26 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-current-world-panel-is-a-second-home-for-the-sign-verdict-and-the-repetition-rule-does-not-reach-it` — claimed 1.0h ago. The seat said: Take the repetition rule to `_leg_in_this_world`, the current_world panel's leg builder, which composes `clears_its_own_bar`/`sign_is_stateable`/`sign` through its own code path and never touches `_le
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, ToolSearch, Bash, Read, Bash, Read
+- Tool calls this session: 73
+- The seat's pid, now gone: `1907070`
+- Last commit on that tree: `60fdf12ad the census's named door took none of its 27 rows, and the grader for that was scoped past the population it mattered for`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 20:36 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-current-world-panel-is-a-second-home-for-the-sign-verdict-and-the-repetition-rule-does-not-reach-it` — claimed 1.1h ago. The seat said: Take the repetition rule to `_leg_in_this_world`, the current_world panel's leg builder, which composes `clears_its_own_bar`/`sign_is_stateable`/`sign` through its own code path and never touches `_le
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Edit, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 49
+- The seat's pid, now gone: `1935217`
+- Last commit on that tree: `39330677b the headline carries its own repeat count, and the key it came from was counting the other quantity`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 21:06 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `origin-main-carries-seven-reds-that-no-commits-gate-selection-reaches` — claimed 0.2h ago. The seat said: Repair the seven tests that are red on origin/main and, the load-bearing half, make the commit gate's test selection able to reach them
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 39 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Edit, Edit, Bash, Edit, Bash, Write, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 95
+- The seat's pid, now gone: `2104941`
+- Last commit on that tree: `32010eeb2 the door's own remedy cited a hunk index the tool it names refuses, and the control for that asked the 0-based side whether it agreed with itself`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 21:26 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `origin-main-carries-seven-reds-that-no-commits-gate-selection-reaches` — claimed 0.5h ago. The seat said: Repair the seven tests that are red on origin/main and, the load-bearing half, make the commit gate's test selection able to reach them
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 39 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, Bash, ToolSearch, Monitor
+- Tool calls this session: 61
+- The seat's pid, now gone: `2204071`
+- Last commit on that tree: `9dc00a77f merge origin/main: the cited-hunk-index fix meets the repetition rule and the re-taken departure book`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 21:31 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `origin-main-carries-seven-reds-that-no-commits-gate-selection-reaches` — claimed 0.6h ago. The seat said: Repair the seven tests that are red on origin/main and, the load-bearing half, make the commit gate's test selection able to reach them
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 39 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Read, Write, Bash, Bash
+- Tool calls this session: 18
+- The seat's pid, now gone: `2228991`
+- Last commit on that tree: `9dc00a77f merge origin/main: the cited-hunk-index fix meets the repetition rule and the re-taken departure book`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 21:41 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `origin-main-carries-seven-reds-that-no-commits-gate-selection-reaches` — claimed 0.8h ago. The seat said: Repair the seven tests that are red on origin/main and, the load-bearing half, make the commit gate's test selection able to reach them
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 152
+- The seat's pid, now gone: `2281769`
+- Last commit on that tree: `b305119b1 the remaining four of the seven origin/main reds are green, and three of them were detectors over-matching rather than defects in their subjects`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 22:06 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-whole-tree-subject-census-is-blind-to-a-git-oracled-population-and-to-the-test-corpus` — claimed 0.0h ago. The seat said: Widen tools/whole_tree_subject_census.py so --strict-dataflow can see a population derived from GIT (git ls-files / git grep / git show :path) and, for corpus-wide ratchets only, the tests/ root. Then
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: ToolSearch, Monitor, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 96
+- The seat's pid, now gone: `2411178`
+- Last commit on that tree: `9ded3a80e the gate's selection now reaches all seven controls, by four mechanisms each priced against the alternative`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 22:56 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_whole_tree_subject_census.py`
+- `tools/whole_tree_subject_census.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 85
+- The seat's pid, now gone: `2560486`
+- Last commit on that tree: `7e35e79c7 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 23:21 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 207
+- The seat's pid, now gone: `2672649`
+- Last commit on that tree: `db52e050a merge origin/main: advance the base before grading the census prediction`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 23:31 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_whole_tree_subject_census.py`
+- `tools/whole_tree_subject_census.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 128
+- The seat's pid, now gone: `2711936`
+- Last commit on that tree: `7e35e79c7 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-22 23:46 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 134
+- The seat's pid, now gone: `2790299`
+- Last commit on that tree: `c50ea7f0b the census docstring states the widened leg 1 beside the pre-registered one it replaced`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 00:21 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-withdrawal-the-belief-leg-did-not-survive` — claimed 0.3h ago. The seat said: Get the withdrawal onto the live page and to origin: the capabilities panel rendering `the_verdict_survives_pooling` false and `the_leg_holds_across_draws` false, both clauses in the headline `sentenc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Read, Bash, Edit, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 73
+- The seat's pid, now gone: `2931574`
+- Last commit on that tree: `c50ea7f0b the census docstring states the widened leg 1 beside the pre-registered one it replaced`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 00:36 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-withdrawal-the-belief-leg-did-not-survive` — claimed 0.5h ago. The seat said: Get the withdrawal onto the live page and to origin: the capabilities panel rendering `the_verdict_survives_pooling` false and `the_leg_holds_across_draws` false, both clauses in the headline `sentenc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit
+- Tool calls this session: 26
+- The seat's pid, now gone: `3040316`
+- Last commit on that tree: `c50ea7f0b the census docstring states the widened leg 1 beside the pre-registered one it replaced`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 00:56 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `is-partial-a-signal-for-a-data-artefact-and-which-callers-ask-the-blind-oracle` — claimed 0.2h ago. The seat said: Settle whether predates_landing_carrying_some means anything for a .json, then clear the two ladder_churn_factors copies or establish they must stay; and census judge's callers against the suffixes th
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_refresh_to_head.py`
+- `tools/refresh_to_head.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Read, Bash, Read, Bash, Read, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 416
+- The seat's pid, now gone: `3169428`
+- Last commit on that tree: `cc18e0e6e the withdrawal is published, one of the three armed reverts is cleared, and the two left name the judgement they need`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 01:41 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+
+…and 40 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Bash, Edit, Read, Edit, Bash, Edit, Edit, Bash, Edit, Bash, Bash
+- Tool calls this session: 102
+- The seat's pid, now gone: `3406086`
+- Last commit on that tree: `38741b94a the delivery record names the item it outranks instead of pointing at it, and the publisher's three here-relative reds are green`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 01:51 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+
+…and 40 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Read, Bash, Bash, Bash, Bash, Read, Monitor, Bash, Read, Bash, Bash
+- Tool calls this session: 69
+- The seat's pid, now gone: `3451729`
+- Last commit on that tree: `cdb1db0ab the published feed carries the withdrawal again: a fresh regeneration from a stale input is a revert no clock can see`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 02:06 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `a-regenerated-json-artefact-can-never-be-graded-superseded` — claimed 0.0h ago. The seat said: Repair the grading rule under `tools/stale_copy_refusal.py` and `tools/refresh_to_head.py` so it can tell A KEY THE BASE LACKS from A VALUE THAT CHANGED. Today it compares JSON leaf names and a leaf n
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 174
+- The seat's pid, now gone: `3514404`
+- Last commit on that tree: `6b7c4b25d merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 02:51 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.3h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, ToolSearch, Monitor, Bash
+- Tool calls this session: 54
+- The seat's pid, now gone: `3718874`
+- Last commit on that tree: `d349176c1 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 03:01 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.4h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Write, Bash, Write, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 176
+- The seat's pid, now gone: `3759724`
+- Last commit on that tree: `8f315e53f the publish wedge is no longer a red: the publisher's own suite went green and the cause it now names is cadence`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 03:31 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.9h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 74
+- The seat's pid, now gone: `3892053`
+- Last commit on that tree: `31bd5f3f4 merge origin/main: advance the base before touching the stale-copy clock`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 03:36 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 1.0h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash
+- Tool calls this session: 21
+- The seat's pid, now gone: `3905627`
+- Last commit on that tree: `31bd5f3f4 merge origin/main: advance the base before touching the stale-copy clock`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 04:46 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.2h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash
+- Tool calls this session: 126
+- The seat's pid, now gone: `70546`
+- Last commit on that tree: `677062f92 chore(liveness): publish heartbeat while sim output unchanged (git=10263d3a55048a19ce9faf61e293bfb1fda1f650) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 04:56 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.3h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 152
+- The seat's pid, now gone: `111556`
+- Last commit on that tree: `677062f92 chore(liveness): publish heartbeat while sim output unchanged (git=10263d3a55048a19ce9faf61e293bfb1fda1f650) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 05:01 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.4h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 58
+- The seat's pid, now gone: `150862`
+- Last commit on that tree: `677062f92 chore(liveness): publish heartbeat while sim output unchanged (git=10263d3a55048a19ce9faf61e293bfb1fda1f650) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 05:16 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `publish-the-corrected-one-book-baseline-comparison` — claimed 0.7h ago. The seat said: Carried unchanged in subject and sharpened in method. Re-draw the selection leg's seed floor against the frontier-sharing arm — the 2026-09-18 re-run where the flat-at-level arm carries the per-custom
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_generate_value_arms_data.py`
+- `tools/generate_value_arms_data.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 46
+- The seat's pid, now gone: `223558`
+- Last commit on that tree: `677062f92 chore(liveness): publish heartbeat while sim output unchanged (git=10263d3a55048a19ce9faf61e293bfb1fda1f650) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 06:11 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_churn_belief_hears_household_size.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 45 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 120
+- The seat's pid, now gone: `430302`
+- Last commit on that tree: `3e9e95671 chore(liveness): publish heartbeat while sim output unchanged (git=6c47bca78c9cfc88d2c583664893e320bdf5be98) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 06:31 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_churn_belief_hears_household_size.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/test_the_bill_stress_threshold_carries_its_origin.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 46 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash
+- Tool calls this session: 16
+- The seat's pid, now gone: `579131`
+- Last commit on that tree: `2f8f6a8fd give the unorderable-runs sentence a render site, and re-key the leg that could not fail`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 07:22 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Read, Edit, Bash
+- Tool calls this session: 161
+- The seat's pid, now gone: `856875`
+- Last commit on that tree: `0637be0f1 the £3,000 knee under the whole finding now names its gap, and the reading it names is on disk`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 08:37 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 0.0h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 114
+- The seat's pid, now gone: `1165055`
+- Last commit on that tree: `be6b67b98 the publisher wedge's filed remedy would have been green throughout the outage, and the measurement says why`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 08:37 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 0.0h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Read, Bash, Bash, Bash, Bash, Read, Bash, Bash, Read, Bash
+- Tool calls this session: 110
+- The seat's pid, now gone: `1180180`
+- Last commit on that tree: `be6b67b98 the publisher wedge's filed remedy would have been green throughout the outage, and the measurement says why`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 09:12 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 0.6h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+
+…and 44 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 144
+- The seat's pid, now gone: `1369324`
+- Last commit on that tree: `be6b67b98 the publisher wedge's filed remedy would have been green throughout the outage, and the measurement says why`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 09:32 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 0.9h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash
+- Tool calls this session: 22
+- The seat's pid, now gone: `1432061`
+- Last commit on that tree: `64ea5fa4e the page's headline concordance is the unconditioned estimand now, and one withheld reason had two homes in one field`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 10:02 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-regeneration-check-clones-at-head-so-it-cannot-see-the-producer-edit-that-wedges-the-publisher` — claimed 0.4h ago. The seat said: Give tools/published_feed_regeneration_check.py a WORKING-TREE mode, and add the churn_belief_size chain to whatever it walks. Today it clones the tree at HEAD and regenerates there -- deliberately, s
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/tools/test_a_derived_artefact_is_regenerated_when_its_producer_changes.py`
+- `tools/published_feed_regeneration_check.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 120
+- The seat's pid, now gone: `1640971`
+- Last commit on that tree: `13a3ed0b5 the remedy this item filed would have been green, the relation that bites is specified and built, and a rival lane is building the refuted one`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 10:18 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 46 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 108
+- The seat's pid, now gone: `1718609`
+- Last commit on that tree: `64ea5fa4e the page's headline concordance is the unconditioned estimand now, and one withheld reason had two homes in one field`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 10:43 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-delta-needs-a-noise-floor-before-634-pounds-means-anything` — claimed 0.1h ago. The seat said: Run tools/run_value_cycle_ab --noise-floor-seeds against the size-term contrast so the 13,440 vs 14,074 net-margin difference can be read against what the instrument can resolve.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Edit, Write, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 40
+- The seat's pid, now gone: `1822524`
+- Last commit on that tree: `698e313fa three latent reds gate that test file, each is a different defect, and editing the module does not select them`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 11:18 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-delta-needs-a-noise-floor-before-634-pounds-means-anything` — claimed 0.7h ago. The seat said: Run tools/run_value_cycle_ab --noise-floor-seeds against the size-term contrast so the 13,440 vs 14,074 net-margin difference can be read against what the instrument can resolve.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 151
+- The seat's pid, now gone: `1932400`
+- Last commit on that tree: `f2afda561 merge origin/main: advance the base before landing the churn-belief chain`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 11:23 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-delta-needs-a-noise-floor-before-634-pounds-means-anything` — claimed 0.8h ago. The seat said: Run tools/run_value_cycle_ab --noise-floor-seeds against the size-term contrast so the 13,440 vs 14,074 net-margin difference can be read against what the instrument can resolve.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `docs/context-handshake-latest.md`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Edit, Edit, Bash, ToolSearch, Bash, Edit, Edit, Bash, Edit, Edit, Bash
+- Tool calls this session: 75
+- The seat's pid, now gone: `1944078`
+- Last commit on that tree: `5e64bb852 merge origin/main: advance the base so the paired size-term floor can promote`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 11:43 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-delta-needs-a-noise-floor-before-634-pounds-means-anything` — claimed 1.1h ago. The seat said: Run tools/run_value_cycle_ab --noise-floor-seeds against the size-term contrast so the 13,440 vs 14,074 net-margin difference can be read against what the instrument can resolve.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `docs/context-handshake-latest.md`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 49
+- The seat's pid, now gone: `2038566`
+- Last commit on that tree: `5e64bb852 merge origin/main: advance the base so the paired size-term floor can promote`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 11:48 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-arms-delta-needs-a-noise-floor-before-634-pounds-means-anything` — claimed 1.2h ago. The seat said: Run tools/run_value_cycle_ab --noise-floor-seeds against the size-term contrast so the 13,440 vs 14,074 net-margin difference can be read against what the instrument can resolve.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, ToolSearch
+- Tool calls this session: 63
+- The seat's pid, now gone: `2042138`
+- Last commit on that tree: `5e64bb852 merge origin/main: advance the base so the paired size-term floor can promote`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 12:23 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 0.3h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, ToolSearch, Bash, Monitor
+- Tool calls this session: 126
+- The seat's pid, now gone: `2140383`
+- Last commit on that tree: `5e64bb852 merge origin/main: advance the base so the paired size-term floor can promote`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 12:28 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 0.4h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 49 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Edit, Edit, Bash
+- Tool calls this session: 23
+- The seat's pid, now gone: `2188030`
+- Last commit on that tree: `5e64bb852 merge origin/main: advance the base so the paired size-term floor can promote`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 13:23 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` — claimed 1.3h ago. The seat said: Retire or bound company/crm/churn_model's bill_stress knee, which is unsourced, refuted, and unbounded in consumption.
+  paths: (none declared)
+- `three-latent-reds-gate-the-feed-regeneration-test-file-and-each-is-a-different-defect` — claimed 0.3h ago. The seat said: Clear the three reds in tests/tools/test_a_published_feed_matches_what_its_generator_would_produce.py, keying each leg to its property rather than to today's tree. (1) knowledge_review.json reads the 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 187
+- The seat's pid, now gone: `2437667`
+- Last commit on that tree: `de539c21d both drawn pieces were spent, and what was owed was that the landed relation could not be imported in the tree it landed in`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 13:38 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `three-latent-reds-gate-the-feed-regeneration-test-file-and-each-is-a-different-defect` — claimed 0.6h ago. The seat said: Clear the three reds in tests/tools/test_a_published_feed_matches_what_its_generator_would_produce.py, keying each leg to its property rather than to today's tree. (1) knowledge_review.json reads the 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Read, Bash, Read, Bash, Bash, Read, Bash, Monitor
+- Tool calls this session: 64
+- The seat's pid, now gone: `2469743`
+- Last commit on that tree: `60cd120df merge origin/main: advance the base so the belief's downstream artefacts can be re-run and landed`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 13:38 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `three-latent-reds-gate-the-feed-regeneration-test-file-and-each-is-a-different-defect` — claimed 0.6h ago. The seat said: Clear the three reds in tests/tools/test_a_published_feed_matches_what_its_generator_would_produce.py, keying each leg to its property rather than to today's tree. (1) knowledge_review.json reads the 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 103
+- The seat's pid, now gone: `2472033`
+- Last commit on that tree: `6b4bfdd15 the three latent reds were three defects, and the one that promoted a clock-dependent feed was never asked`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 14:08 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-property-record-has-no-pensioner-or-employment-so-the-daytime-shape-collapses-to-one-number` — claimed 0.1h ago. The seat said: Give build_properties the two composition fields the daytime-occupancy rate is keyed on, and decide which direction the draw delegates.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `simulation/demand_model.py`
+- `simulation/dwelling_records.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash
+- Tool calls this session: 67
+- The seat's pid, now gone: `2611313`
+- Last commit on that tree: `e54053f5c the three-reds finding is closed, and its own diagnosis was half wrong`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 14:13 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-property-record-has-no-pensioner-or-employment-so-the-daytime-shape-collapses-to-one-number` — claimed 0.2h ago. The seat said: Give build_properties the two composition fields the daytime-occupancy rate is keyed on, and decide which direction the draw delegates.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/institutional/knowledge_map.md`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 48 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 95
+- The seat's pid, now gone: `2618998`
+- Last commit on that tree: `dce3d0eb9 the belief chain is landed in no part, the pile is seven paths, and my own promotion of its artefact was wrong`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 15:34 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+
+…and 46 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash
+- Tool calls this session: 33
+- The seat's pid, now gone: `2872607`
+- Last commit on that tree: `7e9c2c935 the publisher stamps a commit it did not read, so the two candidate feeds now run in a clean checkout of it`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 16:04 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `company/crm/churn_model.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, TaskOutput, TaskOutput, TaskOutput, Bash, Bash, Bash, Bash, TaskOutput, TaskOutput
+- Tool calls this session: 128
+- The seat's pid, now gone: `2978323`
+- Last commit on that tree: `1739c5078 the paired floor family is in flight, and the record carries its addresses`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 16:29 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `company/crm/churn_model.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/crm/test_churn_model.py`
+- `tests/company/crm/test_the_refuted_bill_stress_term_cannot_outgrow_its_evidence.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_arm_reaches_its_own_segment.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+
+…and 47 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 159
+- The seat's pid, now gone: `3047942`
+- Last commit on that tree: `96a7319e6 the promoted feeds now have a leg that reds when one stops reproducing, and the relation finally catches something`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 16:39 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-daytime-cuts-joint-is-unpublished-and-two-more-response-scales-may-have-single-centres` — claimed 0.0h ago. The seat said: Look for the second instance of the cut-set class: a response built as 'average/sum the terms you were given' whose reference, normaliser or denominator is a single constant. demand_model._reference_d
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 97
+- The seat's pid, now gone: `3081901`
+- Last commit on that tree: `4aee8ca19 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 16:49 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-daytime-cuts-joint-is-unpublished-and-two-more-response-scales-may-have-single-centres` — claimed 0.2h ago. The seat said: Look for the second instance of the cut-set class: a response built as 'average/sum the terms you were given' whose reference, normaliser or denominator is a single constant. demand_model._reference_d
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `simulation/demand_model.py`
+- `simulation/dwelling_records.py`
+- `tests/simulation/test_w2_13_occupancy_volume_shape.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Write, Bash, Edit, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 39
+- The seat's pid, now gone: `3113028`
+- Last commit on that tree: `4aee8ca19 merge origin/main: automatic reconciliation in an isolated worktree`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 17:04 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Read, Bash, Read, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 95
+- The seat's pid, now gone: `3139235`
+- Last commit on that tree: `6e984858f merge origin/main: the ceiling's paths are untouched by the trunk's move`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 17:19 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `children-within-size-reference-is-owed-a-source` — claimed 0.2h ago. The seat said: Establish a published distribution of dependent children WITHIN household size (ONS Census 2021 household-composition tables are the named lead), and assign it to simulation.demand_model.CHILDREN_WITH
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Read, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit, Bash
+- Tool calls this session: 50
+- The seat's pid, now gone: `3194532`
+- Last commit on that tree: `6e984858f merge origin/main: the ceiling's paths are untouched by the trunk's move`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 18:04 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `children-count-needs-one-sourced-draw-not-a-uniform-randint` — claimed 0.1h ago. The seat said: Replace premise_trace's uncited randint(0, people_count-1) children draw with ONE sourced draw from demand_model.CHILDREN_WITHIN_SIZE_REFERENCE's conditional P(children|size), keyed on customer id, an
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `simulation/dwelling_records.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 94
+- The seat's pid, now gone: `3436827`
+- Last commit on that tree: `6af1f907b the children reference is sourced, and the book's 1.5% cut was the centre rather than the children`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 18:29 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `children-count-needs-one-sourced-draw-not-a-uniform-randint` — claimed 0.5h ago. The seat said: Replace premise_trace's uncited randint(0, people_count-1) children draw with ONE sourced draw from demand_model.CHILDREN_WITHIN_SIZE_REFERENCE's conditional P(children|size), keyed on customer id, an
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 99
+- The seat's pid, now gone: `3547757`
+- Last commit on that tree: `6e984858f merge origin/main: the ceiling's paths are untouched by the trunk's move`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 18:29 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `children-count-needs-one-sourced-draw-not-a-uniform-randint` — claimed 0.5h ago. The seat said: Replace premise_trace's uncited randint(0, people_count-1) children draw with ONE sourced draw from demand_model.CHILDREN_WITHIN_SIZE_REFERENCE's conditional P(children|size), keyed on customer id, an
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 43 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit, Bash
+- Tool calls this session: 20
+- The seat's pid, now gone: `3555891`
+- Last commit on that tree: `6e984858f merge origin/main: the ceiling's paths are untouched by the trunk's move`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 18:39 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `centre-resolvers-key-on-different-tests-so-an-all-zero-children-book-gets-two-centres` — claimed 0.1h ago. The seat said: Key population_mean_volume_factor's children_reference on children_counts being DECLARED (children_counts is not None) rather than on any(children_counts), so it agrees with the production call site i
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Write, Bash, Read, Edit, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 48
+- The seat's pid, now gone: `3609337`
+- Last commit on that tree: `5e078b4d8 the churn belief's size term is published now, and the block its consumer withdrew for ten cycles renders again`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 18:54 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `grade-the-paired-size-term-floor-against-its-five-pre-registered-predictions` — claimed 0.1h ago. The seat said: The paired size-term floor family is RUNNING, one leg per process, launched 2026-09-23 15:16Z: unit longjob-size-term-paired-floor-legs-20260923, worktree /var/tmp/se-floorrun-paired-20260923 (locked,
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tools/run_value_cycle_ab.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 188
+- The seat's pid, now gone: `3706680`
+- Last commit on that tree: `5fe0000f1 both centre-resolvers key on declaration now, and the refusal widened with them`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 19:24 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `grade-the-paired-size-term-floor-against-its-five-pre-registered-predictions` — claimed 0.6h ago. The seat said: The paired size-term floor family is RUNNING, one leg per process, launched 2026-09-23 15:16Z: unit longjob-size-term-paired-floor-legs-20260923, worktree /var/tmp/se-floorrun-paired-20260923 (locked,
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 72
+- The seat's pid, now gone: `3803011`
+- Last commit on that tree: `da97ecc68 merge origin/main: the leg-peak repair and the trunk's three commits touch no shared path`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 19:49 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Write, Bash, Bash, Bash, Bash, Edit, Bash, Bash, Bash, Bash
+- Tool calls this session: 97
+- The seat's pid, now gone: `3907836`
+- Last commit on that tree: `59d87d588 merge origin/main: reconcile the clearing-verdict landing with the trunk`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 20:54 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `nineteen-staging-dispositions-are-done-and-uncommitted` — claimed 0.3h ago. The seat said: Commit the staged staging-root deletions and archival moves already sitting in the index by pathspec `docs/staging/` — they are dispositions that HAPPENED and never landed.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/executor_governor.py`
+- `tests/background/test_executor_governor.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Read, Read, Read, Bash, Read, Bash, Bash, Read, Bash, Bash, Bash, Bash
+- Tool calls this session: 100
+- The seat's pid, now gone: `4167898`
+- Last commit on that tree: `9b2ef6170 name the door that would have committed the 107 ghosts: a scoped git add with an unscoped git commit`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 21:04 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `nineteen-staging-dispositions-are-done-and-uncommitted` — claimed 0.5h ago. The seat said: Commit the staged staging-root deletions and archival moves already sitting in the index by pathspec `docs/staging/` — they are dispositions that HAPPENED and never landed.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 40 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Edit
+- Tool calls this session: 87
+- The seat's pid, now gone: `5568`
+- Last commit on that tree: `1104655df merge origin/main: reconcile the operational-layer import repair with the trunk`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 21:19 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-107-index-ghosts-and-the-ten-unarchived-staging-deletions` — claimed 0.1h ago. The seat said: THREE things, and the third is time-sensitive. (1) Drop the 107 stale AD entries from the SHARED tree's index (git reset -- <paths>; index-only residue of an archival already at HEAD, absent from disk
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 40 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Read, ToolSearch
+- Tool calls this session: 50
+- The seat's pid, now gone: `48482`
+- Last commit on that tree: `fd5301b3f merge origin/main: reconcile the staging-disposition landing with the trunk`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 21:34 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-107-index-ghosts-and-the-ten-unarchived-staging-deletions` — claimed 0.3h ago. The seat said: THREE things, and the third is time-sensitive. (1) Drop the 107 stale AD entries from the SHARED tree's index (git reset -- <paths>; index-only residue of an archival already at HEAD, absent from disk
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 40 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Write, Bash, Bash, Bash, Edit, Bash, Write, Bash, Edit
+- Tool calls this session: 24
+- The seat's pid, now gone: `87784`
+- Last commit on that tree: `d5f3c29f5 merge origin/main: reconcile the churn-belief renderer landing with the trunk`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 22:04 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-four-remaining-staging-deletions-and-the-shrinkage-legs-first-live-subject` — claimed 0.2h ago. The seat said: ALL FOUR PATHS BELOW ARE ABSENT FROM DISK ON PURPOSE -- that IS the subject, so a path check grading them `deleted` is the expected reading and not a surprise. Each is a tracked file that HEAD still h
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `tests/background/test_staging_rooms.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, TaskOutput, Bash, Bash, TaskOutput, Bash, TaskOutput, Bash, Bash, Write, Write, Bash
+- Tool calls this session: 134
+- The seat's pid, now gone: `217343`
+- Last commit on that tree: `81cdbc03d drop both documents to RECORDED beside their own claims, not in a third one`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 22:34 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `the-staging-queue-fills-faster-than-it-drains-and-sediment-is-the-only-leg-left-red` — claimed 0.2h ago. The seat said: staging_rooms.sediment_violations() is the ONE red left on the reconciled shared tree: 267 documents filed into the staging root in 7 days against 258 dispositioned out, a net +9. Floors, room shrinka
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/staging_rooms.py`
+- `tests/background/test_only_work_is_in_the_work_channel.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Write, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 163
+- The seat's pid, now gone: `378486`
+- Last commit on that tree: `23d8d3ccc the second content-neutral archival lands both sides, and the backlog the item called whole had grown under it`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 22:49 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `alarm-documents-have-no-re-ask-so-a-self-cleared-deadman-looks-identical-to-a-live-one` — claimed 0.2h ago. The seat said: Give background/alarm_repetition a RE-ASK: an alarm document whose condition no longer holds archives itself WITH the evidence it re-ran; one whose condition still holds gains an instance line rather 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/alarm_repetition.py`
+- `tests/background/test_alarm_repetition.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Edit, Write, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 49
+- The seat's pid, now gone: `472436`
+- Last commit on that tree: `387a125dd the alarm family is nine distinct conditions, not one re-filing itself, and neither remedy applies`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 22:54 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `alarm-documents-have-no-re-ask-so-a-self-cleared-deadman-looks-identical-to-a-live-one` — claimed 0.3h ago. The seat said: Give background/alarm_repetition a RE-ASK: an alarm document whose condition no longer holds archives itself WITH the evidence it re-ran; one whose condition still holds gains an instance line rather 
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/process_run_complete.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/background/test_the_publish_gates_citation_is_re_asked_at_head.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+
+…and 42 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Write, Bash, Bash, Edit, Bash, Bash, Bash, Bash
+- Tool calls this session: 134
+- The seat's pid, now gone: `489243`
+- Last commit on that tree: `06cac8d2a chore(liveness): publish heartbeat while sim output unchanged (git=0781b75a47c1f1ec7dfe1893cb4336ff4f1450a1) -- decouples published liveness from content-change (Fault#1 2026-07-25)`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 23:19 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `escalate-derives-its-repetition-count-from-the-document-rather-than-trusting-a-callers-literal-1` — claimed 0.1h ago. The seat said: Make alarm_repetition.escalate() derive the repetition count from the live document's own instance and still-live lines instead of the repeats argument, and settle what the field MEANS first: three ca
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/direction/DIRECTION.yaml`
+- `docs/direction/decisions.jsonl`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+
+…and 41 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Edit, Edit, Bash, Edit, Bash, Bash, Edit, Edit, Bash, Bash, Bash
+- Tool calls this session: 83
+- The seat's pid, now gone: `593445`
+- Last commit on that tree: `d13670dc5 the publish gate's citation is re-asked at HEAD now: the result note`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 23:34 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `escalate-derives-its-repetition-count-from-the-document-rather-than-trusting-a-callers-literal-1` — claimed 0.3h ago. The seat said: Make alarm_repetition.escalate() derive the repetition count from the live document's own instance and still-live lines instead of the repeats argument, and settle what the field MEANS first: three ca
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/alarm_repetition.py`
+- `background/delivery_lane.py`
+- `background/seat_continuity.py`
+- `background/seat_work_in_hand.py`
+- `tests/background/test_alarm_repetition.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit
+- Tool calls this session: 66
+- The seat's pid, now gone: `634766`
+- Last commit on that tree: `d9be9a26f the frozen repeats=1 was the worst case of a defect the whole alarm population had: STRETCH_LOG led with 3 above a line reading 2132`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 23:44 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `escalate-derives-its-repetition-count-from-the-document-rather-than-trusting-a-callers-literal-1` — claimed 0.5h ago. The seat said: Make alarm_repetition.escalate() derive the repetition count from the live document's own instance and still-live lines instead of the repeats argument, and settle what the field MEANS first: three ca
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/alarm_repetition.py`
+- `background/delivery_lane.py`
+- `background/seat_continuity.py`
+- `background/seat_work_in_hand.py`
+- `tests/background/test_alarm_repetition.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit
+- Tool calls this session: 39
+- The seat's pid, now gone: `685050`
+- Last commit on that tree: `d9be9a26f the frozen repeats=1 was the worst case of a defect the whole alarm population had: STRETCH_LOG led with 3 above a line reading 2132`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-23 23:54 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `escalate-derives-its-repetition-count-from-the-document-rather-than-trusting-a-callers-literal-1` — claimed 0.7h ago. The seat said: Make alarm_repetition.escalate() derive the repetition count from the live document's own instance and still-live lines instead of the repeats argument, and settle what the field MEANS first: three ca
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+- `tests/simulation/test_weather_cell_siting.py`
+
+…and 38 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Edit, Bash, Bash
+- Tool calls this session: 67
+- The seat's pid, now gone: `728141`
+- Last commit on that tree: `26d4120ab land the disposition of two result notes into records/, which the trunk's stricter room rule now owes`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-24 00:29 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+- `tests/simulation/test_weather_cell_siting.py`
+
+…and 38 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit, Bash
+- Tool calls this session: 27
+- The seat's pid, now gone: `831304`
+- Last commit on that tree: `6a877e65a land the 74 root-path deletions the trunk already made, so a merge of origin/main can gate again`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-24 00:34 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.1h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+- `tests/simulation/test_weather_cell_siting.py`
+
+…and 38 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Edit, Edit, Bash, Bash, Bash, Bash, ToolSearch, Bash, Bash, Bash
+- Tool calls this session: 98
+- The seat's pid, now gone: `886222`
+- Last commit on that tree: `6a877e65a land the 74 root-path deletions the trunk already made, so a merge of origin/main can gate again`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-24 01:09 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `order-60-alarm-tiebreak-measures-annotation-recency-not-attention-staleness` — claimed 0.1h ago. The seat said: Replace the mtime tie-break inside ORDER[KIND_ALARM]=60 in background/staging_rooms.py with a term that measures how long since anyone LOOKED, not how long since the alarm last WROTE. Measured in 15e6
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+- `tests/simulation/test_weather_cell_siting.py`
+
+…and 38 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Edit, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Bash, Edit, Bash
+- Tool calls this session: 87
+- The seat's pid, now gone: `1101779`
+- Last commit on that tree: `6a877e65a land the 74 root-path deletions the trunk already made, so a merge of origin/main can gate again`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-24 01:14 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `order-60-alarm-tiebreak-measures-annotation-recency-not-attention-staleness` — claimed 0.1h ago. The seat said: Replace the mtime tie-break inside ORDER[KIND_ALARM]=60 in background/staging_rooms.py with a term that measures how long since anyone LOOKED, not how long since the alarm last WROTE. Measured in 15e6
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+**In `/var/tmp/se-seat-executor`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `background/alarm_repetition.py`
+- `background/staging_rooms.py`
+- `tests/background/test_staging_rooms.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Write, Write, Edit, Edit
+- Tool calls this session: 103
+- The seat's pid, now gone: `1135468`
+- Last commit on that tree: `f95c751f6 the divergence repair is landed and inert on the shared tree until the fork it names closes`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-24 01:40 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **4.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+**In `/home/rich/synthetic-enterprise`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `MagicMock/mock.stdout.split().__getitem__()/125819486751440`
+- `MagicMock/mock.stdout.split().__getitem__()/132932997886848`
+- `background/daily_self_note.py`
+- `background/disk_headroom.py`
+- `background/gap_ledger_reconciler.py`
+- `background/hook_chain_room_watch.py`
+- `background/supervisor.py`
+- `background/trust_ledger.py`
+- `docs/claude/phase-history.md`
+- `docs/context-handshake-latest.md`
+- `docs/data-sources/weather.md`
+- `docs/design/A46_THE_PRICED_MENU_2026-08-30.md`
+- `docs/design/ANNUAL_REPORT_IMPORT_DEBT.md`
+- `docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`
+- `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`
+- `docs/design/W2_23_HOUSING_PHASE2_FRAME.md`
+- `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`
+- `docs/design/frame/C33_collections_reads_the_registers_it_already_has_FRAME.md`
+- `docs/design/maturity_map.yaml`
+- `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml`
+- `docs/design/simplifications/C33_collections_reads_the_registers_it_already_has.yaml`
+- `docs/design/simplifications/README.md`
+- `docs/design/simplifications/W1_14_weather_cells_for_household_heat_load.yaml`
+- `docs/design/wall_channel_census_baseline.json`
+- `docs/market_research/domestic_shift_response_arc.json`
+- `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+- `docs/market_research/what_bill_shock_is.md`
+- `docs/observability/commit_refused_outage_decomposition_2026-09-05.md`
+- `docs/status/LATEST.md`
+- `docs/status/PROJECT_STATE.txt`
+- `docs/status/SEAT_STRETCH_LOG.md`
+- `docs/status/STARTUP_ANCHORS.md`
+- `saas/reporting/annual_report.py`
+- `simulation/churn_journey.py`
+- `simulation/premise_population.py`
+- `simulation/run_phase2b.py`
+- `tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`
+- `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+- `tests/architecture/test_year_keyed_rate_table_census.py`
+- `tests/background/conftest.py`
+- `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`
+- `tests/background/test_a_recorded_red_says_which_branch_its_tree_was.py`
+- `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`
+- `tests/background/test_an_items_own_do_not_draw_before_is_read_by_the_draw.py`
+- `tests/background/test_disk_headroom.py`
+- `tests/background/test_gap_ledger_reconciler.py`
+- `tests/background/test_harden_rung_pass_ceiling.py`
+- `tests/background/test_hook_chain_room_watch.py`
+- `tests/background/test_publish_gate_subject_is_head.py`
+- `tests/background/test_publish_gate_wedge_draw.py`
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`
+- `tests/company/interfaces/test_counterparty_collateral_seam.py`
+- `tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py`
+- `tests/controls/test_control_mutation.py`
+- `tests/saas/reporting/test_a_departure_route_carries_its_denominator.py`
+- `tests/sim/test_scenario_spine_consumption.py`
+- `tests/simulation/test_home_move_undeliverable_win.py`
+- `tests/simulation/test_phase40a_pass_through.py`
+- `tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+- `tests/simulation/test_weather_cell_siting.py`
+
+…and 38 more.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Write, Write, Write, Bash, Bash, Read, Edit, Edit
+- Tool calls this session: 66
+- The seat's pid, now gone: `1242049`
+- Last commit on that tree: `6a877e65a land the 74 root-path deletions the trunk already made, so a merge of origin/main can gate again`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.

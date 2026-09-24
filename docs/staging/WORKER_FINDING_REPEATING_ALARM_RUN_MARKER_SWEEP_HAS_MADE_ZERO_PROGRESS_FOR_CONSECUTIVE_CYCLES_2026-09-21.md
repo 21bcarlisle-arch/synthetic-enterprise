@@ -35,5 +35,10 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 
 ## Still live
 - **2026-09-22** — still live. 3 repeats over 4.3h without the state changing. No second document filed: this condition already has one.
+- **2026-09-23** — still live. 3 repeats over 4.7h without the state changing. No second document filed: this condition already has one.
+- **2026-09-24** — still live. 5 repeats over 9.2h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `run-marker sweep has made zero progress for # consecutive cycles: run_complete_#t#z.md is still the oldest of # pending ` (first seen 2026-09-21)
+
+## Re-asked
+- **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
