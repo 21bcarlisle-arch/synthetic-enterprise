@@ -57,6 +57,77 @@ No second reconcile. pid 268484 was already merging `origin/main` under the dead
 all three are inside the 14-path gap the in-flight merge is closing, and `supervisor.py` is a named
 contested path in this draw. Editing the daemon files mid-merge is how the next fork gets made.
 
+## CORRECTION, filed beside the claim — prediction 1 resolved, prediction 2 REFUTED
+
+Written ~09:50Z, after `90d42eb21` gated and `promote_worktree_landing` refused with *"origin/main has
+moved to b07b0af96"*. That refusal is what resolved prediction 1, which the section above had to
+leave undecided.
+
+**Prediction 1 — CONFIRMED.** The reconcile landed: `b07b0af96 merge origin/main: automatic
+reconciliation in an isolated worktree`, and it carried the shared tree's own two commits
+(`199743f80`, `7964c134c`) to origin with it.
+
+**Prediction 2 — REFUTED, and in the dangerous way: right conclusion, wrong mechanism.** I predicted
+`contains_origin` would stay False *because the tree's own 2 commits still had not reached origin — a
+merge closes the behind leg, not the ahead leg.* Measured after the landing:
+
+```
+{'behind': 6, 'ahead': 0, 'contains_origin': False, 'gap_paths': 12}
+```
+
+`contains_origin` is indeed still False, so a check keyed to that flag would have gone green on my
+reasoning. But **every clause of the reason is wrong.** The ahead leg CLOSED (2 → 0) — the reconciler
+does close it, which I denied. The behind leg GREW (3 → **6**). And the shared checkout did not move
+at all: still `7964c134c`. Had I pinned a control to "ahead stays non-zero" it would now be red for
+the tree becoming *more* correct.
+
+**Prediction 3 — CONFIRMED.** `last_clean_publish` unchanged at **2026-09-21T18:15:57Z**,
+`episode_failures` unchanged at 46, the same two pre-landing failure records, and supervisor pid
+3620344 still the 06:10Z process (3h16m). No publish attempt was recorded across the whole window.
+The instrument is still absent from the shared working copy: `EXIT_SCOPED_GATE_REFUSED` 0,
+`SCOPED_SUITE_RED` 0, its test file still not on disk.
+
+## The seventh cause, in its corrected and final form
+
+The refutation of prediction 2 IS the cause, and it is sharper than the finding as filed:
+
+> **Closing the fork with origin and advancing the checkout are two different operations, and only
+> the first has an owner.**
+
+`origin_reconcile` makes *origin contain the shared tree* — and by explicit design does so in a
+throwaway worktree, "never in the shared tree", so that a daemon merging unattended cannot move
+another lane's uncommitted work. That design is right. But nothing makes *the shared tree contain
+origin*. So every landing anywhere pushes the checkout further behind: 3 → 6 while this very finding
+was in the gate. The instrument's arrival is blocked on a step with no daemon.
+
+**And that step is now mechanically trivial, which it was not before.** `ahead` is 0, so:
+
+```
+git merge-base --is-ancestor HEAD origin/main   ->  YES
+```
+
+It is a pure **fast-forward**. No conflict, no judgement, nothing to resolve — where the publish gate
+state's own evidence line had called closing this fork "a judgement for the seat".
+
+**What actually blocks it is two files.** Of the 12 gap paths, exactly two are dirty in the shared
+tree with in-place edits:
+
+```
+background/supervisor.py
+site/test_the_book_is_bounded_by_compute_reaches_the_reader.py
+```
+
+Those are precisely the two paths this draw named as CONTESTED. A fast-forward would refuse rather
+than overwrite them, which is correct behaviour and also the whole blockage: **the checkout cannot
+advance because two of the twelve files it needs are held open by another lane's unlanded work.** Ten
+of twelve are free.
+
+This is why I did not advance it from here. The isolation of this worktree is the reason this seat is
+allowed to run unattended; reaching into the shared tree to move a checkout over another lane's
+in-place edits is the exact harm that isolation exists to prevent. The legal door for those two paths
+is `isolate_hunks --survey` then `surgical_land --content`, landing the other lane's hunks without
+reading the file — then the fast-forward is unblocked and needs no judgement at all.
+
 ## Carried forward
 
 Done is **not** "the seventh cause is named" — it is named, and it is the finding. Done is: *a
