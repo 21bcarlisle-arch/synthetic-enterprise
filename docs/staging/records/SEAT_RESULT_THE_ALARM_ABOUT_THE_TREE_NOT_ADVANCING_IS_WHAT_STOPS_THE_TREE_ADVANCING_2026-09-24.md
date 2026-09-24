@@ -90,6 +90,40 @@ So:
 `WORKER_FINDING_REPEATING_ALARM_TREE_DIVERGENCE_2026-09-15.md`: the document reporting the
 divergence is one of the files preventing the divergence from closing.
 
+### CORRECTION, written the same turn, kept beside the claim rather than replacing it
+
+**Two sentences above are wrong, and the error is this project's own named trap.** I wrote that
+`reconcile-watch` writes the nine documents and "never calls the reconciler it watches", and I read
+its `reconcile DRIFT (9 alarm(s))` as *the same nine*. Both are unestablished:
+
+* **`reconcile_watch` is not a watcher of `origin_reconcile`.** The name misled me. It reconciles
+  *declared versus actual* across processes, schedules and gap-ledger rows and pages on transitions
+  (`background/reconcile_watch.py:270-296`). It never claimed to call `origin_reconcile`, so "never
+  calls the reconciler it watches" is a criticism of something it does not purport to do.
+* **The two nines are different quantities.** `9 alarm(s)` is `len(sig)`, the drift-report
+  signature. The nine blockers are nine *files*. I matched two counts and asserted an identity
+  between them without asking what either counts — the exact failure CLAUDE.md names
+  (*"before dividing two numbers, say out loud what each one counts"*) and the one my own note
+  *"a regenerated channel's volume does not imply repetition — ask the grouping key"* exists to
+  stop. The equal 9s are, so far as this turn established, a coincidence.
+
+**The writer is `background/alarm_repetition.py`** (`:271`, `:427`), keyed by alarm *family*: it
+locates an existing document by stem and rewrites it in place, which is why files dated 09-15 and
+09-17 carry 04:12 mtimes. Its callers are many daemons, not one.
+
+**What survives, and it is the stronger statement** — every leg below was measured directly, none
+of it depended on the attribution:
+
+> A repeating-alarm document is a **tracked** file that seats land to `origin` and the alarm
+> machinery keeps **rewriting in place** in the shared working tree. Every alarm family that is
+> both landed and still firing therefore holds a permanent `FF_MODIFIED` collision against
+> origin's own copy of itself, and `advance_shared_tree`'s all-or-nothing rule means any one of
+> them refuses the whole fast-forward.
+
+That is a property of the alarm machinery as a class. It does not need `reconcile_watch` to be the
+author, and it is why the blocking set grows with the number of *live* alarm families rather than
+with anything about the fork.
+
 ## This INVERTS the prior turn's conclusion at the second step, without contradicting it
 
 `SEAT_RESULT_THE_UNTRACKED_BLOCKERS_ARE_NOT_THE_CAUSE…` concluded *"no path is the cause of this
