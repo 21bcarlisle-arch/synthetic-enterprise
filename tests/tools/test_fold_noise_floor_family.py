@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from tools.fold_noise_floor_family import FoldRefused, fold, main, summarise
-from tools.run_value_cycle_ab import sems_to_state_a_sign
+from tools.run_value_cycle_ab import priced_decision_fingerprint, sems_to_state_a_sign
 
 _REPO = Path(__file__).resolve().parent.parent.parent
 #: The real nine-seed family the Lane 0 selection leg is published from. Read, never rebuilt: a
@@ -741,3 +741,225 @@ def test_a_duplicate_it_cannot_resolve_recommends_neither_repair(tmp_path):
         assert "Drop one copy" not in text, "{} took the flattering branch".format(label)
         assert "opposite remedies" in text
         assert "neither is applied here" in text
+
+
+# ---------------------------------------------------------------------------
+# HOW MANY DRAWS THE FAMILY IS ENTITLED TO, as against how many seeds it ran
+#
+# `run_value_cycle_ab` stamped `priced_decision_fingerprint` on every seed row at `526aa4f70` and
+# NOTHING COUNTED THEM, so the page went on reporting n seeds as n draws. The controls below are
+# about the count that field earns -- and about the two ways a count over it goes wrong quietly:
+# reading an unrecorded seed as a repeat (which shrinks a spread that is already too narrow), and
+# publishing a deduction as though a row had recorded it.
+# ---------------------------------------------------------------------------
+
+_FIVE_SEED_HEAD = (_REPO / "docs" / "observability"
+                   / "value_cycle_ab_s1_noise_floor_five_seed_head_20260924.json")
+
+
+def _rows_that_record_their_decision_sets() -> list:
+    """Seed rows whose decision sets are recoverable -- the only kind this count can be exact on.
+
+    NOT A HAND-BUILT FIXTURE. The five-seed HEAD family is the artefact the coextension between an
+    unchanged roster and a pinned residual was MEASURED on, so a control that asks whether the
+    count reproduces that measurement has to ask it of those rows. A synthetic pair would prove the
+    counter counts and say nothing about whether it counts the thing the finding named.
+    """
+    if not _FIVE_SEED_HEAD.exists():
+        pytest.skip("no decision-set-carrying floor on disk at {}".format(_FIVE_SEED_HEAD))
+    return json.loads(_FIVE_SEED_HEAD.read_text(encoding="utf-8"))["seeds"]
+
+
+def test_the_draw_count_is_carried_to_the_reader_and_is_not_the_seed_count():
+    """THE DEFECT: a family reports the seeds it RAN as the draws it is entitled to.
+
+    `selection_gbp` is `value_arm_net - level_arm_net`; the control arm cancels algebraically and
+    every re-draw that misses a priced renewal lands in both nets identically. So a seed over a
+    decision set the family already holds is one draw recorded twice, `n` rises, and the sem falls
+    by a factor that measures nothing -- the instrument reports itself MORE confident the harder it
+    pins. This is the control that the count published beside `n` is a count of decision sets.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER: nothing here names 3, or 5, or which seeds
+    repeat. It asserts that the published count is the number of distinct fingerprints in the rows
+    it was taken over, whatever that number becomes.
+    """
+    rows = _rows_that_record_their_decision_sets()
+    got = summarise(rows)["priced_decision_draws"]
+
+    seen = {r["priced_decision_fingerprint"] for r in got["by_seed"]
+            if r["priced_decision_fingerprint"] is not None}
+    assert got["draws_the_spread_is_entitled_to"] == len(seen), (
+        "the published draw count is not the number of distinct decision sets in the rows")
+    assert got["seeds_in_family"] == len(rows)
+    #: THE CONTRAST IS THE POINT AND IT MUST BE REACHABLE. A counter that returned the seed count
+    #: would satisfy every assertion above on a family with no repeats, so the subject is asserted
+    #: to CONTAIN a repeat -- otherwise this control is green against exactly the defect it names.
+    assert got["draws_the_spread_is_entitled_to"] < got["seeds_in_family"], (
+        "the family under test has no repeated decision set, so a counter that simply returned "
+        "`len(rows)` would pass this control and the defect it exists to catch is unreachable "
+        "here. Keep a pinning family on disk.")
+
+
+def test_the_count_is_derived_from_the_rows_own_roster_and_not_given_up_on():
+    """THE DEFECT: the only family on disk that records its decision sets reads as five unknowns.
+
+    The five-seed HEAD family was drawn HOURS BEFORE the fingerprint field landed, so it carries
+    `scored_decisions` -- the roster the digest is taken over, built once by the producer and used
+    twice -- and no digest. A fold that only read the published field would call every such row
+    unknown and the count would be unavailable on every artefact this repo has ever drawn.
+
+    AND IT IS THE PRODUCER'S OWN FUNCTION over the row's own roster, never a second rule: this
+    asserts the derived digest EQUALS `priced_decision_fingerprint(row["scored_decisions"])`, so a
+    reimplementation here that happened to group the same rows together would still red.
+    """
+    rows = _rows_that_record_their_decision_sets()
+    got = summarise(rows)["priced_decision_draws"]
+
+    assert got["seeds_with_an_unknown_decision_set"] == 0, (
+        "rows carrying `scored_decisions` were read as unknowns")
+    for row, published in zip(rows, got["by_seed"]):
+        assert published["priced_decision_fingerprint"] == priced_decision_fingerprint(
+            row["scored_decisions"]), "seed {} was fingerprinted by different code".format(
+                row.get("seed"))
+        assert "scored_decisions" in published["known_from"], (
+            "the row's provenance does not say the digest was derived, so a reader cannot tell a "
+            "recorded fingerprint from a recovered one")
+
+
+def test_two_unrecorded_seeds_are_two_unknowns_and_never_one_repeated_draw():
+    """THE DEFECT, and it errs in the direction this instrument already errs in.
+
+    A row predating 2026-09-24 records no decision set at all. Folding every such row into one
+    bucket -- the digest of the empty list, or a shared `None` key -- counts them as ONE repeated
+    draw, which LOWERS the entitled count, widens the pinning the family appears to have, and
+    invites a reader to discount a spread that is already too narrow. `None` is an unknown: it may
+    have repeated a set the family holds or drawn a new one, so it adds nothing at the floor and a
+    whole draw at the ceiling.
+
+    Fires on: keying the distinct count on `row.get("priced_decision_fingerprint")` directly (all
+    unknowns collapse to one), or on `priced_decision_fingerprint(row.get("scored_decisions") or
+    [])` (all unknowns collapse to the empty-roster digest).
+    """
+    rows = copy.deepcopy(_eighteen()["seeds"])
+    got = summarise(rows)["priced_decision_draws"]
+
+    assert got["seeds_with_an_unknown_decision_set"] == len(rows), (
+        "the 18-seed family predates the decision-set fields; a row here reading as KNOWN means "
+        "an unknown was given a value")
+    assert got["distinct_known_decision_sets"] == 0
+    assert got["at_most"] == len(rows), (
+        "the unknowns were collapsed: {} rows with no recorded decision set can be up to {} "
+        "distinct draws, and a ceiling below that has read some of them as agreeing".format(
+            len(rows), len(rows)))
+    assert got["draws_the_spread_is_entitled_to"] is None
+    assert "not recorded anywhere" in got["unavailable_because"]
+
+
+def test_an_unrecorded_family_still_gets_a_floor_from_its_own_residuals():
+    """THE DEFECT: the family that is actually PUBLISHED learns nothing, because it records no
+    rosters -- so the count arrives as `null` on the one artefact a reader holds.
+
+    Two seeds whose residuals DIFFER cannot have met the same decision set, so distinct
+    `selection_gbp` values are a floor under distinct decision sets, available on a family that
+    recorded nothing. It is the contrapositive of a coextension that was measured and not proved,
+    which is why it is published as a floor and never as the answer.
+
+    KEYED TO THE PROPERTY: this does not name 15. It asserts the floor IS the distinct-residual
+    count of the rows, and that a family with a repeated residual gets a floor BELOW its seed
+    count -- so a floor hardcoded to `len(rows)` reds here.
+    """
+    rows = _eighteen()["seeds"]
+    got = summarise(rows)["priced_decision_draws"]
+
+    residuals = {r["selection_gbp"] for r in rows}
+    assert got["distinct_selection_residuals"] == len(residuals)
+    assert got["at_least"] == len(residuals), (
+        "the floor is not this family's own distinct-residual count")
+    assert got["at_least"] < got["seeds_in_family"], (
+        "this family has no pinned residual, so the floor here is indistinguishable from the seed "
+        "count and the control above it proves nothing")
+    #: THE BOUND MUST BOUND. A floor above the ceiling is arithmetic nobody can act on.
+    assert got["at_least"] <= got["at_most"] <= got["seeds_in_family"]
+
+
+def test_a_determined_count_is_still_published_as_a_deduction_and_not_as_a_record():
+    """THE DEFECT: a number deduced from the residual floor read as one the rows recorded.
+
+    When every residual in an unrecorded family is distinct, the floor and the ceiling coincide and
+    the draw count IS determined -- but by the measured coextension, not by any row. Writing it
+    into `draws_the_spread_is_entitled_to` would put a deduction and a record in one field, and a
+    reader who cannot tell them apart will treat the coextension as established.
+    """
+    rows = _eighteen()["seeds"]
+    #: The rows with every repeated residual removed -- a family where the floor pins the count.
+    unique, seen = [], set()
+    for row in rows:
+        if row["selection_gbp"] not in seen:
+            seen.add(row["selection_gbp"])
+            unique.append(row)
+    assert len(unique) < len(rows), "no repeated residual to remove; this fixture is not built"
+
+    got = summarise(unique)["priced_decision_draws"]
+    assert got["at_least"] == got["at_most"] == len(unique)
+    assert got["draws_the_spread_is_entitled_to"] is None, (
+        "a deduction was written into the field that holds what the rows recorded")
+    assert "PINNED" in got["unavailable_because"]
+    assert "a deduction from the coextension, not as a record" in got["unavailable_because"]
+
+
+def test_the_residual_floor_carries_its_own_falsifier(tmp_path):
+    """THE DEFECT: the floor is derived from a coextension measured on TEN SEED PAIRS, and a
+    control keyed to today's answer would stay green on the day it stops holding.
+
+    If two seeds share a fingerprint and disagree about the residual, the implication the floor
+    rests on is refuted ON THIS FAMILY. The floor is then withdrawn and said to be withdrawn -- and
+    the EXACT count is untouched, because the fingerprint is what a distinct draw IS and the
+    residual was only ever a proxy for it. A block that dropped both, or neither, would be wrong in
+    opposite directions.
+
+    ONE CONTROL OVER THE WHOLE PARTITION: the un-refuted arm is asserted first, so a block that
+    reported `the_residual_floor_holds: False` unconditionally cannot pass.
+    """
+    rows = _rows_that_record_their_decision_sets()
+    holds = summarise(rows)["priced_decision_draws"]
+    assert holds["the_residual_floor_holds"] is True
+    assert holds["the_residual_floor_is_refuted_by"] is None
+    assert "REFUTED" not in holds["how_to_read_this"]
+
+    refuted_rows = copy.deepcopy(rows)
+    repeated = [r for r in refuted_rows
+                if sum(1 for o in refuted_rows
+                       if o["scored_decisions"] == r["scored_decisions"]) > 1]
+    assert repeated, "no shared decision set on disk to move a residual under"
+    repeated[0]["selection_gbp"] = repeated[0]["selection_gbp"] + 1.0
+
+    got = summarise(refuted_rows)["priced_decision_draws"]
+    assert got["the_residual_floor_holds"] is False
+    assert got["the_residual_floor_is_refuted_by"], "the refutation names no fingerprint"
+    assert "REFUTED" in got["how_to_read_this"]
+    #: THE EXACT COUNT SURVIVES -- the identity did not change, only the proxy for it.
+    assert got["draws_the_spread_is_entitled_to"] == holds["draws_the_spread_is_entitled_to"]
+    assert got["at_least"] == got["draws_the_spread_is_entitled_to"], (
+        "the withdrawn floor is still being used as the lower bound")
+
+
+def test_a_digest_that_disagrees_with_its_own_roster_refuses():
+    """THE DEFECT: a row carrying both a fingerprint and the roster it was taken over, disagreeing.
+
+    They are two recordings of one thing -- the producer builds the roster once and uses it twice
+    -- so if they part company one of them is not what it claims and every count over the family is
+    taken over a fiction. Nothing on disk can reach this branch today, which is when it is cheap.
+    """
+    rows = copy.deepcopy(_rows_that_record_their_decision_sets())
+    rows[0]["priced_decision_fingerprint"] = "0" * 16
+    with pytest.raises(FoldRefused, match="not the digest of the row's own"):
+        summarise(rows)
+
+    #: THE MIRROR: an AGREEING pair is accepted, so the refusal is not "any row carrying both".
+    agreeing = copy.deepcopy(_rows_that_record_their_decision_sets())
+    for row in agreeing:
+        row["priced_decision_fingerprint"] = priced_decision_fingerprint(row["scored_decisions"])
+    got = summarise(agreeing)["priced_decision_draws"]
+    assert got["seeds_with_an_unknown_decision_set"] == 0
+    assert all(r["known_from"] == "the row's own `priced_decision_fingerprint`"
+               for r in got["by_seed"])

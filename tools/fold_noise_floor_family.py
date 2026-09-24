@@ -59,6 +59,7 @@ from tools.run_value_cycle_ab import (
     _book_declared,
     _spread,
     distance_to_a_sign,
+    priced_decision_fingerprint,
     sems_to_state_a_sign,
 )
 
@@ -308,6 +309,179 @@ def _auc_across_seeds(rows: list) -> dict:
     }
 
 
+def _fingerprint_of(row: dict) -> tuple:
+    """`(fingerprint, where it came from, why it is unknown)` for one seed row.
+
+    TWO ROWS THAT BOTH SAY NOTHING SAY DIFFERENT THINGS, which is the whole reason this returns a
+    provenance beside the value. A row written before 2026-09-24 has no such field and no roster
+    either: its decision set was never recorded and cannot be recovered without re-running the
+    seed. A row written after it, whose run measured no belief, carries the field AS `None` -- the
+    producer's own "unknown", deliberately distinct from the real digest an empty roster gets. Both
+    are unknowns to the count below and neither may be read as agreement, but a reader deciding
+    whether to re-run needs to know which one they are holding.
+
+    IT DERIVES RATHER THAN GIVING UP, and only from the producer's own function over the row's own
+    roster. `noise_floor` builds that roster ONCE and uses it twice -- publishes it as
+    `scored_decisions` and fingerprints it -- so a row carrying the roster carries everything the
+    digest was taken over, and deriving it here is the same call on the same input rather than a
+    second rule. Without this, the only family on disk whose rows record their decision sets at all
+    (`..._five_seed_head_20260924.json`, written hours before the field landed) would count as five
+    unknowns, and the count this block exists to publish would be unavailable on every artefact
+    this repo has ever drawn.
+
+    A ROW CARRYING BOTH, DISAGREEING, IS A REFUSAL. The digest and the roster are two recordings of
+    one thing; if they part company then one of them is not what it claims and every count below is
+    taken over a fiction. Nothing on disk can reach this branch today, which is exactly when it is
+    cheap to write.
+    """
+    published = row.get("priced_decision_fingerprint")
+    has_field = "priced_decision_fingerprint" in row
+    has_roster = "scored_decisions" in row
+    derived = priced_decision_fingerprint(row.get("scored_decisions")) if has_roster else None
+
+    if published is not None and derived is not None and published != derived:
+        raise FoldRefused(
+            "seed {}: the row's `priced_decision_fingerprint` (`{}`) is not the digest of the "
+            "row's own `scored_decisions` (`{}`). One of the two is not what it claims, so a "
+            "count of distinct decision sets over this family would be taken over a fiction. "
+            "Re-run the seed rather than choosing between them.".format(
+                row.get("seed"), published, derived))
+
+    if published is not None:
+        return published, "the row's own `priced_decision_fingerprint`", None
+    if derived is not None:
+        return derived, "derived from the row's own `scored_decisions`", None
+    if has_field or has_roster:
+        return None, None, (
+            "this seed's run measured no belief, so it priced no decision set to fingerprint -- "
+            "an unknown, and NOT the real digest a run that scored an empty roster gets")
+    return None, None, (
+        "this row predates the decision-set fields (2026-09-24): it carries neither a fingerprint "
+        "nor the `scored_decisions` roster one could be derived from, so what this seed's "
+        "residual was taken over is unrecoverable without re-running the seed")
+
+
+def _priced_decision_draws(rows: list) -> dict:
+    """How many DRAWS this family is entitled to, as against how many seeds it ran.
+
+    THE DEFECT THIS PUBLISHES, and it reads as a result rather than as a fault. `selection_gbp` is
+    `value_arm_net - level_arm_net`: the control arm cancels algebraically and the two surviving
+    arms differ by the renewal-margin rule and by nothing else, so every pound the elasticity
+    re-draw moves OUTSIDE the renewals the value arm priced lands in both nets identically and
+    cancels. A seed pair whose priced decisions did not change reports its residual not moving at
+    all -- not a small dispersion, a structural zero. A family's sd is therefore part dispersion
+    and part pinning, and the sem is REWARDED by the pinning: a family that pinned every draw would
+    report a spread of zero and declare itself infinitely confident. `n` distinct decision sets,
+    not `n` seeds, is the count a spread over this instrument is entitled to.
+
+    UNTIL THIS BLOCK, THE FIELD WAS RECORDED AND UNREAD. `run_value_cycle_ab` began stamping
+    `priced_decision_fingerprint` on every seed row at `526aa4f70`, and nothing anywhere counted
+    them -- so the page still reported n seeds as n draws. A field nobody reads is not a control.
+
+    THE ANSWER IS A BOUND AND NOT ALWAYS A NUMBER, because the family that is actually published
+    records no rosters at all. Two things are known about any family:
+
+      * EXACT, when every row has a fingerprint: the count of distinct ones. Nothing is inferred.
+      * A FLOOR, always: two seeds whose residuals DIFFER cannot have been taken over the same
+        decision set, so the count of distinct `selection_gbp` values is a floor under the count of
+        distinct decision sets. This is the contrapositive of a coextension that was MEASURED and
+        not proved -- ten seed pairs on `..._five_seed_head_20260924.json`, where identical rosters
+        and pinned residuals were exactly coextensive with no exceptions in either direction -- so
+        it is published as a floor, named as such, and never as the answer. Two genuinely different
+        decision sets can land on one residual and this count would read them as one draw.
+
+    AND THE FLOOR CARRIES ITS OWN FALSIFIER. If any two rows share a fingerprint and disagree about
+    the residual, the measured coextension is refuted on THIS family -- the floor is then unsound
+    and is withdrawn, while the exact count is untouched, because the fingerprint is the definition
+    of a distinct draw and the residual was only ever a proxy for it. Keyed to the property rather
+    than to today's answer: the day the coextension stops holding, this says so on the artefact
+    instead of quietly publishing a floor above the ceiling.
+
+    UNKNOWN IS NEVER AGREEMENT. An unrecorded seed could have repeated a decision set the family
+    already holds or could have drawn a new one, so it widens the bound at the top and adds nothing
+    at the bottom. Folding every unknown into one bucket and calling it one repeated draw would
+    shrink a spread that is already too narrow, which is the exact direction this instrument errs.
+    """
+    seeds_in_family = len(rows)
+    by_seed, known = [], []
+    for row in rows:
+        fingerprint, source, why_not = _fingerprint_of(row)
+        by_seed.append({
+            "seed": row.get("seed"),
+            "priced_decision_fingerprint": fingerprint,
+            "known_from": source,
+            "unknown_because": why_not,
+            "selection_gbp": row.get("selection_gbp"),
+        })
+        if fingerprint is not None:
+            known.append((fingerprint, row.get("selection_gbp")))
+
+    distinct_known = len({f for f, _ in known})
+    unknown = seeds_in_family - len(known)
+    residuals = [r.get("selection_gbp") for r in rows]
+    distinct_residuals = len({r for r in residuals if r is not None})
+
+    #: THE FLOOR'S OWN FALSIFIER, run before the floor is used. See the docstring.
+    grouped = {}
+    for fingerprint, residual in known:
+        grouped.setdefault(fingerprint, set()).add(residual)
+    refuted_by = sorted(f for f, values in grouped.items() if len(values) > 1)
+
+    floor = None if refuted_by else distinct_residuals
+    at_least = max(distinct_known, floor) if floor is not None else distinct_known
+    at_most = distinct_known + unknown
+    exact = distinct_known if unknown == 0 else None
+
+    return {
+        "seeds_in_family": seeds_in_family,
+        "seeds_with_a_known_decision_set": len(known),
+        "seeds_with_an_unknown_decision_set": unknown,
+        "distinct_known_decision_sets": distinct_known,
+        #: THE COUNT THE SPREAD IS ENTITLED TO, or an honest unknown with the reason on the same
+        #: row. Never the seed count wearing a draw count's name.
+        "draws_the_spread_is_entitled_to": exact,
+        "at_least": at_least,
+        "at_most": at_most,
+        #: NULL IS NOT THE SAME AS "NOTHING IS KNOWN", and the two get different sentences. When
+        #: the floor and the ceiling coincide the draw count IS determined -- every seed met a
+        #: fresh decision set -- but it is determined by the measured coextension rather than
+        #: recorded on any row, and this field holds only what the rows recorded. A reader who
+        #: cannot tell which of the two produced a number will treat a deduction as a record.
+        "unavailable_because": None if exact is not None else (
+            "{} of this family's {} seed rows record no decision set, so the number of distinct "
+            "draws under this spread is not recorded anywhere. {}".format(
+                unknown, seeds_in_family,
+                "It is nonetheless PINNED to {} by the residual floor: {} distinct residuals over "
+                "{} seeds leaves no room for a repeat, so no seed here is a second draw of a set "
+                "the family already held. Read it as a deduction from the coextension, not as a "
+                "record.".format(at_most, distinct_residuals, seeds_in_family)
+                if at_least == at_most else
+                "It is between {} and {}: an unrecorded seed may have repeated a set already in "
+                "the family or drawn a new one, and reading those unknowns as one repeat would "
+                "shrink a spread that is already too narrow.".format(at_least, at_most))),
+        #: A FLOOR AND NOT THE ANSWER -- the contrapositive of a measured coextension, available
+        #: on families that recorded no roster at all, which is every family published to date.
+        "distinct_selection_residuals": distinct_residuals,
+        "the_residual_floor_holds": not refuted_by,
+        "the_residual_floor_is_refuted_by": refuted_by or None,
+        "how_to_read_this": (
+            "`seeds_in_family` is how many times the instrument was RUN. "
+            "`draws_the_spread_is_entitled_to` is how many distinct priced-decision sets those "
+            "runs actually met, and it is the n a standard error over `selection_gbp` is earned "
+            "at -- the residual cannot move unless a priced decision moves, so two seeds over one "
+            "decision set are one draw recorded twice however differently the rest of the book "
+            "was re-drawn. Where it is null, read `at_least` and `at_most` and treat the published "
+            "sem as an upper bound on this family's confidence, never as its confidence."
+            + ("" if not refuted_by else
+               " THE RESIDUAL FLOOR IS REFUTED ON THIS FAMILY: {} fingerprint(s) appear on seeds "
+               "whose residuals differ, so the coextension between an unchanged decision set and "
+               "a pinned residual does not hold here. The exact count above is unaffected -- the "
+               "fingerprint is what a distinct draw IS -- but the floor derived from distinct "
+               "residuals is withdrawn.".format(len(refuted_by)))),
+        "by_seed": by_seed,
+    }
+
+
 def summarise(rows: list) -> dict:
     """The producer's own summary block, recomputed over the folded rows.
 
@@ -346,6 +520,11 @@ def summarise(rows: list) -> dict:
         "level_leg": level,
         "value_leg": value,
         "discrimination_auc_across_seeds": _auc_across_seeds(rows),
+        #: HOW MANY DRAWS THE THREE LEGS ABOVE ARE ENTITLED TO, beside the seed count they were
+        #: taken at. Every `n` above is a seed count; this is the only field that says how many
+        #: of those seeds met a decision set the family had not already seen, and the selection
+        #: leg's sem is the figure it bears on. See `_priced_decision_draws`.
+        "priced_decision_draws": _priced_decision_draws(rows),
         "how_to_read_the_two_legs": (
             "`value_leg` is what the arm beat the control by. `level_leg` is what a FLAT rule "
             "charging the same median margin, with no per-customer inference at all, beat the "
@@ -736,6 +915,27 @@ def main(argv: list | None = None) -> int:
     print("  distinguishable from zero at {} sems (this family's own bar, t on {} df): {}".format(
         folded["selection_sems_needed_to_state_a_sign"], sel["n"] - 1,
         folded["selection_distinguishable_from_zero"]))
+    #: THE DRAW COUNT BESIDE THE SEED COUNT, on the same surface as the sem it qualifies. An
+    #: operator reading "18 seeds, sem 603, sign stateable" and deciding to publish is reading a
+    #: confidence the family may not be entitled to; the line below is the one that says so, and
+    #: it prints on every branch so silence means "asked and every seed was a fresh draw".
+    draws = folded["priced_decision_draws"]
+    if draws["draws_the_spread_is_entitled_to"] is not None:
+        print("  distinct priced decision sets: {} over {} seeds ({} repeated draw(s))".format(
+            draws["draws_the_spread_is_entitled_to"], draws["seeds_in_family"],
+            draws["seeds_in_family"] - draws["draws_the_spread_is_entitled_to"]))
+    elif draws["at_least"] == draws["at_most"]:
+        print("  distinct priced decision sets: {} over {} seeds -- no row records one, but the "
+              "residual floor leaves no room for a repeat (deduced, not recorded)".format(
+                  draws["at_most"], draws["seeds_in_family"]))
+    else:
+        print("  distinct priced decision sets: BETWEEN {} AND {} over {} seeds -- {} row(s) "
+              "record none. The sem above is an upper bound on this family's confidence.".format(
+                  draws["at_least"], draws["at_most"], draws["seeds_in_family"],
+                  draws["seeds_with_an_unknown_decision_set"]))
+    if not draws["the_residual_floor_holds"]:
+        print("  RESIDUAL FLOOR REFUTED on this family: {} fingerprint(s) appear on seeds whose "
+              "residuals differ.".format(len(draws["the_residual_floor_is_refuted_by"])))
     #: ON THE SURFACE, NOT ONLY IN THE FILE. The operator who runs this is the one deciding whether
     #: to publish the family, and a caveat they have to open the JSON to find is a caveat they will
     #: publish without. Printed on every branch, so silence here means "asked and matched" and
