@@ -1,238 +1,297 @@
 version: 1
-oriented_at: "2026-09-23T23:23:52.735514+00:00"
+oriented_at: "2026-09-24T11:22:34.501138+00:00"
+
 thesis_read: >-
-  The inference got better this stretch and the published account of it did not move at all, and
-  the gap between those two facts is now fifty-three hours wide. Graded from git and the gate state,
-  not from memory: the churn-belief renderer landed (`caabe0165`, `git show
-  :site/capabilities/index.html | grep -c legs_the_belief_hears` returns 1), the site lane's three
-  reds are gone, the producer artefact was regenerated at 22:41 and now says
-  `the_belief_is_flat_below_a_knee: false` where it used to publish a GBP 3,000 knee — and
-  `last_clean_publish` STILL reads 2026-09-21 18:15 UTC, unchanged, with the wedge clock at
-  2026-09-21 20:40. That is the correction this record owes: I wrote last stretch that the three
-  site reds were "the whole of why figures last reached origin 50.1h ago", and they were one link of
-  a chain. The live refusal is now `behind_origin` — this checkout is 5 ahead and 4 behind, and
-  `origin_reconcile` refuses on two untracked staging documents that origin also adds. Three
-  distinct causes, each real, each cleared, each followed by another, and the publisher silent
-  through all three. Against the thesis that is the honest reading: nothing about our inference is
-  falsifiable by anyone outside this box while the only surface a reader has is two days stale. What
-  DID come good is the instrument I complained about twice: `.publish_gate_state.json` now carries
-  `blocking_tests: []` and a `citation_at_head` re-asked at write time with its reason stated
-  (`2b6bdea95`, controlled by `tests/background/test_the_publish_gates_citation_is_re_asked_at_head.py`),
-  so the dead-citation defect I carried for two stretches is closed on the mechanism and not on the
-  instance. The steer bit — 3 of 4 focus items drawn — but "drawn" and "finished" came apart in
-  exactly the way the acceptance test is built to show: rank 1 was drawn, did most of its work, and
-  its own exit test (a figure on origin) never fired, while rank 4, the one item the draw NEVER
-  took, is finished anyway — the 146 uncommitted staging dispositions I named are 4 stranded
-  archivals now, discharged under other commits' names. The shape of the stretch is the thing I
-  would want read next to all this: 9 of 29 commits substantive, and 7 of those 9 were the machine
-  working on itself — staging rooms, alarm repetition, the publish gate's own citation, the executor
-  governor. Two touched the product. The liveness surface published "alive" three times in 3.1 hours
-  over figures two days old, and the atom that would put the age of the figures beside that claim
-  (`OPS8`) has sat at level 0 with its control never written while the defect it names ran live on
-  the front door.
+  The two carried errors that have run four stretches are CLOSED, and in closing them the stretch
+  found who has been wedging the publisher: this seat, with the words in this file. Taking the
+  closures first, because they are real. `199743f80` landed the failing-publisher sentence —
+  `git show HEAD:site/assets/freshness-banner.js` now contains `publisherIsFailing` three times,
+  `publisher_refusal()` is at HEAD in `background/publish_freshness.py`, and
+  `site/test_freshness_banner_publish_state.py` is a committed door. `5e12bc4f5` repaired the
+  supersession frontier on origin/main: `_newest_published_stamp` now filters on
+  `staging_archive_policy.publish_did_not_land(p)`, its docstring names the 064310Z rc=77 incident
+  that caused it, and a failed publish can no longer retire a queued snapshot. Two of the four open
+  rows in `wrong` are therefore true closures rather than restatements, which has not happened
+  before in this file. Now the expensive part. I ran
+  `site/test_a_here_relative_pointer_has_one_home.py` directly and it FAILS, naming two defects and
+  nothing else in the tree, at `site/data/delivery.json .what_it_decided.focus[4].why` and at
+  `.what_it_decided.focus[3].what`. One is the plural-noun-plus-direction branch of the vocabulary
+  and the other is the participle-plus-direction branch; I do not quote either literal in this
+  file, because a quoted literal IS the payload and would red the same control. Those are
+  my predecessor's sentences, from the 08:20 direction record, regenerated into `delivery.json` at
+  08:28 by `tools/generate_delivery_page.py`, staged in the index, and rendered by `/harness/` in
+  two regions — `#delivery-decided` and `#delivery-next` — so a phrase claiming a direction from
+  wherever it renders means two different things and is false in at least one of them. HEAD's committed
+  `delivery.json` is CLEAN of it (generated 2026-09-23 23:32, four focus items, its only "above" is
+  "level 1 or above", which the vocabulary correctly does not flag). So this is a red that exists in
+  no commit, arrived at 08:28, reds the site lane for every lane in this tree, and was authored by
+  the one role in this architecture that writes no code. It does not explain all 62.7 hours of the
+  outage — the wedge predates it — but it is the blocker NOW, and the publisher's own summary cannot
+  say so: `.publish_gate_state.json` carries `citation_at_head: "dead"` for
+  `tests/design/test_atom_notes_store.py`, which I re-ran and which passes, while
+  `liveness_surface_refusal` holds the LIVE red naming the here-relative control. Two refusal
+  fields, and the one a reader believes cites a corpse. Against the thesis proper this stretch was
+  machinery again — seven substantive commits, all of them instruments — and the only
+  inference-versus-baseline work on the box is still the five-seed `selection_gbp` noise floor, pid
+  3567620, now 5h24m in at 8.6GB and writing to a `/tmp` scratchpad. The one further correction I
+  owe: rank 3 last stretch prescribed one command and promised the row would stop appearing in the
+  brief's `lane_0_drawn_never_landed` block. The command ran, exit 0, "bound 5 path(s)" — and could
+  not clear the row, because the id had been RE-DRAWN eleven seconds before the binding item was
+  drawn, and `_remember_landing` stamps the commit's own time while `drawn_without_landing` compares
+  against THIS draw. The worker found that, dispositioned `--premise-spent`, filed
+  `SEAT_FINDING_A_LANDING_BOUND_TO_A_RE_DRAWN_ID_CANNOT_SETTLE_ITS_WINDOW...` and landed `8379e8e0e`
+  so the lane now says when a bind cannot settle its own window. My instruction was a structural
+  no-op on exactly the population it was prescribed for, and my exit test was unreachable by any
+  command this seat holds — one stretch after I declared that exact class corrected.
+
 stretch_reviewed:
-  since: "2026-09-23T20:20:29.227775+00:00"
-  commits: 29
-  substantive: 9
+  since: "2026-09-24T08:20:24.244165+00:00"
+  commits: 17
+  substantive: 7
+
 focus:
-  - id: the-publisher-has-been-silent-53-hours-and-each-cleared-cause-named-another
+  - id: the-direction-record-can-wedge-the-publisher-and-nothing-refuses-it-at-write-time
     what: >-
-      Get a figure onto origin, then account for why three attempts did not. The live refusal in
-      `docs/observability/.publish_gate_state.json` is `behind_origin` and NOT a test red —
-      `blocking_tests` is `[]` and `citation_at_head` is re-asked now, so do not go looking for a
-      failing test. This checkout is 5 ahead / 4 behind and `background/origin_reconcile` refuses on
-      two paths that are untracked here while origin adds its own copies:
-      `docs/staging/SEAT_FINDING_THE_ALARM_FAMILY_FILES_EIGHT_DISTINCT_NAMES_A_WEEK_AND_CLEARS_ONE_AND_ITS_COLLAPSE_TOOL_HAS_NEVER_BEEN_RUN_2026-09-23.md`
-      and
-      `docs/staging/SEAT_FINDING_THREE_ALARM_FAMILIES_BYPASS_NOTIFY_AND_HARDCODE_REPEATS_1_SO_THEIR_DOCUMENTS_UNDERSTATE_THEIR_OWN_SUBJECT_2026-09-23.md`.
-      For each, ask the CONTENT and not the clock: `git show origin/main:<path> | diff - <path>`. If
-      the bytes are equal the local copy is the same document and removing it is not a loss — remove
-      it and re-run `python3 -m background.origin_reconcile`. If they differ, land the local copy
-      with `python3 -m tools.surgical_land <path> --attempts 8` first, because a merge that
-      overwrites an untracked file destroys the only copy. CHECK `ps` BEFORE YOU LAUNCH ANYTHING: a
-      `tools.surgical_land --merge origin/main` was already running at 23:24 (pid 1744170) and a
-      second is how the fork gets worse. Then, and this is the half that stops the recurrence, file
-      ONE finding reading the `failures` list and the wedge clock in the gate state, naming the
-      sequence of distinct causes this single 53-hour wedge has presented — a dead test citation,
-      then the site lane's three reds, then behind-origin on untracked paths.
+      Teach `validate()` in `background/direction.py` to refuse a direction record whose prose
+      carries a here-relative pointer, so the refusal lands when the seat writes the file rather
+      than in the site lane hours later. REPRODUCE FIRST, because this is a red in no commit: run
+      `python3 -m pytest site/test_a_here_relative_pointer_has_one_home.py -x -q` from `site/` and
+      read the two defects it names in `site/data/delivery.json`. Use the ONE vocabulary — the
+      `_HERE_RELATIVE` regex and `_here_relative_phrases()` in
+      `site/test_a_here_relative_pointer_has_one_home.py`, which three modules already import and
+      which has a mutation leg guarding its word list. DO NOT MINT A SECOND COPY; if `background/`
+      cannot import a `site/` test module, the right move is to rehome the vocabulary once and
+      repoint all importers, not to duplicate fourteen nouns. Scope the refusal to exactly the
+      fields `tools/generate_delivery_page.py` composes into a `delivery.json` key that `/harness/`
+      renders in more than one region — read that producer, do not guess the field list — and let a
+      `_LANDMARK` phrase clear the sentence, as the published control does, or the rule will refuse
+      its own repair. The control must be mutation-proven and must assert BOTH directions in one
+      test: a here-relative record is refused AND a landmark-worded record is allowed. A guard that
+      refuses every direction record passes every refusal leg. The landing door annotates this
+      "nothing to land" because `background/direction.py`,
+      `site/test_a_here_relative_pointer_has_one_home.py` and `tools/generate_delivery_page.py` are
+      each identical to HEAD, which is correct and expected. What is left to do is new code on
+      `background/direction.py` plus a control that does not exist yet; the other two paths are the
+      vocabulary to import and the producer to read, not files to edit.
     why: >-
-      `last_clean_publish` has read 2026-09-21 18:15 UTC for 53.1 hours while the heartbeat
-      published "alive" three times in the last 3.1 hours alone, and every other item in this record
-      ends in a figure a reader can see, none of which can move while this is shut. DONE is
-      `last_clean_publish` past 2026-09-21 18:15 UTC with the churn-belief legs visible on the
-      capabilities page — a figure on origin, not a green suite. The finding is part of DONE and not
-      a nicety: three causes in one wedge is a claim about the publisher's preconditions rather than
-      about any instance of them, and an unwedging with no account of why it wedged is the third one
-      this week.
-  - id: the-size-term-contrast-has-no-paired-floor-and-the-run-that-builds-one-is-eight-hours-in
+      A sixty-two-hour publish outage whose current blocker is a sentence written by the seat, in
+      the one file this session is permitted to touch, caught by a control that has existed all
+      along and fires three hours after the damage rather than at the keystroke. The record that
+      steers the machine is a PUBLISHED SURFACE and is graded as one, and nothing told its author
+      so. Finished when `background/direction.py` refuses a record carrying a registered
+      here-relative phrase and accepts the same record reworded to a landmark, with both legs in one
+      committed test and the mutation shown to bite. ONE WARNING FROM WRITING THIS FILE, because it
+      cost a rewrite here: a quoted example of the defect IS the defect to this control, so keep the
+      fixture strings inside the test module, where the producer census cannot compose them into a
+      published feed.
+
+  - id: the-publishers-summary-cites-a-dead-red-while-the-live-one-sits-in-the-other-refusal-field
     what: >-
-      `python3 -m tools.size_term_paired_floor --seeds 5101,5102,5103,5104,5105,5106` has been
-      running since roughly 15:18 (pid 3794281, 8h06m at 23:24), with a leg live under it. DO NOT
-      RELAUNCH IT — eight hours of compute are already paid for, and a second orchestrator shares
-      the cgroup that does the OOM-killing at a measured leg peak of 8.0-8.3 GB against the file's
-      own 8,400 MB bound. Block on it with `python3 tools/wait_for.py` naming that pid, then land
-      `docs/observability/value_cycle_size_term_paired_floor.json` (its `--out` default; per-leg
-      shards are under `/var/tmp/se-floorrun-paired-20260923/docs/observability/`, and
-      `--report <path>` prints a finished one without re-running anything) and state on the arms
-      surface whether the size-term contrast clears its own PAIRED floor or cannot be told apart
-      from it. The contrast is `fc390b918`'s published before/after at one seed each: gross margin
-      -9,299 to +12,152, net margin advantage 14,074 to 13,440, enterprise value 6,143 to 7,642. If
-      a leg has died or been OOM-killed, do not silently publish the survivors as if they were six:
-      say which seeds completed and publish the width their count earns, with the bound it earns.
+      Make the publisher's own summary read the refusal that has a live red. In
+      `docs/observability/.publish_gate_state.json` right now, the top-level `citation_at_head` is
+      `"dead"` with the reason "re-run at HEAD, all 1 cited red(s) PASS -- FAILED
+      tests/design/test_atom_notes_store.py::test_declarations_match_the_store", while
+      `liveness_surface_refusal` carries the real, reproducible red
+      (`site/test_a_here_relative_pointer_has_one_home.py::test_no_here_relative_pointer_is_composed_into_more_than_one_region`)
+      with the assertion text intact. The front door's sentence — "the red it cites is DEAD at HEAD,
+      so the cause is unattributed" — is therefore false in the direction that matters: a cause was
+      held, in the same file, in the other field. Work in `background/publish_cause.py` and whatever
+      composes the describe string: when the cited red is dead and another refusal record in the
+      same state file names a red that is NOT dead, the summary must name that red and where it came
+      from, rather than reporting `unattributed`. Re-ask the citation rather than trusting a stored
+      verdict — the stored `citation_at_head` is exactly the kind of answer that was true once. This
+      subsumes the carried rc=1 test-regression hole: that route reaches the record with no
+      observation attached for the same reason, having inputs it does not consult.
     why: >-
-      The thesis says the advantage must come from inference and that there has to be a baseline to
-      beat, and this is the ruler for the largest movement our belief has made this month. Every
-      floor in `docs/observability/` measures the spread WITHIN one configuration; this claim is a
-      DIFFERENCE BETWEEN two, so none of them can price it. The published floor is degenerate on top
-      of that — `SEAT_FINDING_THE_NARROW_WIDTH_BEHIND_THE_PUBLISHED_SELECTION_SIGN_IS_A_REPEATED_DRAW`
-      (BLOCKING) establishes 5 of its 18 draws are repeats and `sd_X = 1311.96` makes the narrow
-      width a property of the instrument, not of the world. DONE is the paired width published beside
-      the contrast, or the words "we cannot tell" published in its place with the reason — both are
-      results and only one of them is currently on the page.
-  - id: the-churn-knee-finding-and-its-ledger-row-both-describe-a-tree-that-has-moved
+      This is the carried `publish_cause` error, sharpened by live evidence into something better
+      than a tidy-up. `unattributed` is not a missing feature here; it is a false negative sitting
+      beside the answer, and it is why the here-relative red went unnamed for three hours in a seat
+      whose whole job is to unblock. A module that exists to say why a publish did not happen must
+      not be the reason a human had to run pytest by hand to find out. Finished when the next
+      publish failure whose citation is dead either names the live red from the other refusal record
+      or states in words which inputs it held and why they were not enough.
+
+  - id: capture-the-five-seed-selection-noise-floor-before-its-only-copy-is-a-scratchpad
     what: >-
-      Re-grade `docs/staging/SEAT_FINDING_THE_PUBLISHED_CHURN_KNEE_IS_GBP_3000_AND_THE_CODES_KNEE_IS_GBP_0_1_2026-09-23.md`
-      (BLOCKING) against HEAD rather than against the `0637be0f1` it was written at. Its measurement
-      table is refuted: `docs/observability/churn_belief_size_response.json` now reads
-      `the_belief_is_flat_below_a_knee: false`, `first_departure_from_flat_kwh: 1.0` at every probe
-      rate and a deaf edge at 22,263.7 kWh / GBP 3,339.6, and `site/data/value_arms.json` carries
-      that block regenerated at 2026-09-23 22:41. Settle it by running
-      `python3 -m tools.published_feed_regeneration_check` — background it, it does not finish inside
-      two minutes — and then either drop the finding to RECORDED beside its own claim or name in it
-      what still diverges of the 35 keys it reported. Separately, bind the draw-ledger row
-      `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term`, which still reads
-      `not_done`, to `3b01193a8` ("the refuted bill-stress term is bounded to the only published
-      measurement of distress-driven switching", 2026-09-23 17:54) with `--landed-under`.
+      `python3 -m tools.run_value_cycle_ab --level-arm --noise-floor-seeds 11,12,13,14,15 --contrast
+      selection_gbp` is pid 3567620, alive at 5h24m and 8.6GB, writing to
+      `/tmp/claude-1000/-/b178d1c6-.../scratchpad/selection_noise_floor.json`. DO NOT START ANOTHER
+      — ask `ps -p 3567620` first; if it is alive, take the next item and do not wait on it; if it
+      is gone, read the file. Then hold the result against
+      `docs/staging/SEAT_FINDING_THE_NARROW_WIDTH_BEHIND_THE_PUBLISHED_SELECTION_SIGN_IS_A_REPEATED_DRAW_2026-09-22.md`,
+      whose claim is that every family drawn at an old tree repeats a `selection_gbp` and neither
+      family drawn at a new tree does. Write the prediction into a pre-registration record FIRST,
+      then the result, then land the run's output file into the repository whichever way it fell.
+      The finding named here is context, not a path to edit, so the landing door's "nothing to land"
+      annotation on it is expected.
     why: >-
-      A BLOCKING finding is a wall for every lane whose file_scope touches the churn belief, and this
-      one is a wall built out of figures that no longer exist — it says the code's knee is GBP 0.1
-      when the code has no knee at all and says so in its own artefact. The ledger row is the same
-      error in the other instrument: the work landed 4h20m after that row's window closed, so the
-      draw records as undone something that is at HEAD, and the next draw will hand it out again.
-      DONE is the finding at RECORDED or re-stated in today's terms, and the ledger row bound to the
-      commit that spent it.
-  - id: OPS8_last_known_good_staleness_banner
+      Unchanged and still the nearest thing on this box to the thesis itself: whether the published
+      selection sign is inference or an artefact of a degenerate redraw. It is also eleven hours of
+      compute in a directory nothing backs up, and this project has already paid once for a long run
+      that was produced and never landed. It sits at rank 3 rather than rank 1 because a result
+      nobody can publish is worth less than a publisher that works, and ranks 1 and 2 are the
+      publisher. Finished when the five-seed result is a file in the tree with the prediction
+      recorded beside it.
+
+  - id: establish-whether-the-running-daemons-hold-the-frontier-repair-before-restarting-anything
     what: >-
-      Move OPS8 off level 0, using the case that arrived this stretch. `site/data/tick_heartbeat.json`
-      and `docs/observability/agent_status.json` published "alive" three times in 3.1 hours while
-      `last_clean_publish` had not moved for 53 hours, and a reader of the front door cannot tell the
-      difference. Put the age of the figures beside them: have the publish path
-      (`background/process_run_complete.py`, which is already in this atom's file_scope) carry
-      `last_clean_publish` into the feed `site/index.html` reads, render it as a dated
-      last-known-good line stating how old the figures are, and write the site door that FAILS when
-      the banner is absent or when its date is the render's own clock instead of the publish's.
-      Ask the map's headroom before you write the level row, not after: 5,844 bytes at 23:24 against
-      a median map commit of ~695 bytes.
+      This checkout is 10 commits behind origin/main, so every daemon booted from it is executing
+      code the branch has moved past — including `background/background_worker.py`, whose frontier
+      repair landed at `5e12bc4f5` on origin/main THIS STRETCH and is absent from HEAD here. ASK
+      `background.deploy_restart.checkout_drift()` FIRST and do not restart anything before reading
+      it: a staleness verdict is stamp-versus-disk, so restarting is the wrong remedy first and
+      blinds the detector to the checkout gap. Then settle it directly —
+      `grep publish_did_not_land` the WORKING COPY of `background/background_worker.py`, not HEAD —
+      and report which of the two it is: the checkout lacks the commit, or the process holds code it
+      booted with. Only then decide the remedy. This is also the concrete half of the BLOCKING
+      finding `SEAT_FINDING_THE_DECLARED_BOOT_STAMPER_HAS_STAMPED_NOTHING_SINCE_2026_09_04_SO_NO_DAEMONS_CODE_VERSION_IS_KNOWN_2026-09-24.md`:
+      if the stamper had been stamping, this item would be a lookup rather than an investigation, so
+      say in the record what the stamp would have had to carry to answer it. This item is a READING
+      and edits no source file, so the landing door's "nothing to land" annotation on
+      `background/background_worker.py` is expected: that path is the subject being read, not a path
+      to change. What it writes is a record.
     why: >-
-      This atom is a director ruling sitting at level 0, aiming at 2, with no control ever written —
-      and the behaviour it was minted to prevent ran live on the public surface three times this
-      stretch. "Fail closed and say so on the surface" is the rule; a heartbeat that says alive over
-      two-day-old figures says the opposite, and it is the one claim on our site a reader can check
-      and find wrong. It sits last because rank 1 is what makes any figure move at all and this only
-      dates what moves. DONE is a dated banner on the live front door, a door that can fail beside
-      it, and OPS8 recorded at level 1 or above.
+      Rank 2 last stretch was a repair to the daemon that clears the publish queue, and a repair the
+      running daemon does not hold is a repair that has not happened — which is how a false "overtaken
+      on every published surface" gets written into the archive for a second day. This is the
+      cheapest available test of whether landing a fix here means anything, and it is a reading
+      rather than a change, so it cannot make things worse. Finished when the record says which of
+      the two causes it is, named against the symbol `publish_did_not_land` in the working copy.
+
 not_now:
   - what: >-
-      The seven reds on origin/main that no gate selection reaches, and the six other 2026-09-22
-      BLOCKING findings about stale bases and reverts.
+      Directing a worker at "make the next publish land" — the outcome that actually matters —
+      as an item in its own right.
     why: >-
-      A lane is landing it right now — `tools.surgical_land` pid 1767879 carries the message "the
-      seven reds are re-graded at today's trunk and the finding that froze its lane is archived". A
-      focus item over work already in flight buys a collision, not throughput. If it is still
-      BLOCKING at the next orientation it outranks rank 3.
+      Its two current blockers are ranks 1 and 2, and an item whose work is "wait for the cadence"
+      is the error I made two stretches ago keying an exit test to `last_clean_publish` moving. The
+      chain has an owner and a cadence. What it does not have is a summary that names its own live
+      red, and a seat that cannot wedge it with prose.
   - what: >-
-      A reform of the staging filing rate — 268 documents filed and 258 dispositioned in 7 days, a
-      net +10 with 103 in the work queue.
+      Rehoming `_HERE_RELATIVE` out of a `site/` test module into a shared module, as a piece of
+      work in its own right.
     why: >-
-      The pile I sized at 146 uncommitted dispositions last stretch is 4 stranded archivals now
-      without anyone being told to fix it, so dispositioning is outrunning my count of it, not the
-      filing. And the remedy on offer is a rule about what may be filed, which is how 117 harness
-      atoms happened. Rank 1 lands the two documents that are actually blocking something; the rest
-      is sediment that costs nothing this week.
+      It is the same subject as rank 1 and might be necessary to do rank 1 at all, which is exactly
+      why it should not be a separate item competing for a separate tick. Rank 1 names it as a
+      conditional step with the condition stated, so whoever draws rank 1 decides it with the import
+      error in front of them rather than from here.
   - what: >-
-      Giving `supervisor`, `deadmans-switch` and `naive-organ` a flushed stdout so the journal can
-      hear them.
+      Establishing a `log_silence` cause for `sanity-daemon`, still the one mute daemon with none on
+      file, and the shared unflushed-stdout repair under the other six.
     why: >-
-      All three write their real logs — 380,766, 41,389 and 20,511 lines, all within 8 minutes of
-      the reading — so this is an instrument defect, not a health one, and it changes no level and
-      no published figure. It is the closest call here: `deadmans-switch` is the one daemon whose
-      muteness would be indistinguishable from the stall it exists to catch, and the `mute` field in
-      the brief is currently the only thing that can tell them apart. If that field ever stops being
-      computed, this jumps the queue.
+      Unchanged from the last two files and still right: instrument maintenance on a reading that
+      already states precisely what it does not know, and the five causes established so far came
+      out as five different answers, so it is slow as well as quiet. It publishes nothing.
   - what: >-
-      Deciding what to do with `token-proxy`, quiet for 188 hours because `ANTHROPIC_BASE_URL` is
-      unset for every `claude` process on this box and nothing routes through it.
+      `SEAT_FINDING_THE_CHECKOUT_CANNOT_ADVANCE_BECAUSE_A_PRODUCERS_OUTPUT_IN_AN_AUTHORED_TREE_IS_INVISIBLE_TO_THE_GENERATED_ORACLE`,
+      one of the four BLOCKING findings.
     why: >-
-      A declared daemon earning nothing is worth a decision, and it is mine to make rather than the
-      director's — nothing about holding it touches money, a real person or a public claim. But it
-      costs 10 MB and blocks nothing, so it loses to four items that each end in a figure moving.
-      Deciding it, not asking it, at the next orientation.
+      `ef7a8f89e` landed "teach the generated-path oracle that a producer which COMPOSES its
+      filename is still a producer" at 08:21, which is this finding's own repair. Naming it would
+      point a worker at work that landed this stretch. It should be re-graded at the next
+      orientation and dispositioned if its falsifiers are green — which is precisely the question
+      already filed as a finding rather than asserted.
   - what: >-
-      Draining the 28 ungradable maturity-map atoms, 16 of which are ungradable because the control
-      that would grade them was never written.
+      The BLOCKING finding on the volume centre, whose R15 band is wider than the defect it reports.
     why: >-
-      Real debt and genuinely invisible, but every hour of it ends with the map in the same place it
-      started and nothing published moving. OPS8 is one of those 16 and it is rank 4 precisely
-      because it is the one whose absence is currently misleading a reader — that is the right way
-      to drain this class: one at a time, chosen by what it is costing now.
+      Real epistemic debt on a published quantity, and the same family as rank 3 — but rank 3 has
+      eleven hours of compute already spent on it and this has none. It comes back once the
+      five-seed result is in the tree and can be read beside it.
+  - what: >-
+      The 28 ungradable maturity-map atoms, 16 of which have their subject on disk and no control
+      ever written to grade them.
+    why: >-
+      Unchanged and still the largest block of unearned green in the map. It is a control-writing
+      campaign measured in stretches, and every rank in this file ends in something a reader or an
+      auditor can check within one tick. It needs a stretch where the publish path is not the
+      constraint.
+  - what: >-
+      Correcting the build figure in CLAUDE.md, which reads 36,838 against roughly 37,171 collected.
+    why: >-
+      A phase-close duty with `startup_anchor_freshness` already flooring it from below. Spending
+      one of roughly two lane-0 draws a stretch on a number that is already bounded would be the
+      worst trade available in this file.
+
 wrong:
   - what: >-
-      THE MACHINE'S, CARRIED TWO STRETCHES, AND NOW CLOSED ON THE MECHANISM RATHER THAN THE
-      INSTANCE. The publish gate's state preserved a dead citation in `blocking_tests` — the field a
-      reader reaches first — while recording the live refusal in a different field beside it. Read
-      fresh at 23:24: `blocking_tests` is `[]`, and `citation_at_head` carries a re-asked verdict
-      with its own reason ("no red is named on this failure, so there is no citation to re-ask. This
-      is not evidence that HEAD is green") — a refusal that names its reason, which is the shape
-      asked for. Landed by `2b6bdea95` with
-      `tests/background/test_the_publish_gates_citation_is_re_asked_at_head.py`. Closed because the
-      state now re-asks at write time, not because today's citation happens to be empty.
-    corrected: true
-  - what: >-
-      MINE, CARRIED, AND CLOSED ON THE CONDITION IT SET ITSELF. I had put a count in an item's own
-      name (`nineteen-staging-dispositions-are-done-and-uncommitted`) when the real figure was 146,
-      and said the repair was to re-file it with no count in the id. I did:
-      `the-staging-queues-census-is-behind-its-own-tree`. The proof the repair mattered is that the
-      subject then shrank sevenfold — `staging_rooms --check` reads 4 stranded archivals now — and
-      the item needed no renaming to stay gradable. It is the one item of four the draw never took
-      and it is finished anyway, discharged under other commits' names, so it disappears from focus
-      on the acceptance test this record actually has.
-    corrected: true
-  - what: >-
-      MINE, NEW, AND THE WORST HERE. I wrote that the three site-lane reds "ARE the site lane's
-      refusal ... and that is the whole of why figures last reached origin 50.1h ago". I had
-      inspected one link and described a chain. The reds cleared, the renderer landed at
-      `caabe0165`, and `last_clean_publish` did not move by one second: it still reads 2026-09-21
-      18:15 UTC and the live refusal is `behind_origin` on two untracked staging paths. "The whole
-      of why" is a claim about a cause set, and I had evidence for one member of it. Not corrected:
-      rank 1 is the repair, and it deliberately ends in a finding naming the sequence rather than in
-      the unwedging alone, because clearing a fourth cause and calling it the last one is the same
-      error again.
+      MINE, NEW, AND THE MOST EXPENSIVE THING IN THIS BRIEF: the direction record I write is a
+      published surface, it is graded as one, and my predecessor's prose is the publish gate's
+      current live red. Running `site/test_a_here_relative_pointer_has_one_home.py` names two
+      defects and nothing else in the tree, at `site/data/delivery.json
+      .what_it_decided.focus[4].why` and at `.what_it_decided.focus[3].what` — one on the
+      plural-noun-plus-direction branch of the vocabulary and one on the
+      participle-plus-direction branch, neither quoted here because the quotation is the payload.
+      Both fields are rendered by `/harness/` in two regions,
+      `#delivery-decided` and `#delivery-next`, so each phrase points two ways and is false in at
+      least one. HEAD's committed `delivery.json` is clean (generated 2026-09-23 23:32, four focus
+      items), so this is a red that exists in NO commit: it arrived at 08:28 when
+      `tools/generate_delivery_page.py` regenerated the feed from the 08:20 record, and it reds the
+      site lane for every lane in this tree. The instance is closed by this file, which is worded to
+      landmarks throughout. The CLASS is not: nothing in `background/direction.py:validate()` looks
+      at prose, so the next seat can do it again in one sentence. Not corrected — rank 1.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. The liveness surface published "alive" three times in 3.1 hours
-      (`06cac8d2a`, `97f1910fc`, `b6a4f2a5c`) over figures that were already two days old, and
-      carries no age beside the claim. It is doing exactly what it was built to do — decouple
-      published liveness from content change — and the consequence is a public surface that is
-      confidently wrong about the one thing a reader can check. Not corrected: rank 4 (`OPS8`) is the
-      repair, and the atom for it has existed at level 0 with no control since epoch 2.
+      MINE, CARRIED, AND NOW GENUINELY NARROWED BY LIVE EVIDENCE RATHER THAN BY RESTATEMENT.
+      `background/publish_cause.py` still leaves a failure unattributed while the answer sits in the
+      same state file: `.publish_gate_state.json` has top-level `citation_at_head: "dead"` for
+      `tests/design/test_atom_notes_store.py::test_declarations_match_the_store` — which I re-ran
+      and which passes — while `liveness_surface_refusal` carries the live, reproducible
+      here-relative red with its assertion text intact. So the front door's "the cause is
+      unattributed" is not a gap in the enumeration; it is a false negative sitting beside the
+      answer. This is a sharper statement than last stretch's "one exit path" and supersedes it: the
+      rc=1 route and this one fail the same way, by not consulting an input already in hand. Not
+      corrected — rank 2.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW, AND AN INSTRUMENT RATHER THAN A BEHAVIOUR. The draw ledger records
-      `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` as `not_done` on the
-      evidence that no commit touched its paths inside its window — true, and the work landed at
-      `3b01193a8` four hours and twenty minutes after that window closed. A ledger that grades by
-      window rather than by subject will hand the same item out again and a worker will redo landed
-      work. Not corrected: rank 3 carries the `--landed-under` binding for this instance; whether
-      the window-vs-subject shape needs more than a binding is a question for the next orientation
-      and not a register to build today.
-    corrected: false
-  - what: >-
-      MINE, CARRIED, THE STANDING CONDITION, CHECKED RATHER THAN ASSERTED. This record is in breach
-      if it ranks anything above the thesis whose DONE does not end in a published figure or sentence
-      moving. Rank 1 ends in `last_clean_publish` advancing past 2026-09-21 18:15 UTC. Rank 2 ends in
-      a width — or the words "we cannot tell" — published beside the size-term contrast. Rank 3 ends
-      in a BLOCKING finding cleared and a ledger row bound, which is the weakest of the four and is
-      why it sits third rather than higher. Rank 4 ends in a dated banner on the live front door.
-      Not in breach.
+      MINE, NEW, AND THE SAME CLASS I DECLARED CORRECTED ONE STRETCH AGO. Rank 3 last stretch
+      prescribed exactly one command and keyed DONE to "the row stops appearing in the brief's
+      `lane_0_drawn_never_landed` block". The command ran and reported success — "bound 5 path(s)",
+      exit 0 — and could not clear the row, because the id had been RE-DRAWN at 11:36:32, eleven
+      seconds before the binding item itself was drawn, and `_remember_landing` stamps the commit's
+      own time (1790182455) while `drawn_without_landing` compares against THIS draw (1790246192).
+      The remedy I prescribed is a structural no-op on precisely the population it was prescribed
+      for, and it gets more certainly so the longer a row goes round unbound. My exit test was also
+      unreachable by any command this seat holds, since `lane_0_drawn_never_landed` lists every
+      closed window and the disposition is only a column within it. Corrected, and by the worker
+      rather than by me: it filed
+      `SEAT_FINDING_A_LANDING_BOUND_TO_A_RE_DRAWN_ID_CANNOT_SETTLE_ITS_WINDOW_AND_THE_BIND_REPORTED_SUCCESS_2026-09-24.md`,
+      dispositioned the row `premise_spent` with its reason, and landed `8379e8e0e` so the lane now
+      says out loud when a bind cannot settle its own window. Corrected in this file too: every exit
+      test names a symbol, a file, a control leg or a sentence, and none is keyed to a block of the
+      brief.
     corrected: true
+  - what: >-
+      THE MACHINE'S, CARRIED FOUR STRETCHES, AND NOW CLOSED. The front door can say the publisher is
+      failing. `199743f80` landed the three files as one unit: `git show
+      HEAD:site/assets/freshness-banner.js` contains `publisherIsFailing` three times,
+      `publisher_refusal()` is at HEAD in `background/publish_freshness.py`, and
+      `site/test_freshness_banner_publish_state.py` is a committed door rather than 291 uncommitted
+      lines. The inversion that made it urgent is also gone: the committed feed's
+      `content_publish.publisher.state` field now has both a committed producer and a committed
+      renderer. Corrected.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW LAST STRETCH AND ALREADY CLOSED, WHICH IS THE FASTEST THIS FILE HAS EVER
+      RETIRED A ROW. A publish that did not publish can no longer retire the queue behind it.
+      `5e12bc4f5` is on origin/main: `_newest_published_stamp` now filters markers through
+      `staging_archive_policy.publish_did_not_land(p)`, and its docstring states the defect, the
+      mechanism ("`process_run_complete` archives the marker BEFORE it commits, on purpose"), the
+      incident (run 064310Z, rc=77 `commit_did_not_land`, retiring a queued snapshot and writing
+      that a later run "had already completed its publish pipeline"), and why an UNSTAMPED marker
+      must still count as published so the 2026-08-03 livelock stays shut. Corrected — with the
+      caveat that rank 4 exists because a repair on origin/main is not yet a repair in the daemon
+      that runs it.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, CARRIED FOUR STRETCHES, AND CLOSED BY BEING REFUTED RATHER THAN BY BEING FIXED.
+      I said the draw ledger grades by WINDOW rather than by SUBJECT and that one `--landed` command
+      would settle it. The first half is right and the second is wrong, and the worker established
+      why: an id is re-offered BECAUSE its landing was never bound, every unbound re-draw pushes the
+      newest window further past the commit, and `--premise-spent` is the only per-window door.
+      `3b01193a8` is bound, the row is dispositioned `premise_spent` with its evidence, and
+      `8379e8e0e` makes the lane say so instead of reporting a bare success. The ledger row is
+      settled; my diagnosis of the remedy was wrong and is recorded as such in the row of this
+      section that names `SEAT_FINDING_A_LANDING_BOUND_TO_A_RE_DRAWN_ID`. Corrected.
+    corrected: true
+
 for_the_director: []
