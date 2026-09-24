@@ -506,6 +506,36 @@ def _proc_cgroup(pid: int) -> str:
         return ""
 
 
+def _boot_time() -> float | None:
+    """Epoch seconds at which this machine booted, from /proc/stat `btime` (None if unreadable)."""
+    try:
+        for line in Path("/proc/stat").read_text().splitlines():
+            if line.startswith("btime "):
+                return float(line.split()[1])
+    except Exception:
+        return None
+    return None
+
+
+def process_start_time(pid: int, boot: float | None = None) -> float | None:
+    """Epoch seconds at which `pid` started, or None if it cannot be read.
+
+    /proc/<pid>/stat field 22 is start time in clock ticks since machine boot. Parsed after the
+    LAST ')' because field 2 is the comm, which may itself contain spaces and parentheses.
+
+    None is the honest answer for an unreadable process and callers must make no claim on it — an
+    unknown start time is not evidence of a fresh stamp."""
+    boot = _boot_time() if boot is None else boot
+    if not boot:
+        return None
+    try:
+        raw = Path(f"/proc/{int(pid)}/stat").read_text()
+        fields = raw[raw.rindex(")") + 1:].split()
+        return boot + float(fields[19]) / os.sysconf("SC_CLK_TCK")
+    except Exception:
+        return None
+
+
 def observed_launched_by(entries: list[dict], unit_states: dict[str, dict],
                          main_pids: dict[str, int],
                          cgroup_of=lambda pid: "") -> dict[str, str | None]:
@@ -555,7 +585,9 @@ def launcher_drift(entries: list[dict], observed: dict[str, str | None]) -> list
 
 
 def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
-                      closures: dict[str, set[str]], changed_since) -> dict:
+                      closures: dict[str, set[str]], changed_since, *,
+                      boot_ts: dict[str, float | None],
+                      started_at: dict[str, float | None]) -> dict:
     """PURE (mutation-testable). Per running daemon, which of the modules IT IMPORTS changed since
     it booted. `changed_since(sha, session)` -> set of repo-relative changed paths, or None if
     unresolvable. SESSION is passed because the answer is per-daemon, not per-commit: two daemons
@@ -563,18 +595,41 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
     comparison is against the bytes each ACTUALLY loaded (see `boot_sha.read_boot_blobs`).
 
     Returns {"stale": {session: [changed loaded paths]}, "unresolved": {session: reason}}.
-    Three fail-SAFE (never fail-open) rules, each with a named reason rather than a silent green:
+    Four fail-SAFE (never fail-open) rules, each with a named reason rather than a silent green:
       - no boot stamp        -> unresolved 'unstamped'      (unknown is not clean)
+      - stamp older than the process
+                             -> unresolved 'stamp-predates-process'
       - closure empty        -> unresolved 'closure-unknown' (a vacuous compare always passes)
       - changed_since None   -> unresolved 'sha-unresolved'  (an unanswerable question is not 'no')
     A daemon with a resolvable diff that touches NOTHING it imports is GREEN — that is the whole
-    point: the signal must be able to be green, or it is noise."""
+    point: the signal must be able to be green, or it is noise.
+
+    THE FOURTH RULE, added 2026-09-24, and why the other three could not cover it. `unstamped`
+    asks whether a stamp EXISTS. Nothing asked whether the stamp describes the process running
+    NOW. From 2026-09-04 to 2026-09-24 the units' declared `ExecStartPre` stamper had no
+    `__main__` and silently stamped nothing (the leading `-` in the unit swallowed it), so every
+    stamp on the box named a boot that had since been replaced. Those read as perfectly valid
+    stamps: 9 of 12 daemons were reported `stale` continuously, which is the ALWAYS-RED failure
+    the 2026-08-09 rebuild above exists to abolish, and it is precisely why nobody could see the
+    2h48m window in which `staging_watcher` ran without the `reask()` that 465a0dfca had landed —
+    the session read `stale` before it, during it and after it. "The code moved under a running
+    daemon" and "nothing stamped this boot" have OPPOSITE remedies (restart it / repair the
+    stamper) and had one indistinguishable verdict.
+
+    `boot_ts` and `started_at` are REQUIRED keyword arguments, not optional ones, because a rule a
+    caller can forget to feed is a rule that stays green for twenty days. A session with either
+    value unknown makes NO new claim and falls through to the rules below — that degrades to the
+    previous answer and can never turn a red into a green."""
     stale: dict[str, list[str]] = {}
     unresolved: dict[str, str] = {}
     for session in running_sessions:
         sha = boot_shas.get(session)
         if not sha:
             unresolved[session] = "unstamped"
+            continue
+        stamped, started = boot_ts.get(session), started_at.get(session)
+        if stamped is not None and started is not None and stamped < started:
+            unresolved[session] = "stamp-predates-process"
             continue
         closure = closures.get(session) or set()
         if not closure:
@@ -603,9 +658,12 @@ def evaluate_boot_sha_drift() -> dict:
     population = drift_population(observed)
     closures = {s: code_closure.closure_for_session(s) for s in population}
     boot_shas = {s: boot_sha.read_boot_sha(s) for s in population}
+    boot = _boot_time()
     d = loaded_code_drift(
         population, boot_shas, closures,
-        lambda sha, session: boot_sha.changed_paths_since(sha, boot_sha.read_boot_blobs(session)))
+        lambda sha, session: boot_sha.changed_paths_since(sha, boot_sha.read_boot_blobs(session)),
+        boot_ts={s: boot_sha.read_boot_ts(s) for s in population},
+        started_at={s: process_start_time(main_pids.get(s, 0), boot) for s in population})
     # VACUITY GUARD (R15): an empty population while units are demonstrably active is a FAILED
     # check, not a clean one. The old detector's silent shrink is what this must never repeat.
     any_active = any((unit_states.get(e["session"]) or {}).get("active")
