@@ -454,6 +454,13 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
         "session_hosting_units": sorted(hosting),
         "session_hosting_unresolved": hosting_unresolved,
         "vacuous": bool(drift.get("vacuous")),
+        # THE BOUND EVERY ROW ABOVE IS SUBJECT TO, published beside them rather than in a footnote.
+        # Each row answers "which modules it imports changed" against THE DISK, so the whole table
+        # is bounded by whether the disk contains origin/main. Without this, eleven rows reading
+        # honestly-green would be indistinguishable from eleven rows on a checkout eleven commits
+        # behind -- which is what the box actually was on 2026-09-24. A figure published without
+        # the bound it earns is worse than no figure.
+        "checkout": checkout_drift(),
         "daemons": rows,
         "summary": {
             "observed": len(rows),
@@ -463,6 +470,104 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
             "mid_work": sum(1 for r in rows if r["mid_work"]),
         },
     }
+
+
+def checkout_drift(project: Path | None = None, *, fork_state_fn=None, contains_fn=None,
+                   gap_paths_fn=None) -> dict:
+    """THE FIRST OF THE TWO GAPS: does the tree the daemons load from contain `origin/main`?
+
+    A landed commit has TWO gaps before a daemon runs it, and until now only the second was
+    measured:
+
+      1. CHECKOUT -- `origin/main` has the commit; the shared working tree does not.
+      2. RESTART  -- the checkout has it; the process booted before it.
+
+    `loaded_code_drift` measures (2). It cannot measure (1), and the reason is structural rather
+    than an oversight: `boot_sha.changed_paths_since` runs `git diff <boot_sha> --`, which compares
+    the stamp to THE DISK. `origin/main` appears nowhere in that comparison, so a commit the
+    checkout has not merged changes no file on disk and can contribute nothing to any daemon's
+    changed set. The detector answers "current" about code the box demonstrably does not have.
+
+    MEASURED 2026-09-24, and the first draft of this docstring got it wrong in the flattering
+    direction. I predicted the 11 unmerged commits would contribute ZERO paths to every daemon's
+    changed set. They contributed 227 across thirteen sessions -- REFUTED, and the refutation is
+    recorded beside the prediction in
+    `docs/staging/records/SEAT_PREREG_IS_THE_RESTART_GAP_DETECTOR_BLIND_TO_THE_CHECKOUT_GAP_2026-09-24.md`.
+
+    THE CORRECTED READING IS WORSE THAN THE PREDICTION, NOT BETTER. Of the 28 paths `origin/main`
+    had and the checkout lacked, 17 appeared in `staging-watcher`'s changed set -- but they appeared
+    because they had ALSO moved between that daemon's 2026-09-17 stamp and the disk, not because
+    anything asked about origin. Simulating the stamp a restart would write (stamp == shared HEAD)
+    flips it: 11 appear, 17 vanish. Which paths of the gap are visible is decided by STAMP AGE and
+    WORKING-TREE DIRT, both unrelated to the gap. So the non-zero count is not a measurement of the
+    checkout gap even when it is non-zero -- it is coincidental overlap wearing coverage's clothes,
+    which is why this is a separate verdict and not a bigger number in the existing one.
+
+    AND IT IS WHY THE OBVIOUS REMEDY IS BACKWARDS. Restarting every daemon right now would clear
+    all eleven `stamp-predates-process` verdicts -- by re-running `ExecStartPre` against a checkout
+    that still lacks the repair. The reds would go green and not one daemon would gain the code.
+    A restart CLOSES gap 2 and BLINDS the detector to gap 1 in the same act.
+
+    Returns `{"behind", "ahead", "contains_origin", "gap_paths", "unresolved"}`.
+
+    FAIL-CLOSED, in the one direction that matters: `behind` is never reported as 0 on an
+    unreadable origin. `None` is a distinct answer from `0` here exactly as it is in
+    `origin_reconcile.commits_behind`, which this stands on rather than re-asking git itself.
+
+    `contains_origin` IS ASKED OF `merge-base --is-ancestor` AND NEVER OF AN EXIT CODE, and that is
+    the whole lesson of the thing this measures. `reconcile-watch` exits 0 every five minutes
+    without advancing the shared tree; over ~400s on 2026-09-24 the tree advanced its own HEAD
+    twice and stayed 5 behind throughout, never containing the landing. A success code answered the
+    wrong question the entire time. It is also NOT derived from `behind == 0`: a DIVERGED tree
+    (3 ahead, 11 behind, which is what the live tree was) is a state the counts alone describe
+    ambiguously and the ancestor test names exactly.
+    """
+    from background import origin_reconcile
+
+    project = project or _REPO
+    behind, ahead = (fork_state_fn or origin_reconcile.fork_state)(project)
+    if behind is None or ahead is None:
+        return {"behind": behind, "ahead": ahead, "contains_origin": None, "gap_paths": None,
+                "unresolved": "origin-unreadable"}
+    contains = (contains_fn or _checkout_contains_origin)(project)
+    if contains is None:
+        return {"behind": behind, "ahead": ahead, "contains_origin": None, "gap_paths": None,
+                "unresolved": "ancestry-unreadable"}
+    gap = (gap_paths_fn or _paths_origin_has_that_checkout_lacks)(project)
+    return {"behind": behind, "ahead": ahead, "contains_origin": contains,
+            "gap_paths": None if gap is None else len(gap),
+            "unresolved": None if gap is not None else "gap-paths-unreadable"}
+
+
+def _checkout_contains_origin(project: Path) -> bool | None:
+    """Is `origin/main` an ancestor of the checkout's HEAD? None if git cannot say.
+
+    THE ARGUMENT ORDER IS THE QUESTION. `merge-base --is-ancestor origin/main HEAD` asks whether
+    the checkout CONTAINS origin. The reverse spelling asks whether the checkout is contained BY
+    it, which is true of every tree that is merely behind and is the answer that would have read
+    green through the whole 2026-09-24 window.
+    """
+    # NOT THROUGH `_sh`, deliberately: it returns None on ANY non-zero exit, which here would
+    # collapse the legitimate "not an ancestor" answer (rc 1) into "git could not say" (rc 128).
+    # Those have opposite meanings and only one of them is allowed to be treated as unresolved.
+    try:
+        proc = subprocess.run(["git", "-C", str(project), "merge-base", "--is-ancestor",
+                               "origin/main", "HEAD"], capture_output=True, timeout=15)
+    except Exception:
+        return None
+    if proc.returncode == 0:
+        return True
+    if proc.returncode == 1:
+        return False
+    return None  # 128 and friends: git could not answer, which is not "no"
+
+
+def _paths_origin_has_that_checkout_lacks(project: Path) -> list[str] | None:
+    out = _sh("git", "-C", str(project), "diff", "--name-only", "HEAD", "origin/main", "--",
+              timeout=30)
+    if out is None:
+        return None
+    return [line for line in out.splitlines() if line.strip()]
 
 
 def restart_plan(report: dict, self_unit: str | None = None) -> dict:
@@ -654,6 +759,7 @@ def main(argv: list[str]) -> int:
     print("head {}  observed {}  stale {}  unresolved {}  session-hosting {}".format(
         (report.get("head") or "?")[:9], s["observed"], s["stale"], s["unresolved"],
         s["session_hosting"]))
+    print("checkout: {}".format(format_checkout(report.get("checkout"))))
     for row in report["daemons"]:
         print("  {:22s} running {:>7s}  code {:>7s}  without {:>7s}  modules {:>4d}{}{}".format(
             row["session"], _hms(row["running_age_s"]), _hms(row["loaded_code_age_s"]),
@@ -691,6 +797,25 @@ def main(argv: list[str]) -> int:
     for unit, why in sorted(still.items()):
         print("  DEFERRED {}: {}".format(unit, why))
     return 0
+
+
+def format_checkout(checkout: dict | None) -> str:
+    """One line saying whether the answers above are bounded, and by how much. PURE.
+
+    SAYS "CANNOT TELL" OUT LOUD. An unresolved checkout must never render as a reassuring blank --
+    that is the whole failure this measures, one layer out.
+    """
+    if not checkout:
+        return "NOT MEASURED -- every row above is unbounded and may describe code the box lacks"
+    if checkout.get("unresolved"):
+        return ("CANNOT TELL ({}) -- so whether the rows above describe the landed code is "
+                "UNKNOWN, not fine".format(checkout["unresolved"]))
+    if checkout.get("contains_origin"):
+        return "contains origin/main (ahead {}) -- the rows above are bounded by nothing".format(
+            checkout.get("ahead"))
+    return ("MISSING {} commit(s) from origin/main ({} path(s) the daemons cannot load whatever "
+            "their stamp says; restarting them would clear the verdict and deliver none of it)"
+            .format(checkout.get("behind"), checkout.get("gap_paths")))
 
 
 def _hms(seconds) -> str:

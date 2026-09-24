@@ -163,3 +163,27 @@ and this turn's isolation is the reason it was allowed to run. Handed on instead
   `stamp-predates-process` is not a restart-able condition — restarting clears it only incidentally
   (by re-running `ExecStartPre`), and it is the second time this project has restarted daemons in a
   loop to clear a condition a restart could not address (`3ecf355d8`'s own subject).
+
+  > **WRONG, and corrected beside the claim rather than revised away (2026-09-24, the successor
+  > turn).** `restart_plan` already holds it. `unresolved` is tested BEFORE `stale`, and the
+  > fourth rule routes its verdict through `unresolved`, so this landing discharged its own owed
+  > item and I did not notice. Measured by running the function over a four-row report:
+  > `stamp-predates-process` → HOLD, `unstamped` → HOLD, honestly-stale → RESTART. No change was
+  > needed and none was made. What WAS missing is that nothing pinned it — the correct behaviour
+  > rested on the order of two branches. That control now exists. See
+  > `records/SEAT_RESULT_THE_CHECKOUT_GAP_IS_MEASURED_AND_A_RESTART_WOULD_HAVE_HIDDEN_IT_2026-09-24.md`.
+
+## ADDENDUM 2, the successor turn: the restart this finding asks for would HIDE the gap
+
+The bullet above says the stamps "stay stale until each daemon's next restart" and treats that
+restart as the remedy. **Measured 2026-09-24 and it is the wrong way round.** Restarting re-runs
+`ExecStartPre` against a checkout that still has no `__main__` in `boot_sha.py`, so it delivers
+nothing — and to the extent it stamps at all it moves each stamp to the shared HEAD, which is the
+state in which **17 of the 28 paths `origin/main` has and the checkout lacks go INVISIBLE** to
+`changed_paths_since` (11 are invisible today; the sets differ because visibility is decided by
+stamp age and working-tree dirt, neither of which is about the gap).
+
+So a mass restart would clear all eleven `stamp-predates-process` verdicts and deliver not one line
+of the repair. **A restart closes gap 2 and blinds the detector to gap 1 in the same act.** The
+restart is correct only after the checkout advances. `deploy_restart.checkout_drift` now measures
+that ordering and the report says it out loud.
