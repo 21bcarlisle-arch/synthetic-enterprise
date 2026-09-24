@@ -8419,6 +8419,15 @@ _CLEARS_ZERO_KEYS = {
     ("distinguishable_reconciliation", "agree"): "META",
     ("distinguishable_reconciliation", "the_two_rules_are_one_rule"): "META",
     ("distinguishable_reconciliation", "sign_stated_despite_disagreement"): "META",
+    # NOT AN ANSWER TO THE CLEARS-ZERO QUESTION AT ALL, and declared rather than excluded by
+    # pattern because that is what the wide net is for (2026-09-24). It witnesses that two COUNTS
+    # still coincide: the floor under this family's entitled draw count, and the count the
+    # published sensitivity `width_if_each_value_counted_once` was recomputed over. On a family
+    # recording no rosters those are the same number by construction; on one carrying real
+    # fingerprints they can part company, because two distinct decision sets can return one
+    # residual. Classifying it META says the agreement is reported and not required -- STATISTICAL
+    # would make today's coincidence a rule and red the day a family lands that refutes it.
+    ("priced_decision_draws", "the_floor_regrade_agrees"): "META",
 
     # ------------------------------------------------------------------------------------------
     # `legs_on_one_bar`, GRADED FOR THE FIRST TIME ON 2026-09-19 and not because it was added then.
@@ -13253,3 +13262,130 @@ def test_a_row_the_commit_never_published_is_MARKED_as_ungraded_and_still_measur
     assert rows[1]["published_one_seed_move"] is None, (
         "a row the commit published no move for carries a figure, which a reader would read as "
         "the commit's own")
+
+
+# ── how many DRAWS the seeds bought, as against how many seeds were run ──────────────────────
+
+def _rows_with(fingerprints, residuals):
+    """Seed rows carrying the decision-set digests and residuals named, and nothing else."""
+    rows = []
+    for i, (fingerprint, residual) in enumerate(zip(fingerprints, residuals)):
+        row = {"seed": 11111 + i, "selection_gbp": residual}
+        if fingerprint is not _ABSENT:
+            row["priced_decision_fingerprint"] = fingerprint
+        rows.append(row)
+    return {"seeds": rows}
+
+
+#: A row that carries NO decision-set field at all -- every family published to date. Distinct from
+#: a row carrying the field as `None`, which is a run that measured no belief; the two are both
+#: unknowns and a reader deciding whether to re-run needs to know which one they hold.
+_ABSENT = object()
+
+
+def test_the_published_n_overstating_the_draws_is_THREE_valued_and_every_branch_is_reachable():
+    """One control over the whole partition, because each branch alone is passed by a broken rule.
+
+    THE DEFECT, AND IT WAS IN THE FIRST DRAFT OF THE THING THIS CONTROLS (2026-09-24).
+    `the_published_n_overstates_the_draws` was written `at_most < seeds`, which returns `False` on
+    the published floor -- 18 seeds, between 15 and 18 draws -- and `False` here reads as "the
+    standard error is taken over the count it is entitled to". The honest answer on that family is
+    that it may be flattered by up to three draws and nothing on the rows can settle which. Caught
+    by printing the block at real inputs before shipping it, not by more thinking about it.
+
+    `False` IS RESERVED FOR THE FAMILY THAT IS KNOWN CLEAN, `True` for the one KNOWN to overstate,
+    and `None` for the one that cannot tell. All three are asserted DISTINCT and all three
+    reachable: a partition control that never reaches a branch is passed by a rule that can only
+    ever return the other two.
+    """
+    # KNOWN TO OVERSTATE: every row records its set, and two of the four repeat one.
+    known_repeat = gva._draws_this_family_is_entitled_to(
+        _rows_with(["a", "a", "b", "c"], [1.0, 1.0, 2.0, 3.0]), None)
+    # KNOWN CLEAN: every row records its set and no two agree.
+    known_clean = gva._draws_this_family_is_entitled_to(
+        _rows_with(["a", "b", "c", "d"], [1.0, 2.0, 3.0, 4.0]), None)
+    # CANNOT TELL: no row records a set, and the residual floor leaves room for a repeat.
+    cannot_tell = gva._draws_this_family_is_entitled_to(
+        _rows_with([_ABSENT] * 4, [1.0, 1.0, 2.0, 3.0]), None)
+
+    verdicts = {"known_repeat": known_repeat["the_published_n_overstates_the_draws"],
+                "known_clean": known_clean["the_published_n_overstates_the_draws"],
+                "cannot_tell": cannot_tell["the_published_n_overstates_the_draws"]}
+    assert verdicts == {"known_repeat": True, "known_clean": False, "cannot_tell": None}, (
+        "the three readings of whether the seed count flatters this family collapse to {} -- a "
+        "partition with a state that cannot be reached, or two states that cannot be told "
+        "apart".format(verdicts))
+
+    assert known_repeat["draws_the_spread_is_entitled_to"] == 3, (
+        "a family that recorded four decision sets of which two agree is not credited with the "
+        "three draws it met")
+    assert cannot_tell["draws_the_spread_is_entitled_to"] is None, (
+        "a family recording no decision set at all reports an EXACT draw count, which is a "
+        "deduction published as a record")
+    assert (cannot_tell["at_least"], cannot_tell["at_most"]) == (3, 4), (
+        "the unrecorded family is not bounded by its own distinct residuals and its seed count")
+
+
+def test_an_unknown_decision_set_is_never_read_as_a_REPEAT():
+    """Folding unknowns into one bucket shrinks a spread that is already too narrow.
+
+    THE DIRECTION MATTERS AND IT IS THE ONE THIS INSTRUMENT ERRS IN. An unrecorded seed may have
+    repeated a set the family already holds or drawn a fresh one, so it widens the bound at the
+    top and adds nothing at the bottom. Reading two unknowns as one repeated draw would report
+    MORE confidence than the evidence carries -- the same failure as counting seeds as draws, one
+    level down. Asserted as an inequality against the same family with its rows recorded, so it
+    cannot be satisfied by a rule that just returns the seed count.
+    """
+    residuals = [1.0, 1.0, 2.0, 3.0]
+    unknown = gva._draws_this_family_is_entitled_to(_rows_with([_ABSENT] * 4, residuals), None)
+    recorded = gva._draws_this_family_is_entitled_to(_rows_with(["a", "a", "b", "c"], residuals),
+                                                     None)
+    assert unknown["at_most"] > recorded["at_most"], (
+        "un-recorded seeds are bounded no more loosely at the top than recorded ones, so the "
+        "block treats 'we did not write it down' as evidence of a repeat")
+    assert unknown["at_least"] == recorded["at_most"], (
+        "the floor under the unrecorded family is not the count its residuals force, so either "
+        "the contrapositive of the measured coextension is not being applied or it is being "
+        "applied past what it establishes")
+
+
+def test_the_residual_floor_is_WITHDRAWN_on_a_family_that_refutes_the_coextension():
+    """Keyed to the property, so the day the proxy stops holding the block says so.
+
+    The floor is the contrapositive of a coextension that was MEASURED and not proved: two seeds
+    whose residuals differ cannot have met one decision set. A family where one fingerprint
+    appears on two rows whose residuals DISAGREE refutes it on that family -- and a floor that
+    quietly kept publishing there would be a bound above the ceiling.
+    """
+    refuting = gva._draws_this_family_is_entitled_to(
+        _rows_with(["a", "a", "b"], [1.0, 2.0, 3.0]), None)
+    assert refuting["the_residual_floor_holds"] is False, (
+        "a family whose own rows refute the coextension the floor rests on still publishes the "
+        "floor -- a control pinned to yesterday's measurement rather than to its property")
+    assert refuting["the_residual_floor_is_refuted_by"] == ["a"], (
+        "the refutation does not name the decision set that produced it, so a reader cannot check "
+        "it")
+
+
+def test_the_regrade_the_page_already_publishes_is_NAMED_and_never_recomputed():
+    """`_width_over_distinct_draws` has recomputed this interval since 2026-09-23 over the same
+    count. Two homes for one number is this project's most expensive recurring shape, so this
+    block points at that one rather than forming a second -- and WITNESSES that they still agree,
+    which is a claim that can go false when a family lands carrying real fingerprints.
+    """
+    floor = json.loads(gva.NOISE_FLOOR_PATH.read_text(encoding="utf-8"))
+    distinct = gva._width_over_distinct_draws(floor, gva.SELECTION_CONTRAST)
+    block = gva._draws_this_family_is_entitled_to(floor, distinct)
+
+    assert block["the_floor_regrade_is_published_as"] == (
+        "selection_leg.width_if_each_value_counted_once"), (
+        "the block does not tell a reader where the re-grade at this floor already lives, so they "
+        "are invited to do the arithmetic a panel two inches away has already done")
+    assert block["the_floor_regrade_agrees"] is True, (
+        "the count this block floors the family at ({}) and the count the published sensitivity "
+        "was recomputed over ({}) have parted company -- two answers to one question, which is "
+        "the shape this key exists to make visible".format(
+            block["at_least"], distinct.get("distinct_values")))
+    assert gva._draws_this_family_is_entitled_to(floor, None)["the_floor_regrade_agrees"] is None, (
+        "an ABSENT sensitivity reports that the two counts agree, so the witness is satisfied by "
+        "never having been formed")

@@ -2710,6 +2710,46 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + prose(sp.superseded_note) + "</p>";
       }
 
+      /* HOW MANY DRAWS THOSE SEEDS BOUGHT, IN THE SENTENCE THAT STATES THE SEED COUNT
+         (2026-09-24). The producer has stamped a priced-decision fingerprint on every seed row
+         since `526aa4f70` and the fold tool has counted them since `6f040e8d2`, and neither
+         reached a reader: this page printed n seeds as n draws beside a standard error taken over
+         n. The residual is `value_arm_net - level_arm_net` -- the control arm cancels, so a
+         re-draw that misses the renewals the value arm priced lands in both nets identically and
+         moves nothing. Seeds that met one decision set are ONE draw, and the sem is rewarded by
+         the pinning, so the seed count can only ever flatter this family's confidence.
+
+         THE ANSWER IS USUALLY A BOUND, AND IT IS PRINTED AS ONE. No family published to date
+         records its rosters, so the count is between a floor (distinct residuals -- two seeds
+         whose residuals differ cannot have met one set) and a ceiling (the seeds themselves). A
+         range is what the evidence supports and a single number here would be a deduction wearing
+         a record's clothes. Amber only when the overstatement is KNOWN or UNKNOWN; a family that
+         is known clean reads muted, and the branch is reachable. */
+      function drawsEntitled(pdd) {
+        if (!pdd || pdd.available !== true) { return ""; }
+        var overstates = pdd.the_published_n_overstates_the_draws;
+        var count = pdd.draws_the_spread_is_entitled_to;
+        var said = (count !== null && count !== undefined)
+          ? "<strong>those " + esc(pdd.seeds_the_family_ran) + " seeds are "
+            + esc(count) + " distinct draws of it</strong>"
+          : "<strong>those " + esc(pdd.seeds_the_family_ran) + " seeds are between "
+            + esc(pdd.at_least) + " and " + esc(pdd.at_most)
+            + " distinct draws of it</strong>";
+        return '<span style="color:'
+          + (overstates === false ? "var(--muted)" : "var(--amber)") + ';">'
+          + "The seed count is effort, not evidence: " + said
+          + ", because the residual cannot move unless a priced decision moves. "
+          + (overstates === true
+              ? "The standard error below is taken over the seed count and therefore overstates "
+                + "what this family can tell you. "
+              : overstates === false
+                ? "Every seed here met a decision set the family did not already hold, so the "
+                  + "standard error below is taken over the count it is entitled to. "
+                : "Whether the standard error below overstates what this family can tell you "
+                  + "cannot be settled from what its rows record. ")
+          + prose(pdd.unavailable_because || "") + "</span> ";
+      }
+
       var eb = d.error_bar || {};
       $("arms-errorbar").innerHTML = eb.available
         ? '<span style="color:var(--amber);font-weight:600;">Read the error bar before the number.</span> '
@@ -2718,6 +2758,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + esc(gbp(eb.min_gbp)) + " and " + esc(gbp(eb.max_gbp))
           + " (standard deviation " + esc(gbp(eb.stdev_gbp))
           + "). "
+          + drawsEntitled(eb.priced_decision_draws)
           /* THE ESTIMATE AND ITS BOUND, WITH THE POPULATION ON BOTH (2026-09-10). What stood here
              printed a ratio of the nine-seed standard deviation over the ONE-RUN figure, "about
              5.7× the estimate itself", under a headline stating +£319 while those same nine seeds
@@ -2742,8 +2783,15 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                       + " standard errors from zero against the "
                       + esc(eb.selection_leg.sems_needed_to_state_a_sign.toFixed(2))
                       + " this page requires before stating a side &mdash; a bar this family's "
+                      /* IT IS SET BY THE SEED COUNT AND IT USED TO BE CALLED A DRAW COUNT
+                         (2026-09-24). t(n-1) is taken over the seeds that were RUN, which is not
+                         the number of distinct priced-decision sets they met -- the residual
+                         cannot move unless a priced decision moves, so seeds meeting one set are
+                         one draw however many times they ran. The word is now "seed re-draws",
+                         matching what the arithmetic actually used, and `drawsEntitled` below
+                         states the count the bar would be entitled to beside it. */
                       + "own " + esc(eb.selection_leg.estimate_seeds)
-                      + " draws set, not a constant"
+                      + " seed re-draws set, not a constant"
                     : "")
                 + ". "
                 /* WHAT THAT BAR-CLEARING IS MADE OF, IN THE SENTENCE THAT STATES IT (2026-09-22).
