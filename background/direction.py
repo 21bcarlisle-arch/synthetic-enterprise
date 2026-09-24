@@ -36,11 +36,16 @@ as it did before this module existed.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from tools.here_relative_vocabulary import here_relative_phrases  # noqa: E402
+
 DIRECTION_DIR = PROJECT_DIR / "docs" / "direction"
 DIRECTION_PATH = DIRECTION_DIR / "DIRECTION.yaml"
 DECISIONS_PATH = DIRECTION_DIR / "decisions.jsonl"
@@ -80,6 +85,27 @@ FORBIDDEN_KEYS = frozenset({
 })
 
 REQUIRED_KEYS = ("version", "oriented_at", "focus", "not_now")
+
+#: THE DIRECTION RECORD IS A PUBLISHED SURFACE, and until 2026-09-24 nothing told its author so.
+#: `tools/generate_delivery_page.py::what_it_decided` copies `live.focus` VERBATIM into
+#: `delivery.json .what_it_decided.focus[]`, and `/harness/` renders each item TWICE: once in
+#: `#delivery-decided` (`renderDeliveryDecided`, "Chose") and again in `#delivery-next`
+#: (`renderDeliveryNext`, the ordered list). Both regions read `f.what || f.id` and `f.why`.
+#:
+#: So a sentence the seat writes in a focus item's `what` or `why` has TWO homes, and a pointer
+#: that says "here" in it is false from at least one of them. `site/test_a_here_relative_pointer
+#: _has_one_home.py` has caught that all along -- but it runs in the site lane, hours after the
+#: keystroke, and it named this exact field pair as one sentence away from the parent defect. A
+#: sixty-two-hour publish outage whose blocker was a sentence in this file is what it cost to
+#: find out that "hours later" is too late for the one surface the seat writes unaided.
+#:
+#: DERIVED FROM THE PRODUCER, NOT GUESSED, and deliberately narrow. `not_now`, `for_the_director`,
+#: `thesis_read` and `wrong` are each rendered in exactly ONE region, so a pointer in them is a
+#: claim the page that owns it can check -- and `what_it_got_wrong.entries[].what` writes "the row
+#: above" today, truthfully. Refusing those would refuse honest prose and get this rule deleted.
+#: RE-DERIVE THIS PAIR whenever `renderDeliveryNext` grows or loses a field: a new second home is
+#: a new two-home field, and this list is the only thing that would not notice on its own.
+_TWO_HOME_FOCUS_FIELDS = ("what", "why")
 
 
 @dataclass(frozen=True)
@@ -129,6 +155,34 @@ def _forbidden_keys_in(node, seen: set[str] | None = None) -> set[str]:
         for item in node:
             _forbidden_keys_in(item, seen)
     return seen
+
+
+def _two_home_pointers(record) -> list[tuple[str, list[str]]]:
+    """`[(field, phrases)]` for every focus field that points somewhere relative to itself.
+
+    ONE VOCABULARY, IMPORTED: `tools/here_relative_vocabulary.py`, the same regex and the same
+    landmark exemption the deployed sweep judges the rendered page with. A second copy in
+    `background/` would drift, and the drift reads as this refusal passing a sentence the site
+    lane then refuses -- the seat corrects the wording it was not refused for and the page stays
+    wedged.
+
+    A LANDMARK CLEARS THE SENTENCE, which the vocabulary does and this function does not repeat.
+    "directly below this headline" names what the direction is from, so it is true from both homes
+    and must be ACCEPTED -- a rule that refuses its own repair gets the repair reverted.
+    """
+    out: list[tuple[str, list[str]]] = []
+    focus = record.get("focus") if isinstance(record, dict) else None
+    for i, item in enumerate(focus or []):
+        if not isinstance(item, dict):
+            continue
+        for key in _TWO_HOME_FOCUS_FIELDS:
+            value = item.get(key)
+            if not isinstance(value, str):
+                continue
+            phrases = here_relative_phrases(value)
+            if phrases:
+                out.append((f"focus[{i}].{key}", phrases))
+    return out
 
 
 def validate(record) -> list[str]:
@@ -198,6 +252,13 @@ def validate(record) -> list[str]:
             "the record carries target-shaped keys {}: direction may say WHAT TO WORK ON and "
             "never WHAT COUNTS AS SUCCESS (R12, and THE_DELIVERY_SEAT.md section 2)".format(
                 ", ".join(repr(k) for k in forbidden))
+        )
+    for field_path, phrases in _two_home_pointers(record):
+        problems.append(
+            "{} says {} and has TWO homes on /harness/ -- #delivery-decided and #delivery-next "
+            "both render it -- so the direction it claims is wrong from at least one of them. "
+            "Name the landmark the direction is FROM, which is true from both.".format(
+                field_path, ", ".join(repr(p) for p in phrases))
         )
     return problems
 

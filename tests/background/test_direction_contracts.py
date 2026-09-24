@@ -141,6 +141,83 @@ def test_a_number_in_the_PROSE_is_not_a_target():
     assert d.validate(_record(focus=[{"id": "a", "why": "the belief error is +0.5pp"}])) == []
 
 
+# ── validate(): the record is a PUBLISHED SURFACE, and its focus prose has two homes ──
+#
+# THE FIXTURE STRINGS BELOW STAY IN THIS MODULE, and that is not style. A quoted example of a
+# here-relative pointer IS a here-relative pointer to the producer census
+# (`site/test_a_producers_here_relative_pointer_has_one_home.py`), which reads `tools/generate_*.py`
+# with the AST and excludes docstrings. A test module is in neither population, so the specimens
+# are safe here and would not be in the module they judge.
+
+_POINTS_AT_ITSELF = "The band table higher up this section states what this replaced."
+_NAMES_ITS_LANDMARK = "The band table directly below this headline states what this replaced."
+
+
+@pytest.mark.parametrize("field", ["what", "why"])
+def test_a_focus_field_that_POINTS_AT_ITSELF_is_refused_AND_the_landmark_repair_is_ALLOWED(field):
+    """Defect: the seat writes "higher up this section" into a focus `what`/`why`, the producer
+    copies it verbatim into `delivery.json`, and /harness/ renders it in BOTH `#delivery-decided`
+    and `#delivery-next` -- so it is false from one of them. The deployed sweep catches it hours
+    later in the site lane; nothing caught it at the keystroke, and a sixty-two-hour publish
+    outage was the bill.
+
+    BOTH DIRECTIONS IN ONE TEST, deliberately. A guard that refused EVERY direction record would
+    pass the refusal leg -- that is this project's most-repeated control failure -- so the second
+    assertion is what makes the first one mean anything. And the allowed wording is the REPAIR the
+    parent finding shipped: if the landmark wording red too, this rule would refuse its own fix
+    and the fix would come back out.
+    """
+    item = {"id": "atom-a", "why": "because"}
+    item[field] = _POINTS_AT_ITSELF
+    problems = d.validate(_record(focus=[item]))
+    assert any(f"focus[0].{field}" in p and "TWO homes" in p for p in problems), problems
+
+    item[field] = _NAMES_ITS_LANDMARK
+    assert d.validate(_record(focus=[item])) == [], (
+        "the landmark wording -- the repair this rule exists to steer the seat toward -- is "
+        "itself refused, so applying the fix would not clear the refusal")
+
+
+def test_a_SINGLE_HOME_field_may_still_point_and_the_refusal_is_not_the_whole_record():
+    """Defect: the clause is scoped to "any prose anywhere in the record" rather than to the
+    fields that actually render twice. `not_now`, `for_the_director` and `wrong` each have ONE
+    home on /harness/, so a pointer in them is a claim the page that owns it can check --
+    `what_it_got_wrong.entries[].what` publishes "the row above" today, truthfully. A rule that
+    refused those would refuse honest prose and be deleted rather than obeyed.
+
+    THE PARTITION HAS TO BE NON-EMPTY ON BOTH SIDES or the test above is a rule with no inverse.
+    """
+    assert d.validate(_record(
+        not_now=[{"what": "the other thing", "why": _POINTS_AT_ITSELF}],
+        for_the_director=[{"what": _POINTS_AT_ITSELF}],
+        wrong=[{"what": _POINTS_AT_ITSELF, "corrected": True}],
+    )) == []
+
+
+def test_the_refusal_reads_the_SAME_VOCABULARY_the_deployed_sweep_judges_the_page_with():
+    """Defect: `background/` grows its OWN copy of the noun list. Two copies drift, and the drift
+    is invisible in the flattering direction -- the write-time rule passes a sentence the site
+    lane then refuses, so the seat corrects a wording it was never refused for while the page
+    stays wedged. This asserts ONE OBJECT, not merely equal behaviour: equal regexes today are
+    what the copy would also look like today.
+
+    Fires on: a second `re.compile` of this vocabulary anywhere in `background/`; the import being
+    swapped for a local literal; the sweep being repointed at a different vocabulary than the one
+    the write-time refusal reads.
+    """
+    import sys
+    from pathlib import Path
+
+    site = Path(d.__file__).resolve().parent.parent / "site"
+    sys.path.insert(0, str(site))
+    import test_a_here_relative_pointer_has_one_home as sweep
+
+    assert d.here_relative_phrases is sweep._here_relative_phrases
+    # ...and it is the vocabulary module's own function, not either module's private copy.
+    from tools import here_relative_vocabulary as vocab
+    assert d.here_relative_phrases is vocab.here_relative_phrases
+
+
 def test_a_direction_that_REJECTED_NOTHING_is_refused():
     """Defect: a record listing only what was chosen hides the judgement it exists to expose."""
     for empty in ([], None):
