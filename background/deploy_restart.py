@@ -508,7 +508,11 @@ def checkout_drift(project: Path | None = None, *, fork_state_fn=None, contains_
     that still lacks the repair. The reds would go green and not one daemon would gain the code.
     A restart CLOSES gap 2 and BLINDS the detector to gap 1 in the same act.
 
-    Returns `{"behind", "ahead", "contains_origin", "gap_paths", "unresolved"}`.
+    Returns `{"behind", "ahead", "contains_origin", "gap_paths", "stale_judges", "unresolved"}`.
+
+    `stale_judges` IS THE THIRD GAP AND IT IS THE ONE THAT FEEDS ITSELF -- see
+    `ADVANCE_JUDGE_MODULES`. A behind checkout grades its own advance with its own copy of the
+    rulebook, so a rule written to unwedge it is unavailable to it until it advances.
 
     FAIL-CLOSED, in the one direction that matters: `behind` is never reported as 0 on an
     unreadable origin. `None` is a distinct answer from `0` here exactly as it is in
@@ -536,7 +540,43 @@ def checkout_drift(project: Path | None = None, *, fork_state_fn=None, contains_
     gap = (gap_paths_fn or _paths_origin_has_that_checkout_lacks)(project)
     return {"behind": behind, "ahead": ahead, "contains_origin": contains,
             "gap_paths": None if gap is None else len(gap),
+            "stale_judges": None if gap is None else stale_judges(gap),
             "unresolved": None if gap is not None else "gap-paths-unreadable"}
+
+
+#: THE MODULES WHOSE CODE DECIDES WHETHER THE SHARED CHECKOUT MAY ADVANCE. Not "modules about
+#: git" and not everything `origin_reconcile` imports -- only the ones whose RULES the advance
+#: judgement reads, because those are the ones whose staleness changes the verdict rather than
+#: merely the wording. Measured 2026-09-24: with `tools/stale_copy_refusal.py` in the gap, one
+#: blocking path graded "no complaint, refreshing it would discard an ordinary edit" against the
+#: checkout's copy and "origin/main strictly supersedes it [reverts_a_landed_comment_block]"
+#: against origin's -- same path, same bytes, opposite remedies.
+#:
+#: THIS LITERAL CAN GO STALE AND THAT IS WHY IT IS CONTROLLED RATHER THAN TRUSTED. A judge added to
+#: `advance_shared_tree` and not added here would be exactly the blind spot this field exists to
+#: close, and an unread list would report a reassuring `[]`. The control keys to the property --
+#: every name here is reachable from `origin_reconcile`, and the set is not narrower than what that
+#: module's advance path actually consults.
+ADVANCE_JUDGE_MODULES = (
+    "background/origin_reconcile.py",
+    "tools/stale_copy_refusal.py",
+    "tools/refresh_to_head.py",
+    "tools/file_scope_generated_paths.py",
+)
+
+
+def stale_judges(gap: list[str]) -> list[str]:
+    """Which of `ADVANCE_JUDGE_MODULES` the checkout is missing origin's version of.
+
+    Non-empty means the advance verdict was reached by a rulebook origin has already revised, so
+    every "nothing blocks this" and every "no door may clear that" it printed is a reading of the
+    OLD rules. It does not say the verdict is wrong -- it says the verdict is not origin's.
+
+    TAKES THE GAP RATHER THAN RE-ASKING GIT, so it cannot disagree with the `gap_paths` count
+    standing beside it in the same dict. Two answers to "what is in the gap" is the shape that
+    would let this field read empty while the count read 48.
+    """
+    return [m for m in ADVANCE_JUDGE_MODULES if m in set(gap)]
 
 
 def _checkout_contains_origin(project: Path) -> bool | None:
