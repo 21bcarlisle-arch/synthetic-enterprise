@@ -411,3 +411,119 @@ def test_a_healthy_banner_with_no_as_at_date_says_nothing_rather_than_guessing()
     out = render(heartbeat=_heartbeat("publishing", 0.2))
     assert "Figures as at" not in out["text"]
     assert "every week" not in out["text"]
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# "NOT DUE YET" IS NOT "TRIED AND FAILED" (2026-09-24)
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# WHAT WAS ON THE LIVE FEED, verbatim from `site/data/tick_heartbeat.json`:
+#
+#     state                : publishing
+#     published_age_seconds: 219926      (61.1h)
+#     stale_after_seconds  : 691200      (8 days)
+#     queue_depth          : 3
+#
+# and beside it, in `.publish_gate_state.json`, `episode_failures: 45`,
+# `episode_clean_publishes: 0`, `wedge_since` 59 hours earlier. Every publish attempt for two and
+# a half days had been refused, and the banner rendered the ORDINARY HEALTHY BRANCH -- because the
+# only fault it could name was an age, and at a weekly cadence that age was not due for another
+# five days. Nothing on the page was false. Nothing on it was the news, either.
+#
+# The rendered DOM is the subject (R11): a publisher-failing field that reaches the feed and never
+# reaches a sentence is the same defect one layer down.
+
+
+def _failing_publisher(n=45, secs=59 * 3600.0, cited="dead", state="failing"):
+    return {"state": state, "consecutive_failures": n, "failing_for_seconds": secs,
+            "clean_publishes_this_episode": 0, "cited_red_at_head": cited}
+
+
+def _heartbeat_with_publisher(publisher, cp_state="publishing", age_hours=61.1):
+    hb = _heartbeat(cp_state, age_hours, as_at_utc="2026-09-21T18:15Z",
+                    cadence_seconds=7 * 86400)
+    if publisher is not None:
+        hb["content_publish"]["publisher"] = publisher
+    return hb
+
+
+def test_the_front_door_reads_as_failing_while_the_publisher_is_failing():
+    """THE DEFECT. Cadence not yet due, publisher refusing every attempt for 59 hours."""
+    out = render(heartbeat=_heartbeat_with_publisher(_failing_publisher()))
+
+    assert out["state"] == "stale", (
+        "a publisher that has failed 45 consecutive attempts renders in the ordinary healthy "
+        "state, because the only thing that can make this bar loud is an age eight days out")
+    assert "PUBLISHING IS FAILING" in out["text"], out["text"]
+    assert "45 attempts" in out["text"], (
+        "the reader is told something is wrong without the count that establishes it: "
+        "{!r}".format(out["text"]))
+    assert "59.0h" in out["text"]
+    assert "no live cause" in out["text"], (
+        "the publisher cites a red that is DEAD at HEAD -- a failure with no named cause is "
+        "worse news than one with a cause, and it is summarised away: {!r}".format(out["text"]))
+
+
+def test_the_as_at_line_survives_beside_the_failure():
+    """THE HALF THAT IS ALREADY RIGHT MUST STAY. The figures ARE from 2026-09-21 and a reader is
+    entitled to that date; what was missing beside it is that nothing is coming to replace it.
+    MUTATION: render the failure INSTEAD of the as-at sentence and this fires."""
+    out = render(heartbeat=_heartbeat_with_publisher(_failing_publisher()))
+    assert "Figures as at 2026-09-21 18:15Z" in out["text"], out["text"]
+    assert out["text"].index("PUBLISHING IS FAILING") < out["text"].index("Figures as at"), (
+        "the refusal reads below the as-at date, so a reader meets the reassuring half first")
+
+
+def test_a_working_publisher_leaves_the_healthy_banner_alone():
+    """R15 NULL CONTROL, and it is the one that matters: without it every test above passes on a
+    banner that shouts on every visit, which is a banner nobody reads on the visit it means
+    something. Same feed, same eight-day threshold, no open failure episode."""
+    out = render(heartbeat=_heartbeat_with_publisher(
+        _failing_publisher(n=0, secs=None, cited=None, state="no_open_episode")))
+
+    assert "PUBLISHING IS FAILING" not in out["text"]
+    assert out["state"] == "verified"
+    assert "Figures as at 2026-09-21 18:15Z" in out["text"]
+
+
+def test_an_absent_publisher_block_renders_exactly_as_before():
+    """THE BACK CATALOGUE AND EVERY OLD FEED. A heartbeat written before this field existed --
+    and the one served by any tree that has not restarted its tick -- must not acquire a failure
+    claim from an absent field, in either direction."""
+    out = render(heartbeat=_heartbeat_with_publisher(None))
+    assert "PUBLISHING IS FAILING" not in out["text"]
+    assert out["state"] == "verified"
+
+
+def test_an_unknown_publisher_record_makes_no_claim_either_way():
+    """The record is the publisher's SELF-REPORT: believed when it admits failure, worth nothing
+    when it cannot be read. `unknown` must not render an alarm -- and must not render a
+    reassurance, which is why the content clocks above keep the currency verdict."""
+    out = render(heartbeat=_heartbeat_with_publisher(
+        {"state": "unknown", "consecutive_failures": None, "failing_for_seconds": None,
+         "clean_publishes_this_episode": None, "cited_red_at_head": None}))
+    assert "PUBLISHING IS FAILING" not in out["text"]
+    assert out["state"] == "verified"
+
+
+def test_a_failure_with_no_recorded_duration_still_says_it_failed():
+    """A MISSING START MUST NOT VETO THE FAILURE. The count is what establishes that attempts
+    died; `wedge_since` only says since when, and it is legitimately absent on the first cycle
+    of an episode. MUTATION: gate the sentence on the duration and this fires."""
+    out = render(heartbeat=_heartbeat_with_publisher(
+        _failing_publisher(n=1, secs=None, cited="reproduces")))
+    assert out["state"] == "stale"
+    assert "the last 1 attempt to publish failed" in out["text"], out["text"]
+    assert "over" not in out["text"].split("PUBLISHING IS FAILING")[1].split(".")[0], (
+        "a duration clause is rendered from a duration that was never recorded")
+    assert "no live cause" not in out["text"], (
+        "the publisher cites a red that DOES reproduce -- saying it names no cause is false")
+
+
+def test_a_reference_page_carries_no_publisher_failure_either():
+    """SCOPE, held on the new sentence too. A page that publishes no simulation figure has
+    nothing for a failed publish to be about, and the 2026-08-24 ruling is that publishing
+    status on such a page is noise that undermines the honest banners elsewhere."""
+    out = render(heartbeat=_heartbeat_with_publisher(_failing_publisher()), figures="none")
+    assert "PUBLISHING IS FAILING" not in out["text"]
+    assert out["state"] == "reference"

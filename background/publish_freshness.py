@@ -77,6 +77,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background.episode_monotonic import recorded_instant_seconds
 from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -86,6 +87,10 @@ STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".last_content_publish.jso
 #: and leave when `background_worker.process_leftover_run_markers` either publishes or retires
 #: them, so the count is the depth of the queue BEHIND the publisher.
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
+
+#: THE PUBLISHER'S OWN RECORD OF REFUSING TO PUBLISH, written by `process_run_complete` at the
+#: moment each publish attempt dies. Read here, never written here.
+PUBLISH_GATE_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_gate_state.json"
 
 #: The paths whose movement IS a content publish. Deliberately a short list of the surfaces a
 #: visitor actually reads, not the full commit pathspec: adding every generated file would make
@@ -324,6 +329,87 @@ def queue_oldest_age_seconds(now: float | None = None) -> float | None:
     return max(ages) if ages else None
 
 
+def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> dict:
+    """DID THE PUBLISHER TRY AND FAIL — a different question from "are the figures old".
+
+    THE GAP THIS CLOSES (2026-09-24). Both clocks above are AGES, and an age can only become a
+    fault when its threshold comes due. At a weekly cadence that threshold is eight days
+    (`STALE_AFTER_SECONDS`), which is correct for the question it answers and useless for this
+    one: on 2026-09-24 the publisher had failed 45 consecutive attempts across 59 hours, with a
+    run queued behind it, and `state` read `publishing` — truthfully, because eight days had not
+    passed. The surface therefore rendered its ordinary healthy branch, and the "PUBLISHING IS
+    DOWN" wording could not fire for another five days however many attempts died in between.
+
+    "Not due yet" and "tried and failed" are different facts and only one of them was on the
+    page. This is the second one, and it is available immediately rather than on a timer: the
+    publisher records every refusal in `.publish_gate_state.json` as it happens.
+
+    IT IS A SELF-REPORT, SO IT IS TRUSTED IN EXACTLY ONE DIRECTION. `process_run_complete` writes
+    this file about its own failures, which makes a FAILING reading an admission against interest
+    and a clean reading no evidence at all -- a publisher wedged before it can write, or a state
+    file that was lost, both read as clean. So:
+
+      failing           an episode of consecutive failures is open and no clean publish has
+                        closed it. Believed, and said out loud on the surface.
+      no_open_episode   the record exists and names no open episode. NOT a statement that
+                        publishing is healthy -- the two content clocks are what establish that,
+                        and they cannot be faked by an absent file.
+      unknown           absent, unreadable, malformed, or the failure count is not a count.
+                        FAIL-SILENT is the failure mode here (R15), so this is never folded into
+                        `no_open_episode`.
+
+    AND IT DOES NOT MOVE `state`, deliberately. `state` is the CONTENT clock's verdict, it is
+    what `is_publishing_down()` and the deadman's page read, and `deadmans_switch
+    ._check_content_publishing` states the reason in its own docstring: "a publisher that pages
+    about its own health is the tautology R15 names". Folding a self-report into the verdict that
+    pages would put the wedged component in charge of reporting its own wedge. The surface is a
+    different consumer with a different need -- a reader looking at a figure wants to know that
+    the last 45 attempts to replace it failed, whoever said so -- so this rides beside the verdict
+    with its own name, and the alarm keeps its independent clock.
+
+    EPISODE_FAILURES IS THE SUBJECT, NOT `failures`. The `failures` list is trimmed to a one-hour
+    window (see `supervisor._publish_gate_wedge_active`), so a two-day outage whose last attempt
+    was 70 minutes ago has an EMPTY list and an episode count of 45. Reading the list here would
+    have gone quiet on exactly the long outages this exists for.
+    """
+    now = time.time() if now is None else float(now)
+    p = PUBLISH_GATE_STATE_FILE if path is None else path
+    unknown = {"state": "unknown", "consecutive_failures": None, "failing_for_seconds": None,
+               "clean_publishes_this_episode": None, "cited_red_at_head": None}
+    try:
+        state = json.loads(Path(p).read_text())
+    except (OSError, ValueError):
+        return unknown
+    if not isinstance(state, dict):
+        return unknown
+    failures = state.get("episode_failures")
+    # `bool` is an `int` and `True` is not a count of anything. Same screen as everywhere else
+    # that reads this file: a value that cannot be a count makes the answer UNKNOWN, never zero.
+    if isinstance(failures, bool) or not isinstance(failures, int) or failures < 0:
+        return unknown
+    clean = state.get("episode_clean_publishes")
+    clean = clean if isinstance(clean, int) and not isinstance(clean, bool) else None
+    # The episode START is screened by the shared door rather than by a hand-rolled `> 0`: this
+    # field is legitimately written as an epoch OR as ISO-8601, and a hand-roll drops the second
+    # silently (`episode_monotonic.recorded_instant_seconds` carries both arguments).
+    started = recorded_instant_seconds(state.get("wedge_since"))
+    # A MISSING START DOES NOT VETO THE FAILURE, and getting this backwards would be the fail-open
+    # shape: the count is what establishes that attempts died, the stamp only says since when.
+    return {
+        "state": "failing" if failures >= 1 else "no_open_episode",
+        "consecutive_failures": failures,
+        "failing_for_seconds": None if started is None else round(max(0.0, now - started), 1),
+        "clean_publishes_this_episode": clean,
+        # Whether the red the publisher blames still reproduces at HEAD -- `reproduces`, `dead`,
+        # `not_established`. A failing publisher citing a DEAD red is failing for a reason nobody
+        # has named, which a reader of the front door should be told rather than left to assume
+        # there is a known cause behind the outage.
+        "cited_red_at_head": (
+            str(state["citation_at_head"])[:40] if isinstance(state.get("citation_at_head"), str)
+            else None),
+    }
+
+
 def _age(ts: float | None, now: float) -> float | None:
     return None if ts is None else max(0.0, now - ts)
 
@@ -408,6 +494,11 @@ def snapshot(now: float | None = None, *, _run=None) -> dict:
         "queue_oldest_age_seconds": (
             None if (_o := queue_oldest_age_seconds(now)) is None else round(_o, 1)
         ),
+        # DID IT TRY AND FAIL -- beside the ages, not folded into them. See `publisher_refusal`
+        # for why this is carried as its own verdict rather than moving `state`: the ages answer
+        # "is the weekly publish overdue" and cannot answer this one until the threshold comes
+        # due, which on 2026-09-24 was five days after the publisher stopped working.
+        "publisher": publisher_refusal(now),
     }
 
 
@@ -443,8 +534,26 @@ def describe(snap: dict | None = None) -> str:
     # 2026-09-02/03 shortfall stayed unread while this line was quoted in three places.
     depth = snap.get("queue_depth")
     queued = f" -- {depth} completed run(s) queued behind the publisher" if depth else ""
+    # THE WORD "live" HAS TO STOP MEANING "and the publisher works". This line is quoted into the
+    # delivery brief and the deadman's log, and on 2026-09-24 it read `live -- figures reached
+    # origin 61.1h ago` while 45 consecutive publish attempts had been refused. Both halves were
+    # true; the summary was not. A refusal the publisher has recorded outranks the age here for
+    # the same reason it does on the banner -- the age says the deadline has not come, the
+    # refusal says the thing that would meet it is broken.
+    pub = snap.get("publisher") or {}
+    refused = ""
+    if pub.get("state") == "failing":
+        n = pub.get("consecutive_failures")
+        since = pub.get("failing_for_seconds")
+        refused = (f" -- PUBLISHER REFUSING: {n} consecutive attempt(s) failed"
+                   + (f" over {since / 3600.0:.1f}h" if isinstance(since, (int, float)) else "")
+                   + (" and the red it cites is DEAD at HEAD, so the cause is unattributed"
+                      if pub.get("cited_red_at_head") == "dead" else ""))
     if state == "stale":
         extra = " (content is still being committed -- the PUBLISH PATH is what stopped)" \
             if snap.get("committed_but_unpublished") else ""
-        return f"content publishing: DOWN -- figures last moved {hours:.1f}h ago{extra}{queued}"
-    return f"content publishing: live -- figures reached origin {hours:.1f}h ago{queued}"
+        return (f"content publishing: DOWN -- figures last moved {hours:.1f}h ago"
+                f"{extra}{refused}{queued}")
+    verdict = "FAILING" if refused else "live"
+    return (f"content publishing: {verdict} -- figures reached origin {hours:.1f}h ago"
+            f"{refused}{queued}")

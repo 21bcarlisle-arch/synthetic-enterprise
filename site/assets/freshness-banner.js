@@ -163,6 +163,59 @@
              : "");
   }
 
+  /* ------------------------------------------------------------------------
+   * "NOT DUE YET" AND "TRIED AND FAILED" ARE DIFFERENT FACTS (2026-09-24).
+   *
+   * Everything above this point is an AGE against a threshold, and an age can
+   * only become a fault when its threshold comes due. At the weekly cadence
+   * that threshold is eight days, so on 2026-09-24 the banner rendered its
+   * ordinary healthy branch -- "Figures as at 2026-09-21 18:15" -- while the
+   * publisher had refused 45 consecutive attempts across 59 hours with a run
+   * queued behind it. Nothing on the page was false. The "PUBLISHING IS DOWN"
+   * wording simply could not fire for another five days, whatever happened in
+   * between, because no sentence here was keyed to the publisher at all.
+   *
+   * A page confidently healthy about the one thing a reader can check without
+   * us is worse than a page that says nothing. So the publisher's own refusal
+   * record now has a sentence, and it does not wait for the cadence.
+   *
+   * THE AS-AT LINE STAYS. It is the half that is right: the figures ARE from
+   * 2026-09-21 and a reader is entitled to that date. What was missing beside
+   * it is that nothing is coming to replace it.
+   * --------------------------------------------------------------------------*/
+  function publisherIsFailing(hb) {
+    var cp = (hb && hb.content_publish) || null;
+    var p = (cp && cp.publisher) || null;
+    /* FAILING is the only state that makes a claim here. `unknown` (absent or unreadable
+       record) and `no_open_episode` are NOT evidence of health -- the record is the
+       publisher's self-report, believed when it admits failure and worth nothing when it
+       does not -- so neither is allowed to render a reassurance, and neither is allowed to
+       render an alarm either. The content clocks above remain what establishes currency. */
+    return !!p && p.state === "failing";
+  }
+
+  function publisherFailureSentence(hb) {
+    if (!publisherIsFailing(hb)) { return ""; }
+    var p = hb.content_publish.publisher;
+    var n = typeof p.consecutive_failures === "number" ? p.consecutive_failures : null;
+    var secs = typeof p.failing_for_seconds === "number" ? p.failing_for_seconds : null;
+    /* Each clause is dropped rather than guessed when its number is missing, for the same
+       reason the as-at line prints nothing without a date: a half-sentence with an invented
+       count would be the fake-fresh sin pointed the other way. */
+    return "PUBLISHING IS FAILING — " +
+      (n === null ? "the publisher has recorded an open run of failed publish attempts"
+                  : "the last " + n + " attempt" + (n === 1 ? "" : "s") + " to publish " +
+                    (n === 1 ? "failed" : "all failed")) +
+      (secs === null ? "" : ", over " + (secs / 3600).toFixed(1) + "h") +
+      ". Nothing above this line will be replaced until that is fixed, whatever the " +
+      "as-at date says." +
+      /* A failure whose cited red no longer reproduces is a failure with no named cause, and
+         that is worse news than a failure with one -- so it is said, not summarised away. */
+      (p.cited_red_at_head === "dead"
+        ? " The publisher names no live cause for it."
+        : "");
+  }
+
   function annotationSentence(d) {
     var a = (d && d.annotation) || {};
     var findings = a.open_findings || 0;
@@ -251,7 +304,12 @@
   function render(d, unknown, hb) {
     var noFigures = carriesNoFigures();
     var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
-    var publishIsDown = !(unknown || noFigures) && isStalePublish(hb);
+    var failing = (unknown || noFigures) ? "" : publisherFailureSentence(hb);
+    /* TWO SUBJECTS, ONE VERDICT FOR THE BAR. The age says the deadline has not come; the
+       refusal says the thing that would meet it is broken. Either is enough to make the bar
+       loud, and a reference page (which asserts no figure age) still asserts none. */
+    var publishIsDown = !(unknown || noFigures) &&
+      (isStalePublish(hb) || publisherIsFailing(hb));
     var bar = document.createElement("div");
     bar.className = "poesys-freshness";
     /* A stale publish OUTRANKS a green verification for the banner's state, because it outranks
@@ -273,8 +331,12 @@
        a reference page: it is the one part of the banner that is still true there. */
     var note = unknown ? "" : annotationSentence(d);
 
+    /* The refusal goes ABOVE the as-at line, because it changes how that line should be read:
+       "figures as at Monday" means one thing beside a working publisher and another beside one
+       that has failed forty-five times since. */
     bar.innerHTML =
       '<span class="pf-line">' + line + "</span>" +
+      (failing ? '<span class="pf-failing">' + esc(failing) + "</span>" : "") +
       (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "") +
       (note ? '<span class="pf-note">' + esc(note) + "</span>" : "");
 
@@ -285,6 +347,7 @@
       "background:var(--surface,#fff);display:block}" +
       ".poesys-freshness .pf-note{display:block;margin-top:3px}" +
       ".poesys-freshness .pf-stale{display:block;margin-top:3px;font-weight:700}" +
+      ".poesys-freshness .pf-failing{display:block;margin-top:3px;font-weight:700}" +
       '.poesys-freshness[data-freshness-state="paused"],' +
       '.poesys-freshness[data-freshness-state="unknown"]' +
       "{background:var(--amber-soft,#fdf3e0);color:var(--text,#111);font-weight:600}" +
