@@ -124,6 +124,54 @@ That is a property of the alarm machinery as a class. It does not need `reconcil
 author, and it is why the blocking set grows with the number of *live* alarm families rather than
 with anything about the fork.
 
+## The system's own instrument proves the loop, and names which leg is blocked
+
+`docs/observability/deadmans-switch-log.md`, **2026-09-24 02:52 UTC**, unprompted:
+
+> ORIGIN FORK (NOT_ADVANCED): **the merge gated clean and was pushed**, but the shared tree did NOT
+> advance and is still 3 commit(s) behind. Refused by 11 path(s): [the nine tracked
+> `WORKER_FINDING_REPEATING_ALARM_*` files] … advance: 6 of 11 blocking path(s) could NOT be proven
+> lossless, so clearing the 5 that could would touch files and still not advance.
+
+So the cadence is **not** the problem and neither is the merge leg. `deadmans_switch.py:740` calls
+`origin_reconcile.reconcile()` every five minutes; it merges, it gates, it pushes, **and then the
+fast-forward of the shared checkout is refused by the alarm documents.** Every leg works except the
+last one, and the last one is blocked by the files the earlier legs' own failure causes to be
+written. That is the loop, stated by the machine rather than by me.
+
+(At 03:10, 03:15 and 03:20 the same log reads `GATE_RUNNING` — the publish gate has held its run
+lock since ~02:57Z, which is the same refusal this turn got at 03:2xZ. The deadman is not even
+reaching the fork on those cadences.)
+
+## The obvious fix is wrong, and the reason is the thing worth writing down
+
+`WORKER_FINDING_REPEATING_ALARM_*` is **not** in the generated-paths oracle, so
+`origin_reconcile._split_generated` classifies these daemon-written files as *authored* — "holder
+work" — which is precisely why `advance_shared_tree` will not clear them. The one-line fix suggests
+itself immediately: add the stem to the oracle, let the advance clear them losslessly, done.
+
+**It is wrong, and the document says so in its own words:**
+
+> Both counts are **DERIVED from this document's own dated lines** every time the alarm fires again,
+> so they age with the document rather than with its first firing.
+
+**The published artefact IS the state store.** There is no `.json` behind it. Clearing the file does
+not lose a regenerable rendering, it loses the alarm's entire history — and the histories are large
+and real: the working copy of `…SEAT_CONTINUITY_2026-09-15.md` is **+10,525 / −4 lines against
+HEAD**, ten days of dated observations and 27 family members that origin's copy does not have.
+`refs/preserved/…` would hold the bytes, but nothing would ever read them back, and the next
+document would restart its counts from one while claiming to age with the condition.
+
+Measured churn: hashes and mtimes move while being sampled (04:16:04, 04:20:35), so the pile is
+**actively rewritten, not static** — a one-off landing races the writer and does not close it.
+
+**The class, stated properly:** *a repeating-alarm document is simultaneously the state store and
+the published work item, and it lives on a tracked path in the shared working tree that origin also
+carries.* Any two of those three are fine. All three together make a permanent, self-refilling
+`FF_MODIFIED` collision that no drain can clear and no cadence can absorb. The fix separates the
+store from the artefact — the accumulating counts belong somewhere untracked, with the staging
+document derived from them — and it is emphatically not a line in the generated oracle.
+
 ## This INVERTS the prior turn's conclusion at the second step, without contradicting it
 
 `SEAT_RESULT_THE_UNTRACKED_BLOCKERS_ARE_NOT_THE_CAUSE…` concluded *"no path is the cause of this
@@ -161,19 +209,32 @@ The item offered the two doors as alternatives — *"the reconciler's own merge 
 the first one works, and the second one spends a full nine-minute gate cycle to earn a refusal at
 the very end. That is what it did here.
 
-## What was done
+## What was done, and what was NOT
 
 `python3 -m background.origin_reconcile` was run against the shared tree — the door that can
 actually close this — after the promotion refusal established that the seat-worktree route cannot.
-Its outcome is recorded in the hand-off beside this document.
+It returned **`GATE_RUNNING`**: the publish gate (PID 2672400, `run_complete_20260924T023001Z.md`)
+has held the run lock since ~02:57Z and was still holding it 24 minutes later. That refusal is
+**correct** — moving origin under a running gate spends the whole gate run — and it is the same
+answer the deadman got on its 03:10, 03:15 and 03:20 cadences.
+
+**THE FORK IS NOT CLOSED BY THIS TURN, and closing it would not have been enough anyway.** It stood
+at 1 ahead / 6 behind at 03:10Z and had widened to 2 ahead / 7 behind by 03:3xZ. What this turn
+establishes is that closing it is *not the work*: the deadman has closed it repeatedly (merge gated,
+pushed) and the shared checkout still does not advance, because the fast-forward behind it is held
+by twelve paths that regenerate themselves. **The next seat should not spend another turn on the
+merge.**
 
 ## What is NOT done, and is the next work
 
-1. **The nine tracked alarm collisions.** They are regenerated faster than they can be landed, so
-   landing them is not a fix — the writer has to stop putting tracked, origin-colliding documents
-   into the shared working tree, or the alarm set has to move to a path `origin` does not carry.
-   This is the class; the twelve instances are not.
-2. **`reconcile-watch` must call the reconciler it watches**, or stop claiming to watch it.
-   `unchanged -> log only` on a drift it has the door to close is a control that cannot fail.
-3. **The 55-module boot drift.** A restart, not a fast-forward, is what makes any landed daemon
-   repair live. Nothing in this turn changes it.
+1. **Separate the alarm's state store from its published artefact.** This is the class and the only
+   fix that ends the loop. The counts must live somewhere untracked and the `docs/staging/`
+   document must be derived from them, so that clearing the document is lossless and
+   `advance_shared_tree` can treat it as regenerable. **Do not shortcut this by adding
+   `WORKER_FINDING_REPEATING_ALARM_` to the generated-paths oracle** — the section above measures
+   why that silently destroys ten days of alarm history on a path whose bytes nothing reads back.
+2. **The 55-module boot drift.** A restart, not a fast-forward, is what makes any landed daemon
+   repair live. Nothing in this turn changes it, and no fast-forward ever will.
+3. **Not `reconcile-watch`.** An earlier draft of this document made it the culprit; the correction
+   above retracts that. It is not a watcher of `origin_reconcile` and there is nothing to fix in it
+   for this condition. `deadmans_switch.py:740` is the caller, and it works.
