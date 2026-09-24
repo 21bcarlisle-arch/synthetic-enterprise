@@ -805,18 +805,27 @@ def test_base_wins_refreshes_a_replacement_the_clock_says_predates_its_landing(r
 
 def test_the_line_level_surface_this_branch_destroys_reaches_the_reader_and_the_probe(
         repo: Path) -> None:
-    """`discarded` IS NOT DECORATION ON THIS BRANCH -- it is the input to `_probe`, and without it
-    `verify_recoverable` takes its no-probe route and never RUNS the `git log --all -S` lookup the
-    tool advertises. A preservation that is only claimed is the whole thing rule 3 exists to stop.
-    Asserted on the field and not on the rendered text, because the supplied NAMES are printed
-    beside it and would answer a text search for the same string -- the flattering reading."""
+    """`discarded` IS NOT DECORATION ON THIS BRANCH, and without a probe `verify_recoverable` takes
+    its no-probe route and never RUNS the `git log --all -S` lookup the tool advertises. A
+    preservation that is only claimed is the whole thing rule 3 exists to stop. Asserted on the
+    field and not on the rendered text, because the supplied NAMES are printed beside it and would
+    answer a text search for the same string -- the flattering reading.
+
+    CORRECTION, 2026-09-24, kept beside the claim it replaces: this docstring used to say
+    `discarded` IS "the input to `_probe`", and that was the defect stated as a fact. `discarded`
+    is computed against `base`; `preserve` parents on HEAD unconditionally; on a checkout behind the
+    trunk those are different trees and the probe was being read from the wrong one. `_probe` now
+    reads HEAD directly -- see
+    `test_a_probe_line_head_already_carries_fails_a_sound_preservation`. This test still holds
+    because it never passes `--base`: at `base="HEAD"` the two readings coincide, which is exactly
+    why a suite of default-base fixtures could not see the defect."""
     (repo / "m.py").write_text(RIVAL_KIND_B)
     verdict = rth.judge_copy(repo, "m.py", base_wins=True)
     assert verdict.state == rth.REFRESHABLE
     assert any("my_own_unlanded_function" in line for line in verdict.discarded), (
         "the lines this branch is about to destroy were not collected: {}".format(
             verdict.discarded))
-    assert rth._probe(verdict) is not None, (
+    assert rth._probe(repo, "m.py", (repo / "m.py").read_bytes()) is not None, (
         "there is no probe, so the advertised recovery search is skipped and the preservation is "
         "asserted rather than verified on the branch that destroys the most")
 
@@ -1199,3 +1208,76 @@ def test_base_wins_on_a_DATA_path_is_not_gated_on_an_oracle_that_cannot_ANSWER(r
     assert clock is not None and clock.rule in rth.BASE_WINS_RULES, (
         "the clock does not complain about the fixture either, so this file proves nothing about "
         "which oracle the gate should ask: {}".format(clock))
+
+
+# ------------------------- the probe's tree is the PARENT's, not the judgement base's (2026-09-24)
+
+
+def test_a_probe_line_head_already_carries_fails_a_sound_preservation(repo: Path) -> None:
+    """THE DEFECT: `_probe` read `verdict.discarded`, which `judge_copy` computes against `base` --
+    and `preserve` parents its commit on HEAD, unconditionally. On the exact tree `--base` exists
+    for (a checkout BEHIND the trunk) those are different trees, so the probe could be a line the
+    trunk dropped and HEAD still carries. `git log -S` reports a commit only where the probe's
+    occurrence COUNT CHANGED against the parent; count 1 on both sides is no change, so the search
+    finds nothing and `verify_recoverable` calls a correct preservation FAILED.
+
+    The failure is the flattering shape: nothing is destroyed, nothing moves, and the refusal reads
+    exactly like the safety catch doing its job. On the shared tree 2026-09-24 it was the whole
+    reason three of the five blocking residue paths had no working door.
+
+    WHAT THIS ASSERTS IN ORDER, because each leg alone has a way of passing while the bug lives:
+      1. the probe the OLD wiring would pick IS present at HEAD -- otherwise the fixture does not
+         reproduce the shape and everything below is vacuous;
+      2. `verify_recoverable` handed that probe RAISES -- the defect, demonstrated, not described;
+      3. the new `_probe` picks a line HEAD does NOT have;
+      4. the same preservation, same commit, same bytes, VERIFIES with it.
+
+    Leg 2 is what makes leg 4 evidence rather than a happy path run twice: without it, a `_probe`
+    that returned `None` for everything would satisfy 3 and 4 and switch the `-S` leg off entirely,
+    which is the fail-open this tool cannot afford."""
+    a = "def alpha():\n    return 1\n"
+    # LONGER than the lane's own line, because `_probe` picks `max(..., key=len)`. If the trunk-
+    # dropped line were the shorter of the two the old wiring would pick the other one by accident
+    # and the fixture would go green with the defect untouched.
+    trunk_dropped = (
+        "    THE_LINE_THE_TRUNK_LATER_DROPPED = 'and this checkout, being behind, still has it'\n")
+    lane_own = "    my_own_unlanded_line = 'shorter'\n"
+
+    (repo / "m.py").write_text(a + trunk_dropped)
+    _run(repo, "add", "m.py")
+    _run(repo, "commit", "-qm", "the line lands, and this commit is what HEAD stays at")
+
+    # The trunk moves PAST this checkout and rewords that line away. `--base trunk` is the whole
+    # point of the flag: HEAD is itself a stale base, so it cannot be the judge.
+    _run(repo, "checkout", "-q", "-b", "trunk")
+    (repo / "m.py").write_text(a + "    RENAMED = 'the trunk wording'\n")
+    _run(repo, "add", "m.py")
+    _run(repo, "commit", "-qm", "the trunk rewords it")
+    _run(repo, "checkout", "-q", "main")
+
+    work = (a + trunk_dropped + lane_own).encode()
+    (repo / "m.py").write_bytes(work)
+
+    verdict = rth.judge_copy(repo, "m.py", base="trunk")
+    head_text = rth._blob_bytes(repo, "HEAD", "m.py").decode()
+    stale_probe = max((ln for ln in verdict.discarded if not rth._trivial(ln)), key=len)
+    assert stale_probe in head_text, (
+        "the fixture does not reproduce the shape -- the base-relative probe is NOT a line HEAD "
+        "carries, so `git log -S` would find the preservation and there is no defect to close")
+
+    ref, commit = rth.preserve(repo, ["m.py"], "probe-tree", "preserved")
+    assert _run(repo, "rev-parse", commit + "^").strip() == _run(repo, "rev-parse", "HEAD").strip()
+
+    with pytest.raises(rth.RefreshError, match="PRESERVATION FAILED"):
+        rth.verify_recoverable(repo, commit, "m.py", work, stale_probe)
+
+    probe = rth._probe(repo, "m.py", work)
+    assert probe is not None, (
+        "`_probe` returned None on a copy that genuinely adds a line against HEAD -- that silences "
+        "the `-S` leg altogether, which is the fail-open, not the repair")
+    assert probe not in head_text, (
+        "the repaired probe is STILL a line HEAD carries, so `git log -S` cannot report the "
+        "preserved commit and nothing is fixed: {!r}".format(probe))
+    route = rth.verify_recoverable(repo, commit, "m.py", work, probe)
+    assert commit[:9] in _run(repo, "log", "--all", "--format=%H", "-S", probe, "--", "m.py")
+    assert "git log --all -S" in route and ref

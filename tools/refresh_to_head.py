@@ -773,8 +773,35 @@ def verify_recoverable(root: Path, commit: str, path: str, work_bytes: bytes,
     return "git log --all -S {!r} -- {}".format(probe, path)
 
 
-def _probe(verdict: Verdict) -> str | None:
-    candidates = [ln for ln in verdict.discarded if not _trivial(ln)]
+def _probe(root: Path, path: str, work_bytes: bytes) -> str | None:
+    """A line the PRESERVED COMMIT introduces against ITS OWN PARENT, which is always HEAD.
+
+    THE TWO TREES ARE DIFFERENT TREES AND ONLY ONE OF THEM IS THE PARENT. `verdict.discarded` is
+    computed by `judge_copy` against `base`, and `base` is the JUDGEMENT tree -- on a checkout that
+    is behind the trunk it is `origin/main`, which is the whole reason `--base` exists. `preserve`
+    has no such choice: `commit-tree ... -p HEAD` is what it builds, so `git log -S`, which reports
+    a commit only where the probe's OCCURRENCE COUNT CHANGED against that parent, is asking about
+    HEAD and nothing else. Feed it a line the trunk dropped but HEAD still carries and the count is
+    1 on both sides of the edge: unchanged, so unreported, so `verify_recoverable` calls a sound
+    preservation a failed one and refuses to write.
+
+    MEASURED 2026-09-24 on the shared tree, which is what this repairs: HEAD 35 commits behind
+    origin/main, three of the five blocking residue paths reachable only through this door, and
+    `--base origin/main --base-wins` answering PRESERVATION FAILED for every one of them. The bytes
+    were preserved correctly each time -- the identity leg passed -- and the tool destroyed nothing
+    and moved nothing, so the publisher stayed wedged on a defect that looks exactly like the
+    safety catch working.
+
+    THE `-S` LEG ITSELF IS UNTOUCHED AND MUST STAY THAT WAY. It is the only thing between this tool
+    and `git checkout <path>` with a nicer name: it proves the advertised recovery route reaches
+    the bytes BEFORE they are overwritten. What was wrong was never that the leg ran; it was that
+    it was handed a probe from the wrong tree. `discarded` keeps answering the reader's question --
+    what this copy holds that the BASE does not -- because that is the question the report is
+    about.
+    """
+    head_text = _blob_bytes(root, "HEAD", path).decode("utf-8", errors="strict")
+    against_parent = _discarded_lines(head_text, work_bytes.decode("utf-8", errors="strict"))
+    candidates = [ln for ln in against_parent if not _trivial(ln)]
     return max(candidates, key=len) if candidates else None
 
 
@@ -823,8 +850,8 @@ def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
     routes = []
     for verdict in doable:
         routes.append((verdict.path,
-                       verify_recoverable(root, commit, verdict.path,
-                                          current[verdict.path], _probe(verdict))))
+                       verify_recoverable(root, commit, verdict.path, current[verdict.path],
+                                          _probe(root, verdict.path, current[verdict.path]))))
     for path in targets:
         (root / path).write_bytes(_blob_bytes(root, "HEAD", path))
 
