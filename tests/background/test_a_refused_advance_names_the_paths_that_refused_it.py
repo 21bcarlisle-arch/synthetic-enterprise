@@ -117,6 +117,42 @@ def test_an_unreadable_git_is_None_and_never_an_empty_list(tmp_path):
 
 
 # ── and the verdict carries it ──────────────────────────────────────────────────────────────
+def _refusing_git(stderr="local changes would be overwritten"):
+    """`orc._git`, refusing — EXCEPT the one question `commits_ahead` asks.
+
+    THIS WAS A BLANKET rc=1 AND IT WENT BLIND ON 2026-09-24. `e89d05840` put the divergence
+    question AHEAD of the path judgement — the 2026-09-05 rule, and the right change: on a fork no
+    working-tree path is the cause, so naming one sends the reader at innocent files. It is asked
+    with `commits_ahead`, which shells `git rev-list --count origin/main..HEAD`, and a fake that
+    answered rc=1 to EVERY command answered that one too. rc=1 is *"git would not answer"*, so
+    `advance_shared_tree` took its new `ahead is None` exit and `_blocking_clause` its `ahead is
+    None` leg, and four tests that assert what the LANDING clause says began grading a fail-closed
+    exit two branches upstream of it. The reds named a sentence nobody had changed.
+
+    The blanket was the defect, not the new leg. A fake whose every answer is "could not" cannot
+    tell "could not" apart from any verdict downstream of it, and every leg here asserts on
+    something downstream. So the ahead-count is MODELLED, at **0** — the same number
+    `_not_advanced`'s own `state_fn=(3, 0)` already declares, so the fixture now says one thing
+    rather than two — and everything else still refuses, which is what these tests mean by a
+    refused advance.
+
+    NOT WIDENED FURTHER ON PURPOSE. Every other `_git` call here (the twin hash comparisons) must
+    still fail to answer: "a file is never deleted on a question that was not answered" is the
+    property the removal legs are keyed to, and answering those too would quietly license a
+    deletion inside a test about a refusal.
+    """
+    def _fake(_cwd, *args, **_kw):
+        if args[:3] == ("rev-list", "--count", "{}/{}..HEAD".format(orc.REMOTE, orc.BRANCH)):
+            # `commits_ahead`: commits WE hold that origin does not. Keyed to the exact range, so
+            # a future caller asking `HEAD..origin/main` -- the opposite question, with the
+            # opposite remedy -- falls through to the refusal rather than borrowing this answer.
+            return subprocess.CompletedProcess(
+                args=["git", *args], returncode=0, stdout="0\n", stderr="")
+        return subprocess.CompletedProcess(
+            args=["git", *args], returncode=1, stdout="", stderr=stderr)
+    return _fake
+
+
 def _not_advanced(blockers, **kw):
     """`reconcile` driven to a refused advance with nothing of ours to land."""
     return orc.reconcile(state_fn=lambda _p=None: (3, 0), gate_fn=lambda _p=None: False,
@@ -130,8 +166,7 @@ def test_NOT_ADVANCED_names_the_paths_in_its_detail_and_carries_them_as_data(mon
     """MUTATION: drop the clause from the detail string and the first assertion fails; drop the
     `blocking_paths` key and the second does. Both are needed -- the string is what a person reads
     in the log, the key is what the next mechanism can act on without parsing prose."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="local changes would be overwritten"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("local changes would be overwritten"))
     blockers = [{"path": "background/process_run_complete.py", "kind": orc.FF_MODIFIED},
                 {"path": "docs/staging/A_FINDING.md", "kind": orc.FF_UNTRACKED}]
     r = _not_advanced(blockers)
@@ -145,8 +180,7 @@ def test_NOT_ADVANCED_names_the_paths_in_its_detail_and_carries_them_as_data(mon
 def test_a_verdict_that_could_not_look_says_so_rather_than_reading_as_clean(monkeypatch):
     """The `None` leg reaching the reader. "could NOT be established" and "NOTHING local collides"
     are opposite findings and the rendering must never collapse them."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     detail = _not_advanced(None)["detail"]
     assert "could NOT be established" in detail
     assert "NOTHING local collides" not in detail
@@ -154,8 +188,7 @@ def test_a_verdict_that_could_not_look_says_so_rather_than_reading_as_clean(monk
 
 def test_a_long_list_says_how_many_it_dropped(monkeypatch):
     """NO SILENT CAP. A truncated list that does not say it truncated reads as the whole set."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     many = [{"path": "p{}.py".format(i), "kind": orc.FF_MODIFIED} for i in range(20)]
     detail = _not_advanced(many)["detail"]
     assert "20 path(s)" in detail and "8 further path(s)" in detail
@@ -177,20 +210,34 @@ def test_a_long_list_says_how_many_it_dropped(monkeypatch):
 def test_the_modified_leg_names_the_hunks_door_and_NOT_the_untracked_one(monkeypatch):
     """MUTATION: print both steps unconditionally and the second assertion fails. Drop the
     per-kind split for one constant string and it fails too."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     detail = _not_advanced([{"path": "background/supervisor.py", "kind": orc.FF_MODIFIED}])["detail"]
     assert "isolate_hunks.py --survey" in detail
-    assert "or by removing them" not in detail, "an untracked-only step under a modified-only hold"
+    assert orc.ORPHAN_PRESERVED_PREFIX not in detail, \
+        "an untracked-only step under a modified-only hold"
 
 
 def test_the_untracked_leg_names_its_own_door_and_NOT_the_hunks_one(monkeypatch):
     """The mirror. Without it, a function that always printed the `isolate_hunks` sentence would
-    pass the test above and send every untracked-only reader to a tool that has nothing to do."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    pass the test above and send every untracked-only reader to a tool that has nothing to do.
+
+    RE-KEYED TO THE MECHANISM, NOT THE SENTENCE (2026-09-24). This pinned the literal `"or by
+    removing them"`, and `1e204591e` rewrote that step because it was WRONG: `FF_UNTRACKED` means
+    origin already brings a copy, so it now says to establish which copy is ahead before landing
+    either, and names the preserved ref that makes removal lossless. The control went red for the
+    code becoming MORE honest -- CLAUDE.md's "key a control to the property, not to today's
+    answer", exactly backwards.
+
+    `ORPHAN_PRESERVED_PREFIX` is the anchor because it is the MECHANISM the untracked door is: the
+    bytes reach a preserved ref before they are cleared, which is what makes removing the door that
+    cannot lose. Read off the module rather than re-typed, so a rename moves the control with it
+    and a rewording does not touch it. The sibling above was pinned to the same dead literal and
+    was therefore asserting NOTHING -- a negative on a string that exists nowhere is green however
+    the partition breaks -- so it is re-keyed in the same pass.
+    """
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     detail = _not_advanced([{"path": "docs/staging/A.md", "kind": orc.FF_UNTRACKED}])["detail"]
-    assert "or by removing them" in detail
+    assert orc.ORPHAN_PRESERVED_PREFIX in detail
     assert "isolate_hunks" not in detail, "a modified-only step under an untracked-only hold"
 
 
@@ -198,22 +245,21 @@ def test_it_says_re_running_this_module_is_NOT_the_step(monkeypatch):
     """THE SENTENCE THE WHOLE FIX IS. The publisher routes its reader here; the reader must leave
     knowing that coming back without landing returns this identical refusal. Keyed to the PROPERTY
     that makes it true -- bytes already equal to origin's -- so it stays right if the doors move."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     detail = _not_advanced([{"path": "held.py", "kind": orc.FF_MODIFIED},
                             {"path": "docs/staging/A.md", "kind": orc.FF_UNTRACKED}])["detail"]
     assert "NOT TO RE-RUN THIS MODULE" in detail
     assert "ALREADY equal what origin brings" in detail
     # BOTH doors, because both kinds are held. The two single-kind tests above prove this is the
-    # partition being read and not a paragraph that ignores its argument.
-    assert "isolate_hunks" in detail and "or by removing them" in detail
+    # partition being read and not a paragraph that ignores its argument. Anchored on the
+    # preserved-ref constant for the reason the untracked leg above records.
+    assert "isolate_hunks" in detail and orc.ORPHAN_PRESERVED_PREFIX in detail
 
 
 def test_the_two_no_path_legs_carry_no_landing_step_at_all(monkeypatch):
     """A remedy under "I could not look" would be a step attached to a diagnosis never made, and
     a remedy under "nothing collides" would name a landing for a refusal no landing clears."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     for blockers in (None, []):
         detail = _not_advanced(blockers)["detail"]
         assert "NOT TO RE-RUN THIS MODULE" not in detail
@@ -223,8 +269,7 @@ def test_the_two_no_path_legs_carry_no_landing_step_at_all(monkeypatch):
 def test_an_unknown_kind_gets_no_confident_step(monkeypatch):
     """FAIL CLOSED ON THE PARTITION. A third kind added later must not inherit whichever step the
     code happened to reach; it says the property and declines to name a door."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     detail = _not_advanced([{"path": "odd.py", "kind": "some kind invented later"}])["detail"]
     assert "odd.py" in detail, "the path is still named"
     assert "isolate_hunks" not in detail and "or by removing them" not in detail
@@ -235,8 +280,7 @@ def test_the_post_merge_refusal_names_them_too(monkeypatch):
     """THE SECOND SITE. `NOT_ADVANCED` is returned from two places -- nothing-of-ours, and a merge
     that pushed and still left the tree behind. A repair wired into one of two sites is this
     project's most repeated defect, so the other site is asserted rather than assumed."""
-    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
-        args=["git"], returncode=1, stdout="", stderr="refused"))
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
     states = [(2, 1), (3, 0)]
     r = orc.reconcile(state_fn=lambda _p=None: states.pop(0) if len(states) > 1 else states[0],
                       gate_fn=lambda _p=None: False,
