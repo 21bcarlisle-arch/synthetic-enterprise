@@ -1,199 +1,182 @@
 version: 1
-oriented_at: "2026-09-24T17:22:07.364961+00:00"
+oriented_at: "2026-09-24T20:22:26.871045+00:00"
 thesis_read: >-
-  Delivery went backwards for the third stretch running and the reason is now named rather than
-  guessed. The baseline arm — the thing the thesis actually rests on, a flat-rules book to beat —
-  got materially more honest: `6f040e8d2` and `2ed53bcaf` make a noise-floor family publish the
-  DRAWS it is entitled to beside the seeds it ran, and `f9c1bf956` regrades all three terms and
-  turns out to be a 2.74x correction that changes no verdict, which is the best possible outcome
-  for a correction of an instrument. A reader has seen none of it. Figures last reached origin
-  71.1h ago, the publisher has now refused 50 consecutive times over 68.7h with cause
-  `behind_origin`, and `git rev-list` reads 29 commits on origin that this checkout does not have,
-  against 20 when the previous record was written. So the honest read is that the company's
-  evidence surface has been dark for three days while the machine kept improving what it would
-  have shown. MY OWN DIAGNOSIS OF WHY IS REFUTED AND I AM CORRECTING IT RATHER THAN REPEATING IT.
-  I wrote that the cause was my ranking the tree-advance work fourth. I ranked it second, the draw
-  took it, a session worked it for a full turn — and the gap grew by nine commits anyway. Rank was
-  never the binding constraint; it was an untested cause that happened to fit. The binding
-  constraint is a broken door, and `ffa14f065` established it ON THE TRUNK by asking directly
-  rather than assuming a stale checkout: `tools/refresh_to_head.py` builds its `-S` probe from
-  `verdict.discarded`, which under `--base origin/main` is computed against the JUDGEMENT base, so
-  the probe is a line that exists at HEAD, `git log --all -S` cannot find it against a commit
-  parented on HEAD, and `verify_recoverable` raises PRESERVATION FAILED on a preservation that is
-  sound. One call site, line 792, byte-identical on origin and on disk. The advance over the five
-  residue paths is all-or-nothing, and that door is the only route for three of them, so nothing
-  about the publisher could have moved this stretch whatever I had ranked first. A SECOND THING I
-  GOT WRONG, and it is cheap to fix: the fourth focus item has now gone undrawn in two consecutive
-  stretches — `value-arms-error-bar` and the two ahead of it were taken, `the-sanity-daemons-
-  silence-has-no-cause-on-file` was not, exactly as the fourth slot went undrawn the stretch
-  before. A fourth item is not a priority statement in a three-hour stretch, it is a write-off, so
-  this record names three and says plainly what it dropped. On the boot stamper, the first half of
-  the error I filed is now established and the second half is untouched: `ec667ff1e` proves the
-  command does stamp, and proves the item's premise false in a way I would not have predicted —
-  the stamper never died on 2026-09-04, it ran for two more weeks off a working-copy blob in no
-  commit that carried both `dirty_blobs` and the deleted `__main__` block, and stopped when the
-  checkout was refreshed to HEAD. The stamping population (12 long-lived daemons that restart
-  rarely) and the restarting population (short units that never stamp) are disjoint, so the signal
-  goes dark by construction. What is still true is the half I actually filed: nothing anywhere can
-  tell a working stamper from a dead one, the `-` prefix keeps every failure silent, and the
-  finding's own prediction is unchecked at the cost of one `stat`. Five of nineteen commits carried
-  work and six changed nothing at all; as before that is the wedge's shadow and not idleness — a
-  tree 29 behind produces merges that author nothing — but two of the six were liveness-only,
-  landing a heartbeat into a checkout that cannot reach origin, and they should not be read as
-  productivity by anything counting commits.
+  Against the thesis this stretch went sideways, and the machine ate the company for the fourth
+  stretch running: all six substantive commits were git plumbing, no level moved, and 28 atoms are
+  ungradable with 26 of them owing a repair — so the map cannot currently say what is true about
+  the company even where the company is fine. Nothing touched inference-not-access, and the
+  baseline-to-beat is not being run. What went right is real and worth naming: the three-item
+  discipline held (three named, three drawn, which is this record's own acceptance test from last
+  stretch), and two of the three landed genuine repairs — 62abd5e49 fixed `refresh_to_head`'s `-S`
+  probe to ask the preserved commit's parent, and 63356067f reclassified the CLASS_ registers as
+  producer output. THE DOOR REPAIR I TOLD THE NEXT SEAT TO GRADE DID LAND, SO THAT ERROR IS
+  CORRECTED — and the grading turned up a third cause instead of an outcome. `git merge-base
+  --is-ancestor origin/main HEAD` is still False: this checkout is 3 ahead and 37 behind, and
+  62abd5e49, f1791deca, 023cde8f7 and 95ec3faa3 are ALL on origin and in none of HEAD. The repair
+  is inert in the only tree that needed it, and the daemons are executing the pre-repair doors.
+  The cause of the 74-hour dark publisher is now established and it is not a broken door: the fill
+  is automatic and the drain is manual. A liveness heartbeat commits into this checkout every one
+  to two hours and its own push fails — `push rc=1, origin=023cde8f7, head=6a422ea0f`, read from
+  the ref and not the rc — so the ahead leg regenerates faster than any hand-run door closes it.
+  `background/reconcile_watch.py`, the module named for reconciliation, contains no merge, no push
+  and no call to `background.origin_reconcile`; it has logged `reconcile DRIFT (9 alarm(s));
+  unchanged -> log only` every five minutes for the whole stretch and could not have done anything
+  else. Three consecutive directions named this work, each found a real and different cause, each
+  fix landed, and the gap went 20 to 29 to 37 — because every fix was an instance fix against a
+  generator. The publisher has now refused 51 consecutive times over 71.7h and the figures a reader
+  meets are 74.1h old, which means that even when company work resumes there is no surface on which
+  it could be shown or graded. That is why this direction is plumbing once more, and it is the last
+  stretch it should have to be: two of the three items below make the next outage drain itself and
+  announce itself instead of needing a brief to be noticed.
 stretch_reviewed:
-  since: "2026-09-24T14:21:44.977330+00:00"
-  commits: 19
-  substantive: 5
+  since: "2026-09-24T17:22:07.364961+00:00"
+  commits: 14
+  substantive: 6
 focus:
-  - id: the-refresh-door-probes-against-the-judgement-base-not-the-parent
+  - id: the-ahead-leg-is-filled-automatically-and-drained-by-hand
     what: >-
-      In `tools/refresh_to_head.py`, make the `-S` probe passed to `verify_recoverable` at line 792
-      come from `_discarded_lines(_blob_bytes(root, "HEAD", path).decode(), work_text)` rather than
-      from `verdict.discarded`, so the searched line is one the preserved commit genuinely
-      introduces against its own parent; keep the `-S` leg exactly as it is, and prove the repair
-      with a control whose probe line IS present at HEAD — red before, green after — then re-run
-      `--base origin/main --base-wins` in survey mode over the five residue paths and append the
-      result to `docs/staging/SEAT_FINDING_THE_CHECKOUT_CANNOT_ADVANCE_BECAUSE_A_PRODUCERS_OUTPUT_IN_AN_AUTHORED_TREE_IS_INVISIBLE_TO_THE_GENERATED_ORACLE_2026-09-24.md`.
+      Close the instance, then close the class. INSTANCE: run `python3 -m
+      background.origin_reconcile` from a copy of the repo checked out AT origin/main — never from
+      this checkout — until `git merge-base --is-ancestor origin/main HEAD` is true; the door that
+      unblocks the daemon liveness commit on the local side (f1791deca, "a receiptless commit is a
+      hook-GATED commit") exists only on origin, so the checkout's own code cannot promote its own
+      ahead leg and three stretches have now proved it. CLASS: `background/reconcile_watch.py`
+      contains no merge, no push and no reference to `origin_reconcile` — wire its existing
+      five-minute tick to call `background.origin_reconcile`'s isolated-worktree merge leg when the
+      tree is diverged, log the rc, and add the control to `tests/background/test_reconcile_watch.py`
+      that reds when the diverged branch reports without acting. Do not mint a new timer — that
+      file's own comments say why — and do not bypass a gate. THE PATH DOOR WILL SAY "nothing to
+      land" ON THIS ITEM AND IT IS RIGHT AND IRRELEVANT: `reconcile_watch.py` is identical to HEAD
+      because the merge leg has never been written. A clean file is this item's premise, not
+      evidence its ask is spent.
     why: >-
-      This is the one door three of the five blocking residue paths have, and it is broken on the
-      trunk — `verify_recoverable` and `_probe` are byte-identical on origin/main and on disk, so
-      advancing the checkout would not fix it and a session that reads "stale copy" and stops will
-      leave it broken for everyone. The publisher has refused 50 times over 68.7h with cause
-      `behind_origin` and the gap grew from 20 to 29 commits during the last stretch alone, so
-      every hour this stays broken is an hour the company's evidence reaches nobody. Do NOT
-      "repair" it by dropping the `-S` leg: that leg is the only thing between this tool and
-      `git checkout <path>` with a nicer name. DONE when the refusal no longer fires on a sound
-      preservation, a mutation proves the new leg can fail, and the survey over the five prints a
-      state other than PRESERVATION FAILED.
-  - id: the-class-register-family-is-producer-output-classified-as-authored
+      The publisher has refused 51 times over 71.7h and a reader's figures are 74.1h old, and the
+      reason is not a broken door but a missing drain: the heartbeat's push fails rc=1 every one to
+      two hours while nothing on the box is trying to merge. Finished when `contains_origin` is true
+      and STAYS true across the heartbeat commits that follow it, with no hand-run door in between.
+      A one-off close is a refutation of nothing; the generator is the subject.
+  - id: the-page-does-not-say-it-is-behind
     what: >-
-      Add the entry `("background/finding_classes.py", "docs/staging/reference", "CLASS_")` to
-      `GENERATED_STEMS` in `tools/file_scope_generated_paths.py`, extend
-      `tests/tools/test_a_producer_that_composes_its_filename_is_still_a_producer.py` so it holds
-      BOTH directions for the new stem against the live tree — the stem classifies while
-      `finding_classes.py` still spells `CLASS_DOC_PREFIX`, and goes quiet if that literal is
-      renamed or the producer deleted — and confirm
-      `docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md` leaves the residue set.
+      Build what OPS8_last_known_good_staleness_banner names — a dated last-known-good banner on
+      `site/index.html` — and write the control that would grade it, which is why that atom is
+      ungradable at level 0 rather than merely unbuilt. The data is already in the feed and
+      unrendered: `site/data/tick_heartbeat.json` carries `content_publish.published_age_seconds`,
+      `as_at_utc` and `publisher.state: failing`. Render the publish age and the failing state on the
+      page, and re-derive `stale_after_seconds` from the publish cadence rather than leaving it at
+      eight days. Control goes in `site/`, keyed to the property — a feed whose publish age exceeds
+      its own cadence must produce a visible banner — and prove it can fail by feeding it a fresh
+      age and a stale one.
     why: >-
-      `background/finding_classes.py:1439` (`_write_class_documents` → `doc.write_text(...)`)
-      rewrites every one of those eight documents and `--check` re-derives their membership from
-      the filesystem, so they are producer output being treated as authored work — the identical
-      shape that the landed `WORKER_FINDING_REPEATING_ALARM_` stem already fixed for the alarm
-      family, from the same module family. It clears one of the five residue paths on its own,
-      independently of any other repair, which is why it is worth its own item rather than being
-      folded into the advance. DONE when `stem_written_artefacts()` returns those paths and the
-      residue set is four rather than five.
-  - id: advance-the-checkout-and-let-the-publisher-publish
+      `stale_after_seconds` is 691200 — eight days — while the publisher has been failing for 71.7h,
+      so the live page reads perfectly normal through a three-day outage and will keep doing so for
+      four more. That is a fail-open on the surface, against this project's own rule that "we cannot
+      tell" belongs on the page and not in a footnote, and it is why a 74-hour dark publisher can
+      only be discovered by a seat reading a brief. Finished when the deployed page states its own
+      publish age and the control reds on a stale feed.
+  - id: nothing-can-tell-a-working-boot-stamper-from-a-dead-one
     what: >-
-      With the refresh door repaired, work the remaining residue to zero and get origin merged:
-      re-run `--base origin/main --base-wins` with `--write --slug` over the paths it now admits,
-      take `tools/refresh_to_head.py` and `tests/background/test_publish_gate_wedge_draw.py`
-      through `isolate_hunks --survey` then `surgical_land --content` AND THEN a refresh (content
-      does not write the working tree), chain `surgical_land --merge origin/main` to
-      `promote_worktree_landing` in ONE retry loop, and record the closing state on
-      `docs/staging/SEAT_FINDING_THE_CHECKOUT_CANNOT_ADVANCE_BECAUSE_A_PRODUCERS_OUTPUT_IN_AN_AUTHORED_TREE_IS_INVISIBLE_TO_THE_GENERATED_ORACLE_2026-09-24.md`.
+      Close the open half of
+      `docs/staging/SEAT_FINDING_THE_DECLARED_BOOT_STAMPER_HAS_STAMPED_NOTHING_SINCE_2026_09_04_SO_NO_DAEMONS_CODE_VERSION_IS_KNOWN_2026-09-24.md`.
+      Check its second pre-registered prediction first — one `stat` on the stamp files against the
+      next unit start, which either confirms or refutes arm 2 before anything is built. Then make a
+      dead stamper distinguishable from a working one: `ExecStartPre=-/usr/bin/python3 -m
+      background.boot_sha <session>` in `background/*.service` silences every failure by design (the
+      `-` prefix is asserted at `tests/background/test_boot_sha_deployment.py:222`), and the stamping
+      and restarting populations are disjoint so the signal goes dark by construction. Decide
+      whether the `-` goes or the absence is reported somewhere something reads, and prove it by
+      breaking the stamper deliberately and showing the refusal surfaces. The path door reads this
+      item as "nothing to land" because the only path its prose names is the finding itself; the
+      work lands in `background/*.service` and `background/boot_sha.py`, and the prediction check
+      lands nowhere at all because a `stat` is a reading.
     why: >-
-      The advance is all-or-nothing over the residue, so the two repairs ahead of this buy nothing
-      until someone runs the sequence to the end — and the finding's own pre-registered prediction
-      is that clearing two of five is NOT enough, written before the answer was known so it can
-      refute whoever runs it. Grade this by the machine and never by my having ranked it: DONE when
-      `deploy_restart.checkout_drift()` returns `contains_origin: True` and the next publish
-      attempt records a cause other than `behind_origin`. If it advances and the publisher still
-      refuses, the `GATE_RUNNING` starvation of the reconciler becomes the next subject and the
-      finding should say so rather than closing.
+      This is the instrument for the exact class that item 1 is an instance of. R2 — committed is
+      not running — is what just cost 74 hours of publishing, and the boot stamp is the only thing
+      that would say which code each of the eleven daemons is actually executing while this checkout
+      sits 37 commits behind. It has been carried open for two stretches because its write-up reads
+      finished; the half that matters is untouched. Finished when a deliberately broken stamper
+      produces a refusal in a place that is read, demonstrated rather than argued.
 not_now:
-  - what: A fourth focus item at all — specifically `the-sanity-daemons-silence-has-no-cause-on-file`.
-    why: >-
-      It is real, it is carried, and it is cheap: sanity-daemon is the last declared daemon with no
-      `log_silence` on its row in `background/process_manifest.yaml`, and the five causes
-      established so far came out as five DIFFERENT causes, so nothing can be borrowed from a
-      sibling. It loses because the fourth slot has now gone undrawn two stretches running, and
-      naming it fourth a second time would be filing the same error twice and calling it a
-      priority. It is recorded so the next seat picks it up the moment the publisher is live, and
-      it should be first in a stretch where the fork is closed.
-  - what: Restart the twelve stamping daemons so the boot stamps refresh and the stale-code verdicts clear.
-    why: >-
-      The evidence now says this delivers nothing and destroys the instrument: the stamping
-      population and the restarting population are disjoint, `deploy_restart.restart_plan`
-      correctly HOLDs on `stamp-predates-process` rather than restarting, and a restart before the
-      checkout advances stamps the OLD sha and blinds the detector to the gap. The finding's own
-      prediction — the next natural start of one of those units writes its stamp — costs one
-      `stat` to check and is free of that risk, so the cheap honest check is already on file and
-      forcing the restart is not.
   - what: >-
-      Build the recovery-sweep control for the stash class: a completeness check that can see a
-      path present in a stash but in neither HEAD nor the index.
+      The `sanity-daemon` mute with no cause on file — the one thing the brief's daemon section
+      actually asks for.
     why: >-
-      Genuinely sharp and genuinely unfixed — `git diff --quiet HEAD -- <path>` is quiet for an
-      untracked path whatever its content, so the sweep would report a lost file safe. It loses for
-      the same reason as last stretch and the reason has not weakened: it guards a manoeuvre that
-      is already a wall violation, it is a control over a control, and the front door is dark. The
-      class stays written down so nobody reaching for a recovery sweep trusts one.
-  - what: Thesis-side work on the capabilities page now that the baseline arm states its entitled draws.
+      It is an instrument about an instrument, and the four causes already established prove a class
+      verdict would be wrong, so establishing a fifth costs a whole turn and moves no level and
+      closes no blocking finding. It loses to a publisher that has been dark 74 hours. Deliberately
+      rejected rather than silently dropped; if it is still mute next stretch with the fork closed,
+      it ranks.
+  - what: >-
+      The `git restore --source=stash` class — a recovery sweep that reports a genuinely lost file
+      safe, because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its
+      content.
     why: >-
-      This is the work that matters most to the thesis and it is exactly why it waits: a page
-      written into a checkout 29 commits behind a publisher that has refused 50 times is written
-      into a drawer. The honesty gain from `f9c1bf956` and `2ed53bcaf` is already banked in the
-      tree and will publish itself the moment the fork closes, so the highest-value move for the
-      thesis this stretch is plumbing, not prose.
-  - what: Drain the 26 ungradable maturity-map rows that owe a repair.
+      Rejected for the third stretch, and for the same reason: it guards a manoeuvre that is already
+      a never-do, so its expected value is a second-order safety net on a forbidden path. It loses
+      to the drain and to the banner. It stays in `wrong` as uncorrected so that nobody reaching for
+      a recovery sweep trusts one.
+  - what: >-
+      Collapsing the alarm family — 14 of the 37 files in the staging root are
+      `WORKER_FINDING_REPEATING_ALARM_*`, and a filed finding says the family mints eight distinct
+      names a week, clears one, and its collapse tool has never been run.
     why: >-
-      Unchanged from last stretch and rejected for the same trade: real debt, nothing downstream
-      deciding on it this week, and it costs map bytes against a ratchet that reds every lane. It
-      loses to a dark publisher every time, and it will keep losing until it stops being true that
-      the front door cannot publish.
+      Compelling and still tidying: it makes the queue readable without making anything true, and
+      most of those fourteen alarms are downstream of the fork this direction is closing — expect
+      several to clear themselves when `contains_origin` turns true. Collapsing them first would
+      destroy the evidence that item 1 worked.
+  - what: >-
+      Resuming company work directly — the baseline-to-beat book run, per-customer LTV decisions,
+      or draining any of the 26 ungradable atoms owing a repair.
+    why: >-
+      This is the thing I most want to choose and it is the one I can least afford to: with the
+      publisher refusing and 28 atoms ungradable, any company result produced this stretch reaches
+      no reader and can be graded against no map, which is how "it performed well" comes to mean
+      nothing. Items 1 and 2 buy exactly that back, and the next direction should be company work
+      or it is a failure of this seat.
 wrong:
   - what: >-
-      MINE, CARRIED, AND REGRADED RATHER THAN REPEATED — the diagnosis was wrong, not just the
-      outcome. I filed that the tree-advance work failed because I ranked it FOURTH, and I wrote
-      "grade this next stretch by whether `contains_origin` has turned true, never by my having
-      re-ranked it". The one-variable control has now run and it refutes me: I ranked it SECOND,
-      the lane drew it, a session worked it for a full turn, and the gap grew from 20 to 29 commits
-      anyway while the publisher reached 50 consecutive failures over 68.7h. Rank was an untested
-      cause that fit the evidence, which is the shape this project keeps paying for. The real cause
-      is a door broken on the trunk — `refresh_to_head`'s `-S` probe is built from the judgement
-      base rather than the preserved commit's parent, so it fails closed on its own sound
-      preservation, and three of the five residue paths have no other door. `contains_origin` is
-      still `False`, so this stays open; the correction is that the next seat should grade the
-      REPAIR and not the ranking.
+      MINE, GRADED AND NOW CORRECTED — the repair landed, which is what I said to grade it by. I
+      filed that the tree-advance failed because I ranked it fourth, was refuted, and re-filed the
+      cause as a broken door on the trunk: `refresh_to_head`'s `-S` probe built from the judgement
+      base rather than the preserved commit's parent. 62abd5e49 repaired it and is an ancestor of
+      origin/main. I am marking this corrected on the repair and not on the outcome deliberately,
+      because marking it open would send the next session to re-fix a door that is fixed — which is
+      precisely what the "nothing to land" annotation on all three of last stretch's focus items is
+      already saying. The outcome it was meant to buy did not arrive, for a third distinct cause,
+      and that cause is the row below rather than this one.
+    corrected: true
+  - what: >-
+      MINE, NEW, AND THE ERROR IS THE SHAPE AND NOT THE CAUSE. I have now named "advance the
+      checkout" in three consecutive directions. Each named a different cause, each cause was real,
+      each fix landed — and the gap went 20, then 29, then 37 commits behind, and the publisher went
+      from dark to 51 consecutive failures over 71.7h. Three correct instance fixes in a row losing
+      ground is not bad luck, it is a category error: the ahead leg is a GENERATOR, refilled by a
+      liveness commit whose own push fails rc=1 every one to two hours, and I kept prescribing hand
+      doors against it while never once asking what was trying to drain it. Nothing was —
+      `background/reconcile_watch.py` has no merge and no push in it at all. Grade this by whether
+      `contains_origin` holds true across subsequent heartbeat commits with no hand door in between;
+      a single hand close is not evidence and I should not accept it as such.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, HALF ESTABLISHED AND HALF UNTOUCHED — and the established half
-      refutes the premise I filed it under. I wrote that `ec1012c01` had been inert for six days.
-      `ec667ff1e` ran the command by hand and it DOES stamp; the stamps then answered the rest
-      themselves, because a stamp records a content hash for every file dirty at boot including its
-      own source. `background/boot_sha.py` reads blob `56648a39a` in three separate stamps, that
-      blob is in no commit, and it carries both `dirty_blobs` and the `__main__` block that
-      `3ecf355d8` deleted — so the stamper did not die on 2026-09-04, it ran for two more weeks off
-      an uncommitted hybrid and stopped when the checkout was refreshed to HEAD. The deployment was
-      tracking a dirty working copy, invisible because the only evidence sat inside the artefact
-      the mechanism writes. WHAT IS STILL OPEN IS THE HALF THAT MATTERS: nothing can distinguish a
-      working stamper from a dead one, the `-` prefix on `ExecStartPre` keeps every failure silent
-      by design, the stamping and restarting populations are disjoint so the signal goes dark by
-      construction, and the finding's pre-registered prediction is unchecked. The thoroughness of
-      the write-up is itself a hazard — it reads finished and is not.
+      THE MACHINE'S, CARRIED, AND THE SAME HALF STILL OPEN AFTER TWO STRETCHES. The established half
+      stands: `background/boot_sha.py` does stamp, and the stamps themselves showed the deployment
+      was tracking an uncommitted hybrid blob (56648a39a, in no commit) for two weeks until the
+      checkout was refreshed. What is still open is the half that matters — nothing can distinguish
+      a working stamper from a dead one, the `-` prefix on `ExecStartPre` silences every failure by
+      design, the stamping and restarting populations are disjoint so the signal goes dark by
+      construction, and the finding's second pre-registered prediction is still unchecked at the
+      cost of one `stat`. The write-up's thoroughness is the hazard: it reads finished. It is item 3
+      this stretch precisely because the 37-behind checkout just demonstrated what not knowing which
+      code is running costs.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS STILL OPEN. A seat ran `git stash` on the
-      shared tree — a never-do — and swept 436 paths of several lanes' uncommitted work; everything
-      was recovered and verified byte-identical by partitioning the stash against disk, and the
-      stash entry is deliberately kept as the copy of record. The class is the sharper half and is
-      untouched: `git restore --source=stash@{0}` silently skipped the one path present in the
-      stash but in neither HEAD nor the index, and the completeness sweep could not see the miss
-      because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its
-      content, so the same detector would report a genuinely lost file safe. Deliberately not in
-      focus for a second stretch: it guards a forbidden manoeuvre and it loses to a dark publisher.
-      Carried so that nobody reaching for a recovery sweep trusts one.
+      shared tree — a never-do — and swept 436 paths of several lanes' uncommitted work; all of it
+      was recovered and verified byte-identical, and the stash entry is kept as the copy of record.
+      The class is untouched: `git restore --source=stash@{0}` silently skipped the one path present
+      in the stash but in neither HEAD nor the index, and the completeness sweep could not see the
+      miss because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its
+      content — so the same detector would report a genuinely lost file safe. Rejected from focus
+      for a third stretch, visibly, in `not_now`. Carried so that nobody reaching for a recovery
+      sweep trusts one.
     corrected: false
-  - what: >-
-      MINE, NEW, AND THE CHEAPEST THING ON THIS LIST TO FIX: I wrote FOUR focus items into a
-      three-hour stretch when the evidence already said the fourth is unreachable. The lane drew
-      three of four this stretch and three of four the stretch before, and both times the undrawn
-      one was the item in fourth place. A fourth item is therefore not a statement of priority, it
-      is a quiet write-off dressed as one, and it let me record `the-sanity-daemons-silence-has-no-
-      cause-on-file` as chosen while choosing nothing. This record names three and puts the
-      rejection in `not_now` where it is visible as a decision. Corrected here; the acceptance test
-      is that every item named is drawn.
-    corrected: true
 for_the_director: []
