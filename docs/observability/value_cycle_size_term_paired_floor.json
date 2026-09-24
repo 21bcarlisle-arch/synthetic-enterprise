@@ -1,0 +1,886 @@
+{
+  "what_this_is": "The floor under the size-term contrast. The same churn-roll seed is taken through the belief BLIND to household size and the belief SEEING it, and the spread reported is the spread of the per-seed DIFFERENCE. It is not comparable to the `value_advantage` spreads in the noise-floor artefacts: those are the marginal noise on one reading and this is the noise on a paired contrast.",
+  "how_to_read_this": "Read `distance_to_a_sign` per row, not the mean. A row that cannot state a sign says this book cannot resolve that move -- including, if it comes to it, the gross-margin swing the size-term commit's finding rests on. `pairing_bought` says whether the shared seed actually cancelled anything: if `pairing_reduced_the_spread` is false, the two legs' worlds diverged far enough downstream that the pairing is decorative and the marginal spread is the honest bound.",
+  "generated_at": "2026-09-24T01:55:26Z",
+  "producing_commit": "a35c798a29a93b2637e910bf12b095e81a46e3d1",
+  "report_end": null,
+  "the_one_variable": {
+    "names_rebound": [
+      "SIZE_REFERENCE_KWH_ELEC",
+      "SIZE_REFERENCE_KWH_GAS"
+    ],
+    "module": "company.crm.churn_model",
+    "blind_value": 0.0,
+    "why_zero": "it drives `estimate_churn_probability`'s `size_reference_kwh > 0` guard false, which is the documented path every household took before fc390b918",
+    "redraw_key": "churn_roll",
+    "redraw_symbol": "simulation.customer_events.churn_roll_for_renewal",
+    "both_legs_are_one_tree": true
+  },
+  "reconciliation_leg": {
+    "seed": null,
+    "blind": {
+      "seed": null,
+      "configuration": "blind",
+      "elapsed_s": 3138.1,
+      "peak_rss_mb": 7989.7,
+      "realised_delta": {
+        "net_margin_gbp": 10387.840616000001,
+        "gross_margin_gbp": -16324.945018765284,
+        "enterprise_value_gbp": 3699.513005689194,
+        "bad_debt_gbp": -7380.460000000001,
+        "accounts_at_end": -1,
+        "churned_accounts": 2
+      },
+      "accounts_the_arm_priced": 70,
+      "size_term_reached_calls": 5322,
+      "size_term_distinct_scales": 0,
+      "size_term_scale_range": null,
+      "churn_rolls": 0,
+      "churn_rolls_redrawn": 0,
+      "accounts_rerolled": 0,
+      "book_identity": {
+        "served_segments": [
+          "resi",
+          "SME"
+        ],
+        "served_segments_resolved_from": "curriculum",
+        "served_segments_override_env": null,
+        "served_segments_unavailable_because": null,
+        "billing_accounts_settled_in_window": 164,
+        "with_an_electricity_leg": 146,
+        "with_a_gas_leg": 98,
+        "dual_fuel": 80,
+        "dual_fuel_share_of_accounts": 0.4878048780487805,
+        "accounts_at_end_of_window": 60,
+        "what_each_count_selects": {
+          "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+          "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+        },
+        "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+      }
+    },
+    "seeing": {
+      "seed": null,
+      "configuration": "seeing",
+      "elapsed_s": 3092.4,
+      "peak_rss_mb": 8094.1,
+      "realised_delta": {
+        "net_margin_gbp": 13509.401031999994,
+        "gross_margin_gbp": 12355.223966642458,
+        "enterprise_value_gbp": 7510.866724154039,
+        "bad_debt_gbp": -5.040000000000873,
+        "accounts_at_end": 1,
+        "churned_accounts": 0
+      },
+      "accounts_the_arm_priced": 70,
+      "size_term_reached_calls": 5718,
+      "size_term_distinct_scales": 124,
+      "size_term_scale_range": [
+        0.116219,
+        11.288637
+      ],
+      "churn_rolls": 0,
+      "churn_rolls_redrawn": 0,
+      "accounts_rerolled": 0,
+      "book_identity": {
+        "served_segments": [
+          "resi",
+          "SME"
+        ],
+        "served_segments_resolved_from": "curriculum",
+        "served_segments_override_env": null,
+        "served_segments_unavailable_because": null,
+        "billing_accounts_settled_in_window": 164,
+        "with_an_electricity_leg": 146,
+        "with_a_gas_leg": 98,
+        "dual_fuel": 80,
+        "dual_fuel_share_of_accounts": 0.4878048780487805,
+        "accounts_at_end_of_window": 60,
+        "what_each_count_selects": {
+          "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+          "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+        },
+        "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+      }
+    },
+    "difference_seeing_minus_blind": {
+      "net_margin_gbp": 3121.560415999993,
+      "gross_margin_gbp": 28680.16898540774,
+      "enterprise_value_gbp": 3811.353718464845,
+      "bad_debt_gbp": 7375.42,
+      "accounts_at_end": 2,
+      "churned_accounts": -2
+    },
+    "books_agree": true,
+    "priced_move": 0
+  },
+  "seeds": [
+    {
+      "seed": 5101,
+      "blind": {
+        "seed": 5101,
+        "configuration": "blind",
+        "elapsed_s": 3208.1,
+        "peak_rss_mb": 8291.8,
+        "realised_delta": {
+          "net_margin_gbp": 7336.776509999996,
+          "gross_margin_gbp": -10337.680143261096,
+          "enterprise_value_gbp": 2622.6949849157536,
+          "bad_debt_gbp": -1068.949999999999,
+          "accounts_at_end": 0,
+          "churned_accounts": 0
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 6163,
+        "size_term_distinct_scales": 0,
+        "size_term_scale_range": null,
+        "churn_rolls": 247,
+        "churn_rolls_redrawn": 247,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 165,
+          "with_an_electricity_leg": 147,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.48484848484848486,
+          "accounts_at_end_of_window": 61,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "seeing": {
+        "seed": 5101,
+        "configuration": "seeing",
+        "elapsed_s": 3290.3,
+        "peak_rss_mb": 8280.6,
+        "realised_delta": {
+          "net_margin_gbp": 7983.909388,
+          "gross_margin_gbp": 581.3537473432953,
+          "enterprise_value_gbp": 1365.652458775905,
+          "bad_debt_gbp": -283.7399999999998,
+          "accounts_at_end": -1,
+          "churned_accounts": 1
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 6272,
+        "size_term_distinct_scales": 149,
+        "size_term_scale_range": [
+          0.447829,
+          11.288637
+        ],
+        "churn_rolls": 249,
+        "churn_rolls_redrawn": 249,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 165,
+          "with_an_electricity_leg": 147,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.48484848484848486,
+          "accounts_at_end_of_window": 61,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "difference_seeing_minus_blind": {
+        "net_margin_gbp": 647.132878000004,
+        "gross_margin_gbp": 10919.03389060439,
+        "enterprise_value_gbp": -1257.0425261398486,
+        "bad_debt_gbp": 785.2099999999991,
+        "accounts_at_end": -1,
+        "churned_accounts": 1
+      },
+      "books_agree": true,
+      "priced_move": 0
+    },
+    {
+      "seed": 5102,
+      "blind": {
+        "seed": 5102,
+        "configuration": "blind",
+        "elapsed_s": 3188.7,
+        "peak_rss_mb": 8165.8,
+        "realised_delta": {
+          "net_margin_gbp": 17685.503595999995,
+          "gross_margin_gbp": -34859.68673939095,
+          "enterprise_value_gbp": -108.22741243158816,
+          "bad_debt_gbp": -20404.08,
+          "accounts_at_end": -2,
+          "churned_accounts": 2
+        },
+        "accounts_the_arm_priced": 71,
+        "size_term_reached_calls": 5976,
+        "size_term_distinct_scales": 0,
+        "size_term_scale_range": null,
+        "churn_rolls": 247,
+        "churn_rolls_redrawn": 247,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 166,
+          "with_an_electricity_leg": 148,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.4819277108433735,
+          "accounts_at_end_of_window": 57,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "seeing": {
+        "seed": 5102,
+        "configuration": "seeing",
+        "elapsed_s": 3156.1,
+        "peak_rss_mb": 8153.1,
+        "realised_delta": {
+          "net_margin_gbp": 3290.340189999988,
+          "gross_margin_gbp": -18016.67714524275,
+          "enterprise_value_gbp": -1762.9031466423767,
+          "bad_debt_gbp": -870.8400000000001,
+          "accounts_at_end": -3,
+          "churned_accounts": 3
+        },
+        "accounts_the_arm_priced": 71,
+        "size_term_reached_calls": 6056,
+        "size_term_distinct_scales": 139,
+        "size_term_scale_range": [
+          0.116219,
+          11.288637
+        ],
+        "churn_rolls": 247,
+        "churn_rolls_redrawn": 247,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 166,
+          "with_an_electricity_leg": 148,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.4819277108433735,
+          "accounts_at_end_of_window": 57,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "difference_seeing_minus_blind": {
+        "net_margin_gbp": -14395.163406000007,
+        "gross_margin_gbp": 16843.0095941482,
+        "enterprise_value_gbp": -1654.6757342107885,
+        "bad_debt_gbp": 19533.24,
+        "accounts_at_end": -1,
+        "churned_accounts": 1
+      },
+      "books_agree": true,
+      "priced_move": 0
+    },
+    {
+      "seed": 5103,
+      "blind": {
+        "seed": 5103,
+        "configuration": "blind",
+        "elapsed_s": 3232.1,
+        "peak_rss_mb": 8072.4,
+        "realised_delta": {
+          "net_margin_gbp": 4004.9255640000047,
+          "gross_margin_gbp": -47994.41488716303,
+          "enterprise_value_gbp": -3793.760062434565,
+          "bad_debt_gbp": -7438.759999999999,
+          "accounts_at_end": -3,
+          "churned_accounts": 3
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 5877,
+        "size_term_distinct_scales": 0,
+        "size_term_scale_range": null,
+        "churn_rolls": 229,
+        "churn_rolls_redrawn": 229,
+        "accounts_rerolled": 70,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 164,
+          "with_an_electricity_leg": 146,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.4878048780487805,
+          "accounts_at_end_of_window": 62,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "seeing": {
+        "seed": 5103,
+        "configuration": "seeing",
+        "elapsed_s": 3097.3,
+        "peak_rss_mb": 8134.4,
+        "realised_delta": {
+          "net_margin_gbp": 6147.96281300002,
+          "gross_margin_gbp": -16722.60157921951,
+          "enterprise_value_gbp": 2880.59565192461,
+          "bad_debt_gbp": -452.22999999999956,
+          "accounts_at_end": -1,
+          "churned_accounts": 1
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 6061,
+        "size_term_distinct_scales": 142,
+        "size_term_scale_range": [
+          0.116219,
+          11.288637
+        ],
+        "churn_rolls": 235,
+        "churn_rolls_redrawn": 235,
+        "accounts_rerolled": 70,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 164,
+          "with_an_electricity_leg": 146,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.4878048780487805,
+          "accounts_at_end_of_window": 62,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "difference_seeing_minus_blind": {
+        "net_margin_gbp": 2143.0372490000154,
+        "gross_margin_gbp": 31271.81330794352,
+        "enterprise_value_gbp": 6674.355714359175,
+        "bad_debt_gbp": 6986.53,
+        "accounts_at_end": 2,
+        "churned_accounts": -2
+      },
+      "books_agree": true,
+      "priced_move": 0
+    },
+    {
+      "seed": 5104,
+      "blind": {
+        "seed": 5104,
+        "configuration": "blind",
+        "elapsed_s": 3275.5,
+        "peak_rss_mb": 8335.9,
+        "realised_delta": {
+          "net_margin_gbp": 7700.649226999987,
+          "gross_margin_gbp": -40783.145788434835,
+          "enterprise_value_gbp": -2004.963708354655,
+          "bad_debt_gbp": -8494.859999999999,
+          "accounts_at_end": -1,
+          "churned_accounts": 0
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 6145,
+        "size_term_distinct_scales": 0,
+        "size_term_scale_range": null,
+        "churn_rolls": 256,
+        "churn_rolls_redrawn": 256,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 166,
+          "with_an_electricity_leg": 148,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.4819277108433735,
+          "accounts_at_end_of_window": 60,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "seeing": {
+        "seed": 5104,
+        "configuration": "seeing",
+        "elapsed_s": 3234.2,
+        "peak_rss_mb": 8441.8,
+        "realised_delta": {
+          "net_margin_gbp": 27511.750039999984,
+          "gross_margin_gbp": 12302.239266449702,
+          "enterprise_value_gbp": 10319.927649996564,
+          "bad_debt_gbp": -8638.999999999998,
+          "accounts_at_end": 1,
+          "churned_accounts": -2
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 6541,
+        "size_term_distinct_scales": 154,
+        "size_term_scale_range": [
+          0.116219,
+          11.288637
+        ],
+        "churn_rolls": 265,
+        "churn_rolls_redrawn": 265,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 166,
+          "with_an_electricity_leg": 148,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.4819277108433735,
+          "accounts_at_end_of_window": 60,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "difference_seeing_minus_blind": {
+        "net_margin_gbp": 19811.100812999997,
+        "gross_margin_gbp": 53085.38505488454,
+        "enterprise_value_gbp": 12324.891358351219,
+        "bad_debt_gbp": -144.13999999999942,
+        "accounts_at_end": 2,
+        "churned_accounts": -2
+      },
+      "books_agree": true,
+      "priced_move": 0
+    },
+    {
+      "seed": 5105,
+      "blind": {
+        "seed": 5105,
+        "configuration": "blind",
+        "elapsed_s": 3176.2,
+        "peak_rss_mb": 8270.6,
+        "realised_delta": {
+          "net_margin_gbp": 7858.024054000009,
+          "gross_margin_gbp": -35991.78141100024,
+          "enterprise_value_gbp": -608.7139805208426,
+          "bad_debt_gbp": -8020.830000000002,
+          "accounts_at_end": -2,
+          "churned_accounts": 2
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 5762,
+        "size_term_distinct_scales": 0,
+        "size_term_scale_range": null,
+        "churn_rolls": 246,
+        "churn_rolls_redrawn": 246,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 165,
+          "with_an_electricity_leg": 147,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.48484848484848486,
+          "accounts_at_end_of_window": 60,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "seeing": {
+        "seed": 5105,
+        "configuration": "seeing",
+        "elapsed_s": 3136.1,
+        "peak_rss_mb": 8309.4,
+        "realised_delta": {
+          "net_margin_gbp": 7155.459177000012,
+          "gross_margin_gbp": -10806.95042968262,
+          "enterprise_value_gbp": 5022.65596030702,
+          "bad_debt_gbp": -1009.5300000000025,
+          "accounts_at_end": -1,
+          "churned_accounts": 1
+        },
+        "accounts_the_arm_priced": 70,
+        "size_term_reached_calls": 6147,
+        "size_term_distinct_scales": 146,
+        "size_term_scale_range": [
+          0.447829,
+          11.288637
+        ],
+        "churn_rolls": 254,
+        "churn_rolls_redrawn": 254,
+        "accounts_rerolled": 71,
+        "book_identity": {
+          "served_segments": [
+            "resi",
+            "SME"
+          ],
+          "served_segments_resolved_from": "curriculum",
+          "served_segments_override_env": null,
+          "served_segments_unavailable_because": null,
+          "billing_accounts_settled_in_window": 165,
+          "with_an_electricity_leg": 147,
+          "with_a_gas_leg": 98,
+          "dual_fuel": 80,
+          "dual_fuel_share_of_accounts": 0.48484848484848486,
+          "accounts_at_end_of_window": 60,
+          "what_each_count_selects": {
+            "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+            "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+          },
+          "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+        }
+      },
+      "difference_seeing_minus_blind": {
+        "net_margin_gbp": -702.5648769999971,
+        "gross_margin_gbp": 25184.830981317617,
+        "enterprise_value_gbp": 5631.369940827863,
+        "bad_debt_gbp": 7011.299999999999,
+        "accounts_at_end": 1,
+        "churned_accounts": -1
+      },
+      "books_agree": true,
+      "priced_move": 0
+    }
+  ],
+  "paired_difference": {
+    "net_margin_gbp": {
+      "n": 5,
+      "paired_mean": 1500.7085314000026,
+      "paired_stdev": 12185.491387773323,
+      "paired_sem": 5449.51741645988,
+      "min": -14395.163406000007,
+      "max": 19811.100812999997,
+      "seeds_positive": 3,
+      "seeds_negative": 2,
+      "sign_is_unanimous": false,
+      "distance_to_a_sign": {
+        "available": true,
+        "sems_from_zero": 0.2753837480851459,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "sems_needed_is_derived_from_the_family_size": true,
+        "seeds_needed_to_state_a_sign": null,
+        "seeds_at_the_point_estimate": 256,
+        "seeds_needed_interval": {
+          "at_the_point_estimate": 256,
+          "denominator_gbp": 1500.7085314000026,
+          "denominator_error_gbp": 5449.51741645988,
+          "denominator_one_error_low_gbp": -3948.808885059878,
+          "denominator_one_error_high_gbp": 6950.225947859883,
+          "price_at_the_low_end_of_the_denominator": 40,
+          "price_at_the_high_end_of_the_denominator": 15,
+          "these_two_are_not_a_range": "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the PRICE's. The price is not monotone between them: it rises without limit as the denominator approaches zero, and this denominator's own interval contains zero.",
+          "has_no_upper_bound": true,
+          "search_ceiling_seeds": 10000
+        },
+        "seeds_in_hand": 5,
+        "sign_if_it_were_stateable": "positive",
+        "seeds_needed_unavailable_because": "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it is asked only when that estimate has failed its own sign bar -- which is the statement that the denominator's interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of draws. The arithmetic at this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints one standard error either side are published beside it; they are not a range, because the quantity diverges between them.",
+        "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+        "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+      },
+      "published_one_seed_move": -634.0,
+      "published_move_in_sems": -0.3917243249745871
+    },
+    "gross_margin_gbp": {
+      "n": 5,
+      "paired_mean": 27460.814565779652,
+      "paired_stdev": 16299.46867049524,
+      "paired_sem": 7289.3439888710955,
+      "min": 10919.03389060439,
+      "max": 53085.38505488454,
+      "seeds_positive": 5,
+      "seeds_negative": 0,
+      "sign_is_unanimous": true,
+      "distance_to_a_sign": {
+        "available": true,
+        "sems_from_zero": 3.767254585282992,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "sems_needed_is_derived_from_the_family_size": true,
+        "seeds_needed_to_state_a_sign": 4,
+        "seeds_at_the_point_estimate": 4,
+        "seeds_needed_interval": null,
+        "seeds_in_hand": 5,
+        "sign_if_it_were_stateable": "positive",
+        "seeds_needed_unavailable_because": null,
+        "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+        "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+      },
+      "published_one_seed_move": 21450.0,
+      "published_move_in_sems": -0.8246029512335513
+    },
+    "enterprise_value_gbp": {
+      "n": 5,
+      "paired_mean": 4343.779750637524,
+      "paired_stdev": 5876.6124105450035,
+      "paired_sem": 2628.1009654795057,
+      "min": -1654.6757342107885,
+      "max": 12324.891358351219,
+      "seeds_positive": 3,
+      "seeds_negative": 2,
+      "sign_is_unanimous": false,
+      "distance_to_a_sign": {
+        "available": true,
+        "sems_from_zero": 1.652820727853957,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "sems_needed_is_derived_from_the_family_size": true,
+        "seeds_needed_to_state_a_sign": null,
+        "seeds_at_the_point_estimate": 10,
+        "seeds_needed_interval": {
+          "at_the_point_estimate": 10,
+          "denominator_gbp": 4343.779750637524,
+          "denominator_error_gbp": 2628.1009654795057,
+          "denominator_one_error_low_gbp": 1715.678785158018,
+          "denominator_one_error_high_gbp": 6971.88071611703,
+          "price_at_the_low_end_of_the_denominator": 48,
+          "price_at_the_high_end_of_the_denominator": 6,
+          "these_two_are_not_a_range": "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the PRICE's. The price is not monotone between them: it rises without limit as the denominator approaches zero, and this denominator's own interval at its own sign bar contains zero.",
+          "has_no_upper_bound": true,
+          "search_ceiling_seeds": 10000
+        },
+        "seeds_in_hand": 5,
+        "sign_if_it_were_stateable": "positive",
+        "seeds_needed_unavailable_because": "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it is asked only when that estimate has failed its own sign bar -- which is the statement that the denominator's interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of draws. The arithmetic at this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints one standard error either side are published beside it; they are not a range, because the quantity diverges between them.",
+        "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+        "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+      },
+      "published_one_seed_move": 1499.0,
+      "published_move_in_sems": -1.0824469029174015
+    },
+    "bad_debt_gbp": {
+      "n": 5,
+      "paired_mean": 6834.428,
+      "paired_stdev": 7851.873895387649,
+      "paired_sem": 3511.464756168571,
+      "min": -144.13999999999942,
+      "max": 19533.24,
+      "seeds_positive": 4,
+      "seeds_negative": 1,
+      "sign_is_unanimous": false,
+      "distance_to_a_sign": {
+        "available": true,
+        "sems_from_zero": 1.946318267325337,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "sems_needed_is_derived_from_the_family_size": true,
+        "seeds_needed_to_state_a_sign": null,
+        "seeds_at_the_point_estimate": 8,
+        "seeds_needed_interval": {
+          "at_the_point_estimate": 8,
+          "denominator_gbp": 6834.428,
+          "denominator_error_gbp": 3511.464756168571,
+          "denominator_one_error_low_gbp": 3322.963243831429,
+          "denominator_one_error_high_gbp": 10345.89275616857,
+          "price_at_the_low_end_of_the_denominator": 24,
+          "price_at_the_high_end_of_the_denominator": 5,
+          "these_two_are_not_a_range": "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the PRICE's. The price is not monotone between them: it rises without limit as the denominator approaches zero, and this denominator's own interval at its own sign bar contains zero.",
+          "has_no_upper_bound": true,
+          "search_ceiling_seeds": 10000
+        },
+        "seeds_in_hand": 5,
+        "sign_if_it_were_stateable": "positive",
+        "seeds_needed_unavailable_because": "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it is asked only when that estimate has failed its own sign bar -- which is the statement that the denominator's interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of draws. The arithmetic at this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints one standard error either side are published beside it; they are not a range, because the quantity diverges between them.",
+        "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+        "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+      },
+      "published_one_seed_move": 7505.0,
+      "published_move_in_sems": 0.19096646173708848
+    },
+    "accounts_at_end": {
+      "n": 5,
+      "paired_mean": 0.6,
+      "paired_stdev": 1.5165750888103102,
+      "paired_sem": 0.6782329983125268,
+      "min": -1,
+      "max": 2,
+      "seeds_positive": 3,
+      "seeds_negative": 2,
+      "sign_is_unanimous": false,
+      "distance_to_a_sign": {
+        "available": true,
+        "sems_from_zero": 0.8846517369293828,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "sems_needed_is_derived_from_the_family_size": true,
+        "seeds_needed_to_state_a_sign": null,
+        "seeds_at_the_point_estimate": 27,
+        "seeds_needed_interval": {
+          "at_the_point_estimate": 27,
+          "denominator_gbp": 0.6,
+          "denominator_error_gbp": 0.6782329983125268,
+          "denominator_one_error_low_gbp": -0.07823299831252684,
+          "denominator_one_error_high_gbp": 1.278232998312527,
+          "price_at_the_low_end_of_the_denominator": 1447,
+          "price_at_the_high_end_of_the_denominator": 8,
+          "these_two_are_not_a_range": "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the PRICE's. The price is not monotone between them: it rises without limit as the denominator approaches zero, and this denominator's own interval contains zero.",
+          "has_no_upper_bound": true,
+          "search_ceiling_seeds": 10000
+        },
+        "seeds_in_hand": 5,
+        "sign_if_it_were_stateable": "positive",
+        "seeds_needed_unavailable_because": "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it is asked only when that estimate has failed its own sign bar -- which is the statement that the denominator's interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of draws. The arithmetic at this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints one standard error either side are published beside it; they are not a range, because the quantity diverges between them.",
+        "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+        "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+      },
+      "published_one_seed_move": null,
+      "published_move_in_sems": null
+    },
+    "churned_accounts": {
+      "n": 5,
+      "paired_mean": -0.6,
+      "paired_stdev": 1.5165750888103102,
+      "paired_sem": 0.6782329983125268,
+      "min": -2,
+      "max": 1,
+      "seeds_positive": 2,
+      "seeds_negative": 3,
+      "sign_is_unanimous": false,
+      "distance_to_a_sign": {
+        "available": true,
+        "sems_from_zero": 0.8846517369293828,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "sems_needed_is_derived_from_the_family_size": true,
+        "seeds_needed_to_state_a_sign": null,
+        "seeds_at_the_point_estimate": 27,
+        "seeds_needed_interval": {
+          "at_the_point_estimate": 27,
+          "denominator_gbp": -0.6,
+          "denominator_error_gbp": 0.6782329983125268,
+          "denominator_one_error_low_gbp": -1.278232998312527,
+          "denominator_one_error_high_gbp": 0.07823299831252684,
+          "price_at_the_low_end_of_the_denominator": 8,
+          "price_at_the_high_end_of_the_denominator": 1447,
+          "these_two_are_not_a_range": "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the PRICE's. The price is not monotone between them: it rises without limit as the denominator approaches zero, and this denominator's own interval contains zero.",
+          "has_no_upper_bound": true,
+          "search_ceiling_seeds": 10000
+        },
+        "seeds_in_hand": 5,
+        "sign_if_it_were_stateable": "negative",
+        "seeds_needed_unavailable_because": "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it is asked only when that estimate has failed its own sign bar -- which is the statement that the denominator's interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of draws. The arithmetic at this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints one standard error either side are published beside it; they are not a range, because the quantity diverges between them.",
+        "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
+        "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
+      },
+      "published_one_seed_move": null,
+      "published_move_in_sems": null
+    }
+  },
+  "pairing_bought": {
+    "net_margin_gbp": {
+      "blind_leg_stdev": 5150.562492555804,
+      "seeing_leg_stdev": 9718.564863673442,
+      "stdev_if_the_legs_were_independent": 10999.036185009605,
+      "paired_stdev": 12185.491387773323,
+      "ratio_paired_to_independent": 1.1078690153216078,
+      "pairing_reduced_the_spread": false
+    },
+    "gross_margin_gbp": {
+      "blind_leg_stdev": 14199.173643599623,
+      "seeing_leg_stdev": 12838.903182748589,
+      "stdev_if_the_legs_were_independent": 19142.987413073384,
+      "paired_stdev": 16299.46867049524,
+      "ratio_paired_to_independent": 0.8514589869794194,
+      "pairing_reduced_the_spread": true
+    },
+    "enterprise_value_gbp": {
+      "blind_leg_stdev": 2379.1924253453435,
+      "seeing_leg_stdev": 4512.369087896383,
+      "stdev_if_the_legs_were_independent": 5101.179410903275,
+      "paired_stdev": 5876.6124105450035,
+      "ratio_paired_to_independent": 1.1520105326984413,
+      "pairing_reduced_the_spread": false
+    },
+    "bad_debt_gbp": {
+      "blind_leg_stdev": 7010.161509639418,
+      "seeing_leg_stdev": 3583.2359252455026,
+      "stdev_if_the_legs_were_independent": 7872.86123891435,
+      "paired_stdev": 7851.873895387649,
+      "ratio_paired_to_independent": 0.997334216507848,
+      "pairing_reduced_the_spread": true
+    },
+    "accounts_at_end": {
+      "blind_leg_stdev": 1.140175425099138,
+      "seeing_leg_stdev": 1.4142135623730951,
+      "stdev_if_the_legs_were_independent": 1.8165902124584952,
+      "paired_stdev": 1.5165750888103102,
+      "ratio_paired_to_independent": 0.8348471099367218,
+      "pairing_reduced_the_spread": true
+    },
+    "churned_accounts": {
+      "blind_leg_stdev": 1.3416407864998738,
+      "seeing_leg_stdev": 1.7888543819998317,
+      "stdev_if_the_legs_were_independent": 2.23606797749979,
+      "paired_stdev": 1.5165750888103102,
+      "ratio_paired_to_independent": 0.6782329983125268,
+      "pairing_reduced_the_spread": true
+    }
+  },
+  "leg_peak_rss_mb": {
+    "admission_price_used_mb": 7800.0,
+    "admission_price_is_a_bound_not_a_measurement": true,
+    "observed_max_mb": 8441.8,
+    "observed_min_mb": 7989.7,
+    "legs_weighed": 12,
+    "how_to_read_this": "`admission_price_used_mb` is the PAIR's measured peak used as an upper bound on a leg, because no leg had been weighed alone when this instrument was split. If `observed_max_mb` is materially below it over a full family, that bound is loose and `PAIRED_FLOOR_LEG_PEAK_MB` should be lowered to the measurement. These figures are meaningless for legs run in-process by a test harness."
+  }
+}

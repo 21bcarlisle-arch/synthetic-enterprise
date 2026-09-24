@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T20:24:58.572265Z",
+  "generated_at": "2026-09-24T02:29:13.506558Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -15,7 +15,8 @@
     "docs/design/blind_envelope_arms_2026-09-11.json",
     "docs/observability/churn_belief_size_response.json",
     "docs/observability/svt_drift_belief_grade.json",
-    "docs/observability/renewal_churn_belief_grade.json"
+    "docs/observability/renewal_churn_belief_grade.json",
+    "docs/observability/value_cycle_size_term_paired_floor.json"
   ],
   "blind_envelope": {
     "available": true,
@@ -181,6 +182,145 @@
     "which_book": "The 154 accounts these arms were scored over, read from `site/data/customers.json` at the commit the run recorded (b329e702b) and reconciled against the four counts the run published about its own book.",
     "population_is_not_this_pages_book": "The commit alone would only establish which CODE ran. These four counts were published by the run about its own book and recomputed here from the blob; all four agreeing is what makes this the arms' population rather than a roster of about the right size. The book at HEAD fails this check on every one of them.",
     "arms_book_unavailable_because": null
+  },
+  "size_term_paired_floor": {
+    "available": true,
+    "what_it_is": "The floor under the size-term contrast. The same churn-roll seed is taken through the belief BLIND to household size and the belief SEEING it, and the spread reported is the spread of the per-seed DIFFERENCE. It is not comparable to the `value_advantage` spreads in the noise-floor artefacts: those are the marginal noise on one reading and this is the noise on a paired contrast.",
+    "how_to_read_this": "Read `distance_to_a_sign` per row, not the mean. A row that cannot state a sign says this book cannot resolve that move -- including, if it comes to it, the gross-margin swing the size-term commit's finding rests on. `pairing_bought` says whether the shared seed actually cancelled anything: if `pairing_reduced_the_spread` is false, the two legs' worlds diverged far enough downstream that the pairing is decorative and the marginal spread is the honest bound.",
+    "the_one_variable": {
+      "names_rebound": [
+        "SIZE_REFERENCE_KWH_ELEC",
+        "SIZE_REFERENCE_KWH_GAS"
+      ],
+      "module": "company.crm.churn_model",
+      "blind_value": 0.0,
+      "why_zero": "it drives `estimate_churn_probability`'s `size_reference_kwh > 0` guard false, which is the documented path every household took before fc390b918",
+      "redraw_key": "churn_roll",
+      "redraw_symbol": "simulation.customer_events.churn_roll_for_renewal",
+      "both_legs_are_one_tree": true
+    },
+    "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns.",
+    "seeds_measured": [
+      5101,
+      5102,
+      5103,
+      5104,
+      5105
+    ],
+    "producing_commit": "a35c798a29a93b2637e910bf12b095e81a46e3d1",
+    "report_end": null,
+    "generated_at": "2026-09-24T01:55:26Z",
+    "rows": [
+      {
+        "row": "net_margin_gbp",
+        "n": 5,
+        "paired_mean": 1500.7085314000026,
+        "paired_stdev": 12185.491387773323,
+        "paired_sem": 5449.51741645988,
+        "min": -14395.163406000007,
+        "max": 19811.100812999997,
+        "sign_is_unanimous": false,
+        "sems_from_zero": 0.2753837480851459,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "the_contrast_clears_its_own_floor": false,
+        "published_one_seed_move": -634.0,
+        "published_move_in_sems": -0.3917243249745871,
+        "was_published_by_the_commit": true,
+        "ratio_paired_to_independent": 1.1078690153216078,
+        "pairing_reduced_the_spread": false
+      },
+      {
+        "row": "gross_margin_gbp",
+        "n": 5,
+        "paired_mean": 27460.814565779652,
+        "paired_stdev": 16299.46867049524,
+        "paired_sem": 7289.3439888710955,
+        "min": 10919.03389060439,
+        "max": 53085.38505488454,
+        "sign_is_unanimous": true,
+        "sems_from_zero": 3.767254585282992,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "the_contrast_clears_its_own_floor": true,
+        "published_one_seed_move": 21450.0,
+        "published_move_in_sems": -0.8246029512335513,
+        "was_published_by_the_commit": true,
+        "ratio_paired_to_independent": 0.8514589869794194,
+        "pairing_reduced_the_spread": true
+      },
+      {
+        "row": "enterprise_value_gbp",
+        "n": 5,
+        "paired_mean": 4343.779750637524,
+        "paired_stdev": 5876.6124105450035,
+        "paired_sem": 2628.1009654795057,
+        "min": -1654.6757342107885,
+        "max": 12324.891358351219,
+        "sign_is_unanimous": false,
+        "sems_from_zero": 1.652820727853957,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "the_contrast_clears_its_own_floor": false,
+        "published_one_seed_move": 1499.0,
+        "published_move_in_sems": -1.0824469029174015,
+        "was_published_by_the_commit": true,
+        "ratio_paired_to_independent": 1.1520105326984413,
+        "pairing_reduced_the_spread": false
+      },
+      {
+        "row": "bad_debt_gbp",
+        "n": 5,
+        "paired_mean": 6834.428,
+        "paired_stdev": 7851.873895387649,
+        "paired_sem": 3511.464756168571,
+        "min": -144.13999999999942,
+        "max": 19533.24,
+        "sign_is_unanimous": false,
+        "sems_from_zero": 1.946318267325337,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "the_contrast_clears_its_own_floor": false,
+        "published_one_seed_move": 7505.0,
+        "published_move_in_sems": 0.19096646173708848,
+        "was_published_by_the_commit": true,
+        "ratio_paired_to_independent": 0.997334216507848,
+        "pairing_reduced_the_spread": true
+      },
+      {
+        "row": "accounts_at_end",
+        "n": 5,
+        "paired_mean": 0.6,
+        "paired_stdev": 1.5165750888103102,
+        "paired_sem": 0.6782329983125268,
+        "min": -1.0,
+        "max": 2.0,
+        "sign_is_unanimous": false,
+        "sems_from_zero": 0.8846517369293828,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "the_contrast_clears_its_own_floor": false,
+        "published_one_seed_move": null,
+        "published_move_in_sems": null,
+        "was_published_by_the_commit": false,
+        "ratio_paired_to_independent": 0.8348471099367218,
+        "pairing_reduced_the_spread": true
+      },
+      {
+        "row": "churned_accounts",
+        "n": 5,
+        "paired_mean": -0.6,
+        "paired_stdev": 1.5165750888103102,
+        "paired_sem": 0.6782329983125268,
+        "min": -2.0,
+        "max": 1.0,
+        "sign_is_unanimous": false,
+        "sems_from_zero": 0.8846517369293828,
+        "sems_needed_to_state_a_sign": 2.7764451051977934,
+        "the_contrast_clears_its_own_floor": false,
+        "published_one_seed_move": null,
+        "published_move_in_sems": null,
+        "was_published_by_the_commit": false,
+        "ratio_paired_to_independent": 0.6782329983125268,
+        "pairing_reduced_the_spread": true
+      }
+    ],
+    "leg_peak_rss_mb": null
   },
   "renewal_churn_belief": {
     "available": true,
@@ -843,7 +983,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "a9bc0f55389268ac95d7309b01bfb85a6d0d63d6",
+    "publishing_tree_commit": "98d76bce2a5f55a39d8419d7d4556f2215058350",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -855,7 +995,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from a9bc0f553 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 98d76bce2 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -968,6 +1108,8 @@
       "sems_needed_to_state_a_sign": 2.306004135204166,
       "sems_needed_is_derived_from_the_family_size": true,
       "seeds_needed_to_state_a_sign": 3,
+      "seeds_at_the_point_estimate": 3,
+      "seeds_needed_interval": null,
       "seeds_in_hand": 9,
       "sign_if_it_were_stateable": "positive",
       "seeds_needed_unavailable_because": null,
@@ -1036,10 +1178,23 @@
         "sems_from_zero": 1.7865206920288081,
         "sems_needed_to_state_a_sign": 2.306004135204166,
         "sems_needed_is_derived_from_the_family_size": true,
-        "seeds_needed_to_state_a_sign": 14,
+        "seeds_needed_to_state_a_sign": null,
+        "seeds_at_the_point_estimate": 14,
+        "seeds_needed_interval": {
+          "at_the_point_estimate": 14,
+          "denominator_gbp": -1078.1657011111156,
+          "denominator_error_gbp": 603.5002594270147,
+          "denominator_one_error_low_gbp": -1681.6659605381303,
+          "denominator_one_error_high_gbp": -474.66544168410087,
+          "price_at_the_low_end_of_the_denominator": 7,
+          "price_at_the_high_end_of_the_denominator": 59,
+          "these_two_are_not_a_range": "The two prices above are the ends of the DENOMINATOR's interval, not the ends of the PRICE's. The price is not monotone between them: it rises without limit as the denominator approaches zero, and this denominator's own interval at its own sign bar contains zero.",
+          "has_no_upper_bound": true,
+          "search_ceiling_seeds": 10000
+        },
         "seeds_in_hand": 9,
         "sign_if_it_were_stateable": "negative",
-        "seeds_needed_unavailable_because": null,
+        "seeds_needed_unavailable_because": "NO SEED COUNT IS PUBLISHED FOR THIS FAMILY AND NO LARGER ONE WOULD CHANGE THAT. The count scales as (t x sd / |mean|)^2, so the estimate sits in the DENOMINATOR, and it is asked only when that estimate has failed its own sign bar -- which is the statement that the denominator's interval at that bar contains zero. A denominator that may be zero prices the question at no finite number of draws. The arithmetic at this family's point estimate is `seeds_at_the_point_estimate` and the two endpoints one standard error either side are published beside it; they are not a range, because the quantity diverges between them.",
         "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
         "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
       },
@@ -1217,7 +1372,7 @@
     },
     "level_leg": {
       "resolved": null,
-      "verdict_withheld_because": "4 of this family's 9 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups -- so the narrowness that would let this mean clear its bar is the same phenomenon as the repetition, and not evidence about the choosing. AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
+      "verdict_withheld_because": "4 of this family's 9 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups. AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
       "verdict_stability": {
         "checked": true,
         "n": 9,
@@ -1277,6 +1432,8 @@
         "sems_needed_to_state_a_sign": 2.306004135204166,
         "sems_needed_is_derived_from_the_family_size": true,
         "seeds_needed_to_state_a_sign": 2,
+        "seeds_at_the_point_estimate": 2,
+        "seeds_needed_interval": null,
         "seeds_in_hand": 9,
         "sign_if_it_were_stateable": "positive",
         "seeds_needed_unavailable_because": null,
@@ -1566,7 +1723,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "a9bc0f55389268ac95d7309b01bfb85a6d0d63d6",
+      "publishing_tree_commit": "98d76bce2a5f55a39d8419d7d4556f2215058350",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1578,7 +1735,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from a9bc0f553 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 98d76bce2 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -1642,11 +1799,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 166705.24,
       "run_identity": {
-        "dashboard_run_id": "run_output_a9bc0f553_20260923T195318Z.json",
-        "dashboard_commit": "a9bc0f553",
+        "dashboard_run_id": "run_output_26d4120ab_20260924T002107Z.json",
+        "dashboard_commit": "26d4120ab",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_6e984858f_20260923T172819Z.json",
-        "last_verified_commit": "6e984858f",
+        "last_verified_run_id": "run_output_26d4120ab_20260924T002107Z.json",
+        "last_verified_commit": "26d4120ab",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1769,9 +1926,23 @@
         "redundant_draws": 3,
         "what_this_counts": "re-draws of this floor returning a `selection_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
       },
+      "width_if_each_value_counted_once": {
+        "available": true,
+        "draws": 18,
+        "distinct_values": 15,
+        "estimate_gbp": -1013.9837783999974,
+        "bound_gbp": 406.55938048390414,
+        "bound_statistic": "sem_gbp",
+        "one_draw_moves_gbp": 1574.5977098585654,
+        "sems_from_zero": 2.494060713082333,
+        "sems_needed_to_state_a_sign": 2.144786687917804,
+        "clears_its_own_bar": true,
+        "what_this_is": "the published interval for `selection_gbp` recomputed over this family's 15 DISTINCT returned values rather than its 18 draws. It is a declared sensitivity and not the published width: the page states the figures on `selection_leg` itself, over all 18. Counting a pinned value once is not an unbiased estimate of anything -- it is the answer to one question, which is how much of the published bound's narrowness the repeats account for."
+      },
+      "repeats_change_the_bar_verdict": false,
       "sign_is_stateable": false,
-      "sign_withheld_because_the_family_repeats_draws": "5 of this family's 18 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups -- so the narrowness that would let this mean clear its bar is the same phenomenon as the repetition, and not evidence about the choosing.",
-      "sign_withheld_despite_clearing_the_bar_because": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. 5 of this family's 18 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups -- so the narrowness that would let this mean clear its bar is the same phenomenon as the repetition, and not evidence about the choosing.",
+      "sign_withheld_because_the_family_repeats_draws": "5 of this family's 18 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups. WHAT THE REPEATS ARE WORTH, MEASURED: counting each returned value once leaves 15 distinct values, a standard error of GBP 406.56 against the published GBP 384.62, and 2.4941 errors from zero against a bar of 2.145 on the 14 degrees of freedom that many buys. The bar verdict does NOT flip, so on this family the repeats are not what the bar-clearing is made of. This is a declared sensitivity and not a second published width -- and it does not lift the refusal, because a bound built across pinned values cannot be read as dispersion whichever side of its bar it falls.",
+      "sign_withheld_despite_clearing_the_bar_because": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. 5 of this family's 18 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups. WHAT THE REPEATS ARE WORTH, MEASURED: counting each returned value once leaves 15 distinct values, a standard error of GBP 406.56 against the published GBP 384.62, and 2.4941 errors from zero against a bar of 2.145 on the 14 degrees of freedom that many buys. The bar verdict does NOT flip, so on this family the repeats are not what the bar-clearing is made of. This is a declared sensitivity and not a second published width -- and it does not lift the refusal, because a bound built across pinned values cannot be read as dispersion whichever side of its bar it falls.",
       "sign": null,
       "sems_needed_to_state_a_sign": 2.1098155778333156,
       "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 17 degrees of freedom, which is what 18 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 18 draws as the mean, so the normal 1.96 would understate the tail. At 18 seeds the bar is 2.110; it falls towards 1.96 as the family grows.",
@@ -1790,7 +1961,7 @@
       "single_run_inside_the_family": null,
       "single_run_on_the_other_side_of_zero": null,
       "sign_withheld_because": "this family was measured over a different book from the run this page publishes, so it bounds the family and not the figure. THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction.",
-      "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 18 seed re-draws and `bound_gbp` is that same family's standard error over the same 18: those two ARE one population and bound each other. `single_run.gbp` is NOT among them -- it comes from a different book -- so this family states no direction about it and no figure here qualifies it. `one_draw_moves_gbp` is the family's standard deviation and is never divided into the mean."
+      "what_each_number_is_over": "`estimate_gbp` is the MEAN of this contrast across 18 seed re-draws and `bound_gbp` is that same family's standard error over the same 18: those two ARE one population and bound each other. `single_run.gbp` is NOT among them -- it comes from a different book -- so this family states no direction about it and no figure here qualifies it. `one_draw_moves_gbp` is the family's standard deviation and is never divided into the mean. THOSE 18 DRAWS RETURNED 15 DISTINCT VALUES: `estimate_gbp`, `bound_gbp` and `one_draw_moves_gbp` are each computed over the 18, repeats included, which is what a standard error over re-draws means and is not a correction that was skipped. Counting each returned value once instead gives GBP 406.56, published as `width_if_each_value_counted_once` -- a declared sensitivity, not this page's width."
     },
     "bounds_figure_gbp": -959.7811699444428,
     "bounds_figure_seeds": 18,
@@ -1874,7 +2045,7 @@
     "world_caveat": null,
     "elasticity_draws_min": 288,
     "single_run_inside_the_measured_band": null,
-    "reading": "The estimate sits 2.5 standard errors from zero against this family's own bar of 2.11, but no side is stated for a selection effect, because this family was measured over a different book from the run this page publishes, so it bounds the family and not the figure. THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. So what is published here bounds the seed family and nothing else on this page; the figure the rest of the page is drawn from is not graded by it. AND THE BOUND ITSELF IS PARTLY THE INSTRUMENT. 5 of this family's 18 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups -- so the narrowness that would let this mean clear its bar is the same phenomenon as the repetition, and not evidence about the choosing. The one published run -- \u00a34,327, which every other figure on this page is drawn from -- is NOT one of those 18: it and the family were measured over different books, so nothing above bounds it and no direction is stated about it here.",
+    "reading": "The estimate sits 2.5 standard errors from zero against this family's own bar of 2.11, but no side is stated for a selection effect, because this family was measured over a different book from the run this page publishes, so it bounds the family and not the figure. THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. So what is published here bounds the seed family and nothing else on this page; the figure the rest of the page is drawn from is not graded by it. AND THE BOUND ITSELF IS PARTLY THE INSTRUMENT. 5 of this family's 18 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups. WHAT THE REPEATS ARE WORTH, MEASURED: counting each returned value once leaves 15 distinct values, a standard error of GBP 406.56 against the published GBP 384.62, and 2.4941 errors from zero against a bar of 2.145 on the 14 degrees of freedom that many buys. The bar verdict does NOT flip, so on this family the repeats are not what the bar-clearing is made of. This is a declared sensitivity and not a second published width -- and it does not lift the refusal, because a bound built across pinned values cannot be read as dispersion whichever side of its bar it falls. The one published run -- \u00a34,327, which every other figure on this page is drawn from -- is NOT one of those 18: it and the family were measured over different books, so nothing above bounds it and no direction is stated about it here.",
     "legs_on_one_bar": {
       "available": false,
       "reason": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction.",
@@ -5205,7 +5376,7 @@
   },
   "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "a9bc0f55389268ac95d7309b01bfb85a6d0d63d6",
+    "commit": "98d76bce2a5f55a39d8419d7d4556f2215058350",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [

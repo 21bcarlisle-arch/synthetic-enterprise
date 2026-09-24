@@ -7242,7 +7242,13 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
               # panel DECLINES to quote -- and a refusal is exactly the case where the citation
               # matters most, because "we did not use this" is only checkable against the thing
               # not used.
-              gva.SVT_BELIEF_GRADE, gva.RENEWAL_BELIEF_SECOND_GRADE]
+              gva.SVT_BELIEF_GRADE, gva.RENEWAL_BELIEF_SECOND_GRADE,
+              # AND THE TWELFTH, added 2026-09-24 with the paired floor under the size-term
+              # movement. `_size_term_paired_floor` opens it unconditionally on every publish and
+              # the surface renders a REFUSAL from it on most rows -- "we cannot tell" -- which is
+              # the one verdict on this page a reader is most likely to want to argue with, and
+              # the citation is the only route from the sentence to the file that earned it.
+              gva.SIZE_TERM_PAIRED_FLOOR_PATH]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))
@@ -12352,3 +12358,155 @@ def test_both_grades_this_page_reads_are_CITED_in_its_sources():
     sources = gva.build(None, None)["sources"]
     assert "docs/observability/svt_drift_belief_grade.json" in sources
     assert "docs/observability/renewal_churn_belief_grade.json" in sources
+
+
+# ---------------------------------------------------------------------------------------------
+# THE PAIRED FLOOR UNDER THE SIZE-TERM MOVEMENT, AND ITS REFUSALS.
+#
+# WHY THESE LEGS ARE HERE AND NOT IN THE DOOR TEST. `site/test_the_paired_floor_under_the_size_
+# term_reaches_the_reader.py` drives the rendered page with MUTATED FEEDS, so it can reach every
+# branch of the RENDER and structurally cannot reach a single branch of the PRODUCER: by the time
+# a feed exists, `_size_term_paired_floor` has already decided whether to publish one. Its three
+# refusals are fail-closed branches that nothing else executes, and an untested refusal is the
+# control-that-cannot-fail shape this file's own header is about.
+#
+# THE PROPERTY, NOT TODAY'S ANSWER. Each leg below asserts that a specific ABSENCE is reported as
+# an absence with its reason -- never that a particular row clears or fails its bar. The live
+# artefact's verdicts belong to the measurement and move with every seed added to it.
+
+
+def _floor_artefact() -> dict:
+    """The smallest artefact `_size_term_paired_floor` will publish from.
+
+    Built here rather than read from `docs/observability/` on purpose: a fixture that loads the
+    live file makes every leg below depend on a measurement that is still being extended, and the
+    refusals are properties of the READER, not of any run.
+    """
+    return {
+        "what_this_is": "the floor under the size-term contrast",
+        "how_to_read_this": "read the distance per row, not the mean",
+        "the_one_variable": {"names_rebound": ["SIZE_REFERENCE_KWH_ELEC"]},
+        "producing_commit": "0" * 40,
+        "generated_at": "2026-09-24T00:00:00Z",
+        "report_end": None,
+        "leg_peak_rss_mb": 8441.8,
+        "seeds": [{"seed": 5101}, {"seed": 5102}],
+        "pairing_bought": {"net_margin_gbp": {
+            "ratio_paired_to_independent": 1.11, "pairing_reduced_the_spread": False}},
+        "paired_difference": {"net_margin_gbp": {
+            "n": 2, "paired_mean": 1500.0, "paired_stdev": 12185.0, "paired_sem": 5449.0,
+            "min": -14395.0, "max": 19811.0, "sign_is_unanimous": False,
+            "published_one_seed_move": -634.0, "published_move_in_sems": -0.39,
+            "distance_to_a_sign": {
+                "sems_from_zero": 0.28, "sems_needed_to_state_a_sign": 2.78,
+                "how_to_read_the_distance": "below the bar means the sign is NOT stateable"}}},
+    }
+
+
+def test_an_unreadable_paired_floor_is_an_ABSENCE_WITH_ITS_REASON_and_never_an_empty_table(
+        tmp_path):
+    """FAIL-CLOSED. A missing ruler and a movement that cannot be resolved are two states.
+
+    THE DEFECT. Both leave the figures `fc390b918` published ungraded, so a reader conflates them
+    unless the page names which one it is in. A producer that returned `available: True` with no
+    rows would render an empty table under a heading promising a verdict -- the most flattering
+    absence available, because a reader reads an empty table as "nothing to report".
+
+    Fires on: returning a populated-looking block from an unreadable artefact, or dropping `why`.
+    """
+    block = gva._size_term_paired_floor(tmp_path / "does_not_exist.json")
+    assert block["available"] is False
+    assert block["rows"] == [] and block["seeds_measured"] == []
+    assert "could not be read" in block["why"], (
+        "the refusal does not name its reason, so the one way to discover the refusal itself was "
+        "wrong is closed off: {!r}".format(block.get("why")))
+    assert "size_term_paired_floor" in block["why"], (
+        "the refusal does not say how to rebuild the artefact it is missing: {!r}".format(
+            block["why"]))
+
+
+def test_an_artefact_with_no_paired_differences_publishes_NOTHING(tmp_path):
+    """A floor with no rows is not a floor, and must not render as one.
+
+    Fires on: treating an empty `paired_difference` as a readable artefact.
+    """
+    artefact = _floor_artefact()
+    artefact["paired_difference"] = {}
+    path = tmp_path / "floor.json"
+    path.write_text(json.dumps(artefact), encoding="utf-8")
+    block = gva._size_term_paired_floor(path)
+    assert block["available"] is False and "no paired differences" in block["why"]
+
+
+def test_a_family_too_small_to_carry_a_SPREAD_is_refused_rather_than_published_as_a_point(
+        tmp_path):
+    """ONE PAIR IS A READING, NOT A FLOOR -- and publishing it would restate the very single-seed
+    figure this instrument exists to grade.
+
+    THE DEFECT. `size_term_paired_floor` itself refuses a one-pair family by leaving `paired_stdev`
+    unset; a consumer that rendered that row anyway would put the commit's own number back on the
+    page dressed as its own bound -- a figure grading itself, which is the tautology class.
+
+    Fires on: rendering a row whose spread is absent, e.g. by defaulting it to 0.0.
+    """
+    artefact = _floor_artefact()
+    artefact["paired_difference"]["net_margin_gbp"]["paired_stdev"] = None
+    path = tmp_path / "floor.json"
+    path.write_text(json.dumps(artefact), encoding="utf-8")
+    block = gva._size_term_paired_floor(path)
+    assert block["available"] is False and "two paired seeds" in block["why"]
+
+
+def test_the_verdict_is_the_ARTEFACTS_OWN_RULE_applied_once_and_BOTH_sides_are_reachable(tmp_path):
+    """`the_contrast_clears_its_own_floor` is `sems_from_zero >= sems_needed_to_state_a_sign`.
+
+    THE PARTITION, ASSERTED AS A PARTITION. A comparison that returned False for everything would
+    pass every "this row cannot be told apart" assertion anywhere in the tree -- the shape
+    CLAUDE.md names, where a guard that refuses everything passes every test of it. So this drives
+    the same artefact across the bar in both directions and over the third state, and asserts the
+    three come out DISTINCT rather than asserting each separately.
+
+    Fires on: hard-coding the boolean, inverting the comparison, or collapsing the null state.
+    """
+    seen = {}
+    for label, from_zero in (("below", 0.28), ("above", 3.77), ("unstateable", None)):
+        artefact = _floor_artefact()
+        artefact["paired_difference"]["net_margin_gbp"][
+            "distance_to_a_sign"]["sems_from_zero"] = from_zero
+        path = tmp_path / "floor_{}.json".format(label)
+        path.write_text(json.dumps(artefact), encoding="utf-8")
+        block = gva._size_term_paired_floor(path)
+        assert block["available"] is True
+        seen[label] = block["rows"][0]["the_contrast_clears_its_own_floor"]
+    assert seen == {"below": False, "above": True, "unstateable": None}, (
+        "the three states a distance can be in do not map to three distinct verdicts, so at least "
+        "two of them are indistinguishable on the page: {!r}".format(seen))
+
+
+def test_a_row_the_commit_never_published_is_MARKED_as_ungraded_and_still_measured(tmp_path):
+    """A floor row with no published move beside it is still a measurement, and is not a zero.
+
+    THE DEFECT. `was_published_by_the_commit` is what lets the surface render "not published"
+    rather than a blank, and a blank in a money column reads as zero -- a claim `fc390b918` never
+    made. This also pins the ORDER: the rows the commit published come first, because a reader
+    comparing a table to a commit message should not have to hunt.
+
+    Fires on: dropping the flag, or sorting the published rows in with the rest.
+    """
+    artefact = _floor_artefact()
+    artefact["pairing_bought"]["accounts_at_end"] = {
+        "ratio_paired_to_independent": 0.83, "pairing_reduced_the_spread": True}
+    artefact["paired_difference"]["accounts_at_end"] = {
+        "n": 2, "paired_mean": 0.6, "paired_stdev": 1.5, "paired_sem": 0.7,
+        "min": -1, "max": 2, "sign_is_unanimous": False,
+        "distance_to_a_sign": {"sems_from_zero": 0.88, "sems_needed_to_state_a_sign": 2.78}}
+    path = tmp_path / "floor.json"
+    path.write_text(json.dumps(artefact), encoding="utf-8")
+    rows = gva._size_term_paired_floor(path)["rows"]
+    assert [r["row"] for r in rows] == ["net_margin_gbp", "accounts_at_end"], (
+        "the rows the commit published are not first: {!r}".format([r["row"] for r in rows]))
+    assert rows[0]["was_published_by_the_commit"] is True
+    assert rows[1]["was_published_by_the_commit"] is False
+    assert rows[1]["published_one_seed_move"] is None, (
+        "a row the commit published no move for carries a figure, which a reader would read as "
+        "the commit's own")

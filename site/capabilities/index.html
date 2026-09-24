@@ -638,6 +638,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        NOT the book the arms above are scored over, and the page says so rather than letting the
        adjacency imply it. -->
   <div id="arms-churn-belief-size" style="margin:14px 0 0;"></div>
+  <!-- AND THE RULER UNDER IT. The block above reports what `fc390b918` CHANGED about the belief
+       and quotes the movement that commit published; this says whether that movement can be told
+       apart from its own noise. It sits here, directly under it, because the two are one claim:
+       a change published without the ruler that grades it is the flattering half of a result.
+
+       IT IS NOT ANY OF THE FLOORS ALREADY ON THIS PAGE, and that is the reason it exists. Every
+       other bound in this section measures the spread of readings WITHIN one configuration; the
+       size-term contrast is a difference BETWEEN two read at the same seed, so none of them can
+       price it. Nothing is authored here: the distances, the bar and the published one-seed move
+       are all the artefact's own fields, and the page renders the comparison its own
+       `how_to_read_the_distance` instructs -- with that string on the page beside it.
+
+       "WE CANNOT TELL" IS RENDERED AS A RESULT, NOT A FOOTNOTE. Most rows do not clear their own
+       bar and the page says so in the same type size as the one that does. -->
+  <div id="arms-size-term-floor" style="margin:14px 0 0;"></div>
   <!-- AND WHAT ACTUALLY HAPPENED. The block above is a property of the MODEL argued from the
        code: the belief is flat in the dimension the world reacts to. This is the OUTCOME test
        of the same claim, on the route where this section's arms actually price -- did that
@@ -3011,6 +3026,114 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + prose(cb.what_it_cannot_say || "") + " " + prose(cb.not_a_target || "") + "</p>"
             : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
               + prose(cb.why || "") + "</p>");
+
+      /* CAN THE MOVEMENT THE BLOCK ABOVE DESCRIBES BE TOLD APART FROM NOISE.
+
+         THE VERDICT WORD IS DERIVED FROM THE FEED'S OWN BOOLEAN, three-valued, and never from
+         the numbers beside it: a page that re-derives "clears" from a mean and a spread is a
+         second author of the comparison, and it would go on rendering the old rule after the
+         artefact changed its bar. `the_contrast_clears_its_own_floor` is the artefact's two
+         fields compared by its own stated rule, and that rule is printed under the table.
+
+         AMBER FOR "CANNOT TELL" AND PLAIN FOR "CLEARS", not red and green. An unresolvable row
+         is a RESULT this instrument was built to be able to return -- it is not a failure and
+         must not be coloured as one, and it must not be quieter than the row that cleared.
+
+         THE PAIRING COLUMN IS THE DESIGN'S OWN HYPOTHESIS GRADED. Common random numbers only
+         cancel while the two books stay together, and the size term changes prices, which
+         changes who stays. A ratio above 1.00 is that hypothesis refuted on the row: the paired
+         ruler came out WIDER than an independent one, so the row's "cannot tell" is the best
+         available ruler failing rather than a worse one being used. That is the opposite of a
+         caveat and the page states it rather than leaving the ratio to be read.
+
+         THE FAMILY SIZE IS ON THE SURFACE because it IS the bound -- the bar is t(n-1) and moves
+         with it. A run whose legs died leaves fewer pairs and a wider width, and the seeds that
+         actually completed both legs are named so a short family can never read as a whole one. */
+      var sf = d.size_term_paired_floor || {};
+      var sfRows = (sf.available && sf.rows ? sf.rows : []).map(function (r) {
+        var clears = r.the_contrast_clears_its_own_floor;
+        var verdict = clears === null || clears === undefined
+          ? '<span style="color:var(--muted);">not stated</span>'
+          : (clears ? "clears its floor"
+                    : '<span style="color:var(--amber);">cannot tell</span>');
+        return '<tr><td style="padding:1px 10px 1px 0;">' + esc(r.row)
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + esc(r.published_one_seed_move === null || r.published_one_seed_move === undefined
+              ? "not published" : signed(r.published_one_seed_move))
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + esc(signed(r.paired_mean)) + " &plusmn; " + esc(gbp(r.paired_stdev))
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + esc(Number(r.sems_from_zero).toFixed(2)) + " / "
+          + esc(Number(r.sems_needed_to_state_a_sign).toFixed(2))
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + esc(r.ratio_paired_to_independent === null
+                || r.ratio_paired_to_independent === undefined
+              ? "not stated" : Number(r.ratio_paired_to_independent).toFixed(2))
+          + '</td><td style="padding:1px 0;white-space:nowrap;">' + verdict + "</td></tr>";
+      }).join("");
+      /* COUNTED FROM THE FEED'S BOOLEANS, not typed. The sentence under the table says how many
+         of the commit's OWN published rows survive their floor, and a literal there would be a
+         claim pinned to today's answer -- which goes stale in the direction that flatters. */
+      var sfPublished = (sf.available && sf.rows ? sf.rows : []).filter(function (r) {
+        return r.was_published_by_the_commit && r.published_one_seed_move !== null
+          && r.published_one_seed_move !== undefined;
+      });
+      var sfCleared = sfPublished.filter(function (r) {
+        return r.the_contrast_clears_its_own_floor === true;
+      });
+      var sfWidened = (sf.available && sf.rows ? sf.rows : []).filter(function (r) {
+        return r.pairing_reduced_the_spread === false;
+      });
+      $("arms-size-term-floor").innerHTML =
+        '<p style="margin:0 0 4px;font-size:13px;"><strong>Can that movement be told apart from '
+        + "noise?</strong> "
+        + (sf.available
+            ? prose(sf.what_it_is)
+            : "This ruler could not be produced for this publish.")
+        + "</p>"
+        + (sf.available
+            ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;color:'
+              + (sfCleared.length === sfPublished.length && sfPublished.length > 0
+                  ? "var(--fg)" : "var(--amber)") + ';">'
+              + esc(sfCleared.length) + " of the " + esc(sfPublished.length)
+              + " figures that commit published clear"
+              + (sfCleared.length === 1 ? "s" : "") + " this floor, over "
+              + esc((sf.seeds_measured || []).length)
+              + " paired seeds. The rest cannot be told apart from it."
+              + "</p>"
+              + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + '<th style="text-align:left;padding:1px 10px 1px 0;font-weight:600;">Line</th>'
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Published, '
+              + "one seed</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Paired '
+              + "mean &plusmn; sd</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Errors from '
+              + "zero / needed</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Paired '
+              + "&divide; independent</th>"
+              + '<th style="text-align:left;padding:1px 0;font-weight:600;">Verdict</th></tr>'
+              + sfRows + "</table></div>"
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">Seeds measured: '
+              + esc((sf.seeds_measured || []).join(", "))
+              + ". Both legs of every one of them completed; the bar in the fourth column is "
+              + "t(n&minus;1) on that count and widens if it falls."
+              + (sfWidened.length
+                  ? " On " + esc(sfWidened.length) + " row"
+                    + (sfWidened.length === 1 ? "" : "s")
+                    + " the paired spread came out WIDER than two independent draws would have "
+                    + "been (the fifth column above 1.00), which refutes this design's own "
+                    + "hypothesis on those rows: the two legs' books diverged far enough "
+                    + "downstream that the shared seed cancelled nothing. Their verdict is the "
+                    + "best available ruler failing to resolve the move, not a worse ruler."
+                  : "")
+              + "</p>"
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(sf.how_to_read_the_distance || "") + "</p>"
+              + '<p style="margin:6px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(sf.how_to_read_this || "") + "</p>"
+            : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
+              + prose(sf.why || "") + "</p>");
 
       /* THE DIRECT TEST OF THE THESIS, AND IT IS THE PANEL DIRECTLY ABOVE STATED AS AN OUTCOME.
          The block above says the belief is FLAT in the dimension the world reacts to -- that is a

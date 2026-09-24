@@ -581,6 +581,15 @@ BLIND_ENVELOPE_ARMS_PATH = (
 #: time. See `_churn_belief_size_response`.
 CHURN_BELIEF_SIZE_PATH = (
     PROJECT / "docs" / "observability" / "churn_belief_size_response.json")
+
+#: THE RULER UNDER THE BLOCK ABOVE. `churn_belief_size` reports what `fc390b918` CHANGED about the
+#: belief; this reports whether the movement that commit published can be told apart from noise at
+#: all. It is a DIFFERENT instrument from every other floor this page cites and the difference is
+#: the whole point: `NOISE_FLOOR_PATH` and its family measure the spread of readings WITHIN one
+#: configuration, and the size-term contrast is a difference BETWEEN two, so none of them can price
+#: it. Written by `tools/size_term_paired_floor.py`, one leg per process, and READ here.
+SIZE_TERM_PAIRED_FLOOR_PATH = (
+    PROJECT / "docs" / "observability" / "value_cycle_size_term_paired_floor.json")
 OUT_PATH = PROJECT / "site" / "data" / "value_arms.json"
 
 #: What each arm IS, in the words a reader who does not work in energy can use. The third is the
@@ -15771,6 +15780,126 @@ def _churn_belief_size_response(path: Path | None = None) -> dict:
     }
 
 
+#: The rows `fc390b918` actually published a before/after for, in the order its own table printed
+#: them. A row of the floor that the commit never published a move for is still measured and still
+#: rendered -- it just cannot be graded against a published figure, and the surface says which is
+#: which rather than leaving a reader to notice a missing column.
+_SIZE_TERM_PUBLISHED_ROWS = (
+    "net_margin_gbp", "gross_margin_gbp", "enterprise_value_gbp", "bad_debt_gbp")
+
+
+def _size_term_paired_floor(path: Path | None = None) -> dict:
+    """Whether the movement `fc390b918` published can be told apart from its own noise.
+
+    WHY THIS IS NOT ANY OF THE FLOORS ALREADY ON THIS PAGE. Every one of them -- `error_bar`,
+    `floor_decomposition`, the folded18 family -- measures the spread of `value_advantage_gbp`
+    across seeds WITHIN one configuration. The size-term contrast is a difference BETWEEN two
+    configurations read at the SAME seed, and whatever seed noise the two readings share cancels
+    out of it. Grading a paired contrast against a marginal spread is the wrong ruler in a
+    direction that is not conservative either way: it can under-claim by ignoring the cancellation
+    and over-claim if the cancellation never happened. So this reads a floor built as a PAIRED one
+    and publishes, per row, both the distance from zero and whether the pairing bought anything.
+
+    NOTHING IS MEASURED HERE AND ONE THING IS COMPARED. The distances, the bar and the published
+    one-seed move are all the artefact's own fields. The only thing this composes is the boolean
+    `the_contrast_clears_its_own_floor`, which is `sems_from_zero >= sems_needed_to_state_a_sign`
+    -- the comparison the artefact's own `how_to_read_the_distance` instructs a reader to make,
+    and that string is carried onto the block beside the boolean so the rule can be checked rather
+    than taken. Composing the SENTENCE here would make this module a second author of a
+    conclusion; composing the COMPARISON the artefact spells out does not.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. This refuses when the artefact cannot state a
+    bar, never when the bar comes out on a particular side. A row that clears and a row that
+    cannot be told apart both render; "we cannot tell" is the result this instrument was built to
+    be able to return and it belongs on the surface, not in a footnote.
+
+    THE FAMILY SIZE IS PUBLISHED BECAUSE IT IS THE BOUND. A leg that died or was OOM-killed leaves
+    fewer pairs, and the width a smaller family earns is wider -- the bar itself is `t(n-1)` and
+    moves with it. `seeds_measured` is the seeds that actually completed BOTH legs, read from the
+    artefact rather than from what the run was asked for, so a partial family can never be
+    rendered as if it were whole.
+    """
+    def _unavailable(why: str) -> dict:
+        return {"available": False, "why": why, "rows": [], "seeds_measured": []}
+
+    loaded = _read(SIZE_TERM_PAIRED_FLOOR_PATH if path is None else path)
+    if not isinstance(loaded, dict):
+        return _unavailable(
+            "the paired floor artefact could not be read, so the movement the belief's size term "
+            "produced has no ruler on this page. Rebuild it with `python3 -m "
+            "tools.size_term_paired_floor --seeds ...` (about 53 minutes per leg, two legs a seed)")
+    rows = loaded.get("paired_difference")
+    if not isinstance(rows, dict) or not rows:
+        return _unavailable("the artefact carries no paired differences, so there is no floor")
+    bought = loaded.get("pairing_bought") or {}
+    seeds = [pair.get("seed") for pair in (loaded.get("seeds") or [])
+             if isinstance(pair, dict) and pair.get("seed") is not None]
+
+    out_rows = []
+    for name in list(_SIZE_TERM_PUBLISHED_ROWS) + [
+            k for k in sorted(rows) if k not in _SIZE_TERM_PUBLISHED_ROWS]:
+        summary = rows.get(name)
+        if not isinstance(summary, dict) or summary.get("paired_stdev") is None:
+            continue
+        distance = summary.get("distance_to_a_sign") or {}
+        from_zero = _f(distance.get("sems_from_zero"))
+        bar = _f(distance.get("sems_needed_to_state_a_sign"))
+        pairing = bought.get(name) or {}
+        out_rows.append({
+            "row": name,
+            "n": summary.get("n"),
+            "paired_mean": _f(summary.get("paired_mean")),
+            "paired_stdev": _f(summary.get("paired_stdev")),
+            "paired_sem": _f(summary.get("paired_sem")),
+            "min": _f(summary.get("min")),
+            "max": _f(summary.get("max")),
+            "sign_is_unanimous": summary.get("sign_is_unanimous"),
+            "sems_from_zero": from_zero,
+            "sems_needed_to_state_a_sign": bar,
+            # THE ONE COMPARISON THIS MODULE MAKES. Three-valued on purpose: a row whose artefact
+            # could not state a bar is not a row that failed to clear one, and a two-branch
+            # boolean would print the second for the first -- the shape the segment table two
+            # blocks up was repaired for.
+            "the_contrast_clears_its_own_floor": (
+                None if (from_zero is None or bar is None) else bool(from_zero >= bar)),
+            # WHAT THE COMMIT ACTUALLY PUBLISHED, beside the floor that grades it. A row the
+            # commit published no move for carries None here and the surface says so rather than
+            # rendering a blank a reader would read as zero.
+            "published_one_seed_move": _f(summary.get("published_one_seed_move")),
+            "published_move_in_sems": _f(summary.get("published_move_in_sems")),
+            "was_published_by_the_commit": name in _SIZE_TERM_PUBLISHED_ROWS,
+            # DID THE PAIRING BUY ANYTHING. The design's own hypothesis, published as a result
+            # rather than assumed: common random numbers only cancel while the two books stay
+            # together, and the size term changes prices, which changes who stays. A ratio above
+            # 1.0 is the hypothesis REFUTED on that row -- the paired ruler is wider than an
+            # independent one would have been, and the row's "cannot tell" is therefore the best
+            # available ruler failing, not a worse one being used.
+            "ratio_paired_to_independent": _f(pairing.get("ratio_paired_to_independent")),
+            "pairing_reduced_the_spread": pairing.get("pairing_reduced_the_spread"),
+        })
+    if not out_rows:
+        return _unavailable("no row of the artefact carries a spread, which needs two paired "
+                            "seeds; one pair is a reading and not a floor")
+    return {
+        "available": True,
+        "what_it_is": loaded.get("what_this_is"),
+        "how_to_read_this": loaded.get("how_to_read_this"),
+        "the_one_variable": loaded.get("the_one_variable"),
+        # THE RULE THE BOOLEAN ABOVE APPLIES, IN THE ARTEFACT'S WORDS, so a reader can check the
+        # comparison rather than take it -- including its own refusal to treat a short family as a
+        # cue to draw until a seed agrees.
+        "how_to_read_the_distance": (
+            ((rows.get("net_margin_gbp") or {}).get("distance_to_a_sign")
+             or {}).get("how_to_read_the_distance")),
+        "seeds_measured": seeds,
+        "producing_commit": loaded.get("producing_commit"),
+        "report_end": loaded.get("report_end"),
+        "generated_at": loaded.get("generated_at"),
+        "rows": out_rows,
+        "leg_peak_rss_mb": _f(loaded.get("leg_peak_rss_mb")),
+    }
+
+
 def build(three_arm: dict | None, floor: dict | None,
           decomposition: dict | None = None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
@@ -15816,7 +15945,12 @@ def build(three_arm: dict | None, floor: dict | None,
             # appearing here -- the exact drift this list was derived to stop, inside the list
             # itself. Both are named now: the grade the two belief panels are read from, and
             # the second grade the renewal panel declines to quote.
-            SVT_BELIEF_GRADE, RENEWAL_BELIEF_SECOND_GRADE)],
+            SVT_BELIEF_GRADE, RENEWAL_BELIEF_SECOND_GRADE,
+            # THE TWELFTH, added 2026-09-24 with the paired floor below. `generate` opens it on
+            # every publish and the surface renders a refusal from it, so it belongs here by this
+            # field's own stated rule; and a reader who wants to disagree with "we cannot tell"
+            # needs the file that says it, more than for any other row on this page.
+            SIZE_TERM_PAIRED_FLOOR_PATH)],
         # ABOVE THE `available` GATE ON PURPOSE, and it is the only block on this page that is.
         # Everything else here describes the three-arm A/B run and is correctly withheld when that
         # artefact cannot be read. The blind envelope is a DIFFERENT measurement on a different set
@@ -15830,6 +15964,14 @@ def build(three_arm: dict | None, floor: dict | None,
         # "the choosing found nothing" and "we could not run the comparison" are the two states a
         # reader confuses, and the account of why the choosing has little to find is true in both.
         "churn_belief_size": size_block,
+        # ABOVE THE `available` GATE for the block above's reasons and one of its own that is
+        # stronger than either. This is the RULER under the block above: `churn_belief_size` says
+        # what `fc390b918` changed about the belief, and this says whether the movement that
+        # commit published can be told apart from noise. Publishing the change while withholding
+        # the ruler -- which is what a gate on the three-arm artefact would do -- is the one
+        # arrangement of these two blocks that is actively misleading, because it leaves the
+        # flattering half on the page and takes the grading half off it.
+        "size_term_paired_floor": _size_term_paired_floor(),
         # ABOVE THE `available` GATE for the same two reasons as the block above it, and a
         # third of its own: this is the OUTCOME the block above argues the mechanism for, and
         # the pair only reads as a chain when both are present. It is a grade of the company's
