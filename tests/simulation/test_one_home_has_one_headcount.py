@@ -562,3 +562,101 @@ def test_the_property_record_declares_the_children_it_draws():
     assert any(p["children_count"] for p in properties.values()), (
         "no record in a 120-home book declares a child; the record is writing the constant again"
     )
+
+
+# ===========================================================================
+# THE SEED, WHICH EVERY AGREEMENT LEG ABOVE IS BLIND TO (2026-09-24)
+#
+# Every agreement leg in this file calls `behaviour_profile_for` with NO seed,
+# and the settled path always passes one:
+#
+#     profile = behaviour_profile_for(                  # fabric_demand_path.py:351
+#         customer_id, segments[0].household, seed=seed,
+#         people_count=people_count_for(customer_id),
+#     )
+#
+# So all three delegations hold today only because `composition_cuts_for` and
+# `children_count_for` ignore the seed entirely — and NOTHING SAYS THEY MUST.
+# Seeding them is the likely change, not an unlikely one: every other draw in
+# this world is seeded, so the inconsistency reads as an oversight to the next
+# reader who finds it. The moment either is seeded, the property record (whose
+# caller passes no seed) and the settled trace (whose caller always does)
+# disagree per home again, and every leg above STAYS GREEN because not one of
+# them passes a seed.
+#
+# This is the class that keeps recurring here: a control keyed to the two
+# FUNCTIONS rather than to the WIRING goes quiet when the wiring moves. These
+# two legs are keyed to the wiring.
+# ===========================================================================
+
+def test_the_composition_a_home_gets_does_not_depend_on_the_RUN_SEED():
+    """Who lives in a house is a fact about the house, not about which run is tracing it.
+
+    Asserted across the three cuts at once rather than a leg each, because they share one cause
+    (all three delegate to an unseeded function) and would be seeded in one edit.
+
+    Keyed to INVARIANCE, not to today's values — re-anchoring any share keeps this green, and
+    threading `seed` into either delegate reds it.
+    """
+    from simulation.dwelling_records import composition_cuts_for
+
+    moved = []
+    for cid in IDS:
+        household = _household_for(cid)
+        low = pt.behaviour_profile_for(cid, household, seed=1, people_count=4)
+        high = pt.behaviour_profile_for(cid, household, seed=987_654_321, people_count=4)
+        if (low.pensioner_present, low.someone_employed, low.children_count) != (
+                high.pensioner_present, high.someone_employed, high.children_count):
+            moved.append((cid,
+                          (low.pensioner_present, low.someone_employed, low.children_count),
+                          (high.pensioner_present, high.someone_employed, high.children_count)))
+    assert not moved, (
+        f"{len(moved)} of {len(IDS)} homes change household composition with the run seed: "
+        f"{moved[:5]}. The property record is built by a caller that passes no seed and the "
+        "settled trace by one that always does, so a seeded composition is two answers per home "
+        "again -- and every agreement leg in this file would stay green, because none passes a seed."
+    )
+    # And the seeded trace must still match the RECORD's own answer, which is the property the
+    # agreement legs above assert only in the unseeded case.
+    disagreements = [
+        cid for cid in IDS
+        if composition_cuts_for(cid) != (
+            lambda p: (p.pensioner_present, p.someone_employed)
+        )(pt.behaviour_profile_for(cid, _household_for(cid), seed=4242))
+    ]
+    assert not disagreements, (
+        f"{len(disagreements)} of {len(IDS)} seeded traces disagree with the property record: "
+        f"{disagreements[:5]}"
+    )
+
+
+def test_the_settled_path_lets_the_delegation_answer_and_does_not_supply_the_cuts_itself():
+    """The delegation is only reached for cuts the caller leaves None — `behaviour_profile_for`
+    documents exactly that — so a settled path that started passing its own `pensioner_present=`
+    would bypass `composition_cuts_for` and every agreement leg above would stay green.
+
+    Checked at the CALL in the settled module rather than by running a trace, because what must
+    hold is a property of the wiring and a trace over the real book costs minutes. The positive
+    control is that the call is FOUND: a rename that made this pattern match nothing would leave
+    the leg green for ever, which is the failure mode this file has already been bitten by twice.
+    """
+    root = pathlib.Path(__file__).resolve().parents[2]
+    source = (root / "simulation" / "fabric_demand_path.py").read_text()
+    call = re.search(r"behaviour_profile_for\((.*?)\n    \)", source, re.S)
+    assert call, (
+        "no `behaviour_profile_for(...)` call was found in simulation/fabric_demand_path.py. "
+        "Either the settled path stopped building a behaviour profile, or it was renamed and this "
+        "control is now blind -- it must not be read as the wiring being correct."
+    )
+    args = call.group(1)
+    assert "customer_id" in args, (
+        f"the settled path no longer keys its behaviour profile on the customer id: {args!r}. "
+        "`composition_cuts_for` is keyed on that id, so a different key is a different household."
+    )
+    for supplied in ("pensioner_present", "someone_employed", "children_count"):
+        assert supplied not in args, (
+            f"the settled path now supplies `{supplied}` itself: {args!r}. That bypasses the "
+            "delegation, so the traced house and the billed house are two households again -- and "
+            "every agreement leg in this file would stay green, because they call the delegate "
+            "directly rather than through this path."
+        )
