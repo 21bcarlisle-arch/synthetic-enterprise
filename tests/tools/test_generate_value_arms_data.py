@@ -93,6 +93,16 @@ THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN = (
 #: floor is published" reads this; a test that needs a PARTICULAR floor pins its dated name, as
 #: `THREE_ARM_20260829` does above.
 NOISE_FLOOR = gva.NOISE_FLOOR_PATH
+#: A FOLD, PINNED BY NAME, because the seed-row fallback below needs one and the published floor is
+#: not always one. It was read off `NOISE_FLOOR` while that constant happened to name a fold; on
+#: 2026-09-19 the constant moved onto the twelve at `18327d977`, which carries a realised summary,
+#: and the control's own precondition fired and told this file to pin a fold instead. Doing that is
+#: the rule two paragraphs above, not an exception to it: this test needs a PARTICULAR floor -- one
+#: whose `realised_across_seeds` is declared unavailable while its seed rows answer anyway -- and a
+#: property of "whatever is published" is exactly what it must not read.
+A_FOLD_DECLARING_ITS_REALISED_HALF_UNAVAILABLE = (
+    PROJECT / "docs" / "observability"
+    / "value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json")
 
 
 
@@ -757,18 +767,23 @@ def test_the_realised_counts_ADMIT_an_honest_re_run_and_REFUSE_a_different_book(
 
 
 def test_the_realised_leg_is_read_from_SEED_ROWS_when_the_fold_declares_it_unavailable():
-    """THE LIVE FLOOR IS A FOLD, and a fold's summary says the realised half is unavailable.
+    """A FOLD'S SUMMARY SAYS THE REALISED HALF IS UNAVAILABLE, and its seed rows answer anyway.
 
     `fold_noise_floor_family` refuses to reconcile realised counts across members -- each measured
-    its own range over its own seeds -- so `realised_across_seeds` is absent from the artefact this
-    page actually stands on. Its eighteen seed rows each carry the count anyway, and all eighteen
-    say 164. A guard that read only the summary would report "not askable" on the one pair where
-    the answer was sitting in front of it eighteen times, which is the shape that kept this
-    question unasked for nine days.
+    its own range over its own seeds -- so `realised_across_seeds` is absent from a folded artefact.
+    Its eighteen seed rows each carry the count anyway, and all eighteen say 164. A guard that read
+    only the summary would report "not askable" on the one pair where the answer was sitting in
+    front of it eighteen times, which is the shape that kept this question unasked for nine days.
+
+    PINNED TO A FOLD RATHER THAN TO THE PUBLISHED FLOOR (2026-09-19). This read `NOISE_FLOOR` while
+    that constant named the folded eighteen; when it moved onto the twelve at `18327d977` -- which
+    DOES carry a realised summary -- the precondition below fired and named this remedy. The
+    subject of this control is the fallback, not the feed, so it pins the artefact that exercises
+    it. The precondition stays: it is what makes the pin falsifiable if that file ever grows one.
     """
-    floor = _load(NOISE_FLOOR)
+    floor = _load(A_FOLD_DECLARING_ITS_REALISED_HALF_UNAVAILABLE)
     assert not ((floor.get("book_identity") or {}).get("realised_across_seeds")), (
-        "the live floor grew a realised summary, so this control no longer exercises the seed-row "
+        "the pinned fold grew a realised summary, so this control no longer exercises the seed-row "
         "fallback it was written for -- point it at a fold that still declares it unavailable")
 
     ranges, why_not = gva._floor_realised_book(floor)
@@ -8339,6 +8354,7 @@ _CLEARS_ZERO_KEYS = {
     # is meant to pick up. Classifying it says "we looked at this one"; excluding it by pattern
     # would silently widen the hole to every future key that ends the same way.
     ("selection_leg", "sign_withheld_despite_clearing_the_bar_because"): "REASON",
+    ("selection_leg", "sign_withheld_because"): "REASON",
     # THE SECOND REASON, DECLARED FOR THE SAME REASON THE FIRST IS. It is `null` on any family that
     # repeats nothing, and a `null` under a `sign`-shaped name is exactly what the wide net exists
     # to pick up. It is a REASON and not a verdict: the verdict it feeds is `sign_is_stateable`
@@ -8361,6 +8377,59 @@ _CLEARS_ZERO_KEYS = {
     ("distinguishable_reconciliation", "agree"): "META",
     ("distinguishable_reconciliation", "the_two_rules_are_one_rule"): "META",
     ("distinguishable_reconciliation", "sign_stated_despite_disagreement"): "META",
+
+    # ------------------------------------------------------------------------------------------
+    # `legs_on_one_bar`, GRADED FOR THE FIRST TIME ON 2026-09-19 and not because it was added then.
+    # This block has rendered for weeks; its leaves were unreachable on the PUBLISHED feed because
+    # `_floor_admission` refused the floor and the page stated no direction, so every key below sat
+    # outside the net while the registry read as complete. Moving `NOISE_FLOOR_PATH` onto a floor
+    # over the figure's own book made the block answer, and eighteen keys arrived at once. A
+    # registry that is only ever exercised on the branch the page happens to be taking is the
+    # unreachable-branch shape this file has paid for elsewhere: it passes, and nothing can say
+    # whether it passed because the payload is sound or because the keys never rendered.
+
+    # THE SELECTION LEG HAS TWO HOMES, and this is the pair this whole section exists to police:
+    # `legs_on_one_bar/legs/selection_gbp` republishes `selection_leg`'s own numbers. Graded in the
+    # SAME classes as the originals, so the agreement check compares them rather than trusting that
+    # one generator wrote both. They do agree today -- which is the point: it is now asserted.
+    ("legs_on_one_bar", "legs", "selection_gbp", "clears_its_own_bar"): "STATISTICAL",
+    ("legs_on_one_bar", "legs", "selection_gbp", "sign_is_stateable"): "CONSERVATIVE",
+    ("legs_on_one_bar", "legs", "selection_gbp", "sign"): "DERIVED",
+    ("legs_on_one_bar", "legs", "selection_gbp", "sign_withheld_because"): "REASON",
+    ("legs_on_one_bar", "legs", "selection_gbp",
+     "sign_withheld_despite_clearing_the_bar_because"): "REASON",
+
+    # ANOTHER QUANTITY ENTIRELY, and mis-filing these as STATISTICAL is the trap. The value and
+    # level legs ask the same-SHAPED question of a DIFFERENT contrast, and today they answer it
+    # oppositely to the selection leg on purpose: both clear the 2.20 bar (7.4 and 4.7 sems) while
+    # selection does not (0.17). Putting them in STATISTICAL would demand that three different
+    # quantities give one answer and would red this page for being informative. They are NOT
+    # unchecked, though -- `_leg_is_internally_consistent` below grades every leg on the bar,
+    # which is the per-leg half of the DERIVED rule that had only ever run on `selection_leg`.
+    ("legs_on_one_bar", "legs", "value_advantage_gbp", "clears_its_own_bar"): "ANOTHER_QUANTITY",
+    ("legs_on_one_bar", "legs", "value_advantage_gbp", "sign_is_stateable"): "ANOTHER_QUANTITY",
+    ("legs_on_one_bar", "legs", "value_advantage_gbp",
+     "seeds_needed_to_state_a_sign"): "ANOTHER_QUANTITY",
+    ("legs_on_one_bar", "legs", "value_advantage_gbp", "sign_withheld_because"): "REASON",
+    ("legs_on_one_bar", "legs", "value_advantage_gbp",
+     "sign_withheld_despite_clearing_the_bar_because"): "REASON",
+    ("legs_on_one_bar", "legs", "level_advantage_gbp", "clears_its_own_bar"): "ANOTHER_QUANTITY",
+    ("legs_on_one_bar", "legs", "level_advantage_gbp", "sign_is_stateable"): "ANOTHER_QUANTITY",
+    ("legs_on_one_bar", "legs", "level_advantage_gbp",
+     "seeds_needed_to_state_a_sign"): "ANOTHER_QUANTITY",
+    ("legs_on_one_bar", "legs", "level_advantage_gbp", "sign_withheld_because"): "REASON",
+    ("legs_on_one_bar", "legs", "level_advantage_gbp",
+     "sign_withheld_despite_clearing_the_bar_because"): "REASON",
+
+    # A DIFFERENT NULL, NOT A DIFFERENT HOME. These ask whether an AUC clears its own PERMUTATION
+    # null -- a rank statistic against its own distribution, which is not "does this mean clear
+    # zero" and must never be folded into that answer. The name scan catches them because they
+    # carry `clears` and `agree`; classifying them is how the file records that it looked and
+    # decided they are out of scope, rather than widening the net's blind spot by pattern.
+    ("discrimination_across_the_family", "against_the_statistics_own_null", "auc_by_seed",
+     "clears_its_own_null"): "ANOTHER_QUANTITY",
+    ("discrimination_across_the_family", "against_the_statistics_own_null",
+     "closed_form_agrees_with_the_exact_null"): "ANOTHER_QUANTITY",
 }
 
 #: THE NET, CAST WIDER THAN THE REGISTRY ON PURPOSE. Any boolean leaf under `error_bar` whose name
@@ -8386,14 +8455,71 @@ def _boolean_leaves(node, path=()):
 _ABSENT = object()
 
 
+#: A key that lives on every row of a LIST and does not say the same thing on all of them. Its own
+#: value, never `_ABSENT`: the row is published, it just has no single answer to carry.
+_SEVERAL = object()
+
+
 def _at(node, path):
     """The value at `path`, or `_ABSENT`. Distinguished from a published `None` on purpose: a key
-    that is missing and a key that answered "I could not tell" are different findings."""
-    for part in path:
+    that is missing and a key that answered "I could not tell" are different findings.
+
+    LISTS ARE WALKED, THE SAME WAY THE NET WALKS THEM (2026-09-19). `_boolean_leaves` drops list
+    indices, so a per-row key surfaces from the net as `(.., 'auc_by_seed', 'clears_its_own_null')`
+    and the registry has to be able to name it by that exact path or it can never be classified.
+    While this returned `_ABSENT` for any path through a list, declaring such a key produced the
+    OPPOSITE complaint -- "the registry names a key the payload no longer publishes" -- so the only
+    two options were a false alarm or a permanent hole in the net. Unanimous rows collapse to the
+    one answer; disagreeing rows return `_SEVERAL` rather than silently picking the first, which
+    would be this file's own recurring defect committed inside the control that polices it.
+    """
+    for index, part in enumerate(path):
+        if isinstance(node, list):
+            seen = [value for value in (_at(item, path[index:]) for item in node)
+                    if value is not _ABSENT]
+            if not seen:
+                return _ABSENT
+            first = seen[0]
+            return first if all(value == first for value in seen) else _SEVERAL
         if not isinstance(node, dict) or part not in node:
             return _ABSENT
         node = node[part]
     return node
+
+
+def _its_block_rendered(error_bar: dict, path) -> bool:
+    """Did the CONTAINER this key belongs to render, so that the key's absence is a real deletion?
+
+    A REGISTRY ROW AND A REFUSAL LOOK THE SAME WITHOUT THIS, and the difference is the whole
+    question (2026-09-19). `legs_on_one_bar` renders only when the floor is admitted; on a page
+    that honestly refuses, the block is absent and every one of its rows would report as "the key
+    was renamed or deleted". That is the wrong direction to fail in twice over: it reds an honest
+    refusal, and the obvious way to silence it -- dropping the rows -- restores the hole in the net
+    that let those keys go ungraded for weeks in the first place.
+
+    So: the block did not render, the rows sleep. The block DID render and the key is gone, that is
+    a rename or a deletion and it complains, which is the case the check was written for. The
+    top-level keys are unaffected -- their container is `error_bar`, which always exists.
+
+    AND A BLOCK THAT REFUSED IN WORDS DID NOT RENDER EITHER (2026-09-24). An ABSENT container and a
+    container that is present saying `available: False` are the same event on this page -- the
+    refusal is how this module says "nothing was measured here" -- but only the first was being
+    read that way, because the second IS a dict and a dict that lacks the key looks exactly like a
+    deletion. `against_the_statistics_own_null` is the live instance: it renders
+    `{available, reading, reason}` on today's disk, so its declared leaf
+    `closed_form_agrees_with_the_exact_null` reported as renamed-or-deleted while the producer
+    still publishes it on every page where the block is available. Keyed to the PROPERTY the
+    docstring above already states -- did the container render its contents -- and not to which
+    blocks happen to be refused today.
+    """
+    parent = _at(error_bar, tuple(path[:-1]))
+    if isinstance(parent, dict):
+        if parent.get("available") is False:
+            return False
+        return path[-1] not in parent
+    if isinstance(parent, list):
+        return any(isinstance(row, dict) and path[-1] not in row for row in parent)
+    return False
 
 
 def _clears_zero_answers(error_bar: dict) -> tuple:
@@ -8430,7 +8556,8 @@ def clears_zero_complaints(error_bar: dict) -> list:
             "classified: {}. A new home for this question is exactly the defect this section "
             "exists for -- classify it STATISTICAL, CONSERVATIVE, DERIVED or META and say "
             "which".format(len(unclassified), unclassified))
-    missing = sorted(path for path, value in declared.items() if value is _ABSENT)
+    missing = sorted(path for path, value in declared.items()
+                     if value is _ABSENT and _its_block_rendered(error_bar, path))
     if missing:
         out.append(
             "the registry names key(s) the payload no longer publishes: {}. Either the key was "
@@ -8443,7 +8570,15 @@ def clears_zero_complaints(error_bar: dict) -> list:
                    if kind == "STATISTICAL"}
     # REACHABILITY BEFORE THE VERDICT. One statistical key agrees with itself; this is only a
     # control while there are at least two of them, and at least two that actually answered.
-    answered = {path: value for path, value in statistical.items() if value is not None}
+    # AN ABSENT KEY IS NOT AN ANSWER, and it read as one until 2026-09-19. `_ABSENT` is a sentinel
+    # OBJECT, so `value is not None` admitted it, and it then compared unequal to every real
+    # boolean -- meaning the moment a STATISTICAL row named a key some payload does not render, the
+    # control reported "one question, two answers" about a question only one key had answered. It
+    # could not bite while every statistical row was in every payload; the `legs_on_one_bar` rows
+    # are the first that render conditionally, and they found it. `_SEVERAL` goes the same way for
+    # the same reason: rows that disagree among themselves have not given one answer either.
+    answered = {path: value for path, value in statistical.items()
+                if value is not None and value is not _ABSENT and value is not _SEVERAL}
     if len(answered) < 2:
         return ["fewer than two keys in the payload actually answered this question ({}), so any "
                 "agreement is between one answer and itself".format(sorted(statistical))]
@@ -8480,6 +8615,23 @@ def clears_zero_complaints(error_bar: dict) -> list:
         out.append("a seed count is quoted at a family that already clears its own bar, so the "
                    "page prices machine-hours against a refusal more seeds cannot buy off")
 
+    # AND THE SAME TWO RULES ON EVERY OTHER LEG ON THE BAR. They were written against
+    # `selection_leg` because it was the only leg whose keys the published feed ever rendered --
+    # the others sat behind a refused floor. They are properties of a LEG, not of that leg, so a
+    # value or level leg publishing a direction its own `sign_is_stateable` denies is the identical
+    # defect and went ungraded until 2026-09-19.
+    for name, body in sorted(((error_bar.get("legs_on_one_bar") or {}).get("legs") or {}).items()):
+        if not isinstance(body, dict) or body.get("available") is not True:
+            continue
+        if (body.get("sign") is not None) is not (body.get("sign_is_stateable") is True):
+            out.append("the {} leg publishes a direction ({!r}) that does not follow its own "
+                       "`sign_is_stateable` ({!r})".format(
+                           name, body.get("sign"), body.get("sign_is_stateable")))
+        if body.get("seeds_needed_to_state_a_sign") is not None and (
+                body.get("clears_its_own_bar") is not False):
+            out.append("the {} leg quotes a seed count at a family that already clears its own "
+                       "bar, pricing machine-hours against a refusal seeds cannot buy off".format(
+                           name))
     # A SENSITIVITY IS ALLOWED TO DISAGREE -- THAT IS WHAT IT IS FOR -- BUT NOT TO ARRIVE BARE.
     # Two correct figures answering one question with nothing stating their relationship is this
     # project's most expensive recurring shape, and a second clears-zero verdict dropped into the
@@ -8541,6 +8693,82 @@ def test_NO_TWO_KEYS_in_the_payload_answer_the_clears_zero_question_oppositely()
     assert not complaints, "; ".join(complaints)
 
 
+def test_a_registry_row_SLEEPS_when_its_block_is_absent_and_COMPLAINS_when_its_block_rendered():
+    """BOTH SIDES OF THE PARTITION, because a rule that always sleeps is the fail-open here.
+
+    `_its_block_rendered` was added 2026-09-19 to tell an unrendered BLOCK from a deleted KEY. Each
+    side alone passes a plausible test and each alone is a defect: always-sleep silently retires
+    the completeness check that catches a rename, always-complain reds every honest refusal, since
+    `legs_on_one_bar` does not render while the floor is refused. So the two are asserted together,
+    over one registry row, with only the surrounding block changed between them.
+
+    MUTATION: return a constant from `_its_block_rendered` -- either constant reds exactly one leg
+    below, and no other control in this file notices, which is what made it worth writing.
+    """
+    row = ("legs_on_one_bar", "legs", "selection_gbp", "clears_its_own_bar")
+    assert row in _CLEARS_ZERO_KEYS, "this control is pinned to a row the registry no longer names"
+
+    # THE BLOCK IS ABSENT -- a page that refuses. The row sleeps; nothing is deleted.
+    assert _its_block_rendered({"available": True}, row) is False, (
+        "a registry row reported its key deleted on a page whose whole block never rendered, so "
+        "every honest refusal reds this suite")
+
+    # THE BLOCK RENDERED AND THE KEY IS GONE -- a rename or a deletion, which is the case the
+    # completeness check exists for and the one a scan can never catch on its own.
+    rendered_without_it = {"legs_on_one_bar": {"legs": {"selection_gbp": {"sign": None}}}}
+    assert _its_block_rendered(rendered_without_it, row) is True, (
+        "the block published its leg and dropped the key the registry names, and the check was "
+        "silent -- which is a scan gone blind to a renamed home, the defect this section exists "
+        "for")
+
+    # AND THE KEY IS THERE -- no complaint, or the check fires on every healthy payload.
+    present = {"legs_on_one_bar": {"legs": {"selection_gbp": {"clears_its_own_bar": False}}}}
+    assert _its_block_rendered(present, row) is False
+
+    # THE BLOCK IS PRESENT AND SAYS IT MEASURED NOTHING -- the same event as an absent block, and
+    # the leg added 2026-09-24. Without it the refusal's own `{available, reading, reason}` dict
+    # reads as a container that rendered and dropped the key. MUTATION: delete the `available is
+    # False` branch and this leg alone reds, because every other leg here hands a container that
+    # either is missing entirely or declares nothing about `available`.
+    refused = {"legs_on_one_bar": {"legs": {"selection_gbp": {
+        "available": False, "reason": "no floor was admitted"}}}}
+    assert _its_block_rendered(refused, row) is False, (
+        "a block that refused in words was read as a block that rendered and lost the key, so an "
+        "honest refusal reds the registry -- the same wrong direction the absent-block leg above "
+        "exists to prevent")
+
+
+def test_a_registry_row_ON_EVERY_LIST_ROW_is_read_rather_than_reported_missing():
+    """`_at` WALKS LISTS, because the net that finds these keys drops the index (2026-09-19).
+
+    `auc_by_seed` is a list of per-seed dicts, so `clears_its_own_null` surfaces from the scan as a
+    path with no index in it. Until `_at` could follow that path the registry could not name the
+    key at all: declaring it produced "the payload no longer publishes this" and not declaring it
+    left a permanent hole in the net. Both legs of the collapse are asserted -- unanimous rows give
+    the one answer, disagreeing rows give `_SEVERAL` and never the first row's answer, which would
+    be this file's own recurring defect committed inside the control that polices it.
+    """
+    path = ("rows", "clears")
+    assert _at({"rows": [{"clears": False}, {"clears": False}]}, path) is False
+    assert _at({"rows": [{"clears": True}, {"clears": True}]}, path) is True
+    assert _at({"rows": [{"clears": True}, {"clears": False}]}, path) is _SEVERAL, (
+        "rows that disagree collapsed to one row's answer, so a payload where some seeds clear "
+        "their null and others do not would publish whichever row happened to be first")
+    assert _at({"rows": [{"something_else": 1}]}, path) is _ABSENT, (
+        "a key on no row at all reported as an answer rather than as absent")
+
+    # AND IT IS NOT TREATED AS AN ANSWER TO THE CLEARS-ZERO QUESTION. `_SEVERAL` and `_ABSENT` both
+    # mean "this key did not give one answer", and admitting either is how an absent key came to
+    # read as a second, disagreeing home.
+    for sentinel in (_SEVERAL, _ABSENT):
+        statistical = {("a",): True, ("b",): sentinel}
+        answered = {p: v for p, v in statistical.items()
+                    if v is not None and v is not _ABSENT and v is not _SEVERAL}
+        assert list(answered) == [("a",)], (
+            "{!r} counted as an answer, so one key answering reads as two keys disagreeing".format(
+                sentinel))
+
+
 def test_the_control_FIRES_on_a_payload_whose_two_homes_disagree():
     """R15: the whole-payload control above must be able to REFUSE, on each defect it names.
 
@@ -8560,8 +8788,14 @@ def test_the_control_FIRES_on_a_payload_whose_two_homes_disagree():
     """
     def payload(**leg):
         base = {"available": True, "distinguishable_from_zero": True,
+                # EVERY `selection_leg` ROW THE REGISTRY NAMES, because the missing-row check
+                # grades a block that DID render, and this one does. `sign_withheld_because` was
+                # added to the registry on 2026-09-19 with the other seventeen keys the refused
+                # floor had kept out of the net; a fixture that omits it would report a live key as
+                # deleted and turn the completeness check into noise.
                 "selection_leg": dict({"clears_its_own_bar": True, "sign_is_stateable": True,
                                        "sign": "negative", "seeds_needed_to_state_a_sign": None,
+                                       "sign_withheld_because": None,
                                        "sign_withheld_despite_clearing_the_bar_because": None,
                                        # THE SECOND REASON KEY, CARRIED BY THE SOUND WITNESS TOO.
                                        # The registry declares it, so a payload that omitted it
@@ -11104,6 +11338,473 @@ def test_the_live_artefacts_publish_the_pointer_their_own_bounds_block_earns():
                         "holds" if holds_a_family else "does not hold"))
 
 
+# --------------------------------------------------------------------------------------------
+# THE COMPOSITION REFUSAL'S FLOOR IS SELECTED BY THE RUN'S OWN BOOK
+# --------------------------------------------------------------------------------------------
+
+CURRENT_RUN_164 = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
+LATER_RUN_154 = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260918.json")
+
+
+def _book_of(artefact: dict):
+    """The settled-account range the artefact itself states, off whichever half carries it."""
+    if artefact.get("seeds") is not None:
+        return gva._floor_realised_book(artefact)[0].get("billing_accounts_settled_in_window")
+    return gva._the_runs_realised_book(artefact)[0].get("billing_accounts_settled_in_window")
+
+
+def test_the_composition_floor_is_selected_by_the_runs_book_and_never_by_its_answer():
+    """The floor bounding the composition share must be drawn over the run's OWN population.
+
+    THE DEFECT (2026-09-22). `_composition_in_this_world` asked the right question -- is the level
+    leg determined in SIGN across re-draws? -- of `CURRENT_WORLD_NOISE_FLOOR_PATH`, a nine-seed
+    family whose `book_identity` is `null` and whose nine seed rows carry no settled-account count
+    at all. A floor that cannot name its book AGREES WITH EVERY BOOK, and this one agreed in the
+    flattering direction: 9 of 9 positive, sign test passes, that leg reads `readable` True.
+
+    WHY THE ASSERTION IS A PROPERTY AND NOT TODAY'S FILENAME. Pinning the selected artefact would
+    red the day an honest new floor lands, which is exactly backwards. What is asserted is that
+    whatever is chosen can be PROVEN to share the run's book -- the ranges overlap on a field both
+    artefacts state -- so a re-run that supersedes today's answer stays green and a selector that
+    went back to picking a book-silent family reds.
+
+    Fires on: reading `floor_current` again instead of the selection; admitting a candidate whose
+    `fields_compared` is empty (silence read as agreement); dropping the world, staleness or
+    `NOISE_FLOOR_PATH` filters; or choosing among survivors on anything a seed says.
+    """
+    run = gva._read(CURRENT_RUN_164)
+    live = (run.get("world_identity") or {}).get("digest")
+    assert live == _live_digest(), (
+        "the run this rung is built on is not in the live world, so it witnesses nothing")
+
+    payload, block = gva._the_floor_that_realises_this_runs_book(run, live)
+    assert block["refusal"] is None and payload is not None, (
+        "no floor on disk realises this run's book, so the branch under test is the refusal and "
+        "the assertions below are about a family that was never chosen: " + str(block["refusal"]))
+
+    # PROVEN, NOT MERELY NOT-DISPROVEN. `_realised_book_pairing` returns no refusal both when the
+    # books overlap and when no field is comparable at all; only the first is a match.
+    pairing = gva._realised_book_pairing(payload, run)
+    assert pairing["fields_compared"] and pairing["refusal"] is None, (
+        "the selected floor cannot be shown to share this run's book -- compared {} and got {} -- "
+        "so the bound is over a population nobody established".format(
+            pairing["fields_compared"], pairing["refusal"] or pairing["unavailable_because"]))
+    assert _book_of(payload) is not None and _book_of(run) is not None, (
+        "one side of the pairing states no settled-account count, so the overlap above was "
+        "computed on some other field and this rung's subject is not the book")
+
+
+def test_a_book_silent_floor_is_REFUSED_and_the_one_the_page_used_to_read_is_the_witness():
+    """Silence is not agreement, and the family that proves it is the one this block used to read.
+
+    THE SUBJECT IS THE REAL DEFECT, not a synthetic stand-in: `CURRENT_WORLD_NOISE_FLOOR_PATH` is
+    on disk, is in the live world, is newer than the run it bounded, and states no book. Every
+    filter except the book one admits it. If it is ever admitted again, the page goes back to
+    bounding a 164-account figure with a spread over a population that cannot be named.
+    """
+    run = gva._read(CURRENT_RUN_164)
+    live = (run.get("world_identity") or {}).get("digest")
+    silent = gva._read(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+
+    # THE PARTITION: it must be refused for the BOOK and for nothing else, or this rung would
+    # stay green on a selector that had merely become stricter about dates.
+    assert (silent.get("world_identity") or {}).get("digest") == live, (
+        "the old floor is not in this world, so its refusal below is the world filter and says "
+        "nothing about the book")
+    assert gva._staleness_caveat(silent, run) is None, (
+        "the old floor is older than the run, so its refusal below is the staleness filter")
+    assert _book_of(silent) is None, (
+        "the old floor now states a realised book, so it is no longer the book-silent witness "
+        "this rung is built on and the subject must be re-chosen")
+
+    _, block = gva._the_floor_that_realises_this_runs_book(run, live)
+    rows = {row["artefact"]: row["refused_because"] for row in block["considered"]}
+    said = rows.get(gva.CURRENT_WORLD_NOISE_FLOOR_PATH.name)
+    assert said and "states no realised book count" in said, (
+        "the book-silent floor was not refused for stating no book -- it was {} -- so a family "
+        "that cannot name its population is being read as agreeing with this run's".format(
+            "admitted" if said is None else repr(said)))
+
+
+def test_the_same_selector_refuses_the_sign_test_on_the_154_run_and_allows_it_on_the_164_one():
+    """The finding itself, as a control: the BOOK is what moves the verdict, and nothing else.
+
+    One selector, one sign test, two runs in the SAME world. On the 164-account run the chosen
+    family is sign-stable; on the 154-account run the family that realises THAT book straddles
+    zero. The page published the first verdict while bounding it with a family that could name no
+    book -- so the composition read as determined when the question had never been asked of the
+    run's own population.
+
+    KEYED TO THE PROPERTY. Neither sign is asserted as a constant; what is asserted is that the
+    two runs' chosen families differ in book and that the sign verdict follows the family rather
+    than the code. If a re-run makes both books agree this rung says so in its own message rather
+    than passing vacuously.
+    """
+    runs = {name: gva._read(path)
+            for name, path in (("164", CURRENT_RUN_164), ("154", LATER_RUN_154))}
+    live = _live_digest()
+    chosen = {}
+    for name, run in runs.items():
+        assert (run.get("world_identity") or {}).get("digest") == live, (
+            "run {} is not in the live world, so the two subjects differ by the world as well as "
+            "the book and nothing is attributable".format(name))
+        payload, block = gva._the_floor_that_realises_this_runs_book(run, live)
+        assert payload is not None, (
+            "no floor realises run {}'s book, so this rung compares one verdict against an "
+            "absence: {}".format(name, block["refusal"]))
+        chosen[name] = (payload, block, _book_of(run))
+
+    assert chosen["164"][2] != chosen["154"][2], (
+        "the two runs are over the same book ({} and {}), so there is no book difference for the "
+        "verdicts below to follow and this rung is vacuous".format(
+            chosen["164"][2], chosen["154"][2]))
+    assert chosen["164"][1]["selected"]["artefact"] != chosen["154"][1]["selected"]["artefact"], (
+        "both runs selected the same family despite declaring different books, so the selector is "
+        "not keyed to the book at all")
+
+    signs = {}
+    for name, (payload, _block, _book) in chosen.items():
+        rows = [gva._f(seed.get(gva.LEVEL_CONTRAST))
+                for seed in payload["seeds"] if isinstance(seed, dict)]
+        signs[name] = gva._sign_determined([r for r in rows if r is not None])
+    assert signs["164"] is True and signs["154"] is not True, (
+        "the sign verdict no longer follows the book -- 164 reads {} and 154 reads {}. That is a "
+        "RESULT, not necessarily a defect: if a re-run made the 154 family sign-stable this rung "
+        "must be re-read against the new artefacts rather than repaired into green.".format(
+            signs["164"], signs["154"]))
+
+
+def test_the_refusal_branch_CAN_be_taken_and_names_the_book_it_could_not_match():
+    """A guard that refuses nothing passes every test written for it.
+
+    Today every run on disk finds a floor, so the refusal is the rare branch -- and a rare branch
+    nobody proves reachable is how this project has repeatedly shipped a guard that could only
+    ever say yes. Reached by excluding the families that qualify, which moves ONE thing.
+    """
+    run = gva._read(CURRENT_RUN_164)
+    live = (run.get("world_identity") or {}).get("digest")
+    _, admitted = gva._the_floor_that_realises_this_runs_book(run, live)
+    qualifying = {admitted["selected"]["artefact"], *admitted["selected"]["also_on_disk_as"]}
+    qualifying |= {row["artefact"] for row in admitted["considered"]
+                   if row["refused_because"] is None}
+
+    payload, block = gva._the_floor_that_realises_this_runs_book(
+        run, live, excluded=frozenset(qualifying | {gva.NOISE_FLOOR_PATH.name}))
+    assert payload is None and block["selected"] is None, (
+        "excluding every qualifying family still produced a selection, so the refusal is "
+        "unreachable and every assertion about it above is about nothing")
+    assert "NO FLOOR ON DISK IS DRAWN OVER THIS RUN'S BOOK" in block["refusal"], (
+        "the refusal does not say what it refused: " + str(block["refusal"]))
+    assert "164" in block["refusal"], (
+        "the refusal names no book, so a reader is told a bound is missing and not which "
+        "population it would have had to be over: " + block["refusal"])
+
+    # AND IT REACHES THE PAGE'S OWN SENTENCE, not just the block. A refusal that stops at the
+    # selector leaves `why_not_readable` saying "nothing was measured" over a disk full of floors.
+    composed = gva._composition_in_this_world(
+        run["level_vs_selection"], None, 0.7867, live, later_runs=[],
+        book_floor=(payload, block), shares_own_null=_a_quiet_null())
+    assert composed["why_not_readable"] == block["refusal"], (
+        "the composition block did not publish the book refusal as its reason -- it said {!r} -- "
+        "so the page states an absence whose cause is invisible".format(
+            composed.get("why_not_readable")))
+
+
+def test_the_published_feed_always_carries_a_selection_and_never_the_not_run_state():
+    """The fail-open the opt-in flag makes possible, closed by asserting the product.
+
+    `select_by_book` defaults False so that thirty-odd rungs handing this block a synthetic floor
+    keep testing the sign machinery. That default is a fail-open in exactly one place -- a
+    production path that forgot the flag would publish the old, unchecked reading and look
+    identical. So this asserts `build`'s OWN output, which is what the site renders.
+    """
+    data = gva.build(gva._read(gva.THREE_ARM_PATH), gva._read(gva.NOISE_FLOOR_PATH),
+                     current_three_arm=gva._read(gva.CURRENT_WORLD_THREE_ARM_PATH),
+                     current_floor=gva._read(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+    block = data["current_world"]["composition"]["floor_selected_by_book"]
+    assert block.get("selection_not_run_because") is None, (
+        "the published feed took the injected-subject branch, so no book check ran on the page a "
+        "reader actually sees: " + str(block.get("selection_not_run_because")))
+    assert block["selected"] or block["refusal"], (
+        "the feed's composition block neither selected a floor nor refused, which is the silent "
+        "third state this selection exists to abolish")
+    assert block["the_runs_book"], (
+        "the feed does not state the book of the run it is bounding, so a reader cannot check "
+        "the pairing the selection claims to have made")
+
+
+def test_the_promoted_twin_is_ONE_candidate_and_the_dated_name_is_the_one_published():
+    """Promotion here is a FILE COPY, so the newest floor is on disk twice.
+
+    `_later_runs_in_this_world` records the same defect for runs: a scan that globbed both offered
+    one family as two candidates, and the bare canonical stem is a MOVING POINTER -- a reader who
+    follows it next week reads a different family from the one this page named.
+
+    Fires on: dropping the dedupe (two candidates for one family), or keeping the canonical name
+    as the published one and hiding the dated sibling.
+    """
+    run = gva._read(CURRENT_RUN_164)
+    live = (run.get("world_identity") or {}).get("digest")
+    payload, block = gva._the_floor_that_realises_this_runs_book(run, live)
+    selected = block["selected"]
+    if not selected["also_on_disk_as"]:
+        pytest.skip("no promoted twin of the selected family is on disk right now")
+    assert selected["artefact"] != gva._CANONICAL_FLOOR_NAME, (
+        "the moving canonical pointer is what this page named, so the name beside these figures "
+        "means a different family next week")
+    assert gva._CANONICAL_FLOOR_NAME in selected["also_on_disk_as"], (
+        "the twin was dropped rather than recorded, so this module asserted which copy a reader "
+        "should care about instead of showing both")
+    twin = gva._read(gva.OBSERVABILITY_DIR / gva._CANONICAL_FLOOR_NAME)
+    assert twin["generated_at"] == payload["generated_at"], (
+        "the name in `also_on_disk_as` is a DIFFERENT family, so the dedupe folded two real "
+        "candidates into one and a floor on disk is invisible to the selection")
+
+
+def test_the_sign_test_reads_the_SELECTED_family_and_never_the_floor_it_was_handed():
+    """The mutation this whole change exists to make impossible, driven directly.
+
+    The two inputs are made to DISAGREE: the floor handed in straddles zero, the selected family
+    is sign-stable. Whichever one the sign test actually reads decides the verdict, so a producer
+    that quietly went back to `floor_current` reds here rather than shipping a page that looks
+    exactly the same. Nothing on the real disk can witness this -- both families on disk happen to
+    be sign-stable for the 164 run -- which is why the subject is constructed.
+    """
+    run = gva._read(CURRENT_RUN_164)
+    live = (run.get("world_identity") or {}).get("digest")
+    selected_payload, block = gva._the_floor_that_realises_this_runs_book(run, live)
+    stable = [gva._f(s.get(gva.LEVEL_CONTRAST)) for s in selected_payload["seeds"]]
+    assert gva._sign_determined([v for v in stable if v is not None]) is True, (
+        "the selected family is not sign-stable, so the two inputs below do not disagree and this "
+        "rung cannot tell which one was read")
+
+    straddling = {"seeds": [dict(seed) for seed in selected_payload["seeds"][:4]]}
+    for index, seed in enumerate(straddling["seeds"]):
+        seed[gva.LEVEL_CONTRAST] = -1_000.0 if index % 2 else 1_000.0
+        seed["level_share_of_advantage"] = -0.6 if index % 2 else 2.0
+
+    composed = gva._composition_in_this_world(
+        run["level_vs_selection"], straddling, 0.7867, live, later_runs=[],
+        book_floor=(selected_payload, block), shares_own_null=_a_quiet_null())
+    assert composed["readable"] is True, (
+        "the sign test refused on a sign-stable SELECTED family, so it read the straddling floor "
+        "it was handed instead: " + str(composed.get("why_not_readable"))[:200])
+
+    # THE CONTROL OVER THE CONTROL: the straddling payload must actually be able to refuse, or the
+    # assertion above passes because the subject is inert rather than because the right family won.
+    handed = gva._composition_in_this_world(
+        run["level_vs_selection"], straddling, 0.7867, live, later_runs=[],
+        shares_own_null=_a_quiet_null())
+    assert handed["readable"] is False and "CHANGES SIGN" in (handed["why_not_readable"] or ""), (
+        "the straddling floor does not refuse even when it IS the subject, so it witnesses "
+        "nothing about which family the selection path read")
+
+
+# ONE CONTROL OVER THE WHOLE PARTITION, and not a leg per branch. `_how_the_two_runs_order` has
+# FOUR states and two producers compose a sentence for each: the ordering statement itself, and
+# `_current_world_contrast`'s `how_to_read_this`. A leg per state cannot see the only failure that
+# has actually happened here -- two states collapsing onto ONE sentence -- because each leg passes
+# on its own branch while the reader is handed the same words for two different situations. So the
+# subject is the mapping shape -> sentence, and the assertion is that it is INJECTIVE.
+#
+# AND IT IS A SECOND FIELD, NOT A SECOND COPY OF THE CONTROL ABOVE IT.
+# `test_the_two_runs_ordering_has_a_state_for_every_shape_two_stamps_can_take` already holds the
+# partition for `how_the_two_runs_order` and for the three values of the derived flag, and this
+# control does not restate any of that. What that one does NOT reach is `how_to_read_this` -- a
+# DIFFERENT producer, in `_current_world_contrast`, composing a DIFFERENT sentence from the same
+# four states -- and `how_to_read_this` is the only truthiness reader of the flag in the tree, so
+# it is the one field the split could move and the one the split did move. Two fields, one
+# partition, and a control that covers one of them says nothing about the other.
+#
+# A NOTE ON HOW THIS WAS NEARLY MIS-WRITTEN, because the next session will meet the same tree.
+# Grepping the working copy for the control above returned NOTHING but the site test's docstring
+# reference to it, which reads exactly like a delegation to a symbol nobody wrote. It is not: the
+# control is at HEAD and has been since `ad03d5725`. The working copy of THIS FILE was carrying
+# another lane's ~1,900-line revert at the time, and the control was inside the reverted region.
+# A grep answers about the bytes on disk, and the bytes on disk in a shared tree are not HEAD.
+
+
+def test_how_to_read_this_composes_a_DISTINCT_sentence_for_every_state_of_the_run_ordering():
+    """Four shapes two run stamps can take, four states, and four DISTINCT sentences per producer.
+
+    THE DEFECT THIS FIRES ON (2026-09-23, Lane 0, measured through the real producer against the
+    real artefacts before the repair). `_how_the_two_runs_order` went three-valued on 2026-09-23 --
+    `True` on `later`, `False` on `earlier`, `None` on both states where the stamps cannot order the
+    runs -- and the landing's own pre-registration predicted, as P4, that "every reader of the flag
+    gates on `is False` or on `is not False`, so moving the tie and the unreadable stamp from `True`
+    to `None` cannot move" a published sentence. P4 IS REFUTED. A tree-wide census finds exactly one
+    TRUTHINESS reader, `how_to_read_this`, and `None` is falsy -- so both unorderable states fell
+    into the branch composed for `earlier`. Driven here before the fix, `same_stamp` published "run
+    at a different hour of the same world and from a different commit. It is NOT the more recent of
+    the two -- the run above it was taken at 2026-09-18T05:43:40Z and this one at
+    2026-09-18T05:43:40Z": three claims that are false of a pair stamped the same instant, with the
+    identical stamp printed on both sides of a contrast. `unstated` rendered the format default
+    `superseded` into a date position.
+
+    DISTINCTNESS IS ASSERTED AFTER THE STAMPS ARE NORMALISED, and that is the whole strength of this
+    control. The four raw strings were ALREADY pairwise distinct while the defect was live, because
+    three of them shared one template and differed only in the stamps substituted into it -- so a
+    plain `len(set(...)) == 4` passes on the exact page this test exists to refuse. Normalising every
+    ISO stamp to a placeholder first is what makes the assertion about the SENTENCE rather than
+    about the artefacts that happened to drive it.
+
+    KEYED BY SHAPE, NEVER BY TODAY'S ANSWER. `seen` is keyed by the shape the two stamps are in --
+    not by the ordering state the producer returns for it -- so a producer that answered
+    `same_stamp` for two different shapes would overwrite nothing and is caught by the set equality
+    below. Keying by the returned state is the two-shapes-one-state collapse writing its own control.
+    No leg asserts that a named shape yields a named state as a literal; what is asserted is that
+    the four shapes reach the four constants, which stays true when the artefacts on disk change.
+
+    WHAT THE FOURTH LEG COSTS, measured rather than assumed. No three-arm artefact on this disk is
+    stamped later than 2026-09-18, so NO single `current` run drives all four shapes: `later`,
+    `same_stamp` and `unstated` all hold `current` at the 09-18 run, and `earlier` is only reachable
+    by moving `current` DOWN to a run below it. `same_stamp` is drivable at all only because
+    `756a86272` promoted the corrected 09-18 book onto the canonical path, leaving two FILES at one
+    stamp; if that promotion is ever undone, the guard below fails loudly rather than letting this
+    control quietly stop driving the tie. Authoring a synthetic run stamped in the future was the
+    other option and was refused: a fixture stamp is a number nobody established, and the state
+    being controlled is precisely one the real publish creates.
+
+    MUTATION-PROVED, AND THREE OF THE SIX MUTATIONS FOUND A MISSING LEG RATHER THAN CONFIRMING ONE.
+    The first draft caught only the truthiness keying. Restoring the exact format default this
+    repair removed stayed GREEN, because the blacklist leg was keyed to the OLD sentence's wording
+    ("taken at") and the new one says "states"; collapsing the tie onto the `unstated` TEMPLATE
+    stayed GREEN, because the two still rendered differently once the tie substituted a stamp where
+    `unstated` substitutes the no-stamp phrase; and dropping a state from the producer's mapping so
+    it served the EMPTY string stayed GREEN on every leg at once. Each was a missing test, none was
+    an equivalence, and each is now a leg above. The one mutation that is a genuine equivalence is
+    inverting `later = current_at > superseded_at`: it swaps which ordered shape gets which state,
+    leaves all four states reachable and all four sentences distinct, and is held -- checked, not
+    assumed -- by `test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_currency`,
+    which pins the direction against named artefacts. This control is about the PARTITION; that one
+    is about the ARITHMETIC, and neither should grow the other's job.
+
+    AND THE NORMALISED LEG IS WHAT THIS ADDS OVER THE CONTROL ABOVE, which asserts the same
+    distinctness for `how_the_two_runs_order` on RAW strings. Raw distinctness was mutation-proved
+    dead here twice over, so the stronger form is used on BOTH fields rather than only on the new
+    one -- the weaker assertion upstairs is not wrong, it is just satisfiable by a page that has
+    collapsed, and a defect caught in one field is worth asking about in its twin.
+
+    Fires on: keying a sentence to the truthiness of `is_the_later_run` rather than to the ordering;
+    a state reaching a producer with no sentence of its own, including as an empty string; two
+    states composing one sentence, whether by sharing a template or by differing only in what is
+    substituted into it; a format default reaching a date position; the no-stamp refusal being
+    recited over two runs whose stamps were read; the artefact pair that makes the tie drivable
+    going away.
+    """
+    obs = PROJECT / "docs" / "observability"
+    at_0918 = _load(obs / "value_cycle_ab_s1_three_arm_20260918.json")
+    canonical = _load(obs / "value_cycle_ab_s1_three_arm.json")
+    below = _load(obs / "value_cycle_ab_s1_three_arm_20260910.json")
+
+    # THE FIXTURE'S OWN PREMISE, ASSERTED BEFORE IT IS USED. Both of these are properties of files
+    # another lane may re-promote at any time, and either one going away makes a leg below pass by
+    # driving a state it is not driving. A control whose subject quietly left is the failure mode
+    # this project names "green while the claim rots".
+    assert at_0918["generated_at"] == canonical["generated_at"], (
+        "the canonical path no longer carries the 09-18 run's stamp, so the `same_stamp` shape "
+        "below is not a tie at all and this control has stopped driving the state it exists for")
+    assert below["generated_at"] < at_0918["generated_at"], (
+        "the 09-10 run is no longer below the 09-18 run, so the `later` and `earlier` shapes are "
+        "not opposite and two of the four legs are measuring one direction")
+
+    # THE FOUR SHAPES TWO STAMPS CAN BE IN, named by the SHAPE and never by the answer expected.
+    shapes = {
+        "current_above_the_other": (at_0918, below),
+        "both_runs_at_one_stamp": (at_0918, canonical),
+        "the_other_run_has_no_stamp": (at_0918, {"generated_at": None}),
+        "current_below_the_other": (below, at_0918),
+    }
+    # EVERY RUN-IDENTIFYING FILLER GOES TO ONE TOKEN, not just the stamps. Normalising stamps alone
+    # was the second draft and it was mutation-proved DEAD against a real collapse: composing the
+    # `unstated` TEMPLATE on the tie leaves the two rendered sentences different anyway, because the
+    # tie substitutes a stamp where `unstated` substitutes the page's no-stamp phrase. The
+    # difference a reader would meet is then entirely in the FILLER and not in a single word the
+    # producer chose -- two states explained by one sentence, which is precisely what this leg
+    # exists to refuse. Collapsing the phrase to the same token as a stamp makes the comparison
+    # about the PROSE, which is the only part a branch is responsible for.
+    def _prose_only(sentence: str) -> str:
+        return re.sub(r"\d{4}-\d{2}-\d{2}T[\d:]+Z", "<RUN>",
+                      sentence.replace(gva._NO_STAMP_THIS_PAGE_COULD_READ, "<RUN>"))
+
+    states: dict[str, str] = {}
+    reading: dict[str, str] = {}
+    ordering_prose: dict[str, str] = {}
+    for shape, (current, other) in shapes.items():
+        block = gva._current_world_contrast(current, None, superseded_run=other)
+        assert block.get("available") is True, (
+            "the current-world block refused outright on the {!r} shape, so every leg below would "
+            "pass on a page that publishes no reading at all: {}".format(
+                shape, block.get("why_not")))
+        states[shape] = block["run_ordering"]
+        # COLLECTED RAW AND NORMALISED AT THE LEG THAT NEEDS IT. The distinctness leg compares
+        # prose with every run-identifying filler erased; the no-stamp leg below asks whether one
+        # specific filler is there, and normalising here would erase the very thing it looks for.
+        reading[shape] = block["how_to_read_this"]
+        ordering_prose[shape] = block["how_the_two_runs_order"]
+        # AND EVERY STATE COMPOSES WORDS AT ALL. Mutation-proved necessary rather than added for
+        # tidiness: a state dropped from the producer's mapping and served through a `.get(..., "")`
+        # default publishes the EMPTY string, and both legs below pass on it -- an empty sentence is
+        # distinct from the other three, and it contains no phrase it should not. The reader meets
+        # silence where a caveat goes and cannot tell it from a page with nothing to say, which is
+        # this project's own difference between "we cannot tell" and no result. So it is asserted
+        # here, at the point the sentence is read, and not left to a leg about something else.
+        for field in ("how_to_read_this", "how_the_two_runs_order"):
+            assert isinstance(block[field], str) and block[field].strip(), (
+                "`{}` composed nothing on the {!r} shape, so the state reached the page with no "
+                "sentence of its own and the reader is handed silence: {!r}".format(
+                    field, shape, block[field]))
+
+    # EVERY STATE REACHED, AND EACH BY EXACTLY ONE SHAPE. Set equality over the module's own
+    # constants rather than a count: a producer that returned `later` for three shapes and
+    # `earlier` for one has four answers and three states, and a count passes on it.
+    assert set(states.values()) == {
+        gva.RUN_IS_LATER, gva.RUN_IS_EARLIER,
+        gva.RUN_STAMPS_ARE_EQUAL, gva.RUN_ORDER_UNSTATED}, (
+        "the four shapes two stamps can take do not reach the four states the module declares -- "
+        "{!r} -- so at least one state is unreachable from any real pair of runs, or two shapes "
+        "collapsed onto one state".format(states))
+
+    # AND A SENTENCE PER STATE, FROM BOTH PRODUCERS. This is the leg the defect lands on.
+    for field, composed in (("how_to_read_this", reading),
+                            ("how_the_two_runs_order", ordering_prose)):
+        prose = {shape: _prose_only(s) for shape, s in composed.items()}
+        assert len(set(prose.values())) == len(shapes), (
+            "`{}` composes {} distinct sentences across the four shapes two run stamps can take, "
+            "so a reader meets the SAME words in two different situations and cannot tell which "
+            "one the page is in; the sentences are compared with every run-identifying filler "
+            "erased, because one template filled from different runs is one sentence: {!r}".format(
+                field, len(set(prose.values())), prose))
+
+    # NO FORMAT DEFAULT IN A DATE POSITION -- ASSERTED AS THE PAGE'S OWN PHRASE BEING PRESENT, and
+    # not as a blacklist of the words that happened to stand there. The first draft of this leg
+    # checked for the literals `at superseded` and `an unstated date`, and it was mutation-proved
+    # DEAD: restoring the exact format default this repair removed left it GREEN, because the new
+    # sentence says "states {when}" where the old one said "was taken at {when}", so the blacklisted
+    # phrase never appeared. A blacklist is keyed to yesterday's wording; the PROPERTY is that when
+    # a stamp cannot be read the page says so in words it composed, so that is what is asserted --
+    # present on the shape with a missing stamp, and ABSENT on the three that have both. The
+    # two-sided form is what stops a producer passing by reciting "no stamp this page could read"
+    # unconditionally, over two runs whose stamps it read perfectly well.
+    phrase = gva._NO_STAMP_THIS_PAGE_COULD_READ
+    for shape, (current, other) in shapes.items():
+        a_stamp_is_missing = not current.get("generated_at") or not other.get("generated_at")
+        for field, composed in (("how_to_read_this", reading),
+                                ("how_the_two_runs_order", ordering_prose)):
+            if a_stamp_is_missing:
+                assert phrase in composed[shape], (
+                    "the {!r} shape has a run this page cannot date, and `{}` filled that position "
+                    "with something other than the page's own words for it -- so a reader is given "
+                    "a stand-in they cannot tell from a real run name, under a sentence that goes "
+                    "on stating an order: {!r}".format(shape, field, composed[shape]))
+            else:
+                assert phrase not in composed[shape], (
+                    "both runs in the {!r} shape state a stamp and `{}` still says a stamp could "
+                    "not be read, so the refusal is a recital rather than a report and the one "
+                    "render where it is true says nothing new: {!r}".format(
+                        shape, field, composed[shape]))
 def seed_price_complaints(leg: dict) -> list[str]:
     """THE PROPERTY: a published seed count is a claim that the count has an upper bound.
 

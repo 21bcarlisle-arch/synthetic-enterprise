@@ -13131,6 +13131,143 @@ def _which_arm_moved(contrast: dict, superseded_contrast: dict | None) -> dict:
     }
 
 
+_CANONICAL_FLOOR_NAME = "value_cycle_ab_s1_noise_floor.json"
+
+
+def _the_floor_that_realises_this_runs_book(
+        run: dict | None, live: str, directory: Path | None = None,
+        excluded: frozenset | None = None) -> tuple[dict | None, dict]:
+    """Pick the floor whose OWN BOOK is the book of the run being read -- or refuse, and say so.
+
+    THE DEFECT (2026-09-22, and it is this page's own recurring shape). `_composition_in_this_world`
+    asked the right question -- is the level leg determined in SIGN across re-draws? -- of
+    `CURRENT_WORLD_NOISE_FLOOR_PATH`, a nine-seed family whose `book_identity` is `null` and whose
+    nine seed rows carry no settled-account count at all. **A floor that cannot name its book agrees
+    with every book**, and on this one it agreed in the flattering direction: 9 of 9 positive, sign
+    test passes, `readable` True on that leg. Ask the same question of a family drawn over the
+    154-account book and it is 11 of 12 -- the sign is not determined and the refusal fires. The
+    error bar and the figure it bounds were over different populations and nothing could see it.
+
+    WHY THIS IS A SELECTION AND NOT A CONSTANT MOVE, which is the part that cost a prior turn. The
+    obvious repair -- point `CURRENT_WORLD_NOISE_FLOOR_PATH` at the eighteen-seed single-arm family
+    -- is SHUT and has been since 2026-09-17: that family is already `NOISE_FLOOR_PATH`, so pointing
+    both constants at it renders its selection mean in the `error_bar` region AND the `current_world`
+    region, which `_the_legs_own_regions` refuses in words ("the selection leg's own figure renders
+    2 times in this headline"). And neither constant is right anyway: the nine-seed one cannot name
+    its book, and the eighteen-seed one names 164, which is not every run's. The book is a property
+    of the RUN, so the floor has to be chosen per run and cannot be frozen into a constant at all.
+
+    EVERY FILTER IS ANSWER-BLIND, and that is deliberate: a floor is admitted or refused on its
+    WORLD, its REDRAW MODE, its DATE, its NAME and its BOOK -- never on what its seeds say. The
+    tie-break is the seed COUNT and then the stamp, so a family may be chosen on draws and never on
+    answers. `AUC_FAMILY_FLOOR_PATH`'s block records the same defence for the same reason.
+
+    FAILS CLOSED ON A BOOK IT CANNOT ASK ABOUT. `_realised_book_pairing` returns no refusal in two
+    very different states: the ranges overlap (proven same population), and no field is comparable
+    at all (the question could not be asked). Reading the second as a match is exactly the defect
+    this function exists for -- it is how the book-silent nine-seed family got here in the first
+    place -- so a candidate must be PROVEN to share the run's book on at least one field, and
+    silence disqualifies.
+
+    Returns the chosen floor's payload (never published) and the block that IS published: which
+    family was selected, the book it realises, and -- when nothing qualifies -- a refusal naming
+    the run's own book and what every candidate was refused for.
+    """
+    excluded = frozenset({NOISE_FLOOR_PATH.name}) if excluded is None else excluded
+    run_ranges, why_run = _the_runs_realised_book(run or {})
+    run_book = (run_ranges.get("billing_accounts_settled_in_window")
+                if isinstance(run_ranges, dict) else None)
+    considered: list = []
+    by_family: dict = {}
+    for path in sorted((directory or OBSERVABILITY_DIR).glob(_AB_ARTEFACT_GLOB)):
+        floor = _read(path)
+        if not isinstance(floor, dict):
+            continue
+        # A RUN IS EXCLUDED BY WHAT IT IS, NOT BY WHAT IT IS CALLED. The glob is the one
+        # `_later_runs_in_this_world` uses and it matches the three-arm runs too; the redraw mode
+        # is what tells a floor from a run, and it keeps telling them apart when the naming
+        # convention next moves. `BOUNDING_REDRAW_MODE` is also the only mode whose spread bounds
+        # the published figure -- the `only`/`except` legs PARTITION that variance and neither
+        # half is the whole's, which is the guard that constant already exists to be.
+        mode = (floor.get("redraw_scope") or {}).get("mode")
+        if mode != BOUNDING_REDRAW_MODE:
+            continue
+        why_not = None
+        if ((floor.get("world_identity") or {}).get("digest")) != live:
+            why_not = "drawn in a different world from the run being read"
+        elif path.name in excluded:
+            why_not = ("already the family the error bar is built from, and rendering its "
+                       "selection mean in two regions of one headline is refused by "
+                       "`_the_legs_own_regions`")
+        elif _staleness_caveat(floor, run or {}) is not None:
+            why_not = "older than the run it would bound"
+        else:
+            pairing = _realised_book_pairing(floor, run or {})
+            if pairing["refusal"]:
+                why_not = "drawn over a different book from the run being read"
+            elif not pairing["fields_compared"]:
+                # SILENCE IS NOT AGREEMENT. This is the branch the whole function exists for.
+                why_not = ("states no realised book count this run also states, so it cannot be "
+                           "shown to have been drawn over this run's book -- {}".format(
+                               pairing["unavailable_because"]))
+        row = {"artefact": path.name, "refused_because": why_not}
+        considered.append(row)
+        if why_not is not None:
+            continue
+        # ONE CANDIDATE PER FAMILY, NOT PER FILE -- the promoted-copy dedupe
+        # `_later_runs_in_this_world` documents, on the same identity pair.
+        commit = (floor.get("producing_commit") or {}).get("commit")
+        stamp = floor.get("generated_at")
+        key = ((stamp, commit) if isinstance(commit, str) and commit else (stamp, path.name))
+        seen = by_family.get(key)
+        if seen is not None:
+            seen["also_on_disk_as"] = sorted(set(seen.get("also_on_disk_as", []) + [path.name]))
+            if seen["artefact"] == _CANONICAL_FLOOR_NAME:
+                seen["also_on_disk_as"] = sorted(
+                    set(seen["also_on_disk_as"] + [seen["artefact"]]) - {path.name})
+                seen["artefact"] = path.name
+            continue
+        by_family[key] = {
+            "artefact": path.name,
+            "generated_at": stamp,
+            "seeds": len([s for s in (floor.get("seeds") or []) if isinstance(s, dict)]),
+            "also_on_disk_as": [],
+            "_payload": floor,
+        }
+    block = {
+        "the_runs_book": run_book,
+        "selected": None,
+        "considered": considered,
+        "refusal": None,
+    }
+    if not by_family:
+        block["refusal"] = (
+            "NO FLOOR ON DISK IS DRAWN OVER THIS RUN'S BOOK, so the question of whether the level "
+            "leg is determined in sign is not asked here and no reading of the composition is "
+            "licensed by this page. The run settles {book}; {n} floor{s} in this world were "
+            "examined and every one was refused. An error bar over a book that is not the "
+            "figure's is not a wider bound on the same quantity -- it is a spread over a "
+            "different population, and it agrees with every answer."
+        ).format(book=(_range_text(list(run_book)) + " billing accounts"
+                       if run_book else "a book this page could not read ({})".format(why_run)),
+                 n=len(considered), s="" if len(considered) == 1 else "s")
+        return None, block
+    # MOST DRAWS FIRST, THEN THE NEWEST STAMP, THEN THE NAME -- three keys so the choice is
+    # deterministic, and not one of them reads a seed's value.
+    # `max` returns the FIRST maximal element, so ordering the candidates by name first is what
+    # makes the third key work -- a single `sorted` cannot ask for two descending keys and one
+    # ascending without inverting a timestamp string, which is how this kind of tie-break silently
+    # picks the wrong end. Verified by the control: two same-size families, the newer one wins.
+    by_name = sorted(by_family.values(), key=lambda f: f["artefact"])
+    best = max(by_name, key=lambda f: (f["seeds"], f["generated_at"] or ""))
+    payload = best.pop("_payload")
+    for other in by_family.values():
+        other.pop("_payload", None)
+    block["selected"] = dict(best, realised_book=_floor_realised_book(payload)[0].get(
+        "billing_accounts_settled_in_window"))
+    return payload, block
+
+
 def _composition_in_this_world(contrast: dict, floor_current: dict | None,
                                superseded_share, live: str,
                                later_runs: list | None = None,
@@ -13139,7 +13276,8 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
                                differences: dict | None = None,
                                superseded_contrast: dict | None = None,
                                share_books: tuple | None = None,
-                               shares_own_null: dict | None = None) -> dict:
+                               shares_own_null: dict | None = None,
+                               book_floor: tuple | None = None) -> dict:
     """How the advantage SPLITS between the two legs -- and why that split may not be read.
 
     THE RESIDUE THIS CLOSES, named in `09009c236`'s own discharge as still unwritten anywhere a
@@ -13208,7 +13346,27 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
             "the run withheld its own level share -- {} -- so this page states none either"
             .format(contrast.get("share_undefined_reason")
                     or "its denominator was too near zero to divide by"))}
-    seeds = [s for s in ((floor_current or {}).get("seeds") or []) if isinstance(s, dict)]
+    # THE FLOOR THE SIGN TEST READS IS CHOSEN BY THE RUN'S BOOK, AND WHEN NOTHING QUALIFIES THERE
+    # IS NO FALLBACK. `book_floor` is the pair `_the_floor_that_realises_this_runs_book` returns --
+    # the payload the sign test reads, and the block a reader is shown. A selection that found
+    # nothing hands over `None`, the seed list is empty, and the `len(measured) < 2` branch below
+    # states the book refusal in its own words rather than "nothing was measured".
+    #
+    # `book_floor=None` MEANS THE SELECTION WAS NOT RUN, WHICH IS NOT THE SAME AS FINDING NOTHING,
+    # and the block says which. That is the injected-subject path: a control handing this function
+    # a straddling floor directly is testing the SIGN machinery, not the book machinery, and
+    # substituting a scan of the real disk underneath it would silently retarget thirty-odd
+    # existing rungs onto a family they never chose. `build` always passes the selection, so the
+    # published page never takes this branch -- asserted by the control, because a production path
+    # that could quietly fall back here is exactly the fail-open this whole function is against.
+    floor_payload, book_selection = book_floor if book_floor else (floor_current, {
+        "the_runs_book": None, "selected": None, "considered": [],
+        "selection_not_run_because": (
+            "this block was handed a floor directly rather than selecting one, so the book of "
+            "the run being read has not been compared against the book of the floor bounding "
+            "it. No page renders this state; it is the injected-subject path."),
+        "refusal": None})
+    seeds = [s for s in ((floor_payload or {}).get("seeds") or []) if isinstance(s, dict)]
     numerators = [_f(seed.get(LEVEL_CONTRAST)) for seed in seeds]
     shares = [_f(seed.get("level_share_of_advantage")) for seed in seeds]
     measured = [n for n in numerators if n is not None]
@@ -13239,6 +13397,11 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
         # The director's condition is a run and a date against EVERY figure, and the branch where
         # nothing disagrees is the one where an unattributed share is easiest to over-read.
         "published_run": {"artefact": published_from, "generated_at": published_at},
+        # WHICH FAMILY THE SIGN QUESTION WAS ASKED OF, AND WHOSE BOOK IT IS -- on every branch,
+        # including the ones where nothing refuses. A page that named the floor only when it was
+        # complaining would leave the reader unable to tell "asked of the right family" from
+        # "never asked", which is the state this block was in until 2026-09-22.
+        "floor_selected_by_book": book_selection,
         "readable": None,
     }
     # "NOT ASKED" IS ITS OWN STATE AND IT COMES FIRST. Written after the sign test it was both
@@ -13248,7 +13411,11 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     # `readable` stays None so the two cannot be confused. Caught by this file's own suite on the
     # foreign-world subject, where the block is built with no admitted floor at all.
     if len(measured) < 2:
-        block["why_not_readable"] = (
+        # THE TWO WAYS THIS BRANCH IS REACHED ARE DIFFERENT STATES AND IT NAMES WHICH. A floor was
+        # selected and carries fewer than two level-leg rows, or no floor realises this run's book
+        # at all. Collapsing them would publish "nothing was measured" over a disk that holds
+        # several floors, every one of which was examined and refused for a stated reason.
+        block["why_not_readable"] = book_selection.get("refusal") or (
             "No floor measured in this world carries two or more re-draws of the level leg, so "
             "whether this share is even determined in sign has not been tested. That is 'not "
             "asked', not 'fine', and no reading of the share is licensed by it.")
@@ -14361,6 +14528,15 @@ RUN_IS_EARLIER = "earlier"
 RUN_STAMPS_ARE_EQUAL = "same_stamp"
 RUN_ORDER_UNSTATED = "unstated"
 
+#: WHAT A SENTENCE SAYS IN A DATE POSITION WHEN THERE IS NO DATE — composed prose, shared by every
+#: site that names a run by its stamp, and never a `.format` default. `how_to_read_this` used to
+#: fall back to the bare word `superseded`, which renders as "the run above it was taken at
+#: superseded": a reader cannot tell that from a run actually named `superseded`, and the sentence
+#: goes on asserting an order it has no stamp for. One phrase, said the same way everywhere,
+#: because the two producers that need it were written three hours apart and only one of them was
+#: honest about it.
+_NO_STAMP_THIS_PAGE_COULD_READ = "no stamp this page could read"
+
 
 def _how_the_two_runs_order(current_at, superseded_at) -> dict:
     """Which of the two runs on this page is the later one — as FOUR states, never as a boolean.
@@ -14414,8 +14590,8 @@ def _how_the_two_runs_order(current_at, superseded_at) -> dict:
                 "cannot be put in order at all. Nothing here is claimed to be the more recent of "
                 "the two, and nothing here is withdrawn for being the older: an unread stamp is "
                 "not evidence either way."
-            ).format(cur=current_at or "no stamp this page could read",
-                     sup=superseded_at or "no stamp this page could read"),
+            ).format(cur=current_at or _NO_STAMP_THIS_PAGE_COULD_READ,
+                     sup=superseded_at or _NO_STAMP_THIS_PAGE_COULD_READ),
         }
     if current_at == superseded_at:
         return {
@@ -14514,7 +14690,8 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
                             later_runs: list | None = None,
                             observability_dir: Path | None = None,
                             superseded_run: dict | None = None,
-                            shares_own_null: dict | None = None) -> dict:
+                            shares_own_null: dict | None = None,
+                            select_by_book: bool = False) -> dict:
     """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
@@ -14794,6 +14971,16 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             # the null it read describes this share's own population. A SPAN, because the arms
             # do not agree -- see `_the_books_a_run_priced`.
             share_books=_the_books_a_run_priced(current),
+            # THE SELECTION IS OPT-IN AND `build` IS WHAT OPTS IN, which is the opposite of this
+            # module's `later_runs=None means go and look` idiom and is a deliberate exception.
+            # Thirty-odd existing rungs hand this block a synthetic floor to witness the SIGN
+            # machinery; a scan that fired by default would retarget every one of them onto a
+            # family off the real disk that they never chose, and each would still be green while
+            # testing something else. Opting in keeps the injected subject the subject. The cost
+            # is that a production path which forgot the flag would fail open, so the control
+            # asserts `build`'s own output carries a selection rather than trusting this call.
+            book_floor=(_the_floor_that_realises_this_runs_book(current, live, observability_dir)
+                        if select_by_book else None),
             # READ FROM DISK BY DEFAULT, INJECTABLE FOR A CONTROL, and the reason is `later_runs`'
             # word for word. `composition` now carries THREE independent refusals and each has a
             # control that has to isolate its own: a sign-stable floor or an agreeing later run
@@ -14818,22 +15005,76 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         # key down in the same dict, and it survived that repair because the repair was aimed at
         # the figure and not at the date. A promote-by-copy moves no constant, so nothing that
         # reads a constant could have caught it.
-        "how_to_read_this": (
-            (
+        # AND THE READING INSTRUCTION IS KEYED TO THE ORDERING, NOT TO A TRUTHINESS (2026-09-23).
+        # This was `... if is_the_later_run else ...` for as long as the flag was a boolean, and it
+        # is the ONE truthiness reader of that field left in the tree -- which is how it survived
+        # the split. `_how_the_two_runs_order` made the flag THREE-valued on the same day, and
+        # `None` is falsy, so BOTH unorderable states fell into the branch written for `earlier`:
+        # `same_stamp` published "run at a different hour of the same world and from a different
+        # commit ... the run above it was taken at X and this one at X" -- three claims that are
+        # false of a run compared against a run stamped the same instant, with the IDENTICAL stamp
+        # printed on both sides of the contrast -- and `unstated` printed the literal `superseded`
+        # where a date goes. Both were measured through this function against the real artefacts,
+        # not reasoned about: `SEAT_RESULT_HOW_TO_READ_THIS_WAS_THE_LAST_TRUTHINESS_READER...`.
+        # `same_stamp` is not hypothetical -- `756a86272` promoted the corrected 09-18 book onto
+        # the canonical path, so it is exactly the state the next publish creates.
+        #
+        # A TOTAL MAPPING OVER THE CONSTANTS, never an if-chain with a trailing `else`. A fifth
+        # state added to `_how_the_two_runs_order` and not to this dict raises `KeyError` on the
+        # publish; a trailing `else` would hand the new state whichever sentence happened to sit
+        # last, which is the shape that put `same_stamp` in the withdrawal branch in the first
+        # place. Fail closed and loudly beats a flattering default.
+        #
+        # THE TWO NEW SENTENCES NAME THE OTHER RUN BY ITS STAMP AND NEVER BY WHERE IT SITS, the
+        # repair `_how_the_two_runs_order` took for its own four sentences. `later` and `earlier`
+        # keep "the figures above" and "the run above it" -- both registered in the pointer
+        # census's `_REFERENTS` against `.headline`, both probed, both holding -- so their prose
+        # is unchanged here. A here-relative word in the new pair would be a direction about a
+        # layout nobody has built, judged against a render site that does not exist.
+        "how_to_read_this": {
+            RUN_IS_LATER: (
                 "The same book, the same three arms and the same code as the figures above, "
                 "re-run over the departure level this world runs at TODAY. It is published "
                 "beside the {when} run rather than instead of it, because those figures were "
                 "honestly measured and their fault is only being read as current. Compare the "
                 "two as two worlds, not as a revision."
-            ) if is_the_later_run else (
+            ),
+            RUN_IS_EARLIER: (
                 "The same book, the same three arms and the same code as the figures above, run "
                 "at a different hour of the same world and from a different commit. It is NOT "
                 "the more recent of the two -- the run above it was taken at {when} and this one "
                 "at {mine} -- so nothing here is a statement about how things stand relative to "
                 "that panel. Compare the two as two draws of one world, not as a revision and "
                 "not as a trend."
-            )).format(when=superseded_at or "superseded",
-                      mine=current_at or "an unstated date"),
+            ),
+            RUN_STAMPS_ARE_EQUAL: (
+                "The same book, the same three arms and the same code as the run this page "
+                "publishes it against -- and the two state the SAME stamp, {mine}. Neither is "
+                "the more recent of the two, so nothing here is a statement about how things "
+                "stand relative to that run, and a difference between them cannot be read as a "
+                "revision of one by the other. Whether they are one run is a question about "
+                "every field the two declare and not about their stamps. Compare them as two "
+                "readings taken at one instant."
+            ),
+            RUN_ORDER_UNSTATED: (
+                "The same book, the same three arms and the same code as the run this page "
+                "publishes it against -- and which of the two is the later one is NOT "
+                "established, because this run states {mine} and the run it is published "
+                "against states {when}. Nothing here is claimed to be the more recent of the "
+                "two and nothing here is withdrawn for being the older: an unread stamp is not "
+                "evidence either way. Compare them as two readings this page cannot put in "
+                "sequence, not as a revision and not as a trend."
+            ),
+        }[ordering["ordering"]].format(
+            # THE SAME WORDS `_how_the_two_runs_order` USES FOR A STAMP IT COULD NOT READ, and
+            # never the bare `superseded` / `an unstated date` that stood here. Those were format
+            # defaults rather than composed prose, and `unstated` rendered one of them straight
+            # into a sentence that says "was taken at" -- a placeholder in a date position, which
+            # a reader has no way to tell from a run genuinely named `superseded`. Only the
+            # `unstated` branch can reach either fallback: the other three are only composed when
+            # `_how_the_two_runs_order` has already read both stamps.
+            when=superseded_at or _NO_STAMP_THIS_PAGE_COULD_READ,
+            mine=current_at or _NO_STAMP_THIS_PAGE_COULD_READ),
     }
 
 
@@ -16069,7 +16310,11 @@ def build(three_arm: dict | None, floor: dict | None,
                                             # the figures and the ATTRIBUTION question needs the
                                             # world, the date and the commit. See
                                             # `_what_differs_between_two_runs`.
-                                            superseded_run=three_arm)
+                                            superseded_run=three_arm,
+                                            # THE PRODUCTION PATH, AND THE ONLY CALLER THAT SETS
+                                            # IT. See the `book_floor=` comment in
+                                            # `_current_world_contrast` for why it is opt-in.
+                                            select_by_book=True)
     return dict(
         base,
         available=True,
