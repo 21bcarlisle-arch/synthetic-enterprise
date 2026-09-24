@@ -86,3 +86,33 @@ If the control above is built and run against the 40 records in this window, it 
 17 `pass` runs and is silent on the 23 `fail` runs. If it reds on fewer than 17, `last_clean_publish`
 moved during the wedge without the state file recording a clean publish, and the two fields disagree
 about their own subject — which would be a second, worse finding.
+
+## A fourth cause, observed in the same turn, recorded beside the claim
+
+The `behind_origin` cause above was cleared in this turn: the 74-path rename/delete fork closed
+(`7511d33c8`), twelve gated landings reached origin, and the tree read 0 ahead / 0 behind. The
+publisher did **not** publish. It named a new cause on its next invocation:
+
+> `[stale-producer] REFUSED tools/generate_value_arms_data.py is a working copy that predates commit
+> 6cad55bfc (predates_landing), so regenerating from it would republish over that landing.`
+
+So the count in this document is a floor, not a total: **four distinct causes, not three**, and the
+fourth was invisible until the third was cleared. That is the whole claim — the causes are serial,
+each one masked by its predecessor, and no instrument reports the queue of them.
+
+**The named door is refused here on evidence.** The refusal points at
+`python3 -m tools.refresh_to_head tools/generate_value_arms_data.py`, and the clock agrees the copy
+is older than the last commit to its path (disk 2026-09-23 07:42 and 11:43; last commit 23:36). But
+the working copies supply **14 symbols that exist in no commit** — `_book_of`, `_its_block_rendered`,
+`test_a_book_silent_floor_is_REFUSED_and_the_one_the_page_used_to_read_is_the_witness`,
+`test_the_composition_floor_is_selected_by_the_runs_book_and_never_by_its_answer` and ten more, all
+`ABSENT` from `git grep HEAD`. This is the concurrent-fork shape, not a stale revert, and
+`refresh_to_head` would delete a lane's unlanded test suite to buy one publish. **Not done.** The
+remedy is a three-way union merge of that pair, which is its own item with its own evidence, and it
+is not this one.
+
+**This also sharpens the control proposed above.** A cause-naming refusal is what let the fourth
+cause be seen at all — the publisher said why, in words, on the surface. The gap is not that causes
+go unnamed; it is that nothing keeps the *series*. A reader of the state file sees one `failures`
+entry of length 1 and a 54-hour clock, and cannot recover that four different preconditions failed
+in sequence. The control should append, never replace.
