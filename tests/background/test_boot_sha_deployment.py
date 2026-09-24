@@ -621,6 +621,48 @@ def test_a_broken_stamper_reaches_the_health_surface_as_a_PROBLEM_not_a_footnote
     assert not [ln for ln in legacy if "BOOT STAMPER" in ln]
 
 
+def test_a_flag_reaching_argv_is_refused_by_name_instead_of_minting_a_junk_session():
+    """THE DEFECT THIS EXISTS FOR, found 2026-09-24 in the boot directory itself:
+    `docs/observability/.daemon_boot/--report.json`, session `--report`, written 2026-08-14.
+
+    `stamp(sys.argv[1])` accepted anything, so a caller passing a FLAG minted a record that sat
+    among the real daemons' for six weeks looking exactly like one of them. A census asking "which
+    daemons have stamped" counted it.
+
+    The refusal NAMES its reason (CLAUDE.md): that is how a wrong refusal gets discovered. And it
+    stays non-blocking -- the unit's leading `-` means a refusal still never stops a daemon
+    booting; it only stops the junk record.
+    """
+    assert boot_sha.is_session_name("sanity-daemon")
+    assert boot_sha.is_session_name("unknown"), "the no-argv fallback must still stamp"
+    for junk in ("--report", "-v", "", "../escape", "a/b"):
+        assert not boot_sha.is_session_name(junk), junk
+
+
+@pytest.mark.real_subprocess   # the refusal must hold for the REAL entrypoint, not just the helper
+def test_the_entrypoint_itself_refuses_a_flag_and_writes_nothing(tmp_path):
+    """The helper above is pure; this is the arm that proves the ENTRYPOINT consults it. Without
+    it, `is_session_name` could be correct and uncalled -- which is precisely how `stamp()` sat
+    with zero production callers for twenty days while its unit tests stayed green."""
+    def run_argv(arg):
+        d = tmp_path / arg.replace("/", "_").replace(".", "_") or "x"
+        d.mkdir(parents=True, exist_ok=True)
+        proc = subprocess.run(["/usr/bin/python3", "-m", "background.boot_sha", arg],
+                              cwd=os.path.dirname(os.path.dirname(os.path.dirname(
+                                  os.path.abspath(__file__)))),
+                              capture_output=True, text=True, timeout=180,
+                              env={**os.environ, "SE_BOOT_DIR": str(d)})
+        return proc, sorted(d.glob("*.json"))
+
+    proc, written = run_argv("sanity-daemon")
+    assert proc.returncode == 0 and len(written) == 1, (proc.returncode, proc.stderr)
+
+    proc, written = run_argv("--report")
+    assert proc.returncode != 0, "a flag must not be stamped silently"
+    assert written == [], f"the junk record was written anyway: {written}"
+    assert "--report" in proc.stderr and "not a session name" in proc.stderr, proc.stderr
+
+
 @pytest.mark.real_subprocess   # the point is the REAL command on the REAL installed units
 @pytest.mark.skipif(not _user_systemd_available(),
                     reason="could not reach --user systemd (no session bus in this environment)")

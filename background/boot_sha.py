@@ -105,6 +105,22 @@ def _content_map(paths: list[str]) -> dict[str, str] | None:
     return out
 
 
+def is_session_name(candidate: str) -> bool:
+    """Is this a session name, or something that only reached argv by accident?
+
+    THE DEFECT THIS EXISTS FOR, measured 2026-09-24. `docs/observability/.daemon_boot/--report.json`
+    is a boot record whose session is `--report`: `stamp(sys.argv[1])` took whatever it was handed,
+    so a caller passing a FLAG minted a junk session that then sat in the boot directory for six
+    weeks looking exactly like a daemon. A reader enumerating that directory to answer "which
+    daemons have stamped" counts it, and nothing said otherwise.
+
+    Deliberately narrow — it rejects what cannot be a unit name, rather than trying to know the
+    manifest. A stamper that had to load the manifest to stamp would fail closed at boot, which is
+    the one moment it must not.
+    """
+    return bool(candidate) and not candidate.startswith("-") and "/" not in candidate
+
+
 def stamp(session: str) -> None:
     """Record the tree this daemon booted from. Runs as the unit's ExecStartPre (prefixed `-`
     there, so a stamp failure never blocks the daemon). Never raises."""
@@ -233,5 +249,13 @@ if __name__ == "__main__":
     except ModuleNotFoundError:  # launched as `python3 background/boot_sha.py`
         from _seat import refuse_if_foreign
     refuse_if_foreign("boot_sha")
-    stamp(sys.argv[1] if len(sys.argv) > 1 else "unknown")
+    _session = sys.argv[1] if len(sys.argv) > 1 else "unknown"
+    if not is_session_name(_session):
+        # NAMED refusal, non-zero, to stderr. The unit's leading `-` means this still never blocks
+        # a daemon from starting -- but it stops the junk record being written, and says why, which
+        # is how `--report.json` would have been caught on the day instead of six weeks later.
+        print(f"boot_sha: refusing to stamp {_session!r} -- not a session name "
+              "(a flag or path reached argv where a unit name was meant)", file=sys.stderr)
+        raise SystemExit(2)
+    stamp(_session)
 

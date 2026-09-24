@@ -358,8 +358,22 @@ report is silent rather than read as a PASS.
   fires at all under systemd for these units — a strictly smaller question.
 - The 11 `stamp-predates-process` verdicts stand until those units next restart. Honest, not
   wrong, and ADDENDUM 2's ordering constraint is spent (§ADDENDUM 3), so a restart is now correct.
-- **Not repaired, still one line:** `docs/observability/.daemon_boot/--report.json` — `stamp(sys.argv[1])`
-  accepts any argv, so a caller passing a flag mints a junk session (ADDENDUM 3 §5).
+- ~~**Not repaired, still one line:** `docs/observability/.daemon_boot/--report.json`.~~
+  **REPAIRED in the follow-on commit, and corrected here beside the claim rather than revised
+  away.** `boot_sha.is_session_name()` + a NAMED refusal at the entrypoint: a flag or a path
+  reaching argv now exits 2 saying *"refusing to stamp '--report' -- not a session name (a flag or
+  path reached argv where a unit name was meant)"* and writes nothing, while `sanity-daemon` and
+  the no-argv `unknown` fallback still stamp. Demonstrated per-arm in fresh directories, because
+  the first run of the demo counted a file the PREVIOUS arm had written and read as though the
+  refusal had stamped. Still non-blocking: the unit's leading `-` means a refusal never stops a
+  daemon booting. Mutation-proven — accept-everything reds 2, refuse-everything reds 4, and
+  **making the entrypoint stop consulting the guard reds the entrypoint arm specifically**, which
+  is the correct-but-uncalled shape that let `stamp()` sit with zero production callers for twenty
+  days.
+- The junk stamp `--report.json` and the retired `discovery-daemon.json` are still ON DISK; the
+  guard stops new ones, it does not sweep old ones. Censused while here: of the 12 units declaring
+  the stamper, `executor-daemon` has never stamped (it has never started), and 2 stamp files
+  belong to no declaring unit.
 - The ruff frozen census reds in this shared worktree (`{'I001': 1304} != 1306`) from another
   lane's uncommitted work; my three files emit zero `I001` at HEAD and on disk alike. Already
   filed as `WORKER_FINDING_THE_RUFF_CENSUS_REDS_IN_THE_SHARED_WORKTREE_AND_IS_CLEAN_AT_HEAD_2026-09-24.md`.
