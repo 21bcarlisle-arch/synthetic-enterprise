@@ -188,6 +188,35 @@ def test_ordinary_churn_is_not_reported():
         "sim-runner": ["m"] * 2, "deadmans-switch": ["m"]}}) == []
 
 
+def test_an_ungradable_fleet_is_reported_and_never_left_silent():
+    """THE THIRD INSTRUMENT, found by the interconnection pass after `graded` landed on the
+    verdict (e1736649a). This reporter is SILENT by design when nothing is stale -- so a fleet
+    nobody could grade produced no line at all, which is the same denominator failure as
+    `stale: []` and `contradicted: 0`, one instrument further down the chain.
+
+    Keyed to the property over inputs where the two readings DIFFER, and both arms are here
+    rather than one: an identical verdict except for the size of `graded` must produce a line in
+    one case and nothing in the other. A reporter that appended the note unconditionally would be
+    the always-red detector this module's threshold exists to prevent, and it fails the second
+    arm."""
+    ungradable = {"stale_detail": {}, "population": ["d%d" % i for i in range(11)],
+                  "graded": ["d0"]}
+    out = W._drift_report(evaluate=lambda: ungradable)
+    assert out, "an ungradable fleet must not be reported by silence"
+    assert "10 of 11 daemon(s) UNGRADED" in out[0], out
+
+    whole = {**ungradable, "graded": ungradable["population"]}
+    assert W._drift_report(evaluate=lambda: whole) == [], (
+        "a fully graded, wholly clean fleet must still be silent -- this note is not a heartbeat")
+
+
+def test_a_verdict_without_the_denominator_makes_no_claim_either_way():
+    """Fail-closed on an OLDER verdict. `population`/`graded` absent means this instrument cannot
+    say, and cannot-say must degrade to the previous answer -- never to a fabricated `UNGRADED`
+    line, and never to a clean bill of health it did not earn."""
+    assert W._drift_report(evaluate=lambda: {"stale_detail": {}}) == []
+
+
 def test_the_threshold_sits_in_the_gap_the_measurement_found():
     """1-2 is churn, 57+ is stale, and nothing was observed between. A threshold inside that gap
     is read from the data; one outside it would be a preference."""

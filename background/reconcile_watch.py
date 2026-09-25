@@ -191,10 +191,26 @@ def _drift_report(evaluate=None) -> list[str]:
     and a reconcile that silently restarted things would be the accretion OPS1 forbids."""
     if evaluate is None:
         from background.process_reconciler import evaluate_boot_sha_drift as evaluate
-    detail = (evaluate() or {}).get("stale_detail") or {}
-    return [f"{s} ({len(f)} modules behind)"
-            for s, f in sorted(detail.items(), key=lambda kv: -len(kv[1]))
-            if len(f) >= DRIFT_MODULE_THRESHOLD]
+    verdict = evaluate() or {}
+    detail = verdict.get("stale_detail") or {}
+    lines = [f"{s} ({len(f)} modules behind)"
+             for s, f in sorted(detail.items(), key=lambda kv: -len(kv[1]))
+             if len(f) >= DRIFT_MODULE_THRESHOLD]
+    # THE THIRD INSTRUMENT TO PUBLISH THIS NUMERATOR ALONE, found by asking what else read the
+    # verdict after `graded` landed (e1736649a). An empty list above is what a clean fleet looks
+    # like AND what a fleet nobody could grade looks like -- and this one is silent by design, so
+    # the ungradable case produced no log line at all. Measured 2026-09-25 13:05: 10 of 11
+    # daemons `stamp-predates-process`, and this reporter said nothing, correctly, about nothing.
+    #
+    # NOT ALWAYS-RED, which is the failure mode this whole function is shaped around: it fires
+    # only when a daemon is genuinely ungradable, never on the 1-2 modules of ordinary churn the
+    # threshold above exists for. On this box right now `graded == population` and it is silent.
+    population, graded = verdict.get("population"), verdict.get("graded")
+    if population is not None and graded is not None and len(graded) < len(population):
+        lines.append(
+            f"{len(population) - len(graded)} of {len(population)} daemon(s) UNGRADED "
+            "-- the list above is a numerator, not a clean fleet")
+    return lines
 
 
 #: Statuses that mean the fork question was ASKED AND SETTLED — there is nothing left to close.

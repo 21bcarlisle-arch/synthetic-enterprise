@@ -123,7 +123,9 @@ def is_session_name(candidate: str) -> bool:
 
 def stamp(session: str) -> None:
     """Record the tree this daemon booted from. Runs as the unit's ExecStartPre (prefixed `-`
-    there, so a stamp failure never blocks the daemon). Never raises."""
+    there, so a stamp failure never blocks the daemon -- and costs no detection either, because
+    systemd records the exit status under `ignore_errors` regardless; see
+    `process_reconciler.loaded_code_drift`'s fifth rule). Never raises."""
     sha = current_head()
     blobs = dirty_blobs()
     try:

@@ -49,6 +49,15 @@ def generate_unit(entry: dict) -> str:
         f"EnvironmentFile=-{ENV_FILE}\n"
         f"# G-D3 (OPS1 sub-step 5): stamp the HEAD this daemon boots from so the reconciler can\n"
         f"# flag it as stale when HEAD advances (catches imported-module drift, not just own-script\n"
+        # DO NOT STRIP THE LEADING `-`, and the reason is not the outage it looks like.
+        # Measured 2026-09-25 on two transient units: systemd records `status=` for an
+        # `ignore_errors=yes` ExecStartPre IN FULL and starts the unit anyway, so
+        # `loaded_code_drift`'s `stamper-failed` rule already reads everything a refusal
+        # would buy -- the strip is strictly dominated, and the twenty-day stamper outage
+        # it was minted for exited 0 throughout, so it would not have caught that either.
+        # Pinned by test_boot_sha_deployment.py::test_the_units_leading_dash_costs_no_
+        # detection_because_the_failing_exit_is_recorded_anyway, which reds if a future
+        # systemd stops recording the status or stops starting the unit.
         f"# mtime). Leading `-`: a stamp failure must never block the daemon starting.\n"
         f"ExecStartPre=-{PY} -m background.boot_sha {name}\n"
         f"ExecStart={_exec_start(entry['command'])}\n"

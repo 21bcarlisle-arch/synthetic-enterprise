@@ -167,6 +167,19 @@ FLOOR: dict[tuple[str, str], tuple[int, str]] = {
         "recognise a real one. Nothing here opens a process; routing a test's expected-input "
         "string through the launcher is not a thing that can be done.",
     ),
+    ("tests/background/test_boot_sha_deployment.py", RAW_TRANSIENT_UNIT): (
+        2,
+        "THE SUBJECT OF THE CONTROL *IS* THE RAW UNIT, which is the one case the launcher cannot "
+        "serve. `test_the_units_leading_dash_costs_no_detection_because_the_failing_exit_is_"
+        "recorded_anyway` asks what systemd itself does with an `ExecStartPre` carrying the "
+        "ignore-errors `-`: does it still record the exit status, and does it still start the "
+        "unit. That question is about a systemd PROPERTY, so the property must be set on the "
+        "unit under test; a launcher that builds its own argv would answer it about the "
+        "launcher. The two sightings are the two arms -- a broken session argument and a valid "
+        "one -- which must both be raw or the anti-tautology leg compares two different "
+        "mechanisms. Both are transient, both run `/bin/sleep`, and both are stopped and "
+        "reset-failed in a `finally`, so nothing outlives the test.",
+    ),
     ("tests/background/test_launch_long_job.py", RAW_TRANSIENT_UNIT): (
         1,
         "The launcher's OWN door test, which is a category of its own: it must spell the real "

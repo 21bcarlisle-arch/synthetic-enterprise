@@ -698,7 +698,12 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
     exit status systemd ALREADY records for the ExecStartPre it ran. Dropping the units' leading
     `-` would promote the same non-zero exit into twelve daemons refusing to start, and
     `probe_declared_stamper` below measured why that trade is bad: the twenty-day outage exited
-    **0** throughout, so the `-` was never what hid it. Reading the status costs no outage and
+    **0** throughout, so the `-` was never what hid it. AND THE STRIP BUYS NOTHING AT ALL,
+    measured 2026-09-25 on two transient units: systemd records `status=` for an
+    `ignore_errors=yes` ExecStartPre in full AND starts the unit anyway, so this rule already
+    reads every bit a refusal would supply. Strictly dominated, and pinned by
+    `test_the_units_leading_dash_costs_no_detection_because_the_failing_exit_is_recorded_anyway`
+    so a systemd that stops recording it re-opens the question. Reading the status costs no outage and
     names the one condition the stamp's own age cannot distinguish — a stamper that RAN and FAILED
     (repair it) from a stamp that is simply old (restart the daemon).
 

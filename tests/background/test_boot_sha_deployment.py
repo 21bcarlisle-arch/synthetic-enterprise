@@ -1048,3 +1048,125 @@ def test_the_stamp_distinguishes_nothing_dirty_from_could_not_tell(tmp_path, mon
     assert boot_sha.read_boot_sha("cannot-tell-daemon") == sha, (
         "a stamp that could not read the tree must still record the commit"
     )
+
+
+def _unit_working_directory(session: str) -> str | None:
+    """The tree systemd would run `session`'s stamper in, from systemd's own record. None if it
+    cannot say — fail-closed, because defaulting to THIS tree is precisely the defect
+    `_live_boot_dir` above was written for."""
+    try:
+        r = subprocess.run(
+            ["systemctl", "--user", "show", f"{session}.service", "-p", "WorkingDirectory",
+             "--value"], capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001 -- cannot ask != an answer
+        return None
+    value = (r.stdout or "").strip() if getattr(r, "returncode", 1) == 0 else ""
+    return value or None
+
+
+@pytest.mark.real_subprocess   # the claim is about what systemd does; a stub cannot make it
+def test_the_units_leading_dash_costs_no_detection_because_the_failing_exit_is_recorded_anyway(
+        tmp_path):
+    """THE DECISION THIS PINS, and the four stretches it should not have taken (2026-09-25).
+
+    The delivery seat carried a remedy for four stretches: strip the leading `-` from the units'
+    `ExecStartPre` so a broken stamper makes the daemon refuse to start. Its stated reason for
+    deferring was outage risk. That was never the load-bearing reason, and treating it as one is
+    why the leg survived instead of being settled in ten minutes.
+
+    The load-bearing reason is measured here: **systemd records the exit status of an
+    `ignore_errors=yes` ExecStartPre in full, and starts the unit anyway.** So the fifth rule
+    (`stamper-failed`, which reads exactly that status through `unit_stamper_run`) already has
+    every bit of information a refusal would buy, at no outage. The strip is strictly dominated —
+    and it would not have caught the defect it was minted for either, because the twenty-day
+    stamper outage exited **0** throughout.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S SYSTEMD. If a future systemd stops recording `status`
+    under `ignore_errors`, or starts refusing the unit, this reds and the decision is re-opened by
+    the machine rather than by someone remembering. That is the whole reason a settled argument
+    gets a control at all.
+
+    ONE CONTROL OVER THE PARTITION, not a leg per arm. Two transient units run the units' OWN
+    installed stamper argv — one with a deliberately broken session argument, one with a valid
+    one — and the two statuses must DIFFER. A reader returning a constant (0 or non-zero) fails
+    on one arm or the other, which an all-broken or all-valid control could not tell.
+    """
+    declared = R.declared_stamp_argv()
+    if not declared:
+        pytest.skip("no installed unit on this box declares the boot stamper")
+    donor = sorted(declared)[0]
+    donor_session = donor[: -len(".service")]
+    argv = declared[donor]
+    workdir = _unit_working_directory(donor_session)
+    if not workdir:
+        pytest.skip(f"systemd cannot say which tree {donor} runs in")
+    # The command WITHOUT its session argument, so each arm can supply its own. Taken from the
+    # INSTALLED unit, never retyped: whatever systemd will really run is what gets probed.
+    base = [a for a in argv if a != donor_session]
+    if len(base) != len(argv) - 1:
+        pytest.skip(f"{donor}'s stamper argv does not carry its session name exactly once")
+
+    tag = f"se-dash-costs-nothing-{os.getpid()}-{time.time_ns()}"
+    arms = {f"{tag}-broken": "--not-a-session", f"{tag}-valid": f"{tag}-valid"}
+    observed: dict[str, dict] = {}
+    try:
+        for unit, session_arg in arms.items():
+            try:
+                launch = subprocess.run(
+                    ["systemd-run", "--user", f"--unit={unit}",
+                     f"--property=WorkingDirectory={workdir}",
+                     f"--setenv=SE_BOOT_DIR={tmp_path}",
+                     "--property=ExecStartPre=-{}".format(" ".join(base + [session_arg])),
+                     "/bin/sleep", "120"],
+                    capture_output=True, text=True, timeout=60)
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                pytest.skip("systemd-run --user is not usable here")
+            if launch.returncode != 0:
+                pytest.skip(f"systemd-run refused: {(launch.stderr or '').strip()[:200]}")
+        time.sleep(3)   # systemd runs ExecStartPre, then ExecStart; both are sub-second here
+        for unit in arms:
+            state = subprocess.run(
+                ["systemctl", "--user", "show", f"{unit}.service", "-p", "ActiveState", "--value"],
+                capture_output=True, text=True, timeout=10)
+            raw = subprocess.run(
+                ["systemctl", "--user", "show", f"{unit}.service", "-p", "ExecStartPre",
+                 "--value"], capture_output=True, text=True, timeout=10)
+            observed[unit] = {
+                "run": R.unit_stamper_run(unit),                  # the PRODUCTION reader
+                "records": R.parse_exec_records(raw.stdout or ""),  # ...and its parser
+                "active": (state.stdout or "").strip(),
+            }
+    finally:
+        for unit in arms:
+            subprocess.run(["systemctl", "--user", "stop", f"{unit}.service"],
+                           capture_output=True)
+            subprocess.run(["systemctl", "--user", "reset-failed", f"{unit}.service"],
+                           capture_output=True)
+
+    valid, broken = observed[f"{tag}-valid"], observed[f"{tag}-broken"]
+
+    # THE LICENCE, and it is checked rather than assumed. `background/_seat.py` makes the stamper
+    # refuse on foreign soil by printing one line and exiting 0 -- so on a tree that is not the
+    # resident one BOTH arms exit 0 and every assertion below would be about the seat guard
+    # instead of about systemd. The valid arm having actually STAMPED is what establishes the
+    # stamper really ran; without it there is no claim here, and saying so is not the same as
+    # passing.
+    if not (tmp_path / f"{tag}-valid.json").is_file():
+        pytest.skip("the declared stamper wrote no record here (foreign soil, or an unwritable "
+                    "boot dir) -- the seat guard, not this control's subject")
+
+    assert valid["run"]["status"] == 0, valid
+    for unit, seen in observed.items():
+        assert [r.get("ignore_errors") for r in seen["records"]] == [True], (
+            f"{unit}: this control is ONLY about what the leading `-` costs, and the arm did not "
+            f"carry it: {seen['records']}")
+
+    # (1) THE FAILURE IS RECORDED. Nothing is hidden by `ignore_errors`.
+    assert broken["run"]["status"] not in (None, 0), (
+        "systemd did not record the broken stamper's exit under ignore_errors -- the fifth rule "
+        f"(`stamper-failed`) has nothing to read and the `-` now DOES cost detection: {broken}")
+    # (2) AND IT COSTS NO OUTAGE. That difference is the entire effect of the prefix.
+    assert broken["active"] == "active", (
+        f"the `-` no longer keeps the unit starting through a failed stamper: {broken}")
+    # (3) ANTI-TAUTOLOGY: the two arms must be told APART, or a constant reader passes.
+    assert broken["run"]["status"] != valid["run"]["status"]
