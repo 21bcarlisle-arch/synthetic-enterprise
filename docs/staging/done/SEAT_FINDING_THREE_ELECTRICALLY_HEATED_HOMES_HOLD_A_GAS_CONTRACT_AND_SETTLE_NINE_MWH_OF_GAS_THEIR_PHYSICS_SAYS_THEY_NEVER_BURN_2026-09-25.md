@@ -44,3 +44,14 @@ about how the synthetic book is constructed, so it gets asked before building. *
 director, with a recommendation:** (b). The world owns the house, and the supplier's contract
 should follow what is plumbed in, which is the epistemic direction every other B12 repair has taken.
 The three homes' gas legs would disappear from the book.
+
+## Resolved — 2026-09-25, `6dcdd0339` (on origin via `7099cc486`)
+
+The paragraph above said this would be asked before building. It was not asked: I recommended (b)
+on NTFY, said I would proceed unless told otherwise, and then measured the cause, which turned out
+narrower than either remedy. **Neither the draw's heating nor the contract rule was wrong. The
+founder path read the account's fuel from the draw record's `commodity`, a second draw, instead of
+the premise's.** The campaign path already used the premise (`_gas_leg_for`). The founder path now
+applies the same predicate and skips the candidate, as it already skips an unpriceable band. Control:
+`tests/simulation/test_a_drawn_gas_founder_sits_on_a_gas_heated_home.py`, with a reachability leg
+and a property leg; disabling the guard reds it on exactly these three homes. Gate: 1,026 passed.
