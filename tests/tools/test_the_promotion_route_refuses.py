@@ -62,11 +62,17 @@ def test_a_worktree_sitting_on_origin_main_has_NOTHING_to_promote(worktree):
     assert "has landed nothing" in str(exc.value)
 
 
-def test_an_UNGATED_commit_cannot_be_promoted(worktree):
+def test_an_UNVERIFIABLE_commit_cannot_be_promoted(worktree):
     """The load-bearing leg: the receipt is what makes the route enforce the wall.
 
-    A plain `git commit` — the shape a hand-rolled or `--no-verify` landing would take — carries no
-    `surgical_land` receipt and must be refused however clean it otherwise looks.
+    A commit with no `surgical_land` receipt must be refused however clean it otherwise looks.
+
+    THIS ASSERTED `"not gated" in message` UNTIL 2026-09-24, AND THAT PINNED A FALSE CLAUSE. The
+    refusal said "carries no verifying receipt, SO it was not gated", which is an inference the
+    evidence does not reach: an ordinary `git commit` runs the whole hook chain and leaves no
+    receipt either, so the words accused every daemon commit of a bypass. A control keyed to
+    today's wording goes red when the code becomes MORE honest, which is exactly backwards — so
+    this is keyed to the PROPERTY instead: it refuses, and it names what it actually observed.
 
     MUTATION: drop `_refuse_if_ungated` and this fires.
     """
@@ -74,8 +80,13 @@ def test_an_UNGATED_commit_cannot_be_promoted(worktree):
     with pytest.raises(PromotionRefused) as exc:
         promote(worktree, dry_run=True)
     message = str(exc.value)
-    assert "receipt" in message and "not gated" in message
+    assert "carries no surgical_land receipt" in message
     assert "Re-land it through the door" in message
+    # THE ANTI-REGRESSION LEG, and the reason this test was rewritten rather than deleted: the
+    # route may not re-acquire the claim it cannot support. Keyed to the assertion, not to any
+    # particular phrasing of the honest version.
+    assert "so it was not gated" not in message
+    assert "THIS DOES NOT ESTABLISH THAT IT WAS UNGATED" in message
 
 
 def test_a_DIRTY_worktree_cannot_be_promoted(worktree):
@@ -365,7 +376,11 @@ def test_an_ungated_commit_beneath_a_gated_tip_is_refused(tmp_path, monkeypatch)
         import subprocess as sp
         candidate = argv[-1]
         verified.append(candidate)
-        rc = 0 if candidate == tip else 1
+        # rc 2, NOT 1. `surgical_land.verify` returns 2 for "no receipt" and 1 for "RECEIPT
+        # FALSIFIED"; the salvage commit this test is named for was a `--no-verify` commit, so its
+        # real return is 2. The fake said 1, so this control was silently exercising the forgery
+        # branch while its docstring described the receiptless one (corrected 2026-09-24).
+        rc = 0 if candidate == tip else 2
         return sp.CompletedProcess(argv, rc, stdout="", stderr="no receipt")
 
     monkeypatch.setattr(promote, "_git_out", _fake_git_out)
@@ -398,6 +413,50 @@ def test_a_range_of_gated_commits_is_promotable(tmp_path, monkeypatch):
                         __import__("subprocess").CompletedProcess(argv, 0, stdout="", stderr=""))
 
     promote._refuse_if_ungated(tmp_path, commits[-1])  # must not raise
+
+
+def test_a_MISSING_receipt_and_a_FALSIFIED_one_are_not_reported_as_the_same_thing(
+        tmp_path, monkeypatch):
+    """ONE control over the WHOLE partition, because a per-branch test passes on a collapse.
+
+    `surgical_land.verify` returns 0 consistent / 1 FALSIFIED / 2 no receipt. `_refuse_if_ungated`
+    branched on `!= 0` and rendered 1 and 2 in identical words — so a forged receipt, which is
+    tampering and has never been observed, read exactly like a daemon's ordinary `git commit`,
+    which happens hundreds of times a week. A reader who trusted the words went looking for a hook
+    bypass that did not exist.
+
+    The rare branch is asserted REACHABLE first and distinct second: a refusal guard that rendered
+    one message for every rc would pass any test that only checked "it refused".
+
+    MUTATION: collapse the two arms back to one message and the final assertion fires.
+    """
+    from tools import promote_worktree_landing as promote
+
+    def _refusal_for(rc: int) -> str:
+        monkeypatch.setattr(promote, "_git_out", lambda cwd, *a: (
+            "000000000" if a[:2] == ("rev-parse", "origin/main") else "abcabcabc"))
+        monkeypatch.setattr(promote, "_git", lambda cwd, *a: subprocess.CompletedProcess(
+            a, 0, stdout="a commit\n", stderr=""))
+        monkeypatch.setattr(promote.subprocess, "run", lambda argv, **k:
+                            subprocess.CompletedProcess(argv, rc, stdout="", stderr=""))
+        with pytest.raises(promote.PromotionRefused) as exc:
+            promote._refuse_if_ungated(tmp_path, "abcabcabc")
+        return str(exc.value)
+
+    absent, falsified = _refusal_for(2), _refusal_for(1)
+
+    # BOTH ARMS ARE REACHABLE -- neither is a branch that can only ever refuse one way.
+    assert "carries no surgical_land receipt" in absent
+    assert "DOES NOT DESCRIBE IT" in falsified
+
+    # A MISSING receipt must not be called a forged one, nor a forged one excused as missing.
+    assert "DOES NOT DESCRIBE IT" not in absent
+    assert "carries no surgical_land receipt" not in falsified
+    assert absent != falsified
+
+    # AND NEITHER MAY RE-ACQUIRE THE INFERENCE. `no receipt` is an observation about this door;
+    # `not gated` is a claim about the hook chain, which this function never consulted.
+    assert "so it was not gated" not in absent and "so it was not gated" not in falsified
 
 
 def test_a_test_processs_exhaust_is_not_reported_as_the_writers_unfinished_work(worktree):

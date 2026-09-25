@@ -231,6 +231,80 @@ def test_extract_report_data_value_chain_organs_default_to_empty_dict():
     assert data["margin_call_book"] == {}
 
 
+def test_extract_report_data_forwards_both_svt_departure_logs():
+    """THE SECOND DEPARTURE ROUTE MUST SURVIVE THE REDUCTION, and this grades the FUNCTION
+    because the control that already covered it grades an ARTEFACT (2026-09-24).
+
+    THE DEFECT. `extract_report_data`'s dict is a publication WHITELIST: a key it does not name is
+    dropped from the saved payload silently. C1b moved roughly two thirds of the domestic book onto
+    the standard variable product, which has no renewal point and so no `customer_events` row, and
+    `run_phase2b` records that route in `svt_departures` with the population it was drawn from in
+    `svt_decisions`. The whitelist named neither, so the artefact published churned accounts whose
+    departures had no cause, no roll and no probability, and 48 SVT departures as a NUMERATOR WITH
+    NO DENOMINATOR.
+
+    WHY A SECOND CONTROL, WHEN `test_a_churned_account_has_a_departure_record` EXISTS. That one
+    opens `docs/reports/run_output_latest.json` and grades the bytes on disk. Those bytes are
+    written by whatever WORKING TREE the run executed, so for three weeks it read green on an
+    artefact produced by code that was in no commit -- `git grep svt_departures origin/main --
+    saas/` returned nothing the morning this was written, while the site published
+    `covers_svt_route: true` over 1974 SVT decisions. An artefact control cannot tell a landed
+    producer from an unlanded one; this one calls the function, so only the committed code can
+    make it green. Sixth instance of the class in
+    `docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`.
+
+    KEYED TO THE PROPERTY. No count is asserted -- the rows go in and the same rows must come out,
+    whatever the run produced and however many there are.
+
+    THE NAMED MUTATION. Delete either whitelist line and the matching leg fires with a KeyError on
+    a key the run plainly returned. That is the one-line regression this exists to catch.
+    """
+    run_output = _run_output()
+    departures = [{"customer_id": "C1", "event_type": "churned", "departure_cause": "svt_inertia"}]
+    decisions = [
+        {"customer_id": "C1", "event_type": "churned", "route": "svt_segment"},
+        {"customer_id": "C2", "event_type": "stayed", "route": "svt_segment"},
+    ]
+    run_output["phase2b"]["svt_departures"] = departures
+    run_output["phase2b"]["svt_decisions"] = decisions
+
+    data = extract_report_data(run_output)
+
+    # Forwarded UNTOUCHED and under their own names: an SVT departure convened no renewal decision
+    # and carries none of `customer_events`' fields, so it is never unioned into that log.
+    assert data["svt_departures"] == departures
+    assert data["svt_decisions"] == decisions
+    assert data["customer_events"] != departures
+
+
+def test_extract_report_data_leaves_absent_svt_decisions_as_none_not_an_empty_list():
+    """THE DENOMINATOR'S ABSENCE MUST STAY UNOBSERVABLE, NOT ARRIVE AS A MEASURED ZERO.
+
+    `.get("svt_decisions", [])` would read as the harmless sibling of every other default in this
+    dict, and it is the opposite. An empty decision list is a POPULATION OF ZERO that
+    `population_anchor.declare_rows` reports as `covers_svt_route: true` over nothing -- a run that
+    predates the recorder would publish a coverage claim it cannot support, and the refusal
+    downstream would stop naming its own cause. `departure_population.load_svt_decisions` is built
+    on exactly this discriminator: `None` means "no recorder in this run", `[]` means "a recorder
+    that saw nothing", and they are different facts.
+
+    THE PARTITION IS ASSERTED REACHABLE IN BOTH DIRECTIONS, not one leg per branch -- a whitelist
+    that returned `None` for everything would satisfy a lone absent-case assertion.
+
+    MUTATION: change the line to `.get("svt_decisions", [])` and this fires; the departures leg
+    below keeps `[]` honest, so the two cannot be collapsed into one default.
+    """
+    data = extract_report_data(_run_output())  # phase2b carries neither SVT key
+
+    assert data["svt_decisions"] is None, (
+        "an absent SVT recorder must stay absent -- an empty list is a population of zero and "
+        "reads downstream as a covered route"
+    )
+    # The sibling key genuinely defaults, and asserting it here is what stops the two being
+    # 'fixed' into agreement: they mean different things and must not share a default.
+    assert data["svt_departures"] == []
+
+
 def test_extract_report_data_splits_by_year():
     data = extract_report_data(_run_output())
 

@@ -964,6 +964,313 @@ def test_a_call_site_only_stale_copy_is_refused(repo: Path) -> None:
     assert loss.rule == scr.PREDATES, "it must be refused AS predating the landing"
 
 
+# ------------------------------------------- rule 1b: the copy reverts a comment block the landing added
+#
+# The defect, banked as instance 54 of CLASS_CONTROLS_THAT_CANNOT_FAIL and filed as
+# SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT
+# (2026-09-24): a copy that carries every CODE line a landing added and has deleted that landing's
+# entire written explanation is invisible to all four rules at once. Rule 1's evidence set filters
+# comments out, so `missing` is 0 and neither its refusal leg nor its clock leg is asked; rule 2 sees
+# no symbol change because prose declares no name; rule 4 returns at its first line because `.py` is
+# rule 1's. `refresh_to_head` reported that blindness to the operator as "it deletes no name ... an
+# ordinary edit" -- a POSITIVE CLAIM about a reading nothing had made, which is the third door onto
+# the fail-silent shape this module has now banked three times.
+#
+# The live instance: `8d84c67b5` landed six comment lines saying why a stub was RED AT HEAD -- a
+# BLOCKING finding's whole written record -- and a working copy twelve minutes older reverted them.
+#
+# THE NEGATIVE TESTS ARE THE ONES THAT MATTER, as with the cut discriminator below. A reading that
+# called every absent comment a reverted block would pass all three positive legs here and be far
+# worse than the defect: it would refuse honest edits to prose on every stale checkout, and the
+# verdict it produces sends the operator to a door that DISCARDS BYTES.
+
+#: The base the comment landing lands over: one line of prose, and a stub returning a 2-tuple.
+PRE_COMMENT_LANDING = (
+    "def alpha():\n    return 1\n\n\n"
+    "def stub(paths):\n"
+    "    # The third element is the liveness-only list, empty here on purpose (2026-09-19).\n"
+    "    return (paths, 7)\n"
+)
+
+#: `8d84c67b5`'s shape, reduced: a six-line comment block REPLACING that one line, plus two
+#: distinctive code lines and a new sibling. The prose is the only record of why the stub was red.
+COMMENT_LANDING = (
+    "def alpha():\n    return 1\n\n\n"
+    "def stub(paths):\n"
+    "    # THE STUB TRACKS THE REAL SHAPE, and it had drifted on BOTH axes: the call returns\n"
+    "    # three values now and each hit is four wide. This stub still returned a 2-tuple of\n"
+    "    # 3-wide hits, so the test died in the unpack before reaching a single one of the\n"
+    "    # three readings it exists to assert -- red at HEAD, which makes the whole module\n"
+    "    # uneditable by any lane. A stub of the function under test is only evidence while\n"
+    "    # it can still be SUBSTITUTED for that function; this one could not.\n"
+    "    return (paths, 7, [])\n\n\n"
+    "def landed_sibling(argument):\n"
+    "    return argument * 41 + 7\n"
+)
+
+#: THE COPY THE FINDING IS ABOUT. It carries every distinctive CODE line of the landing -- the widened
+#: return, the new sibling, its body -- and puts back the one-line comment the landing superseded. Its
+#: only loss is prose, and it declares exactly the names the landing declares.
+COMMENT_REVERT = (
+    "def alpha():\n    return 1\n\n\n"
+    "def stub(paths):\n"
+    "    # The third element is the liveness-only list, empty here on purpose (2026-09-19).\n"
+    "    return (paths, 7, [])\n\n\n"
+    "def landed_sibling(argument):\n"
+    "    return argument * 41 + 7\n"
+)
+
+#: A REWRITE, NOT A REVERT: a third wording belonging to neither side of the landing. This is the
+#: population the guard exists for -- a rewrap, a re-word, a tidy -- and it must never be refused.
+COMMENT_REWRITE = (
+    "def alpha():\n    return 1\n\n\n"
+    "def stub(paths):\n"
+    "    # A third wording of the same point, belonging to neither side of that landing and\n"
+    "    # written by a lane that had both in front of it.\n"
+    "    return (paths, 7, [])\n\n\n"
+    "def landed_sibling(argument):\n"
+    "    return argument * 41 + 7\n"
+)
+
+#: AN EDIT TO THE BLOCK, not a loss of it: one line of the landing's prose survives verbatim.
+#:
+#: IT HOLDS THE SUPERSEDED LINE TOO, AND THAT IS THE WHOLE CONSTRUCTION. The first draft of this
+#: fixture dropped it, and `any -> all` on the wholesale guard then came back GREEN: the copy failed
+#: the SUPERSEDED guard instead, so the test named one guard and was carried by the other. A mutation
+#: caught by a different leg than the one it was written for is the flattering reading -- the guard
+#: under test was simply unreachable. Holding both halves passes the superseded guard by construction
+#: and leaves the wholesale guard as the only thing that can refuse this copy.
+COMMENT_PARTIAL_HOLD = (
+    "def alpha():\n    return 1\n\n\n"
+    "def stub(paths):\n"
+    "    # The third element is the liveness-only list, empty here on purpose (2026-09-19).\n"
+    "    # THE STUB TRACKS THE REAL SHAPE, and it had drifted on BOTH axes: the call returns\n"
+    "    return (paths, 7, [])\n\n\n"
+    "def landed_sibling(argument):\n"
+    "    return argument * 41 + 7\n"
+)
+
+
+def _comment_fixture(root: Path, work: str, *, older: bool) -> str:
+    """Land `COMMENT_LANDING` over `PRE_COMMENT_LANDING`, put `work` on disk, and set its clock.
+
+    THE BYTES ON DISK MUST BE THE BYTES JUDGED. `taken_before` compares the file's content to the
+    text it is handed before it reads any mtime -- an mtime is a fact about a file and says nothing
+    about bytes supplied by `--content` -- so a fixture that writes one text and judges another
+    silently takes the `False` exit and every refusing leg below would pass for the wrong reason."""
+    _commit(root, "m.py", PRE_COMMENT_LANDING, "the base the comment landing lands over")
+    sha = _commit(root, "m.py", COMMENT_LANDING, "a landing whose record of itself is its prose")
+    (root / "m.py").write_text(work)
+    stamp = scr.committed_at(root, sha) + (-60 if older else 60)
+    os.utime(root / "m.py", (stamp, stamp))
+    return sha
+
+
+def test_a_copy_whose_only_loss_is_a_landed_comment_block_is_refused(repo: Path) -> None:
+    """MUTATION: delete the rule 1b branch in `judge` and this FIRES. So does dropping either guard
+    in `reverted_comment_block` -- the other two legs of this pair catch those.
+
+    THE OTHER THREE RULES ARE ASSERTED BLIND FIRST, and that is not ceremony. A refusal arriving here
+    by rule 1 or rule 2 would be the right answer for the wrong reason, and this test would go on
+    passing after rule 1b was deleted -- which is exactly how `test_a_call_site_only_stale_copy_is_
+    refused` beside it earns its `scr.PREDATES` assertion. The point of the finding is that all four
+    rules are structurally blind at once, so the control has to say so in its own terms."""
+    sha = _comment_fixture(repo, COMMENT_REVERT, older=True)
+    head_text = scr.blob_at(repo, "HEAD", "m.py")
+
+    distinctive = scr.distinctive_lines(repo, "m.py", sha)
+    present = {ln.strip() for ln in COMMENT_REVERT.splitlines()}
+    assert distinctive, "no line evidence at all -- this fixture is not the finding's shape"
+    assert all(d in present for d in distinctive), (
+        "the copy must carry EVERY distinctive code line, or rule 1's clock leg can see it and rule "
+        "1b is not what this test is measuring")
+    assert scr.symbols(head_text, "m.py") == scr.symbols(COMMENT_REVERT, "m.py"), (
+        "the two sides must declare the same names, or rule 2 can see this copy and rule 1b is no "
+        "longer the only thing between it and a clean verdict")
+    assert scr.clock_judge(repo, "m.py", head_text, COMMENT_REVERT) is None, (
+        "rule 4 must stay blind: `.py` is in READABLE and therefore rule 1's, and a rule 4 that "
+        "answered here would mean the suffix dispatch had moved")
+
+    loss = scr.judge(repo, "m.py", head_text, COMMENT_REVERT)
+    assert loss is not None, (
+        "a copy that reverts the whole written record of its own landing was graded CLEAN -- this is "
+        "the finding, and `refresh_to_head` reports it to the operator as an ordinary edit")
+    assert loss.rule == scr.REVERTS_COMMENT, (
+        "it must be refused AS a reverted comment block: that is the only verdict whose remedy and "
+        "refusal text name prose, and any other rule arriving here is the right answer by luck")
+    assert len(loss.detail) == 6 and all(d.startswith("#") for d in loss.detail), (
+        "the verdict must carry the block itself -- an operator deciding whether to discard bytes is "
+        "reading these lines, not the rule name")
+    assert "6-line" in loss.render() and "carrying all" in loss.render(), (
+        "the rendered refusal must say what was lost and what was carried, or it repeats the defect "
+        "one layer up: a verdict the reader cannot check")
+
+
+def test_a_rewritten_comment_is_not_a_reverted_block(repo: Path) -> None:
+    """MUTATION: drop the `superseded` guard in `reverted_comment_block` and this FIRES.
+
+    THE GUARD THIS OWNS, and it is the whole reason rule 1b is narrower than
+    `comments_are_evidence=True`. A rewrap, a re-word or a tidy supplies its own THIRD text, which is
+    neither the landing's lines nor the ones that landing displaced -- so it fails the revert half
+    while failing the wholesale half too. Without this guard, every stale checkout that had touched a
+    comment would be refused, and the argument in
+    `test_the_comment_fallback_does_not_displace_code_evidence` -- comments travel with cherry-picks,
+    rewraps and reverts -- would apply to rule 1b exactly as it does to the flat flip."""
+    _comment_fixture(repo, COMMENT_REWRITE, older=True)
+    head_text = scr.blob_at(repo, "HEAD", "m.py")
+    assert scr.judge(repo, "m.py", head_text, COMMENT_REWRITE) is None, (
+        "a copy carrying its own wording of the same point was refused -- rule 1b has become a "
+        "complaint about editing prose, which refuses honest work on every stale checkout")
+
+
+def test_a_partially_held_comment_block_is_an_edit_not_a_loss(repo: Path) -> None:
+    """MUTATION: change `any(ln in present ...)` to `all(...)` in `reverted_comment_block` and this
+    FIRES.
+
+    THE OTHER GUARD, and a DIFFERENT one -- which is why it is not folded into the test above. A copy
+    holding part of the landing's prose is editing that prose, and an edit to a comment is not this
+    rule's business at any age. `all` would fire on every such copy while still passing the positive
+    leg, because a copy holding NONE of the block satisfies `all` and `any` alike.
+
+    THE OTHER GUARD IS ASSERTED SATISFIED FIRST, because without that this test does not measure its
+    own subject. Its first draft did not hold the superseded line, so the copy was refused by the
+    REWRITE guard and `any -> all` came back green -- the wholesale guard was unreachable and the
+    test said nothing about it. See the fixture's own note."""
+    _comment_fixture(repo, COMMENT_PARTIAL_HOLD, older=True)
+    head_text = scr.blob_at(repo, "HEAD", "m.py")
+    present = {ln.strip() for ln in COMMENT_PARTIAL_HOLD.splitlines()}
+    assert "# The third element is the liveness-only list, empty here on purpose (2026-09-19)." \
+        in present, (
+        "this copy no longer holds the prose the landing superseded, so the REWRITE guard refuses it "
+        "and the wholesale guard this test is named for is never reached")
+    assert scr.distinctive_lines(repo, "m.py", scr.last_commit_touching(repo, "m.py")), (
+        "no line evidence, so rule 1's legs are unasked and this fixture is not rule 1b's shape")
+    assert scr.judge(repo, "m.py", head_text, COMMENT_PARTIAL_HOLD) is None, (
+        "a copy holding one line of the landing's block verbatim was called a wholesale revert -- "
+        "the wholesale guard is gone and rule 1b now refuses comment EDITS")
+
+
+def test_a_single_landed_comment_line_is_not_a_block(repo: Path) -> None:
+    """MUTATION: set `COMMENT_BLOCK_FLOOR` to 1 and this FIRES.
+
+    THE FLOOR IS CONSTRUCTED HERE BECAUSE THE LIVE TREE DOES NOT EXERCISE IT. Measured 2026-09-24
+    across the 52 tracked-modified `.py` paths, the fire count is 7 at every floor from 1 to 6 -- so
+    the guard changes no live verdict and an unfalsifiable green is exactly what it would otherwise
+    have. The population it is aimed at is `# noqa` churn and one-line licence headers, named in
+    `test_the_comment_fallback_does_not_displace_code_evidence` as the reason comments must not become
+    flat evidence, and this is the fixture that proves the floor bites on it."""
+    one_line = COMMENT_LANDING.replace(
+        "    # THE STUB TRACKS THE REAL SHAPE, and it had drifted on BOTH axes: the call returns\n"
+        "    # three values now and each hit is four wide. This stub still returned a 2-tuple of\n"
+        "    # 3-wide hits, so the test died in the unpack before reaching a single one of the\n"
+        "    # three readings it exists to assert -- red at HEAD, which makes the whole module\n"
+        "    # uneditable by any lane. A stub of the function under test is only evidence while\n"
+        "    # it can still be SUBSTITUTED for that function; this one could not.\n",
+        "    # noqa: E501 -- one line, and no reader would miss it.\n")
+    assert one_line != COMMENT_LANDING, (
+        "the replace matched nothing, so this test is asserting about the SIX-line landing and the "
+        "floor is not its subject at all")
+    _commit(repo, "m.py", PRE_COMMENT_LANDING, "the base")
+    sha = _commit(repo, "m.py", one_line, "a landing whose whole prose is one line")
+    (repo / "m.py").write_text(COMMENT_REVERT)
+    os.utime(repo / "m.py", (scr.committed_at(repo, sha) - 60,) * 2)
+    assert scr.reverted_comment_block(repo, "m.py", sha, COMMENT_REVERT) == (), (
+        "a single landed comment line was read as a BLOCK, so the floor is not applied and `# noqa` "
+        "churn is now a refusal on every older checkout")
+    assert scr.reverted_comment_block(repo, "m.py", sha, COMMENT_REVERT, floor=1) != (), (
+        "the floor is not what suppressed it -- something else in this fixture is, and the leg above "
+        "is green for a reason it does not name")
+
+
+def test_the_comment_block_partition_is_reachable_in_one_tree(repo: Path) -> None:
+    """A CONTROL OVER THE PARTITION, NOT A LEG PER BRANCH -- the shape `test_the_whole_carry_partition_
+    is_reachable_in_one_tree` was written for below, applied to rule 1b's four neighbouring states.
+
+    Three plausible mutations each pass three of the four:
+
+      * the whole rule 1b branch deleted          passes every vouching state
+      * the `taken_before` guard dropped          passes every refusing state
+      * `partial is None` removed                 passes all four here and only the rule-1 tree
+                                                  beside it can tell -- so that is asserted too
+
+    AND THE FOUR VERDICTS ARE ASSERTED DISTINCT. A rule that collapsed the reverting copy and the
+    rewriting copy onto one answer would satisfy a count of states while being blind to the
+    difference the whole reading rests on."""
+    root = repo
+
+    _comment_fixture(root, COMMENT_REVERT, older=True)
+    head = scr.blob_at(root, "HEAD", "m.py")
+    reverted_and_old = scr.judge(root, "m.py", head, COMMENT_REVERT)
+
+    # SAME BYTES, CLOCK THE OTHER WAY ROUND. Prose that has gone stale is ordinary to delete in newer
+    # work, and refusing it would refuse every honest edit to a comment -- the false-positive floor
+    # this module lives under. This is also the state `unread_populations` exists to NAME.
+    landed_at = scr.committed_at(root, scr.last_commit_touching(root, "m.py"))
+    os.utime(root / "m.py", (landed_at + 60,) * 2)
+    reverted_but_fresh = scr.judge(root, "m.py", head, COMMENT_REVERT)
+    unread_when_fresh = scr.unread_populations(root, "m.py", COMMENT_REVERT)
+
+    (root / "m.py").write_text(COMMENT_REWRITE)
+    os.utime(root / "m.py", (landed_at - 60,) * 2)
+    rewritten_and_old = scr.judge(root, "m.py", head, COMMENT_REWRITE)
+
+    # OLDER AND HOLDING THE WHOLE BLOCK: the authoring lane's own copy, which `surgical_land` never
+    # writes and whose mtime therefore predates its own commit. The normal resting state of a shared
+    # checkout, and it must never be refused.
+    built_on = COMMENT_LANDING + "\n\ndef mine():\n    return 0\n"
+    (root / "m.py").write_text(built_on)
+    os.utime(root / "m.py", (landed_at - 60,) * 2)
+    whole_block_and_old = scr.judge(root, "m.py", head, built_on)
+    unread_when_read = scr.unread_populations(root, "m.py", built_on)
+
+    assert reverted_and_old is not None and reverted_and_old.rule == scr.REVERTS_COMMENT, (
+        "the comment-block refusal is unreachable")
+    assert reverted_but_fresh is None, (
+        "the fresh-clock exemption is unreachable -- rule 1b now refuses honest post-landing edits "
+        "to prose, which is every tidy on every checkout")
+    assert rewritten_and_old is None, (
+        "the rewrite exemption is unreachable -- a lane that re-worded the block is being told it "
+        "reverted one")
+    assert whole_block_and_old is None, (
+        "the holds-the-block exemption is unreachable -- rule 1b now refuses the authoring lane's "
+        "own copy")
+    assert len({reverted_and_old.rule, "none"}) == 2, (
+        "the refusing and vouching answers must be DISTINCT states and not one collapsed answer")
+    assert unread_when_fresh and "COMMENT BLOCK" in unread_when_fresh[0], (
+        "a copy the clock calls fresh had rule 1b skipped, and nothing says so -- that is the "
+        "positive-claim defect this finding is about, one rule to the left")
+    assert unread_when_read == (), (
+        "`unread_populations` never returns empty, so 'every reading was made' is unreachable and "
+        "the honest verdict can never be printed -- a refusal that cannot be cleared is not a "
+        "reading, it is a footnote")
+
+
+def test_rule_1b_never_displaces_a_verdict_rule_1_reached(repo: Path) -> None:
+    """MUTATION: drop the `partial is None` guard on the rule 1b branch in `judge` and this FIRES.
+
+    ORDERING IS A PROPERTY, NOT A DETAIL. Rule 1's PARTIAL verdict names the landed code lines the
+    copy would delete and its remedy is `isolate_hunks --keep`; rule 1b's names prose and sends the
+    reader to `refresh_to_head`. A copy that is BOTH missing code lines and missing the block must be
+    told the stronger thing, exactly as `SUBSET` outranks PARTIAL below it for the same reason."""
+    _commit(repo, "m.py", PRE_COMMENT_LANDING, "the base")
+    sha = _commit(repo, "m.py", COMMENT_LANDING, "the landing")
+    # The copy reverts the block AND drops the landing's sibling body -- both readings have something
+    # to say about it.
+    both = COMMENT_REVERT.replace("    return argument * 41 + 7\n", "    return 0\n")
+    assert both != COMMENT_REVERT, "the replace matched nothing and this copy is not the both-losses shape"
+    (repo / "m.py").write_text(both)
+    os.utime(repo / "m.py", (scr.committed_at(repo, sha) - 60,) * 2)
+    head_text = scr.blob_at(repo, "HEAD", "m.py")
+
+    assert scr.reverted_comment_block(repo, "m.py", sha, both), (
+        "rule 1b has nothing to say about this copy, so the precedence this test is about is not "
+        "exercised and the leg below would pass with rule 1b deleted")
+    loss = scr.judge(repo, "m.py", head_text, both)
+    assert loss is not None and loss.rule == scr.PARTIAL, (
+        "rule 1b displaced rule 1's verdict on a copy missing landed CODE -- the reader is now sent "
+        "to the refresh door with a refusal that names only prose, and the code loss is unmentioned")
+
+
 # ------------------------------------------------------- the third verdict: a name HEAD CUT ON PURPOSE
 #
 # The defect, banked as THE_HOLDER_WORK_VERDICT_NAMED_A_FORBIDDEN_IMPORT_AS_WORK_TO_LAND_AND_IT_WAS_
@@ -1813,3 +2120,289 @@ def test_the_delta_fails_closed_on_an_unparseable_side(repo: Path) -> None:
         scr.json_leaf_delta('{"a": 1}', '{"a": ', "r.json")
     with pytest.raises(scr.Unparseable):
         scr.json_leaf_delta('{"a": ', '{"a": 1}', "r.json")
+
+
+# ------------------------------------ the clock a `git stash` restore destroys (2026-09-24)
+
+#: The live instants, kept rather than rounded, because the whole defect is a 44-second lead
+#: turning into a 38-second lag and a fixture that rounds them away cannot show it. Measured on
+#: the shared tree and banked in `SEAT_FINDING_A_STASH_POP_RESTAMPED_321_FILES_AND_DEFEATED_THE_
+#: STALE_COPY_CLOCK_BY_38_SECONDS_2026-09-24.md`: `23e9917bc` snapshotted at 14:01:09Z, `b3aa159dd`
+#: landed on origin at 14:01:53Z, the restore rewrote 321 tracked files at 14:02:31Z.
+SNAPSHOTTED_AT = 1790258469
+LANDED_AT = SNAPSHOTTED_AT + 44
+RESTORED_AT = SNAPSHOTTED_AT + 82
+
+
+def _stash_at(root: Path, when: int, *args: str) -> str:
+    """`git stash push <args>` with `when` as the stash commit's committer date, and the stash's
+    own sha back. The date must be forced: a test runs inside one second, so a fixture that let
+    git pick would have the snapshot, the landing and the restore all share a clock and could not
+    tell the repaired leg from the broken one."""
+    subprocess.run(["git", "stash", "push", "-q", *args], cwd=str(root), check=True,
+                   capture_output=True, text=True,
+                   env={**os.environ, "GIT_COMMITTER_DATE": "@{} +0000".format(when)})
+    return _run(root, "rev-parse", "refs/stash").strip()
+
+
+def test_the_clock_reads_the_stash_that_holds_the_bytes_and_not_the_stamp_of_the_restore(
+        repo: Path) -> None:
+    """THE DEFECT: an mtime shared by hundreds of files is a write event, not an author.
+
+    `git stash` on the shared tree at 14:01:09Z, another lane's landing on origin at 14:01:53Z, the
+    restore at 14:02:31Z rewriting 321 tracked files with ONE stamp. `taken_before` asked
+    `committed_at(commit) > mtime`, so a draft made 44 seconds BEFORE the landing read as authored
+    38 seconds AFTER it; `judge`'s older-clock leg did not fire, its rule-1 `any`-vouch was
+    satisfied by one shared line, and `refresh_to_head` refused the gap paths as "an ordinary edit"
+    -- which is exactly what they were not. Fail-open on the one leg written to catch a
+    pre-landing draft.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, not a leg per branch, because the trap this repository
+    has walked into three times in an afternoon is a guard that refuses everything and passes every
+    test written for it. Five copies, all judged against the SAME landing, and each answer has a
+    DIFFERENT cause:
+
+      * `a.py` -- restored from an old stash reachable only as `refs/preserved/...` -> True
+      * `e.py` -- restored from an old stash reachable only through the stash REFLOG -> True
+      * `b.py` -- an ordinary edit carrying the same restore stamp                  -> False
+      * `c.py` -- restored from a stash NEWER than the landing                       -> False
+      * `d.py` -- never stashed, and its own mtime predates the landing              -> True
+
+    Each is separately mutatable and no two share a killer, which is what stops one of them
+    standing in for the rest. Drop the stash leg from `taken_before` and `a`+`e` flip; drop
+    `stashed_before`'s `oid == disk` test and `b` flips; drop its `when < before` filter and `c`
+    flips; drop the mtime comparison and `d` flips; stop reading the stash reflog and `e` flips
+    alone.
+
+    THE TWO SOURCES ARE SPLIT ACROSS TWO PATHS ON PURPOSE, and the first draft of this test did not
+    do that: it reached both stashes through `for-each-ref` (a preserved ref and `refs/stash`), so
+    deleting the reflog reader entirely left the suite GREEN. That is the no-op mutation, not a
+    covered leg. `e`'s stash is BURIED under a later one, so `refs/stash` names somebody else and
+    the reflog is the only thing that can find it -- which is the ordinary state of any stash that
+    is not the most recent. `a`'s is dropped from the reflog and survives only as
+    `refs/preserved/...`, which is the live case: a popped stash is unreachable, and this
+    repository's habit of writing a ref at what it discards is the whole reason `23e9917bc` could
+    still be asked."""
+    for name in ("a.py", "b.py", "c.py", "d.py", "e.py"):
+        (repo / name).write_text("def base():\n    return 1\n")
+    _run(repo, "add", "a.py", "b.py", "c.py", "d.py", "e.py")
+    _run(repo, "commit", "-qm", "the five copies, before anything happened to them")
+    _run(repo, "branch", "trunk")
+
+    drafted = "def drafted_before_the_landing():\n    return 'mine'\n"
+    (repo / "a.py").write_text(drafted)
+    stashed_a = _stash_at(repo, SNAPSHOTTED_AT, "--", "a.py")
+    (repo / "e.py").write_text(drafted)
+    stashed_e = _stash_at(repo, SNAPSHOTTED_AT + 2, "--", "e.py")
+
+    # THE LANDING REACHES THE TRUNK AND NOT THIS CHECKOUT, which is the live shape and the reason
+    # the restore was clean: the shared tree's own HEAD did not have `b3aa159dd` yet, so the pop
+    # had nothing to merge against and put the snapshot back byte-for-byte.
+    _run(repo, "checkout", "-q", "trunk")
+    for name in ("a.py", "b.py", "c.py", "d.py", "e.py"):
+        (repo / name).write_text("def landed_on_the_trunk():\n    return 99\n")
+    _run(repo, "add", "a.py", "b.py", "c.py", "d.py", "e.py")
+    subprocess.run(["git", "commit", "-qm", "the landing"], cwd=str(repo), check=True,
+                   capture_output=True, text=True,
+                   env={**os.environ, "GIT_COMMITTER_DATE": "@{} +0000".format(LANDED_AT)})
+    _run(repo, "checkout", "-q", "main")
+
+    (repo / "c.py").write_text(drafted)
+    stashed_c = _stash_at(repo, LANDED_AT + 20, "--", "c.py")
+
+    _run(repo, "stash", "apply", "-q", "stash@{2}")
+    _run(repo, "update-ref", "refs/preserved/the-pop-2026-09-24", stashed_a)
+    _run(repo, "stash", "drop", "-q", "stash@{2}")
+    _run(repo, "stash", "apply", "-q", "stash@{1}")
+    _run(repo, "stash", "apply", "-q", "stash@{0}")
+    (repo / "b.py").write_text(drafted)
+    (repo / "d.py").write_text(drafted)
+    for name in ("a.py", "b.py", "c.py", "e.py"):
+        os.utime(repo / name, (RESTORED_AT, RESTORED_AT))
+    os.utime(repo / "d.py", (LANDED_AT - 500, LANDED_AT - 500))
+
+    # THE FIXTURE IS ASSERTED BEFORE THE VERDICT IS. Every one of these is a claim the partition
+    # rests on, and each has a way of being quietly false that would leave the suite green over a
+    # control that had stopped working: a git whose `stash apply` merged rather than restored, a
+    # `drop` that took the wrong entry, an `os.utime` on a path the restore never wrote, a
+    # `refs/stash` that still names the stash the reflog was supposed to be the only route to.
+    assert scr.stash_snapshots(repo) == ((stashed_a, SNAPSHOTTED_AT),
+                                         (stashed_e, SNAPSHOTTED_AT + 2),
+                                         (stashed_c, LANDED_AT + 20)), (
+        "the three stashes are not all being reached: {}".format(scr.stash_snapshots(repo)))
+    assert _run(repo, "rev-parse", "refs/stash").strip() == stashed_c, (
+        "`refs/stash` names e's stash, so `for-each-ref` finds it and the reflog leg is untested")
+    assert all((repo / n).read_text() == drafted for n in ("a.py", "c.py", "e.py")), (
+        "the restore did not put the snapshot back byte-for-byte, so this fixture is a merge and "
+        "not the pop the defect came out of")
+    landing = scr.last_commit_touching(repo, "a.py", "trunk")
+    assert landing and scr.committed_at(repo, landing) == LANDED_AT, (
+        "the landing is not where this fixture says it is, so every verdict below is about some "
+        "other commit")
+    assert (repo / "a.py").stat().st_mtime > LANDED_AT > (repo / "d.py").stat().st_mtime, (
+        "the restore stamp does not straddle the landing, so the broken clock and the repaired "
+        "one would agree here and the control could not fail")
+
+    verdicts = {name: scr.taken_before(repo, name, drafted,
+                                       scr.last_commit_touching(repo, name, "trunk"))
+                for name in ("a.py", "b.py", "c.py", "d.py", "e.py")}
+    assert verdicts == {"a.py": True, "b.py": False, "c.py": False, "d.py": True, "e.py": True}, (
+        "the five copies do not split the way their five different causes require: {}".format(
+            verdicts))
+
+
+# ------------------- the key-level term, in BOTH directions, beside the symbol-level one (2026-09-24)
+#
+# The defect, banked as SEAT_FINDING_THE_SAME_KEY_IS_NOT_A_SYMBOL_BLIND_SPOT_NOW_REFUSES_TO_CLEAN_A_
+# REVERT_IT_ONCE_OFFERED_TO_CREATE_2026-09-24 (`db1c8460e`): the GAIN half of the dict-key reading
+# landed at `19f340e65` and the LOSS half did not, so within one day the same instrument refused a
+# refresh on a copy that ADDED whitelist keys and said "it deletes no name" about one that DELETED
+# two -- `saas/reporting/annual_report.py`, dropping `gas_shape_provider_by_customer` and
+# `gas_shape_refusals` from the dict `extract_report_data` returns, live on the shared tree while
+# this was written.
+#
+# THE POPULATION IS DICT KEYS AND THE WIDER ONE WAS PRICED, NOT ASSUMED AWAY. Pre-registered in
+# `docs/staging/records/SEAT_PREREG_HOW_WIDE_IS_A_KEY_LEVEL_LOSS_TERM_BESIDE_THE_SYMBOL_LEVEL_ONE_
+# 2026-09-24.md`: adding list/set/tuple elements withdraws 10 further `REFRESHABLE` verdicts across
+# the shared tree's 77 dirty `.py` paths against a decision rule of 3, catching things like a test's
+# expected-strings list. The narrow population is the measured answer.
+
+#: The base binds a two-key publication whitelist inside a function body, so no reading of SYMBOLS
+#: can see either key. `extract` is bound in both sides of every fixture below -- if it were not,
+#: the symbol reader would answer and the key reader would never be the thing under test.
+K_BASE = (
+    "def alpha():\n    return 1\n\n\n"
+    "def extract():\n"
+    '    return {"kept_key": 1, "whitelist_key": 2}\n'
+)
+
+#: DROPS a key, adds none, supplies no symbol and no prose. The only shape `judge` may refuse.
+K_DROPS_A_KEY = (
+    "def alpha():\n    return 1\n\n\n"
+    "def extract():\n"
+    '    return {"kept_key": 1}\n'
+)
+
+
+def test_the_key_level_term_answers_both_directions_from_one_population(repo: Path) -> None:
+    """ONE SET DIFFERENCE, TWO FIELDS -- which is the whole structural point and not a convenience.
+
+    The gain half shipped alone and the loss half did not, and for a day the same dict was read in
+    one direction only. Two functions over one population drift the first time either is tuned; the
+    leg that reds if they are re-split is `dict_key_gains` being the delta's own field rather than a
+    second walk of the text."""
+    delta = scr.declared_key_delta(K_BASE, K_DROPS_A_KEY, "m.py")
+    assert delta.dropped == ("whitelist_key",), (
+        "the loss direction is the half that was open; it reads {}".format(delta.dropped))
+    assert delta.gained == (), delta.gained
+
+    back = scr.declared_key_delta(K_DROPS_A_KEY, K_BASE, "m.py")
+    assert back.gained == ("whitelist_key",) and back.dropped == (), (
+        "the same population read the other way round must invert exactly: {}".format(back))
+    assert scr.dict_key_gains(K_DROPS_A_KEY, K_BASE, "m.py") == back.gained, (
+        "`dict_key_gains` is a SECOND reading of the text again, so the two directions can drift")
+    # AND SYMBOLS CANNOT SEE ANY OF IT -- without this the fixture proves nothing the symbol reader
+    # did not already answer, and every assertion above would pass on a term that was never needed.
+    assert scr.symbols(K_BASE, "m.py") == scr.symbols(K_DROPS_A_KEY, "m.py"), (
+        "the fixture moves a symbol, so it cannot show the blind spot this term exists for")
+
+
+def test_a_strict_declared_key_subset_is_a_loss_rule_2_cannot_see(repo: Path) -> None:
+    """THE VERDICT THAT DID NOT EXIST. `judge` returned `None` -- no complaint at all -- about a copy
+    deleting two publication-whitelist keys, because rule 2 differences SYMBOLS and a key inside a
+    function body binds none.
+
+    Keyed to the PROPERTY and not to today's live file: the assertion is that a strict key subset is
+    refused and that the refusal NAMES the key, so it stays right when `annual_report.py` is
+    cleaned."""
+    _commit(repo, "k2.py", K_BASE, "the whitelist lands")
+    loss = scr.judge(repo, "k2.py", K_BASE, K_DROPS_A_KEY)
+
+    assert loss is not None, (
+        "a copy that deletes a whitelist key and adds nothing gets NO complaint -- which is the "
+        "sentence `refresh_to_head` then reports as 'it deletes no name'")
+    assert loss.rule == scr.KEY_SUBSET, loss.rule
+    assert loss.detail == ("whitelist_key",), (
+        "the refusal must name the key it is about, or the reader cannot tell a whitelist entry "
+        "from a typo: {}".format(loss.detail))
+    assert "whitelist_key" in loss.render(), loss.render()
+
+    # THE ANTI-TAUTOLOGY ARM, AND IT ASSERTS `is None` RATHER THAN A MISSING WORD. A leg mutated to
+    # refuse unconditionally passes every "is it refused" assertion above and also passes a negative
+    # arm keyed to a word from the positive case; only "this copy gets NO verdict" kills it.
+    assert scr.judge(repo, "k2.py", K_BASE, K_BASE.replace("return 1", "return 2")) is None, (
+        "an ordinary edit that touches no key is refused, so this leg refuses everything")
+
+
+def test_the_key_leg_never_licenses_a_refresh_over_prose_the_base_lacks(repo: Path) -> None:
+    """THE GUARD THAT STOPS THE REPAIR DESTROYING WRITING, and it is the live case rather than a
+    hypothetical: the copy this term was commissioned for drops two whitelist keys AND adds a
+    six-line comment the base lacks.
+
+    ANY loss from `judge` is what `refresh_to_head._judge_copy` turns into `REFRESHABLE`, and
+    `background.origin_reconcile` refreshes on that grade with no person in the loop -- so an
+    unguarded leg would have had a daemon overwrite that comment on its first live application.
+    A copy supplying prose is not one the base strictly supersedes, and this leg must say nothing
+    about it; the true sentence it is owed is made in `refresh_to_head`'s refusal instead."""
+    with_prose = K_DROPS_A_KEY.replace(
+        "def extract():",
+        "# WHY THIS KEY IS GOING: a line of writing that exists in no commit anywhere.\n"
+        "def extract():")
+    _commit(repo, "k3.py", K_BASE, "the whitelist lands")
+
+    assert scr.supplied_comment_lines(K_BASE, with_prose), (
+        "the fixture supplies no comment line, so it cannot exercise the guard at all")
+    assert scr.judge(repo, "k3.py", K_BASE, with_prose) is None, (
+        "a copy that drops a key AND writes prose the base lacks is graded a pure loss, which "
+        "makes it REFRESHABLE and hands a daemon a licence to discard the writing")
+    # AND THE GUARD IS NOT A BLANKET OFF-SWITCH: the same copy without the comment is still refused,
+    # so a mutation that simply disables the leg cannot hide behind this test.
+    assert scr.judge(repo, "k3.py", K_BASE, K_DROPS_A_KEY) is not None, (
+        "the guard has swallowed the leg entirely -- nothing reaches KEY_SUBSET any more")
+    # THE FLOOR IS `_is_comment_line`'S OWN AND NOT A BARE `startswith('#')`. Below it a marker
+    # carries no writing, and if the reuse is replaced this goes red -- which is the leg that keeps
+    # a copy from escaping the term by carrying a `# x`. The floor is `_trivial`'s five characters,
+    # asserted through the function rather than restated as a number here: a second copy of it
+    # would drift the first time either is tuned, which is the reason that floor is shared at all.
+    marker = "# x"
+    assert not scr._is_comment_line(marker), (
+        "the shared floor has moved under this fixture, so the next assertion tests nothing")
+    assert not scr.supplied_comment_lines(K_BASE, K_DROPS_A_KEY.replace(
+        "def alpha():", marker + "\ndef alpha():")), (
+        "a sub-floor marker counts as prose, so a copy escapes the term by carrying three "
+        "characters of comment")
+
+
+def test_an_unreadable_key_population_is_not_no_keys_dropped(
+        repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """AN UNAVAILABLE CHECK IS A FAILED CHECK -- the third time this module has banked the shape
+    (`committed_at`'s declared `None`, `distinctive_lines`' silent `()`, and this).
+
+    Forced rather than hoped for. `symbols()` raises `Unparseable` above this leg for any `.py` that
+    will not parse, so on today's code the `None` is a proven equivalence; a fixture that merely
+    passed broken text would go green through the earlier branch and prove nothing about this one.
+    The flattering failure is falling through to `partial`, which reads 'could not be told' as 'no
+    keys dropped'."""
+    _commit(repo, "k4.py", K_BASE, "the whitelist lands")
+    monkeypatch.setattr(scr, "_dict_string_keys", lambda text, path: None)
+
+    loss = scr.judge(repo, "k4.py", K_BASE, K_DROPS_A_KEY)
+    assert loss is not None and loss.rule == scr.UNPARSEABLE, (
+        "an unreadable key population was reported as an answer: {}".format(loss))
+
+
+def test_the_key_leg_refuses_only_a_copy_that_supplies_nothing_at_either_level(
+        repo: Path) -> None:
+    """THE SYMBOL GUARD, and it is NOT redundant with rule 2 above it. Rule 2 returns on a STRICT
+    symbol subset, so a copy that GAINS a symbol while dropping a key falls straight through to
+    here -- and this verdict's own remedy reads "this copy supplies NO name HEAD lacks", which
+    would send genuine holder work to the door that overwrites it."""
+    gains_a_symbol = K_DROPS_A_KEY + "\n\ndef only_this_lane_has_me():\n    return 1\n"
+    _commit(repo, "k5.py", K_BASE, "the whitelist lands")
+
+    assert scr.gains_over(K_BASE, gains_a_symbol, "k5.py") == ("only_this_lane_has_me",), (
+        "the fixture supplies no symbol, so the guard under test is never reached")
+    loss = scr.judge(repo, "k5.py", K_BASE, gains_a_symbol)
+    assert loss is None or loss.rule != scr.KEY_SUBSET, (
+        "a copy supplying a symbol is graded a strict key subset, and its remedy tells the reader "
+        "it supplies no name HEAD lacks: {}".format(loss))

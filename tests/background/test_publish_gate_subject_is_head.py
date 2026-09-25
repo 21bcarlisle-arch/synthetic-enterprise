@@ -1172,12 +1172,25 @@ def _wedged_state(now):
     Derived from the detector's OWN constants rather than hardcoded, so a retuned threshold
     cannot leave this fixture describing a wedge the detector no longer recognises -- the
     fixture would then agree with the code by construction and these tests would pass on a
-    detector that had stopped firing."""
+    detector that had stopped firing.
+
+    WHICH FIELD CARRIES THE AGE (2026-09-24). It is `wedge_since`, and it has to be: the age bound
+    and the failure window are BOTH 60 min, so failures old enough to prove ">60 min" are by that
+    same construction outside the window the count is taken over. Until the reader trimmed on read
+    this fixture could put the age in `failures` and nothing objected -- but the state it built was
+    then a DEAD wedge (no write for over an hour, so the writer's own trim had stopped running)
+    while claiming to be the live one from 2026-07-23, which failed every ~10 min with alerts
+    firing throughout. `test_publish_gate_wedge_draw.py`'s module docstring already stated the
+    rule: "`alerted_at`/`failures` alone cap the measurable age below 60 min for a live wedge, so
+    `wedge_since` (persistent, un-trimmed) is what makes '>60 min' provable."
+
+    So the failures sit INSIDE the window, spaced as a real wedge writes them, and `wedge_since`
+    reaches back past the age bound. Both legs still come from the detector's constants."""
     from background import supervisor
 
     oldest = now - (supervisor.PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS + 600)
     return {
-        "failures": [{"ts": oldest + i, "reason": "a red test"}
+        "failures": [{"ts": now - (i * 600), "reason": "a red test"}
                      for i in range(supervisor.PUBLISH_GATE_WEDGE_MIN_FAILURES)],
         "wedge_since": oldest,
     }

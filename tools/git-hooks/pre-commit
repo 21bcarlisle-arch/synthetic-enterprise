@@ -329,3 +329,13 @@ python3 -m tools.commons_source_supersession --check || exit 1
 # ITS FIRST RUN OVER THE TREE REFUSED A LIVE ARTEFACT: `gb_domestic_switching_rate` stamped ten rows
 # `primary` while its own `how_to_recheck` said "THIS ARTEFACT CITES A DERIVATION, NOT AN EDITION".
 python3 -m tools.commons_citation_supports_provenance --check || exit 1
+
+# RECORD THAT THIS CHAIN COMPLETED (2026-09-24). LAST LINE, AND THE POSITION IS THE POINT: this is a
+# `cmd || exit 1` chain, so being reached IS the pass -- no gate below it can still red, and there is
+# nothing to record above it. `tools/hook_gate_mark.py` binds the record to the tree the chain just
+# judged, and `commit-msg` promotes it to a trailer so a hook-gated commit stops being byte-identical
+# to a `--no-verify` one at `promote_worktree_landing._refuse_if_ungated` -- which until now could
+# only say "no receipt", and said so about every daemon commit in the tree.
+# FAIL-SOFT: it always exits 0. A mark that cannot be written must not red a green gate -- the
+# commit is gated either way, and a missing mark is the state the door already refuses.
+python3 -m tools.hook_gate_mark --record

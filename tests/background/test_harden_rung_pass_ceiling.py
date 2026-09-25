@@ -299,3 +299,120 @@ def test_the_live_map_and_live_ceiling_agree_that_no_atom_over_its_ceiling_is_dr
     ]
     kept = supervisor._exclude_saturated_from_core_draw(below_target_core)
     assert not [a for a in kept if a.get("id") in over]
+
+
+# --------------------------------------------------------------------------------------
+# The IDLE tier has TWO doors, and the ceiling was on the one nothing calls
+#
+# This file's own docstring records that `tools/discovery_pass_ceiling.py` "reached exactly
+# ONE consumer, `supervisor._idle_discover_frame_draw`". True, and it was the wrong one.
+# `_self_refill_draw()` -- the function that composes the LANE 3 doorbell a worker tick is
+# woken with -- calls `_idle_discover_frame_draw_concurrent`, the singular function's twin,
+# and until 2026-09-06 that twin applied no ceiling at all. Both halves of the 2026-08-19
+# repair therefore missed the live idle path: the core-draw extension above gated `build`
+# and `harden`, and the idle gate sat on a draw with no production caller.
+#
+# MEASURED, 2026-09-06: a LANE 3 doorbell drew `EP17_varied_population_draw` for a SEVENTH
+# DISCOVER/FRAME pass. `python3 -m tools.discovery_pass_ceiling` had it at 6 passes / 0 moves
+# since, under "investigating again is no longer an available answer".
+# --------------------------------------------------------------------------------------
+
+_IDLE_SATURATED = "EPX_saturated_idle_atom"
+_IDLE_FRESH = "EPY_fresh_idle_atom"
+
+
+def _idle_atom(atom_id: str) -> dict:
+    """A minimal idle below-target candidate with no `evidence` and no `blocked_on`.
+
+    Deliberately the shape the two SIBLING guards read as drawable, so this test measures
+    the ceiling and nothing else: `_is_externally_blocked` reads `blocked_on` (absent here,
+    and set on 0 of the live map's 336 rows), and `_is_frame_saturated` reads the atom's
+    `evidence` list for a `*_FRAME.md` (absent here, and absent on EP17 too -- six passes
+    wrote a FRAME doc and never added it to the list). If either sibling started refusing
+    this atom, the FIRES test below would pass for the wrong reason -- which is what the
+    QUIET test exists to catch.
+    """
+    return {
+        "id": atom_id,
+        "lane": "H_harness",
+        "dial_inherited": 3,
+        "level_current": 0,
+        "level_target": 3,
+        "loop_stage": "idle",
+        "file_scope": [],
+    }
+
+
+@pytest.fixture
+def idle_candidates(monkeypatch):
+    """Feed the concurrent idle draw a two-atom map. Returns a `pin(ids)` for the ceiling.
+
+    `saturated_ids` is imported inside the function body, so the module attribute is what
+    the call site resolves -- the same reason the `saturate` fixture above patches there.
+    """
+    rows = [_idle_atom(_IDLE_SATURATED), _idle_atom(_IDLE_FRESH)]
+    monkeypatch.setattr(supervisor.map_store, "load_atoms", lambda *a, **k: list(rows))
+
+    def _pin(ids):
+        monkeypatch.setattr(
+            "tools.discovery_pass_ceiling.saturated_ids", lambda *a, **k: set(ids)
+        )
+    return _pin
+
+
+def test_a_saturated_IDLE_atom_is_excluded_from_the_CONCURRENT_discovery_draw(idle_candidates):
+    """FIRES -- the EP17 shape, the seventh pass on an atom the ceiling had already closed.
+
+    Width 3 against two candidates, so a pass here cannot be the width cap doing the work:
+    without the ceiling BOTH atoms come back.
+    """
+    idle_candidates({_IDLE_SATURATED})
+    picked = supervisor._idle_discover_frame_draw_concurrent(width=3)
+    assert [a["id"] for a in picked] == [_IDLE_FRESH]
+
+
+def test_an_UNSATURATED_idle_atom_still_reaches_the_concurrent_draw(idle_candidates):
+    """QUIET / the poison round -- proves the FIRES test above is not passing vacuously.
+
+    A gate that refused everything would satisfy the FIRES assertion just as well, and the
+    fail-closed direction of this control makes that the LIKELY way for it to be wrong. With
+    the ceiling naming nobody, both atoms must come back -- so the exclusion is reachable in
+    both directions and the draw is not simply empty.
+    """
+    idle_candidates(set())
+    picked = supervisor._idle_discover_frame_draw_concurrent(width=3)
+    assert sorted(a["id"] for a in picked) == sorted([_IDLE_FRESH, _IDLE_SATURATED])
+
+
+def test_an_UNREADABLE_ceiling_closes_the_concurrent_draw_rather_than_reopening_it(
+        idle_candidates, monkeypatch):
+    """FAIL-CLOSED, and it is the direction the ruling names.
+
+    The sibling guard `_is_frame_saturated` fails toward OFFERING because its risk is
+    starving real work; this one fails toward an EMPTY tier because its risk is the
+    indefinite run the 2026-08-19 ruling exists to end. An unreadable ceiling reported as
+    "nothing is saturated" is exactly the reading that would restore the unbounded lane.
+    """
+    idle_candidates(set())
+
+    def _boom(*a, **k):
+        raise RuntimeError("ledger unreadable")
+
+    monkeypatch.setattr("tools.discovery_pass_ceiling.saturated_ids", _boom)
+    assert supervisor._idle_discover_frame_draw_concurrent(width=3) == []
+
+
+def test_no_atom_over_the_idle_ceiling_survives_the_live_concurrent_draw():
+    """A PROPERTY on the real population, the idle-tier twin of the core-draw control above.
+
+    Stated as "none survives" for the same reason: it is vacuously true the day every
+    saturated idle atom has been promoted or closed, so it cannot red on its own success.
+    Reads the live map through `map_store` rather than parsing MATURITY_MAP_PATH directly --
+    the map is a two-file store, and a direct read of one half is how an atom census comes
+    back short.
+    """
+    from tools.discovery_pass_ceiling import saturated_ids
+
+    over = saturated_ids()
+    picked = supervisor._idle_discover_frame_draw_concurrent(width=99)
+    assert not [a for a in picked if a.get("id") in over]

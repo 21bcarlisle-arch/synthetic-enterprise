@@ -278,6 +278,174 @@ rather than repeated.
 
 ---
 
+
+## 2026-09-24 20:25 — remedy step 2 is RUN. The answer is "step 1 was not the load-bearing step", and the ahead leg is a FLOW, not a state.
+
+`deploy_restart.checkout_drift()` on the shared tree, measured across one turn:
+
+| time | behind | ahead | `contains_origin` | `gap_paths` |
+|---|---|---|---|---|
+| 19:39 | 33 | 4 | `false` | 32 |
+| **20:25** | **34** | **1** | **`false`** | **46** |
+
+Step 1 landed, the ahead leg closed (the reconciler pushed it at 20:09 as `d8576cdca`, unaided),
+and **`behind` grew and `gap_paths` grew by 14**. So the question this document's step 2 was written
+to ask is answered, and the answer is the unflattering one it explicitly invited:
+
+> **"step 1 was not the load-bearing step" — that is the answer.**
+
+The ahead leg is not a state that can be closed. It is a **flow**: the shared tree commits every
+~12–60 minutes (9 commits in the 3 hours sampled) and the reconciler batches them up afterwards, so
+the leg reopens before any actor can build on its being shut. It had already reopened at 20:23
+(`cfb5f34c4`) before the 20:09 push could be observed. A one-shot action against the ahead leg
+cannot win, and the turn that tried is the proof.
+
+**Step 3 must therefore NOT be run.** Restarting the daemons now would do exactly what this document
+warned: clear the `stamp-predates-process` verdicts against a checkout that still lacks the repair,
+and blind the detector to gap 1. The precondition it named — *"only then"* — is not met.
+
+Two further defects found on the way and written up separately in
+`SEAT_FINDING_THE_SEATS_PUSH_DOOR_REFUSES_UNGATED_ANCESTORS_AND_THE_RECONCILER_PUSHES_THEM_ANYWAY_2026-09-24.md`:
+
+1. **The seat's push door and the reconciler's disagree about what is promotable.**
+   `promote_worktree_landing` refuses any leg containing a commit with no `surgical_land` receipt;
+   the reconciler pushed those same commits thirty minutes later. Work a seat is forbidden to push,
+   a daemon pushes unexamined. Whether the refused commits were genuinely ungated, or merely
+   committed by a route that leaves no receipt while still running the hook, is **NOT established**
+   and is the cheap next measurement.
+2. `promote_worktree_landing` exits **0** on that refusal.
+
+The BEHIND leg remains this document's live subject and the publisher's actual wedge: 15 blockers,
+9 of them *"modified here, and origin changes it too"*. Two are the `CLASS_` registers that step 1's
+sibling (`63356067f`, now on origin) teaches the oracle to clear; the remaining set is the
+`refresh_to_head` rework under `enact-the-four-path-base-wins-decision-on-the-shared-tree`. **That
+claim, not this one, is where the publisher's darkness ends.**
+
+---
+
+## Remedy 1 is closed: the probe now comes from the preserved commit's own parent (2026-09-24)
+
+The previous entry left remedy 1 open and said so plainly — *"the probe defect named in the previous
+entry's remedy 1 is still live on the trunk and simply did not bite on this path."* It is now
+repaired on `tools/refresh_to_head.py`, and the repair found more than the defect it was drawn for.
+
+### The defect, reproduced before it was touched
+
+`judge_copy` computes `Verdict.discarded` against **`base`** — which on a behind checkout is
+`origin/main`, the whole reason `--base` exists. `preserve` has no such choice: it builds
+`commit-tree <tree> -p HEAD`, unconditionally. `git log -S` reports a commit only where the probe's
+**occurrence count changed against its parent**. Hand it a line the trunk dropped and HEAD still
+carries and the count is 1 on both sides — unchanged, unreported, and `verify_recoverable` calls a
+correct preservation FAILED and refuses to write.
+
+Reproduced from a scratch repo before any edit (HEAD carries line L, trunk rewords it away, the
+working copy holds L plus its own line):
+
+```
+state: refreshable
+probe chosen: "THE_DISTINCTIVE_LINE_THE_TRUNK_LATER_DROPPED = ..."
+probe present at HEAD? True
+preserved commit parent: 1c9a6dc1b   HEAD: 1c9a6dc1b
+*** RefreshError: PRESERVATION FAILED for m.py: `git log --all -S` does not find 645b668be
+```
+
+The bytes were preserved correctly every time — the identity leg passes — so the tool destroyed
+nothing and moved nothing. **The failure wears the safety catch's face**, which is why it stood.
+
+### The repair, and what was deliberately not done
+
+`_probe(root, path, work_bytes)` now reads `_discarded_lines(_blob_bytes(root, "HEAD", path), ...)`.
+The `-S` leg itself is **untouched**: it is the only thing between this tool and `git checkout
+<path>` with a nicer name. `discarded` still answers the reader's question — what the copy holds
+that the *base* lacks — because that is the question the report is about. Two trees, two questions;
+only the probe was asking the wrong one.
+
+### Mutation evidence (three, each red at the leg written for it)
+
+| mutation | result |
+|---|---|
+| `_probe` reads the judgement base again (the old wiring) | RED — `assert probe not in head_text` |
+| `_probe` returns `None` (silences the `-S` leg) | RED — `assert probe is not None` |
+| `if commit not in found.stdout` → `if False` (drop the `-S` leg) | RED — `pytest.raises(PRESERVATION FAILED)` |
+
+A fourth attempt at mutation 2 went **green and was a no-op** — the replacement string never
+matched, `grep -c` printed 0. Recorded because the flattering reading of that green was available
+and wrong. Control:
+`tests/tools/test_refresh_to_head.py::test_a_probe_line_head_already_carries_fails_a_sound_preservation`.
+
+Full suite: 45 passed. The pre-existing
+`test_the_line_level_surface_this_branch_destroys_reaches_the_reader_and_the_probe` carried the
+defect **as its docstring** — "`discarded` … is the input to `_probe`" — and the correction is kept
+beside the claim. It never passes `--base`, and at `base="HEAD"` the two readings coincide: a suite
+of default-base fixtures could not have seen this.
+
+### The survey, and the second defect it surfaced
+
+`--base origin/main --base-wins`, survey mode, over the four contested paths, run against the shared
+tree with the repaired tool:
+
+```
+1 path(s) refreshable, 3 already at HEAD.
+  site/test_the_book_is_bounded_by_compute_reaches_the_reader.py          [already_at_head]
+  tests/background/test_a_swept_row_..._windows_commit.py                 [refreshable]
+      stale-copy control refuses it [reverts_a_landed_comment_block]
+  tests/background/test_harden_rung_pass_ceiling.py                       [already_at_head]
+  tests/tools/test_discovery_pass_ceiling.py                              [already_at_head]
+```
+
+No state is `PRESERVATION FAILED`. Two things follow and the second was not predicted:
+
+1. **`reverts_a_landed_comment_block` now exists.** The previous entry's remedy 1-for-the-comment-copy
+   — "`judge` has no complaint about that copy … `--base-wins` does not reach it by construction" —
+   is **superseded on the trunk**. That rule landed since, and the last residue path is now
+   `refreshable`. The finding it pointed at,
+   `SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT`,
+   should be re-measured before anyone builds against it.
+
+2. **On that exact path the old probe was `None`, not a false failure — a fail-open.** All four
+   lines it discards against `origin/main` are `#` comments, and `_trivial` filters them, so the old
+   wiring took the no-probe route and **skipped the `-S` verification entirely**. Measured now:
+
+   ```
+   old candidates (non-trivial, vs origin/main): []        -> probe None, -S leg never runs
+   NEW probe (vs HEAD): '[(OWNED_SHA, IN_WINDOW, "the work", [SUBJECT_PATH])],'   -> leg runs
+   ```
+
+   So the repair does not merely stop a false refusal on this path; it converts a silently-skipped
+   recovery check into a real one, on the one copy still standing between the checkout and origin.
+
+### What this turn does NOT claim
+
+**The checkout is not advanced and the publisher is not unblocked.** The `--write` that would enact
+it is the subject of two other live claims
+(`advance-the-checkout-and-let-the-publisher-publish`,
+`enact-the-four-path-base-wins-decision-on-the-shared-tree`) and is deliberately left to them —
+running it here would be a second lane writing the same bytes. This item was the door, not the
+walk through it, and the door now works.
+
+### One frozen census row, and why routing it is the wrong remedy
+
+The first landing attempt was refused by
+`tests/architecture/test_a_control_reads_python_as_code.py`: `_probe` now decodes a blob in its own
+body, so taint crosses the call boundary into `verify_recoverable`, which does
+`if commit not in found.stdout`. New row, `subject=unknown` — *"no path evidence"*, the conservative
+bucket, and its immediate neighbours `tools/stale_copy_refusal.py:judge`, `clock_judge`,
+`reverted_comment_block` and `symbols` are frozen in exactly that bucket already.
+
+**The remedy the refusal names first does not apply here, and taking it would break the tool.**
+`tools/python_code_text.searchable` normalises source so a prose match cannot masquerade as a code
+match. `git log -S` matches **literal bytes**. A normalised probe would find nothing, and the leg
+would fail-closed on every sound preservation — the same defect this commit repairs, re-entered
+through the remedy. The scanned text is also not Python source: it is `git log`'s stdout.
+
+So the row is frozen with that reason, which is the refusal's stated second option. Floor 379 → 380.
+
+<!-- CONFLICT RESOLVED 2026-09-25 by the delivery seat. Two lanes each appended a step-2
+     write-up at this same point in two histories; surgical_land refused the merge rather
+     than picking one. BOTH sections are kept, in timestamp order (the 20:25 run above, the
+     re-run below), because either side dropped would lose a lane's record of real work.
+     Nothing was edited inside either section. -->
+
 ## 2026-09-24, step 2 re-run — THE PRE-REGISTERED PREDICTION HOLDS, and the residue is 2 rather than 5 because origin moved past three of them. One of the two is now repaired at the oracle; the other has no door and that is what `contains_origin` is still waiting on.
 
 **The prediction is graded first, because it was written before the answer.** §"Not established" above

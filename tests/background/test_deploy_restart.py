@@ -1008,3 +1008,89 @@ def test_stamp_predates_process_is_held_and_never_restarted():
     assert "stamp-predates-process" in plan["hold"]["a.service"]
     assert plan["restart"] == ["b.service"], (
         "the honestly-stale daemon must still be restartable, or this guard refuses everything")
+
+
+def test_a_checkout_missing_the_rulebook_that_grades_its_own_advance_says_so():
+    """THE THIRD GAP: the behind checkout judges its own advance with its own stale rulebook.
+
+    THE DEFECT THIS NAMES, measured on the live shared tree 2026-09-24 at `behind 28, ahead 5`.
+    `tools/stale_copy_refusal.py` was in the gap, so `advance_shared_tree` graded the blocking
+    paths with a copy predating rule 1b. One path --
+    `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py` --
+    graded `(False, "the stale-copy control has NO complaint about this copy")` against the
+    checkout's rulebook and `(True, "... [reverts_a_landed_comment_block]")` against origin's.
+    Same path, same bytes, same project; only the judge differed, and the remedies are opposites.
+    Nothing anywhere printed that the judge was stale, so the wedge read as a property of the tree
+    rather than of the rulebook grading it.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S GAP. The assertion is "a judge in the gap is named",
+    never "these four names" or "the live tree has three" -- both of which go green the moment the
+    tree advances and stay green when a new judge is added unlisted.
+
+    MUTATION, and the first draft of this paragraph was wrong in the flattering direction. Return
+    `[]` unconditionally and the first leg fires -- that one held. I also wrote that returning the
+    whole of `ADVANCE_JUDGE_MODULES` regardless of the gap would fire the PARTITION leg; it does
+    not. The first leg catches it (four names where one was expected), so that mutation proved
+    nothing about the leg it was written for. The mutation that actually reaches the partition leg
+    has to pass leg one first: `hit or ([ADVANCE_JUDGE_MODULES[1]] if gap else [])` -- correct
+    whenever a judge IS in the gap, an alarm that cannot be cleared when none is. That fires the
+    partition leg and nothing else, which is what establishes the leg is reachable rather than
+    decorative. An always-on alarm is the failure mode a field like this reaches first.
+    """
+    judge = "tools/stale_copy_refusal.py"
+    assert judge in dr.ADVANCE_JUDGE_MODULES, (
+        "the rulebook whose staleness flipped a live verdict must be one of the judges")
+
+    d = dr.checkout_drift(Path("/nonexistent"),
+                          fork_state_fn=lambda p: (28, 5),
+                          contains_fn=lambda p: False,
+                          gap_paths_fn=lambda p: [judge, "docs/status/LATEST.md"])
+    assert d["stale_judges"] == [judge], d
+    assert d["unresolved"] is None, "a named stale judge is an ANSWER, not an unreadable tree"
+
+    # THE OTHER SIDE OF THE PARTITION. A gap with no judge in it must read empty, or the field is
+    # an alarm that cannot be cleared and every reader learns to ignore it.
+    clean = dr.checkout_drift(Path("/nonexistent"),
+                              fork_state_fn=lambda p: (28, 5),
+                              contains_fn=lambda p: False,
+                              gap_paths_fn=lambda p: ["docs/status/LATEST.md"])
+    assert clean["stale_judges"] == [], clean
+
+
+def test_the_judge_list_is_not_narrower_than_what_the_advance_path_actually_consults():
+    """A judge added to the advance path and not listed here is the blind spot, reading as `[]`.
+
+    THE UNFALSIFIABLE SHAPE THIS AVOIDS. A census that scans for offenders and finds none is green
+    whether the population is clean or the pattern matched nothing, so the population is asserted
+    non-empty before its emptiness is allowed to mean anything.
+
+    REACHABILITY, NOT NAME-MATCHING. `tools/stale_copy_refusal.py` is never imported by
+    `origin_reconcile` directly -- it arrives through `tools/refresh_to_head.py`, whose verdicts
+    are its rules. A control asking only "does origin_reconcile.py contain this string" would miss
+    it and would have to be widened by hand on the next indirection.
+    """
+    import importlib
+    import inspect
+
+    from background import origin_reconcile
+
+    source = inspect.getsource(origin_reconcile)
+    consulted = {m for m in dr.ADVANCE_JUDGE_MODULES
+                 if m.split("/")[-1][:-3] in source}
+    assert consulted, (
+        "no listed judge is named in origin_reconcile at all -- the pattern has gone stale and "
+        "this census would report a clean population either way")
+
+    for module_path in dr.ADVANCE_JUDGE_MODULES:
+        dotted = module_path[:-3].replace("/", ".")
+        assert importlib.import_module(dotted), (
+            "{} is listed as a judge but does not import -- a listed module that cannot be "
+            "loaded is a name in a tuple, not a rulebook".format(module_path))
+
+    # THE RULEBOOK ARRIVES THROUGH THE DOOR, so the door must be listed too: drop
+    # `tools/refresh_to_head.py` and the transitive reachability argument above has no first hop.
+    assert "tools/refresh_to_head.py" in dr.ADVANCE_JUDGE_MODULES
+    assert "stale_copy_refusal" in inspect.getsource(
+        importlib.import_module("tools.refresh_to_head")), (
+        "refresh_to_head no longer reads stale_copy_refusal, so the judge set's reachability "
+        "argument has changed and the tuple needs re-deriving rather than trusting")

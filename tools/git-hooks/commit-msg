@@ -23,3 +23,9 @@ python3 tools/write_time_gate.py "$1" || exit 1
 # step named in a session report existed in a chat window and nowhere in the queue, so nothing
 # could draw it, and the queue went on offering machinery because machinery was what was in it.
 python3 tools/next_step_gate.py "$1" || exit 1
+
+# STAMP THE HOOK-GATE MARK (2026-09-24). LAST LINE, AFTER the message gates above: the mark says the
+# WHOLE chain completed, so stamping before they ran would overstate it. Only stamps when the index
+# still writes out to the tree `pre-commit` recorded, which is what stops a record left behind by an
+# aborted commit from marking the next one. Always exits 0 -- see tools/hook_gate_mark.py.
+python3 -m tools.hook_gate_mark --stamp "$1"

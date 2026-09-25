@@ -1151,6 +1151,42 @@ def extract_report_data(run_output: dict) -> dict:
         "three_horizon_clv_snapshots": run_output.get("three_horizon_clv_snapshots"),
         "hedge_effectiveness_total": hedge_effectiveness_total,
         "customer_events": phase2b.get("customer_events", []),
+        # THE SECOND DEPARTURE POPULATION, AND THE REDUCER DROPPING IT IS THE SAME DEFECT THE
+        # `three_horizon_clv_snapshots` note twenty lines above was written for (2026-08-31).
+        # C1b moved roughly two thirds of the domestic book onto the standard variable product,
+        # where there is no renewal point and therefore no `customer_events` row. Those accounts
+        # can still leave, `run_phase2b` writes each departure to its own `svt_departures` list
+        # and adds the account to `churned_billing_accounts` -- but this function names only the
+        # renewal log, so the reduced artefact published 82 churned accounts against 32 churned
+        # rows and the other 50 had no cause, no roll and no probability anywhere a reader could
+        # reach. Forwarded UNTOUCHED and under its own name: it is NOT unioned into
+        # `customer_events`, because an SVT departure convened no renewal decision and carries
+        # none of that log's fields (`churn_probability` first among them, indexed unguarded by
+        # twelve consumers whose subject is renewal decisions).
+        "svt_departures": phase2b.get("svt_departures", []),
+        # AND THE POPULATION THOSE DEPARTURES WERE DRAWN FROM, WHICH THE LINE ABOVE IS NOT
+        # (2026-08-31). Forwarding the departure log alone published a NUMERATOR WITH NO
+        # DENOMINATOR: 48 SVT departures a reader can count and no way to say what share of the
+        # SVT book that was. `tools/population_anchor` said so in as many words and refused --
+        # `covers_svt_route: false` was live in `site/state/population_anchoring.json` when this
+        # repair was written -- but a consumer declining to answer is a symptom, not a control
+        # over the producer, and the blindness reads there as a property of the world rather than
+        # of this function. The sister repair five lines up went green on the numerator leg and
+        # left this one red and silent, which is how a half-repair reads as a whole one.
+        #
+        # THAT REFUSAL NOW READS `true`, AND IT IS THE FRAGILE KIND (2026-09-24). The anchoring
+        # file says `covers_svt_route: true` over 1974 SVT decisions because the run that wrote
+        # it executed a WORKING TREE carrying these two lines uncommitted. `origin/main` carried
+        # `svt_departures` nowhere in `saas/`, so the green rested on bytes no commit held and
+        # any refresh of that copy would have flipped it back with nothing to notice. Landing
+        # these lines is what makes the reading reproducible from the record.
+        #
+        # NO DEFAULT, AND THAT IS THE LOAD-BEARING PART. `.get(key, [])` here would hand every
+        # consumer an EMPTY decision list, which `declare_rows` reports as `covers_svt_route:
+        # true` over zero decisions -- an unobservable population arriving as a measured absence,
+        # the fail-open this repository has already paid for twice. Absent stays `None` so the
+        # refusal downstream keeps naming its own cause.
+        "svt_decisions": phase2b.get("svt_decisions"),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         "company_event_log": phase2b.get("company_event_log", []),
         "basis_risk_terms": phase2b.get("basis_risk_terms", []),

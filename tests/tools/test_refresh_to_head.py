@@ -11,6 +11,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -29,6 +30,27 @@ LANDED = (
     "def freshly_landed_helper(argument):\n"
     '    """A distinctive line that appears exactly once in this file."""\n'
     "    return argument * 41 + 7\n"
+)
+
+#: A PUBLICATION WHITELIST the base already binds, so a copy that adds a key to it supplies no
+#: SYMBOL. `test_a_publication_whitelist_key_is_not_a_symbol_...` owns the argument; these two exist
+#: so the partition control below can reach `WHITELIST_GAIN` and prove it has not collapsed onto
+#: `REFRESHABLE`, which is the neighbour it is one dict key away from.
+W_LANDED = (
+    "def alpha():\n    return 1\n\n\n"
+    "def freshly_landed_helper(argument):\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n\n\n"
+    "def extract():\n"
+    '    return {"landed_key": 1}\n'
+)
+
+W_RIVAL_ADDS_A_KEY = (
+    "def alpha():\n"
+    '    """an alternative wording of exactly the same behaviour"""\n'
+    "    return 1\n\n\n"
+    "def extract():\n"
+    '    return {"landed_key": 1, "key_bound_in_no_commit": 2}\n'
 )
 
 #: KIND A -- the shape with no legal move before this tool. Another lane wrote the same file
@@ -175,8 +197,10 @@ def repo(tmp_path: Path) -> Path:
     (root / "dep.py").write_text(DEP_BEFORE)
     (root / "d.py").write_text(D_BASELINE)
     (root / "k.py").write_text(K_BASE)
-    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py", "k.py")
+    (root / "w.py").write_text("def alpha():\n    return 1\n")
+    _run(root, "add", "m.py", "notes.md", "dep.py", "d.py", "k.py", "w.py")
     _run(root, "commit", "-qm", "base")
+    (root / "w.py").write_text(W_LANDED)
     (root / "m.py").write_text(LANDED)
     (root / "dep.py").write_text(DEP_AFTER)
     (root / "k.py").write_text(K_LANDED)
@@ -187,7 +211,7 @@ def repo(tmp_path: Path) -> Path:
     # which the 2026-09-16 door already admits -- and the fixture would grade green with the
     # defect still in.
     (root / "d.py").write_text(D_LANDED)
-    _run(root, "add", "m.py", "dep.py", "d.py", "k.py")
+    _run(root, "add", "m.py", "dep.py", "d.py", "k.py", "w.py")
     _run(root, "commit", "-qm", "lane B lands a helper, and dep's API moves under it")
     return root
 
@@ -252,6 +276,59 @@ def test_an_ordinary_edit_the_stale_copy_control_does_not_refuse_is_refused_here
     assert verdict.state == rth.NOT_SUPERSEDED, (
         "an edit HEAD does not supersede was licensed for refresh; the tool is a revert button")
     assert not verdict.gains, "the symbol test alone cannot see this one -- that is why leg 2 exists"
+
+
+#: Carries every distinctive line of the landing, declares exactly the names HEAD declares, adds
+#: none, and differs from HEAD only in a value the landing never touched. So it reaches
+#: `NOT_SUPERSEDED` by every leg -- which makes it the one fixture that can be aged without changing
+#: its verdict, and therefore the only one that can ask both of that verdict's two sentences.
+UNREMARKABLE_EDIT = LANDED.replace("    return 1\n", "    return 2\n")
+
+
+def test_the_no_complaint_verdict_does_not_claim_a_reading_it_never_made(repo: Path) -> None:
+    """MUTATION: drop the `unread` branch in `judge_copy`'s `NOT_SUPERSEDED` arm and this FIRES.
+
+    THE DEFECT, and it is this tool's half of
+    SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT
+    (2026-09-24). This branch said "it does not predate the last landing there and it deletes no name.
+    Refreshing it would discard an ordinary edit" -- every clause true, the sentence false. `judge`'s
+    rule 1 filters comments out of its evidence set, so a copy whose ONLY loss was a six-line comment
+    block landed twelve minutes earlier arrived here and was vouched for by a reading nobody had made.
+    The operator acting on that sentence discards bytes.
+
+    BOTH SENTENCES ARE ASKED OF ONE TREE, AND ASSERTED DISTINCT. A repair that printed the cautious
+    text unconditionally would pass a test of the cautious text alone while destroying the tool's
+    ability to say "everything I can read, I read" -- and a refusal that can never be cleared is a
+    footnote, not a reading. `unread_populations` is keyed to the CLOCK, so the same bytes at two
+    mtimes are the whole partition."""
+    (repo / "m.py").write_text(UNREMARKABLE_EDIT)
+    landed_at = scr.committed_at(repo, scr.last_commit_touching(repo, "m.py"))
+
+    os.utime(repo / "m.py", (landed_at + 60,) * 2)
+    fresh = rth.judge_copy(repo, "m.py")
+
+    os.utime(repo / "m.py", (landed_at - 60,) * 2)
+    aged = rth.judge_copy(repo, "m.py")
+
+    assert fresh.state == aged.state == rth.NOT_SUPERSEDED, (
+        "the clock moved the VERDICT, not just its wording -- this fixture no longer isolates the "
+        "sentence and the assertions below are about something else: {} / {}".format(
+            fresh.state, aged.state))
+    assert fresh.reason != aged.reason, (
+        "one sentence for both states, so the tool cannot distinguish 'no complaint' from 'the "
+        "question was not asked' -- which is the defect, unrepaired")
+    assert "NOT READ" in fresh.reason and "COMMENT BLOCK" in fresh.reason, (
+        "rule 1b is gated on the clock and did not run for this fresh copy, and the verdict does not "
+        "say so -- it is making a positive claim about prose it never read")
+    assert "would discard an ordinary edit" not in fresh.reason, (
+        "the verdict still asserts 'an ordinary edit' where a population went unread: that is the "
+        "exact sentence the finding is about, and it is what an operator acts on")
+    assert "Every reading this control has was made" in aged.reason, (
+        "the honest all-clear is unreachable, so this branch can only ever caution -- a door that "
+        "always hedges gets read as noise and the next lane stops reading it")
+    assert "reverts no comment block" in aged.reason, (
+        "the cleared verdict does not name the comment reading it now makes, so a reader cannot tell "
+        "this sentence from the one that was wrong")
 
 
 def test_a_suffix_with_no_symbol_reader_is_refused_rather_than_waved_through(repo: Path) -> None:
@@ -463,8 +540,17 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
     states.add(rth.judge_copy(repo, "brand_new.py").state)
     (repo / "d.py").write_text(DEAD_DRAFT)
     states.add(rth.judge_copy(repo, "d.py").state)
+    # WHITELIST_GAIN JOINS THE PARTITION HERE AND NOT ONLY IN ITS OWN SUITE. It is a withdrawal of
+    # REFRESHABLE, so the shape that reaches it is one dict key from the shape that reaches the
+    # permissive branch above -- exactly the pair a later edit collapses without noticing. Both
+    # must appear in `states` or this equality goes red. `w.py` and not `m.py`: the base must
+    # ALREADY bind the whitelist, or adding the function to hold it supplies a symbol and the copy
+    # grades SUPPLIES_NEW -- which is how the first draft of this leg passed nothing.
+    (repo / "w.py").write_text(W_RIVAL_ADDS_A_KEY)
+    states.add(rth.judge_copy(repo, "w.py").state)
     assert states == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.REPLACEMENT, rth.SUPERSEDED_DEAD,
-                      rth.NOT_SUPERSEDED, rth.AT_HEAD, rth.NO_READER, rth.NO_BASE}
+                      rth.NOT_SUPERSEDED, rth.AT_HEAD, rth.NO_READER, rth.NO_BASE,
+                      rth.WHITELIST_GAIN}
 
 
 # --------------------------------------- rule 1 asks NEVER BOUND, not merely ABSENT (2026-09-16)
@@ -751,18 +837,27 @@ def test_base_wins_refreshes_a_replacement_the_clock_says_predates_its_landing(r
 
 def test_the_line_level_surface_this_branch_destroys_reaches_the_reader_and_the_probe(
         repo: Path) -> None:
-    """`discarded` IS NOT DECORATION ON THIS BRANCH -- it is the input to `_probe`, and without it
-    `verify_recoverable` takes its no-probe route and never RUNS the `git log --all -S` lookup the
-    tool advertises. A preservation that is only claimed is the whole thing rule 3 exists to stop.
-    Asserted on the field and not on the rendered text, because the supplied NAMES are printed
-    beside it and would answer a text search for the same string -- the flattering reading."""
+    """`discarded` IS NOT DECORATION ON THIS BRANCH, and without a probe `verify_recoverable` takes
+    its no-probe route and never RUNS the `git log --all -S` lookup the tool advertises. A
+    preservation that is only claimed is the whole thing rule 3 exists to stop. Asserted on the
+    field and not on the rendered text, because the supplied NAMES are printed beside it and would
+    answer a text search for the same string -- the flattering reading.
+
+    CORRECTION, 2026-09-24, kept beside the claim it replaces: this docstring used to say
+    `discarded` IS "the input to `_probe`", and that was the defect stated as a fact. `discarded`
+    is computed against `base`; `preserve` parents on HEAD unconditionally; on a checkout behind the
+    trunk those are different trees and the probe was being read from the wrong one. `_probe` now
+    reads HEAD directly -- see
+    `test_a_probe_line_head_already_carries_fails_a_sound_preservation`. This test still holds
+    because it never passes `--base`: at `base="HEAD"` the two readings coincide, which is exactly
+    why a suite of default-base fixtures could not see the defect."""
     (repo / "m.py").write_text(RIVAL_KIND_B)
     verdict = rth.judge_copy(repo, "m.py", base_wins=True)
     assert verdict.state == rth.REFRESHABLE
     assert any("my_own_unlanded_function" in line for line in verdict.discarded), (
         "the lines this branch is about to destroy were not collected: {}".format(
             verdict.discarded))
-    assert rth._probe(verdict) is not None, (
+    assert rth._probe(repo, "m.py", (repo / "m.py").read_bytes()) is not None, (
         "there is no probe, so the advertised recovery search is skipped and the preservation is "
         "asserted rather than verified on the branch that destroys the most")
 
@@ -825,6 +920,88 @@ def test_base_wins_does_not_reach_a_stale_copy_that_still_has_a_landable_hunk(
             verdict.state))
     assert "isolate_hunks" in verdict.reason, "the door that does apply was not named"
     assert (repo / "k.py").read_text() == K_STALE_BUT_LANDABLE
+
+
+#: The disclosure clause's own opening words. The two legs below are told apart by THIS and not by
+#: the word "predates": a clause printed unconditionally still renders the rule name it was given,
+#: so "no complaint" appears where a predates verdict would and the anti-tautology arm reads green.
+_DISCLOSURE_MARK = "AND THE CLOCK DISAGREES WITH THE DOOR ABOVE"
+
+
+def test_a_holder_work_grade_discloses_the_clock_that_disagrees_with_the_door_it_names(
+        repo: Path) -> None:
+    """MUTATION: delete the `_clock_disclosure(clock, base)` argument from `judge_copy`'s
+    `SUPPLIES_NEW` return and the first arm below FIRES.
+
+    THE DEFECT, measured on the live shared tree 2026-09-24. `SUPPLIES_NEW` prints a door --
+    "land hunk(s) 1, 3, 4, 7 over HEAD" -- and until now said nothing about the clock even when
+    `clock.rule` was sitting in scope at `predates_landing`. Four working copies stamped 15:02:31
+    against landings at 16:30, 17:10, 17:10 and 18:24: two of them were handed that door, and
+    taking it writes the older draft's bytes over the newer commit. The delivery lane's own PATH
+    CHECK reads this grade and reported "differs from HEAD and reverts no landing" about a copy
+    its own clock calls older, so the silence had already reached the instructions a session acts
+    on before it reads any code.
+
+    A DISCLOSURE AND NOT A RE-GRADE, WHICH IS WHY THE STATE IS ASSERTED UNCHANGED IN BOTH ARMS.
+    `--keep` genuinely has a selection here, so the copy is not a REPLACEMENT and `--base-wins`
+    correctly does not reach it (the test above). Re-grading would destroy work a door could have
+    saved. The contradiction is real and belongs to the operator; what was wrong was that only one
+    of the two controls spoke.
+
+    TWO ARMS, AND THE SECOND IS WHAT STOPS THIS PASSING ON A SENTENCE PRINTED UNCONDITIONALLY.
+    Both copies reach `SUPPLIES_NEW`; they differ ONLY in what the clock says about them. A repair
+    that appended the clause to every holder-work grade would pass arm one and destroy the
+    tool's ability to distinguish the two, which is the same shape as
+    `test_the_no_complaint_verdict_does_not_claim_a_reading_it_never_made`."""
+    (repo / "k.py").write_text(K_STALE_BUT_LANDABLE)
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    stale, fresh = rth.judge_copy(repo, "k.py"), rth.judge_copy(repo, "m.py")
+
+    assert stale.state == fresh.state == rth.SUPPLIES_NEW, (
+        "the two arms are not in one state, so the assertions below are a comparison of two "
+        "different verdicts rather than of one verdict's two clock readings: {} / {}".format(
+            stale.state, fresh.state))
+    stale_rule = scr.opinion(repo, "k.py", rth.blob_at(repo, "HEAD", "k.py"),
+                             K_STALE_BUT_LANDABLE, parent="HEAD").rule
+    assert stale_rule.startswith(rth.PREDATES), (
+        "the stale arm's clock no longer says the copy predates its landing [{}], so this "
+        "fixture cannot exercise the disclosure at all".format(stale_rule))
+
+    assert "isolate_hunks" in stale.reason and "isolate_hunks" in fresh.reason, (
+        "the door is not named in both arms, so a missing disclosure below could be the door "
+        "being absent rather than the clock being silent")
+    assert stale_rule in stale.reason, (
+        "the holder-work grade names a landing door on a copy its own clock calls the older "
+        "draft, and does not say so -- the operator takes the door and reverts the landing")
+    # KEYED TO THE CLAUSE'S OWN SIGNATURE, NOT TO THE WORD "predates". Written the second way this
+    # leg passed a mutation that returned the disclosure UNCONDITIONALLY -- the clause then renders
+    # as "the verdict on this copy is [no complaint]", which contains no such word, and the arm
+    # written to catch exactly that defect went green while a sibling test caught it instead.
+    assert _DISCLOSURE_MARK not in fresh.reason, (
+        "the clause is printed for a copy the clock has NO complaint about, so it carries no "
+        "information and the two states are indistinguishable to a reader")
+    assert _DISCLOSURE_MARK in stale.reason, (
+        "the stale arm carries the rule name but not the clause, so the two arms are being told "
+        "apart by something other than the disclosure this test is about")
+
+
+def test_the_disclosure_reaches_every_member_of_the_predates_family(repo: Path) -> None:
+    """KEYED TO THE STEM, NOT TO TODAY'S THREE RULES. `predates_landing`,
+    `predates_landing_by_clock` and `predates_landing_carrying_some` are one family and a fourth
+    is a normal thing to add. Written against a tuple of the three, a new member would be
+    silently undisclosed and nothing would go red -- the failure direction this project has paid
+    for repeatedly. The live tree carries one copy of each of the three right now.
+
+    MUTATION: narrow `_clock_disclosure`'s test from `rule.startswith(PREDATES)` to
+    `rule == PREDATES` and the two non-bare members below FIRE."""
+    for rule in (scr.PREDATES, scr.CLOCK, scr.PARTIAL):
+        clock = SimpleNamespace(rule=rule, loss=SimpleNamespace(commit="0123456789abcdef"))
+        clause = rth._clock_disclosure(clock, "origin/main")
+        assert rule in clause and "012345678" in clause, (
+            "[{}] is a predates-landing verdict and the grade would not disclose it".format(rule))
+    for quiet in ("no complaint", "", None):
+        assert rth._clock_disclosure(SimpleNamespace(rule=quiet, loss=None), "origin/main") == "", (
+            "a clock with nothing to say produced a disclosure: [{}]".format(quiet))
 
 
 def test_the_bytes_a_base_wins_refresh_discards_come_back_by_the_advertised_search(
@@ -1063,3 +1240,245 @@ def test_base_wins_on_a_DATA_path_is_not_gated_on_an_oracle_that_cannot_ANSWER(r
     assert clock is not None and clock.rule in rth.BASE_WINS_RULES, (
         "the clock does not complain about the fixture either, so this file proves nothing about "
         "which oracle the gate should ask: {}".format(clock))
+
+
+# ------------------------- the probe's tree is the PARENT's, not the judgement base's (2026-09-24)
+
+
+def test_a_probe_line_head_already_carries_fails_a_sound_preservation(repo: Path) -> None:
+    """THE DEFECT: `_probe` read `verdict.discarded`, which `judge_copy` computes against `base` --
+    and `preserve` parents its commit on HEAD, unconditionally. On the exact tree `--base` exists
+    for (a checkout BEHIND the trunk) those are different trees, so the probe could be a line the
+    trunk dropped and HEAD still carries. `git log -S` reports a commit only where the probe's
+    occurrence COUNT CHANGED against the parent; count 1 on both sides is no change, so the search
+    finds nothing and `verify_recoverable` calls a correct preservation FAILED.
+
+    The failure is the flattering shape: nothing is destroyed, nothing moves, and the refusal reads
+    exactly like the safety catch doing its job. On the shared tree 2026-09-24 it was the whole
+    reason three of the five blocking residue paths had no working door.
+
+    WHAT THIS ASSERTS IN ORDER, because each leg alone has a way of passing while the bug lives:
+      1. the probe the OLD wiring would pick IS present at HEAD -- otherwise the fixture does not
+         reproduce the shape and everything below is vacuous;
+      2. `verify_recoverable` handed that probe RAISES -- the defect, demonstrated, not described;
+      3. the new `_probe` picks a line HEAD does NOT have;
+      4. the same preservation, same commit, same bytes, VERIFIES with it.
+
+    Leg 2 is what makes leg 4 evidence rather than a happy path run twice: without it, a `_probe`
+    that returned `None` for everything would satisfy 3 and 4 and switch the `-S` leg off entirely,
+    which is the fail-open this tool cannot afford."""
+    a = "def alpha():\n    return 1\n"
+    # LONGER than the lane's own line, because `_probe` picks `max(..., key=len)`. If the trunk-
+    # dropped line were the shorter of the two the old wiring would pick the other one by accident
+    # and the fixture would go green with the defect untouched.
+    trunk_dropped = (
+        "    THE_LINE_THE_TRUNK_LATER_DROPPED = 'and this checkout, being behind, still has it'\n")
+    lane_own = "    my_own_unlanded_line = 'shorter'\n"
+
+    (repo / "m.py").write_text(a + trunk_dropped)
+    _run(repo, "add", "m.py")
+    _run(repo, "commit", "-qm", "the line lands, and this commit is what HEAD stays at")
+
+    # The trunk moves PAST this checkout and rewords that line away. `--base trunk` is the whole
+    # point of the flag: HEAD is itself a stale base, so it cannot be the judge.
+    _run(repo, "checkout", "-q", "-b", "trunk")
+    (repo / "m.py").write_text(a + "    RENAMED = 'the trunk wording'\n")
+    _run(repo, "add", "m.py")
+    _run(repo, "commit", "-qm", "the trunk rewords it")
+    _run(repo, "checkout", "-q", "main")
+
+    work = (a + trunk_dropped + lane_own).encode()
+    (repo / "m.py").write_bytes(work)
+
+    verdict = rth.judge_copy(repo, "m.py", base="trunk")
+    head_text = rth._blob_bytes(repo, "HEAD", "m.py").decode()
+    stale_probe = max((ln for ln in verdict.discarded if not rth._trivial(ln)), key=len)
+    assert stale_probe in head_text, (
+        "the fixture does not reproduce the shape -- the base-relative probe is NOT a line HEAD "
+        "carries, so `git log -S` would find the preservation and there is no defect to close")
+
+    ref, commit = rth.preserve(repo, ["m.py"], "probe-tree", "preserved")
+    assert _run(repo, "rev-parse", commit + "^").strip() == _run(repo, "rev-parse", "HEAD").strip()
+
+    with pytest.raises(rth.RefreshError, match="PRESERVATION FAILED"):
+        rth.verify_recoverable(repo, commit, "m.py", work, stale_probe)
+
+    probe = rth._probe(repo, "m.py", work)
+    assert probe is not None, (
+        "`_probe` returned None on a copy that genuinely adds a line against HEAD -- that silences "
+        "the `-S` leg altogether, which is the fail-open, not the repair")
+    assert probe not in head_text, (
+        "the repaired probe is STILL a line HEAD carries, so `git log -S` cannot report the "
+        "preserved commit and nothing is fixed: {!r}".format(probe))
+    route = rth.verify_recoverable(repo, commit, "m.py", work, probe)
+    assert commit[:9] in _run(repo, "log", "--all", "--format=%H", "-S", probe, "--", "m.py")
+    assert "git log --all -S" in route and ref
+
+
+# ------------------------------------- the STAGED state had no exit at all (`--staged-too`, 2026-09-22)
+#
+# The defect, measured live: `site/test_the_baseline_comparison_reaches_the_reader.py` and
+# `site/test_the_selection_legs_bias_size_reaches_the_reader.py` sat in the shared tree as older
+# drafts that were ALSO STAGED. The site lane was red for every lane in the tree, and no door
+# reached them -- `isolate_hunks` separates by author not by age, `surgical_land --content` would
+# have landed the revert, and this tool returned STAGED before the judgement ran, so no flag could
+# reach the copy either. The refusal's own reasoning names the missing half: a commit makes the
+# tree from the INDEX, so the repair has to write the index too.
+
+
+def test_staged_too_clears_the_index_entry_as_well_as_the_working_copy(repo: Path) -> None:
+    """REACHABILITY FIRST for this branch: everything else here asserts a refusal, and a flag that
+    opens nothing passes all of them while the two wedged files stay wedged."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip(), (
+        "the fixture has no staged revert, so this proves nothing about the state the flag is for")
+    rc, text = rth.refresh(repo, ["m.py"], "staged-too", write=True, staged_too=True)
+    assert rc == 0, text
+    assert (repo / "m.py").read_text() == LANDED
+    assert _run(repo, "rev-parse", ":m.py").strip() == _run(repo, "rev-parse", "HEAD:m.py").strip(), (
+        "the working copy was refreshed and the INDEX still holds the rival, which is exactly the "
+        "repaired-looking-but-not-repaired state the STAGED refusal exists to prevent")
+
+
+def test_the_commit_that_index_would_make_no_longer_carries_the_revert(repo: Path) -> None:
+    """THE PROPERTY, NOT THE BLOB ID. The STAGED refusal's claim is about a COMMIT -- `a commit from
+    that index makes the tree from the INDEX copy`. So make one and read what it carries."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    rc, text = rth.refresh(repo, ["m.py"], "staged-too", write=True, staged_too=True)
+    assert rc == 0, text
+    # `--allow-empty` because the repaired index has nothing left to commit -- which is the point,
+    # and it keeps the leg readable under the mutation where the index is NOT cleared and the
+    # commit is a real one carrying the revert.
+    _run(repo, "commit", "-q", "--allow-empty", "-m", "whatever this index held")
+    assert _run(repo, "show", "HEAD:m.py") == LANDED, (
+        "a commit taken straight after the refresh put the older draft back, so the refresh cleared "
+        "the census and not the defect")
+
+
+def test_staged_too_refuses_when_the_index_and_the_worktree_are_different_rivals(repo: Path) -> None:
+    """ONE PRESERVATION, ONE JUDGEMENT, ONE SET OF BYTES. When the two disagree there are two
+    rivals and only the working one has been read; discarding the other is a write nothing judged."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    (repo / "m.py").write_text(RIVAL_KIND_A + "\n\n# a later thought, in the worktree only\n")
+    verdict = rth.judge_copy(repo, "m.py", staged_too=True)
+    assert verdict.state == rth.STAGED_DISAGREES, (
+        "the index copy and the working copy are different bytes and the flag judged them as one")
+    rc, _ = rth.refresh(repo, ["m.py"], "staged-too", write=True, staged_too=True)
+    assert rc == 1
+    assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip(), (
+        "the index entry was cleared under a refusal")
+
+
+def test_staged_too_relaxes_the_staged_state_and_not_one_other_rule(repo: Path) -> None:
+    """THE FLAG IS NOT A WIDENING. A staged copy that SUPPLIES a name HEAD lacks is holder work
+    whether it is staged or not, and the flag must leave every such copy exactly where it was."""
+    (repo / "m.py").write_text(HOLDER_APPENDS)
+    _run(repo, "add", "m.py")
+    assert rth.judge_copy(repo, "m.py", staged_too=True).state == rth.SUPPLIES_NEW, (
+        "the flag walked a staged copy past rule 1, so it is a licence to discard holder work")
+    (repo / "m.py").write_text(ORDINARY_EDIT)
+    _run(repo, "add", "m.py")
+    assert rth.judge_copy(repo, "m.py", staged_too=True).state == rth.NOT_SUPERSEDED, (
+        "the flag walked a staged ORDINARY EDIT through, which is `git checkout <path>` with a "
+        "longer name")
+
+
+def test_the_staged_partition_stays_three_distinct_answers(repo: Path) -> None:
+    """ONE CONTROL OVER THE WHOLE STAGED PARTITION, so no later edit can collapse the three onto
+    one another -- the shape that makes every refusal test above pass with the door welded shut."""
+    states = []
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    states.append(rth.judge_copy(repo, "m.py").state)                      # flag off
+    states.append(rth.judge_copy(repo, "m.py", staged_too=True).state)     # flag on, agreeing
+    (repo / "m.py").write_text(RIVAL_KIND_A + "\n\n# worktree only\n")
+    states.append(rth.judge_copy(repo, "m.py", staged_too=True).state)     # flag on, disagreeing
+    assert states == [rth.STAGED, rth.REFRESHABLE, rth.STAGED_DISAGREES], (
+        "the three staged answers are not three: {}".format(states))
+
+
+def test_the_staged_refusal_names_the_door_out_of_it(repo: Path) -> None:
+    """A REFUSAL WITH NO EXIT IS A WEDGE. This one had none for two files for a day, and the reason
+    it stayed invisible is that the refusal read like a complete answer."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    assert "--staged-too" in rth.judge_copy(repo, "m.py").reason, (
+        "a reader hitting this refusal is told the copy is unreachable and not that a door exists")
+
+
+def test_staged_too_is_off_by_default_in_refresh_and_in_judge(repo: Path) -> None:
+    """`background.origin_reconcile` and every other caller pass no opinion, and each must still
+    get the refusal -- a relaxation that defaults on is the new behaviour, not a relaxation."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    _run(repo, "add", "m.py")
+    assert rth.judge_copy(repo, "m.py").state == rth.STAGED
+    rc, text = rth.refresh(repo, ["m.py"], "staged-too", write=True)
+    assert rc == 1 and rth.STAGED in text
+    assert (repo / "m.py").read_text() == RIVAL_KIND_A
+    assert _run(repo, "rev-parse", ":m.py").strip() != _run(repo, "rev-parse", "HEAD:m.py").strip()
+
+
+# ------------- "it deletes no name" was false one population to the left (2026-09-24)
+#
+# The defect, banked as SEAT_FINDING_THE_SAME_KEY_IS_NOT_A_SYMBOL_BLIND_SPOT_NOW_REFUSES_TO_CLEAN_A_
+# REVERT_IT_ONCE_OFFERED_TO_CREATE_2026-09-24 (`db1c8460e`): this door's two `NOT_SUPERSEDED`
+# sentences both asserted "it deletes no name", and `judge` reads SYMBOLS -- so a copy deleting two
+# entries from a publication whitelist satisfied every word of a claim that was false of the
+# artefact. Live instance while it was written: `saas/reporting/annual_report.py`, dropping
+# `gas_shape_provider_by_customer` and `gas_shape_refusals`.
+#
+# WHY THE REPAIR IS A SENTENCE HERE AND NOT A `judge` LOSS FOR THIS SHAPE. That copy also supplies
+# six comment lines the base lacks. ANY loss makes this door answer `REFRESHABLE`, and
+# `background.origin_reconcile` acts on that grade with nobody reading the discard list -- so
+# turning this into a verdict would have had a daemon destroy the writing on the first application.
+# `stale_copy_refusal.judge`'s KEY_SUBSET leg owns the copies that supply nothing at all; this owns
+# the ones where the honest answer is a refusal that says what it found.
+
+#: DROPS a key the base binds, and writes prose the base lacks -- so `judge` is silent by design and
+#: this door is the only thing standing between the copy and a claim that it deletes no name.
+W_RIVAL_DROPS_A_KEY = (
+    "def alpha():\n    return 1\n\n\n"
+    "def freshly_landed_helper(argument):\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n\n\n"
+    "# WHY THE KEY IS GOING: a line of writing that exists in no commit anywhere.\n"
+    "def extract():\n"
+    "    return {}\n"
+)
+
+
+def test_a_copy_deleting_a_whitelist_key_is_not_told_it_deletes_no_name(repo: Path) -> None:
+    """THE FALSE SENTENCE ITSELF. Three true clauses making one untrue claim, for the second time in
+    this module -- the first was prose, this is a dict key, and both were reported to an operator
+    about to discard bytes.
+
+    The verdict STAYS a refusal: the repair is what the refusal says, not which state it reaches.
+    A copy supplying prose is not one the base supersedes, and flipping it to `REFRESHABLE` would
+    hand `origin_reconcile` a licence to overwrite the writing."""
+    (repo / "w.py").write_text(W_RIVAL_DROPS_A_KEY)
+    verdict = rth.judge_copy(repo, "w.py")
+
+    assert verdict.state == rth.NOT_SUPERSEDED, (
+        "the key reading has turned a refusal into a grade that lets a daemon overwrite this "
+        "copy: {} -- {}".format(verdict.state, verdict.reason))
+    assert "landed_key" in verdict.reason, (
+        "the refusal does not name the key it read, so the operator is told only that something "
+        "is wrong: {}".format(verdict.reason))
+    assert "it deletes no name." not in verdict.reason, (
+        "the sentence that was false is still being printed about a copy deleting a whitelist "
+        "key: {}".format(verdict.reason))
+
+    # THE ANTI-TAUTOLOGY ARM, AND IT IS A DIFFERENT COPY RATHER THAN A MISSING WORD. An ordinary
+    # edit must still be told, in terms, that it deletes no name -- a door mutated to print the key
+    # clause unconditionally passes every assertion above and fails here.
+    (repo / "w.py").write_text(W_LANDED.replace("return argument * 41 + 7",
+                                                "return argument * 41 + 8"))
+    clean = rth.judge_copy(repo, "w.py")
+    assert clean.state == rth.NOT_SUPERSEDED and "deletes no name" in clean.reason, (
+        "an ordinary edit no longer gets the clean-bill sentence: {} -- {}".format(
+            clean.state, clean.reason))
+    assert "DELETES" not in clean.reason, (
+        "the key clause prints for a copy that drops no key, so it says nothing about the copy")
