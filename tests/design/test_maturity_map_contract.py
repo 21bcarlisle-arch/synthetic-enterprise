@@ -718,9 +718,19 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     # OPS6, W2_18, W2_19 and W2_non_dd_miss_vocabulary delisted 2026-09-25: each row now names
     # the controls of modules its own file_scope already named, so all four are graded rather
     # than frozen. Only OPS6 gains a control POSTDATING its row; the other three return
-    # CONTROL_PREDATES_ROW, which is a verdict and not a silence. The four rows still on this
-    # list that reached NAMES_ONLY_A_SCOPE (G4, SP2_2, H40, H48) name NO subject module at all
-    # and so have nothing to repoint at -- see the finding of 2026-09-25.
+    # CONTROL_PREDATES_ROW, which is a verdict and not a silence.
+    # G4 and SP2_2 delisted 2026-09-25 as well, and the repoint is DISCOVERY not invention: each
+    # has a design doc NAMING the artefacts its build writes (UNIFIED_FAILURE_REGISTER.md 7 (L2);
+    # RNG_SUBSTREAM_PRIMITIVE_DISCOVER.md 4), so the row reads a declaration rather than a
+    # filename somebody picked. Neither set is on disk, so both now read HONESTLY_UNBUILT -- the
+    # true verdict for a level-0 unbuilt atom, and unlike `file_scope: [tools]` it stops being
+    # true by itself on the commit that lands the first file.
+    # H40 AND H48 STAY, and not for want of trying. Neither names a subject module and neither has
+    # a design doc naming one, because their deliverable is a RECORD -- an executed bisect with its
+    # evidence; an audit of 121 parked documents with five dispositions -- and not a module. The
+    # repair `NAMES_ONLY_A_SCOPE` prints, "name the FILES this atom writes", is unfollowable for a
+    # row that writes none, and the only way to follow it is to invent a filename. Written up in
+    # docs/staging/ on 2026-09-25.
     # A49 delisted 2026-09-07: its row now names the four files its own build wrote, so it is
     # graded rather than frozen. The entry is deleted, not kept-and-passing, because
     # `test_ungradable_build_rows_allowlist_has_no_FIXED_entries` is what makes the fix complete.
@@ -728,7 +738,6 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     "D46_the_validator_holds_against_the_varied_population",
     "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
     "G15_forward_curve_series_to_backtest_hedging_by_physics",
-    "G4_unified_failure_register",
     "H40_full_suite_pollution_bisect",
     "H46_the_consistency_gate_disagreement_before_the_next_publish",
     # H47 delisted 2026-09-16: its row now names a control, so it is graded rather than frozen.
@@ -740,7 +749,6 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     "SITE12_evidence_a_reader_can_use",
     "SITE14_the_front_door_schematic_carries_the_corrected_model",
     "SITE3_wall_exhibit_url_rename",
-    "SP2_2_rng_substream_primitive",
     "W1_14_weather_cells_for_household_heat_load",
     "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
     "W2_21_the_premise_joint_is_fitted_not_drawn_independently",
