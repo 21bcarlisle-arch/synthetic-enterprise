@@ -45,6 +45,10 @@ SERIES_PATH = ROOT / "docs" / "observability" / "commit_hook_step_timings.jsonl"
 #: The chain, in hook order. `staged_subject` marks a step whose cost depends on what is staged,
 #: so its reading on an empty index is a LOWER BOUND rather than a measurement.
 STEPS: tuple[tuple[str, list[str], bool], ...] = (
+    # THE REPORTER THAT RUNS BEFORE EVERY GATE and refuses nothing: does the chain git is about to
+    # run match the chain the trunk declares. Two `git show`s and two file reads; it is here
+    # because the list must BE the hook, not because its cost is interesting.
+    ("live_hook_drift", ["python3", "-m", "tools.live_hook_drift"], False),
     # THE CONDITIONAL FIRST BLOCK. These two run only when `docs/status/LATEST.md` is staged, so
     # most commits pay nothing for them -- but "most" is not "none", and a step nobody times is a
     # step nobody can cut. Found by `test_every_step_the_hook_runs_is_timed` on its first run,
@@ -75,6 +79,18 @@ STEPS: tuple[tuple[str, list[str], bool], ...] = (
      ["python3", "-m", "tools.commons_source_supersession", "--check"], False),
     ("commons_citation_supports_provenance",
      ["python3", "-m", "tools.commons_citation_supports_provenance", "--check"], False),
+    # THE TWENTY-SECOND, added 2026-09-25, and it was RED AT `origin/main` for a day before
+    # anybody could see it. `934343669` put this gate into the hook and did not add it here;
+    # `test_every_step_the_hook_runs_is_timed` went red on the trunk, and no commit's selection
+    # could reach it -- staging `tools/hook_gate_mark.py` selects the mark's OWN test by stem,
+    # never this one. Exactly the class `GIT_ORACLED_AND_TEST_CORPUS_SUBJECTS` was written for,
+    # in a control that is not on that list. Found while building `tools/live_hook_drift.py`,
+    # which reads the same hook through the same parser.
+    #
+    # IT IS THE ONE STEP THAT WRITES. `--record` drops a mark file in the git dir -- the same
+    # write it performs on every real commit -- so the loop below puts back whatever was there
+    # before rather than leaving a timing run's mark to be read as a commit's.
+    ("hook_gate_mark", ["python3", "-m", "tools.hook_gate_mark", "--record"], False),
 )
 
 
@@ -91,6 +107,36 @@ def _control_set() -> list[str]:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return list(module.CONTROL_TESTS)
+
+
+def _gate_mark_path() -> Path:
+    """Where `hook_gate_mark --record` writes, asked of the module rather than reconstructed."""
+    from tools import hook_gate_mark
+
+    out = subprocess.run(["git", "rev-parse", "--absolute-git-dir"], cwd=str(ROOT),
+                         capture_output=True, text=True)
+    return Path(out.stdout.strip()) / hook_gate_mark.MARK_FILENAME
+
+
+def _gate_mark_bytes() -> bytes | None:
+    try:
+        return _gate_mark_path().read_bytes()
+    except OSError:
+        return None
+
+
+def _restore_gate_mark(before: bytes | None) -> None:
+    path = _gate_mark_path()
+    try:
+        if before is None:
+            path.unlink(missing_ok=True)
+        else:
+            path.write_bytes(before)
+    except OSError:
+        # A mark that cannot be put back is worth saying so about, loudly, and never worth
+        # failing a measurement over.
+        print(f"[chain] WARNING: could not restore {path} -- delete it by hand before the next "
+              "commit, or its mark will be read as that commit's.")
 
 
 def _time(argv: list[str]) -> tuple[float, int]:
@@ -142,12 +188,21 @@ def main() -> int:
     steps = [s for s in STEPS if not args.only or args.only in s[0]]
     if steps:
         timed = []
-        for name, argv, staged_subject in steps:
-            seconds, rc = _time(argv)
-            timed.append({"step": name, "seconds": round(seconds, 2), "returncode": rc,
-                          "reading_is_a_floor": staged_subject})
-            floor = "  (FLOOR -- subject is the staged set)" if staged_subject else ""
-            print(f"[chain] {seconds:6.1f}s  rc{rc}  {name}{floor}", flush=True)
+        # THE ONE SIDE EFFECT THIS TOOL WOULD OTHERWISE LEAVE BEHIND. `hook_gate_mark --record`
+        # writes a mark naming the tree the index currently writes out to, and `commit-msg` later
+        # believes a mark whose tree still matches. A timing run is not a commit, so leaving its
+        # mark would let a LATER hand-built commit over an unchanged index inherit a gate receipt
+        # it never earned. Whatever was there before goes back afterwards, including "nothing".
+        before = _gate_mark_bytes()
+        try:
+            for name, argv, staged_subject in steps:
+                seconds, rc = _time(argv)
+                timed.append({"step": name, "seconds": round(seconds, 2), "returncode": rc,
+                              "reading_is_a_floor": staged_subject})
+                floor = "  (FLOOR -- subject is the staged set)" if staged_subject else ""
+                print(f"[chain] {seconds:6.1f}s  rc{rc}  {name}{floor}", flush=True)
+        finally:
+            _restore_gate_mark(before)
         readings["steps"] = timed
         total = sum(r["seconds"] for r in timed)
         print(f"\n[chain] chain total on THIS index: {total:.1f}s")

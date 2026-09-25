@@ -139,10 +139,18 @@ from background.tree_lock import (  # noqa: E402  (needs the path insert above)
     TreeLockTimeout,
     tree_lock,
 )
-from tools import stale_copy_refusal  # noqa: E402  (same reason: needs the path insert)
+from tools import live_hook_drift, stale_copy_refusal  # noqa: E402  (needs the path insert)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
+#
+# THAT LAST CLAUSE IS PART-WRONG AND ITS CORRECTION LIVES BESIDE IT (2026-09-25). This path is
+# resolved inside the EXTRACT, so the chain this tool runs is the trunk's. `git commit` resolves
+# `core.hooksPath`, which is the shared tree's WORKING COPY of this same directory, and the two
+# were measurably different chains on the day this was written. The tool faces the hook the
+# COMMIT WOULD DECLARE, which is the stronger of the two and the right one to gate on -- it does
+# not face what `git commit` currently faces. `_say_which_hook_chain_the_other_door_runs` below
+# says so out loud on every landing rather than letting the line above keep reading as a promise.
 HOOK_REL = "tools/git-hooks/pre-commit"
 
 #: Per-renderer budget for the re-derive pass. Generous: the class registers walk the whole
@@ -1295,6 +1303,40 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
         return new
 
 
+def _say_which_hook_chain_the_other_door_runs(root: Path) -> None:
+    """Print, before any gate output, whether `git commit` here would run the SAME chain this
+    tool is about to run. Never raises and never blocks the landing.
+
+    WHY THIS IS HERE AND NOT ONLY IN THE HOOK (2026-09-25). This repository has TWO doors and
+    they resolve the hook from two different places. `run_gate` above runs
+    `checkout / tools/git-hooks/pre-commit` -- the chain from the EXTRACT of the tree being
+    committed, which is always current by construction. An ordinary `git commit` runs
+    `core.hooksPath`, which resolves to the shared tree's WORKING COPY of the same directory. On
+    the day this was written those two chains differed: the working copy was 49 commits behind,
+    and `hook_gate_mark --record` -- landed into the trunk chain the day before -- ran nowhere.
+    A gate that does not exist does not fail; it returns green with everything else.
+
+    So the loud line belongs at a surface read from the COMMITTING tree, which this module is and
+    the hook is not. A check wired only into `tools/git-hooks/pre-commit` would have been read
+    from the stale copy it exists to grade, and would have been silent on the one day it
+    mattered -- the liveness signal delivered through the channel it monitors.
+
+    IT DOES NOT REFUSE, and that is deliberate rather than timid: the remedy is the reconciler
+    advancing the shared checkout, which no lane can do from inside its own commit. A control
+    that reds every lane for a state its reader cannot act on gets switched off, and the gap goes
+    back to being invisible. `live_hook_drift --gate` is there for a caller that wants the
+    refusal; this one wants the reader.
+    """
+    try:
+        verdict = live_hook_drift.drift(root)
+        if verdict.clean and not verdict.bytes_differ:
+            return
+        print(live_hook_drift.report(verdict), flush=True)
+    except Exception as exc:  # noqa: BLE001 -- a diagnostic may never cost a landing
+        print("[live-hook] could not compare the live hook chain to the trunk: {}".format(exc),
+              flush=True)
+
+
 def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
          attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None,
          content: Mapping[str, bytes | None] | None = None,
@@ -1329,6 +1371,7 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
         raise LandingRefused(
             "attempts={} would run no gate at all; a landing with no gate is the bypass this "
             "tool replaces.".format(attempts))
+    _say_which_hook_chain_the_other_door_runs(root)
     lost: list[BaseMoved] = []
     for attempt in range(1, attempts + 1):
         try:

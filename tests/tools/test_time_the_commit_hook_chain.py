@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 import tools.time_the_commit_hook_chain as timer
-from tools import python_code_text
+from tools import live_hook_drift, python_code_text
 
 ROOT = Path(__file__).resolve().parents[2]
 HOOK = ROOT / "tools" / "git-hooks" / "pre-commit"
@@ -32,16 +32,15 @@ def _hook_python_invocations() -> list[str]:
 
     Derived from the hook's own bytes rather than listed here, for the reason in the module
     docstring: a second hand-kept list would have the same defect as the first.
+
+    THE PARSER MOVED OUT (2026-09-25) and this is now a two-line call. It was written here, and
+    then `tools/live_hook_drift.py` needed the same read to answer a different question -- which
+    hook chain git is ACTUALLY running. Two independent parsers of one file is the same
+    stand-in-fixture defect this module's docstring names, one level up: they agree until the
+    hook gains a shape only one of them handles, and then two controls disagree about what the
+    chain is with no way to tell which is right. One reader, two subjects.
     """
-    found = []
-    for line in HOOK.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped.startswith("python3 "):
-            continue
-        # Drop the shell tail (`|| exit 1`, `&& git add ...`) -- the subject is the command.
-        command = re.split(r"\s*(?:\|\||&&|;)\s*", stripped)[0].strip()
-        found.append(command)
-    return found
+    return live_hook_drift.hook_invocations(HOOK.read_text(encoding="utf-8"))
 
 
 def _step_key(argv: list[str]) -> str:
