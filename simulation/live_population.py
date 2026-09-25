@@ -833,7 +833,19 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
         # needs is the AQ that `to_customer_dict()` does not carry: without it the first drawn
         # gas founder takes `run_phase2b.TOTAL_GAS_AQ` down with a `KeyError`, which is how
         # this was found.
+        premise = getattr(customer, "premise", None)
         if record.get("commodity") == "gas":
+            # NO GAS METER, NO GAS ACCOUNT -- the same predicate `_gas_leg_for` applies to a
+            # campaign win, and for the same reason (2026-09-25). The record's `commodity` is
+            # one draw and the premise's is another, derived from the dwelling's own heating
+            # system; they disagree. At the live seed three founders were gas accounts on
+            # storage- or direct-electric homes, each settled on a ~9.5 MWh AQ whose physics
+            # burned nothing (`SEAT_FINDING_THREE_ELECTRICALLY_HEATED_HOMES_HOLD_A_GAS_
+            # CONTRACT_...`). The house is the world's, so the contract follows what is
+            # plumbed in. SKIPPED like an unpriceable band below, so the next candidate takes
+            # the slot and no founder is relabelled into a fuel it was never drawn on.
+            if premise is not None and getattr(premise, "commodity", None) != "gas":
+                continue
             aq = _gas_aq_kwh(record["customer_id"], record.get("consumption_band"))
             if aq is None:
                 # FAIL-CLOSED, and it costs nothing: the draw asks for more founders than it
@@ -843,7 +855,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
                 continue
             record = {**record, "aq_kwh": aq,
                       "cv_factor": GAS_CV_FACTOR, "cf": GAS_CORRECTION_FACTOR}
-        out.append((record, getattr(customer, "premise", None)))
+        out.append((record, premise))
         if len(out) >= wanted:
             break
     return out
