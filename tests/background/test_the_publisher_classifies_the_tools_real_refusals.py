@@ -47,6 +47,16 @@ import subprocess
 import pytest
 
 from background import process_run_complete as prc
+from tools import surgical_land as _land
+
+#: EVERY HOOK CHAIN THE LANDING DOOR REQUIRES, read from the tool rather than retyped here.
+#: `commit-msg` became a SECOND required chain on 2026-09-25 (`68717e7e1`, "the landing door runs
+#: the message chain too") and this fixture still built only `pre-commit`, so both tests that drive
+#: a real landing refused with "the MESSAGE gate is UNAVAILABLE" before reaching their own subject
+#: -- the tool being right about a repo the fixture had made unreal, which is the same shape the
+#: uncommitted-hook comment below already records once. Taken from the constants so a third chain
+#: wired later builds itself here instead of reding two tests for a reason that is not theirs.
+REQUIRED_HOOKS = (_land.HOOK_REL, _land.MSG_HOOK_REL)
 
 GATE_GREEN = "#!/bin/sh\nexit 0\n"
 GATE_RED = (
@@ -64,13 +74,14 @@ def _git(repo, *args):
 
 @pytest.fixture
 def repo(tmp_path):
-    """A real git repository with a real pre-commit hook, and one committed publish surface."""
+    """A real git repository with every hook chain the door runs, and one committed surface."""
     root = tmp_path / "repo"
     (root / "tools" / "git-hooks").mkdir(parents=True)
     (root / "site" / "data").mkdir(parents=True)
-    hook = root / "tools" / "git-hooks" / "pre-commit"
-    hook.write_text(GATE_GREEN)
-    hook.chmod(0o755)
+    for rel in REQUIRED_HOOKS:
+        hook = root / rel
+        hook.write_text(GATE_GREEN)
+        hook.chmod(0o755)
     (root / "site" / "data" / "dashboard.json").write_text('{"net": 1}\n')
     _git(root, "init", "-q", "-b", "main")
     _git(root, "config", "user.email", "t@example.com")
