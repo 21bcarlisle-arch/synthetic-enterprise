@@ -46,12 +46,20 @@ one-off drain and wedging every lane's commit. The suite is green through exactl
 H41 exists to fix, because the narrative moved into `gain`, a field no tenant holds.
 
 So the question "does the named set pass" is only a question ABOUT THIS ATOM when the atom's own
-build is what wrote the set. Dating is how that is settled without trusting a commit-message
-convention: if the control was already on disk when the row was minted, its passing today carries
-no information about whether the row's work landed, and the row is UNGRADABLE ENTIRE for the same
-fail-closed reason an absent path is -- grading the remainder would publish a verdict about a set
-the row does not describe. On the live map the discriminator needs no tuning: SPINE_1's control was
+build wrote SOMETHING in the set. Dating is how that is settled without trusting a commit-message
+convention: a control already on disk when the row was minted carries no information about whether
+the row's work landed. On the live map the discriminator needs no tuning: SPINE_1's control was
 born 2h41m AFTER its row, SITE4's in the SAME COMMIT as its row, and H41's four days before.
+
+AND THE TEST IS "IS ANY OF IT THE ATOM'S OWN", not "is none of it older" -- corrected 2026-09-25
+against the live map, where the first spelling refused 28 rows and graded none. An atom that
+EXTENDS an existing suite necessarily names a control older than itself, and that is the ordinary
+shape rather than the exception: `KNIFE3_wall_crossing_paydown` names twelve, nine born after the
+row and three before it because the atom cut into suites that already existed. One predating entry
+threw the other nine away. So a row is ungradable for age only when EVERY named control predates it
+-- H41's shape, both of its suites older than the row -- and a mixed set is graded on the whole of
+itself. Nothing is loosened by that: CONTRADICTED still needs the WHOLE named set to pass, so a
+predating control can only ever silence a row and never refuse one.
 
 PROVENANCE THAT CANNOT BE ESTABLISHED DOES NOT DEGRADE TO REFUSING. No git history (a shallow
 clone, a `git archive` extract, an uncommitted control) means the ages are unknown, and unknown
@@ -145,7 +153,8 @@ UNGRADABLE = "ungradable"
 #: row the budget never reached is re-run with a bigger one.
 NO_CONTROL_NAMED = "names no control file a runner can execute"
 NAMED_CONTROL_ABSENT = "names a control file that is not on disk"
-CONTROL_PREDATES_ROW = "names a control that was already on disk, and passing, before the row was"
+CONTROL_PREDATES_ROW = ("names ONLY controls that were already on disk, and passing, before "
+                        "the row was")
 PROVENANCE_UNKNOWN = "the age of the row or of its named controls could not be established"
 RUN_UNAVAILABLE = "the named controls could not be run to a verdict"
 BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
@@ -543,7 +552,30 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
         # against pytest's seconds-to-minutes, and a set that cannot be evidence about this atom
         # should not spend the pass's budget proving it passes.
         predating, undatable = ages(aid, controls, root)
-        if predating:
+        # WHAT MAKES THE SET EVIDENCE IS THAT SOMETHING IN IT IS THE ATOM'S OWN, not that
+        # nothing in it is older. Until 2026-09-25 a single predating entry refused the whole
+        # row, and on the live map that is the normal shape for an atom that EXTENDS an existing
+        # suite rather than writing a new one: `KNIFE3_wall_crossing_paydown` names twelve
+        # controls, NINE of them born after the row and three -- the ruff ratchet, the wall
+        # ratchet, the renewals routing -- born before it because they already existed and the
+        # atom cut into them. Two of those three were last edited by commits whose subject line
+        # reads "KNIFE3 step 3" and "KNIFE3 B7". Refusing there did not protect anything: it
+        # discarded nine controls this atom's own build wrote because three of its twelve
+        # predate, and it is why the pass returned 28 rows and graded none.
+        #
+        # THE VERDICT IS NOT LOOSENED BY THIS, and that is the leg to keep hold of. CONTRADICTED
+        # still requires the WHOLE named set to pass, predating entries included, so an older
+        # control can only ever SILENCE a row -- it can never be the thing that refuses one. The
+        # fail-closed direction is therefore unchanged: a row with no atom-own control at all is
+        # still ungradable entire, which is H41's shape (both its named suites predate it) and
+        # the one the module docstring works through.
+        # `undatable` is NOT subtracted here, and that is measured rather than argued: the
+        # `if undatable:` leg below fires on ANY undatable entry, so subtracting them
+        # changes no verdict this module can reach. The mutation that removed the term was
+        # green -- an equivalence, not a missing test -- so the term is gone and the
+        # provenance leg keeps the property on its own.
+        atom_own = [p for p in controls if p not in predating]
+        if predating and not atom_own:
             ungradable.append({
                 "id": aid, "reason": CONTROL_PREDATES_ROW, "paths": predating,
                 "detail": "these were passing before the atom was minted, so they say nothing "
