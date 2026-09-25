@@ -292,14 +292,97 @@ def read_mode(mode_file: Path | None = None) -> str:
     return word
 
 
-def staged_additions() -> list[str]:
-    """Paths ADDED in this commit (read-only plumbing; never writes the index -- H24)."""
+def merging_parents() -> list[str]:
+    """The OTHER parents of the merge being committed, or `[]` outside a merge.
+
+    `.git/MERGE_HEAD` exists only between `git merge` writing the index and the commit being made,
+    which is exactly when `commit-msg` runs, so this is readable at the one moment it is needed.
+    Read through `git rev-parse --git-dir` rather than `ROOT/".git"`, because in a linked worktree
+    `.git` is a FILE pointing elsewhere and `MERGE_HEAD` lives in the worktree's own git dir.
+    """
+    env = {k: v for k, v in os.environ.items() if k != "GIT_PREFIX"}
+    r = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=str(ROOT), env=env,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return []
+    head = Path(r.stdout.strip())
+    if not head.is_absolute():
+        head = ROOT / head
+    try:
+        raw = (head / "MERGE_HEAD").read_text(encoding="utf-8")
+    except OSError:
+        return []
+    return [ln.strip() for ln in raw.splitlines() if ln.strip()]
+
+
+def paths_at(commitish: str) -> set[str] | None:
+    """Every path in `commitish`'s tree. `None` if git would not answer -- NEVER an empty set.
+
+    The distinction is the whole safety of the caller: `set()` would mean "that parent carries no
+    files", which subtracts nothing and refuses the commit, whereas `None` means "I could not look"
+    and must not silently read as either. A gate is never relaxed on a question that was not
+    answered, and it is never tightened on one either.
+    """
+    env = {k: v for k, v in os.environ.items() if k != "GIT_PREFIX"}
+    r = subprocess.run(["git", "ls-tree", "-r", "--name-only", commitish],
+                       cwd=str(ROOT), env=env, capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
+
+def git_additions() -> list[str]:
+    """The raw `--diff-filter=A` list, against `HEAD` alone. Split out so the subtraction below is
+    testable at fixed inputs rather than against whatever the live index happens to hold."""
     env = {k: v for k, v in os.environ.items() if k != "GIT_PREFIX"}
     r = subprocess.run(["git", "diff", "--cached", "--name-only", "--diff-filter=A"],
                        cwd=str(ROOT), env=env, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError(f"git diff --cached failed (rc={r.returncode}): {r.stderr.strip()}")
     return [ln.strip() for ln in r.stdout.splitlines() if ln.strip()]
+
+
+def staged_additions(added_fn=None, parents_fn=None, paths_fn=None) -> list[str]:
+    """Paths ADDED in this commit (read-only plumbing; never writes the index -- H24).
+
+    A MERGE COMMIT ADDS NOTHING ITS OTHER PARENT ALREADY HAS, AND UNTIL 2026-09-25 THIS SAID IT DID.
+    `git diff --cached --diff-filter=A` is a comparison against `HEAD`, and for a merge `HEAD` is
+    only the FIRST parent -- so every module the second parent brings across reads as this commit's
+    own authorship. Measured on the live shared tree that day: merging `origin/main` into a checkout
+    3 behind it was refused with *"tools/live_hook_drift.py: G1 no REUSE record"*, for a module
+    authored, reviewed and recorded by the trunk commit that landed it. The gate was asking the merge
+    to re-justify another commit's work, and the only shapes that satisfy it are a record claiming an
+    authorship that did not happen or a `--no-verify`, which is a wall.
+
+    THAT IS NOT A FALSE POSITIVE, IT IS THE WRONG QUESTION, so the fix is to the question. The gate
+    asks whether a commit ADDS a new capability module; a path present in ANY parent is not added by
+    the commit, whichever parent it came from. Keyed to `MERGE_HEAD` rather than to a "merge" word in
+    the message, because the message is the thing under test and a gate that reads its own subject
+    for permission is not a gate.
+
+    AND IT COST A STRUCTURAL WEDGE, NOT A COMMIT. The shared checkout can only advance onto a
+    diverged trunk by merging; `core.hooksPath` is that checkout's own working copy; so a refusal
+    here stopped the checkout from ever reaching the trunk, and the live `pre-commit` chain went on
+    being a version the trunk had moved past -- with every ordinary commit returning green without
+    the gates the trunk had added. One refusal in a message gate, and nothing anywhere able to
+    connect it to that.
+    """
+    added = (added_fn or git_additions)()
+    parents = (parents_fn or merging_parents)()
+    if not parents:
+        return added
+    at = paths_fn or paths_at
+    already: set[str] = set()
+    for parent in parents:
+        carried = at(parent)
+        if carried is None:
+            # UNREADABLE IS THE STRICT READING, NOT THE CONVENIENT ONE. Subtracting nothing leaves
+            # the pre-2026-09-25 behaviour, which refuses; that is the wrong answer but it is the
+            # SAFE wrong answer, and a gate that opened because git declined to answer would be a
+            # fail-open reachable by breaking one subprocess.
+            return added
+        already |= carried
+    return [p for p in added if p not in already]
 
 
 def explain(path: str) -> str:
