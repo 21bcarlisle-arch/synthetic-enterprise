@@ -103,5 +103,8 @@ over. Eleven source mutations were run against the eleven new controls in
 `next_step_gate` is **reachable on 1 of 200 commits**: 110 atoms were open, 100 of them have a
 distinct number form, and exactly one commit message in 200 names any of them (confirmed by an
 independent grep, not only by the gate's own matcher). Filed as
-`docs/staging/SEAT_FINDING_THE_NEXT_STEP_GATE_IS_REACHABLE_ON_ONE_COMMIT_IN_200_BECAUSE_ITS_TRIGGER_IS_A_NAMING_HABIT_2026-09-25.md`.
+`docs/staging/SEAT_FINDING_THE_NEXT_STEP_GATE_IS_REACHABLE_ON_ONE_COMMIT_IN_200_AND_NO_ATOM_HAS_MOVED_IN_241_2026-09-25.md`.
+*(Corrected beside the original: `68717e7e1` landed this sentence naming a filename that is in no
+tree — the finding was renamed after this paragraph was written and nothing checks a record's
+pointers. A finding nobody can open is a finding nobody drew.)*
 Wiring the chain in makes the gate *able* to ask; it does not make the population ask it.
