@@ -7,6 +7,7 @@ useless rather than exercising the happy path twice.
 """
 from __future__ import annotations
 
+import inspect
 import os
 import subprocess
 import time
@@ -548,9 +549,15 @@ def test_every_verdict_in_the_partition_is_reachable(repo: Path) -> None:
     # grades SUPPLIES_NEW -- which is how the first draft of this leg passed nothing.
     (repo / "w.py").write_text(W_RIVAL_ADDS_A_KEY)
     states.add(rth.judge_copy(repo, "w.py").state)
+    # PROSE_GAIN JOINS FOR THE SAME REASON AND IS ONE COMMENT BLOCK, not one dict key, from the
+    # permissive branch -- `PROSE_RIVAL` is `RIVAL_KIND_A` plus two lines of writing. Both grades
+    # withdraw REFRESHABLE on a population `symbols()` cannot see, so they are the pair most likely
+    # to be collapsed onto each other or onto REFRESHABLE by a later edit.
+    (repo / "m.py").write_text(PROSE_RIVAL)
+    states.add(rth.judge_copy(repo, "m.py").state)
     assert states == {rth.REFRESHABLE, rth.SUPPLIES_NEW, rth.REPLACEMENT, rth.SUPERSEDED_DEAD,
                       rth.NOT_SUPERSEDED, rth.AT_HEAD, rth.NO_READER, rth.NO_BASE,
-                      rth.WHITELIST_GAIN}
+                      rth.WHITELIST_GAIN, rth.PROSE_GAIN}
 
 
 # --------------------------------------- rule 1 asks NEVER BOUND, not merely ABSENT (2026-09-16)
@@ -1482,3 +1489,199 @@ def test_a_copy_deleting_a_whitelist_key_is_not_told_it_deletes_no_name(repo: Pa
             clean.state, clean.reason))
     assert "DELETES" not in clean.reason, (
         "the key clause prints for a copy that drops no key, so it says nothing about the copy")
+
+
+# ------------------------------- the same sentence one population left again: PROSE (2026-09-25)
+#
+# `SEAT_FINDING_THE_LAST_RESIDUE_PATH...`'s door landed rule 1b in `stale_copy_refusal`, so a copy
+# whose only loss is a landed comment block is now REFUSED there -- and in this tool ANY loss from
+# `judge` is what licenses `REFRESHABLE`, so making the control honest handed the destroying door a
+# new population rather than closing one. MEASURED on the shared tree, 662 dirty paths, 2026-09-25:
+# exactly TWO copies graded `REFRESHABLE` and BOTH held comment lines HEAD does not have -- 19 of
+# them a hand-written ratchet log entry on `tests/architecture/test_static_quality_ratchet.py`
+# recording a measured I001 census move, 4 of them a test's note on what a stub's tuple elements are.
+# `background.origin_reconcile` acts on that grade with nobody in the loop.
+
+#: Supplies no SYMBOL the base lacks and carries none of the landing's distinctive lines, so `judge`
+#: refuses it and every reading in this tool calls it a copy the base strictly supersedes -- while it
+#: holds two lines of writing that exist in no commit. `RIVAL_KIND_A` plus prose, deliberately: that
+#: fixture is the one the partition control uses to reach `REFRESHABLE`, so the ONLY difference
+#: between the permissive grade and this refusal is the comment block.
+PROSE_RIVAL = (
+    "def alpha():\n"
+    "    # WHY 1 AND NOT 0 HERE: a line of reasoning that exists in no commit anywhere, and the\n"
+    "    # next lane to read this function needs it to avoid the mistake it was written about.\n"
+    '    """an alternative wording of exactly the same behaviour, and nothing else"""\n'
+    "    return 1\n"
+)
+
+
+def test_a_copy_holding_prose_the_base_lacks_is_not_refreshable(repo: Path) -> None:
+    """MUTATION: delete the `PROSE_GAIN` branch in `judge_copy` and this FIRES.
+
+    THE PERMISSIVE NEIGHBOUR IS ASSERTED FIRST AND ON THE SAME PATH, because without it this test
+    does not measure its own subject: a refusal arriving by rule 1, by a symbol gain or by the clock
+    would be the right answer for the wrong reason and would go on passing after the branch was
+    deleted. `RIVAL_KIND_A` is `PROSE_RIVAL` minus the two comment lines and nothing else, so the
+    pair isolates the one variable."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    baseline = rth.judge_copy(repo, "m.py")
+    assert baseline.state == rth.REFRESHABLE, (
+        "the prose-free twin of this fixture does not reach the permissive grade, so whatever the "
+        "next assertion sees is not the comment block: {} -- {}".format(
+            baseline.state, baseline.reason))
+
+    (repo / "m.py").write_text(PROSE_RIVAL)
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state == rth.PROSE_GAIN, (
+        "a copy holding two lines of writing the base does not have was handed the one grade in "
+        "this tool that overwrites bytes, and `origin_reconcile` acts on it with no person in the "
+        "loop: {} -- {}".format(verdict.state, verdict.reason))
+    assert len(verdict.prose) == 2, (
+        "the verdict does not carry the lines themselves, so the operator deciding whether to "
+        "discard writing is reading a COUNT -- which is the defect one layer up: {}".format(
+            verdict.prose))
+    assert "WHY 1 AND NOT 0 HERE" in verdict.render(), (
+        "the prose is not on the SURFACE. A refusal whose subject the reader cannot check is how "
+        "this module discovered its last three false sentences")
+    assert "--discard-prose" in verdict.reason and "surgical_land" in verdict.reason, (
+        "the refusal names no door. Both exist -- keep BOTH by hand, or say the writing is "
+        "superseded -- and a refusal with no legal move evaporates: {}".format(verdict.reason))
+
+
+def test_only_the_flag_admits_it_and_it_admits_nothing_else(repo: Path) -> None:
+    """MUTATION: drop `and not discard_prose` and the first leg FIRES; make the flag return
+    `verdict` unconditionally and the second FIRES.
+
+    TWO WAYS FOR THIS GUARD TO BE WORTHLESS AND THEY PULL OPPOSITE WAYS. A guard that refuses
+    whatever the operator types is a refusal with no exit, which is what `--base-wins` was written
+    to end; a flag that admits anything is `git checkout <path>` with a longer name. Both arms are
+    needed and neither implies the other."""
+    (repo / "m.py").write_text(PROSE_RIVAL)
+    assert rth.judge_copy(repo, "m.py", discard_prose=True).state == rth.REFRESHABLE, (
+        "the flag does not reach the state it exists for, so the prose guard is a refusal with no "
+        "exit and the copy has no door at all")
+
+    # AND IT REACHES NOTHING ELSE. Holder work under the flag must still be holder work: the writing
+    # question is not a licence over the name question, and a flag that collapsed the two would
+    # destroy a copy `isolate_hunks` can save.
+    (repo / "m.py").write_text(HOLDER_APPENDS + "\n# and a line of prose the base has never held\n")
+    still = rth.judge_copy(repo, "m.py", discard_prose=True)
+    assert still.state == rth.SUPPLIES_NEW, (
+        "`--discard-prose` admitted a copy that supplies a NAME the base lacks -- it has become a "
+        "general override, and the door that saves that work is now unreachable: {} -- {}".format(
+            still.state, still.reason))
+
+
+def test_the_daemon_has_no_route_to_the_flag(repo: Path) -> None:
+    """MUTATION: default `discard_prose=True` anywhere on the chain and this FIRES.
+
+    THE CHAIN AND NOT THE RULE, because the whole reason `PROSE_GAIN` exists is that
+    `background.origin_reconcile` refreshes on `REFRESHABLE` with no person in the loop -- so a
+    guard proven at `judge_copy` and bypassed by the caller that matters would be green and useless.
+    Asked through `refresh` itself, which is the function that daemon calls, and against the default
+    argument rather than a named one: a mutation on an optional argument's default goes green when
+    every test names the argument."""
+    (repo / "m.py").write_text(PROSE_RIVAL)
+    rc, text = rth.refresh(repo, ["m.py"], slug=None, write=True)
+    assert rc == 1 and rth.PROSE_GAIN in text, (
+        "an unattended `--write` over a copy holding writing the base lacks was licensed: rc={} "
+        "{}".format(rc, text[:400]))
+    assert (repo / "m.py").read_text() == PROSE_RIVAL, (
+        "the bytes MOVED under a refusal -- the write is not gated on the verdict at all")
+    # AND THE DEFAULT IS ASKED OF THE SIGNATURES, which is where the mutation lands. The leg above
+    # proves the refusal on today's chain; this one says the chain cannot be loosened by a keyword
+    # default three calls away from the daemon, which is how the guard would go green and useless.
+    for fn in (rth.judge_copy, rth.refresh):
+        assert inspect.signature(fn).parameters["discard_prose"].default is False, (
+            "{} defaults `discard_prose` to something other than False, so every caller that does "
+            "not mention it -- `origin_reconcile` included -- now discards prose".format(fn.__name__))
+
+
+# -------------------------------------------- and rule 2's population, which is where it was ASKED
+#
+# The staged item asked for the prose guard INSIDE `stale_copy_refusal.judge`, beside rule 2, as the
+# `KEY_SUBSET` leg carries one. It is here instead, and the reason is that `judge` has TWO consumers
+# whose polarity is OPPOSITE: `tools/git-hooks/pre-commit` runs `--staged` and a Loss there is a
+# REFUSAL TO LAND A REVERT, while this tool turns the same Loss into `REFRESHABLE`. A prose clause
+# inside rule 2 repairs the second by WEAKENING the first -- "add a comment and the revert gate lets
+# you past" -- on the one control whose whole subject is a revert. `KEY_SUBSET` could afford that
+# clause because it was a new leg firing zero times; rule 2 is the old one.
+#
+# So the claim that has to be controlled is not "rule 2 has a clause" but "rule 2's population
+# cannot reach the destroying grade while the commit gate still refuses it". Both halves below.
+
+#: A STRICT SYMBOL SUBSET of HEAD: it drops `alpha` and adds no name, while CARRYING the landing's
+#: distinctive lines so rule 1 has nothing to say and rule 2 is the leg that answers. Measured at
+#: HEAD on 2026-09-25 this copy graded `refreshable`, which is the item's claim reproduced.
+SUBSET_RIVAL = (
+    "def freshly_landed_helper(argument):\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n"
+)
+
+#: The same copy plus two lines of writing that exist in no commit. The ONLY variable.
+SUBSET_RIVAL_WITH_PROSE = (
+    "def freshly_landed_helper(argument):\n"
+    "    # WHY alpha WENT: a line of reasoning that is in no commit anywhere, and the next lane\n"
+    "    # to read this function needs it to avoid the mistake it was written about.\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n"
+)
+
+
+def test_a_strict_symbol_subset_holding_prose_is_not_refreshable_either(repo: Path) -> None:
+    """MUTATION: delete the `PROSE_GAIN` branch in `judge_copy` and this FIRES.
+
+    IT FIRES UNDER THE RIVAL DESIGN BELOW TOO, and that is said here rather than left for a reader
+    to discover, because it is the thing this test does NOT prove: both arrangements close the
+    destroying grade, so nothing in this test can tell them apart. The leg that can is the next one.
+
+    THE POPULATION IS ASSERTED, NOT ASSUMED. `test_a_copy_holding_prose_the_base_lacks_is_not_
+    refreshable` reaches the same grade through rule 1, so without the first assertion here this
+    test would be a second copy of that one and the leg the item actually asked about -- rule 2 --
+    would still have no control. The prose-free twin is asserted for the reason that one gives:
+    a refusal arriving by any other route is the right answer for the wrong reason."""
+    (repo / "m.py").write_text(SUBSET_RIVAL)
+    loss = judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), SUBSET_RIVAL)
+    assert loss is not None and loss.rule == scr.SUBSET, (
+        "this fixture is not in rule 2's population, so whatever the rest of this test measures is "
+        "not the leg the item asked about: {}".format(loss and loss.rule))
+    assert rth.judge_copy(repo, "m.py").state == rth.REFRESHABLE, (
+        "the prose-free twin does not reach the permissive grade, so the next assertion is not "
+        "about the comment block")
+
+    (repo / "m.py").write_text(SUBSET_RIVAL_WITH_PROSE)
+    verdict = rth.judge_copy(repo, "m.py")
+    assert verdict.state != rth.REFRESHABLE, (
+        "a copy that deletes a name HEAD has and holds two lines of writing HEAD does not was "
+        "handed the grade `origin_reconcile` destroys bytes on, with no person in the loop: "
+        "{} -- {}".format(verdict.state, verdict.reason))
+    assert verdict.state == rth.PROSE_GAIN and "WHY alpha WENT" in verdict.render(), (
+        "the refusal above is not ABOUT the writing -- the operator is told the copy is stale and "
+        "never shown the two lines that exist in no commit: {} -- {}".format(
+            verdict.state, verdict.reason))
+
+
+def test_the_guard_did_not_buy_its_honesty_from_the_commit_gate(repo: Path) -> None:
+    """MUTATION: move the prose guard into `stale_copy_refusal.judge`'s rule 2 -- the shape the
+    staged item asked for -- and this FIRES.
+
+    THE PREDICTION FILED BEFORE THAT MUTATION RAN WAS "this fires while the test above stays
+    green", AND IT WAS REFUTED: measured 2026-09-25, both fire. A clause in rule 2 makes `judge`
+    silent about the copy, so it never reaches the grade this tool's leg withdraws and the leg
+    never runs. The wrong prediction is kept beside the answer because it is the evidence this pair
+    was designed before the result was known -- and because what it got wrong is exactly the point.
+    Both arrangements close the destroying grade, so a suite that only asked `judge_copy` would
+    pass on either and the choice between them would be a matter of taste. It is not: `judge` is also the pre-commit gate, where this Loss is what stops
+    a copy deleting a landed name from being committed. A clause inside rule 2 would make a comment
+    block a way THROUGH that gate, and nothing else in this repository would notice."""
+    (repo / "m.py").write_text(SUBSET_RIVAL_WITH_PROSE)
+    loss = judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), SUBSET_RIVAL_WITH_PROSE)
+    assert loss is not None and loss.rule == scr.SUBSET, (
+        "adding a comment block silenced the LANDING gate for a copy that deletes a name HEAD "
+        "has. The prose guard belongs to the door that overwrites bytes, not to the rule that "
+        "refuses a revert: {}".format(loss and loss.rule))
+    assert loss.detail == ("alpha",), (
+        "rule 2 no longer names the symbol the copy would delete, so the refusal the commit gate "
+        "prints cannot be checked by the reader it is printed for: {}".format(loss.detail))

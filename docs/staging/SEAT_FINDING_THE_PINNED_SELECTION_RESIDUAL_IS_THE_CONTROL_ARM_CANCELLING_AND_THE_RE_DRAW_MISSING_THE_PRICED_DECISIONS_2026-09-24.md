@@ -195,3 +195,50 @@ The stash entry is **deliberately left in place** as the copy of record; it is n
 The red itself does predate this work: it is in another lane's untracked
 `tests/tools/test_selection_variance_decomposition.py` and reproduced identically with this change
 absent.
+
+---
+
+## 2026-09-25 — the reader's half is PAID, and this stays BLOCKING for a narrower reason
+
+The bullet above said *"what is still owed, and it is no longer the reader's half: the headline sem
+is still taken over 18"*. **Half of that was wrong about itself.** The page stated the count and not
+what the count was WORTH — it printed "those 18 seeds are between 15 and 18 distinct draws" and then
+a confidence over 18, with nothing anywhere saying what 15 would have earned. `summarise` has
+published `selection_leg_regraded_over_draws` since `6f040e8d2` and **`generate_value_arms_data` read
+it nowhere**: the whole-leg regrade was in the same position `priced_decision_fingerprint` had been
+in the day this finding was filed — recorded and unread. A count without its consequence asks the
+reader to finish the arithmetic on the strongest claim the page makes.
+
+**Landed:** `_draws_this_family_is_entitled_to` now carries `the_leg_regraded_over_those_draws`,
+read from the artefact's own block when it has one and derived through `regrade_over_distinct_draws`
+otherwise — the two provenances asked independently, because a family folded between `6f040e8d2` and
+the regrade's own landing carries a count and no regrade, and inheriting the count's verdict would
+report an absent regrade as an artefact's answer. `site/capabilities/index.html` renders three
+states: the sign does not survive the correction (amber), the sign is unchanged (muted — a large
+correction that leaves the claim standing is a reassuring reading, and colouring it as a warning
+teaches the reader to discount the colour), and cannot be graded (amber, with the reason on the
+surface). **Every family on disk renders the third and no published figure moved.**
+
+Five mutations proven to bite, and a sixth read GREEN and was **a no-op, not an equivalence** — the
+pattern it substituted ended `+ ';'` where the file has `+ ';">'`, so it never applied. Re-applied
+against the real text it reds the colour leg. Recorded because "the mutation did not fire" has three
+causes and the flattering one is never the default reading.
+
+**Not what the drawn item asked for.** The item said to let `sems_to_state_a_sign` take the entitled
+count. That moves ONE of the three terms a repeated draw touches and grades a sem taken over seeds at
+a bar earned by draws; `regrade_over_distinct_draws` records the argument at length and recomputes
+the whole leg. The page reads that block rather than substituting an `n`.
+
+**Why this still BLOCKS, and it is now one thing only.** The count is still a BOUND, because no
+family on disk records its rosters and the item's offered alternative — *re-fold* the served family
+— is **impossible**: both members of the served fold carry zero `scored_decisions`, measured, and a
+fold cannot pool what its members never wrote. The only route is a re-run, and it is in flight:
+unit `longjob-floor18-head-rosters-20260925`, the served family's own 18 seeds, six legs of three at
+`ba9bc6733`, worktree `/var/tmp/se-floor18-head-20260925`. Its five predictions are pre-registered
+before any leg finished, with the P5 numbers computed in advance, in
+`docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md`.
+When it lands the regraded reading appears on the page with nobody editing a string, which is what
+landing the reader's half FIRST bought.
+
+**Reversal:** `git revert`. One additive payload key, one renderer function, two controls; no
+constant moves and no published figure changes.

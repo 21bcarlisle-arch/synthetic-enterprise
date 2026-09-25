@@ -136,7 +136,7 @@ from tools.decisions_that_existed import decisions_that_existed
 # page and the artefact come to publish two answers. This page DERIVES with it rather than reading
 # a folded block, because no published floor has been re-folded to carry one and re-folding a
 # watched family would make its promotion owed in the same commit.
-from tools.fold_noise_floor_family import _priced_decision_draws
+from tools.fold_noise_floor_family import _priced_decision_draws, regrade_over_distinct_draws
 
 # THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
 # one place this file derives instead of reading, and it derives by calling the same function the
@@ -4133,6 +4133,23 @@ def _draws_this_family_is_entitled_to(floor: dict | None, distinct: dict | None)
     else:
         overstates = None
     regrade_n = (distinct or {}).get("distinct_values") if isinstance(distinct, dict) else None
+    # THE WHOLE-LEG REGRADE, read from the artefact when it carries one and DERIVED otherwise --
+    # the same two-provenance rule as the count above, for the same reason and through the same
+    # tool's own function. The two provenances are asked INDEPENDENTLY on purpose: a family folded
+    # between `6f040e8d2` and the regrade's own landing publishes a `priced_decision_draws` block
+    # and no regrade, so inheriting the count's verdict here would report an absent regrade as an
+    # artefact's answer. `regrade_provenance` says which one the reader is holding.
+    stored = (floor or {}).get("selection_leg_regraded_over_draws")
+    if isinstance(stored, dict) and stored.get("available") is not None:
+        regrade = dict(stored, regrade_provenance=(
+            "the floor artefact's own `selection_leg_regraded_over_draws` block"))
+    elif rows:
+        regrade = dict(regrade_over_distinct_draws(rows), regrade_provenance=(
+            "DERIVED here from the floor's own seed rows by `fold_noise_floor_family`'s own "
+            "function: this family was folded before that block existed and has not been "
+            "re-folded"))
+    else:
+        regrade = None
     return {
         "available": True,
         "provenance": provenance,
@@ -4152,6 +4169,29 @@ def _draws_this_family_is_entitled_to(floor: dict | None, distinct: dict | None)
             None if regrade_n is None or not isinstance(at_least, int) else regrade_n == at_least),
         "the_residual_floor_holds": counted.get("the_residual_floor_holds"),
         "the_residual_floor_is_refuted_by": counted.get("the_residual_floor_is_refuted_by"),
+        #: THE LEG ITSELF RECOMPUTED OVER THOSE DRAWS, which is the half of this correction the
+        #: reader never got. Everything above counts draws; this is the only field that says what
+        #: the count is WORTH -- the standard error, its degrees of freedom and its dispersion all
+        #: taken over the collapsed family, with the seed-count leg beside it so a reader can tell
+        #: a correction from a re-run. Until this key the page could state "those 18 seeds are
+        #: between 15 and 18 draws" and then print a confidence over 18 with nothing anywhere
+        #: saying what 15 would have earned, which asks the reader to finish the arithmetic on the
+        #: strongest claim this page makes.
+        #:
+        #: AND IT IS NOT `sems_to_state_a_sign(draws)`. The direction that commissioned this asked
+        #: for the entitled count to be fed to the bar; that moves ONE of the three terms a
+        #: repeated draw touches and grades a sem taken over seeds at a bar earned by draws --
+        #: neither quantity. `regrade_over_distinct_draws` says so at length and recomputes the
+        #: whole leg through the same estimator, so this reads that block rather than substituting
+        #: an `n`.
+        #:
+        #: KEYED TO THE PROPERTY, SO NOTHING ON THE PAGE MOVES TODAY. The regrade needs an EXACT
+        #: draw count, every published floor records no roster, and it therefore returns an
+        #: unavailable naming the reason on every family now on disk. The day a floor lands whose
+        #: rows carry `scored_decisions` the regraded reading appears beside the seed-count one
+        #: with nobody editing a string -- which is the opposite of a control pinned to today's
+        #: answer, and it is why this lands BEFORE the re-run rather than after it.
+        "the_leg_regraded_over_those_draws": regrade,
         "what_this_is": (
             "This family was RUN {s} times. The standard error beside it is taken over {s}, and "
             "{verdict} -- the residual cannot move unless a PRICED decision moves, so seeds that "

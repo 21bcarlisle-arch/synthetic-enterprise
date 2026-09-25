@@ -23,7 +23,7 @@
     "run_retained": true,
     "verified_at": "2026-09-24T23:07:18Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=8e40bb205; blocking tests: FAILED tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_supervisors_wedge_draw_sees_the_live_failures_not_the_committed_placeholder",
+  "paused_reason": "scoped publish-path suite red at git=62e0453e3; blocking tests: FAILED tests/background/test_stall_class_register.py::test_wedge_adapter_fires_past_the_directors_one_hour_bar",
   "paused_since": "2026-09-25T01:20:14Z",
   "schema": 1,
   "showing_run": {
@@ -39,5 +39,5 @@
     "verified_at": "2026-09-24T23:07:18Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-25T03:17:50Z"
+  "written_at": "2026-09-25T04:36:20Z"
 }
