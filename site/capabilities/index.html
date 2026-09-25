@@ -2750,6 +2750,57 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + prose(pdd.unavailable_because || "") + "</span> ";
       }
 
+      /* WHAT THAT COUNT IS WORTH, WHICH IS THE HALF THE READER NEVER GOT (2026-09-25). The
+         sentence above says how many draws the seeds bought; on its own it hands the reader a
+         count and leaves them to finish the arithmetic on the strongest claim this page makes.
+         This states the leg RECOMPUTED over those draws -- standard error, degrees of freedom and
+         dispersion together, which is what `regrade_over_distinct_draws` does and what feeding the
+         draw count to the bar alone would not: that moves one of three terms and grades a sem
+         taken over seeds at a bar earned by draws.
+
+         THREE BRANCHES, KEYED TO WHAT A READER RISKS AND NOT TO TODAY'S ANSWER. A regrade that
+         FLIPS the sign is the only one that touches what this page claims, so it alone is amber
+         with the verdict named. A regrade that leaves the sign standing reads muted even when the
+         correction is large -- that is a real and useful reading, and colouring it as a warning
+         would teach the reader to discount the colour. A family that CANNOT be regraded is amber
+         too, with the reason on the surface: "we cannot tell" is a result and belongs in the
+         sentence, not in a footnote. Every published floor lands on that third branch today. */
+      function regradedOverDraws(pdd) {
+        if (!pdd || pdd.available !== true) { return ""; }
+        var rg = pdd.the_leg_regraded_over_those_draws;
+        if (!rg) { return ""; }
+        var changed = rg.the_verdict_changed;
+        /* ONE SPAN, ONE ID, AND THE FIRST DRAFT HAD TWO. Each branch returned its own wrapper
+           carrying this sentence's id, which declares that id twice -- so "where does this
+           sentence sit" has no answer and every pointer at it is judged against an arbitrary one.
+           The band table's own pointer control caught it. The body and the colour are therefore
+           decided separately and wrapped exactly once below; and the id is not spelled out
+           anywhere in this comment, because that scanner reads the door's SOURCE and a mention in
+           prose counts as a second declaration -- which is how the second draft of this note
+           reddened the same control it was describing. */
+        var body = (rg.available !== true)
+          ? "That count cannot be turned into a corrected confidence here: "
+            + prose(rg.unavailable_because
+                    || "this publish carries no reason, so the absence is unexplained rather "
+                       + "than unremarkable.")
+            + " Read the standard error below as an upper bound on this family's confidence, "
+            + "never as its confidence."
+          : "Recomputed over those " + esc(rg.draws) + " draws instead of the "
+            + esc(rg.seeds_in_family) + " runs, the same estimator needs "
+            + esc(gbp(rg.margin_required_over_draws_gbp)) + " to state a side where over the seeds "
+            + "it needed " + esc(gbp(rg.margin_required_over_seeds_gbp)) + " &mdash; and "
+            + (changed === true
+                ? "<strong>the side it states does not survive the correction</strong>, so the "
+                  + "direction below rests on counting repeated draws as fresh ones."
+                : changed === false
+                  ? "the side it states is unchanged, so the direction below never rested on the "
+                    + "difference between a seed and a draw."
+                  : "whether the side it states survives cannot be graded on this family.");
+        var muted = rg.available === true && changed !== true;
+        return '<span id="arms-regrade" style="color:'
+          + (muted ? "var(--muted)" : "var(--amber)") + ';">' + body + "</span> ";
+      }
+
       var eb = d.error_bar || {};
       $("arms-errorbar").innerHTML = eb.available
         ? '<span style="color:var(--amber);font-weight:600;">Read the error bar before the number.</span> '
@@ -2759,6 +2810,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + " (standard deviation " + esc(gbp(eb.stdev_gbp))
           + "). "
           + drawsEntitled(eb.priced_decision_draws)
+          + regradedOverDraws(eb.priced_decision_draws)
           /* THE ESTIMATE AND ITS BOUND, WITH THE POPULATION ON BOTH (2026-09-10). What stood here
              printed a ratio of the nine-seed standard deviation over the ONE-RUN figure, "about
              5.7× the estimate itself", under a headline stating +£319 while those same nine seeds

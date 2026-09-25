@@ -1148,6 +1148,127 @@ def test_MUTATION_the_three_readings_of_the_draw_count_are_DISTINCT_and_all_reac
             "qualification that did not reach them".format(label))
 
 
+def test_what_the_draw_count_is_WORTH_reaches_the_reader_beside_the_count_itself(live):
+    """A count without its consequence asks the reader to finish the arithmetic.
+
+    THE DEFECT THIS CLOSES, and it is the other half of the 09-24 BLOCKING finding. The page has
+    stated "those 18 seeds are between 15 and 18 distinct draws" since `2ed53bcaf` and then printed
+    a confidence taken over 18, with nothing anywhere saying what 15 would have earned. A reader
+    holding a count and no regrade cannot tell whether the published sign survives the correction,
+    which is the only thing the count bears on.
+
+    AND THE REGRADE IS NOT `sems_to_state_a_sign(draws)`. Substituting the draw count into the bar
+    moves one of the three terms a repeated draw touches -- it also deflates the dispersion and
+    inflates the sem's denominator -- so the whole leg is recomputed through the same estimator.
+    That is `fold_noise_floor_family.regrade_over_distinct_draws`, read here and not restated.
+
+    KEYED TO THE PROPERTY. What is asserted is that whichever of the three states the feed is in
+    reaches the panel, never that today's family is in any particular one. Every floor on disk
+    lands on `available: False` because none records its rosters, and the day one does this goes
+    green on a stated margin with nobody editing a sentence.
+    """
+    feed = _live_feed()
+    pdd = feed["error_bar"]["priced_decision_draws"]
+    rendered = live["arms-errorbar"]
+    regrade = pdd["the_leg_regraded_over_those_draws"]
+
+    assert regrade is not None, (
+        "the feed carries a draw count with no regrade block beside it at all, so the count is "
+        "published and its consequence is not -- the reader's half of the 09-24 finding")
+    assert regrade["regrade_provenance"], (
+        "the regrade does not say whether it was READ from the artefact or DERIVED here, and a "
+        "deduction presented as a record is not the same evidence")
+
+    if regrade["available"] is True:
+        assert _gbp(regrade["margin_required_over_draws_gbp"]) in rendered, (
+            "the feed knows this family needs {} to state a side over its {} draws and the page "
+            "states no such figure".format(
+                _gbp(regrade["margin_required_over_draws_gbp"]), regrade["draws"]))
+        assert _gbp(regrade["margin_required_over_seeds_gbp"]) in rendered, (
+            "the corrected margin is published with nothing to compare it against, so a reader "
+            "cannot tell a correction from a re-run")
+    else:
+        assert regrade["unavailable_because"][:40] in rendered, (
+            "this family CANNOT be regraded over its draw count and the page does not say so. "
+            "`We cannot tell` is a result and belongs in the sentence, not in a footnote: {}".format(
+                regrade["unavailable_because"]))
+        assert "upper bound" in rendered, (
+            "the page withholds the regrade without telling the reader which DIRECTION the "
+            "published standard error errs in, and the sem is rewarded by the pinning -- so an "
+            "unqualified absence reads as an absence of doubt")
+
+
+def test_MUTATION_the_three_readings_of_the_regrade_are_DISTINCT_and_all_reachable():
+    """One control over the whole partition, because each branch alone is passed by a broken page.
+
+    A renderer that collapsed `the_verdict_changed` True into False would tell a reader that a
+    published sign survives a correction that in fact destroys it -- and a per-branch assertion
+    would not notice, because the sentence it looks for is still there. So the three states are
+    driven through the real door and asserted PAIRWISE DISTINCT, and each is asserted REACHABLE
+    rather than merely correct: the live family sits on the unavailable branch, so the two
+    available branches are unreachable in production today and a control that only ever drove the
+    live feed would prove nothing about them.
+
+    THE COLOUR IS PART OF THE CLAIM, AND IT IS THE INVERSE OF THE COUNT'S. A large correction that
+    leaves the sign standing is a REASSURING reading and renders muted; colouring it amber would
+    teach the reader to discount the colour on the one branch that matters. Amber is reserved for
+    the sign that does not survive, and for the family that cannot be graded at all. The colour is
+    read from this sentence's OWN span -- `arms-errorbar` opens with an unconditional amber
+    heading, so a raw substring scan over the whole panel grades the heading and cannot fail.
+    """
+    live_feed = _live_feed()
+    base = live_feed["error_bar"]["priced_decision_draws"]
+    assert base["available"] is True, "the live feed cannot drive any branch of this partition"
+
+    def _drive(changed, available=True):
+        poisoned = copy.deepcopy(live_feed)
+        block = poisoned["error_bar"]["priced_decision_draws"]["the_leg_regraded_over_those_draws"]
+        block["available"] = available
+        if available:
+            block.update({
+                "draws": 3, "seeds_in_family": 5, "the_verdict_changed": changed,
+                "margin_required_over_draws_gbp": 384.05,
+                "margin_required_over_seeds_gbp": 140.34,
+            })
+        return (_render(poisoned)["arms-errorbar"],
+                _render(poisoned, raw=True)["arms-errorbar"])
+
+    panels, raws = {}, {}
+    for label, changed, available in (("flips", True, True), ("holds", False, True),
+                                      ("cannot_grade", None, False)):
+        panels[label], raws[label] = _drive(changed, available)
+
+    for one, other in (("flips", "holds"), ("flips", "cannot_grade"), ("holds", "cannot_grade")):
+        assert panels[one] != panels[other], (
+            "the `{}` and `{}` readings of the regrade render the SAME text, so two states of "
+            "this partition have collapsed and a reader cannot tell them apart".format(one, other))
+
+    assert "does not survive the correction" in panels["flips"], (
+        "a published sign that the draw-count correction DESTROYS is not reported as destroyed -- "
+        "the fail-open this block exists against, on the strongest claim the page makes")
+    assert "never rested on the difference" in panels["holds"], (
+        "a correction that leaves the sign standing is not credited with it, so the reassuring "
+        "branch is unreachable and the assertion above proves nothing")
+    assert "cannot be turned into a corrected confidence" in panels["cannot_grade"], (
+        "a family that cannot be regraded renders as one that has been")
+    for label in ("flips", "holds"):
+        assert "384" in panels[label] and "140" in panels[label], (
+            "the `{}` reading states no margins, so the two the reader is asked to compare are "
+            "not both on the page".format(label))
+
+    def _colour_of_the_regrade(raw: str) -> str:
+        head = raw.index('<span id="arms-regrade"')
+        return raw[head:raw.index(">", head)]
+
+    assert "var(--muted)" in _colour_of_the_regrade(raws["holds"]), (
+        "a correction that changes no verdict is rendered amber, so the colour carries no "
+        "information on the one branch where it has to")
+    for label in ("flips", "cannot_grade"):
+        assert "var(--amber)" in _colour_of_the_regrade(raws[label]), (
+            "the `{}` reading is rendered muted, and a qualification a reader's eye skips is a "
+            "qualification that did not reach them".format(label))
+
+
 def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
     """The PROPERTY, not the sentence: whichever case the reading is in, the page must tell the
     reader that nothing here resolves the selection effect.
