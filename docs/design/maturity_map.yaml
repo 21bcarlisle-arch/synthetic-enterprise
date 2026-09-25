@@ -657,7 +657,7 @@
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
-  file_scope: [background/live_payment_triad.py, company/crm, saas/sme_credit_risk.py, simulation/payment_seam_adapter.py, tests/company/crm, tests/harness]
+  file_scope: [background/live_payment_triad.py, company/crm, saas/sme_credit_risk.py, simulation/payment_seam_adapter.py, tests/company/crm, tests/harness, tests/background/test_live_payment_triad.py, tests/saas/test_sme_credit_risk.py, tests/simulation/test_payment_seam_adapter.py]
   depends_on: [W2_payment_channel_dd_consistency_invariant]
   blocked_on: null
   simplifications_count: 2
@@ -1254,7 +1254,7 @@
   depends_on: [OPS2_publish_gate_head_worktree]
   couples_with: [H23_publish_gate_scope_marker]
   records_rehomed: [evidence]
-  file_scope: ['background/process_run_complete.py', 'tests/background/']
+  file_scope: ['background/process_run_complete.py', 'tests/background/', 'background/publish_scope.py', 'tests/background/test_publish_scope.py', 'tests/background/test_process_run_complete.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a factory that stops the line for a fault on the line, not for an unreconciled invoice in accounts"
 
@@ -1741,7 +1741,7 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [W1_14_weather_cells_for_household_heat_load]
-  file_scope: ['simulation/population_draw.py', 'simulation/household.py', 'docs/market_research/', 'site/knowledge/']
+  file_scope: ['simulation/population_draw.py', 'simulation/household.py', 'docs/market_research/', 'site/knowledge/', 'tests/simulation/test_population_draw.py', 'tests/simulation/test_household.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose entire customer model is an average annual consumption figure, which is why every targeted offer it has ever made went to the households least able to act on it."
 - id: W2_19_who_lives_where_money_and_composition
@@ -1760,7 +1760,7 @@
   #   contradicts the ranking it was minted under. The people ruling only ever needed
   #   housing for the CROSS in its section 3.4, which is one deliverable, not the atom.
   couples_with: [W1_14_weather_cells_for_household_heat_load, W2_18_the_housing_joint_the_sample_and_the_ceiling]
-  file_scope: ['simulation/household_segments.py', 'simulation/population_draw.py', 'docs/market_research/', 'site/knowledge/']
+  file_scope: ['simulation/household_segments.py', 'simulation/population_draw.py', 'docs/market_research/', 'site/knowledge/', 'tests/simulation/test_household_segments.py', 'tests/simulation/test_population_draw.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that knows a property is a three-bed semi and assumes three bedrooms means three people, then cannot explain why half its direct debits are wrong."
 - id: H48_the_parked_document_audit_is_the_idle_hole_at_scale

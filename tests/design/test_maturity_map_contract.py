@@ -715,6 +715,12 @@ def test_MUTATION_an_atom_with_no_code_token_is_out_of_subject():
 # never admit a new violation. What IS asserted is the fix-is-not-complete case: an entry still
 # sitting in the partition that now names a control has been fixed and must be delisted.
 LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
+    # OPS6, W2_18, W2_19 and W2_non_dd_miss_vocabulary delisted 2026-09-25: each row now names
+    # the controls of modules its own file_scope already named, so all four are graded rather
+    # than frozen. Only OPS6 gains a control POSTDATING its row; the other three return
+    # CONTROL_PREDATES_ROW, which is a verdict and not a silence. The four rows still on this
+    # list that reached NAMES_ONLY_A_SCOPE (G4, SP2_2, H40, H48) name NO subject module at all
+    # and so have nothing to repoint at -- see the finding of 2026-09-25.
     # A49 delisted 2026-09-07: its row now names the four files its own build wrote, so it is
     # graded rather than frozen. The entry is deleted, not kept-and-passing, because
     # `test_ungradable_build_rows_allowlist_has_no_FIXED_entries` is what makes the fix complete.
@@ -729,7 +735,6 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     # Delisted from a different lane's turn because this leg wedges EVERY commit in the tree, and
     # the entry's own comment above says what the fix is -- the deletion, not a passing entry.
     "H48_the_parked_document_audit_is_the_idle_hole_at_scale",
-    "OPS6_scoped_publish_path_suite",
     "OPS7_provenance_stamps_on_live_pages",
     "OPS8_last_known_good_staleness_banner",
     "SITE12_evidence_a_reader_can_use",
@@ -737,12 +742,9 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     "SITE3_wall_exhibit_url_rename",
     "SP2_2_rng_substream_primitive",
     "W1_14_weather_cells_for_household_heat_load",
-    "W2_18_the_housing_joint_the_sample_and_the_ceiling",
-    "W2_19_who_lives_where_money_and_composition",
     "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
     "W2_21_the_premise_joint_is_fitted_not_drawn_independently",
     "W2_22_the_sample_is_space_filling_and_rejects_on_outputs",
-    "W2_non_dd_miss_vocabulary",
 })
 
 
