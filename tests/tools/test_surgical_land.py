@@ -36,11 +36,46 @@ from tools import surgical_land as sl
 HOOK = textwrap.dedent(
     """\
     #!/bin/sh
+    if [ -n "$SL_TEST_WITNESS" ]; then
+        echo "pre-commit" >> "$SL_TEST_WITNESS.calls"
+    fi
     if [ -f gate_verdict ] && [ "$(cat gate_verdict)" = "red" ]; then
         echo "1 failed, 0 passed"
         exit 1
     fi
     echo "3 passed in 0.01s"
+    exit 0
+    """
+)
+
+# THE SECOND CHAIN, and the fixture needs it because the tool is FAIL-CLOSED on it: from
+# 2026-09-25 a landing runs `tools/git-hooks/commit-msg` as well, so a fixture repo without one
+# is a repo where nothing can land (which is what `test_a_missing_MESSAGE_chain_refuses...`
+# turns into a control rather than leaving as a fixture accident).
+#
+# It witnesses OUTSIDE the extract, through `$SL_TEST_WITNESS`, and that indirection is
+# load-bearing: the extract is `rmtree`'d in a `finally` before `land()` returns, so a witness
+# written into the tree is a witness the test can never read. (The first draft did exactly that
+# and read as "the chain never ran".) `_gitless_env` strips only `GIT_*`, so the variable
+# survives into the hook.
+MSG_HOOK = textwrap.dedent(
+    """\
+    #!/bin/sh
+    if [ -n "$SL_TEST_WITNESS" ]; then
+        cp "$1" "$SL_TEST_WITNESS.message"
+        echo "commit-msg" >> "$SL_TEST_WITNESS.calls"
+        if [ -f .git/MERGE_HEAD ]; then
+            cp .git/MERGE_HEAD "$SL_TEST_WITNESS.merge_head"
+        fi
+    fi
+    printf '\\n[fixture message chain] a trailer the real chain would stamp\\n' >> "$1"
+    if [ -n "$SL_TEST_WITNESS" ]; then
+        cp "$1" "$SL_TEST_WITNESS.message_after"
+    fi
+    if grep -q REFUSE_THIS_MESSAGE "$1"; then
+        echo "the fixture message chain REFUSES: REFUSE_THIS_MESSAGE"
+        exit 1
+    fi
     exit 0
     """
 )
@@ -60,6 +95,7 @@ def repo(tmp_path: Path) -> Path:
     _run(r, "git", "config", "user.email", "t@example.com")
     _run(r, "git", "config", "user.name", "T")
     (r / "tools" / "git-hooks" / "pre-commit").write_text(HOOK)
+    (r / "tools" / "git-hooks" / "commit-msg").write_text(MSG_HOOK)
     (r / "gate_verdict").write_text("green")
     (r / "code.py").write_text("VALUE = 1\n")
     (r / "other_lane.txt").write_text("another lane's work\n")
@@ -1717,3 +1753,278 @@ def test_a_ref_update_that_fails_with_HEAD_UNMOVED_stays_terminal(
         "will be retried until the attempts run out")
     assert swaps == [1], "a non-race ref failure was retried: {} swap(s)".format(len(swaps))
     assert _head(repo) == before
+
+
+# --------------------------------------------------------------------------------------------
+# THE MESSAGE CHAIN (wired 2026-09-25). Until that day `commit-tree` meant `commit-msg` ran
+# NOWHERE for 156 of the last 200 trunk commits, so `write_time_gate` (the REUSE record
+# `CLAUDE.md` names as enforced) and `next_step_gate` (the `NEXT:` trailer) were unreachable from
+# the one door the rules tell a session to use. Each control below names the defect it catches.
+# --------------------------------------------------------------------------------------------
+
+@pytest.fixture()
+def witness(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Where the fixture hooks record what they saw, OUTSIDE the extract that gets `rmtree`'d."""
+    w = tmp_path / "witness"
+    monkeypatch.setenv("SL_TEST_WITNESS", str(w))
+    return w
+
+
+def test_the_message_chain_is_REACHED_by_a_landing_and_is_handed_this_commits_message(
+        repo: Path, witness: Path):
+    """THE DEFECT, in one line: the chain existed, the gates inside it were tested, and NOTHING
+    ran them on the door that carries the traffic. A control on the gates themselves stays green
+    in exactly that state -- so this one asks the production path whether it reaches them."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    sl.land(repo, ["code.py"], "land the code change")
+
+    seen = witness.with_suffix(".message")
+    assert seen.exists(), "the landing did not run the commit-msg chain at all"
+    assert seen.read_text().startswith("land the code change"), \
+        "the chain was handed something other than this commit's message: {!r}".format(
+            seen.read_text()[:120])
+
+
+def test_the_MESSAGE_chain_runs_BEFORE_the_expensive_one_so_a_bad_record_costs_seconds(
+        repo: Path, witness: Path):
+    """ORDERING, and it is worth a control because it is worth nine minutes. `pre-commit` is ~9
+    minutes on this box while HEAD moves every 3.5-10, so a message refusal discovered after it
+    costs the cycle AND can lose the compare-and-swap race on the re-run. Keyed to the observed
+    call order, which is the property -- not to a line number in `_land_once`."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    sl.land(repo, ["code.py"], "land the code change")
+
+    calls = witness.with_suffix(".calls").read_text().split()
+    assert calls == ["commit-msg", "pre-commit"], \
+        "the two chains ran in the order {} -- the cheap one must go first".format(calls)
+
+
+def test_a_RED_message_chain_refuses_and_says_it_was_the_MESSAGE_not_a_TEST(repo: Path):
+    """A refusal that does not name its reason sends the reader to the test suite, which is green,
+    and the next move after that is `--no-verify`, which is a wall. The refusal must be
+    self-diagnosing -- and it must commit nothing."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as caught:
+        sl.land(repo, ["code.py"], "a message the chain REFUSE_THIS_MESSAGE rejects")
+
+    assert "MESSAGE GATE RED" in str(caught.value)
+    assert "NOTHING here says a test failed" in str(caught.value), \
+        "the refusal does not tell the reader the suite is not the subject"
+    assert "REFUSE_THIS_MESSAGE" in str(caught.value), \
+        "the refusal does not quote the chain's own verdict, so it names no cause"
+    assert _head(repo) == before
+
+
+def test_a_RED_message_chain_is_never_RETRIED_however_many_attempts_are_allowed(
+        repo: Path, witness: Path):
+    """The retry exists for a MOVING BASE. A message the chain rejects is rejected identically on
+    every base, so retrying it spends the extract N times to reach the same refusal -- and on a
+    box where the gate is slower than the commit cadence that is how a terminal refusal turns
+    into an outage. (Its sibling for the test chain is
+    `test_a_RED_gate_is_never_retried_however_many_attempts_are_allowed`.)"""
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    with pytest.raises(sl.LandingRefused):
+        sl.land(repo, ["code.py"], "REFUSE_THIS_MESSAGE", attempts=3)
+
+    ran = witness.with_suffix(".calls").read_text().split()
+    assert ran == ["commit-msg"], \
+        "a terminal message refusal was retried, or the test chain ran after it: {}".format(ran)
+
+
+def test_a_missing_MESSAGE_chain_refuses_rather_than_landing_with_the_records_UNASKED(
+        repo: Path):
+    """The FAIL-OPEN direction, and the one this whole wiring is about. A landing that cannot run
+    the message chain must refuse: returning 0 is exactly the state the tool was in before
+    2026-09-25, where every landing passed a gate nobody ran."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="MESSAGE gate is UNAVAILABLE"):
+        sl.run_message_gate(repo, "m", msg_hook_rel="tools/git-hooks/does-not-exist")
+
+    (repo / "tools" / "git-hooks" / "commit-msg").unlink()
+    with pytest.raises(sl.LandingRefused, match="MESSAGE gate is UNAVAILABLE"):
+        sl.land(repo, ["tools/git-hooks/commit-msg"], "delete the message chain")
+
+    assert _head(repo) == before, \
+        "a landing that DELETES the message chain was judged by the tree that still had it"
+
+
+def test_an_UNRUNNABLE_message_chain_refuses_too(repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """The branch a missing FILE cannot reach: the hook is present and `sh` will not run it (a
+    kill, a timeout, a fork failure). `run_gate`'s equivalent branch was the one that decided
+    whether that tool is a gate or a rubber stamp, and this chain needs its own."""
+    real = sl.subprocess.run
+
+    def refuse_to_exec(cmd, *a, **kw):
+        if cmd[:1] == ["sh"] and "commit-msg" in " ".join(cmd):
+            raise subprocess.TimeoutExpired(cmd=cmd, timeout=1)
+        return real(cmd, *a, **kw)
+
+    monkeypatch.setattr(sl.subprocess, "run", refuse_to_exec)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="could not be EXECUTED"):
+        sl.land(repo, ["code.py"], "the chain cannot be run")
+
+    assert _head(repo) == before
+
+
+def test_a_MERGE_declares_its_other_parent_to_the_chain_and_withdraws_it_before_the_test_chain(
+        repo: Path, witness: Path, tmp_path: Path):
+    """TWO defects in one control, and they pull in opposite directions.
+
+    (1) `write_time_gate.staged_additions` subtracts what another parent already carried, keyed to
+    `.git/MERGE_HEAD`. The extract is built by `archive`+`init`, so it has none -- and without
+    one a merge landing is asked to re-justify every module the OTHER side authored and recorded.
+    That is not a false positive, it is the wrong question, and its consequence was measured: a
+    diverged shared checkout can only advance by merging, so the refusal wedges the checkout and
+    the live hook chain goes on being a version the trunk has moved past.
+
+    (2) The file must be GONE again before `pre-commit` runs, because `git merge` never runs
+    `pre-commit` at all -- so leaving it would hand the expensive chain a state no real commit
+    ever shows it, in the name of fixing the cheap one."""
+    extract = tmp_path / "fake-extract"
+    (extract / "tools" / "git-hooks").mkdir(parents=True)
+    (extract / "tools" / "git-hooks" / "commit-msg").write_text(MSG_HOOK)
+    (extract / ".git").mkdir()
+
+    rc, _, _ = sl.run_message_gate(extract, "a merge", merge_parent="c" * 40)
+
+    assert rc == 0
+    assert witness.with_suffix(".merge_head").read_text().strip() == "c" * 40, \
+        "the chain could not see which other parent this landing is merging"
+    assert not (extract / ".git" / "MERGE_HEAD").exists(), \
+        "MERGE_HEAD was left behind, so the expensive chain faces a state no real commit shows it"
+
+
+def test_the_MERGE_declaration_is_withdrawn_even_when_the_chain_REFUSES(
+        repo: Path, witness: Path, tmp_path: Path):
+    """The cleanup is in a `finally` and this is the leg that says so. A refusal that leaks
+    `MERGE_HEAD` would change what the NEXT attempt's expensive chain sees -- and `land()`
+    retries, so that state is reachable within one call."""
+    extract = tmp_path / "fake-extract-red"
+    (extract / "tools" / "git-hooks").mkdir(parents=True)
+    (extract / "tools" / "git-hooks" / "commit-msg").write_text(MSG_HOOK)
+    (extract / ".git").mkdir()
+
+    rc, _, _ = sl.run_message_gate(extract, "REFUSE_THIS_MESSAGE", merge_parent="d" * 40)
+
+    assert rc == 1, "the fixture chain was supposed to refuse -- this control is vacuous otherwise"
+    assert not (extract / ".git" / "MERGE_HEAD").exists()
+
+
+def test_the_message_chains_own_EDITS_are_discarded_so_the_receipt_stays_the_only_claim(
+        repo: Path, witness: Path):
+    """The real chain's last line is `hook_gate_mark --stamp`, which EDITS the message to promote
+    `pre-commit`'s record to a trailer. This door already writes a receipt whose three shas
+    `--verify` re-derives from the object store; adopting the mark as well would put two
+    independent claims about one gate run on one commit, one of them uncheckable. So the commit is
+    made from the message the caller gave -- and the fixture chain appends a trailer precisely so
+    that this control fails if the edit is ever adopted.
+
+    Lands a `.txt`, not the fixture's `code.py`, and that is not cosmetic: this is the one control
+    here that reads a FILE's text and asserts a substring of it, and a `.py` path literal in the
+    same scope makes `substring_source_scan_census` grade the whole test as a control reading
+    Python source as text. It is not one -- the text is a shell hook's witness in `tmp_path` -- and
+    the honest fix is to stop the scope claiming a Python subject it has not got, rather than to
+    freeze a row saying the detector is wrong."""
+    (repo / "notes.txt").write_text("a landed note\n")
+
+    sha = sl.land(repo, ["notes.txt"], "land the note")
+
+    committed = _run(repo, "git", "log", "-1", "--format=%B", sha).stdout
+    assert "[fixture message chain]" in witness.with_suffix(".message_after").read_text(), \
+        "the fixture chain did not edit the message, so this control proves nothing"
+    assert "[fixture message chain]" not in committed, \
+        "the chain's edit reached the commit -- the message is no longer the caller's"
+    assert sl.RECEIPT_HEADER in committed
+
+
+def test_the_receipt_appended_after_the_message_gate_cannot_change_either_verdict():
+    """THE GAP THIS CONTROL BOUNDS. The chain judges the AUTHOR's message; the commit carries
+    `message + receipt`, because the receipt quotes the gate's own rc and cannot exist before it
+    runs. That is only sound while the receipt is invisible to both gates, and "it is obviously
+    invisible" is exactly the assurance this project has paid for. So the equivalence is asserted
+    against the gates' OWN predicates, at a message each one REFUSES and a message each one
+    passes: if the receipt format ever grows a line either parser reads, this reds instead of a
+    landing being silently graded on bytes it does not carry."""
+    from tools import next_step_gate, write_time_gate
+
+    receipt = "\n\n" + sl.build_receipt("p" * 40, "t" * 40, ["tools/new_thing.py"], 0, "3 passed")
+    known = {"C5_key_moment_conversion"}
+    refused_msg = "advance C5_key_moment_conversion"
+    passing_msg = refused_msg + "\nNEXT: none -- nothing follows\n"
+    owed = ["tools/new_thing.py"]
+    record = ('REUSE: tools/new_thing.py\nCLASS: CUSTOM\n'
+              'INDEX: searched "new thing", "thing" -- nothing close.\n')
+
+    # NEXT-STEP GATE: same verdict with and without the receipt, on BOTH sides of the branch.
+    assert next_step_gate.verdict(refused_msg, known)[0] is False
+    assert next_step_gate.verdict(refused_msg + receipt, known)[0] is False, \
+        "the receipt turned a refused message into a passing one"
+    assert next_step_gate.verdict(passing_msg, known)[0] is True
+    assert next_step_gate.verdict(passing_msg + receipt, known)[0] is True, \
+        "the receipt turned a passing message into a refused one"
+
+    # REUSE GATE: the same, through its own pure predicate.
+    rows: list[dict] = []
+    assert write_time_gate.evaluate(owed, "no record here", rows)["status"] == "REJECT"
+    assert write_time_gate.evaluate(owed, "no record here" + receipt, rows)["status"] == "REJECT", \
+        "the receipt satisfied the REUSE gate"
+    assert write_time_gate.evaluate(owed, record, rows)["status"] == "OK"
+    assert write_time_gate.evaluate(owed, record + receipt, rows)["status"] == "OK", \
+        "the receipt broke a valid REUSE record"
+
+
+def test_a_REAL_merge_landing_is_the_thing_that_declares_its_other_parent(
+        repo: Path, witness: Path):
+    """THE PRODUCTION LEG, and its absence is this project's most reliable way to hold a green
+    control over dead code: `run_message_gate` accepts `merge_parent`, its unit control proves the
+    file is written, and every one of those stays green while `_land_once` passes `None`. So this
+    asks the door itself -- a real `--merge` landing -- what the chain saw."""
+    side = _fork(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+
+    sl.land(repo, [], "reconcile", merge="side")
+
+    assert witness.with_suffix(".merge_head").read_text().strip() == side, \
+        "the landing did not tell the message chain it was a merge, so the REUSE gate will ask " \
+        "it to re-justify every module the other history authored"
+
+
+def test_an_ORDINARY_landing_declares_NO_merge_parent(repo: Path, witness: Path):
+    """The null control the leg above needs. A `MERGE_HEAD` written unconditionally would pass it
+    while telling the REUSE gate to subtract a parent this commit has not got -- which is the
+    fail-OPEN direction: additions the gate would then never see."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    sl.land(repo, ["code.py"], "an ordinary landing")
+
+    assert not witness.with_suffix(".merge_head").exists(), \
+        "a non-merge landing declared a merge parent, so the REUSE gate subtracts a tree it " \
+        "should be comparing against"
+
+
+def test_the_receipt_names_the_MESSAGE_chain_as_WELL_AS_the_test_chain(repo: Path):
+    """A receipt that names one of two chains is how the next reader reaches the wrong answer this
+    whole wiring was filed over -- the 2026-09-25 census read trunk receipts and concluded, RIGHTLY
+    at the time, that `commit-msg` never ran at this door. Both chains ran; both are on the record.
+    Descriptive, like `gate:`, so it cannot refuse a landing: the null leg is that `parse_receipt`
+    still reads the same falsifiable fields and `--verify` still passes."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    sha = sl.land(repo, ["code.py"], "land the code change")
+    message = _run(repo, "git", "log", "-1", "--format=%B", sha).stdout
+
+    assert "gate: sh tools/git-hooks/pre-commit" in message
+    assert "message-gate: sh tools/git-hooks/commit-msg (rc 0)" in message, \
+        "the receipt does not say the message chain ran, so the record understates what gated it"
+    assert sl.verify(repo, sha)[0] == 0, "the new line broke the receipt's own falsifiability"

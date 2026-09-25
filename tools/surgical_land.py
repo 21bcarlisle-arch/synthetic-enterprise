@@ -42,15 +42,23 @@ HOW
     exactly the resulting tree. (Technique ported, not invented: `process_run_complete.py::
     _head_checkout` proved it. `git worktree add` is deliberately NOT used -- it registers
     state in the real repo that survives a SIGKILL.)
-4.  THE REPO'S OWN `tools/git-hooks/pre-commit`, run in that extract with `GIT_*` scrubbed.
+4.  THE REPO'S OWN `tools/git-hooks/commit-msg`, run in that extract against the message this
+    landing is about to commit -- THE CHEAP CHAIN FIRST, because it refuses in seconds and its
+    sibling below takes minutes. Wired 2026-09-25 behind a census: until that day this tool ran
+    `pre-commit` and nothing else, and because it commits with `commit-tree` git never invoked
+    `commit-msg` either, so `write_time_gate` (the REUSE record `CLAUDE.md` names as enforced)
+    and `next_step_gate` (the `NEXT:` trailer) had NEVER fired on the door that carried 156 of
+    the last 200 trunk commits. See `run_message_gate` for what the census found and what the
+    judged bytes are.
+5.  THE REPO'S OWN `tools/git-hooks/pre-commit`, run in that extract with `GIT_*` scrubbed.
     Not a re-implementation and not a subset: the same test gate, level-promotion gate,
     site-lane gate, coherence gate, archive-question gate, consolidation rhythm and size
     ratchet a `git commit` would face -- against the right tree this time.
-5.  On green, under `tree_lock`, a compare-and-swap: refuse if HEAD moved since step 2,
+6.  On green, under `tree_lock`, a compare-and-swap: refuse if HEAD moved since step 2,
     else `commit-tree` + `update-ref HEAD <new> <parent>`, then refresh the real index for
     EXACTLY the landed paths (the same post-state `git commit -- <paths>` leaves; every other
     entry, including another lane's staged work, is byte-identical).
-6.  A RECEIPT in the commit message naming the parent, the tree, the path list and the gate
+7.  A RECEIPT in the commit message naming the parent, the tree, the path list and the gate
     command -- checkable afterwards with `--verify`, so a commit CLAIMING a gate run can be
     falsified rather than believed.
 
@@ -78,8 +86,8 @@ reds one, and printing the receipt line unconditionally reds its null control.
 
 FAIL-CLOSED, EVERYWHERE (R15: an unavailable check is a FAILED check)
 ---------------------------------------------------------------------
-No commit is created if: the hook script is missing or unreadable; the extract cannot be
-built or cannot be made a real repo; tmp has less free space than the extract needs; the hook
+No commit is created if: EITHER hook script is missing or unreadable; the extract cannot be
+built or cannot be made a real repo; tmp has less free space than the extract needs; either hook
 exits non-zero; HEAD moved under us; or the resulting tree is identical to HEAD's. Every one
 of those is a REFUSAL, never a silent pass -- the failure direction that matters, because the
 whole point is that this tool is the legal move and a legal move that quietly skips its check
@@ -152,6 +160,12 @@ from tools import live_hook_drift, stale_copy_refusal  # noqa: E402  (needs the 
 # not face what `git commit` currently faces. `_say_which_hook_chain_the_other_door_runs` below
 # says so out loud on every landing rather than letting the line above keep reading as a promise.
 HOOK_REL = "tools/git-hooks/pre-commit"
+
+#: The MESSAGE chain, resolved in the extract for exactly the reasons above. Named separately
+#: because it is a separate chain that this tool did not run until 2026-09-25 and that git cannot
+#: run for it: `commit-tree` never invokes `commit-msg`, so the two gates inside this file --
+#: `write_time_gate` and `next_step_gate` -- were unreachable from the sanctioned landing door.
+MSG_HOOK_REL = "tools/git-hooks/commit-msg"
 
 #: Per-renderer budget for the re-derive pass. Generous: the class registers walk the whole
 #: staging tree. A renderer that overruns is skipped and the gate reds on the unrepaired state,
@@ -888,6 +902,91 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     return r.returncode, (r.stdout or ""), (r.stderr or "")
 
 
+#: The message chain is a handful of regex passes over one file. Generous against an import-heavy
+#: `maturity_map_store` load on a cold cache, and still two orders of magnitude under
+#: `GATE_TIMEOUT_SECONDS` -- which is the point: this chain runs FIRST because it is the cheap one.
+MESSAGE_GATE_TIMEOUT_SECONDS = 300
+
+
+def run_message_gate(checkout: Path, message: str, msg_hook_rel: str = MSG_HOOK_REL,
+                     merge_parent: str | None = None) -> tuple[int, str, str]:
+    """Run the repo's own `commit-msg` hook inside the extract. Returns (rc, stdout, stderr).
+
+    WHY THIS EXISTS, WITH THE NUMBER IT WAS WIRED BEHIND. `commit-tree` does not invoke hooks, so
+    from this door's first day until 2026-09-25 the `commit-msg` chain ran nowhere: `git commit`
+    ran it, and `git commit` was not how anything landed. Censused over the last 200 first-parent
+    commits of `origin/main` that day (`docs/staging/records/
+    PREREG_HOW_MANY_LIVE_LANDINGS_THE_TWO_COMMIT_MSG_GATES_WOULD_REFUSE_2026-09-25.md`):
+    156 came through this door, 5 added a capability module the REUSE gate asks about, and the
+    whole chain would have refused **2 of the 200 (1.0%)** -- one for a malformed `CLASS:` field,
+    one for a missing `NEXT:` trailer. That is the blast radius, and it is why this is wired in
+    rather than filed again.
+
+    THE CHEAP CHAIN RUNS FIRST, and the ordering is the load-bearing part rather than a tidiness
+    preference. `pre-commit` is ~9 minutes on this box and HEAD moves every 3.5-10 minutes, so a
+    refusal discovered AFTER it costs a full cycle and can lose the compare-and-swap race on the
+    re-run. A missing REUSE record is knowable in under a second.
+
+    WHAT IS JUDGED IS THE AUTHOR'S MESSAGE, NOT THE COMMITTED BYTES, and that gap is real and is
+    bounded by a control rather than by an assurance. The receipt is appended AFTER the gate (it
+    quotes the gate's own rc), so the committed message is `message + receipt`. Both gates in the
+    chain read only structured records -- a `REUSE:` block and a `NEXT:` line -- and the receipt
+    contains neither, so the verdict is the same either way. `tests/tools/test_surgical_land.py::
+    test_the_receipt_appended_after_the_message_gate_cannot_change_either_verdict` is what holds
+    that equivalence: if the receipt format ever grows a line that either gate would parse, that
+    control reds instead of a landing silently being graded on bytes it does not carry.
+
+    A MERGE IS DECLARED AS A MERGE. `write_time_gate.staged_additions` subtracts the paths another
+    parent already carried, and it is keyed to `MERGE_HEAD` -- which the extract has not got,
+    because the extract was built by `archive`+`init`, not by `git merge`. Without this the gate
+    would ask a merge landing to re-justify every module the other side authored and recorded,
+    which is the exact wedge its own docstring records (a diverged shared checkout that can only
+    advance by merging, refused at the only legal door). The file is removed again before
+    `run_gate` runs, so the EXPENSIVE chain faces byte-for-byte what it faced before this was
+    wired: `pre-commit` does not run on a real merge at all, and nothing here changes that.
+
+    ANY MESSAGE EDIT THE CHAIN MAKES IS DISCARDED, deliberately. The chain's last line is
+    `hook_gate_mark --stamp`, which promotes `pre-commit`'s record to a trailer -- a discriminator
+    for commits that have no receipt. This door writes a receipt, `promote_worktree_landing`
+    accepts either, and adopting both would leave two independent claims about one gate run where
+    one is checkable (`--verify` re-derives the receipt's three shas from the object store). So the
+    commit is made from the message the caller gave.
+
+    FAIL-CLOSED, exactly as `run_gate`: a missing or un-runnable chain raises rather than
+    returning 0. An unavailable check is a failed check."""
+    hook = checkout / msg_hook_rel
+    if not hook.is_file():
+        raise LandingRefused(
+            "the MESSAGE gate is UNAVAILABLE: {} does not exist in the resulting tree. An "
+            "unavailable check is a FAILED check (R15) -- refusing rather than landing with the "
+            "REUSE and NEXT records unasked.".format(msg_hook_rel))
+    git_dir = checkout / ".git"
+    if not git_dir.is_dir():
+        raise LandingRefused(
+            "the MESSAGE gate cannot be run: {} has no .git directory, so there is nowhere to put "
+            "the message file the hook is handed -- refusing rather than skipping it.".format(
+                checkout))
+    merge_head = git_dir / "MERGE_HEAD"
+    msg_file = git_dir / "COMMIT_EDITMSG"
+    msg_file.write_text(message, encoding="utf-8")
+    if merge_parent:
+        merge_head.write_text(merge_parent + "\n", encoding="utf-8")
+    env = _gitless_env()
+    try:
+        r = subprocess.run(["sh", msg_hook_rel, ".git/COMMIT_EDITMSG"], cwd=str(checkout),
+                           env=env, capture_output=True, text=True,
+                           timeout=MESSAGE_GATE_TIMEOUT_SECONDS)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise LandingRefused(
+            "the MESSAGE gate could not be EXECUTED ({}) -- refusing rather than landing with the "
+            "REUSE and NEXT records unasked.".format(exc)) from exc
+    finally:
+        # UNCONDITIONALLY, including on the refusal paths above: `pre-commit` must face the same
+        # extract it faced before this chain was wired.
+        merge_head.unlink(missing_ok=True)
+    return r.returncode, (r.stdout or ""), (r.stderr or "")
+
+
 _PYTEST_SUMMARY = child_diagnostics.PYTEST_SUMMARY
 
 
@@ -987,7 +1086,8 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
                   content_sourced: list[str] | None = None,
                   merge_parent: str | None = None,
                   resolved: list[str] | None = None,
-                  rederived: list[str] | None = None) -> str:
+                  rederived: list[str] | None = None,
+                  msg_hook_rel: str | None = None, msg_gate_rc: int | None = None) -> str:
     lines = [
         RECEIPT_HEADER,
         "tool: tools/surgical_land.py",
@@ -1004,6 +1104,12 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
         "gate-rc: {}".format(gate_rc),
         "tests: {}".format(tests),
     ]
+    if msg_hook_rel is not None:
+        # THE RECEIPT MUST NOT UNDERSTATE WHAT GATED THE COMMIT. Two chains run from 2026-09-25 and
+        # a receipt naming one of them would let the next census of trunk commits reach the same
+        # wrong answer this wiring was filed over -- that `commit-msg` never ran here. Descriptive,
+        # like `gate:`: `parse_receipt` keys nothing on it, so a landing cannot be refused by it.
+        lines.append("message-gate: sh {} (rc {})".format(msg_hook_rel, msg_gate_rc))
     if content_sourced:
         # Named because these are exactly the paths whose committed bytes are NOT the working
         # tree's, so a later reader diffing the tree against disk must not read the difference
@@ -1566,6 +1672,19 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
             # landing that repaired anything. Recomputed against the tree actually being committed.
             files = changed_paths(root, parent_tree, result_tree)
             print("[surgical-land] re-derived on merge: {}".format(", ".join(rederived)))
+        # THE MESSAGE CHAIN, BEFORE the expensive one. Ordering, not preference: see
+        # `run_message_gate`. A landing whose message owes a REUSE record or a `NEXT:` trailer is
+        # refused in under a second rather than after a nine-minute chain it was always going to
+        # fail at the end of -- and on this box nine minutes is long enough to lose the
+        # compare-and-swap race, so the late refusal would cost the re-run as well as the cycle.
+        mrc, msg_out, msg_err = run_message_gate(checkout, message, merge_parent=merge_parent)
+        if mrc != 0:
+            raise LandingRefused(
+                "MESSAGE GATE RED (rc={}). This is the `commit-msg` chain -- the REUSE record and "
+                "the `NEXT:` trailer -- and NOTHING here says a test failed: the tree was not "
+                "even gated yet. Fix the message and re-run; `python3 tools/write_time_gate.py "
+                "--explain <new module>` prints the record block with the live index matches "
+                "already in it.\n{}".format(mrc, _verdict_excerpt(msg_out, msg_err)))
         # The gate is the window archived run markers have been observed returning to the staging
         # root inside (WORKER_FINDING_ARCHIVED_RUN_MARKERS_RETURN_TO_THE_STAGING_ROOT..._2026-08-20:
         # ten files, one shared mtime, forty seconds before this tool's own reflog entry). This
@@ -1587,7 +1706,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         _ACTIVE_CHECKOUTS.discard(checkout)
     receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel,
                             content_sourced=sorted(content or ()), merge_parent=merge_parent,
-                            resolved=sorted(resolutions or ()), rederived=rederived)
+                            resolved=sorted(resolutions or ()), rederived=rederived,
+                            msg_hook_rel=MSG_HOOK_REL, msg_gate_rc=mrc)
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files,
                             merge_parent=merge_parent)
 
