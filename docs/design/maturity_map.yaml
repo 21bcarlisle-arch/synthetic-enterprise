@@ -1623,7 +1623,7 @@
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
   title: "phase 1: the smallest set of weather cells that captures household-weighted heat-load variation across GB"
-  notes_rehomed: [gain, origin_note]
+  notes_rehomed: [build_note, gain, origin_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -1698,22 +1698,26 @@
   # `_has_archive` IS LANDED 2026-09-20, written fresh (nothing to recover). 18/18 unchanged.
   # The proxy was unmutatable on the live book -- archived ids precede un-archived ones at every
   # shared coordinate -- so the discriminating pair is BOUND in the test.
-  block_reason: "NOT WIRED TO THE WORLD'S WEATHER. REPLACED 2026-09-20; the 09-07 version is in
-    git history and its correction is staged (WORKER_RESULT_W1_14S_NAMED_NEXT_ACTION_IS_THE_DESIGN
-    _THE_DIRECTOR_REFUSED..._2026-09-20). It said ARCHIVE BREADTH and ordered `then pull` -- four
-    more per-property Open-Meteo sites. THAT IS THE DESIGN THE DIRECTOR REFUSED IN WRITING on
-    2026-09-16 (`sim/weather_world.py`); `fabric_demand_path.ADD_THE_CELL_REMEDY` replaced the same
-    sentence on 09-17 precisely because naming a per-property pull recruits the reader into
-    rebuilding it. This field was that recruiting text, nine days out of date.
-    MEASURED 2026-09-20 against the per-cell store (221 cells, MAX_SNAP_KM 5.0): it serves 78/210
-    = 37.1% of drawn households (seed 7, draw_region=True, 210/210 sited) against these four
-    sites' 2.0% -- 18x -- and 16/18 of the supply book. BOTH MISSES ARE BIRMINGHAM, 7.35 km from
-    the nearest held cell, so the store's build set and the book have DIVERGED and nothing watched.
-    (Both pre-registered predictions were refuted: I said 18/18 on the book and 50-90% on the draw.)
-    THE REMAINING WORK, none of it a pull: (1) migrate `weather_inputs` onto `sim.weather_world` --
-    the seam must resolve to a CELL, not to a customer_id with a CSV; this is what makes L2 true,
-    and until it lands the 37.1% is coverage of a store this seam does not read. (2) add
-    Birmingham's cell. (3) then judge what the drawn frame needs (median household 7.2 km out)."
+  block_reason: "NOT WIRED TO THE WORLD'S WEATHER on the gas/HDD leg; WIRED on the other two
+    since 2026-09-21. REPLACED 2026-09-20 and again 2026-09-21, both superseded versions in git
+    history. The 09-07 text said ARCHIVE BREADTH and ordered `then pull` -- the design the director
+    refused in writing on 2026-09-16 (`sim/weather_world.py`), which `ADD_THE_CELL_REMEDY` replaced
+    on 09-17 because naming a per-property pull recruits the reader into rebuilding it.
+    MEASURED 2026-09-20 against the per-cell store (221 cells, MAX_SNAP_KM 5.0): 78/210 = 37.1% of
+    drawn households (seed 7) against those four sites' 2.0%, and 16/18 of the supply book -- both
+    misses BIRMINGHAM at 7.35 km, so the store's build set and the book have DIVERGED and nothing
+    watched. (Both pre-registered predictions were refuted: I said 18/18 and 50-90%.)
+    THE REMAINING WORK, none of it a pull; step 1's detail and its mutation table are in
+    `build_note` in the record store: (1) LANDED 2026-09-21 -- the shape and forward-price legs
+    resolve the CELL with the physics leg's own call, 14/18 -> 16/18 of the book, 3,446 -> 3,653
+    days, and NOT an equivalence (+1.19 C at London: HadUK 1 km against ERA5). (2) add Birmingham's
+    cell. (3) then judge what the drawn frame needs (median household 7.2 km out). (4) BLOCKING
+    this lane, found by (1): `sim/weather_hdd` is a THIRD resolver -- it strips a trailing `g` off
+    the id, asks no coordinate, and hands 10 of 18 premises the 1991-2020 MONTHLY NORMAL, flat
+    every year (C7 +33.7% in 2018 / +52.6% in 2022 against its own cell, and 12-20% from C1, which
+    shares its cell). A seam change, not a pull.
+    LEVEL STAYS 1 and now for a MEASURED reason rather than a judgement: while a tenth of the
+    book's heat load is climatology, 'mechanically real' is not true of what this atom names."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
