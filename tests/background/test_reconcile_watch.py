@@ -156,6 +156,7 @@ def test_run_falls_through_to_the_live_reconcile_when_no_rows_are_injected(monke
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational
 
 

@@ -116,6 +116,21 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-25  I001 1306 -> 1305  (the five-minute tick is wired to drain the fork with origin).
+#     ONE FILE, `tests/background/test_reconcile_watch.py`, and it is a side effect rather than a
+#     tidying pass. That file carries a DELIBERATE mid-file `import pytest  # noqa: E402,F811` —
+#     the R10 publish-gate scope marker, which has to sit below the tests it re-marks — and the
+#     block was unsorted at HEAD because nothing separated it from the `pytestmark` assignment
+#     that follows. This commit had the file open to add the fork-drain controls; one blank line
+#     after that import settles I001. No `--fix` was run over the file and no `noqa` was added.
+#     MEASURED ON THE TREE THIS COMMIT WOULD CREATE, per this log's standing rule and NOT off the
+#     working tree: `git archive HEAD` extract with this commit's files copied in reads I001 1305,
+#     total 2281. The bare HEAD extract reads 1306, which is this baseline before the move.
+#     THE SHARED WORKING TREE READS I001 1304, one lower still, AND THAT EXTRA -1 IS NOT BANKED
+#     HERE — it is another lane's uncommitted work, recorded in
+#     `docs/staging/WORKER_FINDING_THE_RUFF_CENSUS_REDS_IN_THE_SHARED_WORKTREE_AND_IS_CLEAN_AT_
+#     HEAD_2026-09-24.md`. Theirs to lower; banking it here would red this control the moment that
+#     lane reverted a file this commit never touched.
 #   2026-09-21  I001 1307 -> 1306  (the gas/HDD leg reads the premise's own cell: W1_14 step 3).
 #     ONE FILE, `tests/sim/test_weather_hdd.py`, and it is a side effect rather than a tidying
 #     pass: that file's import block was unsorted AT HEAD, and this commit had it open anyway to
@@ -759,7 +774,8 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1306,  # lowered 2026-09-21 (see the SHRINK LOG head). Previously 1307,
+    "I001": 1305,  # lowered 2026-09-25 (see the SHRINK LOG head). Previously 1306,
+    #             lowered 2026-09-21 (see the SHRINK LOG head). Previously 1307,
     #             lowered 2026-09-19 (see the SHRINK LOG head). Previously 1308,
     #             lowered 2026-09-16 (see the SHRINK LOG head). Previously 1309,
     #             lowered 2026-09-08 (the substring-control residue: five source-scanning
@@ -890,7 +906,10 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2282  # 2283 -> 2282 on 2026-09-21: the I001 above, attributed to
+RUFF_BASELINE_TOTAL = 2281  # 2282 -> 2281 on 2026-09-25: the I001 above, attributed to
+# `tests/background/test_reconcile_watch.py`, whose mid-file R10 marker block the fork-drain
+# controls had open anyway.
+# 2283 -> 2282 on 2026-09-21: the I001 above, attributed to
 # `tests/sim/test_weather_hdd.py`, whose block W1_14 step 3 had open anyway.
 # 2285 -> 2283 on 2026-09-19: the I001 and the F841 above, both
 # `tests/background/test_naive_organ.py`, the one file T6's first coverage opened.
