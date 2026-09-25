@@ -278,7 +278,17 @@ def test_the_report_NAMES_the_missing_gate_and_the_remedy():
     text = lhd.report(lhd.compare(_without(TRUNK, "hook_gate_mark"), TRUNK))
     assert "hook_gate_mark" in text
     assert "MISSING" in text
-    assert "reconciler" in text, "the report must name the remedy, not only the fault"
+    # CORRECTED 2026-09-25, beside the claim it used to make. This line read
+    # `assert "reconciler" in text` -- pinned to the one fixed remedy sentence the report printed
+    # in every state. That sentence was wrong in two of the four provenance states (see
+    # `provenance_lines`), so the literal went red the moment the report became honest: a control
+    # keyed to today's answer reddening because the code got BETTER, which is exactly backwards.
+    # Keyed to the property instead: a fault is never published without something to do about it,
+    # and a path that cannot know the remedy must say so rather than guess.
+    assert "REMEDY" in text, "the report must name the remedy, not only the fault"
+    assert "reconciler" not in text, (
+        "`compare()` cannot reach git, so it cannot know the live bytes are a snapshot of this "
+        "checkout -- naming the reconciler here would be picking one of four remedies blind")
     assert "restart" in text, "and must name the remedy that is WRONG, which was tried first"
 
 
@@ -381,3 +391,242 @@ def test_a_CONFIGURED_repo_over_the_same_shape_still_reaches_the_comparison(tmp_
     d = lhd.drift(root=repo, reference="HEAD")
     assert d.unconfigured is False
     assert d.missing == ["hook_gate_mark"]
+
+
+# ---------------------------------------------------------------------------------------------
+# PROVENANCE: which revision the live bytes came from, which is a different question from
+# whether they match the reference, and the one the REMEDY follows from.
+# ---------------------------------------------------------------------------------------------
+
+def _provenance_repo(tmp_path):
+    """A repo whose hooks dir is INSIDE it, as the real one is, with three revisions of the hook.
+
+    Returns (repo, blobs) where `blobs` maps a label to the text committed at that revision:
+      `old`  -- an ancestor of the repo's HEAD
+      `head` -- what HEAD says the hook is
+      `side` -- a revision on a branch HEAD cannot reach, standing in for `origin/main`
+    """
+    repo = tmp_path / "repo"
+    hooks = repo / "tools" / "git-hooks"
+    hooks.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "core.hooksPath", str(hooks)], cwd=repo, check=True)
+
+    def commit(text, message):
+        (hooks / "pre-commit").write_text(text)
+        subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm",
+                        message, "--no-verify"], cwd=repo, check=True)
+
+    texts = {"old": TRUNK,
+             "head": TRUNK + "python3 -m tools.added_at_head\n",
+             "side": TRUNK + "python3 -m tools.added_on_the_side\n"}
+    commit(texts["old"], "old")
+    commit(texts["head"], "head")
+    subprocess.run(["git", "checkout", "-q", "-b", "side", "HEAD~1"], cwd=repo, check=True)
+    commit(texts["side"], "side")
+    subprocess.run(["git", "checkout", "-q", "main"], cwd=repo, check=True)
+    (hooks / "pre-commit").write_text(texts["head"])
+    return repo, texts
+
+
+def test_all_four_provenance_states_are_reachable_over_ONE_repo_and_none_collapse(tmp_path):
+    """THE DEFECT THIS NAMES: a provenance verdict that can only ever return one value looks
+    identical to a working one, and every per-state test below would pass against a function
+    that answered `head` unconditionally.
+
+    Written as ONE control over the WHOLE partition rather than a leg per state, because this
+    project has entered that trap by the other door: four separate tests each asserting their own
+    state are all green against an implementation where two of the states are the same state.
+    The assertion is that the four labels are FOUR, not that each one appears somewhere.
+
+    MUTATION: collapse `PROV_OFF_HEAD` into `PROV_BEHIND` (drop the `merge-base --is-ancestor`
+    branch and always return `PROV_BEHIND`) and this reds on the set size. Dropping the
+    `PROV_MIXTURE` return reds it too.
+    """
+    repo, texts = _provenance_repo(tmp_path)
+    hook = repo / "tools" / "git-hooks" / "pre-commit"
+    seen = {}
+    for label, text in [("head", texts["head"]), ("behind", texts["old"]),
+                        ("off-head", texts["side"]), ("mixture", texts["head"] + "# hand edit\n")]:
+        hook.write_text(text)
+        seen[label] = lhd.live_provenance(hook, repo)
+
+    assert all(p.undetermined is None for p in seen.values()), seen
+    verdicts = [p.verdict for p in seen.values()]
+    assert len(set(verdicts)) == 4, (
+        f"four distinct conditions collapsed to {sorted(set(verdicts))} -- a partition that does "
+        "not separate them cannot carry four different remedies")
+    assert seen["head"].verdict == lhd.PROV_HEAD
+    assert seen["behind"].verdict == lhd.PROV_BEHIND
+    assert seen["off-head"].verdict == lhd.PROV_OFF_HEAD
+    assert seen["mixture"].verdict == lhd.PROV_MIXTURE
+    # The two that FOUND a commit must name it; a verdict of `behind` with no commit to restore
+    # from is an accusation with no evidence.
+    assert seen["behind"].commit and seen["off-head"].commit
+    assert seen["mixture"].commit is None
+
+
+def test_the_provenance_of_the_SHARED_hooks_is_the_same_from_a_linked_worktree(tmp_path):
+    """THE DEFECT THIS NAMES, and it was live in this leg's first draft, caught by printing the
+    verdict from the seat's own worktree before writing this test.
+
+    `core.hooksPath` is an ABSOLUTE path into the shared tree and resolves to that same path from
+    every linked worktree. A provenance leg that asks `HEAD` of the CALLER's tree is therefore
+    asking about one checkout and answering about another's working copy. The first draft did
+    exactly that and called the shared tree's hooks `behind`, telling the reader `git status`
+    would show the path as modified -- false in both trees at once, and the kind of claim a lane
+    acts on by restoring somebody else's file.
+
+    The control is a DIFFERENTIAL over the same bytes: the answer must not depend on where the
+    question was asked from. That is a property, not today's answer, so it survives every future
+    change to what the states are called.
+
+    MUTATION: drop the `owner = owning_checkout(...)` / `root = owner` lines in `live_provenance`
+    and this reds -- the worktree is detached at HEAD~1, so its HEAD carries the `old` blob and
+    the naive read grades the live copy `off-head` instead of `head`.
+    """
+    repo, texts = _provenance_repo(tmp_path)
+    hook = repo / "tools" / "git-hooks" / "pre-commit"
+    linked = tmp_path / "linked"
+    subprocess.run(["git", "worktree", "add", "-q", "--detach", str(linked), "HEAD~1"],
+                   cwd=repo, check=True)
+    assert lhd.live_hooks_dir(linked) == hook.parent, "the premise: same hooks dir from both"
+
+    from_owner = lhd.live_provenance(hook, repo)
+    from_worktree = lhd.live_provenance(hook, linked)
+    assert from_owner.verdict == lhd.PROV_HEAD, from_owner
+    assert from_worktree.verdict == from_owner.verdict, (
+        f"the same bytes graded {from_worktree.verdict!r} from the worktree and "
+        f"{from_owner.verdict!r} from the owning tree -- the verdict is about the caller, not "
+        "about the file")
+    assert from_worktree.commit == from_owner.commit
+
+
+def test_an_exhausted_scan_budget_is_undetermined_and_NOT_a_finding_of_mixture(tmp_path):
+    """FAIL-CLOSED, on the leg where the flattering reading is the dangerous one. `mixture` sends
+    a reader to hand-repair a file that no git operation will reconcile; "I ran out of budget
+    before I found it" must never be published as that.
+
+    MUTATION: return `Provenance(verdict=PROV_MIXTURE)` unconditionally at the end of
+    `live_provenance` (dropping the budget check) and this reds.
+    """
+    repo, texts = _provenance_repo(tmp_path)
+    hook = repo / "tools" / "git-hooks" / "pre-commit"
+    hook.write_text(texts["old"])
+    # The premise: with budget, these bytes ARE found. Without it, the answer must not flip to a
+    # claim that they are in no commit.
+    assert lhd.live_provenance(hook, repo, limit=10).verdict == lhd.PROV_BEHIND
+    starved = lhd.live_provenance(hook, repo, limit=1)
+    assert starved.verdict is None
+    assert starved.undetermined and "NOT a finding of `mixture`" in starved.undetermined
+
+
+def test_a_hooks_dir_outside_any_working_tree_is_undetermined_rather_than_a_verdict(tmp_path):
+    """`core.hooksPath` may point anywhere. Outside a repo there is no HEAD the bytes could be a
+    snapshot OF, and the honest answer is that the question cannot be asked -- not `mixture`,
+    which would be the same words used for a genuine hand-edit.
+
+    MUTATION: drop the `owner is None` branch and this reds (or errors) instead of reporting.
+    """
+    repo = _repo_with_hooks(tmp_path)          # this fixture puts the live dir OUTSIDE the repo
+    d = lhd.drift(repo, reference="HEAD")
+    assert d.provenance is not None, "the leg must be reached even when it cannot answer"
+    assert d.provenance.verdict is None
+    assert "not inside any git working tree" in (d.provenance.undetermined or "")
+    assert "CANNOT TELL which revision" in lhd.report(d)
+
+
+def test_a_copy_HAND_PATCHED_from_the_reference_reads_byte_identical_and_is_STILL_qualified(
+        tmp_path):
+    """THE DEFECT THIS NAMES, and it is the whole reason the provenance leg exists. Measured on
+    the shared tree 2026-09-25: a lane wrote `origin/main`'s hook blobs into the working copy by
+    hand (`8e40bb205`'s own commit body records it), leaving the checkout exactly as far behind as
+    it was. For the thirty minutes that patch survived, the byte comparison would have reported
+    the chain was the reference's "byte for byte" -- its cleanest verdict -- while the condition
+    this module exists to detect was untouched underneath. Then the checkout advanced and the
+    patch was gone, silently.
+
+    So the byte-identical branch must NOT be an unqualified pass, and its remedy must not be the
+    advance that destroys the patch.
+
+    MUTATION: drop `*provenance_lines(d.provenance)` from the `d.clean and not d.bytes_differ`
+    return in `report` and this reds -- the report goes back to one unqualified green sentence.
+    """
+    repo, texts = _provenance_repo(tmp_path)
+    hook = repo / "tools" / "git-hooks" / "pre-commit"
+    hook.write_text(texts["side"])             # the hand-patch: another revision's bytes, verbatim
+    d = lhd.drift(repo, reference="side")      # graded against the revision it was copied from
+
+    assert d.clean and not d.bytes_differ, (
+        "the premise: a hand-patch from the reference IS byte-identical to it, which is why the "
+        "byte comparison alone cannot see this condition")
+    text = lhd.report(d)
+    assert "byte for byte" in text, "the premise must still be reported truthfully"
+    assert "CANNOT REACH" in text, (
+        "a green byte verdict over bytes belonging to no reachable commit must be qualified on "
+        "the same surface, not left to be read as a clean bill")
+    assert "remedy is NOT to advance" in text, (
+        "advancing the checkout is what DISCARDS a hand-patch -- the one remedy the old report "
+        "printed unconditionally is the one that is wrong here")
+
+
+def test_the_landing_door_does_not_go_SILENT_on_the_very_state_the_provenance_leg_is_for(
+        tmp_path):
+    """THE DEFECT THIS NAMES, found by reading the call site after the report was already right.
+
+    `surgical_land._report_live_hook_drift` returned early on `verdict.clean`. A working copy
+    hand-patched from the trunk is clean BY CONSTRUCTION -- it is the trunk's own bytes -- so the
+    door printed nothing at all in the condition this whole leg exists to surface. The
+    qualification was reaching `report()` and dying one frame above it.
+
+    Graded at the PROPERTY the door asks, not at the door's source text: `needs_reader` must be
+    true for a clean-but-unreachable copy and false for a clean snapshot of HEAD, because those
+    are the two readings that used to be the same reading.
+
+    MUTATION: restore `needs_reader` to `return not self.clean` and this reds on the first
+    assertion. Making it `return True` unconditionally reds on the second -- that arm is why the
+    quiet case is asserted here too, rather than trusted.
+    """
+    repo, texts = _provenance_repo(tmp_path)
+    hook = repo / "tools" / "git-hooks" / "pre-commit"
+
+    hook.write_text(texts["side"])                      # the hand-patch
+    patched = lhd.drift(repo, reference="side")
+    assert patched.clean and not patched.bytes_differ, "the premise: it IS clean"
+    assert patched.needs_reader, (
+        "a clean chain over bytes from an unreachable commit still has something to tell a lane "
+        "about to trust a green gate -- this is the leg the landing door used to skip")
+
+    hook.write_text(texts["head"])                      # an ordinary, honest snapshot
+    snapshot = lhd.drift(repo, reference="main")
+    assert snapshot.provenance is not None
+    assert snapshot.provenance.verdict == lhd.PROV_HEAD
+    assert not snapshot.needs_reader, (
+        "a snapshot of HEAD matching the trunk must stay QUIET -- a door that speaks on every "
+        "landing is a door nobody reads, which is the mistake this one already paid for once")
+
+
+def test_the_landing_door_asks_needs_reader_and_not_clean():
+    """The wiring leg. The property above can be perfect while the door goes on asking the old
+    question, and nothing else in the tree compares the two.
+
+    Read from the module's own source because the door's early return has no return value to
+    observe -- it prints or it does not, from inside a function that takes a live repo. The
+    function's presence is asserted BEFORE its body is sliced: `str.split` on a name that is not
+    there yields an empty tail, and `"verdict.clean" not in ""` is green forever.
+
+    MUTATION: put `if verdict.clean and not verdict.bytes_differ: return` back and this reds.
+    """
+    # CODE only: `code_text` blanks comments and prose strings, so the comment beside the door
+    # explaining the fix cannot be what satisfies this test.
+    src = python_code_text.code_text(
+        (ROOT / "tools" / "surgical_land.py").read_text(encoding="utf-8"))
+    assert src is not None
+    assert "_say_which_hook_chain_the_other_door_runs" in src, (
+        "the door was renamed -- this control grades a function by name and must be repointed "
+        "rather than left passing on an empty slice")
+    door = src.split("def _say_which_hook_chain_the_other_door_runs")[1].split("\ndef ")[0]
+    assert "needs_reader" in door, "the landing door must ask the question that sees the patch"
+    assert "verdict.clean" not in door, (
+        "asking `clean` here is the defect: a hand-patch is clean and the reader hears nothing")

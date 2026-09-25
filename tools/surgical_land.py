@@ -1329,7 +1329,10 @@ def _say_which_hook_chain_the_other_door_runs(root: Path) -> None:
     """
     try:
         verdict = live_hook_drift.drift(root)
-        if verdict.clean and not verdict.bytes_differ:
+        # `needs_reader`, not `clean`: a working copy hand-patched from the trunk IS clean by
+        # construction (it is the trunk's bytes), and asking `clean` here silenced the report in
+        # the one condition it was written for. See `Drift.needs_reader`.
+        if not verdict.needs_reader:
             return
         print(live_hook_drift.report(verdict), flush=True)
     except Exception as exc:  # noqa: BLE001 -- a diagnostic may never cost a landing

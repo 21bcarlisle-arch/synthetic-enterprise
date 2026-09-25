@@ -168,6 +168,147 @@ def live_hooks_dir(root: Path = ROOT) -> Path:
     return resolved if resolved.is_absolute() else (root / resolved).resolve()
 
 
+#: How far back the provenance scan will look before it refuses to answer. The population is
+#: commits touching ONE path, so this is generous; the point of the bound is that running out of
+#: it is `undetermined` and never `mixture` -- see `live_provenance`.
+PROVENANCE_SCAN_LIMIT = 500
+
+#: The live copy is byte-identical to HEAD's blob. Ordinary: whatever the chain is, the checkout
+#: is at least internally consistent, and advancing it is exactly the right move.
+PROV_HEAD = "head"
+#: The live copy is some ANCESTOR of HEAD's blob, not HEAD's. The checkout holds an older
+#: revision of this path than its own HEAD says it should -- `git status` shows it as a
+#: modification, and `git checkout -- <path>` (or any advance that touches the path) restores it.
+PROV_BEHIND = "behind"
+#: The live copy matches a commit NOT reachable from HEAD -- typically `origin/main` or a fork.
+#: Somebody wrote a NEWER revision's bytes into the working copy by hand. This is the state that
+#: makes the byte comparison read at its cleanest while the checkout itself has not moved an inch,
+#: and the next advance that touches the path throws the patch away without a word.
+PROV_OFF_HEAD = "off-head"
+#: No commit in this repository carries these bytes. A hand-edit, a merge residue, a truncated
+#: write. No git operation reconciles it: the next checkout conflicts or clobbers.
+PROV_MIXTURE = "mixture"
+
+
+@dataclass
+class Provenance:
+    """WHICH COMMIT, IF ANY, THE LIVE HOOK'S BYTES CAME FROM.
+
+    WHY THIS IS A SECOND QUESTION AND NOT A DETAIL OF THE FIRST. `compare` asks whether the live
+    chain matches the reference. That is a question about BYTES, and three completely different
+    conditions produce the same answer to it:
+
+      * the checkout is behind and will catch up -- the reconciler is the remedy and the gap
+        closes itself;
+      * somebody pasted the reference's bytes in by hand -- the byte comparison reads `byte for
+        byte`, its cleanest verdict, while the checkout has not moved and the gates are running
+        only because a human is holding them there. The next advance DELETES the patch;
+      * the bytes belong to no commit at all -- no advance reconciles that.
+
+    Measured 2026-09-25 on the shared tree, and this is why the leg exists rather than a
+    hypothetical: `8e40bb205`'s own commit body records a lane writing three paths "from
+    origin/main's blobs to disk with `git cat-file blob`, index untouched", deliberately outside
+    its pathspec. That put the hooks directory in the second state at 01:16. At 01:46 the checkout
+    advanced and the patch was gone. For thirty minutes this module would have reported the
+    chain was `origin/main`'s byte for byte -- true, and the most misleading true thing it could
+    have said, because the condition it exists to detect was untouched underneath.
+
+    FAIL-CLOSED. Running out of scan budget is `undetermined` with the bound named, never
+    `mixture`: "I did not find it" and "it is not there" are not the same claim, and only one of
+    them licenses the alarming remedy.
+    """
+
+    blob: str | None = None
+    #: One of the PROV_* constants, or None when the question could not be asked.
+    verdict: str | None = None
+    #: The commit whose blob at `HOOK_REL` equals the live bytes, when one was found.
+    commit: str | None = None
+    #: A named reason no verdict could be reached. Never set alongside a verdict.
+    undetermined: str | None = None
+
+
+def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=str(root), capture_output=True, text=True)
+
+
+def owning_checkout(live_hook: Path, root: Path = ROOT) -> Path | None:
+    """The working tree the live hooks directory actually SITS IN, which is usually not `root`.
+
+    THIS IS LOAD-BEARING AND IT WAS WRONG ON THE FIRST DRAFT, caught by printing the verdict from
+    a linked worktree before writing the test. `core.hooksPath` is an absolute path into the
+    SHARED tree, and it resolves to that same path from every worktree -- so a provenance leg that
+    asked `HEAD` of `root` was asking a question about THIS lane's checkout and answering it about
+    SOMEBODY ELSE'S working copy. From this seat's worktree the naive version called the shared
+    tree's hooks `behind` and told the reader `git status` would show the path as modified, which
+    was false in both trees at once. A linked worktree's HEAD has nothing to do with the copy on
+    disk over there.
+
+    Returns None when the hooks directory is not inside any working tree at all -- a hooksPath
+    pointing outside the repo, which the caller must treat as undetermined and not as a verdict.
+    """
+    out = _git(live_hook.parent if live_hook.parent.is_dir() else root,
+               "rev-parse", "--show-toplevel")
+    if out.returncode != 0:
+        return None
+    top = out.stdout.strip()
+    return Path(top) if top else None
+
+
+def live_provenance(live_hook: Path, root: Path = ROOT, rel: str = HOOK_REL,
+                    limit: int = PROVENANCE_SCAN_LIMIT) -> Provenance:
+    """Which revision, if any, the bytes at `live_hook` are a copy of.
+
+    Every git question below is asked of the checkout that OWNS the live copy (see
+    `owning_checkout`), never of the caller's tree.
+
+    The scan population is `git log --all -- <rel>`: every commit that touched this path, on any
+    ref. That is deliberately wider than HEAD's history, because the whole point of `off-head` is
+    a copy taken from a revision HEAD cannot see.
+    """
+    owner = owning_checkout(live_hook, root)
+    if owner is None:
+        return Provenance(undetermined=(
+            f"the live hooks directory ({live_hook.parent}) is not inside any git working tree, "
+            "so there is no checkout whose HEAD the bytes could be compared against."))
+    root = owner
+    hashed = _git(root, "hash-object", "--", str(live_hook))
+    if hashed.returncode != 0:
+        return Provenance(undetermined=(
+            f"git could not hash the live hook ({live_hook}): "
+            f"{(hashed.stderr or '').strip()}"))
+    blob = hashed.stdout.strip()
+
+    head = _git(root, "rev-parse", f"HEAD:{rel}")
+    if head.returncode != 0:
+        return Provenance(blob=blob, undetermined=(
+            f"`git rev-parse HEAD:{rel}` failed, so there is no revision to compare the live "
+            f"bytes against: {(head.stderr or '').strip()}"))
+    if head.stdout.strip() == blob:
+        return Provenance(blob=blob, verdict=PROV_HEAD,
+                          commit=_git(root, "rev-parse", "HEAD").stdout.strip() or None)
+
+    listed = _git(root, "log", "--all", f"--max-count={limit}", "--format=%H", "--", rel)
+    if listed.returncode != 0:
+        return Provenance(blob=blob, undetermined=(
+            f"`git log --all -- {rel}` failed, so the provenance of the live bytes could not be "
+            f"asked: {(listed.stderr or '').strip()}"))
+    commits = [line for line in listed.stdout.split() if line]
+    for commit in commits:
+        got = _git(root, "rev-parse", f"{commit}:{rel}")
+        if got.returncode == 0 and got.stdout.strip() == blob:
+            ancestor = _git(root, "merge-base", "--is-ancestor", commit, "HEAD").returncode == 0
+            return Provenance(blob=blob, commit=commit,
+                              verdict=PROV_BEHIND if ancestor else PROV_OFF_HEAD)
+    if len(commits) >= limit:
+        # THE FAIL-CLOSED LEG. An exhausted budget is not evidence of absence, and `mixture` is
+        # the verdict that sends a reader to hand-repair a file. Refuse instead.
+        return Provenance(blob=blob, undetermined=(
+            f"scanned the most recent {limit} commits touching {rel} without finding these bytes, "
+            "and the budget ran out -- so they may still belong to an older revision. Re-run with "
+            "a larger limit; this is NOT a finding of `mixture`."))
+    return Provenance(blob=blob, verdict=PROV_MIXTURE)
+
+
 @dataclass
 class Drift:
     """What the live chain runs, against what the reference declares."""
@@ -187,6 +328,28 @@ class Drift:
     #: `core.hooksPath` is not configured, so there is no working copy to be behind. Not a clean
     #: bill and not an alarm: a third state, because it is neither.
     unconfigured: bool = False
+    #: Which revision the live bytes are a copy of, when the question could be asked. Carried
+    #: alongside the byte verdict rather than folded into it: they answer different questions and
+    #: the REMEDY follows from this one, not from the other.
+    provenance: Provenance | None = None
+
+    @property
+    def needs_reader(self) -> bool:
+        """Whether this verdict has anything a lane about to trust a green gate must be told.
+
+        WHY THIS IS NOT `not self.clean`, which is what the landing door used to ask. `clean` is a
+        statement about the CHAIN, and the hand-patch condition is byte-identical to the reference
+        by construction -- so the door's `if verdict.clean: return` silenced the report in exactly
+        the state the provenance leg was written for. The qualification was reaching `report()`
+        and dying at the one call site that has a reader.
+
+        Only `head` is quiet. A copy whose bytes belong to an unreachable commit, to no commit, or
+        to an older revision than its own checkout is worth a line even when the gates all match.
+        """
+        if self.unconfigured or not self.clean or self.bytes_differ:
+            return True
+        prov = self.provenance
+        return prov is not None and prov.verdict != PROV_HEAD
 
     @property
     def clean(self) -> bool:
@@ -259,6 +422,10 @@ def drift(root: Path = ROOT, reference: str = DEFAULT_REFERENCE) -> Drift:
 
     d = compare(live_text, reference_text, reference=reference)
     d.live_path = live_hook
+    # Asked AFTER the unconfigured and unreadable legs above, both of which return early: a repo
+    # with no `core.hooksPath` has no working copy whose provenance could be in question, and
+    # bytes that could not be read have none to ask about.
+    d.provenance = live_provenance(live_hook, root)
     for rel in TRACKED_HOOKS:
         ref_bytes = _show(root, reference, rel)
         if ref_bytes is None:
@@ -270,6 +437,51 @@ def drift(root: Path = ROOT, reference: str = DEFAULT_REFERENCE) -> Drift:
         except OSError:
             d.bytes_differ.append(rel)
     return d
+
+
+def provenance_lines(prov: Provenance | None) -> list[str]:
+    """The remedy, which is DIFFERENT in each state and used to be one fixed sentence.
+
+    The sentence this replaces -- "the remedy is the reconciler advancing the SHARED checkout" --
+    is right in exactly one of these four states. In `off-head` it names the operation that
+    DESTROYS the live copy as the thing to go and do.
+    """
+    if prov is None:
+        # NOT SILENCE, and not the old fixed sentence either. `compare()` is the pure half and
+        # cannot ask git anything, so the remedy genuinely is not known on this path -- saying
+        # which remedy applies would be picking one of four. Naming the gap sends the reader to
+        # the call that can answer it.
+        return ["[live-hook] the REMEDY depends on which revision these live bytes came from, and "
+                "that was not asked here (the pure comparison cannot reach git). Run `python3 -m "
+                "tools.live_hook_drift` for the provenance verdict before acting."]
+    if prov.undetermined:
+        return ["[live-hook] CANNOT TELL which revision the live bytes came from, so the remedy "
+                "below is unknown too:", f"[live-hook]   {prov.undetermined}"]
+    short = (prov.commit or "")[:9]
+    if prov.verdict == PROV_HEAD:
+        return ["[live-hook] provenance: the live bytes ARE this checkout's HEAD blob "
+                f"({short}), so the copy is a snapshot and not a patchwork. If it is behind the "
+                "trunk, the remedy is the reconciler advancing the SHARED checkout."]
+    if prov.verdict == PROV_BEHIND:
+        return ["[live-hook] provenance: the live bytes are an OLDER revision than this "
+                f"checkout's own HEAD -- they are {short}'s blob. The checkout did not write "
+                "HEAD's copy here, so `git status` is showing this path as modified. Establish "
+                "whose edit that is before restoring it; a lane may be holding work in it."]
+    if prov.verdict == PROV_OFF_HEAD:
+        return ["[live-hook] provenance: the live bytes match a commit this HEAD CANNOT REACH "
+                f"({short}) -- somebody wrote another revision's blob into the working copy by "
+                "hand. READ THE BYTE VERDICT ABOVE IN THAT LIGHT: a copy patched from the "
+                "reference matches it exactly while the checkout has not moved at all, so a "
+                "green here is a human holding the gates in place and not a healthy tree.",
+                "[live-hook]   The remedy is NOT to advance the checkout: the next advance that "
+                "touches this path discards the patch silently. Land those bytes, or expect them "
+                "gone and say so where the next reader will look."]
+    if prov.verdict == PROV_MIXTURE:
+        return ["[live-hook] provenance: NO COMMIT in this repository carries these bytes -- the "
+                "live hook is a hand-edit or a partial write, not a checkout of anything. No "
+                "advance reconciles this: the next one conflicts or clobbers. Diff it against "
+                "HEAD's blob and decide what it was meant to be."]
+    return []
 
 
 def report(d: Drift) -> str:
@@ -286,8 +498,12 @@ def report(d: Drift) -> str:
                 "to compare. In a real clone this means NO gates run at all: "
                 "`sh tools/install_git_hooks.sh`.".format(d.live_path))
     if d.clean and not d.bytes_differ:
-        return (f"[live-hook] the hook chain git will run IS {d.reference}'s, byte for byte "
-                f"({d.live_path}).")
+        # NOT AN UNQUALIFIED PASS, and that is the correction this branch carries. A working copy
+        # hand-patched from the reference reads exactly here, so the provenance line is printed
+        # alongside the green rather than only beside a difference.
+        return "\n".join([
+            f"[live-hook] the hook chain git will run IS {d.reference}'s, byte for byte "
+            f"({d.live_path}).", *provenance_lines(d.provenance)])
     lines.append(f"[live-hook] the hooks git will run live at {d.live_path}, which is a WORKING "
                  f"COPY, and it differs from {d.reference}.")
     if d.missing:
@@ -304,9 +520,15 @@ def report(d: Drift) -> str:
     if d.bytes_differ and not (d.missing or d.altered or d.retired):
         lines.append("[live-hook] the chain itself is intact; the difference is in "
                      f"{', '.join(d.bytes_differ)} outside the gate lines (comment or prose).")
-    lines.append("[live-hook] the remedy is the reconciler advancing the SHARED checkout. It is "
-                 "NOT a daemon restart (that blinds the staleness detector to the checkout gap) "
-                 "and NOT a checkout from a worktree (other lanes hold uncommitted work there).")
+    # THE TWO NEVER-DOS, printed on every difference and not inside any one provenance state.
+    # They are true whatever the live bytes turn out to be -- a daemon restart never advances a
+    # checkout, and a worktree checkout is never the door -- and folding them into the `head`
+    # remedy would have deleted them from the three states where somebody is most likely to reach
+    # for one of them.
+    lines.append("[live-hook] whatever follows, it is NOT a daemon restart (that blinds the "
+                 "staleness detector to the checkout gap) and NOT a checkout from a worktree "
+                 "(other lanes hold uncommitted work there).")
+    lines.extend(provenance_lines(d.provenance))
     return "\n".join(lines)
 
 
