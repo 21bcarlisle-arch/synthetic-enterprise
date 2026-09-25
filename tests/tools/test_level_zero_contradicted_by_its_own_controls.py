@@ -877,3 +877,108 @@ def test_the_denominator_counts_THE_PARTITION_and_not_the_whole_live_map(monkeyp
         "the denominator counted rows `assess` never grades -- level>0 and loop_stage!=build are "
         "outside the partition by the same predicate")
     assert payload["graded"] == 0
+
+
+# --------------------------------------------------------------------------- #
+# A MIXED set is graded on the atom's own half                                 #
+# --------------------------------------------------------------------------- #
+
+def test_a_row_naming_ONE_control_its_own_build_wrote_is_GRADED_though_another_predates_it(
+        tmp_path: Path):
+    """KNIFE3's live shape, and the defect that made the whole pass return zero graded rows.
+
+    THE DEFECT. Until 2026-09-25 a single predating entry refused the row entire. An atom that
+    EXTENDS an existing suite always names one: KNIFE3 names twelve controls, nine written after
+    the row by its own build and three older because they already existed and it cut into them.
+    Nine pieces of the atom's own evidence were discarded for three that carry none, and on the
+    live map every one of the 28 rows in the partition came back ungradable.
+
+    THE MUTATION THIS FIRES ON. Restore `if predating:` in place of `if predating and not
+    atom_own:` and this row lands in `ungradable` under CONTROL_PREDATES_ROW, which is what the
+    assertion below names. The runner is rigged to pass so that the age branch is the only thing
+    that can decide the verdict -- if the branch is deleted outright the row is contradicted and
+    this test stays green, which is why it is written alongside the two below and not alone.
+    """
+    (tmp_path / "test_older.py").write_text("def test_x():\n    assert True\n")
+    (tmp_path / "test_mine.py").write_text("def test_y():\n    assert True\n")
+    atoms = [_atom("KNIFE3_shape", scope=["test_older.py", "test_mine.py"])]
+    contradicted, ungradable = lz.assess(
+        atoms, root=tmp_path, runner=_runner({("test_older.py", "test_mine.py"): (True, "2 passed")}),
+        ages=_ages(predating={"KNIFE3_shape": ["test_older.py"]}))
+    assert [u["reason"] for u in ungradable] == [], (
+        "a row with one control its own build wrote was thrown away for naming an older one too")
+    assert [c["id"] for c in contradicted] == ["KNIFE3_shape"]
+
+
+def test_a_row_whose_controls_ALL_predate_it_is_still_ungradable_ENTIRE(tmp_path: Path):
+    """The other side of the same partition, and the leg that keeps the relaxation honest.
+
+    H41's shape: BOTH named suites were on disk before the row was minted, so nothing in the set
+    is this atom's own evidence and there is nothing to grade it on. The mutation this fires on is
+    dropping `predating and` from the condition, or widening `atom_own` to include the predating
+    entries -- either makes this row CONTRADICTED on the strength of suites that were passing
+    before the atom existed, which is the 2026-09-06 defect the age branch was written for.
+    """
+    (tmp_path / "test_old_a.py").write_text("def test_x():\n    assert True\n")
+    (tmp_path / "test_old_b.py").write_text("def test_y():\n    assert True\n")
+    atoms = [_atom("H41_shape", scope=["test_old_a.py", "test_old_b.py"])]
+    contradicted, ungradable = lz.assess(
+        atoms, root=tmp_path, runner=lambda *a, **k: (True, "41 passed"),
+        ages=_ages(predating={"H41_shape": ["test_old_a.py", "test_old_b.py"]}))
+    assert contradicted == []
+    assert [(u["reason"], u["paths"]) for u in ungradable] == [
+        (lz.CONTROL_PREDATES_ROW, ["test_old_a.py", "test_old_b.py"])]
+
+
+def test_a_PREDATING_control_that_FAILS_still_silences_a_mixed_row(tmp_path: Path):
+    """The anti-loosening leg, and the one the relaxation above is only safe because of.
+
+    A predating control may silence a row; it may never refuse one. So the whole named set is
+    still run and still has to pass -- the mixed row is graded, and its verdict here is SILENCE
+    because the older suite is red. The mutation this fires on is `runner(atom_own or controls,
+    ...)` (the obvious way to write the relaxation): that runs the one atom-own control, sees it
+    pass, and refuses a level move for an atom whose own scope is red -- a refusal earned by
+    dropping the evidence against it, which is the failure this whole module exists to name.
+
+    THE RUNNER ANSWERS ANY SUBSET, deliberately. Keyed on the exact tuple it would raise KeyError
+    under that mutation, and the test would go red on the lookup rather than on the assertion --
+    green-adjacent, and indistinguishable in the log from the leg actually holding. Measured
+    2026-09-25: the first draft did exactly that.
+    """
+    for name in ("test_older.py", "test_mine.py"):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    atoms = [_atom("MIXED_RED", scope=["test_older.py", "test_mine.py"])]
+
+    def run_any_subset(paths, root=None, timeout_s=0):
+        return (("test_older.py" not in tuple(paths)), "{} run".format(len(tuple(paths))))
+
+    contradicted, ungradable = lz.assess(
+        atoms, root=tmp_path, runner=run_any_subset,
+        ages=_ages(predating={"MIXED_RED": ["test_older.py"]}))
+    assert contradicted == [], "a mixed row was refused while a control in its own scope was red"
+    assert ungradable == [], "silence is the verdict here, not an ungradable row"
+
+
+def test_an_UNDATABLE_control_beside_an_atom_own_one_is_still_PROVENANCE_UNKNOWN(tmp_path: Path):
+    """The relaxation is scoped to AGE, and this is what stops it leaking into provenance.
+
+    The age relaxation above opens a mixed set to grading. Provenance must NOT get the parallel
+    relaxation, and nothing in the age branch gives it one: the `if undatable:` leg fires on ANY
+    undatable entry, whatever else the row names.
+
+    THE MUTATION THIS FIRES ON, and it is not the one the first draft named. That draft claimed
+    the leg was carried by subtracting `undatable` from `atom_own`, and mutating that subtraction
+    away was GREEN -- an equivalence, because the provenance leg had already fired by then. The
+    dead term is gone and the real mutation is relaxing the provenance leg the same way the age
+    leg was relaxed: `if undatable and not atom_own:`. That is the edit a reader who had just
+    written the age relaxation would reach for, and this row is then graded on a set holding a
+    control the tree could not date -- the fail-open reading `PROVENANCE_UNKNOWN` exists to forbid.
+    """
+    for name in ("test_undated.py", "test_mine.py"):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    atoms = [_atom("MIXED_UNDATED", scope=["test_undated.py", "test_mine.py"])]
+    contradicted, ungradable = lz.assess(
+        atoms, root=tmp_path, runner=lambda *a, **k: (True, "2 passed"),
+        ages=_ages(undatable={"MIXED_UNDATED": ["test_undated.py"]}))
+    assert contradicted == []
+    assert [u["reason"] for u in ungradable] == [lz.PROVENANCE_UNKNOWN]
