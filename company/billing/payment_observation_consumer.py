@@ -146,6 +146,12 @@ from company.billing.arrears_engine import (
     age_balance,
     age_open_items,
     ageing_buckets,
+    collections_snapshot,
+)
+from company.crm.account_hierarchy import Segment
+from company.crm.churn_model import (
+    ARREARS_STATE_UNKNOWN,
+    arrears_state_from_collections,
 )
 from company.interfaces.crossing_conversation import (
     ConversationRegister,
@@ -1933,6 +1939,67 @@ class PaymentObservationConsumer:
                 aged.items(), key=lambda item: (item[1][1], item[0])
             )
         ]
+
+    #: How a run's segment string names itself to `collections_snapshot`. RESIDENTIAL is the
+    #: fallback because this book is overwhelmingly domestic AND because the segment only selects a
+    #: DUNNING PATH here -- it does not touch `undisputed_overdue_gbp`, which is the one field the
+    #: arrears state reads, so an unrecognised segment cannot change the answer.
+    _AR_SEGMENTS = {
+        "resi": Segment.RESIDENTIAL,
+        "residential": Segment.RESIDENTIAL,
+        "micro_sme": Segment.MICRO_SME,
+        "sme": Segment.SME,
+        "SME": Segment.SME,
+        "ic": Segment.IC,
+        "I&C": Segment.IC,
+    }
+
+    def arrears_state(
+        self,
+        account_id: str,
+        as_of: dt.date,
+        previous_as_of: dt.date,
+        segment: str = "resi",
+    ) -> str:
+        """Where this account stands on THIS COMPANY's receivable, as one of
+        `churn_model.ARREARS_STATES`.
+
+        THE READ LIVES HERE AND NOT IN THE HARNESS, and that is an epistemic-wall fact rather
+        than a filing preference. A bridge module that imported `arrears_engine` and `churn_model`
+        to do this itself would create `simulation.run_phase2b -> company.billing.arrears_engine`
+        and `-> company.crm.churn_model` -- two edges the wall-crossing register has already
+        RULED CUT, one of which died in `15125f388` and would have come back. Inside `company/`
+        the same three imports are company-to-company and cross nothing. The harness asks; it does
+        not assemble.
+
+        `previous_as_of` IS REQUIRED AND HAS NO DEFAULT. Ofgem CIM w6 Table 56's positive column
+        is "keeping up is getting HARDER" -- a DIRECTION, which no single reading of any ledger
+        can be (`churn_model.arrears_state_from_collections`). What the right interval is depends
+        on how often the caller's book bills, which this class does not know and must not guess: a
+        default here would be a window nobody chose, applied to every caller. The SAME ledger is
+        read at both dates rather than a stored copy, so the two readings are one bookkeeping on
+        two clocks.
+
+        An account this company holds no ledger for returns `unknown`. An empty ledger reads zero
+        overdue, and calling that `no_debt` would hand Table 56's 0.79x -- a claim that this
+        household shops LESS than average -- to a household nobody has ever billed.
+        """
+        if account_id not in self.ledger_book.accounts():
+            return ARREARS_STATE_UNKNOWN
+        ar_segment = self._AR_SEGMENTS.get(segment, Segment.RESIDENTIAL)
+        return arrears_state_from_collections(
+            self._collections_view(account_id, ar_segment, as_of),
+            self._collections_view(account_id, ar_segment, previous_as_of),
+        )
+
+    def _collections_view(self, account_id: str, segment: Segment, as_of: dt.date) -> dict:
+        """This account's collections snapshot at one date, off this company's own ledger."""
+        return collections_snapshot(
+            self.ledger_book.ledger(account_id),
+            segment,
+            accounting_model_is_open_item=segment.is_business,
+            as_of=as_of,
+        )
 
     def snapshot(
         self,
