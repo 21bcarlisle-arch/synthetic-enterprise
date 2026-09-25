@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 55 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
+**Instances:** 56 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 55 instances
+## The 56 instances
 
 - `SEAT_FINDING_A_LIVE_RECORD_IS_TRACKED_SO_EVERY_WORKTREE_READS_A_TWO_MONTH_OLD_PLACEHOLDER_AS_LIVE_STATE_2026-09-16.md` — BLOCKING
 - `SEAT_FINDING_A_NAMED_PATH_SEGMENT_IS_THE_ONE_DOOR_BOTH_ORACLES_WERE_BLIND_TO_2026-09-15.md` — LATENT
@@ -21,6 +21,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md` — RECORDED
 - `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md` — BLOCKING
 - `SEAT_FINDING_THE_HERE_RELATIVE_VOCABULARY_IS_AN_UNBOUNDED_ALLOW_LIST_2026-09-19.md` — BLOCKING
+- `SEAT_FINDING_THE_LIVE_HOOK_REPORT_CLAIMS_THE_WHOLE_CHAIN_WHILE_ITS_SUBJECT_IS_TWO_FILES_AND_TWO_OF_25_MODULES_DIFFER_2026-09-25.md` — BLOCKING
 - `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md` — BLOCKING
 - `SEAT_FINDING_THE_REFUTED_HANDOFF_WON_THE_DRAW_BECAUSE_ITS_CORRECTION_USED_A_NEW_ID_2026-09-03.md` — LATENT
 - `SEAT_FINDING_THE_SAME_KEY_IS_NOT_A_SYMBOL_BLIND_SPOT_NOW_REFUSES_TO_CLEAN_A_REVERT_IT_ONCE_OFFERED_TO_CREATE_2026-09-24.md` — BLOCKING
@@ -68,7 +69,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**228.0 recorded episode-hours** across 4 of the 55 instances; largest single recorded episode **146h**; 9 instance(s) name a published figure in scope.
+**228.0 recorded episode-hours** across 4 of the 56 instances; largest single recorded episode **146h**; 9 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -79,12 +80,13 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-13 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+14 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_FINDING_A_LIVE_RECORD_IS_TRACKED_SO_EVERY_WORKTREE_READS_A_TWO_MONTH_OLD_PLACEHOLDER_AS_LIVE_STATE_2026-09-16.md`
 - `SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT_2026-09-24.md`
 - `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md`
 - `SEAT_FINDING_THE_HERE_RELATIVE_VOCABULARY_IS_AN_UNBOUNDED_ALLOW_LIST_2026-09-19.md`
+- `SEAT_FINDING_THE_LIVE_HOOK_REPORT_CLAIMS_THE_WHOLE_CHAIN_WHILE_ITS_SUBJECT_IS_TWO_FILES_AND_TWO_OF_25_MODULES_DIFFER_2026-09-25.md`
 - `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md`
 - `SEAT_FINDING_THE_SAME_KEY_IS_NOT_A_SYMBOL_BLIND_SPOT_NOW_REFUSES_TO_CLEAN_A_REVERT_IT_ONCE_OFFERED_TO_CREATE_2026-09-24.md`
 - `SEAT_FINDING_THE_WHOLE_TREE_SUBJECT_CENSUS_IS_BLIND_TO_A_GIT_ORACLED_POPULATION_AND_TO_THE_TEST_CORPUS_2026-09-22.md`
