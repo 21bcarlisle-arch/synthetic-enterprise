@@ -928,6 +928,51 @@ def _class_members(body: list[ast.stmt], prefix: str = "") -> set[str]:
     return out
 
 
+def _imports_at_any_scope(body: list[ast.stmt]) -> set[str]:
+    """Every name an `import` binds anywhere in the tree, function bodies included.
+
+    WHERE AN IMPORT SITS IS A STYLE CHOICE, NOT ADDED CAPABILITY, and reading it as capability is
+    how a pure revert was graded holder work. `_bound_names` answers "what does importing this
+    module supply", so module scope is right for it and it must stay that way -- `symbol_landing_
+    check` asks exactly that question. Rule 2 asks a different one: *does this copy supply a name
+    the base lacks*, i.e. is there work here to keep. A base that imports `prc` inside each of the
+    four functions that use it already HAS the name `prc`; a stale copy whose sole difference is
+    spelling that import once at module scope supplies nothing, and must be graded a REPLACEMENT.
+
+    MEASURED, and it was load-bearing on the publish path rather than latent (2026-09-24).
+    `tests/background/test_publish_gate_wedge_draw.py` stood 49 insertions against 171 DELETIONS
+    versus `origin/main` -- a draft from before two landings -- and was one of exactly two paths
+    holding the shared checkout 33 commits behind. `gains_over` returned `('prc',)`, so `judge_copy`
+    said `refused_supplies_names_head_lacks`: *"it is holder work ... land hunk(s) 1"*. Origin binds
+    `prc` FOUR times, at function scope, at lines 838/1260/1282/1314. Walking that door would have
+    committed a redundant module-level import and left the revert in the tree, and `--base-wins`
+    excludes `SUPPLIES_NEW` on purpose, so the one copy with no real gain had no door at all.
+
+    `cut_of` DOES NOT COVER THIS, which is why the false verdict reached the surface: it is the
+    escape hatch for a name the base deleted deliberately, and it resolves the base's history
+    through this same module-scope reader. Origin's history never bound `prc` at module scope, so
+    `cut_of` honestly returned `None` and the copy fell through to holder work.
+
+    IMPORTS ONLY, not every nested binding. The claim above is narrow and true of imports: an
+    import's scope is placement. A local variable, or a function defined inside another, is not --
+    counting those would let a base that happens to bind a matching name anywhere silence a real
+    gain, and this set gates a door that DESTROYS BYTES. Genuine added work still surfaces: new
+    top-level functions and methods come through `_bound_names`/`_class_members`, and the lines a
+    refresh would discard are printed for the operator either way.
+    """
+    out: set[str] = set()
+    for node in ast.walk(ast.Module(body=body, type_ignores=[])):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                out.add(alias.asname or alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                # A star-import can supply anything; `_bound_names` records it as `*` and this
+                # agrees rather than pretending the scope is empty.
+                out.add("*" if alias.name == "*" else (alias.asname or alias.name))
+    return out
+
+
 def symbols(text: str, path: str) -> frozenset[str] | None:
     """The names `path`'s content supplies, or `None` when this control has no reader for it.
 
@@ -939,7 +984,8 @@ def symbols(text: str, path: str) -> frozenset[str] | None:
             tree = ast.parse(text)
         except SyntaxError as exc:
             raise Unparseable("{} does not parse: {}".format(path, exc)) from exc
-        return frozenset(_bound_names(tree.body) | _class_members(tree.body))
+        return frozenset(_bound_names(tree.body) | _class_members(tree.body)
+                         | _imports_at_any_scope(tree.body))
     if suffix in PAGE_SUFFIXES:
         found: set[str] = set()
         for pattern in _PAGE_ANCHORS:

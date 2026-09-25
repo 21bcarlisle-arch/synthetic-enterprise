@@ -278,6 +278,7 @@ rather than repeated.
 
 ---
 
+
 ## 2026-09-24 20:25 — remedy step 2 is RUN. The answer is "step 1 was not the load-bearing step", and the ahead leg is a FLOW, not a state.
 
 `deploy_restart.checkout_drift()` on the shared tree, measured across one turn:
@@ -438,3 +439,292 @@ would fail-closed on every sound preservation — the same defect this commit re
 through the remedy. The scanned text is also not Python source: it is `git log`'s stdout.
 
 So the row is frozen with that reason, which is the refusal's stated second option. Floor 379 → 380.
+
+<!-- CONFLICT RESOLVED 2026-09-25 by the delivery seat. Two lanes each appended a step-2
+     write-up at this same point in two histories; surgical_land refused the merge rather
+     than picking one. BOTH sections are kept, in timestamp order (the 20:25 run above, the
+     re-run below), because either side dropped would lose a lane's record of real work.
+     Nothing was edited inside either section. -->
+
+## 2026-09-24, step 2 re-run — THE PRE-REGISTERED PREDICTION HOLDS, and the residue is 2 rather than 5 because origin moved past three of them. One of the two is now repaired at the oracle; the other has no door and that is what `contains_origin` is still waiting on.
+
+**The prediction is graded first, because it was written before the answer.** §"Not established" above
+predicted that remedy 1 alone "clears at most 2 of 5 residue paths, and the advance is all-or-nothing,
+so **the honest prediction is that it does not**" advance the tree. **Confirmed.** `contains_origin`
+is still `False` at the end of this turn. It was right about the conclusion and wrong about the
+arithmetic, and the arithmetic is the interesting part.
+
+### The residue is 2, not 5, and the draw carried the stale count
+
+Measured this turn on the shared tree, `checkout_drift()` → `{'behind': 33, 'ahead': 4,
+'contains_origin': False, 'gap_paths': 55}`. `paths_blocking_fast_forward` returns **11**, and the
+classes partition them completely:
+
+| class | count | who clears it |
+|---|---|---|
+| `identical_tracked_twins` | 3 | the reconciler's own sweep, unattended |
+| `identical_untracked_twins` | 6 | the reconciler's own sweep, unattended |
+| **residue** | **2** | needs a door |
+
+Three of the five paths this document named as residue — `site/test_the_book_is_bounded_by_compute_
+reaches_the_reader.py`, `tests/background/test_harden_rung_pass_ceiling.py`,
+`tests/tools/test_discovery_pass_ceiling.py` — are now **byte-identical to `origin/main`** and grade
+`already_at_head` against it. They did not get fixed; **origin moved to where the copies already
+were.** A residue count is a function of a base that moves, so it decays on its own, and the draw
+that carried "5" and named `tools/refresh_to_head.py` (itself now identical to HEAD) was reading a
+count that had aged. *This is the same shape as `feedback: a residue whose size is a function of the
+remedy must be recounted after the landing, not before` — except the mover was the trunk, not a
+remedy.*
+
+### Residue path 1 — REPAIRED AT THE ORACLE, and the false verdict was pointing at a destructive door
+
+`tests/background/test_publish_gate_wedge_draw.py` graded
+`refused_supplies_names_head_lacks`: *"this copy SUPPLIES 1 name(s) origin/main does not have, so it
+is ... holder work. Use `isolate_hunks --survey` and land hunk(s) 1."* The name was `prc`.
+
+**Origin binds `prc` four times, at function scope** (lines 838/1260/1282/1314), and the copy is 49
+insertions against **171 deletions** — a draft from before two landings. One variable, with a placebo:
+
+```
+symbols('def f():\n    from background import process_run_complete as prc\n    return prc\n', 'x.py')
+  -> ['f']          # the function-scope import is INVISIBLE
+symbols('from background import process_run_complete as prc\n', 'x.py')
+  -> ['prc']        # the module-scope spelling of the same import is not
+```
+
+`stale_copy_refusal.symbols()` walked `tree.body` only. So the copy's redundant module-level spelling
+of a name origin already holds read as capability origin lacked — and because `--base-wins` excludes
+`SUPPLIES_NEW` by design, **the one blocker with nothing worth keeping was the one with no door at
+all.** `cut_of` does not cover it either: it resolves the base's history through the same module-scope
+reader, and origin's history never bound `prc` at module scope, so it honestly returned `None`.
+
+Landed this turn: `_imports_at_any_scope()` in `tools/stale_copy_refusal.py`, folded into `symbols()`
+beside `_bound_names` and `_class_members`. `_bound_names` is **not** widened — it answers *"what does
+importing this module supply"*, which is `symbol_landing_check`'s question and module scope is right
+for it. **Imports only, not every nested binding**, and that boundary is the safety argument: an
+import's scope is placement, a local variable's existence is not, and this set licenses a door that
+overwrites bytes, so widening past imports fails in the byte-destroying direction.
+
+Mutation-proven, each leg by the mutation written for it — contributor removed reds the FUNCTION-scope
+leg; filter widened to any `ast.Name` reds the IMPORTS-ONLY leg. The first leg's anti-tautology arm is
+keyed to the **old reader**, not to a word from the live case.
+
+Effect, measured after the change: that path now grades `[refreshable]` — *"supplies no name
+origin/main lacks ... origin/main strictly supersedes it"*.
+
+**The 48 lines a refresh discards were read, not waved through.** They are the redundant import plus
+one banner comment block; origin carries the same argument folded into
+`test_a_spent_wedge_stops_drawing_once_its_failures_age_out_of_the_window`'s docstring, which is the
+later landed form. What is genuinely only in the copy is the 2026-09-06 measurement line
+("three failures at 18:04/18:07/18:33Z"), about a defect since fixed and documented — and it is
+recoverable from the preserved commit. That is the sign-off this tool asks its operator for and it is
+recorded here rather than implied.
+
+### Residue path 2 — NO DOOR, and this is now the only thing between the tree and `contains_origin`
+
+`tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`,
+`refused_head_does_not_supersede_it`. Asked directly rather than taken from the earlier entry:
+
+```
+git diff --numstat origin/main -- <path>   ->  4  6
+```
+
+and filtering the diff for lines that are not `#`-comments leaves **nothing**. The entire difference
+from origin, in both directions, is a comment — origin's is the newer landed one (it describes the
+stub-drift repair), the copy's is the older draft. No symbol moves, no behaviour moves, and the clock
+has no complaint, so every rule in the module honestly declines. That is exactly
+`SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT_2026-09-24.md`,
+and it has gone from latent to **the single remaining blocker on the publish path**. Forcing it is
+`git checkout <path>` with a nicer name and is refused here for the reason the module gives.
+
+**Pre-registered, before anyone runs it:** clearing residue path 2 is sufficient — the other 9 are
+twins the sweep clears unattended and path 1 is now refreshable — so the next turn that gives that
+copy a door should see `contains_origin` go `True` in the same run. If it does not, the sweep's own
+all-or-nothing rule is hiding a tenth blocker and that is the finding, not the door.
+
+### Two reds standing on the shared worktree, both established NOT mine by a placebo arm
+
+Each was re-run with this turn's two files reverted to HEAD, and each reproduced unchanged:
+
+1. `tests/architecture/test_a_test_module_imports_a_name_that_exists.py` dies
+   `FileNotFoundError` on `tests/tools/test_the_clock_could_not_answer_was_read_as_no_complaint.py`.
+   `git status` grades that path ` D` — **tracked at HEAD and on origin, deleted in the working tree
+   and the deletion unstaged.** A test module red at HEAD makes its file uneditable by any lane
+   (`SEAT_FINDING_A_TEST_MODULE_WITH_A_RED_AT_HEAD_IS_UNEDITABLE_BY_ANY_LANE_2026-09-24.md`), and
+   this one is red for a file nobody committed a deletion of.
+2. The frozen ruff census reds at `{'I001': 1305} != {'I001': 1306}` — one **below** frozen, which is
+   the equality biting on an absent file rather than on new lint. Already live as
+   `WORKER_FINDING_THE_RUFF_CENSUS_REDS_IN_THE_SHARED_WORKTREE_AND_IS_CLEAN_AT_HEAD_2026-09-24.md`.
+   Checked and **not** caused by the ` D` path above: that file carries no `I001` at HEAD.
+
+### What this turn did NOT do
+
+Advance the tree. `contains_origin` is `False`, so by this item's own machine grade the direction is
+**not** done, and it is handed on with the residue at 1 and that one named. Step 4 —
+`GATE_RUNNING` starving the reconciler — is still untouched.
+
+### CORRECTION, found mid-turn and it refutes this item's framing including my own pre-registration above
+
+A concurrent lane in a linked worktree (pid 2920133, `surgical_land --content`, started 20:02) has
+measured the **binding** cause, and it is not the residue at all:
+
+```
+promote_worktree_landing:  REFUSED: 13203ed91 carries no verifying surgical_land receipt,
+                           so it was not gated
+```
+
+Two of the four ahead commits carry no receipt — `13203ed91` ("delivery seat: direction for the next
+stretch") and `61b67fa0d` (a daemon liveness heartbeat, which is a daemon's own commit, not a seat's).
+**An ungated commit anywhere in the ahead leg makes the entire leg unpromotable by construction,
+permanently, however clean the working tree becomes.** The tree is DIVERGED, so no fast-forward is
+possible until the ahead leg reaches origin — and the ahead leg cannot reach origin at all.
+
+**So my pre-registration two sections up is REFUTED, and I am leaving it above rather than revising
+it.** I predicted that giving residue path 2 a door would take `contains_origin` to `True` in the same
+run. It would not have: resolving every residue path leaves the tree diverged with an unpromotable
+ahead leg. I was measuring a real blocker on the wrong leg of an `and`. That the residue work is
+*necessary* does not make it *sufficient*, and I asserted sufficiency from a count.
+
+This also explains the recurrence honestly for the first time: 48 refusals with cause `behind_origin`
+over 65.7h, and every turn that attacked the contested dirty paths was working a leg that could not
+have closed it. The reconciler's own `NOT_ADVANCED ... pushed: True` was telling the truth in both
+halves and nothing read the second half.
+
+**What survives from this turn unchanged:** the `symbols()` scope repair is a defect on the trunk,
+measured and mutation-proven, and it stands on its own — a false `holder work` verdict routes an
+operator to `surgical_land --content`, which would land a 171-line revert's base plus a redundant
+import. It is worth having whether or not it was on the critical path, and it was not.
+
+**The next subject is the ungated ahead leg, not the residue.** The rival lane is enacting the
+re-land-as-content route now; nothing should start a second copy of it.
+
+### WHAT THE `symbols()` REPAIR WIDENS IN THE UNATTENDED PATH, asked because I nearly assumed it did not
+
+The repair was reached through `--base-wins`, so the tempting reading is that it only changes what a
+person can force. **It does not, and the honest check was to grade the path without the flag:**
+
+```
+refresh_to_head --base origin/main <path>     # no --base-wins
+  -> [refreshable]  "rival copy: supplies no name origin/main lacks, and the stale-copy control
+                     refuses it [strict_symbol_subset]. origin/main strictly supersedes it."
+```
+
+`origin_reconcile` calls `judge_copy(project, path, base="origin/main")` with no `base_wins`, requires
+`REFRESHABLE`, and then calls `refresh(..., write=True)`. So this copy is now in the class the
+reconciler **discards unattended**, where before it was refused.
+
+That is the right population: this copy supplies nothing origin lacks *and* drops names origin has
+(`strict_symbol_subset`), which is a stale rival by both rules, and auto-refreshing it is exactly what
+the class exists for. The repair moved it out of a false verdict and into a correct one.
+
+**The residual hole, stated rather than left for the reader.** A copy whose only gain is a
+module-level import *and* which edits an existing function body to use it now auto-refreshes, where
+the accidental `SUPPLIES_NEW` refusal used to put it in front of a person. The body edit is
+recoverable from the preserved commit, but nobody is asked.
+
+**This is not a hole the repair opened.** A copy that edits a function body and adds no import is
+*already* auto-refreshed today when rule 2 complains — rule 1 has never read function bodies, and the
+module says so in `_discarded_lines`' own docstring. What the repair removes is a coincidental shield
+over one narrow subset, not a guard. Widening rule 1 to read function bodies is a separate and much
+larger question, and it is **not established** that it should be: it would have to distinguish an edit
+from a revert without a clock, which is the problem this whole module exists because of.
+
+### THE AHEAD LEG CLOSED MID-TURN, and that makes the residue load-bearing again rather than beside the point
+
+The rival lane's `--content` re-land succeeded while this turn was gating. Measured immediately after:
+
+```
+git rev-list --left-right --count HEAD...origin/main   ->   0   34
+deploy_restart.checkout_drift()  ->  {'behind': 34, 'ahead': 0, 'contains_origin': False,
+                                      'gap_paths': 46}
+```
+
+**`ahead` is 0.** The tree is no longer DIVERGED — it is purely behind, and a fast-forward is now
+possible for the first time in this whole sequence. So the correction I wrote above is right about
+what was binding *and* it has already been discharged, and the consequence is that the residue paths
+are now the only thing left. **Both halves of the `and` were real; the other one just closed first.**
+
+Blockers re-measured on the new base — 13, and the partition has moved:
+
+| class | count |
+|---|---|
+| `identical_tracked_twins` | 3 |
+| `identical_untracked_twins` | 6 |
+| **residue** | **4** |
+
+Two of those four are **this turn's own in-flight work** (`tools/stale_copy_refusal.py`,
+`tests/tools/test_stale_copy_refusal.py`), dirty because the landing was still in the gate when the
+count was taken. They clear when it lands and reaches origin. *A residue count taken while your own
+commit is gating includes your own commit — recording it because the number is otherwise unreadable
+by the next session.*
+
+So the standing residue is **2**, and after the refresh this turn's repair licenses it is **1**:
+`tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py`, whose entire
+difference from origin is a comment.
+
+**Pre-registered, replacing the prediction the correction above refuted:** with the ahead leg closed,
+the twins swept and path 1 refreshed, `contains_origin` goes `True` exactly when that last
+comment-only copy is resolved — and on the merits it must resolve in **origin's** favour, because
+origin's comment is the later landed one describing the stub-drift repair and the working copy's is the
+earlier draft. Two routes exist and only one is legal: extending the stale-copy control to see a landed
+comment (the named door, and the durable fix), or committing the copy and settling it as a merge
+conflict — which reaches the same place through a sanctioned resolution rather than `git checkout`, but
+lands a documentation regression first. **Do not force it with `--base-wins`**: `judge` has no
+complaint about that copy, so rule 2 is unsatisfied and the flag does not reach it by design.
+
+### CLOSING STATE OF THIS TURN, by the machine and not by my having done work
+
+`cfb5f34c4` landed ("the base spelled its import inside the function, so a pure revert was graded
+holder work and had no door") and is bound to `advance-the-checkout-and-let-the-publisher-publish`.
+The refresh it licensed then ran for real:
+
+```
+refresh_to_head --base origin/main --write --slug residue-path-1-wedge-draw-2026-09-24
+  ✅ refreshed 1 path(s); preserved as refs/preserved/refresh-to-head/... (a6e6cef89)
+  recover with: git log --all -S 'WIDENED FROM A STRING GREP TO THE AST (2026-09-17), ...'
+```
+
+The `-S` recovery leg **passed** here, so the probe defect named in the previous entry's remedy 1 is
+still live on the trunk and simply did not bite on this path — its probe line is absent from HEAD too.
+That remedy stays open; nothing in this turn addressed it.
+
+Re-measured immediately after:
+
+```
+checkout_drift()  ->  {'behind': 34, 'ahead': 1, 'contains_origin': False, 'gap_paths': 46}
+blockers 10  |  tracked twins 3  |  untracked twins 6  |  RESIDUE 1
+  RESIDUE: tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py
+```
+
+**Residue 5 → 1 over the turn, and the pre-registration above is confirmed on its numbers:** the
+twins are all sweep-clearable, path 1 is cleared, and the single remaining blocker is the comment-only
+copy. `ahead: 1` is this turn's own gated commit.
+
+### DONE was defined as `contains_origin: True`, and it is NOT met. Saying so plainly.
+
+By the item's own machine grade this direction is **not finished**. `contains_origin` is `False`, and
+it is false for exactly one path now instead of a partition nobody had separated. The publisher's next
+attempt will still record `behind_origin`.
+
+**Why I did not force the last one.** `judge` has no complaint about that copy — its whole difference
+from origin is a comment — so rule 2 is unsatisfied, `--base-wins` does not reach it by construction,
+and every other door lands the revert. The two legal routes are both real pieces of work:
+
+1. **Extend the stale-copy control to see a landed comment** — the durable fix, and the subject of
+   `SEAT_FINDING_NO_RULE_IN_THE_STALE_COPY_MODULE_CAN_SEE_A_COPY_WHOSE_ONLY_LOSS_IS_A_LANDED_COMMENT_2026-09-24.md`,
+   which has gone from latent to **the single remaining blocker on the publish path**. It is closer
+   than it looks: `_trivial(ln, comments_are_evidence=True)` already exists in the clock's own line
+   selection, so the module has a notion of a comment being evidence when nothing else is. It still
+   needs a rule that separates a *landed* comment from an *edited* one without a trustworthy clock —
+   and the clock here is untrustworthy for a known reason
+   (`SEAT_FINDING_A_STASH_POP_RESTAMPED_321_FILES_AND_DEFEATED_THE_STALE_COPY_CLOCK_BY_38_SECONDS`).
+2. Commit the copy and settle it as a merge conflict in origin's favour. Mechanically available and
+   legal, and it lands a documentation regression as an intermediate commit. Worse than (1) and
+   recorded so the next session does not have to re-derive that it is available.
+
+**I deliberately did not half-build (1).** A control over a byte-destroying door, built with the
+context left in a bounded turn, is how this repository acquires controls that cannot fail — and this
+document already carries one instance of exactly that being caught and repaired.
+
+**Step 4 is still untouched:** `GATE_RUNNING` starving the reconciler. With the ahead leg closed and
+the residue at 1, it is now the second-order subject rather than the third.

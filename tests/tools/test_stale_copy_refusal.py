@@ -124,6 +124,64 @@ def test_a_lost_method_is_seen_and_a_module_level_reader_would_miss_it(repo: Pat
         "if the module-level reader already tells these apart, _class_members is dead weight")
 
 
+def test_an_import_the_base_binds_at_FUNCTION_scope_is_not_a_name_the_copy_supplies() -> None:
+    """THE DEFECT: a pure revert graded HOLDER WORK because the base spelled its import locally.
+
+    `tests/background/test_publish_gate_wedge_draw.py`, on the shared tree, 2026-09-24: 49
+    insertions against 171 DELETIONS versus `origin/main`, and one of exactly two paths holding the
+    checkout 33 commits behind. `gains_over` returned `('prc',)` and `judge_copy` said
+    `refused_supplies_names_head_lacks` -- *"it is holder work ... land hunk(s) 1"*. Origin binds
+    `prc` four times, at FUNCTION scope. The module-scope reader could not see one of them, so the
+    copy's redundant module-level spelling read as capability the base lacked, and `--base-wins`
+    excludes `SUPPLIES_NEW` by design, so the one blocker with nothing to keep had NO door at all.
+
+    The second assertion is the anti-tautology arm and it is keyed to the OLD READER, not to a word
+    from the case above: if `_bound_names | _class_members` already separated these two texts, the
+    new contributor is dead weight and this leg would be proving the base case.
+    """
+    base = ("def alpha():\n    from background import process_run_complete as prc\n"
+            "    return prc.THING\n")
+    copy = ("from background import process_run_complete as prc\n\n\n"
+            "def alpha():\n    return prc.THING\n")
+    assert scr.gains_over(base, copy, "m.py") == (), (
+        "the copy supplies NO name the base lacks -- the base imports `prc` inside `alpha`. Graded "
+        "as a gain, a copy with nothing to keep is refused `SUPPLIES_NEW`, which `--base-wins` "
+        "does not reach, and the path wedges every fast-forward with no door out"
+    )
+    old_reader = ast.parse(base).body, ast.parse(copy).body
+    assert (_bound_names(old_reader[0]) | scr._class_members(old_reader[0])) != (
+        _bound_names(old_reader[1]) | scr._class_members(old_reader[1])), (
+        "if the module-level reader already calls these equal, `_imports_at_any_scope` is dead "
+        "weight and this leg proves nothing"
+    )
+
+
+def test_only_IMPORTS_count_at_inner_scope_because_the_set_gates_a_door_that_destroys_bytes() -> None:
+    """THE BOUNDARY, and it is the whole safety argument for the leg above.
+
+    An import's SCOPE is placement; a local variable's existence is not. If every nested binding
+    counted, a base that happens to bind a matching name anywhere -- a loop variable, a helper
+    defined inside another function -- would silence a REAL gain, and this set licenses
+    `refresh_to_head`, which overwrites the copy. So widening past imports fails in the
+    byte-destroying direction, and the mutation that proves the boundary is swapping the
+    `ast.Import`/`ast.ImportFrom` filter for "any binding".
+    """
+    base = "def alpha():\n    helper = 1\n    return helper\n"
+    copy = "helper = 2\n\n\ndef alpha():\n    return helper\n"
+    assert "helper" in scr.gains_over(base, copy, "m.py"), (
+        "a module-level `helper` is not the same thing as a local named `helper` in one function: "
+        "counting inner NON-import bindings would grade this copy as having nothing to keep and "
+        "license a refresh over it"
+    )
+    assert "prc" in scr._imports_at_any_scope(
+        ast.parse("def a():\n    import x as prc\n").body), "imports at inner scope must count"
+    assert "*" in scr._imports_at_any_scope(
+        ast.parse("def a():\n    from m import *\n").body), (
+        "a star-import can supply anything; agreeing with `_bound_names`' wildcard keeps this "
+        "fail-closed-shaped rather than reading the scope as empty"
+    )
+
+
 def test_an_unreadable_suffix_yields_no_opinion_and_never_an_empty_set(repo: Path) -> None:
     """VACUITY. Folded to an empty set, both sides compare equal, no strict subset exists, and the
     path is waved through WHILE LOOKING CHECKED -- useless without ever being fail-open.

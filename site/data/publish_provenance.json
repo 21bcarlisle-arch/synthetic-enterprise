@@ -12,32 +12,32 @@
     "open_findings": 13
   },
   "last_verified": {
-    "generated_at": "2026-09-24T01:11:54Z",
-    "git_commit": "26d4120ab",
+    "generated_at": "2026-09-24T23:07:18Z",
+    "git_commit": "430e5b00e",
     "population": {
       "accounts": 244,
       "bills": 10595,
       "total_revenue_gbp": 717273.65
     },
-    "run_id": "run_output_26d4120ab_20260924T002107Z.json",
+    "run_id": "run_output_430e5b00e_20260924T221416Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-24T01:11:54Z"
+    "verified_at": "2026-09-24T23:07:18Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=e664b5720; blocking tests: FAILED tests/background/test_the_liveness_surfaces_refusals_left_only_an_orphaned_log_line.py::test_a_wedged_tree_and_a_hot_origin_are_told_apart_in_the_record",
-  "paused_since": "2026-09-24T03:36:32Z",
+  "paused_reason": "scoped publish-path suite red at git=8e40bb205; blocking tests: FAILED tests/background/test_a_live_record_read_from_a_linked_worktree_reads_the_shared_tree.py::test_the_supervisors_wedge_draw_sees_the_live_failures_not_the_committed_placeholder",
+  "paused_since": "2026-09-25T01:20:14Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-24T01:11:54Z",
-    "git_commit": "26d4120ab",
+    "generated_at": "2026-09-24T23:07:18Z",
+    "git_commit": "430e5b00e",
     "population": {
       "accounts": 244,
       "bills": 10595,
       "total_revenue_gbp": 717273.65
     },
-    "run_id": "run_output_26d4120ab_20260924T002107Z.json",
+    "run_id": "run_output_430e5b00e_20260924T221416Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-24T01:11:54Z"
+    "verified_at": "2026-09-24T23:07:18Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-24T06:51:17Z"
+  "written_at": "2026-09-25T01:20:14Z"
 }

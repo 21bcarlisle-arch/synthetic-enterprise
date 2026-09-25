@@ -434,6 +434,247 @@ def test_live_evaluation_watches_a_nonempty_daemon_set_and_can_be_green():
         assert set(files) <= code_closure.closure_for_session(session)
 
 
+# ── Is the INSTRUMENT alive? (2026-09-24) ──────────────────────────────────────
+#
+# Everything above derives its verdict FROM the boot stamps, so a dead stamper makes all of it
+# vacuous rather than clean -- and that is measured history, not a hypothetical: from 2026-09-04 to
+# 2026-09-18 the units' declared ExecStartPre exited 0 and wrote nothing, and `loaded_code_drift`
+# read the resulting stamps as valid for twenty days.
+#
+# `test_the_units_own_declared_stamp_command_stamps` above already proves the REPO's generated unit
+# stamps. It cannot prove the BOX's installed unit does, and the box is where daemons boot: on
+# 2026-09-24 the repair was at HEAD while the daemons restarted 7m18s before it reached the disk
+# they read. These controls cover `probe_declared_stamper`, which asks the installed side, live,
+# WITHOUT needing a restart -- because the stamping population (12 long-lived daemons, newest start
+# 07:10:34) and the restarting population (7 short jobs, none declaring a stamp line) are disjoint,
+# so a restart-triggered signal over them goes dark by construction.
+
+
+def _unit_dir(tmp_path, command: str, sessions=("sanity-daemon", "supervisor")):
+    """Installed-unit fixtures. The command is written into ExecStartPre exactly as systemd would
+    hold it, prefix and all, so the parser is tested against the real setting shape."""
+    d = tmp_path / "units"
+    d.mkdir(exist_ok=True)
+    for s in sessions:
+        (d / f"{s}.service").write_text(
+            "[Service]\n"
+            f"ExecStartPre=-{command} {s}\n"
+            "ExecStart=/usr/bin/python3 -m background.thing\n")
+    return d
+
+
+def _fake_run(returncode=0, writes=None, raises=None):
+    """A stand-in for the subprocess call. `writes` is the record dict the command 'writes' into
+    the throwaway SE_BOOT_DIR -- so the oracle under test really is 'did a file appear', not
+    'what did the fake return'."""
+    def run(argv, env):
+        if raises is not None:
+            raise raises
+        if writes is not None:
+            import pathlib
+            p = pathlib.Path(env["SE_BOOT_DIR"]) / "sanity-daemon.json"
+            p.write_text(writes if isinstance(writes, str) else json.dumps(writes))
+        return subprocess.CompletedProcess(argv, returncode, "", "boom\n")
+    return run
+
+
+def test_a_stamper_that_exits_zero_and_writes_nothing_is_named_silent(tmp_path):
+    """THE DEFECT THIS EXISTS FOR, and the reason the oracle is a FILE and not an exit code.
+
+    Measured 2026-09-24 by running `3ecf355d8:background/boot_sha.py` exactly as the unit declares
+    it: **exit 0, zero files written**. Every check that existed graded the declaration or the exit
+    status, and both were healthy for the whole twenty days. `silent` is the verdict that had no
+    name, which is why nothing could report it.
+    """
+    d = _unit_dir(tmp_path, "/usr/bin/python3 -m background.boot_sha")
+    r = R.probe_declared_stamper(unit_dir=d, run=_fake_run(returncode=0, writes=None))
+    assert r["verdict"] == "silent"
+    assert r["ok"] is False, "exit 0 with no stamp is the twenty-day defect, not a pass"
+
+
+def test_a_stamper_that_writes_a_record_with_a_sha_is_the_only_thing_called_works(tmp_path):
+    d = _unit_dir(tmp_path, "/usr/bin/python3 -m background.boot_sha")
+    r = R.probe_declared_stamper(unit_dir=d,
+                                 run=_fake_run(writes={"session": "sanity-daemon", "sha": "abc123def"}))
+    assert (r["verdict"], r["ok"]) == ("works", True)
+    # a stamp with no SHA is NOT working: it exists and dates nothing, so every drift verdict
+    # derived from it is unanswerable. Distinct verdict, because the remedy differs (git in the
+    # daemon's environment, not the stamper).
+    r2 = R.probe_declared_stamper(unit_dir=d, run=_fake_run(writes={"session": "x", "sha": None}))
+    assert (r2["verdict"], r2["ok"]) == ("sha-unknown", False)
+
+
+def test_the_probe_grades_every_way_the_stamper_can_fail_and_they_are_ALL_distinct(tmp_path):
+    """ONE control over the WHOLE partition rather than a leg per branch (CLAUDE.md).
+
+    A probe that returned a single refusal for everything would pass each negative leg above --
+    and it would collapse 'the command is broken' into 'the command is missing', which have
+    different remedies. So assert the partition is genuinely separated, in one place.
+    """
+    d = _unit_dir(tmp_path, "/usr/bin/python3 -m background.boot_sha")
+    verdicts = {
+        "works": R.probe_declared_stamper(unit_dir=d, run=_fake_run(writes={"sha": "a1"})),
+        "silent": R.probe_declared_stamper(unit_dir=d, run=_fake_run(writes=None)),
+        "failed": R.probe_declared_stamper(unit_dir=d, run=_fake_run(returncode=1)),
+        "sha-unknown": R.probe_declared_stamper(unit_dir=d, run=_fake_run(writes={"sha": ""})),
+        "unreadable": R.probe_declared_stamper(unit_dir=d, run=_fake_run(writes="}not json{")),
+        "unprobed": R.probe_declared_stamper(unit_dir=d, run=_fake_run(raises=OSError("no exec"))),
+        "undeclared": R.probe_declared_stamper(unit_dir=tmp_path / "empty", run=_fake_run()),
+    }
+    got = {name: r["verdict"] for name, r in verdicts.items()}
+    assert got == {k: k for k in got}, f"the partition collapsed: {got}"
+    # …and exactly one of them is a pass. `ok` derived from the OK verdict alone is what makes a
+    # verdict added later not-ok BY CONSTRUCTION, instead of fail-open until someone updates a list.
+    assert [n for n, r in verdicts.items() if r["ok"]] == ["works"]
+
+
+def test_an_absent_or_unreadable_unit_directory_is_a_refusal_never_a_pass(tmp_path):
+    """FAIL CLOSED. 'No unit declares the stamper' is the deployment having LOST the declaration --
+    the loudest possible state -- and an empty dict read as 'no faults found' is exactly the
+    fail-silent shape R15 names."""
+    for where in (tmp_path / "does-not-exist", tmp_path / "empty"):
+        r = R.probe_declared_stamper(unit_dir=where, run=_fake_run(writes={"sha": "a"}))
+        assert (r["verdict"], r["ok"]) == ("undeclared", False)
+        assert r["declaring_units"] == 0
+    assert R.declared_stamp_argv(tmp_path / "does-not-exist") == {}
+
+
+def test_the_argv_is_parsed_out_of_the_unit_text_with_systemds_prefixes_stripped(tmp_path):
+    """Keyed to the PROPERTY ('whatever the unit declares is what gets run'), not to today's
+    spelling. A probe that retyped the command would keep passing after a rename -- which is the
+    precise shape of the check that stayed green through the twenty days."""
+    d = _unit_dir(tmp_path, "-@/opt/py3.13/bin/python3 -m background.boot_sha")
+    argv = R.declared_stamp_argv(d)["sanity-daemon.service"]
+    assert argv == ["/opt/py3.13/bin/python3", "-m", "background.boot_sha", "sanity-daemon"], argv
+    seen = []
+    R.probe_declared_stamper(
+        unit_dir=d,
+        run=lambda a, e: seen.append(a) or subprocess.CompletedProcess(a, 0, "", ""))
+    assert seen[0] == argv, "the probe must run the PARSED argv, not a retyped one"
+    # a unit with no stamp line contributes nothing -- the population is the declaring units
+    (d / "no-stamp.service").write_text("[Service]\nExecStart=/usr/bin/python3 -m background.x\n")
+    assert "no-stamp.service" not in R.declared_stamp_argv(d)
+
+
+def test_twelve_units_declaring_one_command_cost_one_probe_not_twelve(tmp_path):
+    """The live box has 12 declaring units and the probe runs the real stamper, which hashes ~430
+    dirty blobs per call. Collapsing identical shapes is what keeps this cheap enough to run on
+    every health cycle -- and a probe too slow to run on a cadence is a probe that only answers at
+    a restart, which is the gap this whole mechanism exists to close."""
+    sessions = tuple(f"d{i}" for i in range(12))
+    d = _unit_dir(tmp_path, "/usr/bin/python3 -m background.boot_sha", sessions=sessions)
+    calls = []
+    R.probe_declared_stamper(
+        unit_dir=d,
+        run=lambda a, e: calls.append(a) or subprocess.CompletedProcess(a, 0, "", ""))
+    assert len(calls) == 1, f"expected the 12 spellings to collapse to one shape, ran {len(calls)}"
+    # …and a genuinely DIFFERENT command is a different shape, so the collapse cannot hide one.
+    (d / "odd.service").write_text(
+        "[Service]\nExecStartPre=-/usr/bin/python3.9 -m background.boot_sha odd\nExecStart=/x\n")
+    calls.clear()
+    R.probe_declared_stamper(
+        unit_dir=d,
+        run=lambda a, e: calls.append(a) or subprocess.CompletedProcess(a, 0, "", ""))
+    assert len(calls) == 2, f"a distinct interpreter must be probed separately, ran {len(calls)}"
+
+
+def test_a_broken_stamper_reaches_the_health_surface_as_a_PROBLEM_not_a_footnote():
+    """The direction's own exit condition: break the stamper deliberately and show the refusal
+    surfaces somewhere something READS. `health_check.run_health_check` is that place.
+
+    Anti-tautology: the same report with the stamper WORKING must NOT produce the line, or this
+    asserts nothing about the stamper -- it would pass against a health check that printed the
+    warning unconditionally.
+    """
+    from unittest import mock
+
+    from background import health_check
+
+    base = {"head": "abc", "population": ["sanity-daemon"], "stale": [], "stale_detail": {},
+            "unresolved": {}, "misdeclared": [], "vacuous": False}
+
+    def surface(stamper):
+        report = {**base, "stamper": stamper}
+        with mock.patch.object(R, "evaluate_boot_sha_drift", lambda: report):
+            _ok, ok_lines, problems = health_check.run_health_check()
+        return problems, ok_lines
+
+    problems, ok_lines = surface({"verdict": "silent", "ok": False, "declaring_units": 12,
+                                  "probes": [], "detail": "exited 0 and wrote no boot record"})
+    hit = [ln for ln in problems if "BOOT STAMPER" in ln]
+    assert hit, f"a dead stamper must be a PROBLEM line; problems were {problems}"
+    assert "silent" in hit[0] and "exited 0 and wrote no boot record" in hit[0], hit[0]
+    assert not [ln for ln in ok_lines if "BOOT STAMPER" in ln]
+
+    problems, ok_lines = surface({"verdict": "works", "ok": True, "declaring_units": 12,
+                                  "probes": [], "detail": "stamped at abc123"})
+    assert not [ln for ln in problems if "BOOT STAMPER" in ln], "green stamper must not warn"
+    assert [ln for ln in ok_lines if "boot stamper" in ln], ok_lines
+
+    # A report from a caller that predates the field must not read as a PASS by its absence --
+    # but it must not invent a fault either. It is simply silent, and the `"stamper" in` test
+    # (rather than a truthiness test) is what makes that true.
+    problems, _ = surface(None)
+    del problems  # nothing asserted about content; the assertion is the next line not raising
+    with mock.patch.object(R, "evaluate_boot_sha_drift", lambda: dict(base)):
+        _ok, _okl, legacy = health_check.run_health_check()
+    assert not [ln for ln in legacy if "BOOT STAMPER" in ln]
+
+
+def test_a_flag_reaching_argv_is_refused_by_name_instead_of_minting_a_junk_session():
+    """THE DEFECT THIS EXISTS FOR, found 2026-09-24 in the boot directory itself:
+    `docs/observability/.daemon_boot/--report.json`, session `--report`, written 2026-08-14.
+
+    `stamp(sys.argv[1])` accepted anything, so a caller passing a FLAG minted a record that sat
+    among the real daemons' for six weeks looking exactly like one of them. A census asking "which
+    daemons have stamped" counted it.
+
+    The refusal NAMES its reason (CLAUDE.md): that is how a wrong refusal gets discovered. And it
+    stays non-blocking -- the unit's leading `-` means a refusal still never stops a daemon
+    booting; it only stops the junk record.
+    """
+    assert boot_sha.is_session_name("sanity-daemon")
+    assert boot_sha.is_session_name("unknown"), "the no-argv fallback must still stamp"
+    for junk in ("--report", "-v", "", "../escape", "a/b"):
+        assert not boot_sha.is_session_name(junk), junk
+
+
+@pytest.mark.real_subprocess   # the refusal must hold for the REAL entrypoint, not just the helper
+def test_the_entrypoint_itself_refuses_a_flag_and_writes_nothing(tmp_path):
+    """The helper above is pure; this is the arm that proves the ENTRYPOINT consults it. Without
+    it, `is_session_name` could be correct and uncalled -- which is precisely how `stamp()` sat
+    with zero production callers for twenty days while its unit tests stayed green."""
+    def run_argv(arg):
+        d = tmp_path / arg.replace("/", "_").replace(".", "_") or "x"
+        d.mkdir(parents=True, exist_ok=True)
+        proc = subprocess.run(["/usr/bin/python3", "-m", "background.boot_sha", arg],
+                              cwd=os.path.dirname(os.path.dirname(os.path.dirname(
+                                  os.path.abspath(__file__)))),
+                              capture_output=True, text=True, timeout=180,
+                              env={**os.environ, "SE_BOOT_DIR": str(d)})
+        return proc, sorted(d.glob("*.json"))
+
+    proc, written = run_argv("sanity-daemon")
+    assert proc.returncode == 0 and len(written) == 1, (proc.returncode, proc.stderr)
+
+    proc, written = run_argv("--report")
+    assert proc.returncode != 0, "a flag must not be stamped silently"
+    assert written == [], f"the junk record was written anyway: {written}"
+    assert "--report" in proc.stderr and "not a session name" in proc.stderr, proc.stderr
+
+
+@pytest.mark.real_subprocess   # the point is the REAL command on the REAL installed units
+@pytest.mark.skipif(not _user_systemd_available(),
+                    reason="could not reach --user systemd (no session bus in this environment)")
+def test_live_the_installed_units_declared_stamper_actually_stamps_on_this_box():
+    """The live arm. This is the one that would have gone red on 2026-09-04, the day of the
+    regression, instead of twenty days later -- and it needs no daemon restart to say so."""
+    r = R.probe_declared_stamper()
+    assert r["declaring_units"] > 0, "no installed unit declares the boot stamper on this box"
+    assert r["verdict"] == "works", f"the installed units' own stamp command: {r['detail']}"
+    assert r["ok"] is True
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live

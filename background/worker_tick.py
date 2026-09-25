@@ -136,6 +136,34 @@ def _content_publish_block() -> dict:
         return {"state": "unknown", "error": f"{exc.__class__.__name__}: {exc}"[:200]}
 
 
+def _toolchain_block() -> dict:
+    """Is the Claude Code this machine runs still close to the published one?
+
+    SAME SHAPE AND SAME REASON as `_content_publish_block` above, one subject along: alive-and-
+    ticking said nothing about whether the TOOLCHAIN had frozen. It had. The auto-updater was
+    disabled on every automated path on 2026-07-09 because its npm call resolved to a root-owned
+    prefix, the note recording that asserted the problem was unpatchable here, and the install sat
+    at 2.1.226 for 78 days -- predating Claude Opus 5.5, so a 20%-cheaper model with 60%-cheaper
+    cache reads could not be selected at all. The only surface still reporting it was the
+    director's console, where it read as cosmetic noise.
+
+    Never raises, and an error is REPORTED rather than swallowed: an absent block reads as
+    'nothing to say', which is indistinguishable from 'current'. Cached (6h) because the tick is
+    frequent and the published version moves at most daily.
+    """
+    try:
+        from background import toolchain_freshness
+        snap = toolchain_freshness.cached_snapshot()
+        snap["stale"] = toolchain_freshness.is_stale(snap)
+        try:
+            toolchain_freshness.raise_if_stale(_snap=snap)
+        except Exception:  # noqa: BLE001 -- notifying must not wedge the tick
+            pass
+        return snap
+    except Exception as exc:  # noqa: BLE001
+        return {"cannot_tell": f"{exc.__class__.__name__}: {exc}"[:200], "stale": None}
+
+
 def _write_heartbeat(decision: "TickDecision", enumeration: str) -> None:
     """Write the origin-verifiable tick heartbeat (see HEARTBEAT_FILE). One line per tick:
     timestamp · verdict(drew/rested/exception) · whole-set enumeration, plus a rolling `recent`
@@ -169,6 +197,10 @@ def _write_heartbeat(decision: "TickDecision", enumeration: str) -> None:
         # UNAVAILABLE is reported as such and never as healthy: a freshness block that silently
         # became {} would restore exactly the all-clear this exists to remove.
         "content_publish": _content_publish_block(),
+        # And the TOOLCHAIN, on the same reasoning one subject along: a tick that is alive and
+        # publishing can still be running a months-old binary that has silently lost capability.
+        # `stale: null` means COULD NOT TELL and is never to be read as current.
+        "toolchain": _toolchain_block(),
     }
     try:
         HEARTBEAT_FILE.parent.mkdir(parents=True, exist_ok=True)

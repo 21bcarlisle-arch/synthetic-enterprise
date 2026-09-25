@@ -41,6 +41,27 @@ fi
 # runs via a user-writable NVM install, so the auto-updater's own npm call
 # resolves to a permission-denied location; that mismatch is inside the
 # closed-source CLI binary, not something this repo can patch directly).
+#
+# THE CAUSE ABOVE IS RIGHT AND THE LAST CLAUSE IS WRONG -- corrected here
+# beside it rather than over it (2026-09-25). Nothing needed patching in the
+# CLI: `npm install -g @anthropic-ai/claude-code` run with NVM'S OWN npm, the
+# one whose prefix is the user-owned NVM directory, updates the running
+# install in 33 seconds with no sudo. Because that clause stood unchallenged,
+# nobody re-asked for 78 DAYS and the install sat at 2.1.226 while the
+# published version reached 2.1.282 -- predating Claude Opus 5.5, so `/model`
+# could not offer a model at 20% lower token cost and 60% cheaper cache reads.
+# Worse, DISABLE_AUTOUPDATER=1 reaches every AUTOMATED path and no shell rc,
+# so the one surface still printing the failure was the director's own
+# console, where it read as cosmetic noise. The suppression covered every
+# reader except the one who could act.
+#
+# The updater stays disabled -- that decision still holds, and the noise it
+# removed was real. What is new is that the resulting FREEZE is now loud:
+# background/toolchain_freshness.py measures installed-vs-published, keeps
+# "cannot tell" distinct from "current", carries the exact fix command, and
+# rides the tick heartbeat so it reaches a reader without a human noticing a
+# warning. If you are here because you found that warning again, read that
+# module before concluding this is unfixable.
 # `tmux set-environment -g` (not a plain shell `export`) is required here --
 # same lesson as the 2026-07-08 NTFY topic rotation: a `tmux new-session`
 # against an already-running server does NOT inherit the calling shell's

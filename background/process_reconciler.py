@@ -645,6 +645,147 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
     return {"stale": stale, "unresolved": unresolved}
 
 
+#: Where systemd user units ACTUALLY live on this box. The probe below reads the INSTALLED copy,
+#: never the text `generate_units.regenerate()` would produce. The generated text is what the repo
+#: declares, and the commit gate already proves that stamps
+#: (`test_the_units_own_declared_stamp_command_stamps`); the installed copy is what systemd will
+#: really run, and it is the only side that can drift without a commit -- which is exactly the gap
+#: measured on 2026-09-24, when the repair was at HEAD and the daemons restarted 7m18s before it
+#: reached the disk they read.
+INSTALLED_UNIT_DIR = Path.home() / ".config" / "systemd" / "user"
+
+#: systemd's ExecStartPre= prefix characters: `-` ignore-failure, `@` set argv0, `+`/`!`/`!!`
+#: privilege. They are part of the SETTING, not of the command, and must come off before exec.
+_EXEC_PREFIXES = "-@+!:"
+
+#: The verdict that means the stamper is alive. `ok` is derived from this ONE value rather than
+#: from a list of bad ones, so a verdict added later is not-ok BY CONSTRUCTION. A fail-open probe
+#: is the failure this whole mechanism exists to stop repeating.
+_STAMPER_OK = "works"
+
+
+def declared_stamp_argv(unit_dir: Path | None = None) -> dict[str, list[str]]:
+    """`{unit_filename: argv}` for every INSTALLED unit whose `ExecStartPre` runs the boot stamper.
+
+    PARSED out of the unit text, never retyped -- keyed to the property ("whatever the unit
+    declares is what gets run"), so renaming the module or changing the interpreter path moves the
+    probe with it instead of leaving it asserting a string nothing executes.
+    """
+    directory = INSTALLED_UNIT_DIR if unit_dir is None else Path(unit_dir)
+    out: dict[str, list[str]] = {}
+    try:
+        units = sorted(directory.glob("*.service"))
+    except Exception:
+        return out
+    for unit in units:
+        try:
+            text = unit.read_text()
+        except Exception:
+            continue
+        for line in text.splitlines():
+            if not line.strip().startswith("ExecStartPre="):
+                continue
+            argv = (line.strip().split("=", 1)[1]).lstrip(_EXEC_PREFIXES).split()
+            if any(a.endswith("boot_sha") or a.endswith("boot_sha.py") for a in argv):
+                out[unit.name] = argv
+                break
+    return out
+
+
+def _stamp_probe_shape(argv: list[str], session: str) -> tuple:
+    """The argv with the unit's own session name blanked, so twelve units declaring the same
+    command in twelve spellings of one session collapse to ONE shape to probe."""
+    return tuple("<session>" if a == session else a for a in argv)
+
+
+def _run_stamp_argv(argv: list[str], env: dict) -> subprocess.CompletedProcess:
+    # cwd matches the units' own `WorkingDirectory=`; without it `-m background.boot_sha` would
+    # resolve against whatever the caller happened to be in and the probe would answer a different
+    # question from the one systemd asks.
+    return subprocess.run(argv, cwd=_HERE.parent, capture_output=True, text=True,
+                          timeout=180, env=env)
+
+
+def _probe_one_stamp_shape(unit: str, argv: list[str], run) -> dict:
+    """Run ONE declared stamp command against a throwaway BOOT_DIR and grade what it did.
+
+    The oracle is a FILE APPEARING IN A TEMP DIRECTORY, not the command's exit status, because the
+    twenty-day defect exited 0 the whole time (measured 2026-09-24: the `__main__`-less blob exits
+    0 and writes nothing). A probe that graded the exit code would have been green throughout.
+    """
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        env = dict(os.environ, SE_BOOT_DIR=td)
+        try:
+            proc = run(argv, env)
+        except Exception as exc:  # noqa: BLE001 -- cannot run != the stamper is fine
+            return {"unit": unit, "verdict": "unprobed", "detail": f"could not run {argv}: {exc}"}
+        written = sorted(Path(td).glob("*.json"))
+        if proc.returncode != 0:
+            err = (proc.stderr or "").strip().splitlines()
+            return {"unit": unit, "verdict": "failed",
+                    "detail": f"exit {proc.returncode}: {err[-1] if err else 'no stderr'}"}
+        if not written:
+            # THE NAMED DEFECT. Exit 0 and nothing written is what ran for twenty days behind a
+            # leading `-`, and it had no name, so nothing could report it.
+            return {"unit": unit, "verdict": "silent",
+                    "detail": "exited 0 and wrote no boot record"}
+        try:
+            record = json.loads(written[0].read_text())
+        except Exception as exc:  # noqa: BLE001
+            return {"unit": unit, "verdict": "unreadable", "detail": f"{written[0].name}: {exc}"}
+        if not record.get("sha"):
+            return {"unit": unit, "verdict": "sha-unknown",
+                    "detail": "stamped, but recorded no SHA -- the stamp cannot date anything"}
+        return {"unit": unit, "verdict": _STAMPER_OK,
+                "detail": f"stamped {written[0].name} at {str(record.get('sha'))[:9]}"}
+
+
+def probe_declared_stamper(unit_dir: Path | None = None, run=None) -> dict:
+    """Does the boot stamper THE INSTALLED UNITS DECLARE actually stamp? Answered by running it.
+
+    THE DEFECT THIS EXISTS FOR. `stamp-predates-process` can only tell a dead stamper from a live
+    one AT A RESTART -- and the stamping population is exactly the population that never restarts.
+    Censused 2026-09-24: of 24 installed units, the 12 that declare the stamper are long-lived
+    daemons whose newest start was 07:10:34, while the 7 that restart several times an hour
+    declare no stamp line at all. The two sets are disjoint, so a restart-triggered signal over
+    them goes dark BY CONSTRUCTION -- and `deploy_restart.restart_plan` correctly HOLDs on
+    `stamp-predates-process`, so nothing in the system will ever restart those 12 on its account.
+
+    This probe needs no restart. It runs on whatever cadence its caller has, which is why it can
+    catch the 2026-09-04 regression on the day it happens rather than at the next reboot.
+
+    NOT the `-` prefix's fault, and the `-` deliberately STAYS. Measured 2026-09-24 by running the
+    historical `__main__`-less blob as the unit declares it: **exit 0, zero files written**.
+    Dropping the `-` promotes only NON-ZERO exits, so it would not have caught one minute of the
+    twenty days -- while converting any future stamper fault into twelve daemons that refuse to
+    start. That trades an observability gap for an outage and still misses this defect. So the
+    failure is reported instead, here, on a surface that is read.
+    """
+    runner = _run_stamp_argv if run is None else run
+    declared = declared_stamp_argv(unit_dir)
+    if not declared:
+        where = INSTALLED_UNIT_DIR if unit_dir is None else unit_dir
+        return {"verdict": "undeclared", "ok": False, "declaring_units": 0, "probes": [],
+                "detail": f"no installed unit under {where} declares the boot stamper"}
+
+    shapes: dict[tuple, tuple[str, list[str]]] = {}
+    for unit, argv in sorted(declared.items()):
+        session = unit[: -len(".service")] if unit.endswith(".service") else unit
+        shapes.setdefault(_stamp_probe_shape(argv, session), (unit, argv))
+
+    probes = [_probe_one_stamp_shape(unit, argv, runner) for unit, argv in shapes.values()]
+    bad = [p for p in probes if p["verdict"] != _STAMPER_OK]
+    worst = bad[0] if bad else probes[0]
+    return {"verdict": worst["verdict"],
+            "ok": not bad,
+            "declaring_units": len(declared),
+            "probes": probes,
+            "detail": f"{worst['unit']}: {worst['detail']}"
+                      + (f" ({len(declared)} unit(s) declare it)" if not bad else "")}
+
+
 def evaluate_boot_sha_drift() -> dict:
     """Live wrapper. Population = OBSERVED systemd daemons; signal = their own loaded modules.
     Returns {head, population, stale, stale_detail, unresolved, misdeclared, vacuous}.
@@ -674,6 +815,11 @@ def evaluate_boot_sha_drift() -> dict:
             "stale_detail": d["stale"],
             "unresolved": d["unresolved"],
             "misdeclared": launcher_drift(entries, observed),
+            # Is the instrument itself alive? Every verdict above is computed FROM the stamps, so
+            # all of them are silently vacuous when nothing writes stamps -- which was true of this
+            # box for twenty days. This one field is the only answer here that does not come
+            # through the channel it is reporting on.
+            "stamper": probe_declared_stamper(),
             "vacuous": bool(any_active and not population)}
 
 
