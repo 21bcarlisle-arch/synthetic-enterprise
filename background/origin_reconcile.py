@@ -1758,9 +1758,22 @@ def main(argv=None) -> int:
               "whichever tree this module was imported from")
         return 1
     if args.check:
+        # BOTH LEGS, OR IT IS NOT A FORK REPORT (2026-09-25). `commits_ahead`'s own docstring --
+        # "Reconcile has to mean BOTH directions or it does not mean agreement" -- was written on
+        # 2026-09-02 after the AHEAD leg was found missing, and it was added to `reconcile`. This
+        # door, whose `--help` says "report the fork, reconcile nothing", went on asking one leg.
+        # Measured the day this was fixed: the 85h publish wedge closed, the publish commit landed
+        # locally with its push deferred on a 30-minute throttle, and `--check` answered
+        # `{"behind": 0}` rc=0 about a tree holding a landing that had never left the machine. A
+        # landing that does not reach origin reads as published and is not.
+        #
+        # AND `None` IS NOT ZERO. `1 if behind else 0` returned 0 -- the code for genuine agreement
+        # -- when the leg was UNREADABLE (origin unfetchable, git unanswerable), which is the one
+        # state where this door knows it cannot answer. Green there is fail-open.
         behind = commits_behind(subject)
-        print(json.dumps({"behind": behind, "subject": str(subject)}))
-        return 1 if behind else 0
+        ahead = commits_ahead(subject)
+        print(json.dumps({"behind": behind, "ahead": ahead, "subject": str(subject)}))
+        return 0 if (behind == 0 and ahead == 0) else 1
     result = reconcile(subject)
     print(json.dumps(result, indent=2) if args.json
           else "{}: {}".format(result["status"], result["detail"]))

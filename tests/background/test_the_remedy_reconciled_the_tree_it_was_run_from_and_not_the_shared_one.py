@@ -19,6 +19,15 @@ It is not only the level comparison: `reconcile` threads `project` into `gate_is
 WHY A NEW FILE. Every other `origin_reconcile` control in `tests/background/` is named for the
 defect it pins, and none of them touches subject SELECTION — they all inject `project` explicitly,
 which is exactly the parameter whose default was wrong, so none could have caught this.
+
+THE SECOND DEFECT IN THE SAME DOOR (2026-09-25), controlled here because it is the same failure at
+the same output: `--check` said something a reader could not tell from agreement. It reported the
+BEHIND leg only, and `commits_ahead` — whose own docstring says "Reconcile has to mean BOTH
+directions or it does not mean agreement" — had been live in `reconcile` since 2026-09-02 and was
+never asked here. One requirement, two implementations, fixed in one. Measured: the 85h publish
+wedge closed, the publish commit landed with its push deferred on a 30-minute throttle, and
+`--check` answered `{"behind": 0}` rc=0 about a tree holding a landing that had never left the
+machine. `1 if behind else 0` also made an UNREADABLE leg exit 0 — the code for agreement.
 """
 
 from __future__ import annotations
@@ -114,3 +123,50 @@ def test_main_ASKS_ABOUT_the_shared_tree_and_names_it(monkeypatch, capsys, tmp_p
     # THE SUBJECT IS PRINTED. A caller who cannot see which tree was answered about cannot tell a
     # true LEVEL from this defect, which is how it survived: the output was indistinguishable.
     assert payload["subject"] == str(main) and payload["behind"] == 3
+
+
+def _check(monkeypatch, capsys, main: Path, *, behind, ahead):
+    """Run `--check` over one real tree with both legs injected, and return (rc, payload).
+
+    The legs are injected rather than built, because the states this partition needs — unreadable
+    origin, a tree ahead but not behind — are states about a REMOTE, and a fixture that fetches
+    would be asserting the network's opinion of them. The TREE is real, so subject selection is
+    still git's answer and not the fixture's.
+    """
+    monkeypatch.setattr(R, "PROJECT_DIR", main)
+    monkeypatch.setattr(R, "commits_behind", lambda project=None: behind)
+    monkeypatch.setattr(R, "commits_ahead", lambda project=None: ahead)
+    rc = R.main(["--check"])
+    return rc, json.loads(capsys.readouterr().out)
+
+
+def test_the_fork_report_names_BOTH_legs_and_an_unpushed_landing_is_not_agreement(
+        monkeypatch, capsys, tmp_path):
+    """The whole partition in one control, so no state can quietly become unreachable.
+
+    `LEVEL` is asserted alongside the three non-agreeing states deliberately: a door that refuses
+    EVERYTHING passes every refusal leg written for it, and this door's rc is the only thing a
+    caller reads. Asserting the four verdicts together is what makes the refusals mean something.
+
+    Fires on: dropping `ahead` from the payload; `return 1 if behind else 0` (ahead-only and both
+    -unreadable states go green); keying the rc to either leg alone.
+    """
+    main, _linked = _repo_with_a_linked_worktree(tmp_path)
+    level_rc, level = _check(monkeypatch, capsys, main, behind=0, ahead=0)
+    ahead_rc, ahead_only = _check(monkeypatch, capsys, main, behind=0, ahead=1)
+    behind_rc, _behind_only = _check(monkeypatch, capsys, main, behind=2, ahead=0)
+    unreadable_rc, unreadable = _check(monkeypatch, capsys, main, behind=None, ahead=None)
+
+    assert (level_rc, ahead_rc, behind_rc, unreadable_rc) == (0, 1, 1, 1), (
+        "the fork report's four states do not separate: level={} ahead_only={} behind_only={} "
+        "unreadable={}. An ahead-only tree holds a landing that never left the machine, and an "
+        "unreadable leg is the one state this door KNOWS it cannot answer -- neither is "
+        "agreement.".format(level_rc, ahead_rc, behind_rc, unreadable_rc))
+    # THE PAYLOAD, NOT ONLY THE CODE. A reader who cannot see the ahead leg cannot tell which of
+    # the two forks they have, which is how the one-leg report survived: rc and text agreed.
+    assert level["ahead"] == 0 and ahead_only["ahead"] == 1, (
+        "`--check` does not name the AHEAD leg, so `behind: 0` reads as reconciled while the tree "
+        "holds unpushed commits of its own: {} / {}".format(level, ahead_only))
+    assert unreadable["behind"] is None and unreadable["ahead"] is None, (
+        "an unreadable leg was rendered as a number, so 'could not tell' is published as a "
+        "measurement: {}".format(unreadable))
