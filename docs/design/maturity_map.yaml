@@ -687,7 +687,10 @@
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
-  file_scope: [saas/reporting/annual_report.py, simulation/customer_events.py, simulation/run_phase2b.py, company/crm/lifecycle_tracker.py, company/crm/acquisition_cohort.py, tools/generate_customers_json.py, site/customers/index.html, site/company/index.html]
+  # 2026-09-25: the two site/ pages were deleted by 03dd8c49e. Repointed by CONSUMPTION, not name:
+  # generate_customers_json (already scoped) writes site/data/customers.json and site/explore/ is the
+  # door that reads it -- the DOOR is named here and the generated json deliberately is not.
+  file_scope: [saas/reporting/annual_report.py, simulation/customer_events.py, simulation/run_phase2b.py, company/crm/lifecycle_tracker.py, company/crm/acquisition_cohort.py, tools/generate_customers_json.py, site/explore/index.html]
   depends_on: [C_supply_start_semantic_separation]
   blocked_on: null
   simplifications_count: 2
@@ -1339,7 +1342,12 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [SITE2_two_sided_wall_exhibit]
-  file_scope: ['site/_redirects', 'site/sitemap.xml', 'site/index.html', 'site/now/index.html', 'site/privacy/index.html', 'site/wip-flow/index.html', 'site/company/index.html', 'tools/generate_capabilities_json.py', 'tools/verify_printed_bill_render.mjs']
+  # 2026-09-25: three named pages were deleted by 03dd8c49e and dropped -- they cannot be renamed.
+  # HALF ONE IS DELIVERED by that commit, not by this row: sitemap.xml has six locs, none /customers/.
+  # Half two (repoint every link) survives only as look_href './customers/#cust-who' in
+  # site/data/{moap_node_atoms,evidence}.json, and nothing under site/ renders look_href -- dead
+  # generated data, not a live 404, so the level stays 0 on evidence rather than on a park.
+  file_scope: ['site/_redirects', 'site/sitemap.xml', 'site/index.html', 'site/privacy/index.html', 'tools/generate_capabilities_json.py', 'tools/verify_printed_bill_render.mjs']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a regulator moving a published register to a new address and leaving every citation of the old one intact -- the redirect exists, and every reader still arrives one bounce late"
 # ── D37..D45 ──────────────────────────────────────────────────────────────────
