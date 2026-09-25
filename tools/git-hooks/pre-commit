@@ -1,4 +1,26 @@
 #!/bin/sh
+# WHICH CHAIN IS THIS, REALLY (2026-09-25). FIRST, and it never refuses -- see below for both.
+#
+# `core.hooksPath` points at the shared tree's WORKING COPY of this directory, so the file you are
+# reading is not necessarily the file git runs. On the day this line was added that checkout was 49
+# commits behind origin/main and `hook_gate_mark --record` -- the last line of this chain, landed
+# the previous day -- ran nowhere. For almost any module a stale checkout DELAYS a fix; for a gate
+# in this chain it DELETES the control, and the commit afterwards reports green having never run
+# it. Nothing in the tree could notice.
+#
+# THIS LINE IS INERT UNTIL THE SHARED CHECKOUT ADVANCES, and that is said here rather than
+# discovered later: it is read from the same working copy it grades, so on the day it landed it
+# ran in `surgical_land`'s extract and nowhere else. That is exactly why it is NOT the only wiring
+# -- `tools/surgical_land.py` calls the same reporter from the COMMITTING tree, which is a channel
+# the outage cannot silence. This line is what covers the other door, `git commit`, from the first
+# commit the shared tree makes after it catches up.
+#
+# IT REPORTS AND DOES NOT REFUSE. The remedy is the reconciler advancing the shared checkout, which
+# no lane can do from inside its own commit, and a control that reds every lane for a state its
+# reader cannot act on is a control that gets switched off. `--gate` is there for a caller that has
+# decided otherwise; nothing passes it. R15-proven in tests/tools/test_live_hook_drift.py.
+python3 -m tools.live_hook_drift || true
+
 # If docs/status/LATEST.md is staged, auto-stamp its "Last updated:" line to
 # the current UTC time and re-stage it. This makes the timestamp a fact about
 # when the commit happened rather than something a human/agent has to
