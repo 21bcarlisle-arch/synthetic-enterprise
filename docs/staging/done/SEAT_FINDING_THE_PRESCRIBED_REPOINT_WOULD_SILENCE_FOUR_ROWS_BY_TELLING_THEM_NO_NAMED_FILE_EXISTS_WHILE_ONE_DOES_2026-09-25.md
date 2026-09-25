@@ -6,6 +6,15 @@ Answers `docs/staging/records/SEAT_PREREG_HOW_MANY_OF_THE_EIGHT_NAMES_ONLY_A_SCO
 Successor to `f0470836e`, which split `CONTROL_NEVER_WRITTEN` and reached `NAMES_ONLY_A_SCOPE`
 through a second branch. This is the same defect one level down, in the branch that commit added.
 
+**DISCHARGED 2026-09-25.** The guard was narrowed to ask whether ANY named file is on disk
+(`61fc300a7`), together with the adjacent `NOTHING_IN_THE_ROW` claim this file said had to be fixed
+in the same pass -- an eighth cause, `SUBJECT_NEVER_WRITTEN`, now stands where the false sentence
+was reachable. Measured over the live map in one process against `HEAD`: **zero rows change**, so
+the latency claim below held exactly. Two of the four rows were then repointed at artefacts their
+own design docs declare and delisted from `LEGACY_UNGRADABLE_BUILD_ROWS` (`0fe3d492b`); `H40` and
+`H48` were REFUSED a repoint in writing, because their deliverable is a record and no filename
+exists to name without inventing one. That refusal is its own finding, filed the same day.
+
 ## The finding
 
 `ungradable_causes` reaches `NAMES_ONLY_A_SCOPE` through two branches, and they describe two
