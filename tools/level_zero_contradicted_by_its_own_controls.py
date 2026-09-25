@@ -613,9 +613,43 @@ def main(argv: list[str] | None = None) -> int:
     contradicted, ungradable = assess(atoms, timeout_s=args.timeout,
                                       budget_s=args.budget)
 
+    # THE DENOMINATOR, and why `contradicted: 0` may not be published without it. Measured on the
+    # live map 2026-09-25: 28 rows in the partition, 28 of them UNGRADABLE, 0 graded -- and the
+    # only numbers on either surface were `{"contradicted": 0, "ungradable": 28}`. The delivery
+    # seat read that `0` as evidence the map was honest, twice, in two findings eight days apart,
+    # and neither asked how many rows had been weighed. `0 of 0 graded` and `0 of 28 graded` are
+    # different facts and the surface printed the same number for both.
+    #
+    # Counted through `is_candidate`, which is the same predicate `assess` filters on: the
+    # partition has one spelling, so a change to who is graded cannot leave the denominator
+    # describing the old population. And counted by MEMBERSHIP rather than by subtraction, so a
+    # caller that hands `main` verdicts about rows outside the partition (the tests do) can never
+    # drive this negative.
+    #
+    # The EXIT CODE deliberately does not move. "Cannot grade this row" is argued in the module
+    # docstring as a finding about the row and not a verdict about the work, and the one caller
+    # this has is an orientation whose brief must arrive. Fail-closed here is a claim on the
+    # SURFACE -- "cannot tell" said out loud, in the place the misread happened -- not a refusal.
+    population = [a for a in atoms if is_candidate(a)]
+    ungraded_ids = {u.get("id") for u in ungradable}
+    graded = sum(1 for a in population if a.get("id") not in ungraded_ids)
+
     if args.json:
-        json.dump({"contradicted": contradicted, "ungradable": ungradable}, sys.stdout, indent=2)
+        json.dump({"contradicted": contradicted, "ungradable": ungradable,
+                   "population": len(population), "graded": graded}, sys.stdout, indent=2)
         sys.stdout.write("\n")
+
+    if population and not args.json:
+        if graded:
+            sys.stderr.write(
+                "\n[level-zero] {} of {} row(s) in the partition were GRADED; {} could not "
+                "be.\n".format(graded, len(population), len(ungradable)))
+        else:
+            sys.stderr.write(
+                "\n[level-zero] ⚠ NOTHING WAS GRADED. All {} row(s) in the partition are "
+                "ungradable, so this pass weighed no evidence: a count of 0 contradicted rows "
+                "here is NOT a verdict about the map, it is \"cannot tell\".\n".format(
+                    len(population)))
 
     if ungradable and not args.json:
         sys.stderr.write(
