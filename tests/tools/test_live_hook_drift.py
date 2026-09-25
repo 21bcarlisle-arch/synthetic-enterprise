@@ -337,3 +337,47 @@ def test_the_hook_line_exists_and_cannot_refuse_a_commit():
     assert not any("--gate" in ln for ln in lines), (
         "the hook must not pass --gate: that turns a condition the committing lane cannot fix "
         "into a refusal it will switch off")
+
+
+def test_an_UNCONFIGURED_repo_is_its_own_verdict_and_not_a_permanent_alarm(tmp_path):
+    """THE DEFECT THIS NAMES, and it was found by this module's own second landing: a repository
+    with no `core.hooksPath` has no working copy to be behind, and `<git-dir>/hooks/pre-commit`
+    is missing in every repo that never installed one -- so the unreadable-hook refusal claimed
+    that state and shouted CANNOT TELL. `surgical_land` builds a standalone extract per landing,
+    so that would have fired on EVERY landing this repository ever makes. A fail-closed message
+    that is correct and permanent is a message nobody reads by the third one.
+
+    It is a third state rather than a silence: an ordinary clone that never ran
+    `install_git_hooks.sh` is running NO gates, and a reader wants that told plainly once.
+
+    MUTATION: delete the `configured_hooks_path(root) is None` short-circuit in `drift` and this
+    reds -- the verdict becomes `undetermined`, which is the alarm that cried wolf.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    assert lhd.configured_hooks_path(repo) is None
+
+    d = lhd.drift(root=repo)
+    assert d.unconfigured is True
+    assert d.undetermined is None, (
+        "an unconfigured repo is NOT an unmade comparison -- there is nothing to compare")
+    assert d.clean is False, "and it is not a clean bill either; it is its own state"
+
+    text = lhd.report(d)
+    assert "core.hooksPath is NOT set" in text
+    assert "install_git_hooks.sh" in text, "the report must name what to do about it"
+    assert "CANNOT TELL" not in text
+
+
+def test_a_CONFIGURED_repo_over_the_same_shape_still_reaches_the_comparison(tmp_path):
+    """The arm that keeps the short-circuit above from swallowing every reading. Same builder,
+    `core.hooksPath` set: the verdict must be a real comparison, not `unconfigured`.
+
+    MUTATION: make `configured_hooks_path` return None unconditionally and this reds.
+    """
+    repo = _repo_with_hooks(tmp_path, live=_without(TRUNK, "hook_gate_mark"))
+    assert lhd.configured_hooks_path(repo) is not None
+    d = lhd.drift(root=repo, reference="HEAD")
+    assert d.unconfigured is False
+    assert d.missing == ["hook_gate_mark"]

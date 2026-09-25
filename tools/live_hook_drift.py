@@ -131,6 +131,27 @@ def invocation_subject(command: str) -> str:
     raise ValueError(f"no subject found in {command!r}")
 
 
+def configured_hooks_path(root: Path = ROOT) -> str | None:
+    """`core.hooksPath` as configured, or None when git is using the repo's own private dir.
+
+    THE DISTINCTION THIS BUYS, and it was paid for on this module's second landing. A repository
+    with no `core.hooksPath` has no working-copy-versus-trunk question at all: git runs
+    `<git-dir>/hooks`, which is not a checkout of anything tracked and cannot be behind. Reporting
+    "CANNOT TELL" there is a fail-closed message that is CORRECT and PERMANENT -- and a warning
+    that fires on every single run is a warning nobody reads by the third one. `surgical_land`
+    builds a standalone extract per landing, so without this the gate would have shouted on every
+    landing this repository ever makes.
+
+    It is a distinct verdict rather than a silence: an ordinary clone that has never run
+    `tools/install_git_hooks.sh` is in exactly this state and IS running no gates at all, which a
+    reader wants told once, plainly.
+    """
+    out = subprocess.run(["git", "config", "--get", "core.hooksPath"], cwd=str(root),
+                         capture_output=True, text=True)
+    value = out.stdout.strip()
+    return value or None
+
+
 def live_hooks_dir(root: Path = ROOT) -> Path:
     """The hooks directory git will ACTUALLY use, asked of git rather than reconstructed.
 
@@ -163,13 +184,16 @@ class Drift:
     bytes_differ: list[str] = field(default_factory=list)
     #: A named reason the comparison could not be made. Never empty alongside a green verdict.
     undetermined: str | None = None
+    #: `core.hooksPath` is not configured, so there is no working copy to be behind. Not a clean
+    #: bill and not an alarm: a third state, because it is neither.
+    unconfigured: bool = False
 
     @property
     def clean(self) -> bool:
         """True only when the comparison was MADE and found nothing. An undetermined verdict is
         not clean: that distinction is the whole of this control's fail-closed behaviour."""
-        return (self.undetermined is None and not self.missing and not self.retired
-                and not self.altered)
+        return (self.undetermined is None and not self.unconfigured and not self.missing
+                and not self.retired and not self.altered)
 
 
 def compare(live_text: str, reference_text: str, *, reference: str = DEFAULT_REFERENCE) -> Drift:
@@ -210,6 +234,11 @@ def drift(root: Path = ROOT, reference: str = DEFAULT_REFERENCE) -> Drift:
         return Drift(reference=reference, undetermined=str(exc))
 
     live_hook = hooks / Path(HOOK_REL).name
+    if configured_hooks_path(root) is None:
+        # Asked BEFORE the hook is read, because the unreadable-hook refusal below would otherwise
+        # claim this state -- and `<git-dir>/hooks/pre-commit` is missing in every repo that never
+        # installed one, which is the commonest reason that file is absent.
+        return Drift(live_path=live_hook, reference=reference, unconfigured=True)
     # THE SUBJECT IS READ FIRST, and the order is load-bearing rather than tidy. Both failures are
     # `undetermined`, so neither is hidden -- but only one of them is ACTIONABLE by the reader, and
     # a reader told "origin/main does not resolve" goes and fetches while the hook git is about to
@@ -251,6 +280,11 @@ def report(d: Drift) -> str:
                      "declares.")
         lines.append(f"[live-hook]   {d.undetermined}")
         return "\n".join(lines)
+    if d.unconfigured:
+        return ("[live-hook] core.hooksPath is NOT set here, so git runs {} -- a private directory "
+                "that is not a checkout of anything tracked and cannot be behind. There is nothing "
+                "to compare. In a real clone this means NO gates run at all: "
+                "`sh tools/install_git_hooks.sh`.".format(d.live_path))
     if d.clean and not d.bytes_differ:
         return (f"[live-hook] the hook chain git will run IS {d.reference}'s, byte for byte "
                 f"({d.live_path}).")
