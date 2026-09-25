@@ -225,12 +225,25 @@ def test_the_supervisors_wedge_draw_sees_the_live_failures_not_the_committed_pla
     stale, live, resolver = stale_and_live
 
     now = time.time()
-    old = now - 4 * 60 * 60                      # older than PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS
-    failures = [{"ts": old + i, "reason": "red", "git_hash": "aaaaaaaaa"} for i in range(5)]
+    # TWO CLOCKS, AND THEY MUST NOT BE ONE VALUE. The wedge's AGE is composed from
+    # `wedge_since`/`alerted_at`; its COUNT is composed from failures the WRITER'S WINDOW still
+    # admits. This fixture stamped both from a single `now - 4h`, which was harmless for as long
+    # as the reader counted the list whole -- and stopped being harmless on 2026-09-24, when
+    # `_failure_is_in_window` began trimming on read. Every failure then fell outside
+    # PUBLISH_GATE_WINDOW_SECONDS, the count went to zero, and the function returned None at the
+    # `len(failures) < MIN` line WITHOUT EVER REACHING the resolver this leg exists to grade. The
+    # leg was red for eleven days and the red was the fixture's, not the redirect's.
+    #
+    # Both bounds are the reader's own objects, imported, never mirrored literals -- so a window
+    # or threshold that moves moves this fixture with it instead of silently emptying it again.
+    wedge_started = now - 4 * sup.PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS   # well over the age bar
+    observed = now - sup.PUBLISH_GATE_WINDOW_SECONDS / 4               # well inside the window
+    failures = [{"ts": observed + i, "reason": "red", "git_hash": "aaaaaaaaa"} for i in range(5)]
 
     (stale / ".publish_gate_state.json").write_text(json.dumps({"alerted_at": None, "failures": []}))
     (live / ".publish_gate_state.json").write_text(
-        json.dumps({"alerted_at": old, "wedge_since": old, "failures": failures}))
+        json.dumps({"alerted_at": wedge_started, "wedge_since": wedge_started,
+                    "failures": failures}))
     # Neither copy of the cross-check names HEAD, so the "a pass superseded these" escape is shut
     # in both worlds -- the ONLY thing that differs between them is the failure list.
     # THE STALE HASH NAMES HEAD, and that is the whole point of this half. A linked worktree is
@@ -245,14 +258,25 @@ def test_the_supervisors_wedge_draw_sees_the_live_failures_not_the_committed_pla
 
     monkeypatch.setattr(sup, "PUBLISH_GATE_STATE_FILE", stale / ".publish_gate_state.json")
     monkeypatch.setattr(sup, "LAST_TESTED_HASH_FILE", stale / ".last_tested_hash")
+
+    # CONTROL ARM, RUN FIRST AND DELIBERATELY: the resolver reverted to the identity it was before
+    # 2026-09-16. Without it this leg cannot tell a working redirect from a fixture that would draw
+    # a wedge off whichever tree it read -- and a leg that cannot tell is how the eleven-day red
+    # above went unread as "the redirect is broken" when the redirect was fine.
+    monkeypatch.setattr(sup, "shared_tree_live_record", lambda path: path)
+    assert sup._publish_gate_wedge_active(now=now, head="deadbeef0") is None, (
+        "THE FIXTURE DOES NOT DISCRIMINATE: the UNREDIRECTED reader drew a wedge from the "
+        "committed placeholder, so the positive assertion below would pass on a resolver that "
+        "redirects nothing")
+
     monkeypatch.setattr(sup, "shared_tree_live_record", resolver)
 
     drawn = sup._publish_gate_wedge_active(now=now, head="deadbeef0")
 
     assert drawn is not None, (
-        "the supervisor's publish-gate wedge draw read git's checked-out placeholder: a gate with "
-        "5 recorded failures four hours old reads as never having failed, so RUNG 1 never fires "
-        "and nothing pages -- the silent direction, which is why this was invisible")
+        "the supervisor's publish-gate wedge draw read git's checked-out placeholder: a gate "
+        "wedged for hours with 5 in-window failures reads as never having failed, so RUNG 1 never "
+        "fires and nothing pages -- the silent direction, which is why this was invisible")
 
 
 def test_the_operational_red_draw_sees_the_live_signal_not_a_frozen_green(
