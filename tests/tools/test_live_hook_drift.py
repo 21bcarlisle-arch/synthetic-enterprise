@@ -630,3 +630,59 @@ def test_the_landing_door_asks_needs_reader_and_not_clean():
     assert "needs_reader" in door, "the landing door must ask the question that sees the patch"
     assert "verdict.clean" not in door, (
         "asking `clean` here is the defect: a hand-patch is clean and the reader hears nothing")
+
+
+def test_a_DIVERGED_checkout_is_told_the_advance_it_is_waiting_for_will_never_run(tmp_path):
+    """THE DEFECT THIS NAMES. Every remedy this module prints for a stale checkout ends in "the
+    reconciler advancing the SHARED checkout". `advance_shared_tree` fast-forwards, and git
+    refuses to fast-forward a diverged branch -- so for a tree holding local commits the trunk
+    does not have, the remedy is an operation that is structurally refused, every time, forever.
+    The reader waits for something that cannot happen and the missing gate goes on not running.
+
+    Measured on the shared tree the day this landed: 9 ahead, `merge-base --is-ancestor HEAD
+    origin/main` false, and the ahead leg itself unpromotable on one receiptless commit.
+
+    Keyed to the PROPERTY (can this checkout fast-forward onto the reference?) and not to a count,
+    so it does not go red the day the shared tree is levelled -- it goes QUIET, which is correct.
+
+    MUTATION: `return None` at the top of `advance_blocked_reason` and this reds on the diverged
+    arm. Returning the reason unconditionally reds the levelled arm below, which is why both are
+    asserted.
+    """
+    repo, texts = _provenance_repo(tmp_path)
+
+    # LEVEL FIRST: `side` is reachable from nothing this branch has diverged onto, so main can
+    # still fast-forward nowhere -- use main against itself for the quiet arm.
+    assert lhd.advance_blocked_reason(repo, "main") is None, (
+        "a checkout that IS the reference blocks nothing, and a line printed here would be the "
+        "alarm-on-every-run this module already paid for once")
+
+    # NOW DIVERGED: `side` has a commit main does not, and main has one side does not.
+    blocked = lhd.advance_blocked_reason(repo, "side")
+    assert blocked is not None, "a diverged checkout cannot fast-forward and must be told so"
+    assert "DIVERGED" in blocked and "ff-only" in blocked
+    assert "will NOT close on its own" in blocked, (
+        "the reader's actual question is whether waiting works; the answer is no and it must be "
+        "in the words, not inferable from them")
+
+    # BOTH REPORT BRANCHES, and the second one is here because the first draft of this control
+    # did not have it: `report` returns early when the chain is clean, so an assertion made only
+    # over a clean verdict was satisfied by the early branch and stayed GREEN when the append was
+    # deleted from the other one. A mutation that does not fire is a missing test until proven an
+    # equivalence, and these two appends are not equivalent -- they are two literals in two
+    # returns, and deleting either leaves a diverged reader unwarned in half the states.
+    hook = repo / "tools" / "git-hooks" / "pre-commit"
+
+    hook.write_text(texts["side"])                      # clean: the early, byte-identical return
+    clean_text = lhd.report(lhd.drift(repo, reference="side"))
+    assert lhd.drift(repo, reference="side").clean, "the premise: this branch IS the clean one"
+    assert "ADVANCE IS NOT AVAILABLE" in clean_text, (
+        "the blocker must reach the same surface as the remedy it overrides -- a caveat in a "
+        "different place from the claim it qualifies is a caveat nobody reads")
+
+    hook.write_text(texts["old"])                       # differs: a gate the reference declares
+    differs = lhd.drift(repo, reference="side")
+    assert not differs.clean and differs.missing, "the premise: this branch is the differing one"
+    assert "ADVANCE IS NOT AVAILABLE" in lhd.report(differs), (
+        "the branch that reports a MISSING gate is the one whose reader is most likely to go and "
+        "wait for the advance, so it is the branch that least affords losing this line")

@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 90 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 91 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 90 instances
+## The 91 instances
 
 - `SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md` — BLOCKING
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md` — BLOCKING
@@ -19,6 +19,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_DIRECTORS_OWN_STAGED_DOCUMENT_WEDGED_EVERY_MERGE_BECAUSE_A_MERGE_MAKES_ANOTHER_AUTHORS_FILE_THIS_COMMITS_OWN_2026-09-05.md` — LATENT
 - `SEAT_FINDING_THE_FIVE_PATH_CONFLICT_CLOSED_BY_ANOTHER_ROUTE_AND_THE_RECONCILER_SPENDS_A_WHOLE_GATE_ON_A_RACE_IT_LOSES_2026-09-05.md` — LATENT
 - `SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md` — BLOCKING
+- `SEAT_FINDING_THE_HOOKS_CHECKOUT_WAITS_FOR_A_FAST_FORWARD_THAT_A_DIVERGED_TREE_CAN_NEVER_PASS_2026-09-25.md` — BLOCKING
 - `SEAT_FINDING_THE_LEVEL_GATE_READS_TWO_DIFFERENT_INDEXES_AND_ONLY_THE_ONE_NO_COMMIT_USES_WAS_RED_2026-09-06.md` — LATENT
 - `SEAT_FINDING_THE_MAPS_INFORMATIVE_SIZE_BOUND_HAS_BEEN_DEAD_SLACK_FOR_297_COMMITS_AND_ONLY_THE_UNINFORMATIVE_ONE_CAN_FIRE_2026-09-17.md` — LATENT
 - `SEAT_FINDING_THE_PATH_THAT_WEDGED_THE_PUBLISHER_WAS_THE_FILE_THE_LANE_REPAIRING_THE_PUBLISHER_WAS_HOLDING_2026-09-04.md` — BLOCKING
@@ -103,7 +104,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**672.2 recorded episode-hours** across 26 of the 90 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
+**672.2 recorded episode-hours** across 26 of the 91 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -136,13 +137,14 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-13 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+14 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md`
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md`
 - `SEAT_FINDING_THE_CHECKOUT_ADVANCE_IS_JUDGED_BY_THE_CHECKOUTS_OWN_CODE_SO_EVERY_RULE_THAT_WOULD_UNWEDGE_IT_IS_INSIDE_THE_PAYLOAD_2026-09-24.md`
 - `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`
 - `SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md`
+- `SEAT_FINDING_THE_HOOKS_CHECKOUT_WAITS_FOR_A_FAST_FORWARD_THAT_A_DIVERGED_TREE_CAN_NEVER_PASS_2026-09-25.md`
 - `SEAT_FINDING_THE_PATH_THAT_WEDGED_THE_PUBLISHER_WAS_THE_FILE_THE_LANE_REPAIRING_THE_PUBLISHER_WAS_HOLDING_2026-09-04.md`
 - `SEAT_FINDING_THE_PUBLISHER_CHECKS_BEHIND_ORIGIN_ONCE_AT_THE_END_OF_A_CYCLE_THE_TREE_OUTRUNS_FIVE_TIMES_OVER_2026-09-04.md`
 - `SEAT_FINDING_THE_REPAIR_THAT_CLEARS_THE_PUBLISH_WEDGE_RUNS_45_MINUTES_BEFORE_THE_GATE_THAT_READS_IT_2026-09-04.md`

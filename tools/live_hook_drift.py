@@ -254,6 +254,41 @@ def owning_checkout(live_hook: Path, root: Path = ROOT) -> Path | None:
     return Path(top) if top else None
 
 
+def advance_blocked_reason(root: Path, reference: str = DEFAULT_REFERENCE) -> str | None:
+    """Why the checkout CANNOT advance on its own, when that is so. None when nothing blocks it.
+
+    WHY THE REMEDY NEEDED A SECOND OPINION. Every branch of `provenance_lines` that ends in "the
+    reconciler advancing the SHARED checkout" assumes that advance is available. It is not always:
+    `background.origin_reconcile.advance_shared_tree` fast-forwards, and git refuses to
+    fast-forward a DIVERGED branch -- "Diverging branches can't be fast-forwarded". A tree holding
+    local commits the reference does not have will therefore never advance, however many times the
+    reconciler runs, and the report was sending the reader to wait for an operation that is
+    structurally refused.
+
+    Measured 2026-09-25 on the shared tree, which is why this is not hypothetical: 9 ahead and
+    3 behind, `git merge-base --is-ancestor HEAD origin/main` false, and the ahead leg itself
+    unpromotable because one commit in it carries neither a `surgical_land` receipt nor a
+    hook-gate mark. So the live hook chain is missing a gate, the remedy on the page was "wait for
+    the reconciler", and waiting was never going to work.
+
+    FAIL-CLOSED: a comparison that cannot be made returns a reason naming that, never None. None
+    is reserved for "asked, and nothing blocks it".
+    """
+    ancestor = _git(root, "merge-base", "--is-ancestor", "HEAD", reference)
+    if ancestor.returncode == 0:
+        return None
+    if ancestor.returncode != 1:
+        return (f"could not tell whether this checkout can fast-forward onto {reference}: "
+                f"{(ancestor.stderr or '').strip()}. Treat the remedy below as unconfirmed.")
+    counts = _git(root, "rev-list", "--left-right", "--count", f"{reference}...HEAD")
+    ahead = counts.stdout.split()[1] if counts.returncode == 0 and counts.stdout.split() else "?"
+    return (f"this checkout has {ahead} commit(s) {reference} does not, so it has DIVERGED and "
+            "cannot fast-forward. The reconciler's advance is `--ff-only`, so it will refuse "
+            "every time it runs and this gap will NOT close on its own. The ahead leg has to "
+            "reach the trunk first -- and if any commit in it carries neither a surgical_land "
+            "receipt nor a hook-gate mark, `promote_worktree_landing` refuses the whole leg.")
+
+
 def live_provenance(live_hook: Path, root: Path = ROOT, rel: str = HOOK_REL,
                     limit: int = PROVENANCE_SCAN_LIMIT) -> Provenance:
     """Which revision, if any, the bytes at `live_hook` are a copy of.
@@ -332,6 +367,10 @@ class Drift:
     #: alongside the byte verdict rather than folded into it: they answer different questions and
     #: the REMEDY follows from this one, not from the other.
     provenance: Provenance | None = None
+    #: Why the checkout cannot advance itself, when that is so. Kept beside the provenance rather
+    #: than inside it: provenance is about the BYTES, this is about the checkout's position, and a
+    #: remedy that names an advance is wrong whenever this is set.
+    advance_blocked: str | None = None
 
     @property
     def needs_reader(self) -> bool:
@@ -426,6 +465,11 @@ def drift(root: Path = ROOT, reference: str = DEFAULT_REFERENCE) -> Drift:
     # with no `core.hooksPath` has no working copy whose provenance could be in question, and
     # bytes that could not be read have none to ask about.
     d.provenance = live_provenance(live_hook, root)
+    owner = owning_checkout(live_hook, root)
+    if owner is not None:
+        # Asked of the OWNING checkout for the same reason the provenance is: the position that
+        # matters is the one of the tree holding the live copy, not the caller's.
+        d.advance_blocked = advance_blocked_reason(owner, reference)
     for rel in TRACKED_HOOKS:
         ref_bytes = _show(root, reference, rel)
         if ref_bytes is None:
@@ -503,7 +547,9 @@ def report(d: Drift) -> str:
         # alongside the green rather than only beside a difference.
         return "\n".join([
             f"[live-hook] the hook chain git will run IS {d.reference}'s, byte for byte "
-            f"({d.live_path}).", *provenance_lines(d.provenance)])
+            f"({d.live_path}).", *provenance_lines(d.provenance),
+            *([f"[live-hook] AND THE ADVANCE IS NOT AVAILABLE: {d.advance_blocked}"]
+              if d.advance_blocked else [])])
     lines.append(f"[live-hook] the hooks git will run live at {d.live_path}, which is a WORKING "
                  f"COPY, and it differs from {d.reference}.")
     if d.missing:
@@ -529,6 +575,8 @@ def report(d: Drift) -> str:
                  "staleness detector to the checkout gap) and NOT a checkout from a worktree "
                  "(other lanes hold uncommitted work there).")
     lines.extend(provenance_lines(d.provenance))
+    if d.advance_blocked:
+        lines.append(f"[live-hook] AND THE ADVANCE IS NOT AVAILABLE: {d.advance_blocked}")
     return "\n".join(lines)
 
 
