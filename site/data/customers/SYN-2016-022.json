@@ -12,10 +12,10 @@
     "bottom_line": "13446226266"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 350.76,
-  "lifetime_gross_gbp": 252.91,
-  "lifetime_net_gbp": 96.29,
-  "lifetime_net_after_cts_gbp": 41.29,
+  "lifetime_revenue_gbp": 331.94,
+  "lifetime_gross_gbp": 232.76,
+  "lifetime_net_gbp": 86.87,
+  "lifetime_net_after_cts_gbp": 31.87,
   "cost_to_serve_gbp": 54.99,
   "pricing_action": {
     "flag": "OK",
@@ -31,8 +31,8 @@
   "forward_looking_account_id": "SYN-2016-022",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 96.29,
-      "revenue_gbp": 350.76
+      "net_gbp": 86.87,
+      "revenue_gbp": 331.94
     },
     "gas": null
   },
@@ -41,16 +41,16 @@
     {
       "year": 2016,
       "revenue_gbp": 0,
-      "gross_gbp": 204.48,
-      "net_gbp": 77.42,
+      "gross_gbp": 188.52,
+      "net_gbp": 69.7,
       "tariff_min": 108.47,
       "tariff_max": 108.47
     },
     {
       "year": 2017,
       "revenue_gbp": 0,
-      "gross_gbp": 48.44,
-      "net_gbp": 18.87,
+      "gross_gbp": 44.24,
+      "net_gbp": 17.16,
       "tariff_min": 108.47,
       "tariff_max": 108.47
     }
@@ -65,33 +65,33 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-022-INV7482",
+      "id": "SYN-2016-022-INV8161",
       "date": "2016-03-31",
       "period_start": "2016-03-15",
       "period_end": "2016-03-31",
       "commodity": "electricity",
-      "consumption_kwh": 114.6,
+      "consumption_kwh": 75.3,
       "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 12.43,
+      "commodity_amount_gbp": 8.17,
       "standing_charge_gbp": 4.07,
       "days_in_period": 17,
       "standing_charge_gbp_per_day": 0.2394,
-      "non_commodity_amount_gbp": 5.96,
-      "vat_gbp": 1.12,
-      "amount_gbp": 23.58,
+      "non_commodity_amount_gbp": 3.91,
+      "vat_gbp": 0.81,
+      "amount_gbp": 16.96,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 114.6,
+      "closing_read_kwh": 75.3,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 114.6,
-          "amount_gbp": 12.43,
+          "consumption_kwh": 75.3,
+          "amount_gbp": 8.17,
           "unit_rate_p_per_kwh": 10.85
         }
       ],
@@ -106,33 +106,33 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7483",
+      "id": "SYN-2016-022-INV8162",
       "date": "2016-04-30",
       "period_start": "2016-04-01",
       "period_end": "2016-04-30",
       "commodity": "electricity",
-      "consumption_kwh": 139.1,
+      "consumption_kwh": 137.5,
       "unit_rate_p_per_kwh": 10.84,
-      "commodity_amount_gbp": 15.08,
+      "commodity_amount_gbp": 14.91,
       "standing_charge_gbp": 7.2,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 7.23,
-      "vat_gbp": 1.48,
-      "amount_gbp": 30.99,
+      "non_commodity_amount_gbp": 7.15,
+      "vat_gbp": 1.46,
+      "amount_gbp": 30.72,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 114.6,
-      "closing_read_kwh": 253.7,
+      "opening_read_kwh": 75.3,
+      "closing_read_kwh": 212.8,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 139.1,
-          "amount_gbp": 15.08,
+          "consumption_kwh": 137.5,
+          "amount_gbp": 14.91,
           "unit_rate_p_per_kwh": 10.84
         }
       ],
@@ -147,33 +147,33 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7484",
+      "id": "SYN-2016-022-INV8163",
       "date": "2016-05-31",
       "period_start": "2016-05-01",
       "period_end": "2016-05-31",
       "commodity": "electricity",
-      "consumption_kwh": 218.1,
+      "consumption_kwh": 203.0,
       "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 23.66,
+      "commodity_amount_gbp": 22.03,
       "standing_charge_gbp": 7.44,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 11.34,
-      "vat_gbp": 2.12,
-      "amount_gbp": 44.56,
+      "non_commodity_amount_gbp": 10.56,
+      "vat_gbp": 2.0,
+      "amount_gbp": 42.03,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 253.7,
-      "closing_read_kwh": 471.8,
+      "opening_read_kwh": 212.8,
+      "closing_read_kwh": 415.8,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 218.1,
-          "amount_gbp": 23.66,
+          "consumption_kwh": 203.0,
+          "amount_gbp": 22.03,
           "unit_rate_p_per_kwh": 10.85
         }
       ],
@@ -188,34 +188,34 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7485",
+      "id": "SYN-2016-022-INV8164",
       "date": "2016-06-30",
       "period_start": "2016-06-01",
       "period_end": "2016-06-30",
       "commodity": "electricity",
-      "consumption_kwh": 207.3,
-      "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 22.49,
+      "consumption_kwh": 193.5,
+      "unit_rate_p_per_kwh": 10.84,
+      "commodity_amount_gbp": 20.98,
       "standing_charge_gbp": 7.2,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 10.78,
-      "vat_gbp": 2.02,
-      "amount_gbp": 42.49,
+      "non_commodity_amount_gbp": 10.06,
+      "vat_gbp": 1.91,
+      "amount_gbp": 40.15,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 471.8,
-      "closing_read_kwh": 679.1,
+      "opening_read_kwh": 415.8,
+      "closing_read_kwh": 609.3,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 207.3,
-          "amount_gbp": 22.49,
-          "unit_rate_p_per_kwh": 10.85
+          "consumption_kwh": 193.5,
+          "amount_gbp": 20.98,
+          "unit_rate_p_per_kwh": 10.84
         }
       ],
       "catchup_applied": false,
@@ -229,34 +229,34 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7486",
+      "id": "SYN-2016-022-INV8165",
       "date": "2016-07-31",
       "period_start": "2016-07-01",
       "period_end": "2016-07-31",
       "commodity": "electricity",
-      "consumption_kwh": 225.4,
-      "unit_rate_p_per_kwh": 10.847,
-      "commodity_amount_gbp": 24.45,
+      "consumption_kwh": 216.9,
+      "unit_rate_p_per_kwh": 10.85,
+      "commodity_amount_gbp": 23.53,
       "standing_charge_gbp": 7.44,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 11.72,
-      "vat_gbp": 2.18,
-      "amount_gbp": 45.79,
+      "non_commodity_amount_gbp": 11.28,
+      "vat_gbp": 2.11,
+      "amount_gbp": 44.36,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 679.1,
-      "closing_read_kwh": 904.5,
+      "opening_read_kwh": 609.3,
+      "closing_read_kwh": 826.2,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 225.4,
-          "amount_gbp": 24.45,
-          "unit_rate_p_per_kwh": 10.847
+          "consumption_kwh": 216.9,
+          "amount_gbp": 23.53,
+          "unit_rate_p_per_kwh": 10.85
         }
       ],
       "catchup_applied": false,
@@ -270,34 +270,34 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7487",
+      "id": "SYN-2016-022-INV8166",
       "date": "2016-08-31",
       "period_start": "2016-08-01",
       "period_end": "2016-08-31",
       "commodity": "electricity",
-      "consumption_kwh": 209.3,
-      "unit_rate_p_per_kwh": 10.846,
-      "commodity_amount_gbp": 22.7,
+      "consumption_kwh": 199.0,
+      "unit_rate_p_per_kwh": 10.844,
+      "commodity_amount_gbp": 21.58,
       "standing_charge_gbp": 7.44,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 10.88,
-      "vat_gbp": 2.05,
-      "amount_gbp": 43.07,
+      "non_commodity_amount_gbp": 10.35,
+      "vat_gbp": 1.97,
+      "amount_gbp": 41.34,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 904.5,
-      "closing_read_kwh": 1113.8,
+      "opening_read_kwh": 826.2,
+      "closing_read_kwh": 1025.2,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 209.3,
-          "amount_gbp": 22.7,
-          "unit_rate_p_per_kwh": 10.846
+          "consumption_kwh": 199.0,
+          "amount_gbp": 21.58,
+          "unit_rate_p_per_kwh": 10.844
         }
       ],
       "catchup_applied": false,
@@ -311,33 +311,33 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7488",
+      "id": "SYN-2016-022-INV8167",
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
       "commodity": "electricity",
-      "consumption_kwh": 205.4,
+      "consumption_kwh": 199.2,
       "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 22.29,
+      "commodity_amount_gbp": 21.61,
       "standing_charge_gbp": 7.2,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 10.68,
-      "vat_gbp": 2.01,
-      "amount_gbp": 42.18,
+      "non_commodity_amount_gbp": 10.36,
+      "vat_gbp": 1.96,
+      "amount_gbp": 41.13,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 1113.8,
-      "closing_read_kwh": 1319.2,
+      "opening_read_kwh": 1025.2,
+      "closing_read_kwh": 1224.4,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 205.4,
-          "amount_gbp": 22.29,
+          "consumption_kwh": 199.2,
+          "amount_gbp": 21.61,
           "unit_rate_p_per_kwh": 10.85
         }
       ],
@@ -352,34 +352,34 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7489",
+      "id": "SYN-2016-022-INV8168",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
       "commodity": "electricity",
-      "consumption_kwh": 224.6,
-      "unit_rate_p_per_kwh": 10.846,
-      "commodity_amount_gbp": 24.36,
+      "consumption_kwh": 214.6,
+      "unit_rate_p_per_kwh": 10.85,
+      "commodity_amount_gbp": 23.28,
       "standing_charge_gbp": 7.44,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 11.68,
-      "vat_gbp": 2.17,
-      "amount_gbp": 45.65,
+      "non_commodity_amount_gbp": 11.16,
+      "vat_gbp": 2.09,
+      "amount_gbp": 43.97,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 1319.2,
-      "closing_read_kwh": 1543.8,
+      "opening_read_kwh": 1224.4,
+      "closing_read_kwh": 1439.0,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 224.6,
-          "amount_gbp": 24.36,
-          "unit_rate_p_per_kwh": 10.846
+          "consumption_kwh": 214.6,
+          "amount_gbp": 23.28,
+          "unit_rate_p_per_kwh": 10.85
         }
       ],
       "catchup_applied": false,
@@ -393,34 +393,34 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7490",
+      "id": "SYN-2016-022-INV8169",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
       "commodity": "electricity",
-      "consumption_kwh": 208.4,
-      "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 22.61,
+      "consumption_kwh": 190.9,
+      "unit_rate_p_per_kwh": 10.843,
+      "commodity_amount_gbp": 20.7,
       "standing_charge_gbp": 7.2,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 10.84,
-      "vat_gbp": 2.03,
-      "amount_gbp": 42.68,
+      "non_commodity_amount_gbp": 9.92,
+      "vat_gbp": 1.89,
+      "amount_gbp": 39.71,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 1543.8,
-      "closing_read_kwh": 1752.2,
+      "opening_read_kwh": 1439.0,
+      "closing_read_kwh": 1629.9,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 208.4,
-          "amount_gbp": 22.61,
-          "unit_rate_p_per_kwh": 10.85
+          "consumption_kwh": 190.9,
+          "amount_gbp": 20.7,
+          "unit_rate_p_per_kwh": 10.843
         }
       ],
       "catchup_applied": false,
@@ -434,34 +434,34 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7491",
+      "id": "SYN-2016-022-INV8170",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
       "commodity": "electricity",
-      "consumption_kwh": 219.4,
-      "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 23.8,
+      "consumption_kwh": 208.0,
+      "unit_rate_p_per_kwh": 10.846,
+      "commodity_amount_gbp": 22.56,
       "standing_charge_gbp": 7.44,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.24,
-      "non_commodity_amount_gbp": 11.41,
-      "vat_gbp": 2.13,
-      "amount_gbp": 44.78,
+      "non_commodity_amount_gbp": 10.82,
+      "vat_gbp": 2.04,
+      "amount_gbp": 42.86,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 1752.2,
-      "closing_read_kwh": 1971.6,
+      "opening_read_kwh": 1629.9,
+      "closing_read_kwh": 1837.9,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 219.4,
-          "amount_gbp": 23.8,
-          "unit_rate_p_per_kwh": 10.85
+          "consumption_kwh": 208.0,
+          "amount_gbp": 22.56,
+          "unit_rate_p_per_kwh": 10.846
         }
       ],
       "catchup_applied": false,
@@ -475,33 +475,33 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7492",
+      "id": "SYN-2016-022-INV8171",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
       "commodity": "electricity",
-      "consumption_kwh": 217.5,
+      "consumption_kwh": 204.5,
       "unit_rate_p_per_kwh": 10.846,
-      "commodity_amount_gbp": 23.59,
+      "commodity_amount_gbp": 22.18,
       "standing_charge_gbp": 7.75,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.25,
-      "non_commodity_amount_gbp": 11.74,
-      "vat_gbp": 2.15,
-      "amount_gbp": 45.23,
+      "non_commodity_amount_gbp": 11.04,
+      "vat_gbp": 2.05,
+      "amount_gbp": 43.02,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 1971.6,
-      "closing_read_kwh": 2189.1,
+      "opening_read_kwh": 1837.9,
+      "closing_read_kwh": 2042.4,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 217.5,
-          "amount_gbp": 23.59,
+          "consumption_kwh": 204.5,
+          "amount_gbp": 22.18,
           "unit_rate_p_per_kwh": 10.846
         }
       ],
@@ -516,33 +516,33 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7493",
+      "id": "SYN-2016-022-INV8172",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
       "commodity": "electricity",
-      "consumption_kwh": 217.5,
+      "consumption_kwh": 204.5,
       "unit_rate_p_per_kwh": 10.846,
-      "commodity_amount_gbp": 23.59,
+      "commodity_amount_gbp": 22.18,
       "standing_charge_gbp": 7.0,
       "days_in_period": 28,
       "standing_charge_gbp_per_day": 0.25,
-      "non_commodity_amount_gbp": 11.74,
-      "vat_gbp": 2.12,
-      "amount_gbp": 44.45,
+      "non_commodity_amount_gbp": 11.04,
+      "vat_gbp": 2.01,
+      "amount_gbp": 42.23,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 2189.1,
-      "closing_read_kwh": 2406.6,
+      "opening_read_kwh": 2042.4,
+      "closing_read_kwh": 2246.9,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 217.5,
-          "amount_gbp": 23.59,
+          "consumption_kwh": 204.5,
+          "amount_gbp": 22.18,
           "unit_rate_p_per_kwh": 10.846
         }
       ],
@@ -557,33 +557,33 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2016-022-INV7494",
+      "id": "SYN-2016-022-INV8173",
       "date": "2017-03-14",
       "period_start": "2017-03-01",
       "period_end": "2017-03-14",
       "commodity": "electricity",
-      "consumption_kwh": 102.6,
+      "consumption_kwh": 96.6,
       "unit_rate_p_per_kwh": 10.85,
-      "commodity_amount_gbp": 11.13,
+      "commodity_amount_gbp": 10.48,
       "standing_charge_gbp": 3.5,
       "days_in_period": 14,
       "standing_charge_gbp_per_day": 0.25,
-      "non_commodity_amount_gbp": 5.54,
-      "vat_gbp": 1.01,
-      "amount_gbp": 5.89,
+      "non_commodity_amount_gbp": 5.22,
+      "vat_gbp": 0.96,
+      "amount_gbp": 3.53,
       "status": "PAID",
       "meter_serial": "M00058094",
       "mpan": "1000000000689",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 2406.6,
-      "closing_read_kwh": 2509.2,
+      "opening_read_kwh": 2246.9,
+      "closing_read_kwh": 2343.5,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 102.6,
-          "amount_gbp": 11.13,
+          "consumption_kwh": 96.6,
+          "amount_gbp": 10.48,
           "unit_rate_p_per_kwh": 10.85
         }
       ],
@@ -592,8 +592,8 @@
       "catchup_period_end": "2017-02-28",
       "catchup_periods_covered": 2,
       "catchup_direction": "overcharge",
-      "catchup_raw_delta_gbp": -15.29,
-      "catchup_adjustment_gbp": -15.29,
+      "catchup_raw_delta_gbp": -16.63,
+      "catchup_adjustment_gbp": -16.63,
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false
     }
@@ -604,18 +604,18 @@
       {
         "date": "2016-04-02",
         "type": "invoice_raised",
-        "invoice_number": 7482,
-        "amount_gbp": 23.58,
+        "invoice_number": 8161,
+        "amount_gbp": 16.96,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7482 raised",
-        "running_balance_gbp": 23.58
+        "description": "Invoice INV8161 raised",
+        "running_balance_gbp": 16.96
       },
       {
         "date": "2016-04-16",
         "type": "payment_received",
-        "invoice_number": 7482,
-        "amount_gbp": -23.58,
+        "invoice_number": 8161,
+        "amount_gbp": -16.96,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -624,18 +624,18 @@
       {
         "date": "2016-05-05",
         "type": "invoice_raised",
-        "invoice_number": 7483,
-        "amount_gbp": 30.99,
+        "invoice_number": 8162,
+        "amount_gbp": 30.72,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7483 raised",
-        "running_balance_gbp": 30.99
+        "description": "Invoice INV8162 raised",
+        "running_balance_gbp": 30.72
       },
       {
         "date": "2016-05-19",
         "type": "payment_received",
-        "invoice_number": 7483,
-        "amount_gbp": -30.99,
+        "invoice_number": 8162,
+        "amount_gbp": -30.72,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -644,18 +644,18 @@
       {
         "date": "2016-06-04",
         "type": "invoice_raised",
-        "invoice_number": 7484,
-        "amount_gbp": 44.56,
+        "invoice_number": 8163,
+        "amount_gbp": 42.03,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7484 raised",
-        "running_balance_gbp": 44.56
+        "description": "Invoice INV8163 raised",
+        "running_balance_gbp": 42.03
       },
       {
         "date": "2016-06-18",
         "type": "payment_received",
-        "invoice_number": 7484,
-        "amount_gbp": -44.56,
+        "invoice_number": 8163,
+        "amount_gbp": -42.03,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -664,18 +664,18 @@
       {
         "date": "2016-07-08",
         "type": "invoice_raised",
-        "invoice_number": 7485,
-        "amount_gbp": 42.49,
+        "invoice_number": 8164,
+        "amount_gbp": 40.15,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7485 raised",
-        "running_balance_gbp": 42.49
+        "description": "Invoice INV8164 raised",
+        "running_balance_gbp": 40.15
       },
       {
         "date": "2016-07-22",
         "type": "payment_received",
-        "invoice_number": 7485,
-        "amount_gbp": -42.49,
+        "invoice_number": 8164,
+        "amount_gbp": -40.15,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -684,18 +684,18 @@
       {
         "date": "2016-08-01",
         "type": "invoice_raised",
-        "invoice_number": 7486,
-        "amount_gbp": 45.79,
+        "invoice_number": 8165,
+        "amount_gbp": 44.36,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7486 raised",
-        "running_balance_gbp": 45.79
+        "description": "Invoice INV8165 raised",
+        "running_balance_gbp": 44.36
       },
       {
         "date": "2016-08-15",
         "type": "payment_received",
-        "invoice_number": 7486,
-        "amount_gbp": -45.79,
+        "invoice_number": 8165,
+        "amount_gbp": -44.36,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -704,18 +704,18 @@
       {
         "date": "2016-09-01",
         "type": "invoice_raised",
-        "invoice_number": 7487,
-        "amount_gbp": 43.07,
+        "invoice_number": 8166,
+        "amount_gbp": 41.34,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7487 raised",
-        "running_balance_gbp": 43.07
+        "description": "Invoice INV8166 raised",
+        "running_balance_gbp": 41.34
       },
       {
         "date": "2016-09-15",
         "type": "payment_received",
-        "invoice_number": 7487,
-        "amount_gbp": -43.07,
+        "invoice_number": 8166,
+        "amount_gbp": -41.34,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -724,18 +724,18 @@
       {
         "date": "2016-10-03",
         "type": "invoice_raised",
-        "invoice_number": 7488,
-        "amount_gbp": 42.18,
+        "invoice_number": 8167,
+        "amount_gbp": 41.13,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7488 raised",
-        "running_balance_gbp": 42.18
+        "description": "Invoice INV8167 raised",
+        "running_balance_gbp": 41.13
       },
       {
         "date": "2016-10-28",
         "type": "payment_received",
-        "invoice_number": 7488,
-        "amount_gbp": -42.18,
+        "invoice_number": 8167,
+        "amount_gbp": -41.13,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -744,18 +744,18 @@
       {
         "date": "2016-11-04",
         "type": "invoice_raised",
-        "invoice_number": 7489,
-        "amount_gbp": 45.65,
+        "invoice_number": 8168,
+        "amount_gbp": 43.97,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7489 raised",
-        "running_balance_gbp": 45.65
+        "description": "Invoice INV8168 raised",
+        "running_balance_gbp": 43.97
       },
       {
         "date": "2016-11-18",
         "type": "payment_received",
-        "invoice_number": 7489,
-        "amount_gbp": -45.65,
+        "invoice_number": 8168,
+        "amount_gbp": -43.97,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -764,18 +764,18 @@
       {
         "date": "2016-12-01",
         "type": "invoice_raised",
-        "invoice_number": 7490,
-        "amount_gbp": 42.68,
+        "invoice_number": 8169,
+        "amount_gbp": 39.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7490 raised",
-        "running_balance_gbp": 42.68
+        "description": "Invoice INV8169 raised",
+        "running_balance_gbp": 39.71
       },
       {
         "date": "2016-12-15",
         "type": "payment_received",
-        "invoice_number": 7490,
-        "amount_gbp": -42.68,
+        "invoice_number": 8169,
+        "amount_gbp": -39.71,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -784,18 +784,18 @@
       {
         "date": "2016-12-31",
         "type": "invoice_raised",
-        "invoice_number": 7491,
-        "amount_gbp": 44.78,
+        "invoice_number": 8170,
+        "amount_gbp": 42.86,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7491 raised",
-        "running_balance_gbp": 44.78
+        "description": "Invoice INV8170 raised",
+        "running_balance_gbp": 42.86
       },
       {
         "date": "2017-01-14",
         "type": "payment_received",
-        "invoice_number": 7491,
-        "amount_gbp": -44.78,
+        "invoice_number": 8170,
+        "amount_gbp": -42.86,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -804,18 +804,18 @@
       {
         "date": "2017-02-06",
         "type": "invoice_raised",
-        "invoice_number": 7492,
-        "amount_gbp": 45.23,
+        "invoice_number": 8171,
+        "amount_gbp": 43.02,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7492 raised",
-        "running_balance_gbp": 45.23
+        "description": "Invoice INV8171 raised",
+        "running_balance_gbp": 43.02
       },
       {
         "date": "2017-02-20",
         "type": "payment_received",
-        "invoice_number": 7492,
-        "amount_gbp": -45.23,
+        "invoice_number": 8171,
+        "amount_gbp": -43.02,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -824,38 +824,38 @@
       {
         "date": "2017-03-04",
         "type": "invoice_raised",
-        "invoice_number": 7493,
-        "amount_gbp": 44.45,
+        "invoice_number": 8172,
+        "amount_gbp": 42.23,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7493 raised",
-        "running_balance_gbp": 44.45
+        "description": "Invoice INV8172 raised",
+        "running_balance_gbp": 42.23
       },
       {
         "date": "2017-03-15",
         "type": "invoice_raised",
-        "invoice_number": 7494,
-        "amount_gbp": 5.89,
+        "invoice_number": 8173,
+        "amount_gbp": 3.53,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7494 raised",
-        "running_balance_gbp": 50.34
+        "description": "Invoice INV8173 raised",
+        "running_balance_gbp": 45.76
       },
       {
         "date": "2017-03-18",
         "type": "payment_received",
-        "invoice_number": 7493,
-        "amount_gbp": -44.45,
+        "invoice_number": 8172,
+        "amount_gbp": -42.23,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 5.89
+        "running_balance_gbp": 3.53
       },
       {
         "date": "2017-03-29",
         "type": "payment_received",
-        "invoice_number": 7494,
-        "amount_gbp": -5.89,
+        "invoice_number": 8173,
+        "amount_gbp": -3.53,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -863,8 +863,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 501.34,
-    "total_collected_gbp": 501.34,
+    "total_billed_gbp": 472.01,
+    "total_collected_gbp": 472.01,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -873,55 +873,55 @@
     "monthly": [
       {
         "month": "2016-03",
-        "kwh": 114.6
+        "kwh": 75.3
       },
       {
         "month": "2016-04",
-        "kwh": 139.1
+        "kwh": 137.5
       },
       {
         "month": "2016-05",
-        "kwh": 218.1
+        "kwh": 203.1
       },
       {
         "month": "2016-06",
-        "kwh": 207.3
+        "kwh": 193.4
       },
       {
         "month": "2016-07",
-        "kwh": 225.4
+        "kwh": 217.0
       },
       {
         "month": "2016-08",
-        "kwh": 209.3
+        "kwh": 199.0
       },
       {
         "month": "2016-09",
-        "kwh": 205.5
+        "kwh": 199.2
       },
       {
         "month": "2016-10",
-        "kwh": 224.6
+        "kwh": 214.6
       },
       {
         "month": "2016-11",
-        "kwh": 208.4
+        "kwh": 190.8
       },
       {
         "month": "2016-12",
-        "kwh": 219.4
+        "kwh": 208.0
       },
       {
         "month": "2017-01",
-        "kwh": 217.5
+        "kwh": 204.5
       },
       {
         "month": "2017-02",
-        "kwh": 217.5
+        "kwh": 204.5
       },
       {
         "month": "2017-03",
-        "kwh": 102.6
+        "kwh": 96.6
       }
     ],
     "has_hh_data": false

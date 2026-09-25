@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-21T18:08:06.817614+00:00",
+  "last_updated": "2026-09-25T09:39:32.849592+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:08:06.817614+00:00",
+      "last_heartbeat": "2026-09-25T09:39:32.849592+00:00",
       "last_action": "Watcher started",
-      "last_action_ts": "2026-09-21T18:03:05.595387+00:00",
+      "last_action_ts": "2026-09-24T06:10:34.121210+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T15:54:40.226923+00:00",
-      "last_action": "Run complete in 1508s \u2014 28934 KB (run_output_87b25d6da_20260921T152931Z.json)",
-      "last_action_ts": "2026-09-21T15:54:40.226923+00:00",
+      "last_heartbeat": "2026-09-25T09:03:23.523854+00:00",
+      "last_action": "Run complete in 1573s \u2014 31011 KB (run_output_33650edec_20260925T083710Z.json)",
+      "last_action_ts": "2026-09-25T09:03:23.523854+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T10:16:36.311858+00:00",
-      "last_action": "Classified from_rich_20260905_101628.md as NORMAL",
-      "last_action_ts": "2026-09-05T10:16:36.311858+00:00",
+      "last_heartbeat": "2026-09-22T10:51:13.758687+00:00",
+      "last_action": "Classified from_rich_20260922_105057.md as URGENT",
+      "last_action_ts": "2026-09-22T10:51:13.758687+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T10:16:33.260260+00:00",
-      "last_action": "Acked message: 'Draw DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05 now,'",
-      "last_action_ts": "2026-09-05T10:16:33.260260+00:00",
+      "last_heartbeat": "2026-09-22T10:51:02.667039+00:00",
+      "last_action": "Acked message: 'LIVENESS PROBE from the delivery seat, no action needed. Establishing whether th'",
+      "last_action_ts": "2026-09-22T10:51:02.667039+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T17:42:25.878689+00:00",
-      "last_action": "Worker started",
-      "last_action_ts": "2026-09-21T17:42:25.878689+00:00",
+      "last_heartbeat": "2026-09-25T09:35:20.857188+00:00",
+      "last_action": "Task batch complete",
+      "last_action_ts": "2026-09-25T09:35:20.857188+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-09-19T23:25:47.008834+00:00",
+      "last_heartbeat": "2026-09-25T06:25:06.145164+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-09-19T23:25:47.008834+00:00",
+      "last_action_ts": "2026-09-25T06:25:06.145164+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:07:56.669454+00:00",
+      "last_heartbeat": "2026-09-25T09:39:21.349734+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-09-21T18:03:06.145865+00:00",
+      "last_action_ts": "2026-09-24T06:10:34.793519+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-21T18:05:47.805567+00:00",
+      "last_heartbeat": "2026-09-25T09:11:03.442226+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-21T18:05:47.805567+00:00",
+      "last_action_ts": "2026-09-25T09:11:03.442226+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -143,7 +143,7 @@
       "produces": "write-landed build turns (origin-verified commit SHAs)"
     }
   ],
-  "treasury_gbp": 408278.48,
-  "net_margin_gbp": 158278.477013,
-  "enterprise_value_gbp": 152129.21871395796
+  "treasury_gbp": 416705.24,
+  "net_margin_gbp": 166705.235619,
+  "enterprise_value_gbp": 165173.92054320537
 }

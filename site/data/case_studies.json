@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generated_at": "2026-09-21T17:42:58Z",
-    "git_commit": "87b25d6da",
-    "household_count": 154,
+    "generated_at": "2026-09-25T09:04:00Z",
+    "git_commit": "33650edec",
+    "household_count": 164,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
@@ -21,7 +21,7 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "70.5 percentage points apart at the 2023 renewal (sim 13.3% vs company 83.8%)",
+      "headline": "86.7 percentage points apart at the 2023 renewal (sim 13.3% vs company 100.0%)",
       "wall_side": "sim",
       "account_id": "SYN-2016-055",
       "base_account_id": "SYN-2016-055",
@@ -77,16 +77,16 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 9.0 percentage points (70.7% in 2017 to 61.7% in 2020) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 12.0 percentage points (78.5% in 2024 to 66.5% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "PROS-2016-0098",
-      "base_account_id": "PROS-2016-0098",
+      "account_id": "PROS-2021-0168",
+      "base_account_id": "PROS-2021-0168",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2016-0098",
+        "acc": "PROS-2021-0168",
         "tab": "timeline",
-        "year": 2020
+        "year": 2025
       }
     }
   ]

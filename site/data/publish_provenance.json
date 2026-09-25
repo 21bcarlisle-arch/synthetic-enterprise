@@ -12,32 +12,32 @@
     "open_findings": 13
   },
   "last_verified": {
-    "generated_at": "2026-09-24T23:07:18Z",
-    "git_commit": "430e5b00e",
+    "generated_at": "2026-09-25T09:39:45Z",
+    "git_commit": "33650edec",
     "population": {
       "accounts": 244,
       "bills": 10595,
       "total_revenue_gbp": 717273.65
     },
-    "run_id": "run_output_430e5b00e_20260924T221416Z.json",
+    "run_id": "run_output_33650edec_20260925T083710Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-24T23:07:18Z"
+    "verified_at": "2026-09-25T09:39:45Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=44a8629a4; blocking tests: FAILED tests/background/test_the_publisher_classifies_the_tools_real_refusals.py::test_a_red_gate_is_a_refusal_and_names_the_gate_that_refused",
-  "paused_since": "2026-09-25T01:20:14Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-24T23:07:18Z",
-    "git_commit": "430e5b00e",
+    "generated_at": "2026-09-25T09:39:45Z",
+    "git_commit": "33650edec",
     "population": {
       "accounts": 244,
       "bills": 10595,
       "total_revenue_gbp": 717273.65
     },
-    "run_id": "run_output_430e5b00e_20260924T221416Z.json",
+    "run_id": "run_output_33650edec_20260925T083710Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-24T23:07:18Z"
+    "verified_at": "2026-09-25T09:39:45Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-25T07:49:06Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-25T09:39:45Z"
 }
