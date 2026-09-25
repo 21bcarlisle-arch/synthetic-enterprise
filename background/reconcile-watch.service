@@ -7,6 +7,11 @@ Type=oneshot
 WorkingDirectory=/home/rich/synthetic-enterprise
 # NTFY secret via the Option-2 out-of-tree location; `-` = still run (and log) if absent.
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
-# Report-only: reconcile declared-vs-actual and page ONLY on a drift transition (R5). Starts,
-# stops, enables, reaps NOTHING (G-R3). Triggered by reconcile-watch.timer.
+# Reconcile declared-vs-actual and page ONLY on a drift transition (R5). Starts, stops, enables,
+# reaps NOTHING (G-R3) -- that guarantee is about PROCESSES and it stands. Since 2026-09-25 it also
+# CLOSES THE FORK WITH ORIGIN when the shared tree is diverged, by delegating to
+# `background.origin_reconcile`, whose merge runs in a throwaway worktree with its own index and
+# refuses on conflict. Said here because this file's description is what a reader greps to learn
+# what the unit does, and it claimed report-only for as long as that was true.
+# Triggered by reconcile-watch.timer.
 ExecStart=/usr/bin/python3 -m background.reconcile_watch

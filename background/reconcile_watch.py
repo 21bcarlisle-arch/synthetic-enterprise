@@ -12,7 +12,9 @@ GUARANTEES
     - LIVE + PERIODIC: fired by reconcile-watch.timer (committed IaC), every RECONCILE_INTERVAL.
     - TRANSITION-ONLY NTFY (R5): pages only when the drift set CHANGES (appears / changes / clears),
       carrying the full payload — never a heartbeat. A clean run is logged, not paged.
-    - REPORT-ONLY (G-R3): it reconciles and notifies; it starts/stops/enables/reaps NOTHING.
+    - REPORT-ONLY ABOUT PROCESSES (G-R3): it starts/stops/enables/reaps NOTHING. It does now CLOSE
+      THE FORK WITH ORIGIN — see `_reconcile_the_fork` for why that is not the same concession, and
+      for the measurement that made a report-only watcher the wrong shape for this one subject.
     - Typed by source (G-N2): `rotating_light` when drift is present, `white_check_mark` when it
       clears back to clean.
 
@@ -195,10 +197,106 @@ def _drift_report(evaluate=None) -> list[str]:
             if len(f) >= DRIFT_MODULE_THRESHOLD]
 
 
+#: Statuses that mean the fork question was ASKED AND SETTLED — there is nothing left to close.
+#: Everything else is a fork that is still open, whatever the reason, and gets logged as such.
+#:
+#: THIS IS DELIBERATELY NOT `origin_reconcile.main`'s EXIT-0 SET, and the difference is one status.
+#: `main` returns 0 for `(LEVEL, RECONCILED, PUSHED)` and 1 for FAST_FORWARDED — but a
+#: fast-forward is precisely the shared tree arriving at origin with nothing of ours to land, which
+#: is the fork CLOSED. Grading it "still open" here would make the log read STILL OPEN on the one
+#: outcome this whole leg was added to produce most often, and an always-red log line is an ignored
+#: one. Whether `main`'s rc is itself wrong is a separate question and is NOT settled here; this
+#: constant answers "is the fork closed", not "what did the CLI exit".
+_FORK_SETTLED = ("LEVEL", "RECONCILED", "PUSHED", "FAST_FORWARDED")
+
+
+def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> str | None:
+    """Close the fork with origin when one is open. Returns a log line, or None when level.
+
+    WHY THIS RIDES *THIS* TIMER AND WHY IT IS NOT A NEW CONCESSION (2026-09-24).
+
+    `background/origin_reconcile` was built to be run on a cadence and had none. Nothing on this
+    box was trying to merge. The measured cost: the publisher refused 51 times over 71.7h, a
+    reader's figures went 74.1h stale, and this module's own log is the evidence — hours of
+    `reconcile DRIFT (9 alarm(s)); unchanged -> log only`, every five minutes, while the shared
+    tree sat 38 behind origin and 4 ahead. A watcher that reports a fork it is standing next to,
+    forever, is not a control; it is a way of feeling watched.
+
+    THE REPORT-ONLY GUARANTEE ABOVE IS ABOUT PROCESSES AND IT SURVIVES. G-R3 exists because
+    redeploying a daemon mid-work has a blast radius that belongs to a decision. Nothing here
+    starts, stops, enables or reaps anything. What it does instead is delegate to a module whose
+    whole design is the objection this one would otherwise have to raise: the merge happens in a
+    THROWAWAY WORKTREE with its own index, so the shared tree's index is never opened and no other
+    lane's uncommitted work can be swept. That is `origin_reconcile`'s founding property, not a
+    promise re-made here.
+
+    AND THE JUDGEMENT STAYS WITH A HUMAN. `origin_reconcile` inherits `surgical_land --merge`'s
+    refusal on CONFLICT, and a conflict is exactly the case where two lanes disagree about one
+    file. So the cadence closes the mechanical fork and REFUSES the one that needs reading — which
+    is the split that makes running this unattended affordable at all.
+
+    NO NEW TIMER, deliberately, for the reason the seat-claim sweep gives above: a new timer is a
+    new thing that can silently fail to be armed, and that is the failure class this whole file
+    exists to catch.
+
+    IT CANNOT STORM AND IT CANNOT TRAMPLE ITSELF. `MERGE_TIMEOUT_SECONDS` is 25 minutes and this
+    tick is five, so ticks WILL overlap. `origin_reconcile._fresh_worktree` reads an owner marker
+    and REFUSES rather than rebuilding a tree under a running merge, so the overlap costs a logged
+    ERROR line and never a corrupted merge. The empty-merge loop that put 29 commits on origin in
+    3.25h is likewise handled at the source: the `ahead == 0` leg advances instead of committing.
+
+    WHY DELEGATE THE LEG CHOICE. This asks only "is there a fork at all" and hands the rest over.
+    `origin_reconcile` already partitions behind-only (fast-forward), ahead-only (push) and
+    diverged (isolated merge), and re-deciding that here would be a second copy of a partition
+    this repo has already paid to get right once.
+    """
+    if reconcile_fn is None or state_fn is None or subject_fn is None:
+        from background import origin_reconcile as _orc
+        state_fn = state_fn or _orc.fork_state
+        reconcile_fn = reconcile_fn or _orc.reconcile
+        subject_fn = subject_fn or _orc.shared_tree
+
+    # THE SUBJECT IS THE SHARED TREE, NOT `PROJECT_DIR`, AND THAT IS NOT A TIDY-UP.
+    # `PROJECT_DIR` is `Path(__file__).parent.parent` -- whichever tree this module was IMPORTED
+    # from. Today the unit sets WorkingDirectory to the shared tree so the two agree, which is
+    # exactly what makes the bug latent rather than absent: this repo carries ten linked worktrees
+    # and the seats run in them. `origin_reconcile.main` refuses to default for this reason and
+    # names the measurement -- from a linked worktree its level check read 0 behind and returned
+    # LEVEL while the shared tree was 2 behind with 30 consecutive publish failures. Re-deriving
+    # the subject here from `__file__` would re-import that defect through the new caller, and it
+    # would report SETTLED about a tree nothing publishes from.
+    #
+    # IT IS NOT ONLY THE LEVEL READ. `reconcile` threads `project` into `gate_is_running`, which
+    # resolves the gate's lock file under that path -- so a wrong subject reads "no gate running"
+    # while a real gate holds the real lock, and pushes underneath it.
+    subject = subject_fn()
+    if subject is None:
+        return ("fork with origin NOT ATTEMPTED: the shared tree could not be established, so the "
+                "subject is unknown -- refused rather than defaulted to this module's own tree")
+
+    behind, ahead = state_fn(subject)
+    if behind is None or ahead is None:
+        return ("fork with origin UNREADABLE (behind={}, ahead={}); not acting on a state that "
+                "was not observed".format(behind, ahead))
+    if not behind and not ahead:
+        return None                       # level: the common case, and it says nothing
+
+    result = reconcile_fn(subject) or {}
+    status = str(result.get("status", "UNREPORTED"))
+    # THE STATUS IS THE RC. `origin_reconcile.main` turns exactly this set into exit 0 and
+    # everything else into exit 1, so recording the status records the rc without shelling out to
+    # get it -- and it records WHICH of the four settled shapes it was, which the rc throws away.
+    settled = status in _FORK_SETTLED
+    return "fork with origin ({} behind, {} ahead) -> {} [{}]: {}".format(
+        behind, ahead, status, "settled" if settled else "STILL OPEN",
+        str(result.get("detail", ""))[:400])
+
+
 def run(proc_results: list[dict] | None = None,
         sched_results: list[dict] | None = None,
         notify=None,
-        gap_results: list[dict] | None = None) -> bool:
+        gap_results: list[dict] | None = None,
+        reconcile_fork=None) -> bool:
     """Run one reconcile, log it, and NTFY only on a drift-set TRANSITION. Returns True if it
     paged. `notify` and results are injectable for tests; production reads live + uses send_ntfy."""
     if proc_results is None:
@@ -296,6 +394,20 @@ def run(proc_results: list[dict] | None = None,
             "X-Priority": "default" if cleared else "high",
         }, kind="real_alarm", topic_class=_digest_class())
         _save(sig)
+
+    # CLOSING THE FORK GOES LAST, AND THE ORDER IS THE POINT. The merge leg can run for up to
+    # MERGE_TIMEOUT_SECONDS (25 min) against a five-minute tick, so anything sequenced after it is
+    # a drift page that arrives late. Paging is this module's first duty and the fork is its
+    # second; putting the slow, acting step behind the fast, reporting one means a wedged merge
+    # costs a delayed reconcile and never a delayed alarm.
+    try:
+        line = (reconcile_fork or _reconcile_the_fork)()
+        if line:
+            _log(line)
+    except Exception as exc:                                   # noqa: BLE001
+        # Same fail-safe as every other rider on this timer: the reconcile is the thing that must
+        # not stop. This one is last, so by here the page has already gone out regardless.
+        _log(f"fork reconcile failed (reconcile continues): {exc!r}")
     return changed
 
 
