@@ -178,9 +178,13 @@ change with its own evidence, not a constant edited on the way past.
    written. The substance (routing tenure consumers off the term anchor in `simulation/` and
    `saas/`) is live and real; only the *rendered-surface* half is unsatisfiable. It is not the
    seat's call to drop a wall the atom set itself.
-3. **KNIFE3's 900s timeout, priced rather than guessed** — the measurement is running; the
-   instrument grades exactly one mixed-set row today and that row is the one that times out, so
-   this is the whole remaining distance between `graded 0` and `graded 1`.
+3. ~~**KNIFE3's 900s timeout, priced rather than guessed**~~ — **WRONG CONSTANT, corrected in
+   `docs/staging/records/SEAT_RESULT_KNIFE3_IS_DISCHARGED_BY_MEASUREMENT_AND_THE_TIMEOUT_I_NAMED_IS_NOT_THE_ONE_PRODUCTION_USES_2026-09-25.md`.**
+   900s is the standalone default; the only production caller passes `_LEVEL_ZERO_TIMEOUT_S = 60`,
+   deliberately, and should keep it. The suites were measured anyway: **1078s, 2.44 GB**, and **2 of
+   them are red at HEAD and have been for 19 days**, so KNIFE3's verdict is **SILENCE** — the row is
+   right to read 0. One of the 28 is weighed and P4 is refuted on the merits. What is actually owed
+   is a fail-closed short-circuit on the red-at-HEAD register, read that record before acting here.
 4. **`ungradable_causes` needs a cause it cannot currently express** — a named path DELETED at
    `HEAD` and not relocated is not `POINTER_ROT`, and printing an unfollowable repair for it is the
    undifferentiated-count failure that function was written to end, reopened one state along. Not
