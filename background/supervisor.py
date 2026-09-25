@@ -3957,6 +3957,79 @@ def _failure_is_in_window(failure, now: float) -> bool:
     return now - ts <= PUBLISH_GATE_WINDOW_SECONDS
 
 
+def _standing_publish_episode(state) -> int | None:
+    """How many failures has THIS publish episode recorded, if the record still shows it OPEN?
+
+    THE SUSTAINED SCREEN MUST NOT BE A RECENCY SCREEN (2026-09-25, observed live). Its only limb
+    used to be `len(in-window failures) >= 3`, so it asked "has the gate failed RECENTLY" and read
+    the answer as "is the gate WEDGED". Those two come apart in exactly the worst case: the deepest
+    wedge is the one that has stopped the publisher ATTEMPTING, and a publisher that is not
+    attempting records no failures -- so the in-window count FALLS AS THE OUTAGE DEEPENS, and the
+    screen is least satisfiable when the thing it screens for is worst. The live record on the
+    morning this was drawn: `episode_failures: 58`, `wedge_since` 80.7 HOURS old,
+    `episode_clean_publishes: 0`, ONE failure inside the hour -- and RUNG 1, the priority-zero
+    unwedge draw and the only detector pointed at this outage, silent throughout.
+
+    CORRECTION, BESIDE THE CLAIM IT CORRECTS: the trim-on-read comment below says the trim stops a
+    frozen record "drawing priority-zero unwedge work forever for a wedge that is over", and that
+    sentence is wrong in its middle term. A publisher that has stopped attempting has not ended its
+    wedge; it IS the wedge, at its worst. The trim sharpened the defect and did not cause it -- the
+    WRITER trims the same list on every write, so the count was window-bounded from the start.
+
+    So this limb asks the question the record can actually answer, and it is the one the function
+    already rests on: has the gate PASSED since this episode began? Returns the episode's failure
+    count when the record establishes a standing episode, else None.
+
+    Fields, and whose contract each is (all `process_run_complete`'s -- this only READS them):
+      * `wedge_since` -- the persistent episode start, cleared to None on a close, so its absence
+        IS the writer saying no episode is open. Required: without it the age leg below has no
+        un-trimmed clock and "unknown age" is not "old enough".
+      * `episode_failures` -- the whole streak, un-trimmed. Defaulted to the RECORDED list's length
+        exactly as `_read_publish_gate_state` defaults it, and for its stated reason: reading a
+        record written before that field as 0 UNDER-reports a live episode.
+      * `episode_clean_publishes` / `last_clean_publish` -- the pass evidence ("DID THE GATE EVER
+        PASS INSIDE THIS EPISODE", 2026-09-04).
+
+    A PASS MUST BE POSITIVELY ESTABLISHED to quiet the highest rung there is, so an absent or
+    unreadable pass field reads as NO PASS -- the same direction `_failure_is_in_window` takes on a
+    corrupt `ts`, for the same reason."""
+    started = _recorded_instant(state.get("wedge_since"))
+    if started is None:
+        return None
+    episode = state.get("episode_failures")
+    if isinstance(episode, bool) or not isinstance(episode, int):
+        recorded = state.get("failures")
+        episode = len(recorded) if isinstance(recorded, list) else 0
+    if episode < PUBLISH_GATE_WEDGE_MIN_FAILURES:
+        return None
+    clean = state.get("episode_clean_publishes")
+    if isinstance(clean, int) and not isinstance(clean, bool) and clean > 0:
+        return None
+    # ...and the same question for a record written before that counter existed. `last_clean_publish`
+    # is NOT episode-scoped -- 2026-09-16 made it take the stamp on BOTH exits, deliberately, so that
+    # a recovered publisher and one that has never run are distinguishable -- so it is readable only
+    # AGAINST the episode start and never on its own. The live record is the case that matters: a
+    # clean publish stamped 2.4h BEFORE `wedge_since` is the publish the episode interrupted.
+    published = _recorded_instant(state.get("last_clean_publish"))
+    if published is not None and published > started:
+        return None
+    return episode
+
+
+def _wedge_sustained_clause(in_window: int, episode: int | None) -> str:
+    """The parenthetical saying WHICH limb established the wedge, counting only what it counted.
+
+    Split out rather than left in the format string so the count can be put on trial directly. The
+    episode wording exists because the two obvious strings are both false: "58 failures in-window"
+    would be a lie about the window, and "1 failure in-window" reads as a flake to the worker acting
+    on it. The true statement is that the recent count is low BECAUSE the publisher stopped trying."""
+    if in_window >= PUBLISH_GATE_WEDGE_MIN_FAILURES:
+        return f"{in_window} failures in-window"
+    return (f"only {in_window} failure(s) inside the last hour but {episode} in an episode the "
+            "record still shows OPEN with no pass inside it -- a publisher that has STOPPED "
+            "ATTEMPTING records few recent failures, so recency is NOT what establishes this")
+
+
 def _publish_gate_wedge_active(
     now: float | None = None,
     head: str | None = None,
@@ -4031,8 +4104,14 @@ def _publish_gate_wedge_active(
     # is missing or unparseable is CORRUPT, not old -- the writer stamps `ts` unconditionally -- so
     # reading it as "over an hour ago" would let a malformed state file silence the highest rung
     # there is. The bound is the WRITER'S object, imported, never a mirrored `60 * 60`.
+    recorded_failures = failures
     failures = [f for f in failures if _failure_is_in_window(f, now)]
-    if len(failures) < PUBLISH_GATE_WEDGE_MIN_FAILURES:
+    # TWO LIMBS, because a wedge leaves DIFFERENT evidence early and late, and one limb was blind to
+    # the late one for 80 hours. See `_standing_publish_episode`, which carries the evidence and the
+    # correction to the paragraph above. The window limb is unchanged: a dense recent streak is a
+    # wedge whatever the episode fields say.
+    standing_episode = _standing_publish_episode(state)
+    if len(failures) < PUBLISH_GATE_WEDGE_MIN_FAILURES and standing_episode is None:
         return None
     # INDEPENDENCE (R15): cross-check against .last_tested_hash -- keyed on real cross-process state,
     # never the same source the failures came from. A pass at HEAD => stale failures => no draw.
@@ -4103,9 +4182,14 @@ def _publish_gate_wedge_active(
     if age < PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS:
         return None
     age_min = int(age // 60)
+    # THE LAST FAILURE ON RECORD, and on the episode limb it is out of window BY CONSTRUCTION --
+    # `failures` can be empty there, which `failures[-1]` read as an IndexError out of the draw
+    # ladder. The label says "recorded", so the out-of-window one is the honest answer to it; the
+    # freshness claim lives in `_wedge_sustained_clause` above and nowhere else.
     last_reason = ""
-    if isinstance(failures[-1], dict):
-        last_reason = str(failures[-1].get("reason", ""))
+    tail = failures[-1] if failures else (recorded_failures[-1] if recorded_failures else None)
+    if isinstance(tail, dict):
+        last_reason = str(tail.get("reason", ""))
     # ALARM->DIAL (2026-08-09, DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH draw 2b): the alarm
     # enumerated the findings filed against this wedge into the state file; the draw names them
     # as the work. This is what "an alarm raises its own cure's draw priority" means concretely --
@@ -4179,7 +4263,8 @@ def _publish_gate_wedge_active(
     return (
         "PUBLISH-GATE WEDGE self-refill (RUNG 1, PRIORITY ZERO -- director rulings "
         "UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24): the "
-        f"publish gate has been FAILING for ~{age_min} min ({len(failures)} failures in-window, no "
+        f"publish gate has been FAILING for ~{age_min} min "
+        f"({_wedge_sustained_clause(len(failures), standing_episode)}, no "
         f"pass at HEAD {head or '?'}) and is BLOCKING ALL publishing -- this OUTRANKS every product/"
         "HARDEN lane. DIAGNOSE the failing test with evidence (R9): run the exact gate "
         "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "

@@ -192,19 +192,108 @@ def _aged_out_state(now):
     return state
 
 
-def test_a_spent_wedge_stops_drawing_once_its_failures_age_out_of_the_window(tmp_path, monkeypatch):
-    """MUST STAY SILENT. Three failures, all over an hour old, wedge_since 3h back.
+def test_a_spent_wedge_stops_drawing_once_a_clean_PUBLISH_is_on_record(tmp_path, monkeypatch):
+    """MUST STAY SILENT, and the reason must be the PASS. Three failures all over an hour old, a
+    clean publish recorded INSIDE the episode.
 
-    The writer trims `failures` to the window on EVERY WRITE, so for years the reader did not need
-    to -- and that is exactly why this was invisible. The trim only runs while the writer runs, and
-    the way a wedge ends is often that publishing stops altogether: no further
-    `record_publish_gate_failure` call, no further trim, and the last written list frozen on disk.
-    The reader then counts it whole, forever, and draws priority-zero unwedge work for a wedge that
-    is over. The independence cross-check does not cover it -- that clears when the gate PASSES, and
-    a gate nothing exercises never passes."""
+    WHAT THIS TEST USED TO ASSERT, AND WHY IT WAS WRONG (corrected 2026-09-25, beside the claim).
+    It was written as `test_a_spent_wedge_stops_drawing_once_its_failures_age_out_of_the_window`:
+    the identical record with NO pass evidence, asserted silent. The premise was that a frozen
+    `failures` list means the wedge is over -- "the way a wedge ends is often that publishing stops
+    altogether". That middle term is false. A publisher that has stopped attempting has not ended
+    its wedge; it IS the wedge, at its worst, and the in-window count therefore falls as the outage
+    deepens. The cost was measured: `episode_failures: 58`, `wedge_since` 80.7 HOURS, RUNG 1 silent
+    the whole time about the one outage it is the only detector for.
+
+    The concern behind the old test is real and survives here unchanged -- a record nobody is
+    writing must not draw priority-zero work forever. It is keyed to the PROPERTY that settles it
+    (has the gate PASSED, which `record_publish_gate_success` records and which no amount of
+    not-trying can fake) rather than to the symptom that correlates with it."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)
+    state["episode_clean_publishes"] = 1
+    _write(tmp_path, monkeypatch, state)
+    assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+def test_a_dark_publisher_still_draws_when_its_failures_have_aged_out(tmp_path, monkeypatch):
+    """MUST FIRE -- the live 2026-09-25 shape, and the mutation twin of the test above. Identical
+    record, one field different: no clean publish inside the episode. If this goes green the screen
+    has gone back to asking about recency."""
     now = 1_800_000_000.0
     _write(tmp_path, monkeypatch, _aged_out_state(now))
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg
+
+
+def test_the_message_counts_the_episode_and_does_not_claim_the_window(tmp_path, monkeypatch):
+    """The 80-hour record's two false strings, both refused. "58 failures in-window" is a lie about
+    the window; "1 failure in-window" reads as a flake to the worker acting on it at priority zero."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)
+    state["episode_failures"] = 58
+    state["failures"][0]["ts"] = now - 600      # the live shape: ONE failure inside the hour
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "58 failures in-window" not in msg and "1 failures in-window" not in msg
+    assert "only 1 failure(s) inside the last hour but 58" in msg
+    assert "STOPPED ATTEMPTING" in msg
+
+
+def test_an_episode_below_the_sustained_threshold_stays_silent(tmp_path, monkeypatch):
+    """REACHABILITY of the count screen on the NEW limb: the episode limb must not be a way past
+    `PUBLISH_GATE_WEDGE_MIN_FAILURES`. Two failures, aged out, episode of two -- still a flake."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)
+    state["failures"] = state["failures"][:2]
+    state["episode_failures"] = 2
+    _write(tmp_path, monkeypatch, state)
     assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+def test_no_episode_start_on_record_is_not_a_standing_episode(tmp_path, monkeypatch):
+    """`wedge_since` cleared to None is the WRITER saying no episode is open, and it is also the
+    only un-trimmed clock the age leg has. Absent => the episode limb cannot establish anything."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)
+    state["wedge_since"] = None
+    state["episode_failures"] = 58
+    _write(tmp_path, monkeypatch, state)
+    assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+def test_a_clean_publish_that_PREDATES_the_episode_does_not_quiet_it(tmp_path, monkeypatch):
+    """The live record exactly: `last_clean_publish` 2.4h BEFORE `wedge_since`. That is the publish
+    the episode INTERRUPTED, not a pass inside it -- and `last_clean_publish` is deliberately not
+    episode-scoped (2026-09-16), so it may only ever be read AGAINST the episode start."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)                      # wedge_since = now - 3h
+    state["episode_failures"] = 58
+    state["last_clean_publish"] = now - (5 * HOUR)    # before the episode began
+    _write(tmp_path, monkeypatch, state)
+    assert supervisor._publish_gate_wedge_active(now=now) is not None
+
+
+def test_a_clean_publish_INSIDE_the_episode_quiets_it_even_without_the_counter(
+        tmp_path, monkeypatch):
+    """The mutation twin of the test above, for a record written before `episode_clean_publishes`
+    existed: the same stamp moved to AFTER `wedge_since` is a pass inside the episode."""
+    now = 1_800_000_000.0
+    state = _aged_out_state(now)                      # wedge_since = now - 3h
+    state["episode_failures"] = 58
+    state["last_clean_publish"] = now - (2 * HOUR)    # after the episode began
+    _write(tmp_path, monkeypatch, state)
+    assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+def test_the_sustained_clause_on_trial_directly(tmp_path, monkeypatch):
+    """The count phrase put on trial without the detector, so a format string cannot hide a wrong
+    count behind a green predicate (R15: a control's scope must be inspectable)."""
+    assert supervisor._wedge_sustained_clause(4, None) == "4 failures in-window"
+    assert supervisor._wedge_sustained_clause(8, 58) == "8 failures in-window"
+    low = supervisor._wedge_sustained_clause(0, 58)
+    assert "in-window" not in low and "58" in low and "0 failure(s) inside the last hour" in low
 
 
 def test_the_same_state_with_the_failures_INSIDE_the_window_still_draws(tmp_path, monkeypatch):
