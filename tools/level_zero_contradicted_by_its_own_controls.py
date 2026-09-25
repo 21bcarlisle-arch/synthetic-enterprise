@@ -214,6 +214,18 @@ NAMES_ONLY_A_SCOPE = ("the row's control evidence is a DIRECTORY and not a file,
 #: without looking. "We cannot tell from this row" is the result, and it belongs on the surface.
 CONTROL_UNNAMED = ("the row names no control at all, so whether one was ever written is not a "
                    "question this row can answer")
+#: AN EIGHTH CAUSE, and it is the SUBJECT-SIDE twin of `CONTROL_NEVER_WRITTEN`, added 2026-09-25
+#: because its absence was what let `NOTHING_IN_THE_ROW` publish a false sentence.
+#:
+#: A path can be absent for three reasons and this module already named two of them: git knows it
+#: (`POINTER_ROT`) and git cannot be asked (`CAUSE_UNDECIDABLE`). The third -- absent, and git has
+#: never heard of it -- was reported only when the path was a CONTROL, or when EVERY named file was
+#: absent (`HONESTLY_UNBUILT`). A row naming one subject that was never written alongside another
+#: that was fell through every branch to `NOTHING_IN_THE_ROW`, whose text reads *"every named path
+#: is on disk"*. It was not, and the reader was told the refusal lived in the pass and to go and
+#: re-run rather than to look at the row.
+SUBJECT_NEVER_WRITTEN = ("a named subject is absent and git has never known it, so part of what "
+                         "the row claims to cover was never built")
 CAUSE_UNDECIDABLE = "git could not be asked whether the absent path ever existed"
 #: The row is not the problem. Every path it names is here and one of them is a runnable control,
 #: so no edit to `file_scope` would change the verdict -- the refusal came from the PASS (a
@@ -240,6 +252,9 @@ CAUSE_REPAIR = {
                      "that touched the subject, and a control under a name the row never cited is "
                      "the shape PB4 and PB6 were. Nothing here is a verdict about the work yet",
     HONESTLY_UNBUILT: "nothing to repair in the row -- build the atom, or close it",
+    SUBJECT_NEVER_WRITTEN: "build this part of the atom, or drop the path from `file_scope`. Do "
+                           "NOT repoint it -- unlike a rotted pointer there is no earlier name "
+                           "to repoint at, and git is the witness for that",
     NAMES_ONLY_A_SCOPE: "name the FILES this atom writes, not the directory they live in",
     CAUSE_UNDECIDABLE: "classify this row in a tree that has commit history",
     NOTHING_IN_THE_ROW: "re-run this row ALONE (`--atom <id>`) and read its reason line -- do not "
@@ -481,11 +496,25 @@ def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -
                     "repair": CAUSE_REPAIR[NAMES_ONLY_A_SCOPE]})
         return out
 
-    subject_on_disk = [rel for rel in files if rel not in controls and (root / rel).exists()]
-    if not subject_on_disk and not (rotted or unknown):
-        # No subject file the row names is here, and nothing the row names was mislaid -- it was
-        # never written. The atom is unbuilt and its zero is the true answer: this is the part of
-        # the census that was never a defect and was being counted as one.
+    on_disk = [rel for rel in files if (root / rel).exists()]
+    subject_on_disk = [rel for rel in on_disk if rel not in controls]
+    if not on_disk and not (rotted or unknown):
+        # NOTHING THE ROW NAMES IS HERE, and nothing the row names was mislaid -- it was never
+        # written. The atom is unbuilt and its zero is the true answer: this is the part of the
+        # census that was never a defect and was being counted as one.
+        #
+        # THE GUARD ASKS `on_disk`, NOT `subject_on_disk`, AND THAT IS THE 2026-09-25 NARROWING.
+        # It used to ask whether any named SUBJECT was here, where subject means "a named file
+        # that is not a control". A row whose only non-directory entries ARE controls therefore
+        # had an empty subject list however many of those controls were sitting on disk and
+        # passing -- and was told "no named file exists, so the row is RIGHT to read zero", the
+        # one verdict in this partition meaning "never a defect", on a sentence the tree
+        # contradicts. Latent when it was found: both live members (`G14`, `G15`) genuinely have
+        # nothing on disk, and the only route into the false branch was the controls-only
+        # repoint the census's own `NAMES_ONLY_A_SCOPE` repair prescribes. A row naming an
+        # existing control is not unbuilt -- it has a runnable control and belongs in the legs
+        # below. Written up in `docs/staging/`, in the finding whose name begins
+        # `SEAT_FINDING_THE_PRESCRIBED_REPOINT_WOULD_SILENCE_FOUR_ROWS`.
         #
         # THE ROT GATE IS WHY THIS IS NOT ONE LINE. "Unbuilt" is a claim about work, and it may
         # only be made of paths the row gets right. With a rotted pointer in the set, the subject
@@ -496,6 +525,15 @@ def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -
         out.append({"cause": HONESTLY_UNBUILT, "paths": sorted(files),
                     "repair": CAUSE_REPAIR[HONESTLY_UNBUILT]})
         return out
+
+    never_subjects = [rel for rel in never if rel not in controls]
+    if never_subjects:
+        # SUBJECT BEFORE CONTROL, same reason the rot gate runs first: every later question is
+        # asked of what the row claims to cover, and this says part of that claim is unbuilt.
+        # Reaching here means at least one named file IS on disk -- the all-absent row returned
+        # `HONESTLY_UNBUILT` above and owes no repair. This one does.
+        out.append({"cause": SUBJECT_NEVER_WRITTEN, "paths": sorted(never_subjects),
+                    "repair": CAUSE_REPAIR[SUBJECT_NEVER_WRITTEN]})
 
     never_controls = [rel for rel in controls if rel in never]
     if never_controls:
@@ -530,7 +568,10 @@ def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -
             out.append({"cause": CONTROL_UNNAMED, "paths": sorted(subject_on_disk),
                         "repair": CAUSE_REPAIR[CONTROL_UNNAMED]})
     # AND THE PARTITION IS CLOSED HERE. Reaching this line with nothing found means every path
-    # the row names is on disk and at least one is a runnable control -- there is no edit to the
+    # the row names is on disk and at least one is a runnable control -- true BY CONSTRUCTION
+    # since 2026-09-25 and not before: an absent path now leaves a cause behind it whichever of
+    # the three ways it is absent (`POINTER_ROT`, `CAUSE_UNDECIDABLE`, `SUBJECT_NEVER_WRITTEN`,
+    # or `CONTROL_NEVER_WRITTEN`), so `out` cannot be empty while this claim is false -- there is no edit to the
     # row that would help, which is itself the answer and not the absence of one. Returning `[]`
     # for it is what made five rows invisible to every consumer that groups by cause; see
     # NOTHING_IN_THE_ROW. The test is `if not out`, deliberately, and not a re-derivation of the

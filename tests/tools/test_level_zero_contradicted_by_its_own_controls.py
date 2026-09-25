@@ -626,7 +626,7 @@ def _known(answers: dict):
     return known
 
 
-def test_all_seven_causes_are_reachable_in_one_pass(tmp_path: Path):
+def test_every_cause_is_reachable_in_one_pass(tmp_path: Path):
     """One control over the whole cause partition, and the reason it is one assertion and not
     seven is this file's own opening paragraph: every leg below is a POSITIVE claim about one
     cause, and a classifier that returned the same cause for everything would pass each of them
@@ -680,6 +680,12 @@ def test_all_seven_causes_are_reachable_in_one_pass(tmp_path: Path):
         # The row that is not the problem: subject and control both on disk, nothing absent.
         # This world used to return `[]` and was the hole in the partition.
         "NOTHING_WRONG": (_atom("NOTHING_WRONG", scope=["subject.py", "test_here.py"]), {}),
+        # Absent SUBJECT, git has never known it, and something else in the row IS on disk. The
+        # eighth cause, added 2026-09-25. Before it this world reached `NOTHING_IN_THE_ROW` and
+        # was told "every named path is on disk" over a path that is not.
+        "SUBJECT_UNBUILT": (_atom("SUBJECT_UNBUILT",
+                                  scope=["never/made.py", "subject.py", "test_here.py"]),
+                            {"never/made.py": False}),
     }
     got = {name: [c["cause"] for c in lz.ungradable_causes(atom, root=tmp_path,
                                                            known=_known(answers))]
@@ -694,7 +700,17 @@ def test_all_seven_causes_are_reachable_in_one_pass(tmp_path: Path):
         "NO_CONTROL": [lz.CONTROL_NEVER_WRITTEN],
         "UNNAMED_CONTROL": [lz.CONTROL_UNNAMED],
         "NOTHING_WRONG": [lz.NOTHING_IN_THE_ROW],
+        "SUBJECT_UNBUILT": [lz.SUBJECT_NEVER_WRITTEN],
     }, "the cause partition is not fully reachable: {!r}".format(got)
+    # THE NAME NO LONGER CARRIES A COUNT. It was
+    # `test_all_seven_causes_are_reachable_in_one_pass` until 2026-09-25 -- findings in
+    # `docs/staging/` still cite it under that name -- and a count in a control's name is the
+    # bound-as-a-literal shape: it goes stale on the commit that makes the partition better, and
+    # the dict below is the thing actually doing the work either way.
+    assert set(lz.CAUSE_REPAIR) == {c for causes in got.values() for c in causes}, (
+        "a cause is declared with a repair and no world reaches it, or the reverse: "
+        "{!r} vs {!r}".format(sorted(lz.CAUSE_REPAIR), sorted(
+            {c for causes in got.values() for c in causes})))
 
 
 def test_a_row_that_names_NO_control_is_not_told_the_control_was_NEVER_WRITTEN(tmp_path: Path):
@@ -783,6 +799,101 @@ def test_a_mislaid_subject_is_never_read_as_HONESTLY_UNBUILT(tmp_path: Path):
         assert lz.HONESTLY_UNBUILT not in causes, (
             "a row whose subject pointer is {} was declared right to read zero: {!r}".format(
                 "rotted" if answer else "unreadable", causes))
+
+
+def test_a_row_whose_ONLY_named_file_is_a_control_ON_DISK_is_not_read_as_HONESTLY_UNBUILT(
+        tmp_path: Path):
+    """THE DEFECT, measured 2026-09-25 and latent when it was found. `HONESTLY_UNBUILT` says "no
+    named file exists, so the row is RIGHT to read zero and owes no repair" -- the only verdict in
+    this partition meaning "never a defect". Its guard asked `subject_on_disk`, computed as
+    "named files that are NOT controls", so a row whose only non-directory entries are controls
+    had an empty subject list however many of those controls were on disk and passing.
+
+    WHY IT MATTERED BEFORE IT COULD BITE. Both live members (`G14`, `G15`) genuinely name nothing
+    that exists, so no row reached the false branch. The route into it was the repair
+    `NAMES_ONLY_A_SCOPE` itself prints -- "name the FILES this atom writes" -- applied to the four
+    live rows that name a control directory and no subject module at all. Following the census's
+    own instruction would have silenced them, and the row would have left the owes-a-repair count
+    by getting vaguer rather than better.
+
+    BOTH ARMS ARE HERE ON PURPOSE, and the second is not padding. A control asserting only that
+    the cause does not fire is passed by deleting the branch, and "this guard refuses everything"
+    is the failure mode this repository has walked into three times. The positive arm is the same
+    row shape with the control ABSENT and unknown to git, where the verdict is correct and must
+    survive.
+
+    MUTATION (must fire, and it is the one-word revert): make the guard read
+    `if not subject_on_disk and not (rotted or unknown)` again.
+    """
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_only.py").write_text("def test_x():\n    assert True\n")
+    row = _atom("CONTROLS_ONLY", scope=["tests/test_only.py"])
+
+    on_disk = [c["cause"] for c in lz.ungradable_causes(row, root=tmp_path, known=_known({}))]
+    assert lz.HONESTLY_UNBUILT not in on_disk, (
+        "a row naming a control that is on disk and passing was told no named file exists, and "
+        "that it is right to read zero: %r" % on_disk)
+    assert on_disk == [lz.NOTHING_IN_THE_ROW], (
+        "the row names one path, it is here, and it is runnable -- there is no edit to "
+        "`file_scope` that would help: %r" % on_disk)
+
+    # THE POSITIVE ARM. Same row, control gone and git has never heard of it: nothing the row
+    # names exists, which is what the cause claims, and it must still be claimable.
+    (tmp_path / "tests" / "test_only.py").unlink()
+    absent = [c["cause"] for c in lz.ungradable_causes(
+        row, root=tmp_path, known=_known({"tests/test_only.py": False}))]
+    assert absent == [lz.HONESTLY_UNBUILT], (
+        "the guard now refuses the case it exists for -- an unbuilt row is not repairable and "
+        "must not be sent for a repair: %r" % absent)
+
+
+def test_NOTHING_IN_THE_ROW_is_never_claimed_while_a_named_path_is_ABSENT(tmp_path: Path):
+    """Its text is a CLAIM -- "every named path is on disk and one of them is a runnable
+    control" -- and until 2026-09-25 a row could reach it with a named subject that was never
+    written. Absent-and-git-never-knew-it was reported for CONTROLS (`CONTROL_NEVER_WRITTEN`) and
+    for the all-absent row (`HONESTLY_UNBUILT`), and for a subject sitting beside a file that IS
+    on disk it was reported by nothing at all. The row fell through to `NOTHING_IN_THE_ROW`,
+    which told the reader the refusal was in the PASS and not to edit `file_scope` -- over a
+    `file_scope` naming something that does not exist.
+
+    THE ASSERTION IS KEYED TO THE PROPERTY, not to the row that exposed it: over every world
+    below, if this cause is claimed then every named file must actually be on disk. A leg pinned
+    to today's answer would go green the next time a branch is added above it.
+
+    MUTATION (must fire): delete the `never_subjects` branch from `ungradable_causes`.
+    """
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
+
+    worlds = {
+        # The shape that exposed it: one subject built, one never, one control on disk.
+        "PARTLY_BUILT": (_atom("PARTLY_BUILT",
+                               scope=["never/made.py", "subject.py", "test_here.py"]),
+                         {"never/made.py": False}),
+        # The control's own twin, which was already reported, kept here so the two cannot be
+        # collapsed back into one branch without this going red.
+        "CONTROL_GONE": (_atom("CONTROL_GONE",
+                               scope=["subject.py", "tests/test_nobody.py"]),
+                         {"tests/test_nobody.py": False}),
+        # THE POSITIVE ARM: the claim is true here, and must still be made. Without it this test
+        # passes on a classifier that never returns `NOTHING_IN_THE_ROW` at all.
+        "ALL_HERE": (_atom("ALL_HERE", scope=["subject.py", "test_here.py"]), {}),
+    }
+    got = {name: lz.ungradable_causes(atom, root=tmp_path, known=_known(answers))
+           for name, (atom, answers) in worlds.items()}
+
+    assert [c["cause"] for c in got["ALL_HERE"]] == [lz.NOTHING_IN_THE_ROW], got["ALL_HERE"]
+    assert [c["cause"] for c in got["PARTLY_BUILT"]] == [lz.SUBJECT_NEVER_WRITTEN], (
+        "a subject nobody ever wrote was reported as nothing wrong with the row: %r"
+        % got["PARTLY_BUILT"])
+
+    for name, (atom, _answers) in worlds.items():
+        if lz.NOTHING_IN_THE_ROW not in {c["cause"] for c in got[name]}:
+            continue
+        named = [rel for rel in atom["file_scope"] if not (tmp_path / rel).is_dir()]
+        assert all((tmp_path / rel).exists() for rel in named), (
+            "{}: the cause says every named path is on disk and these are not: {!r}".format(
+                name, [rel for rel in named if not (tmp_path / rel).exists()]))
 
 
 def test_every_cause_carries_the_repair_it_instructs(tmp_path: Path):
