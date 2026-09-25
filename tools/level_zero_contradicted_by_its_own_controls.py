@@ -32,7 +32,10 @@ THREE VERDICTS, and the third is the one the first draft did not have.
                    completed. "I cannot grade this" is a finding about the row, not a verdict
                    about the work.
   (silent)      -- the named set exists and does not all pass. The map and the controls agree
-                   that something is unbuilt. Nothing to say.
+                   that something is unbuilt. Nothing to say. REACHED TWO WAYS since 2026-09-25:
+                   by running the set, or -- without spending a run -- because a member of it is
+                   recorded RED AT HEAD. See `reds_at_head`; the second route is what makes the
+                   rows naming the most controls gradable at all.
 
 A CONTROL OLDER THAN THE ROW IS NOT EVIDENCE ABOUT THE ROW, and this is the leg the live tree
 taught on 2026-09-06 -- the first draft did not have it and published a refusal because of that.
@@ -114,6 +117,23 @@ an uncommitted archival is a discharge that has not happened yet, so trees that 
 frozen, never movable. A finding live only at `HEAD` is printed with that said on its own line,
 because `find docs/staging` will not show it and the next reader would otherwise call it a ghost.
 
+A ROW NAMING A SUITE THAT IS ALREADY RED AT HEAD DOES NOT NEED ITS RUN, and until 2026-09-25
+this instrument was bounded by COST rather than by evidence because of it. Production caps each
+atom at sixty seconds (`background/delivery_seat._LEVEL_ZERO_TIMEOUT_S`, deliberately -- the
+orientation's brief has to arrive) and `KNIFE3_wall_crossing_paydown`'s twelve suites cost 1078s
+and 2.44 GB, so the rows naming the MOST controls were exactly the ones that could never be
+weighed: the pass returned population 28 and graded 0. CONTRADICTED needs the whole named set to
+pass, so a set holding a test red at HEAD cannot reach it whatever the run costs -- and the
+expensive row is the likeliest to hold one. The register is read for that, the row resolves to
+SILENT, and no run is spent. It is the predating-control leg's argument again: this can only ever
+SILENCE a row and can never be the thing that refuses one, so nothing is loosened.
+
+IT FAILS CLOSED ON THE REGISTER ITSELF. Unobserved, undated or older than a week and the row
+falls through to the run exactly as before. The observation store is UNTRACKED machine state, so
+in an isolated worktree or a `git archive` extract it is simply absent and every row fails closed
+-- which is the honest answer there and not a degradation, because "I could not look" must never
+be readable as "nothing is red". One missing file must not be able to silence a whole partition.
+
 WHY IT IS NOT A PRE-COMMIT GATE, measured rather than argued. It runs pytest over arbitrary named
 files; `KNIFE3_wall_crossing_paydown` alone names twelve architecture suites. The first full pass
 against the live tree was still running at SEVEN MINUTES. A gate that costs minutes gets bypassed,
@@ -135,6 +155,7 @@ import sys
 import tarfile
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from tools import maturity_map_store as map_store
@@ -222,6 +243,102 @@ ARCHIVED_ONLY_IN_THE_WORKING_TREE = (
 #: minting commit only if both are searched, and dating it from the close would make every closed
 #: row look younger than the controls its own build wrote.
 MAP_PATHS = ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml")
+
+
+#: How long the HEAD-red observation may go unrefreshed before it stops being evidence about
+#: HEAD. NOT A CHOSEN NUMBER: `background/head-green-census.timer` is `OnCalendar=*-*-* 03:30:00`
+#: with `Persistent=true`, so a healthy store gains one run per day and a box that was off
+#: overnight still measures when it comes back. Seven missed runs is therefore not a late census,
+#: it is a store nothing is writing -- and the only reading of it that cannot come out as
+#: "HEAD is green" when we do not know.
+#:
+#: WHY THE BOUND IS LOOSE RATHER THAN TIGHT, said because the opposite looks safer and is not.
+#: This leg can only SILENCE a row. Tightening it to one day would fail closed on every ordinary
+#: day the census slipped -- measured 2026-09-25, the last recorded run was 2026-09-23T04:31 and
+#: a 24h bound would have made the whole mechanism inert on the day it landed. A screen that is
+#: unsatisfiable exactly when its subject is worst is this project's fourth control-failure
+#: class; see `docs/staging/` on the RUNG-1 publisher.
+REGISTER_STALE_AFTER_S = 7 * 24 * 60 * 60
+
+#: Why the register could not be used. Each one means the SAME thing to `assess` -- run the
+#: suites, exactly as before this leg existed -- but they are named apart because they send a
+#: reader to three different places: a missing daemon, a wedged one, and a corrupt store.
+REGISTER_UNOBSERVED = ("no census run is recorded in the HEAD-red observation store, so nothing "
+                       "is known about what is red at HEAD")
+REGISTER_UNDATED = "the last recorded census run carries no readable timestamp"
+REGISTER_STALE = ("the last recorded census run is {age_h:.0f}h old, past the {bound_h:.0f}h "
+                  "bound, so what it saw may have been fixed since")
+
+
+def reds_at_head(controls: list[str], root: Path = ROOT, load=None,
+                 now: float | None = None) -> tuple[list[str], str | None]:
+    """`(red node ids that live in `controls`, why the register is unusable or None)`.
+
+    WHY THIS READS THE STORE AND NOT `HEAD_RED_REGISTER.md`, which is the artefact the work item
+    names. The register document IS that store rendered -- `head_red_register.render` writes it
+    on every census run -- so a second parser of the rendering is a second reading of one fact,
+    and this repository's own rule (`_lane_blockers`, below, makes the same argument for OPS11)
+    is that the shared mechanism is called rather than re-read. It is not hypothetical here:
+    measured 2026-09-25, the committed register says 41 red at `f705248ae` and the live store
+    says 37 at `8f315e53f`. A markdown parser would have silenced rows on four tests that are
+    green, and been unable to say which reading was current.
+
+    REDNESS IS THE OBSERVATION, NOT `owed()`. `owed` subtracts the tests a person has ACCEPTED in
+    `head_red_baseline.json`, and acceptance is a decision about whether we still owe work -- an
+    accepted red is red. The question here is only "can this named set all pass", and it cannot
+    while any member fails, forgiven or not.
+
+    THE UNUSABLE REASON IS NOT FOLDED INTO AN EMPTY LIST. "No reds in this set" and "I could not
+    look" are the two answers that are both empty and mean opposite things, which is the shape
+    `head_red_register.observation_state` was extracted to end. A caller that read only the list
+    would treat an absent store as a clean bill of health for every row at once -- one paragraph
+    retiring the whole register, which is the disposition that file refuses by design.
+    """
+    from background import head_red_register as hrr  # local: keeps import cost off callers
+
+    #: Derived from the store's own declaration rather than spelled again here, so a store that
+    #: moves takes this probe with it. `load_observed`'s legacy fallback is deliberately not
+    #: reached: it only fires when the live store is unreadable, and that is the case this leg
+    #: must fail closed on anyway.
+    rel = hrr.OBSERVED_PATH.relative_to(hrr.PROJECT_DIR)
+    store = (load or hrr.load_observed)(Path(root) / rel)
+
+    if hrr.observation_state(store) == hrr.UNOBSERVED:
+        return [], REGISTER_UNOBSERVED
+
+    # `isinstance` ON EVERY ROW, and it is not defensive noise. This probe runs inside the
+    # delivery seat's orientation, and an AttributeError raised on a malformed row here does not
+    # fail closed -- it propagates out of `assess` and takes the whole pass down, so a corrupt
+    # untracked JSON file would cost the brief. A row that is not a mapping is a row that says
+    # nothing, which is UNDATED (for the run) and not-red (for a test): both fall through to the
+    # run, which is the same answer every other unusable state gets.
+    last = (store.get("runs") or [])[-1]
+    stamp = _run_epoch(last.get("at") if isinstance(last, dict) else None)
+    if stamp is None:
+        return [], REGISTER_UNDATED
+    age = (time.time() if now is None else now) - stamp
+    if age > REGISTER_STALE_AFTER_S:
+        return [], REGISTER_STALE.format(age_h=age / 3600.0,
+                                         bound_h=REGISTER_STALE_AFTER_S / 3600.0)
+
+    wanted = set(controls)
+    tests = store.get("tests")
+    return sorted(node for node, row in (tests if isinstance(tests, dict) else {}).items()
+                  if isinstance(row, dict) and row.get("currently_red")
+                  and str(node).split("::", 1)[0] in wanted), None
+
+
+def _run_epoch(stamp) -> float | None:
+    """Unix time of an ISO-8601 run stamp, or None. None is "I cannot date this", never now."""
+    if not isinstance(stamp, str) or not stamp.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(stamp.strip())
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.timestamp()
 
 
 def named_controls(atom: dict) -> list[str]:
@@ -502,7 +619,8 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
            timeout_s: int = DEFAULT_TIMEOUT_S, budget_s: float | None = None,
            clock=time.monotonic, ages=controls_older_than_the_row,
            blockers_for=_lane_blockers,
-           causes=ungradable_causes) -> tuple[list[dict], list[dict]]:
+           causes=ungradable_causes,
+           red_at_head=reds_at_head) -> tuple[list[dict], list[dict]]:
     """`(contradicted, ungradable)` over the candidate partition. Rows whose controls do not all
     pass appear in neither: the map and the controls agree, and agreement is not a finding.
 
@@ -516,6 +634,10 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
     The budget is checked BEFORE each run rather than interrupting one in flight, so it bounds
     the pass at `budget_s + timeout_s` and not at `budget_s` -- stated because a reader who needs
     a hard ceiling needs both numbers, and the caller's real ceiling is the sum.
+
+    `red_at_head` IS ASKED BEFORE THE BUDGET, not after, and the order is the whole economy: a
+    row that needs no run must not be denied one by a budget it was never going to spend. See
+    `reds_at_head` for why an unusable register falls through to the run instead of silencing.
     """
     contradicted: list[dict] = []
     ungradable: list[dict] = []
@@ -587,6 +709,31 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
                 "id": aid, "reason": PROVENANCE_UNKNOWN, "paths": undatable,
                 "detail": "no commit history for the row or the control here -- grade this row "
                           "in a tree that has one"})
+            continue
+        # THE EXPENSIVE RUN IS SKIPPABLE FOR EXACTLY THE ROWS TOO EXPENSIVE TO RUN, and that
+        # coincidence is what makes this leg worth having rather than a cleverness. CONTRADICTED
+        # requires the WHOLE named set to pass, so a set holding a test that is red at HEAD
+        # cannot reach it -- and the rows naming the most suites are both the likeliest to hold
+        # one and the certain to blow the budget. Measured 2026-09-25: production caps each atom
+        # at 60s (`background/delivery_seat._LEVEL_ZERO_TIMEOUT_S`, deliberately, so the
+        # orientation's brief arrives) while `KNIFE3_wall_crossing_paydown`'s twelve suites cost
+        # 1078s and 2.44 GB. It was discharged BY HAND this way and came back SILENT: 2 of its
+        # 224 tests have been on the register for 19 consecutive census runs since 2026-09-02.
+        #
+        # THIS IS AN ECONOMY, NOT A LOOSENING, and it is the same leg the predating-control rule
+        # above keeps hold of: it can only ever SILENCE a row and can never be the thing that
+        # refuses one. A row it silences is not ungraded -- we have EVIDENCE its named set does
+        # not all pass, which is precisely the silent verdict this module defines, reached from
+        # the register instead of from a runner.
+        #
+        # AND IT FAILS CLOSED ON THE REGISTER, which is the half that is not free. An unusable
+        # register falls through to the run exactly as before this leg existed, because the
+        # alternative -- treating "I could not look" as "nothing is red" would be harmless, but
+        # treating it as "everything might be red" would let one missing file silence the whole
+        # partition. The reason is carried rather than discarded so `main` can print WHICH of the
+        # two silences a row got.
+        reds, register_unusable = red_at_head(controls, root)
+        if reds and register_unusable is None:
             continue
         if budget_s is not None and clock() - started >= budget_s:
             ungradable.append({"id": aid, "reason": BUDGET_EXHAUSTED, "paths": controls,
@@ -666,10 +813,45 @@ def main(argv: list[str] | None = None) -> int:
     ungraded_ids = {u.get("id") for u in ungradable}
     graded = sum(1 for a in population if a.get("id") not in ungraded_ids)
 
+    # WHICH SILENCE A SILENT ROW GOT, because the module has two of them now and they carry
+    # opposite instructions: "the runner said no" is the map and the controls agreeing, while
+    # "a named control is red at HEAD" is a row that is silent because something ELSE is broken,
+    # and the thing to do about it is on the HEAD-red register rather than in this row.
+    #
+    # RE-DERIVED HERE RATHER THAN CHANNELLED OUT OF `assess`, and the reason is the twenty-one
+    # call sites that unpack its two-tuple. Re-derivation is the shape that drifts, so it is the
+    # SAME function over the SAME inputs -- `reds_at_head(controls, root)` is pure, reads one
+    # JSON file, and takes no argument `assess` had and this does not. It can therefore differ
+    # from the pass only if the store changed underneath, which is a fact about the store and
+    # not a disagreement between two readings.
+    #
+    # Rows in neither verdict list ONLY: a row that was ungradable for an absent control never
+    # reached this leg, and printing "silenced by a red" over it would name the wrong cause.
+    decided = ungraded_ids | {c.get("id") for c in contradicted}
+    silenced = []
+    for atom in population:
+        if atom.get("id") in decided:
+            continue
+        reds, unusable = reds_at_head(named_controls(atom))
+        if reds and unusable is None:
+            silenced.append({"id": atom.get("id"), "reds": reds})
+
     if args.json:
         json.dump({"contradicted": contradicted, "ungradable": ungradable,
+                   "silenced_by_a_red_at_head": silenced,
                    "population": len(population), "graded": graded}, sys.stdout, indent=2)
         sys.stdout.write("\n")
+
+    if silenced and not args.json:
+        sys.stderr.write(
+            "\n[level-zero] {} row(s) are SILENT because a control their own row names is RED "
+            "AT HEAD. The named set cannot all pass, so no run was spent proving it. These rows "
+            "are GRADED -- the evidence is on the HEAD-red register, not in a pytest run -- and "
+            "the work they point at is that register, not this row.\n".format(len(silenced)))
+        for s in silenced:
+            sys.stderr.write("  {}\n".format(s["id"]))
+            for node in s["reds"]:
+                sys.stderr.write("      RED AT HEAD: {}\n".format(node))
 
     if population and not args.json:
         if graded:

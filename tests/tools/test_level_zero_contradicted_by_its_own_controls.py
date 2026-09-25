@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from tools import level_zero_contradicted_by_its_own_controls as lz
@@ -982,3 +983,214 @@ def test_an_UNDATABLE_control_beside_an_atom_own_one_is_still_PROVENANCE_UNKNOWN
         ages=_ages(undatable={"MIXED_UNDATED": ["test_undated.py"]}))
     assert contradicted == []
     assert [u["reason"] for u in ungradable] == [lz.PROVENANCE_UNKNOWN]
+
+
+# --------------------------------------------------------------------------- #
+# The red-at-HEAD short circuit, and the stale arm that must stay reachable    #
+# --------------------------------------------------------------------------- #
+
+def _observed(tmp_path: Path, *, runs, tests) -> Path:
+    """Write a HEAD-red observation store under `tmp_path` at the path the real one lives at,
+    derived from the store module's own declaration so a moved store moves this too."""
+    from background import head_red_register as hrr
+    p = tmp_path / hrr.OBSERVED_PATH.relative_to(hrr.PROJECT_DIR)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"runs": runs, "tests": tests}))
+    return p
+
+
+def _run(at, *, head="abc123", passed=100, red=1):
+    return {"at": at, "head": head, "passed": passed, "red": red}
+
+
+def test_all_four_states_of_the_red_at_head_probe_are_reachable(tmp_path: Path):
+    """One control over the whole partition of `reds_at_head`, written this way deliberately.
+
+    THE DEFECT THIS CATCHES is the one CLAUDE.md names: a screen written to fire rarely, whose
+    every test asks "does it decline correctly", and which therefore passes every leg while
+    declining EVERYTHING. A probe that returned `([], REGISTER_UNOBSERVED)` unconditionally would
+    satisfy three of the four assertions below and this one assertion would still go red.
+
+    The fourth state -- SILENCE -- is the only one that changes a verdict, and the three unusable
+    states are not decoration: each of them must fall through to the run, so each of them being
+    reachable is what proves the fail-closed half is not dead code.
+    """
+    fresh = datetime.now(timezone.utc).isoformat()
+    ancient = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    tests = {"tests/x/test_a.py::test_one": {"currently_red": True},
+             "tests/x/test_b.py::test_two": {"currently_red": False},
+             # A DIFFERENT FILE whose path merely ENDS WITH the named one. Added 2026-09-25
+             # after mutating `str(node).split("::", 1)[0] in wanted` to a substring match and
+             # watching all 45 tests stay green: that mutation is not an equivalence, it silences
+             # a row on a red in a file the row does not name, so the gap was a missing leg and
+             # not a harmless one. Establishing which of the two it was is the rule.
+             "vendor/tests/x/test_a.py::test_one": {"currently_red": True}}
+
+    silenced = tmp_path / "silenced"
+    _observed(silenced, runs=[_run(fresh)], tests=tests)
+    stale = tmp_path / "stale"
+    _observed(stale, runs=[_run(ancient)], tests=tests)
+    undated = tmp_path / "undated"
+    _observed(undated, runs=[_run(None)], tests=tests)
+    unobserved = tmp_path / "unobserved"
+    _observed(unobserved, runs=[], tests=tests)
+    # A store whose rows are not mappings at all. This probe runs inside the delivery seat's
+    # orientation, so a row that raises does not fail closed -- it takes the whole pass and the
+    # brief with it. Corrupt must land in the SAME place as every other unusable state.
+    corrupt = tmp_path / "corrupt"
+    _observed(corrupt, runs=["not a mapping"], tests={"tests/x/test_a.py::test_one": "nor this"})
+    # ...and the SAME corruption one level down, behind a run row that IS well formed. Added
+    # 2026-09-25 because the fixture above never reaches the tests loop -- it returns UNDATED on
+    # the run row first -- so mutating away the per-test guard left all 45 green. A missing leg,
+    # not an equivalence: without the guard this raises AttributeError out of the seat's
+    # orientation instead of falling through to the run.
+    corrupt_rows = tmp_path / "corrupt_rows"
+    _observed(corrupt_rows, runs=[_run(fresh)],
+              tests={"tests/x/test_a.py::test_one": "not a mapping"})
+
+    named = ["tests/x/test_a.py"]
+    states = {
+        "SILENCED": lz.reds_at_head(named, root=silenced),
+        "STALE": lz.reds_at_head(named, root=stale),
+        "UNDATED": lz.reds_at_head(named, root=undated),
+        "UNOBSERVED": lz.reds_at_head(named, root=unobserved),
+        "CORRUPT": lz.reds_at_head(named, root=corrupt),
+        "CORRUPT_ROWS": lz.reds_at_head(named, root=corrupt_rows),
+        # A red that is NOT in the named set says nothing about this row.
+        "RED_ELSEWHERE": lz.reds_at_head(["tests/x/test_b.py"], root=silenced),
+    }
+
+    assert states["SILENCED"] == (["tests/x/test_a.py::test_one"], None), (
+        "the named control is matched on its WHOLE path or not at all -- a red in "
+        "`vendor/tests/x/test_a.py` is a red in a file this row does not name: {}".format(
+            states["SILENCED"]))
+    assert states["RED_ELSEWHERE"] == ([], None), states["RED_ELSEWHERE"]
+    for label in ("STALE", "UNDATED", "UNOBSERVED", "CORRUPT"):
+        reds, why = states[label]
+        assert reds == [] and why, "{} is not reachable: {}".format(label, states[label])
+    # A well-formed run over malformed test rows is a USABLE register holding no readable red:
+    # empty list, no reason, and the row falls through to its run. It must not raise, and it must
+    # not be mistaken for one of the unusable states -- those three send a reader to a daemon.
+    assert states["CORRUPT_ROWS"] == ([], None), states["CORRUPT_ROWS"]
+    # And the three unusable reasons are DISTINCT, because they send a reader to three different
+    # places. Collapsing them would pass every assertion above.
+    assert len({states[k][1] for k in ("STALE", "UNDATED", "UNOBSERVED")}) == 3, states
+
+
+def test_a_row_naming_a_control_red_at_HEAD_is_SILENT_and_its_suites_are_NEVER_RUN(tmp_path: Path):
+    """The economy itself. `KNIFE3_wall_crossing_paydown` names twelve suites costing 1078s
+    against a production cap of 60s, so the rows naming the most controls could never be weighed:
+    the live pass returned population 28, graded 0. Two of KNIFE3's 224 tests have been red at
+    HEAD for 19 consecutive census runs, and CONTRADICTED needs the WHOLE set to pass -- so the
+    run was buying a verdict already known.
+
+    THE `ran` LIST IS THE ASSERTION, not the verdict. A leg that reached the same silence BY
+    RUNNING the suites would satisfy a verdict-only test and buy nothing at all."""
+    for name in ("test_red_at_head.py", "test_fine.py"):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    _observed(tmp_path, runs=[_run(datetime.now(timezone.utc).isoformat())],
+              tests={"test_red_at_head.py::test_x": {"currently_red": True}})
+
+    ran: list = []
+
+    def runner(paths, root=REPO, timeout_s=0):
+        ran.append(tuple(paths))
+        return (True, "1 passed")
+
+    contradicted, ungradable = lz.assess(
+        [_atom("SILENCED_BY_A_RED", scope=["test_red_at_head.py"]),
+         _atom("GRADED_BY_A_RUN", scope=["test_fine.py"])],
+        root=tmp_path, ages=_ages(), runner=runner, blockers_for=lambda lane: [])
+
+    assert ran == [("test_fine.py",)], (
+        "the short circuit did not save the run, or it swallowed the row that needed one: {}"
+        .format(ran))
+    assert [c["id"] for c in contradicted] == ["GRADED_BY_A_RUN"], contradicted
+    assert ungradable == [], (
+        "a row silenced by a red at HEAD is GRADED -- we have evidence its named set does not "
+        "all pass -- and must not be reported as a row nobody could weigh: {}".format(ungradable))
+
+
+def test_a_stale_or_unreadable_register_FAILS_CLOSED_and_the_suites_still_run(tmp_path: Path):
+    """The half that is not free, and the arm the work item asked be PROVEN REACHABLE.
+
+    If an unusable register silenced rows, one missing untracked file would retire the whole
+    partition at a stroke -- the blanket disposition `background/head_red_register` refuses by
+    design ("one paragraph must not be able to retire 830 subjects"). So an unusable register
+    must leave the verdict exactly as it was before this leg existed, and the proof of that is
+    that the SAME world which silences on a fresh store REFUSES on a stale one.
+
+    Both arms are asserted against one fixture on purpose: a test that only pinned the stale arm
+    would pass against a leg that had been disabled altogether."""
+    (tmp_path / "test_red_at_head.py").write_text("def test_x():\n    assert True\n")
+    atoms = [_atom("A_ROW", scope=["test_red_at_head.py"])]
+    reds = {"test_red_at_head.py::test_x": {"currently_red": True}}
+
+    def graded_with(runs):
+        _observed(tmp_path, runs=runs, tests=reds)
+        ran: list = []
+
+        def runner(paths, root=REPO, timeout_s=0):
+            ran.append(tuple(paths))
+            return (True, "1 passed")
+
+        contradicted, _ = lz.assess(atoms, root=tmp_path, ages=_ages(), runner=runner,
+                                    blockers_for=lambda lane: [])
+        return ran, [c["id"] for c in contradicted]
+
+    fresh_ran, fresh_verdict = graded_with([_run(datetime.now(timezone.utc).isoformat())])
+    stale_ran, stale_verdict = graded_with(
+        [_run((datetime.now(timezone.utc) - timedelta(days=30)).isoformat())])
+    gone_ran, gone_verdict = graded_with([])
+
+    assert fresh_ran == [] and fresh_verdict == [], (
+        "the silence arm is unreachable, so the stale arm below proves nothing: {} {}"
+        .format(fresh_ran, fresh_verdict))
+    assert stale_ran == [("test_red_at_head.py",)] and stale_verdict == ["A_ROW"], (
+        "a STALE register did not fail closed -- it silenced the row instead of running it: "
+        "{} {}".format(stale_ran, stale_verdict))
+    assert gone_ran == [("test_red_at_head.py",)] and gone_verdict == ["A_ROW"], (
+        "an UNOBSERVED register did not fail closed: {} {}".format(gone_ran, gone_verdict))
+
+
+def test_a_red_a_person_has_ACCEPTED_still_silences_the_row(tmp_path: Path):
+    """Acceptance is a DECISION about whether we owe work; redness is an OBSERVATION about
+    whether the test passes. This leg asks only the second, so it must not read through
+    `head_red_register.owed` or `head_red_baseline.load_baseline`, both of which subtract the
+    first.
+
+    The defect if it did: a red accepted in `head_red_baseline.json` would drop out of the probe,
+    the row's expensive suites would be run to discover the set does not pass, and the verdict
+    would be the same silence at full price -- the exact cost this leg exists to avoid.
+
+    THE ACCEPTANCE FILE IS REALLY WRITTEN, into the fixture tree at the path the loader resolves,
+    and that is the whole reason this test can fail. Without it the mutation "subtract the
+    accepted set" is a NO-OP in a tmp_path -- there is no baseline to subtract -- and this
+    control would go green against the very defect it names. (Caught 2026-09-25 by mutating it:
+    the first draft asserted `owed()` behaviour with the list passed in BY HAND, which proves
+    something about `owed` and nothing about this probe.)"""
+    from background import head_red_baseline as hrb
+    from background import head_red_register as hrr
+
+    node = "test_accepted_red.py::test_x"
+    (tmp_path / "test_accepted_red.py").write_text("def test_x():\n    assert True\n")
+    store = {"runs": [_run(datetime.now(timezone.utc).isoformat())],
+             "tests": {node: {"currently_red": True}}}
+    _observed(tmp_path, runs=store["runs"], tests=store["tests"])
+
+    baseline = tmp_path / hrb.BASELINE_PATH.relative_to(hrb.PROJECT_DIR)
+    baseline.parent.mkdir(parents=True, exist_ok=True)
+    baseline.write_text(json.dumps({"known_red": [node]}))
+
+    # The premise, asserted rather than assumed: this node really IS accepted by both of the
+    # mechanisms the probe must not route through. A rotted premise here would make the
+    # assertion below pass for the wrong reason.
+    assert hrb.load_baseline(baseline) == {node}, baseline.read_text()
+    assert hrr.owed(store, hrb.load_baseline(baseline)) == [], (
+        "this test's premise is gone: the node it calls accepted is not being subtracted by "
+        "`owed`, so it cannot show that this leg ignores acceptance")
+
+    reds, why = lz.reds_at_head(["test_accepted_red.py"], root=tmp_path)
+    assert why is None and reds == [node], (
+        "an accepted red stopped silencing the row, so the leg is reading the DECISION store "
+        "and not the OBSERVATION: {} {}".format(reds, why))
