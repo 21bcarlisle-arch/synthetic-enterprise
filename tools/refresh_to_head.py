@@ -102,6 +102,7 @@ from tools.stale_copy_refusal import (
     json_leaf_delta,
     landable_hunks,
     opinion,
+    supplied_comment_lines,
     symbols,
     unread_populations,
 )
@@ -165,6 +166,28 @@ REPLACEMENT = "refused_replacement_no_landable_hunk"
 #: A refusal by default and writable only under `--superseded`, because a test-first lane looks
 #: exactly like this and the difference is intent, which is not on disk.
 SUPERSEDED_DEAD = "refused_supplies_only_dead_names"
+#: THE COPY HOLDS PROSE THE BASE DOES NOT, AND NO READING ABOVE CAN SEE IT. `judge` filters comments
+#: out of rule 1's evidence and declares no name for one, so "supplies no name the base lacks" is true
+#: of SYMBOLS and false of the artefact -- the same sentence `WHITELIST_GAIN` is one population to the
+#: left of. THE MEASUREMENT THAT COMMISSIONED IT, over the 662 dirty paths of the shared tree on
+#: 2026-09-25: exactly TWO graded `REFRESHABLE`, and BOTH supply comment lines HEAD lacks -- 19 on
+#: `tests/architecture/test_static_quality_ratchet.py` (a hand-written ratchet log entry carrying a
+#: measured I001 census move and its reasoning) and 4 on `tests/background/test_a_swept_row_names_the_
+#: sibling_that_holds_its_windows_commit.py`. So the one grade in this tool that licenses destroying
+#: bytes applied to two copies in the whole tree and BOTH of them were holding writing, and
+#: `background.origin_reconcile` acts on that grade with no person in the loop.
+#:
+#: THE GAP WAS NAMED IN THIS FILE'S OWN PROSE AND LEFT OPEN. `_judge_copy`'s `KEY_SUBSET` note says
+#: it declines to turn the dropped keys into a `judge` loss because "any loss is a `REFRESHABLE`
+#: here ... so the honest move is a refusal that says what it found and not a licence to overwrite" --
+#: correct, and it guards the one leg it was written beside. Every OTHER rule reaching `REFRESHABLE`
+#: carries the same hazard, and rule 1b's whole subject IS prose. One guard, in the wrapper, is the
+#: answer to that rather than a prose clause per rule.
+#:
+#: A REFUSAL BY DEFAULT AND WRITABLE ONLY UNDER `--discard-prose`, the `--superseded` idiom exactly:
+#: whether writing that has no other copy is superseded is a judgement, the lines are printed before
+#: the flag can be typed, and no automated caller passes it.
+PROSE_GAIN = "refused_supplies_prose_the_base_lacks"
 #: THE CLOCK WAS ASKED AND COULD NOT ANSWER -- a git call its verdict rests on FAILED. Its own
 #: state, and the reason it has to be one is that this tool had no way to say it: `judge` and
 #: `clock_judge` returned a bare `None` for "no complaint" and for "could not tell" alike, and
@@ -224,6 +247,11 @@ class Verdict:
     #: deliberately not rendered with the same marker: `gains` is content the base does not hold,
     #: and reading an edited figure as one is the whole of the defect this field was cut for.
     edited: tuple[str, ...] = ()
+    #: Comment lines the copy holds that the base does not. NOT `gains` and NOT `discarded`: `gains`
+    #: is a NAME, and reading a line of prose as one is the conflation `edited` was cut to avoid;
+    #: `discarded` is every differing line and is rendered only under `REFRESHABLE`, where it
+    #: describes what a write is about to destroy. This is the subset that makes the write refusable.
+    prose: tuple[str, ...] = ()
 
     @property
     def refused(self) -> bool:
@@ -244,6 +272,14 @@ class Verdict:
                 "" if not gone.elsewhere else
                 " (but {} did bind it -- `git show {}:{}`)".format(
                     gone.elsewhere[:9], gone.elsewhere[:9], gone.module))
+        # ON THE SURFACE AND NOT IN A FOOTNOTE, because the operator's next act is typing the flag
+        # that destroys these exact lines, and a refusal naming a count cannot be checked.
+        for line in self.prose[:10]:
+            body += "        ¶ {}  <- THE COPY HOLDS THIS PROSE AND THE BASE DOES NOT\n".format(
+                line.strip()[:90])
+        if len(self.prose) > 10:
+            body += "        (+{} more line(s) of prose only this copy has)\n".format(
+                len(self.prose) - 10)
         for name in self.edited[:8]:
             body += "        ~ {}  <- BOTH BIND THIS KEY; THE VALUE DIFFERS\n".format(name[:90])
         if len(self.edited) > 8:
@@ -336,7 +372,7 @@ def _index_bytes(root: Path, path: str) -> bytes | None:
 
 def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                base: str = "HEAD", superseded: bool = False, base_wins: bool = False,
-               staged_too: bool = False) -> Verdict:
+               staged_too: bool = False, discard_prose: bool = False) -> Verdict:
     """`_judge_copy`, with the one grade that licenses destruction withdrawn on an unread population.
 
     ASKED ONCE, HERE, AND NOT AT THE FOUR `REFRESHABLE` RETURNS BELOW. This module has already paid
@@ -352,6 +388,15 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
 
     BLAST RADIUS MEASURED, NOT ESTIMATED: across the 430 dirty paths of the shared tree on
     2026-09-24 this changes exactly ONE verdict, and that verdict was the wrong one.
+
+    AND THE SAME SENTENCE ONE POPULATION TO THE LEFT IS `PROSE_GAIN`. A dict key is not the only
+    thing `symbols()` cannot see -- a COMMENT declares no name either, and `judge`'s rule 1 filters
+    comments out of its evidence set on purpose, so "supplies no name the base lacks" is a true
+    statement about symbols and a false one about the file. Re-measured for that leg on 2026-09-25,
+    662 dirty paths: **2 of 2** `REFRESHABLE` copies supply comment lines HEAD lacks, so this grade's
+    entire live population was in the unread state. Both guards live HERE rather than at the four
+    `REFRESHABLE` returns for the reason the paragraph above gives, and `discard_prose` is the only
+    way past either -- a person's flag, never a caller's default.
     """
     verdict = _judge_copy(root, path, staged, base=base, superseded=superseded,
                           base_wins=base_wins, staged_too=staged_too)
@@ -370,19 +415,53 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                        "this copy was graded refreshable and one side does not PARSE, so whether "
                        "it binds a dict key {} lacks is UNKNOWN -- and unknown is not 'no keys'. "
                        "The grade withdrawn here is the only one that overwrites bytes.".format(base))
-    if not keys:
-        return verdict
-    return Verdict(path, WHITELIST_GAIN,
-                   "this copy binds {} dict-literal string key(s) {} does not: {}. No reading above "
-                   "can see them -- a key inside a function body is not a module binding, a class "
-                   "member or an import, so `symbols()` returns the same set for both sides and "
-                   "'supplies no name' is true of SYMBOLS while false of the artefact. Where that "
-                   "dict is a publication whitelist, the key IS the work. Establish by hand which "
-                   "side is the later draft: if this copy is, `python3 -m tools.isolate_hunks "
-                   "--survey {}` and land the hunk(s) carrying those keys; if {} is, they were "
-                   "dropped from it on purpose and this is the refusal to override.".format(
-                       len(keys), base, ", ".join(keys[:5]), path, base),
-                   discarded=_discarded_lines(head_text, work_text))
+    if keys:
+        return Verdict(path, WHITELIST_GAIN,
+                       "this copy binds {} dict-literal string key(s) {} does not: {}. No reading above "
+                       "can see them -- a key inside a function body is not a module binding, a class "
+                       "member or an import, so `symbols()` returns the same set for both sides and "
+                       "'supplies no name' is true of SYMBOLS while false of the artefact. Where that "
+                       "dict is a publication whitelist, the key IS the work. Establish by hand which "
+                       "side is the later draft: if this copy is, `python3 -m tools.isolate_hunks "
+                       "--survey {}` and land the hunk(s) carrying those keys; if {} is, they were "
+                       "dropped from it on purpose and this is the refusal to override.".format(
+                           len(keys), base, ", ".join(keys[:5]), path, base),
+                       discarded=_discarded_lines(head_text, work_text))
+    # THE PROSE LEG, AND IT IS ASKED AFTER THE KEY ONE because a deleted whitelist key is the more
+    # actionable of the two sentences when a copy is in both states -- the same ranking `SUBSET`
+    # takes over `PARTIAL` in `judge`. Reached only on a copy still graded `REFRESHABLE`, so it can
+    # only ever refuse.
+    #
+    # UNSCOPED BY SUFFIX, AND THAT IS A MEASUREMENT AND NOT A SHRUG. `supplied_comment_lines` reads
+    # `#`, `//` and `*` openers: in `.py`/`.js`/`.html` those are comments, in `.md` a `#` is a
+    # heading and in `.yaml` it is a comment, and in all four the answer to "is this content the base
+    # does not have" is the same YES -- while `.json` has no comment syntax and contributes nothing by
+    # construction. Scoping it to `READABLE` was drafted first and then priced: on 2026-09-25 it would
+    # have changed NEITHER of the two live verdicts, because no `.md` or `.yaml` copy in the tree is
+    # `REFRESHABLE` at all. So the scope buys nothing today and the unscoped reading is the stronger
+    # one on a door that destroys bytes. The cost it CAN carry is named rather than left to be found:
+    # `origin_reconcile.advance_shared_tree` is all-or-nothing, so a future `.md` blocker that adds a
+    # heading refuses here and holds the advance -- which is why the escape is a flag and not a
+    # rewrite, and why the flag is on the tool a person runs and not on the daemon's call.
+    prose = supplied_comment_lines(head_text, work_text)
+    if prose and not discard_prose:
+        return Verdict(path, PROSE_GAIN,
+                       "this copy holds {} line(s) of PROSE {} does not have. Every reading above is "
+                       "about NAMES and a comment declares none -- `judge` filters comments out of "
+                       "rule 1's evidence set on purpose -- so 'supplies no name {} lacks' is true of "
+                       "SYMBOLS and false of this file, and the grade it licensed OVERWRITES those "
+                       "lines. Read them below: they exist in no other copy, and where the file is a "
+                       "ratchet log or a test's own record of why a defect was possible, the prose IS "
+                       "the work. TWO DOORS. Keep both -- take {}'s bytes, re-add these line(s) by "
+                       "hand, and land that with `python3 -m tools.surgical_land`; the base's bytes "
+                       "and this writing are not in conflict, which is why discarding is not the only "
+                       "move. Or, if they are genuinely superseded by what {} now says, re-run with "
+                       "`--discard-prose` -- and that flag is a person's: no automated caller passes "
+                       "it, because `background.origin_reconcile` refreshes on the grade withdrawn "
+                       "here with nobody in the loop.".format(
+                           len(prose), base, base, base, base),
+                       prose=prose, discarded=_discarded_lines(head_text, work_text))
+    return verdict
 
 
 def _judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
@@ -931,8 +1010,8 @@ def _clear_index_entry(root: Path, path: str) -> None:
 
 
 def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
-            base: str = "HEAD", superseded: bool = False,
-            base_wins: bool = False, staged_too: bool = False) -> tuple[int, str]:
+            base: str = "HEAD", superseded: bool = False, base_wins: bool = False,
+            staged_too: bool = False, discard_prose: bool = False) -> tuple[int, str]:
     """Survey, and when `write` is set and EVERY named path is refreshable, do it.
 
     `base` is the JUDGEMENT tree only -- see `judge_copy`. The bytes written are always HEAD's,
@@ -940,7 +1019,8 @@ def refresh(root: Path, paths: list[str], slug: str | None, write: bool,
     """
     staged = _staged_paths(root)
     verdicts = [judge_copy(root, path, staged, base=base, superseded=superseded,
-                           base_wins=base_wins, staged_too=staged_too)
+                           base_wins=base_wins, staged_too=staged_too,
+                           discard_prose=discard_prose)
                 for path in paths]
     report = "".join(v.render() for v in verdicts)
     refusals = [v for v in verdicts if v.refused]
@@ -1012,6 +1092,13 @@ def main(argv: list[str] | None = None) -> int:
                          "returned predates_landing or predates_landing_by_clock for that path: "
                          "the clock, not your word, is what establishes the copy is the older "
                          "draft. Does NOT reach a copy with a landable hunk.")
+    ap.add_argument("--discard-prose", action="store_true",
+                    help="admit a copy that holds COMMENT LINES the base does not -- prose no "
+                         "reading in this tool can see, because a comment declares no name. "
+                         "Survey it first: the lines are printed, they exist in no other copy, and "
+                         "where the file is a ratchet log or a test's record of why a defect was "
+                         "possible the prose IS the work. The base's bytes and that writing are "
+                         "usually not in conflict, so keeping BOTH by hand is the other door.")
     ap.add_argument("--staged-too", action="store_true",
                     help="also write the INDEX entry, for a stale copy the holder has STAGED -- "
                          "the one state with no other door, because no landing tool reaches an "
@@ -1022,7 +1109,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         rc, text = refresh(Path(args.root), args.paths, args.slug, args.write, base=args.base,
                            superseded=args.superseded, base_wins=args.base_wins,
-                           staged_too=args.staged_too)
+                           staged_too=args.staged_too,
+                           discard_prose=args.discard_prose)
     except RefreshError as exc:
         print("\n[refresh-to-head] ❌ {}".format(exc))
         return 1
