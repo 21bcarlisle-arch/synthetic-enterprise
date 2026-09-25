@@ -315,6 +315,152 @@ def test_explain_prints_a_usable_block() -> None:
     assert "CLASS:" in out and "INDEX:" in out and "searched" in out
 
 
+# ── a MERGE adds nothing its other parent already has ───────────────────────────────────────
+#
+# The defect: `staged_additions` asked `git diff --cached --diff-filter=A`, which compares the index
+# to `HEAD`, and for a merge `HEAD` is only the FIRST parent. Every module arriving from the second
+# parent therefore read as this commit's own authorship and the merge was refused for lacking a
+# record about somebody else's work. Measured 2026-09-25 on the live shared tree: merging
+# `origin/main` into a checkout 3 behind it was refused with "tools/live_hook_drift.py: G1 no REUSE
+# record". Because `core.hooksPath` is that checkout's own working copy and a diverged checkout can
+# only advance by merging, that one refusal held the live gate chain at a version the trunk had moved
+# past.
+
+
+def _diverged_repo_mid_merge(tmp_path: Path, extra: dict[str, str] | None = None) -> Path:
+    """A real repo, really diverged, with a real `git merge` in progress. Returns its root.
+
+    NOT A STUB OF ONE. What is under test is whether `MERGE_HEAD` and the other parent's tree are
+    read at the moment `commit-msg` runs, and a fake that hands the function two lists would prove
+    the fake. `--no-commit` is what leaves `MERGE_HEAD` on disk, which is exactly the state git is in
+    when it invokes `commit-msg`.
+    """
+    import subprocess as sp
+    root = tmp_path / "repo"
+    root.mkdir()
+
+    def git(*args: str) -> None:
+        r = sp.run(["git", *args], cwd=str(root), capture_output=True, text=True)
+        assert r.returncode == 0, "git {}: {}".format(" ".join(args), r.stderr)
+
+    def write(rel: str, text: str) -> None:
+        f = root / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text, encoding="utf-8")
+
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    git("config", "commit.gpgsign", "false")
+    write("tools/base.py", "x = 0\n")
+    git("add", "-A")
+    git("commit", "-q", "-m", "base")
+    git("checkout", "-q", "-b", "side")
+    write("tools/arrives_from_the_other_parent.py", "y = 1\n")
+    git("add", "-A")
+    git("commit", "-q", "-m", "side adds a module, and records it there")
+    git("checkout", "-q", "main")
+    write("tools/ours.py", "z = 2\n")
+    git("add", "-A")
+    git("commit", "-q", "-m", "ours, so the branches diverge")
+    # The merge itself. `--no-commit` stops at precisely the state `commit-msg` is invoked in.
+    r = sp.run(["git", "merge", "--no-commit", "--no-ff", "side"], cwd=str(root),
+               capture_output=True, text=True)
+    assert (root / ".git" / "MERGE_HEAD").exists(), (
+        "the fixture did not reach a merge state, so nothing below is about a merge: {}{}".format(
+            r.stdout, r.stderr))
+    for rel, text in (extra or {}).items():
+        write(rel, text)
+        sp.run(["git", "add", "--", rel], cwd=str(root), capture_output=True, text=True)
+    return root
+
+
+def test_a_merge_owes_no_record_for_the_other_parents_module_but_still_owes_one_for_its_own(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """THE DEFECT: a module arriving from the second parent was read as this commit's authorship.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, not a leg per branch. Both shapes are present in the SAME
+    merge -- one path the other parent carries, one path no parent has ever seen -- so a repair that
+    collapsed them into one state (exempt everything, or exempt nothing) cannot pass. A test that
+    only asserted the exemption would go green on `return []`, which is the fail-open that matters
+    here: it would switch the gate off for every merge commit, and merges are how the trunk arrives.
+    """
+    root = _diverged_repo_mid_merge(tmp_path, {"tools/authored_in_the_merge.py": "w = 3\n"})
+    monkeypatch.setattr(g, "ROOT", root)
+
+    added = g.staged_additions()
+    owed = g.owes_a_record(added)
+
+    assert owed == ["tools/authored_in_the_merge.py"], (
+        "the merge owes a record for exactly the module NO parent carries. Got {} from additions "
+        "{}".format(owed, added))
+    assert "tools/arrives_from_the_other_parent.py" not in added, (
+        "the second parent's own module is still being read as this commit's authorship -- which is "
+        "the defect, and it refuses the merge for lacking a record about another commit's work")
+
+
+def test_outside_a_merge_nothing_is_subtracted(tmp_path: Path,
+                                               monkeypatch: pytest.MonkeyPatch) -> None:
+    """The ordinary commit is untouched, and this is the arm the repair could most easily break.
+
+    `merging_parents` returning something on a NON-merge would subtract HEAD's whole tree from the
+    additions -- and HEAD's tree contains every file that already exists, so the gate would go quiet
+    on exactly the commits it exists for. Asserted against a real repo with no `MERGE_HEAD`.
+    """
+    import subprocess as sp
+    root = _diverged_repo_mid_merge(tmp_path)
+    sp.run(["git", "merge", "--abort"], cwd=str(root), capture_output=True, text=True)
+    (root / "tools" / "brand_new.py").write_text("q = 4\n", encoding="utf-8")
+    sp.run(["git", "add", "-A"], cwd=str(root), capture_output=True, text=True)
+    monkeypatch.setattr(g, "ROOT", root)
+
+    assert g.merging_parents() == [], "no merge is in progress, so there is no other parent"
+    assert g.owes_a_record(g.staged_additions()) == ["tools/brand_new.py"]
+
+
+def test_an_unreadable_parent_keeps_the_strict_reading(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`paths_at` returning `None` must subtract NOTHING -- the safe wrong answer, not the open one.
+
+    An empty set from a parent would mean "that parent carries no files" and is a different claim
+    from "git would not answer". Conflating them puts a fail-open behind one broken subprocess: the
+    gate would exempt every path of any merge whose parent could not be read.
+    """
+    assert g.staged_additions(added_fn=lambda: ["tools/a.py"], parents_fn=lambda: ["deadbeef"],
+                              paths_fn=lambda _c: None) == ["tools/a.py"], (
+        "an unreadable parent must leave the additions exactly as a non-merge leaves them")
+    assert g.paths_at("not-a-commit-that-exists") is None, (
+        "a ref git cannot resolve must be None and never an empty set")
+
+
+# Fixed inputs for the three merge-parent probes. NOT read from the live index: `git_additions`
+# against this worktree returns whatever happens to be staged right now, which is routinely nothing,
+# and a probe comparing [] to [] passes on every mutant there is.
+_ADDED = ["tools/arrives_from_the_other_parent.py", "tools/authored_in_the_merge.py"]
+_PARENT_CARRIES = {"tools/arrives_from_the_other_parent.py", "tools/base.py"}
+
+
+def _probe_subtraction(m) -> bool:
+    """The other parent's path is dropped and the merge's own is kept."""
+    return m.staged_additions(added_fn=lambda: list(_ADDED),
+                              parents_fn=lambda: ["side"],
+                              paths_fn=lambda _c: set(_PARENT_CARRIES),
+                              ) == ["tools/authored_in_the_merge.py"]
+
+
+def _probe_non_merge(m) -> bool:
+    """With no merge in progress the additions come back untouched."""
+    return m.staged_additions(added_fn=lambda: list(_ADDED),
+                              parents_fn=lambda: [],
+                              paths_fn=lambda _c: set(_PARENT_CARRIES)) == _ADDED
+
+
+def _probe_unreadable(m) -> bool:
+    """An unreadable parent subtracts nothing -- the safe wrong answer, never the open one."""
+    return m.staged_additions(added_fn=lambda: list(_ADDED),
+                              parents_fn=lambda: ["x"],
+                              paths_fn=lambda _c: None) == _ADDED
+
+
 # ── R15: every guard broken at source, one at a time ────────────────────────────────────────
 MUTATIONS = [
     # (name, old source fragment, replacement, probe -> must be TRUE on the real module and
@@ -357,6 +503,22 @@ MUTATIONS = [
      'if not p.startswith(CODE_ROOTS):\n            continue',
      "if True:\n            continue",
      lambda m: m.evaluate([NEW_MODULE], "no record", [])["status"] == "REJECT"),
+    ("the merge-parent subtraction",
+     "    return [p for p in added if p not in already]",
+     "    return added",
+     # TRUE on the real module: the other parent's module is exempt. FALSE on the mutant, which
+     # goes back to reading it as this commit's authorship.
+     _probe_subtraction),
+    ("the exemption is not blanket",
+     "    if not parents:\n        return added",
+     "    if not parents:\n        return []",
+     # TRUE on the real module: a non-merge keeps its additions. The mutant silences the gate on
+     # every ordinary commit, which is the fail-open the exemption could most easily become.
+     _probe_non_merge),
+    ("unreadable parent stays strict",
+     "            return added\n        already |= carried",
+     "            return []\n        already |= carried",
+     _probe_unreadable),
     ("the module-vs-test distinction",
      'if p.startswith("tests/") or "/tests/" in p or Path(p).name.startswith("test_"):',
      "if False:",
