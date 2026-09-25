@@ -11,8 +11,8 @@
   "mprn": "93491795",
   "lifetime_revenue_gbp": 1518.81,
   "lifetime_gross_gbp": 1016.57,
-  "lifetime_net_gbp": 694.35,
-  "lifetime_net_after_cts_gbp": 447.53,
+  "lifetime_net_gbp": 694.36,
+  "lifetime_net_after_cts_gbp": 447.54,
   "cost_to_serve_gbp": 246.82,
   "pricing_action": {
     "flag": "OK",
@@ -29,7 +29,7 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 694.35,
+      "net_gbp": 694.36,
       "revenue_gbp": 1518.81
     }
   },
@@ -73,7 +73,7 @@
       "gross_gbp": 130.4,
       "net_gbp": 79.74,
       "tariff_min": 28.5,
-      "tariff_max": 31.89
+      "tariff_max": 31.92
     }
   ],
   "timeline": [
@@ -2067,14 +2067,14 @@
       "period_end": "2021-04-30",
       "commodity": "gas",
       "consumption_kwh": 949.5,
-      "unit_rate_p_per_kwh": 3.175,
-      "commodity_amount_gbp": 30.15,
+      "unit_rate_p_per_kwh": 3.176,
+      "commodity_amount_gbp": 30.16,
       "standing_charge_gbp": 7.8,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.26,
       "non_commodity_amount_gbp": 11.39,
       "vat_gbp": 2.47,
-      "amount_gbp": 51.81,
+      "amount_gbp": 51.82,
       "status": "PAID",
       "meter_serial": "M00038285",
       "mpan": null,
@@ -2087,8 +2087,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 949.5,
-          "amount_gbp": 30.15,
-          "unit_rate_p_per_kwh": 3.175
+          "amount_gbp": 30.16,
+          "unit_rate_p_per_kwh": 3.176
         }
       ],
       "catchup_applied": false,
@@ -3474,17 +3474,17 @@
         "date": "2021-05-02",
         "type": "invoice_raised",
         "invoice_number": 1895,
-        "amount_gbp": 51.81,
+        "amount_gbp": 51.82,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1895 raised",
-        "running_balance_gbp": -273.8
+        "running_balance_gbp": -273.79
       },
       {
         "date": "2021-05-16",
         "type": "payment_received",
         "invoice_number": 1895,
-        "amount_gbp": -51.81,
+        "amount_gbp": -51.82,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -3622,8 +3622,8 @@
       }
     ],
     "current_balance_gbp": -325.61,
-    "total_billed_gbp": 2118.11,
-    "total_collected_gbp": 2443.72,
+    "total_billed_gbp": 2118.12,
+    "total_collected_gbp": 2443.73,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -3998,7 +3998,7 @@
       "date": "2018-04-07",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 13% churn risk at decision time, SIM realized probability was 10%.",
-      "company_belief": 0.134,
+      "company_belief": 0.132,
       "sim_truth": 0.102,
       "amount_gbp": null,
       "outcome": "renewed",

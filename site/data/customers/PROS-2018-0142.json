@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2018-0142g",
-    "gas_lifetime_net_gbp": 1123.06,
-    "gas_lifetime_revenue_gbp": 4119.02,
-    "combined_net_gbp": 2877.76,
-    "combined_revenue_gbp": 9708.62
+    "gas_lifetime_net_gbp": 1123.12,
+    "gas_lifetime_revenue_gbp": 4119.08,
+    "combined_net_gbp": 2877.82,
+    "combined_revenue_gbp": 9708.68
   },
   "annual_pnl": [
     {
@@ -74,7 +74,7 @@
       "gross_gbp": 345.59,
       "net_gbp": 86.39,
       "tariff_min": 123.13,
-      "tariff_max": 216.14
+      "tariff_max": 216.13
     },
     {
       "year": 2022,
@@ -2067,14 +2067,14 @@
       "period_end": "2022-04-30",
       "commodity": "electricity",
       "consumption_kwh": 251.6,
-      "unit_rate_p_per_kwh": 33.06,
-      "commodity_amount_gbp": 83.18,
+      "unit_rate_p_per_kwh": 33.056,
+      "commodity_amount_gbp": 83.17,
       "standing_charge_gbp": 13.8,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.46,
       "non_commodity_amount_gbp": 18.37,
       "vat_gbp": 5.77,
-      "amount_gbp": 121.12,
+      "amount_gbp": 121.11,
       "status": "PAID",
       "meter_serial": "M00062031",
       "mpan": "1000000000816",
@@ -2087,8 +2087,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 251.6,
-          "amount_gbp": 83.18,
-          "unit_rate_p_per_kwh": 33.06
+          "amount_gbp": 83.17,
+          "unit_rate_p_per_kwh": 33.056
         }
       ],
       "catchup_applied": false,
@@ -4637,17 +4637,17 @@
         "date": "2022-05-02",
         "type": "invoice_raised",
         "invoice_number": 2922,
-        "amount_gbp": 121.12,
+        "amount_gbp": 121.11,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV2922 raised",
-        "running_balance_gbp": 121.12
+        "running_balance_gbp": 121.11
       },
       {
         "date": "2022-05-16",
         "type": "payment_received",
         "invoice_number": 2922,
-        "amount_gbp": -121.12,
+        "amount_gbp": -121.11,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -5445,8 +5445,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 7191.35,
-    "total_collected_gbp": 7191.35,
+    "total_billed_gbp": 7191.34,
+    "total_collected_gbp": 7191.34,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -5817,7 +5817,7 @@
       "date": "2020-05-07",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 21% churn risk at decision time, SIM realized probability was 46%.",
-      "company_belief": 0.21,
+      "company_belief": 0.211,
       "sim_truth": 0.455,
       "amount_gbp": null,
       "outcome": "renewed",
@@ -5882,8 +5882,8 @@
       "customer_id": "PROS-2018-0142",
       "date": "2024-05-06",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 77% churn risk, decided to offer a 8% discount (cost GBP45.80) against GBP343.32 expected term margin at risk -- expected value of offering GBP297.52. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.767,
+      "description": "Renewal window: company estimated 78% churn risk, decided to offer a 8% discount (cost GBP45.80) against GBP343.32 expected term margin at risk -- expected value of offering GBP297.52. Comms framed as a gain (save with this discount).",
+      "company_belief": 0.784,
       "sim_truth": 0.417,
       "amount_gbp": 297.52,
       "outcome": "retained",
@@ -5893,8 +5893,8 @@
       "customer_id": "PROS-2018-0142",
       "date": "2024-05-06",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 77% churn risk at decision time, SIM realized probability was 42%.",
-      "company_belief": 0.767,
+      "description": "Renewal outcome: RENEWED -- company believed 78% churn risk at decision time, SIM realized probability was 42%.",
+      "company_belief": 0.784,
       "sim_truth": 0.417,
       "amount_gbp": null,
       "outcome": "renewed",

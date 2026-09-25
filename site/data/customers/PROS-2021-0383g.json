@@ -9,10 +9,10 @@
   "meter_type": "Smart",
   "mpan": null,
   "mprn": "45391109",
-  "lifetime_revenue_gbp": 2979.5,
-  "lifetime_gross_gbp": 1040.72,
-  "lifetime_net_gbp": 515.69,
-  "lifetime_net_after_cts_gbp": 324.47,
+  "lifetime_revenue_gbp": 2979.07,
+  "lifetime_gross_gbp": 1040.3,
+  "lifetime_net_gbp": 515.27,
+  "lifetime_net_after_cts_gbp": 324.05,
   "cost_to_serve_gbp": 191.22,
   "pricing_action": {
     "flag": "OK",
@@ -29,8 +29,8 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 515.69,
-      "revenue_gbp": 2979.5
+      "net_gbp": 515.27,
+      "revenue_gbp": 2979.07
     }
   },
   "dual_fuel_combined": null,
@@ -46,10 +46,10 @@
     {
       "year": 2022,
       "revenue_gbp": 0,
-      "gross_gbp": -222.59,
-      "net_gbp": -330.7,
+      "gross_gbp": -223.02,
+      "net_gbp": -331.13,
       "tariff_min": 40.7,
-      "tariff_max": 187.45
+      "tariff_max": 186.9
     },
     {
       "year": 2023,
@@ -516,14 +516,14 @@
       "period_end": "2022-12-31",
       "commodity": "gas",
       "consumption_kwh": 1596.4,
-      "unit_rate_p_per_kwh": 11.1714,
-      "commodity_amount_gbp": 178.34,
+      "unit_rate_p_per_kwh": 11.1445,
+      "commodity_amount_gbp": 177.91,
       "standing_charge_gbp": 8.68,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.28,
       "non_commodity_amount_gbp": 23.95,
-      "vat_gbp": 10.55,
-      "amount_gbp": 270.84,
+      "vat_gbp": 10.53,
+      "amount_gbp": 270.39,
       "status": "PAID",
       "meter_serial": "M00038285",
       "mpan": null,
@@ -536,8 +536,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 1596.4,
-          "amount_gbp": 178.34,
-          "unit_rate_p_per_kwh": 11.1714
+          "amount_gbp": 177.91,
+          "unit_rate_p_per_kwh": 11.1445
         }
       ],
       "catchup_applied": true,
@@ -1742,17 +1742,17 @@
         "date": "2023-01-04",
         "type": "invoice_raised",
         "invoice_number": 6051,
-        "amount_gbp": 270.84,
+        "amount_gbp": 270.39,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV6051 raised",
-        "running_balance_gbp": 270.84
+        "running_balance_gbp": 270.39
       },
       {
         "date": "2023-01-18",
         "type": "payment_received",
         "invoice_number": 6051,
-        "amount_gbp": -270.84,
+        "amount_gbp": -270.39,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -2260,8 +2260,8 @@
       }
     ],
     "current_balance_gbp": 4.65,
-    "total_billed_gbp": 3548.93,
-    "total_collected_gbp": 3544.28,
+    "total_billed_gbp": 3548.48,
+    "total_collected_gbp": 3543.83,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -2503,8 +2503,8 @@
       "customer_id": "PROS-2021-0383",
       "date": "2024-12-16",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 54% churn risk, decided to offer a 5% discount (cost GBP32.61) against GBP353.42 expected term margin at risk -- expected value of offering GBP320.81. Comms framed as a loss (you will lose the discount).",
-      "company_belief": 0.542,
+      "description": "Renewal window: company estimated 56% churn risk, decided to offer a 5% discount (cost GBP32.61) against GBP353.42 expected term margin at risk -- expected value of offering GBP320.81. Comms framed as a loss (you will lose the discount).",
+      "company_belief": 0.556,
       "sim_truth": 0.448,
       "amount_gbp": 320.81,
       "outcome": "retained",
@@ -2514,8 +2514,8 @@
       "customer_id": "PROS-2021-0383",
       "date": "2024-12-16",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 54% churn risk at decision time, SIM realized probability was 45%.",
-      "company_belief": 0.542,
+      "description": "Renewal outcome: RENEWED -- company believed 56% churn risk at decision time, SIM realized probability was 45%.",
+      "company_belief": 0.556,
       "sim_truth": 0.448,
       "amount_gbp": null,
       "outcome": "renewed",

@@ -10,9 +10,9 @@
   "mpan": null,
   "mprn": "89567075",
   "lifetime_revenue_gbp": 4552.62,
-  "lifetime_gross_gbp": 2067.27,
-  "lifetime_net_gbp": 1255.37,
-  "lifetime_net_after_cts_gbp": 905.48,
+  "lifetime_gross_gbp": 2067.26,
+  "lifetime_net_gbp": 1255.36,
+  "lifetime_net_after_cts_gbp": 905.47,
   "cost_to_serve_gbp": 349.89,
   "pricing_action": {
     "flag": "OK",
@@ -29,7 +29,7 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 1255.37,
+      "net_gbp": 1255.36,
       "revenue_gbp": 4552.62
     }
   },
@@ -62,18 +62,18 @@
     {
       "year": 2022,
       "revenue_gbp": 0,
-      "gross_gbp": -2.37,
-      "net_gbp": -122.05,
+      "gross_gbp": -2.38,
+      "net_gbp": -122.06,
       "tariff_min": 30.0,
       "tariff_max": 156.85
     },
     {
       "year": 2023,
       "revenue_gbp": 0,
-      "gross_gbp": 750.65,
+      "gross_gbp": 750.66,
       "net_gbp": 587.3,
       "tariff_min": 65.45,
-      "tariff_max": 167.46
+      "tariff_max": 167.47
     },
     {
       "year": 2024,
@@ -5394,7 +5394,7 @@
       "date": "2021-01-28",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 12% churn risk at decision time, SIM realized probability was 27%.",
-      "company_belief": 0.115,
+      "company_belief": 0.117,
       "sim_truth": 0.272,
       "amount_gbp": null,
       "outcome": "renewed",

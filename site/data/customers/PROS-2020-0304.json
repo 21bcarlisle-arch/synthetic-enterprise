@@ -12,10 +12,10 @@
     "bottom_line": "23850552699"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 8932.34,
-  "lifetime_gross_gbp": 5688.73,
+  "lifetime_revenue_gbp": 8932.35,
+  "lifetime_gross_gbp": 5688.74,
   "lifetime_net_gbp": 2468.75,
-  "lifetime_net_after_cts_gbp": 2234.64,
+  "lifetime_net_after_cts_gbp": 2234.65,
   "cost_to_serve_gbp": 234.1,
   "pricing_action": {
     "flag": "OK",
@@ -32,16 +32,16 @@
   "commodity_split": {
     "electricity": {
       "net_gbp": 2468.75,
-      "revenue_gbp": 8932.34
+      "revenue_gbp": 8932.35
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2020-0304g",
-    "gas_lifetime_net_gbp": 536.32,
-    "gas_lifetime_revenue_gbp": 3682.4,
-    "combined_net_gbp": 3005.07,
-    "combined_revenue_gbp": 12614.74
+    "gas_lifetime_net_gbp": 536.59,
+    "gas_lifetime_revenue_gbp": 3682.67,
+    "combined_net_gbp": 3005.35,
+    "combined_revenue_gbp": 12615.01
   },
   "annual_pnl": [
     {
@@ -608,14 +608,14 @@
       "period_end": "2021-09-30",
       "commodity": "electricity",
       "consumption_kwh": 301.8,
-      "unit_rate_p_per_kwh": 12.7,
-      "commodity_amount_gbp": 38.33,
+      "unit_rate_p_per_kwh": 12.704,
+      "commodity_amount_gbp": 38.34,
       "standing_charge_gbp": 8.7,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.29,
       "non_commodity_amount_gbp": 18.71,
       "vat_gbp": 3.29,
-      "amount_gbp": 69.03,
+      "amount_gbp": 69.04,
       "status": "PAID",
       "meter_serial": "M00061814",
       "mpan": "1000000000809",
@@ -628,8 +628,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 301.8,
-          "amount_gbp": 38.33,
-          "unit_rate_p_per_kwh": 12.7
+          "amount_gbp": 38.34,
+          "unit_rate_p_per_kwh": 12.704
         }
       ],
       "catchup_applied": false,
@@ -2529,11 +2529,11 @@
         "date": "2021-10-02",
         "type": "invoice_raised",
         "invoice_number": 4989,
-        "amount_gbp": 69.03,
+        "amount_gbp": 69.04,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV4989 raised",
-        "running_balance_gbp": 137.54
+        "running_balance_gbp": 137.55
       },
       {
         "date": "2021-10-08",
@@ -2543,13 +2543,13 @@
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 137.54
+        "running_balance_gbp": 137.55
       },
       {
         "date": "2021-10-16",
         "type": "payment_received",
         "invoice_number": 4989,
-        "amount_gbp": -69.03,
+        "amount_gbp": -69.04,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -3367,8 +3367,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 11347.53,
-    "total_collected_gbp": 11210.81,
+    "total_billed_gbp": 11347.54,
+    "total_collected_gbp": 11210.82,
     "total_written_off_gross_gbp": 136.72,
     "total_recovered_gbp": 23.25
   },
@@ -3735,7 +3735,7 @@
       "date": "2023-09-30",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 12%.",
-      "company_belief": 0.106,
+      "company_belief": 0.108,
       "sim_truth": 0.12,
       "amount_gbp": null,
       "outcome": "renewed",

@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2020-0205g",
-    "gas_lifetime_net_gbp": 922.09,
-    "gas_lifetime_revenue_gbp": 6383.52,
-    "combined_net_gbp": 2090.79,
-    "combined_revenue_gbp": 10135.46
+    "gas_lifetime_net_gbp": 922.04,
+    "gas_lifetime_revenue_gbp": 6383.47,
+    "combined_net_gbp": 2090.74,
+    "combined_revenue_gbp": 10135.41
   },
   "annual_pnl": [
     {
@@ -4337,8 +4337,8 @@
       "customer_id": "PROS-2020-0205",
       "date": "2024-06-22",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 59% churn risk, decided to offer a 5% discount (cost GBP20.69) against GBP282.93 expected term margin at risk -- expected value of offering GBP262.24. Comms framed as a loss (you will lose the discount).",
-      "company_belief": 0.588,
+      "description": "Renewal window: company estimated 60% churn risk, decided to offer a 5% discount (cost GBP20.69) against GBP282.93 expected term margin at risk -- expected value of offering GBP262.24. Comms framed as a loss (you will lose the discount).",
+      "company_belief": 0.602,
       "sim_truth": 0.39,
       "amount_gbp": 262.24,
       "outcome": "retained",
@@ -4348,8 +4348,8 @@
       "customer_id": "PROS-2020-0205",
       "date": "2024-06-22",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 59% churn risk at decision time, SIM realized probability was 39%.",
-      "company_belief": 0.588,
+      "description": "Renewal outcome: RENEWED -- company believed 60% churn risk at decision time, SIM realized probability was 39%.",
+      "company_belief": 0.602,
       "sim_truth": 0.39,
       "amount_gbp": null,
       "outcome": "renewed",

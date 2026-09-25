@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2024-0010g",
-    "gas_lifetime_net_gbp": 563.87,
-    "gas_lifetime_revenue_gbp": 1791.11,
-    "combined_net_gbp": 913.98,
-    "combined_revenue_gbp": 2686.12
+    "gas_lifetime_net_gbp": 567.05,
+    "gas_lifetime_revenue_gbp": 1794.29,
+    "combined_net_gbp": 917.15,
+    "combined_revenue_gbp": 2689.3
   },
   "annual_pnl": [
     {
@@ -1288,8 +1288,8 @@
       "customer_id": "PROS-2024-0010",
       "date": "2025-01-08",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 26% churn risk at decision time, SIM realized probability was 18%.",
-      "company_belief": 0.265,
+      "description": "Renewal outcome: RENEWED -- company believed 27% churn risk at decision time, SIM realized probability was 18%.",
+      "company_belief": 0.271,
       "sim_truth": 0.182,
       "amount_gbp": null,
       "outcome": "renewed",
