@@ -260,3 +260,243 @@ def test_the_successor_on_the_trailer_does_not_count_as_the_commits_own_subject(
     msg = "an ordinary machinery commit\n\nNEXT: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system\n"
 
     assert gate.verdict(msg, known)[0] is True
+
+
+# ── The SECOND trigger: the map diff, not the prose (2026-09-25) ─────────────────────────────
+# Measured over the last 200 first-parent commits: 110 atoms open, 100 distinct number forms, and
+# exactly ONE message naming any of them. The gate refused 1 commit in 200 and was unasked on the
+# other 199. These control the leg that asks the MAP instead.
+
+_MAP_BEFORE = """\
+- id: PB4_engagement_separated_from_elasticity
+  level_current: 0
+  level_target: 3
+- id: C29_decisions_stop_being_lookup_tables
+  level_current: 2   # L0->L2 2026-09-17, recorded in gate_authorizations.jsonl
+  level_target: 3
+"""
+
+
+def _map_with(**levels):
+    """The same two atoms with the levels named, so a control states only what it varies."""
+    text = _MAP_BEFORE
+    for atom, (old, new) in levels.items():
+        text = text.replace(
+            f"- id: {atom}\n  level_current: {old}", f"- id: {atom}\n  level_current: {new}"
+        )
+    return text
+
+
+def test_a_commit_whose_MAP_DIFF_moves_a_level_is_asked_even_when_the_prose_names_nothing():
+    """THE DEFECT THIS LEG EXISTS FOR, and it is the 199-in-200 case.
+
+    The message leg asks its question of the author's ACCOUNT of the commit. This asks the
+    project's RECORD of it. A commit that moves an atom from 0 to 1 while its subject line says
+    "stage 1 of the housing joint" names no id, reaches the naming leg's quiet branch, and was
+    asked for nothing by anything -- `level_promotion_gate` records the move and does not ask for a
+    successor.
+    """
+    moved = gate.atoms_whose_level_moved(
+        _MAP_BEFORE, _map_with(PB4_engagement_separated_from_elasticity=(0, 1))
+    )
+    assert moved == {"PB4_engagement_separated_from_elasticity": (0, 1)}
+
+    ok, why = gate.verdict("stage 1 of the housing joint, measured\n", _OPEN, moved)
+
+    assert ok is False
+    assert "THE MAP SAYS SO" in why, "the refusal must name WHICH leg refused: see the next control"
+    assert "0 -> 1" in why
+
+
+def test_a_comment_rewritten_on_a_level_line_is_NOT_a_move():
+    """THE FALSE POSITIVE A LINE-KEYED TRIGGER WOULD PRODUCE, and it is in the real record.
+
+    `2cc924ed9` rewrote the trailing comment on `level_current: 2` and left it at 2. A diff keyed
+    to lines containing `level_current` counts 32 of the last 120 map commits; parsing the VALUE
+    counts 31, and this is the one. A bookkeeping edit must not be asked for a successor.
+    """
+    after = _MAP_BEFORE.replace("recorded in gate_authorizations.jsonl", "HELD AT 2 by its lane")
+    assert after != _MAP_BEFORE, "this control is vacuous unless the text actually changed"
+
+    assert gate.atoms_whose_level_moved(_MAP_BEFORE, after) == {}
+    assert gate.verdict("chore: tidy a note on the map\n", _OPEN, {})[0] is True
+
+
+def test_a_level_WITHDRAWN_is_a_move_too():
+    """REACHABILITY OF A BRANCH HISTORY CANNOT EXERCISE, which makes this control its only witness.
+
+    Nothing in the last 120 map commits moves a level DOWN, so keying this trigger to
+    `level_promotion_gate.level_increases` would have looked identical on every commit that has
+    ever been made and been silent by construction on the case that matters most -- a claim
+    withdrawn is exactly when a reader needs to know what follows. Keyed to the PROPERTY (the value
+    changed), not to today's answer (every move so far has been upward).
+    """
+    down = gate.atoms_whose_level_moved(
+        _MAP_BEFORE, _map_with(C29_decisions_stop_being_lookup_tables=(2, 0))
+    )
+
+    assert down == {"C29_decisions_stop_being_lookup_tables": (2, 0)}
+    assert gate.verdict("withdraw the level\n", _OPEN, down)[0] is False
+
+
+def test_BOTH_DIRECTIONS_are_reachable_through_one_control():
+    """One control over the whole partition rather than a leg per branch.
+
+    A mover that returned `{}` for everything passes every negative arm above, and a mover that
+    returned every atom passes every positive one. This is the shape that catches both: up, down
+    and unchanged must be three distinct answers from the same function.
+    """
+    up = gate.atoms_whose_level_moved(
+        _MAP_BEFORE, _map_with(PB4_engagement_separated_from_elasticity=(0, 3))
+    )
+    down = gate.atoms_whose_level_moved(
+        _MAP_BEFORE, _map_with(C29_decisions_stop_being_lookup_tables=(2, 1))
+    )
+    still = gate.atoms_whose_level_moved(_MAP_BEFORE, _MAP_BEFORE)
+
+    assert up and down and not still
+    assert up != down
+
+
+def test_an_atom_MINTED_by_this_commit_has_not_moved():
+    """Minting an atom is not advancing it, and neither is deleting one.
+
+    The trap underneath is the one `_whole_map` exists for: an atom refiled from the live half to
+    the closed half is ABSENT from one file and present in the other, so a mover reading one half
+    would report every closure as a deletion and every arrival as a mint. The caller reads both
+    halves concatenated; this pins the rule the mover itself must hold either way.
+    """
+    minted = _MAP_BEFORE + "- id: H99_a_brand_new_atom\n  level_current: 0\n  level_target: 2\n"
+
+    assert gate.atoms_whose_level_moved(_MAP_BEFORE, minted) == {}
+    assert gate.atoms_whose_level_moved(minted, _MAP_BEFORE) == {}
+
+
+def test_a_map_move_STILL_cannot_name_itself_as_its_own_successor():
+    """The self-succession refusal guards the map leg too, and that is not automatic.
+
+    It was keyed to `named` -- the atoms the MESSAGE names. An atom whose level moved but whose id
+    appears nowhere in the prose was not in that set, so `NEXT: <itself>` would have satisfied the
+    gate on exactly the commits this leg was added to catch, and put nothing in the queue.
+    """
+    atom = "PB4_engagement_separated_from_elasticity"
+    moved = {atom: (0, 1)}
+
+    ok, why = gate.verdict(f"stage 1 of the joint\n\nNEXT: {atom}\n", _OPEN, moved)
+
+    assert ok is False
+    assert "cannot be its own successor" in why
+
+
+def test_a_map_move_is_satisfied_by_a_DIFFERENT_successor():
+    """The anti-tautology arm for the four controls above: this leg must be SATISFIABLE.
+
+    A trigger that refused whatever trailer was offered would pass every refusal control here, and
+    the evidence for it would read exactly like the mechanism working.
+    """
+    moved = {"PB4_engagement_separated_from_elasticity": (0, 1)}
+    msg = "stage 1 of the joint\n\nNEXT: C29_decisions_stop_being_lookup_tables\n"
+
+    assert gate.verdict(msg, _OPEN, moved)[0] is True
+    assert gate.verdict("stage 1\n\nNEXT: none -- the joint is closed here\n", _OPEN, moved)[0] \
+        is True
+
+
+def test_the_two_legs_give_DISTINGUISHABLE_refusals():
+    """Without this, a mutation disabling one leg is caught by the other and read as proof the
+    disabled leg works -- the flattering reading of a green mutation, and this project's most
+    repeated control defect. The map leg and the message leg must be told apart from the text."""
+    atom = "PB4_engagement_separated_from_elasticity"
+
+    _, map_only = gate.verdict("prose naming nothing\n", _OPEN, {atom: (0, 1)})
+    _, msg_only = gate.verdict(f"advance {atom}\n", _OPEN, {})
+
+    assert "THE MAP SAYS SO" in map_only and "The message names" not in map_only
+    assert "The message names" in msg_only and "THE MAP SAYS SO" not in msg_only
+
+
+def test_the_MAP_LEG_FIRES_WHEN_RUN_THE_WAY_THE_HOOK_RUNS_IT(tmp_path):
+    """THE ONLY CONTROL HERE THAT CAN CATCH THE DEFECT THIS GATE ALREADY SHIPPED ONCE.
+
+    Every control above drives `verdict` with a dict a test built. None of them can tell you
+    whether `staged_level_moves()` reads the real index, whether the new imports survive being run
+    as a SCRIPT (the repo root is not on `sys.path` when the hook runs it), or whether the gate
+    falls through its fail-open branch. This gate was dead in production for one wiring for exactly
+    that reason, with nine green controls.
+
+    The staged map is built in a THROWAWAY `GIT_INDEX_FILE`, so the caller's index is never opened
+    -- this tree has other lanes' work staged in it.
+    """
+    import os
+    import re as _re
+    import subprocess
+    import sys as _sys
+    import tempfile
+
+    from tools.next_step_gate import PROJECT
+
+    head_map = subprocess.run(
+        ["git", "show", "HEAD:docs/design/maturity_map.yaml"],
+        cwd=str(PROJECT), capture_output=True, text=True, timeout=60,
+    )
+    if head_map.returncode != 0:
+        import pytest
+        pytest.skip("no map at HEAD in this checkout")
+    moved_text, subs = _re.subn(r"level_current: 0", "level_current: 1", head_map.stdout, count=1)
+    assert subs == 1, "no atom at level 0 to move: this control would be vacuous"
+
+    fd, index = tempfile.mkstemp(prefix="test-next-step-idx-")
+    os.close(fd)
+    os.unlink(index)
+    env = dict(os.environ, GIT_INDEX_FILE=index)
+    try:
+        subprocess.run(["git", "read-tree", "HEAD"], cwd=str(PROJECT), env=env, check=True,
+                       capture_output=True, timeout=60)
+        blob = subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=str(PROJECT),
+                              input=moved_text, capture_output=True, text=True, timeout=60)
+        subprocess.run(
+            ["git", "update-index", "--cacheinfo",
+             f"100644,{blob.stdout.strip()},docs/design/maturity_map.yaml"],
+            cwd=str(PROJECT), env=env, check=True, capture_output=True, timeout=60,
+        )
+        msg = tmp_path / "COMMIT_EDITMSG"
+        msg.write_text("chore: prose that names no atom at all\n")
+        done = subprocess.run(
+            [_sys.executable, "tools/next_step_gate.py", str(msg)],
+            cwd=str(PROJECT), env=env, capture_output=True, text=True, timeout=180,
+        )
+    finally:
+        if os.path.exists(index):
+            os.unlink(index)
+
+    assert "not blocking" not in done.stderr and "asking the message only" not in done.stderr, (
+        f"the gate fell through a fail-open branch: {done.stderr!r}"
+    )
+    assert done.returncode == 1, (
+        f"a staged level move must REFUSE when run as the hook runs it; got {done.returncode} "
+        f"with stderr {done.stderr!r}"
+    )
+    assert "THE MAP SAYS SO" in done.stderr
+
+
+def test_a_commit_that_does_not_stage_the_map_asks_the_index_for_NOTHING(tmp_path):
+    """REACHABILITY OF THE QUIET BRANCH ON THE REAL INDEX, and the cost leg underneath it.
+
+    `:<path>` resolves from the index, which holds EVERY tracked file -- so `_whole_map(":")`
+    returns both halves of a 300KB map on every commit in the tree whether or not the commit
+    touches it. The gate asks what is STAGED first and stops there.
+
+    THE SECOND ASSERTION IS THE ONE THAT MATTERS AND IT WAS ADDED AFTER A GREEN MUTATION. With the
+    first assertion alone, replacing `_map_is_staged` with `return True` left all 26 controls green:
+    this worktree's index equals HEAD, so the map is read twice, compared, and found unchanged --
+    the right answer by the wrong route. That is a missing control rather than an equivalence, and
+    the evidence it is not an equivalence is the clock: the suite went from 1.18s to 2.29s on the
+    mutation, which is the two YAML parses it would add to EVERY commit of EVERY lane. So the
+    control is keyed to the predicate itself, which a mutation cannot leave standing.
+    """
+    assert gate.staged_level_moves() == {}, (
+        "this worktree stages no map, so the gate must report no move"
+    )
+    assert gate._map_is_staged() is False, (
+        "the map is not staged here, so the gate must not go to the index for it at all"
+    )
