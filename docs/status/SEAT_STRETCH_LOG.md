@@ -8,6 +8,40 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-25 — the gas half of the shape switch reaches a run for the first time (85 of 98), and W2_19's prior is built and reaches no home
+
+<!-- head: 17a88051cad4 -->
+
+**Written 2026-09-25 ~14:00 BST.** Stage 1 on the director's instruction: the agreement fold, the
+half-hourly shape reaching the book, W2_19 printed at real inputs.
+
+## The agreement fold has not run yet
+
+`shards/agreement_fold_rc.txt` does not exist. The 18-seed job is alive on leg 2 of 6, and leg 1
+took 4h40m, so the fold that writes the rc lands around tomorrow morning. Nothing to read yet.
+
+## The gas half reaches a run artefact for the first time: 85 of 98 on their own shape
+
+A fresh run from a clean origin/main worktree published `gas_shape_provider_by_customer` for the
+first time. 85 households settle on their own seasonal shape and 13 keep the 70/30 split. All three
+pre-registered predictions held. **The reason no daemon run had carried it:** the shared tree's
+`annual_report.py` was a restored stash that deleted the whitelist lines, and its restamped mtime
+defeated the stale-copy clock. It is preserved to a ref and the shared copy is now HEAD's.
+
+**What I did not expect:** 3 electrically heated homes hold ~9.5 MWh gas contracts. Their physics
+burns nothing and the fallback settles the AQ anyway. Filed as a question with a recommendation
+(the contract follows what is plumbed in).
+
+## W2_19 at real inputs: the prior is built and reaches nobody
+
+0 of 231 homes carry an output area, so layer one is dormant. Resolving each sited cell to an OA
+gives 217/231 and moves the mean headcount 2.429 → 2.336 (ONS 2.359); 64 homes change. That is small,
+as the 9% between-area share predicts. **Minted, not shipped:** the cheap build has
+`household_siting` carry the OA at draw time, and both inputs live only in `~/.cache`, so shipping
+without a committed frame would make one seed give different headcounts on different machines.
+
+---
+
 ## 2026-09-24 — the prompt audit, the pricing/selection split, and the model switch that is not mine to make
 
 <!-- head: 3661d8d4e634 -->
