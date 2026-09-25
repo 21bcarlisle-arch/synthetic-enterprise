@@ -22,6 +22,7 @@ import statistics
 from typing import Optional
 
 from company.crm.churn_model import (
+    ARREARS_STATE_UNKNOWN,
     MAX_CHURN_PROBABILITY,
     estimate_churn_probability,
     estimate_passive_churn_probability,
@@ -168,6 +169,7 @@ def enriched_churn_estimate(
     segment: str = "resi",
     renewal_year: int | None = None,
     payment_method: str | None = None,
+    arrears_state: str = ARREARS_STATE_UNKNOWN,
 ) -> float:
     """Return enriched churn probability from rate-sensitivity and payment-behaviour signals.
 
@@ -193,6 +195,17 @@ def enriched_churn_estimate(
         that does not opt in sees a difference; inside a run the company can, for the first
         time, notice that a rival is competing harder than the national series says.
 
+    arrears_state: this account's position on the company's OWN arrears ledger, forwarded to
+        `estimate_churn_probability`. Read it with
+        `churn_model.arrears_state_from_collections(arrears_engine.collections_snapshot(...))`.
+
+        IT DOES NOT COME THROUGH THE SEAM AND MUST NOT, which is why nothing was added to
+        `SimInterface.get_churn_estimate` alongside this. Arrears is the supplier's own
+        accounts-receivable ledger -- a supplier knows who owes it money -- so asking the world
+        for it would be the defect, in exactly the way the conversion-desk research already
+        distinguishes the company's own CRM record from the payment method that legitimately
+        crosses. Defaults to `unknown`, which is unchanged behaviour.
+
     payment_method: scales the result by how much this channel shops relative to the book.
         THAT BELIEF IS NO LONGER OFGEM'S PUBLISHED COEFFICIENT EITHER (2026-09-06, PB7). Same
         shape, same ledger, same no-look-ahead rule: the CIM survey is the prior and the
@@ -208,6 +221,7 @@ def enriched_churn_estimate(
         hedge_fraction=hedge_fraction,
         hangover_periods_remaining=hangover_periods_remaining,
         segment=segment,
+        arrears_state=arrears_state,
         # The market-wide half of this customer's rate change, from the company's own reading
         # of the published cap. Netted off inside the rate model so its sensitivity applies to
         # what THIS SUPPLIER did. Zero -- no netting -- when the year is unknown.

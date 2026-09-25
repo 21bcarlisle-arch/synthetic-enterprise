@@ -7,8 +7,11 @@ and hedge fraction from the company's own hedging records.
 Algorithm: base_rate
            + effective_rate_sensitivity × rate_increase_pct
            - tenure_discount × min(tenure_years, 5)
-           + min(bill_stress_sensitivity × max(0, prev_annual_bill / threshold - 1),
-                 base_rate × (BILL_STRESS_MAX_RATIO - 1))
+           + the DISTRESS term, which is ONE of two and never both:
+               arrears_state is known  → base_rate × (arrears_hazard_ratio(state) - 1)
+               arrears_state unknown   → min(bill_stress_sensitivity
+                                              × max(0, prev_annual_bill / threshold - 1),
+                                              base_rate × (BILL_STRESS_MAX_RATIO - 1))
            clamped to [0.0, 0.95].
 
 Where effective_rate_sensitivity = rate_sensitivity × (1 - hedge_fraction × HEDGE_SENSITIVITY_REDUCTION)
@@ -70,6 +73,17 @@ the supplier's OWN arrears ledger, keyed to a STATE rather than to a bill level.
 magnitude is already established (it is the same 1.28x); what it needs is the ledger wiring and
 the downstream publishers that still describe this term. Filed at
 `docs/staging/SEAT_RESULT_THE_REFUTED_KNEE_IS_BOUNDED_TO_ITS_EVIDENCE_AND_TWO_PUBLISHERS_STILL_CALL_THE_BELIEF_FLAT_2026-09-23.md`.
+
+**AND THE REPLACEMENT IS NOW BUILT AND WIRED (2026-09-25), which changes what is owed rather
+than discharging it.** `arrears_state` reads the company's own collections ledger and the knee is
+NOT REACHED for any caller that supplies it -- see `_CIM_W6_NO_DEBT_SWITCH_RATE` for the published
+pair, both arms over the survey's own base, and for what is deliberately not claimed. The residual
+is exact and is written down rather than implied: the knee still runs on the `unknown` branch,
+because retiring it outright means rewriting the eight control modules that assert what it
+computes and a term half-removed is worse than either end. Two things are therefore true at once
+and both belong on this page -- the model can now express the one association the published record
+establishes, and a refuted term is still reachable by a caller that has not looked at its own
+ledger.
 """
 from __future__ import annotations
 
@@ -186,6 +200,170 @@ _CIM_W6_ARREARS_SWITCH_RATE = 0.068
 #: level it may not: see `BILL_STRESS_MAX_RATIO`.
 _CIM_W6_POPULATION_SWITCH_RATE = 0.053
 BILL_STRESS_MAX_RATIO = _CIM_W6_ARREARS_SWITCH_RATE / _CIM_W6_POPULATION_SWITCH_RATE
+
+# ---------------------------------------------------------------------------
+# THE REPLACEMENT FOR THE REFUTED KNEE: a per-household hazard read from the company's OWN
+# arrears ledger, keyed to a STATE and not to a bill level (2026-09-25).
+# ---------------------------------------------------------------------------
+#
+# WHY THIS IS A DIFFERENT TERM AND NOT A NEW NUMBER. `bill_stress` asserts that a household's own
+# SPEND drives its propensity to switch. Ofgem/BMG *Understanding Consumers' Energy Tariff
+# Choices* (n=3,235) puts that correlation at -0.07 to +0.05 and DESNZ QEP 2.7.1 runs the other
+# way -- switching 15.57% (2021) -> 3.06% (2022) while every household's bill rose -- so the
+# VARIABLE is wrong and the knee SHAPE asserts the strongest available form of a dependence that
+# is approximately absent. The knowledge map's instruction is explicit and is followed here to the
+# letter: build the hazard against the company's own arrears ledger, and do NOT move 3,000.0 to
+# some other number, because every candidate would be chosen for how many of this book's legs it
+# puts either side of it.
+#
+# WHAT IS ESTABLISHED IS A PAIR OF COLUMNS ON ONE TABLE OVER ONE DENOMINATOR. Ofgem *Consumer
+# Impacts of Market Conditions* wave 6, Table 56 (question C4, base n=3,458, reported behaviour
+# over the past six months), population base 5.3%:
+#
+#     arrears "getting harder"   6.8%   =  1.28x the population base
+#     no debt                    4.2%   =  0.79x the population base
+#
+# Both are quoted against 5.3% here and neither is ever quoted against the other. The 1.6x that
+# appears in the knowledge map is 6.8/4.2 -- a THIRD quantity with a different denominator, and
+# that row says in terms that the two must not be quoted for each other. Only the unit-free ratio
+# crosses into this model, for the same reason `BILL_STRESS_MAX_RATIO` gives: 6.8% counts switches
+# in SIX MONTHS and this model's base rate is per renewal.
+#
+# THE TWO COLUMNS ARE NOT THE SAME KIND OF FACT, and that -- not a taste for granularity -- is
+# what fixes the state vocabulary below. "No debt" is a LEVEL: a household either owes nothing or
+# it does not, and one observation of one ledger settles it. "Getting harder" is a DIRECTION: it
+# is a household reporting that keeping up is harder than it WAS, and no single observation of any
+# ledger can be that. So the ledger's witness of the published column is an arrears position that
+# GREW between two observations, and an account that is merely in arrears today is not that
+# column -- it is a household Table 56 does not publish at all, and it gets the population's own
+# propensity with the gap declared.
+#
+# WHAT THIS EXPRESSES THAT THE REFUTED TERM STRUCTURALLY COULD NOT: a hazard BELOW the population
+# base. `max(0, bill/threshold - 1)` is one-sided by construction, so a household the published
+# record says shops LESS than average could only ever be handed the population average. 0.79x is
+# the larger half of what Table 56 actually measured and the old term had no way to say it at all.
+#
+# THE EVENT AMPLITUDE IS NOT CLOSED HERE AND MUST NOT BE. These are standing STATES; nothing
+# published measures how far a bill-shock EVENT moves the probability of shopping.
+# `simulation/household_segments.BILL_SHOCK_ENGAGEMENT_MULTIPLIER` is the world-side counterpart
+# and is a declared `None` for exactly that reason. It stays one.
+#
+# WALL: every input here is the supplier's own accounts-receivable ledger
+# (`company/billing/arrears_engine.collections_snapshot`). A supplier knows who owes it money.
+# Nothing reads a world internal, and no ground truth crosses.
+_CIM_W6_NO_DEBT_SWITCH_RATE = 0.042
+
+#: No undisputed overdue balance on the company's own ledger -- Table 56's "no debt" column.
+ARREARS_STATE_NO_DEBT = "no_debt"
+#: The undisputed overdue balance GREW against the previous observation of this same account: the
+#: ledger's own witness of Table 56's "getting harder" column. It is keyed to the AMOUNT and not
+#: to the age deliberately -- `max_days_overdue` climbs by one every day an unpaid bill sits
+#: there, so an age test would read every static arrears as deteriorating and collapse the
+#: partition onto one state while looking exactly like a working mechanism.
+ARREARS_STATE_WORSENING = "worsening"
+#: In arrears and not worsening. TABLE 56 PUBLISHES NO COLUMN FOR THIS HOUSEHOLD, so it carries
+#: the population's own propensity. That is a declared gap and not a finding that arrears do not
+#: matter to it.
+ARREARS_STATE_IN_ARREARS_STEADY = "in_arrears_steady"
+#: The company has not looked at the ledger, or looked and could not tell. Fail closed: no
+#: distress is asserted about a household nothing was observed of.
+ARREARS_STATE_UNKNOWN = "unknown"
+ARREARS_STATES = (
+    ARREARS_STATE_NO_DEBT,
+    ARREARS_STATE_WORSENING,
+    ARREARS_STATE_IN_ARREARS_STEADY,
+    ARREARS_STATE_UNKNOWN,
+)
+
+#: Each arm DERIVED from the published pair over the published base, never written as a decimal.
+#: A literal here would survive the day someone corrected one of the two rates, which is the whole
+#: reason the rates are separate constants.
+_ARREARS_HAZARD_RATIO = {
+    ARREARS_STATE_NO_DEBT: _CIM_W6_NO_DEBT_SWITCH_RATE / _CIM_W6_POPULATION_SWITCH_RATE,
+    ARREARS_STATE_WORSENING: _CIM_W6_ARREARS_SWITCH_RATE / _CIM_W6_POPULATION_SWITCH_RATE,
+    ARREARS_STATE_IN_ARREARS_STEADY: 1.0,
+    ARREARS_STATE_UNKNOWN: 1.0,
+}
+
+#: The ledger field the state is read from. Named once so the mapping below and the controls over
+#: it cannot drift from `collections_snapshot`'s own key.
+ARREARS_LEDGER_FIELD = "undisputed_overdue_gbp"
+#: Pence. Two ledger reads that differ by less than this are the same position, not a trend --
+#: `collections_snapshot` already rounds to 2dp, so anything smaller is float noise rather than a
+#: household falling further behind.
+_ARREARS_MOVE_TOLERANCE_GBP = 0.01
+
+
+def arrears_hazard_ratio(arrears_state: str) -> float:
+    """This state's switching propensity as a RATIO of the population's, from Ofgem CIM w6 Table 56.
+
+    Refuses an unknown state by name rather than falling back to 1.0: a caller that invents a
+    fifth state is asserting something about a household, and silently handing it the population
+    average would publish that assertion as "no effect found".
+    """
+    try:
+        return _ARREARS_HAZARD_RATIO[arrears_state]
+    except KeyError:
+        raise ValueError(
+            f"unknown arrears state {arrears_state!r}; Ofgem CIM w6 Table 56 publishes columns "
+            f"for {ARREARS_STATE_NO_DEBT!r} and {ARREARS_STATE_WORSENING!r} only, and this model "
+            f"carries {ARREARS_STATES!r}. A new state needs a published column, not a default."
+        ) from None
+
+
+def arrears_stress_uplift(base_rate: float, arrears_state: str) -> float:
+    """The churn uplift this household's ARREARS STATE asserts, against its segment's own base.
+
+    SIGNED, and the sign is the point: `no_debt` returns a NEGATIVE uplift because Table 56 puts
+    those households BELOW the population base (4.2% against 5.3%). The term it replaces could
+    not go below zero at all.
+
+    Expressed against `base_rate` because 1.28x and 0.79x are ratios on a switching RATE and the
+    base rate is what this model calls that -- the same normalisation `bill_stress_uplift_ceiling`
+    already applies, and the reason a six-month level may not cross while a ratio may.
+    """
+    return max(0.0, float(base_rate)) * (arrears_hazard_ratio(arrears_state) - 1.0)
+
+
+def arrears_state_from_collections(snapshot, previous=None) -> str:
+    """Read this account's arrears STATE from the company's own collections snapshot.
+
+    `snapshot` is `company.billing.arrears_engine.collections_snapshot`'s return value, and
+    `previous` is the same account's PRIOR snapshot when the company has one. Both are the
+    supplier's own ledger; nothing else is consulted.
+
+    FAIL CLOSED ON EVERY UNCERTAINTY, and each one returns `unknown` rather than an arm:
+      * the field is absent or not a number -- the company did not look, or could not tell;
+      * no previous snapshot, and this account IS in arrears -- one reading is a LEVEL, and the
+        published column is a DIRECTION. This is the case that would be quietly wrong if the
+        two were treated as one, and it is why `in_arrears_steady` is not the default for an
+        account seen once.
+
+    "No debt" needs no previous reading because it IS a level: zero undisputed overdue today is
+    the published column, whatever it was last month.
+    """
+    overdue = _ledger_overdue_gbp(snapshot)
+    if overdue is None:
+        return ARREARS_STATE_UNKNOWN
+    if overdue <= _ARREARS_MOVE_TOLERANCE_GBP:
+        return ARREARS_STATE_NO_DEBT
+    before = _ledger_overdue_gbp(previous)
+    if before is None:
+        return ARREARS_STATE_UNKNOWN
+    if overdue > before + _ARREARS_MOVE_TOLERANCE_GBP:
+        return ARREARS_STATE_WORSENING
+    return ARREARS_STATE_IN_ARREARS_STEADY
+
+
+def _ledger_overdue_gbp(snapshot) -> float | None:
+    """This account's undisputed overdue balance, or None if the snapshot cannot say."""
+    if not isinstance(snapshot, dict):
+        return None
+    value = snapshot.get(ARREARS_LEDGER_FIELD)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
 
 HEDGE_SENSITIVITY_REDUCTION = 0.4
 #: THE ASYMPTOTE, AND IT IS 1.0 BECAUSE NOBODY IS UNCONDITIONALLY CAPTIVE. It was 0.95 until
@@ -379,6 +557,7 @@ def estimate_churn_probability(
     hangover_periods_remaining: int = 0,
     segment: str = "resi",
     market_move_pct: float = 0.0,
+    arrears_state: str = ARREARS_STATE_UNKNOWN,
 ) -> float:
     """Estimate churn probability from observable renewal signals.
 
@@ -399,6 +578,14 @@ def estimate_churn_probability(
     segment: "resi" (default), "SME", or "I&C". I&C uses broker-driven
         constants (higher base churn, higher rate sensitivity, less tenure
         loyalty) reflecting that sophisticated buyers shop at every renewal.
+    arrears_state: this household's position on the company's OWN arrears ledger, one of
+        `ARREARS_STATES`, read by `arrears_state_from_collections` from
+        `company.billing.arrears_engine.collections_snapshot`. Defaults to
+        `ARREARS_STATE_UNKNOWN`, which is byte-for-byte the behaviour of every estimate this
+        model produced before 2026-09-25. Supplying it moves the distress claim off the refuted
+        bill-level knee and onto the one association Ofgem CIM w6 Table 56 positively
+        establishes -- see `_CIM_W6_NO_DEBT_SWITCH_RATE` for the pair, the denominator they are
+        both quoted against, and what is deliberately NOT claimed.
     market_move_pct: how far the WHOLE MARKET's price moved over the same window, as a
         fraction (0.667 = the market rose 66.7%). The rate response is taken on this
         customer's rate change NET OF IT -- see below. Defaults to 0.0, which is no netting
@@ -462,11 +649,38 @@ def estimate_churn_probability(
 
     tenure_discount = tenure_discount_per_year * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
 
-    prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
-    bill_stress = min(
-        bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0),
-        bill_stress_uplift_ceiling(base_rate),
-    )
+    # THE DISTRESS TERM IS NOW TWO TERMS, AND THEY ARE MUTUALLY EXCLUSIVE BY CONSTRUCTION
+    # (2026-09-25). Both claim the same thing -- financial distress raises the chance this
+    # household shops -- from two different observables, so a model that added them would assert
+    # the claim twice and call the sum a model. Where the company can see the arrears ledger, the
+    # SOURCED term is the one that speaks and the refuted bill-level knee is not reached at all.
+    #
+    # THE KNEE SURVIVES ON THE `unknown` BRANCH ONLY, AND THAT BRANCH IS THE DECLARED RESIDUAL of
+    # this change rather than a judgement that the knee is fine there. Retiring it outright means
+    # rewriting the eight control modules that currently assert what it computes, and a term half
+    # removed is worse than either end; the increment that lands is the replacement, wired, with
+    # the retirement path exact and per-caller. Caller-visible consequence, said plainly: passing
+    # ANY known arrears state silences `bill_stress` for that call, including for a household
+    # whose segment the domestic survey does not cover and which therefore gains nothing in its
+    # place. That is a refuted term going quiet, not a signal being lost.
+    if arrears_state == ARREARS_STATE_UNKNOWN:
+        prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
+        bill_stress = min(
+            bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0),
+            bill_stress_uplift_ceiling(base_rate),
+        )
+        arrears_stress = 0.0
+    else:
+        bill_stress = 0.0
+        # DOMESTIC ONLY, for the reason the size term fifteen lines down already gives in full:
+        # Table 56 is a survey of HOUSEHOLDS, and extrapolating a domestic banner onto an SME or
+        # an industrial site is the x599.6 mistake this repository already documents and refuses.
+        # An off-domestic account gets no distress term from either source -- an honest nothing,
+        # not a guess.
+        arrears_stress = (
+            arrears_stress_uplift(base_rate, arrears_state)
+            if segment == RESI_SEGMENT else 0.0
+        )
 
     # THE SIZE TERM (2026-09-23). A percentage is not a quantity a household responds to; POUNDS
     # are, and the same percentage is more pounds to a bigger consumer. Ofgem/BMG, *Understanding
@@ -512,5 +726,5 @@ def estimate_churn_probability(
 
     hangover_uplift = CRISIS_HANGOVER_BASE_UPLIFT if hangover_periods_remaining > 0 else 0.0
     p = (base_rate + effective_rate_sensitivity * size_scale * own_move_pct
-         - tenure_discount + bill_stress + hangover_uplift)
+         - tenure_discount + bill_stress + arrears_stress + hangover_uplift)
     return _saturate_churn_probability(p)
