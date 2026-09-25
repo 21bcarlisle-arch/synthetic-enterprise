@@ -423,7 +423,54 @@ def engagement_multiplier_for_channel(channel: PaymentChannel) -> float:
     return CIM_SWITCH_RATE_BY_CHANNEL[channel] / mean
 
 
-def active_renewal_probability_for_customer(customer_id: str) -> float:
+#: THE AMPLITUDE BY WHICH A BILL-SHOCK EVENT RAISES A HOUSEHOLD'S PROPENSITY TO *ENTER* A CHOICE
+#: PROCESS. NOT ESTABLISHED (2026-09-24), and declared absent rather than picked -- the same shape
+#: as `tools.published_route_split.SVT_INTERNAL_CONVERSION_RATE`, and for the same reason: a slot
+#: named for a point estimate reads as one within a week whatever the comment above it says.
+#:
+#: THE TRIGGER IS DEFINED AND THE AMPLITUDE IS NOT, AND THOSE ARE DIFFERENT QUESTIONS.
+#: `docs/market_research/what_bill_shock_is.md` settles WHAT the event is, per population: for the
+#: ~74% paying a level direct debit it is a material change in the monthly PAYMENT or a balance
+#: they cannot explain; for the ~13% on standard credit the bill itself IS the shock. This module
+#: already draws that channel (`payment_channel_for_customer`), so the world can say which
+#: definition applies to whom. What nothing published says is HOW MUCH the event moves the
+#: probability of shopping.
+#:
+#: WHAT IS ESTABLISHED, AND IT REFUTES THE FORM THE ATOM'S OWN HOLD NOTE ASKED FOR. That note
+#: names "a price rise past a threshold" as the gate-opener. A knee in bill level is the wrong
+#: SHAPE and bill level is the wrong VARIABLE -- Ofgem/BMG (n=3,235) put the spend-to-switching
+#: Spearman at -0.07 to +0.05, and DESNZ QEP 2.7.1 has switching COLLAPSING 15.57% -> 3.06% in 2022
+#: while every household's bill rose. `docs/market_research/is_there_a_bill_level_at_which_switching
+#: _rises.md` §6 is the pass that established it, and `company/crm/churn_model.BILL_STRESS_THRESHOLD
+#: _GBP` is the company-side twin left standing as a named gap by that same pass. Do not build here
+#: what was refuted there.
+#:
+#: WHY NOT SUBSTITUTE THE ONE MAGNITUDE THAT IS PUBLISHED. Ofgem CIM w6 Table 56 carries arrears
+#: "getting harder" at 1.6x and bill difficulty at 1.7x. Both are the WEAKEST rows in that table,
+#: both are a ratio over a binary STATE rather than a response to an EVENT, and -- the binding
+#: objection -- that source's own §5 records that nothing separates them from the payment-method
+#: banner, which is the 3.4x THIS MODULE ALREADY MULTIPLIES IN as
+#: `engagement_multiplier_for_channel`. Stacking them would multiply two marginals known to be
+#: confounded and call the product a model.
+BILL_SHOCK_ENGAGEMENT_MULTIPLIER: float | None = None
+
+#: The reason the slot above is empty, carried next to it so a refusal can quote it rather than a
+#: reader having to find this file. Read as a whole sentence: the gap is the amplitude, not the
+#: trigger, and not the direction.
+BILL_SHOCK_ENGAGEMENT_GAP = (
+    "the amplitude by which a bill-shock event raises engagement is not established in the "
+    "published record: no source gives it, the closest published magnitudes (Ofgem CIM w6 "
+    "Table 56, arrears 1.6x / bill difficulty 1.7x) are ratios over a STATE rather than "
+    "responses to an EVENT and are unseparated from the payment-channel effect this module "
+    "already applies, and the bill-LEVEL form was refuted on 2026-09-22 "
+    "(docs/market_research/is_there_a_bill_level_at_which_switching_rises.md §6)"
+)
+
+
+def active_renewal_probability_for_customer(
+    customer_id: str,
+    bill_shock: bool | None = None,
+) -> float:
     """Convenience: resolve a customer's engagement archetype and its
     active-renewal probability in one call -- the typical call site
     (simulation/run_phase2b.py) only needs the final float.
@@ -434,9 +481,41 @@ def active_renewal_probability_for_customer(customer_id: str) -> float:
     they are different facts: *"a disengaged household can be highly price-sensitive once a bill
     shock makes it look"*. Elasticity -- how far a price gap moves a household once it is looking --
     is untouched here and stays in `price_elasticity_for_customer`.
+
+    `bill_shock` IS THE SEAM AND NOT YET AN ANSWER (PB4 residual (b), 2026-09-24). The director's
+    cul-de-sac warning asks that work built now against P2-P6 be built so that P1 "changes its
+    ANSWERS, not its STRUCTURE", and this is that: the argument exists, the household's channel
+    already decides which definition of the event applies to it, and the amplitude is a declared
+    `None` above with its reason beside it.
+
+    THREE STATES, AND THE THIRD IS A REFUSAL RATHER THAN A PASS-THROUGH:
+
+    * `None` -- not asked. The caller has no view on whether this household was shocked. Returns
+      the persistent trait, which is what every caller gets today and what the 35% population
+      anchor was fitted against.
+    * `False` -- asked and no. Also the persistent trait, and that is not a claim about shocks:
+      the base rate is anchored on a population that INCLUDES shocked households, so an unshocked
+      household sitting at the population trait is the honest neutral.
+    * `True` -- asked and yes, and the world CANNOT ANSWER IT. Raises, naming the gap. Silently
+      returning the unmodified probability is the fail-open that matters here, because it would
+      publish the claim *a bill shock does not change whether a household shops* -- which nothing
+      establishes and which the director's own P4 asserts is false. A refusal that names its reason
+      is how we find out the refusal was wrong.
     """
+    if bill_shock and BILL_SHOCK_ENGAGEMENT_MULTIPLIER is None:
+        raise NotImplementedError(
+            f"cannot price a bill shock's effect on engagement for {customer_id!r}: "
+            f"{BILL_SHOCK_ENGAGEMENT_GAP}. Establish the amplitude from published evidence and "
+            "set BILL_SHOCK_ENGAGEMENT_MULTIPLIER; do not pick a number to clear this refusal."
+        )
     base = active_renewal_probability(engagement_level_for_customer(customer_id))
     scaled = base * engagement_multiplier_for_channel(payment_channel_for_customer(customer_id))
+    if bill_shock and BILL_SHOCK_ENGAGEMENT_MULTIPLIER is not None:
+        # Unreachable while the amplitude is absent -- the refusal above has already fired. It is
+        # written anyway, and controlled by flipping the constant rather than by asserting the
+        # refusal's wording, because a refusal whose only control reads its message passes the
+        # mutation that deletes the mechanism behind it.
+        scaled *= BILL_SHOCK_ENGAGEMENT_MULTIPLIER
     # A probability, so it is clamped -- but note the clamp is what would silently break the
     # mean-preservation above if it ever bound, so `test_the_engagement_multiplier_preserves_the_
     # population_mean` measures the realised mean through this function rather than the multiplier

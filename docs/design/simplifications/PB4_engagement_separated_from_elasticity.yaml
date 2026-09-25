@@ -58,4 +58,24 @@ map_notes:
 
     tests, invariants and population stats over 6000 households -- but nothing renders PB4 to a
 
-    reader. That surface is PB6 below, itself at 1.'
+    reader. That surface is PB6 below, itself at 1.
+
+
+    CORRECTED 2026-09-24, BESIDE RESIDUAL (b) AND NOT OVER IT, because the sentence above is what a drawing session reads first and it points at a mechanism this repository has since refuted. (b) says the gate should be opened by "a bill shock, a renewal letter OR A PRICE RISE PAST A THRESHOLD". THE THIRD OF THOSE IS REFUTED. On 2026-09-22 -- seven days AFTER this note was written, which is why it could not have known -- `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md` §6 established that a knee in bill level is the wrong SHAPE and bill level is the wrong VARIABLE: Ofgem/BMG (n=3,235) put the spend-to-switching Spearman at -0.07 to +0.05 and say so in words, and DESNZ QEP 2.7.1 has switching COLLAPSING 15.57% -> 3.06% across 2022 while every household''s bill rose. The company-side twin of exactly this term, `company/crm/churn_model.BILL_STRESS_THRESHOLD_GBP = 3000.0`, was left standing as a NAMED GAP by that pass rather than re-picked, and building its world-side counterpart here would have re-committed the defect on the other side of the wall. Nothing connected the two documents; this is the interconnection check finding it.
+
+
+    THE OTHER TWO THIRDS OF (b), GRADED SEPARATELY, because "unbuilt" was one verdict over three different claims. THE RENEWAL LETTER IS ALREADY BUILT and was when the note was written: `active_renewal_probability_for_customer` is consulted ONLY at a fixed-term anniversary (`renewals.py:211` gates on `not first_term and tariff_type == "fixed" and segment == "resi"`), and `ftc_withdrawn_at` forces the boundary passive when there was no deal to take. The gate is already event-conditional; what it was not is OFFER-conditional. THE BILL SHOCK IS THE ONE LIVE CLAIM, and it splits again: its TRIGGER is defined and its AMPLITUDE is not. `what_bill_shock_is.md` settles the trigger per population -- for the ~74% on a level direct debit the shock is a material change in the PAYMENT, for the ~13% on standard credit the bill itself IS the shock -- and this module already draws that channel, so the world can say which definition applies to whom. No published source gives the amplitude. The closest are Ofgem CIM w6 Table 56''s arrears 1.6x and bill-difficulty 1.7x, and they cannot be used: both are ratios over a binary STATE rather than responses to an EVENT, both are the WEAKEST rows in that table, and that source''s own §5 records that nothing separates them from the payment-method banner -- which is the 3.4x THIS MODULE ALREADY MULTIPLIES IN. Stacking them would multiply two marginals known to be confounded and call the product a model.
+
+
+    SO (b) IS NOW LANDED AS STRUCTURE WITH ITS ANSWER DECLARED ABSENT, which is what the cul-de-sac warning this note already cited actually asks for -- "built so that P1 changes its ANSWERS, not its STRUCTURE". `active_renewal_probability_for_customer` takes `bill_shock` as of 2026-09-24; `BILL_SHOCK_ENGAGEMENT_MULTIPLIER` is a declared `None` with its reason beside it, on the `SVT_INTERNAL_CONVERSION_RATE` pattern; and a shocked household is REFUSED with the gap named rather than silently returned the unmodified probability, because that pass-through would publish the claim *a bill shock does not change whether a household shops*, which nothing establishes and which the director''s own P4 asserts is false. The seam moves NO published figure -- pre-registered before building and confirmed identical over 3,000 households, sha256 986303100a..., mean 0.34939 -- so no level moved blind to the director''s baseline. Four mutations were run and each is caught by the leg written for it, including the anti-tautology arm that supplies an amplitude and requires the refusal to LIFT and the answer to MOVE. RESIDUAL (b) IS NOW: the amplitude, which is a RESEARCH question and not a build one. Do not close it by picking a number to clear the refusal.
+
+
+    THE CLAIM ABOVE IN ITS CHECKABLE FORM, so the next pass can refute it without trusting the prose:
+
+    LANDED: `BILL_SHOCK_ENGAGEMENT_MULTIPLIER` in `simulation/household_segments.py`
+
+    LANDED: `BILL_SHOCK_ENGAGEMENT_GAP` in `simulation/household_segments.py`
+
+    LANDED: `test_the_refusal_is_keyed_to_the_gap_and_not_unconditional` in `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py`
+
+    LANDED: `test_the_bill_shock_seam_moves_no_answer_while_its_amplitude_is_absent` in `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py`'
