@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-25 — a cloud session cannot reach the shards or the caches Stage 1 runs on, so this stretch landed nothing and says why
+
+<!-- head: d013d27f703a -->
+
+**Written 2026-09-25 from a claude.ai CLOUD session, not the console.** The instruction was to pick
+Stage 1 up where the last stretch left it: the selection figure mid-pass, then the people layer and
+the half-hourly shape reaching the book. None of the three can be advanced from here, and the reason
+is the machine, not the work.
+
+## What this session is, measured rather than assumed
+
+A fresh clone on a cloud container. It has none of what the three items run on:
+
+- **The selection figure.** `longjob-floor18-head-rosters-20260925` writes to
+  `/var/tmp/se-floor18-head-20260925/shards/` on the WSL box. `/var/tmp` here is empty, so
+  `agreement_fold_rc.txt` is unreadable, and the prereg
+  (`SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md`)
+  still carries no result beside P1-P5. **I have not written one.** A result filed from a machine
+  that cannot see the shards would be a prediction dressed as a measurement.
+- **The gas half of the shape.** The published run (`docs/reports/run_output_latest.json`) predates
+  the 2026-09-18 repair: it carries `demand_provider_by_customer` and no
+  `gas_shape_provider_by_customer`. The count of gas households on their own seasonal shape still
+  needs a run, and a run needs `sim/cache/` and `~/.cache/synthetic-enterprise/` (NEED, census,
+  HadUK), none of which is in the tree. Only the 2013 LCL shapes are.
+- **The people layer (W2_19, level 0).** Its joint is drawn from NEED and small-area census, both
+  in `~/.cache` on the box. Code could be written here; it could not be printed at real inputs,
+  which this project requires before a formula ships.
+
+## What I did not do, deliberately
+
+- **No code landed.** This clone has no hooks installed (`core.hooksPath` unset), so an ordinary
+  commit here skips the gate chain. Commits here go to a side branch, not to `origin/main`, where the
+  console seat and the daemons would never see them. Building a parallel W2_19 or retiring
+  `BILL_STRESS_THRESHOLD_GBP` on a side branch, while the console seat may be drawing the same item,
+  would produce a second implementation of one thing. The VAT rule showed where that ends up.
+- **No invented counts.** The gas-shape count and the exact draw count both stay unknown here, and
+  unknown is what this entry says.
+
+## Where it stands
+
+Unchanged from the 09-25 direction: the 18-seed result is owed beside its prereg, the gas-shape count
+is owed from the first run to publish, and W2_19 is rung 1 at level 0. **The next move is on the
+console**, where the shards and the caches are, and it starts with `shards/agreement_fold_rc.txt`.
+
+---
+
 ## 2026-09-24 — the prompt audit, the pricing/selection split, and the model switch that is not mine to make
 
 <!-- head: 3661d8d4e634 -->
