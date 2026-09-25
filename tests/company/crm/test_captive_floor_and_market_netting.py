@@ -44,7 +44,20 @@ from company.crm.market_conditions import (
     market_rate_move_pct,
 )
 
-RESI = dict(tenure_years=4.0, prev_annual_bill_gbp=3100.0)
+#: THE PROBE CUSTOMER CONSUMES THE SIZE TERM'S OWN REFERENCE, and that is load-bearing rather
+#: than tidy (repaired 2026-09-25). The fourth positional argument is
+#: `annual_consumption_kwh`; this dict called it `prev_annual_bill_gbp` and passed 3100.0, a name
+#: left behind by an older signature. It did not matter until `3b01193a8` (2026-09-23) added the
+#: SIZE TERM, which scales the rate response by consumption over Ofgem's TDCV Medium band -- from
+#: that commit the probe was a 1.24x-sensitivity customer and the frozen numbers below, which are
+#: what this model produced BEFORE the 2026-08-25 captive-floor fix, no longer described it.
+#: `test_every_estimate_BELOW_the_elbow_is_unchanged` went red for exactly the right reason and
+#: against the wrong subject: the size term is a deliberate, sourced change to the rate response,
+#: and this file is about the SATURATION, which must be the identity below the elbow whatever the
+#: response is. Consuming `SIZE_REFERENCE_KWH_ELEC` puts `size_scale` at exactly 1.0, so the
+#: frozen numbers again mean what they say -- the saturation moved nothing -- and a future change
+#: to the size term cannot red this file while a change to the elbow still does.
+RESI = dict(tenure_years=4.0, annual_consumption_kwh=cm.SIZE_REFERENCE_KWH_ELEC)
 BASE_RATE = 100.0
 
 
@@ -52,7 +65,7 @@ def _p(rise_pct: float, **kw) -> float:
     """This company's estimate of P(leave) when it raises THIS customer by `rise_pct`."""
     return estimate_churn_probability(
         BASE_RATE, BASE_RATE * (1.0 + rise_pct), RESI["tenure_years"],
-        RESI["prev_annual_bill_gbp"], **kw)
+        RESI["annual_consumption_kwh"], **kw)
 
 
 # --------------------------------------------------------------------------- #
