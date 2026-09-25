@@ -168,3 +168,91 @@ def test_engagement_is_now_recoverable_from_an_observable_and_provably_was_not()
     assert got_after["held_out"] <= got_after["in_sample"] * 1.5, (
         "held-out far above in-sample is the signature of a fit reading noise, not signal"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# PB4 residual (b), 2026-09-24 -- the offer-conditional SEAM, with its amplitude declared absent.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_the_bill_shock_seam_moves_no_answer_while_its_amplitude_is_absent():
+    """THE DEFECT: adding the seam quietly re-levels the book.
+
+    An engagement change made blind to the director's baseline is a level move, and R12 forbids
+    choosing parameters to hit an output in either direction. Keyed to the PROPERTY -- that the
+    default path is exactly archetype x channel with no bill term in it -- rather than to a pinned
+    literal, which would go red the day the CIM anchors are legitimately re-sourced.
+
+    DELIBERATELY CALLS WITH ONE POSITIONAL ARGUMENT. A control that names `bill_shock` everywhere
+    goes green against the mutation that changes the parameter's DEFAULT, which is the one mutation
+    that would silently re-level the whole book.
+    """
+    for cid in _CIDS[:2000]:
+        expected = active_renewal_probability(engagement_level_for_customer(cid)) * (
+            engagement_multiplier_for_channel(payment_channel_for_customer(cid))
+        )
+        assert active_renewal_probability_for_customer(cid) == min(1.0, max(0.0, expected)), (
+            f"{cid}: the seam changed a published answer -- no bill term may enter this path "
+            "while the amplitude is a declared None"
+        )
+
+
+def test_an_unasked_and_an_unshocked_household_are_the_same_and_neither_is_a_claim():
+    """THE DEFECT: `False` quietly meaning something different from "not asked".
+
+    The 35% anchor was fitted on a population that INCLUDES shocked households, so an unshocked
+    household sitting at the population trait is the honest neutral. If these two legs ever
+    diverge, the world has started asserting something about shocks that nothing established.
+    """
+    for cid in _CIDS[:500]:
+        assert (
+            active_renewal_probability_for_customer(cid)
+            == active_renewal_probability_for_customer(cid, bill_shock=False)
+        ), f"{cid}: 'not asked' and 'asked, no shock' must be the same float"
+
+
+def test_a_shocked_household_is_refused_and_the_refusal_names_its_reason():
+    """THE DEFECT, AND IT IS A FAIL-OPEN: returning the unmodified probability for a shocked
+    household.
+
+    That pass-through would publish the claim *a bill shock does not change whether a household
+    shops*. Nothing establishes it and the director's P4 asserts the opposite, so the world must
+    say it cannot tell rather than answer. The refusal names the gap so that discovering the
+    refusal itself was wrong is cheap.
+    """
+    import pytest
+
+    from simulation.household_segments import BILL_SHOCK_ENGAGEMENT_MULTIPLIER
+
+    assert BILL_SHOCK_ENGAGEMENT_MULTIPLIER is None, (
+        "this control describes the world while the amplitude is unestablished; if it has been "
+        "established, this test is what tells you to rewrite it rather than delete it"
+    )
+    with pytest.raises(NotImplementedError) as exc:
+        active_renewal_probability_for_customer(_CIDS[0], bill_shock=True)
+    assert "is not established" in str(exc.value), (
+        "a refusal that does not say why is how a wrong refusal survives"
+    )
+
+
+def test_the_refusal_is_keyed_to_the_gap_and_not_unconditional(monkeypatch):
+    """THE ANTI-TAUTOLOGY ARM, and the reason it flips the constant rather than reading a word.
+
+    A guard that refuses EVERYTHING passes every test that only asks whether it refuses. This is
+    the one leg that proves the branch behind the refusal is REACHABLE: supply the amplitude the
+    published record does not, and the refusal must lift AND the answer must actually move. Keyed
+    to the mechanism, so deleting the `scaled *= ...` line reds it -- which asserting the refusal's
+    wording would not.
+    """
+    import simulation.household_segments as hs
+
+    cid = _CIDS[0]
+    unshocked = active_renewal_probability_for_customer(cid)
+    monkeypatch.setattr(hs, "BILL_SHOCK_ENGAGEMENT_MULTIPLIER", 1.5)
+
+    shocked = hs.active_renewal_probability_for_customer(cid, bill_shock=True)
+    assert shocked == min(1.0, max(0.0, unshocked * 1.5)), (
+        "with an amplitude supplied the shock must reach the probability; if this is equal to the "
+        "unshocked value the seam is decorative and the refusal is the only thing that ever ran"
+    )
+    assert shocked != unshocked, "the branch behind the refusal must be reachable"
