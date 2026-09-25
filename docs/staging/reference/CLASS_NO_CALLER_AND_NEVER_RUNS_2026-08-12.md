@@ -2,15 +2,16 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 14 · **Class:** `no_caller_and_never_runs` · **Source's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
+**Instances:** 15 · **Class:** `no_caller_and_never_runs` · **Source's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 14 instances
+## The 15 instances
 
 - `SEAT_FINDING_A_CLOSED_ATOM_READS_AS_DELIVERED_AND_THIRTY_ONE_OF_THEM_ONLY_EVER_FRAMED_2026-09-05.md` — LATENT
+- `SEAT_FINDING_THE_HOOK_GATE_MARK_WAS_INERT_IN_THE_ONLY_TREE_THAT_COMMITS_AND_IS_NOW_LIVE_2026-09-25.md` — BLOCKING
 - `SEAT_FINDING_THE_PUBLISHING_PATH_WRITES_A_RUN_OUTPUT_WITH_NO_WORLD_AND_NO_RECONCILIATION_2026-09-04.md` — LATENT
 - `SEAT_RESULT_SEVEN_OF_DIRECTIONS_EIGHT_CONTRACTS_HAVE_NO_CALLER_PROVING_THEM_AND_THE_ONE_THAT_DOES_WAS_HIDDEN_BY_DASH_X_2026-09-06.md` — LATENT
 - `SEAT_RESULT_THE_COLLECTION_GAP_IS_CLOSED_AND_THE_FEED_THAT_FELL_THROUGH_IT_HAD_NO_CALLER_2026-09-05.md` — LATENT
@@ -27,12 +28,13 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**0 hours traced** across 14 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+**0 hours traced** across 15 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
 ## What is owed
 
-1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+2 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
+- `SEAT_FINDING_THE_HOOK_GATE_MARK_WAS_INERT_IN_THE_ONLY_TREE_THAT_COMMITS_AND_IS_NOW_LIVE_2026-09-25.md`
 - `WORKER_FINDING_THE_DRAWN_LANE_0_ITEM_WAS_NEVER_CLAIMED_SO_ITS_OWN_BIND_INSTRUCTION_IS_INERT_2026-09-05.md`
 
 ## Disposition
