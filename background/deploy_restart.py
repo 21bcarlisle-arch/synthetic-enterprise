@@ -464,6 +464,11 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
         "daemons": rows,
         "summary": {
             "observed": len(rows),
+            # THE DENOMINATOR `stale` IS COUNTED OVER. Derived by subtraction through the rows'
+            # own refusals, so a refusal added later shrinks it by construction. Without it the
+            # line below published `stale 0` at a fleet whose running code version was unknown for
+            # ten of its eleven members (2026-09-25).
+            "graded": sum(1 for r in rows if not r["unresolved"]),
             "stale": sum(1 for r in rows if r["stale"]),
             "unresolved": sum(1 for r in rows if r["unresolved"]),
             "session_hosting": sum(1 for r in rows if r["session_hosting"]),
@@ -796,9 +801,9 @@ def main(argv: list[str]) -> int:
     plan = restart_plan(report, self_unit=_self_unit())
 
     s = report["summary"]
-    print("head {}  observed {}  stale {}  unresolved {}  session-hosting {}".format(
-        (report.get("head") or "?")[:9], s["observed"], s["stale"], s["unresolved"],
-        s["session_hosting"]))
+    print("head {}  observed {}  stale {} of {} graded  unresolved {}  session-hosting {}".format(
+        (report.get("head") or "?")[:9], s["observed"], s["stale"], s.get("graded", "?"),
+        s["unresolved"], s["session_hosting"]))
     print("checkout: {}".format(format_checkout(report.get("checkout"))))
     for row in report["daemons"]:
         print("  {:22s} running {:>7s}  code {:>7s}  without {:>7s}  modules {:>4d}{}{}".format(

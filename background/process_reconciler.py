@@ -32,6 +32,7 @@ its reason is archaeology; IaC). An empty manifest is a hard error (fail-closed)
 """
 from __future__ import annotations
 
+import datetime
 import json
 import os
 import subprocess
@@ -506,34 +507,108 @@ def _proc_cgroup(pid: int) -> str:
         return ""
 
 
-def _boot_time() -> float | None:
-    """Epoch seconds at which this machine booted, from /proc/stat `btime` (None if unreadable)."""
-    try:
-        for line in Path("/proc/stat").read_text().splitlines():
-            if line.startswith("btime "):
-                return float(line.split()[1])
-    except Exception:
-        return None
+#: systemd renders every absolute timestamp it shows in the BOX'S LOCAL ZONE, to the second:
+#: `Fri 2026-09-25 12:04:00 BST`. The zone abbreviation is dropped rather than parsed -- `%Z`
+#: cannot round-trip `BST` on this box, and the rendered clock is already local, so reading the
+#: naive datetime back through the local zone is the identity. Truncation to the second is the
+#: reason the comparisons below are all `<` against a whole-second floor and never an equality.
+def _systemd_timestamp(text: str) -> float | None:
+    """Epoch seconds for a systemd-rendered timestamp, or None if it is `n/a`/unparsable."""
+    parts = (text or "").strip().split()
+    for i, token in enumerate(parts[:-1]):
+        if len(token) == 10 and token.count("-") == 2:
+            try:
+                return datetime.datetime.strptime(
+                    f"{token} {parts[i + 1]}", "%Y-%m-%d %H:%M:%S").timestamp()
+            except ValueError:
+                return None
     return None
 
 
-def process_start_time(pid: int, boot: float | None = None) -> float | None:
-    """Epoch seconds at which `pid` started, or None if it cannot be read.
+def parse_exec_records(value: str) -> list[dict]:
+    """PURE. systemd's `ExecStartPre` property is one `{ k=v ; k=v ; ... }` record per declared
+    command; return them as dicts, with `start_time`/`stop_time` already in epoch seconds.
 
-    /proc/<pid>/stat field 22 is start time in clock ticks since machine boot. Parsed after the
-    LAST ')' because field 2 is the comm, which may itself contain spaces and parentheses.
+    The bracketed timestamps are systemd's own record of when it ran THAT command on THIS boot,
+    written from the same wall clock `boot_sha.stamp` writes its `ts` from -- which is the whole
+    reason this parser exists (see `unit_stamper_run`)."""
+    out: list[dict] = []
+    for line in (value or "").splitlines():
+        line = line.strip()
+        if not (line.startswith("{") and line.endswith("}")):
+            continue
+        record: dict = {}
+        for field in line[1:-1].split(" ; "):
+            if "=" not in field:
+                continue
+            key, raw = field.split("=", 1)
+            key, raw = key.strip(), raw.strip()
+            if key in ("start_time", "stop_time"):
+                record[key] = _systemd_timestamp(raw.strip("[]"))
+            elif key == "status":
+                record[key] = int(raw) if raw.lstrip("-").isdigit() else None
+            elif key == "ignore_errors":
+                record[key] = raw == "yes"
+            else:
+                record[key] = raw
+        if record:
+            out.append(record)
+    return out
 
-    None is the honest answer for an unreadable process and callers must make no claim on it — an
-    unknown start time is not evidence of a fresh stamp."""
-    boot = _boot_time() if boot is None else boot
-    if not boot:
-        return None
+
+def stamper_record(records: list[dict]) -> dict | None:
+    """PURE. The one exec record among `records` that runs the boot stamper, or None.
+
+    Selected by what the record's own `argv[]` NAMES, never by position: a unit is free to declare
+    other `ExecStartPre` commands before or after this one, and a positional read would silently
+    start grading a different command's exit status the day one is added."""
+    for record in records:
+        argv = (record.get("argv[]") or "").split()
+        if any(a.endswith("boot_sha") or a.endswith("boot_sha.py") for a in argv):
+            return record
+    return None
+
+
+def unit_stamper_run(session: str, show=None) -> dict:
+    """What systemd itself recorded about THIS boot's run of `session`'s declared boot stamper:
+    `{"ran_at": epoch|None, "finished_at": epoch|None, "status": int|None}`.
+
+    THE DEFECT THIS EXISTS FOR, measured 2026-09-25 on eleven live daemons. The staleness rules
+    had to ask "was this stamp written by the process running now", and the only clock they had was
+    `process_start_time` -- `/proc/stat btime` plus the process's start ticks. On this WSL2 guest
+    those two are NOT the same clock: the guest freezes, the monotonic side stops while the wall
+    side does not, and `btime` (derived as now-minus-uptime) walks FORWARD. Measured against
+    systemd's own record: `token-proxy` reconstructed to 2026-09-16 04:25:20 for a process systemd
+    started at 2026-09-15 13:47:55 -- 14h37m of error, and 14h37m is the box's accumulated freeze,
+    not noise. Both `token-proxy` and `worker-seat-manager` had stamped in the same SECOND systemd
+    started them and were graded `stamp-predates-process` anyway: 2 of the 10 unresolved rows were
+    the instrument's clock, not the fleet's.
+
+    systemd's bracketed `start_time` is the escape (the shape from `feedback_a_liveness_signal_
+    delivered_through_the_channel_it_monitors...`): an ABSOLUTE stamp, in the wall clock the
+    stamper itself writes, recorded by the thing that did the starting. It also carries the
+    stamper's EXIT STATUS, which no restart-dated clock can supply at all.
+
+    Fail-closed: anything unreadable returns all-None, and every rule keyed to these values makes
+    NO claim on None -- an unanswerable question can never turn a red into a green.
+    """
+    runner = _show_exec_start_pre if show is None else show
     try:
-        raw = Path(f"/proc/{int(pid)}/stat").read_text()
-        fields = raw[raw.rindex(")") + 1:].split()
-        return boot + float(fields[19]) / os.sysconf("SC_CLK_TCK")
-    except Exception:
-        return None
+        record = stamper_record(parse_exec_records(runner(session)))
+    except Exception:  # noqa: BLE001 -- cannot read != the stamper is fine
+        record = None
+    if not record:
+        return {"ran_at": None, "finished_at": None, "status": None}
+    return {"ran_at": record.get("start_time"), "finished_at": record.get("stop_time"),
+            "status": record.get("status")}
+
+
+def _show_exec_start_pre(session: str) -> str:
+    r = subprocess.run(
+        ["systemctl", "--user", "show", f"{session}.service", "-p", "ExecStartPre", "--value"],
+        capture_output=True, text=True,
+    )
+    return r.stdout or "" if getattr(r, "returncode", 1) == 0 else ""
 
 
 def observed_launched_by(entries: list[dict], unit_states: dict[str, dict],
@@ -587,7 +662,8 @@ def launcher_drift(entries: list[dict], observed: dict[str, str | None]) -> list
 def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
                       closures: dict[str, set[str]], changed_since, *,
                       boot_ts: dict[str, float | None],
-                      started_at: dict[str, float | None]) -> dict:
+                      stamper_ran_at: dict[str, float | None],
+                      stamper_exit: dict[str, int | None]) -> dict:
     """PURE (mutation-testable). Per running daemon, which of the modules IT IMPORTS changed since
     it booted. `changed_since(sha, session)` -> set of repo-relative changed paths, or None if
     unresolvable. SESSION is passed because the answer is per-daemon, not per-commit: two daemons
@@ -595,9 +671,11 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
     comparison is against the bytes each ACTUALLY loaded (see `boot_sha.read_boot_blobs`).
 
     Returns {"stale": {session: [changed loaded paths]}, "unresolved": {session: reason}}.
-    Four fail-SAFE (never fail-open) rules, each with a named reason rather than a silent green:
+    Five fail-SAFE (never fail-open) rules, each with a named reason rather than a silent green:
       - no boot stamp        -> unresolved 'unstamped'      (unknown is not clean)
-      - stamp older than the process
+      - the unit's own stamper exited non-zero on this boot
+                             -> unresolved 'stamper-failed'
+      - stamp older than this boot's run of that stamper
                              -> unresolved 'stamp-predates-process'
       - closure empty        -> unresolved 'closure-unknown' (a vacuous compare always passes)
       - changed_since None   -> unresolved 'sha-unresolved'  (an unanswerable question is not 'no')
@@ -616,10 +694,24 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
     daemon" and "nothing stamped this boot" have OPPOSITE remedies (restart it / repair the
     stamper) and had one indistinguishable verdict.
 
-    `boot_ts` and `started_at` are REQUIRED keyword arguments, not optional ones, because a rule a
-    caller can forget to feed is a rule that stays green for twenty days. A session with either
-    value unknown makes NO new claim and falls through to the rules below — that degrades to the
-    previous answer and can never turn a red into a green."""
+    THE FIFTH RULE, added 2026-09-25, and why it is not the `-` prefix. `stamper-failed` reads the
+    exit status systemd ALREADY records for the ExecStartPre it ran. Dropping the units' leading
+    `-` would promote the same non-zero exit into twelve daemons refusing to start, and
+    `probe_declared_stamper` below measured why that trade is bad: the twenty-day outage exited
+    **0** throughout, so the `-` was never what hid it. Reading the status costs no outage and
+    names the one condition the stamp's own age cannot distinguish — a stamper that RAN and FAILED
+    (repair it) from a stamp that is simply old (restart the daemon).
+
+    WHICH CLOCK THE THIRD RULE COMPARES AGAINST is the whole of its correctness, and it was wrong
+    until 2026-09-25: see `unit_stamper_run`. `stamper_ran_at` is when systemd began THIS boot's
+    run of the unit's own stamper, in the same wall clock the stamp is written in — not a process
+    start reconstructed from `/proc/stat btime`, which on this frozen-guest box was 14h37m out and
+    misgraded two daemons that had stamped in the same second they started.
+
+    `boot_ts`, `stamper_ran_at` and `stamper_exit` are REQUIRED keyword arguments, not optional
+    ones, because a rule a caller can forget to feed is a rule that stays green for twenty days. A
+    session with any value unknown makes NO new claim and falls through to the rules below — that
+    degrades to the previous answer and can never turn a red into a green."""
     stale: dict[str, list[str]] = {}
     unresolved: dict[str, str] = {}
     for session in running_sessions:
@@ -627,8 +719,12 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
         if not sha:
             unresolved[session] = "unstamped"
             continue
-        stamped, started = boot_ts.get(session), started_at.get(session)
-        if stamped is not None and started is not None and stamped < started:
+        status = stamper_exit.get(session)
+        if status is not None and status != 0:
+            unresolved[session] = "stamper-failed"
+            continue
+        stamped, ran = boot_ts.get(session), stamper_ran_at.get(session)
+        if stamped is not None and ran is not None and stamped < ran:
             unresolved[session] = "stamp-predates-process"
             continue
         closure = closures.get(session) or set()
@@ -788,8 +884,16 @@ def probe_declared_stamper(unit_dir: Path | None = None, run=None) -> dict:
 
 def evaluate_boot_sha_drift() -> dict:
     """Live wrapper. Population = OBSERVED systemd daemons; signal = their own loaded modules.
-    Returns {head, population, stale, stale_detail, unresolved, misdeclared, vacuous}.
-    `stale` stays a list of session names (health_check's existing consumer). REPORT ONLY."""
+    Returns {head, population, graded, stale, stale_detail, unresolved, misdeclared, vacuous}.
+    `stale` stays a list of session names (health_check's existing consumer). REPORT ONLY.
+
+    `graded` IS THE DENOMINATOR AND IT IS NOT DECORATION. Measured on this box 2026-09-25: 11
+    daemons in the population, 10 unresolved, so `stale: []` was `0 out of 1` published in the
+    shape of `0 out of 11` — and `deploy_restart --report` duly printed `stale 0` at a fleet whose
+    running code version was unknown for all but one member. This is the same failure as the level
+    grader's `contradicted: 0` out of 0 graded, in a second instrument, and the remedy is the same:
+    publish the population a verdict was actually REACHED over, counted through this function's own
+    partition, never asserted alongside it."""
     from background import boot_sha, code_closure
     entries = load_manifest()
     unit_states = _live_unit_states()
@@ -799,18 +903,23 @@ def evaluate_boot_sha_drift() -> dict:
     population = drift_population(observed)
     closures = {s: code_closure.closure_for_session(s) for s in population}
     boot_shas = {s: boot_sha.read_boot_sha(s) for s in population}
-    boot = _boot_time()
+    stamper_runs = {s: unit_stamper_run(s) for s in population}
     d = loaded_code_drift(
         population, boot_shas, closures,
         lambda sha, session: boot_sha.changed_paths_since(sha, boot_sha.read_boot_blobs(session)),
         boot_ts={s: boot_sha.read_boot_ts(s) for s in population},
-        started_at={s: process_start_time(main_pids.get(s, 0), boot) for s in population})
+        stamper_ran_at={s: r["ran_at"] for s, r in stamper_runs.items()},
+        stamper_exit={s: r["status"] for s, r in stamper_runs.items()})
     # VACUITY GUARD (R15): an empty population while units are demonstrably active is a FAILED
     # check, not a clean one. The old detector's silent shrink is what this must never repeat.
     any_active = any((unit_states.get(e["session"]) or {}).get("active")
                      for e in entries if e.get("owner") == "systemd")
     return {"head": boot_sha.current_head(),
             "population": population,
+            # Derived by SUBTRACTION through the partition the rules above actually produce, so a
+            # rule added later shrinks `graded` by construction. A `graded` recomputed from its own
+            # idea of who was resolvable would agree with itself and drift from the verdict.
+            "graded": sorted(set(population) - set(d["unresolved"])),
             "stale": sorted(d["stale"]),
             "stale_detail": d["stale"],
             "unresolved": d["unresolved"],

@@ -554,6 +554,25 @@ def _check_single_interactive_session(_pids=None, _pane_session=None) -> str | N
     return None
 
 
+def drift_headline(drift: dict) -> str:
+    """The one phrase a reader meets the deployment-drift numbers in. PURE, so the phrase has a
+    door of its own rather than living inside a 200-line health run nothing can call.
+
+    THE DENOMINATOR COMES FIRST AND IT IS NOT DECORATION. `stale` is counted only over the
+    sessions the rules could actually grade; measured 2026-09-25 that was 1 of 11, so an empty
+    `stale` list read exactly like a clean fleet, and `deploy_restart --report` printed `stale 0`
+    at a fleet whose running code version was unknown for ten of its eleven members.
+
+    An ABSENT `graded` key renders `?`, never 0 and never the population: a caller passing an older
+    report must read as "this instrument could not say", which is the opposite of "none".
+    """
+    graded = drift.get("graded")
+    return "{} stale of {} graded, {} observed".format(
+        len(drift.get("stale") or []),
+        "?" if graded is None else len(graded),
+        len(drift.get("population") or []))
+
+
 def run_health_check() -> tuple[bool, list[str], list[str]]:
     """
     Returns (all_ok, ok_lines, problem_lines).
@@ -630,6 +649,7 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
     try:
         from background.process_reconciler import evaluate_boot_sha_drift
         _bd = evaluate_boot_sha_drift()
+        _over = drift_headline(_bd)
         _faults = []
         if _bd.get("stale"):
             _faults.append("daemon(s) running an OLD copy of a module they import (restart to "
@@ -655,12 +675,12 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
                 f"({_st.get('verdict', 'unknown')}) -- every staleness verdict above is derived "
                 f"from stamps nothing is writing: {_st.get('detail', 'no detail')}")
         if _faults:
-            problem_lines.append("  ✗ deployment drift: " + "; ".join(_faults))
+            problem_lines.append(f"  ✗ deployment drift ({_over}): " + "; ".join(_faults))
         else:
             ok_lines.append(
-                f"  ✓ no deployment drift — {len(_bd.get('population', []))} observed systemd "
-                "daemon(s), none running a changed imported module; the declared boot stamper "
-                f"stamps ({(_bd.get('stamper') or {}).get('detail', 'not probed')})")
+                f"  ✓ no deployment drift — {_over}; none of the GRADED daemons runs a changed "
+                "imported module, and nothing is claimed about the rest; the declared boot "
+                f"stamper stamps ({(_bd.get('stamper') or {}).get('detail', 'not probed')})")
     except Exception as exc:  # noqa: BLE001 -- a sub-check must never break the health run
         ok_lines.append(f"  ℹ boot-SHA drift check unavailable: {exc}")
 

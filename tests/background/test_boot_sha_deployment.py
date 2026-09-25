@@ -28,6 +28,7 @@ import time
 import pytest
 
 from background import boot_sha, code_closure
+from background import health_check as hc
 from background import process_reconciler as R
 from background.process_reconciler import (
     drift_population,
@@ -36,11 +37,11 @@ from background.process_reconciler import (
     observed_launched_by,
 )
 
-#: For the cases that are about the OTHER three rules. Both maps empty means "no start time and no
-#: stamp time is known for this session", under which the 2026-09-24 rule makes no claim and the
-#: older rules decide — spelled out at each call site rather than defaulted, because a rule a
-#: caller can silently omit is how the stamper itself went twenty days unnoticed.
-_NOT_ABOUT_STAMP_AGE = {"boot_ts": {}, "started_at": {}}
+#: For the cases that are about the OTHER rules. All three maps empty means "nothing is known
+#: about this session's stamper run", under which the 2026-09-24 and 2026-09-25 rules make no
+#: claim and the older rules decide — spelled out at each call site rather than defaulted, because
+#: a rule a caller can silently omit is how the stamper itself went twenty days unnoticed.
+_NOT_ABOUT_STAMP_AGE = {"boot_ts": {}, "stamper_ran_at": {}, "stamper_exit": {}}
 
 
 def test_stamp_and_read_roundtrip(tmp_path, monkeypatch):
@@ -262,14 +263,172 @@ def test_the_units_own_declared_stamp_command_stamps(tmp_path):
     assert written.get("ts")
 
 
-def test_process_start_time_reads_a_live_process_and_refuses_a_dead_one():
-    """The observation the fourth rule rests on. Our own pid must yield a plausible epoch second in
-    the past; an impossible pid must yield None, never 0 or now() — a fabricated start time would
-    make every stamp look fresh, which is fail-open in the one direction that matters."""
-    mine = R.process_start_time(os.getpid())
-    assert mine is not None and 1_500_000_000 < mine <= time.time() + 1
-    assert R.process_start_time(0) is None
-    assert R.process_start_time(2 ** 30) is None
+@pytest.mark.real_subprocess   # the claim is about the LIVE box's own record; a stub cannot make it
+def test_the_stamper_run_clock_is_systemds_own_record_and_not_a_reconstruction():
+    """THE OBSERVATION THE THIRD RULE RESTS ON, and the defect that replaced it (2026-09-25).
+
+    Until today the rule compared the stamp against `/proc/stat btime` plus the process's start
+    ticks. Those are two different clocks on a WSL2 guest that freezes: the tick side stops during
+    a freeze, the wall side does not, and `btime` walks forward by the accumulated freeze. Measured
+    on this box: `token-proxy` reconstructed to 14h37m AFTER the moment systemd recorded starting
+    it, and both `token-proxy` and `worker-seat-manager` — each of which stamped in the same SECOND
+    systemd started them — were graded `stamp-predates-process`.
+
+    Keyed to the PROPERTY, not to a session or a number: for every unit on this box that declares
+    the stamper and whose stamper run systemd recorded, the recorded run must sit in the past and
+    no later than the run's own completion. A reconstruction that drifts forward violates the first
+    clause the moment the guest freezes; the old helper is deleted, so there is nothing to compare
+    it against here."""
+    declared = R.declared_stamp_argv()
+    if not declared:
+        pytest.skip("no installed unit on this box declares the boot stamper")
+    seen = 0
+    for unit in sorted(declared):
+        run = R.unit_stamper_run(unit[: -len(".service")])
+        if run["ran_at"] is None:
+            continue          # unit never started on this boot: no claim, never a fabricated one
+        seen += 1
+        assert 1_500_000_000 < run["ran_at"] <= time.time() + 1, unit
+        if run["finished_at"] is not None:
+            assert run["ran_at"] <= run["finished_at"], unit
+    assert seen, "vacuity: no declaring unit had a recorded stamper run to grade"
+
+
+def _live_boot_dir(sessions):
+    """The directory the LIVE daemons actually stamped into, taken from systemd's own record of
+    where it ran them — never from this copy of the repo. None if systemd cannot say.
+
+    THE DEFECT THIS EXISTS FOR, measured 2026-09-25 by the landing that first tried to gate the
+    control below. `boot_sha.BOOT_DIR` resolves relative to its own module file. That is right in
+    production, where the daemon and the stamps share a tree, and wrong for a control whose subject
+    is the LIVE BOX: `surgical_land` gates the tree the commit would create inside a standalone
+    extract, and `docs/observability/.daemon_boot/` is gitignored (`.gitignore:58`, zero tracked
+    blobs at HEAD) because a boot record is runtime state. So in the extract that directory is
+    EMPTY, every stamp read as None, no session qualified, and the vacuity guard fired — GREEN in
+    the worktree and RED in the gate, on a box that had not changed at all. One-variable proof: the
+    control passes against the real directory and reproduces the gate's `assert []` exactly when
+    `SE_BOOT_DIR` points at an empty one.
+
+    Fail-closed, and the fallback is the whole point: an unreadable or disagreeing
+    `WorkingDirectory` returns None so the caller can refuse. Defaulting to this tree is the defect,
+    not the safe option.
+    """
+    import pathlib
+    seen = set()
+    for session in sessions:
+        try:
+            r = subprocess.run(
+                ["systemctl", "--user", "show", f"{session}.service", "-p", "WorkingDirectory",
+                 "--value"], capture_output=True, text=True, timeout=10)
+        except Exception:  # noqa: BLE001 -- cannot ask != an answer
+            return None
+        if getattr(r, "returncode", 1) == 0 and (r.stdout or "").strip():
+            seen.add((r.stdout or "").strip())
+    if len(seen) != 1:
+        return None      # nothing answered, or the fleet spans two trees: no single honest answer
+    return pathlib.Path(seen.pop()) / "docs" / "observability" / ".daemon_boot"
+
+
+@pytest.mark.real_subprocess   # the claim is about the LIVE fleet; a stub cannot make it
+def test_a_stamp_written_inside_its_own_recorded_stamper_window_is_GRADED_on_this_box(monkeypatch):
+    """THE CONTROL OVER THE REVERT, and the one the property is actually keyed to.
+
+    If a session's stamp was written by THIS boot's run of its own stamper — the stamp `ts` lies
+    inside the window systemd recorded for that ExecStartPre, and the stamper exited 0 — then the
+    drift verdict has no honest reason to refuse it AS A STAMP-AGE FAILURE. Reverting the clock to
+    `/proc/stat btime` plus start ticks reds this, because that reconstruction drifts forward by
+    the guest's accumulated freeze: measured 2026-09-25, `token-proxy` and `worker-seat-manager`
+    both stamped in the SAME SECOND systemd started them and were both graded
+    `stamp-predates-process` by 14h37m of clock error.
+
+    WHERE THE STAMPS ARE READ FROM IS PART OF THE CONTROL — see `_live_boot_dir`. The live box is
+    the subject; the repo copy this test happens to run out of is not, and in the gate extract it
+    holds no stamps at all.
+
+    WHY THE REFUSAL IS NAMED RATHER THAN MEMBERSHIP IN `graded`. The earlier draft asserted
+    `session in graded`, which keys the control to WHICH TREE pytest ran in: inside the gate
+    extract `sha-unresolved` and `closure-unknown` are both legitimately reachable (the extract's
+    history and working bytes are not the live daemon's), and reddening on those is the
+    environment-as-today's-answer shape. `stamp-predates-process` is the ONE refusal the clock
+    revert produces, so it is the one this control forbids. That the rule can fire at all is
+    established separately, on fixtures, by the stamp-age and `stamper-failed` arms above — this
+    live arm would otherwise go green on a rule mutated never to fire.
+
+    Keyed to the property over whatever this box currently offers, never to a session name or a
+    count — and vacuity-guarded, because with no qualifying session the assertion is empty and
+    would go green on any clock at all."""
+    declared = R.declared_stamp_argv()
+    if not declared:
+        pytest.skip("no installed unit on this box declares the boot stamper")
+    live = _live_boot_dir(sorted(u[: -len(".service")] for u in declared))
+    assert live is not None, (
+        "cannot locate the live boot directory from systemd's own WorkingDirectory -- refusing "
+        "rather than falling back to this copy of the repo, which holds no stamps in the extract")
+    # Both the stamp reads BELOW and `evaluate_boot_sha_drift`'s own reads go through this global,
+    # so one redirect moves the whole verdict onto the live box's records.
+    monkeypatch.setattr(boot_sha, "BOOT_DIR", live)
+    d = R.evaluate_boot_sha_drift()
+    unresolved = d["unresolved"]
+    qualifying = []
+    for session in d["population"]:
+        run, stamped = R.unit_stamper_run(session), boot_sha.read_boot_ts(session)
+        if run["status"] != 0 or stamped is None or run["ran_at"] is None:
+            continue
+        # systemd renders to the SECOND, so `finished_at` is a floor: a stamp written in the final
+        # fraction of that second is still this boot's. Compare against the whole second after it.
+        if run["ran_at"] <= stamped < (run["finished_at"] or run["ran_at"]) + 1:
+            qualifying.append(session)
+    assert qualifying, "vacuity: no daemon on this box stamped inside its own stamper window"
+    for session in qualifying:
+        assert unresolved.get(session) != "stamp-predates-process", (
+            f"{session} stamped inside its own recorded stamper window and was refused as "
+            f"stamp-predates-process -- the comparison clock is wrong, not the fleet")
+
+
+@pytest.mark.real_subprocess   # the fail-closed path must hold for the REAL reader, not a stub
+def test_an_unreadable_stamper_run_is_all_none_and_never_a_fabricated_clock():
+    """Fail-closed, as a control. A unit systemd knows nothing about must yield None everywhere —
+    a zero or a now() here would make an ancient stamp look fresh, which is fail-open in the one
+    direction that matters. The live reader is exercised, not a stub, so a systemctl that starts
+    printing something else reds this instead of going quiet."""
+    assert R.unit_stamper_run("no-such-unit-xyzzy") == {
+        "ran_at": None, "finished_at": None, "status": None}
+    assert R.unit_stamper_run("a", show=lambda _s: "not a record at all") == {
+        "ran_at": None, "finished_at": None, "status": None}
+
+
+#: One real `ExecStartPre` record, copied verbatim from `systemctl --user show sim-runner.service`
+#: on 2026-09-25. Pinned as TEXT because the parser's whole job is to survive systemd's rendering,
+#: and a hand-simplified shape would test the simplification.
+_REAL_EXEC_RECORD = (
+    "{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -m background.boot_sha sim-runner ; "
+    "ignore_errors=yes ; start_time=[Fri 2026-09-25 12:04:00 BST] ; "
+    "stop_time=[Fri 2026-09-25 12:04:01 BST] ; pid=3222935 ; code=exited ; status=0 }")
+
+
+def test_the_exec_record_parser_reads_systemds_real_rendering():
+    """Both halves that the rules read: a wall-clock epoch from the bracketed local timestamp, and
+    the exit STATUS as an integer. `status` must be `0`, not `"0"` and not None — `0` is falsy, so
+    a parser returning the string would make `status != 0` true and mark every healthy daemon
+    `stamper-failed`, and one returning None would silence the rule entirely."""
+    [record] = R.parse_exec_records(_REAL_EXEC_RECORD)
+    assert record["status"] == 0 and isinstance(record["status"], int)
+    assert record["ignore_errors"] is True
+    assert record["start_time"] is not None and record["stop_time"] is not None
+    assert record["stop_time"] - record["start_time"] == 1.0
+    assert R.stamper_record([record]) is record
+
+
+def test_the_stamper_record_is_chosen_by_argv_not_by_position():
+    """A unit may declare other ExecStartPre commands. Picking the first record would grade a
+    different command's exit status the day one is added — and that is not hypothetical: this
+    project adds pre-start commands routinely."""
+    other = _REAL_EXEC_RECORD.replace("-m background.boot_sha sim-runner", "-m background.other")
+    records = R.parse_exec_records(other + "\n" + _REAL_EXEC_RECORD)
+    assert len(records) == 2
+    picked = R.stamper_record(records)
+    assert picked is records[1], "the stamper record must be found by what its argv NAMES"
+    assert R.stamper_record(R.parse_exec_records(other)) is None
 
 
 def test_a_stamp_from_a_previous_boot_is_unresolved_not_stale():
@@ -287,7 +446,8 @@ def test_a_stamp_from_a_previous_boot_is_unresolved_not_stale():
                           {"staging-watcher": {"background/staging_watcher.py"}},
                           lambda sha, session=None: {"background/staging_watcher.py"},
                           boot_ts={"staging-watcher": 1000.0},
-                          started_at={"staging-watcher": 2000.0})
+                          stamper_ran_at={"staging-watcher": 2000.0},
+                          stamper_exit={"staging-watcher": 0})
     assert d["stale"] == {}, "a stamp describing a dead process must not license a `stale` verdict"
     assert d["unresolved"] == {"staging-watcher": "stamp-predates-process"}
 
@@ -301,50 +461,158 @@ def test_a_stamp_written_at_this_boot_still_reaches_the_stale_verdict():
                           {"staging-watcher": {"background/staging_watcher.py"}},
                           lambda sha, session=None: {"background/staging_watcher.py"},
                           boot_ts={"staging-watcher": 2000.0},
-                          started_at={"staging-watcher": 1000.0})
+                          stamper_ran_at={"staging-watcher": 1000.0},
+                          stamper_exit={"staging-watcher": 0})
     assert d["unresolved"] == {}
     assert d["stale"] == {"staging-watcher": ["background/staging_watcher.py"]}
 
 
-def test_the_four_unresolved_reasons_are_reachable_AND_DISTINCT():
-    """One control over the whole partition, rather than a leg per branch. Four shapes must produce
-    four DIFFERENT reasons: asserting only that each is 'unresolved' is blind to two shapes
+def test_the_five_unresolved_reasons_are_reachable_AND_DISTINCT():
+    """One control over the whole partition, rather than a leg per branch. Five shapes must produce
+    five DIFFERENT reasons: asserting only that each is 'unresolved' is blind to two shapes
     collapsing onto one verdict, which is precisely what happened before the fourth rule existed —
     a stale stamp and a current one both reached `stale` and nothing could tell them apart.
 
-    Keyed by SHAPE, not by expected answer, so a collapse shows up as a duplicate reason."""
-    live = {"boot_ts": {"a": 2000.0}, "started_at": {"a": 1000.0}}
+    Keyed by SHAPE, not by expected answer, so a collapse shows up as a duplicate reason. The fifth
+    shape matters most here: a stamper that RAN AND FAILED and a stamp that is merely OLD have
+    opposite remedies (repair it / restart the daemon) and would otherwise share one verdict."""
+    live = {"boot_ts": {"a": 2000.0}, "stamper_ran_at": {"a": 1000.0},
+            "stamper_exit": {"a": 0}}
     shapes = {
         "unstamped": dict(boot_shas={"a": None}, closures={"a": {"background/a.py"}},
                           changed=lambda s, sess=None: set(), **live),
         "stamp-from-a-previous-boot": dict(boot_shas={"a": "OLD"},
                                            closures={"a": {"background/a.py"}},
                                            changed=lambda s, sess=None: set(),
-                                           boot_ts={"a": 1000.0}, started_at={"a": 2000.0}),
+                                           boot_ts={"a": 1000.0}, stamper_ran_at={"a": 2000.0},
+                                           stamper_exit={"a": 0}),
         "closure-empty": dict(boot_shas={"a": "OLD"}, closures={"a": set()},
                               changed=lambda s, sess=None: {"background/a.py"}, **live),
         "diff-unresolvable": dict(boot_shas={"a": "OLD"}, closures={"a": {"background/a.py"}},
                                   changed=lambda s, sess=None: None, **live),
+        "stamper-exited-non-zero": dict(boot_shas={"a": "OLD"},
+                                        closures={"a": {"background/a.py"}},
+                                        changed=lambda s, sess=None: set(),
+                                        boot_ts={"a": 2000.0}, stamper_ran_at={"a": 1000.0},
+                                        stamper_exit={"a": 2}),
     }
     seen: dict[str, str] = {}
     for shape, kw in shapes.items():
         d = loaded_code_drift(["a"], kw["boot_shas"], kw["closures"], kw["changed"],
-                              boot_ts=kw["boot_ts"], started_at=kw["started_at"])
+                              boot_ts=kw["boot_ts"], stamper_ran_at=kw["stamper_ran_at"],
+                              stamper_exit=kw["stamper_exit"])
         assert d["stale"] == {}, shape
         seen[shape] = d["unresolved"]["a"]
     assert len(set(seen.values())) == len(shapes), f"two shapes collapsed onto one reason: {seen}"
 
 
-def test_an_unknown_start_time_makes_no_new_claim():
-    """The degradation rule, stated as a control. A session whose process start time cannot be read
-    must fall through to the older rules — the new refusal needs POSITIVE evidence. Inverting this
-    would make an unreadable /proc mark every daemon unresolved, which is the always-red failure
-    the 2026-08-09 rebuild exists to abolish."""
+def test_a_zero_exit_from_the_stamper_licenses_nothing_and_blocks_nothing():
+    """The anti-tautology arm for the fifth rule, and it is NOT keyed to a word from the positive
+    case. Identical inputs to the `stamper-failed` shape except the status, which is 0: the session
+    must fall straight through to the ordinary comparison and read honestly STALE. A rule written
+    as `if status is not None` — the commonest way this is got wrong — passes the positive leg and
+    fails here, because `0` is not None."""
+    d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": {"background/a.py"}},
+                          lambda s, sess=None: {"background/a.py"},
+                          boot_ts={"a": 2000.0}, stamper_ran_at={"a": 1000.0},
+                          stamper_exit={"a": 0})
+    assert d["unresolved"] == {}
+    assert d["stale"] == {"a": ["background/a.py"]}
+
+
+def test_an_unknown_stamper_exit_makes_no_new_claim():
+    """The degradation half of the fifth rule: an unreadable exit status must not mark a daemon
+    unresolved. Inverting it turns a systemctl that cannot answer into an always-red fleet, which
+    is the failure the 2026-08-09 rebuild exists to abolish."""
     for missing in ({"a": None}, {}):
         d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": {"background/a.py"}},
                               lambda s, sess=None: {"background/a.py"},
-                              boot_ts={"a": 1000.0}, started_at=missing)
+                              boot_ts={"a": 2000.0}, stamper_ran_at={"a": 1000.0},
+                              stamper_exit=missing)
         assert d["unresolved"] == {} and d["stale"] == {"a": ["background/a.py"]}
+
+
+def test_an_unknown_start_time_makes_no_new_claim():
+    """The degradation rule, stated as a control. A session whose stamper run time cannot be read
+    must fall through to the older rules — the new refusal needs POSITIVE evidence. Inverting this
+    would make an unreadable systemd record mark every daemon unresolved, which is the always-red
+    failure the 2026-08-09 rebuild exists to abolish."""
+    for missing in ({"a": None}, {}):
+        d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": {"background/a.py"}},
+                              lambda s, sess=None: {"background/a.py"},
+                              boot_ts={"a": 1000.0}, stamper_ran_at=missing,
+                              stamper_exit={"a": 0})
+        assert d["unresolved"] == {} and d["stale"] == {"a": ["background/a.py"]}
+
+
+# ── THE DENOMINATOR (2026-09-25) ────────────────────────────────────────────────────────────
+#
+# `stale: []` is a numerator. Measured on this box the morning these controls were written: 11
+# daemons observed, 10 unresolved, so the empty list was `0 out of 1` wearing the shape of `0 out
+# of 11` — and `deploy_restart --report` printed `stale 0` at a fleet whose running code version
+# was unknown for all but one member. Same failure as the level grader's `contradicted: 0` out of
+# 0 graded, in a second instrument; these controls are keyed to the PROPERTY (the published
+# denominator must be the one the rules actually reached), never to today's count.
+
+
+@pytest.mark.real_subprocess   # the WHOLE POINT is the live verdict, not a stub of it
+def test_the_drift_verdict_publishes_the_population_it_was_actually_reached_over():
+    """A reader of the live verdict must be able to tell `0 stale of 11 graded` from `0 stale of 1`.
+
+    The mutation this exists for: delete the `graded` key, or fill it from `population`, and a
+    fleet nothing could grade reads exactly like a healthy one."""
+    d = R.evaluate_boot_sha_drift()
+    assert "graded" in d, "the verdict must carry the denominator its numerator is counted over"
+    graded, population, unresolved = set(d["graded"]), set(d["population"]), set(d["unresolved"])
+    assert graded | unresolved == population, "graded+unresolved must EXHAUST the population"
+    assert not (graded & unresolved), "a session cannot be both graded and unresolved"
+    assert set(d["stale"]) <= graded, "a stale verdict can only be reached over a graded session"
+
+
+def test_the_denominator_is_derived_from_the_partition_not_asserted_beside_it():
+    """Keyed to the property, over inputs where the two answers DIFFER. Two sessions, one gradable
+    and one whose stamper exit refuses it: `graded` must be exactly the gradable one.
+
+    A `graded` recomputed from its own idea of resolvability would agree with itself and drift from
+    the verdict — so this asserts the subtraction, with an unresolved session present to make the
+    subtraction bite. With both sessions gradable the control would pass on a mutant that returns
+    `population` verbatim."""
+    d = loaded_code_drift(
+        ["ok", "bad"], {"ok": "OLD", "bad": "OLD"},
+        {"ok": {"background/a.py"}, "bad": {"background/a.py"}},
+        lambda sha, session=None: {"background/a.py"},
+        boot_ts={"ok": 2000.0, "bad": 2000.0},
+        stamper_ran_at={"ok": 1000.0, "bad": 1000.0},
+        stamper_exit={"ok": 0, "bad": 1})
+    graded = set(["ok", "bad"]) - set(d["unresolved"])
+    assert graded == {"ok"}, "the denominator must shrink by the rules' OWN refusals"
+    assert set(d["stale"]) == {"ok"}
+
+
+def test_the_health_surface_states_the_denominator_beside_the_stale_count():
+    """Done means the RENDERED value changed. Before today the drift line read `11 observed systemd
+    daemon(s), none running a changed imported module` over a fleet 10 of whose members were
+    ungraded — false in the only reading it invites.
+
+    Keyed to the property over inputs where the two readings DIFFER: same numerator, different
+    denominator, and the two phrases must not be equal. A headline that dropped `graded` would
+    render identically for both and fail here."""
+    thin = hc.drift_headline({"population": list("abcdefghijk"), "graded": ["k"], "stale": []})
+    full = hc.drift_headline({"population": list("abcdefghijk"),
+                              "graded": list("abcdefghijk"), "stale": []})
+    assert thin != full, "0 stale of 1 graded must not render the same as 0 stale of 11"
+    assert "1 graded" in thin and "11 observed" in thin
+    assert "11 graded" in full
+
+
+def test_a_report_without_the_denominator_renders_UNKNOWN_and_never_zero_or_the_population():
+    """Fail-closed on the surface. An older report has no `graded` key; rendering that as `0
+    graded` understates and rendering it as the population OVERSTATES — and overstating is the
+    direction that published `none running a changed imported module` for twenty days. It must say
+    it cannot tell."""
+    stale_only = hc.drift_headline({"population": ["a", "b"], "stale": []})
+    assert "? graded" in stale_only
+    assert "0 graded" not in stale_only and "2 graded" not in stale_only
 
 
 # ── The named replay: the daemon that actually broke, against the state it actually ran ─────

@@ -378,6 +378,29 @@ def test_the_report_carries_both_ages_for_every_daemon(monkeypatch):
     assert report["summary"]["stale"] == 1 and report["summary"]["observed"] == 1
 
 
+def test_the_summary_carries_the_denominator_its_stale_count_is_taken_over(monkeypatch):
+    """`stale 0` IS A NUMERATOR. Measured on this box 2026-09-25: eleven daemons observed, ten
+    unresolved, and this line printed `stale 0` — which every reader took for a healthy fleet when
+    it meant `0 of 1`.
+
+    Keyed to the property over inputs where the two readings DIFFER: two daemons, one refused. A
+    `graded` filled from the row count would read 2 and pass a control built on a single clean
+    row, so both rows are present and only one is gradable."""
+    drift = {"head": "abc1234", "population": ["sim-runner", "dispatcher"],
+             "stale_detail": {"sim-runner": ["x.py"]},
+             "unresolved": {"dispatcher": "stamp-predates-process"}, "vacuous": False}
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 4000.0)
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    summary = dr.daemon_deployment_report(drift=drift, now=5000.0)["summary"]
+    assert summary["observed"] == 2
+    assert summary["graded"] == 1, "the denominator must shrink by the rows' OWN refusals"
+    assert summary["stale"] == 1
+    assert summary["graded"] + summary["unresolved"] == summary["observed"]
+
+
 def test_the_report_is_json_serialisable_because_it_is_written_to_disk(monkeypatch):
     drift = {"head": "abc1234", "population": [], "stale_detail": {}, "unresolved": {},
              "vacuous": False}
