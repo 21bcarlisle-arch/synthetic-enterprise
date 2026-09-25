@@ -31,6 +31,7 @@ likely to be "simplified" away by someone who reads the absent path as a false p
 """
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -786,3 +787,93 @@ def test_EVERY_ungradable_row_carries_at_least_one_cause(tmp_path: Path):
     assert not uncaused, (
         "row(s) reached the brief with no cause at all: {}. A consumer grouping by cause drops "
         "them entirely, which is the undifferentiated count with a hole in it".format(uncaused))
+
+
+# --------------------------------------------------------------------------- #
+# The count carries its DENOMINATOR                                            #
+#                                                                              #
+# THE DEFECT THESE NAME. On 2026-09-25 the live pass returned                   #
+# `{"contradicted": 0, "ungradable": 28}` with a partition of exactly 28 rows:  #
+# nothing was weighed, and the delivery seat twice read the 0 as evidence that  #
+# the map was an honest record. A count published without the denominator its   #
+# sample size earns cannot be distinguished from a clean bill of health.        #
+# --------------------------------------------------------------------------- #
+
+def test_a_pass_that_GRADED_NOTHING_says_so_and_never_lets_zero_read_as_clean(
+        monkeypatch, capsys):
+    """The live 2026-09-25 shape: every row in the partition ungradable, nothing weighed."""
+    rows = [_atom("UNGRADABLE_A"), _atom("UNGRADABLE_B")]
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: rows)
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [], [{"id": r["id"], "reason": lz.NO_CONTROL_NAMED, "paths": [], "detail": "",
+              "causes": []} for r in rows]))
+
+    assert lz.main([]) == 0, "a row that cannot be graded still does not refuse"
+    err = capsys.readouterr().err
+    assert "NOTHING WAS GRADED" in err
+    assert "2 row(s) in the partition" in err
+    assert "cannot tell" in err
+
+
+def test_BOTH_denominator_states_are_reachable_in_one_pass(monkeypatch, capsys):
+    """The partition control. A denominator line printed unconditionally would pass the vacuous
+    arm on its own, so the graded arm asserts the vacuous sentence is ABSENT -- not merely that
+    some other word is present, which is the shape that passes the unconditional mutation."""
+    rows = [_atom("GRADED_SILENT"), _atom("CANNOT_GRADE")]
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: rows)
+
+    # ARM 1 -- one row weighed and silent (its controls do not all pass), one ungradable.
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [], [{"id": "CANNOT_GRADE", "reason": lz.NO_CONTROL_NAMED, "paths": [], "detail": "",
+              "causes": []}]))
+    assert lz.main([]) == 0
+    graded_err = capsys.readouterr().err
+    assert "1 of 2 row(s) in the partition were GRADED" in graded_err
+    assert "NOTHING WAS GRADED" not in graded_err, (
+        "the vacuous sentence fired on a pass that DID weigh a row -- the denominator line is "
+        "unconditional, which is the whole defect with the sign flipped")
+
+    # ARM 2 -- the same two rows, neither weighed.
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [], [{"id": r["id"], "reason": lz.NO_CONTROL_NAMED, "paths": [], "detail": "",
+              "causes": []} for r in rows]))
+    assert lz.main([]) == 0
+    vacuous_err = capsys.readouterr().err
+    assert "NOTHING WAS GRADED" in vacuous_err
+    assert "were GRADED" not in vacuous_err
+
+
+def test_the_JSON_surface_carries_the_denominator_and_not_only_the_two_lists(
+        monkeypatch, capsys):
+    """A machine consumer reads `contradicted` and has to be able to ask what it was out of."""
+    rows = [_atom("UNGRADABLE_A"), _atom("UNGRADABLE_B")]
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: rows)
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [], [{"id": "UNGRADABLE_A", "reason": lz.NO_CONTROL_NAMED, "paths": [], "detail": "",
+              "causes": []}]))
+
+    assert lz.main(["--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["population"] == 2
+    assert payload["graded"] == 1
+    assert payload["contradicted"] == []
+
+
+def test_the_denominator_counts_THE_PARTITION_and_not_the_whole_live_map(monkeypatch, capsys):
+    """Keyed to `is_candidate`, the predicate `assess` itself filters on. A live map of 110 atoms
+    with 28 in the partition must report 28: a denominator counting every live row would make the
+    graded share look tiny for a reason that has nothing to do with grading."""
+    rows = [_atom("IN_PARTITION"),
+            _atom("ABOVE_ZERO", level=2),
+            _atom("NOT_BUILDING", stage="idle")]
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: rows)
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [], [{"id": "IN_PARTITION", "reason": lz.NO_CONTROL_NAMED, "paths": [], "detail": "",
+              "causes": []}]))
+
+    assert lz.main(["--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["population"] == 1, (
+        "the denominator counted rows `assess` never grades -- level>0 and loop_stage!=build are "
+        "outside the partition by the same predicate")
+    assert payload["graded"] == 0

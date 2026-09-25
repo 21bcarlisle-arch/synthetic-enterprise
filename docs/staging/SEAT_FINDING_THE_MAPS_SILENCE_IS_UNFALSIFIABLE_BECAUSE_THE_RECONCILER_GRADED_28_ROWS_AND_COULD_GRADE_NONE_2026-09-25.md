@@ -250,3 +250,42 @@ exists and is unrun:
 * The rate table is reproducible from `d013d27f7` by comparing the parsed map blob at each map commit's
   parent and itself, per atom id. If a re-run over the same 1500 commits does not return 17 advances
   in bins 3/5/5/3/1/0, the walk is wrong and the decay claim goes with it.
+
+## Remedy 1 is landed, in the same turn, and the other two are not
+
+Recorded here rather than in a second document, because a remedy filed away from the measurement it
+answers is how this class survives. **Still BLOCKING: remedies 2 and 3 stand.**
+
+`tools/level_zero_contradicted_by_its_own_controls.py` now carries the denominator on both
+surfaces. Against the live map, before and after:
+
+```
+before:  {"contradicted": 0, "ungradable": 28}
+after:   {"contradicted": 0, "ungradable": 28, "population": 28, "graded": 0}
+
+[level-zero] ⚠ NOTHING WAS GRADED. All 28 row(s) in the partition are ungradable, so this pass
+weighed no evidence: a count of 0 contradicted rows here is NOT a verdict about the map, it is
+"cannot tell".
+```
+
+The population is counted through `is_candidate`, the same predicate `assess` filters on, so the
+denominator cannot come to describe a population that has moved; and by membership rather than by
+subtraction, so a caller handing `main` verdicts about rows outside the partition cannot drive it
+negative. **The exit code deliberately does not move**: "cannot grade this row" is argued in the
+module docstring as a finding about the row and not a verdict about the work, and fail-closed here is
+a claim on the surface — "cannot tell" said out loud, in the place the misread happened — not a
+refusal that would wedge the orientation that calls it.
+
+Four controls, in `tests/tools/test_level_zero_contradicted_by_its_own_controls.py`, each
+mutation-proven against the leg written for it and not another:
+
+| control | mutation that must red it | result |
+|---|---|---|
+| `test_a_pass_that_GRADED_NOTHING_says_so_and_never_lets_zero_read_as_clean` | `if graded:` → `if True:` (the vacuous branch deleted) | RED |
+| `test_BOTH_denominator_states_are_reachable_in_one_pass` | the same, AND `if graded:` → `if False:` (the line made unconditional the other way) | RED on both |
+| `test_the_JSON_surface_carries_the_denominator_and_not_only_the_two_lists` | the two new keys dropped from the payload | RED |
+| `test_the_denominator_counts_THE_PARTITION_and_not_the_whole_live_map` | `is_candidate` dropped from the population | RED |
+
+The partition control is the one that matters: a denominator line printed unconditionally would pass
+the vacuous arm on its own, so the graded arm asserts the vacuous sentence is **absent** rather than
+asserting some other word is present — the shape that otherwise survives the unconditional mutation.
