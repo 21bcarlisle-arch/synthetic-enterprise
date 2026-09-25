@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-25T16:41:30.368147+00:00",
+  "last_updated": "2026-09-25T17:46:56.069652+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-25T16:41:30.368147+00:00",
+      "last_heartbeat": "2026-09-25T17:46:56.069652+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-25T14:04:19.154872+00:00",
       "anomaly": null,
@@ -75,7 +75,7 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-25T16:26:37.526981+00:00",
+      "last_heartbeat": "2026-09-25T17:32:15.563543+00:00",
       "last_action": "Task batch complete",
       "last_action_ts": "2026-09-25T15:39:20.049484+00:00",
       "anomaly": null,
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-25T16:39:28.768872+00:00",
+      "last_heartbeat": "2026-09-25T17:45:08.089893+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-25T14:04:20.509027+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-25T16:34:29.815298+00:00",
+      "last_heartbeat": "2026-09-25T17:34:30.395879+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-25T16:34:29.815298+00:00",
+      "last_action_ts": "2026-09-25T17:34:30.395879+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -143,7 +143,7 @@
       "produces": "write-landed build turns (origin-verified commit SHAs)"
     }
   ],
-  "treasury_gbp": 416705.24,
-  "net_margin_gbp": 166705.235619,
-  "enterprise_value_gbp": 165173.92054320537
+  "treasury_gbp": 414175.15,
+  "net_margin_gbp": 164175.151958,
+  "enterprise_value_gbp": 164251.46927089032
 }
