@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-09-25T09:04:00Z",
-    "git_commit": "33650edec",
+    "generated_at": "2026-09-25T13:54:54Z",
+    "git_commit": "837a94c8a",
     "customer_count": 244,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -783,8 +783,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.2459,
-          "company_churn_estimate": 0.1871,
-          "churn_estimate_error_pct": -0.2391,
+          "company_churn_estimate": 0.1655,
+          "churn_estimate_error_pct": -0.327,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 116.11414003037652
@@ -810,8 +810,8 @@
         {
           "term_start": "2017-07-01",
           "sim_churn_probability": 0.2459,
-          "company_churn_estimate": 0.1871,
-          "churn_estimate_error_pct": -0.2391,
+          "company_churn_estimate": 0.1655,
+          "churn_estimate_error_pct": -0.327,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 116.11414003037652,
           "rate_vs_svt_pct": -17.06
@@ -1697,8 +1697,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.5455,
-          "company_churn_estimate": 0.5953,
-          "churn_estimate_error_pct": 0.0913,
+          "company_churn_estimate": 0.5972,
+          "churn_estimate_error_pct": 0.0948,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 163.72428134919068
@@ -1708,8 +1708,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.5479,
-          "company_churn_estimate": 0.1617,
-          "churn_estimate_error_pct": -0.7049,
+          "company_churn_estimate": 0.1649,
+          "churn_estimate_error_pct": -0.699,
           "retention_offered": false,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 121.06471403827881
@@ -1719,8 +1719,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.9631,
-          "company_churn_estimate": 0.2892,
-          "churn_estimate_error_pct": -0.6997,
+          "company_churn_estimate": 0.2946,
+          "churn_estimate_error_pct": -0.6941,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 132.54561912809504
@@ -1792,8 +1792,8 @@
         {
           "term_start": "2018-12-31",
           "sim_churn_probability": 0.5455,
-          "company_churn_estimate": 0.5953,
-          "churn_estimate_error_pct": 0.0913,
+          "company_churn_estimate": 0.5972,
+          "churn_estimate_error_pct": 0.0948,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 163.72428134919068,
           "rate_vs_svt_pct": 7.36
@@ -1801,8 +1801,8 @@
         {
           "term_start": "2019-12-31",
           "sim_churn_probability": 0.5479,
-          "company_churn_estimate": 0.1617,
-          "churn_estimate_error_pct": -0.7049,
+          "company_churn_estimate": 0.1649,
+          "churn_estimate_error_pct": -0.699,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 121.06471403827881,
           "rate_vs_svt_pct": -32.18
@@ -1810,8 +1810,8 @@
         {
           "term_start": "2020-12-30",
           "sim_churn_probability": 0.9631,
-          "company_churn_estimate": 0.2892,
-          "churn_estimate_error_pct": -0.6997,
+          "company_churn_estimate": 0.2946,
+          "churn_estimate_error_pct": -0.6941,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 132.54561912809504,
           "rate_vs_svt_pct": -22.89
@@ -2212,8 +2212,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.4052,
-          "company_churn_estimate": 0.24,
-          "churn_estimate_error_pct": -0.4077,
+          "company_churn_estimate": 0.2696,
+          "churn_estimate_error_pct": -0.3346,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 118.95996123925333
@@ -2274,8 +2274,8 @@
         {
           "term_start": "2017-12-31",
           "sim_churn_probability": 0.4052,
-          "company_churn_estimate": 0.24,
-          "churn_estimate_error_pct": -0.4077,
+          "company_churn_estimate": 0.2696,
+          "churn_estimate_error_pct": -0.3346,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 118.95996123925333,
           "rate_vs_svt_pct": -15.03
@@ -2476,8 +2476,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2139,
-          "company_churn_estimate": 0.2051,
-          "churn_estimate_error_pct": -0.0411,
+          "company_churn_estimate": 0.1931,
+          "churn_estimate_error_pct": -0.0972,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 121.57534992910757
@@ -2487,8 +2487,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1958,
-          "company_churn_estimate": 0.1932,
-          "churn_estimate_error_pct": -0.0133,
+          "company_churn_estimate": 0.2166,
+          "churn_estimate_error_pct": 0.1062,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 128.49329673779502
@@ -2498,8 +2498,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3359,
-          "company_churn_estimate": 0.2266,
-          "churn_estimate_error_pct": -0.3254,
+          "company_churn_estimate": 0.2296,
+          "churn_estimate_error_pct": -0.3165,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 145.9346139534967
@@ -2509,8 +2509,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.5202,
-          "company_churn_estimate": 0.0505,
-          "churn_estimate_error_pct": -0.9029,
+          "company_churn_estimate": 0.0516,
+          "churn_estimate_error_pct": -0.9008,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 117.91465196927433
@@ -2655,8 +2655,8 @@
         {
           "term_start": "2017-04-01",
           "sim_churn_probability": 0.2139,
-          "company_churn_estimate": 0.2051,
-          "churn_estimate_error_pct": -0.0411,
+          "company_churn_estimate": 0.1931,
+          "churn_estimate_error_pct": -0.0972,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 121.57534992910757,
           "rate_vs_svt_pct": -13.16
@@ -2664,8 +2664,8 @@
         {
           "term_start": "2018-04-01",
           "sim_churn_probability": 0.1958,
-          "company_churn_estimate": 0.1932,
-          "churn_estimate_error_pct": -0.0133,
+          "company_churn_estimate": 0.2166,
+          "churn_estimate_error_pct": 0.1062,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 128.49329673779502,
           "rate_vs_svt_pct": -15.74
@@ -2673,8 +2673,8 @@
         {
           "term_start": "2019-04-01",
           "sim_churn_probability": 0.3359,
-          "company_churn_estimate": 0.2266,
-          "churn_estimate_error_pct": -0.3254,
+          "company_churn_estimate": 0.2296,
+          "churn_estimate_error_pct": -0.3165,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 145.9346139534967,
           "rate_vs_svt_pct": -21.37
@@ -2682,8 +2682,8 @@
         {
           "term_start": "2020-03-31",
           "sim_churn_probability": 0.5202,
-          "company_churn_estimate": 0.0505,
-          "churn_estimate_error_pct": -0.9029,
+          "company_churn_estimate": 0.0516,
+          "churn_estimate_error_pct": -0.9008,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 117.91465196927433,
           "rate_vs_svt_pct": -33.94
@@ -2937,8 +2937,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3091,
-          "company_churn_estimate": 0.4316,
-          "churn_estimate_error_pct": 0.3963,
+          "company_churn_estimate": 0.3905,
+          "churn_estimate_error_pct": 0.2633,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 121.87489995631316
@@ -2948,8 +2948,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.5096,
-          "company_churn_estimate": 0.1093,
-          "churn_estimate_error_pct": -0.7855,
+          "company_churn_estimate": 0.1114,
+          "churn_estimate_error_pct": -0.7814,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 120.67958302450799
@@ -2959,8 +2959,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.5729,
-          "company_churn_estimate": 0.1321,
-          "churn_estimate_error_pct": -0.7694,
+          "company_churn_estimate": 0.1349,
+          "churn_estimate_error_pct": -0.7645,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 107.75887576389113
@@ -3016,8 +3016,8 @@
         {
           "term_start": "2018-07-01",
           "sim_churn_probability": 0.3091,
-          "company_churn_estimate": 0.4316,
-          "churn_estimate_error_pct": 0.3963,
+          "company_churn_estimate": 0.3905,
+          "churn_estimate_error_pct": 0.2633,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 121.87489995631316,
           "rate_vs_svt_pct": -20.08
@@ -3025,8 +3025,8 @@
         {
           "term_start": "2019-07-01",
           "sim_churn_probability": 0.5096,
-          "company_churn_estimate": 0.1093,
-          "churn_estimate_error_pct": -0.7855,
+          "company_churn_estimate": 0.1114,
+          "churn_estimate_error_pct": -0.7814,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 120.67958302450799,
           "rate_vs_svt_pct": -34.98
@@ -3034,8 +3034,8 @@
         {
           "term_start": "2020-06-30",
           "sim_churn_probability": 0.5729,
-          "company_churn_estimate": 0.1321,
-          "churn_estimate_error_pct": -0.7694,
+          "company_churn_estimate": 0.1349,
+          "churn_estimate_error_pct": -0.7645,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 107.75887576389113,
           "rate_vs_svt_pct": -39.5
@@ -4535,8 +4535,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2416,
-          "company_churn_estimate": 0.8655,
-          "churn_estimate_error_pct": 2.5824,
+          "company_churn_estimate": 0.846,
+          "churn_estimate_error_pct": 2.5017,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 138.2888559906832
@@ -4546,9 +4546,9 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.5392,
-          "company_churn_estimate": 0.3251,
-          "churn_estimate_error_pct": -0.3971,
-          "retention_offered": true,
+          "company_churn_estimate": 0.2913,
+          "churn_estimate_error_pct": -0.4598,
+          "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 144.3780965733121
         }
@@ -4615,8 +4615,8 @@
         {
           "term_start": "2018-02-09",
           "sim_churn_probability": 0.2416,
-          "company_churn_estimate": 0.8655,
-          "churn_estimate_error_pct": 2.5824,
+          "company_churn_estimate": 0.846,
+          "churn_estimate_error_pct": 2.5017,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 138.2888559906832,
           "rate_vs_svt_pct": -9.32
@@ -4624,8 +4624,8 @@
         {
           "term_start": "2019-02-09",
           "sim_churn_probability": 0.5392,
-          "company_churn_estimate": 0.3251,
-          "churn_estimate_error_pct": -0.3971,
+          "company_churn_estimate": 0.2913,
+          "churn_estimate_error_pct": -0.4598,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 144.3780965733121,
           "rate_vs_svt_pct": -12.6
@@ -4820,8 +4820,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2257,
-          "company_churn_estimate": 0.1381,
-          "churn_estimate_error_pct": -0.3881,
+          "company_churn_estimate": 0.1165,
+          "churn_estimate_error_pct": -0.4838,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 118.38413858851253
@@ -4831,8 +4831,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1783,
-          "company_churn_estimate": 0.4019,
-          "churn_estimate_error_pct": 1.2541,
+          "company_churn_estimate": 0.3595,
+          "churn_estimate_error_pct": 1.0163,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 139.71733247935248
@@ -4842,8 +4842,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.8728,
-          "company_churn_estimate": 0.1321,
-          "churn_estimate_error_pct": -0.8486,
+          "company_churn_estimate": 0.1349,
+          "churn_estimate_error_pct": -0.8454,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 131.4079010112811
@@ -4918,8 +4918,8 @@
         {
           "term_start": "2017-02-11",
           "sim_churn_probability": 0.2257,
-          "company_churn_estimate": 0.1381,
-          "churn_estimate_error_pct": -0.3881,
+          "company_churn_estimate": 0.1165,
+          "churn_estimate_error_pct": -0.4838,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 118.38413858851253,
           "rate_vs_svt_pct": -15.44
@@ -4927,8 +4927,8 @@
         {
           "term_start": "2018-02-11",
           "sim_churn_probability": 0.1783,
-          "company_churn_estimate": 0.4019,
-          "churn_estimate_error_pct": 1.2541,
+          "company_churn_estimate": 0.3595,
+          "churn_estimate_error_pct": 1.0163,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 139.71733247935248,
           "rate_vs_svt_pct": -8.38
@@ -4936,8 +4936,8 @@
         {
           "term_start": "2020-02-11",
           "sim_churn_probability": 0.8728,
-          "company_churn_estimate": 0.1321,
-          "churn_estimate_error_pct": -0.8486,
+          "company_churn_estimate": 0.1349,
+          "churn_estimate_error_pct": -0.8454,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 131.4079010112811,
           "rate_vs_svt_pct": -26.38
@@ -6468,8 +6468,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2428,
-          "company_churn_estimate": 0.2998,
-          "churn_estimate_error_pct": 0.2348,
+          "company_churn_estimate": 0.2491,
+          "churn_estimate_error_pct": 0.0259,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.94844246335828
@@ -6479,8 +6479,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.4749,
-          "company_churn_estimate": 0.5583,
-          "churn_estimate_error_pct": 0.1756,
+          "company_churn_estimate": 0.5666,
+          "churn_estimate_error_pct": 0.1931,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.11068043498196
@@ -6583,8 +6583,8 @@
         {
           "term_start": "2017-03-23",
           "sim_churn_probability": 0.2428,
-          "company_churn_estimate": 0.2998,
-          "churn_estimate_error_pct": 0.2348,
+          "company_churn_estimate": 0.2491,
+          "churn_estimate_error_pct": 0.0259,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.94844246335828,
           "rate_vs_svt_pct": -8.61
@@ -6592,8 +6592,8 @@
         {
           "term_start": "2020-03-22",
           "sim_churn_probability": 0.4749,
-          "company_churn_estimate": 0.5583,
-          "churn_estimate_error_pct": 0.1756,
+          "company_churn_estimate": 0.5666,
+          "churn_estimate_error_pct": 0.1931,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.11068043498196,
           "rate_vs_svt_pct": -28.79
@@ -7978,8 +7978,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.6706,
-          "company_churn_estimate": 0.3885,
-          "churn_estimate_error_pct": -0.4207,
+          "company_churn_estimate": 0.3574,
+          "churn_estimate_error_pct": -0.467,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 137.31950773152136
@@ -8084,8 +8084,8 @@
         {
           "term_start": "2019-04-17",
           "sim_churn_probability": 0.6706,
-          "company_churn_estimate": 0.3885,
-          "churn_estimate_error_pct": -0.4207,
+          "company_churn_estimate": 0.3574,
+          "churn_estimate_error_pct": -0.467,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 137.31950773152136,
           "rate_vs_svt_pct": -26.01
@@ -9089,8 +9089,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1474,
-          "company_churn_estimate": 0.0648,
-          "churn_estimate_error_pct": -0.5604,
+          "company_churn_estimate": 0.0562,
+          "churn_estimate_error_pct": -0.6187,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 135.83020102748415
@@ -9207,8 +9207,8 @@
         {
           "term_start": "2018-01-26",
           "sim_churn_probability": 0.1474,
-          "company_churn_estimate": 0.0648,
-          "churn_estimate_error_pct": -0.5604,
+          "company_churn_estimate": 0.0562,
+          "churn_estimate_error_pct": -0.6187,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 135.83020102748415,
           "rate_vs_svt_pct": -10.93
@@ -9669,8 +9669,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.309,
-          "company_churn_estimate": 0.3089,
-          "churn_estimate_error_pct": -0.0003,
+          "company_churn_estimate": 0.3144,
+          "churn_estimate_error_pct": 0.0175,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 142.52009744720866
@@ -9740,8 +9740,8 @@
         {
           "term_start": "2019-02-05",
           "sim_churn_probability": 0.309,
-          "company_churn_estimate": 0.3089,
-          "churn_estimate_error_pct": -0.0003,
+          "company_churn_estimate": 0.3144,
+          "churn_estimate_error_pct": 0.0175,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 142.52009744720866,
           "rate_vs_svt_pct": -13.73
@@ -10123,8 +10123,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1942,
-          "company_churn_estimate": 0.187,
-          "churn_estimate_error_pct": -0.0371,
+          "company_churn_estimate": 0.1901,
+          "churn_estimate_error_pct": -0.0211,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 153.054181165102
@@ -10374,8 +10374,8 @@
         {
           "term_start": "2021-02-10",
           "sim_churn_probability": 0.1942,
-          "company_churn_estimate": 0.187,
-          "churn_estimate_error_pct": -0.0371,
+          "company_churn_estimate": 0.1901,
+          "churn_estimate_error_pct": -0.0211,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 153.054181165102,
           "rate_vs_svt_pct": -10.96
@@ -11328,8 +11328,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1021,
-          "company_churn_estimate": 0.1557,
-          "churn_estimate_error_pct": 0.525,
+          "company_churn_estimate": 0.1339,
+          "churn_estimate_error_pct": 0.3115,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.80442934726133
@@ -11446,8 +11446,8 @@
         {
           "term_start": "2018-04-07",
           "sim_churn_probability": 0.1021,
-          "company_churn_estimate": 0.1557,
-          "churn_estimate_error_pct": 0.525,
+          "company_churn_estimate": 0.1339,
+          "churn_estimate_error_pct": 0.3115,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.80442934726133,
           "rate_vs_svt_pct": -16.19
@@ -11951,8 +11951,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.6267,
-          "company_churn_estimate": 0.2214,
-          "churn_estimate_error_pct": -0.6467,
+          "company_churn_estimate": 0.1831,
+          "churn_estimate_error_pct": -0.7078,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 121.30790521350207
@@ -12188,8 +12188,8 @@
         {
           "term_start": "2019-06-13",
           "sim_churn_probability": 0.6267,
-          "company_churn_estimate": 0.2214,
-          "churn_estimate_error_pct": -0.6467,
+          "company_churn_estimate": 0.1831,
+          "churn_estimate_error_pct": -0.7078,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 121.30790521350207,
           "rate_vs_svt_pct": -34.64
@@ -12837,8 +12837,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.2531,
-          "company_churn_estimate": 0.7337,
-          "churn_estimate_error_pct": 1.8989,
+          "company_churn_estimate": 0.7163,
+          "churn_estimate_error_pct": 1.8301,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 144.4040232370766
@@ -12864,8 +12864,8 @@
         {
           "term_start": "2019-01-02",
           "sim_churn_probability": 0.2531,
-          "company_churn_estimate": 0.7337,
-          "churn_estimate_error_pct": 1.8989,
+          "company_churn_estimate": 0.7163,
+          "churn_estimate_error_pct": 1.8301,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 144.4040232370766,
           "rate_vs_svt_pct": -12.59
@@ -17064,8 +17064,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4551,
-          "company_churn_estimate": 0.2063,
-          "churn_estimate_error_pct": -0.5467,
+          "company_churn_estimate": 0.2104,
+          "churn_estimate_error_pct": -0.5377,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 123.12815337463739
@@ -17075,8 +17075,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4172,
-          "company_churn_estimate": 0.7606,
-          "churn_estimate_error_pct": 0.8231,
+          "company_churn_estimate": 0.767,
+          "churn_estimate_error_pct": 0.8384,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 202.7637954958424
@@ -17256,8 +17256,8 @@
         {
           "term_start": "2020-05-07",
           "sim_churn_probability": 0.4551,
-          "company_churn_estimate": 0.2063,
-          "churn_estimate_error_pct": -0.5467,
+          "company_churn_estimate": 0.2104,
+          "churn_estimate_error_pct": -0.5377,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 123.12815337463739,
           "rate_vs_svt_pct": -30.87
@@ -17265,8 +17265,8 @@
         {
           "term_start": "2024-05-06",
           "sim_churn_probability": 0.4172,
-          "company_churn_estimate": 0.7606,
-          "churn_estimate_error_pct": 0.8231,
+          "company_churn_estimate": 0.767,
+          "churn_estimate_error_pct": 0.8384,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 202.7637954958424,
           "rate_vs_svt_pct": -17.24
@@ -19239,8 +19239,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2721,
-          "company_churn_estimate": 0.1126,
-          "churn_estimate_error_pct": -0.5862,
+          "company_churn_estimate": 0.1146,
+          "churn_estimate_error_pct": -0.5788,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 149.6945622043133
@@ -19420,8 +19420,8 @@
         {
           "term_start": "2021-01-28",
           "sim_churn_probability": 0.2721,
-          "company_churn_estimate": 0.1126,
-          "churn_estimate_error_pct": -0.5862,
+          "company_churn_estimate": 0.1146,
+          "churn_estimate_error_pct": -0.5788,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 149.6945622043133,
           "rate_vs_svt_pct": -12.92
@@ -21729,8 +21729,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.5363,
-          "company_churn_estimate": 0.3763,
-          "churn_estimate_error_pct": -0.2983,
+          "company_churn_estimate": 0.3818,
+          "churn_estimate_error_pct": -0.2881,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 169.91304693186993
@@ -21791,8 +21791,8 @@
         {
           "term_start": "2021-07-10",
           "sim_churn_probability": 0.5363,
-          "company_churn_estimate": 0.3763,
-          "churn_estimate_error_pct": -0.2983,
+          "company_churn_estimate": 0.3818,
+          "churn_estimate_error_pct": -0.2881,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 169.91304693186993,
           "rate_vs_svt_pct": -10.34
@@ -22874,8 +22874,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.2782,
-          "company_churn_estimate": 0.0636,
-          "churn_estimate_error_pct": -0.7714,
+          "company_churn_estimate": 0.0516,
+          "churn_estimate_error_pct": -0.8145,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 111.84294741928638
@@ -22901,8 +22901,8 @@
         {
           "term_start": "2020-08-25",
           "sim_churn_probability": 0.2782,
-          "company_churn_estimate": 0.0636,
-          "churn_estimate_error_pct": -0.7714,
+          "company_churn_estimate": 0.0516,
+          "churn_estimate_error_pct": -0.8145,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 111.84294741928638,
           "rate_vs_svt_pct": -37.2
@@ -24795,8 +24795,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.7198,
-          "company_churn_estimate": 0.8474,
-          "churn_estimate_error_pct": 0.1773,
+          "company_churn_estimate": 0.8333,
+          "churn_estimate_error_pct": 0.1577,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 208.0
@@ -24857,8 +24857,8 @@
         {
           "term_start": "2021-10-17",
           "sim_churn_probability": 0.7198,
-          "company_churn_estimate": 0.8474,
-          "churn_estimate_error_pct": 0.1773,
+          "company_churn_estimate": 0.8333,
+          "churn_estimate_error_pct": 0.1577,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 208.0,
           "rate_vs_svt_pct": 0.0
@@ -26493,8 +26493,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1858,
-          "company_churn_estimate": 0.1769,
-          "churn_estimate_error_pct": -0.0479,
+          "company_churn_estimate": 0.1799,
+          "churn_estimate_error_pct": -0.0318,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 146.78011168734878
@@ -26555,8 +26555,8 @@
         {
           "term_start": "2021-01-23",
           "sim_churn_probability": 0.1858,
-          "company_churn_estimate": 0.1769,
-          "churn_estimate_error_pct": -0.0479,
+          "company_churn_estimate": 0.1799,
+          "churn_estimate_error_pct": -0.0318,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 146.78011168734878,
           "rate_vs_svt_pct": -14.61
@@ -28553,8 +28553,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3902,
-          "company_churn_estimate": 0.5812,
-          "churn_estimate_error_pct": 0.4895,
+          "company_churn_estimate": 0.5876,
+          "churn_estimate_error_pct": 0.5059,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 178.40018050932224
@@ -28685,8 +28685,8 @@
         {
           "term_start": "2024-06-22",
           "sim_churn_probability": 0.3902,
-          "company_churn_estimate": 0.5812,
-          "churn_estimate_error_pct": 0.4895,
+          "company_churn_estimate": 0.5876,
+          "churn_estimate_error_pct": 0.5059,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 178.40018050932224,
           "rate_vs_svt_pct": -27.18
@@ -29170,8 +29170,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.208,
-          "company_churn_estimate": 0.5846,
-          "churn_estimate_error_pct": 1.8106,
+          "company_churn_estimate": 0.5598,
+          "churn_estimate_error_pct": 1.6913,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 169.39089444971347
@@ -29197,8 +29197,8 @@
         {
           "term_start": "2021-07-05",
           "sim_churn_probability": 0.208,
-          "company_churn_estimate": 0.5846,
-          "churn_estimate_error_pct": 1.8106,
+          "company_churn_estimate": 0.5598,
+          "churn_estimate_error_pct": 1.6913,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 169.39089444971347,
           "rate_vs_svt_pct": -10.61
@@ -29519,8 +29519,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1199,
-          "company_churn_estimate": 0.1044,
-          "churn_estimate_error_pct": -0.1293,
+          "company_churn_estimate": 0.1062,
+          "churn_estimate_error_pct": -0.1143,
           "retention_offered": false,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 205.92856459015803
@@ -29630,8 +29630,8 @@
         {
           "term_start": "2023-09-30",
           "sim_churn_probability": 0.1199,
-          "company_churn_estimate": 0.1044,
-          "churn_estimate_error_pct": -0.1293,
+          "company_churn_estimate": 0.1062,
+          "churn_estimate_error_pct": -0.1143,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 205.92856459015803,
           "rate_vs_svt_pct": -31.61
@@ -30089,8 +30089,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4299,
-          "company_churn_estimate": 0.9261,
-          "churn_estimate_error_pct": 1.1542,
+          "company_churn_estimate": 0.9296,
+          "churn_estimate_error_pct": 1.1624,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 245.0152539733763
@@ -30221,8 +30221,8 @@
         {
           "term_start": "2025-02-11",
           "sim_churn_probability": 0.4299,
-          "company_churn_estimate": 0.9261,
-          "churn_estimate_error_pct": 1.1542,
+          "company_churn_estimate": 0.9296,
+          "churn_estimate_error_pct": 1.1624,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 245.0152539733763,
           "rate_vs_svt_pct": -1.44
@@ -30709,8 +30709,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3995,
-          "company_churn_estimate": 0.5559,
-          "churn_estimate_error_pct": 0.3915,
+          "company_churn_estimate": 0.5359,
+          "churn_estimate_error_pct": 0.3414,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 203.7255428950616
@@ -30720,8 +30720,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.5384,
-          "company_churn_estimate": 0.2609,
-          "churn_estimate_error_pct": -0.5154,
+          "company_churn_estimate": 0.2331,
+          "churn_estimate_error_pct": -0.5671,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 227.79753902453749
@@ -30824,8 +30824,8 @@
         {
           "term_start": "2024-05-10",
           "sim_churn_probability": 0.3995,
-          "company_churn_estimate": 0.5559,
-          "churn_estimate_error_pct": 0.3915,
+          "company_churn_estimate": 0.5359,
+          "churn_estimate_error_pct": 0.3414,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 203.7255428950616,
           "rate_vs_svt_pct": -16.85
@@ -30833,8 +30833,8 @@
         {
           "term_start": "2025-05-10",
           "sim_churn_probability": 0.5384,
-          "company_churn_estimate": 0.2609,
-          "churn_estimate_error_pct": -0.5154,
+          "company_churn_estimate": 0.2331,
+          "churn_estimate_error_pct": -0.5671,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 227.79753902453749,
           "rate_vs_svt_pct": -15.72
@@ -31310,8 +31310,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4376,
-          "company_churn_estimate": 0.2574,
-          "churn_estimate_error_pct": -0.4118,
+          "company_churn_estimate": 0.2295,
+          "churn_estimate_error_pct": -0.4755,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 205.09306482657317
@@ -31451,8 +31451,8 @@
         {
           "term_start": "2025-05-31",
           "sim_churn_probability": 0.4376,
-          "company_churn_estimate": 0.2574,
-          "churn_estimate_error_pct": -0.4118,
+          "company_churn_estimate": 0.2295,
+          "churn_estimate_error_pct": -0.4755,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 205.09306482657317,
           "rate_vs_svt_pct": -24.12
@@ -35817,8 +35817,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4477,
-          "company_churn_estimate": 0.5359,
-          "churn_estimate_error_pct": 0.197,
+          "company_churn_estimate": 0.5422,
+          "churn_estimate_error_pct": 0.2111,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 223.8025443459108
@@ -35914,8 +35914,8 @@
         {
           "term_start": "2024-12-16",
           "sim_churn_probability": 0.4477,
-          "company_churn_estimate": 0.5359,
-          "churn_estimate_error_pct": 0.197,
+          "company_churn_estimate": 0.5422,
+          "churn_estimate_error_pct": 0.2111,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 223.8025443459108,
           "rate_vs_svt_pct": -8.65
@@ -36368,8 +36368,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3524,
-          "company_churn_estimate": 0.0809,
-          "churn_estimate_error_pct": -0.7704,
+          "company_churn_estimate": 0.0822,
+          "churn_estimate_error_pct": -0.7667,
           "retention_offered": false,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 235.91727685621763
@@ -36474,8 +36474,8 @@
         {
           "term_start": "2025-01-10",
           "sim_churn_probability": 0.3524,
-          "company_churn_estimate": 0.0809,
-          "churn_estimate_error_pct": -0.7704,
+          "company_churn_estimate": 0.0822,
+          "churn_estimate_error_pct": -0.7667,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 235.91727685621763,
           "rate_vs_svt_pct": -5.1
@@ -40141,8 +40141,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1703,
-          "company_churn_estimate": 0.2389,
-          "churn_estimate_error_pct": 0.4028,
+          "company_churn_estimate": 0.2107,
+          "churn_estimate_error_pct": 0.2372,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 203.67095116543368
@@ -40168,8 +40168,8 @@
         {
           "term_start": "2024-08-25",
           "sim_churn_probability": 0.1703,
-          "company_churn_estimate": 0.2389,
-          "churn_estimate_error_pct": 0.4028,
+          "company_churn_estimate": 0.2107,
+          "churn_estimate_error_pct": 0.2372,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 203.67095116543368,
           "rate_vs_svt_pct": -8.91
@@ -40654,8 +40654,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1819,
-          "company_churn_estimate": 0.2186,
-          "churn_estimate_error_pct": 0.2018,
+          "company_churn_estimate": 0.2648,
+          "churn_estimate_error_pct": 0.4557,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 235.2538058984153
@@ -40681,8 +40681,8 @@
         {
           "term_start": "2025-01-08",
           "sim_churn_probability": 0.1819,
-          "company_churn_estimate": 0.2186,
-          "churn_estimate_error_pct": 0.2018,
+          "company_churn_estimate": 0.2648,
+          "churn_estimate_error_pct": 0.4557,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 235.2538058984153,
           "rate_vs_svt_pct": -5.37
@@ -45670,8 +45670,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1279,
-          "company_churn_estimate": 0.3451,
-          "churn_estimate_error_pct": 1.6982,
+          "company_churn_estimate": 0.3465,
+          "churn_estimate_error_pct": 1.7091,
           "retention_offered": true,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 115.83089879679636
@@ -45681,8 +45681,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2913,
-          "company_churn_estimate": 0.3428,
-          "churn_estimate_error_pct": 0.1768,
+          "company_churn_estimate": 0.3487,
+          "churn_estimate_error_pct": 0.197,
           "retention_offered": true,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 139.24425853942776
@@ -45692,8 +45692,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.6794,
-          "company_churn_estimate": 0.427,
-          "churn_estimate_error_pct": -0.3715,
+          "company_churn_estimate": 0.4343,
+          "churn_estimate_error_pct": -0.3608,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 129.87779524565255
@@ -45777,8 +45777,8 @@
         {
           "term_start": "2018-01-01",
           "sim_churn_probability": 0.1279,
-          "company_churn_estimate": 0.3451,
-          "churn_estimate_error_pct": 1.6982,
+          "company_churn_estimate": 0.3465,
+          "churn_estimate_error_pct": 1.7091,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 115.83089879679636,
           "rate_vs_svt_pct": -24.05
@@ -45786,8 +45786,8 @@
         {
           "term_start": "2019-01-01",
           "sim_churn_probability": 0.2913,
-          "company_churn_estimate": 0.3428,
-          "churn_estimate_error_pct": 0.1768,
+          "company_churn_estimate": 0.3487,
+          "churn_estimate_error_pct": 0.197,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 139.24425853942776,
           "rate_vs_svt_pct": -15.71
@@ -45795,8 +45795,8 @@
         {
           "term_start": "2020-12-31",
           "sim_churn_probability": 0.6794,
-          "company_churn_estimate": 0.427,
-          "churn_estimate_error_pct": -0.3715,
+          "company_churn_estimate": 0.4343,
+          "churn_estimate_error_pct": -0.3608,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 129.87779524565255,
           "rate_vs_svt_pct": -24.45
@@ -46483,8 +46483,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1594,
-          "company_churn_estimate": 0.4176,
-          "churn_estimate_error_pct": 1.6198,
+          "company_churn_estimate": 0.4757,
+          "churn_estimate_error_pct": 1.9843,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 129.9878692092687
@@ -46769,8 +46769,8 @@
         {
           "term_start": "2018-01-16",
           "sim_churn_probability": 0.1594,
-          "company_churn_estimate": 0.4176,
-          "churn_estimate_error_pct": 1.6198,
+          "company_churn_estimate": 0.4757,
+          "churn_estimate_error_pct": 1.9843,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 129.9878692092687,
           "rate_vs_svt_pct": -14.76
@@ -48134,8 +48134,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.1919,
-          "company_churn_estimate": 0.1615,
-          "churn_estimate_error_pct": -0.1584,
+          "company_churn_estimate": 0.1399,
+          "churn_estimate_error_pct": -0.271,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 118.45391864698894
@@ -48161,8 +48161,8 @@
         {
           "term_start": "2017-02-04",
           "sim_churn_probability": 0.1919,
-          "company_churn_estimate": 0.1615,
-          "churn_estimate_error_pct": -0.1584,
+          "company_churn_estimate": 0.1399,
+          "churn_estimate_error_pct": -0.271,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 118.45391864698894,
           "rate_vs_svt_pct": -15.39
@@ -49061,7 +49061,7 @@
       "tenure": "private_renter",
       "occupancy": "five_plus_person",
       "home_type": null,
-      "smart_meter": false,
+      "smart_meter": null,
       "dual_fuel": false,
       "acquisition_date": "2016-02-20",
       "lifetime_revenue_gbp": 5648.61,
@@ -49641,8 +49641,8 @@
           "commodity": "gas",
           "event_type": "renewed",
           "sim_churn_probability": 0.1396,
-          "company_churn_estimate": 0.2061,
-          "churn_estimate_error_pct": 0.4764,
+          "company_churn_estimate": 0.2225,
+          "churn_estimate_error_pct": 0.5938,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 29.865523239344366
@@ -49652,8 +49652,8 @@
           "commodity": "gas",
           "event_type": "churned",
           "sim_churn_probability": 0.5082,
-          "company_churn_estimate": 0.1944,
-          "churn_estimate_error_pct": -0.6175,
+          "company_churn_estimate": 0.2127,
+          "churn_estimate_error_pct": -0.5815,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 33.6479091077407
@@ -49721,8 +49721,8 @@
         {
           "term_start": "2017-02-24",
           "sim_churn_probability": 0.1396,
-          "company_churn_estimate": 0.2061,
-          "churn_estimate_error_pct": 0.4764,
+          "company_churn_estimate": 0.2225,
+          "churn_estimate_error_pct": 0.5938,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 29.865523239344366,
           "rate_vs_svt_pct": -78.67
@@ -49730,8 +49730,8 @@
         {
           "term_start": "2019-02-24",
           "sim_churn_probability": 0.5082,
-          "company_churn_estimate": 0.1944,
-          "churn_estimate_error_pct": -0.6175,
+          "company_churn_estimate": 0.2127,
+          "churn_estimate_error_pct": -0.5815,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 33.6479091077407,
           "rate_vs_svt_pct": -79.63
@@ -50234,8 +50234,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3649,
-          "company_churn_estimate": 0.5002,
-          "churn_estimate_error_pct": 0.3708,
+          "company_churn_estimate": 0.5021,
+          "churn_estimate_error_pct": 0.376,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 138.4407144345271
@@ -50310,8 +50310,8 @@
         {
           "term_start": "2018-02-27",
           "sim_churn_probability": 0.3649,
-          "company_churn_estimate": 0.5002,
-          "churn_estimate_error_pct": 0.3708,
+          "company_churn_estimate": 0.5021,
+          "churn_estimate_error_pct": 0.376,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 138.4407144345271,
           "rate_vs_svt_pct": -9.22
@@ -51556,8 +51556,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.1977,
-          "company_churn_estimate": 0.2041,
-          "churn_estimate_error_pct": 0.0324,
+          "company_churn_estimate": 0.1824,
+          "churn_estimate_error_pct": -0.0774,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.29080189931977
@@ -51583,8 +51583,8 @@
         {
           "term_start": "2017-03-08",
           "sim_churn_probability": 0.1977,
-          "company_churn_estimate": 0.2041,
-          "churn_estimate_error_pct": 0.0324,
+          "company_churn_estimate": 0.1824,
+          "churn_estimate_error_pct": -0.0774,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.29080189931977,
           "rate_vs_svt_pct": -9.08
@@ -51759,8 +51759,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.3276,
-          "company_churn_estimate": 0.1717,
-          "churn_estimate_error_pct": -0.4759,
+          "company_churn_estimate": 0.1751,
+          "churn_estimate_error_pct": -0.4655,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 139.42036491260043
@@ -51865,8 +51865,8 @@
         {
           "term_start": "2019-03-11",
           "sim_churn_probability": 0.3276,
-          "company_churn_estimate": 0.1717,
-          "churn_estimate_error_pct": -0.4759,
+          "company_churn_estimate": 0.1751,
+          "churn_estimate_error_pct": -0.4655,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 139.42036491260043,
           "rate_vs_svt_pct": -15.61
@@ -53134,8 +53134,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.2224,
-          "company_churn_estimate": 0.1918,
-          "churn_estimate_error_pct": -0.1376,
+          "company_churn_estimate": 0.1697,
+          "churn_estimate_error_pct": -0.237,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 128.12304848773604
@@ -53161,8 +53161,8 @@
         {
           "term_start": "2017-03-18",
           "sim_churn_probability": 0.2224,
-          "company_churn_estimate": 0.1918,
-          "churn_estimate_error_pct": -0.1376,
+          "company_churn_estimate": 0.1697,
+          "churn_estimate_error_pct": -0.237,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 128.12304848773604,
           "rate_vs_svt_pct": -8.48
@@ -54308,8 +54308,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.2093,
-          "company_churn_estimate": 0.1251,
-          "churn_estimate_error_pct": -0.4023,
+          "company_churn_estimate": 0.1257,
+          "churn_estimate_error_pct": -0.3994,
           "retention_offered": false,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 125.47580234176269
@@ -54379,8 +54379,8 @@
         {
           "term_start": "2018-03-30",
           "sim_churn_probability": 0.2093,
-          "company_churn_estimate": 0.1251,
-          "churn_estimate_error_pct": -0.4023,
+          "company_churn_estimate": 0.1257,
+          "churn_estimate_error_pct": -0.3994,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 125.47580234176269,
           "rate_vs_svt_pct": -17.72
@@ -54567,8 +54567,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3787,
-          "company_churn_estimate": 0.5415,
-          "churn_estimate_error_pct": 0.4299,
+          "company_churn_estimate": 0.5053,
+          "churn_estimate_error_pct": 0.3343,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.24242512223786
@@ -54643,8 +54643,8 @@
         {
           "term_start": "2018-04-08",
           "sim_churn_probability": 0.3787,
-          "company_churn_estimate": 0.5415,
-          "churn_estimate_error_pct": 0.4299,
+          "company_churn_estimate": 0.5053,
+          "churn_estimate_error_pct": 0.3343,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 127.24242512223786,
           "rate_vs_svt_pct": -16.56
@@ -55044,8 +55044,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.594,
-          "company_churn_estimate": 0.1617,
-          "churn_estimate_error_pct": -0.7278,
+          "company_churn_estimate": 0.1649,
+          "churn_estimate_error_pct": -0.7224,
           "retention_offered": false,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 137.94984542934247
@@ -55122,8 +55122,8 @@
         {
           "term_start": "2019-04-14",
           "sim_churn_probability": 0.594,
-          "company_churn_estimate": 0.1617,
-          "churn_estimate_error_pct": -0.7278,
+          "company_churn_estimate": 0.1649,
+          "churn_estimate_error_pct": -0.7224,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 137.94984542934247,
           "rate_vs_svt_pct": -25.67
@@ -55575,8 +55575,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4005,
-          "company_churn_estimate": 0.2753,
-          "churn_estimate_error_pct": -0.3126,
+          "company_churn_estimate": 0.2762,
+          "churn_estimate_error_pct": -0.3104,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 153.3383064183877
@@ -55679,8 +55679,8 @@
         {
           "term_start": "2018-04-26",
           "sim_churn_probability": 0.4005,
-          "company_churn_estimate": 0.2753,
-          "churn_estimate_error_pct": -0.3126,
+          "company_churn_estimate": 0.2762,
+          "churn_estimate_error_pct": -0.3104,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 153.3383064183877,
           "rate_vs_svt_pct": 0.55
@@ -56406,8 +56406,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.4925,
-          "company_churn_estimate": 0.1717,
-          "churn_estimate_error_pct": -0.6514,
+          "company_churn_estimate": 0.1751,
+          "churn_estimate_error_pct": -0.6445,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 134.21942486197133
@@ -56512,8 +56512,8 @@
         {
           "term_start": "2019-05-03",
           "sim_churn_probability": 0.4925,
-          "company_churn_estimate": 0.1717,
-          "churn_estimate_error_pct": -0.6514,
+          "company_churn_estimate": 0.1751,
+          "churn_estimate_error_pct": -0.6445,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 134.21942486197133,
           "rate_vs_svt_pct": -27.68
@@ -56944,8 +56944,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.4381,
-          "company_churn_estimate": 0.5078,
-          "churn_estimate_error_pct": 0.1591,
+          "company_churn_estimate": 0.4701,
+          "churn_estimate_error_pct": 0.073,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 147.421
@@ -57006,8 +57006,8 @@
         {
           "term_start": "2018-05-07",
           "sim_churn_probability": 0.4381,
-          "company_churn_estimate": 0.5078,
-          "churn_estimate_error_pct": 0.1591,
+          "company_churn_estimate": 0.4701,
+          "churn_estimate_error_pct": 0.073,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 147.421,
           "rate_vs_svt_pct": -3.33
@@ -57132,7 +57132,7 @@
       "tenure": "owner_occupier",
       "occupancy": "three_to_four_person",
       "home_type": null,
-      "smart_meter": false,
+      "smart_meter": null,
       "dual_fuel": false,
       "acquisition_date": "2016-05-08",
       "lifetime_revenue_gbp": 5423.28,
@@ -58783,8 +58783,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.4089,
-          "company_churn_estimate": 0.4395,
-          "churn_estimate_error_pct": 0.0748,
+          "company_churn_estimate": 0.3987,
+          "churn_estimate_error_pct": -0.0249,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 128.54887651352504
@@ -58845,8 +58845,8 @@
         {
           "term_start": "2018-05-30",
           "sim_churn_probability": 0.4089,
-          "company_churn_estimate": 0.4395,
-          "churn_estimate_error_pct": 0.0748,
+          "company_churn_estimate": 0.3987,
+          "churn_estimate_error_pct": -0.0249,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 128.54887651352504,
           "rate_vs_svt_pct": -15.71
@@ -60588,8 +60588,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.3178,
-          "company_churn_estimate": 0.9813,
-          "churn_estimate_error_pct": 2.0878,
+          "company_churn_estimate": 0.9843,
+          "churn_estimate_error_pct": 2.0972,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 175.62401087401372
@@ -60860,8 +60860,8 @@
         {
           "term_start": "2024-06-18",
           "sim_churn_probability": 0.3178,
-          "company_churn_estimate": 0.9813,
-          "churn_estimate_error_pct": 2.0878,
+          "company_churn_estimate": 0.9843,
+          "churn_estimate_error_pct": 2.0972,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 175.62401087401372,
           "rate_vs_svt_pct": -28.32
@@ -61611,8 +61611,8 @@
           "commodity": "gas",
           "event_type": "renewed",
           "sim_churn_probability": 0.6135,
-          "company_churn_estimate": 0.2943,
-          "churn_estimate_error_pct": -0.5203,
+          "company_churn_estimate": 0.2592,
+          "churn_estimate_error_pct": -0.5775,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 22.79726890398589
@@ -61622,8 +61622,8 @@
           "commodity": "gas",
           "event_type": "churned",
           "sim_churn_probability": 0.6472,
-          "company_churn_estimate": 0.8694,
-          "churn_estimate_error_pct": 0.3433,
+          "company_churn_estimate": 0.8563,
+          "churn_estimate_error_pct": 0.3231,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 32.00118592758977
@@ -61761,8 +61761,8 @@
         {
           "term_start": "2019-06-22",
           "sim_churn_probability": 0.6135,
-          "company_churn_estimate": 0.2943,
-          "churn_estimate_error_pct": -0.5203,
+          "company_churn_estimate": 0.2592,
+          "churn_estimate_error_pct": -0.5775,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 22.79726890398589,
           "rate_vs_svt_pct": -87.72
@@ -61770,8 +61770,8 @@
         {
           "term_start": "2021-06-21",
           "sim_churn_probability": 0.6472,
-          "company_churn_estimate": 0.8694,
-          "churn_estimate_error_pct": 0.3433,
+          "company_churn_estimate": 0.8563,
+          "churn_estimate_error_pct": 0.3231,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 32.00118592758977,
           "rate_vs_svt_pct": -83.11
@@ -63235,8 +63235,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.4514,
-          "company_churn_estimate": 0.1938,
-          "churn_estimate_error_pct": -0.5707,
+          "company_churn_estimate": 0.1977,
+          "churn_estimate_error_pct": -0.562,
           "retention_offered": false,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 112.8232935613386
@@ -63464,8 +63464,8 @@
         {
           "term_start": "2020-08-03",
           "sim_churn_probability": 0.4514,
-          "company_churn_estimate": 0.1938,
-          "churn_estimate_error_pct": -0.5707,
+          "company_churn_estimate": 0.1977,
+          "churn_estimate_error_pct": -0.562,
           "is_active_renewal": false,
           "unit_rate_gbp_per_mwh": 112.8232935613386,
           "rate_vs_svt_pct": -36.65
@@ -63671,7 +63671,7 @@
       "tenure": "owner_occupier",
       "occupancy": "three_to_four_person",
       "home_type": null,
-      "smart_meter": false,
+      "smart_meter": null,
       "dual_fuel": false,
       "acquisition_date": "2016-08-15",
       "lifetime_revenue_gbp": 1798.41,
@@ -63743,8 +63743,8 @@
           "commodity": "gas",
           "event_type": "renewed",
           "sim_churn_probability": 0.2788,
-          "company_churn_estimate": 0.2063,
-          "churn_estimate_error_pct": -0.26,
+          "company_churn_estimate": 0.2104,
+          "churn_estimate_error_pct": -0.2453,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 14.39743929812191
@@ -63874,8 +63874,8 @@
         {
           "term_start": "2020-08-14",
           "sim_churn_probability": 0.2788,
-          "company_churn_estimate": 0.2063,
-          "churn_estimate_error_pct": -0.26,
+          "company_churn_estimate": 0.2104,
+          "churn_estimate_error_pct": -0.2453,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 14.39743929812191,
           "rate_vs_svt_pct": -91.92
@@ -64113,8 +64113,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.3171,
-          "company_churn_estimate": 0.6357,
-          "churn_estimate_error_pct": 1.0047,
+          "company_churn_estimate": 0.6122,
+          "churn_estimate_error_pct": 0.9306,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 179.45942521306088
@@ -64280,8 +64280,8 @@
         {
           "term_start": "2021-08-15",
           "sim_churn_probability": 0.3171,
-          "company_churn_estimate": 0.6357,
-          "churn_estimate_error_pct": 1.0047,
+          "company_churn_estimate": 0.6122,
+          "churn_estimate_error_pct": 0.9306,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 179.45942521306088,
           "rate_vs_svt_pct": -5.3
@@ -64862,8 +64862,8 @@
           "commodity": "electricity",
           "event_type": "churned",
           "sim_churn_probability": 0.3837,
-          "company_churn_estimate": 0.4395,
-          "churn_estimate_error_pct": 0.1454,
+          "company_churn_estimate": 0.3988,
+          "churn_estimate_error_pct": 0.0394,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 138.41504531748072
@@ -64924,8 +64924,8 @@
         {
           "term_start": "2018-08-24",
           "sim_churn_probability": 0.3837,
-          "company_churn_estimate": 0.4395,
-          "churn_estimate_error_pct": 0.1454,
+          "company_churn_estimate": 0.3988,
+          "churn_estimate_error_pct": 0.0394,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 138.41504531748072,
           "rate_vs_svt_pct": -9.24
@@ -65671,8 +65671,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1655,
-          "company_churn_estimate": 0.0338,
-          "churn_estimate_error_pct": -0.7958,
+          "company_churn_estimate": 0.0289,
+          "churn_estimate_error_pct": -0.8254,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 104.45070584836068
@@ -65936,8 +65936,8 @@
         {
           "term_start": "2017-08-31",
           "sim_churn_probability": 0.1655,
-          "company_churn_estimate": 0.0338,
-          "churn_estimate_error_pct": -0.7958,
+          "company_churn_estimate": 0.0289,
+          "churn_estimate_error_pct": -0.8254,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 104.45070584836068,
           "rate_vs_svt_pct": -25.39

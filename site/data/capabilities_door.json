@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-09-25T09:08:20Z",
- "git_commit": "b20bab542a17468425ea730658aa0acfef48c845",
+ "generated_at": "2026-09-25T13:59:24Z",
+ "git_commit": "070636e939c16d3c4e008b2cfb8282998b380eea",
  "published_from": {
-  "commit": "b20bab542a17468425ea730658aa0acfef48c845",
+  "commit": "070636e939c16d3c4e008b2cfb8282998b380eea",
   "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -1437,21 +1437,21 @@
  "scale": {
   "figures": [
    {
-    "value": 154,
+    "value": 164,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-21T17:47:48Z"
+    "as_of": "2026-09-25T09:08:40Z"
    },
    {
-    "value": 224,
+    "value": 242,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 154,
-  "high": 224,
+  "low": 164,
+  "high": 242,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1464,8 +1464,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 154\u2013224 customers",
-   "what": "Everything on this page is true of a supplier with 154\u2013224 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 154 (accounts in the live customer feed), 224 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 164\u2013242 customers",
+   "what": "Everything on this page is true of a supplier with 164\u2013242 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 164 (accounts in the live customer feed), 242 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {

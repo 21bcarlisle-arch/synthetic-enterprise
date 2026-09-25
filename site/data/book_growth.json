@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T09:08:48Z",
+  "generated_at": "2026-09-25T13:59:57Z",
   "available": true,
   "years": [
     {
@@ -240,7 +240,7 @@
     "clock": "settled"
   },
   "settlement": {
-    "customer_years_committed": 1249.9,
+    "customer_years_committed": 1248.9,
     "customer_year_budget": 1250.0
   },
   "engine_bound_years": [],
@@ -257,7 +257,7 @@
     2025
   ],
   "prospect_ceiling_statement": "In 4 year(s) (2020, 2021, 2024, 2025) the company could afford more quotes than there were prospects to quote. That cap is OURS (net_new_acquisition.PROSPECTS_PER_YEAR = 400, sized when the company could afford tens), not the GB switching market \u2014 those years understate what this supplier would have done.",
-  "settlement_sample_rate": 0.2037,
+  "settlement_sample_rate": 0.2041,
   "settlement_selection": "chosen_weighted",
   "settlement_wins_refused": 409,
   "settlement_funnel_wins": 500,
@@ -276,6 +276,6 @@
     "2023: MARKET-THIN: the company could afford 758 quotes and only 311 homes were in the market, against an engineering ceiling of 400. The binding constraint is the REAL switching rate for this year, not a constant in this file \u2014 this year's book IS a commercial result, and raising the pool would falsify it.",
     "2024: MARKET-BOUND: the company could afford 863 quotes and only 400 homes were in the market. Growth this year is limited by net_new_acquisition.PROSPECTS_PER_YEAR, NOT by the supplier's capital \u2014 raise the pool before reading this year's book as a commercial result.",
     "2025: MARKET-BOUND: the company could afford 795 quotes and only 400 homes were in the market. Growth this year is limited by net_new_acquisition.PROSPECTS_PER_YEAR, NOT by the supplier's capital \u2014 raise the pool before reading this year's book as a commercial result.",
-    "SETTLEMENT-SAMPLED at 0.2037: the company won 500 accounts and this machine settled 91 of them, chosen for DIFFERENCE over the demand axes rather than culled by count, each carrying the mass of commercial wins it stands for. 1250.0 customer-years is THIS MACHINE's budget (basis: `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET`, artefact `docs/observability/settlement_ceiling_probe.json`), not a commercial limit. The book below is a CHOSEN sample and is deliberately not proportional by count: every settled account carries its own `settlement_weight` in the company's own wins, and those weights -- not the rate -- are what read the company rather than the sample. Per year they sum to that year's `funnel_wins`, which is a fitted property on the row to be checked, not an identity."
+    "SETTLEMENT-SAMPLED at 0.2041: the company won 500 accounts and this machine settled 91 of them, chosen for DIFFERENCE over the demand axes rather than culled by count, each carrying the mass of commercial wins it stands for. 1250.0 customer-years is THIS MACHINE's budget (basis: `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET`, artefact `docs/observability/settlement_ceiling_probe.json`), not a commercial limit. The book below is a CHOSEN sample and is deliberately not proportional by count: every settled account carries its own `settlement_weight` in the company's own wins, and those weights -- not the rate -- are what read the company rather than the sample. Per year they sum to that year's `funnel_wins`, which is a fitted property on the row to be checked, not an identity."
   ]
 }
