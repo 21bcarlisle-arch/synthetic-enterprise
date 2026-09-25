@@ -626,18 +626,37 @@ def _known(answers: dict):
     return known
 
 
-def test_all_six_causes_are_reachable_in_one_pass(tmp_path: Path):
+def test_all_seven_causes_are_reachable_in_one_pass(tmp_path: Path):
     """One control over the whole cause partition, and the reason it is one assertion and not
-    six is this file's own opening paragraph: every leg below is a POSITIVE claim about one
+    seven is this file's own opening paragraph: every leg below is a POSITIVE claim about one
     cause, and a classifier that returned the same cause for everything would pass each of them
     read alone. This is the leg that goes red when a cause stops being reachable.
 
-    It is keyed to REACHABILITY, not to today's live map: the fixture states six worlds, and
-    the assertion is that the classifier distinguishes them. Repairing every live row leaves it
-    green, which is what a control over a property rather than over an answer has to do."""
+    It is keyed to REACHABILITY, not to today's live map: the fixture states eight worlds over
+    seven causes, and the assertion is that the classifier distinguishes them. Repairing every
+    live row leaves it green, which is what a control over a property rather than over an answer
+    has to do.
+
+    EIGHT WORLDS FOR SEVEN CAUSES, because `NAMES_ONLY_A_SCOPE` has two doors as of 2026-09-25
+    and a single world would leave one of them unreachable while this stayed green -- which is
+    precisely the shape the file's opening paragraph is about. `SCOPE_ONLY` is a row whose every
+    entry is a directory; `SUBJECT_PLUS_TEST_DIR` is a row that names subject FILES and points
+    its evidence at a directory that holds controls. The second used to come out
+    `CONTROL_NEVER_WRITTEN`.
+
+    AND THE `NO_CONTROL` / `UNNAMED_CONTROL` PAIR IS WHY THE ASSERTION IS ON THE WHOLE MAPPING.
+    Those two worlds differ by one thing -- whether the row NAMES the control it lacks -- and
+    they carried one cause until 2026-09-25. Two shapes collapsing into one state is invisible to
+    a control that only asks "is each cause reachable"; comparing the whole dict is what sees it.
+    """
     (tmp_path / "subject.py").write_text("x = 1\n")
     (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
     (tmp_path / "tests").mkdir()
+    # A directory that HOLDS a control, which is what `_is_a_control_scope` measures. Deliberately
+    # NOT under `tests/`: the live map's `W2_18` and `W2_19` point at `site/knowledge/`, which
+    # holds seven controls, so a predicate keyed to a `tests/` prefix would have missed them.
+    (tmp_path / "suite").mkdir()
+    (tmp_path / "suite" / "test_inside.py").write_text("def test_y():\n    assert True\n")
 
     worlds = {
         "ROTTED": (_atom("ROTTED", scope=["gone/moved.py", "subject.py", "test_here.py"]),
@@ -646,9 +665,18 @@ def test_all_six_causes_are_reachable_in_one_pass(tmp_path: Path):
                                                     "test_here.py"]),
                         {"gone/unknown.py": None}),
         "SCOPE_ONLY": (_atom("SCOPE_ONLY", scope=["tests/"]), {}),
+        "SUBJECT_PLUS_TEST_DIR": (_atom("SUBJECT_PLUS_TEST_DIR",
+                                        scope=["subject.py", "suite"]), {}),
         "UNBUILT": (_atom("UNBUILT", scope=["never/made.py", "tests/test_planned.py"]),
                     {"never/made.py": False, "tests/test_planned.py": False}),
-        "NO_CONTROL": (_atom("NO_CONTROL", scope=["subject.py"]), {}),
+        # NAMES a control, and git has never heard of it: the only shape that earns the claim
+        # "never written", because it is the only one where a control was asked for by name.
+        "NO_CONTROL": (_atom("NO_CONTROL", scope=["subject.py", "tests/test_nobody.py"]),
+                       {"tests/test_nobody.py": False}),
+        # Names NO control. Nothing is absent, nothing was measured, and saying "never written"
+        # here is the PB4/PB6 shape: a build that wrote a control under a name the row never
+        # cited. `suite/` is absent from this row on purpose.
+        "UNNAMED_CONTROL": (_atom("UNNAMED_CONTROL", scope=["subject.py"]), {}),
         # The row that is not the problem: subject and control both on disk, nothing absent.
         # This world used to return `[]` and was the hole in the partition.
         "NOTHING_WRONG": (_atom("NOTHING_WRONG", scope=["subject.py", "test_here.py"]), {}),
@@ -661,10 +689,66 @@ def test_all_six_causes_are_reachable_in_one_pass(tmp_path: Path):
         "ROTTED": [lz.POINTER_ROT],
         "UNDECIDABLE": [lz.CAUSE_UNDECIDABLE],
         "SCOPE_ONLY": [lz.NAMES_ONLY_A_SCOPE],
+        "SUBJECT_PLUS_TEST_DIR": [lz.NAMES_ONLY_A_SCOPE],
         "UNBUILT": [lz.HONESTLY_UNBUILT],
         "NO_CONTROL": [lz.CONTROL_NEVER_WRITTEN],
+        "UNNAMED_CONTROL": [lz.CONTROL_UNNAMED],
         "NOTHING_WRONG": [lz.NOTHING_IN_THE_ROW],
     }, "the cause partition is not fully reachable: {!r}".format(got)
+
+
+def test_a_row_that_names_NO_control_is_not_told_the_control_was_NEVER_WRITTEN(tmp_path: Path):
+    """THE DEFECT: `CONTROL_NEVER_WRITTEN` claims the control "was never written", and until
+    2026-09-25 it was also returned for rows that name no control at all -- where nothing was
+    measured. Fourteen of its sixteen live members were that shape. The printed repair told the
+    reader to write "the named control", and there was none to write.
+
+    WHY THE TWO MUST NOT SHARE A CAUSE, in one sentence: this module's own docstring records
+    `PB4` and `PB6` as rows whose build DID write a control under a name the row does not cite,
+    so "never written" over a row that names nothing is a coin-flip published as a finding.
+
+    MUTATION (must fire): make the `elif not controls` branch append `CONTROL_NEVER_WRITTEN`
+    again. Note what does NOT fire: the reachability test above stays green under that mutation
+    unless its `UNNAMED_CONTROL` world is also present, which is why both exist."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    causes = lz.ungradable_causes(_atom("NAMES_NOTHING", scope=["subject.py"]),
+                                  root=tmp_path, known=_known({}))
+    assert [c["cause"] for c in causes] == [lz.CONTROL_UNNAMED], causes
+    assert lz.CONTROL_NEVER_WRITTEN not in {c["cause"] for c in causes}, (
+        "a row that names no control was told its control was never written: %r" % causes)
+    # The paths must be openable. The placeholder this used to carry --
+    # "(file_scope names no test_*.py)" -- is a path-shaped token in a `paths` field, and the
+    # repair sends the reader to `git log -- <path>` with it.
+    assert causes[0]["paths"] == ["subject.py"], causes
+    assert all((tmp_path / p).exists() for p in causes[0]["paths"]), causes
+
+
+def test_a_control_scope_is_measured_and_not_matched_on_a_tests_prefix(tmp_path: Path):
+    """`_is_a_control_scope` asks the TREE whether controls live in a directory, and the live map
+    is why: `W2_18` and `W2_19` point their evidence at `site/knowledge/`, which holds seven
+    `test_*.py` files and no `tests/` in its path. A prefix literal would have classed both as
+    rows with no control at all and sent them to write one.
+
+    THE OTHER HALF IS THE NEGATIVE, and it is the leg that stops the predicate from returning
+    True for every directory: the subject directories these rows also name -- on the live map
+    `docs/market_research/`, `company/billing/`, `site/data/` -- hold no control and must not be
+    read as evidence of one.
+
+    MUTATION (must fire): `return here.is_dir()`. Or make the positive leg
+    `rel.startswith("tests")`."""
+    (tmp_path / "site" / "knowledge").mkdir(parents=True)
+    (tmp_path / "site" / "knowledge" / "test_door.py").write_text("def test_z():\n    pass\n")
+    (tmp_path / "docs" / "market_research").mkdir(parents=True)
+    (tmp_path / "docs" / "market_research" / "note.md").write_text("# a source\n")
+    (tmp_path / "tests").mkdir()
+
+    assert lz._is_a_control_scope("site/knowledge", tmp_path) is True
+    assert lz._is_a_control_scope("docs/market_research/", tmp_path) is False
+    # Present, named like the suite root, and holding nothing: FALSE, so the row falls to
+    # `CONTROL_UNNAMED`, whose repair says go and look -- rather than being told to name a file
+    # in a directory that has none.
+    assert lz._is_a_control_scope("tests/", tmp_path) is False
+    assert lz._is_a_control_scope("nowhere/at/all", tmp_path) is False
 
 
 def test_a_row_with_a_rotted_pointer_AND_an_unwritten_control_names_BOTH(tmp_path: Path):
@@ -722,7 +806,7 @@ def test_assess_attaches_causes_to_every_ungradable_row(tmp_path: Path):
                               runner=lambda *a, **k: (True, "1 passed"),
                               causes=lambda atom, root: lz.ungradable_causes(
                                   atom, root=root, known=_known({})))
-    assert [c["cause"] for c in ungradable[0]["causes"]] == [lz.CONTROL_NEVER_WRITTEN], (
+    assert [c["cause"] for c in ungradable[0]["causes"]] == [lz.CONTROL_UNNAMED], (
         "the cause did not reach the record the brief and the CLI both read: %r" % ungradable)
 
 

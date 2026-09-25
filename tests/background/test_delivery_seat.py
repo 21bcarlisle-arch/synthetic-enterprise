@@ -905,7 +905,11 @@ def test_EVERY_ungradable_row_reaches_the_brief_by_NAME_and_not_only_as_a_count(
     from tools import level_zero_contradicted_by_its_own_controls as lz
 
     rows = [
-        _ungradable("NAMES_NOTHING", lz.NO_CONTROL_NAMED, lz.CONTROL_NEVER_WRITTEN),
+        # `CONTROL_UNNAMED` since 2026-09-25, and the fixture is changed rather than left because
+        # a world the producer cannot reach is not a world this grouping needs to handle: a row
+        # whose REASON is "names no control" cannot also be told its named control was never
+        # written. The unrecognised-cause row below is what covers a vocabulary this list lacks.
+        _ungradable("NAMES_NOTHING", lz.NO_CONTROL_NAMED, lz.CONTROL_UNNAMED),
         _ungradable("STALE_PATH", lz.NAMED_CONTROL_ABSENT, lz.POINTER_ROT),
         _ungradable("OLDER_THAN_ITS_ROW", lz.CONTROL_PREDATES_ROW, lz.NOTHING_IN_THE_ROW),
         _ungradable("UNDATABLE", lz.PROVENANCE_UNKNOWN, lz.CAUSE_UNDECIDABLE),
