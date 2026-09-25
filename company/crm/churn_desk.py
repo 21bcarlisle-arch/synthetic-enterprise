@@ -20,10 +20,10 @@ renewals, is the company's reading of its own book.
 WHAT CROSSES NOW is one `RenewalObservation` of things the company can see — the
 old and new rate on its own tariff, tenure from its own acquisition record, its
 own EAC estimate, bill shocks it caused, the payment behaviour score it computed,
-the satisfaction score it accumulated, its own hedge fraction, and whether the
-account renewed actively or rolled to SVT (observable after the fact from its own
-books). Which estimator runs, and every constant behind it, is unreachable from
-the SIM.
+the satisfaction score it accumulated, its own hedge fraction, where the account
+stands on its own accounts receivable, and whether the account renewed actively or
+rolled to SVT (observable after the fact from its own books). Which estimator runs,
+and every constant behind it, is unreachable from the SIM.
 
 WHAT THIS DESK DOES NOT DO, and it is the load-bearing half of this step. It does
 NOT roll the dice on whether a customer engages, and it does NOT cap what a
@@ -44,6 +44,7 @@ from typing import Optional
 
 from company.analytics.churn_accuracy_report import compute_churn_model_performance
 from company.crm.churn_model import (
+    ARREARS_STATE_UNKNOWN,
     CRISIS_HANGOVER_WINDOW_PERIODS,
     estimate_churn_probability,
 )
@@ -87,6 +88,15 @@ class RenewalObservation:
     #: the record cannot resolve one -- an I&C account on BACS, say -- and None leaves the estimate
     #: bit-for-bit unchanged rather than assuming the majority channel.
     payment_method: str | None = None
+    #: Where this account stands on the company's OWN accounts receivable, one of
+    #: `churn_model.ARREARS_STATES`. THE COMPANY'S OWN RECORD AND NOT A SEAM FIELD, and unlike
+    #: `payment_method` above there is no approved crossing for it and must not be: a supplier
+    #: knows who owes it money without asking anyone. Read it with
+    #: `churn_model.arrears_state_from_collections` over
+    #: `arrears_engine.collections_snapshot`, or off a consumer that holds the ledger.
+    #: Defaults to `unknown`, which leaves the estimate bit-for-bit unchanged; supplying a known
+    #: state moves the distress claim off the refuted bill-level knee.
+    arrears_state: str = ARREARS_STATE_UNKNOWN
 
 
 def estimate_renewal_churn(observation: RenewalObservation) -> float:
@@ -125,6 +135,14 @@ def _estimate_renewal_churn(observation: RenewalObservation) -> float:
     crisis years, so that is the branch whose absence would be least visible.
     """
     if not observation.active_renewal and observation.segment != "I&C":
+        # `arrears_state` IS NOT FORWARDED HERE, AND THAT IS NOT AN OVERSIGHT. The passive
+        # estimator does not call `estimate_churn_probability` at all, so it carries neither the
+        # refuted bill-level knee nor anything for the arrears term to replace -- adding the
+        # argument would give a passive roller a distress uplift that no term on this branch ever
+        # claimed, which is a new belief wearing a wiring change's clothes. What passive rollers
+        # DO get from payment stress is `combined_churn_probability`, already wired, and whether
+        # the Table 56 association should also apply to an SVT roll is a question for the
+        # evidence and not for this forward.
         return round(
             enriched_passive_churn_estimate(
                 observation.old_rate_gbp_per_mwh,
@@ -151,6 +169,7 @@ def _estimate_renewal_churn(observation: RenewalObservation) -> float:
             segment=observation.segment,
             renewal_year=observation.renewal_year,
             payment_method=observation.payment_method,
+            arrears_state=observation.arrears_state,
         ),
         _ESTIMATE_DP,
     )
