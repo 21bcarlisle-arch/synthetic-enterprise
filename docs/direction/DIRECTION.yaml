@@ -1,208 +1,265 @@
 version: 1
-oriented_at: "2026-09-25T05:24:12.349211+00:00"
+oriented_at: "2026-09-25T23:21:17.968983+00:00"
 thesis_read: >-
-  The model advanced and the EVIDENCE for it went dark, and the second is the reading that
-  matters: the site has served no new figure for 80.7 hours, the publisher has refused 57
-  consecutive attempts, three completed runs are queued, and the entire blocker is one test that
-  reproduces red in 0.09 seconds -- `test_wedge_adapter_fires_past_the_directors_one_hour_bar`,
-  which is the alarm for "the publish gate has been wedged over an hour". The trim-on-read screen
-  that landed 2026-09-24 is a real repair and it made `>= 3 failures inside the last hour`
-  necessary to fire, so a wedge whose retries have slowed reads as over -- which is what every
-  LONG wedge looks like, including this one: the live record carries 57 episode failures and
-  exactly ONE inside the window. The detector is therefore silent on the condition it exists for,
-  and no rung-1 draw has fired in 80 hours. Against the thesis nothing is wrong with the model
-  here; what is wrong is that "it performed well" has had no route to a reader for three and a
-  half days. What did advance is real: `value-arms-error-bar` was drawn and landed (44a8629a4),
-  so the baseline comparison now says what its draw count was WORTH and not only how many draws
-  the seeds bought, and an 18-seed re-run at HEAD is in flight against five predictions filed
-  before its first leg finished. PB4 landed the bill-shock seam in `simulation/` the right way --
-  structure with its amplitude a declared `None` and a shocked household REFUSED rather than
-  handed back the unmodified probability -- which is the first domain commit in two stretches and
-  is knowledge-first rather than a number picked to clear a refusal. Two of last stretch's grades
-  close with evidence. The direction commit `dc87135ca` IS an ancestor of `origin/main`, so a
-  record written by the seat after the `_refuse_if_ungated` repair has now actually passed the
-  door, which is the effect I refused to grade on the code's existence alone. And cause 1 of the
-  fork is repaired: `background.origin_reconcile._split_generated` now classifies the regenerated
-  `WORKER_FINDING_REPEATING_ALARM_*` family as GENERATED, and the behind leg has fallen from 12
-  to 4. The fork itself is not closed -- 3 ahead, 4 behind, `push_never_landed` with origin at
-  `d4244a93f` past our `31112ddf2` -- but only one of the three ahead commits is daemon liveness
-  now, so my "daemon output refills it as fast as any drain empties it" is a third of the cause
-  and the rest is a lost merge-to-push race. What drifted is my own steer: `H41` was named and
-  never drawn because I ranked it third and the window closed after two, and the map now has
-  5,844 bytes of headroom with 3,796 to the per-atom reserve against a median map-touching commit
-  of ~695 bytes -- roughly five level moves from a line that reds `tests/design/` in every lane.
+  The thesis moved this stretch and the machine that carries it went backwards, and the two facts
+  are not independent. On the thesis: the arrears state now reaches both the renewal and the price
+  from the company's own ledger (`ae101f936`, `17a88051c`) and `17a88051c` is an ancestor of
+  origin/main, which closes my worst error of last stretch on exactly the test I set for it -- 236
+  lines of sourced per-customer inference that had been sitting in no commit are now production
+  code, and the distress term a household is priced on is something a real supplier reads off its
+  own books rather than something the sim was asked. `6dcdd0339` made the world press back harder:
+  a drawn founder had been given a gas contract on an electrically heated home and the book settled
+  9.5 MWh a year its physics never burned. That is fidelity as precondition working as designed.
+  The baseline leg -- the half of the thesis that makes "it performed well" mean anything -- did not
+  move, and it did not move for an instrument reason rather than an intellectual one: the 18-seed
+  floor re-run is genuinely in flight (legs 1 to 4 complete in
+  /var/tmp/se-floor18-head-20260925/shards/, leg 5 running since 22:48), but its focus item was
+  named and never drawn, and neither was the sanity-daemon one, so 2 of 5 steers were unreachable
+  in a 12-hour window. Now the machine, and this is the reading that outranks the rest. 30 of 48
+  commits carried nothing at all; 14 of those were the liveness heartbeat and 16 were reconciliation
+  merges that authored nothing of their own. Those two populations are one mechanism: each heartbeat
+  commits the liveness surface locally, which forks this checkout from origin, and the reconciler
+  then pays a full pre-commit gate cycle -- measured at seven to eleven minutes in the live process
+  list -- to close a fork that carried no work, while origin moves again underneath it. The behind
+  leg grew from 5 to 14 across the stretch and the publisher's own recorded cause is `behind_origin`.
+  So the surface that exists to prove the machine is alive is what is holding it shut, and the
+  publisher row I closed last stretch on a clean reading is refusing again fourteen hours later --
+  which is the trap I twice said I had learned to avoid, grading a defect by the state of a named
+  mechanism on a good day. Two corrections landed properly and both deserve their evidence beside
+  them: `e1736649a` made the fleet drift verdict publish its denominator, and it now reads 11 of 11
+  graded with `vacuous: false` where it read 0 out of 1 dressed as 0 out of 11; and the `-` on the
+  twelve `ExecStartPre=` lines, which I carried as owed for five stretches, was REFUTED rather than
+  done -- `f5f740cf6` measured that systemd records the failing exit under ignore-errors, so the
+  strip buys no detection, and the stamper itself now probes `works`. I was wrong for five stretches
+  about a remedy, never once asking whether the thing I wanted stripped was the cause. And the same
+  lesson has already arrived through a third door: that drift verdict is now honest about its
+  denominator and grades all eleven daemons against `boot_sha.current_head()`, the LOCAL HEAD, which
+  is the 14-behind checkout -- so `stale: []` is true, published with its population, and still
+  blind to a whole fleet running code the branch moved past. Fixing a census's denominator does not
+  fix its oracle.
 stretch_reviewed:
-  since: "2026-09-25T02:23:15.352973+00:00"
-  commits: 18
-  substantive: 6
+  since: "2026-09-25T11:20:53.097996+00:00"
+  commits: 48
+  substantive: 11
 focus:
-  - id: publish-gate-wedge-is-the-wedge-alarm-itself
+  - id: the-reconciler-closes-ahead-while-the-behind-leg-grows
     what: >-
-      Repair `supervisor._publish_gate_wedge_active` and its adapter
-      `background.stall_class_register.detect_publish_gate_wedge` so that
-      `tests/background/test_stall_class_register.py::test_wedge_adapter_fires_past_the_directors_one_hour_bar`
-      is green AND the live `docs/observability/.publish_gate_state.json` -- 57 episode failures,
-      `wedge_since` 80.7h old, ONE failure inside the hour -- returns a rung-1 message instead of
-      None. The screen is what is wrong, not the fixture: decide the predicate on whether the gate
-      has PASSED, which is the independence cross-check already in that function, rather than on
-      how recently it last failed. Then let the publisher drain the three queued runs.
+      The checkout is 14 commits behind origin/main and 1 ahead, and that 1 is a liveness heartbeat
+      that carries only `docs/observability/agent_status.json`. Sixteen reconciliation merges ran in
+      the last 12 hours and the behind leg grew from 5 to 14. First MEASURE, in one process: count
+      the full pre-commit gate cycles `background/origin_reconcile.py` and
+      `background/reconcile_watch.py` spent on commits whose tree equalled a parent's, and read
+      `git rev-list --count HEAD..origin/main` before and after each. Then make two changes and land
+      them with `python3 -m tools.surgical_land`: (a) the reconciler's success condition becomes the
+      BEHIND leg reaching zero, never the merge process exiting 0, and it reports failure while
+      behind is non-zero; (b) the liveness heartbeat (grep `chore(liveness)`, written under
+      `background/process_run_complete.py`) does not create a local commit while the checkout is
+      behind origin, because a heartbeat that forks the tree manufactures the very gate cycle that
+      then cannot keep up. Write a control that fails when a reconciler run reports success with a
+      non-zero behind count.
     why: >-
-      Publishing has been dark 80.7 hours and this single red is the whole citation
-      (`citation_at_head: reproduces`, `total_red: 1`). It is priority zero by the director's own
-      UNWEDGE_PUBLISH_PRIORITY_ZERO ruling, and it is worse than an ordinary wedge because the
-      detector that would have drawn the unwedge work is the very thing broken -- an alarm reading
-      healthy for 80 hours about an outage it is pointed at. Finished when the publisher records a
-      clean publish, `episode_failures` resets, and a state file shaped like today's live one
-      produces an event.
-  - id: value-arms-18-seed-result
+      This is upstream of almost everything else in the stretch. `docs/observability/.publish_gate_state.json`
+      records the publisher's own failure cause as `behind_origin` with the evidence "origin/main is
+      5 commit(s) AHEAD and 1 commit(s) here ALREADY write this publish surface without reaching
+      origin", so the site is dark for this reason and no other. Every daemon on this box is
+      executing code the branch has moved past. 30 of 48 commits carried no work and the machine
+      spent more gate-minutes closing its own forks than landing work. Done when
+      `git rev-list --count HEAD..origin/main` reads 0, the publisher's recorded cause is no longer
+      `behind_origin`, and a deliberately-behind checkout makes the new control red.
+  - id: value-arms-18-seed-floor-collect
     what: >-
-      Take the in-flight `longjob-floor18-head-rosters-20260925` run
-      (`/var/tmp/se-floor18-head-20260925/shards/`, six legs of three seeds), fold it against the
-      served family, and write the result beside EACH of the five predictions in
-      `docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md`,
-      including any the run refutes. If `shards/agreement_fold_rc.txt` is 0, replace the served
-      noise-floor family so `draws_the_spread_is_entitled_to` is an exact count on `/capabilities/`
-      rather than a bound, which changes `site/data/value_arms.json` and
-      `tools/generate_value_arms_data.py`. The prereg reads identical to HEAD because the RESULT has
-      not been written yet -- this ask is un-started, not spent.
+      DO NOT RELAUNCH ANYTHING -- `tools.run_value_cycle_ab --level-arm --redraw-mode all
+      --noise-floor-seeds 444444,555555,666666` is live at pid 1011796 writing
+      /var/tmp/se-floor18-head-20260925/shards/leg5.json, and legs 1 to 4 are already complete there
+      at roughly 4.5 hours each. Wait for leg5 with `tools/wait_for.py`, never `pgrep`. When it
+      writes, collect all five shards, re-run `tools/generate_value_arms_data.py`, and place the
+      re-run residual against the figure `site/data/value_arms.json` currently serves. Land the
+      result with `python3 -m tools.surgical_land`, and put the outcome beside the prediction already
+      written in
+      docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md
+      rather than revising it. The path check reads value_arms.json and its generator as identical
+      to HEAD; that is correct -- the shards are not collected yet, and the ask is not spent.
     why: >-
-      This is the thesis's own evidence and not decoration: a baseline to beat is worth reading
-      only if the spread carries the bound its sample size earns. A fold REFUSAL is not a nuisance
-      to route around -- it would mean code between 2026-09-10 and HEAD moved a published figure,
-      and that is a larger finding than the count it was chasing. Finished when the result note
-      sits beside the prereg whatever it says, and the page carries either the exact count or a
-      named reason it cannot.
-  - id: bill-stress-hazard-from-the-arrears-ledger
+      This is the baseline leg of the thesis and the only work in this record that bears on whether
+      "the company beat average" means anything at all. It was named in the previous direction and
+      never drawn, so the steer itself is what drifted. A blocking finding already argues the pinned
+      selection residual is the control arm cancelling and the re-draw missing the priced decisions,
+      which is a claim that the served figure may not survive its own re-run -- and that is a result
+      either way. Done when the page either reproduces the served residual at HEAD or says on its
+      face that it cannot, with the sample size the bound earns; a silently unchanged page is not
+      done.
+  - id: the-published-refusal-is-false-at-the-instant-a-reader-sees-it
     what: >-
-      Retire `company/crm/churn_model.BILL_STRESS_THRESHOLD_GBP = 3000.0` against a per-household
-      hazard read from `company/billing/arrears_engine.py` -- the ageing/arrears STATE the
-      knowledge map records as the one positively established association -- and do not re-pick
-      the number for another one. `company/crm/churn_model.py` reads identical to HEAD because
-      nobody has started this, not because it is spent; the change set is that module, its tests,
-      and `tools/churn_belief_size_response.py`, which reads both constants.
+      `docs/observability/.publish_gate_state.json` holds `liveness_surface_refusal` = cause
+      `push_never_landed` for git_hash 7bcf2518f, and `git merge-base --is-ancestor 7bcf2518f
+      origin/main` returns true: origin DOES contain that commit, so the refusal a reader is shown
+      is false right now and the seat brief repeats it verbatim at the top. In
+      `background/publish_cause.py` and `background/publish_freshness.py`, make a refusal that names
+      a commit re-ask the remote ref for THAT commit at read time, before the field is rendered by
+      `site/assets/freshness-banner.js`, and downgrade it to the existing `lost_push_race` vocabulary
+      when the commit has since landed. Land with `python3 -m tools.surgical_land`. The path check
+      will say "nothing to land" on these files; that is expected for unstarted work and is not a
+      spent ask.
     why: >-
-      The refutation is already on file and nothing has acted on it: Ofgem/BMG (n=3,235) puts the
-      correlation between a household's spend and its switching propensity at -0.07 to +0.05, so a
-      bill-level knee asserts the strongest available form of a dependence that is approximately
-      absent, and DESNZ QEP 2.7.1 runs the other way (15.57% to 3.06% while every bill rose). The
-      knowledge map names the replacement -- a company observable, per customer, inside the
-      epistemic wall -- and that sentence IS the thesis: advantage from inference on what we can
-      actually see. Finished when no production caller reaches the refuted level and the stress
-      term varies per household with the arrears state. The EVENT amplitude stays a declared gap
-      and must not be closed by picking a number to lift the refusal.
-  - id: H41_the_map_ratchet_has_no_ongoing_drain
+      I predicted last stretch that this field would go green without the defect moving, and it did,
+      and it has now come back false rather than empty -- which is the only state in which it can be
+      graded. A refusal pinned to the instant of its own observation is a fail-silent surface: it
+      tells the director the push never landed while origin holds the commit, and it will do so again
+      at every fork. Done when a commit that reaches origin after its refusal was stamped reads as
+      landed to a reader, proven by a control that stamps a refusal and then advances the ref.
+  - id: the-fleet-drift-oracle-is-the-local-head-not-the-branch
     what: >-
-      Build the ongoing drain for `docs/design/maturity_map.yaml`: rehome growing per-row fields to
-      `docs/design/simplifications/<atom_id>.yaml`, pool the shared reasoning behind a family of
-      rows into `MATURITY_MAP.md` section 8a once, and key whatever control you add to the PROPERTY
-      -- bytes reclaimed per stretch against bytes added -- never to today's byte count, which is
-      the failure this project keeps repeating.
+      `process_reconciler.evaluate_boot_sha_drift()` now correctly publishes population 11, graded 11,
+      `stale: []`, `vacuous: false` -- and grades every daemon against `boot_sha.current_head()`,
+      which is `git rev-parse HEAD` on a checkout 14 commits behind origin/main. Publish the
+      checkout's own distance from the branch beside the verdict, so `stale 0` can never be read as a
+      healthy fleet while the tree it was measured against is behind, and make the control assert the
+      PROPERTY (a fleet graded against a behind checkout must not report clean) rather than today's
+      count. Files: `background/boot_sha.py`, `background/process_reconciler.py`; land with
+      `python3 -m tools.surgical_land`. The path check reads these as identical to HEAD, which is
+      correct for work not yet started.
     why: >-
-      `python3 -m tools.maturity_map_store` prints 5,844 bytes of headroom, 3,796 to the per-atom
-      reserve, and the map's own history says the median commit touching it adds ~695 -- about five
-      level moves from a line that reds `tests/design/` in EVERY lane and names a file the author
-      never touched. I named this last stretch, ranked it third, and the draw never reached it, so
-      the steer itself is now the drifting thing. Finished when the headroom line has moved UP
-      across a stretch with the ceiling untouched.
+      The denominator repair that landed in `e1736649a` is real and I graded it true, but it fixed
+      the count and left the oracle -- the same class arriving through a third door in the same week
+      I recorded the lesson. Every one of those eleven daemons is in fact running code the branch has
+      moved past, and the instrument built to notice exactly that says the fleet is clean. Done when
+      a checkout deliberately set behind origin makes the verdict say so.
+  - id: sanity-daemon-mute-cause
+    what: >-
+      `sanity-daemon` is the one row on the brief's actionable mute list with no cause on file: unit
+      active, silent for its whole 9h16m run, wchan `hrtimer_nanosleep`. Establish which of the five
+      known causes it is -- writing to a path the journal reader does not watch, wedged, mute by
+      construction with no write-out path at all, restarted faster than it speaks, or genuinely
+      nothing to say -- by reading `background/sanity_daemon.py` for its `print`/log calls and
+      checking whether the file it writes has advanced. Write the finding to `log_silence` on that
+      daemon's row in `background/process_manifest.yaml` and land with
+      `python3 -m tools.surgical_land`.
+    why: >-
+      Carried from the previous direction, named and never drawn, and it is a fifteen-minute write
+      that keeps a whole instrument honest: the five daemons established so far came out as five
+      different causes, so a class verdict would have been wrong for at least one, and an unexplained
+      mute row is the only shape in which a genuinely wedged daemon would be indistinguishable from a
+      healthy quiet one. Done when the row carries a cause and `sanity-daemon` moves off the
+      actionable list in the next brief.
 not_now:
-  - what: The `git stash --source` completeness-sweep class -- a detector that can see a path present in a stash but in neither HEAD nor the index.
+  - what: >-
+      Repairing the 23 ungradable maturity-map rows that owe a repair, and the 27 ungradable rows
+      overall.
     why: >-
-      Rejected a sixth time, visibly, and the reason has not changed: the instance is closed and
-      every one of the 436 paths was recovered byte-identical, so this buys a detector for a
-      never-do that is now written down as a wall. It loses to 80 hours of dark publishing and to a
-      refuted constant sitting live in `company/`. It stays in `wrong` and will keep being graded.
-  - what: Stripping the `-` prefix from the twelve `ExecStartPre=` boot-stamper lines so a stamper failure fails the unit.
+      Last stretch was almost entirely instrument work and the map grader is now honest about its own
+      denominator, which was the part that was lying. Another stretch inside the instrument buys no
+      thesis, and four of those rows will change shape once the fork and publisher story in focus one
+      closes. Deferred deliberately, not forgotten.
+  - what: Sweeping the 15 BLOCKING findings as one batch.
     why: >-
-      Correct in principle and I am deliberately not spending it this stretch: hard-failing a boot
-      stamper can stop all twelve daemons on the single box the whole company runs on, and doing
-      that in a stretch whose publisher is already wedged risks turning one outage into two. The
-      grading half is closed and the silencing is named in `wrong`; it should land in a stretch
-      with a green publisher behind it.
-  - what: Establishing `sanity-daemon`'s cause and writing it to `log_silence` in `background/process_manifest.yaml`.
+      They are not one class. At least four of them -- the checkout that cannot advance, the
+      receiptless-commit door, the ruff census red in the shared worktree, the publish recorder
+      snapshot -- are downstream of the fork treadmill, and clearing them individually now would be
+      fixing instances of a cause that focus one removes. The rest are genuinely separate and can
+      wait a stretch.
+  - what: >-
+      Building the control for the `git restore --source=stash@{0}` completeness class -- a path
+      present in the stash but in neither HEAD nor the index is silently skipped, and
+      `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content, so the
+      sweep would report a genuinely lost file safe.
     why: >-
-      The only thing the brief directly asks, and it is cheap -- which is exactly why it does not
-      need a focus slot to happen. Four causes are already established and all four came out
-      different, so this is one more instrument reading rather than a level move or a closed
-      blocking finding, and the rule is to prefer the latter.
-  - what: Closing the 3-ahead / 4-behind divergence by hand.
+      Rejected for the NINTH consecutive stretch, and I am recording the count because a rejection
+      repeated without being counted stops being a judgement. Reproducing it needs a real stash
+      against a tree with three live writers, and manufacturing that safely costs more than the
+      class's current exposure. The mitigation in force is prose and holds: no item in this record
+      grades a working copy's age by that clock. If it reaches ten, it goes in focus regardless of
+      what else is due.
+  - what: Holding `token-proxy` rather than leaving it enabled.
     why: >-
-      A `tools.surgical_land --merge origin/main --attempts 8` was already running when this was
-      written, and cause 1 has been repaired (`_split_generated` now reads the regenerated alarm
-      family as generated; behind fell 12 to 4). A second writer on the same merge is precisely how
-      this tree loses another lane's work. It is graded in `wrong`, not worked here.
-  - what: Draining the 28 maturity-map rows that are ungradable because no control was ever written for them.
+      It has logged nothing for 235h because nothing routes through it -- `ANTHROPIC_BASE_URL` is
+      unset for every claude process on this box -- and the brief files it as a director-facing call.
+      It is not one: a declared process moving between enabled and held is a dial, reversible in a
+      line, and it costs 7.2MB. I am deciding to leave it enabled, because removing the token
+      accounting route is harder to undo than leaving an idle listener up, and revisiting it when
+      something needs the accounting.
+  - what: Giving `worker-seat-manager` a heartbeat line so it stops reading as mute by construction.
     why: >-
-      Real debt and it competes for the same budget as H41 -- but H41 has a ratchet behind it that
-      reds every lane when it trips, and this does not. The ordering is the judgement: the one with
-      a cliff goes first.
-  - what: Deciding whether `token-proxy` should be `held` rather than `enabled` now that nothing routes through it.
+      It is a real behaviour change to the daemon that seeds the worker seat, and it would arrive as
+      a side-effect of tidying an instrument. Its cause is already established and on file, so the
+      brief is not misleading anyone. It deserves its own evidence and its own window.
+  - what: Restarting the 18-seed floor run to get an answer sooner.
     why: >-
-      Its own manifest row calls this director-facing. I disagree: a declared daemon's enabled state
-      is none of the four reserved classes, it is free to reverse, and it is earning nothing either
-      way. It is not worth his attention and not worth a focus slot, so it is recorded here and left.
+      It would discard 13.5 hours of completed legs sitting in
+      /var/tmp/se-floor18-head-20260925/shards/ and restart a roughly 22-hour clock. Waiting costs
+      nothing that acting would not cost more of.
 wrong:
   - what: >-
-      MINE, NEW, AND IT IS THE SAME DEFECT SHAPE AS THE ROW IT WAS MEANT TO FIX. I made
-      `publish-gate-wedge-is-one-stale-fixture-window` focus number one, and the ITEM'S OWN NAME was
-      the error: it named an INSTANCE where the fault was a CLASS. The draw took it, repaired the
-      fixture the item named (`619cb3cda`, and that commit is on origin), and the publisher did not
-      move -- because the same population screen had aged the failures out of a SECOND fixture,
-      `test_wedge_adapter_fires_past_the_directors_one_hour_bar`, and that one is the publisher's
-      actual blocker. Nine commits later the outage is 80.7h old with 57 refusals. I wrote "ONE
-      stale fixture" into the steer and got exactly one fixed. Grade next stretch by whether the
-      publisher records a clean publish, not by whether a named test went green.
+      MINE, AND I CLOSED IT ON A GOOD DAY. Last stretch I marked the publisher row corrected because
+      `last_clean_publish` had moved and every red was empty. Fourteen hours later it is refusing
+      again -- `episode_failures` 1, `wedge_since` set, and the recorded cause is `behind_origin`.
+      The defect was never the publisher; it was the fork treadmill underneath it, and a green
+      reading of the publisher was exactly the "state of a named mechanism on a good day" evidence I
+      had twice said I would not accept. I accepted it the moment it flattered me. Grade it by
+      whether the publisher survives a stretch in which the checkout forks from origin, never by
+      whether it is currently clean.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, AND ITS COST IS NOW MEASURED RATHER THAN PREDICTED. A control whose
-      population screen changes must re-run the tests whose fixtures sit inside the OLD screen. The
-      trim-on-read landing did not, and the sibling it broke is the one holding publishing shut for
-      three and a half days. The second half is equally untouched: `citation_at_head` has read
-      `reproduces` continuously and no surface a person reads has ever said "one 0.09-second test is
-      the entire blocker". Grade it by whether a screen change is required to re-run the fixtures
-      inside the old screen, and by whether a single-citation wedge older than a day names its
-      citation somewhere a person looks.
+      THE MACHINE'S, CARRIED, AND THE SECOND HALF IS NOW GRADED AND STILL OPEN. A control or door
+      whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no
+      control requires it. I said to re-ask the second half at the next red gate; the gate is red
+      now, and `citation_at_head` reads `not_established` with reason "no red is named on this
+      failure, so there is no citation to re-ask", alongside `red_at_head` and `fork_state` reading
+      the same. So at a live refusal the surface still cannot say which tree the red belongs to --
+      the honest `not_established` is correct and is not the same as an answer. Grade it by whether a
+      door change is required to re-run the fixtures built against its old shape.
     corrected: false
   - what: >-
-      MINE, CARRIED, HALVED BY EVIDENCE AND NOT CLOSED. Cause 1 of the fork is repaired:
-      `background.origin_reconcile._split_generated` now returns the regenerated
-      `WORKER_FINDING_REPEATING_ALARM_*` family as GENERATED rather than authored, and the behind
-      leg fell from 12 to 4. But the checkout is still 3 ahead / 4 behind, `liveness_surface_refusal`
-      still reads `push_never_landed`, and origin sits at `d4244a93f` past our `31112ddf2`. My
-      diagnosis needs correcting beside itself: only ONE of the three ahead commits is daemon
-      liveness now, so "daemon output refills it faster than any drain empties it" is at most a
-      third of the cause and the rest is a lost merge-to-push race. Grade next stretch by whether the
-      ahead leg ever reaches zero within a stretch, not by whether a drain exists.
+      MINE, NEW LAST STRETCH, NOW CLOSED ON THE TEST I SET. I wrote a focus item describing work to
+      BUILD and never said to LAND it, and 236 lines of sourced per-customer domain work sat in no
+      commit. Those bytes are now an ancestor of origin/main in `17a88051c`, with
+      `company/crm/churn_model.py`, `company/crm/enriched_churn_estimate.py` and an owned control
+      file, and `ae101f936` carried the arrears state through to the renewal and the price. Every
+      code item in this record now names `tools.surgical_land` explicitly, which is the structural
+      half of the fix rather than my remembering.
+    corrected: true
+  - what: >-
+      MINE, NEW LAST STRETCH, CLOSED ON THE INSTANCE AND THE TEST I NAMED. "Ask a census's
+      denominator before believing its numerator" was recorded about one instrument and not swept;
+      `evaluate_boot_sha_drift()` now returns population 11, graded 11, `stale: []`, `vacuous: false`
+      and a live stamper probe reading `works`, landed in `e1736649a`. My stated test was whether a
+      fleet or census verdict in this tree publishes its population and its resolved count beside the
+      numerator, and it does. The successor defect is recorded separately rather than folded in here.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, CARRIED, AND NOW DEMONSTRATED FALSE RATHER THAN ARGUED. `liveness_surface_refusal`
+      holds cause `push_never_landed` for git_hash 7bcf2518f, and `git merge-base --is-ancestor
+      7bcf2518f origin/main` returns true -- origin contains the commit the field says never reached
+      it, and the seat brief reprints the claim at the top. I predicted last stretch that a clean
+      publish would overwrite the field without the repair being touched; it did, and the field has
+      come back wrong at its next use. Grade it by whether a refusal naming a commit re-asks the
+      remote ref for that commit before a reader is shown it, and never by whether the field is
+      currently empty.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, THIRD STRETCH. All twelve `ExecStartPre=` lines still carry the `-`
-      prefix that silences a boot-stamper failure by design. The grading half stays closed
-      (`e070217f6`, `0fde08115`); the silencing is untouched and was deliberately not taken this
-      stretch, with the reason recorded in `not_now` rather than left as a gap. Grade it by whether
-      a deliberately broken stamper command makes a unit's start FAIL rather than log and continue.
+      THE MACHINE'S, CARRIED FOR FIVE STRETCHES, AND CLOSED BY REFUTATION RATHER THAN BY DOING WHAT I
+      SAID. I asked four times for the `-` to be stripped from the twelve `ExecStartPre=` lines, on
+      the argument that it silences a boot-stamper failure. `f5f740cf6` measured it: systemd records
+      the failing exit under ignore-errors anyway, so the strip buys no detection, and the stamper
+      now probes `works` with 11 of 11 daemons graded. The remedy was wrong for five stretches and
+      one measurement settled it in one. I never once asked whether the thing I wanted stripped was
+      the cause -- the rule is print the numbers at real inputs before shipping a formula, and a
+      proposed remedy is a formula.
+    corrected: true
+  - what: >-
+      MINE, NEW, AND IT IS THE SAME LESSON ARRIVING THROUGH A THIRD DOOR IN THE SAME WEEK. Fixing a
+      census's DENOMINATOR does not fix its ORACLE. `evaluate_boot_sha_drift()` now honestly publishes
+      11 of 11 graded and zero stale, and it grades all eleven against `boot_sha.current_head()` --
+      the local HEAD, on a checkout 14 commits behind origin/main. Every one of those daemons is in
+      fact running code the branch has moved past, and the instrument built to notice exactly that
+      reports the fleet clean, with its population correctly printed beside it. Grade it by whether a
+      checkout deliberately set behind origin makes a fleet verdict say so.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS OPEN AFTER SIX STRETCHES. `git restore
+      THE MACHINE'S, INSTANCE CLOSED AND CLASS OPEN AFTER NINE STRETCHES. `git restore
       --source=stash@{0}` silently skips a path present in the stash but in neither HEAD nor the
-      index, and the completeness sweep cannot see the miss because `git diff --quiet HEAD -- <path>`
-      is quiet for an untracked path whatever its content -- so the same detector would report a
-      genuinely lost file safe. The same pop restamped 321 files and defeated the stale-copy clock
-      by 38 seconds, so no item may grade a working copy's age by that clock. Rejected from focus a
-      sixth time, visibly, in `not_now`.
+      index, and `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its
+      content, so the completeness sweep would report a genuinely lost file safe. Rejected a ninth
+      time, visibly, in `not_now`, with the count recorded and a commitment that a tenth rejection is
+      not available.
     corrected: false
-  - what: >-
-      MINE, CARRIED, NOW CLOSED BY EFFECT AND NOT BY EXISTENCE. I refused to grade the
-      `_refuse_if_ungated` repair on the code having changed, and said it stayed open until a commit
-      from the seat had actually passed `promote_worktree_landing`. `dc87135ca` -- last stretch's
-      direction commit, written after the repair -- is an ancestor of `origin/main`. The door passed
-      it with no hand `--content` re-land. That is the effect, so this closes.
-    corrected: true
-  - what: >-
-      MINE, CARRIED, CLOSED BY THE TEST I WROTE FOR IT. I ranked the only thesis-facing item fourth
-      on a list worked in my order and the window shut after three, producing a stretch with no
-      domain work in it. I moved `value-arms-error-bar` to second; the draw took it, `44a8629a4`
-      landed the worth of the count beside the count, and it DISAPPEARS from focus in this record --
-      which was the acceptance test. The ordering lesson is applied again here: the domain item
-      (`bill-stress-hazard-from-the-arrears-ledger`) is third rather than last, and the item ranked
-      below it is the one with a ratchet cliff rather than a thesis claim.
-    corrected: true
 for_the_director: []

@@ -1,9 +1,213 @@
 {
- "generated_at": "2026-09-25T11:37:29.454213+00:00",
+ "generated_at": "2026-09-25T23:28:21.498725+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "833d07a01",
+    "at": "2026-09-26T00:10:43+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=7bcf2518f66dbd8dcf7538e21c9373b80fc0f334) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "7bcf2518f",
+    "at": "2026-09-25T23:38:32+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=82d89003ca5b3ec52ad8eb91d95173e09f03547d) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "82d89003c",
+    "at": "2026-09-25T23:14:32+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=e1736649a, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "cf1ce71c1",
+    "at": "2026-09-25T22:36:11+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=f5f740cf6eca67e90b487797b70b538a9f695db7) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "f5f740cf6",
+    "at": "2026-09-25T22:16:32+01:00",
+    "subject": "the `-` on the units' ExecStartPre costs no detection, so the strip that was deferred four times is refuted rather than owed",
+    "substantive": true
+   },
+   {
+    "sha": "c3b568045",
+    "at": "2026-09-25T22:01:01+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=e1736649a5b4df25c0e2461e7c10ea9bec8d44fd) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "e1736649a",
+    "at": "2026-09-25T21:44:43+01:00",
+    "subject": "the fleet drift verdict published a numerator as if it were a rate, so \"stale 0\" read as a healthy fleet while ten of eleven daemons were ungraded",
+    "substantive": true
+   },
+   {
+    "sha": "2a05373ca",
+    "at": "2026-09-25T21:09:28+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=e8a4aab51629facc1ee442c43f224dc1b9f34d54) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "e8a4aab51",
+    "at": "2026-09-25T20:42:21+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=5903db01e, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "f0d1c72da",
+    "at": "2026-09-25T19:51:55+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=5903db01ee61cbbfb00ba94032b35d8f10fd1023) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "5903db01e",
+    "at": "2026-09-25T19:19:42+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=08b14df3f5f68cc5e08db83546a9b1726575f777) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "08b14df3f",
+    "at": "2026-09-25T18:47:20+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=9067bce076952e75957d5e7a6746e7014438f7db) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "9067bce07",
+    "at": "2026-09-25T17:41:43+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=a59499e3050cd6adc12b4f12305acb7665ac560f) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "a59499e30",
+    "at": "2026-09-25T17:09:24+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=5486d3dba1f62855810261f0f233e76d731fcbb1) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "5486d3dba",
+    "at": "2026-09-25T16:37:02+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=4bc282c506c115fccd6f4d05db769fbb02fc0cfe) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "4bc282c50",
+    "at": "2026-09-25T15:45:22+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=837a94c8a, net=\u00a3166,705)",
+    "substantive": false
+   },
+   {
+    "sha": "3fd146526",
+    "at": "2026-09-25T15:34:28+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=070636e939c16d3c4e008b2cfb8282998b380eea) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "070636e93",
+    "at": "2026-09-25T14:50:44+01:00",
+    "subject": "file the resolution beside the electric-heated gas-contract finding, and archive it",
+    "substantive": false
+   },
+   {
+    "sha": "7099cc486",
+    "at": "2026-09-25T14:49:24+01:00",
+    "subject": "merge origin/main: advance the base under the founder gas-meter guard",
+    "substantive": false
+   },
+   {
+    "sha": "6dcdd0339",
+    "at": "2026-09-25T14:38:46+01:00",
+    "subject": "a drawn founder became a gas account on a home heated by electricity, and the book settled 9.5 MWh a year its physics never burned",
+    "substantive": true
+   },
+   {
+    "sha": "0a11516da",
+    "at": "2026-09-25T14:29:16+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=837a94c8a80065b29f2a67d0d09873635a262b98) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "837a94c8a",
+    "at": "2026-09-25T14:17:47+01:00",
+    "subject": "archive the repoint-would-silence-four-rows finding into done/, with the outcome written beside the claim",
+    "substantive": false
+   },
+   {
+    "sha": "0fe3d492b",
+    "at": "2026-09-25T14:15:55+01:00",
+    "subject": "repoint G4 and SP2_2 at the artefacts their own design docs declare; refuse H40 and H48 with the reason, because an atom whose deliverable is a record writes no file to name",
+    "substantive": true
+   },
+   {
+    "sha": "f465f3663",
+    "at": "2026-09-25T14:04:58+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "1f290992f",
+    "at": "2026-09-25T13:58:48+01:00",
+    "subject": "stage 1: the gas half of the shape switch reaches a run for the first time, and W2_19's prior is printed at real inputs",
+    "substantive": false
+   },
+   {
+    "sha": "61fc300a7",
+    "at": "2026-09-25T13:58:17+01:00",
+    "subject": "narrow HONESTLY_UNBUILT to \"no named FILE on disk\", and close the subject-side hole that let NOTHING_IN_THE_ROW claim a false sentence",
+    "substantive": true
+   },
+   {
+    "sha": "17a88051c",
+    "at": "2026-09-25T13:44:24+01:00",
+    "subject": "the distress term is read from the company's own arrears ledger, and the refuted knee is unreached for any caller that supplies it",
+    "substantive": true
+   },
+   {
+    "sha": "59825730c",
+    "at": "2026-09-25T13:29:06+01:00",
+    "subject": "merge origin/main: reconcile the NAMES_ONLY_A_SCOPE repoint onto two commits that repointed different rows of the same map",
+    "substantive": false
+   },
+   {
+    "sha": "9992ec989",
+    "at": "2026-09-25T13:24:04+01:00",
+    "subject": "merge origin/main: reconcile the NAMES_ONLY_A_SCOPE repoint onto two commits that repointed different rows of the same map",
+    "substantive": false
+   },
+   {
+    "sha": "cd4cc7f2b",
+    "at": "2026-09-25T13:18:59+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=74d078eb50e7614c424afcec8080e7ba7e074f10) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "74d078eb5",
+    "at": "2026-09-25T13:18:22+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "415f0b59f",
+    "at": "2026-09-25T13:14:59+01:00",
+    "subject": "four of the eight NAMES_ONLY_A_SCOPE rows name a subject module and are repointed at its controls; the other four name no module and there is nothing to repoint at",
+    "substantive": true
+   },
+   {
+    "sha": "d01283d58",
+    "at": "2026-09-25T12:40:12+01:00",
+    "subject": "fix(lane0): no row in the level-zero population ever reaches a runner, so both timeouts are dead dials",
+    "substantive": true
+   },
+   {
+    "sha": "f0470836e",
+    "at": "2026-09-25T12:35:05+01:00",
+    "subject": "fix(lane0): the dominant ungradable cause was a mixed class -- 14 of 16 rows told \"the control was never written\" had no absent path at all",
+    "substantive": true
+   },
    {
     "sha": "a99702336",
     "at": "2026-09-25T12:12:36+01:00",
@@ -39,274 +243,70 @@
     "at": "2026-09-25T10:58:52+01:00",
     "subject": "the level reconciler was bounded by cost, not evidence: a row whose control is already red at HEAD needs no run",
     "substantive": true
-   },
-   {
-    "sha": "19e60c443",
-    "at": "2026-09-25T10:48:27+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=33650edec, net=\u00a3166,705)",
-    "substantive": false
-   },
-   {
-    "sha": "2c0e6134a",
-    "at": "2026-09-25T10:33:00+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=b20bab542a17468425ea730658aa0acfef48c845) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "b20bab542",
-    "at": "2026-09-25T10:02:28+01:00",
-    "subject": "the publish wedge was one atom's note declared in the map and never landed beside its store file",
-    "substantive": true
-   },
-   {
-    "sha": "15fa8d52e",
-    "at": "2026-09-25T09:55:36+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "d214fc5e7",
-    "at": "2026-09-25T09:41:56+01:00",
-    "subject": "KNIFE3 is silent, not contradicted: measured, and the timeout I sent the next reader to price is not the one production uses",
-    "substantive": false
-   },
-   {
-    "sha": "33650edec",
-    "at": "2026-09-25T09:28:01+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=cb8f2b356ef7a7e28ef6068456829c9d582e4f5c) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "3ef0ef44a",
-    "at": "2026-09-25T09:25:20+01:00",
-    "subject": "merge origin/main (cb8f2b356): advance the base under the predating-control fix",
-    "substantive": false
-   },
-   {
-    "sha": "8a1269101",
-    "at": "2026-09-25T09:10:20+01:00",
-    "subject": "one predating control threw away nine the atom's own build wrote, and that is why the pass graded nothing",
-    "substantive": true
-   },
-   {
-    "sha": "cb8f2b356",
-    "at": "2026-09-25T09:08:20+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "caa6f117a",
-    "at": "2026-09-25T09:07:04+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "ee68be4a9",
-    "at": "2026-09-25T09:05:33+01:00",
-    "subject": "merge origin/main: the wedge's remaining cause is the fork, not a red test",
-    "substantive": false
-   },
-   {
-    "sha": "d7388ea13",
-    "at": "2026-09-25T09:00:54+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "e235903b6",
-    "at": "2026-09-25T08:52:50+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=38086de23e25c9a117e5bd99012439499813f41c) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "38086de23",
-    "at": "2026-09-25T08:49:06+01:00",
-    "subject": "chore(provenance): verification paused banner (git=44a8629a4) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "eaadba75b",
-    "at": "2026-09-25T08:32:09+01:00",
-    "subject": "the wedge's real red was the landing door's second hook chain, and the recorder that would have named it is a day-old module snapshot",
-    "substantive": true
-   },
-   {
-    "sha": "54a7b6242",
-    "at": "2026-09-25T08:14:46+01:00",
-    "subject": "the level reconciler's count carries its denominator: 0 contradicted out of 0 graded says so",
-    "substantive": true
-   },
-   {
-    "sha": "c205c35b1",
-    "at": "2026-09-25T08:07:38+01:00",
-    "subject": "merge origin/main (7ef75772d): advance the base under the map-silence cause finding",
-    "substantive": false
-   },
-   {
-    "sha": "93e651755",
-    "at": "2026-09-25T07:49:33+01:00",
-    "subject": "the map's silence is unfalsifiable: the level reconciler graded 28 rows and could grade none of them",
-    "substantive": false
-   },
-   {
-    "sha": "7ef75772d",
-    "at": "2026-09-25T07:44:41+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "f2a7f4466",
-    "at": "2026-09-25T07:39:26+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "a9e940821",
-    "at": "2026-09-25T07:33:37+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=bf3180787f4879da998b43b2b7f3ccdb85f1d794) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "bf3180787",
-    "at": "2026-09-25T07:29:54+01:00",
-    "subject": "chore(provenance): verification paused banner (git=44a8629a4) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "d013d27f7",
-    "at": "2026-09-25T07:05:14+01:00",
-    "subject": "merge origin/main (3f8d41b04): advance the base under the map-diff trigger for the next-step gate",
-    "substantive": false
-   },
-   {
-    "sha": "9d9008c85",
-    "at": "2026-09-25T07:05:02+01:00",
-    "subject": "file the wedge-alarm finding: a screen anti-correlated with the severity of its own subject",
-    "substantive": false
-   },
-   {
-    "sha": "8997edc42",
-    "at": "2026-09-25T07:02:07+01:00",
-    "subject": "the wedge alarm asked whether the gate failed RECENTLY and read the answer as whether it is WEDGED",
-    "substantive": true
-   },
-   {
-    "sha": "43e2ddb55",
-    "at": "2026-09-25T06:48:35+01:00",
-    "subject": "merge origin/main (35da3025b): advance the base under the map-diff trigger for the next-step gate",
-    "substantive": false
-   },
-   {
-    "sha": "62c7070b8",
-    "at": "2026-09-25T06:34:34+01:00",
-    "subject": "the next-step gate asks the map diff, not only the prose: a staged level move owes a successor",
-    "substantive": true
-   },
-   {
-    "sha": "3f8d41b04",
-    "at": "2026-09-25T06:30:02+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "35da3025b",
-    "at": "2026-09-25T06:29:15+01:00",
-    "subject": "merge origin/main: advance the base under the PB4 bill-shock seam landing",
-    "substantive": false
-   },
-   {
-    "sha": "d4244a93f",
-    "at": "2026-09-25T06:17:41+01:00",
-    "subject": "the live-hook report claims the whole chain while its subject is two files, and 2 of the 25 modules that chain invokes are not the trunk's",
-    "substantive": false
-   },
-   {
-    "sha": "31112ddf2",
-    "at": "2026-09-25T06:15:34+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=79b71cf9f2e16ed14f151fba887da65830bc8e00) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "79b71cf9f",
-    "at": "2026-09-25T06:13:52+01:00",
-    "subject": "the knowledge layer did not know the bill-shock amplitude was an open gap, and the rule that declared it has no row in its own enforcement table",
-    "substantive": false
-   },
-   {
-    "sha": "f0968c077",
-    "at": "2026-09-25T06:07:59+01:00",
-    "subject": "two corrections beside the message-chain landing: a record's pointer named no file, and a comment said `commit-msg` carried no gates",
-    "substantive": true
-   },
-   {
-    "sha": "2cb273bca",
-    "at": "2026-09-25T06:05:12+01:00",
-    "subject": "PB4: the bill-shock seam lands as structure with its amplitude declared absent, and the level-hold note's refuted residual is corrected beside itself",
-    "substantive": true
    }
   ],
-  "substantive": 10,
-  "mechanical": 30,
+  "substantive": 11,
+  "mechanical": 29,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-25T11:20:53.097996+00:00",
-  "age_hours": 0.3,
+  "oriented_at": "2026-09-25T23:21:17.968983+00:00",
+  "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Publishing is GREEN and it closed on exactly the test I set three stretches ago: `last_clean_publish` in `docs/observability/.publish_gate_state.json` reads 2026-09-25T09:48:30Z, `episode_failures` 0, `total_red` 0, `blocking_tests` empty, `wedge_since` null, and the line a reader is handed says figures reached origin 1.5h ago -- so 86.1 hours dark and 60 consecutive refusals are over. `eaadba75b`'s fixture repair, landed at the end of last stretch, was the thing that did it, and the ordinary publisher then ran without being driven. Against the thesis the stretch went nowhere, and the reason is sharper than \"instrument work\": 13 commits, 3 substantive, all three instruments -- and the one piece of domain work that DID happen is sitting uncommitted in the shared tree. `company/crm/churn_model.py` and `company/crm/enriched_churn_estimate.py` carry 236 uncommitted insertions that retire the refuted bill-level knee in favour of a per-household arrears hazard read from the supplier's own collections ledger -- sourced to Ofgem CIM w6 Table 56, both arms quoted over the published 5.3% base and never against each other, the bill-shock EVENT amplitude left a declared `None` -- plus an untracked test file with 11 controls that passes in 0.07s. It is the best work of the week, it is in no commit, and the focus item I wrote for it never said to land it. Worse, no production caller passes `arrears_state`: `company/pricing/value_based_renewal.py:803` and `company/crm/churn_desk.py:141` both still call with the default, so even landed it is a refuted term going quiet rather than a better estimate -- green controls with no caller, which is a shape this tree has a register for. The wider census is the reading: of the last 100 commits, 2 touched `company/`, `saas/` or `simulation/` at all, and the file counts are 329 `site/`, 107 `docs/`, 36 `tests/`, 31 `tools/`, 11 `background/`, 1 `simulation/`, 1 `saas/`, 0 `company/`, while `docs/design/maturity_map.yaml` has not moved a level in 245 first-parent commits with 110 atoms open. The level grader I ranked third went from 0 of 28 graded to 1 of 28 (`7db38ae47`, KNIFE3, through a red-at-HEAD short circuit) -- real, honest, and still uninformative. And the denominator defect I closed on that grader this week is alive and untouched in a second instrument: `process_reconciler.evaluate_boot_sha_drift()` returns `stale: []` while reporting 10 of its 11 daemons `stamp-predates-process`, so a clean bill of health is being issued over one resolvable row, and no daemon's running code version has been known since 2026-09-04. I wrote that lesson down as an instance instead of sweeping it as a class, which is how it survived a whole stretch in plain sight. One correction to the brief handed to me: its LIVENESS_ONLY reading of 5 heartbeat-only commits in 13 is a quiet-window artefact -- over seven days it is 84 of 732, about 11% -- which is a cost worth knowing and not the shape finding it looks like at three hours.",
+  "thesis_read": "The thesis moved this stretch and the machine that carries it went backwards, and the two facts are not independent. On the thesis: the arrears state now reaches both the renewal and the price from the company's own ledger (`ae101f936`, `17a88051c`) and `17a88051c` is an ancestor of origin/main, which closes my worst error of last stretch on exactly the test I set for it -- 236 lines of sourced per-customer inference that had been sitting in no commit are now production code, and the distress term a household is priced on is something a real supplier reads off its own books rather than something the sim was asked. `6dcdd0339` made the world press back harder: a drawn founder had been given a gas contract on an electrically heated home and the book settled 9.5 MWh a year its physics never burned. That is fidelity as precondition working as designed. The baseline leg -- the half of the thesis that makes \"it performed well\" mean anything -- did not move, and it did not move for an instrument reason rather than an intellectual one: the 18-seed floor re-run is genuinely in flight (legs 1 to 4 complete in /var/tmp/se-floor18-head-20260925/shards/, leg 5 running since 22:48), but its focus item was named and never drawn, and neither was the sanity-daemon one, so 2 of 5 steers were unreachable in a 12-hour window. Now the machine, and this is the reading that outranks the rest. 30 of 48 commits carried nothing at all; 14 of those were the liveness heartbeat and 16 were reconciliation merges that authored nothing of their own. Those two populations are one mechanism: each heartbeat commits the liveness surface locally, which forks this checkout from origin, and the reconciler then pays a full pre-commit gate cycle -- measured at seven to eleven minutes in the live process list -- to close a fork that carried no work, while origin moves again underneath it. The behind leg grew from 5 to 14 across the stretch and the publisher's own recorded cause is `behind_origin`. So the surface that exists to prove the machine is alive is what is holding it shut, and the publisher row I closed last stretch on a clean reading is refusing again fourteen hours later -- which is the trap I twice said I had learned to avoid, grading a defect by the state of a named mechanism on a good day. Two corrections landed properly and both deserve their evidence beside them: `e1736649a` made the fleet drift verdict publish its denominator, and it now reads 11 of 11 graded with `vacuous: false` where it read 0 out of 1 dressed as 0 out of 11; and the `-` on the twelve `ExecStartPre=` lines, which I carried as owed for five stretches, was REFUTED rather than done -- `f5f740cf6` measured that systemd records the failing exit under ignore-errors, so the strip buys no detection, and the stamper itself now probes `works`. I was wrong for five stretches about a remedy, never once asking whether the thing I wanted stripped was the cause. And the same lesson has already arrived through a third door: that drift verdict is now honest about its denominator and grades all eleven daemons against `boot_sha.current_head()`, the LOCAL HEAD, which is the 14-behind checkout -- so `stale: []` is true, published with its population, and still blind to a whole fleet running code the branch moved past. Fixing a census's denominator does not fix its oracle.",
   "focus": [
    {
-    "id": "bill-stress-hazard-from-the-arrears-ledger",
-    "what": "LAND FIRST, BUILD SECOND -- the work is already written and in no commit. `git diff HEAD -- company/crm/churn_model.py company/crm/enriched_churn_estimate.py` is 236 insertions, and `tests/company/crm/test_the_distress_term_is_read_from_the_arrears_ledger.py` is untracked with 11 controls that pass. Land those three paths with `python3 -m tools.surgical_land` by pathspec, using `tools/isolate_hunks.py` if another lane has edited either module in place, and never with `-A`. THEN reach it from production, because nothing does: add an `arrears_state` field to `company/crm/churn_desk.ChurnObservation` (line 85's `payment_method` is the precedent -- the company's own record, not the seam), forward it at `churn_desk.py:141` and at `company/pricing/value_based_renewal.py:803`, sourced from `churn_model.arrears_state_from_collections(arrears_engine.collections_snapshot(...))`. Take `tools/churn_belief_size_response.py:403` last: it still publishes `declared_threshold_gbp` off the refuted constant and should say what the value arm now reaches instead. Do NOT put a number on the bill-shock EVENT amplitude to tidy a refusal -- it is a declared gap and stays one.",
-    "why": "It is the only work in the stretch that moves the model rather than the machinery, and it is in the worst state work can be in: finished, unlanded, in a shared tree that three other writers commit from, where a stash or an `-A` loses it while the draw ledger says the item was drawn. The reach half is what makes it worth anything -- `value_based_renewal` beats the flat arm exactly to the degree `enriched_churn_estimate` predicts better, so a sourced per-household distress signal read off the supplier's own accounts receivable IS the thesis sentence: advantage from inference on an observable we genuinely have, never from access. Finished when those bytes are an ancestor of `origin/main` AND at least one production renewal caller passes a state read from the ledger, so the refuted knee is unreached for it."
+    "id": "the-reconciler-closes-ahead-while-the-behind-leg-grows",
+    "what": "The checkout is 14 commits behind origin/main and 1 ahead, and that 1 is a liveness heartbeat that carries only `docs/observability/agent_status.json`. Sixteen reconciliation merges ran in the last 12 hours and the behind leg grew from 5 to 14. First MEASURE, in one process: count the full pre-commit gate cycles `background/origin_reconcile.py` and `background/reconcile_watch.py` spent on commits whose tree equalled a parent's, and read `git rev-list --count HEAD..origin/main` before and after each. Then make two changes and land them with `python3 -m tools.surgical_land`: (a) the reconciler's success condition becomes the BEHIND leg reaching zero, never the merge process exiting 0, and it reports failure while behind is non-zero; (b) the liveness heartbeat (grep `chore(liveness)`, written under `background/process_run_complete.py`) does not create a local commit while the checkout is behind origin, because a heartbeat that forks the tree manufactures the very gate cycle that then cannot keep up. Write a control that fails when a reconciler run reports success with a non-zero behind count.",
+    "why": "This is upstream of almost everything else in the stretch. `docs/observability/.publish_gate_state.json` records the publisher's own failure cause as `behind_origin` with the evidence \"origin/main is 5 commit(s) AHEAD and 1 commit(s) here ALREADY write this publish surface without reaching origin\", so the site is dark for this reason and no other. Every daemon on this box is executing code the branch has moved past. 30 of 48 commits carried no work and the machine spent more gate-minutes closing its own forks than landing work. Done when `git rev-list --count HEAD..origin/main` reads 0, the publisher's recorded cause is no longer `behind_origin`, and a deliberately-behind checkout makes the new control red."
    },
    {
-    "id": "boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon",
-    "what": "Two legs, on `background/process_reconciler.evaluate_boot_sha_drift()` and `background/boot_sha.py`. (1) Make the verdict carry its denominator: it returns `stale: []` today while `unresolved` holds 10 of its 11 daemons at `stamp-predates-process`, so an empty list reads as a fleet with no drift. Publish resolved-out-of-population beside the numerator and key the control to that property, never to today's count. (2) Establish why the stamps do not move: the stamper probe reports `works`, and `docs/observability/.daemon_boot/sim-runner.json` was written at 12:04 today, while `dispatcher.json`, `ntfy-responder.json`, `sanity-daemon.json` and `staging-watcher.json` all still read 2026-09-17 against processes that started 2026-09-24 -- one unit stamps and ten do not, so the declared `ExecStartPre` is reaching some and not others. Once a unit demonstrably stamps, strip the `-` prefix from that ONE unit's `ExecStartPre` in `background/generate_units.py:53` and prove a deliberately broken stamper command makes its start FAIL. One unit, not twelve.",
-    "why": "It is the same denominator failure I closed on the level grader this week, alive in a second instrument and load-bearing in a way that one was not: `stale: 0` is what the fleet detector tells every reader while no daemon's running code version has been known since 2026-09-04, and \"a landed repair is inert in the running process\" is the defect class that has cost this project the most repeated hours. It also discharges the `-` prefix error honestly for the first time in four stretches -- my stated reason for deferring was the risk of a second outage while the publisher was dark, the publisher is now green, so the condition I set myself is met and the remedy is one unit with a proven refusal rather than twelve at once. Finished when a reader of the drift verdict cannot mistake an empty `stale` list for a healthy fleet, and one unit refuses to start on a broken stamper."
+    "id": "value-arms-18-seed-floor-collect",
+    "what": "DO NOT RELAUNCH ANYTHING -- `tools.run_value_cycle_ab --level-arm --redraw-mode all --noise-floor-seeds 444444,555555,666666` is live at pid 1011796 writing /var/tmp/se-floor18-head-20260925/shards/leg5.json, and legs 1 to 4 are already complete there at roughly 4.5 hours each. Wait for leg5 with `tools/wait_for.py`, never `pgrep`. When it writes, collect all five shards, re-run `tools/generate_value_arms_data.py`, and place the re-run residual against the figure `site/data/value_arms.json` currently serves. Land the result with `python3 -m tools.surgical_land`, and put the outcome beside the prediction already written in docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md rather than revising it. The path check reads value_arms.json and its generator as identical to HEAD; that is correct -- the shards are not collected yet, and the ask is not spent.",
+    "why": "This is the baseline leg of the thesis and the only work in this record that bears on whether \"the company beat average\" means anything at all. It was named in the previous direction and never drawn, so the steer itself is what drifted. A blocking finding already argues the pinned selection residual is the control arm cancelling and the re-draw missing the priced decisions, which is a claim that the served figure may not survive its own re-run -- and that is a result either way. Done when the page either reproduces the served residual at HEAD or says on its face that it cannot, with the sample size the bound earns; a silently unchanged page is not done."
    },
    {
-    "id": "the-level-grader-can-grade-none-of-its-own-population",
-    "what": "Narrow to the ELEVEN rows whose ungradability is a MAP defect rather than missing work, and repair the map rather than the grader. The 5 naming only controls older than the row itself (`D27_belief_window_saturates_on_this_book`, `D9_worse_than_blind_chip_is_metric_blind`, `H41_the_map_ratchet_has_no_ongoing_drain`, `A50_the_supplier_use_case_register_is_published_with_a_status_per_item`, `W2_31_people_phase1_the_physical_layer_stands_alone`) get `file_scope` repointed at a control their own build wrote, or stay at zero with that said in the row. The 4 naming only directories (`G4_unified_failure_register`, `H40_full_suite_pollution_bisect`, `H48_the_parked_document_audit_is_the_idle_hole_at_scale`, `SP2_2_rng_substream_primitive`) get FILES. The 2 rotted pointers (`C_supply_start_consumer_routing`, `SITE3_wall_exhibit_url_rename`) are repaired or parked with a reason. Ask `python3 -m tools.maturity_map_store` for headroom BEFORE writing -- 5,844 bytes to the ratchet, 3,796 to the per-atom reserve, ~695 for the median map commit -- and pay for the repoint by draining a comment to its load-bearing sentence, never by raising either line.",
-    "why": "`tools/lane_formation.py` derives `buildable_lanes` from `level_current` and the draw ranks off it, so an unfalsifiable level field is an unfalsifiable input to this very record. 1 of 28 graded is honest and says nothing, and the map has recorded no level move in 245 first-parent commits while three separate lanes have reported that silence with nobody able to say whether nothing advanced or advances stopped being written down. The 16 rows owing a control that was never written are real work per row; these 11 are the map misreporting where its own evidence is, which is cheaper and strictly prior. Finished when graded is a real fraction of the claimed population and the two rotted pointers are repaired or parked with their reason."
+    "id": "the-published-refusal-is-false-at-the-instant-a-reader-sees-it",
+    "what": "`docs/observability/.publish_gate_state.json` holds `liveness_surface_refusal` = cause `push_never_landed` for git_hash 7bcf2518f, and `git merge-base --is-ancestor 7bcf2518f origin/main` returns true: origin DOES contain that commit, so the refusal a reader is shown is false right now and the seat brief repeats it verbatim at the top. In `background/publish_cause.py` and `background/publish_freshness.py`, make a refusal that names a commit re-ask the remote ref for THAT commit at read time, before the field is rendered by `site/assets/freshness-banner.js`, and downgrade it to the existing `lost_push_race` vocabulary when the commit has since landed. Land with `python3 -m tools.surgical_land`. The path check will say \"nothing to land\" on these files; that is expected for unstarted work and is not a spent ask.",
+    "why": "I predicted last stretch that this field would go green without the defect moving, and it did, and it has now come back false rather than empty -- which is the only state in which it can be graded. A refusal pinned to the instant of its own observation is a fail-silent surface: it tells the director the push never landed while origin holds the commit, and it will do so again at every fork. Done when a commit that reaches origin after its refusal was stamped reads as landed to a reader, proven by a control that stamps a refusal and then advances the ref."
    },
    {
-    "id": "value-arms-18-seed-result",
-    "what": "Fold `/var/tmp/se-floor18-head-20260925/shards/` against the served family and write the answer beside EACH of the five predictions in `docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md`, including any the run refutes. State of play at this orientation: `leg1.json` landed 09:12Z and is the only shard on disk, and `tools.run_value_cycle_ab --level-arm` has been running 3h08m at 7.2GB holding leg2. If `shards/agreement_fold_rc.txt` is 0, replace the served noise-floor family so `draws_the_spread_is_entitled_to` is an exact count on `/capabilities/` instead of a bound, which changes `site/data/value_arms.json` and `tools/generate_value_arms_data.py`. If legs are missing, file the partial and name which -- do NOT wait on the run inside a tick.",
-    "why": "Ranked by the run's clock and not by its worth: one shard of six exists, so this cannot be finished early in the stretch and should be picked up the moment the legs land, whatever else is in hand. `site/data/value_arms.json` is published `provisional: true` with an error bar wider than the effect it measures, and a baseline to beat is only readable if the spread carries the bound its sample size earns. A fold REFUSAL is the larger result and not a nuisance to route around -- it would mean code between 2026-09-10 and HEAD moved a published figure. Finished when the result note sits with the prereg whatever it says, and the page carries either the exact count or a named reason it cannot."
+    "id": "the-fleet-drift-oracle-is-the-local-head-not-the-branch",
+    "what": "`process_reconciler.evaluate_boot_sha_drift()` now correctly publishes population 11, graded 11, `stale: []`, `vacuous: false` -- and grades every daemon against `boot_sha.current_head()`, which is `git rev-parse HEAD` on a checkout 14 commits behind origin/main. Publish the checkout's own distance from the branch beside the verdict, so `stale 0` can never be read as a healthy fleet while the tree it was measured against is behind, and make the control assert the PROPERTY (a fleet graded against a behind checkout must not report clean) rather than today's count. Files: `background/boot_sha.py`, `background/process_reconciler.py`; land with `python3 -m tools.surgical_land`. The path check reads these as identical to HEAD, which is correct for work not yet started.",
+    "why": "The denominator repair that landed in `e1736649a` is real and I graded it true, but it fixed the count and left the oracle -- the same class arriving through a third door in the same week I recorded the lesson. Every one of those eleven daemons is in fact running code the branch has moved past, and the instrument built to notice exactly that says the fleet is clean. Done when a checkout deliberately set behind origin makes the verdict say so."
    },
    {
     "id": "sanity-daemon-mute-cause",
-    "what": "Establish why `sanity-daemon` has written nothing at all in its whole 29h run and write the cause to `log_silence` on its row in `background/process_manifest.yaml`, which is where the orientation brief reads it back from. Check its real write path first -- the four causes already on file are mostly a daemon logging to a file the journal reader does not watch, and `docs/observability/` is where to look -- before concluding it is wedged; its wait channel is `hrtimer_nanosleep`, which is what an ordinary sleeper looks like. Five causes are on file and all five came out different, so do not hand it a class verdict.",
-    "why": "It is the only thing the orientation brief asks outright, it is the last mute daemon with no cause on file, and it costs minutes. I rejected it last stretch on the grounds that any passing tick could do it without a slot; nothing did, which falsifies that reason rather than repeating it, so it takes the tail slot where whatever finishes early can pick it up. Finished when `log_silence` on that row names a cause and `sanity-daemon` stops appearing in the brief's actionable list."
+    "what": "`sanity-daemon` is the one row on the brief's actionable mute list with no cause on file: unit active, silent for its whole 9h16m run, wchan `hrtimer_nanosleep`. Establish which of the five known causes it is -- writing to a path the journal reader does not watch, wedged, mute by construction with no write-out path at all, restarted faster than it speaks, or genuinely nothing to say -- by reading `background/sanity_daemon.py` for its `print`/log calls and checking whether the file it writes has advanced. Write the finding to `log_silence` on that daemon's row in `background/process_manifest.yaml` and land with `python3 -m tools.surgical_land`.",
+    "why": "Carried from the previous direction, named and never drawn, and it is a fifteen-minute write that keeps a whole instrument honest: the five daemons established so far came out as five different causes, so a class verdict would have been wrong for at least one, and an unexplained mute row is the only shape in which a genuinely wedged daemon would be indistinguishable from a healthy quiet one. Done when the row carries a cause and `sanity-daemon` moves off the actionable list in the next brief."
    }
   ],
   "not_now": [
    {
-    "what": "The 16 maturity-map rows whose subject is on disk and for which no grading control was ever written.",
-    "why": "That is the expensive two-thirds of the ungradable population and it is real work per row. The 11 rows in focus are the map misreporting where its evidence already is -- a repoint, not a build -- and they are strictly prior: a control written for one of the 16 would be pointed at by a `file_scope` field nobody has yet shown to be accurate."
+    "what": "Repairing the 23 ungradable maturity-map rows that owe a repair, and the 27 ungradable rows overall.",
+    "why": "Last stretch was almost entirely instrument work and the map grader is now honest about its own denominator, which was the part that was lying. Another stretch inside the instrument buys no thesis, and four of those rows will change shape once the fork and publisher story in focus one closes. Deferred deliberately, not forgotten."
    },
    {
-    "what": "Building the ongoing drain for the maturity map's byte ratchet (H41's own subject, as opposed to repointing its row).",
-    "why": "5,844 bytes of headroom and 3,796 to the per-atom reserve is about five level moves from a line that reds `tests/design/` in every lane, so it is real. It still loses, and for the same reason as last stretch: it is a LOUD failure that names itself in every lane the moment it trips, and it loses to a level field that is silently unfalsifiable. Repointing H41's `file_scope` is in focus and is a different job from building its drain -- do not let the first be read as the second."
+    "what": "Sweeping the 15 BLOCKING findings as one batch.",
+    "why": "They are not one class. At least four of them -- the checkout that cannot advance, the receiptless-commit door, the ruff census red in the shared worktree, the publish recorder snapshot -- are downstream of the fork treadmill, and clearing them individually now would be fixing instances of a cause that focus one removes. The rest are genuinely separate and can wait a stretch."
    },
    {
-    "what": "Repairing `liveness_surface_refusal` so a refusal naming a commit re-asks `git ls-remote` before a reader is shown it.",
-    "why": "The instance cleared exactly as I predicted it would and for the wrong reason -- a clean publish OVERWROTE the field, so it now reads `None` while nothing re-asks anything. A fixture could exercise the repair today, so this is a loss on rank and not on feasibility: it is a surface defect on an instrument, and it loses to 236 lines of unlanded domain work and to a fleet detector reporting zero drift over one resolvable row. It stays in `wrong` so the green field cannot be mistaken for the fix."
+    "what": "Building the control for the `git restore --source=stash@{0}` completeness class -- a path present in the stash but in neither HEAD nor the index is silently skipped, and `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content, so the sweep would report a genuinely lost file safe.",
+    "why": "Rejected for the NINTH consecutive stretch, and I am recording the count because a rejection repeated without being counted stops being a judgement. Reproducing it needs a real stash against a tree with three live writers, and manufacturing that safely costs more than the class's current exposure. The mitigation in force is prose and holds: no item in this record grades a working copy's age by that clock. If it reaches ten, it goes in focus regardless of what else is due."
    },
    {
-    "what": "The heartbeat-only commit volume -- folding `chore(liveness)` commits into content commits so trunk stops carrying commits that change nothing.",
-    "why": "Measured before rejecting, because the brief's 5-of-13 invited the wrong conclusion: over seven days it is 84 of 732 commits, about 11%, roughly 12 a day, each taking a gate cycle and the run lock. That cost is real but the mechanism is deliberate -- published liveness must not depend on content changing (Fault#1, 2026-07-25) -- so folding it needs a second publish path, which is a build, not a tidy. And it is loud: every one of them is visible in `git log`."
+    "what": "Holding `token-proxy` rather than leaving it enabled.",
+    "why": "It has logged nothing for 235h because nothing routes through it -- `ANTHROPIC_BASE_URL` is unset for every claude process on this box -- and the brief files it as a director-facing call. It is not one: a declared process moving between enabled and held is a dial, reversible in a line, and it costs 7.2MB. I am deciding to leave it enabled, because removing the token accounting route is harder to undo than leaving an idle listener up, and revisiting it when something needs the accounting."
    },
    {
-    "what": "The `git restore --source=stash@{0}` completeness-sweep class -- a detector that can see a path present in a stash but in neither HEAD nor the index.",
-    "why": "Rejected an eighth time, visibly, and the reason has not moved: the instance is closed, all 436 paths came back byte-identical, and the never-do is written as a wall. It buys a detector for something nobody is permitted to do, and it loses to domain work that is finished and in no commit."
+    "what": "Giving `worker-seat-manager` a heartbeat line so it stops reading as mute by construction.",
+    "why": "It is a real behaviour change to the daemon that seeds the worker seat, and it would arrive as a side-effect of tidying an instrument. Its cause is already established and on file, so the brief is not misleading anyone. It deserves its own evidence and its own window."
    },
    {
-    "what": "Deciding whether `token-proxy` should be `held` rather than `enabled` in `background/process_manifest.yaml`.",
-    "why": "A declared daemon that has logged once in 224h, because `ANTHROPIC_BASE_URL` is unset for every `claude` process on this box and nothing routes through it. A prior reading filed it as director-facing; it is not -- holding a daemon is reversible and costs him nothing to review afterwards, so it is mine. It loses this stretch because the daemon earns nothing either way and the decision moves no evidence about the model."
+    "what": "Restarting the 18-seed floor run to get an answer sooner.",
+    "why": "It would discard 13.5 hours of completed legs sitting in /var/tmp/se-floor18-head-20260925/shards/ and restart a roughly 22-hour clock. Waiting costs nothing that acting would not cost more of."
    }
   ],
   "for_the_director": [],
@@ -316,6 +316,46 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "MINE, AND I CLOSED IT ON A GOOD DAY. Last stretch I marked the publisher row corrected because `last_clean_publish` had moved and every red was empty. Fourteen hours later it is refusing again -- `episode_failures` 1, `wedge_since` set, and the recorded cause is `behind_origin`. The defect was never the publisher; it was the fork treadmill underneath it, and a green reading of the publisher was exactly the \"state of a named mechanism on a good day\" evidence I had twice said I would not accept. I accepted it the moment it flattered me. Grade it by whether the publisher survives a stretch in which the checkout forks from origin, never by whether it is currently clean.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "THE MACHINE'S, CARRIED, AND THE SECOND HALF IS NOW GRADED AND STILL OPEN. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. I said to re-ask the second half at the next red gate; the gate is red now, and `citation_at_head` reads `not_established` with reason \"no red is named on this failure, so there is no citation to re-ask\", alongside `red_at_head` and `fork_state` reading the same. So at a live refusal the surface still cannot say which tree the red belongs to -- the honest `not_established` is correct and is not the same as an answer. Grade it by whether a door change is required to re-run the fixtures built against its old shape.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "MINE, NEW LAST STRETCH, NOW CLOSED ON THE TEST I SET. I wrote a focus item describing work to BUILD and never said to LAND it, and 236 lines of sourced per-customer domain work sat in no commit. Those bytes are now an ancestor of origin/main in `17a88051c`, with `company/crm/churn_model.py`, `company/crm/enriched_churn_estimate.py` and an owned control file, and `ae101f936` carried the arrears state through to the renewal and the price. Every code item in this record now names `tools.surgical_land` explicitly, which is the structural half of the fix rather than my remembering.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "MINE, NEW LAST STRETCH, CLOSED ON THE INSTANCE AND THE TEST I NAMED. \"Ask a census's denominator before believing its numerator\" was recorded about one instrument and not swept; `evaluate_boot_sha_drift()` now returns population 11, graded 11, `stale: []`, `vacuous: false` and a live stamper probe reading `works`, landed in `e1736649a`. My stated test was whether a fleet or census verdict in this tree publishes its population and its resolved count beside the numerator, and it does. The successor defect is recorded separately rather than folded in here.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "THE MACHINE'S, CARRIED, AND NOW DEMONSTRATED FALSE RATHER THAN ARGUED. `liveness_surface_refusal` holds cause `push_never_landed` for git_hash 7bcf2518f, and `git merge-base --is-ancestor 7bcf2518f origin/main` returns true -- origin contains the commit the field says never reached it, and the seat brief reprints the claim at the top. I predicted last stretch that a clean publish would overwrite the field without the repair being touched; it did, and the field has come back wrong at its next use. Grade it by whether a refusal naming a commit re-asks the remote ref for that commit before a reader is shown it, and never by whether the field is currently empty.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "THE MACHINE'S, CARRIED FOR FIVE STRETCHES, AND CLOSED BY REFUTATION RATHER THAN BY DOING WHAT I SAID. I asked four times for the `-` to be stripped from the twelve `ExecStartPre=` lines, on the argument that it silences a boot-stamper failure. `f5f740cf6` measured it: systemd records the failing exit under ignore-errors anyway, so the strip buys no detection, and the stamper now probes `works` with 11 of 11 daemons graded. The remedy was wrong for five stretches and one measurement settled it in one. I never once asked whether the thing I wanted stripped was the cause -- the rule is print the numbers at real inputs before shipping a formula, and a proposed remedy is a formula.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "MINE, NEW, AND IT IS THE SAME LESSON ARRIVING THROUGH A THIRD DOOR IN THE SAME WEEK. Fixing a census's DENOMINATOR does not fix its ORACLE. `evaluate_boot_sha_drift()` now honestly publishes 11 of 11 graded and zero stale, and it grades all eleven against `boot_sha.current_head()` -- the local HEAD, on a checkout 14 commits behind origin/main. Every one of those daemons is in fact running code the branch has moved past, and the instrument built to notice exactly that reports the fleet clean, with its population correctly printed beside it. Grade it by whether a checkout deliberately set behind origin makes a fleet verdict say so.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-25T23:21:17.968983+00:00",
+    "what": "THE MACHINE'S, INSTANCE CLOSED AND CLASS OPEN AFTER NINE STRETCHES. `git restore --source=stash@{0}` silently skips a path present in the stash but in neither HEAD nor the index, and `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content, so the completeness sweep would report a genuinely lost file safe. Rejected a ninth time, visibly, in `not_now`, with the count recorded and a commitment that a tenth rejection is not available.",
+    "corrected": false
+   },
    {
     "at": "2026-09-25T11:20:53.097996+00:00",
     "what": "MINE, CARRIED THREE STRETCHES, NOW CLOSED ON THE TEST I SET AND ONLY ON THAT TEST. `last_clean_publish` has moved: 2026-09-25T09:48:30Z, with `episode_failures` 0, `total_red` 0, `blocking_tests` empty and `wedge_since` null, against 86.1 hours dark and 60 refusals when I wrote the row. The correction goes beside the claim: what freed it was `eaadba75b`'s fixture repair landing at the end of last stretch, and the publisher then ran on its own without being driven -- so the discipline that was right was refusing to grade it by the state of a named mechanism, twice in a row, after being wrong twice that way.",
@@ -1280,43 +1320,57 @@
     "at": "2026-09-20T05:21:16.153467+00:00",
     "what": "THE MACHINE'S, CARRIED, SAME SHAPE AND SAME REASON FOR STAYING OPEN AS THE SEAT'S OWN CARRIED ROW. The shape instrument decides a commit carried work iff its tree differs from every parent's, so a heartbeat commit reads as work and the control built to notice an empty stretch structurally cannot see one. This brief demonstrates it undiminished: `shape` reports 12 of 12 carrying work with `shape_is_wrong: false`, printed inches from a `substantive` count of 8, and nothing reconciles the two fields. The repair is written, measured (12 of 60 commits in its stretch are pure liveness, every one read as work), keyed to the publisher's own `LIVENESS_SURFACE_FILES` declaration rather than to filenames, refuses to clear a stretch it cannot read that declaration for, and its author pre-registered that the heartbeats would be scattered rather than consecutive and was right. I ran its tests this orientation: 25 passed. It is in `background/commit_narrative.py` as 190 uncommitted lines with an mtime of 19:44. A green test on a file nobody commits is a demonstration, not a correction. Open until focus one lands it.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-20T02:21:25.211224+00:00",
-    "what": "MINE, CARRIED FROM TWENTY STRETCHES BACK, STILL OPEN \u2014 AND FOR THE FIRST TIME THE REASON IT IS OPEN IS A NEW INSTANCE RATHER THAN THE OLD ONE. The parent habit is publishing a figure graded against a family that did not generate it. The \u00a3810.18 instance I have carried for four stretches is CLOSED on its own terms and I am recording that plainly: `current_world.selection_leg` in `site/data/value_arms.json` now carries `is_a_correction_to_the_figure_above: false`, `never_asked: true`, the 281-against-214 counts, and a clause stating in its own words that the whole advantage moved by \u00a30.00 and a reader taking it as a gain has read it backwards; and `site/test_the_selection_legs_bias_size_reaches_the_reader.py` proves the clause reaches the RENDERED page through its own JavaScript, with a mutation leg that catches a clause keeping the size and dropping the counter. Six passed this orientation. The condition I set \u2014 the field cannot be read without its clause \u2014 is met. THE ROW STAYS OPEN BECAUSE THE CLASS PRODUCED A BIGGER ONE WHILE I WAS CLOSING THAT. `selection_gbp` = +\u00a3270.21 is published as the worth of the choosing, formed from an advantage over 214 priced renewals minus an advantage over 281, with the gap bounded at ~\u00a33,900 \u2014 fourteen times the figure. That is the identical habit at fourteen times the stake, on the number the whole thesis rests on, and a remedy that lands on an instance while the class is still generating instances is not a correction. It is focus two and it is the first time this row has had a focus item of its own at the top of the focus list.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-20T02:21:25.211224+00:00",
-    "what": "THE MACHINE'S, CARRIED, STILL OPEN \u2014 BUT THE FALSE BINDING I CALLED OUT LAST STRETCH IS REPAIRED, AND THE PROOF IS IN THIS BRIEF'S OWN TEXT. The condition is a full stretch with no `landed_unbound` and no `premise_spent` row. This brief carries one of each, so it fails on its face. What changed: `the-orientation-brief-misreports-the-machine-it-describes` was credited last stretch to `851dffdbb`, a heartbeat republish intersecting it at exactly `site/data/tick_heartbeat.json`; it now appears as `not_done` with the evidence line \"every one's intersection with them was confined to the publisher's declared liveness surface \u2014 so commits carrying work on this subject: none. A heartbeat republish is not a landing; this window is workable and can be drawn again.\" That is `_window_hits` refusing correctly, keyed to `process_run_complete.LIVENESS_SURFACE_FILES` rather than to two filenames, and the item is back in the pool where it belongs. IT IS NOT COMMITTED \u2014 it is 154 lines in a working-tree copy of `background/delivery_lane.py` that any `git restore` erases. And the sibling hole is now filed BLOCKING: `record_landing` defaults `commit` to HEAD, the tick is instructed to run `--landed <id>` with no commit, and 28 of the last 200 HEADs are pure heartbeats \u2014 one row in 400 has already been credited that way. The remaining `premise_spent` row, `measure-whether-the-product-gate-is-the-real-ceiling`, is a correct refusal and not a defect: the landing predated its own draw by 22 minutes. Open until the repair is in a commit and the HEAD default is closed.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-20T02:21:25.211224+00:00",
-    "what": "THE MACHINE'S, CARRIED, AND STILL OPEN FOR THE SECOND STRETCH RUNNING FOR THE SAME REASON \u2014 THE CORRECTION EXISTS ONLY AS AN UNCOMMITTED DIFF. The condition is that a brief names what is running on the box without my asking. This brief does it again: nine jobs with pid, elapsed, resident size and argv head, ten declared daemons subtracted, and it changed three of the four focus items I wrote. Seeing `background/delivery_lane.py` at mtime 23:24 beside live `seat_executor` and `worker_tick` processes is why the binder repair is in `not_now` instead of focus; seeing `tools.churn_truncation_census` at pid 847480, 24m42s, 3GB is why focus four says do not launch a second one and why the `/tmp` leak is deferred. That is the instrument earning its place twice over. `running_now()` in `background/delivery_seat.py` is STILL uncommitted \u2014 198 of the 379 lines, mtime 19:51, now 3.7 hours old and unchanged across two draw windows. Every brief from a fresh checkout goes blind with no announcement. It closes when focus one lands it, and focus one is first this time precisely because ordering it third twice did not work.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-20T02:21:25.211224+00:00",
-    "what": "THE MACHINE'S, CARRIED, SAME SHAPE AND SAME REASON FOR STAYING OPEN AS THE SEAT'S OWN CARRIED ROW. The shape instrument decides a commit carried work iff its tree differs from every parent's, so a heartbeat commit reads as work and the control built to notice an empty stretch structurally cannot see one. This brief demonstrates it undiminished: `shape` reports 12 of 12 carrying work with `shape_is_wrong: false`, printed inches from a `substantive` count of 8, and nothing reconciles the two fields. The repair is written, measured (12 of 60 commits in its stretch are pure liveness, every one read as work), keyed to the publisher's own `LIVENESS_SURFACE_FILES` declaration rather than to filenames, refuses to clear a stretch it cannot read that declaration for, and its author pre-registered that the heartbeats would be scattered rather than consecutive and was right. I ran its tests this orientation: 25 passed. It is in `background/commit_narrative.py` as 190 uncommitted lines with an mtime of 19:44. A green test on a file nobody commits is a demonstration, not a correction. Open until focus one lands it.",
-    "corrected": false
    }
   ],
   "refused_own_records": [],
-  "outstanding": 119,
-  "corrected": 78,
+  "outstanding": 120,
+  "corrected": 81,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "bill-stress-hazard-from-the-arrears-ledger",
-   "boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon",
-   "the-level-grader-can-grade-none-of-its-own-population",
-   "value-arms-18-seed-result",
+   "the-reconciler-closes-ahead-while-the-behind-leg-grows",
+   "value-arms-18-seed-floor-collect",
+   "the-published-refusal-is-false-at-the-instant-a-reader-sees-it",
+   "the-fleet-drift-oracle-is-the-local-head-not-the-branch",
    "sanity-daemon-mute-cause"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "bill-stress-hazard-from-the-arrears-ledger",
+       "boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon",
+       "the-level-grader-can-grade-none-of-its-own-population"
+      ],
+      "focus": [
+       "bill-stress-hazard-from-the-arrears-ledger",
+       "boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon",
+       "the-level-grader-can-grade-none-of-its-own-population",
+       "value-arms-18-seed-result",
+       "sanity-daemon-mute-cause"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "bill-stress-hazard-from-the-arrears-ledger",
+     "boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon",
+     "the-level-grader-can-grade-none-of-its-own-population"
+    ],
+    "focus": [
+     "bill-stress-hazard-from-the-arrears-ledger",
+     "boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon",
+     "the-level-grader-can-grade-none-of-its-own-population",
+     "value-arms-18-seed-result",
+     "sanity-daemon-mute-cause"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 12.0h since 2026-09-25T11:20:53.097996+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 12.0h since 2026-09-25T11:20:53.097996+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1451,36 +1505,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-24T23:24:04.367685+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-24T23:24:04.367685+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-ahead-leg-is-filled-automatically-and-drained-by-hand",
-       "the-page-does-not-say-it-is-behind",
-       "nothing-can-tell-a-working-boot-stamper-from-a-dead-one"
-      ],
-      "focus": [
-       "the-ahead-leg-is-filled-automatically-and-drained-by-hand",
-       "the-page-does-not-say-it-is-behind",
-       "nothing-can-tell-a-working-boot-stamper-from-a-dead-one"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-ahead-leg-is-filled-automatically-and-drained-by-hand",
-     "the-page-does-not-say-it-is-behind",
-     "nothing-can-tell-a-working-boot-stamper-from-a-dead-one"
-    ],
-    "focus": [
-     "the-ahead-leg-is-filled-automatically-and-drained-by-hand",
-     "the-page-does-not-say-it-is-behind",
-     "nothing-can-tell-a-working-boot-stamper-from-a-dead-one"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-24T20:22:26.871045+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-24T20:22:26.871045+00:00"
    }
   ],
   "steered_recently": true,
