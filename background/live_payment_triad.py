@@ -256,6 +256,19 @@ def check_every_caveat_is_published(result: dict,
     return out
 
 
+def _one_billing_period_before(as_of: date) -> date:
+    """The same day one MONTH earlier -- this book's own billing cadence, not a chosen window.
+
+    `LivePaymentTriad.record_period` is called once per customer-MONTH (`run_phase2b` keys it on
+    `(cid, settlement_date[:7])`), so one month is the interval between two consecutive
+    observations this company has of any account's receivable. Clamped to the 28th at most, which
+    is the day `run_phase2b` bills on, so no month is skipped by a 29th-31st that the previous
+    month does not have.
+    """
+    year, month = (as_of.year, as_of.month - 1) if as_of.month > 1 else (as_of.year - 1, 12)
+    return date(year, month, min(as_of.day, 28))
+
+
 def _period_index_for(due_date: date) -> int:
     """Deterministic, iteration-order-independent period index for a billing
     month (C-S2). Unique per calendar month, stable run-to-run -- the only
@@ -720,6 +733,37 @@ class LivePaymentTriad:
             for assessment in self._hand_overs
             if assessment.is_backlog_burst or assessment.understated_delay
         ]
+
+    def arrears_state(self, customer_id: str, as_of: date, segment: str = "resi") -> str:
+        """Where this account stands on the COMPANY's own receivable, as one of
+        `churn_model.ARREARS_STATES`.
+
+        THIS METHOD IS THE DOOR, the same shape as `detection_cells` below and for the same
+        reason: `run_phase2b` must be able to ask what this company believes it is owed without
+        ever being handed a company object, so a STATE STRING comes back and the consumer does
+        not. The ledger behind it is the one `record_period` has been posting bills and observed
+        cash into all run -- the company's own bookkeeping, built only from what crossed the seam.
+        Nothing consults `simulation/arrears_engine`; that is the world's arrears, and reading it
+        would turn an inference this supplier genuinely has into access it does not.
+
+        IT ASSEMBLES NOTHING, and that is the wall speaking rather than taste. Doing the ledger
+        read here would mean importing `arrears_engine` and `churn_model` into a BRIDGE module,
+        which makes them `simulation.run_phase2b -> company.*` edges the wall-crossing register
+        has ruled CUT -- one of them died in `15125f388` and would have come back. The whole read
+        is `PaymentObservationConsumer.arrears_state`, inside `company/`, where the same imports
+        cross nothing.
+
+        WHAT THIS CLASS SUPPLIES IS THE CADENCE, which is the one part the company cannot know:
+        `record_period` posts exactly one bill per customer-month, so the previous observation of
+        any account is the previous month. The consumer requires that date and refuses to default
+        it -- a window nobody chose is how a DIRECTION column becomes a made-up interval.
+        """
+        return self._consumer.arrears_state(
+            f"ACC-{customer_id}",
+            as_of,
+            _one_billing_period_before(as_of),
+            segment=segment,
+        )
 
     def detection_cells(self, as_of: date) -> dict:
         """The per-cell DETECTION measurements for the fidelity grid.
