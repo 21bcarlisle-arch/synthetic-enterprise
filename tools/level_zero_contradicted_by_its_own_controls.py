@@ -193,7 +193,27 @@ BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
 POINTER_ROT = "a named path is absent here and git knows it, so the pointer rotted"
 CONTROL_NEVER_WRITTEN = "the subject is on disk and the control that would grade it was never written"
 HONESTLY_UNBUILT = "no named file exists, so the row is RIGHT to read zero and owes no repair"
-NAMES_ONLY_A_SCOPE = "every named entry is a directory, so no file-level evidence exists either way"
+NAMES_ONLY_A_SCOPE = ("the row's control evidence is a DIRECTORY and not a file, so no file-level "
+                      "evidence exists either way")
+#: A SEVENTH CAUSE, and it was carved out of `CONTROL_NEVER_WRITTEN` on 2026-09-25 because that
+#: class was a mixed one and the larger half of it was being told the wrong thing.
+#:
+#: `CONTROL_NEVER_WRITTEN` is published -- in its own string above, and in the table in
+#: `docs/staging/done/WORKER_RESULT_THE_THIRTY_ONE_UNGRADABLE_ROWS_ARE_FIVE_CAUSES...` -- as
+#: "path absent AND unknown to git, subject on disk". Measured against the live map on 2026-09-25:
+#: SIXTEEN of the 28 candidate rows carried it, and only TWO of those sixteen had an absent path at
+#: all. The other fourteen reached it through the `elif not controls` leg, where nothing is absent
+#: and NOTHING WAS MEASURED about whether a control exists -- the row simply does not name one.
+#:
+#: WHY THAT MATTERS AND IS NOT A NAMING QUIBBLE. "never written" is a claim about the WORK, and the
+#: repair it prints tells the reader to write the named control. For these rows there is no named
+#: control to write, so the instruction is unfollowable; worse, the claim may be false in the
+#: direction that hides landed work. This module's own docstring records the shape: `PB4` and `PB6`
+#: are rows whose build DID write a control, under a name the row does not cite. A row that names
+#: no control cannot tell those two worlds apart, and saying "never written" picks one of them
+#: without looking. "We cannot tell from this row" is the result, and it belongs on the surface.
+CONTROL_UNNAMED = ("the row names no control at all, so whether one was ever written is not a "
+                   "question this row can answer")
 CAUSE_UNDECIDABLE = "git could not be asked whether the absent path ever existed"
 #: The row is not the problem. Every path it names is here and one of them is a runnable control,
 #: so no edit to `file_scope` would change the verdict -- the refusal came from the PASS (a
@@ -215,6 +235,10 @@ CAUSE_REPAIR = {
     POINTER_ROT: "repoint `file_scope` at where the path lives now -- `git log --all -- <path>`",
     CONTROL_NEVER_WRITTEN: "write the named control and prove it can fail; until then the row "
                            "is ungradable and that is the honest reading, not a defect",
+    CONTROL_UNNAMED: "name the control this atom's build writes. Do NOT write one before asking "
+                     "whether it exists: `git log --all --oneline -- <subject>` finds the commits "
+                     "that touched the subject, and a control under a name the row never cited is "
+                     "the shape PB4 and PB6 were. Nothing here is a verdict about the work yet",
     HONESTLY_UNBUILT: "nothing to repair in the row -- build the atom, or close it",
     NAMES_ONLY_A_SCOPE: "name the FILES this atom writes, not the directory they live in",
     CAUSE_UNDECIDABLE: "classify this row in a tree that has commit history",
@@ -370,6 +394,28 @@ def _is_declared_directory(rel: str, root: Path) -> bool:
     return rel.endswith("/") or (root / rel).is_dir()
 
 
+def _is_a_control_scope(rel: str, root: Path) -> bool:
+    """Whether this named directory is a place controls LIVE -- measured, not matched on a prefix.
+
+    A `test_*.py` anywhere beneath it. `tests/harness` qualifies and `docs/market_research/` does
+    not, without either being named here: a literal `tests/` would be a bound keyed to today's
+    layout, and this project has paid for that shape often enough to stop writing it.
+
+    ABSENT OR EMPTY IS FALSE, deliberately, and the direction is the honest one. A row naming a
+    test directory that holds nothing has not shown where its evidence lives either -- it is
+    `CONTROL_UNNAMED`, whose repair says to go and look, rather than `NAMES_ONLY_A_SCOPE`, whose
+    repair says to name a file in a directory that has none.
+
+    `rglob` is short-circuited on the first hit, so `tests/` costs one directory read and not a
+    walk of the suite -- this runs inside the delivery seat's orientation, over every candidate
+    row, and a full walk per directory would be paid 28 times for one boolean.
+    """
+    here = root / rel
+    if not here.is_dir():
+        return False
+    return next(here.rglob("test_*.py"), None) is not None
+
+
 def _path_known_to_git(rel: str, root: Path = ROOT) -> bool | None:
     """Did this path EVER exist on any ref here? `True`/`False`, or `None` for "cannot ask".
 
@@ -456,8 +502,33 @@ def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -
         out.append({"cause": CONTROL_NEVER_WRITTEN, "paths": never_controls,
                     "repair": CAUSE_REPAIR[CONTROL_NEVER_WRITTEN]})
     elif not controls:
-        out.append({"cause": CONTROL_NEVER_WRITTEN, "paths": ["(file_scope names no test_*.py)"],
-                    "repair": CAUSE_REPAIR[CONTROL_NEVER_WRITTEN]})
+        # THE ROW NAMES NO CONTROL, and until 2026-09-25 this was the same cause as the branch
+        # above -- fourteen of the sixteen live members of `CONTROL_NEVER_WRITTEN` came through
+        # here, where nothing is absent and nothing was measured. See `CONTROL_UNNAMED`.
+        #
+        # AND THE DIRECTORY CASE IS SPLIT OFF FIRST, because the row that names `tests/harness`
+        # is not the row that names nothing: it says where its evidence lives and stops one level
+        # short of the file. `NAMES_ONLY_A_SCOPE` used to be reachable only through `if not files`
+        # above -- EVERY entry a directory -- which is a condition keyed to the rest of the row
+        # rather than to the property it is describing. `W2_non_dd_miss_vocabulary` names three
+        # subject files AND `tests/company/crm` AND `tests/harness`, and it was being told to
+        # write a control that is almost certainly already inside one of them.
+        #
+        # A CONTROL SCOPE IS MEASURED, NOT MATCHED ON `tests/`. The property is "controls live
+        # here", so it is asked of the tree: a `test_*.py` anywhere under the directory. That
+        # keeps `docs/market_research/`, `company/billing/` and `site/data/` -- the other
+        # directories these rows name -- out of it without a path literal that would need
+        # maintaining the day the test root moves.
+        scopes = [rel for rel in dirs if _is_a_control_scope(rel, root)]
+        if scopes:
+            out.append({"cause": NAMES_ONLY_A_SCOPE, "paths": scopes,
+                        "repair": CAUSE_REPAIR[NAMES_ONLY_A_SCOPE]})
+        else:
+            # REAL PATHS, not the `"(file_scope names no test_*.py)"` placeholder this used to
+            # carry. A non-path in a `paths` field is a path-shaped token a reader will try to
+            # open, and these are the paths the repair actually sends them to `git log`.
+            out.append({"cause": CONTROL_UNNAMED, "paths": sorted(subject_on_disk),
+                        "repair": CAUSE_REPAIR[CONTROL_UNNAMED]})
     # AND THE PARTITION IS CLOSED HERE. Reaching this line with nothing found means every path
     # the row names is on disk and at least one is a runnable control -- there is no edit to the
     # row that would help, which is itself the answer and not the absence of one. Returning `[]`
