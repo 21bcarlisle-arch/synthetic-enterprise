@@ -257,7 +257,9 @@
   dial_inherited: 3
   provenance: proposal
   records_rehomed: [evidence]
-  file_scope: [docs/retrospectives, tools, tests]
+  file_scope: [tools/failure_register.py, docs/retrospectives/failure_register.jsonl,
+    tests/tools/test_failure_register.py]   # 2026-09-25: the three artefacts
+  #   UNIFIED_FAILURE_REGISTER.md 7 (L2) declares, replacing three bare directories.
   simplifications_count: 5
 - id: E5_carbon_three_ledger
   notes_rehomed: [name]
@@ -612,7 +614,9 @@
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
-  file_scope: [simulation, tests/simulation]
+  file_scope: [simulation/rng_substream.py, tests/simulation/test_rng_substream.py]
+  #   2026-09-25: the canonical module RNG_SUBSTREAM_PRIMITIVE_DISCOVER.md 4 names, plus the
+  #   control its build writes, replacing two bare directories.
   depends_on: []
   blocked_on: null
   simplifications_count: 2
