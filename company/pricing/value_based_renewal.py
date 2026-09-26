@@ -91,7 +91,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from company.crm.churn_model import CHURN_SEGMENTS, RESI_SEGMENT, SME_SEGMENT
+from company.crm.churn_model import (
+    ARREARS_STATE_UNKNOWN,
+    CHURN_SEGMENTS,
+    RESI_SEGMENT,
+    SME_SEGMENT,
+)
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.regulatory.pricing_permissions import check_class_margin
@@ -730,6 +735,7 @@ def decide_margin(
     behaviour_score: BehaviourScore | None = None,
     satisfaction_score: float | None = None,
     renewal_year: int | None = None,
+    arrears_state: str = ARREARS_STATE_UNKNOWN,
     candidates: tuple[float, ...] = CANDIDATE_MARGINS_GBP_PER_MWH,
     max_offered_rate_gbp_per_mwh: float | None = None,
     annual_revenue_gbp: float | None = None,
@@ -808,6 +814,12 @@ def decide_margin(
             fuel=fuel,
             segment=segment,
             renewal_year=renewal_year,
+            # RESOLVED OUTSIDE THE SCORER AND CONSTANT ACROSS CANDIDATES, for the same reason
+            # `departure_cost` is: where this account stands on the company's own receivable is a
+            # fact about the account as it is TODAY, not about a price it has not been offered.
+            # An arrears state that moved with the margin would be this model predicting its own
+            # collections -- a second, unsourced elasticity beside the churn model's.
+            arrears_state=arrears_state,
         )
         p_stay = max(0.0, 1.0 - float(p_leave))
         return p_stay, expected_value_gbp(
