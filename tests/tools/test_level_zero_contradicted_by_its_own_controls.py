@@ -371,14 +371,30 @@ def test_every_verdict_names_a_live_atom_actually_in_the_partition():
     candidates = {a["id"] for a in atoms if lz.is_candidate(a)}
     graded = {a["id"] for a in atoms
               if lz.is_candidate(a) and lz.named_controls(a)}
+    # THE THIRD OUTCOME, added 2026-09-26 beside the claim it corrects. This used to read
+    # `contradicted | ungradable == candidates`, and it was true until the HEAD-red leg landed on
+    # 2026-09-25: a row whose named control is red at HEAD is GRADED and appears in NEITHER list,
+    # because "the map and the controls agree" is how this module spells silence. The control
+    # then went red on the live map -- not because a row was unaccounted for, but because the
+    # test knew two outcomes and the pass has three.
+    #
+    # It is repaired by asking the LEG LOG rather than by subtracting today's silent row: the
+    # property is that every candidate is ACCOUNTED FOR somewhere, and the log is total over the
+    # partition by construction. Pinning the silent id would have gone green here and stayed
+    # green when a second row started being silenced for a completely different reason.
+    legs: list = []
     contradicted, ungradable = lz.assess(
-        atoms, root=REPO, runner=lambda *a, **k: (None, "not run in this control"))
+        atoms, root=REPO, runner=lambda *a, **k: (None, "not run in this control"),
+        leg_log=legs)
+    silenced = {e["id"] for e in legs if e["leg"] == lz.SILENCED_AT_HEAD}
     reported = {c["id"] for c in contradicted} | {u["id"] for u in ungradable}
     assert reported <= candidates, "reported a row outside level-0/build: {}".format(
         reported - candidates)
-    assert candidates <= reported, (
-        "every level-0/build row gets a verdict or a stated reason; silent on: {}".format(
-            candidates - reported))
+    assert candidates <= reported | silenced, (
+        "every level-0/build row gets a verdict, a stated reason, or a logged leg saying why it "
+        "needed neither; silent on: {}".format(candidates - reported - silenced))
+    assert not (reported & silenced), (
+        "a row cannot both be silenced without a run and carry a verdict from one")
     assert graded, "no live row names a control file at all -- the check has nothing to grade"
 
 
@@ -1389,3 +1405,177 @@ def test_a_red_a_person_has_ACCEPTED_still_silences_the_row(tmp_path: Path):
     assert why is None and reds == [node], (
         "an accepted red stopped silencing the row, so the leg is reading the DECISION store "
         "and not the OBSERVATION: {} {}".format(reds, why))
+
+
+# --------------------------------------------------------------------------- #
+# WHICH LEG RETURNED THE ROW -- was a runner ever asked at all                  #
+# --------------------------------------------------------------------------- #
+
+def test_EVERY_leg_of_the_pass_is_reachable_in_ONE_pass_and_logs_each_row_ONCE(tmp_path: Path):
+    """The partition control over the INSTRUMENT, which is a different partition from the one
+    `test_all_six_verdicts_are_reachable_in_one_pass` holds. That one asks which VERDICT a row
+    got; this asks which LEG returned it, and the two disagree in exactly the place the census
+    was misread: a row SILENCED at HEAD is graded and never sees a runner.
+
+    THE DEFECT: a log written at some exits and not others under-counts silently, and the leg it
+    misses is invisible -- there is no error, just a number that is quietly too small. So the
+    assertion is TOTALITY (every row in, exactly once) and not the presence of any one leg.
+
+    A REACHED row and a BUDGET_EXHAUSTED row are both in this pass deliberately. They are the two
+    states of the same rows, and `main` adds them together for a number that does not move when
+    the reader changes `--budget` -- so a pass where only one of them can occur would let that
+    addition be written the wrong way round and stay green."""
+    for name in ("test_green.py", "test_red_at_head.py", "test_old.py", "test_undated.py",
+                 "test_late.py"):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    _observed(tmp_path, runs=[_run(datetime.now(timezone.utc).isoformat())],
+              tests={"test_red_at_head.py::test_x": {"currently_red": True}})
+
+    atoms = [
+        _atom("REACHED", scope=["test_green.py"]),
+        _atom("SILENCED", scope=["test_red_at_head.py"]),
+        _atom("NO_CONTROL", scope=["tests/", "some/module.py"]),
+        _atom("ABSENT", scope=["test_never_written.py"]),
+        _atom("OLDER", scope=["test_old.py"]),
+        _atom("UNDATED", scope=["test_undated.py"]),
+        _atom("OVER_BUDGET", scope=["test_late.py"]),
+    ]
+    # start, then REACHED and OVER_BUDGET -- the only two rows that get as far as the check.
+    ticks = iter([0, 0, 99])
+    log: list = []
+    lz.assess(
+        atoms, root=tmp_path, budget_s=50, clock=lambda: next(ticks),
+        runner=lambda *a, **k: (True, "1 passed"), blockers_for=lambda lane: [],
+        ages=_ages(predating={"OLDER": ["test_old.py"]},
+                   undatable={"UNDATED": ["test_undated.py"]}),
+        leg_log=log)
+
+    assert [e["id"] for e in log] == [a["id"] for a in atoms], (
+        "the log is not total over the partition -- a row left the loop by an exit that records "
+        "nothing, or one row was logged twice: {}".format([e["id"] for e in log]))
+    assert {e["id"]: e["leg"] for e in log} == {
+        "REACHED": lz.REACHED_THE_RUNNER,
+        "SILENCED": lz.SILENCED_AT_HEAD,
+        "NO_CONTROL": lz.NO_CONTROL_NAMED,
+        "ABSENT": lz.NAMED_CONTROL_ABSENT,
+        "OLDER": lz.CONTROL_PREDATES_ROW,
+        "UNDATED": lz.PROVENANCE_UNKNOWN,
+        "OVER_BUDGET": lz.BUDGET_EXHAUSTED,
+    }, {e["id"]: e["leg"] for e in log}
+
+
+def test_the_LIVE_pass_logs_a_leg_for_EVERY_row_in_its_own_partition(tmp_path: Path):
+    """Keyed to the property and run against the real map, because the control above can only
+    see legs its own fixture reaches -- a leg added later, taken by live rows and logged nowhere,
+    passes it. This one cannot be passed that way: `is_candidate` is the same predicate `assess`
+    filters on, so any row that leaves the loop unlogged makes these two sets differ.
+
+    FREE. `budget_s=0` stops every row at the budget check, which is after all four cheap legs
+    and after the HEAD-red probe and before the only expensive call, so no pytest runs."""
+    atoms = lz.map_store.load_live_atoms()
+    log: list = []
+    lz.assess(atoms, budget_s=0, leg_log=log)
+
+    population = {a["id"] for a in atoms if lz.is_candidate(a)}
+    assert population, "the partition is empty, so this control asserted nothing"
+    assert [e["id"] for e in log] == [a["id"] for a in atoms if lz.is_candidate(a)], (
+        "the live pass returned rows by an exit that logs no leg, so `reached_the_runner` is "
+        "counted out of a population the log does not cover: logged {} of {}".format(
+            len(log), len(population)))
+
+
+def test_a_row_SILENCED_at_HEAD_is_GRADED_and_a_runner_was_NEVER_asked_about_it(tmp_path: Path):
+    """The misreading itself, in miniature. `graded: 1 of 28` on the live map 2026-09-25 was one
+    row silenced by the HEAD-red register, and three lanes read it as a runner that had weighed
+    rows and found them wanting -- one of them drew a work item instructing the next invocation
+    to enlarge a budget nothing spends. The two numbers have to be able to disagree."""
+    for name in ("test_red_at_head.py",):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    _observed(tmp_path, runs=[_run(datetime.now(timezone.utc).isoformat())],
+              tests={"test_red_at_head.py::test_x": {"currently_red": True}})
+
+    log: list = []
+    contradicted, ungradable = lz.assess(
+        [_atom("SILENCED", scope=["test_red_at_head.py"])],
+        root=tmp_path, ages=_ages(), blockers_for=lambda lane: [],
+        runner=lambda *a, **k: (True, "1 passed"), leg_log=log)
+
+    assert contradicted == [] and ungradable == [], (
+        "the row is GRADED -- in neither list is how this module spells agreement")
+    assert [e["leg"] for e in log] == [lz.SILENCED_AT_HEAD], (
+        "a graded row that no runner was asked about must not be logged as having reached one")
+
+
+def test_BOTH_reach_states_are_reachable_on_the_SURFACE_in_one_pass(monkeypatch, capsys):
+    """The partition control on the printed line. An unconditional "no runner was asked" banner
+    would satisfy the zero arm on its own, so the non-zero arm asserts that sentence is ABSENT
+    rather than merely asserting some other word is present."""
+    rows = [_atom("A"), _atom("B")]
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: rows)
+
+    def _assess(legs):
+        def fake(atoms, **kwargs):
+            log = kwargs.get("leg_log")
+            if log is not None:
+                log.extend({"id": aid, "leg": leg} for aid, leg in legs)
+            return [], []
+        return fake
+
+    # ARM 1 -- a runner weighed one of the two.
+    monkeypatch.setattr(lz, "assess", _assess([("A", lz.REACHED_THE_RUNNER),
+                                               ("B", lz.NO_CONTROL_NAMED)]))
+    assert lz.main([]) == 0
+    reached_err = capsys.readouterr().err
+    assert "1 of 2 row(s) clear every cheap leg" in reached_err
+    assert "a runner was actually asked about 1" in reached_err
+    assert "NO RUNNER WAS ASKED" not in reached_err, (
+        "the vacuous banner fired on a pass that DID run a control -- printed unconditionally, "
+        "which is the defect with the sign flipped")
+
+    # ARM 2 -- neither row got near one, which is the live 2026-09-26 shape.
+    monkeypatch.setattr(lz, "assess", _assess([("A", lz.SILENCED_AT_HEAD),
+                                               ("B", lz.NO_CONTROL_NAMED)]))
+    assert lz.main([]) == 0
+    unreached_err = capsys.readouterr().err
+    assert "NO RUNNER WAS ASKED ABOUT ANY OF THE 2 ROW(S)" in unreached_err
+    assert "clear every cheap leg" not in unreached_err
+    assert "NO CONTROL WAS EXECUTED" in unreached_err, (
+        "the banner has to say what did not happen, not only that a number is zero")
+
+
+def test_the_reach_count_the_surface_publishes_does_NOT_move_with_the_BUDGET(monkeypatch, capsys):
+    """`--budget 0` is the free probe, and under it a row that would reach the runner is returned
+    by the budget check instead -- so `reached_the_runner` reads 0 for a reason about the PROBE
+    and not about the map. A surface publishing only that number would hand its cheapest caller a
+    permanent zero, which is the misreading this census exists to end.
+
+    So `clears_every_cheap_leg` is the number keyed to the property: the same 1 under both."""
+    rows = [_atom("A"), _atom("B")]
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: rows)
+
+    def _assess(legs):
+        def fake(atoms, **kwargs):
+            log = kwargs.get("leg_log")
+            if log is not None:
+                log.extend({"id": aid, "leg": leg} for aid, leg in legs)
+            return [], []
+        return fake
+
+    monkeypatch.setattr(lz, "assess", _assess([("A", lz.REACHED_THE_RUNNER),
+                                               ("B", lz.NO_CONTROL_NAMED)]))
+    assert lz.main(["--json"]) == 0
+    unbudgeted = json.loads(capsys.readouterr().out)
+
+    monkeypatch.setattr(lz, "assess", _assess([("A", lz.BUDGET_EXHAUSTED),
+                                               ("B", lz.NO_CONTROL_NAMED)]))
+    assert lz.main(["--json", "--budget", "0"]) == 0
+    free = json.loads(capsys.readouterr().out)
+
+    assert unbudgeted["clears_every_cheap_leg"] == free["clears_every_cheap_leg"] == 1, (
+        "the budget-independent number moved with the budget: {} vs {}".format(
+            unbudgeted["clears_every_cheap_leg"], free["clears_every_cheap_leg"]))
+    assert (unbudgeted["reached_the_runner"], free["reached_the_runner"]) == (1, 0), (
+        "the two numbers are the same number, so one of them is not measuring what it says")
+    assert free["legs"][lz.BUDGET_EXHAUSTED] == 1, (
+        "the leg breakdown is what lets a reader see WHY reached is 0 -- publishing the totals "
+        "without it puts the reader back where the census started")

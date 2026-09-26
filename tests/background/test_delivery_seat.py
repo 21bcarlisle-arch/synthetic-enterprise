@@ -1064,3 +1064,55 @@ def test_the_budget_is_large_enough_to_reach_the_rows_that_ANSWER(monkeypatch):
     assert seat._LEVEL_ZERO_BUDGET_S > 2 * seat._LEVEL_ZERO_TIMEOUT_S, (
         "the two rows that always time out can spend the whole budget, starving every row that "
         "would actually answer")
+
+
+def test_the_brief_says_WHETHER_A_RUNNER_RAN_and_never_infers_it_from_an_empty_verdict_list(
+        monkeypatch):
+    """THE DEFECT, live on 2026-09-26: every field in this brief is about the ROW, so a pass in
+    which no control was executed at all is indistinguishable from one that weighed rows and
+    found nothing wrong. Both print `contradicted: []`. Three lanes read the second and the
+    census was the first.
+
+    BOTH ARMS IN ONE TEST, because a brief that reported 0 unconditionally would satisfy the
+    honest arm on its own -- and 0 is what the live map returns, so that mutation would have
+    shipped green.
+
+    THE SILENCED ROW IS THE THIRD FIXTURE and it is the load-bearing one: it is in NEITHER
+    returned list, so a count built by subtracting `ungradable` from the partition would call it
+    reached. It was not -- the HEAD-red register answered for it and no suite ran."""
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    def _assess(legs):
+        def fake(atoms, **kwargs):
+            log = kwargs.get("leg_log")
+            if log is not None:
+                log.extend({"id": aid, "leg": leg} for aid, leg in legs)
+            return [], [{"id": aid, "reason": lz.NO_CONTROL_NAMED}
+                        for aid, leg in legs if leg == lz.NO_CONTROL_NAMED]
+        return fake
+
+    # ARM 1 -- the instrument ran: one row weighed, one stopped by the budget, one silenced at
+    # HEAD without a run, one that names no control.
+    monkeypatch.setattr(lz, "assess", _assess([
+        ("WEIGHED", lz.REACHED_THE_RUNNER),
+        ("OVER_BUDGET", lz.BUDGET_EXHAUSTED),
+        ("SILENCED", lz.SILENCED_AT_HEAD),
+        ("NO_CONTROL", lz.NO_CONTROL_NAMED),
+    ]))
+    ran = seat.self_contradicting_levels()
+    assert ran["reached_the_runner"] == 1, ran
+    assert ran["clears_every_cheap_leg"] == 2, (
+        "a row the budget stopped is still a runner's to weigh -- this is the number that must "
+        "not move when the budget does: {}".format(ran))
+
+    # ARM 2 -- the live shape: nothing reached a runner, and `contradicted` is empty in both.
+    monkeypatch.setattr(lz, "assess", _assess([
+        ("SILENCED", lz.SILENCED_AT_HEAD),
+        ("NO_CONTROL", lz.NO_CONTROL_NAMED),
+    ]))
+    idle = seat.self_contradicting_levels()
+    assert idle["contradicted"] == ran["contradicted"] == [], (
+        "the two arms must be indistinguishable on the OLD fields, or this test is not about "
+        "the defect")
+    assert (idle["reached_the_runner"], idle["clears_every_cheap_leg"]) == (0, 0), (
+        "a pass where no control was executed reported that one had been: {}".format(idle))

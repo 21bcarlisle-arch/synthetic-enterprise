@@ -23,7 +23,14 @@ because every leg before `runner(...)` is cheap:
 - **0** `BUDGET_EXHAUSTED`
 - **0** `RUN_UNAVAILABLE`
 
-**Not one row in the population reaches the pytest invocation.** `DEFAULT_TIMEOUT_S` (900s) and
+**Not one row in the population reaches the pytest invocation.** *(CORRECTION, 2026-09-26, beside the
+claim: this is no longer true and the dead-dial conclusion below is withdrawn. Re-measured on the
+live map one day later, `OPS6_scoped_publish_path_suite` clears every cheap leg and reaches the
+runner, where the 60s production cap times it out at a measured 109s. `_LEVEL_ZERO_TIMEOUT_S` is
+the partition's only live consumer, not a dead dial. The remedy is still not to raise it — the row's
+named set holds a red, so the verdict is SILENT whatever the budget. See
+`SEAT_RESULT_EXACTLY_ONE_ROW_REACHES_THE_RUNNER_AND_THE_TIMEOUT_THAT_WAS_A_DEAD_DIAL_YESTERDAY_IS_ITS_ONLY_LIVE_CONSUMER_2026-09-26.md`.
+The finding's OWED half is built there; what this file got right was the class, not the count.)* `DEFAULT_TIMEOUT_S` (900s) and
 `background/delivery_seat._LEVEL_ZERO_TIMEOUT_S` (60s) are both live constants, both carefully
 argued in comments, and **neither is consumed by any row.** They are dead dials. The module's
 docstring reasons at length about `KNIFE3_wall_crossing_paydown` costing 1078s and 2.44 GB and

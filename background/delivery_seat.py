@@ -1035,8 +1035,9 @@ def self_contradicting_levels() -> dict:
     try:
         from tools import level_zero_contradicted_by_its_own_controls as lz
         atoms = map_store.load_live_atoms(MATURITY_MAP)
+        legs: list = []
         contradicted, ungradable = lz.assess(atoms, timeout_s=_LEVEL_ZERO_TIMEOUT_S,
-                                             budget_s=_LEVEL_ZERO_BUDGET_S)
+                                             budget_s=_LEVEL_ZERO_BUDGET_S, leg_log=legs)
     except Exception as exc:  # noqa: BLE001 -- an unavailable check is reported, never inferred
         return {"available": False, "why": repr(exc)}
     # Computed once and read by three fields below, because they have to agree: a split, the rows
@@ -1109,6 +1110,25 @@ def self_contradicting_levels() -> dict:
         # a budget-spent or runner-unavailable row now carries.
         "bounded_out": [u["id"] for u in ungradable
                         if u.get("reason") in (lz.BUDGET_EXHAUSTED, lz.RUN_UNAVAILABLE)],
+        # WAS A RUNNER EVER ASKED, which nothing above can answer and three lanes needed. Every
+        # field in this brief is about the ROW -- what it names, what it owes, what the bound
+        # cost. None of them says whether the instrument ran, and the one that looks like it does
+        # is the absence of `contradicted` entries. On the live map 2026-09-26 that absence meant
+        # NO CONTROL WAS EXECUTED AT ALL: 27 rows returned by a cheap leg and one silenced by the
+        # HEAD-red register, which is not the same fact as a pass that weighed rows and found
+        # nothing wrong. Three lanes reported the census as stuck off this brief, and the work
+        # item drawn off it instructed the next invocation to enlarge a budget nothing spends.
+        #
+        # TWO NUMBERS, because one of them moves with `_LEVEL_ZERO_BUDGET_S` and the other does
+        # not: `clears_every_cheap_leg` is how many rows are a runner's to weigh at all, and it
+        # is the one to read when asking whether the instrument has anything to do. See the
+        # census module's own comment for why publishing only the first is a trap.
+        #
+        # NOT DERIVED FROM `ungradable`: a row silenced at HEAD is in neither list, so any count
+        # built by subtraction here would be wrong in exactly the direction that hides this.
+        "reached_the_runner": sum(1 for e in legs if e["leg"] == lz.REACHED_THE_RUNNER),
+        "clears_every_cheap_leg": sum(
+            1 for e in legs if e["leg"] in (lz.REACHED_THE_RUNNER, lz.BUDGET_EXHAUSTED)),
     }
 
 

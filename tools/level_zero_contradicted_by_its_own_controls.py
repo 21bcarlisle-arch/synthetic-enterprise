@@ -180,6 +180,21 @@ PROVENANCE_UNKNOWN = "the age of the row or of its named controls could not be e
 RUN_UNAVAILABLE = "the named controls could not be run to a verdict"
 BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
 
+#: WHICH LEG OF THE PASS RETURNED THIS ROW, which is a third question again -- not the verdict,
+#: and not why the row could not be graded. Nothing could answer it until 2026-09-26. `graded`
+#: counts rows the pass did not refuse; it does NOT count rows a runner weighed, and on the live
+#: map those are different worlds wearing one number. `graded: 1 of 28` was ONE row silenced by
+#: the HEAD-red register with no runner ever asked, and it reads exactly like a runner that
+#: weighed a row and found it wanting. Three lanes reported that census as stuck and the work
+#: item drawn off it instructed the next invocation to enlarge a budget nothing spends.
+#:
+#: The two legs below are the ones no `reason` string covers, because neither is a refusal: a row
+#: silenced at HEAD is GRADED, and a row that reached the runner may be graded, silent or
+#: ungradable depending on what the runner said. Reaching the runner is about the INVOCATION, so
+#: `RUN_UNAVAILABLE` is logged as REACHED -- the runner was asked and could not answer.
+SILENCED_AT_HEAD = "a named control is red at HEAD, so no run was spent proving what it says"
+REACHED_THE_RUNNER = "a runner was asked to weigh this row's named set"
+
 #: WHY A ROW CANNOT BE GRADED, which is a different question from the reason above and the one
 #: the census could not answer for twelve briefs. NO_CONTROL_NAMED and NAMED_CONTROL_ABSENT are
 #: shapes of the row's `file_scope`; these are states of the WORK, and the repairs do not overlap.
@@ -732,7 +747,8 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
            clock=time.monotonic, ages=controls_older_than_the_row,
            blockers_for=_lane_blockers,
            causes=ungradable_causes,
-           red_at_head=reds_at_head) -> tuple[list[dict], list[dict]]:
+           red_at_head=reds_at_head,
+           leg_log: list | None = None) -> tuple[list[dict], list[dict]]:
     """`(contradicted, ungradable)` over the candidate partition. Rows whose controls do not all
     pass appear in neither: the map and the controls agree, and agreement is not a finding.
 
@@ -750,6 +766,13 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
     `red_at_head` IS ASKED BEFORE THE BUDGET, not after, and the order is the whole economy: a
     row that needs no run must not be denied one by a budget it was never going to spend. See
     `reds_at_head` for why an unusable register falls through to the run instead of silencing.
+
+    `leg_log`, when a list is passed, receives `{"id", "leg"}` for EVERY row in the partition --
+    one entry each, written at the single point the row leaves the loop. It is an out-parameter
+    rather than a third element of the return because twenty-one call sites unpack the two-tuple,
+    and it is written INSIDE this loop rather than re-derived by a second reader because a second
+    reader is the shape that drifts: a leg added here and not there would silently stop being
+    counted, which is the exact defect this log exists to make visible.
     """
     contradicted: list[dict] = []
     ungradable: list[dict] = []
@@ -758,6 +781,11 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
     # a handful of lanes. Cached WITHIN the pass only, so a discharge landing mid-pass is picked
     # up by the next one rather than being held for the process's lifetime.
     lane_cache: dict = {}
+
+    def _leg(aid, name) -> None:
+        if leg_log is not None:
+            leg_log.append({"id": aid, "leg": name})
+
     for atom in atoms:
         if not is_candidate(atom):
             continue
@@ -766,6 +794,7 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
         if not controls:
             ungradable.append({"id": aid, "reason": NO_CONTROL_NAMED, "paths": [],
                                "detail": "file_scope names no test_*.py file"})
+            _leg(aid, NO_CONTROL_NAMED)
             continue
         absent = [p for p in controls if not (root / p).exists()]
         if absent:
@@ -781,6 +810,7 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
                                          "below -- `ungradable_causes` asks git whether the path "
                                          "ever existed, so the reader is no longer the one who "
                                          "has to check"})
+            _leg(aid, NAMED_CONTROL_ABSENT)
             continue
         # Dating runs BEFORE the budget check and before the run: it costs a fraction of a second
         # against pytest's seconds-to-minutes, and a set that cannot be evidence about this atom
@@ -815,12 +845,14 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
                 "detail": "these were passing before the atom was minted, so they say nothing "
                           "about whether its work landed -- repoint the row at a control this "
                           "atom's own build wrote, or leave the row at zero because it is right"})
+            _leg(aid, CONTROL_PREDATES_ROW)
             continue
         if undatable:
             ungradable.append({
                 "id": aid, "reason": PROVENANCE_UNKNOWN, "paths": undatable,
                 "detail": "no commit history for the row or the control here -- grade this row "
                           "in a tree that has one"})
+            _leg(aid, PROVENANCE_UNKNOWN)
             continue
         # THE EXPENSIVE RUN IS SKIPPABLE FOR EXACTLY THE ROWS TOO EXPENSIVE TO RUN, and that
         # coincidence is what makes this leg worth having rather than a cleverness. CONTRADICTED
@@ -846,11 +878,14 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
         # two silences a row got.
         reds, register_unusable = red_at_head(controls, root)
         if reds and register_unusable is None:
+            _leg(aid, SILENCED_AT_HEAD)
             continue
         if budget_s is not None and clock() - started >= budget_s:
             ungradable.append({"id": aid, "reason": BUDGET_EXHAUSTED, "paths": controls,
                                "detail": "re-run this row alone: --atom {}".format(aid)})
+            _leg(aid, BUDGET_EXHAUSTED)
             continue
+        _leg(aid, REACHED_THE_RUNNER)
         passed, detail = runner(controls, root, timeout_s)
         if passed is None:
             ungradable.append({"id": aid, "reason": RUN_UNAVAILABLE, "paths": controls,
@@ -901,8 +936,9 @@ def main(argv: list[str] | None = None) -> int:
         wanted = set(args.atom)
         atoms = [a for a in atoms if a.get("id") in wanted]
 
+    legs: list[dict] = []
     contradicted, ungradable = assess(atoms, timeout_s=args.timeout,
-                                      budget_s=args.budget)
+                                      budget_s=args.budget, leg_log=legs)
 
     # THE DENOMINATOR, and why `contradicted: 0` may not be published without it. Measured on the
     # live map 2026-09-25: 28 rows in the partition, 28 of them UNGRADABLE, 0 graded -- and the
@@ -924,6 +960,29 @@ def main(argv: list[str] | None = None) -> int:
     population = [a for a in atoms if is_candidate(a)]
     ungraded_ids = {u.get("id") for u in ungradable}
     graded = sum(1 for a in population if a.get("id") not in ungraded_ids)
+
+    # HOW MANY ROWS A RUNNER WAS EVER ASKED ABOUT, which the denominator above still cannot say.
+    # `graded` is "the pass did not refuse this row", and a row SILENCED by the HEAD-red register
+    # satisfies that without any control being executed. Measured on the live map 2026-09-26:
+    # `graded: 1 of 28`, and the one row is `KNIFE3_wall_crossing_paydown`, silenced. Nothing ran.
+    #
+    # KEYED TO THE PROPERTY AND NOT TO TODAY'S ZERO, in two directions:
+    #
+    #   * counted FROM THE PASS'S OWN LOG, so a new cheap leg that starts intercepting rows moves
+    #     this number down and a repointed row that starts reaching a runner moves it up. A
+    #     literal `0` here could do neither, and the register that read 0 for three weeks is why
+    #     that matters.
+    #   * `clears_every_cheap_leg` = reached + budget-exhausted, which is what a reader actually
+    #     wants and is BUDGET-INDEPENDENT. `--budget 0` is the free probe -- every leg before the
+    #     runner costs a fraction of a second -- but under it a row that would reach the runner
+    #     is logged BUDGET_EXHAUSTED, so `reached` alone reads 0 for a reason that is about the
+    #     probe and not about the map. Publishing only `reached` would hand the free probe a
+    #     permanent, meaningless zero: exactly the misreading this whole census exists to end.
+    leg_counts: dict[str, int] = {}
+    for entry in legs:
+        leg_counts[entry["leg"]] = leg_counts.get(entry["leg"], 0) + 1
+    reached = leg_counts.get(REACHED_THE_RUNNER, 0)
+    cleared = reached + leg_counts.get(BUDGET_EXHAUSTED, 0)
 
     # WHICH SILENCE A SILENT ROW GOT, because the module has two of them now and they carry
     # opposite instructions: "the runner said no" is the map and the controls agreeing, while
@@ -951,7 +1010,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         json.dump({"contradicted": contradicted, "ungradable": ungradable,
                    "silenced_by_a_red_at_head": silenced,
-                   "population": len(population), "graded": graded}, sys.stdout, indent=2)
+                   "population": len(population), "graded": graded,
+                   "reached_the_runner": reached, "clears_every_cheap_leg": cleared,
+                   "legs": leg_counts}, sys.stdout, indent=2)
         sys.stdout.write("\n")
 
     if silenced and not args.json:
@@ -966,6 +1027,26 @@ def main(argv: list[str] | None = None) -> int:
                 sys.stderr.write("      RED AT HEAD: {}\n".format(node))
 
     if population and not args.json:
+        # BEFORE the `graded` line, because `graded` is the number that was misread and this is
+        # the sentence that makes it readable.
+        if cleared:
+            sys.stderr.write(
+                "\n[level-zero] {} of {} row(s) clear every cheap leg and are a runner's to "
+                "weigh; a runner was actually asked about {}.\n".format(
+                    cleared, len(population), reached))
+            if cleared != reached:
+                sys.stderr.write(
+                    "  The other {} row(s) were stopped by the pass budget alone. Re-run "
+                    "without --budget to weigh them.\n".format(cleared - reached))
+        else:
+            sys.stderr.write(
+                "\n[level-zero] ⚠ NO RUNNER WAS ASKED ABOUT ANY OF THE {} ROW(S). Every one was "
+                "returned by a leg before the run, so whatever `graded` says below, NO CONTROL "
+                "WAS EXECUTED in this pass -- and a per-atom timeout or a pass budget cannot be "
+                "what is holding this census, because nothing reaches them.\n".format(
+                    len(population)))
+        for leg, count in sorted(leg_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            sys.stderr.write("      {:>3}  {}\n".format(count, leg))
         if graded:
             sys.stderr.write(
                 "\n[level-zero] {} of {} row(s) in the partition were GRADED; {} could not "
