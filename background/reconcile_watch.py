@@ -312,7 +312,8 @@ def run(proc_results: list[dict] | None = None,
         sched_results: list[dict] | None = None,
         notify=None,
         gap_results: list[dict] | None = None,
-        reconcile_fork=None) -> bool:
+        reconcile_fork=None,
+        fork_streak=None) -> bool:
     """Run one reconcile, log it, and NTFY only on a drift-set TRANSITION. Returns True if it
     paged. `notify` and results are injectable for tests; production reads live + uses send_ntfy."""
     if proc_results is None:
@@ -424,7 +425,31 @@ def run(proc_results: list[dict] | None = None,
         # Same fail-safe as every other rider on this timer: the reconcile is the thing that must
         # not stop. This one is last, so by here the page has already gone out regardless.
         _log(f"fork reconcile failed (reconcile continues): {exc!r}")
+
+    # AND SOMEBODY IS TOLD WHEN IT KEEPS NOT CLOSING (2026-09-26). The leg above closes the
+    # mechanical fork and REFUSES the one that needs reading -- correctly: a conflict is two
+    # lanes disagreeing about one file and that judgement belongs to a person. The half that was
+    # missing is the person. `line` went to `_log` and nowhere else, and the drift signature this
+    # module pages on is processes, schedule entries and gap-ledger rows; the fork has never been
+    # in it. Measured from this file's own log: 314 fork verdicts in 39 hours, 10 of them
+    # settled, one streak standing 203 ticks / 22.4 hours while the shared tree sat 32 behind,
+    # the publisher recorded `behind_origin`, and the site was dark for that reason alone.
+    #
+    # It rides here for the same reason every other passenger on this timer does, and it is
+    # deliberately AFTER the fork leg: the streak it reads is the log line that leg just wrote,
+    # so running it first would page about the previous tick's world.
+    try:
+        (fork_streak or _fork_streak_page)()
+    except Exception as exc:                                   # noqa: BLE001
+        _log(f"fork-streak check failed (reconcile continues): {exc!r}")
     return changed
+
+
+def _fork_streak_page():
+    """The live detector, imported here rather than at module scope so this file stays importable
+    on its own and so a test injecting `fork_streak` never has to have it wired."""
+    from background import fork_open_streak
+    return fork_open_streak.check()
 
 
 def main(argv: list[str]) -> int:

@@ -70,6 +70,9 @@ docs/observability/.notify_transitions.json
 # If this line is ever dropped, the collision comes back within a day: the store is rewritten by
 # every firing of every alarm family, which on this box is several times an hour.
 docs/observability/.alarm_repetition_state.json
+# Same shape, same reason: rewritten by every reconcile-watch tick (five minutes), and it
+# holds one stamp that means nothing outside this box's own alarm memory.
+docs/observability/.fork_open_streak.json
 docs/observability/injection-log.jsonl
 docs/staging/**/*.bak
 # Scheduled bounded invocations — runtime switches/artifacts (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md).

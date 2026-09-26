@@ -642,3 +642,42 @@ def test_a_failing_seat_sweep_does_not_stop_the_reconcile(_wired, monkeypatch, a
     log = W.LOG_FILE.read_text()
     assert "failed (reconcile continues)" in log, "the swallowed failure left no trace in the log"
     assert marker not in log, "a failed sweep must not report as a successful one"
+
+
+# --- the fork-streak detector, wired in 2026-09-26 ---------------------------------------------
+# Every control in `tests/background/test_fork_open_streak.py` would pass while that module was
+# imported by nothing. This five-minute tick is the only cadence there is, and riding it is the
+# whole difference between a detector and a file -- the same failure class (`a control whose only
+# caller is stack startup`) this module was built to catch.
+
+def test_the_fork_streak_detector_is_LIVE_in_run_without_the_caller_wiring_it(_wired):
+    """MUTATION: delete the `(fork_streak or _fork_streak_page)()` call from `run` and this reds.
+    Nothing in the detector's own test file does."""
+    seen = []
+    proc, sched = _clean()
+    W.run(proc, sched, notify=lambda *a, **k: None, gap_results=[],
+          reconcile_fork=lambda: None, fork_streak=lambda: seen.append(1))
+    assert seen == [1], "the fork-streak detector is not reached by the live tick"
+
+
+def test_the_streak_check_runs_AFTER_the_fork_leg_that_writes_the_line_it_reads(_wired):
+    """ORDER IS LOAD-BEARING. The detector's subject is the verdict line the fork leg appends on
+    THIS tick; sequenced before it, every page would describe the previous tick's world -- which
+    is wrong by one tick forever and would be invisible, because a five-minute-old fork state
+    looks exactly like a current one. MUTATION: swap the two blocks and this reds."""
+    order = []
+    proc, sched = _clean()
+    W.run(proc, sched, notify=lambda *a, **k: None, gap_results=[],
+          reconcile_fork=lambda: order.append("fork") or None,
+          fork_streak=lambda: order.append("streak"))
+    assert order == ["fork", "streak"], f"the streak read the previous tick's log; got {order}"
+
+
+def test_a_failing_streak_check_does_not_stop_the_watcher(_wired):
+    """FAIL-SAFE, same as every other rider on this timer. MUTATION: drop the try/except."""
+    def boom():
+        raise RuntimeError("log unreadable")
+    proc, sched = _clean()
+    assert W.run(proc, sched, notify=lambda *a, **k: _wired.append(1), gap_results=[],
+                 reconcile_fork=lambda: None, fork_streak=boom) is False
+    assert "fork-streak check failed" in W.LOG_FILE.read_text()
