@@ -16,8 +16,14 @@
 now running does not reproduce. That is not a defect in the served numbers, which are what those
 runs returned. But the claim is no longer a property of the model that exists.
 
-**Recommendation, not acted on (director's slowdown until the reset):** withdraw the published
-selection sign to "not established at the current code" on Monday, and keep the served family
-as the record of what 2026-09-10 returned. The second item needs its own question first: what
-besides the priced decisions moves the selection residual. Answering it comes before any exact
-count is published.
+~~**Recommendation, not acted on (director's slowdown until the reset):** withdraw the published
+selection sign to "not established at the current code" on Monday.~~
+
+**CORRECTED 2026-09-26 by the director: do NOT withdraw the figure.** Reporting that the
+2026-09-10 runs returned −£960 and today's code returns +£170, indistinguishable from zero, *is* the
+observability working. What is owed is the ROOT CAUSE. The director's hypothesis, to be tested
+rather than assumed, is **book depth**. Identical decisions producing outcomes about £6,000 apart
+means luck dominates, which is what you'd expect when few accounts have enough renewals for a
+choice to compound. Measure how much of the residual variance renewal count explains, and whether
+a deeper book would let selection be measured at all. Queued for after the reset as
+`is-the-selection-residual-book-depth-luck`. No page figure changes.
