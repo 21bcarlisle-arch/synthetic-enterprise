@@ -7498,6 +7498,7 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             "it non-fast-forward, the fork with origin (at {}) touches NONE of this commit's "
             "paths, and `origin_reconcile` was run and had not delivered it when this cycle "
             "exited".format((local_head or "?")[:9], (remote_head or "unreadable")[:9]))
+        _grade_the_owed_delivery_before_it_is_overwritten()
         if publish_delivery_deferral.record(PUBLISH_DELIVERY_DEFERRAL_FILE, local_head,
                                            git_hash, _deferral_evidence):
             log("Publish delivery DEFERRED: {} -- no verdict is recorded for this cycle; the ref "
@@ -7688,6 +7689,30 @@ def _race_benign_seconds() -> float:
             "expired, because a window nobody can read must not hold a verdict open".format(
                 type(exc).__name__, exc))
         return 0.0
+
+
+def _grade_the_owed_delivery_before_it_is_overwritten(grade_fn=None):
+    """Take the PREVIOUS cycle's owed verdict before this cycle's deferral replaces it.
+
+    THE DEFECT (2026-09-26). The deferral file holds ONE outstanding delivery, and the publisher
+    writes the current cycle's commit into it before the router's `grade_outstanding_delivery`
+    runs. So the router only ever graded a commit one second old -- ABSORBING, nothing written --
+    and the previous cycle's commit, which the reconciler HAD delivered, was never graded REACHED.
+    Six publishes landed on origin between 2026-09-25 20:42Z and 2026-09-26 05:54Z and
+    `episode_clean_publishes` stayed 0; one push failure at 17:10Z held the public banner at
+    "PUBLISHING IS FAILING" through all six. The one REACHED on record (17:10Z) was graded only
+    because that cycle failed instead of deferring, so nothing overwrote the slot.
+
+    Grading here, at the one write that can lose the verdict, is sufficient without a queue: if
+    the previous commit is still ABSORBING it is an ancestor of this cycle's HEAD, so this commit
+    reaching origin later is proof it did too. Never raises -- bookkeeping for a previous cycle
+    may not cost the current one its deferral."""
+    try:
+        return (grade_fn or grade_outstanding_delivery)()
+    except Exception as exc:  # noqa: BLE001
+        log("Publish delivery: the previous cycle's owed verdict could not be graded before "
+            "this cycle's deferral replaced it ({}: {})".format(type(exc).__name__, exc))
+        return None
 
 
 def grade_outstanding_delivery(*, now=None, remote_head_fn=None, ancestor_fn=None,
