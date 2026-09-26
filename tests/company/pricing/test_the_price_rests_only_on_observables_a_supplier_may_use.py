@@ -46,12 +46,24 @@ PRICING_MODULE = Path(inspect.getfile(vbr))
 #:   behaviour_score         its own payment-behaviour analytics (EXCELLENT..CRITICAL)
 #:   payment_delay_days      how late this account actually pays, off its own ledger
 #:   collections_gbp_per_year what chasing it costs
+#:   arrears_state           where this account stands on its own accounts receivable
+#:
+#: `arrears_state` IS THE DIRECTOR'S OWN THIRD ITEM, ADDED DELIBERATELY (2026-09-25). The question
+#: at the head of this file names three things as ordinary supplier practice -- "observable payment
+#: behaviour, credit position or arrears HISTORY" -- and the first two were already here while the
+#: third had no way to reach the price at all. It is a state on the company's own ledger
+#: (`churn_model.ARREARS_STATES`, read by `arrears_state_from_collections` off
+#: `arrears_engine.collections_snapshot`), carrying Ofgem CIM w6 Table 56's published pair: 1.28x
+#: the population switching rate for a household whose arrears are getting harder, 0.79x for one
+#: with no debt. It is NOT the cost-shift the same question refuses: it prices a household by what
+#: this supplier's own books say it is owed, not by the meter type it pays through, and it moves
+#: the price DOWN as readily as up -- 0.79x is the larger half of what Table 56 measured.
 ACCOUNT_OBSERVABLES = {
     "customer_id", "current_rate_gbp_per_mwh", "base_rate_gbp_per_mwh", "eac_kwh",
     "tenure_years", "cost_to_serve_gbp_per_year", "expected_periods", "segment", "fuel",
     "bill_shock_count", "satisfaction_score", "renewal_year", "annual_revenue_gbp",
     "credit_risk", "behaviour_score", "payment_delay_days", "collections_gbp_per_year",
-    "fixed_revenue_gbp_per_year", "is_deemed_contract",
+    "fixed_revenue_gbp_per_year", "is_deemed_contract", "arrears_state",
 }
 
 #: HOW THE SEARCH RUNS — not observables about anyone. Kept in a separate set on purpose: rolling
