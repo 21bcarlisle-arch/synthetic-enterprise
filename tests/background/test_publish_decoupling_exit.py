@@ -203,13 +203,26 @@ def test_the_annotation_pass_cannot_block_a_publish(monkeypatch, tmp_path):
     assert any("static_quality_ratchet" in r for r in state["annotation"]["nonblocking_reds"])
 
 
-def test_the_annotation_reaches_the_rendered_page():
-    """R11, verify to the rendered value: the annotation is only real if a reader sees it. The
-    layer that renders it must consume the same field the publisher writes."""
-    js = (prc.PROJECT_DIR / "site" / "assets" / "freshness-banner.js").read_text()
-    assert "open_findings" in js
-    assert "nonblocking_reds" in js
-    assert "open finding" in js, "the ruling's own wording must reach the page"
+# THE ANNOTATION DELIBERATELY REACHES NO PUBLIC PAGE (director, 2026-09-26), so the control that
+# used to live here has been withdrawn rather than repaired. It grepped this file for
+# `open_findings`, `nonblocking_reds` and "open finding", and the ruling that removed the third
+# banner line inverted every one of them: the property is now that the page says NOTHING about the
+# repository annotation. Do not re-add a grep here. That property is held, in the correct
+# direction, by
+#     site/test_freshness_banner_publish_state.py
+#         ::test_the_feeds_repository_annotation_does_not_reach_the_public_page
+# which RENDERS the page with a full annotation loaded and asserts the text is byte-identical to
+# the bare render -- strictly stronger than any grep, and that door's own comment names the reason
+# ("Rendered, not grepped: the producer-side grep let a defined-but-uncalled clause survive").
+#
+# WHY THIS SAT RED FOR AN EPISODE RATHER THAN FAILING AT ITS OWN COMMIT: 74900fcf0 withdrew the
+# slot, updated the site door, and could not select this file -- gate selection is by subject
+# module stem, and nothing in that commit was named `publish_decoupling_exit`. Its last surviving
+# assertion was passing on the COMMENT that documents the removal, which is why two of the three
+# went red together and the third never would have.
+#
+# The fields are still WRITTEN every cycle and now reach no reader at all; that gap is a separate
+# finding and is filed, not fixed here.
 
 
 class _NullCtx:
@@ -349,22 +362,19 @@ def test_an_unreadable_git_probe_claims_the_working_tree_not_the_commit(monkeypa
     assert prc._annotation_measured_on("d1ba6bd46")["tree_state"] == prov.TREE_WORKING
 
 
-def test_the_tree_the_reds_were_counted_on_reaches_the_rendered_page():
-    """THE PRODUCER'S HALF ONLY -- that the field is written and the renderer names it.
-
-    NOT SUFFICIENT ON ITS OWN, and this docstring says so because the first version of this
-    leg was exactly this grep and nothing more. Mutation M5 (make `annotationSentence` stop
-    CALLING `redTreeClause`, leaving the function defined and unreached) SURVIVED it: every
-    string it greps for still existed in dead code. That is the fail-closed-verdict-composed-
-    into-an-artefact-no-surface-reads class, committed inside the test written to prevent it.
-    The leg that actually fires lives in
-    `site/test_freshness_banner_publish_state.py::test_the_tree_the_red_count_was_taken_on_is_rendered`,
-    which drives the real asset through a DOM. This one is kept as the cheap producer-side
-    tripwire that runs in the background selection, and it is honest about being half."""
-    js = (prc.PROJECT_DIR / "site" / "assets" / "freshness-banner.js").read_text()
-    assert "nonblocking_reds_measured_on" in js, (
-        "the publisher records which tree the reds were counted on and the banner asset does "
-        "not mention it at all")
+# WITHDRAWN WITH ITS PAIR, and for a reason its own docstring had already written down. This was
+# the "cheap producer-side tripwire" half of a pair, and it named the half that actually fired:
+# `site/test_freshness_banner_publish_state.py::test_the_tree_the_red_count_was_taken_on_is_rendered`.
+# The 2026-09-26 ruling (74900fcf0) deleted that door along with seven other rendering legs, so
+# what was left here was the half the docstring itself called "NOT SUFFICIENT ON ITS OWN" --
+# grepping the asset for `nonblocking_reds_measured_on` to prove a rendering the ruling forbids.
+#
+# The mutation it recorded as having ESCAPED it (M5: leave `redTreeClause` defined and stop
+# calling it) is the proof that no repair belongs here: a grep could not tell a rendered clause
+# from a dead one then, and cannot now. The single door named above
+# `test_the_feeds_repository_annotation_does_not_reach_the_public_page` renders the page with the
+# whole annotation loaded and requires the text to be unchanged, which catches M5 and every other
+# shape in one assertion.
 
 
 def test_a_timed_out_remainder_still_refreshes_the_cheap_half(monkeypatch, tmp_path):
