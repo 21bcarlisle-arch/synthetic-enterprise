@@ -149,3 +149,25 @@ job's own cgroup and therefore survives the kill it would report`.
 The family is a WATCHED artefact once promoted onto `NOISE_FLOOR_PATH`, so its promotion is owed in
 the same commit as the move. That is the blocker the 2026-09-24 finding deliberately did not pay and
 this piece does.
+
+## Result — graded 2026-09-26 ~09:15Z. The job finished 06:46Z: all six legs, and the fold wrote `folded18_head_20260925.json`
+
+| | prediction | result |
+|---|---|---|
+| **P1** | the agreement fold succeeds (rc 0) | **REFUTED — `agreement_fold_rc=2`, on all 18 shared seeds.** Seed 11111: −£3,802.80 at HEAD, +£623.57 served. The code between 2026-09-10 and HEAD moved the published selection figure. |
+| **P2** | 18/18 rows carry a roster | **HELD** — 18/18. |
+| **P3** | 15 ≤ exact ≤ 18 | **REFUTED** — exact = **4**. |
+| **P4** | exact = 15 | **REFUTED** — 4 distinct decision sets over 18 seeds, but **10** distinct residuals. |
+| **P5** | the sign survives the regrade | **NOT GRADABLE** — `regrade_over_distinct_draws` returns `available: False`. |
+
+**The bigger refutation is under P4.** The prereg's premise was the five-seed coextension: *a pinned residual and an unchanged decision set go together*. At HEAD it fails in the direction that matters. Seeds with **the same** priced-decision fingerprint return **different** residuals:
+
+- `8756b45a`: 11111 → −£3,802.80; 88888, 444444, 555555, 666666 → +£1,548.26
+- `c903b6a2`: 99999 → −£4,091.00; 111111 → −£3,871.99; the rest +£1,260 to +£1,479
+- `126c1b78`: 44444 → −£4,317.39; 22222 → +£1,252.68; 66666 → +£1,033.67
+
+So the fingerprint is not a sufficient statistic for the selection residual. Something outside the priced decisions drives it, and `the_residual_floor_holds: False` names these three sets. **Neither 4 nor 10 is established as the number of independent draws.**
+
+**HEAD's own reading of selection:** n=18, mean **+£169.60**, sd £2,311.64, sem £544.86, **0.31 sems from zero**. No sign. The served family publishes NEGATIVE at 2.50 sems.
+
+**Disposition.** The rc is not 0, so the served family was NOT replaced, per the director's rule. That leaves the page publishing a NEGATIVE selection direction that the current code does not reproduce. Filed: `SEAT_FINDING_THE_SERVED_SELECTION_SIGN_DOES_NOT_REPRODUCE_AT_HEAD_...`.
