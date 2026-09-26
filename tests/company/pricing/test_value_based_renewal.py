@@ -626,23 +626,57 @@ def test_the_NULL_a_ceiling_that_really_does_decide_still_says_so():
 
 
 def test_a_FLOOR_bound_choice_is_not_reported_as_the_arm_STRAINING_UPWARD():
-    """MEASURED ON THE REAL BOOK: five accounts of 190-340 kWh/year, whose 98.55 GBP standing
-    charge is the entire relationship and whose profit-maximising COMMODITY margin is negative --
-    the arm would sell them electricity below cost to keep the standing charge, and cannot,
-    because the lowest candidate is 0.50. The published verdict called that "chose the highest
-    margin available to it", which is the opposite of what happened.
+    """MEASURED ON THE REAL BOOK: accounts whose STANDING CHARGE is the whole relationship and
+    whose profit-maximising COMMODITY margin is negative -- the arm would sell them electricity
+    below cost to keep the fixed revenue, and cannot, because the lowest candidate is 0.50. The
+    published verdict called that "chose the highest margin available to it", which is the
+    opposite of what happened.
+
+    THE SUBJECT IS THE RECORD'S LABEL, NOT ONE ACCOUNT (repaired 2026-09-25). This control used
+    to pin the five real micro-consumption accounts -- 190-340 kWh/year on a 98.55 GBP standing
+    charge -- and went red when `3b01193a8` added the SIZE TERM, which scales the rate response
+    by consumption: a 200 kWh household is now modelled as barely responding to price, so the arm
+    strains UPWARD for them and the record correctly says `ceiling`. The model became more honest
+    and the control, keyed to yesterday's answer, went red for it; keyed to the PROPERTY it does
+    not. That flip is a real consequence and is filed rather than absorbed here --
+    `docs/staging/WORKER_FINDING_THE_SIZE_TERM_TURNED_THE_SMALLEST_ACCOUNTS_FROM_FLOOR_BOUND_TO_CEILING_BOUND_2026-09-25.md`.
 
     MUTATION (must fire): collapse `endpoint_side` back to a single boolean.
     """
-    tiny = _decide(vbr.VALUE_BASED, eac_kwh=200, cost_to_serve_gbp_per_year=6.0,
-                   expected_periods=1.0, fixed_revenue_gbp_per_year=98.55,
-                   max_offered_rate_gbp_per_mwh=250.0)
+    # FIXED REVENUE DOMINATES THE COMMODITY LEG. That is the shape the finding was about and it
+    # still exists; what moved is WHICH accounts are in it, because the rate response is now a
+    # function of consumption.
+    standing_charge_led = _decide(
+        vbr.VALUE_BASED, eac_kwh=3100, cost_to_serve_gbp_per_year=6.0,
+        expected_periods=1.0, fixed_revenue_gbp_per_year=300.0,
+        max_offered_rate_gbp_per_mwh=250.0)
 
-    assert tiny.endpoint_side == "floor", (
-        f"a micro-consumption account chose {tiny.margin_gbp_per_mwh} and the record calls that "
-        f"{tiny.endpoint_side}"
+    assert standing_charge_led.endpoint_side == "floor", (
+        f"a standing-charge-led account chose {standing_charge_led.margin_gbp_per_mwh} and the "
+        f"record calls that {standing_charge_led.endpoint_side}"
     )
-    assert tiny.margin_gbp_per_mwh == min(vbr.CANDIDATE_MARGINS_GBP_PER_MWH)
+    assert standing_charge_led.margin_gbp_per_mwh == min(vbr.CANDIDATE_MARGINS_GBP_PER_MWH)
+
+
+def test_both_ENDPOINT_SIDES_are_reachable_so_the_label_is_a_partition_and_not_a_constant():
+    """ONE CONTROL OVER THE WHOLE PARTITION, because a label that returns the same value for
+    everything satisfies every single-sided assertion written about it -- including both of the
+    two above, one of which would then be passing for the wrong reason.
+
+    MUTATION (must fire): return a constant from `endpoint_side`, either value.
+    """
+    floor = _decide(vbr.VALUE_BASED, eac_kwh=3100, cost_to_serve_gbp_per_year=6.0,
+                    expected_periods=1.0, fixed_revenue_gbp_per_year=300.0,
+                    max_offered_rate_gbp_per_mwh=250.0)
+    ceiling = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=130.0)
+    interior = _decide(vbr.VALUE_BASED, eac_kwh=25000, cost_to_serve_gbp_per_year=80.0,
+                       expected_periods=1.0, max_offered_rate_gbp_per_mwh=250.0)
+
+    assert {floor.endpoint_side, ceiling.endpoint_side, interior.endpoint_side} == {
+        "floor", "ceiling", None}, (
+        "the endpoint label does not inhabit its own partition: "
+        f"{floor.endpoint_side!r}/{ceiling.endpoint_side!r}/{interior.endpoint_side!r}"
+    )
 
 
 def test_the_MARGINAL_pound_carries_its_own_default_risk():

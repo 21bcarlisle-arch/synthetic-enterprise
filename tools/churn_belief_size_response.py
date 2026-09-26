@@ -402,6 +402,30 @@ def knee() -> dict:
             "rather than of a departure from flat."),
         "declared_threshold_gbp": BILL_STRESS_THRESHOLD_GBP,
         "declared_sensitivity": BILL_STRESS_SENSITIVITY,
+        # WHO STILL REACHES THE REFUTED KNEE, PUBLISHED BESIDE IT (2026-09-25). Until this field
+        # existed a reader of this page saw a threshold, a sensitivity and a paragraph saying the
+        # threshold is not established -- and had no way to tell whether the term was still in the
+        # path of a decision. It is, on one branch, and it is not on the other; both facts have to
+        # be on the page or the honest half reads as the whole.
+        "who_still_reaches_the_declared_threshold": (
+            "ONLY A CALLER THAT HAS NOT LOOKED AT ITS OWN ARREARS LEDGER, as of 2026-09-25. "
+            "`estimate_churn_probability` now takes `arrears_state`, and the distress term is ONE "
+            "of two that are mutually exclusive by construction: a KNOWN state takes the sourced "
+            "arm -- Ofgem CIM wave 6 Table 56's 1.28x for arrears getting harder and 0.79x for no "
+            "debt, both over the published 5.3% population base -- and the bill-level knee above "
+            "is not evaluated at all for that call. `unknown` takes the knee. Both of this "
+            "company's live renewal doors now supply a state read off its own receivable "
+            "(`PaymentObservationConsumer.arrears_state` -> the churn desk, and "
+            "`decide_margin(arrears_state=)` -> the offered margin), so the VALUE ARM reaches the "
+            "sourced arm for every account this company has billed and reaches the knee only for "
+            "one it has not. WHAT IS NOT CLAIMED: the knee is still in the model and still "
+            "reachable, which is why the threshold is still published here rather than withdrawn "
+            "-- retiring it outright means rewriting the eight control modules that assert what "
+            "it computes, and a term half-removed is worse than either end. AND THE BILL-SHOCK "
+            "EVENT AMPLITUDE IS UNTOUCHED BY ANY OF THIS: Table 56 measures standing STATES, "
+            "nothing published measures how far a bill-shock EVENT moves the probability of "
+            "shopping, and `household_segments.BILL_SHOCK_ENGAGEMENT_MULTIPLIER` stays a declared "
+            "`None`."),
         # NOT ESTABLISHED, AND THAT IS STILL THE VERDICT — but as of 2026-09-22 it is a verdict
         # with a reason rather than the absence of one, so this sentence changed and the door leg
         # over it was re-derived rather than re-pointed. What the page must not do is let a reader
