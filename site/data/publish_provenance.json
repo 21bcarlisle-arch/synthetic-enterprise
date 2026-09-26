@@ -23,8 +23,8 @@
     "run_retained": true,
     "verified_at": "2026-09-26T13:13:45Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=85b30827d; blocking tests: FAILED tests/background/test_publish_decoupling_exit.py::test_the_annotation_reaches_the_rendered_page",
+  "paused_since": "2026-09-26T15:47:43Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-09-26T13:13:45Z",
@@ -38,6 +38,6 @@
     "run_retained": true,
     "verified_at": "2026-09-26T13:13:45Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-26T13:13:45Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-26T15:47:43Z"
 }
