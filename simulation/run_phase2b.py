@@ -2276,6 +2276,29 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     from simulation.household_segments import payment_channel_for_customer
                     _company_payment_method = payment_channel_for_customer(
                         billing_account, commodity).value
+                # THE COMPANY'S OWN RECEIVABLE, ASKED FOR AT THE RENEWAL (2026-09-25). The
+                # distress term in `churn_model` used to be a knee on the household's BILL, and
+                # the bill is the wrong variable: Ofgem/BMG puts the bill-to-switching
+                # correlation at -0.07 to +0.05, and DESNZ QEP 2.7.1 has switching COLLAPSING in
+                # the year every bill rose. What Ofgem CIM w6 Table 56 does establish is a
+                # position on the supplier's own ARREARS -- 1.28x the population switching rate
+                # for a household whose arrears are getting harder, 0.79x for one with no debt.
+                #
+                # `_payment_triad` has been posting this company's bills and its observed cash
+                # into the company's own ledger all run, so the position is a read and not an
+                # estimate. ASKED THROUGH THE DOOR, never by reaching for the consumer: the
+                # triad hands back a STATE string, exactly as `detection_cells` hands back
+                # numbers, and no company object crosses. Nothing here consults
+                # `simulation/arrears_engine` -- that is the world's arrears, and reading it
+                # would turn an inference the supplier genuinely has into access it does not.
+                #
+                # NO LOOK-AHEAD: this renewal is decided before this term's own bills are
+                # settled below, so the ledger it reads holds only what was billed and observed
+                # BEFORE `term_start_str`. An account this run has not billed yet reads
+                # `unknown`, which leaves the estimate bit-for-bit as it was.
+                _company_arrears_state = _payment_triad.arrears_state(
+                    cid, date.fromisoformat(term_start_str), segment=segment_for_churn,
+                )
                 # Phase 33: passive renewers use SVT-inertia constants; active use full model.
                 # I&C customers are always active (brokers shop every renewal — no passive roll).
                 _renewal_year = int(term_start_str[:4])
@@ -2327,6 +2350,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     renewal_year=_renewal_year,
                     active_renewal=active_renewal,
                     payment_method=_company_payment_method,
+                    arrears_state=_company_arrears_state,
                 ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
