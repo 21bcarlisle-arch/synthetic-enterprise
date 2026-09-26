@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-26T00:12:56.166145+00:00",
+  "last_updated": "2026-09-26T01:14:02.393589+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-26T00:12:56.166145+00:00",
+      "last_heartbeat": "2026-09-26T01:13:49.764887+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-25T14:04:19.154872+00:00",
       "anomaly": null,
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-25T23:42:51.318804+00:00",
+      "last_heartbeat": "2026-09-26T00:44:00.987516+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-09-25T23:42:51.318804+00:00",
+      "last_action_ts": "2026-09-26T00:44:00.987516+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-26T00:12:03.882481+00:00",
+      "last_heartbeat": "2026-09-26T01:14:02.393589+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-25T14:04:20.509027+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-26T00:04:36.626560+00:00",
+      "last_heartbeat": "2026-09-26T01:04:37.233578+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-26T00:04:36.626560+00:00",
+      "last_action_ts": "2026-09-26T01:04:37.233578+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
