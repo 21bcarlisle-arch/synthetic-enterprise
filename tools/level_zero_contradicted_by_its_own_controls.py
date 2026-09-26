@@ -241,6 +241,40 @@ CONTROL_UNNAMED = ("the row names no control at all, so whether one was ever wri
 #: re-run rather than to look at the row.
 SUBJECT_NEVER_WRITTEN = ("a named subject is absent and git has never known it, so part of what "
                          "the row claims to cover was never built")
+#: A NINTH AND A TENTH CAUSE, added 2026-09-26, and they split the one instruction in this module
+#: that named a relation the repository does not record.
+#:
+#: `CONTROL_PREDATES_ROW` prints TWO exits -- *"repoint the row at a control this atom's own build
+#: wrote, OR leave the row at zero because it is right"* -- and gives the reader nothing to decide
+#: between them with. MEASURED 2026-09-26 over the eight live members: two different proxies for
+#: "a control this atom's own build wrote" answered 4-of-8 and 8-of-8 over the SAME eight rows.
+#: The first grepped commit messages for the atom id, which matches `NEXT:` trailers, claim ids and
+#: map-diff prose -- it offered `test_surgical_land_rederives_on_merge.py` as W2_18's own control.
+#: The second joined on "a commit that touched a named subject and created a test", which a
+#: long-lived subject like `simulation/population_draw.py` makes true of nearly everything. There
+#: is no third, better proxy waiting to be found: the tree records no link from an atom to the
+#: commits that built it, so "which control did this atom's build write" is not a question the
+#: repository can answer, and the flattering answer is the cheap one to reach.
+#:
+#: WHAT THE TREE *CAN* ANSWER is the subject's age, by the same oracle that dates the controls --
+#: and that decides WHICH EXIT the row is owed, which is the part the reader actually cannot see:
+#:
+#:   * every named subject predates the row too -> the atom EXTENDS code that already had
+#:     controls. Its own build has written none because, at level 0, its own build has not
+#:     happened. There is nothing to repoint AT, and the only way to follow the repoint exit is to
+#:     invent a filename -- the same unfollowable instruction `H40` and `H48` were refused on.
+#:   * a named subject was born AFTER the row -> the atom's build did land new subject code and
+#:     cited no control for it, so a control may well exist under a name the row never used. That
+#:     is the `PB4`/`PB6` shape, and here the repoint exit is genuinely owed.
+#:
+#: The split is keyed to the PROPERTY and not to today's eight rows: it stops being true of a row
+#: on the commit that lands that row's first atom-own control, which is exactly when it should.
+EXTENDS_WORK_OLDER_THAN_ITSELF = (
+    "every named control AND every named subject was on disk before the row was, so this atom "
+    "extends existing work and its own build has written no control to point at")
+BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL = (
+    "every named control predates the row but a named subject does not, so this atom's build "
+    "landed code and cited no control for it")
 CAUSE_UNDECIDABLE = "git could not be asked whether the absent path ever existed"
 #: The row is not the problem. Every path it names is here and one of them is a runnable control,
 #: so no edit to `file_scope` would change the verdict -- the refusal came from the PASS (a
@@ -274,12 +308,26 @@ CAUSE_REPAIR = {
     CAUSE_UNDECIDABLE: "classify this row in a tree that has commit history",
     NOTHING_IN_THE_ROW: "re-run this row ALONE (`--atom <id>`) and read its reason line -- do not "
                         "edit `file_scope`, because nothing in it is wrong",
+    EXTENDS_WORK_OLDER_THAN_ITSELF:
+        "nothing to repoint at, and do NOT invent a control name to move the count -- the row's "
+        "`file_scope` is right and the atom is unbuilt. Build it, or close it. The named suite "
+        "becomes evidence the moment this atom's build adds a case to it",
+    BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL:
+        "ask `git log --all --oneline -- <the subject born after the row>` for the commits that "
+        "landed it and name the control they wrote. If they wrote none, that is the finding -- "
+        "say so in the row rather than repointing it at an older suite",
 }
 
 #: The one cause that asks for no work. Named here rather than at each reader, because "which of
 #: these is not a defect" is a judgement the module that defines the vocabulary owes its
 #: consumers -- a caller left to decide it will decide differently from the next caller.
-CAUSES_OWING_NO_REPAIR = frozenset({HONESTLY_UNBUILT})
+#: `EXTENDS_WORK_OLDER_THAN_ITSELF` joins it 2026-09-26 on the same evidence `HONESTLY_UNBUILT`
+#: holds it on: the repair these rows owe is a BUILD, and their `file_scope` has been measured
+#: correct rather than assumed so. This is a count moving DOWN on a widened claim, which is the
+#: shape to distrust -- the guard against it is that the claim is self-clearing and falsifiable,
+#: not that it is modest. It is false the moment a subject younger than the row appears in the
+#: row, and the sibling cause below then fires instead.
+CAUSES_OWING_NO_REPAIR = frozenset({HONESTLY_UNBUILT, EXTENDS_WORK_OLDER_THAN_ITSELF})
 
 #: Stands in the `frozen_by` list when the lane's blockers could not be read. A string, in the
 #: same list as the real finding names, so no caller can treat "unknown" as "clear" by looking
@@ -466,7 +514,8 @@ def _path_known_to_git(rel: str, root: Path = ROOT) -> bool | None:
     return bool(r.stdout.strip())
 
 
-def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -> list[dict]:
+def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git,
+                      ages=None) -> list[dict]:
     """Why this row cannot be graded, as `[{cause, paths, repair}, ...]`, possibly several.
 
     THE SPLIT THIS EXISTS TO MAKE. The census reported thirty-one ungradable rows under four
@@ -592,6 +641,35 @@ def ungradable_causes(atom: dict, root: Path = ROOT, known=_path_known_to_git) -
     # NOTHING_IN_THE_ROW. The test is `if not out`, deliberately, and not a re-derivation of the
     # conditions above: a second spelling of "none of the other branches fired" is the shape that
     # drifts away from the branches it is describing and reopens the hole.
+    if not out and controls:
+        # THE AGE SPLIT, AND IT RUNS ONLY WHEN NOTHING ELSE IS WRONG WITH THE ROW. Gated on
+        # `not out` for the same reason the rot gate runs first: with an absent path still
+        # unaccounted for, "every named subject predates the row" is a claim about a set the row
+        # got wrong. Gated on `controls` because a row naming none has already been answered by
+        # `CONTROL_UNNAMED`, and asking a dating question of an empty set returns "nothing
+        # predates" -- a not-found read as a verdict.
+        ages = ages or controls_older_than_the_row
+        predating, undatable = ages(atom.get("id", ""), controls, root)
+        if predating and not undatable and not [c for c in controls if c not in predating]:
+            # EVERY named control is older than the row. The pass reports this as
+            # CONTROL_PREDATES_ROW and prints two exits; which one is owed is decided here, on
+            # the subjects' dates, because that is the only part of the question the tree
+            # records. See the cause constants for the two proxies that were measured and
+            # discarded.
+            subj_predating, subj_undatable = ages(atom.get("id", ""), subject_on_disk, root)
+            younger = [rel for rel in subject_on_disk
+                       if rel not in subj_predating and rel not in subj_undatable]
+            if subj_undatable:
+                out.append({"cause": CAUSE_UNDECIDABLE, "paths": sorted(subj_undatable),
+                            "repair": CAUSE_REPAIR[CAUSE_UNDECIDABLE]})
+            elif younger:
+                out.append({"cause": BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL,
+                            "paths": sorted(younger),
+                            "repair": CAUSE_REPAIR[BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL]})
+            else:
+                out.append({"cause": EXTENDS_WORK_OLDER_THAN_ITSELF,
+                            "paths": sorted(predating),
+                            "repair": CAUSE_REPAIR[EXTENDS_WORK_OLDER_THAN_ITSELF]})
     if not out:
         out.append({"cause": NOTHING_IN_THE_ROW, "paths": controls,
                     "repair": CAUSE_REPAIR[NOTHING_IN_THE_ROW]})

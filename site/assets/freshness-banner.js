@@ -350,79 +350,14 @@
            "stopped moving then, so treat them all as at least that old.";
   }
 
-  function annotationSentence(d) {
-    var a = (d && d.annotation) || {};
-    var findings = a.open_findings || 0;
-    var reds = a.nonblocking_reds_total != null
-      ? a.nonblocking_reds_total
-      : ((a.nonblocking_reds || []).length);
-    if (!findings && !reds) { return ""; }
-    /* The ruling's own words: "published with N open findings -- see health".
-       Stated as a fact about the REPO, never about these figures: these figures
-       passed the suite that produces and renders them, which is precisely what
-       the scoped gate means and precisely what a reader should take from it. */
-    return "Published with " + findings + " open finding" + (findings === 1 ? "" : "s") +
-           (reds ? " and " + reds + " non-blocking test red" + (reds === 1 ? "" : "s") +
-                   redTreeClause(a) + redAgeClause(a) : "") +
-           " elsewhere in the repository — these are not defects in the figures above; " +
-           "the suite that produces and renders them is green.";
-  }
-
-  /* WHEN the red count was taken, on the surface rather than in the JSON (2026-09-03).
-     `checked_at` has been in this feed all along and no reader has ever met it. The count
-     beside it is produced by a suite that runs inside whatever the publish path has left, so
-     when that suite stops finishing, the annotation block simply stops moving — inside a file
-     that is rewritten every cycle, which is what made it invisible. Observed: the live banner
-     carried a red counted at 06:22Z on 2026-09-01 for two full days, next to a provenance file
-     with that afternoon's mtime.
-
-     THE TREE CLAUSE COULD NOT CATCH THIS. It names the commit the count was taken on, and a
-     commit hash does not tell a reader it is two days old — a reader would have to go and look
-     it up, which is the same as not being told. Age is a different question from tree and gets
-     its own clause.
-
-     Silent under a day, deliberately: the count is refreshed hourly at best and a "0 days old"
-     on every page would be noise that trains readers to skip the sentence the one time it
-     matters. An unreadable or absent `checked_at` says so rather than being dropped — this
-     whole clause exists because an absent clock read as a current one. */
-  function redAgeClause(a) {
-    /* `nonblocking_reds_checked_at`, NOT `checked_at`. The two halves of this annotation have
-       different freshness: findings are a directory listing refreshed on every path, reds come
-       from a suite that has not finished since 2026-09-01. `checked_at` moves whenever EITHER
-       half is written, so reading it here would report the cheap half's freshness as the
-       expensive half's and this clause would never fire — which is precisely the defect it was
-       added for, arriving through its own repair. */
-    var at = a && a.nonblocking_reds_checked_at;
-    if (!at) { return " (when it was counted is unrecorded)"; }
-    var t = Date.parse(at);
-    if (isNaN(t)) { return " (when it was counted is unreadable)"; }
-    var days = Math.floor((Date.now() - t) / 86400000);
-    if (days < 1) { return ""; }
-    return " and last counted " + days + " day" + (days === 1 ? "" : "s") +
-           " ago, so it may no longer be true";
-  }
-
-  /* WHICH TREE THE RED COUNT WAS TAKEN ON, on the surface rather than in the JSON (2026-08-31).
-     The count is produced by a suite run in the shared working tree, which carries several
-     lanes' uncommitted work; the banner beside it names the published COMMIT. A reader joined
-     the two and got a number about neither. Observed on the live endpoint: 66 reds published
-     next to git_commit d1ba6bd46, counted on a tree that also held an uncommitted change
-     reddening ~1,760 tests.
-
-     ABSENT reads as UNRECORDED, never as the commit. Every artefact written before today has no
-     measured_on, and defaulting those to the commit would retro-fit a claim nobody made — the
-     misattribution this whole change exists to remove, applied to the entire back catalogue. */
-  function redTreeClause(a) {
-    var m = a && a.nonblocking_reds_measured_on;
-    if (!m || !m.tree_state || !m.git_commit) {
-      return " (counted on an unrecorded tree)";
-    }
-    if (m.tree_state === "commit") {
-      return " counted at " + m.git_commit;
-    }
-    return " counted on the working tree at " + m.git_commit +
-           ", which carried uncommitted work — so the count is not a property of that commit";
-  }
+  /* NO REPOSITORY PROVENANCE ON THE PUBLIC PAGE (director, 2026-09-26).
+     This slot rendered "Published with N open findings and M non-blocking test reds counted on
+     the working tree at <sha>, which carried uncommitted work ... (when it was counted is
+     unrecorded)". Every clause was true and none of it helped a reader: the counts are about the
+     repository, not the figures, and the line above already says the figures are verified. The
+     ruling was one plain sentence or nothing; nothing is the honest choice, because the one
+     sentence a reader needs is the "Verified" line. The counts stay in `publish_provenance.json`
+     for the health page and the machine, which is where they are read. */
 
   /* THE VERDICT COMES FROM THE STATE, NEVER FROM WHETHER A SENTENCE WAS RENDERED.
      Until 2026-09-04 the caller used the truthiness of `stalenessSentence(...)` as the verdict:
@@ -474,9 +409,6 @@
           ? "Reference page — nothing here is produced by the simulation, so no figure on it " +
             "has a publish age. Sourced and dated in the page itself."
           : sentence(d));
-    /* The open-findings note is about the REPOSITORY, not about these figures, so it stays on
-       a reference page: it is the one part of the banner that is still true there. */
-    var note = unknown ? "" : annotationSentence(d);
 
     /* The refusal goes ABOVE the as-at line, because it changes how that line should be read:
        "figures as at Monday" means one thing beside a working publisher and another beside one
@@ -488,15 +420,13 @@
       '<span class="pf-line">' + line + "</span>" +
       (notArriving ? '<span class="pf-notarriving">' + esc(notArriving) + "</span>" : "") +
       (failing ? '<span class="pf-failing">' + esc(failing) + "</span>" : "") +
-      (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "") +
-      (note ? '<span class="pf-note">' + esc(note) + "</span>" : "");
+      (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "");
 
     var style = document.createElement("style");
     style.textContent =
       ".poesys-freshness{font-family:var(--font-house,system-ui);font-size:11.5px;line-height:1.5;" +
       "padding:8px 22px;border-bottom:1px solid var(--border,#ddd);color:var(--muted,#666);" +
       "background:var(--surface,#fff);display:block}" +
-      ".poesys-freshness .pf-note{display:block;margin-top:3px}" +
       ".poesys-freshness .pf-stale{display:block;margin-top:3px;font-weight:700}" +
       ".poesys-freshness .pf-failing{display:block;margin-top:3px;font-weight:700}" +
       ".poesys-freshness .pf-notarriving{display:block;margin-top:3px;font-weight:700}" +
