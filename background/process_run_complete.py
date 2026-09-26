@@ -10090,7 +10090,24 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
         # current cycle then writes a failure over it: both are true, both are recorded, and
         # `PUBLISH_GATE_STREAK_FIELDS` is what stops the failure write forgetting the clean
         # publish this one just counted.
-        _deferral = grade_outstanding_delivery()
+        #
+        # AND THE PRIOR CYCLE'S BOOKKEEPING MAY NOT SWALLOW THIS CYCLE'S VERDICT (2026-09-26).
+        # This leg fetches origin, asks ancestry and writes two observability files, all for a
+        # PREVIOUS cycle -- and it sat bare under this function's single outer `except`, so any
+        # error in it returned None and the CURRENT cycle's failure was never recorded at all. The
+        # wedge streak then stops growing at exactly the moment something is wrong, which is this
+        # router's whole subject. Same doctrine as the stamp wrapper inside
+        # `grade_outstanding_delivery` itself: a bookkeeping write that fails must not abandon the
+        # function it sits in. Found by the operational-layer signal, which went red for 5 hourly
+        # checks when this leg raised on the live deferral state inside a test.
+        _deferral, _deferral_ungraded = None, False
+        try:
+            _deferral = grade_outstanding_delivery()
+        except Exception as exc:  # noqa: BLE001 -- an owed verdict may not cost the current one
+            _deferral_ungraded = True
+            log("Publish gate: the owed delivery verdict could not be graded ({}: {}) -- the "
+                "deferral is left standing and THIS cycle is still recorded below.".format(
+                    type(exc).__name__, exc))
         git_hash = _marker_git_hash(marker)
         if rc == EXIT_PUBLISH_DELIVERY_DEFERRED:
             # THE CYCLE THAT JUST DEFERRED. Its own delivery is seconds old, so the grading above
@@ -10189,6 +10206,16 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
             # disarm-by-rc-0 defect (see EXIT_PUBLISH_DID_NOT_LAND) one door over, and the door
             # would have been opened by the repair. `grade_outstanding_delivery` above has
             # already recorded the success if the ref says the delivery arrived.
+            # AND "COULD NOT LOOK" IS NOT "NOTHING OUTSTANDING" (fail closed, same reason
+            # `grade_outstanding_delivery` never reads an unreadable remote as REACHED). If the
+            # grading above raised, `_deferral` is None, which `== ABSORBING` answers False for --
+            # so without this leg the guard the comment below argues for would be bought by an
+            # ERROR, and an unreadable deferral state would stamp a clean publish.
+            if _deferral_ungraded:
+                log("Publish gate: {} exited 0, but whether a previous cycle's content reached "
+                    "origin could NOT be established -- no clean publish is claimed and the "
+                    "streak is left exactly as it was found.".format(Path(marker).name))
+                return "unproven"
             if _deferral == publish_delivery_deferral.ABSORBING:
                 log("Publish gate: {} exited 0, and a previous cycle's committed content is "
                     "still NOT on origin -- no clean publish is claimed and the streak is left "

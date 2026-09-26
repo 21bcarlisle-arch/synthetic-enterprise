@@ -41,6 +41,13 @@ def _isolate(tmp_path, monkeypatch):
     # touches and must be per-test. Left on the real path it would decide these tests off
     # whatever the live pipeline last stamped.
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
+    # Same class a FOURTH time (2026-09-26) -- and this one is NOT pinned here, deliberately. The
+    # router now takes the OWED delivery verdict first and for every rc, so four tests in this
+    # file became a function of whether this MACHINE holds an undelivered publish commit. That is
+    # a whole-directory leak rather than this file's, so the pin lives with its siblings in
+    # `tests/background/conftest.py::_LEAKING_STATE_CONSTANTS`
+    # (`process_run_complete.PUBLISH_DELIVERY_DEFERRAL_FILE`), which carries the evidence. Named
+    # here because a reader of these four reds needs to know where the isolation is.
     # OPS_run_marker_sweep_livelock: the sweep's stall counter is real on-disk
     # state. An unpinned flag leaks into every other test's loader and starts
     # alarming off their fixtures -- pin it per-test.

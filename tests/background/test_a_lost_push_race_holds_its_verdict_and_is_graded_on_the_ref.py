@@ -326,3 +326,54 @@ def test_the_module_is_wired_into_the_publish_path():
     assert "publish_delivery_deferral" in src
     assert isinstance(prc.publish_delivery_deferral, types.ModuleType)
     assert prc.PUBLISH_DELIVERY_DEFERRAL_FILE.name == ".publish_delivery_deferral.json"
+
+
+def test_a_failed_owed_grading_still_records_this_cycles_verdict(tmp_path, monkeypatch):
+    """9. THE OWED VERDICT MAY NOT COST THE CURRENT ONE, AND MAY NOT BUY IT EITHER.
+
+    THE DEFECT (2026-09-26, found by the operational-layer signal going red for 5 consecutive
+    hourly checks): `grade_outstanding_delivery()` fetches origin, asks ancestry and writes two
+    observability files -- all on behalf of a PREVIOUS cycle -- and it sat bare under this
+    router's single outer `except Exception`. So any error in that leg returned None and THIS
+    cycle's failure was never recorded: the wedge streak stops growing at exactly the moment
+    something is wrong, which is the router's whole subject.
+
+    BOTH DIRECTIONS IN ONE CONTROL, because the repair's own fail-open is the mirror image:
+      * a raised grading must not suppress a red cycle's recorded failure; and
+      * it must not be read as "nothing outstanding" on a GREEN cycle either -- `_deferral` is
+        then None, which `== ABSORBING` answers False for, so an ERROR would have bought the
+        clean-publish stamp that leg exists to withhold.
+
+    MUTATION: remove the `try` around the grading call and the first leg reds (the router
+    answers None and records nothing). Drop the `_deferral_ungraded` check from the rc==0 branch
+    and the second reds (the router answers "success" and the wedge clears).
+    """
+    marker = tmp_path / "run_complete_z.md"
+    marker.write_text("z")
+    monkeypatch.setattr(prc, "_marker_git_hash", lambda m: "cafe1234")
+    monkeypatch.setattr(prc, "_green_is_on_record_for", lambda h: True)
+
+    def _raises(*a, **k):
+        raise OSError("the deferral surface is unwritable")
+
+    monkeypatch.setattr(prc, "grade_outstanding_delivery", _raises)
+
+    recorded, cleared = [], []
+    monkeypatch.setattr(prc, "record_publish_gate_failure",
+                        lambda *a, **k: recorded.append(k))
+    monkeypatch.setattr(prc, "record_publish_gate_success",
+                        lambda *a, **k: cleared.append(True))
+
+    assert prc.record_publish_gate_outcome(str(marker), 1) == "failure", (
+        "an error grading a PREVIOUS cycle's delivery discarded THIS cycle's verdict")
+    assert len(recorded) == 1 and recorded[0]["rc"] == 1, recorded
+
+    assert prc.record_publish_gate_outcome(str(marker), 0) == "unproven", (
+        "an ungradable owed delivery was read as 'nothing outstanding' and bought a clean publish")
+    assert cleared == [], "the wedge was cleared on a delivery nobody could grade"
+
+    # AND THE CONTROL CAN PASS BOTH WAYS: with the grading answering NONE, the same green cycle
+    # clears normally -- so neither leg above is green merely because rc=0 never clears anything.
+    monkeypatch.setattr(prc, "grade_outstanding_delivery", lambda *a, **k: pdd.NONE)
+    assert prc.record_publish_gate_outcome(str(marker), 0) == "success"
+    assert cleared == [True]

@@ -94,6 +94,32 @@ _LEAKING_STATE_CONSTANTS = (
     #     carry the property pass an explicit `project_dir` no re-root can reach.
     ("background.delivery_lane", "CLAIMS_FILE"),
     ("background.delivery_lane", "DRAW_LEDGER_FILE"),
+    # 2026-09-26 -- THE OWED DELIVERY VERDICT, and this leak turned the PRIORITY-ZERO
+    # operational-layer signal red for 5 consecutive hourly checks. Since 2026-09-17
+    # `record_publish_gate_outcome` takes the owed verdict FIRST and for EVERY rc: it reads this
+    # file, and when it holds a real deferral it fetches origin, asks ancestry, and on OVERDUE
+    # records a failure of its own (rc=80, `delivery_did_not_reach_origin`) before the current
+    # cycle is graded at all. So every test that routes an outcome became a function of whether
+    # THIS MACHINE happens to hold an undelivered publish commit. On 2026-09-25 it did --
+    # 82d89003c, 8592s overdue -- and 12 tests across `test_background_worker.py`,
+    # `test_sim_runner_publish_gate_outcome.py` and `test_a_refused_publish_commit_reaches_the_
+    # wedge_detector.py` went red: `test_failing_marker_records_publish_gate_failure` read the
+    # DEFERRAL's rc=80 where it asserted the sweep's rc=-9, two publisher-call recorders counted
+    # the grading's git subprocesses as publisher launches (4 == 1), and the rest lost their
+    # verdict entirely when `clear()` hit the write guard on the live path.
+    #
+    # A CONTROL THAT FAILS EXACTLY WHEN THE THING IT WATCHES IS IN THE STATE IT EXISTS TO
+    # DESCRIBE -- the shape `_record_publisher` in `test_background_worker.py` was written for,
+    # arriving through a second door. The router's behaviour is CORRECT and no test may forbid
+    # it; what these tests mean is "what did THIS cycle record", so the owed-verdict state they
+    # read has to be theirs.
+    #
+    # NOBODY'S SUBJECT, measured over every reference in this directory and not assumed: only two
+    # modules name the constant at all. `test_a_lost_push_race...::_grade` sets it in the test
+    # body (after this fixture, so it still wins), and the same file's
+    # `test_the_module_is_wired_into_the_publish_path` asserts only `.name` -- which a re-root
+    # preserving the repo-relative path does not move.
+    ("background.process_run_complete", "PUBLISH_DELIVERY_DEFERRAL_FILE"),
 )
 
 
