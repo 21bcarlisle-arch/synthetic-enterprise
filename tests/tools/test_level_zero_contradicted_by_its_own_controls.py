@@ -54,6 +54,20 @@ def _runner(verdicts: dict):
     return run
 
 
+def _ages_of_paths(older, undatable=()):
+    """An injected dating oracle keyed on the PATH, for the two age causes.
+
+    `_ages` below is keyed on the atom id and returns one fixed list however it is called. The
+    age branch in `ungradable_causes` calls its oracle twice -- controls, then subjects -- so an
+    atom-keyed stub answers the subject question with the control answer and the two age causes
+    become indistinguishable to any test using it. Keyed here to what is actually asked."""
+    older, undatable = set(older), set(undatable)
+    def ages(atom_id, paths, root=REPO):
+        return ([p for p in paths if p in older],
+                [p for p in paths if p in undatable])
+    return ages
+
+
 def _ages(predating: dict | None = None, undatable: dict | None = None):
     """An injected dating function, same reason as `_runner`: a tmp_path is not a git repository,
     so the real one would report every row undatable and no test below could reach any other
@@ -660,36 +674,53 @@ def test_every_cause_is_reachable_in_one_pass(tmp_path: Path):
 
     worlds = {
         "ROTTED": (_atom("ROTTED", scope=["gone/moved.py", "subject.py", "test_here.py"]),
-                   {"gone/moved.py": True}),
+                   {"gone/moved.py": True}, None),
         "UNDECIDABLE": (_atom("UNDECIDABLE", scope=["gone/unknown.py", "subject.py",
                                                     "test_here.py"]),
-                        {"gone/unknown.py": None}),
-        "SCOPE_ONLY": (_atom("SCOPE_ONLY", scope=["tests/"]), {}),
+                        {"gone/unknown.py": None}, None),
+        "SCOPE_ONLY": (_atom("SCOPE_ONLY", scope=["tests/"]), {}, None),
         "SUBJECT_PLUS_TEST_DIR": (_atom("SUBJECT_PLUS_TEST_DIR",
-                                        scope=["subject.py", "suite"]), {}),
+                                        scope=["subject.py", "suite"]), {}, None),
         "UNBUILT": (_atom("UNBUILT", scope=["never/made.py", "tests/test_planned.py"]),
-                    {"never/made.py": False, "tests/test_planned.py": False}),
+                    {"never/made.py": False, "tests/test_planned.py": False}, None),
         # NAMES a control, and git has never heard of it: the only shape that earns the claim
         # "never written", because it is the only one where a control was asked for by name.
         "NO_CONTROL": (_atom("NO_CONTROL", scope=["subject.py", "tests/test_nobody.py"]),
-                       {"tests/test_nobody.py": False}),
+                       {"tests/test_nobody.py": False}, None),
         # Names NO control. Nothing is absent, nothing was measured, and saying "never written"
         # here is the PB4/PB6 shape: a build that wrote a control under a name the row never
         # cited. `suite/` is absent from this row on purpose.
-        "UNNAMED_CONTROL": (_atom("UNNAMED_CONTROL", scope=["subject.py"]), {}),
+        "UNNAMED_CONTROL": (_atom("UNNAMED_CONTROL", scope=["subject.py"]), {}, None),
         # The row that is not the problem: subject and control both on disk, nothing absent.
         # This world used to return `[]` and was the hole in the partition.
-        "NOTHING_WRONG": (_atom("NOTHING_WRONG", scope=["subject.py", "test_here.py"]), {}),
+        "NOTHING_WRONG": (_atom("NOTHING_WRONG", scope=["subject.py", "test_here.py"]), {}, None),
         # Absent SUBJECT, git has never known it, and something else in the row IS on disk. The
         # eighth cause, added 2026-09-25. Before it this world reached `NOTHING_IN_THE_ROW` and
         # was told "every named path is on disk" over a path that is not.
         "SUBJECT_UNBUILT": (_atom("SUBJECT_UNBUILT",
                                   scope=["never/made.py", "subject.py", "test_here.py"]),
-                            {"never/made.py": False}),
+                            {"never/made.py": False}, None),
+        # THE NINTH AND TENTH, 2026-09-26, and they are ONE shape apart on purpose: identical
+        # rows, identical answers, differing only in whether the SUBJECT is older than the row.
+        # That is the whole discriminator, so a collapse of the two into one state -- which is
+        # what the module did until this commit, under `NOTHING_IN_THE_ROW` -- is visible here.
+        "EXTENDS_OLDER_WORK": (_atom("EXTENDS_OLDER_WORK",
+                                     scope=["subject.py", "test_here.py"]),
+                               {}, {"subject.py", "test_here.py"}),
+        "BUILD_CITED_NO_CONTROL": (_atom("BUILD_CITED_NO_CONTROL",
+                                         scope=["subject.py", "test_here.py"]),
+                                   {}, {"test_here.py"}),
     }
-    got = {name: [c["cause"] for c in lz.ungradable_causes(atom, root=tmp_path,
-                                                           known=_known(answers))]
-           for name, (atom, answers) in worlds.items()}
+    # THE PARTITION NOW CARRIES A DATING DIMENSION, and the two age worlds are the reason the
+    # third slot exists: `tmp_path` is not a git repository, so the real dating oracle reports
+    # every control undatable there and the age branch is unreachable without an injection.
+    # Path-keyed rather than atom-keyed (`_ages` above is atom-keyed) because the branch asks the
+    # oracle TWICE with different path lists -- once for the controls, once for the subjects --
+    # and an atom-keyed stub would hand back the same answer to both and hide the second call.
+    got = {name: [c["cause"] for c in lz.ungradable_causes(
+                      atom, root=tmp_path, known=_known(answers),
+                      ages=(_ages_of_paths(older) if older is not None else None))]
+           for name, (atom, answers, older) in worlds.items()}
 
     assert got == {
         "ROTTED": [lz.POINTER_ROT],
@@ -701,6 +732,8 @@ def test_every_cause_is_reachable_in_one_pass(tmp_path: Path):
         "UNNAMED_CONTROL": [lz.CONTROL_UNNAMED],
         "NOTHING_WRONG": [lz.NOTHING_IN_THE_ROW],
         "SUBJECT_UNBUILT": [lz.SUBJECT_NEVER_WRITTEN],
+        "EXTENDS_OLDER_WORK": [lz.EXTENDS_WORK_OLDER_THAN_ITSELF],
+        "BUILD_CITED_NO_CONTROL": [lz.BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL],
     }, "the cause partition is not fully reachable: {!r}".format(got)
     # THE NAME NO LONGER CARRIES A COUNT. It was
     # `test_all_seven_causes_are_reachable_in_one_pass` until 2026-09-25 -- findings in
@@ -1389,3 +1422,120 @@ def test_a_red_a_person_has_ACCEPTED_still_silences_the_row(tmp_path: Path):
     assert why is None and reds == [node], (
         "an accepted red stopped silencing the row, so the leg is reading the DECISION store "
         "and not the OBSERVATION: {} {}".format(reds, why))
+
+
+def test_a_row_whose_subject_is_older_than_it_is_not_told_to_repoint_at_something(tmp_path: Path):
+    """THE DEFECT, measured 2026-09-26: `CONTROL_PREDATES_ROW` printed two exits -- repoint at a
+    control this atom's own build wrote, or leave the row at zero -- and nothing told the reader
+    which. All eight live members reached `ungradable_causes` as `NOTHING_IN_THE_ROW`, whose own
+    repair says "re-run it and read the reason line", which is the two-exit line again. The
+    reader goes in a circle and lands on an instruction the repository cannot answer: two
+    proxies for "the atom's own build wrote it" returned 4-of-8 and 8-of-8 over the same rows.
+
+    THE PROPERTY: when every named subject ALSO predates the row, there is no atom-own control
+    to point at -- the atom extends existing work and its build has not happened. The only way
+    to follow the repoint exit is to invent a filename, which is the unfollowable instruction
+    `H40` and `H48` were refused on.
+
+    MUTATION (must fire): make the branch emit `BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL`
+    unconditionally, or drop the `younger` test. Both red the cause assertion here.
+
+    AND THE POSITIVE ARM IS THE SECOND HALF: a branch that is simply unreachable passes any test
+    that only asserts a cause is absent, so this asserts what the row IS told, and that the
+    repair does not send the reader looking for a file."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
+    causes = lz.ungradable_causes(
+        _atom("EXTENDS", scope=["subject.py", "test_here.py"]), root=tmp_path,
+        known=_known({}), ages=_ages_of_paths({"subject.py", "test_here.py"}))
+
+    assert [c["cause"] for c in causes] == [lz.EXTENDS_WORK_OLDER_THAN_ITSELF], (
+        "a row whose subject and control both predate it must be told there is nothing to "
+        "repoint at, not sent round the two-exit loop: {!r}".format(causes))
+    assert lz.NOTHING_IN_THE_ROW not in [c["cause"] for c in causes], (
+        "the row is no longer 'not the problem' -- its zero is correct and the ATOM is unbuilt")
+    repair = causes[0]["repair"]
+    assert "do NOT invent a control name" in repair and "Build it, or close it" in repair, (
+        "the repair must refuse the invention explicitly; a repair that merely omits the "
+        "repoint exit leaves the reader to rediscover why: {!r}".format(repair))
+    assert lz.EXTENDS_WORK_OLDER_THAN_ITSELF in lz.CAUSES_OWING_NO_REPAIR, (
+        "the repair this cause owes is a BUILD, so it must not be counted as a row owing a "
+        "repair to itself -- that is the figure the whole census exists to make honest")
+
+
+def test_a_subject_younger_than_its_row_still_earns_the_repoint_instruction(tmp_path: Path):
+    """THE OTHER HALF, and the reason the split is two causes and not one refusal.
+
+    A subject born AFTER the row means this atom's build DID land code, and cited no control for
+    it. A control may well exist under a name the row never used -- the `PB4`/`PB6` shape this
+    module's docstring records -- so here the repoint exit is genuinely owed and suppressing it
+    would lose landed work.
+
+    THE ROW IS BYTE-IDENTICAL to the one above; only the subject's age differs. That is what
+    makes this a control over the discriminator rather than over two unrelated worlds.
+
+    MUTATION (must fire): emit `EXTENDS_WORK_OLDER_THAN_ITSELF` unconditionally -> reds here and
+    leaves the test above green, which is the asymmetry a single-world test would have missed."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
+    causes = lz.ungradable_causes(
+        _atom("BUILT", scope=["subject.py", "test_here.py"]), root=tmp_path,
+        known=_known({}), ages=_ages_of_paths({"test_here.py"}))
+
+    assert [c["cause"] for c in causes] == [
+        lz.BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL], (
+        "a subject younger than its row is evidence the build landed, and the row must keep the "
+        "instruction to go and find the control it wrote: {!r}".format(causes))
+    assert causes[0]["paths"] == ["subject.py"], (
+        "the repair sends the reader to `git log` on a path, so it must name the YOUNGER "
+        "subject and not the predating control: {!r}".format(causes[0]["paths"]))
+    assert lz.BUILD_LANDED_A_SUBJECT_AND_CITED_NO_CONTROL not in lz.CAUSES_OWING_NO_REPAIR, (
+        "this row DOES owe a repair to itself -- it names no control for code it landed")
+
+
+def test_the_age_split_stays_silent_while_the_row_has_an_absent_path(tmp_path: Path):
+    """THE GATE, and it is the same one the rot check earns: "every named subject predates the
+    row" is a claim about the set the row names, and with a path absent that set is wrong. The
+    subject may be on disk under the name the row has stopped using, and "nothing to repoint at"
+    would then be exactly backwards -- the most expensive direction to be wrong in, because it
+    is the one cause in this partition that tells the reader to stop looking.
+
+    MUTATION (must fire): change the branch's guard from `not out` to `True`, or move it above
+    the rot check. Either reds the first assertion.
+
+    THE POSITIVE ARM: the rotted cause must still be the one reported. A gate that suppressed
+    BOTH causes would pass an assertion that only asked for the age cause's absence."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
+    causes = lz.ungradable_causes(
+        _atom("ROTTED_AND_OLD", scope=["gone/moved.py", "subject.py", "test_here.py"]),
+        root=tmp_path, known=_known({"gone/moved.py": True}),
+        ages=_ages_of_paths({"subject.py", "test_here.py"}))
+    found = [c["cause"] for c in causes]
+
+    assert lz.EXTENDS_WORK_OLDER_THAN_ITSELF not in found, (
+        "'nothing to repoint at' may not be said over a row that has a pointer to repoint: "
+        "{!r}".format(found))
+    assert found == [lz.POINTER_ROT], (
+        "and the rot must still be reported -- a gate that silences everything is not a "
+        "gate: {!r}".format(found))
+
+
+def test_an_undatable_subject_fails_closed_rather_than_reading_as_not_older(tmp_path: Path):
+    """THE FAIL-CLOSED LEG. `controls_older_than_the_row` returns `(predating, undatable)` and
+    an undatable path is in NEITHER list -- so the naive `not in predating` test reads "I could
+    not look" as "younger than the row", which is the branch that tells the reader a build
+    landed. A not-found used as a verdict, and in the direction that manufactures work.
+
+    MUTATION (must fire): delete the `if subj_undatable:` leg so the `younger` list absorbs
+    undatable paths. This reds; nothing else does, because the live tree can date everything."""
+    (tmp_path / "subject.py").write_text("x = 1\n")
+    (tmp_path / "test_here.py").write_text("def test_x():\n    assert True\n")
+    causes = lz.ungradable_causes(
+        _atom("CANNOT_DATE", scope=["subject.py", "test_here.py"]), root=tmp_path,
+        known=_known({}),
+        ages=_ages_of_paths({"test_here.py"}, undatable={"subject.py"}))
+
+    assert [c["cause"] for c in causes] == [lz.CAUSE_UNDECIDABLE], (
+        "an undatable subject must refuse the split, not be counted as younger than its row: "
+        "{!r}".format(causes))
