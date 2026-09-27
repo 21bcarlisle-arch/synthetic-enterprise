@@ -37,3 +37,30 @@ book is two variables.
 2. One-leg control: every domestic, non-HH electricity premise in the live book resolves to a
    COMPLETE stored cell. It is keyed to the property, not to today's count. It is red today with
    42 names and must be shown able to go green after step 1.
+
+## Remedy, 2026-09-27 evening — step 2 landed, step 1 stopped on the quota
+
+- **Control landed:** `tests/simulation/test_every_settling_domestic_premise_reads_a_complete_stored_cell.py`
+  reuses the runner's own predicate (`fabric_eligibility` + `WeatherWorldSource.available`),
+  with no trace generation, in about 9 s. It was red at HEAD with **42 names**, as predicted. It
+  lands as `xfail(strict=True)`: the commit that completes the store turns it XPASS→red, and that
+  commit must delete the marker. A second test proves the refusal branch can fire, by withdrawing
+  one fabric-driven premise's cell.
+- **Pull:** `--build` took HadUK temperature for all 118 new cells (339 held), then ERA5 for 8.
+  At cell 9 Open-Meteo returned the **DAILY** 429 (resets at UTC midnight). 110 cells are still owed.
+- **NEW, and it matters more than the quota: a half-built store is WORSE than the old one.**
+  With that partial store on disk the control read **100** off-store, not 42, and all 100 resolved
+  to a real cell id. The HadUK pass writes every new cell temperature-only. A premise then snaps to
+  its OWN incomplete cell rather than a complete neighbour within 5 km, and is refused. So an
+  interrupted build moves about 58 more premises onto the legacy shape. The builder's "temperature
+  first keeps the store honest if interrupted" is true of the STORE and false of the BOOK.
+- **So nothing was landed from the pull.** The partial store (8 ERA5 cells plus 118 temperature-only)
+  is preserved at `/var/tmp/weather_store_partial_2026-09-27/`. The shared tree's copy was put back
+  to HEAD bytes, so no run reads the degraded store.
+- **To finish:** after 00:00 UTC, copy those three files back into `sim/weather_world/`, re-run
+  `python3 -m tools.build_weather_world --build` (it resumes: only the ERA5-less cells are pulled),
+  repeat on each quota reset until it says no cell is still needing the archive, then land the three
+  store files together with the removal of the xfail marker. Never land a store the control does not pass.
+- **Owed, separately:** the builder should not store a book cell until it is complete, or the
+  reader should snap to the nearest COMPLETE cell. Either would make an interruption harmless. Which
+  one is right is a design call, and it is not made here.
