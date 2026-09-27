@@ -303,13 +303,17 @@ processes:
   - session: token-proxy
     command: python3 -m background.token_proxy
     match: background.token_proxy
-    owner: systemd
-    state: enabled
-    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
-                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
-                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
-                           # left this row un-flipped: two launchers declared, AND excluded from
-                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
+    owner: (none — systemd unit stopped + disabled 2026-09-27)
+    state: retired
+    reason: >-
+      MOTHBALLED by the director, recorded 2026-09-27: "I mothballed [it] to avoid giving you false
+      excuses to stop. Better to hit the limit." It measured token use so the machine could
+      estimate the director's remaining weekly allowance, and an estimate is a reason to slow down
+      that he did not give. Its log (docs/observability/token-usage-log.jsonl) has had no row since
+      2026-06-25, nothing routes through it (no ANTHROPIC_BASE_URL anywhere), and its unit was
+      stopped and disabled the same day this row was flipped. The pace is the director's to set
+      (the mode control); the machine does not infer it.
+    flip: "does not flip — retired by the director; reviving it needs his decision, not a restart"
     log_silence: >-
       QUIET, NOT MUTE — and quiet because nothing uses it. Established 2026-09-22 against live
       pid 1192: it DID speak, at +0.2s into its run, and it is the only daemon here whose own

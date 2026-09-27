@@ -1,3 +1,9 @@
+> **MOTHBALLED 2026-09-27 by the director. Do not log entries here, and do not estimate the
+> remaining weekly allowance from anything in this file or elsewhere.** His words: *"I mothballed [it]
+> to avoid giving you false excuses to stop. Better to hit the limit."* The pace is his to set
+> (mode control); the machine does not infer it. `token-proxy` is `retired` in
+> `background/process_manifest.yaml`.
+
 # Usage Limit Tracking
 
 Empirical tracking to infer the actual token values behind Claude Pro's

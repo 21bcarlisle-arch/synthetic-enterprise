@@ -128,7 +128,8 @@ def test_health_checked_includes_all_migrated_autonomy_daemons():
     assert "executor-daemon" not in hc         # dark
     assert "autonomous-runner" not in hc       # retired
     assert "file-api" not in hc                # systemd-owned service, not a tmux daemon (sub-step 3)
-    for enabled in ("sim-runner", "token-proxy", "background-worker"):
+    assert "token-proxy" not in hc             # retired 2026-09-27 (director: no estimating his allowance)
+    for enabled in ("sim-runner", "background-worker"):
         assert enabled in hc
 
 

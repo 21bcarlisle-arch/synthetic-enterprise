@@ -385,26 +385,26 @@ def test_A_MUTE_DAEMON_AND_A_QUIET_ONE_DO_NOT_RENDER_AS_THE_SAME_ROW(monkeypatch
     quietest-daemon phrase names it. Make `_mute_sentence` return "" and the second fails.
     """
     # SAME age for both, so the only thing telling them apart is which clock's line it was.
-    _fake_journal(monkeypatch, {"worker-seat-manager": 384_000, "token-proxy": 384_000},
+    _fake_journal(monkeypatch, {"worker-seat-manager": 384_000, "dispatcher": 384_000},
                   mute=["worker-seat-manager"])
     _fake_ps(monkeypatch, [_ps_line(100 + i, 400_000, 4000, "/usr/bin/" + e["command"])
                            for i, e in enumerate(_enabled_rows())])
     seen = seat.running_now()
     rows = {r["session"]: r for r in seen["declared"]}
     assert rows["worker-seat-manager"]["mute"] is True
-    assert rows["token-proxy"]["mute"] is False, "a daemon that spoke is never mute"
+    assert rows["dispatcher"]["mute"] is False, "a daemon that spoke is never mute"
 
     text = seat._prompt(_brief(running=seen))
     # QUIET: the quietest-daemon sentence must name the one that SPOKE, never the mute one --
     # at 106h40m they are the same number, so this can only pass by reading the right field.
-    assert "The quietest has not written its own log for 106h40m (`token-proxy`)" in text
+    assert "The quietest has not written its own log for 106h40m (`dispatcher`)" in text
     # MUTE: said separately, in its own words, naming the daemon the quiet sentence excluded.
     assert "DECLARED DAEMON(S) ARE MUTE, WHICH IS NOT THE SAME AS QUIET" in text
     assert "worker-seat-manager" in text.split("ARE MUTE, WHICH IS NOT THE SAME AS QUIET")[1]
 
     # AND THE OTHER DIRECTION: with nothing mute, the loud sentence must DISAPPEAR entirely.
     # A reading that prints a mute header on a healthy box gets ignored, which is worse than none.
-    _fake_journal(monkeypatch, {"worker-seat-manager": 384_000, "token-proxy": 384_000})
+    _fake_journal(monkeypatch, {"worker-seat-manager": 384_000, "dispatcher": 384_000})
     healthy = seat._prompt(_brief(running=seat.running_now()))
     assert "ARE MUTE, WHICH IS NOT THE SAME AS QUIET" not in healthy
 
