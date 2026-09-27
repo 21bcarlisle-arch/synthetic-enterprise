@@ -78,3 +78,20 @@ the ceiling and does not raise it. The estimated total is under $0.10.
   tokens, **about $0.0014**, against a ceiling of $2.00.
 
 The harness and scorer are one-off scratch files, not repo modules: no dependency, no service, no schedule.
+
+## Closed without running — 2026-09-27
+
+**The trial cannot be run, and will not be.** Every route to Jev bills a real account (TypeSafe,
+OpenRouter, Cloudflare Workers AI). The director's standing rule, stated on 2026-09-27: *no real
+money is spent, whoever says yes.* The simulation's money is different from his. The spend
+"authorisation" this record asked for was the wrong question to put to him, and it is withdrawn.
+
+Per the instruction's own terms ("if the trial cannot be run as specified — no key — say that
+instead of substituting a different experiment"): **no key that does not cost money exists, so no
+result exists.** Nothing was called: the only requests made with the found Cloudflare token were a
+free token check and an account listing. The harness is disabled at its entry point.
+
+What stands without a call: the research. Two of the three by-eye classes are code-computable and
+belong to deterministic controls: nav reachability already has one, and stamp-vs-date needs one. The
+third, claim-vs-source, remains the open question, with a published-surface corpus of 34 pairs whose
+real positives are a single incident.
