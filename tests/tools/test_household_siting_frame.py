@@ -239,8 +239,8 @@ def test_a_committed_cell_takes_its_own_areas_first_and_the_nearest_ring_only_wh
         monkeypatch, tmp_path):
     """DEFECT: a cell with no address of its region given no area (every home sited there would draw
     nationally), or a cell WITH its own areas diluted by its neighbours'. Both branches must be
-    taken, then each checked. The committed frame predates the address placement, so 2,942 real
-    cells need the ring."""
+    taken, then each checked. No committed cell needs the ring today; 2,944 did while the frame
+    predated the address placement, and the ring is what a frame that drifts again falls back on."""
     import gzip
 
     summary = _oa_build(monkeypatch, tmp_path,
@@ -267,3 +267,23 @@ def test_a_committed_cell_with_no_area_of_its_region_nearby_refuses_the_build(
     with pytest.raises(ValueError, match="rebuild it"):
         _oa_build(monkeypatch, tmp_path, committed=[("East", (10, 10))],
                   placed={"East": {(10 + far, 10): {"E_FAR": 1.0}}})
+
+
+def test_the_committed_frame_was_built_by_the_placement_the_weather_cells_were_cut_over():
+    """DEFECT: the frame outliving its placement. It was built on the window placement and kept for
+    three weeks after `census_weights` moved to ONSUD, so 111 of its cells were not occupied land
+    cells of the weather partition, their households were refused a weather cell, and 2,944 cells
+    borrowed their output areas from a neighbour. Built by the same placement, the frame's
+    coordinates ARE the occupied land cells, and a frame or a partition rebuilt without the other
+    breaks that equality."""
+    from simulation import weather_cell_siting as wcs
+
+    _, land_cells = wcs.load_land_cells()
+    with f.FRAME_CSV.open(encoding="utf-8") as fh:
+        frame = {f"{r['lat']},{r['lon']}" for r in csv.DictReader(fh)}
+    assert frame - set(land_cells) == set(), (
+        f"{len(frame - set(land_cells)):,} frame cells are not occupied land cells -- the frame "
+        "and the weather partition were built by different placements; rebuild with `--build` "
+        "then `--build-output-areas`")
+    assert set(land_cells) - frame == set(), (
+        f"{len(set(land_cells) - frame):,} occupied land cells hold no household in the frame")

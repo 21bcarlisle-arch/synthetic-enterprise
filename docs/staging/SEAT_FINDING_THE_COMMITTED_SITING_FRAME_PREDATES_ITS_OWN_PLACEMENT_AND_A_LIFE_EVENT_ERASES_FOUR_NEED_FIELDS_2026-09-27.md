@@ -41,3 +41,17 @@ an event.
 again, with a control that applies one event of each type and asserts every field it does not name
 survives. Measure first how many live homes have an event before their fabric start, because that
 is the population whose demand moves.
+
+## Status 2026-09-27
+
+**2 is FIXED.** `apply_events` builds its state from `fields(Household)`; the control is
+`tests/simulation/test_life_event_keeps_every_field_it_does_not_name.py`. The claim above that
+restoring the fields "changes demand for every home with an event" was measured and is WRONG: 0 of
+9.6M half-hours moved across 273 homes with events, because no demand code reads the four fields.
+Pre-registration and result: `docs/staging/records/PREREG_LIFE_EVENTS_KEEP_EVERY_HOUSEHOLD_FIELD_2026-09-27.md`.
+
+**1 is FIXED.** Both frames were rebuilt on the address placement: every cell is ring 0, the weather
+join is total, and the driver means moved less than the placement change moved them. Result:
+`docs/staging/records/PREREG_REBUILD_THE_SITING_FRAME_ON_THE_ADDRESS_PLACEMENT_2026-09-27.md`. The
+ring fallback stays as the refusal a future drift will hit. Both remedies are landed and this
+finding is closed.

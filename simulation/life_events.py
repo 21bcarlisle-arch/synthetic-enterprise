@@ -50,7 +50,7 @@ from __future__ import annotations
 import hashlib
 import math
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import date, timedelta
 from typing import Literal
 
@@ -618,32 +618,10 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
     accumulating consumer.  Stable sort keeps generation order for same-date ties.
     """
     events = sorted(events, key=lambda e: e.event_date)
-    state = {
-        "customer_id": household.customer_id,
-        "property_type": household.property_type,
-        "build_era": household.build_era,
-        "epc_rating": household.epc_rating,
-        "bedrooms": household.bedrooms,
-        "heating_system": household.heating_system,
-        "boiler_age": household.boiler_age,
-        "has_solar": household.has_solar,
-        "solar_kwp": household.solar_kwp,
-        "solar_install_year": household.solar_install_year,
-        "has_battery": household.has_battery,
-        "battery_kwh": household.battery_kwh,
-        "has_ev": household.has_ev,
-        "ev_charger_kw": household.ev_charger_kw,
-        "has_smart_meter": household.has_smart_meter,
-        "smart_meter_install_year": household.smart_meter_install_year,
-        "insulation": household.insulation,
-        "has_driveway": household.has_driveway,
-        "roof_aspect": household.roof_aspect,
-        "income_stress": household.income_stress,
-        # Where the home IS does not change when something happens in it. Without this line every
-        # home with a life event lost its output area, and with it its area-conditioned headcount,
-        # at the first event (W2_19).
-        "output_area": household.output_area,
-    }
+    # Every field, read from the dataclass: a hand-written list here stopped at `income_stress` and
+    # silently reset every field added after it -- the NEED fabric and gas-supply fields and, until
+    # W2_19, the output area -- to its default at the first event, a job loss included.
+    state = {f.name: getattr(household, f.name) for f in fields(Household)}
 
     for event in events:
         if event.event_type == "solar_install":
