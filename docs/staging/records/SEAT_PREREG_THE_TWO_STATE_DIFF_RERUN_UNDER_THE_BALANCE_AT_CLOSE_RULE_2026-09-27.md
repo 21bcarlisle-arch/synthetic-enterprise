@@ -43,3 +43,49 @@ The comparison is the old-rule run of `de1677d74`, read from
 If B1 fails, the ±£913 bound was wrong, because it assumed recovery is the only leg that moves.
 In that case the per-year booking (`_row_for`, S6) is the next suspect, and it is named rather
 than reconciled.
+
+## Correction, written 21:50Z while the run was in flight: the comparison above is two variables
+
+I compared against the `de1677d74` run. Between that tree and `d993a9797`, three commits changed
+the code the run executes, not one:
+
+- `6ba548633`, the write-off rule;
+- `d9374ae9e`, the siting frame rebuilt on the address placement, and a life event that keeps the
+  fields it does not name;
+- `c08932808`, the output-area headcount prior.
+
+A difference from the `de1677d74` numbers therefore cannot be attributed to the rule. The first two
+completed runs, parsed from the log for seed 11111, already show movement the rule alone should not
+produce:
+
+| run | old-rule log (`de1677d74`) | this run (`d993a9797`) |
+|---|---|---|
+| run 0: lifecycle events / term lines | 104 / 3,136 | **110 / 3,205** |
+| run 0: net margin | £149,761.80 | £155,141.00 (+£5,379.20) |
+| run 0: bad-debt provision | £18,743.69 | £18,950.83 |
+| run 1: lifecycle events / term lines | 101 / 3,176 | 101 / 3,176 |
+| run 1: net margin | £162,070.38 | £164,465.05 (+£2,394.67) |
+| run 1: bad-debt provision | £18,844.99 | £18,806.50 (−£38.49) |
+
+Run 0's roster changes. Run 1's margin moves 62 times its bad debt. Both point at the world
+commits, not the rule, but that is a guess until it is measured.
+
+**The one-variable baseline** is `6ba548633^` = `cefd2c04a`. Its code under `simulation/`,
+`company/`, `saas/` and the runner differs from `d993a9797` only in `simulation/arrears_engine.py`
+and `tools/generate_billing_ledger.py`. It is queued as unit
+`longjob-two-state-balance-rule-baseline-20260927`, in a worktree at
+`/var/tmp/se-balance-rule-baseline-src`. It waits for the first run's pid and then runs the same
+command, writing to `/var/tmp/se-two-state-balance-rule-baseline/value_cycle_ab.json`. It is not
+run in parallel because the first run's RSS is 8.1 GB with 10.9 GB free.
+
+**B1–B4 are graded against that baseline, not against `de1677d74`.** Their wording stands with
+"the old-rule run" meaning `cefd2c04a` under the same two seeds.
+
+The `de1677d74` comparison is reported as the two-variable total. The world commits' share is the
+difference between the two totals.
+
+**A further prediction, filed now:**
+
+- **B5.** Under the baseline, run 0 on seed 11111 also shows 110 lifecycle events, and its net
+  margin is within £500 of £155,141.00. That would mean the roster change is the world commits'
+  doing, not the rule's.
