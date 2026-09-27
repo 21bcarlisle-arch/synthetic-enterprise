@@ -1604,6 +1604,22 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + "one quantity and the differences between them are not movements in it.</p>";
   }
 
+  /* WHAT THE RESIDUAL WAS FOUND TO BE, ahead of the verdict (2026-09-27). The feed voids this
+     leg's standard error and seed count because the residual is one household's renewal roll, not
+     a spread that more seeds would narrow. Amber because it is a refusal: the sign cannot be read
+     until a world rule is settled. Renders nothing for a leg the producer never asked about, and
+     renders the named reason when it asked and could not answer. Those are two different states. */
+  function rootCause(leg) {
+    var rc = leg.root_cause;
+    if (!rc) { return ""; }
+    if (!rc.available) {
+      return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">'
+        + "<strong>NO ROOT CAUSE IS STATED.</strong> " + prose(rc.why_not || "") + "</p>";
+    }
+    return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
+      + prose(rc.statement) + "</p>";
+  }
+
   function legsFirst(cw) {
     var lead = '<p style="margin:0 0 8px;font-size:13px;">'
       + '<span style="color:var(--amber);font-weight:600;">The advantage has two legs and only '
@@ -1636,7 +1652,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + '<p style="margin:0;font-size:13px;"><strong>' + esc(spec[1]) + " &mdash; "
         + esc(signed(leg.figure_gbp)) + ".</strong> " + esc(spec[2]) + ". "
         + prose(leg.what_this_leg_is || "") + "</p>"
-        + legVerdict(leg) + "</div>";
+        + rootCause(leg) + legVerdict(leg) + "</div>";
     }).join("");
     /* THE SUM COMES LAST AND SAYS SO. It is stated only when both legs are on screen: a total
        printed beside one leg is the composite headline again, wearing a split's clothes. */

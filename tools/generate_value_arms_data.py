@@ -408,6 +408,15 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
 #: `_RESIDUALS_2026-09-25.md` holds the five predictions and how four of them were refuted.
 HEAD_REPRODUCTION_FLOOR_PATH = PROJECT / "docs" / "observability" / (
     "value_cycle_ab_s1_noise_floor_folded18_head_20260925.json")
+#: WHAT THE SELECTION RESIDUAL IS MADE OF, measured 2026-09-27 -- and why the current-world leg no
+#: longer publishes a standard error or a seed count. See `_the_selection_switch_root_cause`.
+SELECTION_SWITCH_RECORD_PATH = PROJECT / "docs" / "staging" / "records" / (
+    "SEAT_RESULT_THE_SELECTION_SWITCH_IS_ONE_ACCOUNTS_CHURN_ROLL_AND_ITS_MONEY_IS_THE_WRITE_OFF_"
+    "RULE_2026-09-27.md")
+#: The fidelity question that decides whether the switch's money is real, and the design that
+#: answers it if the director says the rule is wrong. Named, not read: the page cites them.
+WRITE_OFF_RULE_FINDING = ("docs/staging/SEAT_FINDING_A_FAILED_BILL_IS_WRITTEN_OFF_IN_FULL_IFF_THE_"
+                          "CUSTOMER_EVER_LEAVES_2026-09-27.md")
 #: THE ONLY FAMILY ON THIS PAGE THAT CARRIES THE DISCRIMINATION AUC PER SEED, and it is a
 #: DIFFERENT family from `NOISE_FLOOR_PATH` above. Three seeds, world `39a192ce04c1eda8` -- the
 #: same world the folded 18 ran in -- drawn 2026-09-17 under commit `c9bd2eae7`.
@@ -15166,6 +15175,106 @@ def _withdraw_a_verdict_stated_from_a_superseded_run(
                     existing + " " + withdrawn if existing else withdrawn))
 
 
+#: THE SWITCH, AS THE RECORD MEASURED IT. Copied from the record's table rather than parsed out of
+#: markdown. A parser over prose would silently read nothing the day someone edits a sentence. The
+#: record is cited beside every one of these figures, so a reader can check them.
+_SELECTION_SWITCH = {
+    "account": "PROS-2016-0098",
+    "renewal_date": "2017-03-23",
+    "churn_roll": 0.3763,
+    "p_retain_level_arm_by_seed": {"11111": 0.3398, "88888": 0.6433},
+    "p_retain_other_arms_range": [0.758, 0.788],
+    "term_margin_kept_gbp": 1415.95,
+    "write_off_moved_gbp": -6766.59,
+    "state_distance_gbp": -5344.10,
+    "seeds_the_switch_was_read_on": [11111, 88888],
+}
+
+
+def _the_selection_switch_root_cause(leg: dict,
+                                     record: Path = SELECTION_SWITCH_RECORD_PATH) -> dict:
+    """Replace the selection leg's Gaussian price with what the residual was found to be.
+
+    WHY THE SEM AND THE SEED COUNT ARE VOIDED, NOT KEPT WITH A CAVEAT. Both treat the residual as a
+    mean with a spread that shrinks as 1/sqrt(n). The record found it is not that. It is a
+    two-state switch: one household's re-drawn elasticity, under the level arm, either does or
+    does not put its retention probability below one fixed churn roll. More seeds only re-sample
+    that one coin. "14 seeds to state a sign" answers a question about the wrong unknown, and a
+    caveat beside it would still leave the number for a reader to quote.
+
+    AND THE MONEY IS THE WORLD'S RULE, NOT THE COMPANY'S MARGIN. The published difference comes
+    almost entirely from `compute_emergent_bad_debt` writing off every failed bill of a customer
+    who ever leaves. Whether that is how a supplier works is a fidelity question that is still
+    open (`WRITE_OFF_RULE_FINDING`). Until it is settled, the sign of this leg cannot be read.
+    That is the result, and it goes on the surface.
+
+    `what_would_settle_the_sign` IS LEFT STANDING, deliberately. It prices a book size, not a seed
+    count, and it already publishes its counts as lower bounds. The record agrees: per-account
+    fates are independent, so depth helps at that ladder's rate at best, and the tail makes it
+    slower.
+
+    FAIL CLOSED ON A MISSING RECORD. With no record on disk the leg is returned unvoided, and it
+    carries a `root_cause` that says why no root cause is stated. It never cites a file that is
+    not there.
+    """
+    if not record.is_file():
+        return dict(leg, root_cause={
+            "available": False,
+            "why_not": "The record this statement cites is not on disk at {}, so no root cause "
+                       "is published and the leg's own bound stands unvoided.".format(
+                           _cited_path(record))})
+    s = _SELECTION_SWITCH
+    cited = _cited_path(record)
+    voided = ("VOIDED 2026-09-27. The selection residual is not a Gaussian spread around a mean. "
+              "It is one account's renewal roll, so a standard error over seeds prices the wrong "
+              "unknown. See {}.".format(cited))
+    bound = leg.get("bound")
+    out = dict(leg)
+    if isinstance(bound, dict):
+        out["bound"] = dict(bound, sem_gbp=None, sem_voided_because=voided)
+    if "distance_to_a_sign" in leg:
+        out["distance_to_a_sign"] = {"available": False, "voided_because": voided}
+    if "which_sign_question_this_answers" in leg:
+        out["which_sign_question_this_answers"] = voided
+    out["root_cause"] = {
+        "available": True,
+        **s,
+        "record": cited,
+        "fidelity_question": WRITE_OFF_RULE_FINDING,
+        "write_off_per_account": {
+            "measured": False,
+            "how_it_was_obtained": (
+                "derived: the log printed term margin per account but not write-offs, so the "
+                "{w} is the identity (published distance minus term margin minus the rest of the "
+                "book) plus the per-account substream keying. The confirming run that measures it "
+                "per account is recorded in the same file.").format(
+                    w=_stated_to_the_penny(s["write_off_moved_gbp"])),
+        },
+        "statement": (
+            "THE SIGN OF THIS LEG CANNOT BE READ UNTIL A WORLD RULE IS SETTLED. The residual is "
+            "not a spread that more seeds would narrow. It is one household, {acct}, at one "
+            "renewal on {date}. Its churn roll is {roll} in every arm on both seeds measured. Only in "
+            "the "
+            "price-level arm does its re-drawn price sensitivity move its chance of staying "
+            "across that roll: {lo} on one seed, so it leaves, and {hi} on the other, so it "
+            "stays. Keeping it three more years earns {margin} of margin. The published figure "
+            "nevertheless moves by {dist}, because the simulated world writes off every failed "
+            "bill in full for any customer who ever leaves, and this one's extra bills move "
+            "{wo} of write-offs (derived, not yet measured per account). Whether real suppliers "
+            "write off that way is an open fidelity question, so no seed count is stated here: "
+            "more seeds would only re-draw whether this one household crosses {roll}. Source: "
+            "{rec}. Open question: {q}.").format(
+                acct=s["account"], date=s["renewal_date"], roll=s["churn_roll"],
+                lo=s["p_retain_level_arm_by_seed"]["11111"],
+                hi=s["p_retain_level_arm_by_seed"]["88888"],
+                margin=_stated_to_the_penny(s["term_margin_kept_gbp"]),
+                dist=_stated_to_the_penny(s["state_distance_gbp"]),
+                wo=_stated_to_the_penny(s["write_off_moved_gbp"]),
+                rec=cited, q=WRITE_OFF_RULE_FINDING),
+    }
+    return out
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
@@ -15398,7 +15507,9 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         **bound,
         # NESTED, NOT SPREAD, because the two legs have the same key names and flattening the
         # second over the first is how a page ends up bounding one figure with another's spread.
-        "selection_leg": dict(
+        # THE GAUSSIAN PRICE IS VOIDED LAST, after every block above has read `bound.stdev_gbp`.
+        # See `_the_selection_switch_root_cause`.
+        "selection_leg": _the_selection_switch_root_cause(dict(
             selection,
             figure_gbp=contrast.get("selection_gbp"),
             # THE CONFOUND IS IN THE ESTIMAND, NOT THE SAMPLE, which is why it sits HERE and not
@@ -15412,7 +15523,7 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             population_repair_bias=_population_repair_bias(current),
             # THE SAME SENTENCE THE ERROR-BAR BLOCK'S OWN SELECTION LEG CARRIES, from the one
             # place it is written. See `_LEG_SUBJECTS`.
-            what_this_leg_is=_WHAT_THE_SELECTION_LEG_IS),
+            what_this_leg_is=_WHAT_THE_SELECTION_LEG_IS)),
         # THE THIRD LEG, NESTED FOR THE SAME REASON -- three legs now share these key names, and
         # flattening any over another is how a page bounds one figure with another's spread. The
         # three are deliberately the same shape: same function, same grammar, same gate, so a

@@ -8733,3 +8733,66 @@ def test_the_block_states_AGREEMENT_when_the_two_readings_agree():
         assert row["mean_stated"] in rendered, (
             "the agreement branch dropped {}'s figure, so it reached agreement by publishing "
             "less".format(row["label"]))
+
+
+# ── what the selection residual is, where the seed count used to be (2026-09-27) ─────────────
+
+def test_the_selection_legs_root_cause_reaches_the_reader_and_no_seed_count_does(live):
+    """THE STATE THIS CLOSES. The feed priced the selection leg's sign in seeds ("14 seeds to state
+    a sign") from a standard error over re-draws. The residual turned out to be one household's
+    renewal roll priced by a world write-off rule that is under fidelity review. More seeds only
+    re-draw that coin, so the count is a precision claim about the wrong unknown.
+
+    Fires on: the producer publishing a seed count, sems-from-zero or a standard error on this leg
+    again; the page not rendering the root-cause statement; the statement losing the account, the
+    renewal, or its citation.
+    """
+    leg = _live_feed()["current_world"]["selection_leg"]
+    rc = leg.get("root_cause") or {}
+    if not rc.get("available"):
+        pytest.fail("the live feed states no root cause for the selection leg ({}), so this "
+                    "control cannot run -- reported as a failure and never skipped".format(
+                        str(rc.get("why_not"))[:200]))
+    # NO GAUSSIAN PRICE, read off the feed rather than the page, because the page never rendered
+    # these keys and a page-only check would be green before the change too.
+    distance = leg.get("distance_to_a_sign") or {}
+    assert distance.get("available") is False and distance.get("voided_because"), (
+        "the selection leg still publishes a distance to a sign: {}".format(distance))
+    for key in ("sems_from_zero", "seeds_needed_to_state_a_sign", "seeds_at_the_point_estimate",
+                "seeds_needed_interval"):
+        assert key not in distance, "the voided distance block still carries `{}`".format(key)
+    assert (leg.get("bound") or {}).get("sem_gbp") is None, (
+        "the selection leg's bound still carries a standard error")
+
+    rendered = live["arms-legs-first"]
+    assert _door_prose(rc["statement"])[:200] in rendered, (
+        "the root cause is in the feed and not on the page")
+    for fact in (rc["account"], rc["renewal_date"], rc["record"], rc["fidelity_question"]):
+        assert fact in rendered, "`{}` does not reach the reader".format(fact)
+
+
+def test_MUTATION_the_root_cause_renders_all_three_states_distinctly():
+    """ONE CONTROL OVER THE WHOLE PARTITION, so a renderer that shows the same thing for two states
+    cannot pass. Available renders the statement; refused renders the named reason; absent renders
+    neither, because a leg the producer never asked about has not been refused.
+    """
+    base = copy.deepcopy(_live_feed())
+    statement = "POISONED ROOT CAUSE 7f3a: one household, one roll."
+    base["current_world"]["selection_leg"]["root_cause"] = {"available": True,
+                                                            "statement": statement}
+    stated = _render(base)["arms-legs-first"]
+
+    refused = copy.deepcopy(base)
+    refused["current_world"]["selection_leg"]["root_cause"] = {
+        "available": False, "why_not": "RECORD 9c1e IS NOT ON DISK."}
+    refused_text = _render(refused)["arms-legs-first"]
+
+    absent = copy.deepcopy(base)
+    absent["current_world"]["selection_leg"].pop("root_cause")
+    absent_text = _render(absent)["arms-legs-first"]
+
+    assert statement in stated and "NO ROOT CAUSE IS STATED" not in stated
+    assert "RECORD 9c1e IS NOT ON DISK" in refused_text and statement not in refused_text, (
+        "the producer refused with a named reason and the page did not say so")
+    assert "NO ROOT CAUSE IS STATED" not in absent_text and statement not in absent_text, (
+        "a leg the producer never asked about was given a refusal it never made")

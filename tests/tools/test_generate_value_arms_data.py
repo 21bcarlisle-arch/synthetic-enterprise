@@ -13397,3 +13397,37 @@ def test_the_regrade_the_page_already_publishes_is_NAMED_and_never_recomputed():
     assert gva._draws_this_family_is_entitled_to(floor, None)["the_floor_regrade_agrees"] is None, (
         "an ABSENT sensitivity reports that the two counts agree, so the witness is satisfied by "
         "never having been formed")
+
+
+def test_the_selection_switch_voids_the_gaussian_price_only_when_its_record_is_on_disk(tmp_path):
+    """BOTH BRANCHES IN ONE CONTROL. With the record on disk the leg loses its standard error and
+    seed count and gains a statement citing the record. Without it the leg is returned unvoided and
+    says why no root cause is stated. A function that voided always, or never, fails one half.
+
+    AND THE COPIED FIGURES ARE CHECKED AGAINST THE RECORD'S OWN TEXT, because they are copied from
+    it by hand and a copy nobody compares is how a figure drifts from its source.
+    """
+    leg = {"bound": {"sem_gbp": 603.5, "stdev_gbp": 1810.5, "n": 9},
+           "distance_to_a_sign": {"available": True, "sems_from_zero": 1.79,
+                                  "seeds_at_the_point_estimate": 14},
+           "which_sign_question_this_answers": "THE MEAN'S"}
+    voided = gva._the_selection_switch_root_cause(leg)
+    assert voided["bound"]["sem_gbp"] is None and voided["bound"]["stdev_gbp"] == 1810.5
+    assert voided["distance_to_a_sign"]["available"] is False
+    assert "seeds_at_the_point_estimate" not in voided["distance_to_a_sign"]
+    rc = voided["root_cause"]
+    assert rc["available"] is True and rc["record"] in rc["statement"]
+    assert leg["bound"]["sem_gbp"] == 603.5, "the caller's leg was mutated in place"
+
+    kept = gva._the_selection_switch_root_cause(leg, record=tmp_path / "absent.md")
+    assert kept["bound"]["sem_gbp"] == 603.5 and kept["distance_to_a_sign"]["available"] is True
+    assert kept["root_cause"]["available"] is False and kept["root_cause"]["why_not"]
+
+    text = gva.SELECTION_SWITCH_RECORD_PATH.read_text(encoding="utf-8")
+    s = gva._SELECTION_SWITCH
+    for figure in (s["account"], s["renewal_date"], str(s["churn_roll"]),
+                   *(str(v) for v in s["p_retain_level_arm_by_seed"].values()),
+                   "{:,.2f}".format(s["term_margin_kept_gbp"]),
+                   "{:,.2f}".format(abs(s["write_off_moved_gbp"])),
+                   "{:,.2f}".format(abs(s["state_distance_gbp"]))):
+        assert figure in text, "`{}` is not in the record it was copied from".format(figure)
