@@ -93,6 +93,8 @@ Sources: Ofgem debt/arrears indicators, Citizens Advice, Watt-Logic, Ofgem PPM r
 
 ## 7. IFRS 9 Debt Provisioning Matrix (Indicative)
 
+> **UNSUPPORTED (2026-09-27).** No source was ever given for this matrix, and the one published age × method table found contradicts its DD front end: Centrica ARA 2025 Note 17 provisions ALL live DD debt past 90 days at 4.4–7.4%, against 15–25% here at 91–180 days. Do not wire it. Use `dd_failure_basis_and_live_arrears_provision_rates.md`.
+
 | Debt age | Standard Credit customer | Direct Debit customer |
 |----------|-------------------------|----------------------|
 | 0–30 days | 1–2% | 0.3–0.5% |
