@@ -1,9 +1,225 @@
 {
- "generated_at": "2026-09-26T23:33:55.342364+00:00",
+ "generated_at": "2026-09-27T11:34:38.818487+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "4f42d1a98",
+    "at": "2026-09-27T12:34:15+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "d28b8021e",
+    "at": "2026-09-27T12:32:11+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=d110149f0, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "8ecc499dd",
+    "at": "2026-09-27T12:11:45+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=3cc6e2065021a8d39002c357d197ef6cd828b79d) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "2d0d1f96b",
+    "at": "2026-09-27T11:57:31+01:00",
+    "subject": "close the Jev trial without running it: every route bills a real account, and no real money is spent",
+    "substantive": false
+   },
+   {
+    "sha": "3cc6e2065",
+    "at": "2026-09-27T11:39:40+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d110149f01227dbb7e457083d5944f4d226e5049) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "d110149f0",
+    "at": "2026-09-27T11:07:34+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=9475f98d0947987c3f98096d230e4b426a5acffa) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "9475f98d0",
+    "at": "2026-09-27T10:35:26+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d751484854dbb0ae9e33c9e0f380c1b54f9bb952) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "d75148485",
+    "at": "2026-09-27T09:59:46+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=496e41f26, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "991b51771",
+    "at": "2026-09-27T09:39:18+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=f254af24451e64f6df4b638f3320e6caee952be0) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "f254af244",
+    "at": "2026-09-27T09:07:14+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=139b96179200701803c6ca0d514449687829e491) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "139b96179",
+    "at": "2026-09-27T08:47:53+01:00",
+    "subject": "pre-register the Jev trial before any call: aimed at claim-versus-source, because the other two classes are code",
+    "substantive": false
+   },
+   {
+    "sha": "496e41f26",
+    "at": "2026-09-27T08:35:06+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=7edacbc2f5309e9178c34d6ac67fbecf8ea2e70a) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "7edacbc2f",
+    "at": "2026-09-27T08:30:41+01:00",
+    "subject": "[DIRECTOR-RULING][ADVISOR-STAGED] Jev trial: research first, design the trial yourself; advisor's method demoted to a suggestion",
+    "substantive": false
+   },
+   {
+    "sha": "6b72b641b",
+    "at": "2026-09-27T08:27:28+01:00",
+    "subject": "[DIRECTOR-RULING][ADVISOR-STAGED] One-off trial: typed-decision model (Jev) on published surfaces, report-only, with stated kill criteria and two mandatory breaks",
+    "substantive": false
+   },
+   {
+    "sha": "848f7a7b4",
+    "at": "2026-09-27T08:02:59+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=a6c352ef8ac50989f5a7390b7c3f50d11360d289) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "a6c352ef8",
+    "at": "2026-09-27T07:30:51+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=bfc64212f3f79f191af728f0ce13bcd7276e6036) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "bfc64212f",
+    "at": "2026-09-27T07:28:05+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=32c12e1a7, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "bfc9c875c",
+    "at": "2026-09-27T06:58:25+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=a79bce6153557013407695107ab44539e8b273dd) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "a79bce615",
+    "at": "2026-09-27T06:23:33+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=32c12e1a7e0d3405c36cd7af8f720b7b8a68c59b) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "32c12e1a7",
+    "at": "2026-09-27T05:56:09+01:00",
+    "subject": "docs(arms): queue the grading of the two-seed account diff, because a released item cannot be handed off",
+    "substantive": false
+   },
+   {
+    "sha": "f18918ebf",
+    "at": "2026-09-27T05:53:18+01:00",
+    "subject": "test(arms): the level-only branch of the per-account column was unreached by all 24 of its controls",
+    "substantive": true
+   },
+   {
+    "sha": "ae7d6b03c",
+    "at": "2026-09-27T05:43:28+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "9ea408e29",
+    "at": "2026-09-27T05:35:04+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=6a4b3809e6c1e33a5b7e5fb3a1b23c559534bf53) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "b8c06df77",
+    "at": "2026-09-27T05:28:24+01:00",
+    "subject": "docs(arms): interim record -- the per-account column is carried, the two-seed diff is running",
+    "substantive": false
+   },
+   {
+    "sha": "2c3c0ac34",
+    "at": "2026-09-27T05:11:54+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "bf274258f",
+    "at": "2026-09-27T05:05:28+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "6a4b3809e",
+    "at": "2026-09-27T05:02:49+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=cbb11d939da76468ea01a56163a6a983d91d15ff) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "cbb11d939",
+    "at": "2026-09-27T04:55:16+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=65d046034, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "ca80a7d0a",
+    "at": "2026-09-27T04:53:58+01:00",
+    "subject": "feat(arms): carry a per-account selection column out of the three-arm runner",
+    "substantive": true
+   },
+   {
+    "sha": "f7910cbc1",
+    "at": "2026-09-27T04:30:25+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d00e0a309c48c0be83180e1c95b9063077038e2b) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "d00e0a309",
+    "at": "2026-09-27T03:58:06+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=65d0460340d623a032e81fde96aec5ef8b08ae6d) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "65d046034",
+    "at": "2026-09-27T03:27:55+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=d678f063a, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "7e7b0332e",
+    "at": "2026-09-27T02:32:01+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=2596867f7, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "d678f063a",
+    "at": "2026-09-27T01:21:44+01:00",
+    "subject": "renewal count explains none of the selection residual; 99.8% of its variance is one discrete GBP 5,388 event in the level arm",
+    "substantive": true
+   },
+   {
+    "sha": "8e2b20ced",
+    "at": "2026-09-27T01:09:34+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=fe4bde811, net=\u00a3164,175)",
+    "substantive": false
+   },
+   {
+    "sha": "e09bce3a3",
+    "at": "2026-09-27T00:33:55+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "2596867f7",
     "at": "2026-09-26T23:30:47+01:00",
@@ -27,222 +243,6 @@
     "at": "2026-09-26T21:50:45+01:00",
     "subject": "two controls asserted a page slot the director had just ruled off the page, and the publish gate was the only thing that could see them",
     "substantive": true
-   },
-   {
-    "sha": "389da83b7",
-    "at": "2026-09-26T21:00:43+01:00",
-    "subject": "chore(provenance): verification paused banner (git=d58c6340a) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "05d6d2d78",
-    "at": "2026-09-26T20:45:39+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=4ec4b26c22ed32328be9cf983930d9e8a6265053) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "4ec4b26c2",
-    "at": "2026-09-26T20:13:27+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=9b437c2c3bfa10a4fb4b6c0fa5bebb8e6a74f12f) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "9b437c2c3",
-    "at": "2026-09-26T20:09:44+01:00",
-    "subject": "chore(provenance): verification paused banner (git=52990f010) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "d58c6340a",
-    "at": "2026-09-26T19:10:41+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=86ab1f28f0ef90a24f7bd1aaa5c9855f7bef9da3) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "86ab1f28f",
-    "at": "2026-09-26T19:06:33+01:00",
-    "subject": "chore(provenance): verification paused banner (git=85b30827d) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "52990f010",
-    "at": "2026-09-26T18:04:05+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=20587f92b3b44b89f072884b296016a536aa4d14) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "20587f92b",
-    "at": "2026-09-26T17:59:57+01:00",
-    "subject": "chore(provenance): verification paused banner (git=85b30827d) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "297ab84bf",
-    "at": "2026-09-26T17:43:41+01:00",
-    "subject": "docs(staging): the Lane 0 done-test for an NTFY send reads a FAILURE log, so it is silent on every healthy send",
-    "substantive": false
-   },
-   {
-    "sha": "5d8d8bf9a",
-    "at": "2026-09-26T16:47:43+01:00",
-    "subject": "chore(provenance): verification paused banner (git=85b30827d) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "4d76eb6b7",
-    "at": "2026-09-26T16:15:31+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=27bdc7e50cf23a801c50f4247991f52ec079ed2f) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "27bdc7e50",
-    "at": "2026-09-26T15:43:23+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=85b30827ddd51f82cfb7e712a9c35faccc6e4957) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "85b30827d",
-    "at": "2026-09-26T15:11:14+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d1cb3b90fca47a98f40d8a06950c16508fc8d165) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "d1cb3b90f",
-    "at": "2026-09-26T14:22:14+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=4c31d98a2, net=\u00a3164,175)",
-    "substantive": false
-   },
-   {
-    "sha": "9c821070c",
-    "at": "2026-09-26T14:10:55+01:00",
-    "subject": "the fork with origin stood open 22.6 hours and paged nobody, because the verdict went to a log file",
-    "substantive": true
-   },
-   {
-    "sha": "be01f0f5e",
-    "at": "2026-09-26T14:04:45+01:00",
-    "subject": "merge origin/main: settle the one conflicted path that held the fork open for 3.5h",
-    "substantive": false
-   },
-   {
-    "sha": "4c31d98a2",
-    "at": "2026-09-26T12:32:21+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "2630b9770",
-    "at": "2026-09-26T10:37:35+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=547993a9b015adbc5c10a2e0ea81816523853543) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "401cd5784",
-    "at": "2026-09-26T10:31:22+01:00",
-    "subject": "correct the selection finding: the figure is not withdrawn, the root cause is what is owed",
-    "substantive": false
-   },
-   {
-    "sha": "5466719cb",
-    "at": "2026-09-26T10:09:42+01:00",
-    "subject": "the 18-seed fold at HEAD refused on every seed: the served selection sign does not reproduce, and the decision fingerprint does not determine the residual",
-    "substantive": false
-   },
-   {
-    "sha": "74900fcf0",
-    "at": "2026-09-26T10:06:39+01:00",
-    "subject": "the public banner said publishing was failing through six successful publishes, and its third line was repository provenance no reader needs",
-    "substantive": true
-   },
-   {
-    "sha": "547993a9b",
-    "at": "2026-09-26T09:54:47+01:00",
-    "subject": "the level-zero census says which LEG held each row, and the timeout called dead yesterday is the partition's only live dial",
-    "substantive": true
-   },
-   {
-    "sha": "caa72feb2",
-    "at": "2026-09-26T09:50:05+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "b77978a40",
-    "at": "2026-09-26T09:25:52+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=3a1678638, net=\u00a3164,175)",
-    "substantive": false
-   },
-   {
-    "sha": "ea4a15fee",
-    "at": "2026-09-26T08:35:07+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=3a1678638fb11f040399b096b8d2aceca296d948) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "bd9f3a38e",
-    "at": "2026-09-26T08:27:28+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "3a1678638",
-    "at": "2026-09-26T08:02:55+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=bc445c7030a1c3cc7266ae860a70e87fc0f60979) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "298e0fa56",
-    "at": "2026-09-26T07:54:53+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "bc445c703",
-    "at": "2026-09-26T07:30:44+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=8470c4d44b106924fe38c114b1570c323a9740fc) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "e40e5ae42",
-    "at": "2026-09-26T07:16:33+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "8470c4d44",
-    "at": "2026-09-26T06:54:17+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=1f3720eeb, net=\u00a3164,175)",
-    "substantive": false
-   },
-   {
-    "sha": "ba4a6bd3d",
-    "at": "2026-09-26T06:28:25+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=9ced3bf6c91a69fcb869e296cb5c764f1b4eb0de) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "1f58c10ad",
-    "at": "2026-09-26T06:24:11+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "9ced3bf6c",
-    "at": "2026-09-26T05:53:16+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=1f3720eeb422b2a4deb289365f2575ea6a4a1820) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "a2eb704f6",
-    "at": "2026-09-26T05:46:21+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "1f3720eeb",
-    "at": "2026-09-26T05:21:06+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=704a7318a1c08b1a2aff726033f777297346e8a0) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
    }
   ],
   "substantive": 4,
@@ -251,67 +251,110 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-26T23:20:09.834891+00:00",
+  "oriented_at": "2026-09-27T11:24:44.095143+00:00",
   "age_hours": 0.2,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "I read the console capture FIRST this time, and it changes the whole record: his 08:44 and 09:29 instructions of 2026-09-26 are what this stretch is graded against, not the brief's plausible machinery list. The slowdown he set on 2026-09-25 13:57 STILL STANDS \u2014 the reset is Monday 2026-09-28 and this record is written Saturday 23:20 UTC, so any tick that reads it after the reset should treat the Monday-gated items as due. Two substantive commits of twenty-one, with eight carrying nothing and eight of those heartbeat-only, is the slowdown working as instructed; the flattering-but-wrong reading available here is the same one the brief made last stretch, when it reported zero draws as the steer being a no-op. Against the thesis the stretch went BACKWARDS in what we may claim and FORWARDS in what we know, which is the trade I would make again: the 18-seed fold he told us to let run landed and was graded, and it refutes the published selection direction on all 18 seeds (agreement_fold_rc=2). The served family is \u2212\u00a3959.78 at 2.50 sems from runs of 2026-09-10; the same seeds on today's code give +\u00a3169.60 at 0.31 sems \u2014 no sign. So the supplier's per-customer advantage is not absent, it is UNMEASURABLE on a 244-account book, and the baseline half of the thesis is the half that works: the blind-envelope arms exist and the page already refuses to state a direction it cannot support. He reversed the withdrawal I had queued and named the root cause he wants tested \u2014 book depth \u2014 and that is the first thing since the fold that moves the thesis rather than the machinery. Two gradings I owe plainly: the largest error last stretch was that a direction record written nine hours after a console instruction never mentioned it, and the instance is closed because this orientation opened those two files before git; the class is not, because I read them by hand on the strength of a prose row and nothing in the brief requires it. And the previous focus item that would have put both selection readings on the page was named and NEVER DRAWN, so on that item the steer itself is what drifted, not the work.",
+  "thesis_read": "The console capture was opened before git again, and it is the whole reason this record is not the one the brief would have produced: the brief was cut at 11:24 and contains nothing about the two turns that matter most, his 11:15 \"I have a Jev api key having put 5$ in\" and his 11:19 question about a GitHub secret. A third turn landed at 11:29 while this was being written \u2014 \"I've added secret Jevtest\" \u2014 and the handoff has silently FAILED: `gh secret list` on 21bcarlisle-arch/synthetic-enterprise returns only CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN, and nothing named Jevtest appears in the dependabot or codespaces scopes, in the github-pages environment, or in 21bcarlisle-arch/synthetic-enterprise-ops. He believes he has delivered a key the machine cannot see, which is the R8 shape exactly, and he funded it with his own money, so telling him is the most time-critical thing in this record. Against the thesis the stretch went FORWARDS on the half that had been stuck, and the gain came from the item he told us to run: the renewal-count test landed, REFUTED his own hypothesis honestly (best of eleven pre-registered regressors R\u00b2 0.0284, permutation p 0.8245, below chance), and in refuting it found something larger. The selection residual is not a spread at all \u2014 it is a switch between two clusters \u00a35,387.65 apart, each \u00a3514.60 wide, firing in 4 of 18 draws, with the level arm carrying 99.84% of the variance against the value arm's 0.31%. So every error bar this project has published on selection_gbp is sd/\u221an arithmetic fitted to the wrong unknown, and read correctly the served \u2212\u00a3959.78 and HEAD's +\u00a3169.60 NEVER DISAGREED: the rate's exact interval carried through is \u2212\u00a3997.69 to +\u00a3937.49 and contains both. The Gaussian reading was pricing 717 more seeds against a question more seeds cannot answer. That is the best kind of result \u2014 the measurement he asked for refuted him, refuted us harder, and made the published precision claim the thing to fix rather than the book depth. Two gradings owed plainly. The publisher episode fields have all gone clean (episode_failures 0, wedge_since None, describe() \"live\" agreeing with snapshot state \"publishing\") and NOTHING REPAIRED THEM \u2014 that item was never drawn, so it cleared by ordinary path and is reading right for the flattering reason once more. And two carried rows stopped being rotations and became live demonstrations: liveness_surface_refusal right now shows a reader `push_never_landed` for 3cc6e2065, and `git merge-base --is-ancestor 3cc6e2065 origin/main` SUCCEEDS, so the refusal on the surface is false as displayed; while the checkout sits 1 behind origin, evaluate_boot_sha_drift() grades 11 of 11 against local HEAD 8ecc499dd with stale empty and vacuous False, which is the exposing condition present and the instrument silent in it. Both are now caught rather than argued, and one of them is focus work.",
   "focus": [
    {
-    "id": "the-page-carries-both-the-served-sign-and-what-todays-code-returns",
-    "what": "Promote /var/tmp/se-floor18-head-20260925/shards/folded18_head_20260925.json into docs/observability/ under the noise-floor naming (it is scratch on a tmp filesystem and is the only copy of the 18-seed HEAD fold), then make the served value-arms surface carry BOTH readings of the selection contrast side by side, each labelled with the code it was measured on: the 2026-09-10 family at \u2212\u00a3959.78 and 2.50 sems, and HEAD's 18 shared seeds at +\u00a3169.60, sem \u00a3544.86, 0.31 sems from zero. Neither is withdrawn and no direction is stated for either.",
-    "why": "He reversed this himself at 09:29 on 2026-09-26 \u2014 \"Don't withdraw the selection figure \u2014 I was wrong to push that. Report what you found\" \u2014 and named both numbers, so the withdrawal recommendation still sitting in the 2026-09-26 selection finding is countermanded and the page reporting only one of the two is the gap. It goes first because it is the one item that is both permitted under the slowdown, being page work rather than machinery, and losing evidence by waiting: the HEAD fold exists nowhere but /var/tmp and a reboot ends it. DONE when the door test for the value-arms page reads both figures and both dates from the real feed, and site/capabilities no longer implies a selection direction that HEAD does not reproduce."
-   },
-   {
-    "id": "the-publisher-episode-closes-on-a-later-clean-publish",
-    "what": "Finish his 08:44 instruction of 2026-09-26 in the second place the defect lives. Two named legs. First, an episode in docs/observability/.publish_gate_state.json must be re-evaluated when a clean publish lands after it opened: it currently holds episode_failures 6 and wedge_since 2026-09-26T15:51:32Z with last_clean_publish at 22:30:53Z and total_red 0. Second, background/publish_freshness.describe() prints \"content publishing: FAILING\" while snapshot()[\"state\"] in the same call reads \"publishing\" and figures reached origin 0.9h ago \u2014 the headline contradicts the field it claims to describe.",
-    "why": "\"Make the failure clear when a later publish succeeds\" was an instruction, and commit 74900fcf0 applied it to the public banner's renderer rather than to the rule that closes an episode, so the identical stale state now misreports to the only reader left \u2014 the seat's own orientation, which opened this stretch believing the publisher was refusing during a working publish. This is not new machinery drawn against the slowdown; it is the unfinished half of something he asked for. DONE when a clean publish arriving after wedge_since closes the episode, and when describe() cannot say publishing is failing while its own state field says publishing."
+    "id": "the-jev-key-handoff-failed-so-tell-him-and-run-the-unbilled-half",
+    "what": "FIRST, tell him on NTFY what was measured, because he is acting on a false belief: the secret he added at 11:29 as `Jevtest` is not visible to this account. Report the exact observation \u2014 `gh secret list` on 21bcarlisle-arch/synthetic-enterprise shows only CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; the dependabot and codespaces scopes are empty; the only environment is github-pages; 21bcarlisle-arch/synthetic-enterprise-ops has none. Then give him the route that already works on this box rather than a second guess: a GitHub Actions secret is readable ONLY by a workflow running on GitHub's runners and can never be read by a session on this machine, so it cannot answer \"I can't get to the prompt\". The proven mechanism is `background/secrets_location.py::load_secret_env`, which reads `~/.config/synthetic-enterprise/.env.<name>` at mode 0600 outside the git tree, exactly as .env.ntfy, .env.ceda and .env.cloudflare already do \u2014 ask him for `~/.config/synthetic-enterprise/.env.jev` holding one line. SECOND, run every part of the trial that spends nothing, now, without waiting for the key: build the claim-versus-source corpus the pre-registration in docs/staging/records/SEAT_PREREG_THE_JEV_TRIAL_IS_AIMED_AT_CLAIM_VERSUS_SOURCE_BECAUSE_THE_OTHER_TWO_CLASSES_ARE_CODE_2026-09-27.md specifies (clean pairs, the four graded corruptions, the injected-instruction arm), and widen site/test_ia_register.py to catch the nav miss he saw by eye plus add the deterministic stamp-vintage-against-page-data-date check, both of which the research established need no model at all. THIRD, and only on one explicit word from him naming the spend, make the model calls against the pre-paid balance only: no card-backed or account-metered route, a hard stop far under the $5 he funded, report-only, and the key never entering the repo, a log or a commit.",
+    "why": "He instructed this trial twice, funded it with his own $5 unprompted, and is actively trying to hand over the key, so the work is his direction and not a proposal. It goes first because a director acting on a false belief about what he has delivered is a stall that costs him directly, and because the 2d0d1f96b closing note that said the trial cannot run is now stale against his funding and will otherwise be read by a later session as settled. The three-part split is the trade: his 10:55 message was emphatic that no real money of his is spent, and his 11:15 message funded a balance for exactly this, and those two are in tension that is his to resolve in one word \u2014 so everything unbilled proceeds immediately and only the metered call waits, which neither wastes his $5 nor spends it on my own reading of his intent. DONE when he has the measured observation and a working route, the corpus and both deterministic checks exist with the nav miss caught, and the model arm has either run under the stated ceiling or is recorded as waiting on his word with nothing spent."
    },
    {
     "id": "restore-the-three-tick-cadences-at-the-reset-and-tell-him-the-values",
     "what": "NOT BEFORE MONDAY 2026-09-28 LOCAL. At the reset, put the three hand-slowed user timers back to the values their files in background/ declare, and change nothing else: worker-tick.timer is installed at OnUnitActiveSec=14400s against a declared 1800s; seat-executor.timer is installed at OnCalendar=*-*-* 00/4:05:00 against a declared *-*-* *:05,35:00; delivery-seat.timer is installed at OnCalendar=*-*-* 00/12:20:00 against a declared *-*-* 00/3:20:00. Then send him the three before-and-after pairs on NTFY.",
-    "why": "He asked for exactly this twice \u2014 \"Put the tick cadence back at the reset. Tell me what you set.\" \u2014 and the restore gates the throughput of the entire following week, since worker-tick is running eight times slower than the tree declares. Doing it early would spend the budget he slowed the machine to protect, which is why the date condition opens the instruction. The telling half is the part with a trap: verify the send by the id NTFY returns and by docs/observability/.ntfy_delivery_state.json, never by a new line in docs/observability/ntfy-delivery-log.md, which records only failures and transitions and is silent on every healthy send. I could not establish from that log whether last stretch's drawn cadence message ever reached him, and its last recorded delivery is 2026-09-23. DONE when the installed cadences match the tree and he has the three pairs with a delivery id."
+    "why": "He asked for exactly this twice \u2014 \"Put the tick cadence back at the reset. Tell me what you set.\" \u2014 and the restore gates the throughput of the whole following week, since worker-tick is running eight times slower than the tree declares. Monday is tomorrow and this is the last direction record written before it, so an item that slips out now is an instruction lost rather than deferred. The telling half carries a trap worth naming: verify the send by the id NTFY returns and by docs/observability/.ntfy_delivery_state.json, never by a new line in docs/observability/ntfy-delivery-log.md, which records only failures and transitions and is silent on every healthy send. DONE when the installed cadences match the tree and he has the three pairs with a delivery id."
    },
    {
-    "id": "how-much-of-the-selection-residual-is-renewal-count",
-    "what": "AFTER THE RESET. Test his hypothesis rather than assuming it: across the 18 shared seeds of the HEAD fold, establish how much of the variance in the selection residual is explained by each seed's realised renewal count, and answer him plainly on whether a deeper book would let selection be resolved at all, with the bound 18 seeds earns and an honest \"we cannot yet say\" if that is the answer. This needs an instrumented run, not a re-read: of the 23 noise-floor artefacts under docs/observability/ only value_cycle_ab_s1_noise_floor_five_seed_head_ 20260924.json carries rosters at all, and NO artefact on disk carries a renewal count, so the run has to emit renewal counts beside each seed's residual.",
-    "why": "This is the only item that moves the thesis rather than the surfaces around it. The thesis needs an advantage from inference measured against a baseline, and the fold's finding is that identical priced decisions span residuals from about \u2212\u00a34,300 to +\u00a31,550 on one fingerprint, so luck dominates and no selection claim is resolvable on this book. His own reading \u2014 \"few accounts have enough renewals for a choice to compound\" \u2014 is the first testable cause anyone has named for it, and if it holds then book depth stops being a fidelity detail and becomes the precondition for measuring anything, which is A46_book_depth_is_a_curriculum_question and therefore his call once the number exists. It sits fourth only because he said \"after the reset\", not because it matters least. DONE when he has the share of variance explained and a yes or no on measurability."
+    "id": "value-arms-error-bar",
+    "what": "Replace the Gaussian bound on the selection family where it is consumed, and carry both readings, on these tracked paths by name: tools/generate_value_arms_data.py and site/data/value_arms.json produce and hold the figures; site/capabilities/index.html publishes them; site/test_the_baseline_comparison_reaches_the_reader.py is the door that must read the changed values from the real feed. The bound to carry is the one tools/selection_residual_decomposition.py already computes \u2014 the firing rate's exact interval carried through, \u2212\u00a3997.69 to +\u00a3937.49 at 4 of 18 \u2014 replacing selection_sem_gbp, sems_from_zero, selection_distinguishable_from_zero, seeds_needed_to_state_a_sign and the distance_to_a_sign block, or where a field cannot be replaced, stating on the surface that the instrument's shape is a switch and not a spread. In the same change, make the surface carry BOTH selection readings side by side, each labelled with the code it was measured on: the 2026-09-10 family at \u2212\u00a3959.78 and HEAD's 18 shared seeds at +\u00a3169.60, neither withdrawn and no direction stated for either. Promote /var/tmp/se-floor18-head-20260925/shards/folded18_head_20260925.json into docs/observability/ under the noise-floor naming before anything else, because it is 382,632 bytes on a tmp filesystem and is the only copy of the 18-seed HEAD fold.",
+    "why": "This is the whole thesis question \u2014 an advantage from inference means nothing without a baseline and a bound, and the bound we publish is arithmetic for one quantity wobbling about a mean applied to a two-state switch with a 9.4\u00d7 separation. It is a BLOCKING finding, it is the third piece of owed work in docs/staging/SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_PRICED_AS_A_GAUSSIAN_SPREAD_AND_THE_LEVEL_ARM_CARRIES_ALL_OF_IT_2026-09-27.md with the first already landed at ca80a7d0a, and it enacts his 2026-09-26 09:29 reversal \u2014 \"Don't withdraw the selection figure \u2014 I was wrong to push that. Report what you found\" \u2014 which reporting only one of the two readings does not. It is written with tracked paths typed out because the previous record's version of it was drawn and came back not_done with \"this item's prose names no tracked path, so no commit query could be built\", which was my prose failing and not the work. DONE when the door reads the mixture interval and both dated figures from the real feed, and no surface states a precision the switch cannot support."
    },
    {
-    "id": "weekly-publishing-anchored-to-monday",
-    "what": "AFTER THE RESET. Make the 4 September weekly-publishing ruling a real gate anchored to Monday rather than a rolling seven days: publishing happens on Monday after the reset so the week opens with fresh numbers, and the cadence is enforced where publishes are actually emitted, not recorded as a number beside them.",
-    "why": "He measured it himself at 09:29 on 2026-09-26 \u2014 six publishes landed between Friday afternoon and Saturday morning \u2014 and the evidence that the ruling became a phrase rather than a cadence is in the feed the publisher reads: publish_freshness.snapshot() reports cadence_seconds 604800 while this stretch alone published roughly hourly. A ruling that a surface repeats and no path obeys is worse than no ruling, because it reads as enforced. DONE when a publish attempted off-Monday declines with its reason, and the Monday publish is what a reader sees."
+    "id": "a-stamped-refusal-is-re-asked-against-the-ref-before-a-reader-sees-it",
+    "what": "Make the publisher re-ask a stamped refusal against the remote ref for the commit it names, at READ time, before any reader is shown it. The live instance to fix and then to use as the control: liveness_surface_refusal in docs/observability/.publish_gate_state.json currently holds cause push_never_landed with git_hash 3cc6e2065 and evidence naming push rc=1 and origin=2d0d1f96b, while `git merge-base --is-ancestor 3cc6e2065 origin/main` succeeds \u2014 the commit did land and the surface says it never did. Key the control to the property, not to today's answer: a refusal whose commit is reachable from the remote ref must not be displayed as a live refusal, whatever the stamp said at the instant it was written.",
+    "why": "This is a carried row on its FIFTH consecutive rotation and the first stretch it can be demonstrated rather than asserted: it held push_never_landed for 7bcf2518f, then behind_origin for 2630b9770, then null, and now a value that is provably false as displayed. A refusal true at stamp time and false at read time is the shape that has repeatedly made the seat's own orientation believe the publisher was refusing during a working publish, and it is cheap \u2014 one re-ask against a ref \u2014 where the rest of the carried publisher work is not. It earns a slot ahead of the other machinery precisely because the flattering-reading problem is now a concrete falsehood on a surface. DONE when a landed commit's stamped refusal cannot be shown as live, proven by a control that fails if the re-ask is removed."
    }
   ],
   "not_now": [
    {
     "what": "The completeness-sweep repair for `git restore --source=stash@{0}` silently skipping a path that is in the stash but in neither HEAD nor the index, where `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever it contains, so a genuinely lost file reports safe.",
-    "why": "Rejected an ELEVENTH time, and visibly, against my own written commitment that it would be the first item after the reset. The reason this time is authority and not the cost argument that carried the previous nine: he restricted the draw to product work and anything that genuinely blocks a landing, and this blocks neither. It loses to the four instruction-shaped items and to the one measurement that moves the thesis. My own wrong row is the evidence if the twelfth rejection arrives without a landing."
+    "why": "Rejected a TWELFTH time, and last stretch I wrote that a twelfth rejection without a landing would itself be the evidence. It has arrived, so I am recording the conclusion rather than the excuse: this will never be drawn by a seat that keeps finding better work, and the honest remedy is to stop giving it a focus slot it cannot win and mint it as a maturity-map atom so the ordinary draw can take it on its own weight. It loses this time to a funded live instruction, a Monday-gated instruction given twice, and a BLOCKING finding about a published bound. Minting it is itself the next stretch's cheap work."
    },
    {
     "what": "The one mode control he asked for \u2014 normal, slow, fold-only, off, set with one word, handling the three cadences and the restore itself \u2014 plus the product-only draw filter.",
-    "why": "NOT REJECTED, NOT YET DUE. He said \"Start this after the reset on Monday, not before\", and this stretch ends before Monday. It also loses to the hand restore it exists to automate: building the control first delays the cadence he asked to have back at the reset. And his 22:04 addition is a precondition nobody has met \u2014 measure which routes actually SPEND TOKENS rather than which commit most, because most of this week's machinery arrived reactively and a product-only filter over the draw would not touch it. The next orientation should promote it."
+    "why": "NOT REJECTED, DUE THE DAY AFTER THE RESTORE. He said to start it after Monday's reset, and it loses to the hand restore it exists to automate, because building the control first delays the cadence he asked to have back at the reset. His 22:04 precondition is still unmet and still right: measure which routes actually SPEND TOKENS rather than which commit most, since a product-only filter over the draw would not have touched the reactive machinery that made up most of this week."
    },
    {
-    "what": "Repairing the boot-sha fleet oracle so a checkout deliberately set behind origin makes the verdict say so, and the fixture class where a door whose shape changes does not re-run the synthetic trees built against its old shape.",
-    "why": "Both are machinery and the slowdown stands. The boot-sha one also has a measurement reason to wait that is worth recording: HEAD and origin/main are level this stretch, so evaluate_boot_sha_drift() returns 11 of 11 graded, stale empty, vacuous false \u2014 and that answer is CORRECT today by luck rather than by repair. The state that exposes the defect is absent, which makes now the worst moment to work on it and the best moment to write down that a clean reading proves nothing."
+    "what": "Grading the two-seed account diff \u2014 one low-state seed of 11111, 44444, 99999 or 111111 against one high-state seed \u2014 on the per-account selection column landed at ca80a7d0a, which is the second piece of owed work in the selection finding.",
+    "why": "It loses a focus slot for a good reason rather than a weak one: commit 32c12e1a7 already queued it as a staging instruction, so the ordinary draw can take it without a steer, and spending a focus slot on work already reachable would waste the one mechanism that reaches Lane 0. It also names the \u00a35,388 event with two runs where 700 more seeds would not, so it is cheap and will keep."
    },
    {
-    "what": "Establishing and filing a log_silence cause for sanity-daemon, the one mute declared daemon with no cause on file, mute for its whole 33h15m run and blocked in hrtimer_nanosleep.",
-    "why": "Cheap, and still machinery the draw is closed to this week. It is also not urgent in the way the brief's phrasing suggests: the five causes established so far came out as five different ones, so a class verdict is the one thing that would be wrong, and a careful single reading is worth more than a fast one taken during a slowdown."
+    "what": "Repairing the boot-sha fleet oracle so a checkout deliberately set behind origin makes the fleet verdict say so, and the fixture class where a door whose shape changes does not re-run the synthetic trees built against its old shape.",
+    "why": "Both are machinery and the slowdown stands for one more day. The boot-sha one changed status this stretch in a way worth recording even while deferred: last time it was deferred because the exposing condition was absent, and now the condition is PRESENT \u2014 the checkout is 1 behind origin and evaluate_boot_sha_drift() still grades 11 of 11 against local HEAD with stale empty and vacuous False. So the excuse for deferring it is gone and only the slowdown remains, which means it is first in line among the machinery once Monday passes."
    },
    {
-    "what": "Withdrawing the published selection sign to \"not established at the current code\", which the 2026-09-26 selection finding recommended for Monday.",
-    "why": "He countermanded it directly \u2014 \"I was wrong to push that\" \u2014 so enacting it would be following a stale recommendation over live direction. Reporting both readings replaces it, and that is the first focus item. The finding's own text was corrected in commit 401cd5784; this row exists so a Monday tick that reads the finding rather than the correction does not enact the withdrawn plan."
+    "what": "Establishing and filing a log_silence cause for sanity-daemon, the one mute declared daemon with no cause on file, mute for its whole 45h20m run and blocked in hrtimer_nanosleep.",
+    "why": "Cheap, and still machinery during a slowdown that has a day left. The five causes established so far came out as five different ones, so the single thing that would be wrong is a class verdict reached quickly, and a careful reading after the reset is worth more than a fast one taken now."
+   },
+   {
+    "what": "Treating the 15 heartbeat-only commits of 34, and the three consecutive ones the brief flags as carrying no work, as a finding about the machine that outranks the rest of this record.",
+    "why": "It is the slowdown working as instructed, not a defect: with the draw closed to product work, heartbeats are most of what is left to commit, and three substantive commits in twelve hours is the pace he asked for. The reading that would be wrong is the brief's own framing, which is the same one it used last stretch when it reported zero draws as the steer being a no-op. What the volume does deserve is the one-variable run named in the carried row, and that is not this."
    }
   ],
-  "for_the_director": [],
+  "for_the_director": [
+   {
+    "what": "One thing only, because it is a reserved class and I am about to act on your decision rather than ask for it. This morning at 10:56 I told you a blanket rule \u2014 \"I spend no real money, whoever says yes\" \u2014 and saved it. Your $5 into a Jev account is narrower than the rule I announced: the money is already spent, by you, deliberately, for this, and a pre-paid balance has no card behind it to bill further. So I am reading your funding as the decision it plainly is, and the trial's unbilled work starts now. But your 10:55 message was emphatic, and I will not resolve a tension in your own words by choosing the reading that suits the work: the metered calls wait on one word from you naming the spend, capped far under the $5, report-only. Separately and urgently \u2014 the secret you added at 11:29 as `Jevtest` is NOT visible to this account. Only the two Cloudflare secrets show on the repo; the dependabot and codespaces scopes are empty; the only environment is github-pages; the ops repo has none. A GitHub Actions secret can only ever be read by a workflow on GitHub's runners, so it cannot reach a session on this machine at all. The route that already works here is a file at `~/.config/synthetic-enterprise/.env.jev`, one line, which is how the NTFY, CEDA and Cloudflare credentials are already held outside the tree. Say \"no spend\" and the model arm stays closed with nothing lost but your $5 sitting unused."
+   }
+  ],
   "orientations_recorded": 20,
   "skips_recorded": 0,
   "refusals_recorded": 0
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "MINE, CARRIED, INSTANCE CLOSED A SECOND TIME AND CLASS WIDER THAN EVER. The orientation reads git, the map, the staging root, the publisher and the draw ledger and does NOT read docs/staging/console/DIRECTOR_CONSOLE_<date>.md. The instance closed again because the capture was opened before git, and this time the cost of the gap is measurable rather than hypothetical: the brief was assembled at 11:24 and contained NOTHING about his 11:15 funding of the trial or his 11:19 question, both of which predate it, and a third turn at 11:29 arrived while this record was being written. A seat working from the brief alone would have written four machinery items while the director sat waiting on a failed key handoff he thought had succeeded. Keeping it FALSE, and the reason is unchanged and now louder \u2014 it passed because a prose row told me to look, which is not a mechanism. Grade it by whether the ORIENTATION ITSELF reads the console capture, never by whether the latest record happens to name an instruction.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "MINE, CARRIED, AND DUE TOMORROW. The near-miss where three installed systemd units disagreeing with the tree read like a silent unrecorded throttle and were in fact his instruction correctly enacted. The disagreement persists and is still the right answer: worker-tick 14400s against 1800s, seat-executor every 4h against every 30m, delivery-seat every 12h against every 3h. Still false for the same reason as its predecessor \u2014 the attribution was mine by hand from the console capture, not the machine's \u2014 and the row stops being carried only when the restore in focus item two lands and the installed values match the declared ones.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "MINE, CARRIED, AND THE EVIDENCE REVERSED DIRECTION THIS STRETCH WITHOUT SETTLING IT. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. Last stretch the fork closed and eight heartbeat-only commits landed without reopening it, which was evidence AGAINST. This stretch HEAD and origin/main are diverged 1 and 1, and the commit on the HEAD-only side is a heartbeat, 8ecc499dd \u2014 which is evidence FOR. So I now have readings both ways, a formula still never printed at real inputs, and no one-variable run. The honest position is that I cannot attribute it and should stop adding observations in place of the isolation I said I would do.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "MINE, CARRIED, AND IT CLEARED WITHOUT BEING REPAIRED, WHICH IS THE FOURTH FAILURE OF MY OWN TEST. Every field reads clean now: episode_failures 0, wedge_since None, total_red 0, and describe() returns \"content publishing: live -- figures reached origin 2.5h ago\" agreeing with snapshot()[\"state\"] of \"publishing\". Last stretch the same fields read 6 and a stale wedge_since and FAILING. Nothing repaired them \u2014 the focus item naming both legs was never drawn \u2014 so the rule that closes an episode on a later clean publish still does not exist and the surface is reading right by ordinary path. A fork IS present as this is written, which is the condition I said to grade by, and it is 25 minutes old rather than the 22.6 hours that exposed the defect. Keep grading it by a long fork, never by what the field reads today.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "THE MACHINE'S, CARRIED, AND UNTOUCHED FOR A THIRD STRETCH. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. The three attribution fields in docs/observability/.publish_gate_state.json \u2014 citation_at_head, red_at_head, fork_state \u2014 all still read not_established. The surface still cannot say which tree a red belongs to. Not drawn during the slowdown and deferred again in not_now. Grade it by whether a door change is required to re-run the fixtures built against its old shape.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "THE MACHINE'S, CARRIED, FIFTH ROTATION, AND NOW A DEMONSTRATED FALSEHOOD RATHER THAN A ROTATION. A refusal naming a commit is not re-asked against the remote ref for that commit before a reader is shown it. liveness_surface_refusal held push_never_landed for 7bcf2518f, then behind_origin for 2630b9770, then null, and now holds push_never_landed for 3cc6e2065 with evidence citing push rc=1 and origin=2d0d1f96b \u2014 and `git merge-base --is-ancestor 3cc6e2065 origin/main` SUCCEEDS, so the commit landed and the surface displays a refusal that is false as shown. This is the first stretch the defect is caught in the act instead of inferred from a rotating field, and it is focus item four for exactly that reason. Grade it by whether a stamped refusal is re-asked against the ref at read time, never by what the field says today.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "MINE, CARRIED, AND THE EXPOSING CONDITION IS NOW PRESENT WITH THE INSTRUMENT SILENT IN IT. Fixing a census's denominator does not fix its oracle: evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD. Last stretch the checkout was level so a clean reading proved nothing and I said so. Measured again with the checkout 1 BEHIND origin: head = 8ecc499dd, population 11, graded 11, stale empty, stale_detail empty, vacuous False \u2014 a clean fleet verdict while every daemon on the box is running code the branch has moved past, which is precisely the state the instrument exists to notice. The deferral reason has therefore changed from \"cannot be tested now\" to \"the slowdown has one day left\", and it is first among the machinery after the reset. Grade it by whether a checkout deliberately set behind origin makes a fleet verdict say so.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-27T11:24:44.095143+00:00",
+    "what": "THE MACHINE'S, AND AFTER TWELVE STRETCHES THE ROW'S OWN PREDICTION CAME TRUE. The stash-completeness sweep reports a genuinely lost file safe, because git restore skips a path present only in the stash and git diff --quiet HEAD is quiet for an untracked path whatever it contains. I wrote last stretch that if a twelfth rejection arrived without a landing, this row would be the evidence. It has arrived. The failure is not the deferral, which was right each time on the work in front of it \u2014 it is that I kept putting a real defect into the one queue that only ever holds five things and never into the queue built to hold everything. The correction is structural and named in not_now: mint it as a maturity-map atom so the ordinary draw can take it on its own weight, and stop spending focus slots it will always lose.",
+    "corrected": false
+   },
    {
     "at": "2026-09-26T23:20:09.834891+00:00",
     "what": "MINE, CARRIED, INSTANCE CLOSED AND CLASS OPEN. The largest error last stretch: the director instructed a slowdown at 2026-09-25 13:57 and the direction record written nine hours later named five machinery items and never mentioned it, because the orientation reads git, the map, the staging root, the publisher and the draw ledger and does NOT read docs/staging/console/DIRECTOR_CONSOLE_<date>.md. THE INSTANCE IS CLOSED on the test I set: this record was built by opening the 2026-09-25 and 2026-09-26 captures before anything else, and every focus item traces to his 08:44 or 09:29 words. I am keeping it FALSE anyway, and the reason matters more than the verdict \u2014 it passed because a prose row in the previous record told me to look, which is not a mechanism, and the next brief will be assembled with the same blind spot. Grade it by whether the ORIENTATION ITSELF reads the console capture, never by whether the latest record happens to name an instruction.",
@@ -1336,43 +1379,52 @@
     "at": "2026-09-20T14:20:08.403524+00:00",
     "what": "THE MACHINE'S, CARRIED, SAME SHAPE AND SAME REASON FOR STAYING OPEN AS THE SEAT'S OWN CARRIED ROW. The shape instrument decides a commit carried work iff its tree differs from every parent's, so a heartbeat commit reads as work and the control built to notice an empty stretch structurally cannot see one. This brief demonstrates it undiminished: `shape` reports 12 of 12 carrying work with `shape_is_wrong: false`, printed inches from a `substantive` count of 8, and nothing reconciles the two fields. The repair is written, measured (12 of 60 commits in its stretch are pure liveness, every one read as work), keyed to the publisher's own `LIVENESS_SURFACE_FILES` declaration rather than to filenames, refuses to clear a stretch it cannot read that declaration for, and its author pre-registered that the heartbeats would be scattered rather than consecutive and was right. I ran its tests this orientation: 25 passed. It is in `background/commit_narrative.py` as 190 uncommitted lines with an mtime of 19:44. A green test on a file nobody commits is a demonstration, not a correction. Open until focus one lands it.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-20T11:22:16.129763+00:00",
-    "what": "MINE, CARRIED FROM TWENTY STRETCHES BACK, STILL OPEN \u2014 AND FOR THE FIRST TIME THE REASON IT IS OPEN IS A NEW INSTANCE RATHER THAN THE OLD ONE. The parent habit is publishing a figure graded against a family that did not generate it. The \u00a3810.18 instance I have carried for four stretches is CLOSED on its own terms and I am recording that plainly: `current_world.selection_leg` in `site/data/value_arms.json` now carries `is_a_correction_to_the_figure_above: false`, `never_asked: true`, the 281-against-214 counts, and a clause stating in its own words that the whole advantage moved by \u00a30.00 and a reader taking it as a gain has read it backwards; and `site/test_the_selection_legs_bias_size_reaches_the_reader.py` proves the clause reaches the RENDERED page through its own JavaScript, with a mutation leg that catches a clause keeping the size and dropping the counter. Six passed this orientation. The condition I set \u2014 the field cannot be read without its clause \u2014 is met. THE ROW STAYS OPEN BECAUSE THE CLASS PRODUCED A BIGGER ONE WHILE I WAS CLOSING THAT. `selection_gbp` = +\u00a3270.21 is published as the worth of the choosing, formed from an advantage over 214 priced renewals minus an advantage over 281, with the gap bounded at ~\u00a33,900 \u2014 fourteen times the figure. That is the identical habit at fourteen times the stake, on the number the whole thesis rests on, and a remedy that lands on an instance while the class is still generating instances is not a correction. It is focus two and it is the first time this row has had a focus item of its own at the top of the focus list.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-20T11:22:16.129763+00:00",
-    "what": "THE MACHINE'S, CARRIED, STILL OPEN \u2014 BUT THE FALSE BINDING I CALLED OUT LAST STRETCH IS REPAIRED, AND THE PROOF IS IN THIS BRIEF'S OWN TEXT. The condition is a full stretch with no `landed_unbound` and no `premise_spent` row. This brief carries one of each, so it fails on its face. What changed: `the-orientation-brief-misreports-the-machine-it-describes` was credited last stretch to `851dffdbb`, a heartbeat republish intersecting it at exactly `site/data/tick_heartbeat.json`; it now appears as `not_done` with the evidence line \"every one's intersection with them was confined to the publisher's declared liveness surface \u2014 so commits carrying work on this subject: none. A heartbeat republish is not a landing; this window is workable and can be drawn again.\" That is `_window_hits` refusing correctly, keyed to `process_run_complete.LIVENESS_SURFACE_FILES` rather than to two filenames, and the item is back in the pool where it belongs. IT IS NOT COMMITTED \u2014 it is 154 lines in a working-tree copy of `background/delivery_lane.py` that any `git restore` erases. And the sibling hole is now filed BLOCKING: `record_landing` defaults `commit` to HEAD, the tick is instructed to run `--landed <id>` with no commit, and 28 of the last 200 HEADs are pure heartbeats \u2014 one row in 400 has already been credited that way. The remaining `premise_spent` row, `measure-whether-the-product-gate-is-the-real-ceiling`, is a correct refusal and not a defect: the landing predated its own draw by 22 minutes. Open until the repair is in a commit and the HEAD default is closed.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-20T11:22:16.129763+00:00",
-    "what": "THE MACHINE'S, CARRIED, AND STILL OPEN FOR THE SECOND STRETCH RUNNING FOR THE SAME REASON \u2014 THE CORRECTION EXISTS ONLY AS AN UNCOMMITTED DIFF. The condition is that a brief names what is running on the box without my asking. This brief does it again: nine jobs with pid, elapsed, resident size and argv head, ten declared daemons subtracted, and it changed three of the four focus items I wrote. Seeing `background/delivery_lane.py` at mtime 23:24 beside live `seat_executor` and `worker_tick` processes is why the binder repair is in `not_now` instead of focus; seeing `tools.churn_truncation_census` at pid 847480, 24m42s, 3GB is why focus four says do not launch a second one and why the `/tmp` leak is deferred. That is the instrument earning its place twice over. `running_now()` in `background/delivery_seat.py` is STILL uncommitted \u2014 198 of the 379 lines, mtime 19:51, now 3.7 hours old and unchanged across two draw windows. Every brief from a fresh checkout goes blind with no announcement. It closes when focus one lands it, and focus one is first this time precisely because ordering it third twice did not work.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-20T11:22:16.129763+00:00",
-    "what": "THE MACHINE'S, CARRIED, SAME SHAPE AND SAME REASON FOR STAYING OPEN AS THE SEAT'S OWN CARRIED ROW. The shape instrument decides a commit carried work iff its tree differs from every parent's, so a heartbeat commit reads as work and the control built to notice an empty stretch structurally cannot see one. This brief demonstrates it undiminished: `shape` reports 12 of 12 carrying work with `shape_is_wrong: false`, printed inches from a `substantive` count of 8, and nothing reconciles the two fields. The repair is written, measured (12 of 60 commits in its stretch are pure liveness, every one read as work), keyed to the publisher's own `LIVENESS_SURFACE_FILES` declaration rather than to filenames, refuses to clear a stretch it cannot read that declaration for, and its author pre-registered that the heartbeats would be scattered rather than consecutive and was right. I ran its tests this orientation: 25 passed. It is in `background/commit_narrative.py` as 190 uncommitted lines with an mtime of 19:44. A green test on a file nobody commits is a demonstration, not a correction. Open until focus one lands it.",
-    "corrected": false
    }
   ],
   "refused_own_records": [],
-  "outstanding": 128,
+  "outstanding": 132,
   "corrected": 81,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-page-carries-both-the-served-sign-and-what-todays-code-returns",
-   "the-publisher-episode-closes-on-a-later-clean-publish",
+   "the-jev-key-handoff-failed-so-tell-him-and-run-the-unbilled-half",
    "restore-the-three-tick-cadences-at-the-reset-and-tell-him-the-values",
-   "how-much-of-the-selection-residual-is-renewal-count",
-   "weekly-publishing-anchored-to-monday"
+   "value-arms-error-bar",
+   "a-stamped-refusal-is-re-asked-against-the-ref-before-a-reader-sees-it"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-page-carries-both-the-served-sign-and-what-todays-code-returns"
+      ],
+      "focus": [
+       "the-page-carries-both-the-served-sign-and-what-todays-code-returns",
+       "the-publisher-episode-closes-on-a-later-clean-publish",
+       "restore-the-three-tick-cadences-at-the-reset-and-tell-him-the-values",
+       "how-much-of-the-selection-residual-is-renewal-count",
+       "weekly-publishing-anchored-to-monday"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-page-carries-both-the-served-sign-and-what-todays-code-returns"
+    ],
+    "focus": [
+     "the-page-carries-both-the-served-sign-and-what-todays-code-returns",
+     "the-publisher-episode-closes-on-a-later-clean-publish",
+     "restore-the-three-tick-cadences-at-the-reset-and-tell-him-the-values",
+     "how-much-of-the-selection-residual-is-renewal-count",
+     "weekly-publishing-anchored-to-monday"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 12.1h since 2026-09-26T23:20:09.834891+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 12.1h since 2026-09-26T23:20:09.834891+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1492,40 +1544,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-25T08:23:15.113082+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-25T08:23:15.113082+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "H41_the_map_ratchet_has_no_ongoing_drain"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "publish-gate-wedge-is-the-wedge-alarm-itself"
-      ],
-      "focus": [
-       "publish-gate-wedge-is-the-wedge-alarm-itself",
-       "value-arms-18-seed-result",
-       "bill-stress-hazard-from-the-arrears-ledger"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "publish-gate-wedge-is-the-wedge-alarm-itself"
-    ],
-    "focus": [
-     "publish-gate-wedge-is-the-wedge-alarm-itself",
-     "value-arms-18-seed-result",
-     "bill-stress-hazard-from-the-arrears-ledger",
-     "H41_the_map_ratchet_has_no_ongoing_drain"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-25T05:24:12.349211+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-25T05:24:12.349211+00:00"
    }
   ],
   "steered_recently": true,
