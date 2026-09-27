@@ -1265,11 +1265,24 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
     Deterministic in the seed, so this is the SAME cohort `live_population()` returns
     — it re-draws rather than caching, exactly as `live_population()` does.
     """
+    return {cid: premise for cid, (premise, _area) in _live_homes(base_seed).items()}
+
+
+def _live_homes(base_seed: Optional[int] = None) -> dict:
+    """{customer_id: (DrawnPremise, output area)} -- `live_premises`, with each home's area.
+
+    THE PREMISE AND THE ADDRESS ARE DRAWN ON DIFFERENT OBJECTS, so they are joined HERE, at the one
+    seam that holds both (W2_19). The premise comes from the stock and the output area from the
+    siting draw on the account (`SyntheticCustomer.output_area`). `live_dwellings` and
+    `live_drawn_households` both read this walk, so the property record and the household the
+    fabric path traces cannot be given different areas, and so cannot be given different
+    headcounts.
+    """
     if not draw_population_enabled():
         return {}
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
     premises = {
-        sc.customer_id: sc.premise
+        sc.customer_id: (sc.premise, sc.output_area)
         for sc in _drawn_trickle(seed)
         if sc.premise is not None
     }
@@ -1282,7 +1295,7 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
     # register cannot hold a founder the book does not have or miss one it does.
     for record, premise in _drawn_founder_pairs(seed):
         if premise is not None:
-            premises[record["customer_id"]] = premise
+            premises[record["customer_id"]] = (premise, record["location"].get("output_area"))
     # A WON HOME IS STILL A HOME (B12). `dwelling_records.build_properties` raises
     # `DwellingNotDrawn` for any supplied customer the world drew no dwelling for, and it is
     # right to: the alternative is `saas.property_model` approximating the world's ground
@@ -1293,7 +1306,7 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
     for prospect, _won_on in _campaign(_pre_growth_book(seed), seed)["winners"]:
         if prospect.premise is None:
             continue
-        premises[prospect.customer_id] = prospect.premise
+        premises[prospect.customer_id] = (prospect.premise, prospect.output_area)
         # THE GAS LEG IS THE SAME HOME (2026-08-26, dual fuel). A dual-fuel household is one
         # dwelling with two supply points, so `PROS-x` and `PROS-xg` share a premise -- and
         # they must SHARE it rather than the gas leg having none, for the reason the comment
@@ -1302,7 +1315,7 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
         # modal band filling one in, which is the defect B12 exists to stop. Registering the
         # same premise object under both ids is the honest answer: it IS the same house.
         if prospect.premise.commodity == "gas":
-            premises[f"{prospect.customer_id}g"] = prospect.premise
+            premises[f"{prospect.customer_id}g"] = (prospect.premise, prospect.output_area)
     return premises
 
 
@@ -1312,8 +1325,8 @@ def live_dwellings(base_seed: Optional[int] = None) -> dict:
     from simulation.premise_population import dwelling_record
 
     return {
-        cid: dwelling_record(premise)
-        for cid, premise in live_premises(base_seed).items()
+        cid: {**dwelling_record(premise), "output_area": area}
+        for cid, (premise, area) in _live_homes(base_seed).items()
     }
 
 
@@ -1342,8 +1355,8 @@ def live_drawn_households(base_seed: Optional[int] = None) -> dict:
     import dataclasses
 
     return {
-        cid: dataclasses.replace(premise.household, customer_id=cid)
-        for cid, premise in live_premises(base_seed).items()
+        cid: dataclasses.replace(premise.household, customer_id=cid, output_area=area)
+        for cid, (premise, area) in _live_homes(base_seed).items()
     }
 
 

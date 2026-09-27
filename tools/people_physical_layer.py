@@ -157,6 +157,67 @@ def size_distribution_by_area(path: Path = TS017_CSV) -> dict[str, dict[int, int
     return out
 
 
+#: THE PRIOR THE WORLD DRAWS FROM, committed (W2_19). `size_distribution_by_area` reads the nomis
+#: pull in `~/.cache`, which a fresh tree does not have. A world drawing from the cache would give
+#: the same seed different headcounts on different machines. So the world reads this derived copy,
+#: written by `--commit-prior` from the pull and refused if it is short.
+COMMITTED_TS017 = PROJECT / "sim" / "people" / "ts017_household_size_by_oa21.csv.gz"
+COMMITTED_SIZES = tuple(sorted(HOUSEHOLD_SIZE_BY_CODE.values()))
+
+_committed_cache: dict | None = None
+_committed_cache_path: Path | None = None
+
+
+def commit_prior(src: Path = TS017_CSV, dest: Path = COMMITTED_TS017, progress=print) -> dict:
+    """Write the committed prior from the pull: one row per output area, one column per size."""
+    import gzip
+
+    by_area = size_distribution_by_area(src)
+    if len(by_area) != TS017_EXPECTED_AREAS:
+        raise ValueError(f"the pull holds {len(by_area):,} output areas and TS017 publishes "
+                         f"{TS017_EXPECTED_AREAS:,}; a short prior is not committed")
+    lines = ["output_area," + ",".join(str(k) for k in COMMITTED_SIZES)]
+    for area in sorted(by_area):
+        counts = by_area[area]
+        lines.append(area + "," + ",".join(str(counts.get(k, 0)) for k in COMMITTED_SIZES))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    # mtime=0: the same pull writes the same bytes.
+    with dest.open("wb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as gz:
+        gz.write(("\n".join(lines) + "\n").encode("utf-8"))
+    summary = {"output_areas": len(by_area),
+               "households": sum(sum(c.values()) for c in by_area.values())}
+    progress(f"[people] committed prior: {summary} -> {dest}")
+    return summary
+
+
+def committed_size_distribution_by_area(path: Path | None = None) -> dict[str, dict[int, int]]:
+    """The committed prior, in `size_distribution_by_area`'s shape. RAISES when absent.
+
+    A missing file is never read as "no area has a prior". That reading would send every home to
+    the national draw and look exactly like an unconditioned book.
+    """
+    global _committed_cache, _committed_cache_path
+    path = COMMITTED_TS017 if path is None else path
+    if _committed_cache is not None and _committed_cache_path == path:
+        return _committed_cache
+    import gzip
+
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"{path} is absent. It is the committed Census TS017 prior the world draws headcounts "
+            "from; rebuild it with `python3 tools/people_physical_layer.py --pull --commit-prior`.")
+    out: dict[str, dict[int, int]] = {}
+    with gzip.open(path, mode="rt", encoding="utf-8") as fh:
+        reader = csv.reader(fh)
+        sizes = [int(k) for k in next(reader)[1:]]
+        for row in reader:
+            out[row[0]] = {k: int(v) for k, v in zip(sizes, row[1:])}
+    if not out:
+        raise ValueError(f"{path} holds no output area")
+    _committed_cache, _committed_cache_path = out, path
+    return out
+
+
 def prior_and_residual(by_area=None) -> dict:
     """How much of household-size variation an ADDRESS explains, and how much it cannot.
 
@@ -243,12 +304,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pull", action="store_true", help="fetch Census TS017 by output area")
     ap.add_argument("--split", action="store_true",
                     help="what an address explains, and what it cannot")
+    ap.add_argument("--commit-prior", action="store_true",
+                    help="write the committed TS017 prior the world draws from")
     args = ap.parse_args(argv)
     if args.pull:
         pull()
+    if args.commit_prior:
+        print(json.dumps(commit_prior(), indent=2))
     if args.split:
         print(json.dumps(prior_and_residual(), indent=2))
-    if not (args.pull or args.split):
+    if not (args.pull or args.split or args.commit_prior):
         ap.print_help(sys.stderr)
         return 2
     return 0

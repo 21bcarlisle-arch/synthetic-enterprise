@@ -199,14 +199,11 @@ def people_count_for_area(customer_id: str, output_area: str | None) -> int:
     authored = PEOPLE_COUNT_BY_CUSTOMER.get(customer_id)
     if authored:
         return int(authored)
-    if not output_area:
+    if people_count_source(output_area) == "national":
         return _derive_people_count(customer_id)
-    try:
-        from tools.people_physical_layer import draw_size, size_distribution_by_area
-        return draw_size(output_area, _random.Random(f"people_count_{customer_id}"),
-                         size_distribution_by_area())
-    except Exception:      # noqa: BLE001 -- an absent census must not stop the world drawing
-        return _derive_people_count(customer_id)
+    from tools.people_physical_layer import committed_size_distribution_by_area, draw_size
+    return draw_size(output_area, _random.Random(f"people_count_{customer_id}"),
+                     committed_size_distribution_by_area())
 
 
 def composition_cuts_for(customer_id: str) -> tuple[bool, bool]:
@@ -333,13 +330,16 @@ def people_count_source(output_area: str | None) -> str:
     Reported so a reader can tell a conditioned population from a national one; the two are
     indistinguishable in the headcount itself and differ entirely in what they claim.
     """
+    # NO `except` HERE ANY MORE (W2_19, 2026-09-27). The prior used to be read from `~/.cache`
+    # behind a bare `except`, so a tree without the pull quietly drew every home nationally and the
+    # same seed gave different headcounts on different machines. It was harmless only while no home
+    # carried an area. The prior is now a committed frame and an absent one RAISES. The one honest
+    # national answer is an area TS017 does not publish, which is every Scottish (S00) area:
+    # TS017 is England and Wales only.
     if not output_area:
         return "national"
-    try:
-        from tools.people_physical_layer import size_distribution_by_area
-        return "output_area" if output_area in size_distribution_by_area() else "national"
-    except Exception:      # noqa: BLE001
-        return "national"
+    from tools.people_physical_layer import committed_size_distribution_by_area
+    return "output_area" if output_area in committed_size_distribution_by_area() else "national"
 
 
 def _derive_people_count(customer_id: str) -> int:

@@ -548,6 +548,27 @@ def test_GROUPING_CONSERVES_THE_UNGROUPED_PLACEMENT(cache, addresses):
     assert grouped_drops["output_area_outside_the_grouping"] == 0
 
 
+def test_THE_PER_OUTPUT_AREA_SPLIT_IS_THE_SAME_PLACEMENT_UNSUMMED(cache, addresses):
+    """DEFECT: the per-OA shares `household_siting` draws an area from adding up to something other
+    than the cell weights the household was sited by. Then the joint (cell, area) draw would not be
+    the census placement. Asserted cell for cell, with a cell two areas share, so a split that gave
+    the whole cell to one area fails."""
+    _seed(cache,
+          [["E1 1AA", "E00000001", 10_500, 10_500, "E92000001"],
+           ["E1 1AB", "E00000002", 10_500, 10_500, "E92000001"]],
+          ew=(("E00000001", 100), ("E00000002", 30)),
+          scot=(("S00000001", 40),))
+    addresses(E00000001={(10, 10): 4, (11, 10): 1}, E00000002={(10, 10): 1})
+
+    grouped, _ = w.census_weights(group_of=lambda oa: oa[0])
+    per_oa, _ = w.census_weights(group_of=lambda oa: oa[0], per_output_area=True)
+
+    assert {c: round(sum(oas.values()), 6) for c, oas in per_oa["E"].items()} == {
+        c: round(v, 6) for c, v in grouped["E"].items()}
+    assert set(per_oa["E"][(10, 10)]) == {"E00000001", "E00000002"}
+    assert round(per_oa["E"][(10, 10)]["E00000001"], 6) == 80.0
+
+
 def test_a_GROUP_OF_RETURNING_NONE_DROPS_THE_HOUSEHOLDS_AND_COUNTS_THEM(cache, addresses):
     """DEFECT (fail-silent): an output area outside the grouping absorbed into some region anyway,
     or dropped without a count. Scotland is the live instance -- it has no slot in the region

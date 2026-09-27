@@ -203,3 +203,67 @@ def test_the_EXPECTED_REGIONS_come_from_the_CURRICULUM_and_not_from_a_list_here(
     assert "region_weights_from_curriculum" in src
     for name in f.REGION_NAMES.values():
         assert f'"{name}"' not in src, f"{name!r} is listed in expected_regions() rather than read"
+
+
+# ---------------------------------------------------------------------------
+# W2_19: the output areas of each committed cell
+# ---------------------------------------------------------------------------
+
+def _oa_build(monkeypatch, tmp_path, committed, placed):
+    """Build the output-area frame over a fake committed frame and a fake placement.
+
+    `committed` is [(region, cell)]; each cell (x, y) gets coordinate (50 + y/100, x/100)."""
+    from tools import weather_cell_weights as wcw
+
+    cells = sorted({c for _, c in committed} | {c for p in placed.values() for c in p})
+    index = {c: i for i, c in enumerate(cells)}
+    lat = [50 + c[1] / 100 for c in cells]
+    lon = [c[0] / 100 for c in cells]
+    frame = tmp_path / "frame.csv"
+    with frame.open("w", newline="", encoding="utf-8") as fh:
+        out = csv.writer(fh)
+        out.writerow(["region", "lat", "lon", "households"])
+        for region, c in committed:
+            out.writerow([region, f"{lat[index[c]]:.4f}", f"{lon[index[c]]:.4f}", "10.000"])
+    monkeypatch.setattr(f, "FRAME_CSV", frame)
+    monkeypatch.setattr(f, "ARTEFACT_DIR", tmp_path)
+    monkeypatch.setattr(f, "OUTPUT_AREA_CSV", tmp_path / "oa.csv.gz")
+    monkeypatch.setattr(f, "region_namer", lambda: None)
+    monkeypatch.setattr(f, "_cell_coordinates", lambda: (index, lat, lon))
+    monkeypatch.setattr(wcw, "census_weights",
+                        lambda group_of=None, per_output_area=False: (placed, {}))
+    return f.build_output_areas(progress=lambda *_: None)
+
+
+def test_a_committed_cell_takes_its_own_areas_first_and_the_nearest_ring_only_when_it_has_none(
+        monkeypatch, tmp_path):
+    """DEFECT: a cell with no address of its region given no area (every home sited there would draw
+    nationally), or a cell WITH its own areas diluted by its neighbours'. Both branches must be
+    taken, then each checked. The committed frame predates the address placement, so 2,942 real
+    cells need the ring."""
+    import gzip
+
+    summary = _oa_build(monkeypatch, tmp_path,
+                        committed=[("East", (10, 10)), ("East", (20, 20))],
+                        placed={"East": {(10, 10): {"E_OWN": 5.0},
+                                         (11, 10): {"E_NEIGHBOUR": 7.0},
+                                         (21, 21): {"E_RING": 3.0}},
+                                "London": {(20, 20): {"E_OTHER_REGION": 9.0}}})
+    assert summary["cells_by_ring"] == {"0": 1, "1": 1}
+    with gzip.open(tmp_path / "oa.csv.gz", "rt", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    by_cell: dict[str, set] = {}
+    for r in rows:
+        by_cell.setdefault(r["lat"], set()).add(r["output_area"])
+    assert by_cell["50.1000"] == {"E_OWN"}, "a cell's own areas were diluted by a neighbour's"
+    assert by_cell["50.2000"] == {"E_RING"}, "the ring crossed into another region"
+
+
+def test_a_committed_cell_with_no_area_of_its_region_nearby_refuses_the_build(
+        monkeypatch, tmp_path):
+    """DEFECT: borrowing areas from ever further away once the committed frame has drifted from the
+    placement. Past `MAX_OUTPUT_AREA_RING` the build refuses and names the rebuild."""
+    far = f.MAX_OUTPUT_AREA_RING + 1
+    with pytest.raises(ValueError, match="rebuild it"):
+        _oa_build(monkeypatch, tmp_path, committed=[("East", (10, 10))],
+                  placed={"East": {(10 + far, 10): {"E_FAR": 1.0}}})

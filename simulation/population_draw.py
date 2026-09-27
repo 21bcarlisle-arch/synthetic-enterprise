@@ -316,6 +316,12 @@ class SyntheticCustomer:
     # when the director's curriculum is on. That is why there is no separate dial for it.
     lat: Optional[float] = None
     lon: Optional[float] = None
+    # AND THE 2021 OUTPUT AREA INSIDE THAT CELL (W2_19 layer one), drawn at the same moment on its
+    # own stream (`household_siting.output_area_for_customer`). It is the key the headcount prior
+    # (Census TS017) is published on. RENDERED beside the coordinate for the same reason: a supplier
+    # knows the address, and the postcode-to-output-area lookup (ONSPD) is published. None exactly
+    # when the coordinate is None.
+    output_area: Optional[str] = None
 
     def to_customer_dict(self) -> dict:
         """Render a saas-shaped customer dict (for the L2 integration layer)."""
@@ -328,7 +334,8 @@ class SyntheticCustomer:
             "payment_method": self.payment_method,
             "consumption_band": self.consumption_band,
             "eac_kwh": self.eac_kwh,
-            "location": {"lat": self.lat, "lon": self.lon, "region": self.region},
+            "location": {"lat": self.lat, "lon": self.lon, "region": self.region,
+                         "output_area": self.output_area},
             "tariff_type": self.tariff_type,
             # RENDERED, unlike `cohort` and `premise`: see the field's own note. Without this the
             # supplier's book cannot say what meter it installed, and every drawn customer reads
@@ -449,7 +456,7 @@ def _draw_one(
 
 
 def _coordinate_fields(customer_id: str, base_seed: int, region: str) -> dict:
-    """`{"lat": ..., "lon": ...}` for this household, or both None with the reason recorded.
+    """`{"lat": ..., "lon": ..., "output_area": ...}` for this household, or all None.
 
     LAZY IMPORT, for the same reason `_draw_dwelling` imports `premise_population` lazily: the
     frame is a committed CSV this module has no other reason to read, and the siting module names
@@ -460,12 +467,13 @@ def _coordinate_fields(customer_id: str, base_seed: int, region: str) -> dict:
     household cannot move a single value of the acquisition sequence above
     (`test_the_siting_draw_does_not_perturb_the_acquisition_stream`).
     """
-    from simulation.household_siting import coordinate_for_customer
+    from simulation.household_siting import coordinate_for_customer, output_area_for_customer
 
     sited = coordinate_for_customer(customer_id, base_seed, region)
     if sited is None:
-        return {"lat": None, "lon": None}
-    return {"lat": sited[0], "lon": sited[1]}
+        return {"lat": None, "lon": None, "output_area": None}
+    return {"lat": sited[0], "lon": sited[1],
+            "output_area": output_area_for_customer(customer_id, base_seed, region)}
 
 
 def iter_acquisition_events(

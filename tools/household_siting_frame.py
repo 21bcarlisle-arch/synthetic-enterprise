@@ -121,6 +121,9 @@ OA_REGION_CSV = CACHE / "oa21_to_region_england.csv"
 ARTEFACT_DIR = PROJECT / "sim" / "household_siting"
 FRAME_CSV = ARTEFACT_DIR / "region_household_frame.csv"
 FRAME_MANIFEST = ARTEFACT_DIR / "region_household_frame.json"
+#: W2_19: which output areas each sited cell's households are in, and how many of them. Gzipped
+#: (the `sim/weather_world/daily.csv.gz` precedent) because it is one row per (region, cell, OA).
+OUTPUT_AREA_CSV = ARTEFACT_DIR / "cell_output_area_frame.csv.gz"
 
 #: ONS's OWN OUTPUT-AREA-TO-REGION LOOKUP, and the third source tried. It is one row per 2021
 #: output area, which is what makes it the right one: a region per OUTPUT AREA is exactly the join
@@ -383,23 +386,10 @@ def frame() -> tuple[dict[str, list[tuple[float, float, float]]], dict]:
     aligned_to_land` documents that for the ungrouped map and the same figure is reported here per
     region, because a region that is mostly coast would lose the most and look ordinary.
     """
-    import numpy as np
-
-    from tools import weather_cell_drivers as wcd
     from tools import weather_cell_weights as wcw
 
     by_region, drops = wcw.census_weights(group_of=region_namer())
-    d = wcd.drivers()
-    keys = list(zip((d["east"] // 1000).astype(int).tolist(),
-                    (d["north"] // 1000).astype(int).tolist()))
-    index = {k: i for i, k in enumerate(keys)}
-    lat = d["latitude"]
-
-    with wcd._open("tas") as ds:
-        xs = ds.coords["projection_x_coordinate"].values
-        ys = ds.coords["projection_y_coordinate"].values
-        lon_grid = ds.coords["longitude"].values
-    lon = lon_grid[np.searchsorted(ys, d["north"]), np.searchsorted(xs, d["east"])]
+    index, lat, lon = _cell_coordinates()
 
     out: dict[str, list[tuple[float, float, float]]] = {}
     per_region = {}
@@ -427,6 +417,110 @@ def frame() -> tuple[dict[str, list[tuple[float, float, float]]], dict]:
                    "per_region": per_region,
                    "regions": sorted(out)}
     return out, diagnostics
+
+
+def _cell_coordinates():
+    """({(cell_x, cell_y): i}, lat[i], lon[i]) for every HadUK-Grid 1 km land cell.
+
+    ONE LOOKUP FOR BOTH FRAMES, so the output-area frame's rows join the household frame's by
+    exact (region, lat, lon) equality rather than by a second transform that could round apart.
+    """
+    import numpy as np
+
+    from tools import weather_cell_drivers as wcd
+
+    d = wcd.drivers()
+    keys = list(zip((d["east"] // 1000).astype(int).tolist(),
+                    (d["north"] // 1000).astype(int).tolist()))
+    index = {k: i for i, k in enumerate(keys)}
+    with wcd._open("tas") as ds:
+        xs = ds.coords["projection_x_coordinate"].values
+        ys = ds.coords["projection_y_coordinate"].values
+        lon_grid = ds.coords["longitude"].values
+    lon = lon_grid[np.searchsorted(ys, d["north"]), np.searchsorted(xs, d["east"])]
+    return index, d["latitude"], lon
+
+
+#: How far `build_output_areas` looks, in cells, for the output areas of a committed cell whose
+#: own square holds none of its region's addresses. See `build_output_areas` for why such cells
+#: exist and why the neighbourhood is the placement that put households there.
+#: Measured over the committed frame (2026-09-27): 2,942 cells need ring 1 and 2 need ring 2. The
+#: bound is there so a frame that has drifted a long way from the placement REFUSES instead of
+#: borrowing areas from ever further away.
+MAX_OUTPUT_AREA_RING = 3
+
+
+def build_output_areas(progress=print) -> dict:
+    """Write `OUTPUT_AREA_CSV`: for each cell of the COMMITTED household frame, its output areas.
+
+    W2_19's layer one needs the output area a sited household is in, and `household_siting` knows
+    only the cell. Each row is one output area's share of one cell's households, taken from the
+    address placement (`census_weights(per_output_area=True)`, each OA's households split over its
+    own ONSUD addresses) restricted to the cell's own region. Drawing the cell and then the OA,
+    each PPS, therefore draws the address placement within the cell the household was sited in.
+
+    KEYED TO THE COMMITTED FRAME, NOT REBUILT BESIDE IT. The committed household frame was built
+    on 2026-09-07 at 03:49 with the SECOND placement (addresses in the 3x3 window around each
+    postcode centroid). `census_weights` moved to the ONSUD placement four hours later and the
+    frame was never rebuilt. So `--build` at HEAD would move every household's coordinate. That
+    rebuild is its own change and is not made here: this reads the cells as they are committed.
+    The two placements disagree on 0.16% of households. Those households sit in cells where the
+    window put them and no address of their region exists, and for those cells the OAs come from
+    the smallest square around the cell that holds some. That is the window placement's own
+    geometry. A cell still empty at `MAX_OUTPUT_AREA_RING` REFUSES the build.
+    """
+    import gzip
+
+    from tools import weather_cell_weights as wcw
+
+    by_region, _drops = wcw.census_weights(group_of=region_namer(), per_output_area=True)
+    index, lat, lon = _cell_coordinates()
+    cell_at = {(f"{round(float(lat[i]), 4):.4f}", f"{round(float(lon[i]), 4):.4f}"): cell
+               for cell, i in index.items()}
+
+    rows, rings = [], {}
+    with FRAME_CSV.open(encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            if float(row["households"]) <= 0:
+                continue
+            key = (row["region"], row["lat"], row["lon"])
+            cell = cell_at.get(key[1:])
+            if cell is None:
+                raise ValueError(f"{key} is a cell of the committed household frame and no "
+                                 "HadUK-Grid land cell has its coordinate")
+            placed = by_region.get(row["region"], {})
+            oas: dict[str, float] = {}
+            for ring in range(MAX_OUTPUT_AREA_RING + 1):
+                for dx in range(-ring, ring + 1):
+                    for dy in range(-ring, ring + 1):
+                        for oa, share in placed.get((cell[0] + dx, cell[1] + dy), {}).items():
+                            oas[oa] = oas.get(oa, 0.0) + share
+                if oas:
+                    break
+            else:
+                raise ValueError(
+                    f"{key}: no output area of {row['region']} has an address within "
+                    f"{MAX_OUTPUT_AREA_RING} km of this cell. The committed frame has drifted "
+                    "from the address placement; rebuild it (`--build`) and then this.")
+            rings[ring] = rings.get(ring, 0) + 1
+            for oa in sorted(oas):
+                weight = f"{oas[oa]:.4f}"
+                if float(weight) > 0:
+                    rows.append((*key, oa, weight))
+
+    ARTEFACT_DIR.mkdir(parents=True, exist_ok=True)
+    # mtime=0 so the same inputs write the same bytes, and a rebuild with nothing changed shows
+    # no diff.
+    with OUTPUT_AREA_CSV.open("wb") as raw, \
+            gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as gz:
+        text = ["region,lat,lon,output_area,households"]
+        text += [",".join(r) for r in rows]
+        gz.write(("\n".join(text) + "\n").encode("utf-8"))
+    summary = {"rows": len(rows), "cells": len({r[:3] for r in rows}),
+               "output_areas": len({r[3] for r in rows}),
+               "cells_by_ring": {str(k): v for k, v in sorted(rings.items())}}
+    progress(f"[siting] output-area frame: {summary} -> {OUTPUT_AREA_CSV}")
+    return summary
 
 
 def expected_regions() -> set[str]:
@@ -540,15 +634,19 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--pull", action="store_true", help="pull the ONSPD output-area/region lookup")
     ap.add_argument("--build", action="store_true", help="write the committed frame + manifest")
+    ap.add_argument("--build-output-areas", action="store_true",
+                    help="write each committed cell's output areas (W2_19)")
     ap.add_argument("--measure", action="store_true", help="what the frame buys over a centroid")
     args = ap.parse_args(argv)
     if args.pull:
         pull_oa_regions()
     if args.build:
         print(json.dumps(build(), indent=2))
+    if args.build_output_areas:
+        print(json.dumps(build_output_areas(), indent=2))
     if args.measure:
         print(json.dumps(measurement(), indent=2))
-    if not (args.pull or args.build or args.measure):
+    if not (args.pull or args.build or args.build_output_areas or args.measure):
         ap.print_help()
         return 2
     return 0

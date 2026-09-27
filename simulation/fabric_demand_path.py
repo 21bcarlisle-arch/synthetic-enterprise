@@ -350,7 +350,7 @@ def build_fabric_series(
     # change and is not a reason for it.
     profile = behaviour_profile_for(
         customer_id, segments[0].household, seed=seed,
-        people_count=people_count_for(customer_id),
+        people_count=people_count_for(customer_id, segments[0].household.output_area),
     )
     away = away_day_calendar(customer_id, profile, dates, seed=seed)
 

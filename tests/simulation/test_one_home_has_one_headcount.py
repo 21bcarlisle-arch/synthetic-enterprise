@@ -86,9 +86,13 @@ def test_the_book_itself_agrees_and_this_is_not_a_synthetic_id_artefact():
     A synthetic id exercises the draw; it cannot see an authored roster entry, a customer with no
     property record, or any other real-population shape. This leg is what catches those.
     """
-    from simulation.live_population import live_dwellings, live_population
+    from simulation.live_population import live_drawn_households, live_dwellings, live_population
 
     customers = [c for c in live_population() if c["commodity"] == "electricity"]
+    # ASKED THE WAY THE FABRIC PATH ASKS: through the household the world traces, which carries the
+    # home's output area (W2_19). Asking by id alone was the right question while no home had an
+    # area. Once homes had one, that reader was national and the record local, for 40 of 147 homes.
+    households = live_drawn_households()
     assert len(customers) > 50, (
         f"population floor: only {len(customers)} electricity customers were loaded, which is too "
         "few for this leg to mean anything. A shrunken book must refuse, not pass quietly."
@@ -102,8 +106,10 @@ def test_the_book_itself_agrees_and_this_is_not_a_synthetic_id_artefact():
         if not record or "people_count" not in record:
             continue
         checked += 1
-        if int(record["people_count"]) != int(hpl.people_count_for(cid)):
-            disagreements.append((cid, record["people_count"], hpl.people_count_for(cid)))
+        household = households.get(cid)
+        traced = hpl.people_count_for(cid, household.output_area if household else None)
+        if int(record["people_count"]) != int(traced):
+            disagreements.append((cid, record["people_count"], traced))
     assert checked > 50, f"population floor: only {checked} property records carried a headcount"
     assert not disagreements, (
         f"{len(disagreements)} of {checked} homes in the live book have two headcounts: "
@@ -660,3 +666,32 @@ def test_the_settled_path_lets_the_delegation_answer_and_does_not_supply_the_cut
             "every agreement leg in this file would stay green, because they call the delegate "
             "directly rather than through this path."
         )
+
+
+def test_every_production_headcount_call_passes_the_homes_output_area():
+    """DEFECT (W2_19, found 2026-09-27 the moment homes gained areas): a reader asking the headcount
+    by id alone. It gets the national draw while the property record gets the area's, so one
+    house has two headcounts. The agreement leg above catches this only for the readers it calls.
+    This census catches it for every production call.
+
+    The census must FIND calls before its empty offender list means anything."""
+    import ast
+
+    root = pathlib.Path(__file__).resolve().parents[2]
+    found, offenders = 0, []
+    for folder in ("simulation", "tools", "saas", "company"):
+        for path in sorted((root / folder).rglob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                name = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+                if name not in ("people_count_for", "occupancy_band_for"):
+                    continue
+                found += 1
+                if len(node.args) + len(node.keywords) < 2:
+                    offenders.append(f"{path.relative_to(root)}:{node.lineno}")
+    assert found >= 5, f"the census found only {found} headcount calls; it has gone blind"
+    assert not offenders, (
+        f"these calls ask the headcount by id alone, so they get the national draw beside an "
+        f"area-conditioned property record: {offenders}")

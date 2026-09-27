@@ -128,6 +128,11 @@ LAYER_OF: dict[str, Layer] = {
     # read "not gas" when they are communal or unmetered, so this measures a MATCHED METER and is
     # a lower bound on connection.
     "has_mains_gas_supply": Layer.PHYSICAL,
+    # WHERE THE HOME IS (W2_19). Physical because what it conditions is the headcount, the
+    # ruling's layer one: "the household you would EXPECT given the postcode". An area also
+    # correlates with income, but that correlation is to be DECLARED between the layers (see
+    # `LayerCorrelation`). It is not a reason to put the address in the commercial layer.
+    "output_area": Layer.PHYSICAL,
     # The one commercial attribute on the physical record. This IS the merge the
     # canon names: it sits on `Household` beside the fabric, and
     # `fabric_demand_path` reads it straight off there into the demand path.
@@ -222,13 +227,13 @@ def people_count_for(customer_id: str, output_area: str | None = None) -> int:
 
     AND THE DELEGATE IS THE RICHER ONE, deliberately. `people_count_for_area` conditions on the
     premise's output area where one exists and falls back to the national draw visibly through
-    `people_count_source`. No dwelling record in the book carries an output area today, so every
-    home takes that fallback and this change moves no distribution -- it only makes the two paths
-    agree. The day addresses carry areas, the whole world becomes area-conditioned at once instead
-    of half of it.
+    `people_count_source`.
 
     `output_area` is threaded rather than looked up here: this module has no address book, and a
-    lookup invented here would be a third answer to the same question.
+    lookup invented here would be a third answer to the same question. Every caller in this module
+    passes `household.output_area`. The day homes gained areas (W2_19, 2026-09-27), the one caller
+    here that passed only the id would have been national while the property record was local.
+    `test_one_home_has_one_headcount` checks that exact disagreement over the live book.
     """
     from simulation.dwelling_records import people_count_for_area
 
@@ -254,10 +259,10 @@ def _national_headcount_draw(customer_id: str) -> int:
     return _headcount_within(OccupancyBand.FIVE_PLUS_PERSON, customer_id)
 
 
-def occupancy_band_for(customer_id: str) -> OccupancyBand:
+def occupancy_band_for(customer_id: str, output_area: str | None = None) -> OccupancyBand:
     """The band the headcount above falls in. Derived from the count, never drawn
     beside it -- two draws of one quantity is the defect this module just fixed."""
-    count = people_count_for(customer_id)
+    count = people_count_for(customer_id, output_area)
     if count == 1:
         return OccupancyBand.ONE_PERSON
     if count == 2:
@@ -334,7 +339,7 @@ def physical_layer_for(
     }
     return PhysicalLayer(
         customer_id=customer_id,
-        occupancy_band=occupancy_band_for(customer_id),
+        occupancy_band=occupancy_band_for(customer_id, household.output_area),
         people_count=profile.people_count,
         children_count=profile.children_count,
         pensioner_present=profile.pensioner_present,
@@ -369,7 +374,7 @@ def _profile_for(
         customer_id,
         household,
         seed=seed,
-        people_count=people_count_for(customer_id),
+        people_count=people_count_for(customer_id, household.output_area),
     )
 
 

@@ -193,3 +193,58 @@ def test_static_roster_byte_identical_after_the_split():
     assert props["C3"]["epc_rating"] == "E"    # authored, NOT the modal "D" default
     assert props["C4"]["epc_rating"] == "E"
     assert all(r["dwelling_basis"] == "authored_roster" for r in props.values())
+
+
+# ---------------------------------------------------------------------------
+# W2_19: the area prior is committed, and its absence refuses
+# ---------------------------------------------------------------------------
+
+def _an_england_area() -> str:
+    from tools.people_physical_layer import committed_size_distribution_by_area
+
+    return next(a for a in sorted(committed_size_distribution_by_area()) if a.startswith("E00"))
+
+
+def test_the_headcount_for_an_area_never_reads_the_cache_so_one_seed_is_one_book(monkeypatch):
+    """DEFECT: the world's headcount drawn from the TS017 pull in `~/.cache`. A tree without the
+    pull would draw a DIFFERENT headcount for the same home and seed, silently. With the cache
+    reader made to explode, the answer must be unchanged and still local."""
+    from simulation import dwelling_records as dr
+    from tools import people_physical_layer as ppl
+
+    area = _an_england_area()
+    before = [dr.people_count_for_area(f"H{n}", area) for n in range(60)]
+
+    def no_cache(*_a, **_k):
+        raise AssertionError("the world read the ~/.cache pull")
+
+    monkeypatch.setattr(ppl, "size_distribution_by_area", no_cache)
+    monkeypatch.setattr(ppl, "TS017_CSV", ppl.CACHE / "absent.csv")
+    assert [dr.people_count_for_area(f"H{n}", area) for n in range(60)] == before
+    assert dr.people_count_source(area) == "output_area"
+    assert len(set(before)) > 1, "a constant headcount would pass the equality above vacuously"
+
+
+def test_an_absent_committed_prior_refuses_rather_than_drawing_every_home_nationally(
+        monkeypatch, tmp_path):
+    """DEFECT (fail-silent): the bare `except` this replaced. A missing prior was read as "no area
+    has one", so every home drew nationally and the book looked unconditioned without saying so."""
+    from simulation import dwelling_records as dr
+    from tools import people_physical_layer as ppl
+
+    area = _an_england_area()
+    monkeypatch.setattr(ppl, "COMMITTED_TS017", tmp_path / "absent.csv.gz")
+    monkeypatch.setattr(ppl, "_committed_cache", None)
+    with pytest.raises(FileNotFoundError, match="commit-prior"):
+        dr.people_count_for_area("H1", area)
+    with pytest.raises(FileNotFoundError):
+        dr.people_count_source(area)
+
+
+def test_a_scottish_area_is_national_by_construction_and_says_so():
+    """TS017 is England and Wales only. A Scottish home keeps its S00 area and its headcount is
+    national, visibly, through `people_count_source`. It does not raise and it does not pretend."""
+    from simulation import dwelling_records as dr
+
+    assert dr.people_count_source("S00089012") == "national"
+    assert dr.people_count_for_area("H1", "S00089012") == dr.people_count_for_area("H1", None)

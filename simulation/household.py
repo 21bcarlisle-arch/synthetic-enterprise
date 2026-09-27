@@ -162,6 +162,14 @@ class Household:
     #: other would be the *bill shock* mistake again: one word, two populations, differenced.
     has_mains_gas_supply: bool | None = None
 
+    #: THE 2021 OUTPUT AREA THIS HOME IS IN (W2_19 layer one), drawn inside the 1 km cell the home
+    #: was sited in (`household_siting.output_area_for_customer`). It is on the household, and not
+    #: only on the property record, because the headcount is read from both. A property record
+    #: conditioned on the area beside a fabric path that is not would give one house two
+    #: headcounts, which `test_one_home_has_one_headcount` exists to refuse. None where the home
+    #: was never sited.
+    output_area: str | None = None
+
     @property
     def is_residential(self) -> bool:
         return self.property_type in (

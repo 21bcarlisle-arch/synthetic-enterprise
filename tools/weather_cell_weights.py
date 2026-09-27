@@ -271,7 +271,7 @@ def read_households() -> dict[str, int]:
     return out
 
 
-def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
+def census_weights(group_of=None, per_output_area: bool = False) -> tuple[dict, dict[str, int]]:
     """({(cell_x, cell_y): households}, drop counts), placed ON THE ADDRESSES THEMSELVES.
 
     Each output area's census households are split across the 1 km cells its OWN addresses occupy,
@@ -286,6 +286,11 @@ def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
     published from each stop being comparable. `tools/household_siting_frame.py` is the only caller
     that passes it; with `group_of=None` this returns the ungrouped placement and
     `test_grouping_conserves_the_ungrouped_placement` says the two agree cell for cell.
+
+    WITH `per_output_area` (W2_19), EACH CELL'S WEIGHT COMES BACK UNSUMMED: `{oa: households}` in
+    place of the float, so `household_siting` can draw WHICH output area a sited household is in
+    from the same placement that made the cell's weight. It is the same loop, not a second one, so
+    the per-OA shares cannot add up to anything other than the cell weights.
 
     THIS IS THE THIRD PLACEMENT AND THE FIRST WITH NO CENTROID IN IT. Each of the two it replaced
     looked right until it was checked, and both were checked because the director did not believe
@@ -322,6 +327,7 @@ def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
 
     weights: dict[tuple[int, int], float] = defaultdict(float)
     grouped: dict[str, dict[tuple[int, int], float]] = defaultdict(lambda: defaultdict(float))
+    by_oa: dict = defaultdict(lambda: defaultdict(dict))
     drops = {"output_area_outside_the_grouping": 0}
     dropped_groups: set[str] = set()
     placed = 0.0
@@ -338,6 +344,9 @@ def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
         into = weights if group is None else grouped[group]
         share = n * count / per_oa[oa]
         into[(cell_x, cell_y)] += share
+        if per_output_area:
+            # `pairs` is keyed by (oa, cell), so each area meets each cell once: set, not add.
+            by_oa[group][(cell_x, cell_y)][oa] = share
         placed += share
 
     unplaced = sorted(set(households) - set(per_oa))
@@ -346,6 +355,10 @@ def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
     drops["households_in_those_areas"] = sum(households[oa] for oa in unplaced)
     drops["households_placed"] = round(placed)
     drops["households_in_the_censuses"] = sum(households.values())
+    if per_output_area:
+        if group_of is None:
+            return dict(by_oa[None]), drops
+        return {g: dict(cells) for g, cells in by_oa.items()}, drops
     if group_of is None:
         return dict(weights), drops
     return {g: dict(cells) for g, cells in grouped.items()}, drops

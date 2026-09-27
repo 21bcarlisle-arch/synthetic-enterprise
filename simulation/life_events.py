@@ -639,6 +639,10 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
         "has_driveway": household.has_driveway,
         "roof_aspect": household.roof_aspect,
         "income_stress": household.income_stress,
+        # Where the home IS does not change when something happens in it. Without this line every
+        # home with a life event lost its output area, and with it its area-conditioned headcount,
+        # at the first event (W2_19).
+        "output_area": household.output_area,
     }
 
     for event in events:

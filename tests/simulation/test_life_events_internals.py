@@ -93,3 +93,22 @@ def test_random_date_in_year_returns_correct_year():
 def test_life_event_event_date_stored():
     ev = LifeEvent(customer_id="C1", event_date="2022-07-15", event_type="solar_install", payload={})
     assert ev.event_date == "2022-07-15"
+
+
+def test_a_life_event_does_not_move_the_home_off_its_output_area():
+    """DEFECT: `apply_events` rebuilding the household from an explicit field list that omits
+    `output_area`. Every home with a life event would lose its area at the first event, and with it
+    the area-conditioned headcount the fabric path reads (W2_19)."""
+    import dataclasses
+    import sys
+    from pathlib import Path
+
+    from simulation.life_events import apply_events
+
+    sys.path.insert(0, str(Path(__file__).parent))
+    from test_premise_trace import make_household
+
+    home = dataclasses.replace(make_household(), output_area="E00000001")
+    event = LifeEvent(customer_id=home.customer_id, event_date="2020-06-01",
+                      event_type="job_loss", payload={})
+    assert apply_events(home, [event]).output_area == "E00000001"

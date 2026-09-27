@@ -39,8 +39,10 @@ def frame_csv(tmp_path):
 def _no_cached_frame():
     """The module caches the frame per process and every test here loads a different one."""
     hs._frame_cache = hs._frame_cache_path = None
+    hs._oa_cache = hs._oa_cache_path = None
     yield
     hs._frame_cache = hs._frame_cache_path = None
+    hs._oa_cache = hs._oa_cache_path = None
 
 
 def test_a_region_with_no_household_distribution_is_refused_by_name_and_never_sited(frame_csv):
@@ -220,3 +222,98 @@ def test_the_weather_seam_no_longer_refuses_a_drawn_household_for_want_of_a_coor
     assert drawn
     for c in drawn[:25]:
         assert "carries no coordinate" not in wcs.siting_refusal(c["location"])
+
+
+# ---------------------------------------------------------------------------
+# W2_19 layer one: the sited cell carries its output area
+# ---------------------------------------------------------------------------
+
+def _oa_frame(tmp_path, rows):
+    import gzip
+
+    path = tmp_path / "oa.csv.gz"
+    with gzip.open(path, "wt", encoding="utf-8") as fh:
+        fh.write("region,lat,lon,output_area,households\n")
+        for row in rows:
+            fh.write(",".join(row) + "\n")
+    return path
+
+
+def test_the_output_area_lies_in_the_cell_the_coordinate_names_and_is_drawn_by_its_share(
+        frame_csv, tmp_path):
+    """DEFECT: an area drawn from anywhere but the sited cell (a region-wide pick, or a second cell
+    draw), so the home's address and its coordinate name different places. Also: a flat pick among
+    the cell's areas, which ignores how many households each holds. The lopsided 9:1 shares make a
+    flat draw and a weighted one disagree."""
+    oa = _oa_frame(tmp_path, [
+        ("London", "51.5000", "-0.1000", "E_BIG", "8100.0"),
+        ("London", "51.5000", "-0.1000", "E_SMALL", "900.0"),
+        ("London", "51.6000", "-0.2000", "E_NORTH", "1000.0"),
+        ("Wales", "51.4800", "-3.1800", "W_ONLY", "500.0"),
+    ])
+    in_cell = {(51.5, -0.1): {"E_BIG", "E_SMALL"}, (51.6, -0.2): {"E_NORTH"}}
+    picks: dict[str, int] = {}
+    for n in range(2000):
+        cid = f"C{n}"
+        lat, lon = hs.coordinate_for_customer(cid, 7, "London", path=frame_csv)
+        area = hs.output_area_for_customer(cid, 7, "London", path=frame_csv, output_area_path=oa)
+        assert area in in_cell[(lat, lon)], f"{cid} sited at {(lat, lon)} but given {area}"
+        picks[area] = picks.get(area, 0) + 1
+    # EVERY BRANCH REACHABLE before any branch is weighed: both areas of the shared cell are drawn.
+    assert picks.get("E_BIG") and picks.get("E_SMALL") and picks.get("E_NORTH")
+    assert 6 < picks["E_BIG"] / picks["E_SMALL"] < 14, picks
+    assert hs.output_area_for_customer("C1", 7, _PLACEHOLDER_REGION, path=frame_csv,
+                                       output_area_path=oa) is None
+
+
+def test_a_sited_cell_the_output_area_frame_lacks_refuses_rather_than_giving_no_area(
+        frame_csv, tmp_path):
+    """DEFECT (fail-silent): a home sited in a cell the output-area frame does not carry, returned
+    with no area. It would take the national headcount and nothing would say the two frames had
+    been built from different cells."""
+    oa = _oa_frame(tmp_path, [("London", "51.6000", "-0.2000", "E_NORTH", "1000.0")])
+    with pytest.raises(KeyError, match="does not carry"):
+        for n in range(200):
+            hs.output_area_for_customer(f"C{n}", 7, "London", path=frame_csv, output_area_path=oa)
+
+
+def test_an_absent_output_area_frame_refuses_rather_than_leaving_every_home_unconditioned(
+        tmp_path):
+    """DEFECT (fail-open): a missing frame read as an empty one. Every home would carry no area and
+    draw nationally, which looks exactly like the book before W2_19."""
+    with pytest.raises(FileNotFoundError, match="build-output-areas"):
+        hs.load_output_area_frame(tmp_path / "absent.csv.gz")
+
+
+def test_every_sited_england_and_wales_home_in_the_live_book_carries_its_output_area():
+    """DEFECT: the built prior getting no input, the state measured on 2026-09-25 (0 of 231 homes
+    carried an area). A sited home in England or Wales with no area, or with an area TS017 does
+    not publish, reds here. Scotland is national BY CONSTRUCTION (TS017 is E&W), so a Scottish
+    home must carry its S00 area and read national.
+
+    The partition is checked first: the live book must reach BOTH the local and the national branch.
+    A book where every home is national would pass the per-home legs below vacuously."""
+    from simulation import dwelling_records as dr
+    from simulation.live_population import live_drawn_households, live_dwellings, live_population
+
+    book = {c["customer_id"]: c for c in live_population()}
+    dwellings = live_dwellings()
+    households = live_drawn_households()
+    assert len(dwellings) > 100, f"population floor: only {len(dwellings)} drawn homes"
+    sources = {cid: dr.people_count_source(d.get("output_area")) for cid, d in dwellings.items()}
+    assert "output_area" in sources.values() and "national" in sources.values(), sources
+
+    wrong = []
+    for cid, dwelling in dwellings.items():
+        location = book[cid]["location"]
+        area = dwelling.get("output_area")
+        if location["lat"] is None:
+            continue
+        if area != location.get("output_area") or area != households[cid].output_area:
+            wrong.append((cid, "three carriers disagree", area))
+        elif location["region"] == "Scotland":
+            if not (area or "").startswith("S00") or sources[cid] != "national":
+                wrong.append((cid, "Scottish home not S00/national", area))
+        elif sources[cid] != "output_area":
+            wrong.append((cid, "sited E&W home not conditioned on its area", area))
+    assert not wrong, f"{len(wrong)} of {len(dwellings)} homes: {wrong[:5]}"

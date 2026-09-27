@@ -2406,3 +2406,16 @@ def test_the_key_leg_refuses_only_a_copy_that_supplies_nothing_at_either_level(
     assert loss is None or loss.rule != scr.KEY_SUBSET, (
         "a copy supplying a symbol is graded a strict key subset, and its remedy tells the reader "
         "it supplies no name HEAD lacks: {}".format(loss))
+
+
+def test_a_binary_blob_is_judged_rather_than_crashing_the_landing(repo: Path) -> None:
+    """DEFECT: strict UTF-8 decoding of `git show` on a gzipped frame raised UnicodeDecodeError out
+    of `violations()`, so no commit carrying a binary could land through the sanctioned door."""
+    import gzip
+
+    (repo / "f.csv.gz").write_bytes(gzip.compress(b"a,b\n1,2\n", mtime=0))
+    _run(repo, "add", "f.csv.gz")
+    _run(repo, "commit", "-qm", "a binary frame")
+    head = _run(repo, "rev-parse", "HEAD").strip()
+    assert scr.blob_at(repo, head, "f.csv.gz") is not None
+    assert scr.violations(repo, f"{head}~1", head, ["f.csv.gz"]) == []

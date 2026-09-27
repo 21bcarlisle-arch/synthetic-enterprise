@@ -422,8 +422,11 @@ class ClockUnanswered(Exception):
 
 
 def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
+    # `errors="replace"`: a committed binary (a `.csv.gz` frame) is a blob too, and strict UTF-8
+    # decoding of `git show` on one raised inside `violations()` and took the landing down with a
+    # traceback (2026-09-27, W2_19's frames). Text blobs decode exactly as before.
     return subprocess.run(["git", *args], cwd=str(root), capture_output=True, text=True,
-                          check=False)
+                          errors="replace", check=False)
 
 
 def _git_answer(root: Path, *args: str) -> str:

@@ -42,6 +42,7 @@ from __future__ import annotations
 
 import bisect
 import csv
+import gzip
 import hashlib
 import random
 from pathlib import Path
@@ -54,13 +55,24 @@ FRAME_PATH = Path(__file__).resolve().parents[1] / "sim" / "household_siting" / 
 
 STREAM_NAME = "W2_18_household_siting"
 
+#: W2_19: which output areas each sited cell's households are in. Built by
+#: `python3 -m tools.household_siting_frame --build-output-areas` from the address placement, keyed
+#: row for row to `FRAME_PATH`.
+OUTPUT_AREA_FRAME_PATH = FRAME_PATH.parent / "cell_output_area_frame.csv.gz"
+
+#: Its own stream, so drawing the output area cannot move the cell draw above by a single value:
+#: every coordinate in the book is byte-identical to the one it had before areas existed.
+OUTPUT_AREA_STREAM_NAME = "W2_19_output_area_in_cell"
+
 _frame_cache: Optional[dict] = None
 _frame_cache_path: Optional[Path] = None
+_oa_cache: Optional[dict] = None
+_oa_cache_path: Optional[Path] = None
 
 
-def _substream(customer_id: str, base_seed: int) -> random.Random:
+def _substream(customer_id: str, base_seed: int, stream: str = STREAM_NAME) -> random.Random:
     """An ISOLATED `random.Random` for one customer's siting draw (C-S2)."""
-    key = f"{STREAM_NAME}::{customer_id}::{base_seed}".encode("utf-8")
+    key = f"{stream}::{customer_id}::{base_seed}".encode("utf-8")
     return random.Random(int.from_bytes(hashlib.sha256(key).digest()[:8], "big"))
 
 
@@ -140,6 +152,76 @@ def coordinate_for_customer(
     if cells is None:
         return None
     lats, lons, cum = cells
-    x = _substream(customer_id, base_seed).random() * cum[-1]
-    i = min(bisect.bisect_left(cum, x), len(cum) - 1)
+    i = _cell_index(customer_id, base_seed, cum)
     return lats[i], lons[i]
+
+
+def _cell_index(customer_id: str, base_seed: int, cum: list[float]) -> int:
+    """The drawn cell's row in its region. ONE draw, shared by the coordinate and the area."""
+    x = _substream(customer_id, base_seed).random() * cum[-1]
+    return min(bisect.bisect_left(cum, x), len(cum) - 1)
+
+
+def load_output_area_frame(path: Optional[Path] = None) -> dict:
+    """{(region, lat, lon): (output areas, cumulative households)}. Cached per process by path.
+
+    FAIL-CLOSED like `load_frame`. An absent frame RAISES and does not return an empty map. An
+    empty map would give every home no area and a national headcount, and the output would look
+    exactly like a book that had never been conditioned.
+    """
+    global _oa_cache, _oa_cache_path
+    target = Path(path) if path is not None else OUTPUT_AREA_FRAME_PATH
+    if _oa_cache is not None and _oa_cache_path == target:
+        return _oa_cache
+    if not target.is_file():
+        raise FileNotFoundError(
+            f"{target} -- the output-area frame is absent, so no sited home can be given the "
+            "output area its headcount prior is keyed on. Build it with "
+            "`python3 -m tools.household_siting_frame --build-output-areas`.")
+    built: dict[tuple[str, float, float], tuple[list[str], list[float]]] = {}
+    with gzip.open(target, mode="rt", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            key = (row["region"], float(row["lat"]), float(row["lon"]))
+            oas, cum = built.setdefault(key, ([], []))
+            oas.append(row["output_area"])
+            cum.append((cum[-1] if cum else 0.0) + float(row["households"]))
+    if not built:
+        raise ValueError(f"{target} holds no output area -- an empty frame would leave every "
+                         "home unconditioned and report no error")
+    _oa_cache, _oa_cache_path = built, target
+    return built
+
+
+def output_area_for_customer(
+    customer_id: str,
+    base_seed: int,
+    region: str,
+    path: Optional[Path] = None,
+    output_area_path: Optional[Path] = None,
+) -> Optional[str]:
+    """The 2021 output area of the home `coordinate_for_customer` sited, or None if it sited none.
+
+    The cell is the SAME cell, re-derived from the same stream, so the area always lies in the
+    square the coordinate names. Within the cell the area is drawn PPS over each output area's share
+    of the cell's households, on its own stream.
+
+    A SITED HOME WITH NO AREA RAISES. None means only "this region has no household distribution",
+    the same None `coordinate_for_customer` returns. A cell of the household frame missing from the
+    output-area frame means the two frames were built apart, and a home that quietly carried no
+    area would take the national headcount without saying so.
+    """
+    frame = load_frame(path)
+    cells = frame.get(region)
+    if cells is None:
+        return None
+    lats, lons, cum = cells
+    i = _cell_index(customer_id, base_seed, cum)
+    areas = load_output_area_frame(output_area_path).get((region, lats[i], lons[i]))
+    if areas is None:
+        raise KeyError(
+            f"{customer_id}: sited in {region} at ({lats[i]}, {lons[i]}), a cell the output-area "
+            f"frame does not carry. The two frames were built from different cells. Rebuild with "
+            f"`python3 -m tools.household_siting_frame --build-output-areas`.")
+    oas, oa_cum = areas
+    x = _substream(customer_id, base_seed, OUTPUT_AREA_STREAM_NAME).random() * oa_cum[-1]
+    return oas[min(bisect.bisect_left(oa_cum, x), len(oas) - 1)]
