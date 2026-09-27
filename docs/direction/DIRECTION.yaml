@@ -1,310 +1,204 @@
 version: 1
-oriented_at: "2026-09-27T11:24:44.095143+00:00"
+oriented_at: "2026-09-27T17:21:31.443089+00:00"
 thesis_read: >-
-  The console capture was opened before git again, and it is the whole reason this record is not the
-  one the brief would have produced: the brief was cut at 11:24 and contains nothing about the two
-  turns that matter most, his 11:15 "I have a Jev api key having put 5$ in" and his 11:19 question
-  about a GitHub secret. A third turn landed at 11:29 while this was being written — "I've added
-  secret Jevtest" — and the handoff has silently FAILED: `gh secret list` on
-  21bcarlisle-arch/synthetic-enterprise returns only CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN,
-  and nothing named Jevtest appears in the dependabot or codespaces scopes, in the github-pages
-  environment, or in 21bcarlisle-arch/synthetic-enterprise-ops. He believes he has delivered a key
-  the machine cannot see, which is the R8 shape exactly, and he funded it with his own money, so
-  telling him is the most time-critical thing in this record. Against the thesis the stretch went
-  FORWARDS on the half that had been stuck, and the gain came from the item he told us to run: the
-  renewal-count test landed, REFUTED his own hypothesis honestly (best of eleven pre-registered
-  regressors R² 0.0284, permutation p 0.8245, below chance), and in refuting it found something
-  larger. The selection residual is not a spread at all — it is a switch between two clusters
-  £5,387.65 apart, each £514.60 wide, firing in 4 of 18 draws, with the level arm carrying 99.84% of
-  the variance against the value arm's 0.31%. So every error bar this project has published on
-  selection_gbp is sd/√n arithmetic fitted to the wrong unknown, and read correctly the served
-  −£959.78 and HEAD's +£169.60 NEVER DISAGREED: the rate's exact interval carried through is
-  −£997.69 to +£937.49 and contains both. The Gaussian reading was pricing 717 more seeds against a
-  question more seeds cannot answer. That is the best kind of result — the measurement he asked for
-  refuted him, refuted us harder, and made the published precision claim the thing to fix rather
-  than the book depth. Two gradings owed plainly. The publisher episode fields have all gone clean
-  (episode_failures 0, wedge_since None, describe() "live" agreeing with snapshot state "publishing")
-  and NOTHING REPAIRED THEM — that item was never drawn, so it cleared by ordinary path and is
-  reading right for the flattering reason once more. And two carried rows stopped being rotations and
-  became live demonstrations: liveness_surface_refusal right now shows a reader `push_never_landed`
-  for 3cc6e2065, and `git merge-base --is-ancestor 3cc6e2065 origin/main` SUCCEEDS, so the refusal on
-  the surface is false as displayed; while the checkout sits 1 behind origin,
-  evaluate_boot_sha_drift() grades 11 of 11 against local HEAD 8ecc499dd with stale empty and
-  vacuous False, which is the exposing condition present and the instrument silent in it. Both are
-  now caught rather than argued, and one of them is focus work.
+  The stretch did what the last record asked, in the order it asked, and the thesis question is now
+  waiting on one world change. The write-off evidence came first and was sourced on its own
+  (1a78b9977). It found that a GB supplier writes off the balance still unpaid at close, after
+  collection. A stayer's aged arrears are costed as a provision, not written off on a clock, so the
+  design's second leg is a provision whose rates are an honest None. The published selection leg now
+  says what the root cause found: one household's renewal roll, priced by a write-off rule under
+  fidelity review. The Gaussian seed count that priced the wrong unknown is voided (324f63922, which
+  landed just after the brief's clock). That corrects last stretch's instrument framing on the
+  surface, so that wrong row closes. The director has not answered the practitioner question filed at
+  14:20, and there have been no console turns since 13:06. The design said the build waits for his
+  answer or for his silence past this orientation, and that silence has now happened, so building the
+  re-keyed rule is first. Until it lands, "beats average by inference" still cannot be read off the
+  comparison, because a world rule sets its sign on a seed. The confirming old-rule per-account run
+  (pid 42827, ~50m in, 5.8GB) is the baseline the one-variable run needs, and it has not returned.
+  W2_19 layer one also reached the book this stretch (c08932808): sited homes carry their output area
+  and the headcount prior is drawn from it. That is real fidelity progress on who the customers are.
+  The steer bit on 2 of 5 items, and both the drawn items landed. The other three (the by-eye
+  controls, the fleet-drift oracle and the stash atom) were not drawn and their paths are unchanged at
+  HEAD. After three hours at the restored cadence, that is ordering, not a broken steer, and they
+  carry forward in the same order. The publisher still reads FAILING (episode_failures 1, wedge_since
+  set, all three attribution fields not_established). Last record said a wedge that survived to this
+  orientation would outrank the map atom, and it has. One new confound: since 77e9db44a, content
+  publishing is held to the Monday window by design, so a "refusing" reading is now two things. A hold
+  by construction and a genuine refusal must read differently before either can be trusted.
+  sanity-daemon is still the one mute daemon with no cause on file. 4 of 11 commits were heartbeat
+  only and none were consecutive, so there is no run finding.
 stretch_reviewed:
-  since: "2026-09-26T23:20:09.834891+00:00"
-  commits: 34
-  substantive: 3
+  since: "2026-09-27T14:20:01.335008+00:00"
+  commits: 11
+  substantive: 6
 focus:
-  - id: the-jev-key-handoff-failed-so-tell-him-and-run-the-unbilled-half
+  - id: the-write-off-rule-is-re-keyed-to-the-balance-at-close
+    lane: W2_customer_generator
     what: >-
-      FIRST, tell him on NTFY what was measured, because he is acting on a false belief: the secret
-      he added at 11:29 as `Jevtest` is not visible to this account. Report the exact observation —
-      `gh secret list` on 21bcarlisle-arch/synthetic-enterprise shows only CLOUDFLARE_ACCOUNT_ID and
-      CLOUDFLARE_API_TOKEN; the dependabot and codespaces scopes are empty; the only environment is
-      github-pages; 21bcarlisle-arch/synthetic-enterprise-ops has none. Then give him the route that
-      already works on this box rather than a second guess: a GitHub Actions secret is readable ONLY
-      by a workflow running on GitHub's runners and can never be read by a session on this machine,
-      so it cannot answer "I can't get to the prompt". The proven mechanism is
-      `background/secrets_location.py::load_secret_env`, which reads
-      `~/.config/synthetic-enterprise/.env.<name>` at mode 0600 outside the git tree, exactly as
-      .env.ntfy, .env.ceda and .env.cloudflare already do — ask him for
-      `~/.config/synthetic-enterprise/.env.jev` holding one line. SECOND, run every part of the
-      trial that spends nothing, now, without waiting for the key: build the claim-versus-source
-      corpus the pre-registration in
-      docs/staging/records/SEAT_PREREG_THE_JEV_TRIAL_IS_AIMED_AT_CLAIM_VERSUS_SOURCE_BECAUSE_THE_OTHER_TWO_CLASSES_ARE_CODE_2026-09-27.md
-      specifies (clean pairs, the four graded corruptions, the injected-instruction arm), and widen
-      site/test_ia_register.py to catch the nav miss he saw by eye plus add the deterministic
-      stamp-vintage-against-page-data-date check, both of which the research established need no
-      model at all. THIRD, and only on one explicit word from him naming the spend, make the model
-      calls against the pre-paid balance only: no card-backed or account-metered route, a hard stop
-      far under the $5 he funded, report-only, and the key never entering the repo, a log or a commit.
+      Build the design in
+      docs/staging/SEAT_DESIGN_THE_WRITE_OFF_RULE_RE_KEYED_TO_THE_BALANCE_AT_CLOSE_2026-09-27.md in
+      simulation/arrears_engine.py (compute_emergent_bad_debt). A failed payment adds to a running
+      per-account unpaid balance instead of opening a terminal case. Later payments reduce the balance
+      while the account is live. At close, what remains after collection and the existing post-close
+      recovery stages is the write-off, dated by the labelled convention in C4. Leg 4a (the six-year
+      statute bar for stayers) must be reachable: assert it CAN fire before asserting what it does.
+      Leg 4b (the stayer provision) is a declared None, not a zero. bad_debt_gbp says it counts
+      write-offs only. C1 and C2b stay None, so there is no re-presentation yet. Before any run, file
+      the design's prediction on the selection residual as a pre-registration in docs/staging/records/:
+      the leaver's write-off falls, the stayer's cost is unchanged, and the sign moves toward retention.
+      Then run the rule change alone against the old-rule per-account result from
+      longjob-two-state-diff-rerun-20260927. Wait for that run with tools/wait_for.py. Do not launch a
+      second multi-GB run while it and run_annual_report are both resident.
     why: >-
-      He instructed this trial twice, funded it with his own $5 unprompted, and is actively trying to
-      hand over the key, so the work is his direction and not a proposal. It goes first because a
-      director acting on a false belief about what he has delivered is a stall that costs him
-      directly, and because the 2d0d1f96b closing note that said the trial cannot run is now stale
-      against his funding and will otherwise be read by a later session as settled. The three-part
-      split is the trade: his 10:55 message was emphatic that no real money of his is spent, and his
-      11:15 message funded a balance for exactly this, and those two are in tension that is his to
-      resolve in one word — so everything unbilled proceeds immediately and only the metered call
-      waits, which neither wastes his $5 nor spends it on my own reading of his intent. DONE when he
-      has the measured observation and a working route, the corpus and both deterministic checks
-      exist with the nav miss caught, and the model arm has either run under the stated ceiling or is
-      recorded as waiting on his word with nothing spent.
-  - id: restore-the-three-tick-cadences-at-the-reset-and-tell-him-the-values
+      The published selection sign is decided by this one rule. The fidelity case now rests on
+      sourced evidence alone, and the director's silence past this orientation is the release the
+      design named. Nothing else moves the thesis figure until the world stops writing off a stayer's
+      history on a future churn. DONE when the rule is in simulation/ with the balance-at-close write-off,
+      a control shows leg 4a can fire, the prediction was filed before the run, and the one-variable
+      result is filed beside the SEAT_RESULT record with the prediction graded, whichever way it went.
+  - id: the-two-by-eye-page-defects-get-deterministic-controls
+    lane: H_harness
     what: >-
-      NOT BEFORE MONDAY 2026-09-28 LOCAL. At the reset, put the three hand-slowed user timers back to
-      the values their files in background/ declare, and change nothing else: worker-tick.timer is
-      installed at OnUnitActiveSec=14400s against a declared 1800s; seat-executor.timer is installed
-      at OnCalendar=*-*-* 00/4:05:00 against a declared *-*-* *:05,35:00; delivery-seat.timer is
-      installed at OnCalendar=*-*-* 00/12:20:00 against a declared *-*-* 00/3:20:00. Then send him
-      the three before-and-after pairs on NTFY.
+      Write the two deterministic controls the Jev trial concluded are owed, with no model. First,
+      widen site/test_ia_register.py so that a published page with no route from the main nav and no
+      orphan-debt entry fails. It must catch brand/exemplar.html and brand/proof.html, or record each
+      one as deliberate orphan debt with a reason. Second, add a site door that compares each chart's
+      rendered stamp date with its own page's data date and fails when the stamp is older. Prove each
+      control can fail by mutation before trusting its green.
     why: >-
-      He asked for exactly this twice — "Put the tick cadence back at the reset. Tell me what you
-      set." — and the restore gates the throughput of the whole following week, since worker-tick is
-      running eight times slower than the tree declares. Monday is tomorrow and this is the last
-      direction record written before it, so an item that slips out now is an instruction lost rather
-      than deferred. The telling half carries a trap worth naming: verify the send by the id NTFY
-      returns and by docs/observability/.ntfy_delivery_state.json, never by a new line in
-      docs/observability/ntfy-delivery-log.md, which records only failures and transitions and is
-      silent on every healthy send. DONE when the installed cadences match the tree and he has the
-      three pairs with a delivery id.
-  - id: value-arms-error-bar
+      Carried undrawn from last stretch, with its paths unchanged at HEAD. The director has found both
+      defect classes by eye more than once. His trial showed a model does not close the gap, and that
+      code can check both classes exactly. DONE when both controls exist, each has a demonstrated
+      failing mutation, and the current site either passes or carries named debt.
+  - id: the-fleet-drift-verdict-grades-against-origin-not-local-head
+    lane: H_harness
     what: >-
-      Replace the Gaussian bound on the selection family where it is consumed, and carry both
-      readings, on these tracked paths by name: tools/generate_value_arms_data.py and
-      site/data/value_arms.json produce and hold the figures; site/capabilities/index.html publishes
-      them; site/test_the_baseline_comparison_reaches_the_reader.py is the door that must read the
-      changed values from the real feed. The bound to carry is the one
-      tools/selection_residual_decomposition.py already computes — the firing rate's exact interval
-      carried through, −£997.69 to +£937.49 at 4 of 18 — replacing selection_sem_gbp, sems_from_zero,
-      selection_distinguishable_from_zero, seeds_needed_to_state_a_sign and the distance_to_a_sign
-      block, or where a field cannot be replaced, stating on the surface that the instrument's shape
-      is a switch and not a spread. In the same change, make the surface carry BOTH selection
-      readings side by side, each labelled with the code it was measured on: the 2026-09-10 family at
-      −£959.78 and HEAD's 18 shared seeds at +£169.60, neither withdrawn and no direction stated for
-      either. Promote /var/tmp/se-floor18-head-20260925/shards/folded18_head_20260925.json into
-      docs/observability/ under the noise-floor naming before anything else, because it is 382,632
-      bytes on a tmp filesystem and is the only copy of the 18-seed HEAD fold.
+      Change evaluate_boot_sha_drift() in background/process_reconciler.py so the fleet verdict says
+      when the checkout is BEHIND origin/main, not only when a daemon's boot sha differs from local
+      HEAD. Control it with a test that builds a repo one commit behind its remote ref and asserts the
+      verdict is not clean. Add one partition control asserting that the level, behind and
+      daemon-stale cases each give their own distinct verdict.
     why: >-
-      This is the whole thesis question — an advantage from inference means nothing without a
-      baseline and a bound, and the bound we publish is arithmetic for one quantity wobbling about a
-      mean applied to a two-state switch with a 9.4× separation. It is a BLOCKING finding, it is the
-      third piece of owed work in
-      docs/staging/SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_PRICED_AS_A_GAUSSIAN_SPREAD_AND_THE_LEVEL_ARM_CARRIES_ALL_OF_IT_2026-09-27.md
-      with the first already landed at ca80a7d0a, and it enacts his 2026-09-26 09:29 reversal —
-      "Don't withdraw the selection figure — I was wrong to push that. Report what you found" —
-      which reporting only one of the two readings does not. It is written with tracked paths typed
-      out because the previous record's version of it was drawn and came back not_done with "this
-      item's prose names no tracked path, so no commit query could be built", which was my prose
-      failing and not the work. DONE when the door reads the mixture interval and both dated figures
-      from the real feed, and no surface states a precision the switch cannot support.
-  - id: a-stamped-refusal-is-re-asked-against-the-ref-before-a-reader-sees-it
+      Carried undrawn. The oracle graded 11 of 11 daemons clean against a HEAD one commit behind
+      origin, so every freshness reading taken while the tree lags is suspect. DONE when a checkout
+      set behind origin makes the verdict say so, and a control fails if the origin leg is removed.
+  - id: the-publisher-tells-a-monday-hold-from-a-refusal-and-closes-its-episode
+    lane: H_harness
     what: >-
-      Make the publisher re-ask a stamped refusal against the remote ref for the commit it names, at
-      READ time, before any reader is shown it. The live instance to fix and then to use as the
-      control: liveness_surface_refusal in docs/observability/.publish_gate_state.json currently
-      holds cause push_never_landed with git_hash 3cc6e2065 and evidence naming push rc=1 and
-      origin=2d0d1f96b, while `git merge-base --is-ancestor 3cc6e2065 origin/main` succeeds — the
-      commit did land and the surface says it never did. Key the control to the property, not to
-      today's answer: a refusal whose commit is reachable from the remote ref must not be displayed
-      as a live refusal, whatever the stamp said at the instant it was written.
+      In background/process_run_complete.py and background/publish_freshness.py, and in whatever
+      writes docs/observability/.publish_gate_state.json: (a) make a content publish held by the
+      Monday window (77e9db44a) read as a hold with its next window, never as a refusal or an episode
+      failure; (b) close an open episode (episode_failures, wedge_since) when a later publish succeeds;
+      (c) fill citation_at_head, red_at_head and fork_state for a genuine refusal, or name why each
+      cannot be established. Before changing anything, establish whether today's FAILING (1 attempt,
+      wedge_since about 13:55Z) is a real refusal or the new hold, and say which in the commit.
     why: >-
-      This is a carried row on its FIFTH consecutive rotation and the first stretch it can be
-      demonstrated rather than asserted: it held push_never_landed for 7bcf2518f, then behind_origin
-      for 2630b9770, then null, and now a value that is provably false as displayed. A refusal true
-      at stamp time and false at read time is the shape that has repeatedly made the seat's own
-      orientation believe the publisher was refusing during a working publish, and it is cheap — one
-      re-ask against a ref — where the rest of the carried publisher work is not. It earns a slot
-      ahead of the other machinery precisely because the flattering-reading problem is now a concrete
-      falsehood on a surface. DONE when a landed commit's stamped refusal cannot be shown as live,
-      proven by a control that fails if the re-ask is removed.
+      Last record said a wedge that survived this orientation would outrank the map atom, and it has.
+      The weekly hold that landed this stretch adds a second, by-design reason for not publishing. The
+      same field cannot report both a design and a failure, and three carried wrong rows all read this
+      state. DONE when a held publish and a refused publish give distinct readings under a control
+      that covers both, and an episode closes on the next clean publish.
+  - id: mint-the-stash-completeness-defect-as-a-map-atom
+    lane: H_harness
+    what: >-
+      Add one maturity-map atom at level 0 for the stash-completeness sweep defect. `git restore
+      --source=stash@{0}` skips a path present only in the stash, and `git diff --quiet HEAD --
+      <path>` is quiet for an untracked path, so a genuinely lost file reports safe. Its file_scope
+      names the sweep's module and a control that does not exist yet. Check headroom first with
+      `python3 -m tools.maturity_map_store` (4,358 bytes at orientation). Keep the row near the
+      ~695-byte median and put any reasoning in docs/design/simplifications/.
+    why: >-
+      Carried undrawn for the thirteenth time. It will always lose a focus slot, which is why it
+      belongs in the queue that holds everything, and minting it takes minutes. DONE when the atom is
+      on the map and this row disappears from focus and from wrong.
 not_now:
   - what: >-
-      The completeness-sweep repair for `git restore --source=stash@{0}` silently skipping a path
-      that is in the stash but in neither HEAD nor the index, where `git diff --quiet HEAD -- <path>`
-      is quiet for an untracked path whatever it contains, so a genuinely lost file reports safe.
+      Holding the write-off build until the director answers the practitioner question.
     why: >-
-      Rejected a TWELFTH time, and last stretch I wrote that a twelfth rejection without a landing
-      would itself be the evidence. It has arrived, so I am recording the conclusion rather than the
-      excuse: this will never be drawn by a seat that keeps finding better work, and the honest
-      remedy is to stop giving it a focus slot it cannot win and mint it as a maturity-map atom so
-      the ordinary draw can take it on its own weight. It loses this time to a funded live
-      instruction, a Monday-gated instruction given twice, and a BLOCKING finding about a published
-      bound. Minting it is itself the next stretch's cheap work.
+      The design named its release as his answer or his silence past this orientation. The evidence
+      note stands without him, and the change is reversible in one commit. Waiting longer turns
+      "silence is validation" into a stall on the figure the thesis is read from.
   - what: >-
-      The one mode control he asked for — normal, slow, fold-only, off, set with one word, handling
-      the three cadences and the restore itself — plus the product-only draw filter.
+      Wiring DD re-presentation (C2) and a stayer provision (leg 4b) in the same build.
     why: >-
-      NOT REJECTED, DUE THE DAY AFTER THE RESTORE. He said to start it after Monday's reset, and it
-      loses to the hand restore it exists to automate, because building the control first delays the
-      cadence he asked to have back at the reset. His 22:04 precondition is still unmet and still
-      right: measure which routes actually SPEND TOKENS rather than which commit most, since a
-      product-only filter over the draw would not have touched the reactive machinery that made up
-      most of this week.
+      C1 (whether the existing failure rate already nets out re-presentation) and C2b and C6 (cure and
+      provision rates) are honest Nones. Wiring them would mean picking numbers, which is the rule this
+      project pays hardest for breaking. Adding both at once would also make the one-variable run a
+      three-variable one.
   - what: >-
-      Grading the two-seed account diff — one low-state seed of 11111, 44444, 99999 or 111111 against
-      one high-state seed — on the per-account selection column landed at ca80a7d0a, which is the
-      second piece of owed work in the selection finding.
+      Making the orientation brief read docs/staging/console/DIRECTOR_CONSOLE_<date>.md (the carried
+      console wrong row).
     why: >-
-      It loses a focus slot for a good reason rather than a weak one: commit 32c12e1a7 already queued
-      it as a staging instruction, so the ordinary draw can take it without a steer, and spending a
-      focus slot on work already reachable would waste the one mechanism that reaches Lane 0. It also
-      names the £5,388 event with two runs where 700 more seeds would not, so it is cheap and will
-      keep.
+      The director made no console turns after 13:06, so this stretch cost nothing by missing them.
+      It loses to four items that each gate a published reading. It stays open in wrong, and it is
+      the next machinery item after the publisher.
   - what: >-
-      Repairing the boot-sha fleet oracle so a checkout deliberately set behind origin makes the
-      fleet verdict say so, and the fixture class where a door whose shape changes does not re-run
-      the synthetic trees built against its old shape.
+      Re-asking a stamped publisher refusal against the remote ref at read time.
     why: >-
-      Both are machinery and the slowdown stands for one more day. The boot-sha one changed status
-      this stretch in a way worth recording even while deferred: last time it was deferred because
-      the exposing condition was absent, and now the condition is PRESENT — the checkout is 1 behind
-      origin and evaluate_boot_sha_drift() still grades 11 of 11 against local HEAD with stale empty
-      and vacuous False. So the excuse for deferring it is gone and only the slowdown remains, which
-      means it is first in line among the machinery once Monday passes.
+      liveness_surface_refusal and last_refusal both read None, so the falsehood cannot be
+      demonstrated today. The publisher focus item rebuilds the same state file, so the right time to
+      add this is when that item's shape is settled, not before it.
   - what: >-
-      Establishing and filing a log_silence cause for sanity-daemon, the one mute declared daemon
-      with no cause on file, mute for its whole 45h20m run and blocked in hrtimer_nanosleep.
+      Filing a log_silence cause for sanity-daemon.
     why: >-
-      Cheap, and still machinery during a slowdown that has a day left. The five causes established
-      so far came out as five different ones, so the single thing that would be wrong is a class
-      verdict reached quickly, and a careful reading after the reset is worth more than a fast one
-      taken now.
+      It sleeps in hrtimer_nanosleep, its ordinary state, and every sibling cause established so far
+      was benign. It is instrument bookkeeping that the ordinary draw can take.
   - what: >-
-      Treating the 15 heartbeat-only commits of 34, and the three consecutive ones the brief flags as
-      carrying no work, as a finding about the machine that outranks the rest of this record.
+      Following the siting-frame finding (the committed frame predates its own placement, and a life
+      event erases four need fields) past what c08932808 and the in-flight rebuild land.
     why: >-
-      It is the slowdown working as instructed, not a defect: with the draw closed to product work,
-      heartbeats are most of what is left to commit, and three substantive commits in twelve hours is
-      the pace he asked for. The reading that would be wrong is the brief's own framing, which is the
-      same one it used last stretch when it reported zero draws as the steer being a no-op. What the
-      volume does deserve is the one-variable run named in the carried row, and that is not this.
+      Another lane is landing the frame rebuild right now (surgical_land pid 221222). A focus item on
+      it would put a second writer on work already in hand.
 wrong:
   - what: >-
-      MINE, CARRIED, INSTANCE CLOSED A SECOND TIME AND CLASS WIDER THAN EVER. The orientation reads
-      git, the map, the staging root, the publisher and the draw ledger and does NOT read
-      docs/staging/console/DIRECTOR_CONSOLE_<date>.md. The instance closed again because the capture
-      was opened before git, and this time the cost of the gap is measurable rather than
-      hypothetical: the brief was assembled at 11:24 and contained NOTHING about his 11:15 funding of
-      the trial or his 11:19 question, both of which predate it, and a third turn at 11:29 arrived
-      while this record was being written. A seat working from the brief alone would have written
-      four machinery items while the director sat waiting on a failed key handoff he thought had
-      succeeded. Keeping it FALSE, and the reason is unchanged and now louder — it passed because a
-      prose row told me to look, which is not a mechanism. Grade it by whether the ORIENTATION ITSELF
-      reads the console capture, never by whether the latest record happens to name an instruction.
+      MINE, CARRIED. The orientation reads git, the map, the staging root, the publisher and the draw
+      ledger, and does NOT read docs/staging/console/DIRECTOR_CONSOLE_<date>.md. The brief's
+      director_inputs is empty again. This stretch the director made no turns after 13:06, so nothing
+      was missed, but that is luck, not a mechanism. Grade by whether the orientation itself reads the
+      console capture.
     corrected: false
   - what: >-
-      MINE, CARRIED, AND DUE TOMORROW. The near-miss where three installed systemd units disagreeing
-      with the tree read like a silent unrecorded throttle and were in fact his instruction correctly
-      enacted. The disagreement persists and is still the right answer: worker-tick 14400s against
-      1800s, seat-executor every 4h against every 30m, delivery-seat every 12h against every 3h.
-      Still false for the same reason as its predecessor — the attribution was mine by hand from the
-      console capture, not the machine's — and the row stops being carried only when the restore in
-      focus item two lands and the installed values match the declared ones.
+      MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler
+      cannot keep up with. This stretch was again level, with four non-consecutive heartbeats and no
+      fork, so there is still no one-variable run. I cannot attribute it.
     corrected: false
   - what: >-
-      MINE, CARRIED, AND THE EVIDENCE REVERSED DIRECTION THIS STRETCH WITHOUT SETTLING IT. I named
-      the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with.
-      Last stretch the fork closed and eight heartbeat-only commits landed without reopening it,
-      which was evidence AGAINST. This stretch HEAD and origin/main are diverged 1 and 1, and the
-      commit on the HEAD-only side is a heartbeat, 8ecc499dd — which is evidence FOR. So I now have
-      readings both ways, a formula still never printed at real inputs, and no one-variable run. The
-      honest position is that I cannot attribute it and should stop adding observations in place of
-      the isolation I said I would do.
+      MINE, CARRIED. The publisher's episode fields clear only by the ordinary path, and no rule closes
+      an episode on a later clean publish. They read FAILING again (episode_failures 1, wedge_since
+      set). The Monday hold (77e9db44a) now confounds the reading. Now in focus. Grade by a long fork,
+      never by what the field reads today.
     corrected: false
   - what: >-
-      MINE, CARRIED, AND IT CLEARED WITHOUT BEING REPAIRED, WHICH IS THE FOURTH FAILURE OF MY OWN
-      TEST. Every field reads clean now: episode_failures 0, wedge_since None, total_red 0, and
-      describe() returns "content publishing: live -- figures reached origin 2.5h ago" agreeing with
-      snapshot()["state"] of "publishing". Last stretch the same fields read 6 and a stale
-      wedge_since and FAILING. Nothing repaired them — the focus item naming both legs was never
-      drawn — so the rule that closes an episode on a later clean publish still does not exist and
-      the surface is reading right by ordinary path. A fork IS present as this is written, which is
-      the condition I said to grade by, and it is 25 minutes old rather than the 22.6 hours that
-      exposed the defect. Keep grading it by a long fork, never by what the field reads today.
+      THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that
+      builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head
+      and fork_state in docs/observability/.publish_gate_state.json all still read not_established.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, AND UNTOUCHED FOR A THIRD STRETCH. A control or door whose shape
-      changes must re-run every fixture that builds a synthetic tree to drive it, and no control
-      requires it. The three attribution fields in docs/observability/.publish_gate_state.json —
-      citation_at_head, red_at_head, fork_state — all still read not_established. The surface still
-      cannot say which tree a red belongs to. Not drawn during the slowdown and deferred again in
-      not_now. Grade it by whether a door change is required to re-run the fixtures built against its
-      old shape.
+      THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a
+      reader sees it. liveness_surface_refusal reads None because the field cleared by the ordinary
+      path, not because anything was repaired. Grade by whether a stamped refusal is re-asked at read
+      time.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED, FIFTH ROTATION, AND NOW A DEMONSTRATED FALSEHOOD RATHER THAN A
-      ROTATION. A refusal naming a commit is not re-asked against the remote ref for that commit
-      before a reader is shown it. liveness_surface_refusal held push_never_landed for 7bcf2518f,
-      then behind_origin for 2630b9770, then null, and now holds push_never_landed for 3cc6e2065
-      with evidence citing push rc=1 and origin=2d0d1f96b — and `git merge-base --is-ancestor
-      3cc6e2065 origin/main` SUCCEEDS, so the commit landed and the surface displays a refusal that
-      is false as shown. This is the first stretch the defect is caught in the act instead of
-      inferred from a rotating field, and it is focus item four for exactly that reason. Grade it by
-      whether a stamped refusal is re-asked against the ref at read time, never by what the field
-      says today.
+      MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon
+      against local HEAD, and it read clean with the checkout one behind origin. It was in focus and
+      not drawn, and it stays in focus.
     corrected: false
   - what: >-
-      MINE, CARRIED, AND THE EXPOSING CONDITION IS NOW PRESENT WITH THE INSTRUMENT SILENT IN IT.
-      Fixing a census's denominator does not fix its oracle: evaluate_boot_sha_drift() in
-      background/process_reconciler.py grades every daemon against local HEAD. Last stretch the
-      checkout was level so a clean reading proved nothing and I said so. Measured again with the
-      checkout 1 BEHIND origin: head = 8ecc499dd, population 11, graded 11, stale empty,
-      stale_detail empty, vacuous False — a clean fleet verdict while every daemon on the box is
-      running code the branch has moved past, which is precisely the state the instrument exists to
-      notice. The deferral reason has therefore changed from "cannot be tested now" to "the slowdown
-      has one day left", and it is first among the machinery after the reset. Grade it by whether a
-      checkout deliberately set behind origin makes a fleet verdict say so.
+      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. The
+      minting was in focus and not drawn, and it is still not on the map.
     corrected: false
   - what: >-
-      THE MACHINE'S, AND AFTER TWELVE STRETCHES THE ROW'S OWN PREDICTION CAME TRUE. The
-      stash-completeness sweep reports a genuinely lost file safe, because git restore skips a path
-      present only in the stash and git diff --quiet HEAD is quiet for an untracked path whatever it
-      contains. I wrote last stretch that if a twelfth rejection arrived without a landing, this row
-      would be the evidence. It has arrived. The failure is not the deferral, which was right each
-      time on the work in front of it — it is that I kept putting a real defect into the one queue
-      that only ever holds five things and never into the queue built to hold everything. The
-      correction is structural and named in not_now: mint it as a maturity-map atom so the ordinary
-      draw can take it on its own weight, and stop spending focus slots it will always lose.
-    corrected: false
-for_the_director:
+      MINE, CARRIED. I framed the selection residual as an instrument problem (publish a mixture
+      interval instead of a Gaussian bound) when its money comes from a world rule. Corrected on the
+      surface at 324f63922: the page now names the root cause, and the seed count is voided. The world
+      rule itself is focus one.
+    corrected: true
   - what: >-
-      One thing only, because it is a reserved class and I am about to act on your decision rather
-      than ask for it. This morning at 10:56 I told you a blanket rule — "I spend no real money,
-      whoever says yes" — and saved it. Your $5 into a Jev account is narrower than the rule I
-      announced: the money is already spent, by you, deliberately, for this, and a pre-paid balance
-      has no card behind it to bill further. So I am reading your funding as the decision it plainly
-      is, and the trial's unbilled work starts now. But your 10:55 message was emphatic, and I will
-      not resolve a tension in your own words by choosing the reading that suits the work: the
-      metered calls wait on one word from you naming the spend, capped far under the $5, report-only.
-      Separately and urgently — the secret you added at 11:29 as `Jevtest` is NOT visible to this
-      account. Only the two Cloudflare secrets show on the repo; the dependabot and codespaces
-      scopes are empty; the only environment is github-pages; the ops repo has none. A GitHub Actions
-      secret can only ever be read by a workflow on GitHub's runners, so it cannot reach a session on
-      this machine at all. The route that already works here is a file at
-      `~/.config/synthetic-enterprise/.env.jev`, one line, which is how the NTFY, CEDA and
-      Cloudflare credentials are already held outside the tree. Say "no spend" and the model arm
-      stays closed with nothing lost but your $5 sitting unused.
+      MINE, NEW. The design I filed at 1a78b9977 names its lane as A_strategy_governance and its atom
+      as `value-arms-error-bar`. The work is a world rule in simulation/arrears_engine.py, and that
+      focus key was a page item that has now landed. A drawn build following the header would
+      misclassify itself. This record gives it W2_customer_generator. The header itself is not
+      corrected.
+    corrected: false
+for_the_director: []
