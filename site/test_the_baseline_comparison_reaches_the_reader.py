@@ -192,7 +192,12 @@ def test_the_door_the_harness_boots_is_the_published_one():
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
           "arms-market", "arms-sample", "arms-departure", "arms-svt-belief",
-          "arms-composition", "arms-redraw", "arms-legs-first", "arms-blind-envelope")
+          "arms-composition", "arms-redraw", "arms-legs-first", "arms-blind-envelope",
+          # ADDED 2026-09-27 WITH THE CROSS-CODE BLOCK. A panel absent from this tuple is not
+          # returned by the harness at all, so a control over it would read `""` and pass its own
+          # absence check on a door that renders nothing -- which is the shape the whole file
+          # exists to refuse.
+          "arms-selection-across-code")
 
 
 def _text(fragment: str) -> str:
@@ -8472,3 +8477,259 @@ def test_the_CURRENT_WORLD_panels_own_legs_carry_their_repeat_counts_to_the_read
     assert counted >= 2, (
         "fewer than two legs of this panel were checkable, so a page rendering the count for one "
         "leg and dropping it for the others would pass this control")
+
+
+# BOTH READINGS OF THE CHOOSING, EACH LABELLED WITH THE CODE IT WAS MEASURED ON (2026-09-27).
+#
+# THE DEFECT. Every bounded selection reading on this page comes from a floor family measured on the
+# code of 2026-09-10, and that family states a NEGATIVE direction for the choosing at 2.50 standard
+# errors. The SAME 18 seeds re-run at HEAD on 2026-09-25 return a mean on the OTHER side of zero at
+# 0.31, and `run_value_cycle_ab --fold` refused to pool the two on the seeds themselves (exit 2, all
+# 18 disagree). The page therefore stated a direction the code now running does not reproduce, and
+# nothing on it told a reader so. The finding recommended WITHDRAWING the served figure; the
+# director reversed that himself on 2026-09-26 -- "Don't withdraw the selection figure -- I was
+# wrong to push that. Report what you found" -- so the remedy is BOTH readings, side by side, each
+# with its own code, and no direction stated off the pair.
+#
+# R15 -- the mutations, each run and reverted on 2026-09-27:
+#   * delete the `#arms-selection-across-code` assignment -> every rung below reds.
+#   * drop `sac.this_page_states` -> `..._states_no_direction_off_the_pair` reds. That block is the
+#     only thing on the page standing between two disagreeing readings and a reader who takes the
+#     louder one.
+#   * amber the leading sentence unconditionally -> `..._OVER_THE_WHOLE_PARTITION` reds. IT
+#     SURVIVED TWICE BEFORE THAT RUNG WAS WRITTEN THIS WAY, and both survivals are recorded because
+#     each is a named shape. First the rung asked `"var(--amber)" in raw` over the whole block, and
+#     two other spans carry amber for their own reasons -- a grep over a block is satisfied by any
+#     hit in it. Then, narrowed to the leading span, it still passed: the LIVE readings disagree, so
+#     amber is the correct answer on the only feed the rung met, and a page ambered unconditionally
+#     agrees with it. The property is that the styling MOVES with the evidence, which cannot be
+#     asserted from one branch -- hence one control over both, with a constructed agreeing feed.
+#   * cut the row loop to `i < 1` -> `..._BOTH_readings_...` reds. IT ALSO SURVIVED ITS FIRST DRAFT:
+#     the composed sentence at the top of the block already names both figures, so `mean_stated in
+#     rendered` was green on a page carrying ONE row and a sentence about two. The assertion is the
+#     row's own contiguous furniture now, which exists once per reading.
+#   * return early on `!sac.available` instead of `!sac.the_reading` -> the constructed-feed rung
+#     below reds: a block that renders nothing when it cannot grade the pair publishes the same
+#     thing as a block whose two families agreed.
+#   * move the assignment BELOW `if (!d.available) return;` -> `..._survives_an_unavailable_feed`
+#     reds. That is `blindEnvelope`'s live position and the reason this one is not there.
+#
+# THE ANTI-TAUTOLOGY LEG IS `test_the_block_states_AGREEMENT_when_the_two_readings_agree`, AND IT
+# PAID FOR ITSELF WITHIN THE HOUR. Every rung above asks what the page says while the two families
+# disagree, and a block that printed "NO DIRECTION" on every input would pass all of them --
+# including on the day a re-run reproduces the served sign, which is the day this page would be at
+# its most wrong. `this_page_states` WAS that literal when this rung first ran; it is composed from
+# the rows now (`_cross_code_statement`), and the same defect was found a second time in the amber.
+def _cross_code(feed: dict) -> dict:
+    """The feed's own cross-code block, or a failure naming which half is missing.
+
+    FAIL CLOSED AND NEVER SKIP. A published feed with no such block is the state this whole section
+    was written to end, so it is a red here and not a `pytest.skip` -- a skipped control and a
+    passing one are indistinguishable in the log that anybody actually reads.
+    """
+    block = feed.get("selection_across_code")
+    assert isinstance(block, dict) and block.get("readings"), (
+        "the published feed carries no cross-code selection block, so the page cannot be carrying "
+        "both readings and every rung below would be grading an absence")
+    return block
+
+
+def _graded_readings(block: dict) -> list:
+    """The readings this block could actually grade, with at least two required.
+
+    TWO IS THE FLOOR AND IT IS ASSERTED, because one reading is not a contrast: a block reduced to
+    the served family alone is precisely the page state this section removes, and it would satisfy
+    every presence check written over a loop.
+    """
+    rows = [r for r in block["readings"] if r.get("available")]
+    assert len(rows) >= 2, (
+        "the published block grades {} reading(s); a single reading is not a contrast and the page "
+        "would be back to stating one family's direction unqualified".format(len(rows)))
+    return rows
+
+
+def test_BOTH_readings_of_the_choosing_reach_the_reader_with_their_own_figure_and_date(live):
+    """R7: both figures and both measurement dates, on the page, from the published feed.
+
+    KEYED TO THE FEED AND NOT TO TODAY'S TWO NUMBERS. Nothing here asserts -£959.78 or +£169.60:
+    the figures, the dates and the commits are all read off the published block, so this rung
+    follows the page when a third family lands or when a re-run replaces one of these two. A
+    control that hard-coded the pair would go red the day the evidence improved and stay green the
+    day the page dropped half of it.
+    """
+    block = _cross_code(_live_feed())
+    rendered = live["arms-selection-across-code"]
+    assert rendered, (
+        "the cross-code panel rendered nothing at all, so a reader meets one family's direction "
+        "with nothing saying today's code does not reproduce it")
+    for row in _graded_readings(block):
+        # THE ROW AND NOT THE PANEL, and the difference is a survived mutation: the composed
+        # sentence at the top of this block already names both figures, so `mean_stated in rendered`
+        # stayed green with the row loop cut to `i < 1` -- a page carrying ONE reading and a
+        # sentence about two. So the assertion is the row's own contiguous furniture, which only
+        # exists once per reading.
+        expected = "{label} \u2014 {states} : {mean} on {n} seeds, standard error {sem},".format(
+            label=_door_prose(row["label"]), states=row["states"].upper(),
+            mean=row["mean_stated"], n=row["n"], sem=row["sem_stated"])
+        assert expected in rendered, (
+            "{}'s own row is not on the page -- expected {!r}. Both readings side by side is the "
+            "whole remedy here; a sentence naming two figures with one row rendered is the defect "
+            "in its cheapest form".format(row["label"], expected))
+        # THE DATE THE CODE WAS RUN, not the date the fold was written. A reader asking "which
+        # code" is asking about the runs; the fold date is a filing stamp and was ten days later on
+        # one of these two families.
+        drawn = ((row.get("which_code") or {}).get("member_runs_drawn_at") or [""])[0][:10]
+        assert drawn and drawn in rendered, (
+            "{} was measured on runs drawn {} and that date is not on the page, so a reader cannot "
+            "tell which of these readings is the older one".format(row["label"], drawn))
+        for short in (row.get("which_code") or {}).get("commits_short") or []:
+            assert short in rendered, (
+                "{} was measured on {} and the page does not name it, so 'labelled with the code "
+                "it was measured on' is not what a reader gets".format(row["label"], short))
+
+
+def test_the_page_states_no_direction_off_the_pair_while_the_two_readings_disagree(live):
+    """The one sentence standing between two disagreeing readings and a reader who takes one.
+
+    THE PROPERTY, NOT TODAY'S ANSWER. The branch asserted is chosen by how many DISTINCT sides the
+    published readings state -- so on the day a re-run reproduces the served sign this rung asks
+    for the agreement sentence instead, without an edit. See the anti-tautology rung below, which
+    drives the door with exactly that feed to prove the other branch is reachable at all.
+    """
+    block = _cross_code(_live_feed())
+    rows = _graded_readings(block)
+    rendered = live["arms-selection-across-code"]
+    sides = {row["states"] for row in rows}
+    if len(sides) > 1:
+        assert _door_prose(block["this_page_states"]) in rendered, (
+            "the published readings state {} different sides for the choosing and the page does "
+            "not carry the feed's own refusal to pick one".format(sorted(sides)))
+        assert "NO DIRECTION" in rendered, (
+            "two readings disagree and the page nowhere says it states no direction, so a reader "
+            "is left to take whichever figure they met first")
+        # AND THE INSTRUMENT'S OWN VERDICT, which is the part a reader cannot reconstruct from the
+        # two means: the fold tool refused to pool these families on the SEEDS, not on a summary.
+        assert _door_prose(
+            (block.get("the_fold_tools_own_verdict") or {}).get("what_it_means") or "") in rendered
+    else:
+        assert "not a property of which code measured it" in rendered, (
+            "every published reading states the same side and the page does not say so, which is "
+            "the reading a reader is most owed once these families agree")
+
+
+def _agreeing_feed() -> dict:
+    """The published feed with both readings made to state ONE side, and nothing else touched.
+
+    THE SENTENCES ARE THE PRODUCER'S, recomposed by its own composers rather than typed here: a
+    control that hand-wrote the agreement wording would be a second home for it, green on the day
+    the producer's wording moved and the page's went stale. Only `states` is edited, so a page that
+    reached the agreeing branch by DROPPING a reading still reds on the figure checks.
+    """
+    from tools import generate_value_arms_data as gva
+
+    feed = json.loads(json.dumps(_live_feed()))
+    block = _cross_code(feed)
+    one_side = _graded_readings(block)[0]["states"]
+    for row in block["readings"]:
+        if row.get("available"):
+            row["states"] = one_side
+    block["the_reading"] = gva._cross_code_reading(block["readings"], [one_side], 0)
+    block["this_page_states"] = gva._cross_code_statement(block["readings"])
+    return feed
+
+
+def _leading_span(raw: str) -> str:
+    """The block's first span, whose style attribute is the one a reader's eye is caught by.
+
+    THE WHOLE BLOCK IS THE WRONG SUBJECT and that is a survived mutation, not a preference: this
+    rung read `"var(--amber)" in raw` and stayed green through a leading sentence ambered
+    unconditionally, because two other spans carry amber for their own reasons. A grep over a block
+    is satisfied by any amber in it. The leading span nests nothing, so its style is the substring
+    before the first close.
+    """
+    assert "</span>" in raw, "the panel emitted no closed span, so the leading style cannot be read"
+    return raw[:raw.index("</span>")]
+
+
+def test_the_disagreement_is_flagged_in_the_markup_OVER_THE_WHOLE_PARTITION():
+    """R15: amber qualifies, muted footnotes, and stripped to text the two are identical.
+
+    ONE CONTROL OVER BOTH BRANCHES, because a leg over the live feed alone cannot fail. The live
+    readings DISAGREE, so amber is the right answer there and a page ambered unconditionally passes
+    -- measured on 2026-09-27, the mutation went green twice before this rung was written this way.
+    The property is that the styling MOVES with the evidence, which needs both branches in one
+    control and a constructed feed for the branch the evidence is not currently in.
+
+    A BLOCK THAT AMBERED NEITHER BRANCH ALSO REDS HERE, which is the other half: the two states must
+    differ AND the contested one must be the amber one. Either alone passes on a page that is wrong
+    in the opposite direction.
+    """
+    live_sides = {r["states"] for r in _graded_readings(_cross_code(_live_feed()))}
+    assert len(live_sides) > 1, (
+        "the published readings AGREE, so this control's contested arm has no live subject -- the "
+        "arms below would both be rendering the same branch and the partition is not covered")
+    contested = _leading_span(_render(_live_feed(), raw=True)["arms-selection-across-code"])
+    agreeing = _leading_span(_render(_agreeing_feed(), raw=True)["arms-selection-across-code"])
+    assert "var(--amber)" in contested, (
+        "the published readings state {} different sides and the page's leading styling does not "
+        "warn the reader that something is contested -- amber qualifies a figure and muted "
+        "footnotes it, and the two read identically once the tags are stripped".format(
+            len(live_sides)))
+    assert "var(--amber)" not in agreeing, (
+        "the page ambers its leading sentence on readings that AGREE, so the colour is not keyed to "
+        "the evidence and carries no information for a reader at all")
+
+
+def test_the_cross_code_block_survives_an_unavailable_feed():
+    """The branch this block exists for MOST, and the one `blindEnvelope` does not reach.
+
+    `#arms-blind-envelope` is assigned AFTER the door's `if (!d.available) return`, so its own
+    comment's claim to render "on every branch" is false. This block is assigned BEFORE it, on
+    purpose: a publish whose three-arm artefact cannot be read is exactly the publish on which
+    "the page states a direction today's code does not reproduce" would go unnoticed, because
+    everything that would have qualified it is gone with the run.
+
+    MUTATION: move the assignment below the early return -> this rung reds and no other does.
+    """
+    feed = dict(_live_feed())
+    block = _cross_code(feed)
+    feed["available"] = False
+    feed["reason"] = "constructed: the three-arm artefact could not be read"
+    rendered = _render(feed)
+    assert block["readings"][0]["mean_stated"] in rendered["arms-selection-across-code"], (
+        "the three-arm run went unreadable and the cross-code readings left the page with it, so "
+        "the one publish that most needs this qualification is the one that loses it")
+    assert rendered["arms-note"], (
+        "the unavailable feed did not reach the door's own absence notice, so this control proved "
+        "nothing about the ordering it is asserting")
+
+
+def test_the_block_states_AGREEMENT_when_the_two_readings_agree():
+    """THE ANTI-TAUTOLOGY LEG. A block printing "NO DIRECTION" on every input passes every rung above.
+
+    WHY IT IS DRIVEN THROUGH THE REAL DOOR AND NOT THE PRODUCER. The claim being refuted is about
+    what a READER meets, and a producer composing an agreement sentence nothing renders is the exact
+    shape this file exists for. So the feed is edited to make the two readings state one side (see
+    `_agreeing_feed`) and the door is driven with it.
+
+    IT CAUGHT THE DEFECT IT WAS WRITTEN FOR, within the hour: `this_page_states` was a literal
+    reading "NO DIRECTION for the choosing" on every input, so the page would have gone on refusing
+    to pick a side on the day a re-run reproduced the served sign -- the day this block would be at
+    its most wrong. It is composed from the rows now.
+    """
+    feed = _agreeing_feed()
+    block = _cross_code(feed)
+    assert "NO DIRECTION" not in block["this_page_states"], (
+        "the producer's own statement says it states no direction on readings that AGREE, so that "
+        "sentence is a literal and not a finding -- the page below cannot be graded on it")
+    rendered = _render(feed)["arms-selection-across-code"]
+    assert "not a property of which code measured it" in rendered, (
+        "the two readings were made to agree and the page did not say so, so its disagreement "
+        "branch is unconditional and every rung asserting it proves nothing")
+    assert "NO DIRECTION" not in rendered, (
+        "the page says it states no direction on a feed whose readings agree, so that sentence is "
+        "not keyed to the evidence and cannot be read as a finding")
+    for row in _graded_readings(block):
+        assert row["mean_stated"] in rendered, (
+            "the agreement branch dropped {}'s figure, so it reached agreement by publishing "
+            "less".format(row["label"]))

@@ -377,6 +377,37 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: `_A_PROPERTY_OF_THE_WIDTH_2026-09-18.md`.
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / (
     "value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json")
+#: THE SAME EIGHTEEN SEEDS RE-RUN AT HEAD, and it is on this page for one reason: the family
+#: above was measured on the code of 2026-09-10 and TODAY'S CODE DOES NOT REPRODUCE IT. Not
+#: inferred -- `run_value_cycle_ab --fold` refuses to pool two families whose shared seeds
+#: disagree, and it refused on all 18 (`agreement_fold_rc=2`, recorded in the run's own shard
+#: directory). Seed 11111 returns -GBP3,802.80 at HEAD against +GBP623.57 served.
+#:
+#: WHY IT IS A SECOND CONSTANT AND NOT A REPLACEMENT FOR THE ONE ABOVE. The rule this repository
+#: runs on is that a family may only replace the served one when the agreement fold SUCCEEDS, and
+#: it did not, so the served figures stay exactly what those runs returned. Pointing
+#: `NOISE_FLOOR_PATH` here would silently restate every bounded reading on this page against a
+#: different instrument and lose the record of what 2026-09-10 measured. Both are published, each
+#: labelled with the code it was measured on, and NEITHER IS WITHDRAWN.
+#:
+#: NO DIRECTION IS STATED OFF THE PAIR, and that is the director's own correction rather than this
+#: seat's caution: on 2026-09-26 at 09:29 he reversed a withdrawal recommendation filed the same
+#: morning -- "Don't withdraw the selection figure -- I was wrong to push that. Report what you
+#: found" -- and named both numbers. So the served NEGATIVE is not struck off and HEAD's no-sign is
+#: not published as a refutation of it; the page carries the two readings side by side and says
+#: which code each was measured on, which is the only statement the evidence supports.
+#:
+#: WHAT IT IS NOT INNOCENT OF. This family's own seed rows refute the premise the served family's
+#: exact-draw count rested on: three of HEAD's four priced-decision fingerprints each span
+#: residuals from about -GBP4,300 to +GBP1,550, so the fingerprint is not a sufficient statistic
+#: for the residual and `regrade_over_distinct_draws` returns unavailable on it. That is a finding
+#: of its own and it is NOT a reason to withhold this reading -- what it withholds is any exact
+#: draw count taken off either family.
+#:
+#: `docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED`
+#: `_RESIDUALS_2026-09-25.md` holds the five predictions and how four of them were refuted.
+HEAD_REPRODUCTION_FLOOR_PATH = PROJECT / "docs" / "observability" / (
+    "value_cycle_ab_s1_noise_floor_folded18_head_20260925.json")
 #: THE ONLY FAMILY ON THIS PAGE THAT CARRIES THE DISCRIMINATION AUC PER SEED, and it is a
 #: DIFFERENT family from `NOISE_FLOOR_PATH` above. Three seeds, world `39a192ce04c1eda8` -- the
 #: same world the folded 18 ran in -- drawn 2026-09-17 under commit `c9bd2eae7`.
@@ -4358,6 +4389,301 @@ def _leg_replication(rows: list, key: str) -> dict:
             "families_that_state_a_sign": len(stated),
             "signs_stated": signs,
             "verdict": verdict}
+
+
+#: WHAT A CROSS-CODE ROW SAYS WHEN ITS OWN FAMILY CLEARED NO BAR. Same discipline as
+#: `_NO_SIGN_AT_ITS_OWN_BAR` and deliberately the SAME WORDS: two spellings of one verdict is how a
+#: reader comes to believe the two blocks graded different things. A silent `None` here would
+#: collapse into the flattering branch the moment a renderer treated absence as agreement.
+_NO_SIGN_AT_ITS_OWN_BAR_CROSS_CODE = _NO_SIGN_AT_ITS_OWN_BAR
+
+
+def _stated_to_the_penny(value) -> str:
+    """A sterling amount to the PENNY, sign outside the symbol, for the cross-code block only.
+
+    `_gbp` ROUNDS TO THE POUND AND THAT IS RIGHT EVERYWHERE ELSE. Here it is not: the two readings
+    this block puts side by side are the record of what two code trees returned on the same 18
+    seeds, and a reader checking the page against `agreement_fold_rc=2` or against the staging
+    record is checking pence. -GBP960 and -GBP959.78 are the same number to a skimmer and different
+    evidence to anyone who wants to disagree with the page.
+
+    ONE HOME FOR THE FORMATTING, and the page renders this string verbatim rather than formatting
+    the float itself -- so the door can assert what a reader met against the producer's own output
+    instead of carrying a second copy of the format.
+
+    AND THE MINUS IS U+2212, NOT AN ASCII HYPHEN, because the page renders this string verbatim and
+    the door's own `gbp()` has used U+2212 since 2026-09-10 for a reason recorded there: at the
+    sizes this block publishes a hyphen reads as a dash between two figures. `_gbp` above emits an
+    ASCII hyphen and every caller of it feeds a renderer that re-formats; this one has no such
+    renderer downstream, so the glyph is this function's to get right.
+    """
+    v = _f(value)
+    if v is None:
+        return "an unstated amount"
+    return "{}\u00a3{:,.2f}".format("\u2212" if v < 0 else "", abs(v))
+
+
+def _which_code_a_family_was_measured_on(floor: dict) -> dict:
+    """The commits that produced one floor family, and the date each was drawn.
+
+    A FOLD HAS NO SINGLE COMMIT AND MUST NOT BORROW ONE. The served family pools two trees and its
+    own `producing_commit.commit` is `None` with a reason saying so; the HEAD family pools six legs
+    that all name one tree and carries it. Both shapes are read here and neither is guessed: a
+    block whose whole point is "which code was this measured on" may not answer that question by
+    taking the newest member and hoping.
+    """
+    members = (floor.get("folded_from") or {})
+    rows = members.get("members") if isinstance(members, dict) else members
+    commits, drawn = [], []
+    for row in (rows if isinstance(rows, list) else []):
+        if not isinstance(row, dict):
+            continue
+        commit, when = row.get("producing_commit"), row.get("generated_at")
+        if isinstance(commit, str) and commit not in commits:
+            commits.append(commit)
+        if isinstance(when, str):
+            drawn.append(when)
+    single = (floor.get("producing_commit") or {}).get("commit")
+    if isinstance(single, str) and single not in commits:
+        commits.append(single)
+    return {
+        "commits": commits,
+        "commits_short": [c[:9] for c in commits],
+        "member_runs_drawn_at": sorted(drawn),
+        "trees": len(commits),
+        "why_more_than_one": (None if len(commits) <= 1 else
+                              "this family is FOLDED from runs drawn by {} distinct code trees, so "
+                              "no single commit produced its rows and its width carries the "
+                              "difference between them".format(len(commits))),
+    }
+
+
+def _one_cross_code_reading(label: str, path: Path) -> dict:
+    """One floor family's selection leg, as the page states it, with the code it was measured on.
+
+    TWO ARTEFACT SHAPES, BOTH READ, AND THE SHAPE IS PUBLISHED. The served family carries its
+    distance-to-a-sign under `selection_leg`; the HEAD family, written by a later fold, carries it
+    at the top level and has no `selection_leg` at all. A reader who cannot see which shape was
+    read cannot tell a family that stated no sign from a family whose field this code missed --
+    which is the whole difference between evidence and a bug, so `read_from` says which.
+
+    UNREADABLE IS NOT EMPTY, and it is never silently a zero or an absent sign. A family this code
+    could not open is published as unreadable with the path it tried, because a census that drops
+    the row it could not read reports better agreement than it found.
+    """
+    try:
+        floor = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return {"label": label, "available": False, "artefact": _cited_path(path),
+                "why_not": "this family could not be read ({}), so the page states nothing for "
+                           "it rather than an absence that reads like agreement".format(
+                               type(exc).__name__)}
+    if not isinstance(floor, dict):
+        return {"label": label, "available": False, "artefact": _cited_path(path),
+                "why_not": "this family's artefact is not an object, so it carries no leg to read"}
+    leg = floor.get("selection_leg")
+    if isinstance(leg, dict):
+        read_from, spread = "selection_leg", leg.get("spread") or {}
+        sem, distance = leg.get("sem_gbp"), leg.get("distance_to_a_sign") or {}
+    else:
+        read_from, spread = "the artefact's top level", floor.get("selection_gbp_spread") or {}
+        sem, distance = floor.get("selection_sem_gbp"), floor.get("distance_to_a_sign") or {}
+    sems = _f(distance.get("sems_from_zero"))
+    bar = _f(distance.get("sems_needed_to_state_a_sign"))
+    would_be = distance.get("sign_if_it_were_stateable")
+    # THE SIDE IS ALWAYS A STRING and the family's own bar decides it, never this page's. Two
+    # families that earn different bars from different widths are two questions, and re-grading one
+    # at the other's bar would be choosing between instruments by their answers.
+    if sems is not None and bar is not None and sems > bar and isinstance(would_be, str):
+        states = would_be
+    else:
+        states = _NO_SIGN_AT_ITS_OWN_BAR_CROSS_CODE
+    seeds = [s.get("seed") for s in (floor.get("seeds") or []) if isinstance(s, dict)]
+    return {
+        "label": label,
+        "available": True,
+        "artefact": _cited_path(path),
+        "read_from": read_from,
+        "family_folded_at": floor.get("generated_at"),
+        "which_code": _which_code_a_family_was_measured_on(floor),
+        "seeds": [s for s in seeds if isinstance(s, int)],
+        "n": spread.get("n"),
+        "mean_gbp": _f(spread.get("mean")),
+        "mean_stated": _stated_to_the_penny(spread.get("mean")),
+        "stdev_gbp": _f(spread.get("stdev")),
+        "sem_gbp": _f(sem),
+        "sem_stated": _stated_to_the_penny(sem),
+        "sems_from_zero": sems,
+        "its_own_bar_sems": bar,
+        "states": states,
+        "world_digest": (floor.get("world_identity") or {}).get("digest"),
+        "home_digest": ((floor.get("world_identity") or {}).get("homes") or {}).get("digest"),
+    }
+
+
+#: THE TWO FAMILIES, NAMED HERE ONCE. A tuple rather than two arguments because the block below
+#: publishes them as rows and the order a reader meets them in is the order the code was written
+#: in: the served family first, because it is the one every bounded reading on this page is taken
+#: from, then the re-run that does not reproduce it.
+_CROSS_CODE_FAMILIES = (
+    ("the served family -- 18 seeds, measured 2026-09-10", NOISE_FLOOR_PATH),
+    ("the same 18 seeds re-run at HEAD -- measured 2026-09-25", HEAD_REPRODUCTION_FLOOR_PATH),
+)
+
+
+def _the_shared_seeds(readings: list) -> dict:
+    """What the two readings have in common, COUNTED, because it is the whole force of the pair.
+
+    IF THE SEEDS DIFFERED THIS BLOCK WOULD BE TWO RUNS OF TWO EXPERIMENTS and a reader would be
+    entitled to shrug: any two seed sets disagree. They do not differ -- the re-run took the served
+    family's own 18 -- so the moving part is the code and nothing else. That is stated as a count
+    off the artefacts rather than asserted in prose, so the day someone points one of these
+    constants at a family with other seeds the page says so instead of keeping the sentence.
+    """
+    sets = [set(r.get("seeds") or []) for r in readings if r.get("available")]
+    if len(sets) < 2:
+        return {"countable": False,
+                "why_not": "fewer than two families could be read, so there is no overlap to count"}
+    shared = set.intersection(*sets)
+    return {
+        "countable": True,
+        "shared": len(shared),
+        "per_family": [len(s) for s in sets],
+        "every_seed_is_shared": len(shared) == max(len(s) for s in sets) and all(
+            len(s) == len(shared) for s in sets),
+        "what_this_buys": (
+            "the two readings are over the SAME {} seeds, so the only thing that differs between "
+            "them is the code. A disagreement across different seed sets would be ordinary "
+            "sampling; this one is not.".format(len(shared)) if shared else
+            "these families share NO seed, so nothing here separates a code difference from a "
+            "difference in which draws were taken, and no comparison between them is licensed"),
+    }
+
+
+def _selection_across_code(families=_CROSS_CODE_FAMILIES, agreement_rc: int | None = 2) -> dict:
+    """BOTH readings of the selection contrast, side by side, each labelled with its own code.
+
+    THE GAP THIS CLOSES, AND IT IS A PAGE GAP RATHER THAN A WRONG NUMBER. Every bounded selection
+    reading on this page comes from the family measured on the code of 2026-09-10, and that family
+    states a NEGATIVE direction at 2.50 standard errors. The same 18 seeds re-run at HEAD on
+    2026-09-25 return a mean on the OTHER side of zero at 0.31 standard errors, and the fold tool
+    refused to pool them -- so the page was publishing a direction the code now running does not
+    reproduce, and a reader had no way to learn that from the page.
+
+    WHY BOTH AND NOT A REPLACEMENT. Withdrawing the served figure was recommended in the finding
+    and the director reversed that himself on 2026-09-26: "Don't withdraw the selection figure -- I
+    was wrong to push that. Report what you found." Replacing it would lose the record of what
+    2026-09-10 measured; withdrawing it would publish less than the page knows. Carrying both, each
+    labelled, is the only arrangement that loses nothing.
+
+    AND NO DIRECTION IS STATED OFF THE PAIR. Not caution -- the pair cannot state one. Two
+    instruments disagree about the width and land on opposite sides of zero on identical seeds, and
+    choosing between them by which answer is more comfortable is the defect this whole block
+    exists to stop being possible. The rows say what each family said at its OWN bar; the block
+    says no side.
+
+    `agreement_rc` IS THE FOLD TOOL'S OWN EXIT CODE and it is the oracle here, not the arithmetic
+    above it: the tool refuses to pool two families whose shared seeds disagree, so a non-zero rc
+    is the instrument saying these are different measurements. Defaulted rather than re-derived
+    because the run that produced it is gone from `/var/tmp` and the code that would re-derive it
+    is the code under test.
+    """
+    readings = [_one_cross_code_reading(label, path) for label, path in families]
+    graded = [r for r in readings if r.get("available")]
+    sides = sorted({r["states"] for r in graded})
+    return {
+        "what_this_is": (
+            "The selection contrast -- the leg that could be value CREATED -- read on the SAME 18 "
+            "seeds under two code trees, each reading labelled with the code it was measured on. "
+            "Neither is withdrawn."),
+        "available": len(graded) >= 2,
+        "why_not": (None if len(graded) >= 2 else
+                    "fewer than two families could be read, so there is no contrast to show and "
+                    "this block states nothing -- which is not the same as the two agreeing"),
+        "readings": readings,
+        "families_graded": len(graded),
+        "families_offered": len(readings),
+        "shared_seeds": _the_shared_seeds(readings),
+        "the_fold_tools_own_verdict": {
+            "agreement_fold_exit_code": agreement_rc,
+            "what_it_means": (
+                "`run_value_cycle_ab --fold` refuses to pool two families whose shared seeds "
+                "return different `selection_gbp`. A non-zero code is the tool declining to treat "
+                "these as one family, on the seeds themselves rather than on their summaries."
+                if agreement_rc else
+                "the tool pooled these two families, which means every shared seed returned the "
+                "same figure under both trees"),
+            "recorded_in": ("docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD"
+                            "_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md"),
+        },
+        # THE SENTENCE, COMPOSED FROM THE ROWS. The day the two families agree this says so without
+        # an edit, which is the only way a sentence about reproduction stays true after the
+        # evidence moves -- and the day one of them cannot be read it says that instead.
+        "the_reading": _cross_code_reading(readings, sides, agreement_rc),
+        # COMPOSED FROM THE ROWS AND NOT TYPED BESIDE THEM. This was a literal reading "NO
+        # DIRECTION for the choosing" on every input, and the door's own anti-tautology rung caught
+        # it within the hour: a page that refuses to pick a side whatever the evidence says has not
+        # made a finding, and it would go on printing that refusal on the day a re-run reproduces
+        # the served sign -- which is the day this block would be at its most wrong.
+        "this_page_states": _cross_code_statement(readings),
+        "what_would_settle_this": (
+            "A run that establishes what moved between the two trees. The fingerprint of the "
+            "priced decisions does NOT determine the residual at HEAD -- three of its four "
+            "fingerprints each span about -GBP4,300 to +GBP1,550 -- so the first question is what "
+            "outside the priced decisions moves this quantity, and no exact draw count off either "
+            "family is established until it is answered."),
+    }
+
+
+def _cross_code_statement(readings: list) -> str:
+    """What this page states off the pair, DERIVED from how many sides the rows state.
+
+    KEYED TO THE PROPERTY. The first draft was a literal -- "NO DIRECTION for the choosing" -- and
+    that is a control keyed to today's answer wearing a reading's clothes: it says the same thing on
+    the day two instruments disagree and on the day a re-run reproduces the served sign, and on the
+    second of those it would be withholding a direction the evidence had just earned. The branch
+    comes off the rows a reader actually meets.
+
+    THE FLOOR IS TWO GRADED READINGS. One reading is not a pair, and "no direction off the pair" is
+    not the honest sentence when there is no pair -- that state is a page carrying one family's
+    direction unqualified, which is what this block exists to end, so it says so.
+    """
+    graded = [r for r in readings if r.get("available")]
+    if len(graded) < 2:
+        return ("Fewer than two readings could be graded here, so this page has no cross-code pair "
+                "and states nothing off one -- which is NOT the same as two readings agreeing.")
+    sides = sorted({r["states"] for r in graded})
+    if len(sides) == 1:
+        return ("The {} readings of this pair state the SAME side for the choosing, so what the "
+                "page publishes is not a property of which code measured it.".format(len(graded)))
+    return ("NO DIRECTION for the choosing, off either reading. The two readings are what two "
+            "code trees returned on one set of seeds; the page reports them and states no side.")
+
+
+def _cross_code_reading(readings: list, sides: list, agreement_rc: int | None) -> str:
+    """The cross-code sentence, DERIVED. Every branch reachable, every number off the rows."""
+    graded = [r for r in readings if r.get("available")]
+    if len(graded) < 2:
+        return ("Fewer than two families could be read here, so this page says nothing about "
+                "whether today's code reproduces the selection figure it publishes.")
+    parts = ["{label} states {states} -- {mean} on {n} seeds, standard error {sem}, "
+             "{sems} standard errors from zero against a bar of {bar} -- measured on {code}".format(
+                 label=r["label"], states=r["states"], mean=r["mean_stated"], n=r["n"],
+                 sem=r["sem_stated"],
+                 sems=("{:.2f}".format(r["sems_from_zero"])
+                       if r["sems_from_zero"] is not None else "an unstated number of"),
+                 bar=("{:.2f}".format(r["its_own_bar_sems"])
+                      if r["its_own_bar_sems"] is not None else "an unstated number"),
+                 code=" and ".join(r["which_code"]["commits_short"]) or "code this family does "
+                                                                       "not name")
+             for r in graded]
+    if len(sides) == 1:
+        return ("; ".join(parts) + ". Both readings state the same side, so the direction the page "
+                "publishes is not a property of which code measured it.")
+    return ("; ".join(parts) + ". The two do not state the same side"
+            + (", and the fold tool refused to pool them (exit {}) on the seeds themselves rather "
+               "than on their summaries".format(agreement_rc) if agreement_rc else "")
+            + ". No direction is stated off this pair, and neither reading is withdrawn.")
 
 
 def _the_sign_across_families(pairs=_REPLICATION_PAIRS) -> dict:
@@ -16347,7 +16673,12 @@ def build(three_arm: dict | None, floor: dict | None,
             # every publish and the surface renders a refusal from it, so it belongs here by this
             # field's own stated rule; and a reader who wants to disagree with "we cannot tell"
             # needs the file that says it, more than for any other row on this page.
-            SIZE_TERM_PAIRED_FLOOR_PATH)],
+            SIZE_TERM_PAIRED_FLOOR_PATH,
+            # THE THIRTEENTH, added 2026-09-27 with the cross-code block above. `generate` opens it
+            # on every publish and the surface renders a figure straight off it, so this field's own
+            # stated rule names it -- and a reader who wants to check that today's code does not
+            # reproduce the served sign needs the family that says so, not a paraphrase.
+            HEAD_REPRODUCTION_FLOOR_PATH)],
         # ABOVE THE `available` GATE ON PURPOSE, and it is the only block on this page that is.
         # Everything else here describes the three-arm A/B run and is correctly withheld when that
         # artefact cannot be read. The blind envelope is a DIFFERENT measurement on a different set
@@ -16376,6 +16707,13 @@ def build(three_arm: dict | None, floor: dict | None,
         # take it down -- least of all on a publish where the comparison could not be made and
         # the question "does the belief order anyone at all" is what is left.
         "renewal_churn_belief": _renewal_churn_belief(size_block),
+        # ABOVE THE `available` GATE, and of every block here it has the strongest claim to be.
+        # This is not a reading of the three-arm run at all: it is the comparison of two FLOOR
+        # families, and the state in which the run artefact cannot be read is exactly the state
+        # where "the page publishes a direction today's code does not reproduce" is most likely to
+        # go unnoticed. Gating it on the run would take the qualification off the page while the
+        # prose that needs it stays.
+        "selection_across_code": _selection_across_code(),
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(

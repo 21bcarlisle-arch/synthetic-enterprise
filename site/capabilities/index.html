@@ -559,6 +559,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        market bound does: a reader who meets the figure and reaches the band three paragraphs
        later has already formed the impression. -->
   <div id="arms-redraw" style="margin:0 0 16px;"></div>
+  <!-- THE SAME CHOOSING LEG UNDER TWO CODE TREES, SIDE BY SIDE, AND NEITHER WITHDRAWN.
+       THE GAP THIS CLOSES IS A PAGE GAP AND NOT A WRONG NUMBER. Every bounded selection reading
+       on this page comes from a floor family measured on the code of 2026-09-10, and that family
+       states a NEGATIVE direction for the choosing at 2.50 standard errors. The SAME 18 seeds
+       re-run at HEAD on 2026-09-25 return a mean on the OTHER side of zero at 0.31 standard
+       errors, and `run_value_cycle_ab --fold` REFUSED to pool the two on the seeds themselves
+       (exit 2, all 18 disagree). So this page was publishing a direction the code now running
+       does not reproduce, and a reader had no way to learn that from the page.
+       WHY BOTH AND NOT A REPLACEMENT. Withdrawing the served figure was the recommendation in
+       docs/staging/SEAT_FINDING_THE_SERVED_SELECTION_SIGN_DOES_NOT_REPRODUCE_AT_HEAD_AND_THE_DECISION_FINGERPRINT_DOES_NOT_DETERMINE_THE_RESIDUAL_2026-09-26.md
+       and the director reversed it himself on 2026-09-26: "Don't withdraw the selection figure — I
+       was wrong to push that. Report what you found." Replacing the served family would lose the
+       record of what 2026-09-10 measured; withdrawing it would publish less than the page knows.
+       Both rows, each labelled with the code it was measured on, loses nothing.
+       AND NO DIRECTION IS STATED OFF THE PAIR. That is not caution — the pair cannot state one:
+       two instruments land on opposite sides of zero on identical seeds and disagree about the
+       width, and choosing between them by which answer reads better is exactly the defect.
+       NOTHING IS AUTHORED. Every figure, date, commit and sentence is `selection_across_code.*`
+       in ../data/value_arms.json, composed at publish time by
+       `tools.generate_value_arms_data._selection_across_code`. The only thing written here is the
+       table's furniture, and the amber is keyed to the feed's own row count of stated sides. -->
+  <div id="arms-selection-across-code" style="margin:0 0 16px;"></div>
   <!-- THE BOOKS THAT CANNOT SEE A HOME, AND WHERE THE CHOSEN ONE SITS AGAINST THEM.
        HOW MANY OF THEM IS THE FEED'S ANSWER AND NOT THIS COMMENT'S. It was four on 2026-09-11 and
        is three since 2026-09-15, when the arms were re-run in this tree's housing stock and the
@@ -1662,6 +1684,81 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      AMBER WHEN A LEG'S SIGN DEPENDS ON WHICH FLOOR WAS DRAWN, because that is the state in which
      the strongest claim on this page about the CHOOSING -- the leg the mission turns on, and the
      only one that could be value made rather than moved -- is a property of the draw. */
+  /* BOTH READINGS OF THE CHOOSING, EACH WITH THE CODE IT WAS MEASURED ON. See the comment on
+     `#arms-selection-across-code` for why this block exists and why neither reading is withdrawn.
+
+     AMBER WHEN THE TWO STATE DIFFERENT SIDES, and the count comes off the feed's own rows rather
+     than from a literal here: the day a re-run reproduces the served family this goes muted
+     without an edit, and a colour pinned to today's disagreement would stay amber through it.
+
+     RENDERS WHEN THE FEED CANNOT GRADE THE PAIR TOO. "Fewer than two families could be read" is a
+     result a reader is owed — an empty block and two families that agree look identical, and one
+     of those is the state this whole section exists to make impossible. */
+  function selectionAcrossCode(sac) {
+    if (!sac || !sac.the_reading) { return ""; }
+    var rows = "";
+    var sides = {};
+    var stated = 0;
+    for (var i = 0; i < (sac.readings || []).length; i++) {
+      var r = sac.readings[i];
+      if (!r.available) {
+        rows += '<span style="display:block;margin-top:6px;color:var(--amber);'
+          + 'font-size:0.92em;"><strong>' + esc(r.label)
+          + " &mdash; NOT READ</strong>: " + prose(r.why_not || "") + "</span>";
+        continue;
+      }
+      if (!sides[r.states]) { sides[r.states] = 1; stated += 1; }
+      var code = (r.which_code || {}).commits_short || [];
+      /* `prose` AND NOT `esc` ON THE LABEL, so the ` -- ` in a feed label reaches the reader as an
+         em dash here exactly as it does inside the composed sentence above it. Two renderings of one
+         string that differ by a glyph read to a reader as two different labels. */
+      rows += '<span style="display:block;margin-top:6px;color:var(--muted);">'
+        + "<strong>" + prose(r.label) + " &mdash; " + esc(r.states).toUpperCase()
+        + "</strong>: " + esc(r.mean_stated) + " on " + esc(r.n)
+        + " seeds, standard error " + esc(r.sem_stated) + ", "
+        + (r.sems_from_zero === null || r.sems_from_zero === undefined
+            ? "an unstated number of"
+            : esc(r.sems_from_zero.toFixed(2)))
+        + " standard errors from zero against its own bar of "
+        + (r.its_own_bar_sems === null || r.its_own_bar_sems === undefined
+            ? "an unstated number"
+            : esc(r.its_own_bar_sems.toFixed(2)))
+        + '. <span style="font-size:0.92em;">Measured on '
+        + (code.length ? esc(code.join(" and ")) : "code this family does not name")
+        + ", folded " + esc((r.family_folded_at || "").slice(0, 10))
+        + ", runs drawn "
+        + esc((((r.which_code || {}).member_runs_drawn_at || [])[0] || "").slice(0, 10))
+        + ". " + esc(r.artefact) + "</span></span>";
+    }
+    /* WHAT MAKES THE PAIR MEAN ANYTHING, on the block and not in a footnote: if the two families
+       held different seeds a reader would be right to shrug, because any two seed sets disagree.
+       The count is the feed's, so a constant repointed at a family with other seeds says so. */
+    var ss = sac.shared_seeds || {};
+    var shared = ss.countable
+      ? '<span style="display:block;margin-top:8px;color:'
+        + (ss.every_seed_is_shared ? "var(--muted)" : "var(--amber)")
+        + ';font-size:0.92em;">' + prose(ss.what_this_buys) + "</span>"
+      : "";
+    var rc = sac.the_fold_tools_own_verdict || {};
+    var oracle = rc.what_it_means
+      ? '<span style="display:block;margin-top:6px;color:'
+        + (rc.agreement_fold_exit_code ? "var(--amber)" : "var(--muted)")
+        + ';font-size:0.92em;">' + prose(rc.what_it_means) + "</span>"
+      : "";
+    return '<span style="display:block;margin-top:10px;color:'
+      + (stated > 1 ? "var(--amber)" : "var(--muted)") + ';">'
+      + prose(sac.the_reading) + "</span>" + rows + shared + oracle
+      /* AND THIS ONE IS KEYED TOO. It was unconditionally amber, which is wrong on the agreeing
+         branch -- "both readings state the same side" is a result and not a warning -- and it also
+         made a whole-block amber check unfalsifiable, because the block carried amber whatever the
+         evidence said. Found by the mutation that ambered the leading sentence and survived. */
+      + '<span style="display:block;margin-top:8px;font-weight:600;color:'
+      + (stated > 1 ? "var(--amber)" : "var(--muted)") + ';">'
+      + prose(sac.this_page_states) + "</span>"
+      + '<span style="display:block;margin-top:6px;color:var(--muted);font-size:0.92em;">'
+      + prose(sac.what_would_settle_this) + "</span>";
+  }
+
   function signAcrossFamilies(c) {
     if (!c || !c.the_reading) { return ""; }
     var order = ["value_advantage_gbp", "level_advantage_gbp", "selection_gbp"];
@@ -2335,6 +2432,14 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     .then(function (r) { return r.json(); })
     .then(function (d) {
       growthFeed.then(function (g) { renderSample(d, g); });
+      /* BOTH READINGS OF THE CHOOSING, ABOVE THE `available` GATE AND DELIBERATELY BEFORE THE
+         EARLY RETURN. `selection_across_code` is a comparison of two FLOOR families and not a
+         reading of the three-arm run, and the branch where that run cannot be read is exactly the
+         branch on which "this page states a direction today's code does not reproduce" would go
+         unnoticed. `blindEnvelope` is assigned after the return and therefore does NOT render on
+         that branch despite its own comment — this one does, and that is the difference. */
+      $("arms-selection-across-code").innerHTML =
+          selectionAcrossCode(d.selection_across_code);
       if (!d.available) {
       $("arms-note").textContent =
           "The arm comparison is not available, so it is absent rather than empty. "

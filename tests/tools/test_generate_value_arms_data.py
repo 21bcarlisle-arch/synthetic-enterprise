@@ -7305,7 +7305,15 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
               # the surface renders a REFUSAL from it on most rows -- "we cannot tell" -- which is
               # the one verdict on this page a reader is most likely to want to argue with, and
               # the citation is the only route from the sentence to the file that earned it.
-              gva.SIZE_TERM_PAIRED_FLOOR_PATH]
+              gva.SIZE_TERM_PAIRED_FLOOR_PATH,
+              # AND THE THIRTEENTH, added 2026-09-27 with the cross-code selection block.
+              # `_selection_across_code` opens it on every publish and the page renders a
+              # figure straight off it, beside the served family's own. It is the entry a
+              # reader is most likely to want to open of the thirteen: the claim the page
+              # makes with it is that the SERVED selection direction is not reproduced by
+              # the code now running, and "the served figure was measured on other code"
+              # is only checkable against the family that says so.
+              gva.HEAD_REPRODUCTION_FLOOR_PATH]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))
