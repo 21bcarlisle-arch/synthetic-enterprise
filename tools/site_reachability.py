@@ -29,8 +29,8 @@ sources below are likewise quoted from existing declarations, never decided here
      by design, an auth-adjacent surface") and `/shadow/` ("the internal advisor mirror,
      not a public surface").
   3. `STRUCTURAL_EXCLUSIONS` below — the handful of files that are not reader-facing pages
-     at all (an error document the host serves, a page template, dated archive snapshots,
-     brand token artefacts). This is the only list authored HERE, it is deliberately tiny,
+     at all (the host's error document, a dated archive snapshot, brand token artefacts).
+     Since 2026-09-27 it is `site/ia_register.PAGE_ORPHAN_DEBT`, read rather than re-typed;
      each entry carries its reason, and `check()` FAILS if an entry names a path that does
      not exist — so it cannot rot into a silent allowlist for deleted pages.
 
@@ -94,22 +94,24 @@ _SCRIPT_RE = re.compile(r"<script\b.*?</script\s*>", re.IGNORECASE | re.DOTALL)
 #: A `_redirects` line: "<from> <to> <status>". Only the FROM path matters here.
 _REDIRECT_RE = re.compile(r"^\s*(?P<src>/[^\s]*)\s+\S+\s+\d{3}\s*$")
 
-#: The only list authored by this control rather than quoted from an existing declaration.
+def _page_orphan_debt() -> dict[str, str]:
+    """The published files deliberately left unrouted, taken from `site/ia_register.py`.
+
+    2026-09-27: this module used to type its own list (404, the two brand pages) plus a
+    `snapshots/` prefix whose reason named a door deleted a month earlier -- a second register
+    of allowed orphans that the IA register could not see, which is how the brand pages stayed
+    published to nobody while the register read green. One list now, with its reasons there.
+    """
+    site_dir = REPO_ROOT / "site"
+    if str(site_dir) not in sys.path:
+        sys.path.insert(0, str(site_dir))
+    from ia_register import PAGE_ORPHAN_DEBT
+
+    return dict(PAGE_ORPHAN_DEBT)
+
+
 #: Each entry is a reason, and `check()` fails on any entry whose path is absent (rot guard).
-STRUCTURAL_EXCLUSIONS: dict[str, str] = {
-    "404.html": (
-        "the error document the host serves on a 404; linking to it from the site would be "
-        "the defect, not the fix"
-    ),
-    "brand/exemplar.html": (
-        "an internal brand-token visualisation used when changing brand.css, not a reader "
-        "surface"
-    ),
-    "brand/proof.html": (
-        "the internal token-adoption proof for the brand system, same non-reader status as "
-        "brand/exemplar.html"
-    ),
-}
+STRUCTURAL_EXCLUSIONS: dict[str, str] = _page_orphan_debt()
 
 #: The reasons the site gives for its two deliberately-unadvertised doors, quoted from
 #: `site/sitemap.xml`'s own comment. NOT a decision made by this module — a decision read
@@ -154,14 +156,10 @@ def _internal_door_exclusions() -> dict[str, str]:
     return out
 
 
-#: Directory prefixes excluded by the site's own declarations. The two internal doors come
-#: from the register; `snapshots/` is this module's own structural call and stays here.
+#: Directory prefixes excluded by the site's own declarations: the internal doors, from the
+#: register. (`snapshots/` left this dict on 2026-09-27 -- its one file is named in the register.)
 SITEMAP_DECLARED_EXCLUSIONS: dict[str, str] = {
     **_internal_door_exclusions(),
-    "snapshots/": (
-        "dated archive snapshots of a past dashboard render; each is a frozen artefact, not "
-        "a live door (the live surface is /now/)"
-    ),
 }
 
 

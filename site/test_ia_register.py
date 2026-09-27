@@ -469,3 +469,57 @@ def test_the_only_redirects_left_are_the_ones_a_reader_actually_needs():
         "a www rule is back. www.poesys.net had no DNS record on 2026-08-20, so such a rule "
         "cannot fire -- if that has changed, say so here rather than restoring it silently"
     )
+
+
+# ---------------------------------------------------------------------------
+# 4. Published FILES with no route in (2026-09-27)
+#
+# The register above grades AREAS, and `brand/exemplar.html` is a file inside one, so it was
+# served at its own URL, linked from nowhere, while every control here read green. The director
+# found that class by eye more than once; this is the deterministic version.
+# ---------------------------------------------------------------------------
+def test_every_unrouted_published_page_is_recorded_with_its_reason():
+    assert reg.page_orphan_violations() == []
+    for page, reason in reg.PAGE_ORPHAN_DEBT.items():
+        assert len(reason) > 40, f"{page} is recorded without a reason -- that is an allowlist"
+
+
+def test_the_page_walk_sees_files_the_area_register_cannot():
+    """ANTI-VACUITY. The rare branch must be takeable: the walk has to report SOME unrouted page
+    that is not an area, or the widening bought nothing. Today that is the two brand files."""
+    unrouted = reg.unrouted_pages()
+    assert {"brand/exemplar.html", "brand/proof.html"} <= unrouted, unrouted
+    assert not any(p.endswith("index.html") for p in unrouted), unrouted
+
+
+def test_site_reachability_reads_its_exclusions_from_this_register():
+    """One list of allowed orphans, not two."""
+    from tools.site_reachability import STRUCTURAL_EXCLUSIONS
+
+    assert STRUCTURAL_EXCLUSIONS == reg.PAGE_ORPHAN_DEBT
+
+
+def test_MUTATION_a_new_unlinked_page_fires(tree):
+    (tree / "brand" / "stray.html").write_text("<html><body>published to nobody</body></html>")
+    problems = reg.register_violations(tree)
+    assert any("brand/stray.html" in p and "not in PAGE_ORPHAN_DEBT" in p for p in problems), problems
+
+
+def test_MUTATION_dropping_a_recorded_debt_entry_fires(tree, monkeypatch):
+    monkeypatch.delitem(reg.PAGE_ORPHAN_DEBT, "brand/exemplar.html")
+    problems = reg.register_violations(tree)
+    assert any("brand/exemplar.html" in p and "not in PAGE_ORPHAN_DEBT" in p for p in problems), problems
+
+
+def test_MUTATION_a_debt_entry_that_is_now_routed_fires(tree):
+    """Shrink-only: link the page from the front door and its entry must go, not linger."""
+    home = tree / "index.html"
+    home.write_text(home.read_text().replace("</body>", '<a href="brand/proof.html">p</a></body>', 1))
+    problems = reg.register_violations(tree)
+    assert any("brand/proof.html" in p and "no longer an unrouted" in p for p in problems), problems
+
+
+def test_MUTATION_a_debt_entry_whose_file_is_gone_fires(tree):
+    (tree / "404.html").unlink()
+    problems = reg.register_violations(tree)
+    assert any("404.html" in p and "no longer an unrouted" in p for p in problems), problems

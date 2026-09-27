@@ -60,6 +60,7 @@ report a perfectly green IA for a site that had been deleted.
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -259,6 +260,64 @@ NAV_EXEMPT: dict[str, str] = {
 }
 
 
+# ── Published FILES with no route in (page level, 2026-09-27) ─────────────────
+# The areas above are directories; `brand/exemplar.html` is a file, so the area register could
+# never see it, and the director found these by eye. `site/` is published wholesale, so every
+# `*.html` under it is served at its own URL whether or not anything links to it. Each one that
+# nothing reachable from the front door links to must sit here with its reason; shrink-only both
+# ways, exactly like ORPHAN_DEBT. `tools/site_reachability.py` derives its exclusions from this
+# dict rather than keeping a second list of allowed orphans.
+PAGE_ORPHAN_DEBT: dict[str, str] = {
+    "404.html": (
+        "the error document the host serves on a 404; a link to it from the site would be the "
+        "defect, not the fix. Permanent by design, not debt that clears"
+    ),
+    "brand/exemplar.html": (
+        "the ratified BRAND_CONSTITUTION §7 mock, byte-pinned by tests/tools/test_brand_compliance.py; "
+        "a reference for whoever edits brand.css, not a reader page. Served only because site/ "
+        "deploys wholesale. Clears by moving it out of the published tree with that test repointed"
+    ),
+    "brand/proof.html": (
+        "the token-adoption proof for the brand system, read by tests/tools/test_brand_compliance.py; "
+        "same non-reader status as brand/exemplar.html and clears the same way"
+    ),
+    "snapshots/DASHBOARD_20260623_120151.html": (
+        "a frozen June 2026 render of a dashboard whose live door was deleted on 2026-08-20; "
+        "background/publish_provenance.py exempts it by name. Clears by deleting it"
+    ),
+}
+
+
+def unrouted_pages(site: Path = SITE) -> set[str]:
+    """Every published `*.html` (site-relative) that no page reachable from the front door
+    links to. The walk is `tools/site_reachability.py`'s, not a second parser."""
+    if str(REPO) not in sys.path:
+        sys.path.insert(0, str(REPO))
+    from tools import site_reachability as sr  # lazy: sr imports this module at load
+
+    population = sr.page_population(site)
+    if "index.html" not in population:
+        raise IaRegisterUnavailable(f"no root index.html under {site}")
+    reachable, _broken = sr.crawl(site, population)
+    return population - reachable
+
+
+def page_orphan_violations(site: Path = SITE) -> list[str]:
+    unrouted = unrouted_pages(site)
+    problems = [
+        f"{page} is published (site/ deploys wholesale) but nothing reachable from the front "
+        f"door links to it, and it is not in PAGE_ORPHAN_DEBT -- route it, remove it from site/, "
+        f"or record it with the reason it is deliberately unrouted"
+        for page in sorted(unrouted - set(PAGE_ORPHAN_DEBT))
+    ]
+    problems += [
+        f"{page} is in PAGE_ORPHAN_DEBT but is no longer an unrouted published page -- remove "
+        f"the entry (a debt register that keeps discharged entries stops being countable)"
+        for page in sorted(set(PAGE_ORPHAN_DEBT) - unrouted)
+    ]
+    return problems
+
+
 # ── Derivation ────────────────────────────────────────────────────────────────
 _LOC_RE = re.compile(r"<loc>\s*([^<\s]+)\s*</loc>")
 
@@ -405,6 +464,7 @@ def register_violations(site: Path = SITE) -> list[str]:
             f"it -- the whole point of the state is a door a reader can walk through early. "
             f"Add it to CANONICAL_NAV or drop the entry"
         )
+    problems += page_orphan_violations(site)
 
     return problems
 
