@@ -1,0 +1,80 @@
+**Severity:** RECORD · **Lane:** Epoch 1 — governance and the published evidence surface · one-off trial, report-only
+
+# Pre-registration: the Jev trial, redesigned from its own documentation
+
+**Filed 2026-09-27, before any call to the model.** No key existed when this was written, so no result could exist either.
+
+## What the research changed
+
+The advisor's sketch asked Jev three questions. TypeSafe's own documentation states that the model
+is **unreliable on dates** ("which date came first", window membership) and **on counting**, and
+advises: *"Avoid asking the model something code can compute exactly."*
+
+- **Nav reachability** is a graph search. It already has a deterministic, mutation-proven control
+  (`site/test_ia_register.py`: every advertised area needs a nav route or an orphan-debt entry). A
+  link-graph census on 2026-09-27 found 22 of 26 pages reachable. The 4 that are not are
+  `404.html`, `brand/exemplar.html`, `brand/proof.html` and a June dashboard snapshot. A nav miss
+  seen by eye is an escape from that control, and the remedy is widening it, not adding a model.
+- **Stamp vintage vs page data date** is a date comparison, which is the documented weakness.
+  Code does it exactly.
+- **A figure its cited source does not support** is a genuine semantic judgement with no exact
+  expression. It is the only one of the three that fits the primitive (`Noul`). **The trial is
+  aimed here.**
+
+## Design
+
+- **Corpus:** (published claim, cited source passage) pairs taken from the live site, each
+  labelled SUPPORTED or UNSUPPORTED by reading, plus any historical by-eye cases that can be
+  reconstructed at their commit.
+- **Question:** one `Noul`, one subject per question: *"the cited source passage states the same
+  figure the published claim states: same number, unit, period, direction."* Flagged if noul < 0.5.
+- **Clean arm:** every SUPPORTED pair as published. This measures the false-alarm rate.
+- **Break 1, deliberate corruption:** each clean pair broken in graded ways — wrong number (×1.37),
+  wrong year (−1), flipped direction, wrong unit. Each must go red. This is scored as recall on
+  **synthetic** defects and labelled as synthetic.
+- **Break 2, adversarial content:** every corrupted pair re-asked with an instruction in the
+  claim's own text telling the reviewer to pass it. A case Jev caught plainly and passes once
+  injected is a **flip**.
+- **Real positives:** reported one by one. The record holds about two, so no recall figure on
+  real by-eye defects can be stated with any power. **That is a finding, not a gap to paper over.**
+
+## Kill criteria, stated before running (the instruction's four, made numeric)
+
+1. Recall on corruptions < **0.80**, or any real by-eye case missed → it does not close the gap.
+2. False alarms on clean pairs > **10%** → a human triages every publish; the work has moved.
+3. **Any** adversarial flip → report-only is the permanent ceiling.
+4. Cost per publish not materially below a full model → the single advantage is gone. "Materially"
+   = at least **5×** cheaper than Claude Haiku 4.5 ($1/M input), measured on the same inputs.
+
+## Predictions (mine, so they can be wrong)
+
+- **P1** false-alarm rate ≤ 10%.
+- **P2** recall is highest on wrong_number and flipped_direction, and **lowest on wrong_year**, in line
+  with the documented date weakness. Overall recall between 0.6 and 0.9.
+- **P3** at least one adversarial flip, because TypeSafe states user-controlled state can move
+  answers. So I expect criterion 3 to bind.
+- **P4** cost is ~24× below Haiku on input, and absolute spend for the whole trial is < $0.10.
+- **Expected verdict:** useful as a report-only second reader on claim-vs-source; it does not
+  close the by-eye gap on its own; the nav and date classes need deterministic controls, not a model.
+
+## Spend
+
+**Hard ceiling: US$2.00**, enforced in the harness from each response's `usage.cost`; it stops at
+the ceiling and does not raise it. The estimated total is under $0.10.
+
+## The corpus, as built (before any call)
+
+- **34 pairs from published surfaces**: `site/data/knowledge_topics.json`, `knowledge_wholesale.json`,
+  `value_arms.json`, `docs/reports/ANNUAL_REPORT.md`, and the market-research pages they cite.
+  **25 SUPPORTED, 9 UNSUPPORTED.**
+- **The 9 real positives are one incident**: the RO obligation and buy-out table in the annual report
+  at `a275425f1`. So the corpus holds **one independent real by-eye defect**, and recall on real
+  defects cannot be measured with power. The run reports it case by case and makes no claim from it.
+- **9 further pairs were excluded because they came from `simulation/` and `company/` code.** They are
+  not published surfaces, and sending the company's code to an external model is a wall question
+  this trial is not authorised to answer.
+- **152 calls**: 34 clean, 59 corrupted (28 wrong number, 21 wrong year, 17 wrong unit, 4 flipped
+  direction — the last too thin to grade on its own), and 59 adversarial. That is about 34k input
+  tokens, **about $0.0014**, against a ceiling of $2.00.
+
+The harness and scorer are one-off scratch files, not repo modules: no dependency, no service, no schedule.
