@@ -1,71 +1,71 @@
 {
-  "source": "Census 2021 TS041 + OS Open UPRN + ONSPD (RGN25CD) + HadUK-Grid 1 km normals",
+  "source": "Census 2021 TS041 + Scotland Census 2022 + ONSUD (each address with its output area and 1 km cell) + ONSPD (RGN25CD) + HadUK-Grid 1 km normals",
   "placement": "tools.weather_cell_weights.census_weights(group_of=ONS region)",
-  "cells": 179931,
-  "households": 27129010,
+  "cells": 197116,
+  "households": 27121764,
   "diagnostics": {
-    "no_output_area": 0,
-    "output_area_not_in_census": 0,
     "output_area_outside_the_grouping": 0,
-    "census_areas_with_no_live_postcode": 128,
-    "output_areas_placed_on_centroids_for_want_of_an_address": 0,
-    "cells_off_the_land_grid": 3812,
-    "households_off_the_land_grid": 154127,
+    "census_areas_with_no_address_in_the_directory": 45,
+    "households_in_those_areas": 2754,
+    "households_placed": 27289092,
+    "households_in_the_censuses": 27291846,
+    "cells_off_the_land_grid": 4873,
+    "households_off_the_land_grid": 167328,
     "per_region": {
       "East": {
-        "cells": 19057,
-        "households": 2614129,
-        "households_off_the_land_grid": 14489
+        "cells": 18905,
+        "households": 2613348,
+        "households_off_the_land_grid": 15479
       },
       "East Midlands": {
-        "cells": 15704,
-        "households": 2036392,
-        "households_off_the_land_grid": 755
+        "cells": 15466,
+        "households": 2036407,
+        "households_off_the_land_grid": 919
       },
       "London": {
-        "cells": 1895,
-        "households": 3415930,
-        "households_off_the_land_grid": 6149
+        "cells": 1694,
+        "households": 3415831,
+        "households_off_the_land_grid": 7757
       },
       "North East": {
-        "cells": 7075,
-        "households": 1170011,
-        "households_off_the_land_grid": 5559
+        "cells": 7444,
+        "households": 1168846,
+        "households_off_the_land_grid": 6826
       },
       "North West": {
-        "cells": 12372,
-        "households": 3143477,
-        "households_off_the_land_grid": 9657
+        "cells": 12894,
+        "households": 3141371,
+        "households_off_the_land_grid": 11997
       },
       "Scotland": {
-        "cells": 35389,
-        "households": 2464507,
-        "households_off_the_land_grid": 38763
+        "cells": 51864,
+        "households": 2466349,
+        "households_off_the_land_grid": 39896
       },
       "South East": {
-        "cells": 19417,
-        "households": 3773519,
-        "households_off_the_land_grid": 34284
+        "cells": 19068,
+        "households": 3769575,
+        "households_off_the_land_grid": 38321
       },
       "South West": {
-        "cells": 23163,
-        "households": 2422878,
-        "households_off_the_land_grid": 26100
+        "cells": 23111,
+        "households": 2423059,
+        "households_off_the_land_grid": 25919
       },
       "Wales": {
-        "cells": 17726,
-        "households": 1331257,
-        "households_off_the_land_grid": 15817
+        "cells": 18633,
+        "households": 1330359,
+        "households_off_the_land_grid": 16761
       },
       "West Midlands": {
-        "cells": 13749,
-        "households": 2429177,
+        "cells": 13317,
+        "households": 2429497,
         "households_off_the_land_grid": 0
       },
       "Yorkshire and The Humber": {
-        "cells": 14384,
-        "households": 2327732,
-        "households_off_the_land_grid": 2555
+        "cells": 14720,
+        "households": 2327123,
+        "households_off_the_land_grid": 3452
       }
     },
     "regions": [

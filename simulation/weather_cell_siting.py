@@ -133,21 +133,12 @@ auxiliary coordinate -- the identical two expressions `_occupied_space()` uses -
 coordinate IS a land cell's own coordinate at the same precision. The 194,865 grid keys are 194,865
 distinct keys, so 4 dp cannot merge two cells.
 
-THE JOIN IS NO LONGER TOTAL, AND THE RESIDUAL IS THREE HOUSEHOLDS. Re-measured 2026-09-16:
-`sim/household_siting/region_household_frame.csv` holds 179,931 rows over **175,188 distinct
-coordinates** -- which is the 09-07 grid's row count exactly, because the frame is cut over the same
-occupied set the superseded artefact was. Against this cut, **175,077 join and 111 miss**. The
-re-cut did not only ADD cells: 19,788 were gained and **111 were lost**, and the 111 are cells the
-partial ONSUD placement thought held addresses and the completed one says do not. The frame still
-places 3 households in them.
-
-Those 3 receive the artefact refusal -- "not one of the 194,865 occupied 1 km land cells" -- and
-that refusal is correct as far as this module can see, because this module's occupancy IS the
-completed placement. It is nonetheless a DISAGREEMENT BETWEEN TWO ARTEFACTS and not a property of a
-coordinate, and it will not be fixed here: the frame is W2_18's, regenerating it is that lane's
-call, and 3 of 24,664,502 households is not a licence to reach into another atom's 5 MB artefact.
-Filed, with its number, in `docs/staging/`. **If the frame is ever regenerated, this paragraph is
-the thing to re-measure, and the honest outcome is 0 miss.**
+THE JOIN IS TOTAL AGAIN. From 2026-09-16 it was not: the frame, built on the window placement, held
+175,188 distinct coordinates, and 111 of them were cells the completed ONSUD placement says hold no
+address, so a few households were refused as "not one of the 194,865 occupied 1 km land cells".
+The frame was rebuilt on ONSUD on 2026-09-27 and now holds **194,865 distinct coordinates with 0
+misses**: the two artefacts are cut by the same placement. A miss reappearing means one of them
+was rebuilt without the other.
 
 The direction was to cut over the drawn population; the artefact is cut over the **whole grid**
 instead, which is 25% larger (4.3 MB against 3.4 MB, beside the 5.0 MB frame that is already

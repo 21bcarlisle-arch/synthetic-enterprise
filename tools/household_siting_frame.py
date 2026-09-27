@@ -39,8 +39,9 @@ the weather-cell derivation. Nothing new is fetched except one column:
      households are there.* Both are already merged by `weather_cell_weights.read_households`,
      which fails closed on a missing Scotland; the frame lost Scotland at the REGION LABEL, one
      step later, not here.
-  2. **OS Open UPRN** — addressable properties per 1 km OSGB cell. *Where inside an output area
-     the addresses are.* (`tools/os_open_uprn.py`; the placement decision and its cost are
+  2. **ONSUD** — every address with its output area and its grid reference. *Where inside an
+     output area the addresses are.* (`tools/ons_uprn_directory.py`; it replaced OS Open UPRN on
+     2026-09-07, and the placement decision and its cost are
      `weather_cell_weights.census_weights`'s, not re-litigated here.)
   3. **ONSPD** — every live residential GB postcode with its output area, its grid reference and,
      the one column this module adds, **`RGN25CD`** — the ONS region. *Which region an output area
@@ -444,9 +445,10 @@ def _cell_coordinates():
 #: How far `build_output_areas` looks, in cells, for the output areas of a committed cell whose
 #: own square holds none of its region's addresses. See `build_output_areas` for why such cells
 #: exist and why the neighbourhood is the placement that put households there.
-#: Measured over the committed frame (2026-09-27): 2,942 cells need ring 1 and 2 need ring 2. The
-#: bound is there so a frame that has drifted a long way from the placement REFUSES instead of
-#: borrowing areas from ever further away.
+#: Measured 2026-09-27: 2,942 cells needed ring 1 and 2 needed ring 2 on the frame built with the
+#: window placement; on the frame rebuilt with the address placement every cell is ring 0. The
+#: bound is there so a frame that drifts from the placement again REFUSES instead of borrowing
+#: areas from ever further away.
 MAX_OUTPUT_AREA_RING = 3
 
 
@@ -459,15 +461,12 @@ def build_output_areas(progress=print) -> dict:
     own ONSUD addresses) restricted to the cell's own region. Drawing the cell and then the OA,
     each PPS, therefore draws the address placement within the cell the household was sited in.
 
-    KEYED TO THE COMMITTED FRAME, NOT REBUILT BESIDE IT. The committed household frame was built
-    on 2026-09-07 at 03:49 with the SECOND placement (addresses in the 3x3 window around each
-    postcode centroid). `census_weights` moved to the ONSUD placement four hours later and the
-    frame was never rebuilt. So `--build` at HEAD would move every household's coordinate. That
-    rebuild is its own change and is not made here: this reads the cells as they are committed.
-    The two placements disagree on 0.16% of households. Those households sit in cells where the
-    window put them and no address of their region exists, and for those cells the OAs come from
-    the smallest square around the cell that holds some. That is the window placement's own
-    geometry. A cell still empty at `MAX_OUTPUT_AREA_RING` REFUSES the build.
+    KEYED TO THE COMMITTED FRAME, NOT REBUILT BESIDE IT, so run `--build` first whenever the
+    placement changes. A cell with none of its region's addresses takes its OAs from the smallest
+    square around it that holds some, and one still empty at `MAX_OUTPUT_AREA_RING` REFUSES the
+    build. On a frame built by the current placement no cell needs a ring. The ring exists because
+    the frame once outlived its placement: built 2026-09-07 on the 3x3-window placement, it was not
+    rebuilt on ONSUD until 2026-09-27, and 2,944 of its cells held no address of their region.
     """
     import gzip
 
@@ -567,7 +566,8 @@ def build(progress=print) -> dict:
             for lat, lon, households in rows[region]:
                 out.writerow([region, f"{lat:.4f}", f"{lon:.4f}", f"{households:.3f}"])
     manifest = {
-        "source": "Census 2021 TS041 + OS Open UPRN + ONSPD (RGN25CD) + HadUK-Grid 1 km normals",
+        "source": ("Census 2021 TS041 + Scotland Census 2022 + ONSUD (each address with its output "
+                   "area and 1 km cell) + ONSPD (RGN25CD) + HadUK-Grid 1 km normals"),
         "placement": "tools.weather_cell_weights.census_weights(group_of=ONS region)",
         "cells": sum(len(v) for v in rows.values()),
         "households": round(sum(h for v in rows.values() for _, _, h in v)),
