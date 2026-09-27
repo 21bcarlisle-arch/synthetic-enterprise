@@ -3923,6 +3923,53 @@ def test_an_account_settling_in_one_arm_only_is_carried_and_split_out_as_a_ROSTE
             + roster["gbp_from_accounts_in_both_arms"]) == pytest.approx(block["residual_gbp"])
 
 
+def test_the_roster_partition_is_reachable_in_ALL_THREE_states_at_once():
+    """THE WHOLE PARTITION IN ONE FIXTURE, because a leg per branch leaves the rare one unreachable.
+
+    An account settles in both arms, in the value arm only, or in the LEVEL arm only, and the
+    third is the one a reader gets backwards: it is net the value arm did not earn, so it enters
+    the residual NEGATIVE. Every other fixture in this block draws its level roster as a SUBSET of
+    its value roster, so `accounts_only_in_the_level_arm` is `[]` in all of them and the single
+    control that names it asserts exactly that. An implementation that dropped level-only accounts
+    from the union would pass every one of those and publish a residual short by their whole net --
+    and it would not even trip the reconciliation leg, because the identity it is checked against
+    is computed from the same two arms. So the peopling of all three states is asserted FIRST,
+    before anything about what each branch does.
+    """
+    value = _by_account_arm({"BOTH": 5_000.0, "VALUE_ONLY": 4_000.0})
+    level = _by_account_arm({"BOTH": 4_800.0, "LEVEL_ONLY": 900.0})
+    block = rvca.selection_by_account(value, level)
+    roster = block["roster_difference"]
+
+    # THE PARTITION IS PEOPLED. All three states occur in this one fixture, and this is asserted
+    # before any claim about what each state contributes.
+    assert roster["accounts_only_in_the_value_arm"] == ["VALUE_ONLY"]
+    assert roster["accounts_only_in_the_level_arm"] == ["LEVEL_ONLY"]
+    assert roster["accounts_in_one_arm_only"] == 2
+    in_both = (set(block["column"])
+               - set(roster["accounts_only_in_the_value_arm"])
+               - set(roster["accounts_only_in_the_level_arm"]))
+    assert in_both == {"BOTH"}
+    assert block["accounts_in_the_union"] == 3
+
+    # ...and only now, what each state does. The SIGNS are the load-bearing part.
+    assert block["column"]["BOTH"] == pytest.approx(200.0)
+    assert block["column"]["VALUE_ONLY"] == pytest.approx(4_000.0)
+    assert block["column"]["LEVEL_ONLY"] == pytest.approx(-900.0), (
+        "an account only the LEVEL arm settled is money the value arm did not earn")
+
+    # The split still partitions the residual when the roster half carries BOTH signs -- the case
+    # in which a roster term dropped or mis-signed cancels against another instead of showing up.
+    assert roster["gbp_from_accounts_in_one_arm_only"] == pytest.approx(3_100.0)
+    assert roster["gbp_from_accounts_in_both_arms"] == pytest.approx(200.0)
+    assert (roster["gbp_from_accounts_in_one_arm_only"]
+            + roster["gbp_from_accounts_in_both_arms"]) == pytest.approx(block["residual_gbp"])
+    assert block["residual_gbp"] == pytest.approx(3_300.0)
+    # GROSS counts the level-only account's movement too; a column that dropped it would report a
+    # smaller book moving, which flatters every concentration reading taken off it.
+    assert block["gross_absolute_movement_gbp"] == pytest.approx(5_100.0)
+
+
 def test_the_concentration_reading_separates_one_big_account_from_a_diffuse_book():
     """THE READING THE DIRECTOR'S QUESTION TURNS ON, and it is asserted as a CONTRAST.
 
