@@ -117,7 +117,7 @@ def test_namespace_only_package_is_not_reported_as_an_orphan(tree):
 def test_a_module_invoked_by_path_is_not_an_orphan(tree):
     """The false-orphan reading that would retire a live mechanism.
 
-    `background_worker.py` runs `run_queued_tasks.py` with `exec(open(...))`.
+    `background_worker.py` ran `run_queued_tasks.py` with `exec(open(...))` until 2026-09-27.
     No import graph can see that edge, and the first run of this index called
     that live dispatcher an orphan.
     """

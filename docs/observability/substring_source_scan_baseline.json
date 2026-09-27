@@ -52,11 +52,6 @@
       "subject": "unknown"
     },
     {
-      "path": "background/background_worker.py",
-      "function": "main",
-      "subject": "python"
-    },
-    {
       "path": "background/class_debt.py",
       "function": "parse_disposition",
       "subject": "unknown"
@@ -274,16 +269,6 @@
     {
       "path": "background/reserved_clause_gate.py",
       "function": "scan_reserved_clauses",
-      "subject": "unknown"
-    },
-    {
-      "path": "background/run_queued_tasks.py",
-      "function": "_find_first_queued_task",
-      "subject": "unknown"
-    },
-    {
-      "path": "background/run_queued_tasks.py",
-      "function": "_move_task_to_done",
       "subject": "unknown"
     },
     {

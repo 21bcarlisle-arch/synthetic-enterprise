@@ -1,7 +1,7 @@
 # GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
 # Edit the manifest and regenerate. state=enabled owner=systemd
 [Unit]
-Description=Synthetic Enterprise: Qwen task queue + leftover run_complete-marker sweep; off-peak
+Description=Synthetic Enterprise: Leftover run_complete-marker sweep + resource/formation observers, every 30 min
 After=network.target
 # G-L3: a crash-loop enters `failed` instead of restarting silently forever.
 StartLimitIntervalSec=120

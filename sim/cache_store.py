@@ -1,7 +1,7 @@
 """Lightweight file cache for pre-fetched API data.
 
-Background tasks (background/run_queued_tasks.py) pre-fetch expensive Elexon
-and weather API calls and store them here. The simulation pipeline checks this
+Pre-fetched Elexon and weather API calls are stored here (the Qwen task queue
+that first filled it, background/run_queued_tasks.py, was retired 2026-09-27). The simulation pipeline checks this
 cache before hitting live APIs, so background work amortizes fetch costs and
 main-pipeline runs complete faster.
 

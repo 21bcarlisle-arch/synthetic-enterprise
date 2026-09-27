@@ -144,7 +144,9 @@ processes:
       IS TRUE BUT NOT STABLE, and that is the useful thing to know about it: a run of this daemon
       appearing in the actionable list is evidence about THAT RUN'S verbosity, never about the
       daemon's health, and it should not be chased the way a permanently-mute row should.
-    purpose: "Qwen task queue + leftover run_complete-marker sweep; off-peak"
+    # The Qwen task queue (run_queued_tasks.py) and its peak-hours pause retired 2026-09-27:
+    # model evicted 2026-08-10, queue empty since. The sweep and the observers are the live work.
+    purpose: "Leftover run_complete-marker sweep + resource/formation observers, every 30 min"
 
   - session: staging-watcher
     command: python3 background/staging_watcher.py

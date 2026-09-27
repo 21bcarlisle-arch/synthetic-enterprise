@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
 Synthetic Enterprise — Background Worker
-Runs autonomously using local Qwen only (no frontier tokens).
-Checks docs/instructions/background-tasks.md for queued tasks.
-Respects UK peak electricity hours: pauses between 16:00-19:00 GMT daily.
+Every 30 minutes: the resource and formation observers, then the leftover
+run_complete-marker sweep, then a liveness beat.
 Logs all activity to docs/observability/background-worker-log.md
+
+It was also the Qwen task queue (docs/instructions/background-tasks.md run through
+`ollama run`) and paused for UK peak hours on the model's account. Both went on
+2026-09-27: qwen3:14b was evicted 2026-08-10, and the queue had been empty since.
 """
 
 import json
@@ -23,10 +26,7 @@ from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 
-PEAK_START = 16  # 4pm GMT
-PEAK_END = 19    # 7pm GMT
 CHECK_INTERVAL_MINUTES = 30
-TASKS_FILE = Path("docs/instructions/background-tasks.md")
 # Mirrors background.process_run_complete.EXIT_LOCK_SKIPPED. Duplicated as a
 # literal (rather than imported at module scope) because importing the
 # publish pipeline at worker import time drags in the whole reporting stack;
@@ -40,32 +40,12 @@ EXIT_LOCK_SKIPPED = 75
 EXIT_NOTHING_PUBLISHED = 76
 NOT_PUBLISHED_BY_THIS_SWEEP = (EXIT_LOCK_SKIPPED, EXIT_NOTHING_PUBLISHED)
 LOG_FILE = Path("docs/observability/background-worker-log.md")
-OLLAMA_MODEL = "qwen3:14b"
-
-def is_peak_hours():
-    """Return True if current GMT time is between 16:00 and 19:00."""
-    now_gmt = datetime.now(timezone.utc)
-    return PEAK_START <= now_gmt.hour < PEAK_END
-
 def log(message: str):
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     entry = f"\n- [{timestamp}] {message}"
     with open(LOG_FILE, "a") as f:
         f.write(entry)
     print(entry)
-
-def run_ollama_task(prompt: str, task_name: str) -> str:
-    """Run a task via local Ollama. Returns the model output."""
-    log(f"Starting task: {task_name}")
-    result = subprocess.run(
-        ["ollama", "run", OLLAMA_MODEL, prompt],
-        capture_output=True, text=True, timeout=300
-    )
-    if result.returncode != 0:
-        log(f"Task failed: {task_name} — {result.stderr[:200]}")
-        return ""
-    log(f"Task complete: {task_name}")
-    return result.stdout
 
 STAGING_DIR = Path("docs/staging")
 DONE_DIR = STAGING_DIR / "done"
@@ -687,7 +667,7 @@ def main():
     update_agent_status(
         "background-worker", status="idle",
         last_action="Worker started",
-        role="Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
+        role="Resource/formation observers + leftover run_complete-marker sweep, every 30 min",
         produces="docs/observability/background-worker-log.md",
     )
 
@@ -750,33 +730,7 @@ def main():
 
         beat_liveness()
 
-        if is_peak_hours():
-            now = datetime.now(timezone.utc)
-            log(f"Peak hours (16:00-19:00 GMT) — pausing. Current time: {now.strftime('%H:%M UTC')}")
-            update_agent_status("background-worker", status="idle", last_action=f"Peak hours pause — {now.strftime('%H:%M UTC')}", is_heartbeat=True)
-            time.sleep(60 * 15)  # check every 15min during peak
-            continue
-
-        # Read task queue
-        if not TASKS_FILE.exists():
-            log("No background-tasks.md found — sleeping")
-            update_agent_status("background-worker", status="idle", last_action="No task queue found — sleeping", is_heartbeat=True)
-            time.sleep(60 * CHECK_INTERVAL_MINUTES)
-            continue
-
-        tasks_content = TASKS_FILE.read_text()
-        if "## QUEUED" not in tasks_content:
-            log("No queued tasks — sleeping")
-            update_agent_status("background-worker", status="idle", last_action="No queued tasks — sleeping", is_heartbeat=True)
-            time.sleep(60 * CHECK_INTERVAL_MINUTES)
-            continue
-
-        log("Found queued tasks — beginning execution")
-        update_agent_status("background-worker", status="working", last_action="Executing queued tasks")
-        # Tasks are executed by the individual task scripts (see below)
-        # This worker just triggers them and logs completion
-        exec(open("background/run_queued_tasks.py").read(), globals())
-        update_agent_status("background-worker", status="idle", last_action="Task batch complete")
+        update_agent_status("background-worker", status="idle", last_action="Sweep complete — sleeping", is_heartbeat=True)
         time.sleep(60 * CHECK_INTERVAL_MINUTES)
 
 if __name__ == "__main__":
