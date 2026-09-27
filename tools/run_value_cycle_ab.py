@@ -260,6 +260,10 @@ CLOCK_DEFINITIONS = {
 #: consulted the code that produced the figure would be R15's tautology pattern.
 ARM_FIGURE_CLOCKS = {
     "total_net_gbp": "settled-realised",
+    # THE PER-ACCOUNT COLUMN IS THE SAME SUM UNDER THE SAME CLOCK, cut by billing account, and it
+    # carries its own label because a consumer differencing two arms' columns is differencing money
+    # and must be able to read the basis off the block rather than infer it from a sibling key.
+    "net_by_billing_account_gbp": "settled-realised",
     "total_bad_debt_gbp": "settled-realised",
     "final_treasury_gbp": "settled-realised",
     "provisioned_net_gbp": "settled-provisioned",
@@ -316,6 +320,36 @@ def producing_commit() -> dict:
             "these counts needs to know which code drew them, and no diff between two artefacts "
             "can supply that."),
     }
+
+
+def _net_by_billing_account(records: list) -> dict[str, float]:
+    """Settled net margin folded to the BILLING ACCOUNT, which is the unit the join needs.
+
+    SAY WHAT THE THING IS BEFORE DIFFERENCING IT, and the unit here is a decision that moves every
+    reading downstream. Settled records are keyed by CUSTOMER -- `C1` and `C1g` are the electricity
+    and gas legs of one account -- while the arm's own decision log is keyed by BILLING ACCOUNT.
+    `_priced_terms_by_account` already folds one way; anything that wants per-account money against
+    per-account renewal depth has to fold the same way or the two columns are on different
+    populations. A per-fuel-leg column would also split a dual-fuel household's contribution in two
+    (72 of 154 accounts on the 2026-09-18 book are dual fuel), which halves what a concentration
+    reading says about concentration -- the flattering direction, arrived at by not choosing.
+
+    A ROW WITH NO READABLE `customer_id` RAISES rather than being skipped. The whole point of this
+    column is that it sums to `total_net_gbp`; a silently dropped row makes the decomposition
+    disagree with the total it decomposes by an amount nobody can see, and a reader checking the
+    two against each other would find a gap with no named cause.
+    """
+    folded: dict[str, float] = collections.defaultdict(float)
+    for index, record in enumerate(records):
+        customer_id = record.get("customer_id") if isinstance(record, dict) else None
+        if not isinstance(customer_id, str) or not customer_id:
+            raise ValueError(
+                "settled record {} carries no readable `customer_id` ({!r}), so its net margin "
+                "cannot be attributed to an account. Refusing to drop it: the per-account column "
+                "would then no longer sum to `total_net_gbp` and nothing would say by how much."
+                .format(index, customer_id))
+        folded[_billing_account_id(customer_id)] += float(record.get("net_margin_gbp", 0.0) or 0.0)
+    return dict(folded)
 
 
 def realised_metrics(result: dict) -> dict:
@@ -375,9 +409,29 @@ def realised_metrics(result: dict) -> dict:
     realised_net = sum(float(r.get("net_margin_gbp", 0.0) or 0.0) for r in records)
     realised_bad_debt = sum(float(r.get("bad_debt_gbp", 0.0) or 0.0) for r in records)
     realised_treasury = float(records[-1].get("treasury_cash_balance_gbp", 0.0) or 0.0)
+    net_by_account = _net_by_billing_account(records)
 
     return {
         "total_net_gbp": realised_net,
+        # THE SAME SUM, CUT BY BILLING ACCOUNT, and the field `selection_residual_decomposition.
+        # WHAT_IS_MISSING` named as the one thing no artefact on disk carried. `total_net_gbp`
+        # above is `sum(net_by_billing_account_gbp.values())` to floating-point exactly -- the
+        # fold is over the same rows with the same accessor -- and `_net_by_billing_account`
+        # refuses a row whose `customer_id` it cannot read rather than dropping it silently,
+        # because a dropped row would make the column quietly disagree with the total it is a
+        # decomposition of.
+        "net_by_billing_account_gbp": net_by_account,
+        # THE D2 DEPTH VECTOR, on the same key as the column above, so depth is a REGRESSOR
+        # against per-account money instead of the seed-level constant it has been. Counted as
+        # DISTINCT PRICED TERM STARTS per billing account and NOT as log entries: a decline
+        # leaves the rate untouched, so it is not a renewal this arm priced, and `renewals_priced_
+        # by_the_arm` below (which counts every log row, declines included) is deliberately a
+        # different and larger number. Empty on the control arm, which prices nothing -- that is
+        # a real zero, not a missing reading, and the arm's own `renewals_priced_by_the_arm` says
+        # so on the same block.
+        "renewals_priced_by_account": {
+            account: len(terms) for account, terms
+            in _priced_terms_by_account(phase2b.get("value_arm_log") or []).items()},
         # GROSS, and named for it (R14: no financial figure without its basis). This is revenue
         # minus wholesale, before levies, network, capital and bad debt -- the same basis
         # `simulation/portfolio_pnl.py` uses, and NOT the net line above.
@@ -4554,6 +4608,225 @@ def control_credibility() -> dict:
     }
 
 
+#: How many per-account rows the concentration block names individually. A file-size bound and
+#: nothing else -- every count and share below is taken over the WHOLE column, never over this
+#: slice, so raising or lowering it cannot move a published number.
+_SELECTION_MOVERS_SHOWN = 12
+
+#: Below this many accounts the depth-against-money rank correlation is not reported at all. A
+#: Spearman rho over a handful of points is a statistic whose null is wider than any statement it
+#: could support, and publishing one with an interval nobody reads is how a figure without its
+#: sample size gets quoted. `None` plus a named reason instead.
+_MIN_ACCOUNTS_FOR_A_RANK_READING = 8
+
+
+def selection_by_account(value_m: dict, level_m: dict) -> dict:
+    """The residual, cut by BILLING ACCOUNT -- the column `selection_gbp` has never had.
+
+    WHY THIS IS THE ONE FIELD THAT UNBLOCKS THE ATTRIBUTION.
+    `tools/selection_residual_decomposition.py` established (2026-09-27, commit `d678f063a`) that
+    renewal count explains NONE of the seed-to-seed variance in `selection_gbp` -- best of eleven
+    pre-registered regressors R2 0.0284 against a permutation null whose median best-of-eleven is
+    0.0971, p 0.8245 -- and that 99.84% of the variance is the LEVEL arm's own net moving as a
+    two-state SWITCH, GBP 5,387.65 apart, firing in 4 of 18 elasticity draws. None of the 14 fields
+    the shard records has disjoint ranges between the two states. So the residual could not be
+    attributed any further from any artefact on disk: `selection_gbp` is one scalar per seed and no
+    per-account money existed anywhere. Both sides of this subtraction were computed in every run
+    and thrown away when `realised_metrics` folded them to `total_net_gbp`.
+
+    THE SUM IS CHECKED AGAINST THE SCALAR IT DECOMPOSES, and that check is the only thing standing
+    between this block and a column that looks like an attribution while being about a different
+    population. `selection_gbp` is `(value_net - control_net) - (level_net - control_net)`, in which
+    the control arm cancels exactly, so the identity is `sum(column) == value_net - level_net` and
+    it must hold to floating-point tolerance. It RAISES, because a column off by a few hundred
+    pounds is exactly what a reader would take at face value.
+
+    THE UNION, NOT THE INTERSECTION, AND THE ROSTER-ONLY ACCOUNTS ARE COUNTED SEPARATELY. An
+    account that settles in one arm and not the other is not missing data -- it is an account whose
+    departure the arms timed differently, and that difference IS part of the selection figure. So
+    an absent side contributes GBP 0 of settled net and the account appears in the column. But the
+    two causes have OPPOSITE remedies and must not be summed into one number without being
+    separable: a per-renewal repricing difference on a shared account shrinks as the book deepens,
+    while a whole-account roster difference is one coin flip whose size does not fall with book
+    depth at all. `roster_difference` below is that split.
+
+    CONCENTRATION IS TAKEN OVER ABSOLUTE CONTRIBUTIONS AND SAYS SO. The signed contributions sum to
+    the residual, which is small and frequently near zero, so a share OF it is a divide by a
+    rounding error dressed as a percentage -- R15's fail-open, a number that appears whatever the
+    inputs were. `sum(|c|)` is the gross movement between the two arms' books and is the honest
+    denominator; `gross_to_net_ratio` is then the amount of cancellation, and it is the reading that
+    decides the director's question. The 1/k book-depth ladder in
+    `selection_residual_decomposition.seeds_needed_under_a_deeper_book` assumes per-account
+    contributions are independent, so that sd scales as sqrt(k) while the mean scales as k. If
+    `effective_accounts` is a handful out of a settled book of ~150, that premise is false and a
+    k-fold deeper book of similar households buys far less than the ladder claims.
+    """
+    value_net = value_m.get("net_by_billing_account_gbp")
+    level_net = level_m.get("net_by_billing_account_gbp")
+    if not isinstance(value_net, dict) or not isinstance(level_net, dict):
+        return {
+            "available": False,
+            "why_not": (
+                "one of the arms carries no `net_by_billing_account_gbp`. This run predates the "
+                "per-account column (added 2026-09-27) and the residual cannot be attributed to "
+                "accounts from it. Re-run; do not substitute the seed-level scalar."),
+        }
+    accounts = sorted(set(value_net) | set(level_net))
+    column = {a: float(value_net.get(a, 0.0)) - float(level_net.get(a, 0.0)) for a in accounts}
+    residual = sum(column.values())
+    identity = float(value_m["total_net_gbp"]) - float(level_m["total_net_gbp"])
+    # A TOLERANCE ON THE MONEY, NOT ON THE RATIO. These are sums of ~10^5 GBP of float addition in
+    # two different orders, so exact equality is not owed; a penny is far below anything this
+    # artefact reports and far above the accumulated rounding of a few hundred thousand additions.
+    if abs(residual - identity) > 0.01:
+        raise AssertionError(
+            "the per-account column sums to GBP {:,.6f} but `value_net - level_net` is "
+            "GBP {:,.6f} -- a gap of GBP {:,.6f}. The column is therefore not a decomposition of "
+            "the residual it is published beside, and publishing it would invite exactly the "
+            "attribution it cannot support.".format(residual, identity, residual - identity))
+
+    gross = sum(abs(c) for c in column.values())
+    only_value = sorted(set(value_net) - set(level_net))
+    only_level = sorted(set(level_net) - set(value_net))
+    roster_only = set(only_value) | set(only_level)
+    roster_gbp = sum(column[a] for a in roster_only)
+    shared_gbp = residual - roster_gbp
+
+    ranked = sorted(column.items(), key=lambda kv: -abs(kv[1]))
+    # THE SMALLEST SET OF ACCOUNTS HOLDING 90% OF THE GROSS MOVEMENT. Counted by walking the ranked
+    # column, so it is a fact about this run's distribution and not a threshold applied to a
+    # summary statistic that assumed a shape.
+    cumulative, accounts_for_90pc = 0.0, 0
+    for _, contribution in ranked:
+        if gross <= 0 or cumulative >= 0.9 * gross:
+            break
+        cumulative += abs(contribution)
+        accounts_for_90pc += 1
+
+    # `abs()` INSIDE THE SQUARE IS COSMETIC AND THAT IS RECORDED RATHER THAN LEFT TO THE READER:
+    # `(-x)**2 == x**2`, so the R15 mutation that drops it is an EQUIVALENCE and cannot fire. The
+    # load-bearing choice is the DENOMINATOR -- `gross`, not the signed residual, which on a book of
+    # offsetting flows reports fewer than one effective account. That one is mutation-proven
+    # (`test_the_concentration_statistic_stays_inside_the_range_a_count_of_accounts_can_have`).
+    herfindahl = (sum((abs(c) / gross) ** 2 for c in column.values()) if gross > 0 else None)
+    depth = {}
+    for arm_name, arm in (("value_arm", value_m), ("level_arm", level_m)):
+        priced = arm.get("renewals_priced_by_account")
+        depth[arm_name] = priced if isinstance(priced, dict) else None
+
+    return {
+        "available": True,
+        "unit": "billing account (dual-fuel legs collapsed by `saas.customer_reaction."
+                "_billing_account_id`, the same fold `_priced_terms_by_account` uses)",
+        "clock": "settled-realised",
+        "definition": ("`value_arm_net - level_arm_net` per billing account. The control arm "
+                       "cancels out of `selection_gbp` exactly, so it does not appear here."),
+        "accounts_in_the_union": len(accounts),
+        # THE COLUMN ITSELF. Published rather than summarised, because the reading that names the
+        # two-state switch is a DIFF between two seeds' columns and a summary cannot be differenced.
+        "column": column,
+        "residual_gbp": residual,
+        "gross_absolute_movement_gbp": gross,
+        # HOW MUCH CANCELLATION THERE IS, which is the reading the independence premise turns on.
+        # A ratio near 1 means the residual IS the movement; a large ratio means it is the small
+        # difference of large offsetting per-account flows, and then the seed-to-seed sd is about
+        # those flows and not about the residual's own size.
+        "gross_to_net_ratio": (gross / abs(residual)) if abs(residual) > 1.0 else None,
+        "gross_to_net_undefined_reason": (
+            None if abs(residual) > 1.0 else
+            "the residual is under GBP 1 -- a ratio to it would be a divide by a rounding error"),
+        "herfindahl_of_absolute_contribution": herfindahl,
+        "effective_accounts": (1.0 / herfindahl) if herfindahl else None,
+        "accounts_holding_90pc_of_gross_movement": accounts_for_90pc,
+        "largest_single_contribution_gbp": (ranked[0][1] if ranked else None),
+        "largest_single_account": (ranked[0][0] if ranked else None),
+        "largest_share_of_gross": (abs(ranked[0][1]) / gross if ranked and gross > 0 else None),
+        "top_contributors": [
+            {"account": a, "selection_gbp": c,
+             "share_of_gross": (abs(c) / gross if gross > 0 else None),
+             "value_arm_net_gbp": value_net.get(a),
+             "level_arm_net_gbp": level_net.get(a),
+             "in_both_arms": a in value_net and a in level_net,
+             "renewals_priced_value_arm": (depth["value_arm"] or {}).get(a),
+             "renewals_priced_level_arm": (depth["level_arm"] or {}).get(a)}
+            for a, c in ranked[:_SELECTION_MOVERS_SHOWN]],
+        "top_contributors_shown": min(len(ranked), _SELECTION_MOVERS_SHOWN),
+        # THE TWO CAUSES, SPLIT, because they imply opposite remedies. See the docstring.
+        "roster_difference": {
+            "accounts_only_in_the_value_arm": only_value,
+            "accounts_only_in_the_level_arm": only_level,
+            "accounts_in_one_arm_only": len(roster_only),
+            "gbp_from_accounts_in_one_arm_only": roster_gbp,
+            "gbp_from_accounts_in_both_arms": shared_gbp,
+            "share_of_residual_from_roster_difference": (
+                roster_gbp / residual if abs(residual) > 1.0 else None),
+            "what_it_means": (
+                "An account here settled in one arm's book and not the other's, so the arms timed "
+                "its departure differently. That is a real part of the residual and not missing "
+                "data -- but it is ONE coin flip whose size does not fall as the book deepens, "
+                "whereas the shared-account half is a repricing difference that does."),
+        },
+        "depth_by_account": depth,
+        "depth_against_money": _depth_against_money(column, depth["value_arm"]),
+        "how_to_read_this": (
+            "`residual_gbp` is `level_vs_selection.selection_gbp` re-derived from the column, and "
+            "it is asserted equal to it. Read `gross_to_net_ratio` and `effective_accounts` "
+            "TOGETHER: they say whether the residual is a broad aggregate of many accounts' small "
+            "repricings -- in which case a deeper book buys the 1/k the seeds-needed ladder claims "
+            "-- or a handful of large offsetting flows, in which case it does not."),
+    }
+
+
+def _depth_against_money(column: dict, priced_by_account: dict | None) -> dict:
+    """Does an account's PRICED RENEWAL DEPTH predict how much of the residual it carries?
+
+    THE QUESTION THE SEED-LEVEL DECOMPOSITION COULD NOT ASK. At the seed level `accounts_with_5_or_
+    more_decisions` is literally constant across all 18 seeds -- a regressor with no variance
+    explains nothing at any sample size, which is a fact about the instrument and not about depth.
+    Per account there IS variance, so this is the first version of the director's book-depth
+    hypothesis that the data can actually refute.
+
+    RANK, NOT LINEAR, AND OVER THE ABSOLUTE CONTRIBUTION. The hypothesis is that a deeper account
+    gives a pricing choice more room to compound, which is a claim about MAGNITUDE and not about
+    sign -- an account whose depth let the value arm lose more is just as much evidence for
+    compounding as one where it won more. A linear fit would also be dominated by whichever single
+    account carries the largest flow, which is the thing being measured rather than a control on it.
+
+    FAILS CLOSED UNDER `_MIN_ACCOUNTS_FOR_A_RANK_READING`, and names which of the two reasons.
+    """
+    if not isinstance(priced_by_account, dict):
+        return {"available": False,
+                "why_not": "the value arm carries no `renewals_priced_by_account` on this run"}
+    pairs = [(priced_by_account[a], abs(c)) for a, c in column.items() if a in priced_by_account]
+    if len(pairs) < _MIN_ACCOUNTS_FOR_A_RANK_READING:
+        return {"available": False,
+                "why_not": ("only {} account(s) appear in both the column and the priced roster; "
+                            "a rank correlation over fewer than {} points has a null wider than "
+                            "any statement it could support".format(
+                                len(pairs), _MIN_ACCOUNTS_FOR_A_RANK_READING))}
+    depths = [float(d) for d, _ in pairs]
+    monies = [m for _, m in pairs]
+    if len(set(depths)) < 2:
+        return {"available": False,
+                "why_not": ("every one of the {} priced accounts faces the same number of priced "
+                            "renewals ({:.0f}) on this run, so depth has no variance here and "
+                            "cannot explain any -- the same degeneracy the seed-level regressors "
+                            "hit, one cut down".format(len(pairs), depths[0]))}
+    rho, p_value = stats.spearmanr(depths, monies)
+    return {
+        "available": True,
+        "accounts": len(pairs),
+        "spearman_rho": float(rho),
+        "p_value": float(p_value),
+        "depth_range": [min(depths), max(depths)],
+        "what_it_tests": (
+            "whether an account facing more priced renewals carries more of the residual in "
+            "absolute terms. Positive and large is the director's book-depth hypothesis holding "
+            "per account; near zero refutes it on this book at this depth range -- and the range "
+            "is published because a rho over depths 1 to 3 says nothing about depth 20."),
+    }
+
+
 def level_vs_selection(control_m: dict, value_m: dict, level_m: dict | None,
                        level_gbp_per_mwh: float | None) -> dict:
     """Split the value arm's advantage into the LEVEL it priced at and the SELECTION it made.
@@ -4625,6 +4898,9 @@ def level_vs_selection(control_m: dict, value_m: dict, level_m: dict | None,
         # ranks worse than chance cannot select profitably, and that is a RESULT, not a defect
         # to tune away (R12).
         "selection_gbp": selection_gbp,
+        # THE SAME RESIDUAL, CUT BY BILLING ACCOUNT, and its sum is asserted against the scalar
+        # above rather than assumed. See `selection_by_account`.
+        "by_account": selection_by_account(value_m, level_m),
         "level_share_of_advantage": share,
         "share_undefined_reason": (
             None if share is not None else
@@ -6118,6 +6394,13 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 "seed {}: the `{}` leg held NO household fixed, so it is the undecomposed floor "
                 "wearing a decomposed label.".format(seed, redraw_mode))
         lvs = result["level_vs_selection"]
+        #: THE PER-ACCOUNT CUT OF THIS SEED'S RESIDUAL. `.get` and not a subscript: a floor folded
+        #: from members run before 2026-09-27 will not have it, and the row publishes None plus the
+        #: block's own stated reason rather than refusing a family whose other columns are fine.
+        by_account = lvs.get("by_account") or {
+            "available": False,
+            "why_not": ("this run's `level_vs_selection` carries no `by_account` block -- it "
+                        "predates the per-account column added 2026-09-27")}
         #: NOT REQUIRED TO BE AVAILABLE, unlike the split above. A run whose belief could not be
         #: scored still produced a real advantage, and refusing the whole floor for a missing AUC
         #: would throw away the leg the family exists to measure. The row says so instead.
@@ -6191,6 +6474,61 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             "control_net_gbp": lvs["control_net_gbp"],
             "value_arm_net_gbp": lvs["value_arm_net_gbp"],
             "level_arm_net_gbp": lvs["level_arm_net_gbp"],
+            # THE RESIDUAL CUT BY BILLING ACCOUNT, PER SEED. Added 2026-09-27, and the reason no
+            # artefact on disk can say WHICH accounts the two-state switch in
+            # `SEAT_RESULT_RENEWAL_COUNT_EXPLAINS_NONE_OF_THE_SELECTION_RESIDUAL...2026-09-27`
+            # lives in: the row carried three seed-level nets and no per-account money, so a
+            # GBP 5,387.65 state distance firing in 4 of 18 draws had nothing to be attributed to.
+            #
+            # THE WHOLE COLUMN, NOT A TOP-N SLICE, for the reason `scored_decisions` below keeps
+            # every ranking: the diff that names the event is between TWO SEEDS' columns, and a
+            # top-12 slice per seed cannot be differenced (an account large in one state and
+            # absent from the other's slice reads as a large move when it may be a small one).
+            # ~150 floats per seed against a floor leg that costs ~26 minutes to re-draw.
+            #
+            # WRITTEN AS None PLUS A REASON, never as an empty dict, when the arms carry no
+            # per-account column -- an empty column and an unrecorded one would otherwise be the
+            # same bytes, and a consumer differencing two empty columns gets a clean zero.
+            "selection_by_account_gbp": (by_account.get("column")
+                                         if by_account.get("available") else None),
+            "selection_by_account_unavailable_because": (
+                None if by_account.get("available") else by_account.get("why_not")),
+            # THE TWO COLUMNS THE ONE ABOVE IS THE DIFFERENCE OF, for exactly the reason the three
+            # seed-level NETS were added to this row on 2026-09-24: a difference whose two terms are
+            # both absent cannot say which term moved. `d678f063a` established that 99.84% of the
+            # residual's variance is the LEVEL arm's net, so the question the two-seed diff has to
+            # answer per account is "did THIS account's level-arm net move, or its value-arm one" --
+            # and the difference column alone cannot tell those apart. Read from the arms' own
+            # blocks, not re-folded here, so the row and the artefact cannot drift.
+            "value_arm_net_by_account_gbp": (
+                (result.get("value_arm") or {}).get("net_by_billing_account_gbp")),
+            "level_arm_net_by_account_gbp": (
+                (result.get("level_arm") or {}).get("net_by_billing_account_gbp")),
+            # THE D2 DEPTH VECTOR ON THE SAME KEY, so depth is a per-account REGRESSOR on this row
+            # instead of the seed-level constant that explained nothing. Value arm only: the level
+            # arm prices the same population by construction since 2026-09-18
+            # (`decision_population.same_priced_population`), and the block above publishes both.
+            "renewals_priced_by_account": (
+                (by_account.get("depth_by_account") or {}).get("value_arm")
+                if by_account.get("available") else None),
+            # THE CONCENTRATION SUMMARY, so a reader can see the shape without re-folding the
+            # column. Every figure here is taken over the WHOLE column by
+            # `selection_by_account`, not over the slice it prints.
+            "selection_concentration": (
+                {k: by_account.get(k) for k in (
+                    "accounts_in_the_union", "gross_absolute_movement_gbp", "gross_to_net_ratio",
+                    "herfindahl_of_absolute_contribution", "effective_accounts",
+                    "accounts_holding_90pc_of_gross_movement", "largest_single_account",
+                    "largest_single_contribution_gbp", "largest_share_of_gross")}
+                if by_account.get("available") else None),
+            "selection_roster_difference": (
+                {k: (by_account.get("roster_difference") or {}).get(k) for k in (
+                    "accounts_in_one_arm_only", "accounts_only_in_the_value_arm",
+                    "accounts_only_in_the_level_arm", "gbp_from_accounts_in_one_arm_only",
+                    "gbp_from_accounts_in_both_arms")}
+                if by_account.get("available") else None),
+            "selection_depth_against_money": (
+                by_account.get("depth_against_money") if by_account.get("available") else None),
             # WHICH DECISION SET THIS SEED'S RESIDUAL WAS TAKEN OVER -- see
             # `priced_decision_fingerprint` for why a family's sd is not entitled to its seed
             # count. None where the seed measured no belief, which is UNKNOWN and not agreement.

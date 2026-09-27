@@ -477,10 +477,16 @@ def _full_arm(**overrides):
         "provisioned_total_bad_debt": 12.0,
         "provisioned_final_treasury": 1_150.0,
         "value_arm_log": [{}, {}],
+        # THE TWO ROWS ARE THE TWO FUEL LEGS OF ONE ACCOUNT, and that is deliberate: the
+        # per-account column folds `Ag` into `A`, so the fixture that proves the totals also
+        # proves the fold. Added 2026-09-27 with `net_by_billing_account_gbp` -- these rows
+        # carried no `customer_id` at all, which no real settlement record does
+        # (`simulation/run_phase1e.py:436` subscripts it unguarded) and which the column now
+        # refuses rather than silently dropping.
         "all_records": [
-            {"net_margin_gbp": 700.0, "bad_debt_gbp": 2.0,
+            {"customer_id": "A", "net_margin_gbp": 700.0, "bad_debt_gbp": 2.0,
              "treasury_cash_balance_gbp": 1_400.0},
-            {"net_margin_gbp": 500.0, "bad_debt_gbp": 1.0,
+            {"customer_id": "Ag", "net_margin_gbp": 500.0, "bad_debt_gbp": 1.0,
              "treasury_cash_balance_gbp": 1_450.0},
         ],
     }
@@ -496,6 +502,8 @@ def test_realised_metrics_reports_what_the_world_did():
     assert metrics["total_gross_margin_gbp"] == 5_000.0
     assert metrics["churned_accounts"] == 1
     assert metrics["renewals_priced_by_the_arm"] == 2
+    # The same money, cut by billing account, with both fuel legs folded into one account.
+    assert metrics["net_by_billing_account_gbp"] == {"A": 1_200.0}
 
 
 def test_the_net_margin_is_summed_from_the_rows_not_read_off_the_frozen_summary():
@@ -3828,3 +3836,251 @@ def test_a_run_without_a_level_arm_says_so_rather_than_reporting_zero_joins():
         "that priced none of them: " + json.dumps(block["level_arm_priced_the_same_renewal"]))
     assert block["level_arm_join_unavailable_because"], block
     assert block["renewals"][0]["level_arm_priced_this_renewal"] is None, block["renewals"][0]
+
+
+# ---------------------------------------------------------------------------
+# selection_by_account — the per-account cut of the residual, added 2026-09-27
+#
+# WHY THIS BLOCK EXISTS AND WHAT ITS DEFECT WOULD LOOK LIKE. `selection_gbp` was a seed-level
+# scalar, so `SEAT_RESULT_RENEWAL_COUNT_EXPLAINS_NONE_OF_THE_SELECTION_RESIDUAL_AND_THE_VARIANCE_
+# IS_ONE_DISCRETE_EVENT_IN_THE_LEVEL_ARM_2026-09-27` could establish that 99.84% of its variance
+# is a two-state switch GBP 5,387.65 wide and could not say which accounts the switch lives in --
+# no per-account money existed in any artefact. The column closes that, and the failure mode it
+# invites is the one this project has published before: a column that looks like a decomposition
+# of the residual while being about a different population. Every control below is keyed to that.
+# ---------------------------------------------------------------------------
+
+
+def _by_account_arm(nets: dict, priced: dict | None = None) -> dict:
+    """An arm reduced to the two fields `selection_by_account` reads, at real-shaped magnitudes.
+
+    NOT a `_full_arm()`: this exercises `selection_by_account` directly, and building it through
+    `realised_metrics` would make every assertion below depend on the fixture's frozen scalars too.
+    `total_net_gbp` is summed here for the same reason the production block does -- the identity
+    assertion is the whole control, so a fixture whose total did not match its own column would be
+    testing the assertion against itself.
+    """
+    arm = {"net_by_billing_account_gbp": dict(nets), "total_net_gbp": sum(nets.values())}
+    if priced is not None:
+        arm["renewals_priced_by_account"] = dict(priced)
+    return arm
+
+
+def test_the_column_sums_to_the_residual_it_is_published_beside():
+    value = _by_account_arm({"A": 5_000.0, "B": 3_000.0, "C": 1_000.0})
+    level = _by_account_arm({"A": 4_800.0, "B": 3_300.0, "C": 900.0})
+    block = rvca.selection_by_account(value, level)
+    assert block["available"] is True
+    assert block["residual_gbp"] == pytest.approx(0.0, abs=1e-9)
+    assert block["column"] == {"A": 200.0, "B": -300.0, "C": 100.0}
+    # ...and the gross movement is NOT the residual. A column that reported only the net would say
+    # these two books are identical, which is the reading the whole block exists to prevent.
+    assert block["gross_absolute_movement_gbp"] == pytest.approx(600.0)
+
+
+def test_a_column_that_does_not_sum_to_its_own_arms_totals_REFUSES():
+    """THE ONE CONTROL THE WHOLE BLOCK RESTS ON, and its defect is silent by construction.
+
+    A column summing to something other than `value_net - level_net` is a decomposition of a
+    different population -- an arm whose rows were filtered, or a fold that dropped an account --
+    and it would be read as the attribution it is not. There is no cheap outward symptom: the
+    numbers are all plausible pounds. So it raises, naming both sides and the gap.
+    """
+    value = _by_account_arm({"A": 5_000.0})
+    level = _by_account_arm({"A": 4_800.0})
+    value["total_net_gbp"] = 9_999.0          # as if the arm's rows and its column disagreed
+    with pytest.raises(AssertionError, match="not a decomposition"):
+        rvca.selection_by_account(value, level)
+
+
+def test_an_arm_predating_the_column_is_unavailable_with_a_reason_not_an_empty_column():
+    """R15 FAIL-OPEN. An empty column and an unrecorded one are the same bytes, and differencing
+    two empty columns gives a clean zero -- "no account moved", the most reassuring wrong answer
+    available. The refusal names the run's age so the reader knows to re-run rather than believe."""
+    block = rvca.selection_by_account({"total_net_gbp": 1.0}, _by_account_arm({"A": 1.0}))
+    assert block["available"] is False
+    assert "predates" in block["why_not"], block["why_not"]
+
+
+def test_an_account_settling_in_one_arm_only_is_carried_and_split_out_as_a_ROSTER_difference():
+    """The two causes have OPPOSITE remedies, so they must be separable on the block.
+
+    A repricing difference on a shared account shrinks as the book deepens; a whole-account
+    roster difference is one coin flip whose size does not. Summing them into one residual with
+    no split is how a bound gets quoted for a mechanism it does not describe.
+    """
+    value = _by_account_arm({"A": 5_000.0, "GONE": 4_000.0})
+    level = _by_account_arm({"A": 4_800.0})
+    block = rvca.selection_by_account(value, level)
+    roster = block["roster_difference"]
+    assert block["column"]["GONE"] == 4_000.0, "an absent side must contribute its arm's whole net"
+    assert roster["accounts_only_in_the_value_arm"] == ["GONE"]
+    assert roster["accounts_only_in_the_level_arm"] == []
+    assert roster["gbp_from_accounts_in_one_arm_only"] == pytest.approx(4_000.0)
+    assert roster["gbp_from_accounts_in_both_arms"] == pytest.approx(200.0)
+    # The two halves partition the residual, which is what makes the split a decomposition.
+    assert (roster["gbp_from_accounts_in_one_arm_only"]
+            + roster["gbp_from_accounts_in_both_arms"]) == pytest.approx(block["residual_gbp"])
+
+
+def test_the_concentration_reading_separates_one_big_account_from_a_diffuse_book():
+    """THE READING THE DIRECTOR'S QUESTION TURNS ON, and it is asserted as a CONTRAST.
+
+    `selection_residual_decomposition.seeds_needed_under_a_deeper_book` reports seeds falling as
+    1/k under a k-fold book, which assumes per-account contributions are independent so the mean
+    scales with k and the sd with sqrt(k). A control pinned to today's Herfindahl would go red
+    when the book changed; this pins the PROPERTY -- that a book carried by one account reads as
+    concentrated and a book of equal small movers does not, over the same number of accounts.
+    """
+    n = 40
+    diffuse_v = {f"A{i}": 1_000.0 + i for i in range(n)}
+    diffuse_l = {f"A{i}": 1_000.0 for i in range(n)}
+    spread = rvca.selection_by_account(_by_account_arm(diffuse_v), _by_account_arm(diffuse_l))
+
+    concentrated_v = dict(diffuse_l)
+    concentrated_v["A0"] += 5_387.65
+    pinned = rvca.selection_by_account(_by_account_arm(concentrated_v), _by_account_arm(diffuse_l))
+
+    assert pinned["herfindahl_of_absolute_contribution"] > 10 * spread[
+        "herfindahl_of_absolute_contribution"], (
+        "a residual carried by ONE account did not read as more concentrated than the same "
+        "residual spread over {} of them".format(n))
+    assert pinned["effective_accounts"] < 2 < spread["effective_accounts"]
+    assert pinned["accounts_holding_90pc_of_gross_movement"] == 1
+    assert pinned["largest_single_account"] == "A0"
+    assert pinned["largest_single_contribution_gbp"] == pytest.approx(5_387.65)
+    # ...and the diffuse book is not reported as concentrated by a statistic that always reads high.
+    assert spread["accounts_holding_90pc_of_gross_movement"] > n // 2, spread
+    # NINETY PERCENT AND NOT ALL OF IT, which is the whole content of the field's name. On a book
+    # of equal small movers a 100%-threshold walk returns EVERY account and every assertion above
+    # still passes, so this is the only leg that distinguishes the two -- and it is keyed to the
+    # property (a 90% cut leaves a tail out) rather than to the 27 this fixture happens to give.
+    assert spread["accounts_holding_90pc_of_gross_movement"] < spread["accounts_in_the_union"], (
+        "the 90% walk named every account in the book, so it is a 100% walk wearing a 90% label")
+
+
+@pytest.mark.parametrize("book", [
+    # positive-only, negative-only, and mixed -- the mixed case is the one that has teeth.
+    ({"A": 3_000.0, "B": 100.0}, {"A": 1_000.0, "B": 90.0}),
+    ({"A": 1_000.0, "B": 90.0}, {"A": 3_000.0, "B": 100.0}),
+    ({"A": 11_000.0, "B": 1_000.0}, {"A": 1_000.0, "B": 9_000.0}),
+])
+def test_the_concentration_statistic_stays_inside_the_range_a_count_of_accounts_can_have(book):
+    """KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER, and it is the leg that fixes the denominator.
+
+    `effective_accounts` is `1/H` and it is a COUNT OF ACCOUNTS, so it can only lie between 1 and
+    the size of the book. Every plausible wrong denominator leaves that range: over the SIGNED
+    residual a book with offsetting flows reports `effective_accounts` of 0.02 -- fewer than one
+    account -- and over the number of accounts it exceeds the book. A control pinned to a
+    particular Herfindahl would go red the moment the book changed and would say nothing about
+    either error; this cannot pass with the wrong denominator on any book.
+    """
+    value, level = book
+    block = rvca.selection_by_account(_by_account_arm(value), _by_account_arm(level))
+    h = block["herfindahl_of_absolute_contribution"]
+    assert 0.0 < h <= 1.0, h
+    assert 1.0 <= block["effective_accounts"] <= block["accounts_in_the_union"], block
+
+
+def test_contributors_are_ranked_by_ABSOLUTE_movement_so_a_large_LOSS_is_a_mover():
+    """An account where the value arm lost GBP 5,000 carries as much of the residual as one where
+    it won GBP 5,000, and a signed ranking hides exactly the half of the book that makes the
+    residual negative -- which is the sign the published figure has had. `margin_movers` already
+    holds this property one function along; the per-account column needs its own leg or a signed
+    sort passes every other test in this block, all of whose fixtures move one way."""
+    value = _by_account_arm({"BIGLOSS": 1_000.0, "small": 2_100.0, "BIGWIN": 4_000.0})
+    level = _by_account_arm({"BIGLOSS": 9_000.0, "small": 2_000.0, "BIGWIN": 1_000.0})
+    block = rvca.selection_by_account(value, level)
+    ranked = [row["account"] for row in block["top_contributors"]]
+    assert ranked == ["BIGLOSS", "BIGWIN", "small"], ranked
+    assert block["largest_single_account"] == "BIGLOSS"
+    assert block["largest_single_contribution_gbp"] == pytest.approx(-8_000.0)
+    # ...and the 90% walk counts the same way: two accounts hold 11,000 of the 11,100 gross.
+    assert block["accounts_holding_90pc_of_gross_movement"] == 2
+
+
+def test_a_residual_near_zero_reports_no_gross_to_net_ratio_and_says_why():
+    """R15 FAIL-OPEN: a ratio to a rounding error is a number that appears whatever the inputs
+    were, and it would be the largest figure on the block every time the arms nearly tied."""
+    value = _by_account_arm({"A": 1_000.5, "B": 2_000.0})
+    level = _by_account_arm({"A": 1_000.0, "B": 2_000.0})
+    block = rvca.selection_by_account(value, level)
+    assert block["gross_to_net_ratio"] is None
+    assert "rounding error" in block["gross_to_net_undefined_reason"]
+    # The column itself stays readable -- the refusal is on the ratio, not on the attribution.
+    assert block["column"] == {"A": 0.5, "B": 0.0}
+
+
+def test_the_ratio_says_how_much_cancellation_a_small_residual_is_hiding():
+    """The reading P5 of the 2026-09-27 pre-registration is about: a residual that is the small
+    difference of large offsetting flows has a seed-to-seed sd about those flows, not about its
+    own size, and nothing on the row said so before this field."""
+    value = _by_account_arm({"A": 11_000.0, "B": 1_000.0})
+    level = _by_account_arm({"A": 1_000.0, "B": 9_000.0})
+    block = rvca.selection_by_account(value, level)
+    assert block["residual_gbp"] == pytest.approx(2_000.0)
+    assert block["gross_absolute_movement_gbp"] == pytest.approx(18_000.0)
+    assert block["gross_to_net_ratio"] == pytest.approx(9.0)
+
+
+def test_depth_against_money_is_a_rank_reading_and_fails_closed_on_a_constant_depth():
+    """THE DEGENERACY THAT MADE THE SEED-LEVEL ANSWER A FACT ABOUT THE INSTRUMENT, one cut down.
+
+    Two of the eleven seed-level depth regressors were literally constant across all 18 seeds, so
+    their R2 of zero said nothing about depth. A per-account rho over a constant depth column is
+    the same defect -- and `scipy.stats.spearmanr` returns `nan` there rather than raising, which
+    would be published as a reading. It must refuse and name the degeneracy.
+    """
+    nets_v = {f"A{i}": 1_000.0 + 10 * i for i in range(12)}
+    nets_l = {f"A{i}": 1_000.0 for i in range(12)}
+    flat = rvca.selection_by_account(
+        _by_account_arm(nets_v, {f"A{i}": 2 for i in range(12)}), _by_account_arm(nets_l))
+    assert flat["depth_against_money"]["available"] is False
+    assert "no variance" in flat["depth_against_money"]["why_not"], flat["depth_against_money"]
+
+    # ...and with depth that DOES vary, and money that rises with it, the reading is available and
+    # positive -- or the refusal above is a ban on the honest answer too.
+    varying = rvca.selection_by_account(
+        _by_account_arm(nets_v, {f"A{i}": 1 + i for i in range(12)}), _by_account_arm(nets_l))
+    assert varying["depth_against_money"]["available"] is True
+    assert varying["depth_against_money"]["spearman_rho"] > 0.9
+    assert varying["depth_against_money"]["depth_range"] == [1.0, 12.0]
+
+
+def test_too_few_joined_accounts_refuses_a_rank_reading_rather_than_publishing_one():
+    """A figure without the bound its sample size earns is worse than no figure."""
+    nets_v = {f"A{i}": 1_000.0 + i for i in range(4)}
+    nets_l = {f"A{i}": 1_000.0 for i in range(4)}
+    block = rvca.selection_by_account(
+        _by_account_arm(nets_v, {f"A{i}": 1 + i for i in range(4)}), _by_account_arm(nets_l))
+    assert block["depth_against_money"]["available"] is False
+    assert "fewer than" in block["depth_against_money"]["why_not"], block["depth_against_money"]
+
+
+def test_a_settled_record_with_no_account_REFUSES_rather_than_dropping_its_money():
+    """The column's whole claim is that it sums to `total_net_gbp`. A dropped row breaks that by
+    an amount nothing reports, and `margin_movers` SKIPS such rows -- so the permissive behaviour
+    is the one already in this file, one function along, and it is the wrong one here."""
+    arm = _full_arm()
+    arm["phase2b"]["all_records"][1] = {"net_margin_gbp": 500.0}
+    with pytest.raises(ValueError, match="cannot be attributed"):
+        realised_metrics(arm)
+
+
+def test_the_depth_vector_counts_priced_terms_and_not_log_rows():
+    """SAY WHAT THE THING IS BEFORE DIFFERENCING IT. `renewals_priced_by_the_arm` counts every log
+    row including declines; `renewals_priced_by_account` counts DISTINCT priced term starts. The
+    two are deliberately different numbers, and a reader who differenced them would be measuring
+    declines plus duplicates and calling it depth."""
+    arm = _full_arm(value_arm_log=[
+        {"customer_id": "A", "term_start": "2020-01-01"},
+        {"customer_id": "A", "term_start": "2021-01-01"},
+        {"customer_id": "A", "term_start": "2021-01-01"},   # the same term, logged twice
+        {"customer_id": "B", "term_start": "2020-01-01", "declined": True},
+    ])
+    metrics = realised_metrics(arm)
+    assert metrics["renewals_priced_by_account"] == {"A": 2}, metrics["renewals_priced_by_account"]
+    assert metrics["renewals_priced_by_the_arm"] == 4
+    # The control arm prices nothing, and an empty vector there is a real zero -- its own
+    # `renewals_priced_by_the_arm` on the same block is what says which.
+    assert realised_metrics(_full_arm(value_arm_log=[]))["renewals_priced_by_account"] == {}

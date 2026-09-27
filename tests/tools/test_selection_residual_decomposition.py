@@ -8,6 +8,7 @@ well-formed table that no reader downstream can tell from a sound one.
 """
 from __future__ import annotations
 
+import json
 import math
 
 import pytest
@@ -306,3 +307,238 @@ def test_the_separation_test_can_find_a_separator_when_one_exists():
     assert "planted" in out["fields_that_separate"]
     assert "flat" not in out["fields_that_separate"]
     assert "separated by" in out["verdict"]
+
+
+# ---------------------------------------------------------------------------
+# account_state_diff — which accounts the two-state switch lives in (2026-09-27)
+# ---------------------------------------------------------------------------
+
+
+def _seed_row(seed, selection, *, column, value_col, level_col,
+              value_net=None, level_net=None):
+    """One floor row carrying the three per-account columns and the two arm nets.
+
+    The nets are DERIVED from the columns by default, because the block asserts the two
+    against each other -- a fixture that set them independently would let the assertion pass
+    on a pair that disagrees, which is the one defect it exists to catch.
+    """
+    return {
+        "seed": seed,
+        "selection_gbp": selection,
+        "value_arm_net_gbp": sum(value_col.values()) if value_net is None else value_net,
+        "level_arm_net_gbp": sum(level_col.values()) if level_net is None else level_net,
+        "selection_by_account_gbp": dict(column),
+        "value_arm_net_by_account_gbp": dict(value_col),
+        "level_arm_net_by_account_gbp": dict(level_col),
+    }
+
+
+def _two_state_family(state_event=5_387.65):
+    """Two seeds, opposite states, IDENTICAL value-arm nets -- the designed contrast.
+
+    This mirrors the real pair the pre-registration picked (11111 and 88888, whose
+    `value_arm_net_gbp` are equal to the penny), so the whole state distance sits in the
+    level arm and the block has to attribute it there.
+    """
+    value_col = {"A": 1_000.0, "B": 2_000.0, "BIG": 3_000.0}
+    level_low = {"A": 900.0, "B": 1_900.0, "BIG": 3_000.0 + state_event}
+    level_high = {"A": 900.0, "B": 1_900.0, "BIG": 3_000.0}
+    low_col = {a: value_col[a] - level_low[a] for a in value_col}
+    high_col = {a: value_col[a] - level_high[a] for a in value_col}
+    return {"seeds": [
+        _seed_row(11111, sum(low_col.values()), column=low_col,
+                  value_col=value_col, level_col=level_low),
+        _seed_row(88888, sum(high_col.values()), column=high_col,
+                  value_col=value_col, level_col=level_high),
+    ]}
+
+
+def test_the_state_diff_names_the_account_and_the_ARM_the_switch_moved_in():
+    """THE WHOLE POINT. `d678f063a` could say 99.84% of the variance was the level arm's net and
+    could not say which account; this must name both, and the arm split is what makes it an
+    attribution rather than a ranking."""
+    block = srd.account_state_diff(_two_state_family())
+    assert block["states"]["low"]["seeds"] == [11111]
+    assert block["states"]["high"]["seeds"] == [88888]
+    assert block["state_distance_gbp"] == pytest.approx(-5_387.65)
+    assert block["of_which_the_value_arm_moved_gbp"] == pytest.approx(0.0)
+    assert block["of_which_the_level_arm_moved_gbp"] == pytest.approx(5_387.65)
+    assert block["largest_single_account"] == "BIG"
+    assert block["largest_single_state_move_gbp"] == pytest.approx(-5_387.65)
+    assert block["accounts_holding_90pc_of_the_state_movement"] == 1
+    top = block["movers"][0]
+    assert top["account"] == "BIG"
+    assert top["value_arm_move_gbp"] == pytest.approx(0.0)
+    assert top["level_arm_move_gbp"] == pytest.approx(5_387.65)
+    assert top["moved_mostly_by"] == "the level arm"
+
+
+def test_the_arm_split_is_asserted_against_the_scalar_and_REFUSES_when_they_disagree():
+    """R15: a per-account attribution taken over two differently-cut states is a plausible table
+    of pounds with nothing wrong on its face. `selection = value - level`, so the identity is
+    checkable, and it must be checked rather than assumed."""
+    fam = _two_state_family()
+    fam["seeds"][0]["level_arm_net_gbp"] += 1_000.0     # as if the scalar and the arms disagreed
+    with pytest.raises(AssertionError, match="disagree about what moved"):
+        srd.account_state_diff(fam)
+
+
+def test_the_per_account_diff_is_asserted_to_sum_to_the_state_distance():
+    fam = _two_state_family()
+    fam["seeds"][0]["selection_by_account_gbp"]["BIG"] += 500.0   # a column that lost an account
+    with pytest.raises(AssertionError, match="state diff sums to"):
+        srd.account_state_diff(fam)
+
+
+def test_a_shard_missing_the_column_REFUSES_and_names_the_seed_and_the_FIELD(tmp_path):
+    """R15 FAIL-OPEN and the reason the loader is separate: a shard folded from members either
+    side of 2026-09-27 carries the column on some seeds and not others, and "no account moved" is
+    what an empty column produces. The refusal has to name which seed and which field."""
+    fam = _two_state_family()
+    fam["seeds"][1]["level_arm_net_by_account_gbp"] = None
+    fam["seeds"][1]["level_arm_net_by_account_gbp_unavailable_because"] = "predates the column"
+    path = tmp_path / "shard.json"
+    path.write_text(json.dumps(fam))
+    with pytest.raises(SystemExit) as excinfo:
+        srd.load_for_account_diff(path)
+    assert "88888" in str(excinfo.value) and "level_arm_net_by_account_gbp" in str(excinfo.value)
+    assert "predates the column" in str(excinfo.value)
+
+
+def test_TWO_seeds_are_enough_here_even_though_load_family_refuses_them(tmp_path):
+    """The looser bound is a decision, not an oversight. `load_family` needs three seeds because a
+    variance decomposition over two points is an interval wider than any statement; this reading is
+    a two-state DIFF, and two draws -- one from each state -- is exactly its design."""
+    path = tmp_path / "shard.json"
+    path.write_text(json.dumps(_two_state_family()))
+    assert len(srd.load_for_account_diff(path)["seeds"]) == 2
+    with pytest.raises(SystemExit, match="fewer than 3 seeds"):
+        srd.load_family(path)
+
+
+def test_an_account_absent_from_one_states_level_arm_is_counted_not_absorbed():
+    """A roster event is the mechanism the level arm's own net is most likely to move by, and a
+    mean that silently treated an absence as a zero would hide the very thing being looked for."""
+    fam = _two_state_family(state_event=0.0)
+    gone = fam["seeds"][0]
+    gone["level_arm_net_by_account_gbp"].pop("BIG")
+    gone["level_arm_net_gbp"] = sum(gone["level_arm_net_by_account_gbp"].values())
+    gone["selection_by_account_gbp"]["BIG"] = gone["value_arm_net_by_account_gbp"]["BIG"]
+    gone["selection_gbp"] = sum(gone["selection_by_account_gbp"].values())
+    block = srd.account_state_diff(fam)
+    row = next(r for r in block["movers"] if r["account"] == "BIG")
+    # WHICH state the mutated seed fell into is decided by the cut, not by this fixture's write
+    # order -- removing an account from the level arm RAISES that seed's residual, so seed 11111
+    # is the HIGH state here. Asserting a fixed side would be pinning the test to the arithmetic
+    # it is checking.
+    mutated = "high" if 11111 in block["states"]["high"]["seeds"] else "low"
+    other = "low" if mutated == "high" else "high"
+    assert row[f"seeds_absent_from_the_level_arm_{mutated}_state"] == 1
+    assert row[f"seeds_absent_from_the_level_arm_{other}_state"] == 0
+    # An account absent from a whole state must report the state's seed count, NEVER None -- a
+    # None there reads as "not measured" for the one case this field exists to report.
+    assert row[f"seeds_absent_from_the_level_arm_{mutated}_state"] is not None
+    assert abs(row["level_arm_move_gbp"]) == pytest.approx(3_000.0)
+
+
+def test_the_state_cut_is_the_SAME_rule_the_mixture_verdict_uses():
+    """ONE IMPLEMENTATION, TWO CALLERS. Two copies of the largest-gap rule one function apart
+    would let the switch verdict and the attribution describe different partitions of the same
+    seeds, with nothing able to notice."""
+    ys = [-4_317.0, -4_091.0, -3_872.0, -3_803.0, 1_034.0, 1_253.0, 1_479.0, 1_548.0]
+    gap, cut, gaps = srd._largest_gap_cut(ys)
+    assert cut == 3, "the cut must fall at the largest gap, which is the state boundary"
+    assert gap == pytest.approx(4_837.0)
+    assert len(gaps) == len(ys) - 1
+    with pytest.raises(AssertionError, match="a gap needs two points"):
+        srd._largest_gap_cut([1.0])
+
+
+def test_the_concentration_of_the_STATE_MOVEMENT_is_a_different_question_from_the_residuals():
+    """And it is the one the 1/k ladder rests on, because the ladder is about VARIANCE. A residual
+    carried by many accounts can still MOVE in one of them, and the two readings recommend
+    opposite things: buy seeds, or accept that depth buys nothing."""
+    block = srd.account_state_diff(_two_state_family())
+    assert block["accounts_in_the_union"] == 3
+    assert block["herfindahl_of_absolute_state_movement"] == pytest.approx(1.0)
+    assert block["effective_accounts"] == pytest.approx(1.0)
+    # ...and a state move spread evenly over the three reads as three effective accounts, or the
+    # statistic above is one that always reports concentration.
+    value_col = {"A": 1_000.0, "B": 2_000.0, "BIG": 3_000.0}
+    level_low = {a: v - 100.0 for a, v in value_col.items()}
+    level_high = dict(value_col)
+    low_col = {a: value_col[a] - level_low[a] for a in value_col}
+    high_col = {a: value_col[a] - level_high[a] for a in value_col}
+    even = {"seeds": [
+        _seed_row(1, sum(low_col.values()), column=low_col,
+                  value_col=value_col, level_col=level_low),
+        _seed_row(2, sum(high_col.values()), column=high_col,
+                  value_col=value_col, level_col=level_high)]}
+    spread = srd.account_state_diff(even)
+    assert spread["effective_accounts"] == pytest.approx(3.0)
+    assert spread["accounts_holding_90pc_of_the_state_movement"] == 3
+
+
+def test_an_account_the_VALUE_arm_moved_is_named_as_such():
+    """The label must be able to say either arm, or it is not a reading.
+
+    `d678f063a` found the level arm carrying 99.84% of the variance, so every fixture drawn from
+    that finding moves the level arm -- and a label hard-wired to "the level arm" would pass all of
+    them while agreeing with the finding for the wrong reason. This is the anti-tautology leg: the
+    same block, an account whose VALUE arm moved and whose level arm did not.
+    """
+    level_col = {"A": 1_000.0, "B": 2_000.0}
+    value_low = {"A": 1_000.0, "B": 2_000.0 + 4_000.0}
+    value_high = {"A": 1_000.0, "B": 2_000.0}
+    low_col = {a: value_low[a] - level_col[a] for a in level_col}
+    high_col = {a: value_high[a] - level_col[a] for a in level_col}
+    # The value arm moving UP makes that seed the HIGH state, so the low state is the untouched one.
+    block = srd.account_state_diff({"seeds": [
+        _seed_row(1, sum(low_col.values()), column=low_col,
+                  value_col=value_low, level_col=level_col),
+        _seed_row(2, sum(high_col.values()), column=high_col,
+                  value_col=value_high, level_col=level_col)]})
+    assert block["of_which_the_level_arm_moved_gbp"] == pytest.approx(0.0)
+    assert abs(block["of_which_the_value_arm_moved_gbp"]) == pytest.approx(4_000.0)
+    top = block["movers"][0]
+    assert top["account"] == "B"
+    assert top["moved_mostly_by"] == "the value arm", top
+
+
+def test_a_one_seed_shard_REFUSES_with_its_own_reason_not_an_arithmetic_error(tmp_path):
+    """A shard with one seed has no two states, and the refusal has to come from the loader saying
+    so -- not from the gap helper's AssertionError three frames down, which reads as a bug in the
+    tool rather than a fact about the input."""
+    fam = _two_state_family()
+    fam["seeds"] = fam["seeds"][:1]
+    path = tmp_path / "one.json"
+    path.write_text(json.dumps(fam))
+    with pytest.raises(SystemExit, match="fewer than 2 seeds"):
+        srd.load_for_account_diff(path)
+
+
+def test_the_movement_statistic_stays_inside_the_range_a_count_of_accounts_can_have():
+    """KEYED TO THE PROPERTY, and it is the leg that fixes the DENOMINATOR.
+
+    `effective_accounts` is `1/H` and it is a count of accounts, so it can only lie between 1 and
+    the size of the union. Every fixture whose accounts all move the same way has
+    `gross == |state_distance|`, so the signed denominator is indistinguishable from the right one
+    there; here two accounts move in OPPOSITE directions between the states, the state distance is
+    the small difference of two larger flows, and the signed denominator reports a fifth of an
+    account.
+    """
+    level_col = {"A": 1_000.0, "B": 2_000.0}
+    value_low = {"A": 1_000.0 + 5_000.0, "B": 2_000.0}
+    value_high = {"A": 1_000.0, "B": 2_000.0 + 4_000.0}
+    low_col = {a: value_low[a] - level_col[a] for a in level_col}
+    high_col = {a: value_high[a] - level_col[a] for a in level_col}
+    block = srd.account_state_diff({"seeds": [
+        _seed_row(1, sum(low_col.values()), column=low_col,
+                  value_col=value_low, level_col=level_col),
+        _seed_row(2, sum(high_col.values()), column=high_col,
+                  value_col=value_high, level_col=level_col)]})
+    assert block["gross_absolute_state_movement_gbp"] == pytest.approx(9_000.0)
+    assert abs(block["state_distance_gbp"]) == pytest.approx(1_000.0)
+    h = block["herfindahl_of_absolute_state_movement"]
+    assert 0.0 < h <= 1.0, h
+    assert 1.0 <= block["effective_accounts"] <= block["accounts_in_the_union"], block
