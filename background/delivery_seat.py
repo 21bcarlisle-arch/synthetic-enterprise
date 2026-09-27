@@ -127,6 +127,7 @@ WHAT TO PRODUCE: overwrite `docs/direction/DIRECTION.yaml` with exactly this sha
       - id: <a maturity-map atom id where one fits, otherwise a short kebab-case key>
         what: <one line: the work>
         why: <one line: why THIS, now, against the thesis or against what is drifting>
+        lane: <OPTIONAL: the maturity-map lane this work belongs to, e.g. W2_customer_generator>
     not_now:          # REQUIRED and non-empty. What you considered and did NOT choose.
       - what: <the thing you rejected>
         why: <why it loses to what you chose -- the trade-off you actually made>
@@ -153,6 +154,10 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     genuine CHANGE OF DIRECTION that is his to make and not yours. Everything else is yours to
     decide and record. Interrupting him with what you should have decided is a failure; so is
     deciding something that was really a change of direction.
+  * GIVE EVERY FOCUS ITEM A `lane` unless its `id` is already an atom. Under a product-only tick
+    mode the executor admits only items that can show they are product work, and an item whose
+    prose names no atom, lane or path cannot -- on 2026-09-27 that was one of the director's own
+    product questions. A lane that is not on the maturity map is refused.
   * Prefer work that CHANGES A LEVEL or closes a blocking finding over work that merely tidies.
   * If the previous focus was named and never drawn, say so in `thesis_read` and treat the steer
     itself as the thing that is drifting.

@@ -185,6 +185,25 @@ def _two_home_pointers(record) -> list[tuple[str, list[str]]]:
     return out
 
 
+def _lane_problems(i: int, lane, known: set | None = None) -> list[str]:
+    """A focus item's optional `lane` must be a lane on the maturity map.
+
+    It is what `tick_mode.item_is_product` reads FIRST, so a prose-only focus item -- analysis that
+    names no atom or path -- can still show it is product work under product-only. Checked the way
+    `seat_continuation.hand_off --lane` checks it, and through the same reader: an unreadable map
+    leaves the lane unchecked rather than refusing the whole record over it.
+    """
+    if not isinstance(lane, str) or not lane.strip():
+        return [f"focus[{i}].lane must be a maturity-map lane name, got {lane!r}"]
+    if known is None:
+        from background import seat_continuation
+        known = seat_continuation._map_lanes()
+    if known and lane not in known:
+        return [f"focus[{i}].lane {lane!r} is not a lane on the maturity map "
+                f"({', '.join(sorted(known))})"]
+    return []
+
+
 def validate(record) -> list[str]:
     """Every reason this is not a usable direction record, or an empty list.
 
@@ -207,6 +226,8 @@ def validate(record) -> list[str]:
         for i, item in enumerate(focus):
             if not isinstance(item, dict) or not item.get("id") or not item.get("why"):
                 problems.append(f"focus[{i}] needs an id and a why")
+            elif item.get("lane") is not None:
+                problems.extend(_lane_problems(i, item["lane"]))
     not_now = record.get("not_now")
     if not isinstance(not_now, list) or not not_now:
         # THE REJECTIONS ARE THE POINT, and this is the director's own instruction made

@@ -4620,7 +4620,8 @@ def hand_off_focus(focus_id: str, done_means: str, now: float | None = None) -> 
                     "`seat_continuation --hand-off`, which is the route that carries a judgement "
                     "rather than a re-derivation.")
             return seat_continuation.hand_off(
-                focus_id, item.get("what") or "", item.get("why") or "", done_means, now=now)
+                focus_id, item.get("what") or "", item.get("why") or "", done_means,
+                lane=item.get("lane"), now=now)
     raise KeyError(
         f"{focus_id!r} is not a live, draw-unreachable focus item. Handing off something the "
         "draw can already reach would create a second route to the same work, which is the "

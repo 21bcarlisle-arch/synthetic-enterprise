@@ -219,3 +219,48 @@ def test_the_lane_walk_skips_what_admit_refuses_in_both_sources_and_keeps_walkin
     assert dl.next_item(admit=admit)["id"] == "prod"
     cont.clear()
     assert dl.next_item(admit=admit)["id"] == "fprod"
+
+
+# ── a focus item carries its lane to the executor ───────────────────────────────────────────
+
+def _record(**focus_extra):
+    return {"version": 1, "oriented_at": "2026-09-27T12:00:00Z", "not_now": [{"what": "x", "why": "y"}],
+            "focus": [{"id": "is-the-residual-book-depth-luck", "what": "think", "why": "w", **focus_extra}]}
+
+
+def test_a_focus_lane_is_validated_against_the_map_and_both_verdicts_are_reachable(monkeypatch):
+    """The partition first: absent, known and unknown lanes must give three different answers, or a
+    check that refuses every lane (or none) would pass a leg-by-leg test. MUTATION: drop the
+    `_lane_problems` call from `direction.validate` and the unknown leg goes green."""
+    from background import direction, seat_continuation
+    monkeypatch.setattr(seat_continuation, "_map_lanes", lambda: {"W2_customer_generator", "H_harness"})
+    absent, known, unknown = (direction.validate(_record(**kw)) for kw in
+                              ({}, {"lane": "W2_customer_generator"}, {"lane": "W9_nowhere"}))
+    assert absent == [] and known == [] and unknown, (absent, known, unknown)
+    assert "W9_nowhere" in unknown[0] and "focus[0].lane" in unknown[0]
+    assert direction.validate(_record(lane=""))
+
+
+def test_a_promoted_focus_item_keeps_its_lane_so_product_only_can_still_admit_it(monkeypatch, tmp_path):
+    """`hand_off_focus` is the route a focus row takes to a tick; a lane dropped there is a lane
+    product-only never sees. MUTATION: remove `lane=item.get("lane")` from `hand_off_focus`."""
+    from background import delivery_lane as dl
+    from background import seat_continuation as sc
+    monkeypatch.setattr(sc, "STORE", tmp_path / "continuations.json")
+    monkeypatch.setattr(sc, "_map_lanes", lambda: {"W2_customer_generator"})
+    monkeypatch.setattr(sc, "retirement_orientation", lambda *_a, **_k: None)
+    monkeypatch.setattr(dl, "_atom_ids", lambda: set())
+    monkeypatch.setattr(dl.direction_mod, "unreachable_focus", lambda *_a, **_k: [
+        {"id": "is-the-residual-book-depth-luck", "what": "think about the residual", "why": "w",
+         "lane": "W2_customer_generator"}])
+    dl.hand_off_focus("is-the-residual-book-depth-luck", "a sourced answer", now=1_000_000.0)
+    [row] = [r for r in sc.live(now=1_000_001.0) if r["id"] == "is-the-residual-book-depth-luck"]
+    assert tm.item_is_product(row, atoms=ATOMS) == (True, "declares lane W2_customer_generator")
+
+
+def test_the_orienting_prompt_asks_for_a_focus_lane():
+    """The seat writes what the prompt's schema shows it; a field the prompt never names is never
+    written. MUTATION: delete the `lane:` line from the schema in `delivery_seat.CHARTER`."""
+    from background import delivery_seat
+    schema = delivery_seat.CHARTER.split("focus:", 1)[1].split("not_now:", 1)[0]
+    assert "lane:" in schema
