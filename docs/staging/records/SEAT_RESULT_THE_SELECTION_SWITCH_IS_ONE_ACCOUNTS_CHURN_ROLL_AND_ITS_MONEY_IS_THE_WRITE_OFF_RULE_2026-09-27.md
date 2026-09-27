@@ -92,6 +92,30 @@ seed row records per account. That is why 14 of 14 recorded fields failed to sep
 
 No published figure changes. The 2026-09-26 ruling stands.
 
+## The confirming run — in flight
+
+Launched 2026-09-27T16:31Z as unit `longjob-two-state-diff-rerun-20260927`, from a clean detached
+worktree of `de1677d74` at `/var/tmp/se-two-state-rerun-src` (the shared tree had uncommitted
+`simulation/` edits that must not enter the measurement). Artefact:
+`/var/tmp/se-two-state-diff-rerun/value_cycle_ab_s1_two_state_diff.json`, outside any worktree;
+log `/var/tmp/longjob-two-state-diff-rerun-20260927.log`. About 2.7h. Liveness:
+`python3 -m background.launch_liveness --check`.
+
+When it lands: `python3 -m tools.selection_residual_decomposition --account-diff <artefact>`, and
+the per-account settled-realised column goes here. Then the worktree is removed
+(`git worktree remove /var/tmp/se-two-state-rerun-src`).
+
+**Predictions, written before the run returns:**
+
+- **C1.** `PROS-2016-0098` carries the level runs' settled-realised difference to within £50 of
+  −£5,350.64, and every other account together moves less than £50.
+- **C2.** P3 on the published basis: within-seed Herfindahl of the level-arm realised difference
+  > 0.9 (one account holds it).
+- **C3.** Seed totals reproduce the log's (−£4,238.56 / +£1,105.54) within £1, since the only change
+  to `simulation/`, `company/`, `saas/` and the runner since `ca80a7d0a` is the deletion of
+  `company/compliance/internal_audit.py`. If this fails, C1–C2 are graded on the new run's
+  own two seeds and the difference is recorded, not reconciled.
+
 ## Reproduce
 
     python3 /var/tmp/parse_two_state.py   # six runs from the log; run order = control, value, level per seed
