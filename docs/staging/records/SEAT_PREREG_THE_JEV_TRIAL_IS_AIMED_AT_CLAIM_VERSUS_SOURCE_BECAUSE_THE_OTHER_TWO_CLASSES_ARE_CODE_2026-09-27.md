@@ -134,3 +134,16 @@ stays open.
 
 The workflow is deleted in this commit. The corpus stays in `docs/trials/jev_2026-09-27/` as the
 record of what was asked.
+
+## Correction — the spend was $0.0031, not ~$0.0008
+
+**The director's billing shows $0.0031.** The harness priced each call from the text it sent
+(characters ÷ 4), but the API bills about **500 input tokens per call**, as the first response's
+own `usage` reported. 152 calls × ~485 tokens × $0.042/M = $0.0031. The estimate was about 4× low
+because it missed the question text and the per-call overhead.
+
+**So the $0.50 cap was enforced on an estimate that undercounts by ~4×.** It never came close to
+binding, but a cap computed from an under-estimate is not a hard cap. A future harness must price from
+the response's reported `usage.input_tokens`, which was available here and was not used. The ratio
+against Haiku 4.5 (~24× on input) is unchanged, because both are priced on the same tokens. The
+verdict stands.
