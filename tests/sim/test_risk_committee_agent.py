@@ -1,33 +1,20 @@
-import json
-
 from sim import risk_committee_agent as agent
 
 
-def test_call_local_strips_think_block_and_fences(monkeypatch):
-    raw = (
-        '<think>the customer looks risky, bump it up</think>\n'
-        '```json\n'
-        '{"reasoning": "elevated VaR", "adjustments": '
-        '[{"customer_id": "C1", "old_hedge_fraction": 0.30, "new_hedge_fraction": 0.50}]}\n'
-        '```'
-    )
+def test_the_live_committee_refuses_by_name_and_opens_no_socket(monkeypatch):
+    """Retired 2026-09-27 with its model. A non-fast breach must say why, not die on a socket."""
+    import socket
 
-    class FakeResponse:
-        def __enter__(self):
-            return self
+    def _no_socket(*a, **k):
+        raise AssertionError("the retired live committee opened a socket")
 
-        def __exit__(self, *a):
-            return False
-
-        def read(self):
-            return json.dumps({"message": {"content": raw}}).encode()
-
-    monkeypatch.setattr(agent.urllib.request, "urlopen", lambda *a, **k: FakeResponse())
-
-    decision = agent._call_local("some context")
-
-    assert decision["reasoning"] == "elevated VaR"
-    assert decision["adjustments"][0]["new_hedge_fraction"] == 0.50
+    monkeypatch.setattr(socket, "create_connection", _no_socket)
+    try:
+        agent._call_local("some context")
+    except RuntimeError as exc:
+        assert "retired" in str(exc) and "SIM_FAST_MODE=1" in str(exc)
+    else:
+        raise AssertionError("_call_local returned instead of refusing")
 
 
 def test_invoke_enforces_minimum_adjustment(tmp_path, monkeypatch):

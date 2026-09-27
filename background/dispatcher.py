@@ -1,45 +1,23 @@
 #!/usr/bin/env python3
-"""Intelligent message dispatcher — classifies inbound NTFY messages and routes
-by urgency.
+"""Message dispatcher — flags inbound NTFY messages that must interrupt, by keyword.
 
-ntfy_responder.py handles auto-ack (always-on, fast, no LLM). This script adds
-a classification layer on top: for each new from_rich_*.md that appears in
-docs/staging/, it calls Qwen to decide whether the message is urgent, normal,
-or informational, then routes accordingly.
+ntfy_responder.py handles auto-ack. For each new from_rich_*.md in docs/staging/ this
+classifies it by a fixed keyword list and routes it:
+  URGENT — a keyword in _URGENT_KEYWORDS ("wrong", "idle", "stop", ...). Action: prepend
+           an URGENT header and send a HIGH-priority NTFY; the file stays in staging and
+           the supervisor's poll serves it first, straight off disk.
+  NORMAL — everything else. Action: prepend a NORMAL header, leave in staging.
 
-Classification → routing:
-  URGENT — something that should interrupt active work (fundamental correctness
-            issue, design decision that would cause wasted work if missed).
-            Action: send HIGH-priority NTFY immediately, relay to Claude session
-            via tmux (same mechanism as session_watchdog).
-  NORMAL — a real instruction that needs action but can wait for Claude to pick
-            it up in its normal staging-poll cycle.
-            Action: add urgency header to the file, leave in staging/.
-  FYI    — informational: acknowledgement, status update, comment Rich wants
-            logged but that doesn't require a response.
-            Action: move to staging/fyi/, log it, no notification.
-
-Routing table (scalable to multiple agents — add entries per destination):
-  ROUTING_TABLE = {
-      "urgent": ["ntfy_high", "tmux_relay"],   # interrupt + relay
-      "normal": ["staging"],                    # leave in staging, add header
-      "fyi":    ["fyi_dir"],                    # move to fyi/
-  }
+The ambiguous-case classifier was local Qwen, and it was the only thing that could
+return FYI (move to staging/fyi/, no notification). The model was evicted 2026-08-10,
+from which date every non-keyword message fell to NORMAL; the Qwen call and the FYI
+route were removed 2026-09-27. Nothing the director sends is filed away unread.
 
 Logs to docs/observability/dispatcher-log.md.
 State file: background/.dispatcher_seen.json
-
-FAST-PATH HINT, not the guarantee (2026-07-09, doorbell failure #4): the
-URGENT tmux relay below shortens the wait from "up to 2 minutes" to
-"seconds" when it works, but background/supervisor.py's own poll
-independently detects any unprocessed from_rich_*.md carrying the
-"Dispatcher: URGENT" header (see route_message's _prepend_urgency_header)
-straight off disk -- it does not depend on this relay, or on dispatcher.py
-being alive, to eventually grant a turn for it.
 """
 
 import json
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -47,14 +25,11 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
-FYI_DIR = STAGING_DIR / "fyi"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "dispatcher-log.md"
 STATE_FILE = PROJECT_DIR / "background" / ".dispatcher_seen.json"
 POLL_INTERVAL_SECONDS = 15
 
 SESSION_NAME = "claude"
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "qwen3:14b"
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background.notify import notify  # noqa: E402
@@ -70,7 +45,7 @@ from background.episode_prior import load_episode_prior, preserve_unreadable, pr
 # first), not by typing into the director's console.
 
 # Files the dispatcher has already classified. Persisted across restarts.
-# Value: classification ("urgent"|"normal"|"fyi")
+# Value: classification ("urgent"|"normal"; "fyi" in entries before 2026-09-27)
 _SEEN_FILE = PROJECT_DIR / "background" / ".dispatcher_seen.json"
 
 
@@ -127,27 +102,6 @@ def _preserve_unreadable_seen() -> str | None:
     return preserve_unreadable(_SEEN_FILE)
 
 
-def _call_qwen(prompt: str, max_tokens: int = 100) -> str:
-    try:
-        result = subprocess.run(
-            ["curl", "-s", "-X", "POST", OLLAMA_URL,
-             "-H", "Content-Type: application/json",
-             "-d", json.dumps({
-                 "model": OLLAMA_MODEL,
-                 "prompt": prompt,
-                 "stream": False,
-                 "options": {"num_predict": max_tokens, "temperature": 0.0},
-             })],
-            capture_output=True, text=True, timeout=30,
-        )
-        if result.returncode == 0:
-            data = json.loads(result.stdout)
-            return data.get("response", "").strip()
-    except Exception:
-        pass
-    return ""
-
-
 _URGENT_KEYWORDS = frozenset([
     "urgent", "stop", "immediately", "wrong", "broken", "incorrect",
     "investigation", "investigate", "idle", "nothing", "silence",
@@ -156,37 +110,10 @@ _URGENT_KEYWORDS = frozenset([
 
 
 def classify_message(message: str) -> str:
-    """Classify a message as 'urgent', 'normal', or 'fyi'.
-
-    Fast-path: if the message contains explicit urgency keywords, return
-    'urgent' without calling Qwen (Qwen has missed these before).
-    Falls back to Qwen for ambiguous cases.
-    """
+    """'urgent' if the message carries an explicit urgency keyword, else 'normal'."""
     lower = message.lower()
-
-    # Explicit urgency signals — don't trust Qwen with these
     if any(kw in lower for kw in _URGENT_KEYWORDS):
         return "urgent"
-
-    prompt = f"""You are a message classifier for an energy simulation operator (Rich) communicating with an autonomous AI agent (Claude Code). Classify this inbound message from Rich.
-
-Message: "{message}"
-
-Rules:
-- URGENT: Rich is asking why something is wrong or why the agent is idle; or has spotted a correctness problem; or has explicitly flagged urgency. Examples: "gross margin looks wrong", "are you idle", "why no messages", "URGENT", "investigation", "stop what you're doing".
-- NORMAL: a real instruction, request, or design steer that needs action but is not an emergency. Examples: "start the next phase", "review the report", "when GPU is free, run X", "add feature Y".
-- FYI: informational only, no action required. Examples: "I'll be back in an hour", "nice work", "ok", acknowledgement.
-
-Respond with EXACTLY one word: urgent, normal, or fyi
-/no_think"""
-
-    response = _call_qwen(prompt, max_tokens=10)
-    response_lower = response.lower().strip()
-
-    if "urgent" in response_lower:
-        return "urgent"
-    if "fyi" in response_lower:
-        return "fyi"
     return "normal"
 
 
@@ -211,12 +138,6 @@ def route_message(path: Path, message: str, classification: str) -> None:
             headers={"X-Priority": "5", "X-Tags": "warning"},
         )
         log(f"URGENT classified: {path.name} — high-priority NTFY sent; served via staging + pull-loop draw (no pane injection)")
-
-    elif classification == "fyi":
-        FYI_DIR.mkdir(parents=True, exist_ok=True)
-        dest = FYI_DIR / path.name
-        path.rename(dest)
-        log(f"FYI routed: {path.name} → staging/fyi/ (no notification)")
 
     else:  # normal
         _prepend_urgency_header(path, "normal")
@@ -268,7 +189,7 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
         update_agent_status(
             "dispatcher", status="idle",
             last_action=f"Classified {path.name} as {classification.upper()}",
-            role="Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
+            role="Flags inbound NTFY messages URGENT by keyword, else NORMAL",
             produces="docs/observability/dispatcher-log.md, routes to staging/",
         )
 

@@ -266,7 +266,8 @@ def _execution_mode(report_end: object, data: dict) -> dict:
             "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every "
             "wake-up increases every hedge fraction by the minimum +0.10"
             if fast else
-            "live -- `sim.risk_committee_agent._call_local`, one local Ollama call per breach"
+            "live -- `sim.risk_committee_agent._call_local`, which REFUSES since 2026-09-27: its "
+            "local model is retired, so a breach in this run raised"
         ),
         "read_from": (
             "`{}` in the environment of the process that ran the world, at stamping time, via "

@@ -211,7 +211,7 @@ goes stale and the code cannot.
 
 | The rule | Where it is enforced |
 |---|---|
-| A control must be able to fail (mutation-proven) | `docs/design/CONTROLS_THAT_CANNOT_FAIL.md`; every `test_*` naming its own defect |
+| A control must be able to fail (mutation-proven) | `docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md`; every `test_*` naming its own defect |
 | Done means the rendered value changed | `site/test_*_door.py` — the page's own JavaScript, against the real feed |
 | Every financial figure carries its clock | `tools/generate_dashboard_data.py` basis gate |
 | A level move is recorded, never authorised | `background/gate_authorization.py`, `tools/level_promotion_gate.py` |
@@ -307,24 +307,24 @@ procedure nobody points at is a procedure nobody runs: closing a phase or an ato
 - **Rich** — MD and board. Sets mission and direction, from the console. Does not write code.
 - **You** — the delivery seat. Design, build, review, and everything between his direction and the
   work.
-- **qwen3:14b (Ollama)** — classification and discovery prompts only: doorbell triage, discovery
-  fan-out, the risk committee. Ten to four hundred tokens at temperature zero. **It does not write
-  code and there is no route for it to.** Everything in this repository was written by a Claude
-  session in this seat.
-- **Other Claude sessions and daemons** — `process_run_complete`, `autonomous_runner`, the
-  supervisor's ticks. Concurrent, in this tree, right now.
+- **No local model.** qwen3:14b was evicted 2026-08-10 to reclaim memory and `ollama.service` is
+  disabled; its callers were retired 2026-09-27. Thirteen early `sim/`, `simulation/` and `saas/`
+  modules say in their docstrings that local qwen2.5-coder drafted them. Everything since was written
+  by a Claude session in this seat.
+- **Other Claude sessions and daemons** — `process_run_complete`, the executor, the supervisor's
+  ticks. Concurrent, in this tree, right now. `background/process_manifest.yaml` is the roster.
 
 **Environment.** WSL2 on Windows; RTX 3060. The binding memory figure is the guest's and it moves —
 read it, never quote it: `background.resource_headroom.sample()["total_mb"]`. Data: Elexon, NESO,
 Open-Meteo. NTFY topic loads from `~/.config/synthetic-enterprise/.env.ntfy`; there is no committed
 default.
 
-**Build:** 36,838 tests collected, epistemic verifier PASS. *This figure is parsed by
+**Build:** 38,426 tests collected, epistemic verifier PASS. *This figure is parsed by
 `generate_dashboard_data._derive_build_from_claude_md` for the live site — correct it at each phase
 close, never delete it. It sat at 26,731 for 20 days and 1,440 commits while the real count reached
 36,838, and nothing noticed because the only check on it compared it to a second hand-typed copy of
 itself in `docs/PROJECT_OVERVIEW.md`. `startup_anchor_freshness` now floors it with the test
-functions in the git index, which no collection can be smaller than.*
+functions in the git index, which no collection can be smaller than. Re-collected 2026-09-27 in a HEAD extract: 38,426.*
 
 → Architecture and module inventory: `docs/PROJECT_OVERVIEW.md` · Phase history:
 `docs/claude/phase-history.md`

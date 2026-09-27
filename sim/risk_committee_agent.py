@@ -9,7 +9,7 @@ back to the simulation state, and logs its reasoning.
 Architecture contract (the Context Handshake):
   1. The Python engine detects a threshold breach (risk_committee.py)
   2. The engine writes the context summary to docs/context-handshake-latest.md
-  3. THIS module reads the summary, calls the local LLM via Ollama, and extracts a decision
+  3. THIS module reads the summary and takes a decision (see RETIRED below)
   4. The decision (new hedge_fraction per customer) is returned to the engine
   5. The engine updates its simulation state and continues the inner loop
   6. THIS module logs the reasoning in docs/observability/risk-committee-log.md
@@ -41,12 +41,15 @@ Routing — local Ollama, not the frontier (decision reversed 2026-06-12):
   safety boundary regardless of which model proposes the adjustment, so this
   change does not weaken the guardrails on what the agent can do — only on
   which model is allowed to propose it.
+
+RETIRED 2026-09-27: the live (non-fast) branch. Its local model, qwen3:14b, was evicted
+2026-08-10, so from then a breach in a non-fast run died on a refused socket. `_call_local`
+now refuses with that reason and opens nothing. Every production launch sets SIM_FAST_MODE=1
+(background/process_run_complete.py), which takes `_call_mock` and never reaches it. A live
+committee again is a director decision about which model, not a restart.
 """
 
-import json
 import os
-import re
-import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -56,31 +59,10 @@ HANDSHAKE_FILE = "docs/context-handshake-latest.md"
 from sim.risk_committee_rules import decide as _rule_engine_decide
 COMMITTEE_LOG_FILE = "docs/observability/risk-committee-log.md"
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
-COMMITTEE_MODEL = "qwen3:14b"  # best available local model — see routing note above
-
-SYSTEM_PROMPT = """You are the risk committee agent for a simulated UK energy supplier.
-You have been woken by a threshold breach in the portfolio's risk monitoring system.
-Your job is to read the context summary, reason about the appropriate hedge_fraction
-adjustment for the flagged customer(s), and output a structured decision.
-
-Rules:
-- You may ONLY increase hedge_fraction, never decrease it
-- Minimum adjustment: +0.10 per customer per wake-up
-- Maximum adjustment: +0.30 per customer per wake-up
-- You adjust exactly one lever: hedge_fraction. Nothing else.
-- You must justify your reasoning in plain English (2-4 sentences)
-- After your decision, you return to sleep — no further action until the next breach
-
-Output format (JSON, no markdown fences):
-{
-  "reasoning": "2-4 sentences explaining your decision",
-  "adjustments": [
-    {"customer_id": "CX", "old_hedge_fraction": 0.00, "new_hedge_fraction": 0.20},
-    ...
-  ]
-}
-"""
+LIVE_COMMITTEE_RETIRED = (
+    "the live risk committee is retired: its local model (qwen3:14b) was evicted 2026-08-10 "
+    "and nothing replaced it. Run with SIM_FAST_MODE=1 for the deterministic committee."
+)
 
 
 def _read_handshake_context() -> str:
@@ -134,33 +116,8 @@ def _call_mock(current_hedge_fractions: dict[str, float]) -> dict:
 
 
 def _call_local(context: str) -> dict:
-    """Call the local Ollama model with the handshake context. Returns the
-    parsed decision dict. Raises on connection error or unparseable response.
-    think:False suppresses qwen3's verbose reasoning trace, cutting per-call
-    latency from ~60s+ (2048-token think trace) to ~15-20s (JSON only).
-    """
-    payload = json.dumps({
-        "model": COMMITTEE_MODEL,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": context},
-        ],
-        "stream": False,
-        "think": False,
-        "options": {"num_predict": 512},
-    }).encode()
-    request = urllib.request.Request(
-        OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
-    )
-    with urllib.request.urlopen(request, timeout=60) as response:
-        result = json.loads(response.read())
-    raw_text = result["message"]["content"]
-
-    # Strip any residual <think>...</think> block and markdown fences
-    cleaned = re.sub(r"^\s*<think>.*?</think>\s*", "", raw_text.strip(), flags=re.DOTALL)
-    cleaned = re.sub(r"^```[a-z]*\n?", "", cleaned.strip(), flags=re.MULTILINE)
-    cleaned = re.sub(r"\n?```$", "", cleaned.strip())
-    return json.loads(cleaned)
+    """Refuses, naming why. See RETIRED in the module docstring."""
+    raise RuntimeError(LIVE_COMMITTEE_RETIRED)
 
 
 def _log_decision(settlement_date: str, settlement_period: int, context: str, decision: dict) -> None:

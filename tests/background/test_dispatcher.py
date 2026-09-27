@@ -25,28 +25,20 @@ def test_dispatcher_has_no_pane_injection_api():
         assert not hasattr(dispatcher, removed), f"dispatcher.{removed} must be deleted"
 
 
-def test_classify_message_returns_urgent_for_correctness_problem(monkeypatch):
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
-    result = dispatcher.classify_message("gross margin looks completely wrong")
-    assert result == "urgent"
+def test_classify_message_returns_urgent_on_a_keyword():
+    assert dispatcher.classify_message("gross margin looks completely wrong") == "urgent"
 
 
-def test_classify_message_returns_fyi_for_acknowledgement(monkeypatch):
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "fyi")
-    result = dispatcher.classify_message("ok")
-    assert result == "fyi"
+def test_classify_message_returns_normal_without_one():
+    assert dispatcher.classify_message("run the phase 9b simulation when GPU is free") == "normal"
 
 
-def test_classify_message_returns_normal_for_instruction(monkeypatch):
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
-    result = dispatcher.classify_message("run the phase 9b simulation when GPU is free")
-    assert result == "normal"
-
-
-def test_classify_message_falls_back_to_normal_on_qwen_unavailable(monkeypatch):
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "")
-    result = dispatcher.classify_message("anything")
-    assert result == "normal"
+def test_the_retired_qwen_leg_and_fyi_route_are_gone():
+    """Retired 2026-09-27 (model evicted 2026-08-10). FYI was reachable ONLY through Qwen, so a
+    kept FYI branch would be a route nothing can take; an acknowledgement is NORMAL now."""
+    for removed in ("_call_qwen", "OLLAMA_URL", "OLLAMA_MODEL", "FYI_DIR"):
+        assert not hasattr(dispatcher, removed), f"dispatcher.{removed} must be deleted"
+    assert dispatcher.classify_message("ok thanks") == "normal"
 
 
 def test_urgent_routing_sends_ntfy_headers_and_leaves_file_in_staging(tmp_path, monkeypatch):
@@ -55,9 +47,7 @@ def test_urgent_routing_sends_ntfy_headers_and_leaves_file_in_staging(tmp_path, 
     No pane injection, no in-memory relay queue."""
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
 
     sent = []
     monkeypatch.setattr(dispatcher, "notify", lambda msg, **k: sent.append(msg))
@@ -74,29 +64,10 @@ def test_urgent_routing_sends_ntfy_headers_and_leaves_file_in_staging(tmp_path, 
     assert "URGENT" in path.read_text()
 
 
-def test_fyi_routing_moves_file_to_fyi_dir(tmp_path, monkeypatch):
-    monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
-    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
-    monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "fyi")
-    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
-
-    path = _make_staging_file(tmp_path, "from_rich_002.md", "ok thanks")
-
-    seen = dispatcher.check_once({})
-
-    assert seen.get("from_rich_002.md") == "fyi"
-    assert not path.exists()
-    assert (tmp_path / "fyi" / "from_rich_002.md").exists()
-
-
 def test_normal_routing_leaves_file_in_staging_with_header(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
     monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     path = _make_staging_file(tmp_path, "from_rich_003.md", "start phase 10 when ready")
@@ -111,8 +82,6 @@ def test_normal_routing_leaves_file_in_staging_with_header(tmp_path, monkeypatch
 def test_already_seen_files_not_reclassified(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
     monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     _make_staging_file(tmp_path, "from_rich_004.md", "test message")
@@ -127,9 +96,7 @@ def test_seen_state_persisted_across_calls(tmp_path, monkeypatch):
     state_file = tmp_path / "seen.json"
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", state_file)
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
     monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     _make_staging_file(tmp_path, "from_rich_005.md", "build something new")
@@ -149,8 +116,6 @@ def test_already_processed_files_skipped_on_restart(tmp_path, monkeypatch):
     """Files that already have a Dispatcher header should not be re-classified or re-notified."""
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
     sent = []
     monkeypatch.setattr(dispatcher, "notify", lambda msg, **k: sent.append(msg))
 
@@ -166,17 +131,9 @@ def test_already_processed_files_skipped_on_restart(tmp_path, monkeypatch):
     assert len(sent) == 0  # no NTFY re-sent
 
 
-def test_classify_message_strips_whitespace_from_qwen_output(monkeypatch):
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "  urgent  ")
-    result = dispatcher.classify_message("something is wrong")
-    assert result in ("urgent", "normal", "fyi")
-
-
 def test_check_once_ignores_non_md_files(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
-    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
     monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
     (tmp_path / "some_config.json").write_text("{}")
     seen = dispatcher.check_once({})
@@ -186,7 +143,6 @@ def test_check_once_ignores_non_md_files(tmp_path, monkeypatch):
 def test_check_once_empty_staging_returns_empty(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
-    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
     seen = dispatcher.check_once({})
     assert seen == {}
