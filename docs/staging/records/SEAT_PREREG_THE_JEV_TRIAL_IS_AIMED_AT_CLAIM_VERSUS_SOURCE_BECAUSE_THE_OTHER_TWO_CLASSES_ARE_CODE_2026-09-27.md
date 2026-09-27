@@ -95,3 +95,42 @@ What stands without a call: the research. Two of the three by-eye classes are co
 belong to deterministic controls: nav reachability already has one, and stamp-vs-date needs one. The
 third, claim-vs-source, remains the open question, with a published-surface corpus of 34 pairs whose
 real positives are a single incident.
+
+## REOPENED AND RUN — 2026-09-27 11:47Z, on the director's own prepaid key
+
+The "closed without running" note above stood until the director funded a TypeSafe key himself
+($5 prepaid), stored it as the Actions secret `JEVTEST`, and said **go**. It ran once, as
+GitHub Actions run 36316887264: manually triggered, capped at $0.50, published surfaces only.
+**It cost about $0.0008**, 152 calls at ~500 input tokens each. The response carries no cost field,
+so this is priced from tokens at $0.042/M. Latency p50 158ms, p95 214ms.
+
+**The corpus as run: 34 pairs, of which 25 were clean.** The pre-run count above said 25 SUPPORTED
+and 9 UNSUPPORTED; the clean arm scored 25.
+
+| kill criterion (pre-registered) | result | verdict |
+|---|---|---|
+| 1. recall on corruptions ≥ 0.80, and no real case missed | **38/59 = 0.64**; the real incident caught 9/9 | **FAILS** |
+| 2. false alarms on clean pairs ≤ 10% | **10/25 = 40%** | **FAILS** |
+| 3. no adversarial flip | **2 flips** of the 38 it had caught | **binds — report-only is the permanent ceiling** |
+| 4. ≥ 5× cheaper than Haiku 4.5 | ~24× on input | passes |
+
+Precision (corrupted vs clean) 38/48 = 0.79. By corruption: wrong year **14/17**, wrong number
+17/24, wrong unit **6/15**, flipped direction 1/3 (too thin to grade).
+
+**Predictions, graded:** P1 (false alarms ≤ 10%) **refuted**, at 40%. P2 (wrong year lowest) **refuted
+in the opposite direction**: wrong year was its best class and wrong unit its worst, so the
+documented date weakness did not show up here. P3 (at least one adversarial flip) **held**, 2. P4
+(~24× below Haiku, trial < $0.10) **held**.
+
+**Exploratory, not pre-registered, and so not a result:** no threshold rescues it. At 0.2 it gives
+20% false alarms with 44% recall; at 0.6, 44% with 73%. The clean pairs' scores run from 0.09 to
+0.95, so supported and unsupported overlap across the whole range.
+
+**Verdict: no. It does not close the by-eye gap.** It caught the one real incident, but it would
+put four in ten clean figures in front of a human on every publish, which moves the work rather
+than doing it. It misses a third of deliberate breaks, and an instruction written into a page can
+flip it. The two classes that are code-computable should get deterministic controls. Claim-vs-source
+stays open.
+
+The workflow is deleted in this commit. The corpus stays in `docs/trials/jev_2026-09-27/` as the
+record of what was asked.
