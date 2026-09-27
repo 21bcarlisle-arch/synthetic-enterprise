@@ -92,7 +92,7 @@ seed row records per account. That is why 14 of 14 recorded fields failed to sep
 
 No published figure changes. The 2026-09-26 ruling stands.
 
-## The confirming run — in flight
+## The confirming run — returned 2026-09-27, all three predictions confirmed
 
 Launched 2026-09-27T16:31Z as unit `longjob-two-state-diff-rerun-20260927`, from a clean detached
 worktree of `de1677d74` at `/var/tmp/se-two-state-rerun-src` (the shared tree had uncommitted
@@ -115,6 +115,38 @@ the per-account settled-realised column goes here. Then the worktree is removed
   to `simulation/`, `company/`, `saas/` and the runner since `ca80a7d0a` is the deletion of
   `company/compliance/internal_audit.py`. If this fails, C1–C2 are graded on the new run's
   own two seeds and the difference is recorded, not reconciled.
+
+**The reading** (`python3 -m tools.selection_residual_decomposition --account-diff` on the
+artefact, sha256 `200b7828bc23…`; decomposition JSON beside it as `account_diff.json`):
+
+| | seed 11111 (low state) | seed 88888 (high state) |
+|---|---|---|
+| `selection_gbp` | −£4,238.56 | +£1,105.54 |
+| level arm net | £182,125.10 | £176,781.00 |
+| value arm net | £177,886.55 | £177,886.55 |
+| `PROS-2016-0098` level arm realised | +£366.81 | −£4,982.94 |
+| `PROS-2016-0098` value arm realised | −£5,170.65 | −£5,170.65 |
+
+State distance −£5,344.10, all of it in the level arm (value arm moved £0.00). 164 accounts in the
+union; gross absolute movement £5,366.86; Herfindahl **0.9936**, 1.01 effective accounts, one account
+holds 90%. `PROS-2016-0098` moves −£5,349.74 (99.7% of gross). The next largest mover is £3.09, and
+the other 163 accounts together net +£5.64 (£17.12 gross). The account is present in both seeds'
+level-arm columns (absent from 0 seeds in each state), so **the switch is a change of FATE, not of
+roster**. On one draw the level arm keeps the account and realises +£367. On the other it loses it
+and realises −£4,983, close to the −£5,171 the value arm writes off on both draws. That is the
+write-off rule, read directly per account this time rather than inferred from the log.
+
+- **C1 CONFIRMED.** −£5,349.74 against −£5,350.64 (£0.90 off); every other account together
+  +£5.64, under £50.
+- **C2 CONFIRMED.** Herfindahl 0.9936 > 0.9. **P3 on the published basis is now graded, and it is
+  the opposite of P3 on term margin**: the settled-realised movement is one account, not 11–14.
+- **C3 CONFIRMED.** Seed totals reproduce the log exactly (−£4,238.56 / +£1,105.54). The
+  `internal_audit.py` deletion moved nothing.
+
+The source worktree `/var/tmp/se-two-state-rerun-src` is removed. `fork_salvage` had moved its HEAD
+three times during the run, but only across generated `docs/observability/` files and no code, so
+the measured tree is still `de1677d74`. The artefact stays in
+`/var/tmp/se-two-state-diff-rerun/`, outside any worktree.
 
 ## Reproduce
 
