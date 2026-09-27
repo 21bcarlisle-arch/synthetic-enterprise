@@ -689,7 +689,9 @@ def test_orientation_is_never_tiered_down_to_a_cheaper_model():
     """CLAUDE.md's routing rule puts judgement on the OPUS tier. Orientation is judgement about
     what matters; it runs on a timer, which is exactly the property that would tempt someone to
     class it as mechanical volume."""
-    assert seat.MODEL == "claude-opus-5"
+    from background import model_tier
+    # Keyed to the TIER, not to a model name: a literal went stale the day the tier moved to 5.5.
+    assert seat.MODEL == model_tier.OPUS
 
 
 # --------------------------------------------------------------------------- #

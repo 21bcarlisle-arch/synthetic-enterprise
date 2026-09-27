@@ -56,7 +56,9 @@ STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 #: The model. Orientation is judgement about what matters, which is the definition of the OPUS
 #: tier in CLAUDE.md's routing rule -- it is never mechanical volume and must never be tiered down
 #: on the grounds that it runs on a timer.
-MODEL = "claude-opus-5"
+from background.model_tier import OPUS as _OPUS_TIER  # noqa: E402 -- the one named model
+
+MODEL = _OPUS_TIER
 
 #: How far back a stretch reaches when there is no previous orientation to measure from.
 FIRST_STRETCH_HOURS = 24.0

@@ -52,7 +52,7 @@ CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
 # than no twin: it answers confidently, as him, wrongly, and the error only
 # surfaces at overturn." Judgment work, not execution volume -- the
 # opposite tier from BUILD/HARDEN work.
-TWIN_MODEL = "claude-opus-5"
+TWIN_MODEL = __import__("background.model_tier", fromlist=["OPUS"]).OPUS  # the one named model
 
 InvokeFn = Callable[[str], str]
 

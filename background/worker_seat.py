@@ -35,7 +35,9 @@ from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.secrets_location import MODEL_FACING_FORBIDDEN_SECRETS  # noqa: E402
 
 SESSION_NAME = "claude"
-MODEL = "claude-opus-5"
+from background.model_tier import OPUS as _OPUS_TIER  # noqa: E402 -- the one named model
+
+MODEL = _OPUS_TIER
 # The dedicated worker conversation id (same as the old watchdog's — the seat's identity is stable).
 WORKER_SESSION_ID = "22080be5-e19e-4099-a007-d71c3a6e7845"
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"

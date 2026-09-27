@@ -114,7 +114,9 @@ WORKTREE = Path(os.environ.get("SE_EXECUTOR_WORKTREE", "/var/tmp/se-seat-executo
 #: wedged session frees the lane the same hour.
 SESSION_TIMEOUT_SECONDS = 90 * 60
 
-MODEL = os.environ.get("SE_EXECUTOR_MODEL", "claude-opus-5")
+from background.model_tier import OPUS as _OPUS_TIER  # noqa: E402 -- the one named model
+
+MODEL = os.environ.get("SE_EXECUTOR_MODEL", _OPUS_TIER)
 
 
 class StoodDown(Exception):
@@ -799,7 +801,7 @@ def _resolve_claude() -> str | None:
     return None
 
 
-CHARTER = """You are the delivery seat, continuing work autonomously in an ISOLATED git worktree.
+CHARTER_BODY = """You are the delivery seat, continuing work autonomously in an ISOLATED git worktree.
 
 YOU ARE NOT ON THE SHARED TREE. Your cwd is a linked worktree; nothing you do here can touch
 another writer's uncommitted work. That isolation is the whole reason you are allowed to run.
@@ -830,6 +832,9 @@ pre-registration BEFORE any measurement whose answer you do not already know.
 WHEN YOU ARE DONE, hand the next piece on:
   `python3 -m background.seat_continuation --hand-off ID WHAT WHY DONE_MEANS`
 """
+from background.model_tier import UNATTENDED_TURN_ENDS as _TURN_ENDS  # noqa: E402
+
+CHARTER = CHARTER_BODY + _TURN_ENDS
 
 
 def build_prompt(item: dict) -> str:

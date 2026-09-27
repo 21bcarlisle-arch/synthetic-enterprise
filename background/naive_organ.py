@@ -65,7 +65,9 @@ CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
 # JUDGMENT, the same class as the twin — a cheap model asks a bland question and
 # the organ is worthless). The DETECTORS are free Python; only the
 # question-formulation spends Opus.
-ORGAN_MODEL = "claude-opus-5"
+from background.model_tier import OPUS as _OPUS_TIER  # noqa: E402 -- the one named model
+
+ORGAN_MODEL = _OPUS_TIER
 
 InvokeFn = Callable[[str], str]
 

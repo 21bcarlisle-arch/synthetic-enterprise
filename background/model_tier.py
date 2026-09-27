@@ -64,8 +64,29 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 PILOT_CONFIG = PROJECT_DIR / "docs" / "observability" / "model_tier_pilot.yaml"
 TIER_LOG = PROJECT_DIR / "docs" / "observability" / "model_tier_log.jsonl"
 
-OPUS = "claude-opus-5"
+OPUS = "claude-opus-5-5"
+# THE ONE PLACE THE OPUS-TIER MODEL IS NAMED (2026-09-27). Opus 5.5 is $4/$20 per M tokens against
+# Opus 5's $5/$25 and, per Anthropic, matches Opus 5 at `high` effort at its own default `medium` in
+# fewer tokens. Every unattended seat reads this constant rather than holding its own copy -- seven
+# modules each pinned `claude-opus-5` after the director's console had moved to 5.5.
 SONNET = "claude-sonnet-5"
+
+# ANTHROPIC'S DOCUMENTED FIX FOR OPUS 5.5 IN HEADLESS RUNS, adapted (2026-09-27). Opus 5.5 keeps the
+# user updated as it works, and some updates end the turn with text rather than a tool call; a
+# `claude -p` run treats that as the end of the task and stops partway through. Source:
+# platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5
+# (#unattended-agentic-runs). Appended to the UNATTENDED prompts only -- never to a seat a person
+# answers, where stopping to ask is correct.
+UNATTENDED_TURN_ENDS = (
+    "\n\nHOW THIS TURN ENDS. A message with no tool call in it ends your turn, and nobody is there to "
+    "ask you to continue. Do not end it with a summary that announces the next step instead of "
+    "taking it, an offer to carry on unless someone objects, a list of decisions none of which "
+    "blocks the rest of the work, or a pause because the turn feels long or a milestone is done. "
+    "Put status notes in the same message as your next tool call and keep going. The only right "
+    "ends are: the drawn work is landed and reported, or nothing more can move without the "
+    "director, or what blocks you is deliberately protected from you. This does not override the "
+    "walls or the need to stop before risky or irreversible actions.\n"
+)
 
 # ── RESERVED: any of these anywhere in the doorbell forces OPUS ──────────────
 #
