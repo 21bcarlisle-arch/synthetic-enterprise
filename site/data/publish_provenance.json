@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-25T09:48:27Z",
+    "checked_at": "2026-09-27T02:28:00Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,35 +9,35 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 18
+    "open_findings": 21
   },
   "last_verified": {
-    "generated_at": "2026-09-27T02:19:14Z",
-    "git_commit": "d678f063a",
+    "generated_at": "2026-09-27T03:42:00Z",
+    "git_commit": "65d046034",
     "population": {
       "accounts": 244,
       "bills": 10435,
       "total_revenue_gbp": 715827.58
     },
-    "run_id": "run_output_d678f063a_20260927T004952Z.json",
+    "run_id": "run_output_65d046034_20260927T023400Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-27T02:19:14Z"
+    "verified_at": "2026-09-27T03:42:00Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-27T02:19:14Z",
-    "git_commit": "d678f063a",
+    "generated_at": "2026-09-27T03:42:00Z",
+    "git_commit": "65d046034",
     "population": {
       "accounts": 244,
       "bills": 10435,
       "total_revenue_gbp": 715827.58
     },
-    "run_id": "run_output_d678f063a_20260927T004952Z.json",
+    "run_id": "run_output_65d046034_20260927T023400Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-27T02:19:14Z"
+    "verified_at": "2026-09-27T03:42:00Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-09-27T02:19:14Z"
+  "written_at": "2026-09-27T03:42:00Z"
 }
