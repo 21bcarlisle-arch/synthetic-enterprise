@@ -349,7 +349,7 @@ def _release_lock(*owned_pids: int) -> None:
 class TickDecision:
     """Pure decision (unit-testable, no side effects): whether to spawn, and why not / with what."""
     spawn: bool
-    outcome: str          # SPAWNED | REST_NO_WORK | DISABLED | NOT_SCHEDULED | LOCK_HELD | DRAW_ERROR
+    outcome: str          # SPAWNED | REST_NO_WORK | DISABLED | NOT_SCHEDULED | LOCK_HELD | DRAW_ERROR | MODE_HELD
     reason: str = ""      # the drawn doorbell (only when spawn=True)
     detail: str = ""
 
@@ -379,15 +379,22 @@ def decide_tick(enabled: bool, scheduled: bool, in_flight: bool,
     return TickDecision(True, "SPAWNED", reason=reason, detail=reason[:200])
 
 
-def _draw() -> "tuple[str | None, bool] | Exception":
+def _draw(product_only: bool = False) -> "tuple[str | None, bool] | Exception":
     """Sync origin-staged docs (RC3) then run the sole draw authority. Returns (reason, exhausted)
     or the Exception (so decide_tick can classify it LOUD). find_work prints via supervisor.log();
-    capture stdout so this stays a clean library call. Sets the ntfy topic guard (never sends one)."""
+    capture stdout so this stays a clean library call. Sets the ntfy topic guard (never sends one).
+
+    Under the director's product-only tick mode the draw is `tick_mode.product_draw` instead, which
+    offers landing blockers, his staged words and product-lane atoms and nothing reactive -- see
+    that function for why the reactive reasons are the ones that had to go."""
     os.environ.setdefault("SE_NTFY_TOPIC", "worker-tick-draw-only")
     try:
         with contextlib.redirect_stdout(io.StringIO()):
             from background.supervisor import _sync_origin_staging, find_work
             _sync_origin_staging()
+            if product_only:
+                from background import tick_mode
+                return tick_mode.product_draw(), False
             return find_work(resumed_from_pause=False)
     except Exception as e:
         return e
@@ -497,6 +504,25 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
         return None
 
 
+def _mode_gate() -> "tuple[bool, str, str] | None":
+    """The director's tick mode (background/tick_mode.py), or None when it cannot be read -- a broken
+    dial runs the tick as normal and SAYS so, rather than silently stopping the machine."""
+    try:
+        from background import tick_mode
+        return tick_mode.gate("worker-tick")
+    except Exception as e:  # noqa: BLE001 - named in the log, never swallowed
+        _log(f"tick mode unreadable ({e!r}) -- running as normal")
+        return None
+
+
+def _note_spawn() -> None:
+    try:
+        from background import tick_mode
+        tick_mode.note_spawn("worker-tick")
+    except Exception as e:  # noqa: BLE001
+        _log(f"tick mode spawn stamp not written ({e!r})")
+
+
 def run_tick() -> TickDecision:
     """Evaluate the guards, draw, decide, and act. Returns the decision (for logging/tests). On a
     spawn it BLOCKS until the bounded invocation exits (keeping the oneshot service active for its
@@ -519,7 +545,15 @@ def run_tick() -> TickDecision:
         return d
     owned = [me]
     try:
-        draw = _draw()
+        mode = _mode_gate()
+        if mode is not None and not mode[0]:
+            d = TickDecision(False, "MODE_HELD", detail=mode[2])
+            _write_health(d.outcome, d.detail)
+            _write_heartbeat(d, f"(not evaluated -- tick {d.outcome})")
+            _log(f"{d.outcome}: {d.detail[:160]}")
+            return d
+        draw = (_draw(product_only=True) if mode is not None and mode[1] == "product-only"
+                else _draw())
         d = decide_tick(True, True, False, draw)
         _write_health(d.outcome, d.detail)
         # RAIL-3: ship the verdict + whole-set enumeration on every drew/rested/exception tick.
@@ -535,6 +569,7 @@ def run_tick() -> TickDecision:
             _claim_dispatched(d.reason)
             proc = spawn_invocation(d.reason)
             if proc is not None:
+                _note_spawn()
                 _write_lock(proc.pid, d.reason)   # hand the claim we already hold to the child
                 owned.append(proc.pid)
                 _log(f"SPAWNED bounded invocation pid={proc.pid}: {d.reason[:120]}")

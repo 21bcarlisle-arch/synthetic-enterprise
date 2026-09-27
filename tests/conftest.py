@@ -148,6 +148,21 @@ def _no_real_session_spawn(request, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_real_tick_mode(monkeypatch):
+    """The director's tick mode lives in ~/.config and its spawn stamps in ~/.cache, outside the
+    repo, so neither guard above sees them: without this, `off` on the box reds every route's tests
+    and a test that reaches a spawn stamps the real clock the next `slow` is measured from."""
+    import tempfile
+    import uuid
+
+    from background import tick_mode
+    scratch = pathlib.Path(tempfile.gettempdir()) / "tick_mode_tests" / uuid.uuid4().hex
+    monkeypatch.setattr(tick_mode, "MODE_FILE", scratch / "tick_mode.json")
+    monkeypatch.setattr(tick_mode, "SPAWN_FILE", scratch / "spawns.json")
+    monkeypatch.setattr(tick_mode, "HISTORY_FILE", scratch / "history.jsonl")
+
+
+@pytest.fixture(autouse=True)
 def _no_real_state_write(request, monkeypatch):
     """G-T2: a test may NOT write a production surface, WHATEVER PRIMITIVE IT USES.
 

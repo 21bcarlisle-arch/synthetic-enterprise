@@ -447,6 +447,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
                   "1. ", "2. ", "3. ", "",
                   "### Deliberately not this week, and why", "", "- ", ""]
     else:
+        lines += _burn_section()
         lines += ["## What actually happened", "",
                   "_Against Monday's ranking, item by item. Where one did not move, say whether it "
                   "was wrong to rank it or wrong to leave it._", "", "- ", ""]
@@ -455,6 +456,26 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
               "— nothing else does — and archives this document to `done/` itself, so the rhythm "
               "disposes of everything it files.", ""]
     return "\n".join(lines)
+
+
+def _burn_section(days: float = 7.0) -> list[str]:
+    """THE WEEK'S BURN, PER KIND OF TURN AND PER MODEL -- the director's standing review (2026-09-27):
+    *"We also need to see the burn rate for each of the ticks... review this towards the end of each
+    week where you can propose changes and enact them unless I disagree."* Measured at mint time
+    from Claude Code's transcripts by `tools.tick_burn_rate`. A turn's COST, never an estimate of
+    his remaining allowance, which he mothballed as an excuse to stop."""
+    try:
+        from tools.tick_burn_rate import render
+        measured = render(days)
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT MEASURED -- `tools.tick_burn_rate` raised {type(exc).__name__}: {exc}"
+    return ["## Burn per kind of turn, this week", "", measured, "",
+            "**Propose, then enact unless the director disagrees.** For each kind of turn, is its "
+            "cadence, model tier or effort earning what it costs? Enact the reversible changes "
+            "(timer cadence, `model_tier`, effort), each with its reversal written down, and NTFY "
+            "the director what changed and how to reverse it. Anything the weighted figure cannot "
+            "judge -- whether the turns LANDED anything -- is read from the commits, not assumed.",
+            ""]
 
 
 def _rel(path: Path) -> str:

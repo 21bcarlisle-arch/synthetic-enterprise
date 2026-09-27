@@ -847,9 +847,27 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         if _another_executor_is_running():
             raise StoodDown("another executor is already running")
 
-        item = delivery_lane.next_item(now=now)
+        # THE DIRECTOR'S TICK MODE (background/tick_mode.py) is asked before anything is drawn: it
+        # can hold this route outright (off), space it (slow), or narrow what it may take
+        # (product-only, fold-only) -- in which case the walk skips to the next admissible item
+        # rather than standing down on the first. A dial that cannot be read runs as normal.
+        mode, admit = "normal", None
+        try:
+            from background import tick_mode
+            ok, mode, why = tick_mode.gate("seat-executor", now)
+            if not ok:
+                raise StoodDown(why)
+            if mode in ("product-only", "fold-only"):
+                def admit(it, _m=mode):
+                    return tick_mode.item_allowed(_m, it)[0]
+        except StoodDown:
+            raise
+        except Exception as e:  # noqa: BLE001 - named in the log, never swallowed
+            log(f"tick mode unreadable ({e!r}) -- running as normal")
+        item = delivery_lane.next_item(now=now, admit=admit)
         if item is None:
-            raise StoodDown("nothing to do: no continuation and no unclaimed focus item")
+            raise StoodDown("nothing to do: no continuation and no unclaimed focus item"
+                            + (f" that tick mode {mode} admits" if admit else ""))
 
         work_id = item["id"]
 
@@ -948,6 +966,11 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         # `record_landing` compares commit timestamps against, so "bound during this turn" is a
         # comparison between two facts about git rather than a claim about the session.
         started = time.time()
+        try:
+            from background import tick_mode
+            tick_mode.note_spawn("seat-executor")
+        except Exception:  # noqa: BLE001 - a lost stamp only lets the next spawn come sooner
+            pass
         try:
             proc = subprocess.run(
                 [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL,

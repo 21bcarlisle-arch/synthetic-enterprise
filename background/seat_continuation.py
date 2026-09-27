@@ -266,10 +266,15 @@ def hand_off(
     done_means: str,
     *,
     supersedes: tuple[str, ...] | list[str] | str = (),
+    lane: str | None = None,
     now: float | None = None,
     path: Path | None = None,
 ) -> dict:
     """Record the next piece, so the tick that runs after this session can take it.
+
+    `lane` is optional and names a maturity-map lane. It is what `tick_mode`'s product-only reads
+    first: an item that declares no lane is classified from the atoms and paths its prose names,
+    and prose-only analysis names neither.
 
     REFUSES AN INCOMPLETE HANDOFF rather than storing a fragment. A continuation missing its
     `done_means` is a topic, and a tick handed a topic produces a confident restatement of it --
@@ -307,6 +312,11 @@ def hand_off(
             f"a continuation must carry {', '.join(REQUIRED_FIELDS)}; missing or empty: "
             f"{', '.join(missing)}. A tick handed a topic writes a restatement of it."
         )
+    if lane:
+        known = _map_lanes()
+        if known and lane not in known:
+            raise ValueError(f"lane {lane!r} is not a lane on the maturity map ({', '.join(sorted(known))})")
+        fields["lane"] = lane
     if isinstance(supersedes, str):
         supersedes = [supersedes]
     retires = [str(i) for i in supersedes if str(i).strip()]
@@ -708,6 +718,17 @@ def drop(work_id: str, path: Path | None = None) -> bool:
     return True
 
 
+def _map_lanes() -> set:
+    """The lanes on the live map, or an empty set when the map cannot be read (the lane is then
+    stored unchecked rather than the hand-off lost)."""
+    try:
+        from tools import maturity_map_store
+        return {a.get("lane") for a in maturity_map_store.load_live_atoms()
+                if isinstance(a, dict) and a.get("lane")}
+    except Exception:
+        return set()
+
+
 def main(argv=None) -> int:  # pragma: no cover - operator surface
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--hand-off", nargs=4, metavar=("ID", "WHAT", "WHY", "DONE_MEANS"),
@@ -719,11 +740,13 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
                          "an earlier one under a different id -- the id-equality replacement in "
                          "--hand-off cannot see that, and live() offers oldest first, so the "
                          "refuted entry is drawn FIRST.")
+    ap.add_argument("--lane", default=None, metavar="LANE",
+                    help="the maturity-map lane this work is on; tick_mode product-only reads it")
     args = ap.parse_args(argv)
 
     if args.hand_off:
         try:
-            item = hand_off(*args.hand_off, supersedes=args.supersedes)
+            item = hand_off(*args.hand_off, supersedes=args.supersedes, lane=args.lane)
         except ValueError as exc:
             print(f"REFUSED: {exc}", file=sys.stderr)
             return 2
