@@ -298,6 +298,16 @@ def test_a_healthy_weekly_banner_states_its_as_at_date():
     assert out["state"] != "stale"
 
 
+def test_a_weekly_banner_names_the_day_the_figures_publish():
+    """Director, 2026-09-26: anchor the weekly publish to Monday, not a rolling seven days. The
+    feed carries `publishes_on` from `publish_freshness.snapshot`; the sentence must say it.
+    MUTATION: drop the anchor clause from `stalenessSentence` and this fires."""
+    hb = _heartbeat("publishing", 0.2, as_at_utc="2026-09-28T03:05Z", cadence_seconds=7 * 86400)
+    hb["content_publish"]["publishes_on"] = "Monday"
+    out = render(heartbeat=hb)
+    assert "figures publish every week, on Monday." in out["text"], out["text"]
+
+
 def test_a_healthy_banner_with_no_as_at_date_says_nothing_rather_than_guessing():
     """FAIL-CLOSED on the sentence, not on the page. If the snapshot could not date the figures,
     the banner must not invent a date -- and must not print a half-sentence either. MUTATION:

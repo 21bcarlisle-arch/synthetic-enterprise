@@ -128,9 +128,12 @@
          `stale` branch below carries the outage wording. */
       if (!cp.as_at_utc) { return ""; }
       var everyDays = Math.round((cp.cadence_seconds || 0) / 86400);
+      /* `publishes_on` is the anchor (director, 2026-09-26: "anchor it to Monday rather than a
+         rolling seven days"). Absent on an older feed, which still gets the bare cadence. */
+      var anchor = (everyDays === 7 && cp.publishes_on) ? ", on " + cp.publishes_on : "";
       return "Figures as at " + cp.as_at_utc.replace("T", " ") +
              (everyDays >= 1
-               ? " — numbers and runs publish every " + (everyDays === 7 ? "week" : everyDays + " days") + "."
+               ? " — figures publish every " + (everyDays === 7 ? "week" : everyDays + " days") + anchor + "."
                : ".");
     }
     if (cp.state === "unknown") {

@@ -192,8 +192,8 @@ def _remember_oldest_outcome(name: str, rc: int) -> None:
              EXIT_LOCK_SKIPPED: f"rc={EXIT_LOCK_SKIPPED} (lock-skipped, not attempted)",
              # Without its own entry a duplicate fell into the default below and was reported to
              # the alarm as "publisher ran and FAILED", which is the opposite of what happened.
-             EXIT_NOTHING_PUBLISHED: f"rc={EXIT_NOTHING_PUBLISHED} (duplicate — already "
-                                     "published by another process, nothing done here)",
+             EXIT_NOTHING_PUBLISHED: f"rc={EXIT_NOTHING_PUBLISHED} (nothing published — a "
+                                     "duplicate, or held for the weekly Monday window)",
              }.get(rc, f"rc={rc} (publisher ran and FAILED — a red publish gate "
                        "looks exactly like this)")
     try:
@@ -510,8 +510,8 @@ def process_leftover_run_markers():
             # Visible in the log (a silent outcome would be its own defect) but NOT progress:
             # the marker leaving the backlog is somebody else's act, not evidence that this
             # sweep is moving, so it must not close the zero-progress episode.
-            log(f"Duplicate {marker.name} (already archived by another publisher) — nothing "
-                f"published by this sweep")
+            log(f"Nothing published for {marker.name} by this sweep — already archived by "
+                f"another publisher, or held for the weekly Monday publish window")
         elif result.returncode == 0:
             log(f"Processed {marker.name}")
             # PW4: the ONE evidenced close of the zero-progress episode (see

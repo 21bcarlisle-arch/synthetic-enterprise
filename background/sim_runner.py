@@ -516,8 +516,11 @@ def auto_process_marker(marker):
             # branch below and this path logged "Auto-process failed (rc=76)" for a marker that
             # was already safely published by somebody else -- a false red in the first log a
             # reader opens when diagnosing a wedge.
-            log('Auto-process found the marker already archived (duplicate) -- '
-                'nothing published by this cycle')
+            # Since 2026-09-27 the same code also means HELD FOR THE WEEKLY WINDOW: figures publish
+            # from Monday 04:00, and a mid-week run archives its marker without publishing.
+            log('Auto-process published nothing by this cycle -- the marker was already '
+                'archived (duplicate) or held for the weekly Monday publish window; the '
+                "publisher's own log line says which")
         elif rc == EXIT_PUBLISH_DID_NOT_LAND:
             # NOT "marker left for background_worker", which is what the generic else branch
             # below would have said and would have been false: the publisher archived this

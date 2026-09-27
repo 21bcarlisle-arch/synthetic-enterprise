@@ -341,6 +341,19 @@ def _no_daemon_state_reaches_the_live_record(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _weekly_publish_window_open(monkeypatch):
+    """Default the publisher's weekly window OPEN for every test here.
+
+    The live verdict asks git when figures last reached origin, so without this every test that
+    drives `process_run_complete._process` past the marker would pass on Mondays and red the rest
+    of the week -- a control keyed to the calendar. The window's own tests close it in their body.
+    """
+    from background import process_run_complete
+    monkeypatch.setattr(process_run_complete, "_content_publish_window",
+                        lambda: {"open": True, "reason": "test default: window open"})
+
+
+@pytest.fixture(autouse=True)
 def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     """Default every test in tests/background/ to a NON-wedged publish-gate state so the
     RUNG-1 wedge detector cannot leak the real gate state into unrelated draw/rest assertions.

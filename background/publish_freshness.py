@@ -71,6 +71,7 @@ INDEX: searched "freshness", "staleness", "publish age". `publish_provenance.py`
 """
 from __future__ import annotations
 
+import calendar
 import json
 import subprocess
 import time
@@ -153,6 +154,9 @@ PUBLISH_GRACE_SECONDS = 24 * 60 * 60
 #: cadence a three-hour threshold means the banner reads "PUBLISHING IS DOWN" for six days out of
 #: seven while the machine does exactly what it was told. An alarm that is correct once a week and
 #: wrong the rest of the time is not a signal; it is the thing readers learn to ignore.
+#:
+#: Against the MONDAY ANCHOR below (2026-09-27): figures published on Monday go stale on the
+#: following Tuesday, one day after the next window opened and its publish failed to land.
 STALE_AFTER_SECONDS = PUBLISH_CADENCE_SECONDS + PUBLISH_GRACE_SECONDS
 
 #: A SECOND CLOCK FOR A SECOND QUESTION, and separating them is the point. "Is the weekly publish
@@ -161,6 +165,19 @@ STALE_AFTER_SECONDS = PUBLISH_CADENCE_SECONDS + PUBLISH_GRACE_SECONDS
 #: is just as urgent at a weekly cadence as it was at a half-hourly one. It keeps the old horizon,
 #: because nothing about the publishing cadence makes a stuck push less broken.
 PUSH_LAG_AFTER_SECONDS = 3 * 60 * 60
+
+#: WHEN THE WEEK'S PUBLISH IS ALLOWED -- Monday 04:00 UK time, and NOT a rolling seven days.
+#: Director, 2026-09-26: *"weekly publishing isn't in effect ... Make it real, and anchor it to
+#: Monday rather than a rolling seven days."* The cadence above was a declaration and nothing read
+#: it as a schedule: the publisher committed figures after every sim run, six times between Fri
+#: 09-25 afternoon and Sat 09-26 morning. `content_publish_window` is what makes it one.
+#:
+#: 04:00 is the weekly allowance reset (supervisor.py's MAX_CONCURRENT_FORKS note: "the allowance
+#: resets 2026-09-07 04:00", a Monday), so the week starts with fresh figures AND fresh budget to
+#: fix what they show. London time, because that is the clock the reset and the director keep.
+PUBLISH_WEEKDAY = 0  # Monday, in `datetime.weekday()` numbering
+PUBLISH_OPENS_AT_HOUR = 4
+PUBLISH_TIMEZONE = "Europe/London"
 
 
 def record_published(now: float | None = None) -> None:
@@ -266,6 +283,55 @@ def last_committed_ts(*, _run=None) -> float | None:
         return float(out[0]) if out else None
     except ValueError:
         return None
+
+
+def publish_week_start(now: float | None = None) -> datetime:
+    """The most recent Monday 04:00 London at or before `now`, as an aware datetime."""
+    from datetime import time as dtime
+    from datetime import timedelta
+    from zoneinfo import ZoneInfo
+    tz = ZoneInfo(PUBLISH_TIMEZONE)
+    local = datetime.fromtimestamp(time.time() if now is None else float(now), tz)
+    day = local.date() - timedelta(days=(local.weekday() - PUBLISH_WEEKDAY) % 7)
+    start = datetime.combine(day, dtime(PUBLISH_OPENS_AT_HOUR), tz)
+    if start > local:  # Monday before 04:00 still belongs to the previous week
+        start = datetime.combine(day - timedelta(days=7), dtime(PUBLISH_OPENS_AT_HOUR), tz)
+    return start
+
+
+def content_publish_window(now: float | None = None, *, published_ts_fn=None) -> dict:
+    """May the publisher put new FIGURES on origin now? Once per week, from Monday 04:00.
+
+    OPEN when no content has reached origin since this week's start; CLOSED once it has, until
+    next Monday. So a healthy week publishes on Monday, and a Monday whose publish is refused
+    (red gate, failed push) keeps trying on Tuesday and after -- the week's publish is OWED until
+    it lands, and the anchor never slides: the next one is still Monday.
+
+    THE SUBJECT IS `content_on_origin_ts` -- the figures on origin -- not the publisher's stamp,
+    because the stamp is written on any verified push (a provenance-banner push once refreshed it,
+    2026-08-21), and a Monday whose gate went red must not read as "published". Its known miss is
+    the other direction: a hand edit to `LATEST.md` landing mid-week would close the window early.
+    Nothing but the publisher has committed a `CONTENT_PATHS` file since 2026-09-20.
+
+    FAIL-OPEN, DELIBERATELY, when git cannot answer: this is a cost control, and the cost of
+    publishing once too often is small beside the cost of the site silently skipping its week.
+    """
+    fn = content_on_origin_ts if published_ts_fn is None else published_ts_fn
+    ts = time.time() if now is None else float(now)
+    start = publish_week_start(ts)
+    nxt = publish_week_start(ts + PUBLISH_CADENCE_SECONDS)  # always lands in the following week
+    last = fn()
+    if last is None:
+        is_open, why = True, "when figures last reached origin is unknown -- publishing rather than risk skipping the week"
+    elif last < start.timestamp():
+        is_open, why = True, "this week's figures are owed (last on origin {})".format(
+            datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"))
+    else:
+        is_open, why = False, "this week's figures reached origin {}; the next publish opens {}".format(
+            datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+            nxt.strftime("%a %Y-%m-%d %H:%M %Z"))
+    return {"open": is_open, "reason": why,
+            "week_start": start.isoformat(), "next_opens": nxt.isoformat()}
 
 
 def queue_depth() -> int | None:
@@ -497,6 +563,8 @@ def snapshot(now: float | None = None, *, _run=None) -> dict:
             None if com_age is None
             else datetime.fromtimestamp(now - com_age, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")),
         "cadence_seconds": PUBLISH_CADENCE_SECONDS,
+        # The anchor the cadence is kept to, for the banner's sentence: `content_publish_window`.
+        "publishes_on": calendar.day_name[PUBLISH_WEEKDAY],
         # The disagreement, named rather than left for a reader to spot: content is being
         # COMMITTED while the publish path is not landing it. Its own fault and its own fix --
         # either the push is not reaching origin, or (2026-08-13) the publisher's commit is dying

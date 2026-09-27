@@ -10338,6 +10338,12 @@ def main(marker_path_str):
             return _process(marker_path_str)
 
 
+def _content_publish_window():
+    """The weekly window verdict. A seam of its own so tests can open or close it by name."""
+    from background import publish_freshness
+    return publish_freshness.content_publish_window()
+
+
 def _process(marker_path_str):
     marker = Path(marker_path_str).resolve()
     if not marker.exists():
@@ -10367,6 +10373,25 @@ def _process(marker_path_str):
 
     data = json.loads(json_path.read_text())
     net_margin = data.get("total_net_gbp", 0)
+
+    # THE WEEKLY WINDOW (director, 2026-09-26: "weekly publishing isn't in effect ... Make it
+    # real, and anchor it to Monday"). Figures go to origin once a week, from Monday 04:00 London,
+    # and until this gate existed the only thing weekly about publishing was a sentence on the
+    # banner. Ahead of everything else because everything else -- regeneration, the scoped gate,
+    # the commit -- IS the publish, and the scoped gate is what used to page the seat mid-week.
+    # The marker is archived (a later run supersedes it; leaving it would grow a backlog the
+    # zero-progress alarm reads as a wedge) and liveness keeps flowing, exactly as on a SKIP.
+    # An administration event still processes: its NTFY is the reason that exception exists.
+    window = _content_publish_window()
+    if not window["open"] and not _run_fingerprint(data)["administration_event"]:
+        _archive_marker(marker)
+        log("HOLD (weekly publish window): {} -- no regen/test/commit. Archived {}.".format(
+            window["reason"], marker.name))
+        try:
+            _refresh_published_liveness_on_skip(git_hash)
+        except Exception as exc:  # never let liveness publishing break the hold path
+            log("Liveness refresh on HOLD raised (non-fatal): {}".format(exc))
+        return EXIT_NOTHING_PUBLISHED
 
     # Change-detection gate: if this run's meaningful outputs are identical to
     # the last fully-processed run (same headline figures, same UTC date), the
