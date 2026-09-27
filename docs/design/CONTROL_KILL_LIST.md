@@ -95,6 +95,8 @@ silently skips) when its dedup memory is unreadable.
 ## WHAT WE FIXED THIS PASS (the class, not the instance)
 
 ### F6 — FAIL-SILENT: the Qwen internal-audit backstop (`company/compliance/internal_audit.py`)
+
+> **RETIRED 2026-09-27.** Its model was evicted 2026-08-10; from then every sanity cycle logged "the audit did NOT run". Module and tests deleted, registry row removed (34 tested / 33 fired). The classes it sampled are the structural bill controls, run on every bill. The record below is kept as history.
 **Before:** `parse_audit_response("")` returned `verdict="clean"`. `call_qwen` returns
 `""` on any failure (Ollama down / timeout / unparseable). So on every autonomous run
 where Ollama was down, `run_internal_audit` returned `[]` — the audit passed **by not

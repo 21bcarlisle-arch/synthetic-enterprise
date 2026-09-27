@@ -116,6 +116,8 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-27  I001 1305 -> 1304  (the Qwen internal audit retired). The one I001 in the deleted
+#     `tests/company/compliance/test_internal_audit.py`. No tidying elsewhere.
 #   2026-09-25  I001 1306 -> 1305  (the five-minute tick is wired to drain the fork with origin).
 #     ONE FILE, `tests/background/test_reconcile_watch.py`, and it is a side effect rather than a
 #     tidying pass. That file carries a DELIBERATE mid-file `import pytest  # noqa: E402,F811` —
@@ -774,7 +776,8 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1305,  # lowered 2026-09-25 (see the SHRINK LOG head). Previously 1306,
+    "I001": 1304,  # lowered 2026-09-27 (see the SHRINK LOG head). Previously 1305,
+    #             lowered 2026-09-25 (see the SHRINK LOG head). Previously 1306,
     #             lowered 2026-09-21 (see the SHRINK LOG head). Previously 1307,
     #             lowered 2026-09-19 (see the SHRINK LOG head). Previously 1308,
     #             lowered 2026-09-16 (see the SHRINK LOG head). Previously 1309,
@@ -906,7 +909,9 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2281  # 2282 -> 2281 on 2026-09-25: the I001 above, attributed to
+RUFF_BASELINE_TOTAL = 2280  # 2281 -> 2280 on 2026-09-27: the I001 above, the whole of
+# `tests/company/compliance/test_internal_audit.py`, deleted with the retired Qwen audit.
+# 2282 -> 2281 on 2026-09-25: the I001 above, attributed to
 # `tests/background/test_reconcile_watch.py`, whose mid-file R10 marker block the fork-drain
 # controls had open anyway.
 # 2283 -> 2282 on 2026-09-21: the I001 above, attributed to

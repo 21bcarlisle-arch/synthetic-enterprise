@@ -40,12 +40,6 @@ from company.compliance.domain_invariants import (
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.billing.pre_bill_validation import validate_bill
 from company.compliance import obligations_register as orr
-from company.compliance.internal_audit import (
-    parse_audit_response,
-    run_internal_audit,
-    run_phase_close_audit,
-    CHECKER_UNAVAILABLE,
-)
 import tools.epistemic_verifier as ev
 
 
@@ -303,42 +297,6 @@ def test_bill_period_sane_fails_closed_on_missing_dates():
     b = _foot_bill()
     del b["period_start"]
     assert check_bill_period_sane(b) is False
-
-
-# --------------------------------------------------------------------------
-# internal_audit.py -- the Qwen backstop (FAIL-SILENT fix)
-# --------------------------------------------------------------------------
-
-def test_parse_response_empty_is_unavailable_not_clean():
-    # FAIL-SILENT killer pattern: an unavailable checker must NOT read as clean.
-    assert parse_audit_response("")["verdict"] == CHECKER_UNAVAILABLE
-    assert parse_audit_response("garbage, no verdict")["verdict"] == CHECKER_UNAVAILABLE
-    # A real verdict still parses normally.
-    assert parse_audit_response("VERDICT: flagged\nNOTE: x")["verdict"] == "flagged"
-    assert parse_audit_response("VERDICT: clean\nNOTE: x")["verdict"] == "clean"
-
-
-def test_internal_audit_alarms_when_checker_unavailable():
-    bills = [{"customer_id": "C1", "segment": "resi", "period_end": "2024-01-31"},
-             {"customer_id": "C2", "segment": "resi", "period_end": "2024-01-31"}]
-    findings = run_internal_audit(bills, n_samples=2, seed=1, call_qwen_fn=lambda p: "")
-    assert any(f.get("kind") == "checker_unavailable" for f in findings), \
-        "FAIL-SILENT: audit returned clean/empty when the checker was down"
-
-
-def test_phase_close_audit_alarms_when_checker_unavailable():
-    artefacts = {"page_a": "content a", "page_b": "content b"}
-    findings = run_phase_close_audit(artefacts, n_samples=2, seed=1, call_qwen_fn=lambda p: "")
-    assert any(f.get("kind") == "checker_unavailable" for f in findings)
-
-
-def test_internal_audit_clean_run_does_not_false_alarm():
-    # The fix must not create false positives: a reachable, clean checker -> [].
-    bills = [{"customer_id": "C1", "segment": "resi", "period_end": "2024-01-31"}]
-    findings = run_internal_audit(
-        bills, n_samples=1, seed=1, call_qwen_fn=lambda p: "VERDICT: clean\nNOTE: ok"
-    )
-    assert findings == []
 
 
 # --------------------------------------------------------------------------

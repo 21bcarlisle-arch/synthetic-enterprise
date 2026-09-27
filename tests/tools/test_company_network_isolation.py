@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """R15 proof for the company-side network refusal (director ruling, 2026-08-18).
 
-The control asserts a property that is FALSE TODAY, deliberately: four company-side modules
+The control asserts a property that is FALSE TODAY, deliberately: three company-side modules
 can reach a real endpoint, and the control is red until the seam is repaired. That makes the
 mutations the only evidence it works at all — a red control proves nothing about its own
 correctness, and "it is red because the defect is real" is exactly what a broken control
@@ -51,8 +51,8 @@ def test_MUTATION_a_transitive_http_route_fires(tmp_path):
 
 
 def test_MUTATION_a_shell_to_a_network_binary_fires(tmp_path):
-    """`company.compliance.internal_audit` shells curl at a URL held in a module constant.
-    Leaving subprocess out of the capability set would have missed it entirely."""
+    """`company.compliance.internal_audit` shelled curl at a URL held in a module constant (until
+    its retirement, 2026-09-27). Leaving subprocess out of the capability set would have missed it."""
     _tree(tmp_path, {
         "company/__init__.py": "",
         "company/audit.py": 'import subprocess\nURL="http://x"\nsubprocess.run(["curl", URL])\n',
@@ -133,7 +133,7 @@ def test_the_live_repository_is_red_with_named_routes():
 # The ratchet: known routes frozen, growth refused
 # ---------------------------------------------------------------------------
 def test_the_gate_is_green_on_the_known_routes():
-    """The tree is not held hostage to four routes while the seam repair is designed."""
+    """The tree is not held hostage to three routes while the seam repair is designed."""
     assert iso.gate_violations() == []
 
 

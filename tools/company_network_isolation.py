@@ -77,8 +77,9 @@ HTTP_MODULES = frozenset({
 #: actually pointed at one. Counting every `subprocess` import as a network route would fail
 #: `saas.reporting.annual_report`, which shells `git`, and a control that cries wolf is one
 #: people learn to route around. Counting none of them would have missed
-#: `company.compliance.internal_audit`, which shells `curl` at a URL held in a module
-#: constant -- a real route out, found only because subprocess was considered at all.
+#: `company.compliance.internal_audit`, which shelled `curl` at a URL held in a module
+#: constant -- a real route out, found only because subprocess was considered at all
+#: (retired with its model 2026-09-27).
 #: So: a shell counts iff the module also names a network binary.
 NETWORK_BINARIES = ("curl", "wget", "nc", "ncat", "ssh", "scp", "rsync", "telnet")
 SHELL_MODULES = frozenset({"subprocess", "os"})
@@ -92,15 +93,13 @@ _BINARY_RE = {b: re.compile(rf"\b{re.escape(b)}\b") for b in NETWORK_BINARIES}
 SCAN_DIRS = tuple(sorted(set(WALL_DIRS) | {"tools", "background"}))
 
 
-#: THE FOUR ROUTES THAT EXIST TODAY, frozen so the tree is not held hostage to them while
+#: THE ROUTES THAT EXIST TODAY, frozen so the tree is not held hostage to them while
 #: the seam repair is designed -- and shrink-only, so they cannot become permanent. A NEW
 #: route fails immediately; a frozen entry that is no longer a route ALSO fails, because a
 #: baseline that keeps discharged entries stops being countable. Same shape as the site
 #: register's orphan debt and the orphan ratchet itself: freeze the standing set, fail the
 #: growth. Every entry names the route, so removing one is a checkable claim.
 KNOWN_ROUTES: dict[str, str] = {
-    "company.compliance.internal_audit":
-        "shells curl at OLLAMA_URL, a module constant -- nothing stops it pointing outward",
     "company.interfaces.sim_interface":
         "the price fallback: cache miss -> sim.system_prices_history (Elexon) and "
         "sim.gas_prices_history (wget, FRED)",

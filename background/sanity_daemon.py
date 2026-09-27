@@ -65,7 +65,6 @@ def _digest(msg: str) -> None:
            topic_class=notification_digest.FINDING_ANNOUNCEMENT)
 from background import coupled_triad  # noqa: E402
 from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
-from company.compliance.internal_audit import run_internal_audit  # noqa: E402
 from company.compliance import sanity_adjudication as adjudication  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
@@ -90,12 +89,6 @@ COUPLED_GAP_LEDGER_PATH = coupled_triad.GAP_LEDGER_PATH
 
 POLL_INTERVAL_SECONDS = 1800  # 30 minutes -- detective/sampling cadence, not turn-granting
 
-# Phase 6: how many bills the Qwen skeptic reviews per cycle. Small on
-# purpose -- each call takes real wall-clock time (~10-30s) against the
-# local model, and this is a sampling control, not a full sweep.
-AUDIT_SAMPLES_PER_CYCLE = 2
-
-
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     entry = f"\n- [{ts}] {msg}"
@@ -105,39 +98,11 @@ def log(msg: str) -> None:
     print(entry)
 
 
-# 2026-07-10 director observation (from_rich_20260710_135317.md), and
-# 2026-07-11's follow-up (docs/design/SANITY_TRIAGE_2026_07_11.md): a naive
-# signature keying on (customer_id, period_end) re-fires almost every cycle,
-# since `run_internal_audit`'s risk-based RANDOM sample (unseeded -- a fresh
-# draw every cycle) is guaranteed to change almost every time, even when the
-# underlying finding is the exact same recurring false-positive SHAPE (e.g.
-# "gas billed in kWh" -- correct GB practice, adjudicated a false positive,
-# see the triage doc). Categorising alone (this dict) was only a PARTIAL fix
-# -- a small per-cycle sample still draws a different SUBSET of the same
-# known categories each time, so a signature built from that subset still
-# changes cycle to cycle. The real fix is _register_if_new()'s ledger-backed
-# membership check below: durable, not subset-dependent.
-_AUDIT_CATEGORY_RULES = [
-    ("gas-kwh-unit", ("gas", "kwh")),
-    ("vat-mismatch", ("vat",)),
-    ("high-consumption", ("consumption",)),
-]
-
-
-def _categorize_audit_note(note: str) -> str:
-    lowered = note.lower()
-    for category, keywords in _AUDIT_CATEGORY_RULES:
-        if all(kw in lowered for kw in keywords):
-            return category
-    return f"other:{note.strip()[:40].lower()}"
-
-
+# A finding's key is durable (check+customer+year), never a per-cycle sample signature: the
+# retired audit stream re-alerted every cycle for 21h on a fresh random subset of the same known
+# categories (docs/design/SANITY_TRIAGE_2026_07_11.md). _register_if_new() is the fix.
 def _population_finding_key(f: dict) -> str:
     return f"population:{f['check']}:{f.get('customer_id')}:{f.get('year')}"
-
-
-def _audit_finding_key(category: str) -> str:
-    return f"audit:{category}"
 
 
 def _register_if_new(finding_key: str, evidence: str) -> bool:
@@ -493,30 +458,11 @@ def run_cycle() -> None:
             )
             log(f"NTFY sent ({len(new_findings)} genuinely new finding(s))")
 
-    # Phase 6: internal audit sample. Advisory only -- a live run found the
-    # Qwen skeptic can produce false positives on numeric consistency
-    # (flagged a bill whose VAT was manually verified exactly correct,
-    # 2026-07-09) -- every message here says so explicitly, so a reader
-    # never mistakes a flag for a confirmed defect the way Phase 3's
-    # deterministic gate's findings are.
-    audit_findings = run_internal_audit(bills, n_samples=AUDIT_SAMPLES_PER_CYCLE)
-    new_categories: list[str] = []
-    if not audit_findings:
-        log("Internal audit: 0 flagged in this cycle's sample (advisory, small sample)")
-    else:
-        categories = sorted({_categorize_audit_note(f["note"]) for f in audit_findings})
-        detail = "; ".join(f"{f['customer_id']} ({f['period_end']}): {f['note']}" for f in audit_findings)
-        log(f"Internal audit (Qwen skeptic, ADVISORY -- verify before acting): {detail}")
-        new_categories = [c for c in categories if _register_if_new(_audit_finding_key(c), detail)]
-        if new_categories:
-            _digest(
-                "Sanity daemon: internal audit (Qwen skeptic, advisory -- verify before "
-                f"acting, false positives observed) flagged a NEW category "
-                f"({', '.join(new_categories)}): {detail}"
-            )
-            log(f"NTFY sent (new audit category: {', '.join(new_categories)})")
-
-    _maybe_send_daily_digest(any_new_this_cycle=bool(new_findings) or bool(new_categories))
+    # The Qwen internal-audit sample that ran here was retired 2026-09-27 with its model (evicted
+    # 2026-08-10): from then on every cycle logged "the audit did NOT run". The defect classes it
+    # sampled -- a bill that does not foot, a negative line, a wrong VAT rate -- are checked on
+    # EVERY bill by company/billing/pre_bill_validation.py's deterministic invariants.
+    _maybe_send_daily_digest(any_new_this_cycle=bool(new_findings))
 
 
 def main() -> None:

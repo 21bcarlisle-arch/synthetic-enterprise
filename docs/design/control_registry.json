@@ -6,9 +6,10 @@
     "doctrine": "A control that CANNOT FAIL is worse than no control. For every control, inject the exact defect it exists to catch; it MUST fire. Audit for three killer patterns: TAUTOLOGY (checked value derived from the same source it is checked against), FAIL-OPEN (passes on missing/zero/empty/malformed), FAIL-SILENT (passes when the checker itself is unavailable).",
     "coverage_note": "Pass 1 (commit e16f00de) mutation-tested the highest-tier / customer-impacting control set (invariant library, Tier-1 pre-bill gate, obligations tiering, the Qwen backstop, the epistemic verifier). Pass 2 (H12 L2->L3) extends to the inventoried-but-untested tail: the compliance trackers (population sanity, consumer duty, social obligation, crisis bad debt, green claims), the health / page-consistency gates (R14 basis labels, dashboard consistency + population consistency, background/health_check), the daemon change-detection (dedup) gate, and a STRUCTURAL check of the LLM-judge evaluators (judgement layer itself remains not-deterministically-mutation-testable, documented not counted as covered).",
     "cumulative_counts": {
+      "retired_note": "2026-09-27: internal_audit_qwen_backstop removed -- its model was evicted 2026-08-10 and from then it only logged its own absence; the classes it sampled are the deterministic structural bill controls above, on every bill.",
       "as_of": "2026-07-27 (pass 7: F6 non-finite NaN/Inf fail-open fixed on the two structural bill controls -- KL-9)",
-      "total_controls_mutation_tested": 35,
-      "fired_on_named_defect": 34,
+      "total_controls_mutation_tested": 34,
+      "fired_on_named_defect": 33,
       "theatre": 1,
       "fixed_cumulative": 12,
       "gaps_registered_not_fixed": 0,
@@ -27,10 +28,10 @@
           "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (KL-7 FIXED F8: NOT_APPLICABLE for no-claims, fails CLOSED on broken detection); dashboard _check_consistency per-key skip (KL-8 FIXED F8: one-sided missing key now a mismatch); deadman_meaningful_liveness (FIXED 2026-07-14: no-op auto-process commits no longer refresh the liveness clock, fires on a stale meaningful commit); bill_period_temporal_sane span (FIXED 2026-07-16 F6 HARDEN: an ordered-but-multi-decade period passed a start<=end-only check, now a >731-day span fails CLOSED); single_customer_gross_margin_concentration empty/all-loss-making false-green (FIXED 2026-07-16 B2 HARDEN: no-positive-margin base now 'not_assessable'/None, never a false green)"
         },
         "FAIL_SILENT": {
-          "total": 4,
-          "fixed": 4,
+          "total": 3,
+          "fixed": 3,
           "listed_gaps": 0,
-          "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (KL-4 FIXED F8: empty log now FLAGS); consumer_duty empty-register=GREEN (KL-5 FIXED F8: distinct NOT_ASSESSED state); dashboard _check_consistency no-insights (KL-8 FIXED F8: absent insights now fails CLOSED)"
+          "detail": "population estimated-read empty-log (KL-4 FIXED F8: empty log now FLAGS); consumer_duty empty-register=GREEN (KL-5 FIXED F8: distinct NOT_ASSESSED state); dashboard _check_consistency no-insights (KL-8 FIXED F8: absent insights now fails CLOSED)"
         }
       },
       "honest_note": "F8 (2026-07-13) CLOSED all five pass-2 gaps KL-4..KL-8, each with a passing mutation test proving the control now FIRES on its own named defect (before: theatre/passed-wrongly; after: fires). Each fix was verified OUTCOME-SAFE against the live population: the real run's 1,588 meter reads (30% estimated) still read clean (KL-4); a populated all-green Consumer-Duty register still reads GREEN (KL-5); a genuinely-met PAID full-spend obligation is still not flagged (KL-6); the real dashboard carries all 8 headline keys on both surfaces so no false one-sided mismatch (KL-8). ConsumerDutyRegister and SocialObligationSpendRegister are instantiated only in tests (no production surface), so KL-5/KL-6 carry zero production-outcome risk. Cumulative theatre count remains 1 (check_vat, the flagship tautology, retained as documented defence-in-depth).",
@@ -150,15 +151,6 @@
       "mutation": "billed usage that disagrees with closing-minus-opening at 1dp.",
       "killer_pattern_audit": "documented-not-applicable-guard",
       "killer_pattern_detail": "Returns True when any of the three reads is None (a bill carrying no meter reads -- genuinely not applicable). This is scoped correctly: it is a reads-reconciliation control and a bill with no reads has nothing to reconcile. Not a fail-open on the defect it owns.",
-      "result": "FIRED"
-    },
-    {
-      "id": "internal_audit_qwen_backstop",
-      "location": "company/compliance/internal_audit.py::run_internal_audit / parse_audit_response",
-      "catches": "Absurdities a human auditor would catch but no automated invariant was written for yet (the motivating SME-as-Household case).",
-      "mutation": "call_qwen returning '' (Ollama down) -- the checker itself unavailable.",
-      "killer_pattern_audit": "FAIL-SILENT (FIXED this pass)",
-      "killer_pattern_detail": "PREVIOUSLY returned verdict 'clean' on an empty/unparseable response, so on every autonomous run where Ollama was down the audit passed by NOT RUNNING. FIXED: a third verdict state 'unavailable' now ALARMS -- run_internal_audit / run_phase_close_audit emit a kind='checker_unavailable' finding so the caller reports the outage instead of logging 0 flagged. Still fabricates no per-bill finding.",
       "result": "FIRED"
     },
     {

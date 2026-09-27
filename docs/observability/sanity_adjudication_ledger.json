@@ -14,53 +14,53 @@
     "state": "adjudicated-false-positive"
   },
   "audit:other:internal audit checker (qwen/ollama) una": {
-    "adjudicated_at": "2026-08-10T06:25:52.970268+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "None (None): Internal audit checker (Qwen/Ollama) unavailable for 1/2 sampled bills -- the audit did NOT run; treat as a FAILED check, not clean; C4g (2023-06-30): Gas consumption is reported in kWh, which is typically used for electricity, not gas, suggesting a possible unit error.",
+    "adjudicated_at": "2026-09-27T13:43:44.795080+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:internal audit checker (qwen/ollama) una",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:other:the total bill (gbp 121.99) does not mat": {
-    "adjudicated_at": "2026-08-09T13:17:18.985543+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "C9 (2016-07-31): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation.; C5 (2019-04-30): The total bill (GBP 121.99) does not match the sum of the individual charges (GBP 245.50 + GBP 67.46 + GBP 12.15 + GBP 65.02 = GBP 390.13).",
+    "adjudicated_at": "2026-09-27T13:43:44.797604+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:the total bill (gbp 121.99) does not mat",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:other:the total bill (gbp 243.86) is inconsist": {
-    "adjudicated_at": "2026-08-03T13:20:00.829797+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "C4g (2018-12-31): Gas consumption is stated in kWh, which is typically used for electricity, not gas, suggesting a possible unit error.; C3 (2020-06-29): The total bill (GBP 243.86) is inconsistent with the sum of the individual charges (GBP 55.73 + GBP 26.32 + GBP 7.83 + GBP 4.49 = GBP 94.37).",
+    "adjudicated_at": "2026-09-27T13:43:44.799184+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:the total bill (gbp 243.86) is inconsist",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:other:the total bill (gbp 58.66) is less than ": {
-    "adjudicated_at": "2026-07-12T02:42:38.172489+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "C7 (2020-05-31): The total bill (GBP 58.66) is less than the sum of the commodity charge (GBP 96.05), non-commodity charge (GBP 44.96), and standing charge (GBP 8.37), which is implausible.; C1_2 (2023-02-28): The VAT amount of GBP 9.91 does not align with the expected VAT rate of 5% on the total charges excluding VAT.",
+    "adjudicated_at": "2026-09-27T13:43:44.800768+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:the total bill (gbp 58.66) is less than ",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:other:the total bill (gbp 72.07) is less than ": {
-    "adjudicated_at": "2026-07-12T05:13:54.775549+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "C4 (2019-02-28): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation or application.; C7 (2017-05-31): The total bill (GBP 72.07) is less than the sum of the commodity charge (GBP 97.71), non-commodity charge (GBP 41.66), and standing charge (GBP 7.75), which is implausible.",
+    "adjudicated_at": "2026-09-27T13:43:44.802441+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:the total bill (gbp 72.07) is less than ",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:other:the total bill does not align with the s": {
-    "adjudicated_at": "2026-08-02T18:43:33.217722+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "C3 (2020-06-29): The total bill does not align with the sum of the individual charges, suggesting a possible arithmetic error.; C7 (2025-06-07): The total bill is negative, which is implausible for a UK residential electricity customer.",
+    "adjudicated_at": "2026-09-27T13:43:44.803994+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:the total bill does not align with the s",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:other:the total bill is negative, which is imp": {
-    "adjudicated_at": "2026-07-29T16:25:20.260002+00:00",
-    "adjudicated_by": "sanity-daemon (auto-registered)",
-    "evidence": "C2 (2018-10-31): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation.; C1_2 (2022-06-30): The total bill is negative, which is implausible for a UK residential customer.",
+    "adjudicated_at": "2026-09-27T13:43:44.805605+00:00",
+    "adjudicated_by": "claude (mothball census, 2026-09-27)",
+    "evidence": "Source retired 2026-09-27: the Qwen internal-audit sample was removed with its model (evicted 2026-08-10). These are LLM readings of bill arithmetic (total vs components, negative total, VAT rate), the classes check_bill_foots / check_bill_line_items_non_negative / check_vat test deterministically on every bill in pre_bill_validation. Measured 2026-09-27 on run_output_latest.json: 10,435 bills, 0 fail check_bill_foots or check_bill_line_items_non_negative; of the bills named here still in the book (C5 2019-04-30, C7 2017-05-31, C9 2016-07-31) all pass. The 'checker unavailable' key was the outage itself, not a bill finding. Qwen's two adjudicated categories (gas-kwh-unit, vat-mismatch) were already false positives on manual check.",
     "finding_key": "audit:other:the total bill is negative, which is imp",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "audit:vat-mismatch": {
     "adjudicated_at": "2026-07-11T05:02:08.839454+00:00",
@@ -785,11 +785,263 @@
     "finding_key": "harden_sweep:live_site:F3_obligations_register",
     "state": "adjudicated-real"
   },
+  "population:consumption_distribution_vs_tdcv:C1:2018": {
+    "adjudicated_at": "2026-08-30T21:48:46.715293+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C1 (electricity, resi) annual consumption 445 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:C1:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:C3_2:2020": {
+    "adjudicated_at": "2026-08-30T21:48:46.717752+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C3_2 (electricity, resi) annual consumption 17226 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:C3_2:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:C4:2016": {
+    "adjudicated_at": "2026-09-16T17:06:44.155002+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C4 (electricity, resi) annual consumption 319 kWh in 2016 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:C4:2016",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0024g:2024": {
+    "adjudicated_at": "2026-09-16T11:14:55.321689+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0024g (gas, resi) annual consumption 1362 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0024g:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0042:2017": {
+    "adjudicated_at": "2026-09-17T03:06:52.563962+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0042 (electricity, resi) annual consumption 16364 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0042:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0042:2021": {
+    "adjudicated_at": "2026-08-31T21:49:08.075682+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0042 (electricity, resi) annual consumption 500 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0042:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0099:2017": {
+    "adjudicated_at": "2026-09-03T07:50:05.158140+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0099 (electricity, resi) annual consumption 436 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0099:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0099g:2017": {
+    "adjudicated_at": "2026-09-10T20:04:39.553308+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0099g (gas, resi) annual consumption 1454 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0099g:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0112:2016": {
+    "adjudicated_at": "2026-08-28T18:47:54.157151+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0112 (electricity, resi) annual consumption 97 kWh in 2016 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0112:2016",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2016-0121:2020": {
+    "adjudicated_at": "2026-09-07T09:24:53.071326+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0121 (electricity, resi) annual consumption 460 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2016-0121:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2018-0002:2018": {
+    "adjudicated_at": "2026-09-17T08:07:32.789716+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0002 (electricity, resi) annual consumption 17391 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2018-0002:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2018-0192:2019": {
+    "adjudicated_at": "2026-09-17T03:06:52.572035+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0192 (electricity, resi) annual consumption 20774 kWh in 2019 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2018-0192:2019",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2018-0238g:2018": {
+    "adjudicated_at": "2026-08-30T10:48:31.202973+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0238g (gas, resi) annual consumption 949 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2018-0238g:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2019-0208g:2024": {
+    "adjudicated_at": "2026-08-29T07:48:03.652954+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0208g (gas, resi) annual consumption 1481 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2019-0208g:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2019-0208g:2025": {
+    "adjudicated_at": "2026-08-29T07:48:03.655393+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0208g (gas, resi) annual consumption 920 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2019-0208g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2019-0282:2019": {
+    "adjudicated_at": "2026-08-31T21:49:08.081875+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0282 (electricity, resi) annual consumption 290 kWh in 2019 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2019-0282:2019",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0104g:2024": {
+    "adjudicated_at": "2026-08-29T07:48:03.656576+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0104g (gas, resi) annual consumption 782 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0104g:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0132g:2020": {
+    "adjudicated_at": "2026-09-17T14:27:43.939869+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0132g (gas, resi) annual consumption 1488 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0132g:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0132g:2021": {
+    "adjudicated_at": "2026-09-19T17:28:59.224936+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0132g (gas, resi) annual consumption 395 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0132g:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0190g:2020": {
+    "adjudicated_at": "2026-09-17T03:06:52.573830+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0190g (gas, resi) annual consumption 1463 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0190g:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0205g:2020": {
+    "adjudicated_at": "2026-09-17T03:06:52.575487+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0205g (gas, resi) annual consumption 824 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0205g:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0205g:2021": {
+    "adjudicated_at": "2026-09-17T03:06:52.577034+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0205g (gas, resi) annual consumption 1479 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0205g:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0248g:2025": {
+    "adjudicated_at": "2026-08-29T07:48:03.657717+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0248g (gas, resi) annual consumption 561 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0248g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0303g:2020": {
+    "adjudicated_at": "2026-08-29T07:48:03.658850+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0303g (gas, resi) annual consumption 49 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0303g:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2020-0334:2020": {
+    "adjudicated_at": "2026-09-17T03:06:52.578863+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0334 (electricity, resi) annual consumption 457 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2020-0334:2020",
+    "state": "open"
+  },
   "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2021": {
     "adjudicated_at": "2026-08-26T20:17:09.185434+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2021-0044g (gas, resi) annual consumption 882 kWh in 2021 is implausible against the TDCV-derived envelope",
     "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2022": {
+    "adjudicated_at": "2026-08-27T17:17:30.824856+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0044g (gas, resi) annual consumption 1186 kWh in 2022 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2022",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2023": {
+    "adjudicated_at": "2026-08-27T17:17:30.826223+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0044g (gas, resi) annual consumption 1095 kWh in 2023 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2023",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2024": {
+    "adjudicated_at": "2026-08-27T17:17:30.827418+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0044g (gas, resi) annual consumption 1033 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2025": {
+    "adjudicated_at": "2026-08-27T17:17:30.828608+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0044g (gas, resi) annual consumption 609 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0044g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0132g:2021": {
+    "adjudicated_at": "2026-08-30T10:48:31.205190+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0132g (gas, resi) annual consumption 411 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0132g:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0168g:2021": {
+    "adjudicated_at": "2026-09-22T07:35:57.020797+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0168g (gas, resi) annual consumption 1174 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0168g:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0279g:2021": {
+    "adjudicated_at": "2026-09-22T07:35:57.023665+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0279g (gas, resi) annual consumption 624 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0279g:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0279g:2025": {
+    "adjudicated_at": "2026-09-22T07:35:57.025830+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0279g (gas, resi) annual consumption 553 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0279g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0288:2021": {
+    "adjudicated_at": "2026-09-10T20:04:39.559064+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0288 (electricity, resi) annual consumption 454 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0288:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0324:2021": {
+    "adjudicated_at": "2026-09-07T09:24:53.074794+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0324 (electricity, resi) annual consumption 354 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0324:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2021-0399:2024": {
+    "adjudicated_at": "2026-08-31T21:49:08.083777+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0399 (electricity, resi) annual consumption 453 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2021-0399:2024",
     "state": "open"
   },
   "population:consumption_distribution_vs_tdcv:PROS-2022-0047g:2022": {
@@ -848,6 +1100,20 @@
     "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2022-0081g:2025",
     "state": "open"
   },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0096g:2024": {
+    "adjudicated_at": "2026-09-17T14:27:43.944518+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0096g (gas, resi) annual consumption 522 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0096g:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0096g:2025": {
+    "adjudicated_at": "2026-09-17T08:07:32.795467+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0096g (gas, resi) annual consumption 1010 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0096g:2025",
+    "state": "open"
+  },
   "population:consumption_distribution_vs_tdcv:PROS-2023-0126g:2023": {
     "adjudicated_at": "2026-08-26T20:17:09.195092+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -869,11 +1135,109 @@
     "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0126g:2025",
     "state": "open"
   },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0248:2023": {
+    "adjudicated_at": "2026-08-31T21:49:08.085779+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0248 (electricity, resi) annual consumption 475 kWh in 2023 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0248:2023",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0280:2023": {
+    "adjudicated_at": "2026-08-30T16:48:43.743979+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0280 (electricity, resi) annual consumption 361 kWh in 2023 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0280:2023",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0280g:2025": {
+    "adjudicated_at": "2026-08-30T16:48:43.745723+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0280g (gas, resi) annual consumption 987 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0280g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0294:2023": {
+    "adjudicated_at": "2026-09-17T14:27:43.946673+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0294 (electricity, resi) annual consumption 437 kWh in 2023 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0294:2023",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2023-0305:2023": {
+    "adjudicated_at": "2026-08-31T21:49:08.087786+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2023-0305 (electricity, resi) annual consumption 486 kWh in 2023 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2023-0305:2023",
+    "state": "open"
+  },
   "population:consumption_distribution_vs_tdcv:PROS-2024-0012g:2025": {
     "adjudicated_at": "2026-08-26T20:17:09.198092+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2024-0012g (gas, resi) annual consumption 1138 kWh in 2025 is implausible against the TDCV-derived envelope",
     "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0012g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0082:2024": {
+    "adjudicated_at": "2026-09-17T03:06:52.582207+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0082 (electricity, resi) annual consumption 25909 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0082:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0082:2025": {
+    "adjudicated_at": "2026-09-17T03:06:52.584320+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0082 (electricity, resi) annual consumption 28297 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0082:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0289:2024": {
+    "adjudicated_at": "2026-08-31T21:49:08.089181+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0289 (electricity, resi) annual consumption 415 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0289:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0294g:2024": {
+    "adjudicated_at": "2026-09-15T11:55:13.559229+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0294g (gas, resi) annual consumption 248 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0294g:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0294g:2025": {
+    "adjudicated_at": "2026-09-15T11:55:13.560968+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0294g (gas, resi) annual consumption 412 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0294g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0297:2024": {
+    "adjudicated_at": "2026-09-17T08:07:32.798688+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0297 (electricity, resi) annual consumption 441 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0297:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0305:2024": {
+    "adjudicated_at": "2026-09-17T03:06:52.586997+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0305 (electricity, resi) annual consumption 413 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0305:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2024-0324:2024": {
+    "adjudicated_at": "2026-09-17T14:27:43.950413+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2024-0324 (electricity, resi) annual consumption 345 kWh in 2024 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2024-0324:2024",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2025-0087:2025": {
+    "adjudicated_at": "2026-08-31T21:49:08.090491+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2025-0087 (electricity, resi) annual consumption 344 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2025-0087:2025",
     "state": "open"
   },
   "population:consumption_distribution_vs_tdcv:PROS-2025-0087g:2025": {
@@ -890,6 +1254,20 @@
     "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2025-0093g:2025",
     "state": "open"
   },
+  "population:consumption_distribution_vs_tdcv:PROS-2025-0103:2025": {
+    "adjudicated_at": "2026-09-15T11:55:13.562457+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2025-0103 (electricity, resi) annual consumption 399 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2025-0103:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:PROS-2025-0106:2025": {
+    "adjudicated_at": "2026-08-31T21:49:08.092168+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2025-0106 (electricity, resi) annual consumption 378 kWh in 2025 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2025-0106:2025",
+    "state": "open"
+  },
   "population:consumption_distribution_vs_tdcv:PROS-2025-0110g:2025": {
     "adjudicated_at": "2026-08-26T20:17:09.201716+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -902,6 +1280,111 @@
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2025-0114g (gas, resi) annual consumption 1438 kWh in 2025 is implausible against the TDCV-derived envelope",
     "finding_key": "population:consumption_distribution_vs_tdcv:PROS-2025-0114g:2025",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-003:2018": {
+    "adjudicated_at": "2026-09-17T14:27:43.929744+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-003 (electricity, resi) annual consumption 441 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-003:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-006:2017": {
+    "adjudicated_at": "2026-08-28T21:17:55.803201+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-006 (electricity, resi) annual consumption 16982 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-006:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-006:2018": {
+    "adjudicated_at": "2026-08-30T10:48:31.200244+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-006 (electricity, resi) annual consumption 15108 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-006:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-014:2021": {
+    "adjudicated_at": "2026-09-17T14:27:43.933860+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-014 (gas, resi) annual consumption 1406 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-014:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-018:2017": {
+    "adjudicated_at": "2026-09-03T07:50:05.154420+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-018 (electricity, resi) annual consumption 413 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-018:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-018:2020": {
+    "adjudicated_at": "2026-08-31T21:49:08.078333+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-018 (electricity, resi) annual consumption 358 kWh in 2020 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-018:2020",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-019:2019": {
+    "adjudicated_at": "2026-08-31T21:49:08.079873+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-019 (electricity, resi) annual consumption 352 kWh in 2019 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-019:2019",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-020:2018": {
+    "adjudicated_at": "2026-09-17T03:06:52.567739+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-020 (electricity, resi) annual consumption 478 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-020:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-023:2017": {
+    "adjudicated_at": "2026-09-03T07:50:05.156593+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-023 (electricity, resi) annual consumption 398 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-023:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-024:2017": {
+    "adjudicated_at": "2026-09-19T17:28:59.219657+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-024 (gas, resi) annual consumption 859 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-024:2017",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-037:2021": {
+    "adjudicated_at": "2026-09-16T09:14:54.244042+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-037 (gas, resi) annual consumption 1373 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-037:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-050:2021": {
+    "adjudicated_at": "2026-09-17T08:07:32.787133+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-050 (gas, resi) annual consumption 877 kWh in 2021 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-050:2021",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-052:2016": {
+    "adjudicated_at": "2026-09-17T03:06:52.569485+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-052 (gas, resi) annual consumption 1062 kWh in 2016 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-052:2016",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-054:2018": {
+    "adjudicated_at": "2026-09-17T14:27:43.937187+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-054 (electricity, resi) annual consumption 420 kWh in 2018 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-054:2018",
+    "state": "open"
+  },
+  "population:consumption_distribution_vs_tdcv:SYN-2016-064:2017": {
+    "adjudicated_at": "2026-09-25T16:34:29.725260+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-064 (electricity, resi) annual consumption 16878 kWh in 2017 is implausible against the TDCV-derived envelope",
+    "finding_key": "population:consumption_distribution_vs_tdcv:SYN-2016-064:2017",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:C1g:2019": {
@@ -925,6 +1408,76 @@
     "finding_key": "population:unit_rate_vs_cap_band:C4:2024",
     "state": "adjudicated-real"
   },
+  "population:unit_rate_vs_cap_band:C8:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.723436+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C8 (electricity, resi) average unit rate 482.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:C8:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0024:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.565741+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0024 (electricity, resi) average unit rate 426.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0024:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0024g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.328627+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0024g (gas, resi) average unit rate 117.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0024g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0024g:2024": {
+    "adjudicated_at": "2026-08-28T18:47:54.158999+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0024g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0024g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0090g:2022": {
+    "adjudicated_at": "2026-08-28T18:47:54.160149+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0090g (gas, resi) average unit rate 37.2 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0090g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0099g:2022": {
+    "adjudicated_at": "2026-08-28T18:47:54.161312+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0099g (gas, resi) average unit rate 30.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0099g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0112g:2022": {
+    "adjudicated_at": "2026-08-28T18:47:54.162684+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0112g (gas, resi) average unit rate 37.7 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0112g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0118g:2022": {
+    "adjudicated_at": "2026-08-28T18:47:54.164249+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0118g (gas, resi) average unit rate 33.4 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0118g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0129:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.571177+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0129 (electricity, resi) average unit rate 418.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0129:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2016-0129g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.332972+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2016-0129g (gas, resi) average unit rate 107.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2016-0129g:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2017-0036:2023": {
     "adjudicated_at": "2026-08-24T15:15:16.806149+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -939,6 +1492,90 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0038:2023",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2017-0045:2023": {
+    "adjudicated_at": "2026-08-28T18:47:54.165709+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0045 (electricity, resi) average unit rate 404.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0045:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0056:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.575621+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0056 (electricity, resi) average unit rate 411.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0056:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0056g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.342774+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0056g (gas, resi) average unit rate 106.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0056g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0064:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.577477+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0064 (electricity, resi) average unit rate 417.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0064:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0064g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.345083+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0064g (gas, resi) average unit rate 109.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0064g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0065:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.609917+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0065 (electricity, resi) average unit rate 415.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0065:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0065g:2024": {
+    "adjudicated_at": "2026-09-05T08:40:55.196108+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0065g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0065g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0081g:2022": {
+    "adjudicated_at": "2026-08-28T18:47:54.166860+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0081g (gas, resi) average unit rate 37.7 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0081g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0130:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.611673+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0130 (electricity, resi) average unit rate 422.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0130:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0144g:2022": {
+    "adjudicated_at": "2026-08-28T18:47:54.168032+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0144g (gas, resi) average unit rate 29.9 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0144g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0183g:2023": {
+    "adjudicated_at": "2026-09-17T08:07:32.810809+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0183g (gas, resi) average unit rate 122.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0183g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2017-0185:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.726526+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2017-0185 (electricity, resi) average unit rate 483.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2017-0185:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2018-0014g:2022": {
     "adjudicated_at": "2026-08-26T20:17:09.204864+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -946,11 +1583,151 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0014g:2022",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2018-0016:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.613435+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0016 (electricity, resi) average unit rate 415.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0016:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0022:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.040204+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0022 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0022:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0022g:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.042222+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0022g (gas, resi) average unit rate 113.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0022g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0035:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.579116+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0035 (electricity, resi) average unit rate 418.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0035:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0035g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.347201+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0035g (gas, resi) average unit rate 108.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0035g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0039:2023": {
+    "adjudicated_at": "2026-08-28T08:17:39.438031+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0039 (electricity, resi) average unit rate 421.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0039:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2018-0039g:2022": {
     "adjudicated_at": "2026-08-26T20:17:09.206418+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2018-0039g (gas, resi) average unit rate 30.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0039g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0080:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.615230+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0080 (electricity, resi) average unit rate 416.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0080:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0080g:2022": {
+    "adjudicated_at": "2026-08-30T16:48:43.751471+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0080g (gas, resi) average unit rate 37.6 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0080g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0096g:2022": {
+    "adjudicated_at": "2026-08-29T07:48:03.664448+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0096g (gas, resi) average unit rate 36.9 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0096g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0123:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.580784+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0123 (electricity, resi) average unit rate 418.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0123:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0123g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.349539+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0123g (gas, resi) average unit rate 108.1 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0123g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0140:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.047581+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0140 (electricity, resi) average unit rate 416.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0140:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0140g:2019": {
+    "adjudicated_at": "2026-09-22T07:35:57.049401+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0140g (gas, resi) average unit rate 39.2 GBP/MWh in 2019 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0140g:2019",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0140g:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.052518+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0140g (gas, resi) average unit rate 105.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0140g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0142:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.582326+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0142 (electricity, resi) average unit rate 418.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0142:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0142g:2019": {
+    "adjudicated_at": "2026-09-16T11:14:55.352333+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0142g (gas, resi) average unit rate 39.4 GBP/MWh in 2019 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0142g:2019",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0142g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.354245+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0142g (gas, resi) average unit rate 113.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0142g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0150g:2022": {
+    "adjudicated_at": "2026-08-30T10:48:31.219888+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0150g (gas, resi) average unit rate 28.6 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0150g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0244:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.055561+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0244 (electricity, resi) average unit rate 415.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0244:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2018-0244g:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.057335+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2018-0244g (gas, resi) average unit rate 123.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2018-0244g:2023",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:PROS-2019-0003:2022": {
@@ -967,11 +1744,60 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0003g:2022",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2019-0009:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.617237+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0009 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0009:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0009g:2024": {
+    "adjudicated_at": "2026-09-04T08:08:12.303728+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0009g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0009g:2024",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2019-0021:2023": {
     "adjudicated_at": "2026-08-24T15:15:16.808805+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2019-0021 (electricity, resi) average unit rate 405.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0021:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0023:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.583968+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0023 (electricity, resi) average unit rate 415.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0023:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0023g:2022": {
+    "adjudicated_at": "2026-08-27T17:17:30.835181+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0023g (gas, resi) average unit rate 30.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0023g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0023g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.356515+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0023g (gas, resi) average unit rate 110.6 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0023g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0024:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.619145+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0024 (electricity, resi) average unit rate 412.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0024:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0024g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.359168+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0024g (gas, resi) average unit rate 109.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0024g:2023",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:PROS-2019-0027:2023": {
@@ -988,6 +1814,146 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0050g:2022",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2019-0069:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.620713+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0069 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0069:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0069g:2022": {
+    "adjudicated_at": "2026-08-30T10:48:31.221224+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0069g (gas, resi) average unit rate 37.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0069g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0105g:2024": {
+    "adjudicated_at": "2026-08-30T16:48:43.753326+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0105g (gas, resi) average unit rate 96.6 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0105g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0136:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.585888+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0136 (electricity, resi) average unit rate 424.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0136:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0164:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.622668+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0164 (electricity, resi) average unit rate 422.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0164:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0190:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.624294+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0190 (electricity, resi) average unit rate 414.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0190:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0212:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.587466+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0212 (electricity, resi) average unit rate 418.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0212:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0212g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.361993+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0212g (gas, resi) average unit rate 136.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0212g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0216:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.626096+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0216 (electricity, resi) average unit rate 424.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0216:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0216g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.364159+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0216g (gas, resi) average unit rate 115.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0216g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0261:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.589261+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0261 (electricity, resi) average unit rate 414.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0261:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0302:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.627599+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0302 (electricity, resi) average unit rate 424.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0302:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0302g:2023": {
+    "adjudicated_at": "2026-09-17T03:06:52.605420+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0302g (gas, resi) average unit rate 107.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0302g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0308:2023": {
+    "adjudicated_at": "2026-08-29T07:48:03.665703+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0308 (electricity, resi) average unit rate 399.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0308:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0309:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.222648+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0309 (electricity, resi) average unit rate 408.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0309:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0310:2023": {
+    "adjudicated_at": "2026-08-30T16:48:43.754821+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0310 (electricity, resi) average unit rate 423.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0310:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0326:2023": {
+    "adjudicated_at": "2026-08-29T07:48:03.666867+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0326 (electricity, resi) average unit rate 424.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0326:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2019-0346:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.063259+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2019-0346 (electricity, resi) average unit rate 413.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2019-0346:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0002:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.591193+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0002 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0002:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0002g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.367038+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0002g (gas, resi) average unit rate 112.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0002g:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2020-0006:2024": {
     "adjudicated_at": "2026-08-26T20:17:09.212022+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -1000,6 +1966,41 @@
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2020-0006g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0006g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0012:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.728784+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0012 (electricity, resi) average unit rate 469.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0012:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0012g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.369296+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0012g (gas, resi) average unit rate 107.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0012g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0012g:2024": {
+    "adjudicated_at": "2026-08-30T21:48:46.730095+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0012g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0012g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0032:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.731544+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0032 (electricity, resi) average unit rate 628.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0032:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0042g:2022": {
+    "adjudicated_at": "2026-08-27T14:17:20.319885+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0042g (gas, resi) average unit rate 30.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0042g:2022",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:PROS-2020-0043:2024": {
@@ -1030,11 +2031,158 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0050g:2022",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2020-0067:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.629766+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0067 (electricity, resi) average unit rate 420.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0067:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2020-0067g:2022": {
     "adjudicated_at": "2026-08-26T20:17:09.218287+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2020-0067g (gas, resi) average unit rate 30.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0067g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0097:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.631219+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0097 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0097:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0104g:2022": {
+    "adjudicated_at": "2026-08-29T07:48:03.667955+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0104g (gas, resi) average unit rate 37.3 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0104g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0104g:2024": {
+    "adjudicated_at": "2026-08-29T07:48:03.669060+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0104g (gas, resi) average unit rate 95.5 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0104g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0132g:2022": {
+    "adjudicated_at": "2026-09-15T11:55:13.593160+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0132g (gas, resi) average unit rate 30.7 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0132g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0188:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.594874+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0188 (electricity, resi) average unit rate 424.6 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0188:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0188g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.371670+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0188g (gas, resi) average unit rate 106.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0188g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0189:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.066828+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0189 (electricity, resi) average unit rate 421.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0189:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0189g:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.068771+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0189g (gas, resi) average unit rate 108.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0189g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0190:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.632806+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0190 (electricity, resi) average unit rate 416.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0190:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0190g:2022": {
+    "adjudicated_at": "2026-08-30T21:48:46.733203+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0190g (gas, resi) average unit rate 33.4 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0190g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0190g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.374200+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0190g (gas, resi) average unit rate 105.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0190g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0205:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.597117+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0205 (electricity, resi) average unit rate 416.6 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0205:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0205g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.376690+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0205g (gas, resi) average unit rate 105.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0205g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0221:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.634413+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0221 (electricity, resi) average unit rate 421.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0221:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0249:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.635978+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0249 (electricity, resi) average unit rate 416.1 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0249:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0287:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.734468+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0287 (electricity, resi) average unit rate 635.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0287:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0304:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.072328+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0304 (electricity, resi) average unit rate 411.1 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0304:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0334:2023": {
+    "adjudicated_at": "2026-08-29T07:48:03.670427+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0334 (electricity, resi) average unit rate 423.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0334:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0347:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.637686+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0347 (electricity, resi) average unit rate 409.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0347:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2020-0391:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.639267+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2020-0391 (electricity, resi) average unit rate 424.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2020-0391:2023",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:PROS-2021-0006g:2022": {
@@ -1065,11 +2213,46 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0029g:2022",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2021-0029g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.379885+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0029g (gas, resi) average unit rate 113.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0029g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0029g:2024": {
+    "adjudicated_at": "2026-08-28T08:17:39.441266+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0029g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0029g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0044:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.600075+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0044 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0044:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2021-0044g:2022": {
     "adjudicated_at": "2026-08-26T20:17:09.221548+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2021-0044g (gas, resi) average unit rate 30.0 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0044g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0044g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.382109+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0044g (gas, resi) average unit rate 114.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0044g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0060:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.641566+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0060 (electricity, resi) average unit rate 414.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0060:2023",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:PROS-2021-0060g:2022": {
@@ -1086,11 +2269,249 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0067g:2022",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2021-0105:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.643182+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0105 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0105:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0133:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.644650+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0133 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0133:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0133g:2024": {
+    "adjudicated_at": "2026-08-30T19:48:45.772691+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0133g (gas, resi) average unit rate 86.4 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0133g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0139:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.601726+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0139 (electricity, resi) average unit rate 417.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0139:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0139g:2023": {
+    "adjudicated_at": "2026-09-17T14:27:43.984405+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0139g (gas, resi) average unit rate 105.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0139g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0168:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.075808+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0168 (electricity, resi) average unit rate 411.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0168:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0175:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.646191+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0175 (electricity, resi) average unit rate 415.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0175:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0201:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.603362+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0201 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0201:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0202:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.604865+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0202 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0202:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0202g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.385200+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0202g (gas, resi) average unit rate 107.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0202g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0210:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.078814+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0210 (electricity, resi) average unit rate 409.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0210:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0210g:2022": {
+    "adjudicated_at": "2026-09-22T07:35:57.080671+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0210g (gas, resi) average unit rate 37.2 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0210g:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0210g:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.082430+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0210g (gas, resi) average unit rate 108.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0210g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0212:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.647702+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0212 (electricity, resi) average unit rate 417.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0212:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0212g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.387552+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0212g (gas, resi) average unit rate 114.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0212g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0248:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.735738+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0248 (electricity, resi) average unit rate 465.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0248:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0254:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.607118+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0254 (electricity, resi) average unit rate 397.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0254:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0254g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.390334+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0254g (gas, resi) average unit rate 105.6 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0254g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0279:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.085931+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0279 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0279:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0279g:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.087893+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0279g (gas, resi) average unit rate 110.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0279g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0288:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.649520+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0288 (electricity, resi) average unit rate 401.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0288:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0315:2023": {
+    "adjudicated_at": "2026-09-22T07:35:57.089877+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0315 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0315:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0324:2023": {
+    "adjudicated_at": "2026-08-30T16:48:43.757967+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0324 (electricity, resi) average unit rate 420.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0324:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0362:2021": {
+    "adjudicated_at": "2026-08-30T16:48:43.759512+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0362 (electricity, resi) average unit rate 286.0 GBP/MWh in 2021 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0362:2021",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0362:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.651438+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0362 (electricity, resi) average unit rate 413.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0362:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0383:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.608622+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0383 (electricity, resi) average unit rate 417.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0383:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0383g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.392780+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0383g (gas, resi) average unit rate 114.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0383g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0399:2021": {
+    "adjudicated_at": "2026-08-30T16:48:43.761371+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0399 (electricity, resi) average unit rate 331.9 GBP/MWh in 2021 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0399:2021",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2021-0399:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.654652+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2021-0399 (electricity, resi) average unit rate 418.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2021-0399:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2022-0010:2023": {
+    "adjudicated_at": "2026-09-15T11:55:13.610634+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0010 (electricity, resi) average unit rate 432.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0010:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2022-0010g:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.395784+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0010g (gas, resi) average unit rate 119.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0010g:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2022-0010g:2024": {
+    "adjudicated_at": "2026-09-15T11:55:13.612215+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0010g (gas, resi) average unit rate 103.2 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0010g:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2022-0019:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.656308+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0019 (electricity, resi) average unit rate 399.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0019:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2022-0045:2024": {
     "adjudicated_at": "2026-08-24T23:15:32.515896+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "PROS-2022-0045 (electricity, resi) average unit rate 354.9 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0045:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2022-0063:2023": {
+    "adjudicated_at": "2026-09-19T17:28:59.265321+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0063 (electricity, resi) average unit rate 416.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0063:2023",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:PROS-2022-0063:2024": {
@@ -1107,6 +2528,20 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0063g:2024",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:PROS-2022-0097:2023": {
+    "adjudicated_at": "2026-09-19T17:28:59.267724+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0097 (electricity, resi) average unit rate 413.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0097:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:PROS-2022-0097g:2024": {
+    "adjudicated_at": "2026-09-15T11:55:13.613880+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "PROS-2022-0097g (gas, resi) average unit rate 102.9 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:PROS-2022-0097g:2024",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:PROS-2025-0060:2025": {
     "adjudicated_at": "2026-08-24T23:15:32.517657+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -1121,11 +2556,256 @@
     "finding_key": "population:unit_rate_vs_cap_band:PROS-2025-0085:2025",
     "state": "open"
   },
+  "population:unit_rate_vs_cap_band:SYN-2016-002:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.207928+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-002 (gas, resi) average unit rate 111.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-002:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-004:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.587634+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-004 (electricity, resi) average unit rate 413.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-004:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-005:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.209172+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-005 (gas, resi) average unit rate 111.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-005:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-006:2023": {
+    "adjudicated_at": "2026-09-19T17:28:59.234793+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-006 (electricity, resi) average unit rate 425.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-006:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-008:2023": {
+    "adjudicated_at": "2026-08-28T21:17:55.806145+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-008 (electricity, resi) average unit rate 399.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-008:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-009:2022": {
+    "adjudicated_at": "2026-08-28T21:17:55.807667+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-009 (gas, resi) average unit rate 148.6 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-009:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-009:2023": {
+    "adjudicated_at": "2026-08-28T21:17:55.809124+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-009 (gas, resi) average unit rate 113.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-009:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-010:2022": {
+    "adjudicated_at": "2026-08-28T21:17:55.810368+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-010 (gas, resi) average unit rate 151.6 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-010:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-010:2023": {
+    "adjudicated_at": "2026-08-28T21:17:55.812127+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-010 (gas, resi) average unit rate 136.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-010:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-011:2022": {
+    "adjudicated_at": "2026-08-28T21:17:55.813414+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-011 (gas, resi) average unit rate 142.7 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-011:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-011:2023": {
+    "adjudicated_at": "2026-08-28T21:17:55.815029+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-011 (gas, resi) average unit rate 132.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-011:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-012:2022": {
+    "adjudicated_at": "2026-08-30T10:48:31.211183+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-012 (gas, resi) average unit rate 143.5 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-012:2022",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-012:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.212351+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-012 (gas, resi) average unit rate 130.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-012:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-013:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.213546+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-013 (gas, resi) average unit rate 130.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-013:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-014:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.214718+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-014 (gas, resi) average unit rate 120.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-014:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-016:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.216070+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-016 (gas, resi) average unit rate 122.4 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-016:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-017:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.593433+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-017 (electricity, resi) average unit rate 426.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-017:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-021:2024": {
+    "adjudicated_at": "2026-09-16T09:14:54.250155+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-021 (gas, resi) average unit rate 90.1 GBP/MWh in 2024 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-021:2024",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-024:2025": {
+    "adjudicated_at": "2026-08-28T21:17:55.817244+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-024 (electricity, resi) average unit rate 456.9 GBP/MWh in 2025 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-024:2025",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-025:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.595014+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-025 (electricity, resi) average unit rate 430.8 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-025:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-033:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.596869+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-033 (electricity, resi) average unit rate 421.1 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-033:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-034:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.598506+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-034 (electricity, resi) average unit rate 412.6 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-034:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-037:2023": {
+    "adjudicated_at": "2026-08-30T10:48:31.217906+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-037 (gas, resi) average unit rate 105.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-037:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-038:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.335844+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-038 (gas, resi) average unit rate 105.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-038:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-046:2023": {
+    "adjudicated_at": "2026-09-16T11:14:55.337715+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-046 (gas, resi) average unit rate 118.2 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-046:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-047:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.600401+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-047 (electricity, resi) average unit rate 421.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-047:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-048:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.602093+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-048 (electricity, resi) average unit rate 415.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-048:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-049:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.603756+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-049 (electricity, resi) average unit rate 418.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-049:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-051:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.605235+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-051 (electricity, resi) average unit rate 418.9 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-051:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-053:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.606678+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-053 (electricity, resi) average unit rate 414.3 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-053:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-061:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.608101+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-061 (electricity, resi) average unit rate 414.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-061:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-062:2023": {
+    "adjudicated_at": "2026-08-30T21:48:46.725227+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-062 (electricity, resi) average unit rate 636.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-062:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-068:2023": {
+    "adjudicated_at": "2026-08-29T07:48:03.662646+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-068 (gas, resi) average unit rate 109.5 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-068:2023",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2016-069:2023": {
+    "adjudicated_at": "2026-08-28T21:17:55.819312+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2016-069 (gas, resi) average unit rate 113.7 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2016-069:2023",
+    "state": "open"
+  },
   "population:unit_rate_vs_cap_band:SYN-2021-001:2021": {
     "adjudicated_at": "2026-08-13T06:55:43.400198+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "SYN-2021-001 (electricity, resi) average unit rate 314.2 GBP/MWh in 2021 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:SYN-2021-001:2021",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:SYN-2021-001:2023": {
+    "adjudicated_at": "2026-09-08T07:25:22.652963+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "SYN-2021-001 (electricity, resi) average unit rate 419.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:SYN-2021-001:2023",
     "state": "open"
   }
 }
