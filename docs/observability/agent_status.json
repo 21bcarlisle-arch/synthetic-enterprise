@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-27T18:00:18.101432+00:00",
+  "last_updated": "2026-09-27T18:35:12.939244+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-27T17:59:58.234212+00:00",
+      "last_heartbeat": "2026-09-27T18:35:12.939244+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-25T14:04:19.154872+00:00",
       "anomaly": null,
@@ -75,7 +75,7 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-27T18:00:18.101432+00:00",
+      "last_heartbeat": "2026-09-27T18:05:28.278970+00:00",
       "last_action": "Worker started",
       "last_action_ts": "2026-09-27T18:00:18.101432+00:00",
       "anomaly": null,
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-27T18:00:14.944511+00:00",
+      "last_heartbeat": "2026-09-27T18:30:03.469736+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-27T17:10:18.514603+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-27T17:32:25.412349+00:00",
+      "last_heartbeat": "2026-09-27T18:32:26.062767+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-27T17:32:25.412349+00:00",
+      "last_action_ts": "2026-09-27T18:32:26.062767+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
