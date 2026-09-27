@@ -1811,6 +1811,16 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "previous_focus_drawn": brief["previous_focus_drawn"],
         "map_levels": map_levels(),
     }
+    if material:
+        # THE DIRECTOR'S TICK MODE (background/tick_mode.py) can hold or space this route; the
+        # skip is recorded exactly like a quiet stretch, with the mode's reason. Unreadable = normal.
+        try:
+            from background import tick_mode
+            ok, _mode, held = tick_mode.gate("delivery-seat")
+            if not ok:
+                material, why = False, held
+        except Exception as e:  # noqa: BLE001 - named in the log, never swallowed
+            _log(f"tick mode unreadable ({e!r}) -- running as normal")
     if not material:
         row.update({"outcome": "skipped", "why": why})
         _log(f"skipped: {why}")
@@ -1822,6 +1832,11 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         return row
 
     before = direction_mod.read_direction()
+    try:
+        from background import tick_mode
+        tick_mode.note_spawn("delivery-seat")
+    except Exception:  # noqa: BLE001 - a lost stamp only lets the next spawn come sooner
+        pass
     ran, detail = run_session(brief)
     after_raw = None
     try:

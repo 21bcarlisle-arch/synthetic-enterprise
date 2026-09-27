@@ -4409,8 +4409,13 @@ def _retired_ids() -> set[str]:
         return set()
 
 
-def next_item(now: float | None = None, path: Path | None = None) -> dict | None:
+def next_item(now: float | None = None, path: Path | None = None, *,
+              admit=None) -> dict | None:
     """The highest-ranked focus item that is not an atom and not already claimed, or None.
+
+    `admit`, when given, is a predicate an item must also pass -- the director's tick mode uses it
+    (background/tick_mode.py) to walk past machinery to the next product item. It SKIPS, like an
+    embargo, and never stops the walk.
 
     ORDER IS THE SEAT'S ORDER. `focus` is ordered and its first entry is what it judged mattered
     most; this walks that order and takes the first free one, so a claimed head does not block the
@@ -4481,7 +4486,8 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
         # down with it, and a handoff store must never cost the machine a tick.
         try:
             for item in seat_continuation.live(now=now):
-                if item.get("id") and item["id"] not in taken and not _embargoed(item, now):
+                if (item.get("id") and item["id"] not in taken and not _embargoed(item, now)
+                        and (admit is None or admit(item))):
                     return item
         except Exception:
             return None
@@ -4490,7 +4496,8 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     def _focus():
         for item in direction_mod.unreachable_focus(_atom_ids()):
             if (item.get("id") and item["id"] not in taken
-                    and item["id"] not in retired and not _embargoed(item, now)):
+                    and item["id"] not in retired and not _embargoed(item, now)
+                    and (admit is None or admit(item))):
                 return item
         return None
 
