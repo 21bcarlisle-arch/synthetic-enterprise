@@ -55,9 +55,16 @@ Arrears escalation (opened the day payment fails):
   I&C dispute:  INVOICE_DISPUTED -> DISPUTE_NOTICE(+14d)
                 -> PAYMENT_PLAN_AGREED(+30d) | WRITTEN_OFF(+60d)
 
-A case resolves if the customer is retained past the case's lifetime, and is
-written off if the customer has churned by the end of the run -- the same
-"eventually_resolved = cid not in churned" rule Phase PP established.
+WHAT IS WRITTEN OFF, AND WHEN (2026-09-27, the balance-at-close rule,
+`docs/staging/SEAT_DESIGN_THE_WRITE_OFF_RULE_RE_KEYED_TO_THE_BALANCE_AT_CLOSE_2026-09-27.md`).
+A failed or disputed bill is not a terminal case. It adds to the account's
+running unpaid balance (`balance_write_offs`). At close -- a churned account's
+final bill -- whatever is still unpaid is written off, dated by the labelled C4
+convention (`WRITE_OFF_DATE_CONVENTION`). A live balance with no payment for
+six years is statute-barred (leg 4a). A stayer's aged arrears cost money
+through PROVISION, whose rates are an honest None (leg 4b), so `bad_debt_gbp`
+counts write-offs only (`BAD_DEBT_BASIS`). The rule this replaced wrote off
+every failed bill of an eventual leaver at due+90 while it was still on supply.
 
 Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4] -- debt as a
 process past write-off. Every WRITTEN_OFF case is further classified by a
@@ -468,7 +475,8 @@ def opening_arrears_stage(method: str, due_date: date) -> dict:
 
 
 def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool,
-                    archetype: str = "NEUTRAL", *, method: str) -> list[dict]:
+                    archetype: str = "NEUTRAL", *, method: str,
+                    write_off_date: date | None = None) -> list[dict]:
     """`method` is REQUIRED and keyword-only, deliberately.
 
     A default of `"direct_debit"` would have preserved the exact defect this
@@ -476,6 +484,10 @@ def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool
     stamping "Direct debit returned" onto non-DD customers, and the build would
     read as done while the book stayed wrong. Making it required means a caller
     that has not decided fails loudly at the call, not quietly in the data.
+
+    `write_off_date` is the date `balance_write_offs` resolved for this case. Without it the
+    case falls back to due+90, which is what callers outside the balance rule
+    (`final_bill_outcome`) still use. A notice that would fall after the write-off is not sent.
     """
     stages = [
         opening_arrears_stage(method, due_date),
@@ -488,7 +500,10 @@ def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool
         stages.append({"stage": "RESOLVED", "date": (due_date + timedelta(days=45)).isoformat(),
                         "note": "Arrears cleared via payment plan"})
     else:
-        write_off_date = due_date + timedelta(days=90)
+        if write_off_date is None:
+            write_off_date = due_date + timedelta(days=90)
+        write_off_date = max(write_off_date, due_date)
+        stages = stages[:1] + [st for st in stages[1:] if st["date"] <= write_off_date.isoformat()]
         stages.append({"stage": "WRITTEN_OFF", "date": write_off_date.isoformat(),
                         "note": "Debt written off -- bad debt provision raised"})
         stages.extend(_post_writeoff_stages(arrears_gbp, write_off_date, archetype))
@@ -496,7 +511,8 @@ def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool
 
 
 def ic_arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool,
-                       archetype: str = "NEUTRAL") -> list[dict]:
+                       archetype: str = "NEUTRAL", *,
+                       write_off_date: date | None = None) -> list[dict]:
     stages = [
         {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
          "note": "Invoice disputed -- GBP%.2f under formal review" % arrears_gbp},
@@ -508,7 +524,10 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: b
                         "date": (due_date + timedelta(days=30)).isoformat(),
                         "note": "Payment plan agreed -- arrears to be settled over 60 days"})
     else:
-        write_off_date = due_date + timedelta(days=60)
+        if write_off_date is None:
+            write_off_date = due_date + timedelta(days=60)
+        write_off_date = max(write_off_date, due_date)
+        stages = stages[:1] + [st for st in stages[1:] if st["date"] <= write_off_date.isoformat()]
         stages.append({"stage": "WRITTEN_OFF",
                         "date": write_off_date.isoformat(),
                         "note": "Debt written off -- bad debt provision raised"})
@@ -516,55 +535,172 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: b
     return stages
 
 
-def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                               seed: int = 42) -> dict[tuple[str, int], float]:
-    """Run the shared payment/arrears model over `bills` and return real,
-    emergent bad debt: GBP written off, keyed by (customer_id, write_off_year).
+#: C4 (design table). Days from close to write-off is supplier policy and no published source
+#: gives an industry clock (Ofgem Appendix 2 Dec 2024 §2.22; CfI Apr 2023 §4.4). The year still
+#: needs a date, so this is a CONVENTION, labelled as one: the final bill's due date, the latest
+#: point the world's own cash truth fixes.
+WRITE_OFF_DATE_CONVENTION = "final_bill_due_date"
 
-    Resolves each bill from its own `bill_substream(seed, cid, period_end,
-    commodity)`,
-    the same substream `tools.generate_billing_ledger.generate()` resolves it
-    from, so a case that reaches WRITTEN_OFF here reaches WRITTEN_OFF there
-    too, for the same GBP amount. That agreement no longer depends on the two
-    visiting the same bills in the same order (it previously did, and the
-    ledger's credit-invoice skip broke it for 42 bills -- see module docstring).
-    The sort is retained only for deterministic accumulation order.
+#: C7, leg 4a. Limitation Act 1980 s.5 (six years from the cause of action) and s.29(5) (a
+#: part-payment restarts the clock). A payment into the running account is read as that
+#: part-payment, so a paying stayer never reaches the bar.
+STATUTE_BAR_YEARS = 6
+
+#: C6, leg 4b. Provision rate on a live account's aged arrears by age x method. None: Energy UK
+#: Feb 2026 Fig. 5 gives RECOVERY rates whose definition (a year's collections over which stock?)
+#: is unstated, so 1 - recovery is not yet a provision rate. Until it is sourced a stayer's
+#: arrears cost is a DECLARED gap on `bad_debt_gbp`, named by `BAD_DEBT_BASIS`, not a silent zero.
+STAYER_ARREARS_PROVISION_RATE = None
+
+#: What `bad_debt_gbp` counts. Ofgem's bad-debt charge is provisions PLUS write-offs (Appendix 2,
+#: Dec 2024, §2.4). With leg 4b None this line is the narrower quantity, and says so.
+BAD_DEBT_BASIS = (
+    "write-offs only: the unpaid balance at close (after post-close DCA/sale recovery, applied "
+    "separately) plus statute-barred live balances. Provision on a stayer's aged arrears is NOT "
+    "included -- its rate is unsourced (STAYER_ARREARS_PROVISION_RATE is None) -- so a stayer's "
+    "arrears read as zero cost here, a declared gap, not an established zero.")
+
+#: The two ways a balance reaches write-off.
+LEG_CLOSE = "close"
+LEG_STATUTE_BAR = "statute_bar"
+
+
+def _add_years(d: date, years: int) -> date:
+    try:
+        return d.replace(year=d.year + years)
+    except ValueError:  # 29 Feb -> 28 Feb
+        return d.replace(year=d.year + years, day=28)
+
+
+def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]:
+    """Each bill's payment outcome, from its own `bill_substream`, in (customer, period_end)
+    order. The one place the engine draws an outcome, so every consumer below reads the same one.
     """
-    result: dict[tuple[str, int], float] = {}
+    rows = []
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
         segment = bill.get("segment", "resi")
         amount = bill["total_amount_gbp"]
         period_end = bill["period_end"]
-        year = int(period_end[:4])
-
-        issue_date = date.fromisoformat(period_end)
-        due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
-        stress = stress_for_year(behavioral.get(cid) or {}, year)
-        method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        outcome, _days_late = payment_outcome(
-            method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
+        commodity = bill.get("commodity", "electricity")
+        due_date = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
+        stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
+        method = payment_method(segment, amount, cid, commodity)
+        outcome, days_late = payment_outcome(
+            method, stress, bill_substream(seed, cid, period_end, commodity),
             segment,
             _fuel_poor_for_bill(method, cid),
             _tone_for_bill(method, cid, period_end), cid,
         )
+        rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
+                     "amount_gbp": amount, "due_date": due_date, "method": method,
+                     "outcome": outcome, "days_late": days_late})
+    return rows
 
-        if outcome not in ("failed", "dispute"):
-            continue
-        will_be_written_off = cid in churned_ids
-        if not will_be_written_off:
-            continue
-        # Dispatched, not name-called -- which is why a grep for
-        # `arrears_stages(` did NOT find this call site. Only making `method`
-        # required surfaced it.
-        if outcome == "failed":
-            stages = arrears_stages(amount, due_date, False, method=method)
-        else:
-            stages = ic_arrears_stages(amount, due_date, False)
-        write_off_date = next(s["date"] for s in stages if s["stage"] == "WRITTEN_OFF")
-        key = (cid, int(write_off_date[:4]))
-        result[key] = round(result.get(key, 0.0) + amount, 2)
+
+def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]
+                                     ) -> dict[tuple[str, str, str], dict]:
+    """The balance-at-close rule over already-resolved bills. Pure: no RNG.
+
+    Returns one entry per failed/disputed bill that is WRITTEN OFF, keyed
+    ``(customer_id, period_end, commodity)``: ``{"date", "amount_gbp", "leg", "outcome",
+    "method", "due_date"}``. A failed bill that is not here is still an open balance on a live
+    account at the end of the run.
+
+    A successful payment pays its own bill. On a running account balance = bills - payments, so
+    it does not reduce the arrears; it restarts the limitation clock (s.29(5)). Nothing reduces
+    the balance: re-presentation waits on C1/C2b and arrangement paydown on C3b, all None. So the
+    balance at close is the sum of the failed and disputed amounts.
+    """
+    by_cid: dict[str, list[dict]] = {}
+    for row in resolved:
+        by_cid.setdefault(row["customer_id"], []).append(row)
+
+    out: dict[tuple[str, str, str], dict] = {}
+    for cid, rows in by_cid.items():
+        horizon = max(r["due_date"] for r in rows)
+        leaver = cid in churned_ids
+        # Contributions sort before payments on the same day, so a bill cannot acknowledge itself.
+        events = []
+        for r in rows:
+            if r["outcome"] in ("failed", "dispute"):
+                events.append((r["due_date"], 0, r))
+            elif r["outcome"] == "success":
+                events.append((r["due_date"] + timedelta(days=r["days_late"]), 1, r))
+        events.sort(key=lambda e: (e[0], e[1]))
+
+        outstanding: list[dict] = []
+        last_ack: date | None = None
+
+        def _bar(until: date) -> None:
+            for item in list(outstanding):
+                clock = item["due_date"] if last_ack is None else max(item["due_date"], last_ack)
+                barred_at = _add_years(clock, STATUTE_BAR_YEARS)
+                if barred_at <= until:
+                    outstanding.remove(item)
+                    out[(cid, item["period_end"], item["commodity"])] = {
+                        "date": barred_at, "amount_gbp": item["amount_gbp"],
+                        "leg": LEG_STATUTE_BAR, "outcome": item["outcome"],
+                        "method": item["method"], "due_date": item["due_date"]}
+
+        for when, kind, r in events:
+            if when > horizon:
+                break
+            _bar(when)
+            if kind == 0:
+                outstanding.append(r)
+            else:
+                last_ack = when
+        _bar(horizon)
+        if leaver:
+            for item in outstanding:
+                out[(cid, item["period_end"], item["commodity"])] = {
+                    "date": horizon, "amount_gbp": item["amount_gbp"], "leg": LEG_CLOSE,
+                    "outcome": item["outcome"], "method": item["method"],
+                    "due_date": item["due_date"]}
+    return out
+
+
+def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str],
+                       seed: int = 42) -> dict[tuple[str, str, str], dict]:
+    """Every written-off case in the book, under the balance-at-close rule.
+
+    The single source every consumer reads: `compute_emergent_bad_debt` (the P&L),
+    `compute_debt_recovery` (post-close proceeds) and `tools.generate_billing_ledger` (the
+    household's arrears history). None of them re-derives the balance, which is what keeps the
+    ledger and the P&L agreeing by construction.
+    """
+    return balance_write_offs_from_outcomes(_resolve_bills(bills, behavioral, seed), churned_ids)
+
+
+def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],
+                               seed: int = 42) -> dict[tuple[str, int], float]:
+    """GBP written off, keyed by (customer_id, write_off_year). Its basis is `BAD_DEBT_BASIS`:
+    write-offs only, no provision.
+    """
+    result: dict[tuple[str, int], float] = {}
+    for (cid, _pe, _c), wo in sorted(balance_write_offs(bills, behavioral, churned_ids, seed).items()):
+        key = (cid, wo["date"].year)
+        result[key] = round(result.get(key, 0.0) + wo["amount_gbp"], 2)
     return result
+
+
+def _row_for(key: tuple[str, int], last_index_by_cy: dict[tuple[str, int], int]) -> int | None:
+    """The record a (customer, year) figure books on. A figure dated after the account's last
+    settlement year -- a write-off at a final bill due in January, a recovery months after close
+    -- books on the account's last record rather than being dropped. Dropping it was silent, and
+    the balance-at-close rule dates 18% of leaver write-offs there
+    (`docs/staging/records/SEAT_RESULT_THE_BALANCE_AT_CLOSE_WRITE_OFF_RULE_RUN_ALONE_2026-09-27.md`).
+    """
+    idx = last_index_by_cy.get(key)
+    if idx is not None:
+        return idx
+    later = [(y, i) for (c, y), i in last_index_by_cy.items() if c == key[0]]
+    if later:
+        last_year, last_idx = max(later)
+        if key[1] > last_year:
+            return last_idx
+    return None
 
 
 def apply_emergent_bad_debt(all_records: list[dict], emergent_by_customer_year: dict[tuple[str, int], float]) -> None:
@@ -592,7 +728,7 @@ def apply_emergent_bad_debt(all_records: list[dict], emergent_by_customer_year: 
         delta = emergent_by_customer_year.get(key, 0.0) - old_by_cy.get(key, 0.0)
         if abs(delta) < 1e-9:
             continue
-        idx = last_index_by_cy.get(key)
+        idx = _row_for(key, last_index_by_cy)
         if idx is None:
             continue
         delta_at_index[idx] = delta_at_index.get(idx, 0.0) + delta
@@ -611,62 +747,22 @@ def apply_emergent_bad_debt(all_records: list[dict], emergent_by_customer_year: 
 
 def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[str],
                            seed: int = 42) -> dict[tuple[str, int], float]:
-    """Run the shared payment/arrears model over `bills` (resolving each bill
-    from the same `bill_substream(seed, cid, period_end, commodity)`
-    compute_emergent_bad_debt()
-    resolves it from, so the two line up on the exact same set of written-off
-    cases -- by construction now, not by iterating in lockstep) and return real
-    DCA-recovered / debt-sale proceeds, keyed by (customer_id, year of the
-    RECOVERED/SOLD stage -- NOT the write-off year).
+    """Post-close DCA-recovered / debt-sale proceeds on the same written-off cases
+    `compute_emergent_bad_debt` books, keyed by (customer_id, year of the RECOVERED/SOLD stage).
 
-    debt_archetype() is computed from behavioral[cid]["income_stress_trajectory"]
-    at the write-off year, to decide which terminal stage (RECOVERED vs SOLD)
-    applies and what the proceeds are -- SIM-side only, never exposed past
-    this module's own note text.
+    Only the close leg is placed with a collector. A statute-barred balance cannot be enforced,
+    so it is written off with no recovery stage. debt_archetype() is read at the write-off year,
+    SIM-side only.
     """
     result: dict[tuple[str, int], float] = {}
-    for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
-        cid = bill["customer_id"]
-        segment = bill.get("segment", "resi")
-        amount = bill["total_amount_gbp"]
-        period_end = bill["period_end"]
-        year = int(period_end[:4])
-
-        issue_date = date.fromisoformat(period_end)
-        due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
-        beh = behavioral.get(cid) or {}
-        stress = stress_for_year(beh, year)
-        method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        outcome, _days_late = payment_outcome(
-            method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
-            segment,
-            _fuel_poor_for_bill(method, cid),
-            _tone_for_bill(method, cid, period_end), cid,
-        )
-
-        if outcome not in ("failed", "dispute"):
+    for (cid, _pe, _c), wo in sorted(balance_write_offs(bills, behavioral, churned_ids, seed).items()):
+        if wo["leg"] != LEG_CLOSE:
             continue
-        if cid not in churned_ids:
-            continue
-
-        write_off_offset = 90 if outcome == "failed" else 60
-        write_off_date = due_date + timedelta(days=write_off_offset)
-        trajectory = beh.get("income_stress_trajectory") or []
-        archetype = debt_archetype(trajectory, write_off_date.year)
-
-        if outcome == "failed":
-            stages = arrears_stages(amount, due_date, False, archetype, method=method)
-        else:
-            stages = ic_arrears_stages(amount, due_date, False, archetype)
-        terminal = stages[-1]
-        if terminal["stage"] == "SOLD":
-            proceeds = _debt_sale_proceeds(amount)
-        elif terminal["stage"] == "RECOVERED":
-            proceeds = _dca_recovered_amount(amount, archetype)
-        else:
-            continue
+        trajectory = (behavioral.get(cid) or {}).get("income_stress_trajectory") or []
+        archetype = debt_archetype(trajectory, wo["date"].year)
+        terminal = _post_writeoff_stages(wo["amount_gbp"], wo["date"], archetype)[-1]
         key = (cid, int(terminal["date"][:4]))
-        result[key] = round(result.get(key, 0.0) + proceeds, 2)
+        result[key] = round(result.get(key, 0.0) + terminal["amount_gbp"], 2)
     return result
 
 
@@ -694,7 +790,7 @@ def apply_debt_recovery(all_records: list[dict], recovery_by_customer_year: dict
     for key, delta in recovery_by_customer_year.items():
         if abs(delta) < 1e-9:
             continue
-        idx = last_index_by_cy.get(key)
+        idx = _row_for(key, last_index_by_cy)
         if idx is None:
             continue
         delta_at_index[idx] = delta_at_index.get(idx, 0.0) + delta

@@ -31,6 +31,7 @@ from simulation.arrears_engine import (
     _fuel_poor_for_bill,
     _tone_for_bill,
     arrears_stages as _arrears_stages,
+    balance_write_offs as _balance_write_offs,
     ic_arrears_stages as _ic_arrears_stages,
     debt_archetype as _debt_archetype,
     _CORP_BACS_ON_TIME_PROB,
@@ -147,6 +148,10 @@ def generate(run_json_path=None, out_path=None):
     bills = data.get("bills", [])
     behavioral = data.get("per_customer_behavioral", {})
     churned = set(data.get("churned_billing_accounts", []))
+    # Which failed bills are written off, and when, is READ from the engine over the same unfiltered
+    # bills the P&L sees -- never re-derived here -- so the ledger and `bad_debt_gbp` agree by
+    # construction under the balance-at-close rule.
+    write_offs = _balance_write_offs(bills, behavioral, churned, seed=42)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -477,9 +482,14 @@ def generate(run_json_path=None, out_path=None):
             }
             payments_by_cid.setdefault(cid, []).append(pay)
 
+        written_off = write_offs.get((cid, period_end, commodity))
         if outcome == "failed":
-            eventually_resolved = cid not in churned
-            write_off_year = (due_date + timedelta(days=90)).year
+            # A case that is not written off is still an open balance. It renders as RESOLVED, as
+            # it did before the balance rule -- a known misstatement, named in
+            # docs/staging/records/SEAT_RESULT_THE_BALANCE_AT_CLOSE_WRITE_OFF_RULE_RUN_ALONE_2026-09-27.md.
+            eventually_resolved = written_off is None
+            wo_date = None if written_off is None else written_off["date"]
+            write_off_year = (wo_date or due_date + timedelta(days=90)).year
             archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
             arr = {
                 "case_id": "ARR-%s-%s" % (cid, period_end),
@@ -492,19 +502,21 @@ def generate(run_json_path=None, out_path=None):
                 # PAYMENT_CHANNEL_DD_CONSISTENCY. Reading it from anywhere else
                 # would reintroduce the two-generator disagreement.
                 "stages": _arrears_stages(amount, due_date, eventually_resolved,
-                                           archetype, method=method),
+                                           archetype, method=method, write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome == "dispute":
-            eventually_resolved = cid not in churned
-            write_off_year = (due_date + timedelta(days=60)).year
+            eventually_resolved = written_off is None
+            wo_date = None if written_off is None else written_off["date"]
+            write_off_year = (wo_date or due_date + timedelta(days=60)).year
             archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
             arr = {
                 "case_id": "DIS-%s-%s" % (cid, period_end),
                 "invoice_number": invoice_number,
                 "arrears_gbp": round(amount, 2),
                 "opened_date": due_date.isoformat(),
-                "stages": _ic_arrears_stages(amount, due_date, eventually_resolved, archetype),
+                "stages": _ic_arrears_stages(amount, due_date, eventually_resolved, archetype,
+                                              write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
 
