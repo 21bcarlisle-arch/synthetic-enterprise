@@ -40,9 +40,24 @@ every surface on every publish?
 
 Not "is it good". Whether it earns a place.
 
-## Method
+## Step one — research it before designing anything
 
-We already have the labelled corpus. Use it.
+Read TypeSafe's own documentation for Jev: its primitives, what shape of
+question it answers, how it is called, how it integrates with Claude Code
+specifically (there is an MCP server, an agent skill, and a LangChain
+middleware), and what its stated limitations are. Then decide what the
+best first trial is.
+
+The method below is the director's advisor sketching one possibility from
+the outside, having never called the thing. Treat it as an illustration
+of the standard, not as the design. If the research shows a different
+experiment would answer the question better — a different subject, a
+different corpus, a different primitive entirely — run that one instead
+and say why. The governance below is not negotiable; the method is.
+
+## Method — a suggestion only, replace it if research says better
+
+We already have a labelled corpus. It may be the right one to use.
 
 **Known positives** — published surfaces at commits where a defect we
 have since confirmed was present. The nav-route absence and the
