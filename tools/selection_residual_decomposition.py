@@ -318,16 +318,29 @@ WHAT_IS_MISSING = {
     "the_question_this_shard_cannot_answer": (
         "which ACCOUNTS the residual came from, and therefore whether a deeper book would shrink "
         "it. `selection_gbp` is one scalar per seed, so depth has no variance to regress against "
-        "and per-account contribution has no column at all."),
+        "and per-account contribution has no column at all. TRUE OF THIS SHARD AND NO LONGER TRUE "
+        "OF THE INSTRUMENT: the columns below under `now_recorded` were carried on 2026-09-27, so a "
+        "family re-run after that date CAN answer it -- `--account-diff` does. The sentence stays "
+        "because every shard on disk before that date still cannot, and `load_for_account_diff` "
+        "refuses them by name rather than letting the seed-level scalar stand in."),
+    # THE FIRST TWO ARE NOW CARRIED, and they are kept here under a `now_recorded` label rather
+    # than deleted. A "what is missing" list that silently drops an item cannot be told from one
+    # that never asked for it, and the next reader meeting `--what-is-missing` needs to know which
+    # gap closed, when, and by what -- otherwise this block rots into a request for work already
+    # done, which is how a shard predating the field gets read as if the scalar could answer it.
+    "now_recorded": [
+        "`selection_by_account_gbp` -- carried 2026-09-27. `run_value_cycle_ab.realised_metrics` "
+        "publishes `net_by_billing_account_gbp` per arm (the same settled-realised sum it folds to "
+        "`total_net_gbp`, cut by BILLING ACCOUNT rather than by `customer_id`: the arm's decision "
+        "log is keyed by account and `C1`/`C1g` are two fuel legs of one, so the join needs the "
+        "fold), `level_vs_selection.by_account` differences them with the sum asserted against the "
+        "scalar, and the floor row carries the whole column plus both arms' own columns per seed. "
+        "Read it with `--account-diff`.",
+        "`renewals_priced_by_account` -- carried 2026-09-27 on the same blocks, counted as DISTINCT "
+        "priced term starts with declines excluded. So D2 is a per-account regressor and not the "
+        "seed-level constant whose R2 of zero was a fact about the instrument.",
+    ],
     "what_would_have_to_be_recorded_per_run": [
-        "`selection_by_account_gbp`: for each `customer_id`, `value_arm_net - level_arm_net` on "
-        "the settled-realised clock. Both sides ALREADY EXIST in every run -- "
-        "`simulation/run_phase1e.py` sums `net_margin_gbp` per `customer_id` off "
-        "`phase2b.all_records` (line ~436) and throws the per-account split away when "
-        "`_arm_measure` folds it to `total_net_gbp`. No new simulation, only a field carried.",
-        "`renewals_priced_by_account`: the D2 depth vector, so depth is a REGRESSOR and not a "
-        "constant. Derivable from `scored_decisions` today; recording it removes the ordering "
-        "assumption this module has to make.",
         "`consumption_mwh_by_account`: without it a concentration reading cannot tell a large "
         "account from an unlucky small one, and the two imply opposite remedies.",
     ],
@@ -342,6 +355,25 @@ WHAT_IS_MISSING = {
         "depth. A deeper book can only ever make the sign CHEAPER to state, never certain to be "
         "stateable."),
 }
+
+
+def _largest_gap_cut(ys: list[float]) -> tuple[float, int, list[float]]:
+    """`(largest consecutive gap, index of the last element BELOW it, every gap)` over a SORTED list.
+
+    ONE IMPLEMENTATION, TWO CALLERS, and that is the point of extracting four lines.
+    `residual_is_a_mixture_or_a_spread` decides whether the residual is a spread or a switch, and
+    `account_state_diff` has to cut the SAME seeds into the SAME two states to attribute the switch
+    it found. Two copies of this rule one function apart would let the verdict and the attribution
+    describe different partitions of the same 18 seeds, with nothing able to notice -- which is this
+    project's most expensive recurring shape (one rule, several implementations) at its shortest
+    possible range.
+    """
+    if len(ys) < 2:
+        raise AssertionError(
+            "a gap needs two points; got {}. One seed is a run, not a partition.".format(len(ys)))
+    indexed = [(ys[i + 1] - ys[i], i) for i in range(len(ys) - 1)]
+    gap, cut = max(indexed)
+    return gap, cut, [g for g, _ in indexed]
 
 
 def residual_is_a_mixture_or_a_spread(seeds: list) -> dict:
@@ -363,13 +395,12 @@ def residual_is_a_mixture_or_a_spread(seeds: list) -> dict:
     ys = sorted(float(s["selection_gbp"]) for s in seeds)
     if len(ys) < 4:
         return {"available": False, "why_not": "fewer than 4 seeds; no gap is meaningful"}
-    gaps = [(ys[i + 1] - ys[i], i) for i in range(len(ys) - 1)]
-    gap, cut = max(gaps)
+    gap, cut, gaps = _largest_gap_cut(ys)
     low, high = ys[:cut + 1], ys[cut + 1:]
     widest_piece = max(low[-1] - low[0], high[-1] - high[0])
     # A degenerate piece (one seed, zero span) would divide by zero and report infinite separation,
     # which is the flattering direction. Floored at the smallest gap the family shows instead.
-    floor = max(widest_piece, min(g for g, _ in gaps), 1e-9)
+    floor = max(widest_piece, min(gaps), 1e-9)
     p_hat = len(low) / len(ys)
     return {
         "available": True,
@@ -764,6 +795,257 @@ def render(out: dict) -> str:
     return "\n".join(lines)
 
 
+#: The three per-account columns `account_state_diff` needs, all added to the floor row on
+#: 2026-09-27. Named as a constant because the loader refuses on them and the refusal has to name
+#: WHICH field and WHICH seed -- a shard folded from members either side of that date will carry
+#: some and not others, and "the decomposition returned nothing" would be indistinguishable from
+#: "no account moved".
+ACCOUNT_DIFF_REQUIRED = ("selection_by_account_gbp", "value_arm_net_by_account_gbp",
+                         "level_arm_net_by_account_gbp")
+
+#: How many accounts the state-diff table names individually. A print bound and nothing else --
+#: every count, share and Herfindahl below is taken over the whole column.
+_STATE_DIFF_ROWS_SHOWN = 15
+
+
+def load_for_account_diff(path: Path) -> dict:
+    """A shard the per-account state diff can be taken over, or a refusal naming the missing field.
+
+    A SEPARATE LOADER FROM `load_family`, AND DELIBERATELY A LOOSER ONE ON n. `load_family` refuses
+    under three seeds because a variance decomposition over two points is an interval wider than
+    anything it could say. This reading is not a variance decomposition: the designed experiment is
+    a TWO-SEED diff, one draw from each state on a world where the value arm's net is identical, and
+    two points is exactly the right number for it. What it cannot tolerate is a MISSING COLUMN, so
+    that is what it refuses on, per seed and per field.
+    """
+    if not path.exists():
+        _fail(f"{path} does not exist -- nothing to diff")
+    fam = json.loads(path.read_text())
+    seeds = fam.get("seeds")
+    if not isinstance(seeds, list) or len(seeds) < 2:
+        _fail("this artefact carries fewer than 2 seeds; there are no two states to diff")
+    for row in seeds:
+        if "selection_gbp" not in row:
+            _fail(f"seed {row.get('seed')!r} carries no `selection_gbp`")
+        for field in ACCOUNT_DIFF_REQUIRED:
+            if not isinstance(row.get(field), dict):
+                _fail(
+                    "seed {!r} carries no `{}` ({}). This shard predates the per-account column "
+                    "added 2026-09-27 and the residual cannot be attributed to accounts from it -- "
+                    "re-run the seeds rather than reading the seed-level scalar as if it could "
+                    "answer this.".format(row.get("seed"), field,
+                                          row.get(field + "_unavailable_because") or "absent"))
+    return fam
+
+
+def _state_means(rows: list, field: str) -> tuple[dict, dict]:
+    """Mean per-account value over a set of seeds, and how many seeds each account was ABSENT from.
+
+    ABSENCE IS COUNTED, NOT JUST DEFAULTED. An account missing from a seed's column settled nothing
+    in that arm on that draw, which is a real zero for the mean -- but it is also the roster event
+    that the two-state switch is most likely to BE, so a mean that silently absorbed it would hide
+    the very mechanism. The absence count travels with the mean.
+    """
+    accounts: set = set()
+    for row in rows:
+        accounts |= set(row[field])
+    means, absences = {}, {}
+    for account in accounts:
+        values = [float(row[field].get(account, 0.0)) for row in rows]
+        means[account] = sum(values) / len(rows)
+        absences[account] = sum(1 for row in rows if account not in row[field])
+    return means, absences
+
+
+def account_state_diff(fam: dict) -> dict:
+    """WHICH ACCOUNTS the two-state selection switch lives in, and WHICH ARM moved inside them.
+
+    THE QUESTION, AND WHY NOTHING ON DISK COULD ANSWER IT BEFORE.
+    `SEAT_RESULT_RENEWAL_COUNT_EXPLAINS_NONE_OF_THE_SELECTION_RESIDUAL_AND_THE_VARIANCE_IS_ONE_
+    DISCRETE_EVENT_IN_THE_LEVEL_ARM_2026-09-27` (commit `d678f063a`) established three things about
+    the 18-seed family at HEAD: renewal count explains none of the residual's variance (best of
+    eleven pre-registered regressors R2 0.0284 against a permutation null median of 0.0971,
+    p 0.8245); 99.84% of the variance is the LEVEL arm's own net; and the residual is not a spread
+    but a two-state SWITCH, GBP 5,387.65 apart, firing in 4 of 18 draws. It also established that
+    **none of the 14 fields the shard recorded separates the two states**. The switch was driven by
+    something no artefact carried, and `selection_gbp` was a per-seed scalar with no per-account
+    column anywhere.
+
+    WHAT THIS DOES. Cuts the seeds into the same two states `residual_is_a_mixture_or_a_spread`
+    cuts them into -- the SAME helper, not a second copy of the rule -- and differences the two
+    states' mean per-account columns. Then, because the residual is `value_net - level_net` per
+    account, it splits each account's state move into the part that came from the value arm and the
+    part that came from the level arm, and reconciles the two against the state distance. That
+    reconciliation is what makes the attribution a decomposition rather than two tables.
+
+    IT REPORTS CONCENTRATION OF THE STATE DIFF, NOT OF THE RESIDUAL, and the two are different
+    questions. `run_value_cycle_ab.selection_by_account` publishes the concentration of ONE seed's
+    residual; that says whether the residual's LEVEL is carried by a few accounts. This says
+    whether the residual's MOVEMENT BETWEEN STATES is -- which is the one that decides whether the
+    1/k book-depth ladder's independence premise holds, because the ladder is about variance.
+    """
+    seeds = sorted(fam["seeds"], key=lambda r: float(r["selection_gbp"]))
+    ys = [float(r["selection_gbp"]) for r in seeds]
+    gap, cut, _ = _largest_gap_cut(ys)
+    low_rows, high_rows = seeds[:cut + 1], seeds[cut + 1:]
+
+    per_state = {}
+    for label, rows in (("low", low_rows), ("high", high_rows)):
+        per_state[label] = {
+            field: _state_means(rows, field) for field in ACCOUNT_DIFF_REQUIRED}
+
+    def mean_of(rows, key):
+        return sum(float(r[key]) for r in rows) / len(rows)
+
+    state_distance = mean_of(low_rows, "selection_gbp") - mean_of(high_rows, "selection_gbp")
+    value_move = (mean_of(low_rows, "value_arm_net_gbp")
+                  - mean_of(high_rows, "value_arm_net_gbp"))
+    level_move = (mean_of(low_rows, "level_arm_net_gbp")
+                  - mean_of(high_rows, "level_arm_net_gbp"))
+    # THE IDENTITY, ASSERTED AND NOT ASSUMED. `selection = value - level`, so the state distance
+    # must be the value arm's move minus the level arm's. A gap here means the two states were cut
+    # differently for the scalar and the columns, which is the one defect this whole block would
+    # otherwise publish as an attribution.
+    if abs(state_distance - (value_move - level_move)) > 0.01:
+        raise AssertionError(
+            "the state distance is GBP {:,.2f} but `value_move - level_move` is GBP {:,.2f}. The "
+            "scalar and the arms disagree about what moved between the states, so no per-account "
+            "attribution taken over them can be trusted.".format(
+                state_distance, value_move - level_move))
+
+    sel_low, absent_low = per_state["low"]["selection_by_account_gbp"]
+    sel_high, absent_high = per_state["high"]["selection_by_account_gbp"]
+    val_low, _ = per_state["low"]["value_arm_net_by_account_gbp"]
+    val_high, _ = per_state["high"]["value_arm_net_by_account_gbp"]
+    lev_low, lev_absent_low = per_state["low"]["level_arm_net_by_account_gbp"]
+    lev_high, lev_absent_high = per_state["high"]["level_arm_net_by_account_gbp"]
+
+    accounts = sorted(set(sel_low) | set(sel_high))
+    diff = {a: sel_low.get(a, 0.0) - sel_high.get(a, 0.0) for a in accounts}
+    gross = sum(abs(d) for d in diff.values())
+    if abs(sum(diff.values()) - state_distance) > 0.01:
+        raise AssertionError(
+            "the per-account state diff sums to GBP {:,.2f} against a state distance of "
+            "GBP {:,.2f}".format(sum(diff.values()), state_distance))
+
+    ranked = sorted(accounts, key=lambda a: -abs(diff[a]))
+    cumulative, n90 = 0.0, 0
+    for account in ranked:
+        if gross <= 0 or cumulative >= 0.9 * gross:
+            break
+        cumulative += abs(diff[account])
+        n90 += 1
+    herfindahl = sum((abs(d) / gross) ** 2 for d in diff.values()) if gross > 0 else None
+
+    def row_of(account):
+        v_move = val_low.get(account, 0.0) - val_high.get(account, 0.0)
+        l_move = lev_low.get(account, 0.0) - lev_high.get(account, 0.0)
+        return {
+            "account": account,
+            "selection_state_diff_gbp": diff[account],
+            "share_of_gross": (abs(diff[account]) / gross if gross > 0 else None),
+            "value_arm_move_gbp": v_move,
+            "level_arm_move_gbp": l_move,
+            # WHICH ARM MOVED, as the two numbers and not as a verdict. A label would need a
+            # threshold nothing establishes; the reader can compare GBP 5,351 against GBP 0.
+            "moved_mostly_by": ("the level arm" if abs(l_move) > abs(v_move)
+                                else ("the value arm" if abs(v_move) > abs(l_move)
+                                      else "neither more than the other")),
+            # THE ROSTER FACT, which is the mechanism the level arm's own net is most likely to
+            # move by: an account that settles in the level arm on one state's draws and not the
+            # other's has left at a different time, and that is one coin flip, not a repricing.
+            # DEFAULTED TO "ABSENT FROM EVERY SEED IN THAT STATE", not to None. `_state_means`
+            # only has keys for accounts that appeared at least once, so an account missing from a
+            # whole state is missing from its absence map too -- and a `None` there would read as
+            # "not measured" for the one case this field exists to report. The default is the
+            # state's own seed count, which is what absent-from-all-of-them means.
+            "seeds_absent_from_the_level_arm_low_state": lev_absent_low.get(
+                account, len(low_rows)),
+            "seeds_absent_from_the_level_arm_high_state": lev_absent_high.get(
+                account, len(high_rows)),
+            "seeds_absent_from_the_column_low_state": absent_low.get(account, len(low_rows)),
+            "seeds_absent_from_the_column_high_state": absent_high.get(account, len(high_rows)),
+        }
+
+    return {
+        "states": {
+            "low": {"seeds": [r["seed"] for r in low_rows],
+                    "mean_selection_gbp": mean_of(low_rows, "selection_gbp"),
+                    "mean_level_arm_net_gbp": mean_of(low_rows, "level_arm_net_gbp"),
+                    "mean_value_arm_net_gbp": mean_of(low_rows, "value_arm_net_gbp")},
+            "high": {"seeds": [r["seed"] for r in high_rows],
+                     "mean_selection_gbp": mean_of(high_rows, "selection_gbp"),
+                     "mean_level_arm_net_gbp": mean_of(high_rows, "level_arm_net_gbp"),
+                     "mean_value_arm_net_gbp": mean_of(high_rows, "value_arm_net_gbp")},
+            "gap_between_the_states_gbp": gap,
+        },
+        "state_distance_gbp": state_distance,
+        "of_which_the_value_arm_moved_gbp": value_move,
+        "of_which_the_level_arm_moved_gbp": level_move,
+        "accounts_in_the_union": len(accounts),
+        "gross_absolute_state_movement_gbp": gross,
+        "herfindahl_of_absolute_state_movement": herfindahl,
+        "effective_accounts": (1.0 / herfindahl) if herfindahl else None,
+        "accounts_holding_90pc_of_the_state_movement": n90,
+        "largest_single_account": (ranked[0] if ranked else None),
+        "largest_single_state_move_gbp": (diff[ranked[0]] if ranked else None),
+        "movers": [row_of(a) for a in ranked[:_STATE_DIFF_ROWS_SHOWN]],
+        "movers_shown": min(len(ranked), _STATE_DIFF_ROWS_SHOWN),
+        "how_to_read_this": (
+            "`state_distance_gbp` is the mean residual in the low state minus the mean in the high "
+            "state, and it is asserted equal to `of_which_the_value_arm_moved_gbp` minus "
+            "`of_which_the_level_arm_moved_gbp`. `effective_accounts` against "
+            "`accounts_in_the_union` is the independence reading the 1/k book-depth ladder rests "
+            "on: near the union the per-account contributions are near-i.i.d. and a k-fold deeper "
+            "book cuts the seeds needed by k; a handful, and depth buys almost nothing because the "
+            "variance is a few coin flips."),
+    }
+
+
+def render_account_diff(out: dict) -> str:
+    """The table, printed before any of it is believed -- this file's own rule, one mode along."""
+    low, high = out["states"]["low"], out["states"]["high"]
+    lines = [
+        "=== which accounts the two-state selection switch lives in ===",
+        "",
+        "low  state: seeds {}  mean selection GBP {:+,.2f}  level arm GBP {:,.2f}  "
+        "value arm GBP {:,.2f}".format(low["seeds"], low["mean_selection_gbp"],
+                                       low["mean_level_arm_net_gbp"],
+                                       low["mean_value_arm_net_gbp"]),
+        "high state: seeds {}  mean selection GBP {:+,.2f}  level arm GBP {:,.2f}  "
+        "value arm GBP {:,.2f}".format(high["seeds"], high["mean_selection_gbp"],
+                                       high["mean_level_arm_net_gbp"],
+                                       high["mean_value_arm_net_gbp"]),
+        "",
+        "state distance        GBP {:+,.2f}".format(out["state_distance_gbp"]),
+        "  of which value arm GBP {:+,.2f}".format(out["of_which_the_value_arm_moved_gbp"]),
+        "  of which level arm GBP {:+,.2f}".format(out["of_which_the_level_arm_moved_gbp"]),
+        "",
+        "accounts in the union                {}".format(out["accounts_in_the_union"]),
+        "gross absolute state movement        GBP {:,.2f}".format(
+            out["gross_absolute_state_movement_gbp"]),
+        "Herfindahl of the state movement     {}".format(
+            "n/a" if out["herfindahl_of_absolute_state_movement"] is None
+            else "{:.4f}".format(out["herfindahl_of_absolute_state_movement"])),
+        "effective accounts                   {}".format(
+            "n/a" if out["effective_accounts"] is None
+            else "{:.2f}".format(out["effective_accounts"])),
+        "accounts holding 90% of the movement {}".format(
+            out["accounts_holding_90pc_of_the_state_movement"]),
+        "",
+        "{:<22}{:>14}{:>14}{:>14}  {}".format(
+            "account", "state diff", "value arm", "level arm", "moved mostly by"),
+    ]
+    for row in out["movers"]:
+        lines.append("{:<22}{:>14,.2f}{:>14,.2f}{:>14,.2f}  {}".format(
+            row["account"], row["selection_state_diff_gbp"], row["value_arm_move_gbp"],
+            row["level_arm_move_gbp"], row["moved_mostly_by"]))
+    lines += ["", "showing {} of {} accounts".format(out["movers_shown"],
+                                                     out["accounts_in_the_union"]),
+              "", out["how_to_read_this"]]
+    return "\n".join(lines)
+
+
 def main(argv: list | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("shard", type=Path, nargs="?",
@@ -773,6 +1055,14 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--json", type=Path, default=None)
     ap.add_argument("--what-is-missing", action="store_true",
                     help="print only the fields that would have to be recorded per run")
+    ap.add_argument(
+        "--account-diff", action="store_true",
+        help=("ACCOUNT-DIFF mode: cut the shard's seeds into the two states at their largest "
+              "`selection_gbp` gap and difference the two states' per-account columns, naming "
+              "which accounts the switch lives in and which ARM moved inside them. Needs the "
+              "three per-account columns added to the floor row on 2026-09-27, refuses per seed "
+              "and per field without them, and accepts TWO seeds -- the designed contrast is one "
+              "draw from each state, not a variance decomposition."))
     args = ap.parse_args(argv)
     if args.what_is_missing:
         print(json.dumps(WHAT_IS_MISSING, indent=2))
@@ -780,6 +1070,13 @@ def main(argv: list | None = None) -> int:
     if args.shard is None:
         _fail("no shard given. Pass a folded family JSON, or --what-is-missing to read the "
               "fields this decomposition needs and the artefact does not carry.")
+    if args.account_diff:
+        out = account_state_diff(load_for_account_diff(args.shard))
+        print(render_account_diff(out))
+        if args.json:
+            args.json.write_text(json.dumps(out, indent=1))
+            print(f"\nwrote {args.json}")
+        return 0
     fam = load_family(args.shard)
     out = decompose(fam, args.permutations, random.Random(args.rng_seed))
     print(render(out))

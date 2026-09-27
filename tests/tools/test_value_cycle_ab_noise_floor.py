@@ -2381,3 +2381,94 @@ def test_the_landed_five_seed_family_pins_its_residual_EXACTLY_when_no_priced_de
     assert pinned_pairs > 0, (
         "no pair in the landed family shares a decision set, so the pinning this control exists "
         "to characterise was never exercised by it")
+
+
+# ---------------------------------------------------------------------------
+# THE PER-ACCOUNT COLUMN ON THE ROW (2026-09-27)
+#
+# The row carried three seed-level nets and no per-account money, which is why
+# `SEAT_RESULT_RENEWAL_COUNT_EXPLAINS_NONE_OF_THE_SELECTION_RESIDUAL_AND_THE_VARIANCE_IS_ONE_
+# DISCRETE_EVENT_IN_THE_LEVEL_ARM_2026-09-27` could measure a two-state switch GBP 5,387.65 wide
+# and could not name a single account inside it. These controls are on the WRITER: the block itself
+# is proven in `tests/tools/test_run_value_cycle_ab.py`, and what can go wrong here is the row
+# publishing an empty column that a consumer differences into a clean zero.
+# ---------------------------------------------------------------------------
+
+
+def _runner_with_a_per_account_column(column, *, value_net=None, level_net=None, available=True):
+    """A runner whose `level_vs_selection` carries a `by_account` block, plus the arm blocks.
+
+    The arm blocks are separate from `by_account` on purpose -- that is where the real writer reads
+    the two per-arm columns from, so a fixture that put them inside `by_account` would let the
+    writer read the wrong place and still pass.
+    """
+    def runner():
+        result = _fake_runner()
+        result["level_vs_selection"]["by_account"] = (
+            {"available": True, "column": dict(column),
+             "accounts_in_the_union": len(column),
+             "gross_absolute_movement_gbp": sum(abs(v) for v in column.values()),
+             "gross_to_net_ratio": 2.0,
+             "herfindahl_of_absolute_contribution": 0.5,
+             "effective_accounts": 2.0,
+             "accounts_holding_90pc_of_gross_movement": 1,
+             "largest_single_account": "A", "largest_single_contribution_gbp": 9.0,
+             "largest_share_of_gross": 0.9,
+             "depth_by_account": {"value_arm": {"A": 3}, "level_arm": {"A": 3}},
+             "depth_against_money": {"available": True, "spearman_rho": 0.1},
+             "roster_difference": {"accounts_in_one_arm_only": 1,
+                                   "accounts_only_in_the_value_arm": ["A"],
+                                   "accounts_only_in_the_level_arm": [],
+                                   "gbp_from_accounts_in_one_arm_only": 9.0,
+                                   "gbp_from_accounts_in_both_arms": 1.0}}
+            if available else
+            {"available": False, "why_not": "this run predates the per-account column"})
+        result["value_arm"] = {"net_by_billing_account_gbp": dict(value_net or {})}
+        result["level_arm"] = {"net_by_billing_account_gbp": dict(level_net or {})}
+        return result
+    return runner
+
+
+def test_the_row_carries_the_whole_per_account_column_and_both_arms_own_columns():
+    """THE WHOLE COLUMN, because the reading that names the switch is a DIFF BETWEEN TWO SEEDS'
+    COLUMNS and a top-N slice per seed cannot be differenced -- an account large in one seed and
+    outside the other's slice reads as a large move when it may be a small one. And BOTH ARMS'
+    columns, because 99.84% of the variance is the level arm's own net, so "which term moved" is
+    the question, and a difference whose two terms are absent cannot answer it."""
+    floor = noise_floor(
+        [1, 2], runner=_runner_with_a_per_account_column(
+            {"A": 9.0, "B": 1.0}, value_net={"A": 9.0, "B": 2.0},
+            level_net={"A": 0.0, "B": 1.0}))
+    for row in floor["seeds"]:
+        assert row["selection_by_account_gbp"] == {"A": 9.0, "B": 1.0}, row
+        assert row["selection_by_account_unavailable_because"] is None
+        assert row["value_arm_net_by_account_gbp"] == {"A": 9.0, "B": 2.0}, row
+        assert row["level_arm_net_by_account_gbp"] == {"A": 0.0, "B": 1.0}, row
+        assert row["renewals_priced_by_account"] == {"A": 3}, row
+        assert row["selection_concentration"]["effective_accounts"] == 2.0, row
+        assert row["selection_roster_difference"]["accounts_only_in_the_value_arm"] == ["A"], row
+
+
+def test_a_run_predating_the_column_writes_None_AND_A_REASON_not_an_empty_column():
+    """R15 FAIL-OPEN, and it is the defect that matters most here: an empty dict and an unrecorded
+    column are the same bytes, and a consumer differencing two empty columns gets "no account
+    moved" -- the most reassuring wrong answer this artefact could carry. The reason is the row's
+    own, taken from the block, so it names the run's age rather than being written down here."""
+    floor = noise_floor([1, 2], runner=_runner_with_a_per_account_column({}, available=False))
+    for row in floor["seeds"]:
+        assert row["selection_by_account_gbp"] is None, row
+        assert "predates" in row["selection_by_account_unavailable_because"], row
+        assert row["renewals_priced_by_account"] is None, row
+        assert row["selection_concentration"] is None, row
+        assert row["selection_roster_difference"] is None, row
+
+
+def test_a_runner_with_no_by_account_block_at_all_is_also_a_named_absence():
+    """A folded family whose members ran before 2026-09-27 reaches the writer with no `by_account`
+    key at all, which must not raise -- the family's other columns are fine and refusing it would
+    throw away 18 seeds of work -- and must not publish an empty column either."""
+    floor = noise_floor([1, 2], runner=_fake_runner)
+    for row in floor["seeds"]:
+        assert row["selection_by_account_gbp"] is None, row
+        assert "predates" in row["selection_by_account_unavailable_because"], row
+        assert row["value_arm_net_by_account_gbp"] is None, row
