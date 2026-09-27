@@ -18,7 +18,7 @@ role (black ground, `var(--ink-on-accent)` white). Legitimate: ONE hero moment, 
 statement panel, a deliberate full-bleed break, a headline figure. It is punctuation, not
 paper. **If dark is the base of a page it has become a theme — a compliance defect.** The
 canonical example of correct sparing use is the `.term` terminal block in
-`site/brand/proof.html` / the §7 exemplar: one small black panel on an otherwise white page.
+`docs/design/brand/proof.html` / the §7 exemplar: one small black panel on an otherwise white page.
 Enforced: `tools/brand_compliance.base_surface_is_dark` FAILS a page whose base surface is dark
 (mutation-tested — a synthetic dark-base page fails, a light page with a sparing dark accent
 passes).
@@ -85,7 +85,7 @@ on the consumption figure; CTAs end `>`. (Every published figure still carries i
 
 ## Canonical reference — copy, do not reinterpret
 
-`site/brand/exemplar.html` is the ratified §7 mock (front door + customer bill + glyph grammar),
+`docs/design/brand/exemplar.html` is the ratified §7 mock (front door + customer bill + glyph grammar),
 preserved verbatim. Generation copies from it. When in doubt about a pattern (BRAG chip, figure
 block with `//` clock, `~ ESTIMATED` read, glyph table), lift it from the exemplar.
 

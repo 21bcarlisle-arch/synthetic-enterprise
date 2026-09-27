@@ -261,9 +261,10 @@ NAV_EXEMPT: dict[str, str] = {
 
 
 # ── Published FILES with no route in (page level, 2026-09-27) ─────────────────
-# The areas above are directories; `brand/exemplar.html` is a file, so the area register could
-# never see it, and the director found these by eye. `site/` is published wholesale, so every
-# `*.html` under it is served at its own URL whether or not anything links to it. Each one that
+# The areas above are directories; `brand/exemplar.html` was a file, so the area register could
+# never see it, and the director found these by eye (the brand references moved to
+# docs/design/brand/ and the June snapshot was deleted, 2026-09-27). `site/` is published
+# wholesale, so every `*.html` under it is served at its own URL whether or not anything links to it. Each one that
 # nothing reachable from the front door links to must sit here with its reason; shrink-only both
 # ways, exactly like ORPHAN_DEBT. `tools/site_reachability.py` derives its exclusions from this
 # dict rather than keeping a second list of allowed orphans.
@@ -271,19 +272,6 @@ PAGE_ORPHAN_DEBT: dict[str, str] = {
     "404.html": (
         "the error document the host serves on a 404; a link to it from the site would be the "
         "defect, not the fix. Permanent by design, not debt that clears"
-    ),
-    "brand/exemplar.html": (
-        "the ratified BRAND_CONSTITUTION §7 mock, byte-pinned by tests/tools/test_brand_compliance.py; "
-        "a reference for whoever edits brand.css, not a reader page. Served only because site/ "
-        "deploys wholesale. Clears by moving it out of the published tree with that test repointed"
-    ),
-    "brand/proof.html": (
-        "the token-adoption proof for the brand system, read by tests/tools/test_brand_compliance.py; "
-        "same non-reader status as brand/exemplar.html and clears the same way"
-    ),
-    "snapshots/DASHBOARD_20260623_120151.html": (
-        "a frozen June 2026 render of a dashboard whose live door was deleted on 2026-08-20; "
-        "background/publish_provenance.py exempts it by name. Clears by deleting it"
     ),
 }
 

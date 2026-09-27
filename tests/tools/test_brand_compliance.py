@@ -33,8 +33,11 @@ from tools.brand_compliance import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-EXEMPLAR_PATH = BRAND_DIR / "exemplar.html"
-PROOF_PATH = BRAND_DIR / "proof.html"
+# The two brand REFERENCES live outside site/ (2026-09-27): site/ deploys wholesale, so anything
+# under it is served at a public URL, and these are for whoever edits brand.css, not for readers.
+REFERENCE_DIR = REPO_ROOT / "docs" / "design" / "brand"
+EXEMPLAR_PATH = REFERENCE_DIR / "exemplar.html"
+PROOF_PATH = REFERENCE_DIR / "proof.html"
 BRAND_CSS_PATH = BRAND_DIR / "brand.css"
 CONSTITUTION_PATH = REPO_ROOT / "docs" / "design" / "BRAND_CONSTITUTION.md"
 
@@ -68,8 +71,9 @@ _ADOPTED_LIVE_SURFACES = _adopted_live_surfaces()
 #   tokens.json  -- the token source itself (the one sanctioned home of colour values);
 #   tokens.css   -- a GENERATED, byte-pinned projection of tokens.json (see test below), not an
 #                   independently authored colour home;
-#   exemplar.html-- the ratified §7 reference, preserved VERBATIM and self-contained by mandate.
-_NON_CONSUMING = {"tokens.json", "tokens.css", "exemplar.html"}
+# The §7 exemplar is exempt too, and lives outside site/: preserved VERBATIM and self-contained by
+# mandate. proof.html moved out with it but still consumes the tokens, so it is named here.
+_NON_CONSUMING = {"tokens.json", "tokens.css"}
 
 
 def _consuming_surfaces():
@@ -77,7 +81,7 @@ def _consuming_surfaces():
         p
         for p in sorted(BRAND_DIR.glob("*"))
         if p.suffix in {".html", ".css"} and p.name not in _NON_CONSUMING
-    ]
+    ] + [PROOF_PATH]
 
 
 # ---- token source: sole colour home ---------------------------------------------------------
@@ -354,7 +358,7 @@ def test_linked_css_follows_import_chain():
 # ---- exemplar preserved verbatim ------------------------------------------------------------
 
 def test_exemplar_preserved_verbatim_from_constitution():
-    """site/brand/exemplar.html must equal the §7 ```html fence in BRAND_CONSTITUTION.md."""
+    """docs/design/brand/exemplar.html must equal the §7 ```html fence in BRAND_CONSTITUTION.md."""
     m = re.search(r"```html\n(.*?)\n```", CONSTITUTION_PATH.read_text(), re.S)
     assert m, "no ```html fence found in BRAND_CONSTITUTION.md"
     ratified = m.group(1)

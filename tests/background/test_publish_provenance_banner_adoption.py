@@ -184,10 +184,10 @@ def test_an_exemption_naming_a_page_that_renders_nothing_live_is_reported(site: 
     assert any("renders no live figure" in v for v in violations), violations
 
 
-def test_the_shipped_exemption_register_holds_only_frozen_archives():
-    """The one live entry, asserted as one: a dated snapshot whose URL is its own timestamp. If
-    this list grows, the growth is the thing to look at."""
-    assert set(prov.BANNER_EXEMPT) == {"snapshots/DASHBOARD_20260623_120151.html"}
+def test_the_shipped_exemption_register_is_empty():
+    """Its one entry, a dated June snapshot, was deleted from site/ on 2026-09-27 rather than
+    exempted. If this register grows again, the growth is the thing to look at."""
+    assert prov.BANNER_EXEMPT == {}
 
 
 # ── the historical discrimination, on bytes any clone can rebuild ─────────────
@@ -211,8 +211,11 @@ def test_the_typed_five_were_blind_to_nineteen_pages(tmp_path: Path):
     subprocess.run(["tar", "-x", "-C", str(old), "--strip-components=1"],
                    input=proc.stdout, check=True)
 
-    pages = prov.live_data_pages(old)
-    violations = prov.banner_adoption_violations(old)
+    # That tree still held the June snapshot, which the shipped register exempted until it was
+    # deleted on 2026-09-27; measure it under the register that was true of it.
+    then_exempt = {"snapshots/DASHBOARD_20260623_120151.html": "a dated archive, frozen on purpose"}
+    pages = prov.live_data_pages(old, then_exempt)
+    violations = prov.banner_adoption_violations(old, then_exempt)
     assert len(pages) == 24, pages
     covered = {p for p in pages if not any(p in v for v in violations)}
     assert covered == {f"{d}/index.html" for d in TYPED_FIVE}, covered

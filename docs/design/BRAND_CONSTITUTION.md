@@ -90,7 +90,7 @@ on black for impact, used sparingly."*
   long-form method) — light is what long-form reading and printed/exported documents want.
 - **Preserved exemplar of correct sparing dark use:** the §7 exemplar's terminal status block
   (`.term`, black ground / white ink demonstrating the glyph grammar surviving without colour)
-  and `site/brand/proof.html`'s matching block are the documented ACCENT case — one small dark
+  and `docs/design/brand/proof.html`'s matching block are the documented ACCENT case — one small dark
   panel on an otherwise white page. That is the ceiling for dark: a single panel, not a theme.
 
 ## 4. The laws (decided, non-negotiable)

@@ -486,9 +486,10 @@ def test_every_unrouted_published_page_is_recorded_with_its_reason():
 
 def test_the_page_walk_sees_files_the_area_register_cannot():
     """ANTI-VACUITY. The rare branch must be takeable: the walk has to report SOME unrouted page
-    that is not an area, or the widening bought nothing. Today that is the two brand files."""
+    that is not an area, or the widening bought nothing. Today that is the 404 document; the two
+    brand files it first caught were moved out of site/ on 2026-09-27."""
     unrouted = reg.unrouted_pages()
-    assert {"brand/exemplar.html", "brand/proof.html"} <= unrouted, unrouted
+    assert "404.html" in unrouted, unrouted
     assert not any(p.endswith("index.html") for p in unrouted), unrouted
 
 
@@ -506,17 +507,17 @@ def test_MUTATION_a_new_unlinked_page_fires(tree):
 
 
 def test_MUTATION_dropping_a_recorded_debt_entry_fires(tree, monkeypatch):
-    monkeypatch.delitem(reg.PAGE_ORPHAN_DEBT, "brand/exemplar.html")
+    monkeypatch.delitem(reg.PAGE_ORPHAN_DEBT, "404.html")
     problems = reg.register_violations(tree)
-    assert any("brand/exemplar.html" in p and "not in PAGE_ORPHAN_DEBT" in p for p in problems), problems
+    assert any("404.html" in p and "not in PAGE_ORPHAN_DEBT" in p for p in problems), problems
 
 
 def test_MUTATION_a_debt_entry_that_is_now_routed_fires(tree):
     """Shrink-only: link the page from the front door and its entry must go, not linger."""
     home = tree / "index.html"
-    home.write_text(home.read_text().replace("</body>", '<a href="brand/proof.html">p</a></body>', 1))
+    home.write_text(home.read_text().replace("</body>", '<a href="404.html">p</a></body>', 1))
     problems = reg.register_violations(tree)
-    assert any("brand/proof.html" in p and "no longer an unrouted" in p for p in problems), problems
+    assert any("404.html" in p and "no longer an unrouted" in p for p in problems), problems
 
 
 def test_MUTATION_a_debt_entry_whose_file_is_gone_fires(tree):

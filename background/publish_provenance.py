@@ -541,14 +541,9 @@ BANNER_ASSET = "assets/freshness-banner.js"
 _ATTR_URL_RE = re.compile(r"""\b(?:href|src)\s*=\s*["'][^"']*["']""")
 _DATA_REF_RE = re.compile(r"""(?:^|["'./])(?:data|state)/[A-Za-z0-9_./-]+\.json""")
 
-BANNER_EXEMPT: dict[str, str] = {
-    "snapshots/DASHBOARD_20260623_120151.html": (
-        "a DATED ARCHIVE, not a live door: the filename is its own timestamp, it is off the nav "
-        "and out of the sitemap, and its fetches resolve to a data/ directory that does not "
-        "exist beside it. A freshness banner here would state the age of figures the page is "
-        "not showing. It is exempt because it is frozen ON PURPOSE and says so in its own URL."
-    ),
-}
+# Empty since 2026-09-27: its one entry, the June 2026 dashboard snapshot, was deleted from site/
+# rather than exempted. An entry here is a page frozen ON PURPOSE that says so in its own URL.
+BANNER_EXEMPT: dict[str, str] = {}
 
 
 def _site_dir(site: Path = None) -> Path:
