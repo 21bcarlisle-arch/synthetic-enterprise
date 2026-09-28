@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** `value-arms-error-bar`
+**Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** `value-arms-error-bar`
 **Class:** `measurements_that_mirror`
 
 # The selection residual is a two-state switch priced as a Gaussian spread, and the level arm carries 99.8% of it
@@ -78,3 +78,51 @@ seed-to-seed variance. Two of the depth regressors are identical on all 18 seeds
   - If (b) and (c) agree on both seeds' signs, C1 does not matter to the sign.
   - If they disagree, "we cannot tell" goes on the page with C1 named as the reason.
   - The director was asked the practitioner question at 03:03Z (NTFY `N8U7crm2DRQP`).
+
+## 2026-09-28: steps 1–3 are done, and the finding leaves BLOCKING
+
+- **Steps 1 and 2** landed in `cefd2c04a`: the per-account field is carried, and the low/high diff
+  puts the switch on `PROS-2016-0098`.
+- **Step 3 has landed.** `selection_residual_decomposition.gaussian_or_mixture_bound` is the one
+  door every producer and surface now asks before printing a standard error:
+  - both floor writers in `run_value_cycle_ab`, through `bound_on_its_shape`;
+  - the fold's `_leg`, for every leg and not only selection;
+  - the page's cross-code row, which asks the seeds directly because every artefact on disk was
+    written before the gate existed.
+- **What the gate does on a switch.** No sem, no `sems_from_zero`, no seed price. The bound is the
+  rate's exact 90% interval carried to the mean, and the sign is stated only when that interval
+  sits wholly on one side of zero.
+- **What the page now says.** The HEAD row reads *£169.60 on 18 seeds, which fall into two states
+  … the mean's 90% interval from how often the switch fires is −£997.69 to £937.49*. It used to
+  read "0.31 standard errors from zero". The served row is a spread (separation 0.40) and is
+  unchanged.
+- **Controls.**
+  - `test_a_two_cluster_family_is_refused_the_gaussian_path_at_every_producer_door`, with the
+    spread and too-small families in the same control.
+  - `test_a_switch_wholly_one_side_of_zero_states_that_sign`, the rare branch.
+  - `test_a_switch_family_publishes_its_mixture_interval_and_no_standard_error` (generator).
+  - The door's `BOTH_readings` rung.
+  - Mutation-checked at landing (2026-09-28): forcing `gaussian_licensed` True on the switch
+    branch reds the two `selection_residual_decomposition` controls and the generator control.
+    The door rung does NOT red on that mutation, and should not: it reads the committed feed,
+    not the generator. Its own mutation (the renderer's `r.switch` branch forced false) reds it.
+- **Why LATENT and not closed.** Nothing published now carries a Gaussian bound on a switch.
+  - **Checked:** every floor artefact on disk was run through the check.
+  - **Switches found:** the HEAD 18 (9.4) and `five_seed_head` (3.27), neither of them in a
+    Gaussian sentence now. Also `20260909b` (2.07), whose selection verdict `current_world`
+    already withholds with a null sem.
+  - **Still open:** the C1 bracket above. It bears on the sign, not on the bound.
+- **Worth knowing.** The gap statistic's cut of 2.0 is the instrument's convention, not a sourced
+  number. `20260909b` clears it by 0.07 on nine draws, so a switch reading that marginal is weak.
+
+## Landing note (2026-09-28)
+
+- Landed from the shared tree's uncommitted edits as HEAD plus this work's hunks only.
+- `tests/tools/test_fold_noise_floor_family.py` in the shared tree also carries two things that
+  are NOT this work, so they were left out:
+  - the `_producer_made_floors` witness selector, from the 09-10 fold-witness episode;
+  - the deletion of both `value_arm_pairing` controls, which are live at HEAD. Landing the file
+    whole would have deleted them.
+- `site/data/value_arms.json` is HEAD's feed with only `selection_across_code` regenerated.
+  A full regeneration also moved the memory-ceiling block and the publishing-commit stamps,
+  which are environment drift and not this change.

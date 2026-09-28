@@ -1681,8 +1681,11 @@ def test_the_folded_family_reports_the_same_distance_arithmetic_as_a_run():
     """The fold is not a second implementation of the verdict. Both spellings must land on one
     answer, or the page's figure depends on which door the family came through."""
     a = _floor([(1, -3000.0), (2, 1200.0), (3, -2400.0)])
-    b = _floor([(4, -1900.0), (5, 300.0), (6, -2700.0)])
+    # A SPREAD, not a switch: `-900` where this read `300` until 2026-09-28, when the six draws cut
+    # into two states at separation 2.0 and the fold rightly refused them a Gaussian distance.
+    b = _floor([(4, -1900.0), (5, -900.0), (6, -2700.0)])
     folded = rvca.fold_floors([a, b])
+    assert folded["selection_residual_shape"]["gaussian_licensed"] is True
     spread = folded["selection_gbp_spread"]
     assert folded["distance_to_a_sign"] == rvca.distance_to_a_sign(
         spread["mean"], spread["stdev"], spread["n"])

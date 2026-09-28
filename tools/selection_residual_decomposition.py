@@ -376,7 +376,7 @@ def _largest_gap_cut(ys: list[float]) -> tuple[float, int, list[float]]:
     return gap, cut, [g for g, _ in indexed]
 
 
-def residual_is_a_mixture_or_a_spread(seeds: list) -> dict:
+def residual_is_a_mixture_or_a_spread(seeds: list, key: str = "selection_gbp") -> dict:
     """Is the residual one noisy quantity, or a switch between two states? They need different bounds.
 
     WHY THIS LEG EXISTS AND WHY IT COMES BEFORE EVERY OTHER READING. `selection_sem_gbp`,
@@ -392,7 +392,7 @@ def residual_is_a_mixture_or_a_spread(seeds: list) -> dict:
     below 2 is a spread; well above it is a switch. A crude statistic that a reader can re-derive
     from the printed table beats a mixture likelihood nobody can check.
     """
-    ys = sorted(float(s["selection_gbp"]) for s in seeds)
+    ys = sorted(float(s[key]) for s in seeds)
     if len(ys) < 4:
         return {"available": False, "why_not": "fewer than 4 seeds; no gap is meaningful"}
     gap, cut, gaps = _largest_gap_cut(ys)
@@ -409,7 +409,7 @@ def residual_is_a_mixture_or_a_spread(seeds: list) -> dict:
         "separation": gap / floor,
         "verdict": ("a SWITCH between two states -- the sd is a state distance times a mixing "
                     "rate, and the Gaussian sem prices the wrong unknown"
-                    if gap / floor >= 2 else
+                    if gap / floor >= MIXTURE_SEPARATION else
                     "a SPREAD -- one quantity wobbling, and sd/sqrt(n) is the right bound"),
         "state_low": {"n": len(low), "mean_gbp": statistics.mean(low),
                       "span_gbp": low[-1] - low[0]},
@@ -428,6 +428,60 @@ def residual_is_a_mixture_or_a_spread(seeds: list) -> dict:
             "so the mean's interval is the RATE's interval carried through -- and the rate's "
             "interval at this many draws is what more seeds actually buys."),
     }
+
+
+def gaussian_or_mixture_bound(rows: list, key: str = "selection_gbp") -> dict:
+    """May this family's error bar be `sd/sqrt(n)`, and if not, what bound replaces it?
+
+    THE ONE DOOR EVERY PRODUCER AND SURFACE ASKS BEFORE PRINTING A STANDARD ERROR (2026-09-28).
+    `residual_is_a_mixture_or_a_spread` could tell a switch from a spread, and nothing that
+    published a sem asked it: the 18-seed HEAD family went on carrying `sems_from_zero` 0.31 and a
+    seed price of ~717 off a separation of 9.4. A check with no caller is a finding, not a control.
+
+    On a SWITCH the Gaussian path is refused outright -- no sem, no `sems_from_zero`, no seed price
+    -- and the bound is the rate's exact interval carried through to the mean. The sign is stated
+    only when that whole interval sits on one side of zero. Fewer than four readable draws cannot
+    be cut into two states, so the Gaussian path stands there and `shape_checked` says it was not
+    asked, rather than refusing every small family on a question it cannot pose.
+    """
+    readable = [r for r in rows if isinstance(r, dict) and isinstance(r.get(key), (int, float))
+                and not isinstance(r.get(key), bool)]
+    shape = residual_is_a_mixture_or_a_spread(readable, key)
+    if not shape.get("available"):
+        return {"gaussian_licensed": True, "shape_checked": False,
+                "why_unchecked": shape.get("why_not"), "shape": shape}
+    if shape["separation"] < MIXTURE_SEPARATION:
+        return {"gaussian_licensed": True, "shape_checked": True, "shape": shape}
+    lo, hi = shape["mean_interval_from_the_rate_alone_gbp"]
+    sign = "positive" if lo > 0 else "negative" if hi < 0 else None
+    return {
+        "gaussian_licensed": False,
+        "shape_checked": True,
+        "shape": shape,
+        "mean_interval_gbp": [lo, hi],
+        "interval_confidence": 0.90,
+        "sign_if_stateable": sign,
+        "why_no_sem": (
+            "this family is a SWITCH, not a spread: its {n} draws fall into two states "
+            "\u00a3{d:,.2f} apart, each at most \u00a3{w:,.2f} wide (separation {sep:.1f}), with "
+            "the lower state drawn {k} of {n} times. A standard error prices one quantity wobbling "
+            "about a mean; here the unknown is the RATE at which the switch fires, so the bound is "
+            "that rate's exact 90% interval ({r0:.3f} to {r1:.3f}) carried through to the mean: "
+            "\u00a3{lo:,.2f} to \u00a3{hi:,.2f}, which {verdict}. No standard error and no seed "
+            "count is published for it.".format(
+                n=len(readable), d=shape["state_distance_gbp"], w=shape["widest_piece_span_gbp"],
+                sep=shape["separation"], k=shape["state_low"]["n"],
+                r0=shape["rate_90pct_interval"][0], r1=shape["rate_90pct_interval"][1],
+                lo=lo, hi=hi,
+                verdict=("contains zero, so no sign is stated" if sign is None else
+                         "lies wholly on the {} side of zero".format(sign)))),
+    }
+
+
+#: THE CHECK'S OWN CUT, named once so the verdict string and the licence cannot disagree. It is the
+#: gap statistic's crude bar -- a largest gap at least twice the wider piece's span -- and it is a
+#: convention of this instrument, not an estimate of anything in the world.
+MIXTURE_SEPARATION = 2.0
 
 
 def _clopper_pearson(k: int, n: int, alpha: float) -> list:

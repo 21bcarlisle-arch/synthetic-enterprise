@@ -171,6 +171,7 @@ from tools.run_value_cycle_ab import (
     seeds_to_state_a_sign,
     sems_to_state_a_sign,
 )
+from tools.selection_residual_decomposition import gaussian_or_mixture_bound
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -4500,10 +4501,18 @@ def _one_cross_code_reading(label: str, path: Path) -> dict:
     sems = _f(distance.get("sems_from_zero"))
     bar = _f(distance.get("sems_needed_to_state_a_sign"))
     would_be = distance.get("sign_if_it_were_stateable")
+    # THE SHAPE IS ASKED OF THE SEEDS HERE, NOT READ OFF THE ARTEFACT (2026-09-28). Every family on
+    # disk was written before its producer asked, so its sem is sd/sqrt(n) whatever its shape; the
+    # HEAD re-run is a switch at separation 9.4 and published 0.31 errors from zero off that sem.
+    shape = gaussian_or_mixture_bound(floor.get("seeds") or [])
+    if not shape["gaussian_licensed"]:
+        sem, sems, bar = None, None, None
+        would_be = shape["sign_if_stateable"]
+        states = would_be or _NO_SIGN_AT_ITS_OWN_BAR_CROSS_CODE
     # THE SIDE IS ALWAYS A STRING and the family's own bar decides it, never this page's. Two
     # families that earn different bars from different widths are two questions, and re-grading one
     # at the other's bar would be choosing between instruments by their answers.
-    if sems is not None and bar is not None and sems > bar and isinstance(would_be, str):
+    elif sems is not None and bar is not None and sems > bar and isinstance(would_be, str):
         states = would_be
     else:
         states = _NO_SIGN_AT_ITS_OWN_BAR_CROSS_CODE
@@ -4525,6 +4534,13 @@ def _one_cross_code_reading(label: str, path: Path) -> dict:
         "sems_from_zero": sems,
         "its_own_bar_sems": bar,
         "states": states,
+        #: NON-NULL EXACTLY WHEN THE FAMILY IS A SWITCH, and then it replaces the three Gaussian
+        #: keys above, which are null: the mean's interval from the switch rate, and why.
+        "switch": (None if shape["gaussian_licensed"] else {
+            "mean_interval_gbp": shape["mean_interval_gbp"],
+            "mean_interval_stated": [_stated_to_the_penny(v) for v in shape["mean_interval_gbp"]],
+            "separation": shape["shape"]["separation"],
+            "why_no_standard_error": shape["why_no_sem"]}),
         "world_digest": (floor.get("world_identity") or {}).get("digest"),
         "home_digest": ((floor.get("world_identity") or {}).get("homes") or {}).get("digest"),
     }
@@ -4675,14 +4691,23 @@ def _cross_code_reading(readings: list, sides: list, agreement_rc: int | None) -
     if len(graded) < 2:
         return ("Fewer than two families could be read here, so this page says nothing about "
                 "whether today's code reproduces the selection figure it publishes.")
-    parts = ["{label} states {states} -- {mean} on {n} seeds, standard error {sem}, "
-             "{sems} standard errors from zero against a bar of {bar} -- measured on {code}".format(
+    def bound(r):
+        # A SWITCH NAMES ITS INTERVAL AND NO STANDARD ERROR -- see `_one_cross_code_reading`.
+        if r.get("switch"):
+            return ("which fall into two states rather than spreading about one, so no standard "
+                    "error is stated and the mean's 90% interval from the switch rate is {} to "
+                    "{}".format(*r["switch"]["mean_interval_stated"]))
+        return ("standard error {sem}, {sems} standard errors from zero against a bar of "
+                "{bar}".format(
+                    sem=r["sem_stated"],
+                    sems=("{:.2f}".format(r["sems_from_zero"])
+                          if r["sems_from_zero"] is not None else "an unstated number of"),
+                    bar=("{:.2f}".format(r["its_own_bar_sems"])
+                         if r["its_own_bar_sems"] is not None else "an unstated number")))
+
+    parts = ["{label} states {states} -- {mean} on {n} seeds, {bound} -- measured on {code}".format(
                  label=r["label"], states=r["states"], mean=r["mean_stated"], n=r["n"],
-                 sem=r["sem_stated"],
-                 sems=("{:.2f}".format(r["sems_from_zero"])
-                       if r["sems_from_zero"] is not None else "an unstated number of"),
-                 bar=("{:.2f}".format(r["its_own_bar_sems"])
-                      if r["its_own_bar_sems"] is not None else "an unstated number"),
+                 bound=bound(r),
                  code=" and ".join(r["which_code"]["commits_short"]) or "code this family does "
                                                                        "not name")
              for r in graded]
