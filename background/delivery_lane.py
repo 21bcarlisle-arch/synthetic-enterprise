@@ -2729,6 +2729,15 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
     other = row.get("landed_under")
     if other and float(row.get("last_landing_at") or 0.0) >= drawn:
         return {"disposition": LANDED_ELSEWHERE, "evidence": f"landed under {other}"}
+    # A LANDED RESULT SPENDS ITS PREREG'S GRADING -- the one derived reading that is a fact about
+    # the premise rather than about where a commit went, so it is asked first of the derived ones.
+    done = prereg_result(" ".join(str(p) for p in row.get("named_paths") or []),
+                         float(row.get("source_written_at") or 0.0))
+    # Only a result that was ALREADY there when this window opened; one landing inside the window
+    # is the window's own work, and the unbound-commit join below is the reading that credits it.
+    if done and done["at"] <= drawn:
+        return {"disposition": PREMISE_SPENT,
+                "evidence": f"{done['commit'][:9]}: result landed for prereg {done['prereg']}"}
     # EACH SWALLOWED EXCEPTION IS NOW A SENTENCE THE RESIDUAL CARRIES. The three `except`s below
     # are right to leave the residual loud, but "the join declined" and "the join crashed" were
     # both reaching the reader as the same empty string -- a DECLARED None and a SILENT None
@@ -3465,6 +3474,53 @@ def premise_note(item: dict) -> str:
         ).format(n=len(cited), ids=", ".join(cited))
     except Exception:
         return ""
+
+
+#: A pre-registration a work item names, captured as its SUBJECT STEM -- the words between the
+#: prefix and the trailing date. The stem is what a result shares with its prereg; the dates differ
+#: whenever the run finishes the day after it was registered, which is the ordinary case.
+_PREREG_NAME = re.compile(r"SEAT_PREREG_([A-Z0-9_]+?)_\d{4}-\d{2}-\d{2}\.md")
+
+
+def prereg_result(text: str, written_at: float = 0.0) -> dict | None:
+    """`{"commit", "path", "prereg"}` when a prereg `text` names already has its result on origin.
+
+    THE DEFECT (2026-09-28). Every prereg-then-result arc names the PREREG, and the prereg is the
+    one file that does not change when the work is done -- the result lands beside it under a new
+    name. So `premise_note` (which reads cited shas) and `landed_since_note` (which reads this
+    row's paths) are both blind to it, and the draw re-issues finished grading.
+    `grade-the-balance-rule-two-state-diff-against-the-cefd2c04a-baseline` was written 22:48,
+    its `SEAT_RESULT_THE_TWO_STATE_DIFF_RERUN_...` landed in `7dc8f150d` at 03:57, and it was
+    handed to a worker tick at 04:27.
+
+    THE JOIN IS THE SUBJECT STEM, EXACTLY, ANY DATE, AND ONLY ON ORIGIN. Many results are named
+    for their OUTCOME rather than their question, and those do not match -- that is the direction
+    that keeps an item handed out, so a miss costs a tick and never silences work. The commit
+    named is the one that FIRST put a result at that stem on origin/main.
+
+    A RESULT OLDER THAN THE ITEM IS CONTEXT, NOT A SPENT PREMISE. An item written after the result
+    landed was written with the result in view -- "the prereg's bet was refuted, now repair X" --
+    and suppressing it would be the context-citation false positive `premise_note` designs
+    against. With no written instant the result alone decides.
+
+    NEVER RAISES; an unanswerable git is None, i.e. the item is handed out as before.
+    """
+    try:
+        for stem in dict.fromkeys(_PREREG_NAME.findall(text or "")):
+            out = _git("log", "--format=%H %ct", "origin/main", "--",
+                       f"docs/staging/*SEAT_RESULT_{stem}_*.md")
+            lines = (out or "").strip().splitlines()
+            if not lines:
+                continue
+            sha, when = lines[-1].split()
+            if written_at and float(when) < float(written_at):
+                continue
+            names = _git("show", "--name-only", "--format=", sha) or ""
+            path = next((p for p in names.splitlines() if f"SEAT_RESULT_{stem}_" in p), "")
+            return {"commit": sha, "path": path, "prereg": stem, "at": float(when)}
+    except Exception:
+        return None
+    return None
 
 
 def landed_since_note(item: dict, *, now: float | None = None,
@@ -4409,6 +4465,16 @@ def _retired_ids() -> set[str]:
         return set()
 
 
+def _result_landed(item: dict) -> bool:
+    """True when an item names a prereg whose result is already on origin -- see `prereg_result`.
+
+    IT SKIPS, like an embargo, and never stops the walk. Unlike `premise_note` this one withholds
+    rather than annotates, because the evidence is not an inference from a cited sha: a result
+    file at the prereg's own stem is the work's own output, landed after the item was written.
+    """
+    return prereg_result(_item_prose(item), float(item.get("written_at") or 0.0)) is not None
+
+
 def next_item(now: float | None = None, path: Path | None = None, *,
               admit=None) -> dict | None:
     """The highest-ranked focus item that is not an atom and not already claimed, or None.
@@ -4487,7 +4553,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
         try:
             for item in seat_continuation.live(now=now):
                 if (item.get("id") and item["id"] not in taken and not _embargoed(item, now)
-                        and (admit is None or admit(item))):
+                        and (admit is None or admit(item)) and not _result_landed(item)):
                     return item
         except Exception:
             return None
@@ -4497,7 +4563,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
         for item in direction_mod.unreachable_focus(_atom_ids()):
             if (item.get("id") and item["id"] not in taken
                     and item["id"] not in retired and not _embargoed(item, now)
-                    and (admit is None or admit(item))):
+                    and (admit is None or admit(item)) and not _result_landed(item)):
                 return item
         return None
 
