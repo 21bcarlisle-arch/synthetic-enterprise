@@ -80,3 +80,67 @@ Both end in an issued bill. Nothing here does either, so the energy stays bought
 That is the unbuilt follow-up named in `company/billing/pre_bill_validation.py`, now down to a
 population of two accounts. Which way it goes needs the world to say what PROS-2016-0098 is. It is
 a classification question, not a billing one.
+
+### DECIDED 2026-09-28: (b), a genuine domestic tail. The release path has landed.
+
+**Correction to this finding's own number.** "~33 MWh/yr" came from annualising winter months.
+The world's full billed years are **26,345 (2017), 21,406 (2018) and 18,781 kWh (2019)**. Summer
+months bill 200–500 kWh and January 4,000–5,100 kWh, which is the shape of a heating load.
+
+**What the world drew** (`simulation.live_population._live_homes`, base seed): a **6-bed detached
+house built before 1919**, floor band 151–200 m², EPC F, poor insulation, **no mains gas, direct
+electric heating**, no EV and no PV. Occupancy does not set the volume; the heating system and the
+fabric do. PROS-2016-0092 is the same story at small scale: a 2-bed pre-1919 semi, 51–100 m²,
+EPC F, direct electric.
+
+**Against the published distribution** (DESNZ NEED 2026, 50k anonymised sample, 2024 electricity
+year; filed at `docs/market_research/need_domestic_electricity_high_tail.md`). In its class (no
+mains gas, detached, pre-1930, 151–200 m²) p95 is 13,700 and **5.93% are above 25,000 kWh**, a
+share that is stable from 2018 to 2022. So PROS-2016-0098 runs from ~p93 up to the top 6%, and
+nationally 0.34% of all domestic properties sit above 25,000. PROS-2016-0092 is ~p90 of its class.
+DESNZ's 25,000 kWh electricity cut is a statistics filter inside a real domestic tail. It is not
+an absurdity line in the way 50,000 is for gas.
+
+**Not (a):** a generator at p93–p99 of its own class, on the worst fabric and the most expensive
+heating system, is doing its job. **Not (c):** the premise is drawn from the England housing-stock
+joint, has a heating-shaped year, and has no generator leg that labels it.
+
+**The release** (`company/billing/pre_bill_validation.release_confirmed_domestic`, wired into
+`validate_bills`, so all four callers agree). A bill held ONLY by the two consumption-scale checks
+is issued when (1) the supply address is on the council tax list and (2) the bill is on an actual
+read. (1) is a public record a supplier looks up, and the world answers it through a new feed:
+`build_monthly_bills(premise_listing_feed=...)`, `simulation.run_phase4c_on_phase2b.simulated_council_tax_listing`.
+**That feed is built but NOT landed** (see the blocker at the end). Until it lands, production passes no listing and the release cannot fire. It refutes the mislabel, because a listed dwelling supplied for domestic use takes 5% VAT at any
+volume. (2) is required because the ceiling also catches wrong VOLUMES: the five stub estimates
+above were on listed dwellings. No threshold is introduced. Released bills carry
+`pre_bill_release` with the reasons they were held.
+
+**Replay on this file's run** (`run_output_latest.json`, predates the estimator fix; listing
+stamped from the world): held **8 → 5**. Released: PROS-2016-0092 2017-02, PROS-2016-0098 2016-03
+and 2020-03. Still held: the five 2025-06-07 stub estimates, correctly.
+
+**Pre-registered for the next full run** (estimator fix + release together): held = **1**, and it
+is PROS-2016-0098's 2016-04 estimate (~3,229 kWh). It stays held until an actual read replaces it,
+because an estimate is not confirmed by a listing. If a different count comes back, one of the two
+changes did not behave as its replay said, and each can be replayed separately.
+
+**Still open, not done here:** the two electricity ceilings (`RESI_CONSUMPTION_ENVELOPE_ELEC`
+15,000/yr, `_MONTHLY` 2,100) are unsourced and the wrong shape (one national scalar). They still
+work as the screen, because the confirmation step now follows them. Separately, the EAC that the
+world hands the supplier at registration comes from the Ofgem TDCV bands (1,400–4,000 kWh), even
+for this 20+ MWh direct-electric house. The supplier's opening estimate is therefore wrong by a
+factor of five, and that is world-side and unaddressed.
+
+**Blocker on the wiring, 2026-09-28 (later tick).** The worker that built the feed died before it
+landed it. A later tick added two controls to `tests/simulation/test_run_phase4c_on_phase2b.py` and
+mutation-proved both: the feed can answer listed and can answer None, and the bill run passes it
+through. It then tried to land the feed with its controls through `surgical_land`. **The gate did not
+finish inside its 3600 s ceiling and refused, correctly.** A change to `run_phase4c_on_phase2b.py`
+selects that test file, and one of its `main()` tests (a full `run_phase2b`) ran for more than
+20 minutes, both with the feed live and with it stubbed. So the feed does not cause the cost. The
+gate's comment and `PUBLISH_GATE_HEAVY_IGNORES` catalogue this file at 150–480 s a test. Until
+`run_phase2b` is back inside that range, or the pre-commit gate treats the heavy files the way the
+publish gate does, no change to this subject can land. The same regression is the likeliest cause of
+the nightly census's four timeouts. The feed and controls sit in the shared tree as three hunks
+against HEAD.
+
