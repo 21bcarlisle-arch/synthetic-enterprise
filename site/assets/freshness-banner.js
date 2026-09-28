@@ -215,6 +215,46 @@
       publisherCauseSentence(p);
   }
 
+  /* HELD IS NOT SILENCE (2026-09-28). A mid-week hold is the normal state six days in seven:
+     this week's figures already reached origin and the weekly window will not open again until
+     `hold_next_opens`. Until today that rendered exactly as a quiet record did, so a reader could
+     not tell a publisher waiting for Monday from one that had simply said nothing. It is not a
+     refusal and not an alarm, so it neither makes the bar loud nor bolds -- it says what is
+     happening and when it next moves. `recovered` gets no sentence on purpose: it is what the
+     record reads whenever a clean publish is on file, i.e. on an ordinary visit, and a line on
+     every ordinary visit is the 2026-08-24 noise ruling. It stays distinct in
+     `data-publisher-state`, where the four readings are four values. */
+  function publisherHeldSentence(hb) {
+    var cp = (hb && hb.content_publish) || null;
+    var p = (cp && cp.publisher) || null;
+    if (!p || p.state !== "held") { return ""; }
+    var when = nextOpensText(p.hold_next_opens);
+    return "Publishing is held by the weekly window — " +
+      (when ? "the next publish opens " + when + "."
+            : "when it next opens is not on record.");
+  }
+
+  /* `2026-10-05T04:00:00+01:00` -> `Mon 2026-10-05 04:00 (UTC+01:00)`. Read from the string
+     rather than through `Date`, so the reader's own timezone cannot move the wall time the
+     publisher wrote. Anything else returns null and the clause says it is not on record. */
+  function nextOpensText(iso) {
+    if (typeof iso !== "string") { return null; }
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})(?::\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/.exec(iso);
+    if (!m) { return null; }
+    /* 1970-01-01 was a Thursday. Arithmetic on `Date.UTC`, not a `Date` object, because the
+       door harness pins the clock with a shim that has no constructor. */
+    var day = (Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000) + 4) % 7;
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day] + " " +
+      m[1] + "-" + m[2] + "-" + m[3] + " " + m[4] +
+      " (UTC" + (m[5] === "Z" ? "" : m[5]) + ")";
+  }
+
+  function publisherState(hb) {
+    var cp = (hb && hb.content_publish) || null;
+    var p = (cp && cp.publisher) || null;
+    return (p && typeof p.state === "string" && p.state) ? p.state : "absent";
+  }
+
   /* THE SECOND COMPOSER OF THE SAME SENTENCE (2026-09-24).
    *
    * What stood here was `p.cited_red_at_head === "dead" ? " The publisher names no live
@@ -377,6 +417,7 @@
     var noFigures = carriesNoFigures();
     var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
     var failing = (unknown || noFigures) ? "" : publisherFailureSentence(hb);
+    var held = (unknown || noFigures) ? "" : publisherHeldSentence(hb);
     /* The frozen-feed check is the only one that survives the channel going dark, so it is
        asked even though the two above have already been asked. A reference page still asserts
        no figure age -- but it IS still served by this publisher, so "nothing is arriving" is
@@ -404,6 +445,7 @@
       unknown ? "unknown"
               : (noFigures ? "reference"
                            : (publishIsDown ? "stale" : ((d && d.verification_state) || "paused"))));
+    bar.setAttribute("data-publisher-state", publisherState(hb));
     bar.setAttribute("role", "status");
 
     var line = unknown
@@ -423,7 +465,8 @@
       '<span class="pf-line">' + line + "</span>" +
       (notArriving ? '<span class="pf-notarriving">' + esc(notArriving) + "</span>" : "") +
       (failing ? '<span class="pf-failing">' + esc(failing) + "</span>" : "") +
-      (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "");
+      (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "") +
+      (held ? '<span class="pf-held">' + esc(held) + "</span>" : "");
 
     var style = document.createElement("style");
     style.textContent =
@@ -433,6 +476,7 @@
       ".poesys-freshness .pf-stale{display:block;margin-top:3px;font-weight:700}" +
       ".poesys-freshness .pf-failing{display:block;margin-top:3px;font-weight:700}" +
       ".poesys-freshness .pf-notarriving{display:block;margin-top:3px;font-weight:700}" +
+      ".poesys-freshness .pf-held{display:block;margin-top:3px}" +
       '.poesys-freshness[data-freshness-state="paused"],' +
       '.poesys-freshness[data-freshness-state="unknown"]' +
       "{background:var(--amber-soft,#fdf3e0);color:var(--text,#111);font-weight:600}" +

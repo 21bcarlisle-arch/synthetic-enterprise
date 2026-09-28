@@ -581,3 +581,64 @@ def test_a_held_cause_with_no_readable_commit_still_names_the_cause():
     assert "push_never_landed" in out["text"]
     assert "at commit" not in out["text"], (
         "a commit clause rendered from a hash that was never recorded")
+
+
+# ---------------------------------------------------------------------------------------------
+# HELD IS NOT SILENCE (2026-09-28). Since 46a0271e0 `publisher_refusal` reads a weekly-window
+# hold as `held` (with `hold_next_opens`) and a closed episode as `recovered`; the banner rendered
+# both exactly as it rendered `no_open_episode`, so a publisher waiting for Monday -- the normal
+# state six days in seven -- was indistinguishable from one that had said nothing.
+
+
+def _publisher(state, **extra):
+    return {"state": state, "consecutive_failures": 0, "failing_for_seconds": None,
+            "clean_publishes_this_episode": 0, "cited_red_at_head": None, **extra}
+
+
+def test_the_four_publisher_readings_are_four_values_on_the_bar():
+    """PARTITION CONTROL: each reading reaches the DOM as itself. MUTATION: fold `recovered` or
+    `held` into `no_open_episode` and the set collapses."""
+    seen = {s: render(heartbeat=_heartbeat_with_publisher(_publisher(
+                s, hold_next_opens="2026-10-05T04:00:00+01:00")))["publisher_state"]
+            for s in ("held", "recovered", "no_open_episode", "unknown")}
+    assert seen == {s: s for s in seen}, seen
+    assert render(heartbeat=_heartbeat_with_publisher(None))["publisher_state"] == "absent"
+
+
+def test_a_weekly_hold_says_so_with_its_next_window():
+    out = render(heartbeat=_heartbeat_with_publisher(_publisher(
+        "held", hold_next_opens="2026-10-05T04:00:00+01:00")))
+    assert ("Publishing is held by the weekly window — the next publish opens "
+            "Mon 2026-10-05 04:00 (UTC+01:00).") in out["text"], out["text"]
+    # Not a refusal and not an alarm: the bar keeps its verification state and the as-at line.
+    assert out["state"] == "verified"
+    assert "PUBLISHING IS" not in out["text"]
+    assert "Figures as at 2026-09-21 18:15Z" in out["text"]
+
+
+def test_a_hold_is_the_only_reading_that_renders_the_hold_sentence():
+    """NULL CONTROL for the one above: a banner that says "held" on every visit passes it."""
+    for state in ("recovered", "no_open_episode", "unknown"):
+        out = render(heartbeat=_heartbeat_with_publisher(_publisher(
+            state, hold_next_opens="2026-10-05T04:00:00+01:00")))
+        assert "held by the weekly window" not in out["text"], (state, out["text"])
+
+
+def test_a_hold_with_no_readable_next_window_says_it_is_not_on_record():
+    """A window that cannot be read is said, never guessed and never dropped with the hold."""
+    for bad in (None, "next Monday", 1790000000):
+        out = render(heartbeat=_heartbeat_with_publisher(_publisher("held", hold_next_opens=bad)))
+        assert "when it next opens is not on record" in out["text"], (bad, out["text"])
+
+
+def test_the_next_window_is_the_publishers_wall_time_not_the_readers():
+    """Read from the string, so a reader's own timezone cannot move it; the weekday is computed."""
+    out = render(heartbeat=_heartbeat_with_publisher(_publisher(
+        "held", hold_next_opens="2026-11-02T04:00:00Z")))
+    assert "opens Mon 2026-11-02 04:00 (UTC)." in out["text"], out["text"]
+
+
+def test_a_reference_page_carries_no_hold_either():
+    out = render(heartbeat=_heartbeat_with_publisher(_publisher(
+        "held", hold_next_opens="2026-10-05T04:00:00+01:00")), figures="none")
+    assert "held" not in out["text"]

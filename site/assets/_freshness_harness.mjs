@@ -12,7 +12,7 @@
 // Usage: node _freshness_harness.mjs <freshness-banner.js> [data-figures]
 //   stdin:  {"/data/publish_provenance.json": <payload|null>,
 //            "/data/tick_heartbeat.json": <payload|null>}     (null = 404)
-//   stdout: {"state": "...", "text": "...", "html": "...", "error": null|"..."}
+//   stdout: {"state": "...", "publisher_state": "...", "text": "...", "html": "...", "error": null|"..."}
 import fs from "node:fs";
 import vm from "node:vm";
 
@@ -119,6 +119,7 @@ await new Promise((r) => setTimeout(r, 0));
 const bar = created[0];
 process.stdout.write(JSON.stringify({
   state: bar ? bar.getAttribute("data-freshness-state") : null,
+  publisher_state: bar ? bar.getAttribute("data-publisher-state") : null,
   html: bar ? bar.innerHTML : null,
   text: bar ? textOf(bar.innerHTML) : null,
   error: sandbox.PoesysFreshness ? sandbox.PoesysFreshness.error : "layer did not install",
