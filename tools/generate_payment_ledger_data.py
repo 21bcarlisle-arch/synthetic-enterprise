@@ -39,10 +39,12 @@ LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
 _NOTE_STAGES = {"DD_FAILED": "payment_failed", "INVOICE_DISPUTED": "invoice_disputed",
-                "FIRST_NOTICE": "notice", "SECOND_NOTICE": "notice", "DISPUTE_NOTICE": "notice"}
+                "FIRST_NOTICE": "notice", "SECOND_NOTICE": "notice", "DISPUTE_NOTICE": "notice",
+                # The credit invoice already reduced the balance; this says which arrears it met.
+                "CREDIT_APPLIED": "credit_applied"}
 _RESOLVED_STAGES = {"RESOLVED", "PAYMENT_PLAN_AGREED"}
 _TYPE_ORDER = {"invoice_raised": 0, "payment_failed": 1, "invoice_disputed": 1,
-               "payment_received": 1, "notice": 2, "arrears_resolved": 3,
+               "payment_received": 1, "notice": 2, "credit_applied": 2, "arrears_resolved": 3,
                "write_off": 3, "recovery_note": 4}
 
 

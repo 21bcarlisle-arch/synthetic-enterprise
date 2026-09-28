@@ -31,7 +31,8 @@ from simulation.arrears_engine import (
     _fuel_poor_for_bill,
     _tone_for_bill,
     arrears_stages as _arrears_stages,
-    balance_write_offs as _balance_write_offs,
+    balance_settlement as _balance_settlement,
+    with_credits_applied as _with_credits_applied,
     ic_arrears_stages as _ic_arrears_stages,
     debt_archetype as _debt_archetype,
     _CORP_BACS_ON_TIME_PROB,
@@ -148,11 +149,12 @@ def generate(run_json_path=None, out_path=None):
     bills = data.get("bills", [])
     behavioral = data.get("per_customer_behavioral", {})
     churned = set(data.get("churned_billing_accounts", []))
-    # Which failed bills are written off, and when, is READ from the engine over the same unfiltered
-    # bills the P&L sees -- never re-derived here. The engine drops held bills and credits itself,
-    # so the ledger and `bad_debt_gbp` agree per account; tests/tools/
-    # test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the real run.
-    write_offs = _balance_write_offs(bills, behavioral, churned, seed=42)
+    # Which failed bills are written off, when, and what credit is netted against each, is READ
+    # from the engine over the same unfiltered bills the P&L sees -- never re-derived here. The
+    # engine drops held bills and credits itself, so the ledger and `bad_debt_gbp` agree per
+    # account; tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds
+    # that on the real run.
+    write_offs, credits_applied = _balance_settlement(bills, behavioral, churned, seed=42)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -484,6 +486,12 @@ def generate(run_json_path=None, out_path=None):
             payments_by_cid.setdefault(cid, []).append(pay)
 
         written_off = write_offs.get((cid, period_end, commodity))
+        # A case is for what is still owed once account credit on the same contract is netted
+        # (SLC 27.16) -- the amount the engine writes off or leaves open. `face` is the bill.
+        credits = credits_applied.get((cid, period_end, commodity), [])
+        face = amount
+        if credits:
+            amount = max(round(face - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0
         if outcome == "failed":
             # A case that is not written off is still an open balance, and ends on BALANCE_OPEN.
             still_open = written_off is None
@@ -518,6 +526,11 @@ def generate(run_json_path=None, out_path=None):
                                               write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
+        if outcome in ("failed", "dispute"):
+            arr.update(face_gbp=round(face, 2), credit_applied_gbp=round(face - amount, 2),
+                       stages=_with_credits_applied(arr["stages"], face, credits))
+            if credits and amount == 0:
+                inv["payment_status"] = "settled_by_credit"
 
         invoice_number += 1
 

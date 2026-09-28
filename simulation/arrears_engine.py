@@ -482,6 +482,11 @@ BALANCE_OPEN = "BALANCE_OPEN"
 BALANCE_OPEN_NOTE = "Balance still open -- GBP%.2f unpaid, with no payment or arrangement against it"
 
 
+#: The notes that state an amount, so a credit netted later can restate what was owed that day.
+_NOTICE_AMOUNT_NOTES = {"FIRST_NOTICE": "First overdue notice -- GBP%.2f outstanding",
+                        "INVOICE_DISPUTED": "Invoice disputed -- GBP%.2f under formal review"}
+
+
 def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
                     archetype: str = "NEUTRAL", *, method: str,
                     write_off_date: date | None = None) -> list[dict]:
@@ -504,7 +509,7 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
     stages = [
         opening_arrears_stage(method, due_date),
         {"stage": "FIRST_NOTICE", "date": (due_date + timedelta(days=7)).isoformat(),
-         "note": "First overdue notice -- GBP%.2f outstanding" % arrears_gbp},
+         "note": _NOTICE_AMOUNT_NOTES["FIRST_NOTICE"] % arrears_gbp},
         {"stage": "SECOND_NOTICE", "date": (due_date + timedelta(days=21)).isoformat(),
          "note": "Second notice -- payment plan offered"},
     ]
@@ -522,12 +527,58 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
     return stages
 
 
+#: A credit bill netted against this case (SLC 27.16). It moves no money on the account ledger:
+#: the credit invoice itself already reduced the balance, so this stage only says where it went.
+CREDIT_APPLIED = "CREDIT_APPLIED"
+
+
+def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict]) -> list[dict]:
+    """`stages` with each credit `balance_settlement` netted against the case inserted in date order.
+
+    A case the credits settle in full ends on its last CREDIT_APPLIED, and no notice dated after it
+    is sent. The terminal stage of a case left open is dated no earlier than its last credit, so the
+    history stays in date order.
+    """
+    if not credits:
+        return stages
+    stages = [dict(st) for st in stages]
+    opened = stages[0]["date"]
+    owed = round(face_gbp, 2)
+    credit_stages = []
+    for c in sorted(credits, key=lambda c: c["date"]):
+        owed = round(owed - c["amount_gbp"], 2)
+        # A credit already on the account meets the bill the day the case opens. The ledger's case
+        # opens at the issued bill's due date, which can be a day or two after the engine's clock.
+        credit_stages.append({
+            "stage": CREDIT_APPLIED, "date": max(c["date"].isoformat(), opened),
+            "amount_gbp": c["amount_gbp"],
+            "note": "Account credit of GBP%.2f (the %s credit bill) netted against this bill -- "
+                    "GBP%.2f left owed" % (c["amount_gbp"], c["credit_period_end"], max(owed, 0.0))})
+    last = credit_stages[-1]["date"]
+    # A notice states what was owed on ITS day, before any later credit.
+    for st in stages:
+        if st["stage"] in _NOTICE_AMOUNT_NOTES:
+            left = face_gbp - sum(c["amount_gbp"] for c in credit_stages if c["date"] <= st["date"])
+            st["note"] = _NOTICE_AMOUNT_NOTES[st["stage"]] % max(left, 0.0)
+    if owed <= 0:
+        kept = stages[:1] + [st for st in stages[1:] if st["date"] <= last
+                             and st["stage"] not in (BALANCE_OPEN, "WRITTEN_OFF")]
+        return sorted(kept + credit_stages, key=lambda st: st["date"])
+    head = [st for st in stages if st["stage"] in (BALANCE_OPEN, "WRITTEN_OFF")]
+    cut = stages.index(head[0]) if head else len(stages)
+    before, tail = stages[:cut], stages[cut:]
+    if tail and tail[0]["stage"] == BALANCE_OPEN:
+        tail[0]["date"] = max(tail[0]["date"], last)
+    # sorted() is stable, so a credit dated on a notice's day follows the notice.
+    return sorted(before + credit_stages, key=lambda st: st["date"]) + tail
+
+
 def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
                        archetype: str = "NEUTRAL", *,
                        write_off_date: date | None = None) -> list[dict]:
     stages = [
         {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
-         "note": "Invoice disputed -- GBP%.2f under formal review" % arrears_gbp},
+         "note": _NOTICE_AMOUNT_NOTES["INVOICE_DISPUTED"] % arrears_gbp},
         {"stage": "DISPUTE_NOTICE", "date": (due_date + timedelta(days=14)).isoformat(),
          "note": "Dispute notice raised -- escalated to accounts receivable"},
     ]
@@ -615,83 +666,142 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     return rows
 
 
-def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]
-                                     ) -> dict[tuple[str, str, str], dict]:
+def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
+                                     ) -> tuple[dict[tuple[str, str, str], dict],
+                                                dict[tuple[str, str, str], list[dict]]]:
     """The balance-at-close rule over already-resolved bills. Pure: no RNG.
 
-    Returns one entry per failed/disputed bill that is WRITTEN OFF, keyed
-    ``(customer_id, period_end, commodity)``: ``{"date", "amount_gbp", "leg", "outcome",
-    "method", "due_date"}``. A failed bill that is not here is still an open balance on a live
-    account at the end of the run.
+    Returns ``(write_offs, credits_applied)``, both keyed ``(customer_id, period_end, commodity)``
+    of a failed/disputed bill.
+
+    ``write_offs`` has one entry per bill that is WRITTEN OFF: ``{"date", "amount_gbp", "leg",
+    "outcome", "method", "due_date"}``, where ``amount_gbp`` is what is still unpaid on that bill
+    once credits are netted. A failed bill that is not here is either still an open balance on a
+    live account at the end of the run, or has been cleared by credit.
+
+    ``credits_applied`` lists the account credits netted against each bill:
+    ``[{"date", "amount_gbp", "credit_period_end"}]``, where ``amount_gbp`` is positive.
 
     A successful payment pays its own bill. On a running account balance = bills - payments, so
-    it does not reduce the arrears; it restarts the limitation clock (s.29(5)). Nothing reduces
-    the balance: re-presentation waits on C1/C2b and arrangement paydown on C3b, all None. So the
-    balance at close is the sum of the failed and disputed amounts.
+    it does not reduce the arrears; it restarts the limitation clock (s.29(5)). Re-presentation
+    waits on C1/C2b and arrangement paydown on C3b, all None. The one thing that DOES reduce the
+    arrears is a credit bill on the same contract. SLC 27.16 defines Credit as payments in excess
+    of the charges due "under that Domestic Supply Contract", so a credit exists only net of that
+    contract's arrears. The contract is per fuel, so a credit nets per (customer, commodity), never
+    across fuels. It discharges the oldest outstanding bill first (Clayton's Case, the
+    running-account default). It is not a payment by the debtor, so it does not restart the clock.
+    A credit that finds nothing outstanding waits on the account for later arrears, because the
+    SLC 27.16 refund-on-request is not modelled.
     """
     by_cid: dict[str, list[dict]] = {}
     for row in resolved:
         by_cid.setdefault(row["customer_id"], []).append(row)
 
     out: dict[tuple[str, str, str], dict] = {}
+    credited: dict[tuple[str, str, str], list[dict]] = {}
     for cid, rows in by_cid.items():
         horizon = max(r["due_date"] for r in rows)
         leaver = cid in churned_ids
-        # Contributions sort before payments on the same day, so a bill cannot acknowledge itself.
+        # Contributions sort before credits and payments on the same day: a bill cannot acknowledge
+        # itself, and a same-day credit meets the bill it arrives beside.
         events = []
         for r in rows:
             if r["outcome"] in ("failed", "dispute"):
                 events.append((r["due_date"], 0, r))
+            elif r["outcome"] == "credit":
+                events.append((r["due_date"], 1, r))
             elif r["outcome"] == "success":
-                events.append((r["due_date"] + timedelta(days=r["days_late"]), 1, r))
+                events.append((r["due_date"] + timedelta(days=r["days_late"]), 2, r))
         events.sort(key=lambda e: (e[0], e[1]))
 
-        outstanding: list[dict] = []
+        outstanding: list[dict] = []  # oldest first; each {"row", "remaining"}
+        unapplied: dict[str, float] = {}  # commodity -> credit waiting on the account
         last_ack: date | None = None
+
+        def _key(row: dict) -> tuple[str, str, str]:
+            return (cid, row["period_end"], row["commodity"])
+
+        def _net(item: dict, when: date, credit_period_end: str) -> None:
+            commodity = item["row"]["commodity"]
+            take = min(item["remaining"], unapplied.get(commodity, 0.0))
+            if take <= 0:
+                return
+            item["remaining"] = round(item["remaining"] - take, 2)
+            unapplied[commodity] = round(unapplied[commodity] - take, 2)
+            credited.setdefault(_key(item["row"]), []).append(
+                {"date": when, "amount_gbp": round(take, 2), "credit_period_end": credit_period_end})
+            if item["remaining"] <= 0:
+                outstanding.remove(item)
+
+        def _write_off(item: dict, when: date, leg: str) -> None:
+            r = item["row"]
+            out[_key(r)] = {"date": when, "amount_gbp": item["remaining"], "leg": leg,
+                            "outcome": r["outcome"], "method": r["method"],
+                            "due_date": r["due_date"]}
 
         def _bar(until: date) -> None:
             for item in list(outstanding):
-                clock = item["due_date"] if last_ack is None else max(item["due_date"], last_ack)
+                due = item["row"]["due_date"]
+                clock = due if last_ack is None else max(due, last_ack)
                 barred_at = _add_years(clock, STATUTE_BAR_YEARS)
                 if barred_at <= until:
                     outstanding.remove(item)
-                    out[(cid, item["period_end"], item["commodity"])] = {
-                        "date": barred_at, "amount_gbp": item["amount_gbp"],
-                        "leg": LEG_STATUTE_BAR, "outcome": item["outcome"],
-                        "method": item["method"], "due_date": item["due_date"]}
+                    _write_off(item, barred_at, LEG_STATUTE_BAR)
 
+        last_credit_pe: dict[str, str] = {}
         for when, kind, r in events:
             if when > horizon:
                 break
             _bar(when)
             if kind == 0:
-                outstanding.append(r)
+                item = {"row": r, "remaining": r["amount_gbp"]}
+                outstanding.append(item)
+                if unapplied.get(r["commodity"], 0.0) > 0:
+                    _net(item, when, last_credit_pe[r["commodity"]])
+            elif kind == 1:
+                c = r["commodity"]
+                unapplied[c] = round(unapplied.get(c, 0.0) - r["amount_gbp"], 2)
+                last_credit_pe[c] = r["period_end"]
+                for item in [i for i in outstanding if i["row"]["commodity"] == c]:
+                    _net(item, when, r["period_end"])
             else:
                 last_ack = when
         _bar(horizon)
         if leaver:
             for item in outstanding:
-                out[(cid, item["period_end"], item["commodity"])] = {
-                    "date": horizon, "amount_gbp": item["amount_gbp"], "leg": LEG_CLOSE,
-                    "outcome": item["outcome"], "method": item["method"],
-                    "due_date": item["due_date"]}
-    return out
+                _write_off(item, horizon, LEG_CLOSE)
+    return out, credited
+
+
+def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]
+                                     ) -> dict[tuple[str, str, str], dict]:
+    """The write-off half of `balance_settlement_from_outcomes`."""
+    return balance_settlement_from_outcomes(resolved, churned_ids)[0]
+
+
+def balance_settlement(bills: list[dict], behavioral: dict, churned_ids: set[str],
+                       seed: int = 42) -> tuple[dict[tuple[str, str, str], dict],
+                                                dict[tuple[str, str, str], list[dict]]]:
+    """Every written-off case in the book and every credit netted against a case, under the
+    balance-at-close rule. `tools.generate_billing_ledger` reads both, so the household's arrears
+    history nets exactly what the P&L nets."""
+    # Only the bills the supplier issues: a bill its pre-bill gate holds never reached the customer,
+    # so it cannot fail and a held credit was never given. The ledger runs the same gate.
+    from company.interfaces.bill_assembly import issued_bills
+    return balance_settlement_from_outcomes(
+        _resolve_bills(issued_bills(bills), behavioral, seed), churned_ids)
 
 
 def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str],
                        seed: int = 42) -> dict[tuple[str, str, str], dict]:
-    """Every written-off case in the book, under the balance-at-close rule.
+    """Every written-off case in the book, under the balance-at-close rule, net of credits.
 
     The single source every consumer reads: `compute_emergent_bad_debt` (the P&L),
-    `compute_debt_recovery` (post-close proceeds) and `tools.generate_billing_ledger` (the
-    household's arrears history). None of them re-derives the balance, which is what keeps the
-    ledger and the P&L agreeing by construction.
+    `compute_debt_recovery` (post-close proceeds) and, through `balance_settlement`,
+    `tools.generate_billing_ledger` (the household's arrears history). None of them re-derives the
+    balance, which is what keeps the ledger and the P&L agreeing by construction.
     """
-    # Only the bills the supplier issues: a bill its pre-bill gate holds never reached the customer,
-    # so it cannot fail. The ledger runs the same gate, so the two see one population.
-    from company.interfaces.bill_assembly import issued_bills
-    return balance_write_offs_from_outcomes(
-        _resolve_bills(issued_bills(bills), behavioral, seed), churned_ids)
+    return balance_settlement(bills, behavioral, churned_ids, seed)[0]
 
 
 def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],

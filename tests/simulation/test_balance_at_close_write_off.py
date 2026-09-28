@@ -10,6 +10,7 @@ from simulation.arrears_engine import (
     LEG_STATUTE_BAR,
     STAYER_ARREARS_PROVISION_RATE,
     apply_emergent_bad_debt,
+    balance_settlement_from_outcomes,
     balance_write_offs_from_outcomes,
     compute_emergent_bad_debt,
 )
@@ -117,15 +118,18 @@ def test_a_held_bill_and_a_credit_bill_are_never_written_off():
             "non_commodity_amount_gbp": 25.0, "standing_charge_gbp": 15.4, "vat_gbp": 9.52,
             "total_consumption_kwh": 600.0, "segment": "resi", "commodity": "electricity"}
     beh = {"C1": {"income_stress_trajectory": [{"year": 2022, "stress": "HIGH"}]}}
+    # Held because the total does not foot. It was 0 kWh until b33f08d2e dropped the resi
+    # consumption floor, after which that fixture was issued and the held leg tested nothing.
     held = [dict(good, period_start=f"2022-{m:02d}-01", period_end=f"2022-{m:02d}-28",
-                 total_consumption_kwh=0.0) for m in range(1, 13)]
+                 total_amount_gbp=250.0) for m in range(1, 13)]
+    from company.billing.pre_bill_validation import validate_bills
+    assert not validate_bills(held)[0], "the held fixture is issued -- it tests nothing"
     # A credit the gate ISSUES: the real book's credits are catch-up overcharge refunds, not
     # negative line items (which the gate holds, and which would test the held leg twice).
     credit = [dict(good, period_start=f"2022-{m:02d}-01", period_end=f"2022-{m:02d}-28",
                    catchup_applied=True, catchup_direction="overcharge", catchup_adjustment_gbp=-400.0,
                    total_amount_gbp=-200.08)
               for m in range(1, 13)]
-    from company.billing.pre_bill_validation import validate_bills
     assert len(validate_bills(credit)[0]) == 12, "the credit fixture is held -- it tests nothing"
     issued = [dict(good, period_start=f"2022-{m:02d}-01", period_end=f"2022-{m:02d}-28")
               for m in range(1, 13)]
@@ -134,3 +138,47 @@ def test_a_held_bill_and_a_credit_bill_are_never_written_off():
     assert compute_emergent_bad_debt(issued, beh, {"C1"})
     assert compute_emergent_bad_debt(held, beh, {"C1"}) == {}
     assert compute_emergent_bad_debt(credit, beh, {"C1"}) == {}
+
+
+def _credit(cid, period_end, amount, commodity="electricity"):
+    return dict(_row(cid, period_end, "credit", amount=-amount), commodity=commodity, method=None)
+
+
+def test_a_credit_nets_against_the_same_contracts_arrears_and_every_fate_is_reachable():
+    """SLC 27.16: Credit exists only net of the charges due under that Domestic Supply Contract.
+    Defect: a catch-up credit sat beside unpaid arrears on the same account and the arrears were
+    still written off in full at close. One control over the partition: cleared in full, netted in
+    part, carried forward to later arrears, and left alone on the other fuel."""
+    rows = (
+        [_row("FULL", "2016-01-28", "failed"), _credit("FULL", "2016-03-28", 150.0)]
+        + [_row("PART", "2016-01-28", "failed"), _credit("PART", "2016-03-28", 30.0)]
+        + [_credit("CARRY", "2016-01-28", 40.0), _row("CARRY", "2016-03-28", "failed")]
+        + [_row("OTHER_FUEL", "2016-01-28", "failed"),
+           _credit("OTHER_FUEL", "2016-03-28", 150.0, commodity="gas")]
+    )
+    cids = {"FULL", "PART", "CARRY", "OTHER_FUEL"}
+    wo, credited = balance_settlement_from_outcomes(rows, cids)
+    owed = {cid: sum(v["amount_gbp"] for (c, _pe, _f), v in wo.items() if c == cid) for cid in cids}
+    fates = {
+        "cleared_in_full": owed["FULL"] == 0 and credited[("FULL", "2016-01-28", "electricity")],
+        "netted_in_part": owed["PART"] == 70.0,
+        "carried_forward": owed["CARRY"] == 60.0,
+        "never_across_fuels": owed["OTHER_FUEL"] == 100.0,
+    }
+    assert all(fates.values()), fates
+    # Only the surplus is used: FULL's 150 credit clears 100, and the 50 left over nets nothing else.
+    assert sum(a["amount_gbp"] for a in credited[("FULL", "2016-01-28", "electricity")]) == 100.0
+
+
+def test_the_oldest_arrears_are_discharged_first():
+    rows = [_row("L", "2016-01-28", "failed"), _row("L", "2016-02-28", "failed"),
+            _credit("L", "2016-04-28", 100.0)]
+    wo = balance_write_offs_from_outcomes(rows, {"L"})
+    assert list(wo) == [("L", "2016-02-28", "electricity")]
+
+
+def test_a_credit_is_not_a_payment_so_it_does_not_restart_the_limitation_clock():
+    rows = _monthly("S", 2016, 90, "failed", "failed")
+    rows.append(_credit("S", "2016-06-28", 10.0))
+    first = balance_write_offs_from_outcomes(rows, set())[("S", "2016-01-28", "electricity")]
+    assert first["date"] == date(2022, 2, 11) and first["amount_gbp"] == 90.0
