@@ -11,6 +11,10 @@ StartLimitBurst=5
 Type=simple
 WorkingDirectory=/home/rich/synthetic-enterprise
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# Python 3.14 block-buffers a non-tty stdout at 128 KiB, so an unflushed print() stays
+# out of the journal for days and SIGTERM throws it away. Unbuffered, a stuck daemon and
+# a healthy one no longer look the same in the journal.
+Environment=PYTHONUNBUFFERED=1
 # G-D3 (OPS1 sub-step 5): stamp the HEAD this daemon boots from so the reconciler can
 # flag it as stale when HEAD advances (catches imported-module drift, not just own-script
 # mtime). Leading `-`: a stamp failure must never block the daemon starting.
