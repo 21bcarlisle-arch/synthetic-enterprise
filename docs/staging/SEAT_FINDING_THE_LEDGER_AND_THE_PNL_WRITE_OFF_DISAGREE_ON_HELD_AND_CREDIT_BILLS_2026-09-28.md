@@ -64,3 +64,12 @@ runs), and a credit bill resolves to `credit` — no collection, no failure, no 
   implausibly low (3–90 kWh / 31 days) — summer cooking-only gas is plausibly in that range, so the
   floor itself may be wrong. Whether their consumption is booked as revenue while never billed has
   not been checked here.
+
+## Disposition (worker tick, 2026-09-28 ~02:55)
+
+The delivery item `the-billing-ledger-and-the-pnl-book-one-write-off` was drawn again after it had
+landed. It is disposed as **premise-spent by `2bb03a094`**, which is on origin/main. The real-book
+control passes at HEAD (3 passed). Both open items above have owners now:
+- credit netting is the successor `an-account-credit-does-not-net-against-that-accounts-arrears`,
+  which another lane was landing through `surgical_land` at the time of this note;
+- the 195 held summer gas bills: `b33f08d2e` dropped the unsourced resi consumption floor.
