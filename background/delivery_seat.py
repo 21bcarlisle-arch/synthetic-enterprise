@@ -41,7 +41,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from background import direction as direction_mod
@@ -1148,9 +1148,20 @@ def publish_state() -> dict:
         return {"available": False, "why": repr(exc)}
 
 
-def director_inputs(since: datetime) -> list[str]:
-    """Anything the director said in the stretch, by filename. The seat reads WHETHER he spoke,
-    never decides on his behalf what it meant -- the session reads the files itself."""
+def director_inputs(since: datetime, now: datetime | None = None) -> list[str]:
+    """Anything the director said in the stretch. The seat reads WHETHER he spoke, never decides
+    on his behalf what it meant -- the session reads the files itself.
+
+    Staged files (`from_rich_*`, `DIRECTOR_*`) are named by filename and dated by mtime. The
+    console capture is read TURN BY TURN instead, one entry per turn as `<file>@<stamp>`, dated by
+    the turn's own `### <ISO>` heading: the capture is appended to all day and moved between rooms
+    by `staging_migrate_rooms`, so its mtime says when the file was last touched, not when he
+    spoke. For five stretches this returned [] while he was steering from the console, because
+    the capture lives in `console/`, which the glob never read.
+
+    Every heading in a `DIRECTOR_CONSOLE_*` file is his: the seat's answers go to the
+    `SEAT_REPLY_*` sibling precisely so they cannot be read as his voice, and are not read here.
+    """
     names = []
     for folder in (STAGING_DIR, STAGING_DIR / "done", STAGING_DIR / "in_progress"):
         try:
@@ -1158,11 +1169,40 @@ def director_inputs(since: datetime) -> list[str]:
                 name = path.name
                 if not (name.startswith("from_rich_") or name.startswith("DIRECTOR_")):
                     continue
+                if name.startswith("DIRECTOR_CONSOLE_"):
+                    continue  # read by its turns below, never by mtime
                 if datetime.fromtimestamp(path.stat().st_mtime, timezone.utc) >= since:
                     names.append(name)
         except Exception:
             continue
-    return sorted(set(names))
+    return sorted(set(names)) + console_turns_since(since, now)
+
+
+def console_turns_since(since: datetime, now: datetime | None = None) -> list[str]:
+    """`<room>/DIRECTOR_CONSOLE_<day>.md@<stamp>` for each console turn stamped at or after
+    `since`. Days are the capture's own: `by_day` files a turn under its UTC stamp's date."""
+    from tools.console_instruction_record import record_path, turns_in_record
+
+    now = now or datetime.now(timezone.utc)
+    out = []
+    day = since.astimezone(timezone.utc).date()
+    while day <= now.astimezone(timezone.utc).date():
+        path = record_path(day.isoformat(), staging=STAGING_DIR)
+        try:
+            turns = turns_in_record(path)
+        except Exception:
+            turns = []
+        for stamp, _text in turns:
+            try:
+                when = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=timezone.utc)
+            if when >= since:
+                out.append(f"{path.relative_to(STAGING_DIR).as_posix()}@{stamp}")
+        day += timedelta(days=1)
+    return out
 
 
 def atoms_drawn_since(since: datetime) -> list[str]:
