@@ -49,3 +49,17 @@ I rewrote the other three:
 After the change, `declared_daemon_health` reads 3 mute, all with a cause on file, and 7 speaking
 with no cause. **Still open:** delete ntfy-responder's row once its environ carries the setting.
 If its lines then land, block-buffering was the cause that row left "not established".
+
+**Closed, 2026-09-28 20:26Z** (item `retire-ntfy-and-dispatcher-silence-rows-after-restart`). I
+restarted ntfy-responder and dispatcher. Both new MainPIDs (1104802, 1104801) carry
+`PYTHONUNBUFFERED=1` in their environ. Each one's "started" line reached the journal (`journalctl
+--user _PID=`) the moment it was printed.
+
+The previous ntfy-responder run (pid 3983775, 09-25 14:04Z onward) wrote the same "started" line
+plus about 180 more to `ntfy-responder-log.md`, and it had **0** journal lines. The unit, the code
+and the print are the same; only the environment changed. So **block-buffering was the cause** that
+row had left "not established". I deleted its `log_silence` row. From now on, a mute ntfy-responder
+is a new finding.
+
+I kept dispatcher's row, because no `from_rich_*.md` has arrived and there is nothing to test it
+against.

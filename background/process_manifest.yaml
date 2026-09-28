@@ -135,19 +135,6 @@ processes:
                            # cutover (unit installed+enabled+ACTIVE, this flip never made) left TWO
                            # launchers -- systemd PID 266098 + tmux PID 419021 -- so ONE director NTFY
                            # became TWO queued instructions (DIRECTOR_RULING_FIX_DOUBLE_MESSAGING).
-    log_silence: >-
-      NOT MUTE AND NEVER WAS — it writes to a path the journal reader does not watch.
-      Established 2026-09-22 against live pid 2358733: its real log is
-      `docs/observability/ntfy-responder-log.md`, which took ~1,300 lines over the same 106h in
-      which its own stdout produced EXACTLY ZERO journal lines. `log()` writes the file and then
-      `print()`s unflushed (`ntfy_responder.py:116`). The daemon is healthy: watermark
-      `background/.ntfy_responder_since.json` advances every poll, and a live round-trip probe on
-      2026-09-22 (published id V2usjzrPOqir) proves the inbound NTFY path reaches this machine.
-      The director's silence since 2026-09-05 is therefore SILENCE, not a dropped channel.
-      THIS CAUSE EXPIRES AT ITS NEXT RESTART. 56b1d3e0b put PYTHONUNBUFFERED=1 in its unit; the
-      run live on 2026-09-28 (pid 3983775, up since 09-25) predates that and its environ lacks it.
-      Once `/proc/<MainPID>/environ` carries it, a mute run of this daemon is a NEW finding —
-      delete this row then rather than let it file that run as explained.
     purpose: "Acks inbound NTFY, writes to staging/"
 
   - session: dispatcher
@@ -169,8 +156,8 @@ processes:
       depend on stdout buffering, so it survives PYTHONUNBUFFERED=1 (56b1d3e0b): after its next
       restart it still speaks only when a `from_rich_*.md` arrives — but then IMMEDIATELY, so a
       staged `from_rich_*.md` with no matching journal line from a run whose environ carries the
-      setting is a real fault, not this cause. (Its 2026-09-27 run, pid 3920271, predates the
-      setting.)
+      setting is a real fault, not this cause. Its run from 2026-09-28 20:26Z (pid 1104801)
+      carries the setting, and its "Dispatcher started" line reached the journal at once.
     purpose: "Classifies from_rich_*.md URGENT/NORMAL/FYI"
 
   - session: discovery-daemon
