@@ -2452,6 +2452,36 @@ def test_the_row_carries_the_whole_per_account_column_and_both_arms_own_columns(
         assert row["selection_roster_difference"]["accounts_only_in_the_value_arm"] == ["A"], row
 
 
+
+def test_the_row_carries_what_each_arm_decided_and_its_arrears_lines():
+    """b6a21c885: no artefact recorded what either arm decided, so "the arms decided differently on
+    this account" could not be counted. The join is worthless if the floor row drops it, because
+    the row is what a later grade reads. The same holds for the arrears columns."""
+    from tools.run_value_cycle_ab import decided_differently_by_account
+
+    def decision(term, rate):
+        return {"customer_id": "A", "commodity": "electricity", "term_start": term,
+                "declined": False, "chosen_margin_gbp_per_mwh": 20.0,
+                "offered_rate_gbp_per_mwh": rate}
+
+    value, level = [decision("2017-03-23", 100.0)], [decision("2017-03-23", 90.0)]
+    base = _runner_with_a_per_account_column({"A": 9.0}, value_net={"A": 9.0},
+                                             level_net={"A": 0.0})
+
+    def runner():
+        result = base()
+        result["renewal_decisions_by_arm"] = {"value_arm": value, "level_arm": level}
+        result["decided_differently_by_account"] = decided_differently_by_account(value, level)
+        result["level_arm"]["arrears_reconciliation"] = {"reconciles": True}
+        result["value_arm"]["arrears_lines_by_billing_account_gbp"] = {"A": {"pre_4c_net_gbp": 9.0}}
+        return result
+
+    for row in noise_floor([1, 2], runner=runner)["seeds"]:
+        assert row["renewal_decisions_by_arm"] == {"value_arm": value, "level_arm": level}, row
+        assert row["decided_differently_by_account"]["A"]["offered_a_different_rate"] == 1, row
+        assert row["level_arm_arrears_reconciliation"] == {"reconciles": True}, row
+        assert row["value_arm_arrears_lines_by_account_gbp"] == {"A": {"pre_4c_net_gbp": 9.0}}, row
+
 def test_a_run_predating_the_column_writes_None_AND_A_REASON_not_an_empty_column():
     """R15 FAIL-OPEN, and it is the defect that matters most here: an empty dict and an unrecorded
     column are the same bytes, and a consumer differencing two empty columns gets "no account

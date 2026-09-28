@@ -435,6 +435,69 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
     return out
 
 
+#: The fields of one arm's renewal log that say what it DECIDED -- b6a21c885's list, verbatim.
+RENEWAL_DECISION_FIELDS = ("customer_id", "commodity", "term_start", "declined",
+                           "chosen_margin_gbp_per_mwh", "offered_rate_gbp_per_mwh")
+
+
+def _renewal_decision_rows(arm_result: dict | None) -> list[dict] | None:
+    """Every row of one arm's renewal log, declines included, cut to what the arm decided.
+    None when the arm did not run -- absent, never an empty list that reads as "decided nothing"."""
+    if arm_result is None:
+        return None
+    log = (arm_result.get("phase2b") or {}).get("value_arm_log") or []
+    return [{f: e.get(f) for f in RENEWAL_DECISION_FIELDS} for e in log if isinstance(e, dict)]
+
+
+def decided_differently_by_account(value_rows: list[dict] | None,
+                                   level_rows: list[dict] | None) -> dict[str, dict] | None:
+    """Join the two arms' renewals on (customer_id, commodity, term_start) and count, per billing
+    account, the renewals the arms decided differently.
+
+    A renewal in BOTH logs is decided differently when one arm declined and the other priced, or
+    both priced at different offered rates. A renewal in ONE log only is a ROSTER difference --
+    the books had already diverged, so the arms never faced the same decision -- and it is
+    counted apart, never as "different" (b6a21c885 §1.2). Accounts with no difference of either
+    kind are listed with zeros, so an absent account means it renewed in neither log.
+    """
+    if value_rows is None or level_rows is None:
+        return None
+
+    def keyed(rows):
+        return {(r["customer_id"], r["commodity"], r["term_start"]): r for r in rows}
+
+    value, level = keyed(value_rows), keyed(level_rows)
+    out: dict[str, dict] = {}
+    for key in sorted(set(value) | set(level), key=lambda k: tuple(map(str, k))):
+        row = out.setdefault(_billing_account_id(key[0]), {
+            "renewals_in_both_logs": 0, "declined_in_one_arm_only": 0,
+            "offered_a_different_rate": 0, "in_value_log_only": 0, "in_level_log_only": 0})
+        v, lv = value.get(key), level.get(key)
+        if lv is None:
+            row["in_value_log_only"] += 1
+            continue
+        if v is None:
+            row["in_level_log_only"] += 1
+            continue
+        row["renewals_in_both_logs"] += 1
+        if bool(v["declined"]) != bool(lv["declined"]):
+            row["declined_in_one_arm_only"] += 1
+        elif not v["declined"] and _rates_differ(v["offered_rate_gbp_per_mwh"],
+                                                 lv["offered_rate_gbp_per_mwh"]):
+            row["offered_a_different_rate"] += 1
+    for row in out.values():
+        row["decided_differently"] = row["declined_in_one_arm_only"] + row["offered_a_different_rate"]
+    return out
+
+
+def _rates_differ(a, b) -> bool:
+    """Two offered rates differ unless both are numbers within a millionth of a pound per MWh.
+    A missing rate on a priced row is a difference, not a match: it cannot be shown equal."""
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+        return True
+    return abs(float(a) - float(b)) > 1e-6
+
+
 def realised_metrics(result: dict) -> dict:
     """What the WORLD did to one arm's book. Nothing the company believed appears here.
 
@@ -5280,8 +5343,16 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
     household = household_sides(
         control_arm=control, value_arm=value, level_arm=level_result)
 
+    renewal_decisions = {"value_arm": _renewal_decision_rows(value),
+                         "level_arm": _renewal_decision_rows(level_result)}
     artefact = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # WHAT EACH ARM DECIDED, per renewal, and where the two decided differently. Before this
+        # the floor row carried each arm's money per account but not one decision, so "the arms
+        # decided differently on this account" could not be counted (b6a21c885).
+        "renewal_decisions_by_arm": renewal_decisions,
+        "decided_differently_by_account": decided_differently_by_account(
+            renewal_decisions["value_arm"], renewal_decisions["level_arm"]),
         # WHICH CODE MADE THIS, above every figure it made, because `generated_at` is the one
         # timestamp on this artefact that is guaranteed NOT to be when the numbers were decided.
         "producing_commit": producing_commit(),
@@ -6633,6 +6704,8 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                                    "arrears_lines_by_billing_account_gbp"),
                                   ("arrears_reconciliation", "arrears_reconciliation"),
                                   ("decisions_by_account", "decisions_by_billing_account"))},
+            "renewal_decisions_by_arm": result.get("renewal_decisions_by_arm"),
+            "decided_differently_by_account": result.get("decided_differently_by_account"),
             # THE D2 DEPTH VECTOR ON THE SAME KEY, so depth is a per-account REGRESSOR on this row
             # instead of the seed-level constant that explained nothing. Value arm only: the level
             # arm prices the same population by construction since 2026-09-18
