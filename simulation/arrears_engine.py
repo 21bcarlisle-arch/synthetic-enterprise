@@ -64,8 +64,8 @@ running unpaid balance (`balance_write_offs`). At close -- a churned account's
 final bill -- whatever is still unpaid is written off, dated by the labelled C4
 convention (`WRITE_OFF_DATE_CONVENTION`). A live balance with no payment for
 six years is statute-barred (leg 4a). A stayer's aged arrears cost money
-through PROVISION, whose rates are an honest None (leg 4b), so `bad_debt_gbp`
-counts write-offs only (`BAD_DEBT_BASIS`). The rule this replaced wrote off
+through PROVISION (leg 4b), off by default because its bucket turns on C1, so
+`bad_debt_gbp` counts write-offs only (`BAD_DEBT_BASIS`). The rule this replaced wrote off
 every failed bill of an eventual leaver at due+90 while it was still on supply.
 
 Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4] -- debt as a
@@ -85,6 +85,7 @@ load-bearing precision).
 from __future__ import annotations
 
 import hashlib
+import os
 import random
 from datetime import date, timedelta
 
@@ -608,18 +609,91 @@ WRITE_OFF_DATE_CONVENTION = "final_bill_due_date"
 #: part-payment, so a paying stayer never reaches the bar.
 STATUTE_BAR_YEARS = 6
 
-#: C6, leg 4b. Provision rate on a live account's aged arrears by age x method. None: Energy UK
-#: Feb 2026 Fig. 5 gives RECOVERY rates whose definition (a year's collections over which stock?)
-#: is unstated, so 1 - recovery is not yet a provision rate. Until it is sourced a stayer's
-#: arrears cost is a DECLARED gap on `bad_debt_gbp`, named by `BAD_DEBT_BASIS`, not a silent zero.
-STAYER_ARREARS_PROVISION_RATE = None
+#: C6, leg 4b's rates, SOURCED: Centrica plc ARA 2025 Note 17 p.175, UK residential energy, 2025
+#: column -- provision / gross billed receivables at 31 Dec, by days beyond invoice date
+#: (`docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md`). One supplier, one
+#: year, applied to every year. Each band is (upper bound in days, None = open, rate).
+LIVE_ARREARS_PROVISION_RATES = {
+    "still_in_dd": ((30, 0.0), (90, 0.014), (None, 0.074)),
+    "fallen_out_of_dd": ((30, 0.045), (90, 0.151), (None, 0.503)),
+}
+
+#: C1, the GAP that picks a row above. A sim DD "failure" (`_DD_FAILURE_PROB`) has no source and no
+#: stated basis: if it is a first-presentation bounce the stayer is still a DD account; if it is
+#: net of re-presentation the DD is cancelled (British Gas stops it after a second failure) and
+#: the arrears sit in pay-on-receipt -- about ten times the rate. Nothing published says which, so
+#: there is NO DEFAULT: unset, leg 4b is off and `bad_debt_gbp` is write-offs only. A bracket run
+#: sets it to each row in turn from one commit. Read at call time, not import.
+STAYER_FAILED_DD_BUCKET_ENV = "SIM_STAYER_FAILED_DD_BUCKET"
+
+
+def stayer_failed_dd_bucket() -> str | None:
+    raw = os.environ.get(STAYER_FAILED_DD_BUCKET_ENV, "").strip()
+    if not raw:
+        return None
+    if raw not in LIVE_ARREARS_PROVISION_RATES:
+        raise ValueError(
+            f"{STAYER_FAILED_DD_BUCKET_ENV}={raw!r} names no provision bucket; it must be one of "
+            f"{sorted(LIVE_ARREARS_PROVISION_RATES)} or unset (leg 4b off -- C1 is unsourced)")
+    return raw
+
+
+def _provision_rate(bucket: str, age_days: int) -> float:
+    for upper, rate in LIVE_ARREARS_PROVISION_RATES[bucket]:
+        if upper is None or age_days < upper:
+            return rate
+    raise AssertionError("the last band is open")
+
+
+def stayer_provision_charges(resolved: list[dict], churned_ids: set[str],
+                             written_off: dict[tuple[str, str, str], dict],
+                             credited: dict[tuple[str, str, str], list[dict]], bucket: str
+                             ) -> dict[tuple[str, int], float]:
+    """Leg 4b: the P&L charge for provision on a STAYER's open failed-DD balance, net of credits,
+    keyed (customer_id, year). Centrica's rates are a year-end STOCK ratio, so the stock is taken
+    at each 31 Dec (the account's last due date in its final year) and the charge is its change.
+
+    Leavers are left out on purpose: a leaver's provision is released into its write-off at close,
+    so over the window it nets to the write-off `compute_emergent_bad_debt` already books; only its
+    dating is ignored. A statute-barred item leaves the stock the day it is written off.
+    """
+    by_cid: dict[str, list[dict]] = {}
+    horizon_by_cid: dict[str, date] = {}
+    for row in resolved:
+        cid = row["customer_id"]
+        horizon_by_cid[cid] = max(horizon_by_cid.get(cid, row["due_date"]), row["due_date"])
+        if cid not in churned_ids and row["outcome"] == "failed":
+            by_cid.setdefault(cid, []).append(row)
+
+    out: dict[tuple[str, int], float] = {}
+    for cid, rows in by_cid.items():
+        horizon = horizon_by_cid[cid]
+        prior = 0.0
+        for year in range(min(r["due_date"].year for r in rows), horizon.year + 1):
+            at = min(date(year, 12, 31), horizon)
+            stock = 0.0
+            for r in rows:
+                key = (cid, r["period_end"], r["commodity"])
+                wo = written_off.get(key)
+                if r["due_date"] > at or (wo is not None and wo["date"] <= at):
+                    continue
+                open_gbp = r["amount_gbp"] - sum(
+                    c["amount_gbp"] for c in credited.get(key, []) if c["date"] <= at)
+                if open_gbp > 0:
+                    age = (at - date.fromisoformat(r["period_end"])).days
+                    stock += open_gbp * _provision_rate(bucket, age)
+            if abs(stock - prior) > 1e-9:
+                out[(cid, year)] = round(out.get((cid, year), 0.0) + stock - prior, 2)
+            prior = stock
+    return out
 
 #: What `bad_debt_gbp` counts. Ofgem's bad-debt charge is provisions PLUS write-offs (Appendix 2,
-#: Dec 2024, §2.4). With leg 4b None this line is the narrower quantity, and says so.
+#: Dec 2024, §2.4). With leg 4b off this line is the narrower quantity, and says so.
 BAD_DEBT_BASIS = (
     "write-offs only: the unpaid balance at close (after post-close DCA/sale recovery, applied "
     "separately) plus statute-barred live balances. Provision on a stayer's aged arrears is NOT "
-    "included -- its rate is unsourced (STAYER_ARREARS_PROVISION_RATE is None) -- so a stayer's "
+    "included -- its rates are sourced (LIVE_ARREARS_PROVISION_RATES) but which row a failed-DD "
+    "stayer sits in turns on C1, which is not (STAYER_FAILED_DD_BUCKET_ENV unset) -- so a stayer's "
     "arrears read as zero cost here, a declared gap, not an established zero.")
 
 #: The two ways a balance reaches write-off.
@@ -807,12 +881,23 @@ def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str
 def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],
                                seed: int = 42) -> dict[tuple[str, int], float]:
     """GBP written off, keyed by (customer_id, write_off_year). Its basis is `BAD_DEBT_BASIS`:
-    write-offs only, no provision.
+    write-offs only, no provision -- unless `stayer_failed_dd_bucket()` names a C1 bucket, when
+    leg 4b's stayer provision charge is added on the same keys.
     """
+    from company.interfaces.bill_assembly import issued_bills
+    resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
+    written_off, credited = balance_settlement_from_outcomes(resolved, churned_ids)
     result: dict[tuple[str, int], float] = {}
-    for (cid, _pe, _c), wo in sorted(balance_write_offs(bills, behavioral, churned_ids, seed).items()):
+    for (cid, _pe, _c), wo in sorted(written_off.items()):
         key = (cid, wo["date"].year)
         result[key] = round(result.get(key, 0.0) + wo["amount_gbp"], 2)
+    bucket = stayer_failed_dd_bucket()
+    if bucket is not None:
+        charges = stayer_provision_charges(resolved, churned_ids, written_off, credited, bucket)
+        print(f"  [leg 4b] stayer provision ON, C1 bucket={bucket}: "
+              f"GBP {sum(charges.values()):,.2f} over {len({c for c, _ in charges})} stayer(s)")
+        for key, charge in charges.items():
+            result[key] = round(result.get(key, 0.0) + charge, 2)
     return result
 
 

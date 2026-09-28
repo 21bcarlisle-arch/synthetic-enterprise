@@ -8,11 +8,14 @@ from simulation.arrears_engine import (
     BAD_DEBT_BASIS,
     LEG_CLOSE,
     LEG_STATUTE_BAR,
-    STAYER_ARREARS_PROVISION_RATE,
+    LIVE_ARREARS_PROVISION_RATES,
+    STAYER_FAILED_DD_BUCKET_ENV,
     apply_emergent_bad_debt,
     balance_settlement_from_outcomes,
     balance_write_offs_from_outcomes,
     compute_emergent_bad_debt,
+    stayer_failed_dd_bucket,
+    stayer_provision_charges,
 )
 
 
@@ -77,13 +80,15 @@ def test_a_leavers_write_off_is_its_balance_at_close_dated_at_the_final_bills_du
     assert {v["date"] for v in wo.values()} == {date(2017, 12, 28) + timedelta(days=14)}
 
 
-def test_the_stayer_provision_is_a_declared_gap_and_the_bad_debt_line_says_write_offs_only():
-    assert STAYER_ARREARS_PROVISION_RATE is None
+def test_the_stayer_provision_is_a_declared_gap_and_the_bad_debt_line_says_write_offs_only(monkeypatch):
+    monkeypatch.delenv(STAYER_FAILED_DD_BUCKET_ENV, raising=False)
+    assert stayer_failed_dd_bucket() is None
     assert BAD_DEBT_BASIS.startswith("write-offs only")
     assert "declared gap" in BAD_DEBT_BASIS
 
 
-def test_a_stayers_failed_bills_are_never_booked_on_the_real_engine():
+def test_a_stayers_failed_bills_are_never_booked_on_the_real_engine(monkeypatch):
+    monkeypatch.delenv(STAYER_FAILED_DD_BUCKET_ENV, raising=False)
     # Bills the pre-bill gate issues: the engine resolves nothing it holds (they foot, and 600 kWh).
     bills = [{"customer_id": "C1", "period_start": f"2022-{m:02d}-01", "period_end": f"2022-{m:02d}-28",
               "total_amount_gbp": 199.92, "commodity_amount_gbp": 150.0,
@@ -182,3 +187,69 @@ def test_a_credit_is_not_a_payment_so_it_does_not_restart_the_limitation_clock()
     rows.append(_credit("S", "2016-06-28", 10.0))
     first = balance_write_offs_from_outcomes(rows, set())[("S", "2016-01-28", "electricity")]
     assert first["date"] == date(2022, 2, 11) and first["amount_gbp"] == 90.0
+
+
+def _provision_book():
+    rows = _monthly("STAYER_TWO_FAILED", 2016, 40, "failed", "success")
+    rows[5] = _row("STAYER_TWO_FAILED", rows[5]["period_end"], "failed")
+    return rows + _monthly("LEAVER", 2016, 12, "failed", "failed") + \
+        _monthly("STAYER_NEVER_PAYS", 2016, 90, "failed", "failed")
+
+
+def _charges(rows, bucket):
+    written_off, credited = balance_settlement_from_outcomes(rows, {"LEAVER"})
+    return stayer_provision_charges(rows, {"LEAVER"}, written_off, credited, bucket), written_off
+
+
+def test_leg_4b_has_no_default_and_refuses_a_bucket_it_cannot_name(monkeypatch):
+    """C1 is unsourced, so no bucket may be assumed: unset is off, and a typo is refused with the
+    reason rather than read as either row."""
+    monkeypatch.setenv(STAYER_FAILED_DD_BUCKET_ENV, "dd")
+    try:
+        stayer_failed_dd_bucket()
+    except ValueError as exc:
+        assert "C1 is unsourced" in str(exc)
+    else:
+        raise AssertionError("an unnamed bucket was accepted")
+
+
+def test_both_c1_buckets_are_reachable_and_differ_as_the_sourced_rows_do():
+    """Both rows of the bracket fire, on stayers only, and the >90d rates are Centrica 2025's."""
+    by = {b: _charges(_provision_book(), b)[0] for b in LIVE_ARREARS_PROVISION_RATES}
+    assert set(by) == {"still_in_dd", "fallen_out_of_dd"}
+    assert all(by.values())
+    for charges in by.values():
+        assert not any(c == "LEAVER" for c, _ in charges)
+    # Two GBP 100 failed bills, both >90 days old at the first year-end.
+    assert by["still_in_dd"][("STAYER_TWO_FAILED", 2016)] == 14.8
+    assert by["fallen_out_of_dd"][("STAYER_TWO_FAILED", 2016)] == 100.6
+
+
+def test_a_statute_barred_item_leaves_the_provision_stock_so_it_is_not_charged_twice():
+    charges, wo = _charges(_provision_book(), "fallen_out_of_dd")
+    barred_years = {v["date"].year for (c, _p, _f), v in wo.items() if c == "STAYER_NEVER_PAYS"}
+    assert barred_years
+    assert any(charges.get(("STAYER_NEVER_PAYS", y), 0.0) < 0 for y in barred_years)
+
+
+def test_a_credit_netted_against_a_stayers_arrears_leaves_the_provision_stock():
+    rows = _monthly("S", 2016, 24, "failed", "success") + [_credit("S", "2016-06-28", 100.0)]
+    written_off, credited = balance_settlement_from_outcomes(rows, set())
+    assert credited
+    assert stayer_provision_charges(rows, set(), written_off, credited, "fallen_out_of_dd") == {}
+
+
+def test_leg_4b_reaches_the_real_engine_only_when_a_bucket_is_named(monkeypatch):
+    bills = [{"customer_id": "C1", "period_start": f"2022-{m:02d}-01", "period_end": f"2022-{m:02d}-28",
+              "total_amount_gbp": 199.92, "commodity_amount_gbp": 150.0,
+              "non_commodity_amount_gbp": 25.0, "standing_charge_gbp": 15.4, "vat_gbp": 9.52,
+              "total_consumption_kwh": 600.0,
+              "segment": "resi", "commodity": "electricity"} for m in range(1, 13)]
+    beh = {"C1": {"income_stress_trajectory": [{"year": 2022, "stress": "HIGH"}]}}
+    monkeypatch.delenv(STAYER_FAILED_DD_BUCKET_ENV, raising=False)
+    assert compute_emergent_bad_debt(bills, beh, set()) == {}
+    monkeypatch.setenv(STAYER_FAILED_DD_BUCKET_ENV, "still_in_dd")
+    low = sum(compute_emergent_bad_debt(bills, beh, set()).values())
+    monkeypatch.setenv(STAYER_FAILED_DD_BUCKET_ENV, "fallen_out_of_dd")
+    high = sum(compute_emergent_bad_debt(bills, beh, set()).values())
+    assert 0 < low < high
