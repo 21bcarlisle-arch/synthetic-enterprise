@@ -49,6 +49,15 @@ def test_every_unit_has_the_g_l3_crashloop_bound_and_soft_env():
         assert "WantedBy=default.target" in text, name
 
 
+def test_every_unit_makes_its_daemons_stdout_reach_the_journal_live():
+    """Defect named: a daemon's unflushed print() sits in Python 3.14's 128 KiB stdout buffer for
+    days, so the journal cannot tell a stuck daemon from a healthy one (SEAT_FINDING_PYTHON_3_14_
+    STDOUT_BUFFER_IS_128_KIB, 2026-09-28). Every generated unit must run its daemon unbuffered."""
+    units = G.regenerate()
+    assert units, "no units generated -- this control would pass vacuously"
+    for name, text in units.items():
+        assert "\nEnvironment=PYTHONUNBUFFERED=1\n" in text, name
+
 def test_held_and_dark_units_are_still_generated_just_not_started():
     """A HELD/DARK daemon still gets an INSTALLED unit (so it exists, readable) — the hold is
     expressed by NOT enabling/starting it (install_schedule), never by omitting the unit."""
