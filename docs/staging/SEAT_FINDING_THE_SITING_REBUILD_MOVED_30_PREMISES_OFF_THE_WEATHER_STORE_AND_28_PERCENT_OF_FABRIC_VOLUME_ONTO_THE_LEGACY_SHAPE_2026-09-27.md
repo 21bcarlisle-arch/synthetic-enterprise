@@ -64,3 +64,21 @@ book is two variables.
 - **Owed, separately:** the builder should not store a book cell until it is complete, or the
   reader should snap to the nearest COMPLETE cell. Either would make an interruption harmless. Which
   one is right is a design call, and it is not made here.
+
+## Remedy, 2026-09-28 01:19–02:25 BST — 63 more cells, 47 still owed, nothing landed
+
+- Resumed in an ISOLATED worktree (`/var/tmp/wx-store-2026-09-28`, detached at 51d7add67), not the
+  shared tree, so no run read the partial store at any point.
+- **The quota has two limits, not one.** The first pass stopped at cell 33/110 on the HOURLY bucket.
+  After the hour reset, it stopped at 31/78 on the DAILY one. So about 63 ten-year cells a day, and
+  about 32 an hour. The builder's own stop message named both limits correctly.
+- The store now holds 284/339 cells with ERA5. Of the 55 temperature-only cells, 8 are outside the book,
+  so **47 book cells are owed**. Progress is saved back to `/var/tmp/weather_store_partial_2026-09-27/`.
+- The control (`--runxfail`, in the worktree) reads **44** off-store on this partial store, against
+  42 at HEAD. It is still worse than HEAD, so it is still not landable, and the shared copy is untouched.
+- **Armed:** `weather-store-resume-0929.timer` (user, transient) fires 2026-09-29 00:05 UTC. It runs
+  `~/.cache/synthetic-enterprise/weather_store_resume_2026-09-29.sh`, which resumes the pull in
+  that worktree and waits out one hourly reset if it needs to. It then runs the control and hands off
+  `land-the-completed-weather-store` on a pass, or `weather-store-pull-still-incomplete` on a fail.
+  It lands nothing itself. The timer is used because a continuation written now would expire (6 h) before the reset.
+  Reverse it with `systemctl --user stop weather-store-resume-0929.timer`.
