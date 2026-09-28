@@ -58,7 +58,7 @@ from pathlib import Path
 from tools.run_value_cycle_ab import (
     _book_declared,
     _spread,
-    distance_to_a_sign,
+    bound_on_its_shape,
     priced_decision_fingerprint,
     sems_to_state_a_sign,
 )
@@ -236,6 +236,10 @@ def _leg(rows: list, key: str) -> dict:
     if spread["stdev"] is not None and spread["n"] > 1 and bar is not None:
         sem = spread["stdev"] / math.sqrt(spread["n"])
         distinguishable = abs(spread["mean"]) > bar * sem
+    # EVERY LEG ASKS, not only selection: the level arm's nets are discrete too, and the check is
+    # keyed to the draws' shape, not to which leg they belong to. See `bound_on_its_shape`.
+    shaped = bound_on_its_shape(rows, key, spread, sem, distinguishable)
+    sem, distinguishable = shaped["sem_gbp"], shaped["distinguishable_from_zero"]
     values = [r.get(key) for r in rows if isinstance(r.get(key), (int, float))
               and not isinstance(r.get(key), bool)]
     positive = sum(1 for v in values if v > 0)
@@ -258,8 +262,8 @@ def _leg(rows: list, key: str) -> dict:
         "negative_or_zero_seeds": len(values) - positive,
         "seeds_with_a_figure": len(values),
         #: HOW FAR FROM A SIGN AND WHAT WOULD CLOSE IT -- the producer's own function, imported.
-        "distance_to_a_sign": distance_to_a_sign(
-            spread["mean"], spread["stdev"], spread["n"]),
+        "distance_to_a_sign": shaped["distance_to_a_sign"],
+        "residual_shape": shaped["residual_shape"],
     }
 
 

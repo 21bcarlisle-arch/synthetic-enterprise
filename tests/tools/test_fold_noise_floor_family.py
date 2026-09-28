@@ -62,9 +62,18 @@ def test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_
 
     assert got["selection_gbp_spread"] == live["selection_gbp_spread"]
     assert got["level_share_spread"] == live["level_share_spread"]
-    assert got["selection_sem_gbp"] == live["selection_sem_gbp"]
-    assert (got["selection_distinguishable_from_zero"]
-            == live["selection_distinguishable_from_zero"])
+    # A SWITCH IS REFUSED THE GAUSSIAN PATH SINCE 2026-09-28 (`bound_on_its_shape`). An artefact
+    # written before that carries the sd/sqrt(n) the producer then computed, so on a switch the
+    # arithmetic is compared against the fold's own spread and the fold must print no sem at all.
+    if "selection_residual_shape" in live or got["selection_leg"]["residual_shape"][
+            "gaussian_licensed"]:
+        assert got["selection_sem_gbp"] == live["selection_sem_gbp"]
+        assert (got["selection_distinguishable_from_zero"]
+                == live["selection_distinguishable_from_zero"])
+    else:
+        spread = got["selection_gbp_spread"]
+        assert live["selection_sem_gbp"] == spread["stdev"] / math.sqrt(spread["n"])
+        assert got["selection_sem_gbp"] is None
 
 
 def test_the_folds_bar_is_the_one_the_family_size_earns_and_is_published_beside_the_verdict():
@@ -112,7 +121,9 @@ def test_summarise_moves_at_all_so_the_agreement_above_is_not_an_artefact_of_a_d
     "`summarise` returns something constant" read identically -- and a `summarise` that ignored its
     argument would pass the previous test on any artefact whose figures happened to be baked in.
 
-    Perturbing one row must move the mean, the sem, and `n`."""
+    Perturbing one row must move the mean, the spread, and `n`. The SPREAD and not the sem since
+    2026-09-28: a family the shape check calls a switch publishes no sem on either side, so a sem
+    comparison would read `None != None` as a dead function."""
     live = _live()
     rows = copy.deepcopy(live["seeds"])
     before = summarise(rows)
@@ -121,7 +132,7 @@ def test_summarise_moves_at_all_so_the_agreement_above_is_not_an_artefact_of_a_d
 
     assert after["selection_gbp_spread"]["n"] == before["selection_gbp_spread"]["n"] + 1
     assert after["selection_gbp_spread"]["mean"] != before["selection_gbp_spread"]["mean"]
-    assert after["selection_sem_gbp"] != before["selection_sem_gbp"]
+    assert after["selection_gbp_spread"]["stdev"] != before["selection_gbp_spread"]["stdev"]
 
 
 # ---------------------------------------------------------------------------
@@ -1048,7 +1059,11 @@ def test_the_regrade_moves_all_three_terms_and_not_only_the_sign_bar():
     #: THE BAR-ONLY SUBSTITUTION, computed here and asserted DIFFERENT. This is the one comparison
     #: that can tell the implemented correction from the prescribed one; without it, a regrade that
     #: only moved the bar satisfies everything above.
-    bar_only = sems_to_state_a_sign(draws) * got["seed_count_leg"]["sem_gbp"]
+    # Spelled from the seed-count leg's own spread, not its published sem: that leg may be a switch
+    # the shape check refuses a sem, and the bar-only substitution is Gaussian arithmetic either way.
+    seed_spread = got["seed_count_leg"]["spread"]
+    bar_only = (sems_to_state_a_sign(draws) * seed_spread["stdev"]
+                / math.sqrt(seed_spread["n"]))
     assert got["margin_required_over_draws_gbp"] != pytest.approx(bar_only), (
         "the regraded margin equals the bar-only substitution, so the dispersion and the sem were "
         "left over the seed count")

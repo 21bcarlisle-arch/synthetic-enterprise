@@ -5893,6 +5893,33 @@ def distance_to_a_sign(mean, stdev, n, sems_needed: float | None = None) -> dict
     }
 
 
+def bound_on_its_shape(rows: list, key: str, spread: dict, sem, distinguishable) -> dict:
+    """The sem, sign verdict and `distance_to_a_sign` a family may publish, given its SHAPE.
+
+    ONE HOME FOR THE REFUSAL, three producers. Both floor writers here and the fold's `_leg` computed
+    `sd/sqrt(n)` and never asked whether the draws were one quantity wobbling or a switch between
+    two states -- and on a switch the sem prices the wrong unknown (the 18-seed HEAD family: a
+    separation of 9.4, published as 0.31 errors from zero with a seed price near 717). The check is
+    `selection_residual_decomposition.gaussian_or_mixture_bound`; imported here, not at the top,
+    because that module imports this one.
+
+    A spread passes through unchanged. A switch returns `sem_gbp: None`, a sign verdict taken from
+    the mixture interval, and a `distance_to_a_sign` that refuses with the interval as its reason.
+    """
+    from tools.selection_residual_decomposition import gaussian_or_mixture_bound
+    shape = gaussian_or_mixture_bound(rows, key)
+    if shape["gaussian_licensed"]:
+        return {"sem_gbp": sem, "distinguishable_from_zero": distinguishable,
+                "distance_to_a_sign": distance_to_a_sign(
+                    spread.get("mean"), spread.get("stdev"), spread.get("n")),
+                "residual_shape": shape}
+    return {"sem_gbp": None,
+            "distinguishable_from_zero": shape["sign_if_stateable"] is not None,
+            "distance_to_a_sign": {"available": False, "why_not": shape["why_no_sem"],
+                                   "mean_interval_gbp": shape["mean_interval_gbp"]},
+            "residual_shape": shape}
+
+
 #: What every member of a fold must agree on before their seeds are one family. Each is a property
 #: that makes two runs measurements of DIFFERENT quantities when it differs, so pooling across it
 #: would produce a spread of the difference rather than a spread of the figure.
@@ -6056,6 +6083,7 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
     if selection["stdev"] is not None and selection["n"] > 1 and bar is not None:
         sem = selection["stdev"] / math.sqrt(selection["n"])
         distinguishable = abs(selection["mean"]) > bar * sem
+    shaped = bound_on_its_shape(rows, "selection_gbp", selection, sem, distinguishable)
 
     first = members[0]
     return {
@@ -6119,14 +6147,15 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
         "seeds": rows,
         "selection_gbp_spread": selection,
         "level_share_spread": share,
-        "selection_sem_gbp": sem,
-        "selection_distinguishable_from_zero": distinguishable,
+        "selection_sem_gbp": shaped["sem_gbp"],
+        "selection_distinguishable_from_zero": shaped["distinguishable_from_zero"],
+        #: WHETHER THE TWO KEYS ABOVE ARE A GAUSSIAN READING AT ALL. See `bound_on_its_shape`.
+        "selection_residual_shape": shaped["residual_shape"],
         # THE BAR THAT VERDICT WAS TAKEN AT (2026-09-18), beside it rather than in this file. It
         # moves with `n` now, so a consumer holding the artefact can re-run the comparison; a bare
         # boolean whose threshold lives in the producer is a verdict the reader must take on trust.
         "selection_sems_needed_to_state_a_sign": bar,
-        "distance_to_a_sign": distance_to_a_sign(
-            selection["mean"], selection["stdev"], selection["n"]),
+        "distance_to_a_sign": shaped["distance_to_a_sign"],
         "how_to_read_this": (
             "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection "
             "instrument cannot yet resolve the question being asked of it, and every reading "
@@ -6628,6 +6657,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     if selection["stdev"] is not None and selection["n"] > 1 and bar is not None:
         sem = selection["stdev"] / math.sqrt(selection["n"])
         distinguishable = abs(selection["mean"]) > bar * sem
+    shaped = bound_on_its_shape(rows, "selection_gbp", selection, sem, distinguishable)
     # ONE CLOCK, OR NO CLOCK -- never the first seed's. A spread taken across rows on different
     # clocks is not a spread of one quantity, and the GBP 39,962.17 bad-debt gap between this
     # run's two clocks is larger than every contrast the spread bounds, so a mixed floor would
@@ -6725,8 +6755,10 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         "seeds": rows,
         "selection_gbp_spread": selection,
         "level_share_spread": share,
-        "selection_sem_gbp": sem,
-        "selection_distinguishable_from_zero": distinguishable,
+        "selection_sem_gbp": shaped["sem_gbp"],
+        "selection_distinguishable_from_zero": shaped["distinguishable_from_zero"],
+        #: WHETHER THE TWO KEYS ABOVE ARE A GAUSSIAN READING AT ALL. See `bound_on_its_shape`.
+        "selection_residual_shape": shaped["residual_shape"],
         #: THE BAR THAT VERDICT WAS TAKEN AT (2026-09-18), beside it rather than in this file. It
         #: moves with `n` now, so a consumer holding the artefact can re-run the comparison; a bare
         #: boolean whose threshold lives in the producer is a verdict the reader must take on trust.
@@ -6734,8 +6766,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         #: HOW FAR FROM A SIGN, AND WHAT IT WOULD TAKE. Published beside the verdict because
         #: `false` on its own cannot tell "by a hair" from "hopeless", and those buy opposite
         #: decisions about whether to spend the machine-hours. See `distance_to_a_sign`.
-        "distance_to_a_sign": distance_to_a_sign(
-            selection["mean"], selection["stdev"], selection["n"]),
+        "distance_to_a_sign": shaped["distance_to_a_sign"],
         "how_to_read_this": (
             "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection "
             "instrument cannot yet resolve the question being asked of it, and every reading "

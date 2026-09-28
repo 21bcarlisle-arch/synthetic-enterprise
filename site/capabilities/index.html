@@ -1731,14 +1731,22 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       rows += '<span style="display:block;margin-top:6px;color:var(--muted);">'
         + "<strong>" + prose(r.label) + " &mdash; " + esc(r.states).toUpperCase()
         + "</strong>: " + esc(r.mean_stated) + " on " + esc(r.n)
-        + " seeds, standard error " + esc(r.sem_stated) + ", "
-        + (r.sems_from_zero === null || r.sems_from_zero === undefined
-            ? "an unstated number of"
-            : esc(r.sems_from_zero.toFixed(2)))
-        + " standard errors from zero against its own bar of "
-        + (r.its_own_bar_sems === null || r.its_own_bar_sems === undefined
-            ? "an unstated number"
-            : esc(r.its_own_bar_sems.toFixed(2)))
+        /* A SWITCH GETS NO STANDARD ERROR (2026-09-28). The feed nulls the three Gaussian keys
+           and carries the mean's interval from the switch rate instead; printing "standard error
+           an unstated amount" there would read as a missing number rather than a refused one. */
+        + (r.switch
+            ? " seeds, which fall into two states rather than spreading about one, so no standard "
+              + "error is stated; the mean's 90% interval from how often the switch fires is "
+              + esc(r.switch.mean_interval_stated[0]) + " to "
+              + esc(r.switch.mean_interval_stated[1])
+            : " seeds, standard error " + esc(r.sem_stated) + ", "
+              + (r.sems_from_zero === null || r.sems_from_zero === undefined
+                  ? "an unstated number of"
+                  : esc(r.sems_from_zero.toFixed(2)))
+              + " standard errors from zero against its own bar of "
+              + (r.its_own_bar_sems === null || r.its_own_bar_sems === undefined
+                  ? "an unstated number"
+                  : esc(r.its_own_bar_sems.toFixed(2))))
         + '. <span style="font-size:0.92em;">Measured on '
         + (code.length ? esc(code.join(" and ")) : "code this family does not name")
         + ", folded " + esc((r.family_folded_at || "").slice(0, 10))

@@ -8568,9 +8568,15 @@ def test_BOTH_readings_of_the_choosing_reach_the_reader_with_their_own_figure_an
         # stayed green with the row loop cut to `i < 1` -- a page carrying ONE reading and a
         # sentence about two. So the assertion is the row's own contiguous furniture, which only
         # exists once per reading.
-        expected = "{label} \u2014 {states} : {mean} on {n} seeds, standard error {sem},".format(
+        # A SWITCH ROW CARRIES ITS INTERVAL AND NO STANDARD ERROR (2026-09-28): the feed nulls the
+        # Gaussian keys on a family the shape check calls two states, and the row must say which.
+        bound = ("which fall into two states rather than spreading about one, so no standard "
+                 "error is stated; the mean's 90% interval from how often the switch fires is "
+                 "{} to {}.".format(*row["switch"]["mean_interval_stated"])
+                 if row.get("switch") else "standard error {},".format(row["sem_stated"]))
+        expected = "{label} \u2014 {states} : {mean} on {n} seeds, {bound}".format(
             label=_door_prose(row["label"]), states=row["states"].upper(),
-            mean=row["mean_stated"], n=row["n"], sem=row["sem_stated"])
+            mean=row["mean_stated"], n=row["n"], bound=bound)
         assert expected in rendered, (
             "{}'s own row is not on the page -- expected {!r}. Both readings side by side is the "
             "whole remedy here; a sentence naming two figures with one row rendered is the defect "
