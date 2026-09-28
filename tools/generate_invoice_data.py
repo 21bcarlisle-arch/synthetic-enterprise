@@ -97,6 +97,10 @@ def _real_invoice(inv):
         vat_gbp=round(inv.get("vat_gbp", 0) or 0, 2),
         amount_gbp=round(inv.get("total_amount_gbp", 0) or 0, 2),
         status=_STATUS_MAP.get(inv.get("payment_status"), "PAID"),
+        # What is still owed on this bill after account credit is netted (SLC 27.16); `amount_gbp`
+        # is the face. None on a record that predates the field, never a guessed face.
+        outstanding_gbp=inv.get("outstanding_gbp"),
+        credit_applied_gbp=inv.get("credit_applied_gbp"),
         meter_serial=inv.get("meter_serial"),
         mpan=inv.get("mpan"),
         mprn=inv.get("mprn"),
