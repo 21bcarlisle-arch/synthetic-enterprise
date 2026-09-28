@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-28T04:31:22.089271+00:00",
+  "last_updated": "2026-09-28T05:01:16.275401+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:31:22.089271+00:00",
+      "last_heartbeat": "2026-09-28T05:01:04.393060+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-25T14:04:19.154872+00:00",
       "anomaly": null,
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:01:23.095679+00:00",
+      "last_heartbeat": "2026-09-28T05:01:16.275401+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-28T04:01:16.141518+00:00",
+      "last_action_ts": "2026-09-28T05:01:16.275401+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:30:26.843047+00:00",
+      "last_heartbeat": "2026-09-28T04:58:50.258273+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-27T17:10:18.514603+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:10:37.659997+00:00",
+      "last_heartbeat": "2026-09-28T04:40:38.380271+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-28T04:10:37.659997+00:00",
+      "last_action_ts": "2026-09-28T04:40:38.380271+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -143,7 +143,7 @@
       "produces": "write-landed build turns (origin-verified commit SHAs)"
     }
   ],
-  "treasury_gbp": 414175.15,
-  "net_margin_gbp": 164175.151958,
-  "enterprise_value_gbp": 164251.46927089032
+  "treasury_gbp": 424947.71,
+  "net_margin_gbp": 174947.710113,
+  "enterprise_value_gbp": 165874.32723669338
 }
