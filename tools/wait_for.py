@@ -140,8 +140,18 @@ def _is_probe_noise(cmdline: str) -> bool:
     LIVE subject invisible, which is the more dangerous direction -- we would report
     FINISHED for something still running.
     """
-    head = cmdline.split()[0].rsplit("/", 1)[-1] if cmdline.split() else ""
-    return head in ("pgrep", "grep", "egrep", "fgrep")
+    argv = cmdline.split()
+    head = argv[0].rsplit("/", 1)[-1] if argv else ""
+    if head in ("pgrep", "grep", "egrep", "fgrep"):
+        return True
+    # ANOTHER WAITER is also the act of looking. Excluding only our own ancestry left two
+    # `--pattern` waiters on one subject each seeing the other as the subject, so neither could
+    # ever end: the C1 bracket's run (c) sat behind them for six hours after (b) had returned
+    # (2026-09-28). Only a Python process whose MODULE is this one is a waiter -- a `bash -c`
+    # chain that runs a wait and then the subject is kept, because it becomes the subject.
+    return head.startswith("python") and (
+        argv[1:3] == ["-m", "tools.wait_for"] or
+        (len(argv) > 1 and argv[1].endswith("tools/wait_for.py")))
 
 
 def matching_pids(pattern: str, exclude: set[int], runner=None) -> tuple[list[int], int]:

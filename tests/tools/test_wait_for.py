@@ -79,10 +79,11 @@ def test_a_pattern_that_matches_only_the_waiter_ENDS_instead_of_waiting_forever(
     r = _waiter_under_a_real_bash("a subject that does not exist")
     assert r.returncode == W.EXIT_CODES[W.NEVER_STARTED], r.stdout + r.stderr
     assert W.NEVER_STARTED in r.stdout
-    assert "2 matches excluded as this waiter or its ancestors" in r.stdout, (
-        "expected BOTH the waiter and its parent shell to be struck out. One match means "
-        "the shell exec'd itself away and the ancestor half of the exclusion -- the half "
-        "that actually failed in the incident -- was never exercised:\n" + r.stdout)
+    # The waiter's own python line is filtered as a WAITER before counting, so the one match
+    # left to exclude is the parent shell. None would mean the shell exec'd itself away and
+    # the ancestor half of the exclusion -- the half that failed in the incident -- never ran.
+    assert "1 match excluded as this waiter or its ancestors" in r.stdout, (
+        "expected the parent shell to be struck out as an ancestor:\n" + r.stdout)
 
 
 def test_a_REAL_subject_is_still_seen_through_the_exclusion():
@@ -363,6 +364,27 @@ def test_the_noise_filter_only_looks_at_argv0():
     out = "11 /usr/bin/python3 -m pytest tests/test_grep_helpers.py\n"
     kept, _ = W.matching_pids("pytest", set(), runner=lambda _p: (0, out))
     assert kept == [11]
+
+
+def test_ANOTHER_WAITER_on_the_same_pattern_is_not_the_subject():
+    """The 2026-09-28 stall: two waiters on `se-c1-bracket-b/value_cycle_ab.json` each matched
+    the other's argv, so both waited out their six-hour deadline after (b) had exited."""
+    out = ("20 python3 -m tools.wait_for --pattern se-b/out.json --deadline 60 --subject b\n"
+           "21 /usr/bin/python3 tools/wait_for.py --pattern se-b/out.json --deadline 60 --subject b\n")
+    kept, raw = W.matching_pids("se-b/out.json", set(), runner=lambda _p: (0, out))
+    assert kept == [] and raw == 0
+
+
+def test_a_chain_that_waits_THEN_runs_the_subject_is_still_a_subject():
+    """THE PARTNER: the waiter filter must not hide the subject. A unit's `bash -c` that runs a
+    wait and then the job carries both words; it becomes the job, so it stays visible -- as does
+    the job itself and a run whose own arguments merely mention the waiter."""
+    out = ("30 /usr/bin/bash -c python3 -m tools.wait_for --pid 9 --deadline 60 --subject a && "
+           "python3 -m tools.run --out se-b/out.json\n"
+           "31 python3 -u -m tools.run --out se-b/out.json\n"
+           "32 python3 -m tools.run --note tools.wait_for --out se-b/out.json\n")
+    kept, _ = W.matching_pids("se-b/out.json", set(), runner=lambda _p: (0, out))
+    assert kept == [30, 31, 32]
 
 
 def test_a_malformed_pgrep_line_is_skipped_rather_than_crashing_the_wait():
