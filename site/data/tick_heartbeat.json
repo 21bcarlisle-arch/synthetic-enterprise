@@ -1,15 +1,15 @@
 {
-  "ts": 1790619587.8253026,
-  "ts_iso": "2026-09-28T18:19:47Z",
+  "ts": 1790621387.1345055,
+  "ts_iso": "2026-09-28T18:49:47Z",
   "verdict": "drew",
   "outcome": "SPAWNED",
   "detail": "HEAD_RED_REGISTER.md: 37 owed, longest-standing red has stood 20 consecutive census run(s) since 2026-09-02 (observed 2026-09-23); unprocessed staging -- CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md, CL",
   "enumeration": "AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
-  "line": "[2026-09-28T18:19:47Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
+  "line": "[2026-09-28T18:49:47Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
   "content_publish": {
     "state": "publishing",
-    "published_age_seconds": 48798.8,
-    "committed_age_seconds": 48798.8,
+    "published_age_seconds": 50598.1,
+    "committed_age_seconds": 50598.1,
     "stale_after_seconds": 691200,
     "as_at_utc": "2026-09-28T04:46Z",
     "cadence_seconds": 604800,
@@ -28,11 +28,11 @@
       "held_refusal": {
         "field": "liveness_surface_refusal",
         "cause": "push_never_landed",
-        "evidence": "the commit was created here and `git ls-remote` says origin did not advance to it (push rc=1, origin=c6f8c22d3, head=f43671a07) -- read the REF and not the push's own rc, which is the 3.5-hour origin-freeze of 2026-07-24",
-        "git_hash": "18f5ad5ec68f25c8509cdfe881a0598f5bfff9a7",
+        "evidence": "the commit was created here and `git ls-remote` says origin did not advance to it (push rc=1, origin=a02211fa9, head=58db2d317) -- read the REF and not the push's own rc, which is the 3.5-hour origin-freeze of 2026-07-24",
+        "git_hash": "b6a21c8857952330dc470346137a68078734be49",
         "label": "Liveness heartbeat",
-        "ts": 1790618785.9547243,
-        "age_seconds": 801.9
+        "ts": 1790620909.8142629,
+        "age_seconds": 477.3
       },
       "held_refusal_reason": ""
     }
@@ -48,6 +48,7 @@
     "stale": false
   },
   "recent": [
+    "[2026-09-28T18:49:47Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
     "[2026-09-28T18:19:47Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
     "[2026-09-28T17:49:37Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
     "[2026-09-28T17:19:32Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
@@ -61,7 +62,6 @@
     "[2026-09-28T13:17:27Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
     "[2026-09-28T11:48:06Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
     "[2026-09-28T10:54:20Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
-    "[2026-09-28T10:23:32Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026",
-    "[2026-09-28T09:53:35Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026"
+    "[2026-09-28T10:23:32Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=Y site=Y discover_frame=Y open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y blocked_mints=Y gap_register=Y] -> MUST-DRAW: build,site,discover_frame,planner,blocked_mints,gap_register | OPEN MINTS (1): PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift table is re-measured against the SAME n\u2026"
   ]
 }
