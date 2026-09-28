@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Atom:** `value-arms-error-bar` · **Status:** DESIGN, unbuilt ·
+**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `unminted` · **Status:** DESIGN, unbuilt ·
 **Evidence:** `docs/market_research/how_a_gb_supplier_decides_to_write_off_a_failed_payment.md`
 
 # The write-off rule, re-keyed to the balance at close

@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Atom:** `value-arms-error-bar` · **Class:** `measurements_that_mirror`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `unminted` · **Class:** `measurements_that_mirror`
 
 # The C1 bracket, run (c) graded: C1 does not matter to the sign
 
@@ -72,3 +72,15 @@ level row, and it is not urgent while leg 4b is off.
 The selection sign was never shown to be stable — it is a two-state switch on one account, and
 that is `SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_…`'s subject. This bracket shows
 only that C1 cannot move which state each seed lands in.
+
+## Header correction (2026-09-28, later the same day)
+
+The write-off chain was headed `Lane A_strategy_governance · Atom value-arms-error-bar`, copied
+forward from 1a78b9977's design. No map atom has that id; it is the name of a 2026-09-19
+direction item about the arms page. The write-off rule is a world/billing rule, so the chain now
+reads `D_billing_metering · unminted`: 1a78b9977's design and the finding it answers, 6ba548633's
+prereg and result, the C1/C6 finding, the two-state prereg and result, the C1 prereg, 293c2f3e2,
+this record, the PROS-2016-0098 result, and the done doorbell. The waiter-stall finding is a
+harness defect, so it reads `H_harness · unminted`. The earlier arms-page and selection-residual
+records keep their header. They were filed under that direction item, and A_strategy_governance
+is the correct lane for them.

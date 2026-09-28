@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Atom:** `value-arms-error-bar` · **Class:** `measurements_that_mirror`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `unminted` · **Class:** `measurements_that_mirror`
 
 # The two-seed diff under the balance-at-close rule: B1–B5 all hold, one variable, and the selection sign does not move
 

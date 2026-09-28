@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Atom:** `value-arms-error-bar` · **Class:** `measurements_that_mirror`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `unminted` · **Class:** `measurements_that_mirror`
 
 # The balance-at-close write-off rule, run alone: the amount does not move, so the selection sign does not either
 

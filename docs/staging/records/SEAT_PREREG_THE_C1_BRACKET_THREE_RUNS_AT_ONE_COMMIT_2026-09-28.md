@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Atom:** `value-arms-error-bar` · **Class:** `measurements_that_mirror`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `unminted` · **Class:** `measurements_that_mirror`
 
 # The C1 bracket: does the failed-DD stayer's bucket decide the selection sign? Predictions before any run
 

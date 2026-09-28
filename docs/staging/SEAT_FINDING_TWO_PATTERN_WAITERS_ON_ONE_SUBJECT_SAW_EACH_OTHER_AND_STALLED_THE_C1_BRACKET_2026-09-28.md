@@ -1,4 +1,4 @@
-**Severity:** RECORDED · **Lane:** A_strategy_governance · **Atom:** `value-arms-error-bar` · **Class:** `controls_that_cannot_fail`
+**Severity:** RECORDED · **Lane:** H_harness · **Atom:** `unminted` · **Class:** `controls_that_cannot_fail`
 
 # Two `--pattern` waiters on one subject saw each other, and the C1 bracket's run (c) waited six hours for nothing
 

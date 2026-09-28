@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `value-arms-error-bar` · **Class:** `measurements_that_mirror`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Atom:** `unminted` · **Class:** `measurements_that_mirror`
 
 # PROS-2016-0098's −£4,218.43 is a leaver's write-off at close, and the account leaves in BOTH states
 

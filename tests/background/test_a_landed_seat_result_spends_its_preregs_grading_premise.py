@@ -64,9 +64,12 @@ def tree(tmp_path, monkeypatch, git):
     monkeypatch.setattr(d, "DIRECTION_PATH", direction_path)
     monkeypatch.setattr(sc, "STORE", tmp_path / ".seat_continuation.json")
 
+    # `oriented_at` is the WALL clock, not NOW: `unreachable_focus` ages the record against the
+    # real clock (FOCUS_MAX_AGE_HOURS), so a pinned stamp empties focus 12h after NOW and this
+    # file went red at 15:27Z on 2026-09-28 with no code change.
     def _write(focus):
         direction_path.write_text(yaml.safe_dump({
-            "version": 1, "oriented_at": NOW.isoformat(), "focus": focus,
+            "version": 1, "oriented_at": datetime.now(timezone.utc).isoformat(), "focus": focus,
             "not_now": [{"what": "something", "why": "it loses to the above"}]}), encoding="utf-8")
 
     return {"write": _write, "claims": tmp_path / "claims.json"}

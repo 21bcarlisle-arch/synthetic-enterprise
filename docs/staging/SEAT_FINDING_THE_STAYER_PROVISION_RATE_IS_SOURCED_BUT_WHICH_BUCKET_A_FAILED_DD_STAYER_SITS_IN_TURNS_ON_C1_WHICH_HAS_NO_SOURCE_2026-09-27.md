@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** `value-arms-error-bar`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `unminted`
 **Evidence:** `docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md`
 
 # The stayer provision rate is sourced, but which bucket a failed-DD stayer sits in turns on C1, and C1 has no source

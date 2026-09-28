@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** `value-arms-error-bar`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `unminted`
 
 # A failed bill is written off in full if and only if the customer ever leaves, so tenure multiplies a leaver's bad debt
 
