@@ -1443,6 +1443,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         return (
             [sum(_series.gas_kwh[d]) for d in _dates],
             [get_hdd(d, cid) for d in _dates],
+            [_series.gas_space_heating_kwh[d] for d in _dates],
         )
 
     gas_heating_fraction_by_customer, gas_shape_refusals = seasonal_gas_splits_for_book(
@@ -3088,7 +3089,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
                 segment=cust_segment,
                 pass_through=(term_tariff_type == "pass_through"),
-                heating_fraction=_gas_split.heating_fraction if _gas_split else None,
+                heating_fraction=_gas_split.heating_fraction_for(aq_kwh) if _gas_split else None,
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"

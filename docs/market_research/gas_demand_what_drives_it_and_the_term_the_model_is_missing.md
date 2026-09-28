@@ -278,3 +278,44 @@ count by nothing either. On today's evidence the honest expectation for the rest
 build is **no rise in N and a real gain in fidelity** — which is what the hot-water term
 delivered (0.883× → 0.992× against metered gas). Full account:
 `adding_a_driver_is_not_adding_an_axis.md`.
+
+---
+
+## 6. The summer base reached the world and not the bill (2026-09-28)
+
+**Question:** does the sim's resi gas carry a hot-water/cooking base? The 2026-09-27 run billed ordinary
+5,000+ kWh homes 3–42 kWh a summer month (SYN-2016-005: Jul/Aug 41.6), once the billing floor that
+hid them was removed (`b33f08d2e`).
+
+**The world has the base; settlement threw it away.** SYN-2016-005's own trace burns **6.3 kWh/day in
+July** and **1,384 kWh/yr** of hot water and cooking (about 3.8/day, against the 4.2 measured median
+the DHW term is anchored to). Settlement does not bill the trace. It bills the company's AQ through
+the two-term form `AQ·f·HDD/ref + AQ·(1−f)/365`, with the fraction `f` fitted to each home's trace.
+Two defects in that projection, both in `simulation/household_demand_shape.py`:
+
+1. **The fraction was regressed when the trace already knew it.** A straight line of gas on HDD
+   through a home whose heating stops above its balance point puts the intercept under the base the
+   home actually burns: for SYN-2016-005 the fitted intercept was 1.9 kWh/day, f = 0.952.
+2. **The base was carried as a share of the trace, then applied to the AQ.** The trace's space
+   heating runs 2–4× the AQ (the unreconciled gas-volume gap `run_phase2b` names), so a share
+   shrinks the base by that factor. Hot water is set by people, not fabric; it is an absolute kWh.
+
+**Fix:** the trace carries its space-heating gas per day (`FabricDemandSeries.gas_space_heating_kwh`);
+the split keeps the base whole in kWh (`SeasonalGasSplit.flat_kwh_per_year`), and heating is the
+rest of the AQ (`heating_fraction_for(aq)`, floored at 0). The annual level is still the AQ; only
+the shape moves. No new constant.
+
+**Prediction, written before the fix, refuted:** reading the split from the trace (defect 1 alone)
+would take SYN-2016-005 to f ≈ 0.84 and July to 100–140 kWh. It gave **0.907 and 66 kWh**, and moved
+some homes *down* (SYN-2016-002: 85 → 59). That refutation is what exposed defect 2.
+
+**Measured at real inputs, first 12 fitted 2016 resi gas homes, July kWh (regressed → read share →
+base kept whole):** 005 41.6 → 66 → **130**; 016 37.8 → 79 → **185**; 052 33.8 → 168 → **192**;
+040 363 → 435 → **179**; 041 407 → 649 → **196**. The whole set now spans 129–377 kWh, against
+34–649 before. **Both tails were the same defect:** a tiny heating trace used to put 400–650 kWh into
+July. Base as a share of AQ now runs 10–44%, around the published 17–35% (hot water 12–25% plus
+cooking 5–10%). The 44% is SYN-2016-046, whose trace burns 4,279 kWh/yr of base — not investigated
+here.
+
+**Not yet measured:** the effect on a full run. The decision was taken on physics, blind to P&L;
+summer gas volume rises and winter falls within each home's unchanged AQ.

@@ -69,7 +69,7 @@ from __future__ import annotations
 
 import datetime as dt
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Mapping, Sequence
 
 from sim.weather_world import WeatherWorld, WeatherWorldRefusal
@@ -277,6 +277,13 @@ class FabricDemandSeries:
     constraint_by_year: dict[int, ComfortConstraint]
     """The comfort constraint each calendar year was generated under — the prebound
     response, recorded rather than discarded so it can be read back and judged."""
+    gas_space_heating_kwh: dict[str, float] = field(default_factory=dict)
+    """The part of each day's `gas_kwh` that is SPACE HEATING, the rest being hot water and
+    cooking. Carried because the trace already knows the split and the seasonal gas fit
+    (`household_demand_shape.seasonal_gas_split`) must read it, not regress it: a straight line
+    of gas on HDD through a home whose heating switches off above its balance point pins the
+    summer base far below what the trace burns (SYN-2016-005: 1.9 fitted against 6.3 kWh/day
+    burned in July), and settlement then bills a 5,000 kWh home 42 kWh a summer month."""
 
     def dates(self) -> list[str]:
         return sorted(self.gross_electricity_kwh)
@@ -357,6 +364,7 @@ def build_fabric_series(
     gross: dict[str, list[float]] = {}
     pv: dict[str, list[float]] = {}
     gas: dict[str, list[float]] = {}
+    gas_space_heating: dict[str, float] = {}
     constraint_by_year: dict[int, ComfortConstraint] = {}
     heating_kwh_by_year: dict[int, float] = {}
     state: ThermalState | None = None
@@ -388,6 +396,9 @@ def build_fabric_series(
             gross[key] = list(day.electricity_kwh)
             pv[key] = list(day.pv_generation_kwh)
             gas[key] = list(day.gas_kwh)
+            gas_space_heating[key] = (
+                sum(day.heating_fuel_kwh) if heating_commodity == "gas" else 0.0
+            )
             heating_kwh_by_year[segment.year] = heating_kwh_by_year.get(segment.year, 0.0) + (
                 day.gas_total_kwh if heating_commodity == "gas" else day.electricity_total_kwh
             )
@@ -403,6 +414,7 @@ def build_fabric_series(
         annual_electricity_kwh=sum(sum(v) for v in gross.values()) / n_days * 365.25,
         annual_gas_kwh=sum(sum(v) for v in gas.values()) / n_days * 365.25,
         constraint_by_year=constraint_by_year,
+        gas_space_heating_kwh=gas_space_heating,
     )
 
 

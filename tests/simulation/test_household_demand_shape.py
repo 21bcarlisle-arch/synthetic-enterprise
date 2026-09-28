@@ -249,3 +249,59 @@ def test_the_fit_reports_its_own_quality_rather_than_filtering_on_it():
     split = seasonal_gas_split("noisy", noisy, hdd)
     assert isinstance(split, SeasonalGasSplit)
     assert split.fit_r_squared < 0.99
+
+
+# ---------------------------------------------------------------------------
+# The summer base survives into settlement (2026-09-28)
+# ---------------------------------------------------------------------------
+
+
+def _hockey_stick_home(base_per_day: float = 4.0, heat_per_hdd: float = 8.0, balance_hdd: float = 3.0):
+    """Real heating is ZERO above the home's balance point, not a line through zero HDD. This
+    is the shape that drove SYN-2016-005's July bill to 42 kWh: the straight line puts its
+    intercept under the base the home actually burns."""
+    hdd = _reference_year_hdd()
+    heat = [heat_per_hdd * max(0.0, h - balance_hdd) for h in hdd]
+    return [base_per_day + x for x in heat], hdd, heat
+
+
+def test_the_regressed_fit_loses_the_summer_base_and_the_read_split_keeps_it():
+    """Fires on the fit going back to regressing a fraction the trace already knows. The
+    first assertion is the defect existing -- without it the second passes on a home where
+    the line happened to be right."""
+    kwh, hdd, heat = _hockey_stick_home()
+    regressed = seasonal_gas_split("h", kwh, hdd)
+    read = seasonal_gas_split("h", kwh, hdd, daily_space_heating_kwh=heat)
+    assert regressed.flat_kwh_per_year is None
+    assert 1.0 - regressed.heating_fraction < 0.5 * (4.0 * len(kwh) / sum(kwh))
+    assert read.flat_kwh_per_year == pytest.approx(4.0 * 365.0)
+    assert read.heating_fraction == pytest.approx(sum(heat) / sum(kwh))
+
+
+def test_the_base_is_kept_whole_in_kwh_whatever_the_aq():
+    """Fires on the base being carried as a SHARE of a trace whose heating volume is not the
+    AQ's: the settled year's flat term must be the kWh the people burn, at any AQ. Also
+    asserts both other branches are reachable -- a regressed split falls back to its own
+    fraction, and a base larger than the AQ leaves heating at zero, never below it."""
+    kwh, hdd, heat = _hockey_stick_home()
+    read = seasonal_gas_split("h", kwh, hdd, daily_space_heating_kwh=heat)
+    for aq in (3000.0, 6000.0, 20000.0):
+        f = read.heating_fraction_for(aq)
+        flat_year = sum(resi_daily_gas_kwh(aq, 0.0, heating_fraction=f) for _ in range(365))
+        assert flat_year == pytest.approx(4.0 * 365.0)
+    regressed = seasonal_gas_split("h", kwh, hdd)
+    assert regressed.heating_fraction_for(6000.0) == regressed.heating_fraction
+    assert read.heating_fraction_for(1000.0) == 0.0
+
+
+def test_the_book_reads_the_split_when_the_accessor_supplies_it():
+    """Fires on `seasonal_gas_splits_for_book` dropping the third element the run passes."""
+    kwh, hdd, heat = _hockey_stick_home()
+    customers = [{"customer_id": "three"}, {"customer_id": "two"}]
+    splits, refusals = seasonal_gas_splits_for_book(
+        customers=customers,
+        daily_gas_series_for=lambda c: (kwh, hdd, heat) if c["customer_id"] == "three" else (kwh, hdd),
+    )
+    assert not refusals
+    assert splits["three"].flat_kwh_per_year == pytest.approx(4.0 * 365.0)
+    assert splits["two"].flat_kwh_per_year is None

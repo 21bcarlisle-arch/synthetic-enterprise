@@ -130,6 +130,23 @@ class SeasonalGasSplit:
     #: never used as a filter -- a poor fit is a finding about the two-term form, not a
     #: reason to hide the household (R12: a diagnostic, never a target).
     fit_r_squared: float
+    #: The hot water and cooking this home burns in a year, in kWh, when the trace could say
+    #: (None when the fraction was regressed). An ABSOLUTE quantity, because it is set by the
+    #: people and their hot water, not by the fabric: the trace's space heating runs two to four
+    #: times the company's AQ (the unreconciled gas-volume gap `run_phase2b` names), so a SHARE
+    #: taken from the trace and applied to the AQ shrinks the base by that same factor. SYN-2016-005
+    #: burns 1,380 kWh a year of it; as a share of a 14,815 kWh trace applied to a 6,472 kWh AQ it
+    #: settled as 600.
+    flat_kwh_per_year: float | None = None
+
+    def heating_fraction_for(self, aq_kwh: float) -> float:
+        """The fraction to settle an `aq_kwh` year on. Where the trace gave its base in kWh,
+        that base is kept whole and space heating is the rest of the AQ; a base larger than the
+        AQ leaves nothing to heating (fraction 0), never a negative one. Otherwise the fitted
+        share. Either way the annual level is the AQ -- only the shape moves."""
+        if self.flat_kwh_per_year is None or aq_kwh <= 0.0:
+            return self.heating_fraction
+        return max(0.0, 1.0 - self.flat_kwh_per_year / aq_kwh)
 
     @property
     def validated(self) -> bool:
@@ -194,8 +211,18 @@ def seasonal_gas_split(
     daily_hdd: Sequence[float],
     *,
     hdd_reference_annual: float = GAS_HDD_REFERENCE_ANNUAL,
+    daily_space_heating_kwh: Sequence[float] | None = None,
 ) -> SeasonalGasSplit | SeasonalGasRefusal:
     """This household's own heating fraction, fitted from its own daily gas series.
+
+    `daily_space_heating_kwh`, when the trace supplies it, is the part of each day's gas that
+    is space heating, and the fraction is READ from it rather than regressed: the heating
+    share of the year's gas is exactly what the two-term form's fraction means. The straight
+    line is kept only as the fallback for a series that cannot say. It fails in one direction:
+    real heating is zero above the home's balance point, not a line through zero HDD, so the
+    fitted intercept lands under the summer base -- on the 2026-09-27 run SYN-2016-005's trace
+    burned 6.3 kWh/day of hot water and cooking in July and the line said 1.9, a fraction of
+    0.952, and settlement billed its summer months at 42 kWh.
 
     `daily_kwh` is the household's fabric-physics gas trace (W1_12), `daily_hdd` the
     HDD it saw on those same days at its own location. Both are the WORLD's, not the
@@ -237,6 +264,32 @@ def seasonal_gas_split(
             "can be attributed to space heating",
         )
 
+    if daily_space_heating_kwh is not None:
+        if len(daily_space_heating_kwh) != len(daily_kwh):
+            raise ValueError("daily_space_heating_kwh must describe the same days as daily_kwh")
+        fraction = sum(daily_space_heating_kwh) / total
+        if not 0.0 <= fraction <= 1.0:
+            raise ValueError(
+                f"space heating is {fraction:.3f} of this household's gas -- a part cannot "
+                "exceed its whole or be negative"
+            )
+        # How well settlement's own shape, at THIS fraction, describes the trace.
+        sum_h = sum(daily_hdd)
+        n = len(daily_kwh)
+        mean_k = total / n
+        predicted = [total * (fraction * h / sum_h + (1.0 - fraction) / n) for h in daily_hdd]
+        ss_tot = sum((k - mean_k) ** 2 for k in daily_kwh)
+        ss_res = sum((k - p) ** 2 for k, p in zip(daily_kwh, predicted))
+        return SeasonalGasSplit(
+            customer_id=customer_id,
+            heating_fraction=fraction,
+            hdd_reference_annual=hdd_reference_annual,
+            n_days=n,
+            hdd_spread=spread,
+            fit_r_squared=1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0,
+            flat_kwh_per_year=(total - sum(daily_space_heating_kwh)) * 365.0 / n,
+        )
+
     annual_heating = slope * hdd_reference_annual
     annual_flat = intercept * 365.0
     annual_total = annual_heating + annual_flat
@@ -257,7 +310,7 @@ def seasonal_gas_split(
 def seasonal_gas_splits_for_book(
     *,
     customers: Sequence[Mapping],
-    daily_gas_series_for: Callable[[Mapping], tuple[Sequence[float], Sequence[float]] | None],
+    daily_gas_series_for: Callable[[Mapping], tuple[Sequence[float], ...] | None],
     hdd_reference_annual: float = GAS_HDD_REFERENCE_ANNUAL,
 ) -> tuple[dict[str, SeasonalGasSplit], list[SeasonalGasRefusal]]:
     """Decide, ONCE for the whole book, which gas customers settle on their own seasonal
@@ -266,7 +319,8 @@ def seasonal_gas_splits_for_book(
     from the one that settles is not a measurement of the switch.
 
     `daily_gas_series_for(customer)` returns `(daily_kwh, daily_hdd)` for that household's
-    own fabric trace, or None if no trace can be built for it. It takes the CUSTOMER RECORD
+    own fabric trace -- or `(daily_kwh, daily_hdd, daily_space_heating_kwh)` when the trace
+    knows its own split, which is what the run passes -- or None if no trace can be built for it. It takes the CUSTOMER RECORD
     and not the id, because resolving a premise to a weather site reads its `location` --
     the same signature `fabric_providers_for_book`'s accessors take, and for the same
     reason. The accessor is injected so this function is testable without the
@@ -288,9 +342,10 @@ def seasonal_gas_splits_for_book(
                 SeasonalGasRefusal(cid, "no fabric trace: keeping the population constant")
             )
             continue
-        daily_kwh, daily_hdd = series
+        daily_kwh, daily_hdd, *rest = series
         outcome = seasonal_gas_split(
-            cid, daily_kwh, daily_hdd, hdd_reference_annual=hdd_reference_annual
+            cid, daily_kwh, daily_hdd, hdd_reference_annual=hdd_reference_annual,
+            daily_space_heating_kwh=rest[0] if rest else None,
         )
         if isinstance(outcome, SeasonalGasRefusal):
             refusals.append(outcome)
