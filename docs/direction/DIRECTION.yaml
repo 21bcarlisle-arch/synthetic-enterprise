@@ -1,204 +1,229 @@
 version: 1
-oriented_at: "2026-09-27T17:21:31.443089+00:00"
+oriented_at: "2026-09-28T02:20:57.495587+00:00"
 thesis_read: >-
-  The stretch did what the last record asked, in the order it asked, and the thesis question is now
-  waiting on one world change. The write-off evidence came first and was sourced on its own
-  (1a78b9977). It found that a GB supplier writes off the balance still unpaid at close, after
-  collection. A stayer's aged arrears are costed as a provision, not written off on a clock, so the
-  design's second leg is a provision whose rates are an honest None. The published selection leg now
-  says what the root cause found: one household's renewal roll, priced by a write-off rule under
-  fidelity review. The Gaussian seed count that priced the wrong unknown is voided (324f63922, which
-  landed just after the brief's clock). That corrects last stretch's instrument framing on the
-  surface, so that wrong row closes. The director has not answered the practitioner question filed at
-  14:20, and there have been no console turns since 13:06. The design said the build waits for his
-  answer or for his silence past this orientation, and that silence has now happened, so building the
-  re-keyed rule is first. Until it lands, "beats average by inference" still cannot be read off the
-  comparison, because a world rule sets its sign on a seed. The confirming old-rule per-account run
-  (pid 42827, ~50m in, 5.8GB) is the baseline the one-variable run needs, and it has not returned.
-  W2_19 layer one also reached the book this stretch (c08932808): sited homes carry their output area
-  and the headcount prior is drawn from it. That is real fidelity progress on who the customers are.
-  The steer bit on 2 of 5 items, and both the drawn items landed. The other three (the by-eye
-  controls, the fleet-drift oracle and the stash atom) were not drawn and their paths are unchanged at
-  HEAD. After three hours at the restored cadence, that is ordering, not a broken steer, and they
-  carry forward in the same order. The publisher still reads FAILING (episode_failures 1, wedge_since
-  set, all three attribution fields not_established). Last record said a wedge that survived to this
-  orientation would outrank the map atom, and it has. One new confound: since 77e9db44a, content
-  publishing is held to the Monday window by design, so a "refusing" reading is now two things. A hold
-  by construction and a genuine refusal must read differently before either can be trusted.
-  sanity-daemon is still the one mute daemon with no cause on file. 4 of 11 commits were heartbeat
-  only and none were consecutive, so there is no run finding.
+  The book is more honest than it was three hours ago, but the thesis comparison has not moved, and
+  its next step is now stranded. What landed: the ledger and the P&L now agree on the real book.
+  2bb03a094 stopped the P&L writing off bills that were never issued and credits the supplier owed.
+  ba1b6c259 nets an account credit against that contract's arrears, per SLC 27.16. On the 2026-09-28
+  run the write-off falls from £17,408.05 to £15,201.69, the two agree to the penny, and the
+  real-book control is on origin/main. That CORRECTS last stretch's ledger/P&L row. b33f08d2e
+  removed an invented consumption floor that held 195 real summer gas bills. a4116acea lets the gas
+  summer base the world burns reach the bill. The rival chart-stamp draft was deleted by 51d7add67
+  with a written reason, which corrects that instance. So three separate faults were fixed in how
+  the world's money reaches the supplier's books. The thesis figure reads exactly those books, so
+  this is fidelity work the comparison depends on, and it was done from sources rather than picked
+  numbers. The cost is that every book run before these commits is now against a different engine.
+  The thesis step itself did not move. The two-seed balance-rule run finished at 00:32 and wrote
+  /var/tmp/se-two-state-balance-rule/value_cycle_ab.json. Nobody has graded it against its
+  pre-registration, because account_diff.json is absent. The old-rule baseline queued behind it
+  never ran, and /var/tmp/se-two-state-balance-rule-baseline is empty. The C1 bracket I put third
+  was told to wait for both, so it never started. The box has been idle of long jobs since 00:32.
+  That is my steer stranding work: a wait condition with no one to fire it. The C1 practitioner
+  question to the director has no trace of being sent. The selection finding is still the one
+  BLOCKING finding, and its third owed step (the Gaussian bound published on a two-state switch)
+  is not done. The machine got worse on one axis: HEAD and origin/main have DIVERGED 2/2, with a
+  collision on the credit-netting finding. The publisher episode (episode_failures 1, wedge_since
+  about 14:00Z on 2026-09-27) is still open and now names behind_origin at 619a2c9a6. That item was
+  never drawn in two stretches, so the steer is what is drifting, and it moves up and is rewritten
+  concretely. Of five previous focus items, two were drawn and both are done. W1_14 is waiting on
+  Open-Meteo's quota: weather-store-resume-0929.timer fires at 2026-09-29 00:05Z, so it leaves
+  focus until then. I read the console capture by hand. His last turn was still 2026-09-27 13:06
+  (burn rate per tick, reviewed weekly), and director_inputs in the brief is still empty. The Jev
+  trial the staging root lists as unclassified was run on his own key and has its prereg and
+  correction on file. No level moved. 12 commits, 5 substantive, 3 heartbeat-only.
 stretch_reviewed:
-  since: "2026-09-27T14:20:01.335008+00:00"
-  commits: 11
-  substantive: 6
+  since: "2026-09-27T23:22:56.712660+00:00"
+  commits: 12
+  substantive: 5
 focus:
-  - id: the-write-off-rule-is-re-keyed-to-the-balance-at-close
-    lane: W2_customer_generator
+  - id: the-stranded-balance-rule-run-graded-and-the-c1-bracket-run-at-one-commit
+    lane: E_finance_treasury
     what: >-
-      Build the design in
-      docs/staging/SEAT_DESIGN_THE_WRITE_OFF_RULE_RE_KEYED_TO_THE_BALANCE_AT_CLOSE_2026-09-27.md in
-      simulation/arrears_engine.py (compute_emergent_bad_debt). A failed payment adds to a running
-      per-account unpaid balance instead of opening a terminal case. Later payments reduce the balance
-      while the account is live. At close, what remains after collection and the existing post-close
-      recovery stages is the write-off, dated by the labelled convention in C4. Leg 4a (the six-year
-      statute bar for stayers) must be reachable: assert it CAN fire before asserting what it does.
-      Leg 4b (the stayer provision) is a declared None, not a zero. bad_debt_gbp says it counts
-      write-offs only. C1 and C2b stay None, so there is no re-presentation yet. Before any run, file
-      the design's prediction on the selection residual as a pre-registration in docs/staging/records/:
-      the leaver's write-off falls, the stayer's cost is unchanged, and the sign moves toward retention.
-      Then run the rule change alone against the old-rule per-account result from
-      longjob-two-state-diff-rerun-20260927. Wait for that run with tools/wait_for.py. Do not launch a
-      second multi-GB run while it and run_annual_report are both resident.
+      FIRST grade what exists. Run python3 -m tools.selection_residual_decomposition --account-diff
+      /var/tmp/se-two-state-balance-rule/value_cycle_ab.json, write account_diff.json beside it,
+      and grade every prediction in
+      docs/staging/records/SEAT_PREREG_THE_TWO_STATE_DIFF_RERUN_UNDER_THE_BALANCE_AT_CLOSE_RULE_2026-09-27.md
+      in a SEAT_RESULT_ record beside it, stating that it is two variables against de1677d74. Do
+      NOT run the stale queued baseline at d993a9797. 2bb03a094, ba1b6c259 and a4116acea have since
+      changed the arrears engine and the gas bill, so a baseline from there answers nothing. THEN
+      pin ONE commit at or after 6f83977ca, in a clean detached worktree under /var/tmp, and run
+      three runs there one after another, never together, each launched with setsid via
+      launch_long_job: (a) the write-off rule as HEAD has it; (b) leg 4b of
+      simulation/arrears_engine.py wired with the failed-DD stayer's bucket as an explicit
+      parameter set to "still in DD"; (c) the same parameter set to "fallen out of DD". Both rates
+      come from docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md. There is
+      no default, and the C1 gap is named in the code. File the pre-registration for (b) and (c)
+      in docs/staging/records/ BEFORE (a) launches. Send the director ONE NTFY in practitioner
+      form, with your recommendation: "does 35% read as a first-presentation bounce rate or a
+      net-of-retry unpaid rate?" Verify it by the returned id, not the log.
     why: >-
-      The published selection sign is decided by this one rule. The fidelity case now rests on
-      sourced evidence alone, and the director's silence past this orientation is the release the
-      design named. Nothing else moves the thesis figure until the world stops writing off a stayer's
-      history on a future churn. DONE when the rule is in simulation/ with the balance-at-close write-off,
-      a control shows leg 4a can fire, the prediction was filed before the run, and the one-variable
-      result is filed beside the SEAT_RESULT record with the prediction graded, whichever way it went.
-  - id: the-two-by-eye-page-defects-get-deterministic-controls
+      This is the thesis step, and last stretch it died on a wait nobody fired. The comparison is
+      set by what the world charges a stayer, and C1 is the one unsourced term left in that. Running
+      both readings from one commit makes it one variable. Either C1 does not matter to the sign, or
+      "we cannot tell" goes on the page with the reason named. DONE when the stranded result is
+      graded, the pre-registration's commit time is earlier than every run's start, all three
+      artefacts are filed beside it, and the selection finding says which of those two outcomes
+      holds.
+  - id: the-fork-closed-and-the-publisher-episode-closes-when-its-cause-does
     lane: H_harness
     what: >-
-      Write the two deterministic controls the Jev trial concluded are owed, with no model. First,
-      widen site/test_ia_register.py so that a published page with no route from the main nav and no
-      orphan-debt entry fails. It must catch brand/exemplar.html and brand/proof.html, or record each
-      one as deliberate orphan debt with a reason. Second, add a site door that compares each chart's
-      rendered stamp date with its own page's data date and fails when the stamp is older. Prove each
-      control can fail by mutation before trusting its green.
+      Two parts, in order. (1) Close the 2/2 divergence now. Run python3 -m
+      background.origin_reconcile, or python3 -m tools.surgical_land --merge origin/main if it
+      refuses. Dispose of the colliding untracked
+      docs/staging/SEAT_FINDING_AN_ACCOUNT_CREDIT_DOES_NOT_NET_AGAINST_THAT_ACCOUNTS_ARREARS_2026-09-28.md
+      by diffing it against origin's copy first and keeping any novel lines. (2) In
+      background/process_run_complete.py and whatever writes
+      docs/observability/.publish_gate_state.json, close an open episode (episode_failures,
+      wedge_since) on the first cycle where its recorded cause no longer holds. Re-ask the cause
+      against origin/main at that moment, never the cached refusal. Make a Monday-window hold read
+      as a hold with its next window. Control this with one partition test asserting that held,
+      refused and recovered each give a distinct reading and that each can be reached. Show one
+      mutation making it fail.
     why: >-
-      Carried undrawn from last stretch, with its paths unchanged at HEAD. The director has found both
-      defect classes by eye more than once. His trial showed a model does not close the gap, and that
-      code can check both classes exactly. DONE when both controls exist, each has a demonstrated
-      failing mutation, and the current site either passes or carries named debt.
-  - id: the-fleet-drift-verdict-grades-against-origin-not-local-head
-    lane: H_harness
+      Undrawn for two stretches, so the steer was too vague to act on. It is now concrete and
+      first-class. The surface has read FAILING for about 12h on a cause that cleared once and has
+      recurred. A real refusal and a stale one look identical there, and daemons are running code
+      from a checkout that has not taken origin. DONE when HEAD contains origin/main, the next
+      level cycle clears episode_failures and wedge_since by the new rule rather than by an ordinary
+      publish, and the partition control is green and has been shown to fail.
+  - id: the-selection-error-bar-stops-being-gaussian-on-a-two-state-switch
+    lane: A_strategy_governance
     what: >-
-      Change evaluate_boot_sha_drift() in background/process_reconciler.py so the fleet verdict says
-      when the checkout is BEHIND origin/main, not only when a daemon's boot sha differs from local
-      HEAD. Control it with a test that builds a repo one commit behind its remote ref and asserts the
-      verdict is not clean. Add one partition control asserting that the level, behind and
-      daemon-stale cases each give their own distinct verdict.
+      Close owed step 3 of the one BLOCKING finding,
+      docs/staging/SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_PRICED_AS_A_GAUSSIAN_SPREAD_AND_THE_LEVEL_ARM_CARRIES_ALL_OF_IT_2026-09-27.md.
+      grep the generators under tools/ and the site feeds for selection_sem_gbp, sems_from_zero,
+      selection_distinguishable_from_zero, seeds_needed_to_state_a_sign and distance_to_a_sign.
+      Wherever one is consumed, route it through
+      tools/selection_residual_decomposition.residual_is_a_mixture_or_a_spread. When the verdict is
+      "mixture", publish the binomial interval on the rate, carried through to £, in place of
+      sd/sqrt(n), or say on the surface that the instrument is a switch and give no sem at all.
+      Steps 1 and 2 are done: cefd2c04a attributed the switch to PROS-2016-0098. Say so in the
+      finding and reclassify it once step 3 lands.
     why: >-
-      Carried undrawn. The oracle graded 11 of 11 daemons clean against a HEAD one commit behind
-      origin, so every freshness reading taken while the tree lags is suspect. DONE when a checkout
-      set behind origin makes the verdict say so, and a control fails if the origin leg is removed.
-  - id: the-publisher-tells-a-monday-hold-from-a-refusal-and-closes-its-episode
-    lane: H_harness
-    what: >-
-      In background/process_run_complete.py and background/publish_freshness.py, and in whatever
-      writes docs/observability/.publish_gate_state.json: (a) make a content publish held by the
-      Monday window (77e9db44a) read as a hold with its next window, never as a refusal or an episode
-      failure; (b) close an open episode (episode_failures, wedge_since) when a later publish succeeds;
-      (c) fill citation_at_head, red_at_head and fork_state for a genuine refusal, or name why each
-      cannot be established. Before changing anything, establish whether today's FAILING (1 attempt,
-      wedge_since about 13:55Z) is a real refusal or the new hold, and say which in the commit.
-    why: >-
-      Last record said a wedge that survived this orientation would outrank the map atom, and it has.
-      The weekly hold that landed this stretch adds a second, by-design reason for not publishing. The
-      same field cannot report both a design and a failure, and three carried wrong rows all read this
-      state. DONE when a held publish and a refused publish give distinct readings under a control
-      that covers both, and an episode closes on the next clean publish.
-  - id: mint-the-stash-completeness-defect-as-a-map-atom
-    lane: H_harness
-    what: >-
-      Add one maturity-map atom at level 0 for the stash-completeness sweep defect. `git restore
-      --source=stash@{0}` skips a path present only in the stash, and `git diff --quiet HEAD --
-      <path>` is quiet for an untracked path, so a genuinely lost file reports safe. Its file_scope
-      names the sweep's module and a control that does not exist yet. Check headroom first with
-      `python3 -m tools.maturity_map_store` (4,358 bytes at orientation). Keep the row near the
-      ~695-byte median and put any reasoning in docs/design/simplifications/.
-    why: >-
-      Carried undrawn for the thirteenth time. It will always lose a focus slot, which is why it
-      belongs in the queue that holds everything, and minting it takes minutes. DONE when the atom is
-      on the map and this row disappears from focus and from wrong.
+      A published "seeds needed" of about 717 prices more compute against the wrong unknown. It is
+      a figure without the bound its sample earns, and every thesis reading passes through this
+      instrument. DONE when no surface computes sd/sqrt(n) on a family the check calls a mixture, a
+      control shows that a synthetic two-cluster family is refused the Gaussian path, and the
+      finding leaves BLOCKING.
 not_now:
   - what: >-
-      Holding the write-off build until the director answers the practitioner question.
+      W1_14, the weather re-pull and removing the strict-xfail.
     why: >-
-      The design named its release as his answer or his silence past this orientation. The evidence
-      note stands without him, and the change is reversible in one commit. Waiting longer turns
-      "silence is validation" into a stall on the figure the thesis is read from.
+      The premise is not ripe. Open-Meteo's quota stopped the pull with 47 book cells owed, and
+      weather-store-resume-0929.timer already resumes it at 2026-09-29 00:05Z. A draw before then
+      finds nothing to do. It returns to focus at the first orientation after the timer fires.
   - what: >-
-      Wiring DD re-presentation (C2) and a stayer provision (leg 4b) in the same build.
+      Running the queued old-rule baseline at d993a9797 as planned.
     why: >-
-      C1 (whether the existing failure rate already nets out re-presentation) and C2b and C6 (cure and
-      provision rates) are honest Nones. Wiring them would mean picking numbers, which is the rule this
-      project pays hardest for breaking. Adding both at once would also make the one-variable run a
-      three-variable one.
+      Three engine changes have landed since, so it would be a baseline for a book that no longer
+      exists. Pinning all three bracket runs to one current commit costs one extra run and makes it
+      one variable again.
   - what: >-
-      Making the orientation brief read docs/staging/console/DIRECTOR_CONSOLE_<date>.md (the carried
-      console wrong row).
+      Correcting the mis-headed records (Lane A_strategy_governance / Atom value-arms-error-bar),
+      which are now also on the two-state prereg.
     why: >-
-      The director made no console turns after 13:06, so this stretch cost nothing by missing them.
-      It loses to four items that each gate a published reading. It stays open in wrong, and it is
-      the next machinery item after the publisher.
+      The arc is still filing records and each one copies the last header, so fixing it now means
+      fixing it again. It misleads no figure. It stays open in wrong, and it is the first thing done
+      when item one closes the arc.
   - what: >-
-      Re-asking a stamped publisher refusal against the remote ref at read time.
+      Building the missing instruments: the orientation reading the console capture, the lane-0
+      block seeing work stranded in a worktree, a check for a same-subject sibling at landing,
+      re-asking a cached refusal, and evaluate_boot_sha_drift against origin/main.
     why: >-
-      liveness_surface_refusal and last_refusal both read None, so the falsehood cannot be
-      demonstrated today. The publisher focus item rebuilds the same state file, so the right time to
-      add this is when that item's shape is settled, not before it.
+      All are real and all stay in wrong. Only the last is live today, and item two's fork closure
+      removes its trigger. Three slots go to the thesis run, a live wedge and the one BLOCKING
+      finding. A hand read of the console costs one command.
   - what: >-
-      Filing a log_silence cause for sanity-daemon.
+      Classifying the unclassified Jev trial instruction.
     why: >-
-      It sleeps in hrtimer_nanosleep, its ordinary state, and every sibling cause established so far
-      was benign. It is instrument bookkeeping that the ordinary draw can take.
+      It has been run and recorded on the director's own key, with a spend correction. Filing it is
+      staging bookkeeping for the ordinary draw, and it changes no level.
   - what: >-
-      Following the siting-frame finding (the committed frame predates its own placement, and a life
-      event erases four need fields) past what c08932808 and the in-flight rebuild land.
+      Filing sanity-daemon's log_silence cause, and minting the stash-completeness atom.
     why: >-
-      Another lane is landing the frame rebuild right now (surgical_land pid 221222). A focus item on
-      it would put a second writer on work already in hand.
+      sanity-daemon sits in hrtimer_nanosleep, its ordinary sleep. The map has 4,358 bytes of
+      headroom and 2,310 to the per-atom reserve, and a new row should wait for a drain.
 wrong:
   - what: >-
       MINE, CARRIED. The orientation reads git, the map, the staging root, the publisher and the draw
-      ledger, and does NOT read docs/staging/console/DIRECTOR_CONSOLE_<date>.md. The brief's
-      director_inputs is empty again. This stretch the director made no turns after 13:06, so nothing
-      was missed, but that is luck, not a mechanism. Grade by whether the orientation itself reads the
-      console capture.
+      ledger, and does NOT read docs/staging/console/DIRECTOR_CONSOLE_<date>.md. I read it by hand
+      again: his last turn is still 2026-09-27 13:06, and director_inputs is still empty. Grade by
+      whether the orientation itself reads the console capture.
     corrected: false
   - what: >-
-      MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler
-      cannot keep up with. This stretch was again level, with four non-consecutive heartbeats and no
-      fork, so there is still no one-variable run. I cannot attribute it.
+      MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the
+      reconciler cannot keep up with. The tree has now forked 2/2 again, but three heartbeats and
+      six other commits landed in the same window, so this is still not a one-variable run. I cannot
+      attribute it.
     corrected: false
   - what: >-
-      MINE, CARRIED. The publisher's episode fields clear only by the ordinary path, and no rule closes
-      an episode on a later clean publish. They read FAILING again (episode_failures 1, wedge_since
-      set). The Monday hold (77e9db44a) now confounds the reading. Now in focus. Grade by a long fork,
-      never by what the field reads today.
+      MINE, CARRIED. The publisher's episode fields clear only by the ordinary path, and no rule
+      closes an episode when its cause stops holding. episode_failures 1 and wedge_since (about 14:00Z
+      on 2026-09-27) are unchanged, and the item went undrawn twice. It is rewritten as focus item
+      two. Grade by a level tree closing the episode, never by what the field reads on a given day.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that
       builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head
-      and fork_state in docs/observability/.publish_gate_state.json all still read not_established.
+      and fork_state in docs/observability/.publish_gate_state.json still read not_established.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a
-      reader sees it. liveness_surface_refusal reads None because the field cleared by the ordinary
-      path, not because anything was repaired. Grade by whether a stamped refusal is re-asked at read
-      time.
+      reader sees it. liveness_surface_refusal now names behind_origin at 619a2c9a6, and nothing
+      re-asked the previous refusal when it cleared.
     corrected: false
   - what: >-
       MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon
-      against local HEAD, and it read clean with the checkout one behind origin. It was in focus and
-      not drawn, and it stays in focus.
+      against local HEAD. The tree is now diverged 2/2, which is exactly the state it misreads.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. The
-      minting was in focus and not drawn, and it is still not on the map.
+      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is
+      still not on the map.
     corrected: false
   - what: >-
-      MINE, CARRIED. I framed the selection residual as an instrument problem (publish a mixture
-      interval instead of a Gaussian bound) when its money comes from a world rule. Corrected on the
-      surface at 324f63922: the page now names the root cause, and the seed count is voided. The world
-      rule itself is focus one.
+      MINE, CARRIED AND SPREAD AGAIN. The design at 1a78b9977 heads itself Lane A_strategy_governance,
+      Atom value-arms-error-bar, when the work is a world rule. The 6ba548633 result, the C1/C6
+      finding and now the two-state balance-rule prereg all copy it. None is corrected.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, CARRIED. The executor built the by-eye controls and ended "LANDED NOTHING", and the
+      lane-0 block and the path check both read HEAD, so stranded work looked like work never done.
+      The blindness is unchanged, and this stretch shows it again: a finished run artefact in
+      /var/tmp was invisible to every reading.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, CARRIED. The billing ledger and the P&L wrote off different sums on the real book.
+      Corrected by 2bb03a094 and ba1b6c259: both read £15,201.69 on the 2026-09-28 run, and the
+      real-book control is on origin/main.
     corrected: true
   - what: >-
-      MINE, NEW. The design I filed at 1a78b9977 names its lane as A_strategy_governance and its atom
-      as `value-arms-error-bar`. The work is a world rule in simulation/arrears_engine.py, and that
-      focus key was a page item that has now landed. A drawn build following the header would
-      misclassify itself. This record gives it W2_customer_generator. The header itself is not
-      corrected.
+      THE MACHINE'S, CARRIED. A rival draft of the chart-stamp control was left untracked in the shared
+      tree, and the site lane refused it. The instance is corrected by 51d7add67, which deleted it
+      with a reason. The class, where nothing at landing asks whether a same-subject sibling is left
+      behind, is carried as its own row below.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW (split from the row above). Nothing on the landing path asks whether a
+      same-subject untracked sibling is left behind in the shared tree.
+    corrected: false
+  - what: >-
+      MINE, CARRIED. My earlier focus named the chart-stamp control by a path that existed in neither
+      draft. The work landed and the rival was disposed of anyway, and this record names only paths I
+      have checked on disk or on origin.
+    corrected: true
+  - what: >-
+      MINE, CARRIED. The earlier not_now carried no mechanism, and a launch from another lane did not
+      read it. That is still true of this file: not_now is prose, and nothing a launch reads.
+    corrected: false
+  - what: >-
+      MINE, NEW. Last stretch I told the C1 bracket to wait for pid 833937 and the queued baseline,
+      and named no one to fire it. 833937 finished at 00:32, the baseline never ran, the result sits
+      ungraded, and the box has been idle of long jobs since. The NTFY to the director has no trace of
+      having been sent. A focus item must say who acts when its wait ends. It is re-issued as focus
+      item one.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. HEAD and origin/main diverged 2/2 this stretch, with an untracked finding
+      colliding with origin's copy, and the reconciler has not closed it. It is in focus as item two.
     corrected: false
 for_the_director: []
