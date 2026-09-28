@@ -34,8 +34,8 @@ MIGRATED = (
     "premise_trace",
 )
 
-# Still deriving their own seed. Formula A/C and the 4-part variants move their
-# draws when migrated, so each is a deliberate baseline break owed its own re-pin.
+# Still deriving their own seed. Formula A/C (and a key with no int last part)
+# move their draws when migrated, so each is a deliberate baseline break owed its own re-pin.
 # This set may only SHRINK: a new private derivation reds, and so does an entry
 # that no longer derives (delete it from here when you migrate it).
 NOT_YET_MIGRATED = {
@@ -43,11 +43,8 @@ NOT_YET_MIGRATED = {
     ("simulation/conversation_response.py", "_substream"),
     ("simulation/final_bill_outcome.py", "_substream"),
     ("simulation/household_segments.py", "_engagement_propensity_substream"),
-    ("simulation/household_siting.py", "_substream"),
     ("simulation/life_events.py", "_substream"),
-    ("simulation/payment_seam_adapter.py", "_adapter_substream"),
     ("simulation/population_draw.py", "_substream"),
-    ("simulation/population_draw.py", "_cohort_substream"),
     ("simulation/premise_population.py", "_substream"),
     ("simulation/sme_payment_behaviour.py", "_tier_substream"),
 }
@@ -90,6 +87,34 @@ def test_a_migrated_module_draws_exactly_what_its_private_formula_drew(module_na
             got = mod._substream(seed, name).random()
             want = _legacy_formula_b(namespace, name, seed).random()
             assert got == want, (module_name, seed, name)
+
+
+def _legacy_four_part(namespace: str, a: str, b: str, last: int) -> random.Random:
+    key = f"{namespace}::{a}::{b}::{last}".encode("utf-8")
+    return random.Random(int.from_bytes(hashlib.sha256(key).digest()[:8], "big"))
+
+
+def test_the_four_part_keys_moved_on_with_no_draw_change():
+    """Defect: a 4-part key (``NS::a::b::int``) re-keyed on migration -- it is
+    ``substream(NS, "a::b", int)`` byte for byte, so any moved draw is a
+    baseline break shipped as a refactor."""
+    from simulation import household_siting, payment_seam_adapter, population_draw
+
+    for seed in (0, 1, 12345, 2**40 + 7):
+        for cid in ("C0001", "PROS-2016-0098", "a::b"):
+            want = _legacy_formula_b(household_siting.STREAM_NAME, cid, seed).random()
+            assert household_siting._substream(cid, seed).random() == want
+            want = _legacy_formula_b(household_siting.OUTPUT_AREA_STREAM_NAME, cid, seed).random()
+            got = household_siting._substream(cid, seed, household_siting.OUTPUT_AREA_STREAM_NAME)
+            assert got.random() == want
+            for axis in ("region", "smart_meter", "tenure_owner_split"):
+                want = _legacy_four_part(population_draw.COHORT_STREAM_NAME, axis, cid, seed)
+                got = population_draw._cohort_substream(cid, seed, axis)
+                assert got.random() == want.random(), (axis, cid, seed)
+            want = _legacy_four_part(
+                payment_seam_adapter._STREAM_NAMESPACE, "arudd_lag", cid, seed
+            ).random()
+            assert payment_seam_adapter._adapter_substream(cid, seed, "arudd_lag").random() == want
 
 
 def test_a_valid_key_is_accepted_before_any_refusal_is_asserted():

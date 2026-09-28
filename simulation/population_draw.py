@@ -89,6 +89,7 @@ from typing import (
 )
 
 from simulation.household_segments import TenureType, tenure_for_customer
+from simulation.rng_substream import substream
 from simulation.segment_vocabulary import INDUSTRIAL_AND_COMMERCIAL, normalise_segment
 
 if TYPE_CHECKING:  # the dwelling type only — `premise_population` is imported lazily
@@ -894,9 +895,7 @@ def _cohort_substream(customer_id: str, base_seed: int, axis: str) -> random.Ran
     customer_id -- including the 24 hand-authored customers this module
     never draws acquisitions for -- without perturbing `iter_acquisition_
     events()`'s own sequential substream in any way."""
-    key = f"{COHORT_STREAM_NAME}::{axis}::{customer_id}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(COHORT_STREAM_NAME, f"{axis}::{customer_id}", base_seed)
 
 
 # ---------------------------------------------------------------------------

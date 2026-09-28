@@ -43,10 +43,11 @@ from __future__ import annotations
 import bisect
 import csv
 import gzip
-import hashlib
 import random
 from pathlib import Path
 from typing import Optional
+
+from simulation.rng_substream import substream
 
 #: The committed frame. Built by `python3 -m tools.household_siting_frame --build`, which needs the
 #: census pulls in `~/.cache`; READ here, so a fresh worktree with no cache still sites households.
@@ -72,8 +73,7 @@ _oa_cache_path: Optional[Path] = None
 
 def _substream(customer_id: str, base_seed: int, stream: str = STREAM_NAME) -> random.Random:
     """An ISOLATED `random.Random` for one customer's siting draw (C-S2)."""
-    key = f"{stream}::{customer_id}::{base_seed}".encode("utf-8")
-    return random.Random(int.from_bytes(hashlib.sha256(key).digest()[:8], "big"))
+    return substream(stream, f"{customer_id}", base_seed)
 
 
 def load_frame(path: Optional[Path] = None) -> dict:

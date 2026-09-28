@@ -111,7 +111,6 @@ contract, it does not define it). Never imports `company.*` / `saas.*`.
 """
 from __future__ import annotations
 
-import hashlib
 import random
 from copy import deepcopy
 from dataclasses import dataclass, fields
@@ -157,6 +156,7 @@ from simulation.payment_behaviour_source import (
     STANDING_ORDER,
     PaymentEvent,
 )
+from simulation.rng_substream import substream
 
 _STREAM_NAMESPACE = "W2_11_payment_seam_adapter"
 
@@ -171,10 +171,10 @@ def _adapter_substream(customer_id: str, period_index: int, name: str) -> random
     """Isolated, stable substream for this adapter's own draws (C-S2).
     Mirrors `payment_behaviour_source._substream`'s sha256-stable-seed
     pattern exactly, under this module's OWN namespace, so a draw here can
-    never collide with, or shift, any other subsystem's sequence."""
-    key = f"{_STREAM_NAMESPACE}::{name}::{customer_id}::{period_index}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    never collide with, or shift, any other subsystem's sequence. The key has
+    no world seed: `period_index` sits in the primitive's seed slot, which keeps
+    the bytes (and every draw) exactly what they were before the primitive."""
+    return substream(_STREAM_NAMESPACE, f"{name}::{customer_id}", period_index)
 
 
 def _observed_at(value_date: date, *, lag_days: int = 0) -> datetime:
