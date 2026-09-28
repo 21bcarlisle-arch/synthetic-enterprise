@@ -57,3 +57,24 @@ observed best is below chance). Half the scored accounts face exactly one priced
 1.5% face five or more, so a choice has almost nothing to compound through — but that shallowness is
 a constant of the term calendar the elasticity re-draw does not move, and a constant cannot carry
 seed-to-seed variance. Two of the depth regressors are identical on all 18 seeds.
+
+## 2026-09-28: the write-off rule does not move the sign; C1 is the open question, and it is being run
+
+- **The balance-at-close rule, alone.** Graded one-variable against its `cefd2c04a` baseline in
+  `records/SEAT_RESULT_THE_TWO_STATE_DIFF_RERUN_UNDER_THE_BALANCE_AT_CLOSE_RULE_2026-09-28.md`:
+  - both seeds keep their sign (−£4,834.56 / +£949.49);
+  - `PROS-2016-0098` still holds the switch (Herfindahl 0.9946);
+  - the rule widens it by £477.
+- **What is left** is the stayer's provision (leg 4b). It acts in exactly the state where that
+  account stays, and its rate turns on C1: is a sim DD failure a first bounce (7.4% at >90d) or
+  net of retries (50.3%)? `fcba478b7` wires it with no default.
+- **The bracket.** Three runs from that one commit are in flight:
+  - (a) leg 4b off;
+  - (b) the DD row;
+  - (c) the pay-on-receipt row.
+  They are pre-registered in `records/SEAT_PREREG_THE_C1_BRACKET_THREE_RUNS_AT_ONE_COMMIT_2026-09-28.md`
+  and due back about 2026-09-28 17:00Z.
+- **Which outcome holds is NOT YET KNOWN.**
+  - If (b) and (c) agree on both seeds' signs, C1 does not matter to the sign.
+  - If they disagree, "we cannot tell" goes on the page with C1 named as the reason.
+  - The director was asked the practitioner question at 03:03Z (NTFY `N8U7crm2DRQP`).

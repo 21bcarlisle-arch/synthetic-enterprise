@@ -121,3 +121,17 @@ does. Under the pay-on-receipt bucket it is within one caveat of flipping.
 ## How to reverse
 
 Documents only. Nothing in `simulation/` changed.
+
+## 2026-09-28: leg 4b is wired, with the bucket as a parameter and no default
+
+`fcba478b7` adds:
+
+- `LIVE_ARREARS_PROVISION_RATES`: both Centrica 2025 rows, cited;
+- `stayer_provision_charges`: a 31-Dec stock on stayers' open failed-DD balances, net of
+  credits, charged as its yearly change; leavers excluded; barred items released;
+- `SIM_STAYER_FAILED_DD_BUCKET`: unset means off, and an unknown value is refused, naming C1.
+
+Nothing picks a row. The bracket that says whether the choice matters is
+`records/SEAT_PREREG_THE_C1_BRACKET_THREE_RUNS_AT_ONE_COMMIT_2026-09-28.md`. The practitioner
+question went to the director at 03:03Z (NTFY `N8U7crm2DRQP`), recommending net-of-retry. C1
+itself stays a GAP.
