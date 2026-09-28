@@ -72,13 +72,14 @@ processes:
       `docs/observability/supervisor-log.md`, 380,766 lines and written 2 minutes before this
       reading. `supervisor.log()` appends the file and then `print()`s; `background/supervisor.py`
       passes `flush=True` nowhere, and under systemd stdout is a socket, so Python block-buffers
-      at 8 KiB. THE SECOND HALF IS WHAT MAKES IT PERMANENT: `background/deploy_restart.py`
+      at 128 KiB (3.14's `io.DEFAULT_BUFFER_SIZE`; this row said 8 KiB until the 2026-09-28
+      measurement on `sanity-daemon` below — the conclusion only strengthens). THE SECOND HALF IS WHAT MAKES IT PERMANENT: `background/deploy_restart.py`
       restarts this unit on every landing that touches its module — measured here at a ~10-minute
       cycle ("Consumed 1min 23s CPU over 10min 25s wall") — and the SIGTERM that ends a run does
       NOT flush the buffer. Controlled directly, not inferred: an unflushed `print()` in a
       systemd-run unit produced no journal line while alive and none after `systemctl stop`; the
       same file with `sys.stdout.reconfigure(line_buffering=True)` reached the journal in under a
-      second. So a few lines per 10-minute run can never reach 8 KiB and are lost at every
+      second. So a few lines per 10-minute run can never reach 128 KiB and are lost at every
       restart. Not wedged, and not a fresh start either: A FRESH START IS WHAT THIS LOOKS LIKE
       FOREVER, because the restart clock resets the age faster than any cadence could fill it.
     purpose: "Escalation watchdog over the pull-loop transport (G-L4-as-mapped: find_work is the sole DRAW authority; the Stop hook delivers; this daemon polls every 2min and escalates stuck/map-exhausted, ZERO pane writes / ZERO turn delivery). Migrated live 2026-07-17 as step 3 of the serial-autonomy go-live."
@@ -95,7 +96,7 @@ processes:
       `docs/observability/deadmans-switch-log.md`, 41,389 lines, written 3 minutes before this
       reading on 2026-09-22 — so the daemon that exists to notice a stall is itself working and
       merely inaudible to the journal. `deadmans_switch.py:199` is its single unflushed `print()`;
-      one line per 10-minute run against an 8 KiB buffer that SIGTERM discards. ITS OWN FAILURE
+      one line per 10-minute run against a 128 KiB buffer that SIGTERM discards. ITS OWN FAILURE
       MODE IS THE REASON THIS ROW MATTERS MOST: a stall alarm that cannot speak on the channel the
       brief reads is the one daemon whose muteness would be indistinguishable from the thing it
       watches for, and `mute` is now the only reading here that could tell them apart.
@@ -137,7 +138,9 @@ processes:
       it gets its own cause instead of joining the four above. Same mechanism (its `log()` appends
       `docs/observability/background-worker-log.md` then `print()`s unflushed, against the ~10-min
       `deploy_restart` cycle), but unlike its siblings this daemon is sometimes VERBOSE enough to
-      push past Python's 8 KiB stdout buffer before the SIGTERM, and then its own lines do land.
+      push past Python's stdout buffer before the SIGTERM, and then its own lines do land. (That
+      buffer is 128 KiB, not the 8 KiB this row first said — measured 2026-09-28 on
+      `sanity-daemon` — so how it crosses it in one run is not yet established.)
       Directly observed on 2026-09-22 seven minutes apart, one restart between: at 17:40 it read
       NOT mute, its own MainPID 1767967 having written two `[process_run] Publish ...` lines; at
       17:47, after a restart, it read MUTE with nothing but systemd's line. SO ITS `mute` READING
@@ -260,6 +263,25 @@ processes:
                            # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
                            # left this row un-flipped: two launchers declared, AND excluded from
                            # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
+    log_silence: >-
+      NOT WEDGED: UNFLUSHED STDOUT AGAINST A 128 KiB BUFFER THAT NO RUN LIVES LONG ENOUGH TO FILL.
+      This is the `supervisor` mechanism, but here the buffer size decides it, not the restart
+      cycle. Established 2026-09-28 against MainPID 1639131, up 16h since 01:10Z. The process is
+      working: `docs/observability/sanity-daemon-log.md` advanced at 15:40, 16:10 and 16:40Z, three
+      cadences on the half-hour. `/proc/1639131/wchan` reads `hrtimer_nanosleep`, its
+      POLL_INTERVAL sleep. `sanity_daemon.py:98` is its only `print()`, unflushed, and stdout is
+      the journald stream socket. THE BUFFER IS 128 KiB, NOT 8: `/usr/bin/python3` is 3.14.4 and
+      `io.DEFAULT_BUFFER_SIZE` = 131072. That was controlled under `systemd-run --user`: 24 KB of
+      unflushed prints produced 0 journal lines alive or after stop. A single 131 KB print
+      produced 0. 300 KB released ~419 of 500 lines. The same 40 prints with `flush=True` landed
+      40/40. The daemon writes ~32 KB/day (20.6 KB over 15.5h of this run), so it takes ~4 days
+      to fill the buffer. Every run since 2026-09-24 was restarted first, by landings that touch
+      its imports (15:02 after `f8f1e6934`, 02:10 after `b33f08d2e`); runs were 32h, 47h (83 KB
+      written, 0 lines), 12min, 11h. SIGTERM discards the buffer. ITS OWN JOURNAL PROVES IT: the
+      one run that lasted 7 days (pid 2358963) spoke exactly once, 302 lines / 129,559 bytes at
+      2026-09-20 17:29 BST, dated back to 09-17. That is one 128 KiB chunk. The partial line
+      after it arrived when the stream closed at stop. So silence here says only how long this
+      run has lived; it says nothing about health. The file is the witness.
     purpose: "Population-level statistical sanity checks every 30min"
 
   # ── RETIRED: page-comment authority path decommissioned (director ruling 2026-07-24) ──

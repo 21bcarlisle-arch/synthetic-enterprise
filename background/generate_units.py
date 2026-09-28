@@ -47,6 +47,10 @@ def generate_unit(entry: dict) -> str:
         f"Type=simple\n"
         f"WorkingDirectory=/home/rich/synthetic-enterprise\n"
         f"EnvironmentFile=-{ENV_FILE}\n"
+        f"# Python 3.14 block-buffers a non-tty stdout at 128 KiB, so an unflushed print() stays\n"
+        f"# out of the journal for days and SIGTERM throws it away. Unbuffered, a stuck daemon and\n"
+        f"# a healthy one no longer look the same in the journal.\n"
+        f"Environment=PYTHONUNBUFFERED=1\n"
         f"# G-D3 (OPS1 sub-step 5): stamp the HEAD this daemon boots from so the reconciler can\n"
         f"# flag it as stale when HEAD advances (catches imported-module drift, not just own-script\n"
         # DO NOT STRIP THE LEADING `-`, and the reason is not the outage it looks like.
