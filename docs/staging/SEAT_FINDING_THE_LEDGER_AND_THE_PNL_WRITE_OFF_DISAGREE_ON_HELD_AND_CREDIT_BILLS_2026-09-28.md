@@ -64,3 +64,14 @@ runs), and a credit bill resolves to `credit` — no collection, no failure, no 
   implausibly low (3–90 kWh / 31 days) — summer cooking-only gas is plausibly in that range, so the
   floor itself may be wrong. Whether their consumption is booked as revenue while never billed has
   not been checked here.
+
+## Re-draw disposition (2026-09-28 03:1x)
+
+The direction item `the-billing-ledger-and-the-pnl-book-one-write-off` was drawn again after it had
+landed. Re-measured, not re-built: `2bb03a094` (real-book control, held/credit bills never written
+off, BALANCE_OPEN replaces "Arrears cleared via payment plan") and `ba1b6c259` (credit nets against
+arrears) are both ancestors of origin/main; the real-book control and
+`tests/simulation/test_balance_at_close_write_off.py` pass at `ba1b6c259` (14 passed); no code under
+`tools/`, `simulation/`, `company/` or `site/` emits the resolved sentence. Premise spent; claim
+released. The "live lane" the item described was `origin_reconcile`'s merge gate, not this work.
+Still open, as filed above: the 203 held bills are never re-issued.
