@@ -73,3 +73,14 @@ control passes at HEAD (3 passed). Both open items above have owners now:
 - credit netting is the successor `an-account-credit-does-not-net-against-that-accounts-arrears`,
   which another lane was landing through `surgical_land` at the time of this note;
 - the 195 held summer gas bills: `b33f08d2e` dropped the unsourced resi consumption floor.
+
+## Re-draw disposition (2026-09-28 03:1x)
+
+The direction item `the-billing-ledger-and-the-pnl-book-one-write-off` was drawn again after it had
+landed. Re-measured, not re-built: `2bb03a094` (real-book control, held/credit bills never written
+off, BALANCE_OPEN replaces "Arrears cleared via payment plan") and `ba1b6c259` (credit nets against
+arrears) are both ancestors of origin/main; the real-book control and
+`tests/simulation/test_balance_at_close_write_off.py` pass at `ba1b6c259` (14 passed); no code under
+`tools/`, `simulation/`, `company/` or `site/` emits the resolved sentence. Premise spent; claim
+released. The "live lane" the item described was `origin_reconcile`'s merge gate, not this work.
+Still open, as filed above: the 203 held bills are never re-issued.

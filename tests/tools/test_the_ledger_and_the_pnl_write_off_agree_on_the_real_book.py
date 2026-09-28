@@ -4,7 +4,8 @@ Defect this names: at 6ba548633 the P&L (`compute_emergent_bad_debt`) wrote off 
 customer ledger £17,359, because the engine resolved payment outcomes on bills the supplier's
 pre-bill gate held (never issued, so never due) and on credit bills (nothing to collect). The
 fixture tests agreed because no fixture bill is ever held or negative -- only the real book
-carries both, so this control reads the real book.
+carries both, so this control reads the real book. A credit also nets against the same
+contract's arrears (SLC 27.16), and both sides must net it identically.
 
 It also holds the customer surface honest: a case that is not written off is an open balance,
 and nothing in the world clears it, so it may not render as resolved or as a payment plan.
@@ -18,7 +19,7 @@ from pathlib import Path
 import pytest
 
 from company.billing.pre_bill_validation import validate_bills
-from simulation.arrears_engine import BALANCE_OPEN, compute_emergent_bad_debt
+from simulation.arrears_engine import BALANCE_OPEN, CREDIT_APPLIED, compute_emergent_bad_debt
 from tools.generate_billing_ledger import generate
 
 RUN = Path(__file__).resolve().parents[2] / "docs" / "reports" / "run_output_latest.json"
@@ -49,6 +50,10 @@ def test_the_real_book_carries_the_bills_that_made_the_two_disagree(book):
     assert held, "no held bill in the real book -- the held-bill leg cannot be exercised"
     assert any(b["total_amount_gbp"] <= 0 for b in data["bills"]), "no credit bill in the real book"
     assert _ledger_write_off_by_account(ledger), "no write-off in the real book"
+    # A credit netted against arrears (SLC 27.16) is the third thing the two must agree on.
+    assert any(s["stage"] == CREDIT_APPLIED for cust in ledger["customers"].values()
+               for case in cust["arrears_history"] for s in case["stages"]), \
+        "no credit netted against arrears in the real book -- the netting leg is untested"
 
 
 def test_the_ledger_and_the_pnl_write_off_agree_per_account(book):

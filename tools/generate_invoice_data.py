@@ -39,6 +39,8 @@ CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 _STATUS_MAP = dict(
     paid="PAID", overdue="UNPAID", disputed="DISPUTED",
     written_off="WRITTEN_OFF", credited="CREDITED",
+    # A failed bill that a later credit on the same contract paid off in full (SLC 27.16).
+    settled_by_credit="SETTLED_BY_CREDIT",
 )
 
 

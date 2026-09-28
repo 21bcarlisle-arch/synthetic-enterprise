@@ -699,6 +699,7 @@ def _collections_process(billing_ledger):
     recovered = 0
     sold = 0
     still_open = 0
+    settled_by_credit = 0
     for cust in customers.values():
         for case in cust.get("arrears_history", []) or []:
             total_cases += 1
@@ -723,10 +724,12 @@ def _collections_process(billing_ledger):
             elif final == "WRITTEN_OFF":
                 written_off += 1
                 written_off_gbp += case.get("arrears_gbp", 0)
+            elif final == "CREDIT_APPLIED":
+                settled_by_credit += 1
             else:
                 still_open += 1
 
-    stage_order = ["DD_FAILED", "FIRST_NOTICE", "SECOND_NOTICE", "PAYMENT_PLAN_AGREED",
+    stage_order = ["DD_FAILED", "FIRST_NOTICE", "SECOND_NOTICE", "PAYMENT_PLAN_AGREED", "CREDIT_APPLIED",
                    "DISPUTE_NOTICE", "RESOLVED", "BALANCE_OPEN", "WRITTEN_OFF", "PLACED_WITH_DCA",
                    "RECOVERED", "SOLD"]
     stage_rows = "".join(
@@ -740,7 +743,8 @@ def _collections_process(billing_ledger):
         + _gbp(total_arrears_gbp) + " total arrears value. Outcome: " + str(resolved)
         + " resolved via payment plan, " + str(written_off) + " written off ("
         + _gbp(written_off_gbp) + " -- feeds the emergent bad debt figure in the Annual "
-        + "Income Statement above, Phase QD), " + str(still_open) + " still open. Of the "
+        + "Income Statement above, Phase QD), " + str(settled_by_credit) + " settled by a later "
+        + "account credit on the same fuel, " + str(still_open) + " still open. Of the "
         + str(written_off) + " written off, " + str(recovered) + " were later recovered by a "
         + "DCA (" + _gbp(recovered_gbp) + " net proceeds) and " + str(sold) + " were sold on "
         + "(" + _gbp(sold_gbp) + " sale proceeds) -- docs/design/PROCESS_MODEL.md Section 4.</p>"
