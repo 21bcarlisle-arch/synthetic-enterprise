@@ -112,6 +112,7 @@ from company.pricing.value_based_renewal import (
 )
 from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
+from simulation.arrears_engine import ARREARS_LINE_KEYS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
 # ONE COUNTERFACTUAL, NOT TWO. The choice of reference (Ofgem cap where published, the pre-2019
@@ -352,6 +353,88 @@ def _net_by_billing_account(records: list) -> dict[str, float]:
     return dict(folded)
 
 
+#: Tolerance of the arrears reconciliation: to the penny, per billing account.
+ARREARS_RECONCILIATION_TOLERANCE_GBP = 0.005
+
+
+def _arrears_lines_by_billing_account(phase2b: dict) -> dict[str, dict[str, float]] | None:
+    """Phase 4c's per-customer arrears lines (`simulation.arrears_engine.book_arrears_lines`)
+    folded to the billing account, on the same key as `net_by_billing_account_gbp`. None when
+    the run predates the lines -- an absent reading, never an empty one."""
+    by_customer = phase2b.get("arrears_lines_by_customer")
+    if not isinstance(by_customer, dict):
+        return None
+    folded: dict[str, dict[str, float]] = {}
+    for customer_id, lines in by_customer.items():
+        row = folded.setdefault(_billing_account_id(customer_id),
+                                dict.fromkeys(ARREARS_LINE_KEYS, 0.0))
+        for key in ARREARS_LINE_KEYS:
+            row[key] += float(lines[key])
+    # Six places, not two: an account's lines are nine figures, and rounding each to the penny
+    # before the identity re-adds them can put the sum 4.5p off a net that was never wrong.
+    return {account: {k: round(v, 6) for k, v in row.items()} for account, row in folded.items()}
+
+
+def arrears_line_net(lines: dict[str, float]) -> float:
+    """The net an account's arrears lines imply, by the identity `book_arrears_lines` states."""
+    return (lines["pre_4c_net_gbp"] + lines["placeholder_bad_debt_released_gbp"]
+            - (lines["write_off_at_close_gbp"] + lines["write_off_statute_barred_gbp"]
+               + lines["stayer_provision_gbp"] + lines["line_rounding_gbp"]
+               - lines["unbooked_bad_debt_gbp"])
+            + (lines["dca_recovery_gbp"] - lines["unbooked_recovery_gbp"]))
+
+
+def arrears_reconciliation(net_by_account: dict[str, float],
+                           lines_by_account: dict[str, dict[str, float]] | None) -> dict:
+    """Do the arrears lines plus the pre-4c trading net rebuild each account's realised net, to
+    the penny? Every account in either column is graded; one missing from a side reads 0 there,
+    so an account the lines never saw is a residual, not a skip."""
+    if lines_by_account is None:
+        return {"reconciles": None,
+                "why_not": "this run carries no `arrears_lines_by_customer`, so its arrears "
+                           "charge cannot be decomposed per account"}
+    zero = dict.fromkeys(ARREARS_LINE_KEYS, 0.0)
+    residuals = {}
+    for account in sorted(set(net_by_account) | set(lines_by_account)):
+        residual = (float(net_by_account.get(account, 0.0))
+                    - arrears_line_net(lines_by_account.get(account, zero)))
+        if abs(residual) >= ARREARS_RECONCILIATION_TOLERANCE_GBP:
+            residuals[account] = round(residual, 6)
+    return {"reconciles": not residuals,
+            "accounts_graded": len(set(net_by_account) | set(lines_by_account)),
+            "accounts_off_by_a_penny_or_more": residuals,
+            "tolerance_gbp": ARREARS_RECONCILIATION_TOLERANCE_GBP}
+
+
+def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
+    """The per-account facts `SEAT_RESULT_PROS_2016_0098S_4218_...` had to read out of a log:
+    when the account left, its first renewal's `p_retain` against its roll, how many renewals
+    the world decided for it, and how many bills the supplier issued it."""
+    from company.interfaces.bill_assembly import issued_bills
+
+    out: dict[str, dict] = {}
+
+    def row(account: str) -> dict:
+        return out.setdefault(account, {"left_at": None, "first_renewal": None,
+                                        "renewal_decisions": 0, "bills_issued": 0})
+
+    events = sorted((e for e in (result["phase2b"].get("customer_events") or [])
+                     if isinstance(e, dict) and "random_roll" in e),
+                    key=lambda e: e["event_date"])
+    for event in events:
+        r = row(_billing_account_id(event["customer_id"]))
+        r["renewal_decisions"] += 1
+        if r["first_renewal"] is None:
+            r["first_renewal"] = {"date": event["event_date"],
+                                  "p_retain": event.get("effective_retention_probability"),
+                                  "roll": event["random_roll"], "outcome": event["event_type"]}
+        if event["event_type"] == "churned" and r["left_at"] is None:
+            r["left_at"] = event["event_date"]
+    for bill in issued_bills(result.get("bills") or []):
+        row(_billing_account_id(bill["customer_id"]))["bills_issued"] += 1
+    return out
+
+
 def realised_metrics(result: dict) -> dict:
     """What the WORLD did to one arm's book. Nothing the company believed appears here.
 
@@ -410,6 +493,7 @@ def realised_metrics(result: dict) -> dict:
     realised_bad_debt = sum(float(r.get("bad_debt_gbp", 0.0) or 0.0) for r in records)
     realised_treasury = float(records[-1].get("treasury_cash_balance_gbp", 0.0) or 0.0)
     net_by_account = _net_by_billing_account(records)
+    arrears_lines = _arrears_lines_by_billing_account(phase2b)
 
     return {
         "total_net_gbp": realised_net,
@@ -421,6 +505,13 @@ def realised_metrics(result: dict) -> dict:
         # because a dropped row would make the column quietly disagree with the total it is a
         # decomposition of.
         "net_by_billing_account_gbp": net_by_account,
+        # THE SAME COLUMN DECOMPOSED: each account's pre-4c trading net and the arrears lines
+        # that took it to the figure above, under a reconciliation graded here rather than
+        # trusted. Without it the C1 bracket could name PROS-2016-0098's -5,659.81 but not
+        # split it into write-off, recovery and released placeholder.
+        "arrears_lines_by_billing_account_gbp": arrears_lines,
+        "arrears_reconciliation": arrears_reconciliation(net_by_account, arrears_lines),
+        "decisions_by_billing_account": _decisions_by_billing_account(result),
         # THE D2 DEPTH VECTOR, on the same key as the column above, so depth is a REGRESSOR
         # against per-account money instead of the seed-level constant it has been. Counted as
         # DISTINCT PRICED TERM STARTS per billing account and NOT as log entries: a decline
@@ -6533,6 +6624,15 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 (result.get("value_arm") or {}).get("net_by_billing_account_gbp")),
             "level_arm_net_by_account_gbp": (
                 (result.get("level_arm") or {}).get("net_by_billing_account_gbp")),
+            # WHAT EACH ARM'S NET ABOVE IS MADE OF, per account, and whether it reconciles.
+            # Added 2026-09-28: the C1 bracket found the whole selection sign on one account's
+            # arrears charge and could not split it, because no row carried the lines.
+            **{f"{arm}_{field}": (result.get(arm) or {}).get(key)
+               for arm in ("value_arm", "level_arm")
+               for field, key in (("arrears_lines_by_account_gbp",
+                                   "arrears_lines_by_billing_account_gbp"),
+                                  ("arrears_reconciliation", "arrears_reconciliation"),
+                                  ("decisions_by_account", "decisions_by_billing_account"))},
             # THE D2 DEPTH VECTOR ON THE SAME KEY, so depth is a per-account REGRESSOR on this row
             # instead of the seed-level constant that explained nothing. Value arm only: the level
             # arm prices the same population by construction since 2026-09-18
