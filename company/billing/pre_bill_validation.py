@@ -44,6 +44,9 @@ from company.compliance.domain_invariants import (
 class ValidationOutcome(str, Enum):
     PASS = "pass"
     HELD = "held"
+    #: Held on consumption scale alone, then confirmed a domestic dwelling on an actual read and
+    #: issued -- see `release_confirmed_domestic`. The hold's reasons stay on the result.
+    RELEASED = "released_confirmed_domestic"
 
 
 @dataclass(frozen=True)
@@ -52,6 +55,10 @@ class BillValidationResult:
     period_end: str
     outcome: ValidationOutcome
     reasons: list = field(default_factory=list)  # empty when PASS
+    #: True when EVERY reason is one of the two consumption-scale checks, the only holds a
+    #: domestic confirmation can answer. A footing, sign, period, VAT-arithmetic or back-billing
+    #: reason alongside them makes this False, and the bill stays held whatever the premise is.
+    consumption_scale_only: bool = False
 
     @property
     def held(self) -> bool:
@@ -88,6 +95,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
     standing_charge_gbp, vat_gbp). Returns PASS with empty reasons, or HELD
     with every reason that fired (a bill can fail more than one check)."""
     reasons: list[str] = []
+    scale_reasons = 0
     segment = bill.get("segment", "resi")
     commodity = bill.get("commodity", "electricity")
 
@@ -186,6 +194,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
             segment, commodity, actual_vat, vat_kwh, vat_days
         ):
             implied = consumption_implied_vat_rate(commodity, vat_kwh, vat_days)
+            scale_reasons += 1
             reasons.append(
                 f"vat_by_segment: declared segment={segment!r} (VAT {actual_vat:.4f} "
                 f"applied) is contradicted by a metered load of {vat_kwh:.1f} kWh over "
@@ -198,6 +207,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
         days = _days_in_period(bill)
         kwh = bill.get("total_consumption_kwh", 0.0)
         if not check_resi_bill_consumption_plausible(commodity, kwh, days):
+            scale_reasons += 1
             reasons.append(
                 f"slc_6_7_billing_accuracy: {kwh:.1f} kWh over {days:.0f} days is implausible "
                 f"for a resi {commodity} account"
@@ -221,6 +231,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
         period_end=bill.get("period_end", ""),
         outcome=outcome,
         reasons=reasons,
+        consumption_scale_only=bool(reasons) and scale_reasons == len(reasons),
     )
 
 
@@ -296,17 +307,60 @@ def validate_rendered_bill_money(inv: dict) -> list:
     return reasons
 
 
+def release_confirmed_domestic(bill: dict, result: BillValidationResult) -> dict | None:
+    """The exception queue's answer to a domestic ceiling hold: the bill to issue, or None.
+
+    THE TWO CEILING CHECKS CATCH TWO DIFFERENT DEFECTS, and a release has to answer both.
+    (1) A business premise labelled domestic -- the C6 class, and the reason the implied-VAT check
+    exists. A supplier answers that by looking the supply address up on the council tax list
+    (HMRC, formerly VOA; public), which is also the population DESNZ NEED counts as domestic. A
+    listed dwelling supplied for domestic use takes 5% VAT at any volume -- the de minimis is a
+    business-use rule -- so a listing refutes the mislabel outright. (2) A wrong VOLUME -- the five
+    2025-06 stub estimates this gate held were a month's estimate on seven days, on listed
+    dwellings. A listing says nothing about that, so only a bill on an ACTUAL read is released: the
+    meter measured it. An estimate over the ceiling stays held until an actual read replaces it.
+
+    No threshold is introduced. The released bill is a copy carrying `pre_bill_release`, so what
+    was held and why it issued is on the bill itself; the input is never mutated.
+
+    Why this and not a higher ceiling: DESNZ NEED 2026 retains domestic electricity only to
+    25,000 kWh/yr and 0.34% of all domestic properties -- 5.9% of non-gas pre-1930 detached
+    151-200 m2 -- are above even that (docs/market_research/need_domestic_electricity_high_tail.md).
+    Volume cannot say where domestic ends; the premise record can.
+    """
+    if not (result.held and result.consumption_scale_only):
+        return None
+    if bill.get("segment", "resi") != "resi":
+        return None
+    if bill.get("premise_council_tax_listed") is not True:
+        return None
+    if bill.get("billing_basis") != "actual":
+        return None
+    released = dict(bill)
+    released["pre_bill_release"] = {
+        "outcome": ValidationOutcome.RELEASED.value,
+        "held_for": list(result.reasons),
+        "confirmed_by": "supply address on the council tax list; bill on an actual read",
+    }
+    return released
+
+
 def validate_bills(bills: list) -> tuple[list, list[BillValidationResult]]:
     """Partition `bills` into (passing, held) -- passing bills proceed to
     normal issuance unchanged; held bills are the exception queue, keyed by
     (customer_id, period_end) so a caller can look up why any given bill
-    didn't issue this cycle."""
+    didn't issue this cycle. A consumption-scale hold the queue confirms
+    domestic (`release_confirmed_domestic`) issues, as a marked copy."""
     passing = []
     exception_queue: list[BillValidationResult] = []
     for bill in bills:
         result = validate_bill(bill)
         if result.held:
-            exception_queue.append(result)
+            released = release_confirmed_domestic(bill, result)
+            if released is not None:
+                passing.append(released)
+            else:
+                exception_queue.append(result)
         else:
             passing.append(bill)
     return passing, exception_queue

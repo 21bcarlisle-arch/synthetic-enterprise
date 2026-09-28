@@ -321,6 +321,7 @@ def build_monthly_bills(
     churned_ids: set[str] | None = None,
     read_events_out: list | None = None,
     payment_channel_feed: Callable[[dict], str | None] | None = None,
+    premise_listing_feed: Callable[[dict], bool | None] | None = None,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -396,6 +397,13 @@ def build_monthly_bills(
     Omitting it leaves every bill's `bill_shock_population` at "unknown", which is what it was
     before this argument existed. The shock arithmetic is identical either way — this argument adds
     an attribution, not a calculation.
+
+    `premise_listing_feed` (2026-09-28): whether the supply address is on the council tax list --
+    a public record the supplier looks up, supplied by the caller for the reason `read_feed` is.
+    Stamped as `premise_council_tax_listed` (True / False) where the lookup answered -- absent
+    means not answered -- and read only by
+    the pre-bill exception queue (`pre_bill_validation.release_confirmed_domestic`). Omitted, no
+    bill carries the key and nothing is released.
     """
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
@@ -639,6 +647,15 @@ def build_monthly_bills(
             mom_pct is not None and mom_pct >= 0.20 and yoy_pct < 0.20
             and not prior_month_was_shock
         )
+
+    if premise_listing_feed is not None:
+        listed_by_customer: dict[str, bool | None] = {}
+        for bill in bills:
+            cid = bill["customer_id"]
+            if cid not in listed_by_customer:
+                listed_by_customer[cid] = premise_listing_feed(get_customer(cid))
+            if listed_by_customer[cid] is not None:
+                bill["premise_council_tax_listed"] = listed_by_customer[cid]
 
     return bills
 
