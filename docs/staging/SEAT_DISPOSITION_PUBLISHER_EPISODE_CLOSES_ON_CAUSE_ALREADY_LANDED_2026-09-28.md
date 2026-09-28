@@ -15,3 +15,5 @@ Live DONE check on the shared tree, `docs/observability/.publish_gate_state.json
 - `episode_failures = 0`, `wedge_since = null`; shared HEAD is level with origin/main.
 
 The duplicate "live claim" was this same id. The item is released and credited to `c0f71f95b`; nothing was rebuilt.
+
+**Second redraw, same day.** The live state was unchanged: `episode_closed_by.rule = cause_cleared`, `episode_failures = 0`, `wedge_since = null`, and the control still passes (2 passed). The first disposition only ran `--release`, and the continuation stayed offerable. `--premise-spent` refused: the ledger already credits a landing, and a delivered item outranks premise-spent. This time `--release` retired the continuation ("will not be offered again"), and `seat_work_in_hand.release` cleared the second store. Nothing was rebuilt.
