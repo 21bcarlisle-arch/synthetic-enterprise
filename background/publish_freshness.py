@@ -421,6 +421,10 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
       no_open_episode   the record exists and names no open episode. NOT a statement that
                         publishing is healthy -- the two content clocks are what establish that,
                         and they cannot be faked by an absent file.
+      held              no episode is open and the weekly window held the last cycle; carries
+                        `hold_next_opens`. Not a refusal and not evidence of health.
+      recovered         no episode is open and one was closed on evidence -- a publish, or the
+                        re-ask that found its recorded cause gone (`episode_closed_by`).
       unknown           absent, unreadable, malformed, or the failure count is not a count.
                         FAIL-SILENT is the failure mode here (R15), so this is never folded into
                         `no_open_episode`.
@@ -473,8 +477,24 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
     held, held_reason = publish_cause.held_refusal(state, now=now)
     # A MISSING START DOES NOT VETO THE FAILURE, and getting this backwards would be the fail-open
     # shape: the count is what establishes that attempts died, the stamp only says since when.
+    # HELD, REFUSED, RECOVERED (2026-09-28): three facts that used to share two words. A weekly-
+    # window hold is not a refusal and not health, so it reads as itself with its next window --
+    # but only when no episode is open: an open refusal outranks a hold, and says so beside it.
+    hold = state.get("publish_hold") if isinstance(state.get("publish_hold"), dict) else None
+    closed_by = (state.get("episode_closed_by")
+                 if isinstance(state.get("episode_closed_by"), dict) else None)
+    if failures >= 1:
+        reading = "failing"
+    elif hold is not None:
+        reading = "held"
+    elif closed_by is not None or recorded_instant_seconds(state.get("last_clean_publish")):
+        reading = "recovered"
+    else:
+        reading = "no_open_episode"
     return {
-        "state": "failing" if failures >= 1 else "no_open_episode",
+        "state": reading,
+        "hold_next_opens": hold.get("next_opens") if hold else None,
+        "episode_closed_by": closed_by.get("rule") if closed_by else None,
         "consecutive_failures": failures,
         "failing_for_seconds": None if started is None else round(max(0.0, now - started), 1),
         "clean_publishes_this_episode": clean,
@@ -734,6 +754,9 @@ def describe(snap: dict | None = None) -> str:
             if snap.get("committed_but_unpublished") else ""
         return (f"content publishing: DOWN -- figures last moved {hours:.1f}h ago"
                 f"{extra}{refused}{queued}")
+    if not refused and pub.get("state") == "held":
+        return (f"content publishing: HELD by the weekly window -- figures reached origin "
+                f"{hours:.1f}h ago; the next publish opens {pub.get('hold_next_opens')}{queued}")
     verdict = "FAILING" if refused else "live"
     return (f"content publishing: {verdict} -- figures reached origin {hours:.1f}h ago"
             f"{refused}{queued}")

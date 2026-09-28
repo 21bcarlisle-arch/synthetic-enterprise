@@ -5939,6 +5939,29 @@ def _commits_origin_is_ahead_by():
         return None
 
 
+def _fork_against_origin():
+    """`(behind, ahead)` of HEAD against what origin/main says NOW, or None if either is unread.
+
+    Same ground truth as `_commits_origin_is_ahead_by` (an explicit fetch, then FETCH_HEAD, never
+    the tracking ref), both legs from ONE fetch so they describe the same instant of origin."""
+    try:
+        fetched = subprocess.run(["git", "fetch", "--quiet", "origin", "main"],
+                                 cwd=str(PROJECT_DIR), capture_output=True, text=True,
+                                 timeout=DIVERGENCE_FETCH_TIMEOUT_SECONDS)
+        if fetched.returncode != 0:
+            return None
+        counted = subprocess.run(["git", "rev-list", "--left-right", "--count",
+                                  "FETCH_HEAD...HEAD"],
+                                 cwd=str(PROJECT_DIR), capture_output=True, text=True,
+                                 timeout=DIVERGENCE_FETCH_TIMEOUT_SECONDS)
+        if counted.returncode != 0:
+            return None
+        behind, ahead = (int(x) for x in (counted.stdout or "").split())
+        return behind, ahead
+    except (ValueError, OSError, subprocess.SubprocessError):
+        return None
+
+
 #: The non-`files` paths the publish commit names, hoisted out of the commit site so that the
 #: disjointness question below is asked over THE SAME SET the commit actually writes. Inlined at
 #: one site and re-typed at the other, the two would drift, and a disjointness verdict measured
@@ -8837,7 +8860,13 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
            "last_clean_publish": state.get("last_clean_publish"),
            "liveness_surface_refusal": state.get("liveness_surface_refusal"),
-           "liveness_surface_last_publish": state.get("liveness_surface_last_publish")}
+           "liveness_surface_last_publish": state.get("liveness_surface_last_publish"),
+           # NOT carried from the prior record, on purpose: both describe the LAST cycle. A
+           # failure or a publish proposes neither, so the next attempt retires a hold (the window
+           # was open after all) and a cause-cleared close (a new episode may be starting). The
+           # liveness writers hand in a full read dict, so a heartbeat round-trips them.
+           "publish_hold": state.get("publish_hold"),
+           "episode_closed_by": state.get("episode_closed_by")}
     prior = _read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None
     # `last_clean_publish` is a LATEST-wins timestamp, which is the opposite ordering to
     # `since_fields` (earliest-wins), so the monotonic guard cannot express it and it is carried
@@ -10037,6 +10066,98 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
         return False
 
 
+#: The recorded causes whose standing can be RE-ASKED of git in one fetch, and the leg of the fork
+#: that IS the cause. `behind_origin`: origin held commits HEAD lacked, so it has cleared when
+#: HEAD contains origin/main. `push_never_landed` / `lost_push_race`: HEAD held a commit origin
+#: lacked, so it has cleared when origin contains HEAD. Every other cause names a test, a hook or
+#: a clock that only another publish can re-ask, so an episode on one of those stays open until a
+#: publish closes it -- the fail-closed direction.
+REASKABLE_CAUSE_LEG = {publish_cause.BEHIND_ORIGIN: "behind",
+                       publish_cause.PUSH_NEVER_LANDED: "ahead",
+                       publish_cause.LOST_PUSH_RACE: "ahead"}
+
+
+def recorded_cause_standing(state, *, fork_fn=None):
+    """Does the open episode's RECORDED cause still hold? `("holds"|"cleared"|"unknown", why)`.
+
+    THE DEFECT (2026-09-28). An episode opened on `behind_origin` closed only on a clean publish
+    with the queue drained. On a closed weekly window no publish is ATTEMPTED, so nothing could
+    close it: the surface read FAILING for ~12h on a cause that had cleared, and a stale refusal
+    looked exactly like a live one. The cause is re-asked of origin NOW, never read back from the
+    cached refusal -- the cached sentence is the claim under test."""
+    failures = [f for f in (state.get("failures") or []) if isinstance(f, dict)]
+    if not failures:
+        return "unknown", ("the open episode has no failure left in its window, so its cause is "
+                           "not on record to re-ask")
+    cause = max(failures, key=lambda f: float(f.get("ts") or 0)).get("cause")
+    leg = REASKABLE_CAUSE_LEG.get(cause)
+    if leg is None:
+        return "unknown", ("the recorded cause `{}` names nothing git can re-ask, so only a "
+                           "publish can close this episode".format(cause))
+    fork = (fork_fn or _fork_against_origin)()
+    if fork is None:
+        return "unknown", ("the recorded cause `{}` could not be re-asked: origin/main did not "
+                           "answer".format(cause))
+    behind, ahead = fork
+    n = behind if leg == "behind" else ahead
+    if n:
+        return "holds", ("`{}` still holds: HEAD is {} behind and {} ahead of origin/main"
+                         .format(cause, behind, ahead))
+    return "cleared", ("`{}` no longer holds: re-asked of origin/main, HEAD is {} behind and {} "
+                       "ahead".format(cause, behind, ahead))
+
+
+def close_episode_if_cause_cleared(*, now=None, fork_fn=None):
+    """Close an open episode on the first cycle its recorded cause no longer holds.
+
+    Returns the standing it read, or None when no episode was open. The close is an EVIDENCED
+    close in `guard_episode`'s sense -- the evidence is the re-ask above, independent of the
+    publisher's own state -- and it says which rule closed it in `episode_closed_by`, so a reader
+    can tell it from a close by an ordinary publish."""
+    try:
+        state = _read_publish_gate_state()
+        if state.get("state_unavailable") or not state.get("episode_failures"):
+            return None
+        standing, why = recorded_cause_standing(state, fork_fn=fork_fn)
+        if standing != "cleared":
+            log("Publish gate: the open episode stays open -- {}".format(why))
+            return standing
+        stamp = float(now) if now is not None else time.time()
+        closed = dict(state)
+        closed.update({"failures": [], "alerted_at": None, "wedge_since": None,
+                       "episode_failures": 0, "episode_clean_publishes": 0,
+                       "cited_findings": [], "suspects": {}, "blocking_tests": [],
+                       "episode_closed_by": {"rule": "cause_cleared", "reason": why,
+                                             "episode_failures": state.get("episode_failures"),
+                                             "wedge_since": state.get("wedge_since"),
+                                             "ts": stamp}})
+        _write_publish_gate_state(closed, episode_closed=True)
+        log("Publish gate: episode CLOSED because its cause cleared -- {}".format(why))
+        return standing
+    except Exception as exc:  # noqa: BLE001 -- a monitoring step may not break the pipeline
+        log("close_episode_if_cause_cleared error (swallowed; episode left as found): {}"
+            .format(exc))
+        return None
+
+
+def record_publish_hold(reason, next_opens, *, now=None):
+    """Record that the weekly window HELD this cycle, with when it next opens. Never raises.
+
+    A hold is not a refusal and not a publish, so it moves no episode field; it rides beside them
+    so a reader can say "held until Monday" instead of reading silence as health or as failure."""
+    try:
+        state = _read_publish_gate_state()
+        if state.get("state_unavailable"):
+            return False
+        state["publish_hold"] = {"reason": str(reason), "next_opens": next_opens,
+                                 "ts": float(now) if now is not None else time.time()}
+        _write_publish_gate_state(state)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        log("record_publish_hold error (swallowed): {}".format(exc))
+        return False
+
+
 def record_publish_gate_outcome(marker, rc, *, kind=None):
     """Route ONE run-complete processing return code into the publish-gate wedge
     detector. THE shared router for every caller that publishes a marker.
@@ -10098,6 +10219,11 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
     branch ran.
     """
     try:
+        # THE OPEN EPISODE'S CAUSE IS RE-ASKED FIRST, on every cycle the publisher actually ran --
+        # a weekly-window HOLD included, which is the cycle that used to leave a cleared cause
+        # reading FAILING until Monday. A lock-skip is excluded: the lock holder asks it.
+        if rc != EXIT_LOCK_SKIPPED:
+            close_episode_if_cause_cleared()
         if rc in NO_PUBLISH_EXIT_CODES:
             return "skipped"
         # ── THE OWED VERDICT IS TAKEN FIRST, AND FOR EVERY rc (2026-09-17) ───────────────────
@@ -10387,6 +10513,7 @@ def _process(marker_path_str):
         _archive_marker(marker)
         log("HOLD (weekly publish window): {} -- no regen/test/commit. Archived {}.".format(
             window["reason"], marker.name))
+        record_publish_hold(window["reason"], window.get("next_opens"))
         try:
             _refresh_published_liveness_on_skip(git_hash)
         except Exception as exc:  # never let liveness publishing break the hold path
